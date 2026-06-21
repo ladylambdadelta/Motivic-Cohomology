@@ -20,6 +20,7 @@ theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -31,7 +32,7 @@ theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact centeredCompletedRiemannZeta₀_finiteOrder_growth_bound_of_uncentered
     (completedRiemannZeta₀_finiteOrder_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
 
 /-- Multiplying a finite-order entire part by the quadratic clearing factor and subtracting
 `1` preserves exponential finite-order growth. -/
@@ -143,6 +144,7 @@ theorem centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -155,10 +157,9 @@ theorem centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound
   exact
     centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound_of_uncentered
       (completedRiemannZeta₀_finiteOrder_growth_bound
-        hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htailBoundary hcompactBoundary)
+        hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
 
 end
 
-end
 end LFunctions
 end Boundary

@@ -45,7 +45,7 @@ theorem completedZeroToCarrierZero_injective :
 theorem centeredCompletedRiemannZetaZeroCarrier_ne_zero_negHalf :
     centeredCompletedRiemannZetaZeroCarrier (-(1 / 2 : ℂ)) ≠ 0 := by
   have hleft : (1 / 2 : ℂ) + -(1 / 2 : ℂ) = 0 :=
-    add_right_neg (1 / 2 : ℂ)
+    add_neg_cancel (1 / 2 : ℂ)
   have hvalue :
       centeredCompletedRiemannZetaZeroCarrier (-(1 / 2 : ℂ)) = -1 := by
     calc

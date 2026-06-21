@@ -12,10 +12,6 @@ namespace LFunctions
 
 noncomputable section
 
-        ((⟨η, hS η η.2⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) φ) =
-      ∑ η in S, zetaZeroSideContribution η φ := by
-  exact Finset.sum_attach S (fun η : ℂ => zetaZeroSideContribution η φ)
-
 /-- Majorant for the zero-side contribution over the completed-zero locus. -/
 noncomputable def zetaZeroSideContributionMajorant
     (φ : ZetaAdmissibleFunction)
@@ -28,10 +24,11 @@ theorem norm_zetaZeroSideContribution_le_majorant
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     ‖zetaZeroSideContribution (ρ : ℂ) φ‖ ≤
       zetaZeroSideContributionMajorant φ ρ := by
-  change
+  exact
+    (show
     ‖zetaZeroSideContribution (ρ : ℂ) φ‖ ≤
-      ‖zetaZeroSideContribution (ρ : ℂ) φ‖
-  exact le_refl _
+      ‖zetaZeroSideContribution (ρ : ℂ) φ‖ from
+      le_refl _)
 
 /-- Multiplicity-weighted transform majorant for a completed-zero contribution. -/
 noncomputable def zetaZeroMultiplicityTransformMajorant
@@ -45,13 +42,14 @@ theorem zetaZeroMultiplicityTransformMajorant_nonnegative
     (φ : ZetaAdmissibleFunction)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     0 ≤ zetaZeroMultiplicityTransformMajorant φ ρ := by
-  change
+  exact
+    (show
     0 ≤
       ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ *
-        ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖
-  exact mul_nonneg
-    (norm_nonneg ((zetaZeroMultiplicity (ρ : ℂ) : ℂ)))
-    (norm_nonneg (zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))))
+        ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ from
+      mul_nonneg
+        (norm_nonneg ((zetaZeroMultiplicity (ρ : ℂ) : ℂ)))
+        (norm_nonneg (zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))))
 
 /-- Polynomial zero-side envelope for multiplicity-weighted transform values. -/
 noncomputable def zetaZeroMultiplicityTransformEnvelope
@@ -64,13 +62,14 @@ theorem zetaZeroMultiplicityTransformEnvelope_nonnegative
     {A : ℝ} (hA : 0 ≤ A) (k : ℕ)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     0 ≤ zetaZeroMultiplicityTransformEnvelope A k ρ := by
-  change 0 ≤ A * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ))
   have hheight :
       0 ≤ zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ)) :=
     zpow_nonneg
       (le_trans zero_le_one (zetaCompletedZeroCenteredHeight_ge_one ρ))
       (-(k + 3 : ℤ))
-  exact mul_nonneg hA hheight
+  exact
+    (show 0 ≤ A * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ)) from
+      mul_nonneg hA hheight)
 
 /-- Polynomial zero-side envelopes are summable over the completed-zero locus
 after choosing the envelope exponent beyond the zero-counting degree.
@@ -93,11 +92,12 @@ theorem summable_zetaZeroMultiplicityTransformEnvelope_of_counting_bound
           zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))) :=
     summable_completedZero_centeredHeight_negativePower_of_counting_bound
       C d k hCpos hcount
-  change
-    Summable
-      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-        A * zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ)))
-  exact hbase.const_mul A
+  exact
+    (show
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          A * zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))) from
+        hbase.mul_left A)
 
 /-- Polynomial growth envelope for completed-zero multiplicities. -/
 noncomputable def zetaZeroMultiplicityGrowthEnvelope
@@ -123,26 +123,28 @@ theorem zetaZeroMultiplicityGrowthEnvelope_nonnegative
     {M : ℝ} (hM : 0 < M) (d : ℕ)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     0 ≤ zetaZeroMultiplicityGrowthEnvelope M d ρ := by
-  change 0 ≤ M * zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ)
   have hheight :
       0 ≤ zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ) :=
     zpow_nonneg
       (le_trans zero_le_one (zetaCompletedZeroCenteredHeight_ge_one ρ))
       (d : ℤ)
-  exact mul_nonneg (le_of_lt hM) hheight
+  exact
+    (show 0 ≤ M * zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ) from
+      mul_nonneg (le_of_lt hM) hheight)
 
 /-- Spectral decay envelopes are nonnegative for positive constants. -/
 theorem zetaZeroSpectralEvalDecayEnvelope_nonnegative
     {B : ℝ} (hB : 0 < B) (N : ℕ)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     0 ≤ zetaZeroSpectralEvalDecayEnvelope B N ρ := by
-  change 0 ≤ B * zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ))
   have hheight :
       0 ≤ zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ)) :=
     zpow_nonneg
       (le_trans zero_le_one (zetaCompletedZeroCenteredHeight_ge_one ρ))
       (-(N : ℤ))
-  exact mul_nonneg (le_of_lt hB) hheight
+  exact
+    (show 0 ≤ B * zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ)) from
+      mul_nonneg (le_of_lt hB) hheight)
 
 /-- Growth-decay product envelopes reduce to one constant times one power product. -/
 theorem zetaZeroGrowthDecayProductEnvelope_eq_constant_mul_powerProduct
@@ -152,13 +154,14 @@ theorem zetaZeroGrowthDecayProductEnvelope_eq_constant_mul_powerProduct
       (M * B) *
         (zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ) *
           zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ))) := by
-  change
-    (M * zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ)) *
-        (B * zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ))) =
-      (M * B) *
-        (zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ) *
-          zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ)))
-  calc
+  exact
+    (show
+      (M * zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ)) *
+          (B * zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ))) =
+        (M * B) *
+          (zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ) *
+            zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ))) from
+    calc
     (M * zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ)) *
         (B * zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ))) =
         M *
@@ -202,7 +205,7 @@ theorem zetaZeroGrowthDecayProductEnvelope_eq_constant_mul_powerProduct
             zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ))) := by
       exact (mul_assoc M B
         (zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ) *
-          zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ)))).symm
+          zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ)))).symm)
 
 /-- If the decay exponent is chosen past the growth degree, the product power is bounded
 by the requested zero-tail decay power. -/
@@ -247,14 +250,19 @@ theorem zetaZeroGrowthDecayProductEnvelope_le_transformEnvelope_of_largeDecay
             zetaCompletedZeroCenteredHeight ρ ^ (-(d + (k + 3) + 1 : ℤ))) :=
     zetaZeroGrowthDecayProductEnvelope_eq_constant_mul_powerProduct
       M d B (d + (k + 3) + 1) ρ
-  change
-    zetaZeroGrowthDecayProductEnvelope M d B (d + (k + 3) + 1) ρ ≤
-      (M * B) * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ))
+  have htarget :
+      zetaZeroMultiplicityTransformEnvelope (M * B) k ρ =
+        (M * B) * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ)) :=
+    rfl
   exact Eq.subst
-    (motive := fun x : ℝ =>
-      x ≤ (M * B) * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ)))
-    hunfold.symm
-    hscaled
+    (motive := fun y : ℝ =>
+      zetaZeroGrowthDecayProductEnvelope M d B (d + (k + 3) + 1) ρ ≤ y)
+    htarget.symm
+    (Eq.subst
+      (motive := fun x : ℝ =>
+        x ≤ (M * B) * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ)))
+      hunfold.symm
+      hscaled)
 
 end
 end LFunctions

@@ -13,6 +13,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped Filter Topology
+open Asymptotics
 local notation "π" => Real.pi
 
 theorem real_isBigO_exp_eventually_le_pos_mul
@@ -25,41 +26,41 @@ theorem real_isBigO_exp_eventually_le_pos_mul
         f T ≤ D * Real.exp (c * T) := by
   match h.isBigOWith with
   | ⟨C, hC⟩ =>
-        have hnonneg :
-            ∀ᶠ T : ℝ in Filter.atTop,
-              0 ≤ Real.exp (c * T) :=
-          Filter.Eventually.of_forall
-            (fun T => le_of_lt (Real.exp_pos (c * T)))
-            exact
-              ⟨|C| + 1, add_pos_of_nonneg_of_pos (abs_nonneg C) zero_lt_one,
-                (hC.bound.and hnonneg).mono
-                  (fun T hT =>
-                    by
-                      let G : ℝ := Real.exp (c * T)
-                      let D : ℝ := |C| + 1
-                      have hf_le_norm : f T ≤ ‖f T‖ :=
-                        Real.le_norm_self (f T)
-                      have hC_le_abs : C ≤ |C| :=
-                        le_abs_self C
-                      have hC_le_D : C ≤ D :=
-                        le_trans hC_le_abs (le_add_of_nonneg_right zero_le_one)
-                      have hG_norm_nonneg : 0 ≤ ‖G‖ :=
-                        norm_nonneg G
-                      have hmul_le : C * ‖G‖ ≤ D * ‖G‖ :=
-                        mul_le_mul_of_nonneg_right hC_le_D hG_norm_nonneg
-                      have hG_norm : ‖G‖ = G :=
-                        Real.norm_of_nonneg hT.2
-                      have hmul_eq : D * ‖G‖ = D * G :=
-                        congrArg (fun x : ℝ => D * x) hG_norm
-                      calc
-                        f T ≤ ‖f T‖ :=
-                          hf_le_norm
-                        _ ≤ C * ‖G‖ :=
-                          hT.1
-                        _ ≤ D * ‖G‖ :=
-                          hmul_le
-                        _ = D * G :=
-                          hmul_eq)⟩
+      have hnonneg :
+          ∀ᶠ T : ℝ in Filter.atTop,
+            0 ≤ Real.exp (c * T) :=
+        Filter.Eventually.of_forall
+          (fun T => le_of_lt (Real.exp_pos (c * T)))
+      exact
+        ⟨|C| + 1, add_pos_of_nonneg_of_pos (abs_nonneg C) zero_lt_one,
+          (hC.bound.and hnonneg).mono
+            (fun T hT =>
+              by
+                let G : ℝ := Real.exp (c * T)
+                let D : ℝ := |C| + 1
+                have hf_le_norm : f T ≤ ‖f T‖ :=
+                  Real.le_norm_self (f T)
+                have hC_le_abs : C ≤ |C| :=
+                  le_abs_self C
+                have hC_le_D : C ≤ D :=
+                  le_trans hC_le_abs (le_add_of_nonneg_right zero_le_one)
+                have hG_norm_nonneg : 0 ≤ ‖G‖ :=
+                  norm_nonneg G
+                have hmul_le : C * ‖G‖ ≤ D * ‖G‖ :=
+                  mul_le_mul_of_nonneg_right hC_le_D hG_norm_nonneg
+                have hG_norm : ‖G‖ = G :=
+                  Real.norm_of_nonneg hT.2
+                have hmul_eq : D * ‖G‖ = D * G :=
+                  congrArg (fun x : ℝ => D * x) hG_norm
+                calc
+                  f T ≤ ‖f T‖ :=
+                    hf_le_norm
+                  _ ≤ C * ‖G‖ :=
+                    hT.1
+                  _ ≤ D * ‖G‖ :=
+                    hmul_le
+                  _ = D * G :=
+                    hmul_eq)⟩
 
 /-- Standard shifted-polynomial/exponential comparison used in finite-order
 envelope domination. -/
@@ -74,7 +75,7 @@ theorem finiteOrder_shiftedPower_isBigO_scaledPower
     pow_nonneg (le_of_lt (div_pos two_pos hc)) m
   exact
     IsBigO.of_bound K
-      (eventually_atTop.2
+      (Filter.eventually_atTop.2
         ⟨1, fun T hT =>
             have hT_nonneg : 0 ≤ T :=
               le_trans zero_le_one hT
@@ -97,10 +98,10 @@ theorem finiteOrder_shiftedPower_isBigO_scaledPower
             have htwoT_eq :
                 2 * T = (2 / c) * (c * T) := by
               calc
-                (2 / c) * (c * T) = ((2 / c) * c) * T :=
+                2 * T = ((2 / c) * c) * T := by
+                  exact (congrArg (fun x : ℝ => x * T) (div_mul_cancel₀ 2 (ne_of_gt hc))).symm
+                _ = (2 / c) * (c * T) :=
                   mul_assoc (2 / c) c T
-                _ = 2 * T := by
-                  exact congrArg (fun x : ℝ => x * T) (div_mul_cancel₀ 2 (ne_of_gt hc))
             have hbase_le :
                 1 + T ≤ (2 / c) * (c * T) :=
               Eq.subst
@@ -141,7 +142,7 @@ theorem finiteOrder_scaledPower_isBigO_exp_scaled
       fun T : ℝ => Real.exp (c * T) := by
   exact
     (Real.isLittleO_pow_exp_atTop (n := m)).isBigO.comp_tendsto
-      (Filter.Tendsto.const_mul_atTop hc tendsto_id)
+      (Filter.Tendsto.const_mul_atTop hc Filter.tendsto_id)
 
 /-- Shifted polynomial height is `O(exp (cT))` for every positive `c`. -/
 theorem finiteOrder_shiftedPower_isBigO_exp
@@ -167,11 +168,47 @@ theorem finiteOrder_verticalExponent_isBigO_exp
         (fun _T : ℝ => (1 : ℝ)) =O[Filter.atTop]
           fun T : ℝ => Real.exp (c * T) := by
       exact
-        Real.isBigO_one_exp_comp.2
-          ((Filter.Tendsto.const_mul_atTop hc tendsto_id))
-    exact
+        IsBigO.of_bound 1
+          (Filter.eventually_atTop.2
+            ⟨0, fun T hT =>
+              have hcT_nonneg : 0 ≤ c * T :=
+                mul_nonneg (le_of_lt hc) hT
+              have hone_le_exp : (1 : ℝ) ≤ Real.exp (c * T) := by
+                calc
+                  (1 : ℝ) = Real.exp 0 :=
+                    (Real.exp_zero).symm
+                  _ ≤ Real.exp (c * T) :=
+                    Real.exp_le_exp.mpr hcT_nonneg
+              have hnorm_one : ‖(1 : ℝ)‖ = (1 : ℝ) :=
+                norm_one
+              have hexp_nonneg : 0 ≤ Real.exp (c * T) :=
+                le_of_lt (Real.exp_pos (c * T))
+              have hnorm_exp : ‖Real.exp (c * T)‖ = Real.exp (c * T) :=
+                Real.norm_of_nonneg hexp_nonneg
+              have htarget :
+                  ‖(1 : ℝ)‖ ≤ (1 : ℝ) * ‖Real.exp (c * T)‖ :=
+                Eq.subst
+                  (motive := fun x : ℝ => ‖(1 : ℝ)‖ ≤ (1 : ℝ) * x)
+                  hnorm_exp.symm
+                  (Eq.subst
+                    (motive := fun x : ℝ => x ≤ (1 : ℝ) * Real.exp (c * T))
+                    hnorm_one.symm
+                    (Eq.subst
+                      (motive := fun x : ℝ => (1 : ℝ) ≤ x)
+                      (one_mul (Real.exp (c * T))).symm
+                      hone_le_exp))
+              htarget⟩)
+    have hmul_const :
+        (fun _T : ℝ => Real.log A * (1 : ℝ)) =O[Filter.atTop]
+          fun T : ℝ => Real.exp (c * T) :=
       (isBigO_const_mul_self (Real.log A)
         (fun _T : ℝ => (1 : ℝ)) Filter.atTop).trans hone
+    exact
+      hmul_const.congr_left
+        (fun _T =>
+          calc
+            Real.log A * (1 : ℝ) = Real.log A :=
+              mul_one (Real.log A))
   have hpoly :
       (fun T : ℝ => B * (1 + T) ^ m) =O[Filter.atTop]
         fun T : ℝ => Real.exp (c * T) := by
@@ -235,7 +272,7 @@ theorem finiteOrder_verticalEnvelope_eventually_le_doubleExponential
                     Real.exp (Real.log A + B * (1 + T) ^ m) ≤
                       Real.exp (D * Real.exp (c * T)) :=
                   Real.exp_le_exp.mpr hT
-                Eq.subst
+                exact Eq.subst
                   (motive := fun x : ℝ =>
                     x ≤ Real.exp (D * Real.exp (c * T)))
                   hleft_exp.symm
@@ -277,7 +314,7 @@ theorem finiteOrder_verticalEnvelope_isBigO_doubleExponential
                           one_mul ‖R‖
                         _ = R :=
                           hR_norm
-                    Eq.subst
+                    exact Eq.subst
                       (motive := fun x : ℝ =>
                         ‖A * Real.exp (B * (1 + T) ^ m)‖ ≤ x)
                       hone_norm.symm
@@ -312,7 +349,7 @@ theorem finiteOrder_stripEnvelope_isBigO_verticalEnvelope
         A * Real.exp ((B * (|a| + |b| + 2) ^ m) * (1 + ‖z.im‖) ^ m) := by
   exact
     IsBigO.of_bound 1
-      (eventually_inf_principal.mpr
+      (Filter.eventually_inf_principal.mpr
         (Filter.Eventually.of_forall
           (fun z hz =>
             let E₁ : ℝ := A * Real.exp (B * (1 + ‖z‖) ^ m)
@@ -406,7 +443,7 @@ theorem finiteOrder_verticalEnvelope_comp_im_isBigO_doubleExponential_on_closedS
                         one_mul ‖R‖
                       _ = R :=
                         hR_norm
-                  Eq.subst
+                  exact Eq.subst
                     (motive := fun x : ℝ => ‖E‖ ≤ x)
                     hone_norm.symm
                     (Eq.subst
@@ -480,7 +517,7 @@ theorem finiteOrder_function_isBigO_stripEnvelope_of_pointwise_strip_bound
       fun z : ℂ => A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact
     IsBigO.of_bound 1
-      (eventually_inf_principal.mpr
+      (Filter.eventually_inf_principal.mpr
         (Filter.Eventually.of_forall
           (fun z hz =>
             let E : ℝ := A * Real.exp (B * (1 + ‖z‖) ^ m)
@@ -525,7 +562,7 @@ theorem isBigO_on_openStrip_of_isBigO_on_closedStrip
   have hprincipal :
       𝓟 (Complex.re ⁻¹' Set.Ioo a b) ≤
         𝓟 {z : ℂ | a ≤ z.re ∧ z.re ≤ b} :=
-    principal_mono.2 hopen_subset_closed
+    Filter.principal_mono.2 hopen_subset_closed
   have hle_left :
       L ⊓ 𝓟 (Complex.re ⁻¹' Set.Ioo a b) ≤ L :=
     inf_le_left
@@ -684,7 +721,7 @@ theorem poleClearedRiemannZeta_rightHalfPlane_finiteOrder_growth_from_EulerMacla
                 _ ≤ H * A :=
                   mul_le_mul hsub_norm hzeta (norm_nonneg (riemannZeta z)) hH_nonneg
             have hH_le_expH : H ≤ Real.exp H :=
-              le_trans (le_add_of_nonneg_right zero_le_one) (add_one_le_exp H)
+              le_trans (le_add_of_nonneg_right zero_le_one) (Real.add_one_le_exp H)
             have hscaled :
                 H * A ≤ A * Real.exp H := by
               calc
@@ -758,17 +795,14 @@ theorem poleClearedRiemannZeta_one_two_strip_leftBoundary_growth_from_EulerMacla
       ∀ z : ℂ,
         z.re = 1 →
         1 ≤ ‖z.im‖ →
-        (∀ {x : ℝ},
-          (⌊2 + ‖z.im‖⌋₊ : ℝ) ≤ x →
-            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum z.im ⌊x⌋₊‖ ≤
-              8 * ((x / ‖z.im‖) + Real.sqrt (1 + ‖z.im‖)) * Real.log (2 + x)) →
+        boundaryLineOneVerticalTruncationHypotheses z →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   match riemannZeta_poleCleared_boundaryLine_one_growth_bound_ownerPrimitive with
   | ⟨A, B, m, hA, hB, hbound⟩ =>
       exact
         ⟨A, B, m, hA, hB,
-          fun z hz_re hz_im hpartial =>
+          fun z hz_re hz_im htrunc =>
             have hz_ne_one : z ≠ 1 :=
               fun hz_one =>
               have hz_im_zero : z.im = 0 := by
@@ -796,7 +830,7 @@ theorem poleClearedRiemannZeta_one_two_strip_leftBoundary_growth_from_EulerMacla
               (motive := fun w : ℂ =>
                 ‖w‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
               hpole.symm
-              (hbound z hz_re hz_im hpartial)⟩
+              (hbound z hz_re hz_im htrunc)⟩
 
 /-- Right boundary finite-order growth for the removable pole-cleared zeta on
 `Re s = 2`, from the Dirichlet-series estimate. -/
@@ -818,11 +852,6 @@ theorem poleClearedRiemannZeta_one_two_strip_diffContOnCl :
       (Complex.re ⁻¹' Set.Ioo 1 2) := by
   exact poleClearedRiemannZeta_rightCriticalStrip_diffContOnCl.mono
     (fun _z hz => ⟨lt_trans zero_lt_one hz.1, hz.2⟩)
-
-/-- Euler-Maclaurin cutoff used in the bounded strip `1 ≤ Re s ≤ 2`.
-
-The choice is height-comparable and avoids the zero cutoff; it is the same
-classical scale as the boundary-line Abel/Euler-Maclaurin truncation. -/
 
 end
 end LFunctions

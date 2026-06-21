@@ -14,6 +14,83 @@ noncomputable section
 open scoped Filter Topology
 local notation "π" => Real.pi
 
+/-- Helper: arithmetic normalization for far-right pole estimates. -/
+private lemma completedGrowth_one_add_neg_two_eq_neg_one : (1 : ℝ) + (-2) = -1 := by
+  calc
+    (1 : ℝ) + (-2) = 1 + (-(1 + 1)) := by
+      exact congrArg (fun x : ℝ => 1 + (-x)) (one_add_one_eq_two.symm)
+    _ = 1 + ((-1) + (-1)) := by
+      exact congrArg (fun x : ℝ => 1 + x) (neg_add 1 1)
+    _ = (1 + (-1)) + (-1) := by
+      exact (add_assoc 1 (-1) (-1)).symm
+    _ = 0 + (-1) := by
+      exact congrArg (fun x : ℝ => x + (-1)) (add_neg_cancel 1)
+    _ = -1 := by
+      exact zero_add (-1)
+
+/-- Helper: normalize the two reciprocal pole terms. -/
+private lemma completedGrowth_add_one_one_eq_add_two (P : ℝ) :
+    P + 1 + 1 = P + 2 := by
+  calc
+    P + 1 + 1 = P + (1 + 1) := by
+      exact add_assoc P 1 1
+    _ = P + 2 := by
+      exact congrArg (fun x : ℝ => P + x) one_add_one_eq_two
+
+/-- Helper: coefficient regrouping for completed-zeta pole bounds. -/
+private lemma completedGrowth_pole_coeff_regroup (P : ℝ) :
+    (P + 2) + (2 * P + 1) = 3 * P + 3 := by
+  calc
+    (P + 2) + (2 * P + 1) =
+        (P + 2 * P) + (2 + 1) := by
+      exact add_add_add_comm P 2 (2 * P) 1
+    _ = (P + 2 * P) + 3 := by
+      have h : (2 : ℝ) + 1 = 3 := two_add_one_eq_three
+      exact congrArg (fun x : ℝ => (P + 2 * P) + x) h
+    _ = ((1 : ℝ) * P + 2 * P) + 3 := by
+      exact congrArg (fun x : ℝ => (x + 2 * P) + 3) (one_mul P).symm
+    _ = ((1 : ℝ) + 2) * P + 3 := by
+      exact congrArg (fun x : ℝ => x + 3) (add_mul 1 2 P).symm
+    _ = 3 * P + 3 := by
+      have h : (1 : ℝ) + 2 = 3 :=
+        (add_comm (1 : ℝ) 2).trans two_add_one_eq_three
+      exact congrArg (fun x : ℝ => x * P + 3) h
+
+/-- Helper: a nonnegative pole product absorbs the two pole terms. -/
+private lemma completedGrowth_add_two_le_three_mul_add_one
+    {P : ℝ} (hP_nonneg : 0 ≤ P) :
+    P + 2 ≤ 3 * (P + 1) := by
+  have h_two_P : 0 ≤ 2 * P :=
+    mul_nonneg (le_of_lt zero_lt_two) hP_nonneg
+  have h_sum_nonneg : 0 ≤ 2 * P + 1 :=
+    add_nonneg h_two_P zero_le_one
+  have h_poly : 3 * P + 3 = 3 * (P + 1) := by
+    calc
+      3 * P + 3 = 3 * P + 3 * 1 := by
+        exact congrArg (fun t : ℝ => 3 * P + t) (mul_one 3).symm
+      _ = 3 * (P + 1) := by
+        exact (mul_add 3 P 1).symm
+  calc
+    P + 2 = (P + 2) + 0 := by
+      exact (add_zero (P + 2)).symm
+    _ ≤ (P + 2) + (2 * P + 1) := by
+      exact add_le_add_left h_sum_nonneg (P + 2)
+    _ = 3 * P + 3 := by
+      exact completedGrowth_pole_coeff_regroup P
+    _ = 3 * (P + 1) := h_poly
+
+/-- Helper: reciprocal norm bound once the denominator has norm at least one. -/
+private lemma completedGrowth_norm_one_div_le_one
+    {z : ℂ} (hz_norm_ge_one : (1 : ℝ) ≤ ‖z‖) :
+    ‖1 / z‖ ≤ (1 : ℝ) := by
+  calc
+    ‖1 / z‖ = ‖(1 : ℂ)‖ / ‖z‖ := by
+      exact norm_div (1 : ℂ) z
+    _ = 1 / ‖z‖ := by
+      exact congrArg (fun x : ℝ => x / ‖z‖) norm_one
+    _ ≤ 1 := by
+      exact div_le_one_of_le₀ hz_norm_ge_one (norm_nonneg z)
+
 /-- Direct compact bound for the pole-cleared completed-zeta entire part in the
 right-critical strip.
 
@@ -137,14 +214,14 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
             z.im = (-(2 * (n : ℂ))).im := by
               exact congrArg Complex.im hn
             _ = -(2 * (n : ℂ)).im := Complex.neg_im _
-            _ = -((2 : ℂ).im * (n : ℂ).re + (2 : ℂ).re * (n : ℂ).im) :=
+            _ = -((2 : ℂ).re * (n : ℂ).im + (2 : ℂ).im * (n : ℂ).re) :=
                 congrArg Neg.neg (Complex.mul_im 2 (n : ℂ))
-            _ = -(0 * (n : ℂ).re + (2 : ℂ).re * 0) :=
+            _ = -((2 : ℂ).re * 0 + 0 * (n : ℂ).re) :=
                 congrArg Neg.neg (congrArg₂ (· + ·)
-                  (congrArg (· * (n : ℂ).re) (Complex.ofReal_im 2))
-                  (congrArg (· * 0) (Complex.ofReal_im n)))
+                  (congrArg ((2 : ℂ).re * ·) (Complex.ofReal_im n))
+                  (congrArg (· * (n : ℂ).re) (Complex.ofReal_im 2)))
             _ = -(0 + 0) :=
-                congrArg Neg.neg (congrArg₂ (· + ·) (zero_mul _) (mul_zero _))
+                congrArg Neg.neg (congrArg₂ (· + ·) (mul_zero _) (zero_mul _))
             _ = 0 := by
                 exact (congrArg Neg.neg (add_zero 0)).trans neg_zero
         have him_norm_zero : ‖z.im‖ = 0 :=
@@ -234,25 +311,9 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
         hz_im)
       him_abs_le
   have hinv_z_le_one : ‖1 / z‖ ≤ (1 : ℝ) := by
-    have hz_norm_pos : 0 < ‖z‖ :=
-      lt_of_lt_of_le zero_lt_one hz_norm_ge_one
-    calc
-      ‖1 / z‖ = ‖(1 : ℂ)‖ / ‖z‖ := by
-        exact norm_div (1 : ℂ) z
-      _ = 1 / ‖z‖ := by
-        exact congrArg (fun x : ℝ => x / ‖z‖) Complex.norm_one
-      _ ≤ 1 := by
-        exact div_le_one_of_le₀ hz_norm_pos hz_norm_ge_one
+    exact completedGrowth_norm_one_div_le_one hz_norm_ge_one
   have hinv_one_sub_le_one : ‖1 / (1 - z)‖ ≤ (1 : ℝ) := by
-    have hnorm_pos : 0 < ‖1 - z‖ :=
-      lt_of_lt_of_le zero_lt_one hone_sub_norm_ge_one
-    calc
-      ‖1 / (1 - z)‖ = ‖(1 : ℂ)‖ / ‖1 - z‖ := by
-        exact norm_div (1 : ℂ) (1 - z)
-      _ = 1 / ‖1 - z‖ := by
-        exact congrArg (fun x : ℝ => x / ‖1 - z‖) Complex.norm_one
-      _ ≤ 1 := by
-        exact div_le_one_of_le₀ hnorm_pos hone_sub_norm_ge_one
+    exact completedGrowth_norm_one_div_le_one hone_sub_norm_ge_one
   have hpole_factor :
       ‖riemannZeta z‖ ≤ ‖(z - 1) * riemannZeta z‖ := by
     have hnorm_pos : 0 < ‖z - 1‖ :=
@@ -281,7 +342,7 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
           (norm_add_le (completedRiemannZeta z) (1 / z))
           ‖1 / (1 - z)‖
       _ = ‖completedRiemannZeta z‖ + ‖1 / z‖ + ‖1 / (1 - z)‖ := by
-        exact add_assoc ‖completedRiemannZeta z‖ ‖1 / z‖ ‖1 / (1 - z)‖
+        rfl
   let P : ℝ := ‖(z - 1) * riemannZeta z‖ * ‖Complex.Gammaℝ z‖
   have hP_nonneg : 0 ≤ P :=
     mul_nonneg (norm_nonneg _) (norm_nonneg _)
@@ -305,20 +366,10 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
       _ ≤ P + 1 + 1 := by
         exact add_le_add_left hinv_one_sub_le_one (P + 1)
       _ = P + 2 := by
-        exact (add_assoc P 1 1).symm.trans (congrArg (P + ·) one_add_one)
+        exact completedGrowth_add_one_one_eq_add_two P
   have hP_two_le_three :
       P + 2 ≤ 3 * (P + 1) := by
-    have h_two_pos : (0 : ℝ) ≤ 2 := zero_le_two_real  -- numeric fact
-    have h_two_P : 0 ≤ 2 * P := mul_nonneg h_two_pos hP_nonneg
-    have h_one_pos : (0 : ℝ) < 1 := zero_lt_one_real
-    have h_sum_pos : 0 < 2 * P + 1 := by
-      calc 0 < 1 := h_one_pos
-        _ ≤ 1 + 2 * P := le_add_of_nonneg_right h_two_P
-        _ = 2 * P + 1 := add_comm 1 (2 * P)
-    have h_sum_nonneg : 0 ≤ 2 * P + 1 := le_of_lt h_sum_pos
-    calc P + 2 ≤ (P + 2) + (2 * P + 1) := add_le_add_left h_sum_nonneg (P + 2)
-      _ = 3 * P + 3 := pole_bound_coeff_regroup P
-      _ = 3 * (P + 1) := poly_coeff_identity P
+    exact completedGrowth_add_two_le_three_mul_add_one hP_nonneg
   le_trans hnorm_decomp (le_trans hsum_bound hP_two_le_three)⟩
 
 /-- A nonnegative exponent has exponential at least one.
@@ -437,7 +488,7 @@ theorem poleCleared_zeta_gamma_rightCriticalStrip_verticalTail_product_plus_one_
                         (Az * Real.exp ((Bz + Bg + 1) * H ^ (mz + mg))) *
                           (Ag * Real.exp ((Bz + Bg + 1) * H ^ (mz + mg))) :=
                     mul_le_mul hzeta_to_target hGamma_to_target (norm_nonneg _)
-                      (mul_nonneg (le_of_lt hAg)
+                      (mul_nonneg (le_of_lt hAz)
                         (le_of_lt (Real.exp_pos ((Bz + Bg + 1) * H ^ (mz + mg)))))
                   have hcollapse :
                       (Az * Real.exp ((Bz + Bg + 1) * H ^ (mz + mg))) *
@@ -446,7 +497,9 @@ theorem poleCleared_zeta_gamma_rightCriticalStrip_verticalTail_product_plus_one_
                     let x := (Bz + Bg + 1) * H ^ (mz + mg)
                     calc
                       (Az * Real.exp x) * (Ag * Real.exp x) =
-                        (Az * (Real.exp x * Ag)) * Real.exp x := by
+                        ((Az * Real.exp x) * Ag) * Real.exp x := by
+                          exact (mul_assoc (Az * Real.exp x) Ag (Real.exp x)).symm
+                      _ = (Az * (Real.exp x * Ag)) * Real.exp x := by
                           exact congrArg (· * Real.exp x) (mul_assoc Az (Real.exp x) Ag)
                       _ = (Az * (Ag * Real.exp x)) * Real.exp x := by
                           exact congrArg (· * Real.exp x) (congrArg (Az * ·) (mul_comm (Real.exp x) Ag))
@@ -460,6 +513,11 @@ theorem poleCleared_zeta_gamma_rightCriticalStrip_verticalTail_product_plus_one_
                       _ = (Az * Ag) * Real.exp (2 * x) := by
                           have h : x + x = 2 * x := (two_mul x).symm
                           exact congrArg (Az * Ag * ·) (congrArg Real.exp h)
+                      _ = (Az * Ag) *
+                          Real.exp (2 * (Bz + Bg + 1) * H ^ (mz + mg)) := by
+                          exact congrArg
+                            (fun y : ℝ => (Az * Ag) * Real.exp y)
+                            (mul_assoc 2 (Bz + Bg + 1) (H ^ (mz + mg))).symm
                   exact hmul.trans_eq hcollapse
                 have hsum_bound :
                     ‖(z - 1) * riemannZeta z‖ * ‖Complex.Gammaℝ z‖ + 1 ≤
@@ -473,7 +531,12 @@ theorem poleCleared_zeta_gamma_rightCriticalStrip_verticalTail_product_plus_one_
                       (Az * Ag) * Real.exp (2 * (Bz + Bg + 1) * H ^ (mz + mg)) +
                           Real.exp (2 * (Bz + Bg + 1) * H ^ (mz + mg)) =
                         (Az * Ag + 1) * Real.exp (2 * (Bz + Bg + 1) * H ^ (mz + mg)) := by
-                    exact (add_mul (Az * Ag) 1 (Real.exp (2 * (Bz + Bg + 1) * H ^ (mz + mg)))).symm
+                    let E : ℝ := Real.exp (2 * (Bz + Bg + 1) * H ^ (mz + mg))
+                    calc
+                      (Az * Ag) * E + E = (Az * Ag) * E + 1 * E := by
+                        exact congrArg (fun x : ℝ => (Az * Ag) * E + x) (one_mul E).symm
+                      _ = (Az * Ag + 1) * E := by
+                        exact (add_mul (Az * Ag) 1 E).symm
                   exact hleft.trans_eq hright
                 hsum_bound⟩
 
@@ -495,7 +558,7 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_growth_bound_of_
         0 < A ∧
         0 < B ∧
         ∀ z : ℂ,
-          0 ≤ z.re →
+          0 < z.re →
           z.re ≤ 2 →
           1 ≤ ‖z.im‖ →
           ‖Complex.Gammaℝ z‖ ≤
@@ -525,8 +588,8 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_growth_bound_of_
                 have htarget :
                     D * (Apg * Real.exp (Bpg * (1 + ‖z‖) ^ mpg)) =
                       D * Apg * Real.exp (Bpg * (1 + ‖z‖) ^ mpg) := by
-                  exact mul_assoc D Apg (Real.exp (Bpg * (1 + ‖z‖) ^ mpg))
-                le_trans (hnorm_bound z hz0 hz2 hz_im)
+                  exact (mul_assoc D Apg (Real.exp (Bpg * (1 + ‖z‖) ^ mpg))).symm
+                le_trans (hnorm_bound z (le_of_lt hz0) hz2 hz_im)
                   (hscaled.trans_eq htarget)⟩
 
 /-- Vertical-tail bound for the pole-cleared completed-zeta entire part in the
@@ -536,6 +599,7 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_growth_bound
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -550,7 +614,7 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_growth_bound
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact completedRiemannZeta₀_rightCriticalStrip_verticalTail_growth_bound_of_zeta_and_gamma
     (riemannZeta_rightCriticalStrip_poleCleared_verticalTail_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
     (Gammaℝ_rightCriticalStrip_verticalTail_stirling_growth_bound hbranch)
 
 /-- Compact and vertical-tail completed-zeta estimates combine to the right-critical-strip
@@ -626,6 +690,7 @@ theorem completedRiemannZeta₀_rightCriticalStrip_finiteOrder_growth_bound
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -640,7 +705,7 @@ theorem completedRiemannZeta₀_rightCriticalStrip_finiteOrder_growth_bound
   exact completedRiemannZeta₀_rightCriticalStrip_finiteOrder_growth_bound_of_compact_and_tail
     completedRiemannZeta₀_rightCriticalStrip_compact_growth_bound
     (completedRiemannZeta₀_rightCriticalStrip_verticalTail_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
 
 /-- Far-right logarithmic Stirling bound for the archimedean factor.
 
@@ -716,7 +781,7 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
                 (motive := fun x : ℝ => (0 : ℝ) < x)
                 hre_zero
                 hz_re_pos
-            exact (not_lt_of_ge (le_refl (0 : ℝ))) hzero_lt_zero
+            (not_lt_of_ge (le_refl (0 : ℝ))) hzero_lt_zero
           have hGamma_ne : Complex.Gammaℝ z ≠ 0 :=
             Complex.Gammaℝ_ne_zero_of_re_pos hz_re_pos
           have hcompleted_factor :
@@ -771,12 +836,18 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
                     exact sub_eq_add_neg 1 z.re
                   _ ≤ 1 + (-2) := add_le_add_left (neg_le_neg hz_re) 1
                   _ = -1 := by
-                    exact one_add_neg_two_eq_neg_one
+                    exact completedGrowth_one_add_neg_two_eq_neg_one
+              have hle_zero : (1 - z.re) ≤ 0 :=
+                le_trans hle (neg_nonpos.mpr zero_le_one)
               have habs_eq : |1 - z.re| = -(1 - z.re) :=
-                abs_of_nonpos hle
+                abs_of_nonpos hle_zero
               have hone_le : (1 : ℝ) ≤ -(1 - z.re) := by
-                have : -((-1 : ℝ)) ≤ -(1 - z.re) := neg_le_neg hle
-                exact (neg_neg (1 : ℝ)).symm ▸ this
+                have hneg : -((-1 : ℝ)) ≤ -(1 - z.re) :=
+                  neg_le_neg hle
+                exact Eq.subst
+                  (motive := fun x : ℝ => x ≤ -(1 - z.re))
+                  (neg_neg (1 : ℝ))
+                  hneg
               exact Eq.subst
                 (motive := fun x : ℝ => (1 : ℝ) ≤ |x|)
                 hre_eq.symm
@@ -786,25 +857,9 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
                   hone_le)
             exact le_trans hone_le_abs hre_abs_le_norm
           have hinv_z_le_one : ‖1 / z‖ ≤ (1 : ℝ) := by
-            have hz_norm_pos : 0 < ‖z‖ :=
-              lt_of_lt_of_le zero_lt_one hz_norm_ge_one
-            calc
-              ‖1 / z‖ = ‖(1 : ℂ)‖ / ‖z‖ := by
-                exact norm_div (1 : ℂ) z
-              _ = 1 / ‖z‖ := by
-                exact congrArg (fun x : ℝ => x / ‖z‖) Complex.norm_one
-              _ ≤ 1 := by
-                exact div_le_one_of_le₀ hz_norm_pos hz_norm_ge_one
+            exact completedGrowth_norm_one_div_le_one hz_norm_ge_one
           have hinv_one_sub_le_one : ‖1 / (1 - z)‖ ≤ (1 : ℝ) := by
-            have hnorm_pos : 0 < ‖1 - z‖ :=
-              lt_of_lt_of_le zero_lt_one hone_sub_norm_ge_one
-            calc
-              ‖1 / (1 - z)‖ = ‖(1 : ℂ)‖ / ‖1 - z‖ := by
-                exact norm_div (1 : ℂ) (1 - z)
-              _ = 1 / ‖1 - z‖ := by
-                exact congrArg (fun x : ℝ => x / ‖1 - z‖) Complex.norm_one
-              _ ≤ 1 := by
-                exact div_le_one_of_le₀ hnorm_pos hone_sub_norm_ge_one
+            exact completedGrowth_norm_one_div_le_one hone_sub_norm_ge_one
           have hnorm_decomp :
               ‖completedRiemannZeta₀ z‖ ≤
                 ‖completedRiemannZeta z‖ + ‖1 / z‖ + ‖1 / (1 - z)‖ := by
@@ -819,7 +874,7 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
                   (norm_add_le (completedRiemannZeta z) (1 / z))
                   ‖1 / (1 - z)‖
               _ = ‖completedRiemannZeta z‖ + ‖1 / z‖ + ‖1 / (1 - z)‖ := by
-                exact add_assoc ‖completedRiemannZeta z‖ ‖1 / z‖ ‖1 / (1 - z)‖
+                rfl
           have hcompleted_norm :
               ‖completedRiemannZeta z‖ =
                 ‖riemannZeta z‖ * ‖Complex.Gammaℝ z‖ := by
@@ -844,20 +899,10 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
               _ ≤ P + 1 + 1 := by
                 exact add_le_add_left hinv_one_sub_le_one (P + 1)
               _ = P + 2 := by
-                exact (add_assoc P 1 1).symm.trans (congrArg (P + ·) one_add_one)
+                exact completedGrowth_add_one_one_eq_add_two P
           have hP_two_le_three :
               P + 2 ≤ 3 * (P + 1) := by
-            have h_two_pos : (0 : ℝ) ≤ 2 := zero_le_two_real  -- numeric fact
-            have h_two_P : 0 ≤ 2 * P := mul_nonneg h_two_pos hP_nonneg
-            have h_one_pos : (0 : ℝ) < 1 := zero_lt_one_real
-            have h_sum_pos : 0 < 2 * P + 1 := by
-              calc 0 < 1 := h_one_pos
-                _ ≤ 1 + 2 * P := le_add_of_nonneg_right h_two_P
-                _ = 2 * P + 1 := add_comm 1 (2 * P)
-            have h_sum_nonneg : 0 ≤ 2 * P + 1 := le_of_lt h_sum_pos
-            calc P + 2 ≤ (P + 2) + (2 * P + 1) := add_le_add_left h_sum_nonneg (P + 2)
-              _ = 3 * P + 3 := pole_bound_coeff_regroup P
-              _ = 3 * (P + 1) := poly_coeff_identity P
+            exact completedGrowth_add_two_le_three_mul_add_one hP_nonneg
           le_trans hnorm_decomp (le_trans hsum_bound hP_two_le_three)⟩
 
 /-- The pole-cleared completed-zeta normalization has finite-order growth in the far-right
@@ -907,11 +952,11 @@ theorem completedRiemannZeta₀_farRightHalfPlane_poleCleared_growth_bound
                           exact Real.add_one_le_exp (Bg * H ^ mg)
                     have hgamma_target_nonneg : 0 ≤ Ag * Real.exp (Bg * H ^ mg) :=
                       mul_nonneg (le_of_lt hAg) (le_of_lt (Real.exp_pos (Bg * H ^ mg)))
-                    have hproduct_bound :
-                        ‖riemannZeta z‖ * ‖Complex.Gammaℝ z‖ ≤
-                          Az * (Ag * Real.exp (Bg * H ^ mg)) :=
-                      mul_le_mul (hzeta_bound z hz) (hGamma_bound z hz) (norm_nonneg _)
-                        hgamma_target_nonneg
+                      have hproduct_bound :
+                          ‖riemannZeta z‖ * ‖Complex.Gammaℝ z‖ ≤
+                            Az * (Ag * Real.exp (Bg * H ^ mg)) :=
+                        mul_le_mul (hzeta_bound z hz) (hGamma_bound z hz) (norm_nonneg _)
+                          (le_of_lt hAz)
                     have hproduct_reassoc :
                         Az * (Ag * Real.exp (Bg * H ^ mg)) =
                           (Az * Ag) * Real.exp (Bg * H ^ mg) := by
@@ -928,7 +973,12 @@ theorem completedRiemannZeta₀_farRightHalfPlane_poleCleared_growth_bound
                           (Az * Ag) * Real.exp (Bg * H ^ mg) +
                               Real.exp (Bg * H ^ mg) =
                             (Az * Ag + 1) * Real.exp (Bg * H ^ mg) := by
-                        exact (add_mul (Az * Ag) 1 (Real.exp (Bg * H ^ mg))).symm
+                        let E : ℝ := Real.exp (Bg * H ^ mg)
+                        calc
+                          (Az * Ag) * E + E = (Az * Ag) * E + 1 * E := by
+                            exact congrArg (fun x : ℝ => (Az * Ag) * E + x) (one_mul E).symm
+                          _ = (Az * Ag + 1) * E := by
+                            exact (add_mul (Az * Ag) 1 E).symm
                       exact hleft.trans_eq hright
                     have hscaled :
                         D * (‖riemannZeta z‖ * ‖Complex.Gammaℝ z‖ + 1) ≤
@@ -937,7 +987,7 @@ theorem completedRiemannZeta₀_farRightHalfPlane_poleCleared_growth_bound
                     have htarget :
                         D * ((Az * Ag + 1) * Real.exp (Bg * H ^ mg)) =
                           D * (Az * Ag + 1) * Real.exp (Bg * H ^ mg) := by
-                      exact mul_assoc D (Az * Ag + 1) (Real.exp (Bg * H ^ mg))
+                      exact (mul_assoc D (Az * Ag + 1) (Real.exp (Bg * H ^ mg))).symm
                     le_trans (hnorm_bound z hz) (hscaled.trans_eq htarget)⟩
 
 /-- Finite-order growth in the far-right half-plane for the uncentered entire
@@ -961,6 +1011,7 @@ theorem completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -973,7 +1024,7 @@ theorem completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact completedRiemannZeta₀_strictRightHalfPlane_finiteOrder_growth_bound_of_strip_and_farRight
     (completedRiemannZeta₀_rightCriticalStrip_finiteOrder_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
     (completedRiemannZeta₀_farRightHalfPlane_finiteOrder_growth_bound hbranch)
 
 /-- Left half-plane finite-order growth for the uncentered entire completed-zeta part. -/
@@ -982,6 +1033,7 @@ theorem completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -994,7 +1046,7 @@ theorem completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound_of_strictRightHalfPlane
     (completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
 
 /-- Owner finite-order growth for the uncentered entire completed-zeta part.
 
@@ -1006,6 +1058,7 @@ theorem completedRiemannZeta₀_finiteOrder_growth_bound_ownerZeta
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -1017,9 +1070,9 @@ theorem completedRiemannZeta₀_finiteOrder_growth_bound_ownerZeta
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact completedRiemannZeta₀_global_finiteOrder_growth_bound_of_strictRight_and_leftHalfPlanes
     (completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
     (completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
 
 /-- Finite-order growth for the uncentered entire completed-zeta part. -/
 theorem completedRiemannZeta₀_finiteOrder_growth_bound
@@ -1027,6 +1080,7 @@ theorem completedRiemannZeta₀_finiteOrder_growth_bound
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -1037,7 +1091,7 @@ theorem completedRiemannZeta₀_finiteOrder_growth_bound
         ‖completedRiemannZeta₀ z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact completedRiemannZeta₀_finiteOrder_growth_bound_ownerZeta
-    hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htailBoundary hcompactBoundary
+    hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary
 
 end
 end LFunctions

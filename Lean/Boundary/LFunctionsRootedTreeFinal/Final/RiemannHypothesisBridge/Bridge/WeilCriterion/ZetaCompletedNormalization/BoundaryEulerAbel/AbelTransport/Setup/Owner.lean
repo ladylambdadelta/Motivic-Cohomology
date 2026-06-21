@@ -139,127 +139,6 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_abelTail_norm_le_explicit
     boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
       t ht hpartial hNM
 
-/-- Abel summation in the precise finite form needed for the boundary-line tail:
-coefficients are the logarithmic-phase oscillatory partial sums of `n^{-it}` and
-the weight is `1/x`. -/
-theorem abelSummation_boundaryLineOnePointRealParam_finite_tail_identity
-    (t : ℝ)
-    {a b : ℝ}
-    (ha : 0 ≤ a)
-    (hab : a ≤ b)
-    (hf_diff :
-      ∀ x ∈ Set.Icc a b, DifferentiableAt ℝ (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x)
-    (hf_int :
-      IntegrableOn
-        (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
-        (Set.Icc a b)) :
-    ∑ k ∈ Finset.Ioc ⌊a⌋₊ ⌊b⌋₊,
-        ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)) =
-      ((b : ℂ)⁻¹ : ℂ) *
-          (∑ k ∈ Finset.Icc 0 ⌊b⌋₊,
-            (k : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-        ((a : ℂ)⁻¹ : ℂ) *
-          (∑ k ∈ Finset.Icc 0 ⌊a⌋₊,
-            (k : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-        ∫ x in Set.Ioc a b,
-          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
-            (∑ k ∈ Finset.Icc 0 ⌊x⌋₊,
-              (k : ℂ) ^ (-(t : ℂ) * Complex.I)) := by
-  exact sum_mul_eq_sub_sub_integral_mul
-    (fun k : ℕ => (k : ℂ) ^ (-(t : ℂ) * Complex.I))
-    ha
-    hab
-    hf_diff
-    hf_int
-
-/-- Abel summation specialized to natural endpoints.  The floor terms are left
-visible so the theorem is definitionally aligned with mathlib's statement. -/
-theorem abelSummation_boundaryLineOnePointRealParam_finite_nat_tail_identity
-    (t : ℝ)
-    {N M : ℕ}
-    (hNM : N ≤ M)
-    (hf_diff :
-      ∀ x ∈ Set.Icc ((N : ℕ) : ℝ) ((M : ℕ) : ℝ),
-        DifferentiableAt ℝ (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x)
-    (hf_int :
-      IntegrableOn
-        (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
-        (Set.Icc ((N : ℕ) : ℝ) ((M : ℕ) : ℝ))) :
-    ∑ k ∈ Finset.Ioc ⌊((N : ℕ) : ℝ)⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
-        ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)) =
-      ((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ) *
-          (∑ k ∈ Finset.Icc 0 ⌊((M : ℕ) : ℝ)⌋₊,
-            (k : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-        ((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ) *
-          (∑ k ∈ Finset.Icc 0 ⌊((N : ℕ) : ℝ)⌋₊,
-            (k : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-        ∫ x in Set.Ioc ((N : ℕ) : ℝ) ((M : ℕ) : ℝ),
-          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
-            (∑ k ∈ Finset.Icc 0 ⌊x⌋₊,
-              (k : ℂ) ^ (-(t : ℂ) * Complex.I)) := by
-  have ha : (0 : ℝ) ≤ ((N : ℕ) : ℝ) :=
-    Nat.cast_nonneg N
-  have hab : ((N : ℕ) : ℝ) ≤ ((M : ℕ) : ℝ) :=
-    Nat.cast_le.mpr hNM
-  exact abelSummation_boundaryLineOnePointRealParam_finite_tail_identity
-    t ha hab hf_diff hf_int
-
-/-- Abel summation with the canonical boundary-line cutoff as the left endpoint.
-The floor terms are kept visible so this remains a direct transport of mathlib's
-finite Abel identity. -/
-theorem abelSummation_boundaryLineOnePointRealParam_cutoff_nat_tail_identity
-    (t : ℝ)
-    {M : ℕ}
-    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
-    (hf_diff :
-      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-        DifferentiableAt ℝ (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x)
-    (hf_int :
-      IntegrableOn
-        (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
-        (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ))) :
-    ∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
-        ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)) =
-      ((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ) *
-          (∑ k ∈ Finset.Icc 0 ⌊((M : ℕ) : ℝ)⌋₊,
-            (k : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-        (((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
-          (∑ k ∈ Finset.Icc 0 ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊,
-            (k : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-        ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
-            (∑ k ∈ Finset.Icc 0 ⌊x⌋₊,
-              (k : ℂ) ^ (-(t : ℂ) * Complex.I)) := by
-  exact abelSummation_boundaryLineOnePointRealParam_finite_nat_tail_identity
-    t hNM hf_diff hf_int
-
-/-- Exact finite Abel summation endpoint/deivative decomposition at the canonical
-boundary-line cutoff, written in terms of the owner partial-sum primitive. -/
-theorem abelSummation_boundaryLineOnePointRealParam_cutoff_finite_tail_endpoint_derivative_identity
-    (t : ℝ)
-    {M : ℕ}
-    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
-    (hf_diff :
-      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-        DifferentiableAt ℝ (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x)
-    (hf_int :
-      IntegrableOn
-        (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
-        (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ))) :
-    ∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
-        ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)) =
-      ((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ) *
-          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
-            ⌊((M : ℕ) : ℝ)⌋₊ -
-        (((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
-          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
-            ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ -
-        ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
-            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊ := by
-  exact abelSummation_boundaryLineOnePointRealParam_cutoff_nat_tail_identity
-    t hNM hf_diff hf_int
-
 /-- The right endpoint in the finite Abel decomposition is controlled by the
 reciprocal weight times the owner partial-sum bound. -/
 theorem abelSummation_boundaryLineOnePointRealParam_right_endpoint_norm_le
@@ -280,14 +159,19 @@ theorem abelSummation_boundaryLineOnePointRealParam_right_endpoint_norm_le
       ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ =
           ‖((((M : ℕ) : ℝ) : ℂ))‖⁻¹ := by
         exact norm_inv ((((M : ℕ) : ℝ) : ℂ))
-      _ = ‖((M : ℝ))‖⁻¹ := by
-        exact congrArg Inv.inv (Complex.norm_ofReal (M : ℝ))
+      _ = |(M : ℝ)|⁻¹ := by
+        exact congrArg Inv.inv (RCLike.norm_ofReal (K := ℂ) (M : ℝ))
       _ = (M : ℝ)⁻¹ := by
         have hM_nonneg : 0 ≤ (M : ℝ) :=
           Nat.cast_nonneg M
-        exact congrArg Inv.inv (Real.norm_of_nonneg hM_nonneg)
+        exact congrArg Inv.inv (abs_of_nonneg hM_nonneg)
       _ = 1 / (M : ℝ) := by
         exact (one_div (M : ℝ)).symm
+  have hM_factor_nonneg : 0 ≤ (1 / (M : ℝ)) := by
+    exact Eq.subst
+      (motive := fun r : ℝ => 0 ≤ r)
+      hM_factor
+      (norm_nonneg (((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)))
   calc
     ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
         boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
@@ -299,8 +183,11 @@ theorem abelSummation_boundaryLineOnePointRealParam_right_endpoint_norm_le
             (boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
               ⌊((M : ℕ) : ℝ)⌋₊)
     _ ≤ (1 / (M : ℝ)) * K := by
-          exact mul_le_mul (le_of_eq hM_factor) hpartial hK_nonneg
-            (norm_nonneg (((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)))
+          exact mul_le_mul (le_of_eq hM_factor) hpartial
+            (norm_nonneg
+              (boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+                ⌊((M : ℕ) : ℝ)⌋₊))
+            hM_factor_nonneg
 
 /-- The cutoff endpoint in the finite Abel decomposition is controlled by the
 cutoff reciprocal weight times the owner partial-sum bound. -/
@@ -322,14 +209,19 @@ theorem abelSummation_boundaryLineOnePointRealParam_cutoff_endpoint_norm_le
       ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ =
           ‖((((N : ℕ) : ℝ) : ℂ))‖⁻¹ := by
         exact norm_inv ((((N : ℕ) : ℝ) : ℂ))
-      _ = ‖((N : ℝ))‖⁻¹ := by
-        exact congrArg Inv.inv (Complex.norm_ofReal (N : ℝ))
+      _ = |(N : ℝ)|⁻¹ := by
+        exact congrArg Inv.inv (RCLike.norm_ofReal (K := ℂ) (N : ℝ))
       _ = (N : ℝ)⁻¹ := by
         have hN_nonneg : 0 ≤ (N : ℝ) :=
           Nat.cast_nonneg N
-        exact congrArg Inv.inv (Real.norm_of_nonneg hN_nonneg)
+        exact congrArg Inv.inv (abs_of_nonneg hN_nonneg)
       _ = 1 / (N : ℝ) := by
         exact (one_div (N : ℝ)).symm
+  have hN_factor_nonneg : 0 ≤ (1 / (N : ℝ)) := by
+    exact Eq.subst
+      (motive := fun r : ℝ => 0 ≤ r)
+      hN_factor
+      (norm_nonneg (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)))
   calc
     ‖(((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
         boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
@@ -345,8 +237,11 @@ theorem abelSummation_boundaryLineOnePointRealParam_cutoff_endpoint_norm_le
             (boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
               ⌊(((N : ℕ) : ℝ))⌋₊)
     _ ≤ (1 / (N : ℝ)) * K := by
-          exact mul_le_mul (le_of_eq hN_factor) hpartial hK_nonneg
-            (norm_nonneg (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)))
+          exact mul_le_mul (le_of_eq hN_factor) hpartial
+            (norm_nonneg
+              (boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+                ⌊(((N : ℕ) : ℝ))⌋₊))
+            hN_factor_nonneg
 
 /-- Finite Abel reduction for the post-cutoff boundary-line oscillatory tail.
 

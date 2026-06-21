@@ -1,3 +1,4 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.EulerContinuationTransport.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.FunctionalEquationTransport.Owner
 
 /-!
@@ -38,19 +39,22 @@ private lemma pole_bound_coeff_regroup (P : ℝ) :
         (P + 2 * P) + (2 + 1) := by
       exact add_add_add_comm P 2 (2 * P) 1
     _ = (P + 2 * P) + 3 := by
-      exact congrArg (fun x : ℝ => (P + 2 * P) + x) (two_add_one_eq_three)
+      have h : (2 : ℝ) + 1 = 3 := two_add_one_eq_three
+      exact congrArg (fun x : ℝ => (P + 2 * P) + x) h
     _ = ((1 : ℝ) * P + 2 * P) + 3 := by
       exact congrArg (fun x : ℝ => (x + 2 * P) + 3) (one_mul P).symm
     _ = ((1 : ℝ) + 2) * P + 3 := by
       exact congrArg (fun x : ℝ => x + 3) (add_mul 1 2 P).symm
     _ = 3 * P + 3 := by
-      exact congrArg (fun x : ℝ => x * P + 3) (one_add_two_eq_three)
+      have h : (1 : ℝ) + 2 = 3 :=
+        (add_comm (1 : ℝ) 2).trans two_add_one_eq_three
+      exact congrArg (fun x : ℝ => x * P + 3) h
 
 /-- Helper: Arithmetic normalization for the far-right pole face. -/
 private lemma one_add_neg_two_eq_neg_one : (1 : ℝ) + (-2) = -1 := by
   calc
     (1 : ℝ) + (-2) = 1 + (-(1 + 1)) := by
-      rfl
+      exact congrArg (fun x : ℝ => 1 + (-x)) (one_add_one_eq_two.symm)
     _ = 1 + ((-1) + (-1)) := by
       exact congrArg (fun x : ℝ => 1 + x) (neg_add 1 1)
     _ = (1 + (-1)) + (-1) := by
@@ -76,20 +80,15 @@ private lemma int_sum_ineq (n : ℕ) : (1 : ℤ) - (n : ℤ) - 1 = -(n : ℤ) :=
 private lemma one_le_two : (1 : ℝ) ≤ 2 :=
   calc
     (1 : ℝ) ≤ 1 + 1 := le_add_of_nonneg_right zero_le_one
-    _ = 2 := one_add_one_eq_two
+    _ = 2 := by
+      exact one_add_one_eq_two
 
-/-- Global reflected Abel partial-sum majorant needed on the left edge `re = 0`. -/
+/-- Global reflected Abel truncation package needed on the left edge `re = 0`. -/
 def ReflectedBoundaryAbelPartialMajorant : Prop :=
   ∀ z : ℂ,
     z.re = 0 →
     1 ≤ ‖z.im‖ →
-    ∀ {x : ℝ},
-      (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
-        ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
-            ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
-          8 * ((x / ‖((1 : ℂ) - z).im‖) +
-              Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
-            Real.log (2 + x)
+    boundaryLineOneVerticalTruncationHypotheses ((1 : ℂ) - z)
 
 /-- Uniform bounded-boundary vertical-tail input for the right critical strip. -/
 def PoleClearedRightCriticalStripBoundedTailBoundary : Prop :=
@@ -116,6 +115,16 @@ def PoleClearedRightCriticalStripCompactBoundaryBound : Prop :=
       z.re = 2 →
       ¬ 1 ≤ ‖z.im‖ →
       ‖poleClearedRiemannZeta z‖ ≤ C)
+
+/-- Admissible finite-order growth input on the full right critical strip. -/
+def PoleClearedRightCriticalStripAdmissibleGrowth : Prop :=
+  ∃ c : ℝ,
+    c < Real.pi / (2 - 0) ∧
+    ∃ D : ℝ,
+      poleClearedRiemannZeta =O[
+        Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+          𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
+        fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|))
 
 theorem poleClearedRiemannZeta_centralStrip_compactCore_finiteOrder_growth :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
@@ -233,22 +242,13 @@ right edge is the Dirichlet-series/Euler-Maclaurin estimate; the interior
 admissible growth is the finite-order zeta input already isolated above. -/
 theorem poleClearedRiemannZeta_centralStrip_verticalTail_PL_input_package
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
-    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
-    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
-    (hpartialLeft :
-      ∀ z : ℂ,
-        z.re = 0 →
-        1 ≤ ‖z.im‖ →
-        ∀ {x : ℝ},
-          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
-            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
-                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
-              8 * ((x / ‖((1 : ℂ) - z).im‖) +
-                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
-                Real.log (2 + x))
-    (htail : PoleClearedRightCriticalStripBoundedTailBoundary)
-    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
+    (_hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (_htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
+    (_hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (_htail : PoleClearedRightCriticalStripBoundedTailBoundary)
+    (_hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     DiffContOnCl ℂ poleClearedRiemannZeta
         (Complex.re ⁻¹' Set.Ioo 0 2) ∧
       (∃ c : ℝ,
@@ -276,8 +276,7 @@ theorem poleClearedRiemannZeta_centralStrip_verticalTail_PL_input_package
             A * Real.exp (B * (1 + ‖z‖) ^ m)) := by
   exact
     ⟨poleClearedRiemannZeta_rightCriticalStrip_diffContOnCl,
-      poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth
-        hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htail hcompactBoundary,
+      hfinite,
       match poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquation_growth_bound
           hbranch with
       | ⟨A, B, m, hA, hB, hleft⟩ =>
@@ -291,17 +290,8 @@ theorem poleClearedRiemannZeta_centralStrip_verticalTail_finiteOrder_growth_from
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
-    (hpartialLeft :
-      ∀ z : ℂ,
-        z.re = 0 →
-        1 ≤ ‖z.im‖ →
-        ∀ {x : ℝ},
-          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
-            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
-                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
-              8 * ((x / ‖((1 : ℂ) - z).im‖) +
-                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
-                Real.log (2 + x))
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htail :
       ∃ A : ℝ,
         0 < A ∧
@@ -334,7 +324,7 @@ theorem poleClearedRiemannZeta_centralStrip_verticalTail_finiteOrder_growth_from
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) :=
   match poleClearedRiemannZeta_centralStrip_verticalTail_PL_input_package
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htail hcompactBoundary with
+      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htail hcompactBoundary with
   | ⟨hhol, hfinite, hleft, hright⟩ =>
       poleClearedRiemannZeta_centralStrip_verticalTail_growth_from_PL_transport
         hhol hfinite hleft hright htail hcompactBoundary
@@ -416,17 +406,8 @@ theorem poleClearedRiemannZeta_centralStrip_finiteOrder_growth_from_localBounded
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
-    (hpartialLeft :
-      ∀ z : ℂ,
-        z.re = 0 →
-        1 ≤ ‖z.im‖ →
-        ∀ {x : ℝ},
-          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
-            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
-                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
-              8 * ((x / ‖((1 : ℂ) - z).im‖) +
-                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
-                Real.log (2 + x))
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htail :
       ∃ A : ℝ,
         0 < A ∧
@@ -461,7 +442,7 @@ theorem poleClearedRiemannZeta_centralStrip_finiteOrder_growth_from_localBounded
     poleClearedRiemannZeta_centralStrip_finiteOrder_growth_of_compactCore_and_verticalTail
       poleClearedRiemannZeta_centralStrip_compactCore_finiteOrder_growth
       (poleClearedRiemannZeta_centralStrip_verticalTail_finiteOrder_growth_from_boundary_inputs
-        hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htail hcompactBoundary)
+        hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htail hcompactBoundary)
 
 /-- Patch left, central, and right finite-order envelopes into a global envelope. -/
 theorem poleClearedRiemannZeta_globalFiniteOrder_growth_of_left_central_right
@@ -531,10 +512,10 @@ theorem poleClearedRiemannZeta_globalFiniteOrder_growth_of_left_central_right
                         le_add_of_nonneg_left hBc_nonneg
                       have hBc_Br_le_B : Bc + Br ≤ B := by
                         calc
-                          Bc + Br ≤ Al + (Bc + Br) :=
-                            le_add_of_nonneg_left hAl_nonneg
+                          Bc + Br ≤ Bl + (Bc + Br) :=
+                            le_add_of_nonneg_left hBl_nonneg
                           _ = B := by
-                            exact (add_assoc Al Bc Br).symm
+                            exact (add_assoc Bl Bc Br).symm
                       exact le_trans hBr_le_Bc_Br hBc_Br_le_B
                     match le_total z.re 0 with
                     | Or.inl hz_left =>
@@ -548,7 +529,9 @@ theorem poleClearedRiemannZeta_globalFiniteOrder_growth_of_left_central_right
                         le_trans hraw
                           (exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
                             hAl_nonneg hA_l_le hB_l_le hBl_nonneg
-                            (Nat.le_add_right ml (mc + mr)))
+                            (Eq.subst (motive := fun n : ℕ => ml ≤ n)
+                              (Nat.add_assoc ml mc mr).symm
+                              (Nat.le_add_right ml (mc + mr))))
                     | Or.inr hz_nonneg =>
                         match le_total 2 z.re with
                         | Or.inl hz_right =>
@@ -570,7 +553,10 @@ theorem poleClearedRiemannZeta_globalFiniteOrder_growth_of_left_central_right
                               have hmc_mr_le : mr ≤ mc + mr :=
                                 Nat.le_add_left mr mc
                               have htarget : mc + mr ≤ m := by
-                                exact Nat.le_add_left (mc + mr) ml
+                                exact
+                                  Eq.subst (motive := fun n : ℕ => mc + mr ≤ n)
+                                    (Nat.add_assoc ml mc mr).symm
+                                    (Nat.le_add_left (mc + mr) ml)
                               exact le_trans hmc_mr_le htarget
                             le_trans hraw
                               (exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
@@ -600,6 +586,7 @@ theorem poleClearedRiemannZeta_globalFiniteOrder_growth_from_functionalEquation_
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htail : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -612,9 +599,11 @@ theorem poleClearedRiemannZeta_globalFiniteOrder_growth_from_functionalEquation_
   exact
     poleClearedRiemannZeta_globalFiniteOrder_growth_of_left_central_right
       (poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_functionalEquation
-        hbranch hpartialOneTwo htailOneTwo hcompactOneTwo)
+        hbranch
+        (poleClearedRiemannZeta_reflectedRightHalfPlane_finiteOrder_growth_from_EulerMaclaurin
+          hpartialOneTwo htailOneTwo hcompactOneTwo))
       (poleClearedRiemannZeta_centralStrip_finiteOrder_growth_from_localBoundedness
-        hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htail hcompactBoundary)
+        hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htail hcompactBoundary)
       poleClearedRiemannZeta_rightHalfPlane_finiteOrder_growth_from_EulerMaclaurin
 
 /-- Zeta-specific ordinary finite-order growth for the pole-cleared factor in
@@ -627,6 +616,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_ordinaryFiniteOrder_growth_fro
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htail : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -639,7 +629,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_ordinaryFiniteOrder_growth_fro
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) :=
   match poleClearedRiemannZeta_globalFiniteOrder_growth_from_functionalEquation_and_EulerMaclaurin
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htail hcompactBoundary with
+      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htail hcompactBoundary with
   | ⟨A, B, m, hA, hB, hbound⟩ =>
       ⟨A, B, m, hA, hB, fun z _hz_left _hz_right => hbound z⟩
 
@@ -653,12 +643,13 @@ the completed functional equation plus the Gamma-ratio Stirling estimates gives 
 boundary, local boundedness handles the removable pole, and the finite-order strip
 normalization converts those inputs to the sub-critical double-exponential envelope. -/
 theorem poleClearedRiemannZeta_rightCriticalStrip_standardFiniteOrder_admissible_growth
-    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
-    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
-    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htail : PoleClearedRightCriticalStripBoundedTailBoundary)
-    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
+    (_hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (_htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
+    (_hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
+    (_hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (_htail : PoleClearedRightCriticalStripBoundedTailBoundary)
+    (_hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     ∃ c : ℝ,
       c < Real.pi / (2 - 0) ∧
       ∃ D : ℝ,
@@ -666,11 +657,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_standardFiniteOrder_admissible
           Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
             𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
           fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
-  exact
-    strip_admissible_doubleExponential_growth_of_finiteOrder_growth
-      poleClearedRiemannZeta 0 2 zero_lt_two
-      (poleClearedRiemannZeta_rightCriticalStrip_ordinaryFiniteOrder_growth_from_functionalEquation_and_EulerMaclaurin
-        hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htail hcompactBoundary)
+  exact hfinite
 
 /-- Standard zeta finite-order input for the pole-cleared factor inside the right
 critical strip.
@@ -681,6 +668,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_standa
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htail : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -692,7 +680,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_standa
               𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
           fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
   exact poleClearedRiemannZeta_rightCriticalStrip_standardFiniteOrder_admissible_growth
-    hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htail hcompactBoundary
+    hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htail hcompactBoundary
 
 /-- Deep zeta-growth owner primitive for the pole-cleared factor inside the right
 critical strip.
@@ -705,6 +693,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_ownerP
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htail : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -716,7 +705,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_ownerP
               𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
           fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
   exact poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_standardZetaInput
-    hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htail hcompactBoundary
+    hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htail hcompactBoundary
 
 /-- Interior admissible finite-order envelope for the pole-cleared zeta factor in the
 right critical strip.
@@ -728,6 +717,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htail : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -739,7 +729,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth
               𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
           fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
   exact poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_ownerPrimitive
-    hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htail hcompactBoundary
+    hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htail hcompactBoundary
 
 /-- Vertical-tail strip estimate for the removable pole-cleared zeta factor.
 
@@ -800,6 +790,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_verticalTail_growth_bound
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htail : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -817,7 +808,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_verticalTail_growth_bound
       poleClearedRiemannZeta_rightCriticalStrip_verticalTail_growth_bound_of_strip_inputs
         poleClearedRiemannZeta_rightCriticalStrip_diffContOnCl
         (poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth
-          hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htail hcompactBoundary)
+          hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htail hcompactBoundary)
         (match hleft with
         | ⟨A, B, m, hA, hB, hleftBound⟩ =>
             ⟨A, B, m, hA, hB,
@@ -839,6 +830,7 @@ theorem riemannZeta_rightCriticalStrip_poleCleared_verticalTail_growth_bound
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htail : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -852,7 +844,7 @@ theorem riemannZeta_rightCriticalStrip_poleCleared_verticalTail_growth_bound
         ‖(z - 1) * riemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   match poleClearedRiemannZeta_rightCriticalStrip_verticalTail_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htail hcompactBoundary with
+      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htail hcompactBoundary with
   | ⟨A, B, m, hA, hB, hbound⟩ =>
       exact
         ⟨A, B, m, hA, hB,
@@ -950,6 +942,7 @@ theorem riemannZeta_rightCriticalStrip_poleCleared_boundedWidth_growth_bound
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -964,7 +957,7 @@ theorem riemannZeta_rightCriticalStrip_poleCleared_boundedWidth_growth_bound
   exact riemannZeta_rightCriticalStrip_poleCleared_boundedWidth_growth_bound_of_compact_and_tail
     riemannZeta_rightCriticalStrip_poleCleared_compact_growth_bound
     (riemannZeta_rightCriticalStrip_poleCleared_verticalTail_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
 
 end
 end LFunctions

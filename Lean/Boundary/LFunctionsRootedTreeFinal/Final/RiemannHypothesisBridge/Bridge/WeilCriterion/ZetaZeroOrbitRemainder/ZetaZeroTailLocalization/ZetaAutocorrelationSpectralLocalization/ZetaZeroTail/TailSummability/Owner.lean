@@ -20,34 +20,43 @@ theorem zetaZeroSideContributionMajorant_eq_multiplicityTransformMajorant
       zetaZeroMultiplicityTransformMajorant φ ρ := by
   have hmajorant_unfold :
       zetaZeroSideContributionMajorant φ ρ =
-        ‖-((zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
-            zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))‖ :=
+        ‖zetaZeroSideContribution (ρ : ℂ) φ‖ :=
     rfl
+  have hcontribution_unfold :
+      ‖zetaZeroSideContribution (ρ : ℂ) φ‖ =
+        ‖(-(zetaZeroMultiplicity (ρ : ℂ) : ℂ)) *
+            zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ :=
+    congrArg norm (zetaZeroSideContribution_def (ρ : ℂ) φ)
   have htransform_unfold :
       zetaZeroMultiplicityTransformMajorant φ ρ =
         ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ *
           ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ :=
     rfl
   have hnorm :
-      ‖-((zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
-          zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))‖ =
+      ‖(-(zetaZeroMultiplicity (ρ : ℂ) : ℂ)) *
+          zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ =
         ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ *
           ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ := by
     calc
-      ‖-((zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
-          zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))‖ =
-          ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
-            zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ := by
-        exact norm_neg
-          ((zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
-            zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))
+      ‖(-(zetaZeroMultiplicity (ρ : ℂ) : ℂ)) *
+          zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ =
+          ‖(-(zetaZeroMultiplicity (ρ : ℂ) : ℂ))‖ *
+            ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ := by
+        exact norm_mul
+          (-(zetaZeroMultiplicity (ρ : ℂ) : ℂ))
+          (zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))
       _ =
           ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ *
             ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ := by
-        exact norm_mul
+        exact congrArg
+          (fun x : ℝ => x *
+            ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖)
+          (norm_neg
           (zetaZeroMultiplicity (ρ : ℂ) : ℂ)
-          (zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))
-  exact Eq.trans hmajorant_unfold (Eq.trans hnorm htransform_unfold.symm)
+          )
+  exact Eq.trans hmajorant_unfold
+    (Eq.trans hcontribution_unfold
+      (Eq.trans hnorm htransform_unfold.symm))
 
 /-- Zero-counting, multiplicity, and Paley-Wiener transform decay make the
 multiplicity-weighted transform majorant summable over the completed-zero locus. -/
@@ -56,6 +65,7 @@ theorem summable_zetaZeroMultiplicityTransformMajorant
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
@@ -63,9 +73,10 @@ theorem summable_zetaZeroMultiplicityTransformMajorant
     Summable
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
         zetaZeroMultiplicityTransformMajorant φ ρ) := by
-  match exists_zetaZeroMultiplicityTransformEnvelope_bound
+  exact match exists_zetaZeroMultiplicityTransformEnvelope_bound
       hbranch
       hpartialOneTwo htailOneTwo hcompactOneTwo
+      hfinite
       hpartialLeft htailBoundary hcompactBoundary φ with
   | ⟨A, k, _hApos, henv, hbound⟩ =>
       have hnormBound :
@@ -84,7 +95,7 @@ theorem summable_zetaZeroMultiplicityTransformMajorant
           ‖zetaZeroMultiplicityTransformMajorant φ ρ‖ =
               zetaZeroMultiplicityTransformMajorant φ ρ := hnorm
           _ ≤ zetaZeroMultiplicityTransformEnvelope A k ρ := hbound ρ
-      exact Summable.of_norm_bounded
+      Summable.of_norm_bounded
         (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
           zetaZeroMultiplicityTransformEnvelope A k ρ)
         henv
@@ -97,6 +108,7 @@ theorem summable_zetaZeroSideContributionMajorant
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
@@ -111,6 +123,7 @@ theorem summable_zetaZeroSideContributionMajorant
     summable_zetaZeroMultiplicityTransformMajorant
       hbranch
       hpartialOneTwo htailOneTwo hcompactOneTwo
+      hfinite
       hpartialLeft htailBoundary hcompactBoundary φ
   have hfun :
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
@@ -119,9 +132,10 @@ theorem summable_zetaZeroSideContributionMajorant
           zetaZeroMultiplicityTransformMajorant φ ρ) := by
     funext ρ
     exact zetaZeroSideContributionMajorant_eq_multiplicityTransformMajorant φ ρ
-  exact
-    match hfun with
-    | rfl => hsum
+  exact Eq.subst
+    (motive := fun u : {ρ : ℂ // ZetaCompletedZero ρ} → ℝ => Summable u)
+    hfun.symm
+    hsum
 
 /-- The completed zero-side contribution is summable over the completed zero locus.
 
@@ -132,6 +146,7 @@ theorem summable_zetaZeroSideContribution
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
@@ -146,6 +161,7 @@ theorem summable_zetaZeroSideContribution
     summable_zetaZeroSideContributionMajorant
       hbranch
       hpartialOneTwo htailOneTwo hcompactOneTwo
+      hfinite
       hpartialLeft htailBoundary hcompactBoundary φ
   have hmajorant_norm :
       Summable

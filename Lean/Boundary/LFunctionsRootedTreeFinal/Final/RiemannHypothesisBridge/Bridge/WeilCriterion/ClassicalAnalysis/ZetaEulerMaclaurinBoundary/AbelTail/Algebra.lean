@@ -22,7 +22,7 @@ theorem Complex.neg_sub_mul_eq_ofReal_sub_mul_for_abelTail
   calc
     -(((y : ℂ) - (x : ℂ)) * z) =
         (-((y : ℂ) - (x : ℂ))) * z := by
-      exact neg_mul ((y : ℂ) - (x : ℂ)) z
+      exact (neg_mul ((y : ℂ) - (x : ℂ)) z).symm
     _ = ((x : ℂ) - (y : ℂ)) * z := by
       exact congrArg (fun c : ℂ => c * z) hneg_sub
     _ = (((x - y : ℝ) : ℂ) * z) := by

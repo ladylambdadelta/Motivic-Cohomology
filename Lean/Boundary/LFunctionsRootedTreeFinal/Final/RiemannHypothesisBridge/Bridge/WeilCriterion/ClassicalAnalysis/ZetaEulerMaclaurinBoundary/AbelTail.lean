@@ -12,6 +12,22 @@ namespace LFunctions
 
 noncomputable section
 
+open scoped Filter Topology
+open Filter
+
+/-- The explicit cutoff partial-sum hypothesis needed by the finite Abel-tail
+owner theorem. -/
+def Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound
+    (t : ℝ) : Prop :=
+  ∀ M : ℕ,
+    ⌊2 + ‖t‖⌋₊ ≤ M →
+      ‖∑ k ∈ Finset.Ioc
+          ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊
+          ⌊((M : ℕ) : ℝ)⌋₊,
+          ((k : ℂ)⁻¹ : ℂ) *
+            ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t
+
 /-- Fixed-constant form of the positive Abel damping step for the boundary
 line tail. -/
 theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAbel_constant
@@ -19,6 +35,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAb
     (hfinite :
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+          Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
           ∀ N : ℕ,
             1 ≤ N →
               ∀ M : ℕ,
@@ -29,18 +46,19 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAb
                     A * Real.log (2 + ‖t‖)) :
     ∀ t : ℝ,
       1 ≤ ‖t‖ →
+        Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
         ∀ N : ℕ,
           1 ≤ N →
             ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
               ‖∑' n : ℕ,
                 if N < n then
-                  ((n : ℂ)⁻¹ : ℂ) *
-                    ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
-                      ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+                    ((n : ℂ)⁻¹ : ℂ) *
+                      ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
+                      (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
                 else
                   0‖ ≤
                 A * Real.log (2 + ‖t‖) := by
-  intro t ht N hN
+  intro t ht hphase N hN
   let a : ℕ → ℂ :=
     fun n : ℕ =>
       ((n : ℂ)⁻¹ : ℂ) *
@@ -50,50 +68,75 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAb
         N ≤ M →
           ‖∑ n ∈ Finset.Ioc N M, a n‖ ≤ A * Real.log (2 + ‖t‖) := by
     intro M hNM
-    exact hfinite t ht N hN M hNM
+    exact hfinite t ht hphase N hN M hNM
   have hsummable_tail :
       ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
         Summable
           (fun n : ℕ =>
             if N < n then
-              a n * ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+              a n * (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
             else
               0) := by
-    filter_upwards [eventually_mem_nhdsWithin] with σ hσ
-    have hdirichlet :
-        Summable
-          (fun n : ℕ =>
-            ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹) :=
-      Complex.boundaryLineOnePointRealParam_abelDirichletSeries_summable_for_tail
-        t σ hσ
-  have htail_dirichlet :
-      Summable
-          (fun n : ℕ =>
-            if N < n then
-              ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹
-            else
-              0) := by
-      exact hdirichlet.congr_cofinite
-        (by
-          filter_upwards [eventually_ge_atTop (N + 1)] with n hn
-          have hn_tail : N < n := Nat.lt_of_succ_le hn
-          exact if_pos hn_tail)
-  exact htail_dirichlet.congr
-    (fun n =>
-      match Classical.em (N < n) with
-      | Or.inl hn_tail =>
-          have hn_pos : 0 < n :=
-            Nat.lt_of_lt_of_le Nat.zero_lt_one (le_of_lt (lt_of_le_of_lt hN hn_tail))
-          if_pos hn_tail ▸
-            (Complex.boundaryLineOnePointRealParam_abelDampedDirichletTerm_eq_weighted
-              t σ hn_pos).symm
-      | Or.inr hn_tail =>
-          if_neg hn_tail ▸ rfl)
+    exact (eventually_mem_nhdsWithin :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ), σ ∈ Set.Ioi (1 : ℝ)).mono
+      (fun σ hσ =>
+        have hdirichlet :
+            Summable
+              (fun n : ℕ =>
+                ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹) :=
+          Complex.boundaryLineOnePointRealParam_abelDirichletSeries_summable_for_tail
+            t σ hσ
+        have htail_dirichlet :
+            Summable
+                (fun n : ℕ =>
+                  if N < n then
+                    ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹
+                  else
+                    0) := by
+          exact hdirichlet.congr_cofinite
+            (Nat.cofinite_eq_atTop ▸
+              ((eventually_ge_atTop (N + 1)).mono
+                (fun n hn =>
+                  have hn_tail : N < n := Nat.lt_of_succ_le hn
+                  (if_pos hn_tail).symm)))
+        htail_dirichlet.congr
+          (fun n =>
+            match Classical.em (N < n) with
+            | Or.inl hn_tail =>
+                have hn_pos : 0 < n :=
+                  Nat.lt_of_lt_of_le Nat.zero_lt_one (le_of_lt (lt_of_le_of_lt hN hn_tail))
+                calc
+                  (if N < n then
+                    ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹
+                  else
+                    0) =
+                      ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹ :=
+                    if_pos hn_tail
+                  _ = a n * (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ) :=
+                    Complex.boundaryLineOnePointRealParam_abelDampedDirichletTerm_eq_weighted
+                      t σ hn_pos
+                  _ = if N < n then
+                        a n * (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
+                      else
+                        0 :=
+                    (if_pos hn_tail).symm
+            | Or.inr hn_tail =>
+                calc
+                  (if N < n then
+                    ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹
+                  else
+                    0) = 0 :=
+                    if_neg hn_tail
+                  _ = if N < n then
+                        a n * (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
+                      else
+                        0 :=
+                    (if_neg hn_tail).symm))
   have hdamped :
       ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
         ‖∑' n : ℕ,
           if N < n then
-            a n * ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+            a n * (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
           else
             0‖ ≤
           A * Real.log (2 + ‖t‖) :=
@@ -107,6 +150,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAb
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+          Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
           ∀ N : ℕ,
             1 ≤ N →
               ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
@@ -114,7 +158,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAb
                   if N < n then
                     ((n : ℂ)⁻¹ : ℂ) *
                       ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
-                        ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+                        (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
                   else
                     0‖ ≤
                   A * Real.log (2 + ‖t‖) := by
@@ -137,6 +181,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_standard :
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+          Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
           ∀ N : ℕ,
             1 ≤ N →
               ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
@@ -144,7 +189,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_standard :
                   if N < n then
                     ((n : ℂ)⁻¹ : ℂ) *
                       ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
-                        ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+                        (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
                   else
                     0‖ ≤
                   A * Real.log (2 + ‖t‖) := by
@@ -157,6 +202,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_of_finiteAbel
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+          Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
           ∀ N : ℕ,
             1 ≤ N →
               ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
@@ -164,7 +210,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_of_finiteAbel
                   if N < n then
                     ((n : ℂ)⁻¹ : ℂ) *
                       ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
-                        ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+                        (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
                   else
                     0‖ ≤
                   A * Real.log (2 + ‖t‖) := by
@@ -177,6 +223,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_damped_c
     (hbound :
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+          Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
           ∀ N : ℕ,
             1 ≤ N →
               ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
@@ -184,12 +231,13 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_damped_c
                   if N < n then
                     ((n : ℂ)⁻¹ : ℂ) *
                       ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
-                        ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+                        (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
                   else
                     0‖ ≤
                   A * Real.log (2 + ‖t‖)) :
     ∀ t : ℝ,
       1 ≤ ‖t‖ →
+        Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
         ∀ N : ℕ,
           1 ≤ N →
             ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) -
@@ -197,7 +245,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_damped_c
                 ((n : ℂ)⁻¹ : ℂ) *
                   ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
               A * Real.log (2 + ‖t‖) := by
-  intro t ht N hN
+  intro t ht hphase N hN
   have htendsto :
       Tendsto
         (fun σ : ℝ =>
@@ -205,7 +253,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_damped_c
             if N < n then
               ((n : ℂ)⁻¹ : ℂ) *
                 ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
-                  ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+                  (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
             else
               0)
         (𝓝[>] (1 : ℝ))
@@ -222,24 +270,25 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_damped_c
           if N < n then
             ((n : ℂ)⁻¹ : ℂ) *
               ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
-                ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+                (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
           else
             0‖ ≤
           A * Real.log (2 + ‖t‖) :=
-    hbound t ht N hN
+    hbound t ht hphase N hN
   exact
-    le_of_tendsto_of_tendsto'
+    le_of_tendsto_of_tendsto
+      (htendsto.norm)
       (tendsto_const_nhds : Tendsto (fun _ : ℝ => A * Real.log (2 + ‖t‖))
         (𝓝[>] (1 : ℝ)) (𝓝 (A * Real.log (2 + ‖t‖))))
-      (htendsto.norm)
       heventually
 
 theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_damped
     (hbounded :
       ∃ A : ℝ,
         0 < A ∧
-        ∀ t : ℝ,
-          1 ≤ ‖t‖ →
+          ∀ t : ℝ,
+            1 ≤ ‖t‖ →
+              Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
             ∀ N : ℕ,
               1 ≤ N →
                 ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
@@ -247,7 +296,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_damped
                     if N < n then
                       ((n : ℂ)⁻¹ : ℂ) *
                         ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
-                          ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+                          (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
                     else
                       0‖ ≤
                     A * Real.log (2 + ‖t‖)) :
@@ -255,6 +304,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_damped
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+          Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
           ∀ N : ℕ,
             1 ≤ N →
               ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) -
@@ -277,6 +327,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_finiteAb
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+          Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
           ∀ N : ℕ,
             1 ≤ N →
               ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) -
@@ -295,6 +346,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound :
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+          Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
           ∀ N : ℕ,
             1 ≤ N →
               ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) -
@@ -311,6 +363,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryDirichletTail_bound :
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+          Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
           ∀ N : ℕ,
             1 ≤ N →
               ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) -
@@ -321,7 +374,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryDirichletTail_bound :
     | ⟨A, hA_pos, hbound⟩ =>
         Exists.intro A
           (And.intro hA_pos
-            (fun t ht N hN =>
+            (fun t ht hphase N hN =>
               let htrunc :
                   Complex.riemannZetaBoundaryLineTruncation t N =
                     ∑ n ∈ Finset.Icc 1 N,
@@ -334,7 +387,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryDirichletTail_bound :
                         ((n : ℂ)⁻¹ : ℂ) *
                           ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
                     A * Real.log (2 + ‖t‖) :=
-                hbound t ht N hN
+                hbound t ht hphase N hN
               Eq.subst
                 (motive := fun S : ℂ =>
                   ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) - S‖ ≤
@@ -348,6 +401,7 @@ theorem Complex.boundaryLineOnePointRealParam_zetaRemainder_bound_of_abelBoundar
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+          Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
           ∀ N : ℕ,
             1 ≤ N →
               ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) -
@@ -362,6 +416,7 @@ theorem Complex.boundaryLineOnePointRealParam_eulerMaclaurinTail_bound :
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+          Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
           ∀ N : ℕ,
             1 ≤ N →
               ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) -
@@ -376,6 +431,7 @@ theorem Complex.riemannZeta_boundaryLine_truncated_dirichlet_remainder_bound_of_
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+          Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
           ∀ N : ℕ,
             1 ≤ N →
               ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) -
@@ -386,7 +442,7 @@ theorem Complex.riemannZeta_boundaryLine_truncated_dirichlet_remainder_bound_of_
     | ⟨A, hA_pos, hbound⟩ =>
         Exists.intro A
           (And.intro hA_pos
-            (fun t ht N hN =>
+            (fun t ht hphase N hN =>
               let htrunc :
                   Complex.riemannZetaBoundaryLineTruncation t N =
                     ∑ n ∈ Finset.Icc 1 N,
@@ -400,7 +456,7 @@ theorem Complex.riemannZeta_boundaryLine_truncated_dirichlet_remainder_bound_of_
                         ((n : ℂ)⁻¹ : ℂ) *
                           ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
                     A * Real.log (2 + ‖t‖) :=
-                hbound t ht N hN
+                hbound t ht hphase N hN
               Eq.subst
                 (motive := fun S : ℂ =>
                   ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) - S‖ ≤
@@ -414,6 +470,7 @@ theorem Complex.riemannZeta_boundaryLine_truncated_dirichlet_remainder_bound :
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+          Complex.boundaryLineOnePointRealParam_cutoffPhasePartialSumBound t →
           ∀ N : ℕ,
             1 ≤ N →
               ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) -

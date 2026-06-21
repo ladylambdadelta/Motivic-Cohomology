@@ -17,36 +17,35 @@ noncomputable section
 
 /-- The singleton-supported real family at `a` has sum `u a`. -/
 theorem hasSum_singletonSupport_real
-    {α : Type*} (u : α → ℝ) (a : α) :
+    {α : Type*} [DecidableEq α] (u : α → ℝ) (a : α) :
     HasSum
       (fun x : α => if x = a then u a else 0)
       (u a) := by
   classical
-  let s : Finset α := {a}
   have hoff :
-      ∀ x : α, x ∉ s →
+      ∀ x : α, x ∉ ({a} : Finset α) →
         (if x = a then u a else 0) = 0 := by
     intro x hx
     have hne : x ≠ a := by
       intro hxa
-      have hxmem : x ∈ s :=
+      have hxmem : x ∈ ({a} : Finset α) :=
         Eq.subst
-          (motive := fun y : α => x ∈ ({y} : Finset α))
+          (motive := fun y : α => y ∈ ({a} : Finset α))
           hxa.symm
-          (Finset.mem_singleton_self x)
+          (Finset.mem_singleton_self a)
       exact hx hxmem
     exact if_neg hne
   have hsum :
       HasSum
         (fun x : α => if x = a then u a else 0)
-        (∑ x in s, if x = a then u a else 0) :=
+        (∑ x in ({a} : Finset α), if x = a then u a else 0) :=
     hasSum_sum_of_ne_finset_zero hoff
   have hfinite :
-      (∑ x in s, if x = a then u a else 0) = u a := by
+      (∑ x in ({a} : Finset α), if x = a then u a else 0) = u a := by
     have hsingleton :
-        (∑ x in s, if x = a then u a else 0) =
+        (∑ x in ({a} : Finset α), if x = a then u a else 0) =
           (if a = a then u a else 0) :=
-      Finset.sum_singleton (fun x : α => if x = a then u a else 0)
+      Finset.sum_singleton (fun x : α => if x = a then u a else 0) a
     have hvalue :
         (if a = a then u a else 0) = u a :=
       if_pos rfl
@@ -59,7 +58,7 @@ theorem hasSum_singletonSupport_real
 
 /-- A nonnegative summable real family dominates each of its terms by its total `tsum`. -/
 theorem real_term_le_tsum_of_summable_nonnegative
-    {α : Type*} (u : α → ℝ)
+    {α : Type*} [DecidableEq α] (u : α → ℝ)
     (hu : Summable u)
     (h_nonneg : ∀ a : α, 0 ≤ u a)
     (a : α) :
@@ -81,13 +80,15 @@ theorem real_term_le_tsum_of_summable_nonnegative
             if_pos hxa
           have htarget : u a = u x :=
             congrArg u hxa.symm
+          have hbase : u a ≤ u x :=
+            Eq.subst
+              (motive := fun y : ℝ => u a ≤ y)
+              htarget
+              (le_refl (u a))
           Eq.subst
-            (motive := fun y : ℝ => v x ≤ y)
-            htarget
-            (Eq.subst
-              (motive := fun y : ℝ => y ≤ u a)
-              hxvalue
-              (le_refl (u a)))
+            (motive := fun y : ℝ => y ≤ u x)
+            hxvalue.symm
+            hbase
       | Or.inr hxa =>
           have hxvalue : v x = 0 :=
             if_neg hxa
@@ -256,7 +257,7 @@ theorem completedZeroMultiplicityCountingInCenteredHeightBall_nonnegative
       x ≤
         ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
           completedZeroMultiplicityHeightBallSummand T ρ)
-    hzero.symm
+    hzero
     hle
 
 /-- Completed zero multiplicity counts are monotone in the height radius. -/
@@ -306,7 +307,7 @@ theorem norm_complex_ofNat_zetaZeroMultiplicity
   calc
     ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ =
         ‖(zetaZeroMultiplicity (ρ : ℂ) : ℝ)‖ := by
-      exact Complex.norm_ofReal (zetaZeroMultiplicity (ρ : ℂ) : ℝ)
+      exact RCLike.norm_ofReal (zetaZeroMultiplicity (ρ : ℂ) : ℝ)
     _ = (zetaZeroMultiplicity (ρ : ℂ) : ℝ) := by
       exact Real.norm_of_nonneg hnonneg
 
@@ -317,6 +318,7 @@ theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound_from_counting
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -330,6 +332,7 @@ theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound_from_counting
       (exists_completedZeroMultiplicityCounting_height_bound
         hbranch
         hpartialOneTwo htailOneTwo hcompactOneTwo
+        hfinite
         hpartialLeft htailBoundary hcompactBoundary)
       (fun C hC =>
         Exists.elim hC
@@ -381,7 +384,20 @@ theorem exists_nat_unitShell_of_one_le
     ∃ m : ℕ, ((m : ℕ) : ℝ) ≤ x ∧ x < ((m + 1 : ℕ) : ℝ) := by
   exact ⟨Nat.floor x,
     Nat.floor_le (le_trans zero_le_one hx),
-    Nat.lt_floor_add_one x⟩
+    have hcast_one : ((1 : ℕ) : ℝ) = 1 :=
+      Nat.cast_one
+    have hcast_succ :
+        (((Nat.floor x + 1 : ℕ) : ℝ)) =
+          ((Nat.floor x : ℕ) : ℝ) + 1 :=
+      Eq.trans
+        (Nat.cast_add (Nat.floor x) 1)
+        (congrArg
+          (fun y : ℝ => ((Nat.floor x : ℕ) : ℝ) + y)
+          hcast_one)
+    Eq.subst
+      (motive := fun y : ℝ => x < y)
+      hcast_succ.symm
+      (Nat.lt_floor_add_one x)⟩
 
 /-- Natural unit shells are disjoint. -/
 theorem nat_unitShell_index_unique
@@ -484,32 +500,53 @@ theorem completedZeroCenteredHeightShellSigma_forget_surjective :
 theorem completedZeroCenteredHeightShellSigma_forget_injective :
     Function.Injective completedZeroCenteredHeightShellSigma_forget := by
   intro x y hxy
-  match x with
-  | ⟨m, ρm⟩ =>
-      match y with
-      | ⟨n, ρn⟩ =>
-          match ρm with
-          | ⟨ρ, hρm⟩ =>
-              match ρn with
-              | ⟨η, hηn⟩ =>
-                  have hρη : ρ = η := hxy
-                  Eq.ndrec
-                    (motive := fun η' : {ρ : ℂ // ZetaCompletedZero ρ} =>
-                      ⟨m, ⟨ρ, hρm⟩⟩ = ⟨n, ⟨η', hηn⟩⟩)
-                    (have hmn : m = n :=
-                        completedZeroCenteredHeightShell_index_unique hρm hηn
+  exact
+    match x with
+    | ⟨m, ρm⟩ =>
+        match y with
+        | ⟨n, ρn⟩ =>
+            match ρm with
+            | ⟨ρ, hρm⟩ =>
+                match ρn with
+                | ⟨η, hηn⟩ =>
+                    have hηn_on_ρ : ρ ∈ completedZeroCenteredHeightShell n :=
+                      Eq.subst
+                        (motive := fun q : {ρ : ℂ // ZetaCompletedZero ρ} =>
+                          q ∈ completedZeroCenteredHeightShell n)
+                        hxy.symm
+                        hηn
+                    have hmn : m = n :=
+                      completedZeroCenteredHeightShell_index_unique hρm hηn_on_ρ
+                    have hfiber_heq :
+                        HEq
+                          (⟨ρ, hρm⟩ :
+                            completedZeroCenteredHeightShellFiber m)
+                          (⟨η, hηn⟩ :
+                            completedZeroCenteredHeightShellFiber n) :=
                       Eq.ndrec
                         (motive := fun n' : ℕ =>
-                          ⟨m, ⟨ρ, hρm⟩⟩ = ⟨n', ⟨ρ, hηn⟩⟩)
-                        rfl
-                        hmn)
-                    hρη
+                          ∀ hηn' : η ∈ completedZeroCenteredHeightShell n',
+                            HEq
+                              (⟨ρ, hρm⟩ :
+                                completedZeroCenteredHeightShellFiber m)
+                              (⟨η, hηn'⟩ :
+                                completedZeroCenteredHeightShellFiber n'))
+                        (fun hηm =>
+                          have hfiber :
+                              (⟨ρ, hρm⟩ :
+                                completedZeroCenteredHeightShellFiber m) =
+                                ⟨η, hηm⟩ :=
+                            Subtype.ext hxy
+                          heq_of_eq hfiber)
+                        hmn
+                        hηn
+                    Sigma.ext hmn hfiber_heq
 
 /-- The total decay mass in one centered-height shell. -/
 noncomputable def completedZeroCenteredHeightShellDecayMass
     (d k m : ℕ) : ℝ :=
   ∑' x : completedZeroCenteredHeightShellFiber m,
-    zetaCompletedZeroCenteredHeight (x : {ρ : ℂ // ZetaCompletedZero ρ}) ^
+    zetaCompletedZeroCenteredHeight (x.1 : {ρ : ℂ // ZetaCompletedZero ρ}) ^
       (-(d + k + 3 : ℤ))
 
 /-- The polynomial decay restricted to a shell fiber. -/
@@ -535,7 +572,7 @@ theorem completedZeroCenteredHeightShellFiberDecay_nonnegative
 theorem completedZeroCenteredHeightShellFiberDecay_tsum_eq_shellDecayMass
     (d k m : ℕ) :
     (∑' x : completedZeroCenteredHeightShellFiber m,
-      zetaCompletedZeroCenteredHeight (x : {ρ : ℂ // ZetaCompletedZero ρ}) ^
+      zetaCompletedZeroCenteredHeight (x.1 : {ρ : ℂ // ZetaCompletedZero ρ}) ^
         (-(d + k + 3 : ℤ))) =
       completedZeroCenteredHeightShellDecayMass d k m := by
   rfl
@@ -577,14 +614,15 @@ theorem summable_completedZeroCenteredHeightShellFiberDecay_of_shellMass
         completedZeroCenteredHeightShellFiberDecay_nonnegative d k x)).mpr
       (And.intro
         (fun m => summable_completedZeroCenteredHeightShellFiberDecay_fixed d k m)
-        (have hfiberSums :
-            (fun m : ℕ =>
-              ∑' x : completedZeroCenteredHeightShellFiber m,
-                completedZeroCenteredHeightShellFiberDecay d k ⟨m, x⟩) =
-              fun m : ℕ =>
-                completedZeroCenteredHeightShellDecayMass d k m :=
+        (by
+          have hfiberSums :
+              (fun m : ℕ =>
+                ∑' x : completedZeroCenteredHeightShellFiber m,
+                  completedZeroCenteredHeightShellFiberDecay d k ⟨m, x⟩) =
+                fun m : ℕ =>
+                  completedZeroCenteredHeightShellDecayMass d k m :=
             rfl
-          Eq.subst
+          exact Eq.subst
             (motive := fun u : ℕ → ℝ => Summable u)
             hfiberSums.symm
             hshell))
@@ -600,7 +638,7 @@ theorem summable_of_bijective_index_transport_real
   have hE :
       (fun a : α => u (E a)) = fun a : α => u (e a) := by
     rfl
-  exact ((E.symm).summable_iff).mp
+  exact E.summable_iff.mp
     (Eq.subst
       (motive := fun v : α → ℝ => Summable v)
       hE.symm

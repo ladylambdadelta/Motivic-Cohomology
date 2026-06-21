@@ -14,8 +14,12 @@ namespace LFunctions
 noncomputable section
 
 open scoped Filter Topology
+open MeasureTheory
 local notation "π" => Real.pi
 
+/-- Finite Abel summation bounds the post-cutoff oscillatory tail by the two
+endpoint contributions and the reciprocal-derivative integral contribution. -/
+theorem abelSummation_boundaryLineOnePointRealParam_cutoff_tail_norm_le_of_partial_integral_bounds
     (t : ℝ)
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
@@ -83,28 +87,38 @@ local notation "π" => Real.pi
       ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ =
           ‖((((M : ℕ) : ℝ) : ℂ))‖⁻¹ := by
         exact norm_inv ((((M : ℕ) : ℝ) : ℂ))
-      _ = ‖((M : ℝ))‖⁻¹ := by
-        exact congrArg Inv.inv (Complex.norm_ofReal (M : ℝ))
+      _ = |(M : ℝ)|⁻¹ := by
+        exact congrArg Inv.inv (RCLike.norm_ofReal (K := ℂ) (M : ℝ))
       _ = (M : ℝ)⁻¹ := by
         have hM_nonneg : 0 ≤ (M : ℝ) :=
           Nat.cast_nonneg M
-        exact congrArg Inv.inv (Real.norm_of_nonneg hM_nonneg)
+        exact congrArg Inv.inv (abs_of_nonneg hM_nonneg)
       _ = 1 / (M : ℝ) := by
         exact (one_div (M : ℝ)).symm
+  have hM_factor_nonneg : 0 ≤ (1 / (M : ℝ)) := by
+    exact Eq.subst
+      (motive := fun r : ℝ => 0 ≤ r)
+      hM_factor
+      (norm_nonneg (((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)))
   have hN_factor :
       ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ = 1 / (N : ℝ) := by
     calc
       ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ =
           ‖((((N : ℕ) : ℝ) : ℂ))‖⁻¹ := by
         exact norm_inv ((((N : ℕ) : ℝ) : ℂ))
-      _ = ‖((N : ℝ))‖⁻¹ := by
-        exact congrArg Inv.inv (Complex.norm_ofReal (N : ℝ))
+      _ = |(N : ℝ)|⁻¹ := by
+        exact congrArg Inv.inv (RCLike.norm_ofReal (K := ℂ) (N : ℝ))
       _ = (N : ℝ)⁻¹ := by
         have hN_nonneg : 0 ≤ (N : ℝ) :=
           Nat.cast_nonneg N
-        exact congrArg Inv.inv (Real.norm_of_nonneg hN_nonneg)
+        exact congrArg Inv.inv (abs_of_nonneg hN_nonneg)
       _ = 1 / (N : ℝ) := by
         exact (one_div (N : ℝ)).symm
+  have hN_factor_nonneg : 0 ≤ (1 / (N : ℝ)) := by
+    exact Eq.subst
+      (motive := fun r : ℝ => 0 ≤ r)
+      hN_factor
+      (norm_nonneg (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)))
   have hM_term :
       ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM‖ ≤
         (1 / (M : ℝ)) * K := by
@@ -113,8 +127,9 @@ local notation "π" => Real.pi
           ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ * ‖SM‖ := by
         exact norm_mul (((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) SM
       _ ≤ (1 / (M : ℝ)) * K := by
-        exact mul_le_mul (le_of_eq hM_factor) hSM_norm hK_nonneg
-          (norm_nonneg (((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)))
+        exact mul_le_mul (le_of_eq hM_factor) hSM_norm
+          (norm_nonneg SM)
+          hM_factor_nonneg
   have hN_term :
       ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN‖ ≤
         (1 / (N : ℝ)) * K := by
@@ -123,31 +138,30 @@ local notation "π" => Real.pi
           ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ * ‖SN‖ := by
         exact norm_mul (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) SN
       _ ≤ (1 / (N : ℝ)) * K := by
-        exact mul_le_mul (le_of_eq hN_factor) hSN_norm hK_nonneg
-          (norm_nonneg (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)))
+        exact mul_le_mul (le_of_eq hN_factor) hSN_norm
+          (norm_nonneg SN)
+          hN_factor_nonneg
+  let UM : ℂ := (((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM
+  let UN : ℂ := (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN
   have htriangle :
+      ‖UM - UN - J‖ ≤
+        ‖UM‖ + ‖UN‖ + ‖J‖ := by
+    have hfirst :
+        ‖UM - UN - J‖ ≤
+          ‖UM - UN‖ + ‖J‖ := by
+      exact
+        norm_sub_le (UM - UN) J
+    have hsecond :
+        ‖UM - UN‖ ≤ ‖UM‖ + ‖UN‖ := by
+      exact
+        norm_sub_le UM UN
+    exact le_trans hfirst (add_le_add_right hsecond ‖J‖)
+  have htriangle_terms :
       ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM -
           (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN - J‖ ≤
         ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM‖ +
           ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN‖ + ‖J‖ := by
-    have hfirst :
-        ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM -
-            (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN - J‖ ≤
-          ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM -
-            (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN‖ + ‖J‖ :=
-      norm_sub_le
-        (((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM -
-          (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN)
-        J
-    have hsecond :
-        ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM -
-            (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN‖ ≤
-          ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM‖ +
-            ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN‖ :=
-      norm_sub_le
-        (((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM)
-        (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN)
-    exact le_trans hfirst (add_le_add_right hsecond ‖J‖)
+    exact htriangle
   have hterms :
       ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM‖ +
           ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN‖ + ‖J‖ ≤
@@ -157,7 +171,7 @@ local notation "π" => Real.pi
     (motive := fun z : ℂ =>
       ‖z‖ ≤ (1 / (M : ℝ)) * K + (1 / (N : ℝ)) * K + I)
     hidentity.symm
-    (le_trans htriangle hterms)
+    (le_trans htriangle_terms hterms)
 
 /-- Pointwise transport of the post-cutoff boundary-line Dirichlet tail to the
 Abel-normalized oscillatory tail. -/
@@ -230,7 +244,8 @@ theorem boundaryLineOnePointRealParam_dirichletTerm_zero
     exact one_ne_zero hone_eq_zero
   have hpow_zero :
       (0 : ℂ) ^ boundaryLineOnePointRealParam t = 0 := by
-    exact (cpow_eq_zero_iff).mpr ⟨rfl, hpoint_ne_zero⟩
+    exact (Complex.cpow_eq_zero_iff (0 : ℂ) (boundaryLineOnePointRealParam t)).mpr
+      ⟨rfl, hpoint_ne_zero⟩
   calc
     (1 : ℂ) / ((0 : ℂ) ^ boundaryLineOnePointRealParam t) =
         (1 : ℂ) / 0 := by
@@ -295,10 +310,14 @@ theorem boundaryLineOnePointRealParam_dirichlet_tail_indicator_eq_cutoff_if
             (1 : ℂ) / ((m : ℂ) ^ boundaryLineOnePointRealParam t))
       have hterm_zero :
           (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t) = 0 :=
+        have hn_cast : ((n : ℕ) : ℂ) = 0 :=
+          Eq.trans
+            (congrArg (fun m : ℕ => (m : ℂ)) hn_zero)
+            (Nat.cast_zero)
         Eq.subst
-          (motive := fun m : ℕ =>
-            (1 : ℂ) / ((m : ℂ) ^ boundaryLineOnePointRealParam t) = 0)
-          hn_zero.symm
+          (motive := fun z : ℂ =>
+            (1 : ℂ) / (z ^ boundaryLineOnePointRealParam t) = 0)
+          hn_cast.symm
           (boundaryLineOnePointRealParam_dirichletTerm_zero t)
       have hright :
           (if N < n then
@@ -340,6 +359,48 @@ theorem boundaryLineOnePointRealParam_dirichlet_tail_indicator_eq_cutoff_if
 /-- Removing a finite Dirichlet truncation from a natural-indexed boundary-line
 Dirichlet series gives the exact post-cutoff Dirichlet tail. -/
 theorem boundaryLineOnePointRealParam_dirichlet_tail_after_cutoff_hasSum_zeta_remainder_of_dirichlet_series
+    (t : ℝ)
+    (N : ℕ)
+    (hζ :
+      HasSum
+        (fun n : ℕ =>
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t))
+        (riemannZeta (boundaryLineOnePointRealParam t))) :
+    HasSum
+        (fun n : ℕ =>
+          if N < n then
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
+          else
+            0)
+        (riemannZeta (boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 N,
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) := by
+  have htail_compl :
+      HasSum
+        (fun x : {n : ℕ // n ∉ Finset.Icc 1 N} =>
+          (1 : ℂ) / (((x : ℕ) : ℂ) ^ boundaryLineOnePointRealParam t))
+        (riemannZeta (boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 N,
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) :=
+    ((Finset.Icc 1 N).hasSum_iff_compl).mp hζ
+  have htail_indicator :
+      HasSum
+        ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator
+          (fun n : ℕ =>
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)))
+        (riemannZeta (boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 N,
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) := by
+    exact
+      (hasSum_subtype_iff_indicator
+        (s := {n : ℕ | n ∉ Finset.Icc 1 N})
+        (f := fun n : ℕ =>
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t))).mp
+        htail_compl
+  exact htail_indicator.congr_fun
+    (fun n : ℕ =>
+      (boundaryLineOnePointRealParam_dirichlet_tail_indicator_eq_cutoff_if
+        t N n).symm)
 
 end
 

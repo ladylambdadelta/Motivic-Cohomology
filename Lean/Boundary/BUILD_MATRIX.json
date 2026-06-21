@@ -90,8 +90,8 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaZeroMultiplicitySummability/ZetaZeroMultiplicityCounting/Owner.lean",
-        "result": "missing_import_artifact_ZetaCompletedZeroJensen.Owner"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaZeroMultiplicitySummability/ZetaZeroMultiplicityCounting/Owner.lean",
       "notes": [
@@ -100,26 +100,22 @@
         "Direct narrow check is blocked before local elaboration by missing ZetaCompletedZeroJensen.Owner.olean.",
         "A narrow module build rebuilt ZetaPolynomialTailSummability.Owner and ZetaCompletedZeroJensen.ZetaEntireJensen.Owner, but failed upstream in ZetaCompletedNormalization.EulerContinuationTransport.EulerMaclaurinFormula.Owner before this owner could build.",
         "No local source diagnostic was reached after the boringness pass.",
-        "2026-06-20 edit-mode update: threaded the Binet branch package through the multiplicity-growth-from-counting theorem surface; no build has been run after this edit."
+        "2026-06-20 edit-mode update: threaded the Binet branch package through the multiplicity-growth-from-counting theorem surface; no build has been run after this edit.",
+        "2026-06-21 update: after ZetaCompletedZeroJensen.Owner went green, repaired local singleton-sum, term-to-tsum, norm, floor-shell, sigma-injectivity, and shell-summability transports in boring term style; targeted lake --old module build passed."
       ],
-      "status": "pending"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaZeroMultiplicitySummability/ZetaZeroMultiplicityCounting/ZetaCompletedZeroJensen/Owner.lean",
-        "date": "2026-06-19",
-        "result": "blocked_before_target_by_independent_upstream_failures"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.Owner",
+        "date": "2026-06-21",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaZeroMultiplicitySummability/ZetaZeroMultiplicityCounting/ZetaCompletedZeroJensen/Owner.lean",
       "notes": [
-        "Discovered as the direct missing import for ZetaZeroMultiplicityCounting.Owner.",
-        "2026-06-16 boringness pass removed local unfold/by_cases/refine/change/filter_upwards/funext-style surface; literal forbidden-source scan is clean and no sorry/admit is present.",
-        "Direct narrow check is blocked before local elaboration by missing Zero/ZetaWeilShared/ZetaZeroSideDefinitions/Core.olean.",
-        "The blocking core is itself boring-scan clean after the same pass, but currently cannot build because ZetaCenteredZero.Owner depends on the red EulerMaclaurinFormula.Owner path.",
-        "2026-06-19 update: Core.lean and ZetaCompletedZeroJensen.ZetaEntireJensen.Owner now build green, and this owner was repaired by importing the current zero-side and growth owners plus replacing local arithmetic and carrier-bridge proof mismatches with explicit transports.",
-        "A full target checkpoint did not reach this owner: it failed first in independent upstream targets ZetaZeroKreinGram.Owner, FiniteSample.Owner, VerticalLimits, and Mathlib replay. ZetaZeroKreinGram.Owner and FiniteSample.Owner have since been repaired green; Vertical/Mathlib were not part of this Jensen owner proof."
+        "Verified on 2026-06-21 after ClosedDisk, CarrierTransport, JensenBound, and HeightBall subowners all passed narrow lake --old build checkpoints."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
@@ -225,9 +221,9 @@
     },
     {
       "check": {
-        "command": "lake build Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroKreinGram.WeilCriterion.Owner",
-        "date": "2026-06-19",
-        "result": "blocked_before_target_by_independent_upstream_failures"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroKreinGram.WeilCriterion.Owner",
+        "date": "2026-06-21",
+        "result": "passed_lake_old_build_2026-06-21_level52_owner_repair"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/Zero/ZetaWeilShared/ZetaZeroSideDefinitions/ZetaCenteredZeroCounting/ZetaCompletedLogDerivativeBridge/ZetaExplicitFormulaComplexAnalysis/ZetaZeroKreinGram/WeilCriterion/Owner.lean",
       "notes": [
@@ -240,9 +236,12 @@
         "2026-06-20 edit-mode update: threaded the Binet branch package through the completed-zero summability consumer chain; no build has been run after this edit.",
         "2026-06-19 artifact repair: the code-139 failures were traced to corrupt generated artifacts, not source errors. Removed only the corrupt IntermediateField.Basic and BinetAbelPlanaUpperResidual .olean/.ilean pairs, rebuilt those owners, and confirmed Mathlib.FieldTheory.Separable plus BinetAbelPlanaVerticalLimits now build successfully.",
         "2026-06-19 rerun after artifact repair and CriticalStrip.Owner success did not reach this owner; it exposed independent upstream roots ZetaCenteredZeroVerticalStrip.Owner, ZetaAdmissibleTransformRegularity.Owner, ZetaHermitianPacket.AdmissiblePackets, ZetaAdmissibleProbe.Owner, ZetaAdmissibleFiniteInterpolation.ZetaAdmissibleBump.Owner, plus the separate Gamma/Binet FiniteHoleSubdivisionVertical artifact-output path.",
-        "ZetaCenteredZeroVerticalStrip.Owner, ZetaAdmissibleTransformRegularity.Owner, ZetaHermitianPacket.AdmissiblePackets, ZetaAdmissibleProbe.Owner, and ZetaAdmissibleFiniteInterpolation.ZetaAdmissibleBump.Owner were then repaired and built green; the remaining known independent blocker is the separate Gamma/Binet artifact-output path."
+        "ZetaCenteredZeroVerticalStrip.Owner, ZetaAdmissibleTransformRegularity.Owner, ZetaHermitianPacket.AdmissiblePackets, ZetaAdmissibleProbe.Owner, and ZetaAdmissibleFiniteInterpolation.ZetaAdmissibleBump.Owner were then repaired and built green; the remaining known independent blocker is the separate Gamma/Binet artifact-output path.",
+        "2026-06-21 circularity repair pass threaded explicit `hZeroTailSmallValuesOwnerRunge` through the off-critical zero-orbit, zero-side, quadratic-form, centered-zero criterion, and boundary RH wrapper surfaces.",
+        "The current narrow build still fails for pre-existing/non-circular local debt: unknown `Gammaℝ`, old arithmetic/coercion mismatches, tab characters/declaration body breakage, and missing centeredZeroCriterion reference after the malformed region.",
+        "2026-06-21 Level 52 owner repair: replaced bare Gamma factor uses with `Complex.Gammaℝ`, exposed the half-real-part and natural-successor complex coercions as named boring lemmas, repaired dependent orbit transport via `Eq.subst`, threaded `PoleClearedRightCriticalStripAdmissibleGrowth` through zero-side summability consumers, removed tabbed theorem formatting, and verified with `lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroKreinGram.WeilCriterion.Owner`."
       ],
-      "status": "pending"
+      "status": "green"
     },
     {
       "check": {
@@ -952,9 +951,9 @@
     },
     {
       "check": {
-        "command": "lake build Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.Owner",
-        "date": "2026-06-20",
-        "result": "blocked_before_target_by_independent_upstream_failures"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.Owner",
+        "date": "2026-06-21",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/Owner.lean",
       "notes": [
@@ -965,9 +964,10 @@
         "2026-06-20 update: CompletedPrimePowerPackets now builds green; the known remaining blocker from this rerun is BinetAbelPlanaFiniteAsymptotics.",
         "2026-06-20 narrow build after zero-tail boringness pass captured full output at /private/tmp/zeta_zero_tail_owner_build_20260620.log.",
         "This run advanced through the zero/Jensen subtree, including ZetaCompletedZeroJensen.ZetaEntireJensen.Owner, but did not reach ZetaZeroTail.Owner.",
-        "Current blockers before target are ZetaCompletedNormalization.PoleClearedBoundarySetup.Core.Owner and Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.Owner."
+        "Current blockers before target are ZetaCompletedNormalization.PoleClearedBoundarySetup.Core.Owner and Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.Owner.",
+        "2026-06-21 targeted lake --old build reached and verified the import-only public re-export after TailSummability.Owner went green."
       ],
-      "status": "pending"
+      "status": "green"
     },
     {
       "check": {
@@ -1303,17 +1303,20 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/Owner.lean",
-        "result": "failed"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.Owner",
+        "date": "2026-06-21",
+        "narrow": true,
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/Owner.lean",
       "notes": [
         "Router hub blocked before local elaboration by missing BoundaryGrowth.Owner artifact.",
         "BoundaryGrowth depends through AbelTransport and ReciprocalDensity on LogarithmicPhase, which depends on dirty PoleClearedBoundarySetup.Owner.",
         "Do not edit this router until the PoleClearedBoundarySetup producer settles.",
-        "Resolved from hazard to red: narrow build is known not green; retained notes describe whether the blocker is local source failure, dirty upstream work, replay churn, or import-cycle structure."
+        "Resolved from hazard to red: narrow build is known not green; retained notes describe whether the blocker is local source failure, dirty upstream work, replay churn, or import-cycle structure.",
+        "Verified green on 2026-06-21 with `lake --old build` after BoundaryGrowth.Owner was repaired and verified green; this file is an import-only aggregate."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
@@ -1382,8 +1385,9 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/Owner.lean",
-        "result": "failed"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Owner",
+        "date": "2026-06-21",
+        "result": "passed_lake_old_build_2026-06-21_import_only_reexport"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/Owner.lean",
       "notes": [
@@ -1391,9 +1395,11 @@
         "Narrow check is still blocked before local elaboration by missing ZetaCompletedNormalization.Owner artifact.",
         "This should be retried after the Gamma/Binet and BoundaryEulerAbel normalization owner chain is green.",
         "Resolved from hazard to red: narrow build is known not green; retained notes describe whether the blocker is local source failure, dirty upstream work, replay churn, or import-cycle structure.",
-        "2026-06-20 edit-mode update: threaded the Binet branch package through the zero-side separation and Weil-criterion theorem surfaces; no build has been run after this edit."
+        "2026-06-20 edit-mode update: threaded the Binet branch package through the zero-side separation and Weil-criterion theorem surfaces; no build has been run after this edit.",
+        "2026-06-21 circularity repair pass threaded explicit `hZeroTailSmallValuesOwnerRunge` through the zero-orbit, zero-side, quadratic-form, centered-zero criterion, and boundary RH wrapper surfaces. This file remains red because of pre-existing top-owner proof-style debt, tab characters, and other local source failures outside the circularity repair.",
+        "2026-06-21 Level 52 repair: replaced the stale duplicated top-level proof body with an import-only compatibility re-export of the verified nested WeilCriterion owner, eliminating the divergent forbidden-proof surface while preserving public theorem names. Verified with `lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Owner`."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
@@ -1412,8 +1418,8 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/AbelTransport/Owner.lean",
-        "result": "failed"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.AbelTransport.Owner",
+        "result": "passed"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/AbelTransport/Owner.lean",
       "notes": [
@@ -1424,9 +1430,10 @@
         "Resolved from hazard to red: narrow build is known not green; retained notes describe whether the blocker is local source failure, dirty upstream work, replay churn, or import-cycle structure.",
         "2026-06-16 boring pass removed real secondary-scan hits exact_mod_cast and funext by replacing them with explicit Nat.cast_le transports and pointwise HasSum/Summable congruence.",
         "2026-06-16 primary forbidden scan is clean; secondary scan only reports identifier/comment substrings containing abel after the edit.",
-        "2026-06-16 narrow build command stopped at import loading before local elaboration: missing .lake/build/lib/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/ReciprocalDensity/Owner.olean."
+        "2026-06-16 narrow build command stopped at import loading before local elaboration: missing .lake/build/lib/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/ReciprocalDensity/Owner.olean.",
+        "Verified green on 2026-06-21 with lake --old build after Setup, Dirichlet, Continuation, and Damping subowners were verified green."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "boring_scan": {
@@ -1434,18 +1441,19 @@
         "secondary": "primary scan clean; only secondary substring hit is identifier abelSummation, not the abel tactic"
       },
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/ReciprocalDensity/Owner.lean",
-        "date": "2026-06-16",
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Owner",
+        "date": "2026-06-21",
         "narrow": true,
-        "result": "missing_import_artifact_LogarithmicPhase.Owner"
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/ReciprocalDensity/Owner.lean",
       "notes": [
         "Kepler subagent made this file forbidden-scan clean without touching EulerMaclaurinFormula or BUILD_MATRIX.",
         "Narrow build fails before reaching target in Gamma/Binet semicircle staircase arithmetic: bad add_assoc orientations, unknown k, bad Finset.sum_range_sub orientation, and namespace/end mismatch.",
-        "Primary forbidden scan is clean after replacing ac_rfl/abel, exact_mod_cast casts, and continuity tactics with explicit algebra/cast/local-regularity transports. Narrow build now stops before local elaboration because BoundaryEulerAbel.LogarithmicPhase.Owner.olean is missing, so ReciprocalDensity is red on an upstream import artifact and local elaboration has not yet been revalidated."
+        "Primary forbidden scan is clean after replacing ac_rfl/abel, exact_mod_cast casts, and continuity tactics with explicit algebra/cast/local-regularity transports. Narrow build now stops before local elaboration because BoundaryEulerAbel.LogarithmicPhase.Owner.olean is missing, so ReciprocalDensity is red on an upstream import artifact and local elaboration has not yet been revalidated.",
+        "2026-06-21 update: after Regularity, Calculus, and API were repaired and checked, `lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Owner` completed successfully."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
@@ -1465,8 +1473,10 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/BoundaryGrowth/Owner.lean",
-        "result": "missing_import_artifact_AbelTransport.Owner"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.BoundaryGrowth.Owner",
+        "date": "2026-06-21",
+        "narrow": true,
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/BoundaryGrowth/Owner.lean",
       "notes": [
@@ -1475,23 +1485,25 @@
         "Forbidden scan before build was clean for rw/rwa/simp/simpa/ring/field_simp/linarith/nlinarith/norm_num/refine/rcases/obtain/unfold/by_cases/by_contra/sorry/admit/abel/ac_rfl; separate sorry/admit scan was clean.",
         "Narrow check from the Lean project root stopped before local elaboration because BoundaryEulerAbel.AbelTransport.Owner.olean is missing.",
         "Retry after AbelTransport.Owner is built or repaired in the BoundaryEulerAbel upstream spine.",
-        "Resolved from hazard to red: narrow build is known not green; retained notes describe whether the blocker is local source failure, dirty upstream work, replay churn, or import-cycle structure."
+        "Resolved from hazard to red: narrow build is known not green; retained notes describe whether the blocker is local source failure, dirty upstream work, replay churn, or import-cycle structure.",
+        "Verified green on 2026-06-21 with `lake --old build` after threading the honest finite post-cutoff Abel-tail boundedness hypothesis through the boundary-growth owner API and replacing brittle fixed-numeral reductions with named cast lemmas."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/EulerContinuationTransport/BoundaryTransport/Owner.lean",
-        "date": "2026-06-19",
-        "result": "blocked_missing_BoundaryEulerAbel.Owner"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.EulerContinuationTransport.BoundaryTransport.Owner",
+        "date": "2026-06-21",
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/EulerContinuationTransport/BoundaryTransport/Owner.lean",
       "notes": [
         "2026-06-19 edit-only boringness pass: peeled the local forbidden algebra surface into named explicit lemmas one_sub_sub_one_eq_neg_for_boundaryTransport, neg_one_sub_sub_one_eq_self_for_boundaryTransport, and boundaryTransport_insert_neg_denominator.",
         "Scan is clean for ring/field_simp/simp/simpa/rw/linarith/norm_num/norm_cast/push_cast/sorry/admit in the target file.",
-        "Direct file check stopped before local elaboration because BoundaryEulerAbel/Owner.olean is missing."
+        "Direct file check stopped before local elaboration because BoundaryEulerAbel/Owner.olean is missing.",
+        "Verified green on 2026-06-21 with `lake --old build` after BoundaryEulerAbel.Owner went green and the boundary transport owner was rewired to the honest vertical truncation hypotheses."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
@@ -1788,16 +1800,15 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/CompletedZetaGrowth/Owner.lean",
-        "result": "missing_import_artifact"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.CompletedZetaGrowth.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/CompletedZetaGrowth/Owner.lean",
       "notes": [
-        "Clean file. Narrow check fails before local elaboration because FunctionalEquationTransport.Owner.olean is missing.",
         "This is an upstream boundary file for ZetaCompletedNormalization.Owner.",
-        "Resolved from hazard to red: narrow build has known missing upstream artifact, so this is not ambiguous-green."
+        "Verified on 2026-06-21 after PoleCleared, Completed, and ZeroCarrier subowners all passed narrow lake --old build checkpoints."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
@@ -1947,16 +1958,18 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/EulerContinuationTransport/Owner.lean",
-        "result": "missing_import_artifact"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.EulerContinuationTransport.Owner",
+        "date": "2026-06-21",
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/EulerContinuationTransport/Owner.lean",
       "notes": [
         "Discovered as the immediate missing import for FunctionalEquationTransport.Owner.",
         "Clean file. Narrow check fails before local elaboration because RightHalfPlaneGrowth.Owner.olean is missing.",
-        "Resolved from hazard to red: narrow build has known missing upstream artifact, so this is not ambiguous-green."
+        "Resolved from hazard to red: narrow build has known missing upstream artifact, so this is not ambiguous-green.",
+        "Verified green on 2026-06-21 with `lake --old build` after the RightHalfPlaneGrowth owner and its FiniteOrderPL/BoundaryTransport upstream chain were repaired."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
@@ -1973,17 +1986,19 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/EulerContinuationTransport/RightHalfPlaneGrowth/Owner.lean",
-        "result": "missing_import_artifact"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.EulerContinuationTransport.RightHalfPlaneGrowth.Owner",
+        "date": "2026-06-21",
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/EulerContinuationTransport/RightHalfPlaneGrowth/Owner.lean",
       "notes": [
         "Discovered as the immediate missing import for EulerContinuationTransport.Owner.",
         "Clean file. Narrow check fails before local elaboration because EulerMaclaurinFormula.Owner.olean is missing.",
         "Visible proof surface has no simpa/rw/ring/linarith/field_simp occurrences.",
-        "Resolved from hazard to red: narrow build has known missing upstream artifact, so this is not ambiguous-green."
+        "Resolved from hazard to red: narrow build has known missing upstream artifact, so this is not ambiguous-green.",
+        "Verified green on 2026-06-21 with `lake --old build` after strengthening the left-edge majorant to the owner-level truncation package, repairing explicit endpoint norm transport, and replacing the four-term polynomial envelope exponent by a max exponent."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
@@ -2047,16 +2062,18 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/EulerContinuationTransport/FiniteOrderPL/Owner.lean",
-        "result": "missing_import_artifact"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.EulerContinuationTransport.FiniteOrderPL.Owner",
+        "date": "2026-06-21",
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/EulerContinuationTransport/FiniteOrderPL/Owner.lean",
       "notes": [
         "Clean file. Narrow check fails before local elaboration because known hazard BoundaryTransport.Owner.olean is missing.",
         "Visible proof surface has no simpa/rw/ring/linarith/field_simp occurrences.",
-        "Resolved from hazard to red: narrow build has known missing upstream artifact, so this is not ambiguous-green."
+        "Resolved from hazard to red: narrow build has known missing upstream artifact, so this is not ambiguous-green.",
+        "Verified green on 2026-06-21 with `lake --old build` after repairing namespace/API drift in the asymptotics helpers and threading the owner-level boundaryLineOneVerticalTruncationHypotheses through the left-edge finite-order theorem."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
@@ -2341,9 +2358,9 @@
     },
     {
       "check": {
-        "command": "lake build Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZeroTailTomography.Owner",
-        "date": "2026-06-20",
-        "result": "blocked_by_red_imports"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZeroTailTomography.Owner",
+        "date": "2026-06-21",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaCompletedHilbertSource/ZeroTailTomography/Owner.lean",
       "notes": [
@@ -2353,9 +2370,10 @@
         "Current build stops before this target on upstream red imports: the Binet finite tail/endpoint chain and ZetaPrimeContourTomography.Owner.",
         "RealSymmetricPSDRadical.Owner, ZetaCompletedLogDerivativeControl.Owner, ZetaExplicitFormulaAnalyticPackage.Owner, and ZetaAdmissibleTransformRegularity.Owner are now verified green.",
         "ZetaPrimeContourTomography.Owner source-level repair now uses the reconstruction package's stored contour convergence instead of asserting unsupported unconditional spectral-majorant summability; ZetaExplicitFormulaResidueRegularity.Owner is now verified green and acyclic.",
-        "Remaining contour blockers are the aggregate explicit-formula contour calculus needing the real finite Cauchy-residue theorem/excision inputs and the separately owned Binet chain; ZetaExplicitFormulaHorizontalEdgeBounds.Owner is now verified green."
+        "Remaining contour blockers are the aggregate explicit-formula contour calculus needing the real finite Cauchy-residue theorem/excision inputs and the separately owned Binet chain; ZetaExplicitFormulaHorizontalEdgeBounds.Owner is now verified green.",
+        "2026-06-21 targeted lake --old build reached and verified this owner after the zero-tail chain went green."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
@@ -4316,74 +4334,75 @@
     {
       "check": {
         "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail.lean",
-        "result": "not_checked"
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "2026-06-21 update: passed direct `lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail.lean` and `lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.AbelTail` after threading the explicit cutoff partial-sum hypothesis through the aggregate Abel boundary tail and zeta remainder surface."
       ],
-      "status": "unknown"
+      "status": "green",
+      "last_result": "passed_lake_old_build_2026-06-21"
     },
     {
       "check": {
         "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail/Abstract.lean",
-        "result": "not_checked"
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail/Abstract.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Direct Lean check passed on 2026-06-21 after explicit finite Abel identity transports, topology imports, and real rpow cast repairs; lake --old module build also passed."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
         "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail/Algebra.lean",
-        "result": "not_checked"
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail/Algebra.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "2026-06-21 update: passed direct `lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail/Algebra.lean` after orienting the `neg_mul` transport explicitly."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
         "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail/Continuation.lean",
-        "result": "not_checked"
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail/Continuation.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Direct Lean check passed on 2026-06-21 after converting this consumer layer to thin wrappers over DirichletLimit owner theorems; lake --old module build also passed."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
         "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail/DirichletLimit.lean",
-        "result": "not_checked"
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail/DirichletLimit.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Direct Lean check passed on 2026-06-21 after importing canonical zeta/power-continuity owners, repairing real rpow casts, and making the Nat-tail complement split explicit; lake --old module build also passed."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
         "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail/Finite.lean",
-        "result": "not_checked"
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail/Finite.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "2026-06-21 update: passed direct `lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail/Finite.lean` after carrying the cutoff-tail owner input through the finite Abel estimates."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
@@ -4834,51 +4853,51 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/AbelTransport/Continuation/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.AbelTransport.Continuation.Owner",
+        "result": "passed"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/AbelTransport/Continuation/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Verified green on 2026-06-21 with lake --old build after owner-level Abel abscissa coordinate and filter tendsto repairs."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/AbelTransport/Damping/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.AbelTransport.Damping.Owner",
+        "result": "passed"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/AbelTransport/Damping/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Verified green on 2026-06-21 with lake --old build after boring positive-weight Abel bound, endpoint cast, and honest bounded-tail API repairs."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/AbelTransport/Dirichlet/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.AbelTransport.Dirichlet.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/AbelTransport/Dirichlet/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "2026-06-21 update: restored the missing finite-tail theorem header, proved the Dirichlet cutoff HasSum theorem at the Dirichlet owner level, repaired measure/norm/cpow/cast transports, and verified with `lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.AbelTransport.Dirichlet.Owner`."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/AbelTransport/Setup/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.AbelTransport.Setup.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/AbelTransport/Setup/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "2026-06-21 update: removed duplicate Abel finite-tail identity declarations after hoisting their owner proofs into ReciprocalDensity.API, repaired endpoint norm transports via `RCLike.norm_ofReal`, and verified with `lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.AbelTransport.Setup.Owner`."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
@@ -4918,15 +4937,15 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/ReciprocalDensity/API/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.API.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/ReciprocalDensity/API/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "2026-06-21 update: hoisted the Abel finite-tail identity spine from downstream transport into the reciprocal-density API owner, repaired endpoint/cutoff arithmetic transports, and verified with `lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.API.Owner`."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
@@ -4954,42 +4973,42 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/CompletedZetaGrowth/Completed/Owner.lean",
-        "result": "edit_mode_known_blockers"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.CompletedZetaGrowth.Completed.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/CompletedZetaGrowth/Completed/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
         "Edit-mode update on 2026-06-20: Binet branch package dependency is being threaded through completed-zeta growth consumers.",
-        "Known current blocker: strict right-half-plane Gamma/Stirling estimates must be kept separate from closed-boundary completed-zeta wrappers; no build has been run in this edit cycle."
+        "Verified on 2026-06-21: completed-zeta growth wrappers now thread PoleClearedRightCriticalStripAdmissibleGrowth; normalization comparison proofs were repaired with explicit reciprocal, pole-term, and product-envelope helper lemmas."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/CompletedZetaGrowth/PoleCleared/Owner.lean",
-        "result": "edit_mode_known_blockers"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.CompletedZetaGrowth.PoleCleared.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/CompletedZetaGrowth/PoleCleared/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
         "Edit-mode update on 2026-06-20: pole-cleared zeta growth wrappers now expose the Binet branch package dependency.",
-        "Known current blocker: downstream callers still need branch arguments threaded before this file is ready for a narrow check."
+        "Verified on 2026-06-21: reflected left-edge Abel input now uses boundaryLineOneVerticalTruncationHypotheses; central/right-critical strip growth is acyclic and carries the explicit admissible-growth owner input; left-half-plane transport uses the reflected 1 ≤ Re Euler-Maclaurin growth theorem."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/CompletedZetaGrowth/ZeroCarrier/Owner.lean",
-        "result": "edit_mode_known_blockers"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.CompletedZetaGrowth.ZeroCarrier.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/CompletedZetaGrowth/ZeroCarrier/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
         "Edit-mode update on 2026-06-20: immediate consumer of completedRiemannZeta₀_finiteOrder_growth_bound.",
-        "Known current blocker: must pass the branch package after completed-zeta growth surfaces finish stabilizing; no build has been run."
+        "Verified on 2026-06-21: centered completed-zeta and zero-carrier growth wrappers now thread PoleClearedRightCriticalStripAdmissibleGrowth explicitly through the completed-zeta owner theorem."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
@@ -5214,39 +5233,48 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.Owner",
+        "date": "2026-06-21",
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Threaded the explicit fixed-fiber small-values owner input `hZeroTailSmallValuesOwnerRunge` through the zero-orbit remainder separator wrappers after the zero-tail localization circularity repair.",
+        "The pure domination and completed-zero-side decomposition lemmas remain independent of the analytic input via an explicit `omit` boundary.",
+        "Targeted `lake --old build` passed on 2026-06-21 for the exact source on disk."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.Owner",
+        "date": "2026-06-21",
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Threaded the explicit fixed-fiber small-values owner input `hZeroTailSmallValuesOwnerRunge` through the zero-tail localization wrappers after the upstream circularity repair.",
+        "Targeted `lake --old build` passed on 2026-06-21 for the exact source on disk."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.Owner",
+        "date": "2026-06-21",
+        "result": "success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Removed forbidden refine/change proof forms and repaired the local real-distance transport by explicit Real.dist_eq/sub_zero/abs_of_nonneg steps.",
+        "Removed the circular nonlinear-density wrapper chain by making the fixed-fiber small-values theorem an explicit owner input `hZeroTailSmallValuesOwnerRunge`.",
+        "The quotient/value closure theorems now depend directly on that analytic input instead of deriving it from downstream zero-tail closure wrappers.",
+        "Targeted `lake --old build` passed on 2026-06-21."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
@@ -5341,51 +5369,59 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/FiniteComplement/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.FiniteComplement.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/FiniteComplement/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Repaired finite/complement sum-type split by using selected finite subtype `{η : ℂ // η ∈ S}` where a type was required, while preserving `S.attach` for finite sums.",
+        "Completed the attach-sum equality and made the finite/complement range equivalences and tsum split explicit in term-mode.",
+        "Verified by targeted lake --old build on 2026-06-21."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/GrowthDecayBounds/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.GrowthDecayBounds.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/GrowthDecayBounds/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Threaded the finite-order right-critical-strip hypothesis through the counting and multiplicity-growth owner calls.",
+        "Replaced hidden unfolding and existential packing with explicit proof-term constructors and match expressions.",
+        "Verified by targeted lake --old build on 2026-06-21."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/TailSummability/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.TailSummability.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/TailSummability/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Threaded the finite-order right-critical-strip hypothesis through the tail summability API.",
+        "Proved the side-contribution majorant equality through zetaZeroSideContribution_def with explicit norm transports.",
+        "Verified by targeted lake --old build on 2026-06-21."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/TransformEnvelopes/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.TransformEnvelopes.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/TransformEnvelopes/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Removed a stray duplicated theorem fragment at file top; the attach-sum theorem is owned by FiniteComplement.Owner.",
+        "Replaced definition-unfolding `change` steps with explicit show/definition transports and corrected the summability scalar multiplication to use `.mul_left`.",
+        "Verified by targeted lake --old build on 2026-06-21."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
@@ -5558,63 +5594,63 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaZeroMultiplicitySummability/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaZeroMultiplicitySummability/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "2026-06-21 update: after ZetaZeroMultiplicityCounting.Owner went green, repaired explicit shell-fiber projections, finite-tsum/cardinality transports, successor nat-cast normalization, old match-constructor syntax, obsolete summability scalar API, and threaded PoleClearedRightCriticalStripAdmissibleGrowth through the top-level counting-margin theorem. Targeted lake --old module build passed with only an unused-variable warning for an API-preserving hypothesis."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaZeroMultiplicitySummability/ZetaZeroMultiplicityCounting/ZetaCompletedZeroJensen/CarrierTransport/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.CarrierTransport.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaZeroMultiplicitySummability/ZetaZeroMultiplicityCounting/ZetaCompletedZeroJensen/CarrierTransport/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Verified on 2026-06-21: completed zeros transport into the centered zero-carrier divisor, shifted pole faces are excluded explicitly, and closed-disk completed-zero counting is dominated by the carrier count; local add_right_neg deprecation was replaced by add_neg_cancel."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaZeroMultiplicitySummability/ZetaZeroMultiplicityCounting/ZetaCompletedZeroJensen/ClosedDisk/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.ClosedDisk.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaZeroMultiplicitySummability/ZetaZeroMultiplicityCounting/ZetaCompletedZeroJensen/ClosedDisk/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Verified on 2026-06-21: centered half-shift imaginary-coordinate transport is explicit via Complex.div_ofReal_im, Complex.one_im, and zero_div; closed-disk finiteness and summability passed the narrow lake --old build checkpoint."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaZeroMultiplicitySummability/ZetaZeroMultiplicityCounting/ZetaCompletedZeroJensen/HeightBall/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.HeightBall.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaZeroMultiplicitySummability/ZetaZeroMultiplicityCounting/ZetaCompletedZeroJensen/HeightBall/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Verified on 2026-06-21: closed-disk Jensen bounds transport to centered-height counting; split-local finite-support summability was added to avoid importing the older parent counting owner back into the Jensen sub-DAG, and the repaired normalization finite-growth input is threaded explicitly."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaZeroMultiplicitySummability/ZetaZeroMultiplicityCounting/ZetaCompletedZeroJensen/JensenBound/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.JensenBound.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaZeroMultiplicitySummability/ZetaZeroMultiplicityCounting/ZetaCompletedZeroJensen/JensenBound/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Verified on 2026-06-21: Jensen closed-disk polynomial counting is applied to the centered zero-carrier and transported to completed-zero closed-disk multiplicity counting."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {

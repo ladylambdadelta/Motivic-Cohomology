@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.AbelTail.Algebra
+import Mathlib.Analysis.Normed.Group.InfiniteSum
+import Mathlib.Order.Filter.AtTopBot
 
 /-!
 # Abstract Abel damping for boundary tails
@@ -11,6 +13,9 @@ namespace Boundary
 namespace LFunctions
 
 noncomputable section
+
+open scoped Filter Topology
+open Filter
 
 /-- Finite Stieltjes/Abel control for a bounded family of tails under a
 positive decreasing weight.
@@ -42,7 +47,9 @@ theorem Complex.zeroExtended_tail_prefix_sum_eq_Ioc
   calc
     (∑ n ∈ Finset.range (k + 1), if N < n then a n else 0) =
         ∑ n ∈ (Finset.range (k + 1)).filter (fun n : ℕ => N < n), a n :=
-      Finset.sum_filter
+      (Finset.sum_filter (s := Finset.range (k + 1))
+        (p := fun n : ℕ => N < n)
+        (f := fun n : ℕ => a n)).symm
     _ = ∑ n ∈ Finset.Ioc N k, a n := by
       exact congrArg (fun s : Finset ℕ => ∑ n ∈ s, a n) hfilter
 
@@ -73,7 +80,10 @@ theorem Complex.finite_weighted_tail_abel_identity
           ∑ n ∈ Finset.Ioc N N, a n :=
         Complex.zeroExtended_tail_prefix_sum_eq_Ioc (a := a) N N
       _ = 0 := by
-        exact Finset.sum_empty
+        have hinterval : Finset.Ioc N N = ∅ := Finset.Ioc_self N
+        exact Eq.trans
+          (congrArg (fun s : Finset ℕ => ∑ n ∈ s, a n) hinterval)
+          Finset.sum_empty
   have hprefix_M :
       (∑ i ∈ Finset.range (M + 1), b i) =
         ∑ n ∈ Finset.Ioc N M, a n :=
@@ -90,8 +100,13 @@ theorem Complex.finite_weighted_tail_abel_identity
     exact Finset.sum_congr rfl
       (fun n hn =>
         let hNn : N < n := (Finset.mem_Ioc.mp hn).1
-        show (w n : ℂ) * a n = a n * (w n : ℂ) from
-          mul_comm (w n : ℂ) (a n))
+        have hb : b n = a n := if_pos hNn
+        calc
+          (w n : ℂ) • b n = (w n : ℂ) * b n := rfl
+          _ = (w n : ℂ) * a n := by
+            exact congrArg (fun z : ℂ => (w n : ℂ) * z) hb
+          _ = a n * (w n : ℂ) :=
+            mul_comm (w n : ℂ) (a n))
   have hrhs :
       (w M : ℂ) • (∑ i ∈ Finset.range (M + 1), b i) -
           (w (N + 1) : ℂ) • (∑ i ∈ Finset.range (N + 1), b i) -
@@ -113,29 +128,137 @@ theorem Complex.finite_weighted_tail_abel_identity
               ∑ i ∈ Finset.Ioc N (M - 1),
                 (((w (i + 1) : ℂ) - (w i : ℂ)) •
                   (∑ x ∈ Finset.range (i + 1), b x)) := by
-        congr 1 <;> exact hprefix_M
+        calc
+          (w M : ℂ) • (∑ i ∈ Finset.range (M + 1), b i) -
+              (w (N + 1) : ℂ) • (∑ i ∈ Finset.range (N + 1), b i) -
+                ∑ i ∈ Finset.Ioc N (M - 1),
+                  (((w (i + 1) : ℂ) - (w i : ℂ)) •
+                    (∑ x ∈ Finset.range (i + 1), b x)) =
+              (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) -
+                (w (N + 1) : ℂ) • (∑ i ∈ Finset.range (N + 1), b i) -
+                  ∑ i ∈ Finset.Ioc N (M - 1),
+                    (((w (i + 1) : ℂ) - (w i : ℂ)) •
+                      (∑ x ∈ Finset.range (i + 1), b x)) := by
+            exact congrArg
+              (fun z : ℂ =>
+                z -
+                  (w (N + 1) : ℂ) • (∑ i ∈ Finset.range (N + 1), b i) -
+                    ∑ i ∈ Finset.Ioc N (M - 1),
+                      (((w (i + 1) : ℂ) - (w i : ℂ)) •
+                        (∑ x ∈ Finset.range (i + 1), b x)))
+              (congrArg (fun z : ℂ => (w M : ℂ) * z) hprefix_M)
+          _ = (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) -
+                (w (N + 1) : ℂ) * 0 -
+                  ∑ i ∈ Finset.Ioc N (M - 1),
+                    (((w (i + 1) : ℂ) - (w i : ℂ)) •
+                      (∑ x ∈ Finset.range (i + 1), b x)) := by
+            exact congrArg
+              (fun z : ℂ =>
+                (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) - z -
+                  ∑ i ∈ Finset.Ioc N (M - 1),
+                    (((w (i + 1) : ℂ) - (w i : ℂ)) •
+                      (∑ x ∈ Finset.range (i + 1), b x)))
+              (congrArg (fun z : ℂ => (w (N + 1) : ℂ) * z) hprefix_N)
       _ = (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) -
             ∑ i ∈ Finset.Ioc N (M - 1),
               (((w (i + 1) : ℂ) - (w i : ℂ)) •
                   (∑ x ∈ Finset.range (i + 1), b x)) := by
-        exact sub_zero _
+        have hzero :
+            (w (N + 1) : ℂ) * 0 = 0 :=
+          mul_zero (w (N + 1) : ℂ)
+        calc
+          (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) -
+              (w (N + 1) : ℂ) * 0 -
+                ∑ i ∈ Finset.Ioc N (M - 1),
+                  (((w (i + 1) : ℂ) - (w i : ℂ)) •
+                    (∑ x ∈ Finset.range (i + 1), b x)) =
+              (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) - 0 -
+                ∑ i ∈ Finset.Ioc N (M - 1),
+                  (((w (i + 1) : ℂ) - (w i : ℂ)) •
+                    (∑ x ∈ Finset.range (i + 1), b x)) := by
+            exact congrArg
+              (fun z : ℂ =>
+                (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) - z -
+                  ∑ i ∈ Finset.Ioc N (M - 1),
+                    (((w (i + 1) : ℂ) - (w i : ℂ)) •
+                      (∑ x ∈ Finset.range (i + 1), b x)))
+              hzero
+          _ = (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) -
+                ∑ i ∈ Finset.Ioc N (M - 1),
+                  (((w (i + 1) : ℂ) - (w i : ℂ)) •
+                    (∑ x ∈ Finset.range (i + 1), b x)) := by
+            exact congrArg
+              (fun z : ℂ =>
+                z -
+                  ∑ i ∈ Finset.Ioc N (M - 1),
+                    (((w (i + 1) : ℂ) - (w i : ℂ)) •
+                      (∑ x ∈ Finset.range (i + 1), b x)))
+              (sub_zero ((w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n)))
       _ = (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) +
             ∑ k ∈ Finset.Ioc N (M - 1),
               ((w k - w (k + 1) : ℝ) : ℂ) *
                 (∑ n ∈ Finset.Ioc N k, a n) := by
-        congr 1
-        exact Finset.sum_congr rfl
-          (fun k hk =>
-            let hpk :
-                ∑ x ∈ Finset.range (k + 1), b x =
-                  ∑ n ∈ Finset.Ioc N k, a n :=
-              hprefix k
-            show -(((w (k + 1) : ℂ) - (w k : ℂ)) *
-                (∑ n ∈ Finset.Ioc N k, a n)) =
-              ((w k - w (k + 1) : ℝ) : ℂ) * (∑ n ∈ Finset.Ioc N k, a n) from by
-              exact Complex.neg_sub_mul_eq_ofReal_sub_mul_for_abelTail
-                (w k) (w (k + 1))
-                (∑ n ∈ Finset.Ioc N k, a n))
+        let S : ℂ :=
+          ∑ i ∈ Finset.Ioc N (M - 1),
+            (((w (i + 1) : ℂ) - (w i : ℂ)) •
+              (∑ x ∈ Finset.range (i + 1), b x))
+        let T : ℂ :=
+          ∑ k ∈ Finset.Ioc N (M - 1),
+            ((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ n ∈ Finset.Ioc N k, a n)
+        have hnegS : -S = T := by
+          have hsum_neg :
+              -S =
+                ∑ k ∈ Finset.Ioc N (M - 1),
+                  -(((w (k + 1) : ℂ) - (w k : ℂ)) •
+                    (∑ x ∈ Finset.range (k + 1), b x)) :=
+            (Finset.sum_neg_distrib
+              (s := Finset.Ioc N (M - 1))
+              (f := fun k : ℕ =>
+                (((w (k + 1) : ℂ) - (w k : ℂ)) •
+                  (∑ x ∈ Finset.range (k + 1), b x)))).symm
+          have hterm :
+              (∑ k ∈ Finset.Ioc N (M - 1),
+                  -(((w (k + 1) : ℂ) - (w k : ℂ)) •
+                    (∑ x ∈ Finset.range (k + 1), b x))) = T := by
+            exact Finset.sum_congr rfl
+              (fun k hk =>
+                let hpk :
+                    ∑ x ∈ Finset.range (k + 1), b x =
+                      ∑ n ∈ Finset.Ioc N k, a n :=
+                  hprefix k
+                show -(((w (k + 1) : ℂ) - (w k : ℂ)) •
+                    (∑ x ∈ Finset.range (k + 1), b x)) =
+                  ((w k - w (k + 1) : ℝ) : ℂ) *
+                    (∑ n ∈ Finset.Ioc N k, a n) from by
+                  calc
+                    -(((w (k + 1) : ℂ) - (w k : ℂ)) •
+                        (∑ x ∈ Finset.range (k + 1), b x)) =
+                        -(((w (k + 1) : ℂ) - (w k : ℂ)) *
+                          (∑ x ∈ Finset.range (k + 1), b x)) := rfl
+                    _ = -(((w (k + 1) : ℂ) - (w k : ℂ)) *
+                          (∑ n ∈ Finset.Ioc N k, a n)) := by
+                      exact congrArg
+                        (fun z : ℂ =>
+                          -(((w (k + 1) : ℂ) - (w k : ℂ)) * z))
+                        hpk
+                    _ = ((w k - w (k + 1) : ℝ) : ℂ) *
+                          (∑ n ∈ Finset.Ioc N k, a n) :=
+                      Complex.neg_sub_mul_eq_ofReal_sub_mul_for_abelTail
+                        (w k) (w (k + 1))
+                        (∑ n ∈ Finset.Ioc N k, a n))
+          exact Eq.trans hsum_neg hterm
+        calc
+          (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) - S =
+              (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) + -S :=
+            sub_eq_add_neg
+              ((w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n))
+              S
+          _ = (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) + T := by
+            exact congrArg
+              (fun z : ℂ =>
+                (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) + z)
+              hnegS
   exact Eq.trans hlhs.symm (Eq.trans hparts hrhs)
 
 /-- The coefficient mass in the finite Abel identity is bounded by the initial
@@ -157,7 +280,12 @@ theorem Complex.finite_weighted_tail_abel_coefficient_mass_eq_initial
             htop
         _ = w (N + 1) := by
           have hsum : ∑ k ∈ Finset.Ioc N N, (w k - w (k + 1)) = 0 := by
-            exact Finset.sum_empty
+            have hinterval : Finset.Ioc N N = ∅ := Finset.Ioc_self N
+            exact Eq.trans
+              (congrArg
+                (fun s : Finset ℕ => ∑ k ∈ s, (w k - w (k + 1)))
+                hinterval)
+              Finset.sum_empty
           calc
             w (N + 1) + ∑ k ∈ Finset.Ioc N N, (w k - w (k + 1)) =
                 w (N + 1) + 0 := by
@@ -167,6 +295,10 @@ theorem Complex.finite_weighted_tail_abel_coefficient_mass_eq_initial
       by
         have hNm : N < m := Nat.lt_of_succ_le hm
         have hNm_pred : N ≤ m - 1 := Nat.le_sub_one_of_lt hNm
+        have hm_pos : 0 < m :=
+          Nat.lt_of_le_of_lt (Nat.zero_le N) hNm
+        have hpred_succ : (m - 1) + 1 = m :=
+          Nat.sub_one_add_one (Nat.ne_of_gt hm_pos)
         have hsub : (m + 1) - 1 = m := Nat.succ_sub_one m
         calc
           w (m + 1) + ∑ k ∈ Finset.Ioc N ((m + 1) - 1), (w k - w (k + 1)) =
@@ -181,7 +313,25 @@ theorem Complex.finite_weighted_tail_abel_coefficient_mass_eq_initial
                 ∑ k ∈ Finset.Ioc N m, (w k - w (k + 1)) =
                   ∑ k ∈ Finset.Ioc N (m - 1), (w k - w (k + 1)) +
                     (w m - w (m + 1)) :=
-              sum_Ioc_succ_top hNm_pred
+              calc
+                ∑ k ∈ Finset.Ioc N m, (w k - w (k + 1)) =
+                    ∑ k ∈ Finset.Ioc N ((m - 1) + 1), (w k - w (k + 1)) := by
+                  exact congrArg
+                    (fun x : ℕ =>
+                      ∑ k ∈ Finset.Ioc N x, (w k - w (k + 1)))
+                    hpred_succ.symm
+                _ = ∑ k ∈ Finset.Ioc N (m - 1), (w k - w (k + 1)) +
+                      (w ((m - 1) + 1) - w (((m - 1) + 1) + 1)) :=
+                  Finset.sum_Ioc_succ_top hNm_pred
+                    (fun k : ℕ => w k - w (k + 1))
+                _ = ∑ k ∈ Finset.Ioc N (m - 1), (w k - w (k + 1)) +
+                      (w m - w (m + 1)) := by
+                  exact congrArg
+                    (fun x : ℝ =>
+                      ∑ k ∈ Finset.Ioc N (m - 1), (w k - w (k + 1)) + x)
+                    (congrArg₂ (fun x y : ℝ => x - y)
+                      (congrArg w hpred_succ)
+                      (congrArg w (congrArg (fun x : ℕ => x + 1) hpred_succ)))
             exact congrArg (fun x : ℝ => w (m + 1) + x) hsplit
           _ = w m + ∑ k ∈ Finset.Ioc N (m - 1), (w k - w (k + 1)) :=
             Real.coefficient_mass_step_arithmetic_for_abelTail
@@ -195,8 +345,8 @@ theorem Complex.finite_weighted_tail_abel_coefficient_mass_le_one
     {w : ℕ → ℝ}
     (N M : ℕ)
     (hNM : N < M)
-    (hw_nonneg : ∀ n : ℕ, N < n → 0 ≤ w n)
-    (hw_antitone : ∀ {m n : ℕ}, N < m → m ≤ n → w n ≤ w m)
+    (_hw_nonneg : ∀ n : ℕ, N < n → 0 ≤ w n)
+    (_hw_antitone : ∀ {m n : ℕ}, N < m → m ≤ n → w n ≤ w m)
     (hw_initial : ∀ n : ℕ, N < n → w n ≤ 1) :
     w M + ∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1)) ≤ 1 := by
   calc
@@ -210,7 +360,7 @@ theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
     {B : ℝ}
     {w : ℕ → ℝ}
     (N : ℕ)
-    (hN : 1 ≤ N)
+    (_hN : 1 ≤ N)
     (hw_nonneg : ∀ n : ℕ, N < n → 0 ≤ w n)
     (hw_antitone : ∀ {m n : ℕ}, N < m → m ≤ n → w n ≤ w m)
     (hw_initial : ∀ n : ℕ, N < n → w n ≤ 1)
@@ -228,7 +378,18 @@ theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
       by
         have hB_nonneg : 0 ≤ B := by
           have hzero_bound := hfinite N (le_rfl : N ≤ N)
-          exact hzero_bound
+          have hinterval : Finset.Ioc N N = ∅ := Finset.Ioc_self N
+          have hsum :
+              (∑ n ∈ Finset.Ioc N N, a n) = 0 := by
+            exact Eq.trans
+              (congrArg (fun s : Finset ℕ => ∑ n ∈ s, a n) hinterval)
+              Finset.sum_empty
+          have hnorm :
+              ‖∑ n ∈ Finset.Ioc N N, a n‖ = 0 := by
+            exact Eq.trans
+              (congrArg Norm.norm hsum)
+              (norm_zero : ‖(0 : ℂ)‖ = 0)
+          exact Eq.subst (motive := fun x : ℝ => x ≤ B) hnorm hzero_bound
         have hid :
             (∑ n ∈ Finset.Ioc N M, a n * (w n : ℂ)) =
               (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) +
@@ -272,14 +433,18 @@ theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
                         ‖(w M : ℂ)‖ * ‖∑ n ∈ Finset.Ioc N M, a n‖ :=
                     norm_mul _ _
                   have hcoef : ‖(w M : ℂ)‖ = w M := by
-                    have hcoef' : ‖(w M : ℂ)‖ = ‖w M‖ := Complex.norm_ofReal (w M)
-                    exact Eq.trans hcoef' (abs_of_nonneg hcoeff_M_nonneg)
+                    have hcoef' : ‖(w M : ℂ)‖ = ‖w M‖ :=
+                      RCLike.norm_ofReal (w M)
+                    have hreal : ‖w M‖ = w M :=
+                      Real.norm_of_nonneg hcoeff_M_nonneg
+                    exact Eq.trans hcoef' hreal
                   calc
                     ‖(w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n)‖ =
                         ‖(w M : ℂ)‖ * ‖∑ n ∈ Finset.Ioc N M, a n‖ := hnorm
                     _ = w M * ‖∑ n ∈ Finset.Ioc N M, a n‖ := by
-                      congr
-                      exact hcoef
+                      exact congrArg
+                        (fun x : ℝ => x * ‖∑ n ∈ Finset.Ioc N M, a n‖)
+                        hcoef
                 _ ≤ w M * B :=
                   mul_le_mul_of_nonneg_left (hfinite M hNM_le) hcoeff_M_nonneg
             · calc
@@ -310,8 +475,10 @@ theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
                           have hcoef : ‖((w k - w (k + 1 : ℕ) : ℝ) : ℂ)‖ =
                               (w k - w (k + 1)) := by
                             have hcoef' : ‖((w k - w (k + 1 : ℕ) : ℝ) : ℂ)‖ =
-                                ‖w k - w (k + 1)‖ := Complex.norm_ofReal _
-                            exact Eq.trans hcoef' (abs_of_nonneg hk_nonneg)
+                                ‖w k - w (k + 1)‖ := RCLike.norm_ofReal _
+                            have hreal : ‖w k - w (k + 1)‖ = w k - w (k + 1) :=
+                              Real.norm_of_nonneg hk_nonneg
+                            exact Eq.trans hcoef' hreal
                           calc
                             ‖((w k - w (k + 1 : ℕ) : ℝ) : ℂ) *
                                 (∑ n ∈ Finset.Ioc N k, a n)‖ =
@@ -319,15 +486,19 @@ theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
                                   ‖∑ n ∈ Finset.Ioc N k, a n‖ := hnorm
                             _ = (w k - w (k + 1)) *
                                   ‖∑ n ∈ Finset.Ioc N k, a n‖ := by
-                              congr
-                              exact hcoef
+                              exact congrArg
+                                (fun x : ℝ => x * ‖∑ n ∈ Finset.Ioc N k, a n‖)
+                                hcoef
                         _ ≤ (w k - w (k + 1)) * B :=
                           mul_le_mul_of_nonneg_left (hfinite k hNk_le) hk_nonneg)
           _ = (w M + ∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1))) * B := by
             have hsum_mul :
                 ∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1)) * B =
                   (∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1))) * B :=
-              Finset.sum_mul _ _
+              (Finset.sum_mul
+                (s := Finset.Ioc N (M - 1))
+                (f := fun k : ℕ => w k - w (k + 1))
+                B).symm
             calc
               w M * B + ∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1)) * B =
                   w M * B +
@@ -345,7 +516,32 @@ theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
         have hMN : M ≤ N := le_of_not_gt hNM
         have hempty : Finset.Ioc N M = ∅ := Finset.Ioc_eq_empty_of_le hMN
         have hzero_bound := hfinite N le_rfl
-        exact hzero_bound
+        have hsum :
+            (∑ n ∈ Finset.Ioc N M, a n * (w n : ℂ)) = 0 := by
+          exact Eq.trans
+            (congrArg
+              (fun s : Finset ℕ => ∑ n ∈ s, a n * (w n : ℂ))
+              hempty)
+            Finset.sum_empty
+        have hnorm :
+            ‖∑ n ∈ Finset.Ioc N M, a n * (w n : ℂ)‖ = 0 := by
+          exact Eq.trans
+            (congrArg Norm.norm hsum)
+            (norm_zero : ‖(0 : ℂ)‖ = 0)
+        have hB_nonneg : 0 ≤ B := by
+          have hinterval_N : Finset.Ioc N N = ∅ := Finset.Ioc_self N
+          have hsum_N :
+              (∑ n ∈ Finset.Ioc N N, a n) = 0 := by
+            exact Eq.trans
+              (congrArg (fun s : Finset ℕ => ∑ n ∈ s, a n) hinterval_N)
+              Finset.sum_empty
+          have hnorm_N :
+              ‖∑ n ∈ Finset.Ioc N N, a n‖ = 0 := by
+            exact Eq.trans
+              (congrArg Norm.norm hsum_N)
+              (norm_zero : ‖(0 : ℂ)‖ = 0)
+          exact Eq.subst (motive := fun x : ℝ => x ≤ B) hnorm_N hzero_bound
+        exact Eq.subst (motive := fun x : ℝ => x ≤ B) hnorm.symm hB_nonneg
 
 /-- Passage from uniformly bounded finite weighted tails to the corresponding
 `tsum`. -/
@@ -421,11 +617,16 @@ theorem Complex.tsum_weighted_tail_bound_of_finite_weighted_tail_bound
         (∑ n ∈ Finset.range (K + (N + 1)), f n) =
             ∑ n ∈ (Finset.range (K + (N + 1))).filter
               (fun n : ℕ => N < n), a n * (w n : ℂ) := by
-          exact Finset.sum_filter
+          exact (Finset.sum_filter (s := Finset.range (K + (N + 1)))
+            (p := fun n : ℕ => N < n)
+            (f := fun n : ℕ => a n * (w n : ℂ))).symm
       _ = ∑ n ∈ Finset.Ioc N (N + K), a n * (w n : ℂ) := by
           exact congrArg (fun s : Finset ℕ => ∑ n ∈ s, a n * (w n : ℂ)) hfilter
     have hNK : N ≤ N + K := Nat.le.intro rfl
-    exact hsum_eq.trans_le (hfinite_weighted (N + K) hNK)
+    exact Eq.subst
+      (motive := fun z : ℂ => ‖z‖ ≤ B)
+      hsum_eq.symm
+      (hfinite_weighted (N + K) hNK)
   have hnorm_lim :
       Tendsto
         (fun K : ℕ => ‖∑ n ∈ Finset.range (K + (N + 1)), f n‖)
@@ -492,7 +693,7 @@ application. -/
 theorem Complex.abelDampedTail_summable_of_uniform_finite_tail_bound
     {a : ℕ → ℂ}
     (N : ℕ)
-    (hfinite :
+    (_hfinite :
       ∃ B : ℝ,
         ∀ M : ℕ,
           N ≤ M →
@@ -501,14 +702,14 @@ theorem Complex.abelDampedTail_summable_of_uniform_finite_tail_bound
       Summable
         (fun n : ℕ =>
           if N < n then
-            a n * ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+            a n * (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
           else
             0)) →
     ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
       Summable
         (fun n : ℕ =>
           if N < n then
-            a n * ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+            a n * (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
           else
             0) := by
   intro hsummable
@@ -526,7 +727,7 @@ theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound
         Summable
           (fun n : ℕ =>
             if N < n then
-              a n * ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+              a n * (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
             else
               0))
     (hfinite :
@@ -536,7 +737,7 @@ theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound
     ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
       ‖∑' n : ℕ,
         if N < n then
-          a n * ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+          a n * (((n : ℝ) ^ (-(σ - 1)) : ℝ) : ℂ)
         else
           0‖ ≤ B := by
   have hsummable :
@@ -544,7 +745,7 @@ theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound
         Summable
           (fun n : ℕ =>
             if N < n then
-              a n * (((fun σ n => (n : ℝ) ^ (-(σ - 1))) σ n) : ℂ)
+              a n * ((((fun σ n => (n : ℝ) ^ (-(σ - 1))) σ n) : ℝ) : ℂ)
             else
               0) := by
     exact
@@ -572,8 +773,14 @@ theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound
         ∀ n : ℕ, N < n → (n : ℝ) ^ (-(σ - 1)) ≤ 1 := by
     filter_upwards [eventually_mem_nhdsWithin] with σ hσ n hn
     have hn_one : 1 ≤ (n : ℝ) := by
-      have hn_nat : 1 ≤ n := le_trans hN (Nat.succ_le_of_lt hn)
-      exact Nat.cast_le.mpr hn_nat
+      have hNn_le : N ≤ n := Nat.le_of_lt hn
+      have hn_nat : 1 ≤ n := le_trans hN hNn_le
+      have hcast : ((1 : ℕ) : ℝ) ≤ (n : ℝ) :=
+        Nat.cast_le.mpr hn_nat
+      exact Eq.subst
+        (motive := fun x : ℝ => x ≤ (n : ℝ))
+        Nat.cast_one
+        hcast
     have hexp_nonpos : -(σ - 1) ≤ 0 := by
       exact neg_nonpos.mpr (sub_nonneg.mpr (le_of_lt hσ))
     exact Real.rpow_le_one_of_one_le_of_nonpos hn_one hexp_nonpos

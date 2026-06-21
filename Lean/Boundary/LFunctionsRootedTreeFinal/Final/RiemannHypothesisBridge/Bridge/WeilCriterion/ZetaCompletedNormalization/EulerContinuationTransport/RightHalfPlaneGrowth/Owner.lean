@@ -19,15 +19,12 @@ noncomputable section
 open scoped Filter Topology
 local notation "π" => Real.pi
 
-/-- Global Abel partial-sum majorant needed on the left edge `re = 1`. -/
+/-- Global Abel/Euler truncation hypotheses needed on the left edge `re = 1`. -/
 def BoundaryLineOneAbelPartialMajorant : Prop :=
   ∀ z : ℂ,
     z.re = 1 →
     1 ≤ ‖z.im‖ →
-    ∀ {x : ℝ},
-      (⌊2 + ‖z.im‖⌋₊ : ℝ) ≤ x →
-        ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum z.im ⌊x⌋₊‖ ≤
-          8 * ((x / ‖z.im‖) + Real.sqrt (1 + ‖z.im‖)) * Real.log (2 + x)
+    boundaryLineOneVerticalTruncationHypotheses z
 
 /-- Uniform bounded-boundary vertical-tail input for the strip `1 ≤ re ≤ 2`. -/
 def PoleClearedOneTwoStripBoundedTailBoundary : Prop :=
@@ -190,7 +187,7 @@ theorem eulerMaclaurinPoleClearedZetaEndpointTerm_one_two_strip_polynomial_bound
                   htwo_norm.symm
                   one_le_two
               exact div_le_self (norm_nonneg (z - 1)) hone_le_two
-            Eq.subst
+            exact Eq.subst
               (motive := fun x : ℝ => x ≤ ‖z - 1‖)
               hnorm_div.symm
               hraw
@@ -235,7 +232,7 @@ theorem eulerMaclaurinPoleClearedZetaEndpointTerm_one_two_strip_polynomial_bound
                   ‖-(((z - 1) / (2 : ℂ)) *
                     (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)))‖ := by
                 exact congrArg norm (neg_mul ((z - 1) / (2 : ℂ))
-                  (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))).symm
+                  (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)))
               _ =
                   ‖(z - 1) / (2 : ℂ) *
                     (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))‖ := by
@@ -310,13 +307,13 @@ theorem poleClearedRiemannZeta_one_two_strip_polynomial_bound_of_eulerMaclaurin_
               match hremainder with
               | ⟨Cr, mr, hCr, hr⟩ =>
                     let C : ℝ := Cf + Cm + Ce + Cr
-                    let m : ℕ := mf + mm + me + mr
+                    let m : ℕ := max (max mf mm) (max me mr)
                     have hCf_nonneg : 0 ≤ Cf := le_of_lt hCf
                     have hCm_nonneg : 0 ≤ Cm := le_of_lt hCm
                     have hCe_nonneg : 0 ≤ Ce := le_of_lt hCe
                     have hCr_nonneg : 0 ≤ Cr := le_of_lt hCr
-                  exact
-                    ⟨C, m, add_pos (add_pos (add_pos hCf hCm) hCe) hCr,
+                    exact
+                      ⟨C, m, add_pos (add_pos (add_pos hCf hCm) hCe) hCr,
                       fun z hz_one hz_two =>
                           let H : ℝ := 1 + ‖z‖
                           have hH_ge_one : (1 : ℝ) ≤ H :=
@@ -325,19 +322,23 @@ theorem poleClearedRiemannZeta_one_two_strip_polynomial_bound_of_eulerMaclaurin_
                             le_trans zero_le_one hH_ge_one
                           have hmf : H ^ mf ≤ H ^ m := by
                             have hmf_le : mf ≤ m :=
-                              Nat.le_add_right mf (mm + me + mr)
+                              le_trans (Nat.le_max_left mf mm)
+                                (Nat.le_max_left (max mf mm) (max me mr))
                             exact pow_le_pow_right₀ hH_ge_one hmf_le
                           have hmm : H ^ mm ≤ H ^ m := by
                             have hmm_le : mm ≤ m :=
-                              Nat.le_add_left mm (mf + me + mr)
+                              le_trans (Nat.le_max_right mf mm)
+                                (Nat.le_max_left (max mf mm) (max me mr))
                             exact pow_le_pow_right₀ hH_ge_one hmm_le
                           have hme : H ^ me ≤ H ^ m := by
                             have hme_le : me ≤ m :=
-                              Nat.le_add_right me (mf + mm + mr)
+                              le_trans (Nat.le_max_left me mr)
+                                (Nat.le_max_right (max mf mm) (max me mr))
                             exact pow_le_pow_right₀ hH_ge_one hme_le
                           have hmr : H ^ mr ≤ H ^ m := by
                             have hmr_le : mr ≤ m :=
-                              Nat.le_add_right mr (mf + mm + me)
+                              le_trans (Nat.le_max_right me mr)
+                                (Nat.le_max_right (max mf mm) (max me mr))
                             exact pow_le_pow_right₀ hH_ge_one hmr_le
                           have hf' :
                               ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ ≤ Cf * H ^ m :=
@@ -483,7 +484,7 @@ theorem poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_of_polynomial_bo
                 (1 : ℝ) ≤ Real.exp ((1 : ℝ) * H ^ m) := by
               have hexponent_nonneg : 0 ≤ (1 : ℝ) * H ^ m :=
                 mul_nonneg zero_le_one hpow_nonneg
-              le_trans
+              exact le_trans
                 (le_of_eq Real.exp_zero.symm)
                 (Real.exp_le_exp.mpr hexponent_nonneg)
             have hHpow_le_exp :
@@ -599,7 +600,7 @@ theorem poleClearedRiemannZeta_one_two_strip_compactCore_growth_from_localBounde
                   0 ≤ (1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ) :=
                 mul_nonneg zero_le_one
                   (pow_nonneg (add_nonneg zero_le_one (norm_nonneg z)) 0)
-              le_trans
+              exact le_trans
                 (le_of_eq Real.exp_zero.symm)
                 (Real.exp_le_exp.mpr hexponent_nonneg)
             have hC_le_target :

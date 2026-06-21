@@ -1,3 +1,4 @@
+import Mathlib.Order.Filter.Tendsto
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.AbelTransport.Dirichlet.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Owner
 
@@ -15,49 +16,6 @@ noncomputable section
 
 open scoped Filter Topology
 local notation "π" => Real.pi
-
-    (t : ℝ)
-    (N : ℕ)
-    (hζ :
-      HasSum
-        (fun n : ℕ =>
-          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t))
-        (riemannZeta (boundaryLineOnePointRealParam t))) :
-    HasSum
-        (fun n : ℕ =>
-          if N < n then
-            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
-          else
-            0)
-        (riemannZeta (boundaryLineOnePointRealParam t) -
-          ∑ n ∈ Finset.Icc 1 N,
-            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) := by
-  have htail_compl :
-      HasSum
-        (fun x : {n : ℕ // n ∉ Finset.Icc 1 N} =>
-          (1 : ℂ) / (((x : ℕ) : ℂ) ^ boundaryLineOnePointRealParam t))
-        (riemannZeta (boundaryLineOnePointRealParam t) -
-          ∑ n ∈ Finset.Icc 1 N,
-            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) :=
-    ((Finset.Icc 1 N).hasSum_iff_compl).mp hζ
-  have htail_indicator :
-      HasSum
-        ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator
-          (fun n : ℕ =>
-            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)))
-        (riemannZeta (boundaryLineOnePointRealParam t) -
-          ∑ n ∈ Finset.Icc 1 N,
-            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) := by
-    exact
-      (hasSum_subtype_iff_indicator
-        (s := {n : ℕ | n ∉ Finset.Icc 1 N})
-        (f := fun n : ℕ =>
-          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t))).mp
-        htail_compl
-  exact htail_indicator.congr_fun
-    (fun n : ℕ =>
-      (boundaryLineOnePointRealParam_dirichlet_tail_indicator_eq_cutoff_if
-        t N n).symm)
 
 /-- The boundary point `1 + it` is away from the zeta pole when `|t| ≥ 1`. -/
 theorem boundaryLineOnePointRealParam_ne_one_of_one_le_norm
@@ -95,6 +53,98 @@ def boundaryLineOnePointRealParam_abscissaShift
     (σ t : ℝ) : ℂ :=
   (σ : ℂ) + (t : ℂ) * Complex.I
 
+theorem boundaryLineOnePointRealParam_abscissaShift_oscillator_re
+    (t : ℝ) :
+    (((t : ℂ) * Complex.I).re) = 0 := by
+  calc
+    (((t : ℂ) * Complex.I).re) =
+        (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im :=
+      Complex.mul_re (t : ℂ) Complex.I
+    _ = t * 0 - 0 * 1 :=
+      congrArg₂
+        (fun x y : ℝ => x - y)
+        (congrArg₂
+          (fun x y : ℝ => x * y)
+          (Complex.ofReal_re t)
+          Complex.I_re)
+        (congrArg₂
+          (fun x y : ℝ => x * y)
+          (Complex.ofReal_im t)
+          Complex.I_im)
+    _ = 0 - 0 * 1 :=
+      congrArg (fun x : ℝ => x - 0 * 1) (mul_zero t)
+    _ = 0 - 0 :=
+      congrArg (fun x : ℝ => 0 - x) (zero_mul (1 : ℝ))
+    _ = 0 :=
+      sub_zero 0
+
+theorem boundaryLineOnePointRealParam_abscissaShift_oscillator_im
+    (t : ℝ) :
+    (((t : ℂ) * Complex.I).im) = t := by
+  calc
+    (((t : ℂ) * Complex.I).im) =
+        (t : ℂ).re * Complex.I.im + (t : ℂ).im * Complex.I.re :=
+      Complex.mul_im (t : ℂ) Complex.I
+    _ = t * 1 + 0 * 0 :=
+      congrArg₂
+        (fun x y : ℝ => x + y)
+        (congrArg₂
+          (fun x y : ℝ => x * y)
+          (Complex.ofReal_re t)
+          Complex.I_im)
+        (congrArg₂
+          (fun x y : ℝ => x * y)
+          (Complex.ofReal_im t)
+          Complex.I_re)
+    _ = t + 0 * 0 :=
+      congrArg (fun x : ℝ => x + 0 * 0) (mul_one t)
+    _ = t + 0 :=
+      congrArg (fun x : ℝ => t + x) (zero_mul (0 : ℝ))
+    _ = t :=
+      add_zero t
+
+theorem boundaryLineOnePointRealParam_abscissaShift_re
+    (σ t : ℝ) :
+    (boundaryLineOnePointRealParam_abscissaShift σ t).re = σ := by
+  calc
+    (boundaryLineOnePointRealParam_abscissaShift σ t).re =
+        (σ : ℂ).re + (((t : ℂ) * Complex.I).re) :=
+      Complex.add_re (σ : ℂ) ((t : ℂ) * Complex.I)
+    _ = σ + 0 :=
+      congrArg₂
+        (fun x y : ℝ => x + y)
+        (Complex.ofReal_re σ)
+        (boundaryLineOnePointRealParam_abscissaShift_oscillator_re t)
+    _ = σ :=
+      add_zero σ
+
+theorem boundaryLineOnePointRealParam_abscissaShift_im
+    (σ t : ℝ) :
+    (boundaryLineOnePointRealParam_abscissaShift σ t).im = t := by
+  calc
+    (boundaryLineOnePointRealParam_abscissaShift σ t).im =
+        (σ : ℂ).im + (((t : ℂ) * Complex.I).im) :=
+      Complex.add_im (σ : ℂ) ((t : ℂ) * Complex.I)
+    _ = 0 + t :=
+      congrArg₂
+        (fun x y : ℝ => x + y)
+        (Complex.ofReal_im σ)
+        (boundaryLineOnePointRealParam_abscissaShift_oscillator_im t)
+    _ = t :=
+      zero_add t
+
+theorem boundaryLineOnePointRealParam_abscissaShift_one
+    (t : ℝ) :
+    boundaryLineOnePointRealParam_abscissaShift 1 t =
+      boundaryLineOnePointRealParam t :=
+  Complex.ext
+    (Eq.trans
+      (boundaryLineOnePointRealParam_abscissaShift_re 1 t)
+      (boundaryLineOnePointRealParam_re t).symm)
+    (Eq.trans
+      (boundaryLineOnePointRealParam_abscissaShift_im 1 t)
+      (boundaryLineOnePointRealParam_im t).symm)
+
 /-- Abel continuation of the half-plane Dirichlet identity to the boundary point
 `1 + it`.
 
@@ -105,7 +155,7 @@ correct owner statement is the Abel-limit theorem: the half-plane sums
 theorem boundaryLineOnePointRealParam_dirichlet_series_abel_tendsto_riemannZeta
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
-    Tendsto
+    Filter.Tendsto
       (fun σ : ℝ =>
         ∑' n : ℕ,
           (1 : ℂ) /
@@ -122,7 +172,7 @@ theorem boundaryLineOnePointRealParam_dirichlet_series_abel_tendsto_riemannZeta
       Complex.continuous_ofReal.continuousAt.add
         continuousAt_const
   have habscissa_path_tendsto_raw :
-      Tendsto
+      Filter.Tendsto
         (fun σ : ℝ => boundaryLineOnePointRealParam_abscissaShift σ t)
         (𝓝[>] (1 : ℝ))
         (𝓝 (boundaryLineOnePointRealParam_abscissaShift 1 t)) :=
@@ -130,22 +180,22 @@ theorem boundaryLineOnePointRealParam_dirichlet_series_abel_tendsto_riemannZeta
   have habscissa_path_endpoint :
       boundaryLineOnePointRealParam_abscissaShift 1 t =
         boundaryLineOnePointRealParam t := by
-    exact Complex.ext rfl rfl
+    exact boundaryLineOnePointRealParam_abscissaShift_one t
   have habscissa_path_tendsto_boundary :
-      Tendsto
+      Filter.Tendsto
         (fun σ : ℝ => boundaryLineOnePointRealParam_abscissaShift σ t)
         (𝓝[>] (1 : ℝ))
         (𝓝 (boundaryLineOnePointRealParam t)) :=
     Eq.subst
       (motive := fun z : ℂ =>
-        Tendsto
+        Filter.Tendsto
           (fun σ : ℝ => boundaryLineOnePointRealParam_abscissaShift σ t)
           (𝓝[>] (1 : ℝ))
           (𝓝 z))
       habscissa_path_endpoint
       habscissa_path_tendsto_raw
   have hzeta_path_tendsto :
-      Tendsto
+      Filter.Tendsto
         (fun σ : ℝ =>
           riemannZeta (boundaryLineOnePointRealParam_abscissaShift σ t))
         (𝓝[>] (1 : ℝ))
@@ -166,7 +216,7 @@ theorem boundaryLineOnePointRealParam_dirichlet_series_abel_tendsto_riemannZeta
         (fun σ hσ => by
           have hσ_re :
               (boundaryLineOnePointRealParam_abscissaShift σ t).re = σ := by
-            rfl
+            exact boundaryLineOnePointRealParam_abscissaShift_re σ t
           have hhalf_plane :
               1 < (boundaryLineOnePointRealParam_abscissaShift σ t).re :=
             Eq.subst
@@ -174,7 +224,7 @@ theorem boundaryLineOnePointRealParam_dirichlet_series_abel_tendsto_riemannZeta
               hσ_re.symm
               hσ
           exact (zeta_eq_tsum_one_div_nat_cpow hhalf_plane).symm)
-  exact Tendsto.congr' hdirichlet_eq_eventually hzeta_path_tendsto
+  exact Filter.Tendsto.congr' hdirichlet_eq_eventually.symm hzeta_path_tendsto
 
 /-- The Abel boundary value of the Dirichlet presentation is the analytic
 continuation value of `ζ(1 + it)`. -/
@@ -182,7 +232,7 @@ theorem boundaryLineOnePointRealParam_dirichlet_series_abel_boundaryValue_eq_rie
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
     ∃ V : ℂ,
-      Tendsto
+      Filter.Tendsto
         (fun σ : ℝ =>
           ∑' n : ℕ,
             (1 : ℂ) /

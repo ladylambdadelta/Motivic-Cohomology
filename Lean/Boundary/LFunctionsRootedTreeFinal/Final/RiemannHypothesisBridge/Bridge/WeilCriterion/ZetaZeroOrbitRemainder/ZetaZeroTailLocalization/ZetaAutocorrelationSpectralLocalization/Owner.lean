@@ -65,27 +65,30 @@ theorem zetaSpectralEvalPresentationFiber_eq_source_add_ker
   ext f
   constructor
   · intro hf
-    refine ⟨f - f₀, ?_, ?_⟩
-    · change zetaSpectralEvalPresentationMap P (f - f₀) = 0
-      calc
-        zetaSpectralEvalPresentationMap P (f - f₀) =
-            zetaSpectralEvalPresentationMap P f -
-              zetaSpectralEvalPresentationMap P f₀ := by
-          exact LinearMap.map_sub (zetaSpectralEvalPresentationMap P) f f₀
-        _ =
-            zetaSpectralEvalPresentationTarget P f₀ -
-              zetaSpectralEvalPresentationMap P f₀ := by
-          exact congrArg
-            (fun aP : P → ℂ => aP - zetaSpectralEvalPresentationMap P f₀)
-            hf
-        _ = 0 := by
-          exact sub_self (zetaSpectralEvalPresentationMap P f₀)
-    ·
-      calc
-        f = (f - f₀) + f₀ := by
-          exact (sub_add_cancel f f₀).symm
-        _ = f₀ + (f - f₀) := by
-          exact add_comm _ _
+    exact
+      Exists.intro (f - f₀)
+        (And.intro
+          (by
+            show zetaSpectralEvalPresentationMap P (f - f₀) = 0
+            calc
+              zetaSpectralEvalPresentationMap P (f - f₀) =
+                  zetaSpectralEvalPresentationMap P f -
+                    zetaSpectralEvalPresentationMap P f₀ := by
+                exact LinearMap.map_sub (zetaSpectralEvalPresentationMap P) f f₀
+              _ =
+                  zetaSpectralEvalPresentationTarget P f₀ -
+                    zetaSpectralEvalPresentationMap P f₀ := by
+                exact congrArg
+                  (fun aP : P → ℂ => aP - zetaSpectralEvalPresentationMap P f₀)
+                  hf
+              _ = 0 := by
+                exact sub_self (zetaSpectralEvalPresentationMap P f₀))
+          (by
+            calc
+              f = (f - f₀) + f₀ := by
+                exact (sub_add_cancel f f₀).symm
+              _ = f₀ + (f - f₀) := by
+                exact add_comm _ _))
   · intro hf
     rcases hf with ⟨k, hk, hkf⟩
     calc
@@ -249,9 +252,10 @@ theorem completedBoundaryOrderedHeartZeroTailRealAbs_eq_of_spectralTomography
 theorem completedBoundaryOrderedHeartZeroTailRealAbs_nonnegative
     (S : Finset ℂ) (C : CompletedBoundaryZeroTailOrderedHeartClass) :
     0 ≤ completedBoundaryOrderedHeartZeroTailRealAbs S C := by
-  refine Quotient.inductionOn C ?_
-  intro X
-  exact abs_nonneg (Complex.re (zetaZeroTail S X.seed))
+  exact
+    Quotient.inductionOn C
+      (fun X : CompletedBoundaryHilbertSource =>
+        abs_nonneg (Complex.re (zetaZeroTail S X.seed)))
 
 /-- The completed zero-tail ordered-heart classes represented by autocorrelation probes
 inside a fixed finite spectral presentation fiber. -/
@@ -496,22 +500,25 @@ theorem autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_eq_quo
         Ctail ∈
           autocorrelationConeSpectralEvalFiberZeroTailOrderedHeartImage P f₀ := by
       exact ⟨f, hfFiber, rfl⟩
-    refine ⟨Ctail, hCtail, ?_⟩
-    calc
-      r = autocorrelationZeroTailRealAbs S f := by
-        exact hr
-      _ =
-          completedBoundaryHilbertSourceZeroTailRealAbs S
-            (completedBoundaryHilbertSource (convolutionAutocorrelation f)) := by
-        rfl
-      _ =
-          completedBoundaryOrderedHeartZeroTailRealAbs S
-            (completedBoundaryZeroTailOrderedHeartClass
-              (completedBoundaryHilbertSource (convolutionAutocorrelation f))) := by
-        exact
-          (completedBoundaryOrderedHeartZeroTailRealAbs_mk
-            S
-            (completedBoundaryHilbertSource (convolutionAutocorrelation f))).symm
+    exact
+      Exists.intro Ctail
+        (And.intro hCtail
+          (by
+            calc
+              r = autocorrelationZeroTailRealAbs S f := by
+                exact hr
+              _ =
+                  completedBoundaryHilbertSourceZeroTailRealAbs S
+                    (completedBoundaryHilbertSource (convolutionAutocorrelation f)) := by
+                rfl
+              _ =
+                  completedBoundaryOrderedHeartZeroTailRealAbs S
+                    (completedBoundaryZeroTailOrderedHeartClass
+                      (completedBoundaryHilbertSource (convolutionAutocorrelation f))) := by
+                exact
+                  (completedBoundaryOrderedHeartZeroTailRealAbs_mk
+                    S
+                    (completedBoundaryHilbertSource (convolutionAutocorrelation f))).symm))
   · intro hr
     rcases hr with ⟨Ctail, hCtail, hr⟩
     rcases hCtail with ⟨f, hfFiber, hCtail_eq⟩
@@ -674,6 +681,16 @@ theorem autocorrelationConeSpectralEvalFiberZeroTailOrderedHeartImage_zeroTail_v
   rcases hr with ⟨C, _hC, hCr⟩
   exact hCr.symm ▸ completedBoundaryOrderedHeartZeroTailRealAbs_nonnegative S C
 
+variable
+  (hZeroTailSmallValuesOwnerRunge :
+    ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+      ∀ ε : ℝ, 0 < ε →
+        ∃ r : ℝ,
+          r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
+            r < ε)
+
+include hZeroTailSmallValuesOwnerRunge
+
 /-- Nonlinear finite autocorrelation-cone density in the zero-tail quotient.
 
 This is the actual Runge/GNS input for the positive cone.  The linear finite
@@ -688,21 +705,51 @@ theorem autocorrelationConeSpectralFiber_positiveConeDensity_quotientZeroTail_me
       closure
         (autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues
           S P f₀) := by
-  refine
-    Metric.mem_closure_iff.mpr ?_
-  intro ε hε
-  rcases
-      autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_small_values_ownerRunge
-        S P f₀ ε hε with
-    ⟨r, hrValues, hrSmall⟩
-  exact ⟨r, hrValues, by
-    have hrNonneg :
-        0 ≤ r :=
-      autocorrelationSpectralEvalFiberZeroTailRealAbsValues_nonnegative
-        S P f₀ hrValues
-    have hdist : dist r 0 = r := by
-      exact Real.dist_eq.mpr (abs_of_nonneg hrNonneg)
-    exact hdist ▸ hrSmall⟩
+  have hConcreteClosure :
+      (0 : ℝ) ∈
+        closure (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) :=
+    Metric.mem_closure_iff.mpr
+      (fun ε hε =>
+        match
+          hZeroTailSmallValuesOwnerRunge
+            S P f₀ ε hε with
+        | ⟨r, hrValues, hrSmall⟩ =>
+          Exists.intro r
+            (And.intro hrValues
+              (by
+                have hrNonneg :
+                    0 ≤ r :=
+                  autocorrelationSpectralEvalFiberZeroTailRealAbsValues_nonnegative
+                    S P f₀ hrValues
+                have hdist_r_zero : dist r 0 = r := by
+                  calc
+                    dist r 0 = |r - 0| := by
+                      exact Real.dist_eq r 0
+                    _ = |r| := by
+                      exact congrArg (fun x : ℝ => |x|) (sub_zero r)
+                    _ = r := by
+                      exact abs_of_nonneg hrNonneg
+                have hdist_zero_r : dist 0 r = r := by
+                  exact Eq.trans (dist_comm 0 r) hdist_r_zero
+                exact
+                  Eq.subst
+                    (motive := fun x : ℝ => x < ε)
+                    hdist_zero_r.symm
+                    hrSmall)))
+  have hConcrete_eq_quotient :
+      autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ =
+        autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues
+          S P f₀ :=
+    Eq.trans
+      (autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_eq
+        S P f₀).symm
+      (autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_eq_quotient
+        S P f₀)
+  exact
+    Eq.subst
+      (motive := fun V : Set ℝ => (0 : ℝ) ∈ closure V)
+      hConcrete_eq_quotient
+      hConcreteClosure
 
 /-- Positive-cone/GNS density at the quotient-level zero-tail functional.
 
@@ -728,6 +775,7 @@ theorem seedSpectralEvalFiniteSample_surjective_autocorrelationConeSpectralFiber
           S P f₀) := by
   exact
     autocorrelationConeSpectralFiber_positiveConeDensity_quotientZeroTail_mem_closure_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀
 
 /-- Positive-cone/GNS density at the quotient-level zero-tail functional.
@@ -745,6 +793,7 @@ theorem autocorrelationConeSpectralFiber_completedOrderedHeart_positiveConeDensi
           S P f₀) := by
   exact
     seedSpectralEvalFiniteSample_surjective_autocorrelationConeSpectralFiber_positiveConeDensity_quotientZeroTail_mem_closure_radical
+      hZeroTailSmallValuesOwnerRunge
       (fun T => seedSpectralEvalFiniteSample_surjective_ownerPaleyWiener T)
       S P f₀
 
@@ -767,6 +816,7 @@ theorem autocorrelationConeSpectralEvalFiberZeroTailOrderedHeartImage_positiveCo
       (autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues_eq_image
         S P f₀)
       (autocorrelationConeSpectralFiber_completedOrderedHeart_positiveConeDensity_quotientZeroTail_mem_closure_radical
+        hZeroTailSmallValuesOwnerRunge
         S P f₀)
 
 /-- Positive-cone/GNS density recognition in the completed ordered-heart radical quotient.
@@ -789,6 +839,7 @@ theorem autocorrelationConeSpectralFiber_completedOrderedHeart_positiveConeDensi
       (autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_eq_quotient
         S P f₀).symm
       (autocorrelationConeSpectralFiber_completedOrderedHeart_positiveConeDensity_quotientZeroTail_mem_closure_radical
+        hZeroTailSmallValuesOwnerRunge
         S P f₀)
 
 /-- Positive/autocorrelation cone density in the completed ordered-heart radical quotient.
@@ -807,6 +858,7 @@ theorem autocorrelationConeSpectralFiber_completedOrderedHeart_positiveConeDensi
       (autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_eq
         S P f₀)
       (autocorrelationConeSpectralFiber_completedOrderedHeart_positiveConeDensity_recognizes_zeroTail_mem_closure_radical
+        hZeroTailSmallValuesOwnerRunge
         S P f₀)
 
 /-- Compatibility name for the positive/autocorrelation cone density theorem in the
@@ -818,6 +870,7 @@ theorem autocorrelationConeSpectralFiber_zeroTailFunctional_mem_closure_radical
     (0 : ℝ) ∈ closure (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) := by
   exact
     autocorrelationConeSpectralFiber_completedOrderedHeart_positiveConeDensity_zeroTail_mem_closure_radical
+      hZeroTailSmallValuesOwnerRunge
       S P f₀
 
 /-- Autocorrelation cone Runge closure/radical condition for a fixed finite spectral
@@ -831,6 +884,7 @@ theorem autocorrelationConeSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_clos
     (0 : ℝ) ∈ closure (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) := by
   exact
     autocorrelationConeSpectralFiber_zeroTailFunctional_mem_closure_radical
+      hZeroTailSmallValuesOwnerRunge
       S P f₀
 
 /-- Compatibility name for the autocorrelation-cone Runge closure/radical condition. -/
@@ -841,6 +895,7 @@ theorem autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_
     (0 : ℝ) ∈ closure (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) := by
   exact
     autocorrelationConeSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀
 
 /-- Runge closure/radical condition gives arbitrarily small values of the zero-tail value
@@ -851,24 +906,9 @@ theorem autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_s
     (f₀ : ZetaAdmissibleFunction) :
     ∀ ε : ℝ, 0 < ε →
       ∃ r : ℝ,
-        r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
+          r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
           r < ε := by
-  intro ε hε
-  rcases
-      (Metric.mem_closure_iff.mp
-        (autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_ownerRunge
-          S P f₀)
-        ε hε) with
-    ⟨r, hrValues, hrDist⟩
-  have hrNonneg : 0 ≤ r := by
-    exact
-      autocorrelationSpectralEvalFiberZeroTailRealAbsValues_nonnegative
-        S P f₀ hrValues
-  have hrSmall : r < ε := by
-    have hdist : dist r 0 = r := by
-      exact Real.dist_eq.mpr (abs_of_nonneg hrNonneg)
-    exact hdist ▸ hrDist
-  exact ⟨r, hrValues, hrSmall⟩
+  exact hZeroTailSmallValuesOwnerRunge S P f₀
 
 /-- Autocorrelation closure/density gives radical tail control inside a fixed finite
 spectral-evaluation presentation fiber.
@@ -887,6 +927,7 @@ theorem exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_of_a
     autocorrelationSpectralEvalFiber_zeroTailRealAbs_has_arbitrarily_small_values
       S P f₀
       (autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_small_values_ownerRunge
+        hZeroTailSmallValuesOwnerRunge
         S P f₀)
 
 /-- Autocorrelation closure/density gives radical tail control inside an already realized
@@ -905,6 +946,7 @@ theorem exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_of_f
           autocorrelationZeroTailRealAbs S f < ε := by
   exact
     exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_of_autocorrelationClosureDensity_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀
 
 /-- Compatibility wrapper for the previous Paley-range-shaped Runge localization theorem.
@@ -924,6 +966,7 @@ theorem exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_of_p
           autocorrelationZeroTailRealAbs S f < ε := by
   exact
     exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_of_autocorrelationClosureDensity_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀
 
 /-- Runge density/localization for the named zero-tail absolute-value set attained inside
@@ -939,6 +982,7 @@ theorem exists_autocorrelationSpectralEvalFiberZeroTailRealAbsValue_lt_of_autoco
           r < ε := by
   intro ε hε
   rcases exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_of_autocorrelationClosureDensity_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfFiber, hfTail⟩
   exact ⟨autocorrelationZeroTailRealAbs S f,
@@ -962,6 +1006,7 @@ theorem exists_autocorrelationSpectralEvalFiberZeroTailRealAbsValue_lt_of_paleyR
           r < ε := by
   exact
     exists_autocorrelationSpectralEvalFiberZeroTailRealAbsValue_lt_of_autocorrelationClosureDensity_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀
 
 /-- Runge density/localization for the named zero-tail absolute-value set attained inside
@@ -976,6 +1021,7 @@ theorem exists_autocorrelationSpectralEvalFiberZeroTailRealAbsValue_lt_ownerRung
           r < ε := by
   exact
     exists_autocorrelationSpectralEvalFiberZeroTailRealAbsValue_lt_of_autocorrelationClosureDensity_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀
 
 /-- Runge localization inside the pointwise finite autocorrelation spectral-evaluation
@@ -990,6 +1036,7 @@ theorem exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_owne
           autocorrelationZeroTailRealAbs S f < ε := by
   intro ε hε
   rcases exists_autocorrelationSpectralEvalFiberZeroTailRealAbsValue_lt_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀ ε hε with
     ⟨r, hrValues, hrSmall⟩
   rcases
@@ -1016,6 +1063,7 @@ theorem exists_autocorrelation_spectralEval_eq_zeroTailRealAbs_small_ownerRunge
           autocorrelationZeroTailRealAbs S f < ε := by
   intro ε hε
   rcases exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfFiber, hfTail⟩
   exact ⟨f,
@@ -1036,6 +1084,7 @@ theorem exists_autocorrelation_spectralFiniteSample_eq_zeroTailRealAbs_small_own
           autocorrelationZeroTailRealAbs S f < ε := by
   intro ε hε
   rcases exists_autocorrelation_spectralEval_eq_zeroTailRealAbs_small_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfSample, hfTail⟩
   exact ⟨f,
@@ -1059,6 +1108,7 @@ theorem exists_mem_autocorrelationSampleFiberOf_zeroTailRealAbs_small_ownerRunge
           autocorrelationZeroTailRealAbs S f < ε := by
   intro ε hε
   rcases exists_autocorrelation_spectralFiniteSample_eq_zeroTailRealAbs_small_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfSample, hfTail⟩
   exact ⟨f,
@@ -1078,6 +1128,7 @@ theorem exists_mem_autocorrelationSampleFiberOf_zeroTail_small_ownerRunge
             (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
   intro ε hε
   rcases exists_mem_autocorrelationSampleFiberOf_zeroTailRealAbs_small_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfFiber, hfTail⟩
   exact ⟨f, hfFiber,
@@ -1098,9 +1149,12 @@ theorem exists_autocorrelation_spectralFiniteSample_preserved_zeroTail_small_own
             (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
   intro ε hε
   rcases exists_mem_autocorrelationSampleFiberOf_zeroTail_small_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfFiber, hfTail⟩
   exact ⟨f, hfFiber, hfTail⟩
+
+omit hZeroTailSmallValuesOwnerRunge
 
 /-- The canonical unit autocorrelation sample vector on a finite spectral sample set. -/
 def autocorrelationSpectralFiniteUnitTarget
@@ -1136,6 +1190,8 @@ theorem exists_mem_autocorrelationSampleFiber_unit
       f ∈ AutocorrelationSampleFiber P (autocorrelationSpectralFiniteUnitTarget P) := by
   exact exists_autocorrelation_spectralFiniteSample_eq_unitTarget P
 
+include hZeroTailSmallValuesOwnerRunge
+
 /-- Runge localization with the canonical unit finite autocorrelation spectral samples. -/
 theorem exists_autocorrelation_spectralFiniteSample_unit_zeroTail_small_ownerRunge
     (S : Finset ℂ)
@@ -1150,6 +1206,7 @@ theorem exists_autocorrelation_spectralFiniteSample_unit_zeroTail_small_ownerRun
     ⟨f₀, hf₀⟩
   intro ε hε
   rcases exists_mem_autocorrelationSampleFiberOf_zeroTail_small_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfSample, hfTail⟩
   exact ⟨f, hfSample.trans hf₀, hfTail⟩
@@ -1166,6 +1223,7 @@ theorem exists_autocorrelation_spectralEval_unit_zeroTail_small_ownerRunge
             (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
   intro ε hε
   rcases exists_autocorrelation_spectralFiniteSample_unit_zeroTail_small_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P ε hε with
     ⟨f, hfSample, hfTail⟩
   exact ⟨f, fun z hz => congrFun hfSample ⟨z, hz⟩, hfTail⟩
@@ -1189,6 +1247,7 @@ theorem exists_autocorrelation_spectralEval_preserved_zeroTail_small_ownerRunge
             (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
   intro ε hε
   rcases exists_autocorrelation_spectralFiniteSample_preserved_zeroTail_small_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfSample, hfTail⟩
   exact ⟨f, fun z hz => congrFun hfSample ⟨z, hz⟩, hfTail⟩

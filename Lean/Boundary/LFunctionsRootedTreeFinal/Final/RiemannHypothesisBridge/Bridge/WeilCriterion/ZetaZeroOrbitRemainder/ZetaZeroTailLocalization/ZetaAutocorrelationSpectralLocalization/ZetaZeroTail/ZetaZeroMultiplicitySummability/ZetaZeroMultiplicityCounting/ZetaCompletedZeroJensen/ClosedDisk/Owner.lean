@@ -124,8 +124,18 @@ theorem zetaCenteredZero_im_eq
         (ρ : ℂ).im - (1 / 2 : ℂ).im := by
       exact Complex.sub_im (ρ : ℂ) (1 / 2 : ℂ)
     _ = (ρ : ℂ).im - (0 : ℝ) := by
+      have hhalf_im : (1 / 2 : ℂ).im = 0 := by
+        calc
+          (1 / 2 : ℂ).im = ((1 : ℂ) / (2 : ℝ)).im := by
+            rfl
+          _ = (1 : ℂ).im / (2 : ℝ) := by
+            exact Complex.div_ofReal_im (1 : ℂ) 2
+          _ = (0 : ℝ) / (2 : ℝ) := by
+            exact congrArg (fun x : ℝ => x / (2 : ℝ)) Complex.one_im
+          _ = 0 := by
+            exact zero_div 2
       exact congrArg (fun x : ℝ => (ρ : ℂ).im - x)
-        (Complex.ofReal_im (1 / 2 : ℝ))
+        hhalf_im
     _ = (ρ : ℂ).im := by
       exact sub_zero (ρ : ℂ).im
 

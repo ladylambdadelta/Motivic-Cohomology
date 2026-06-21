@@ -104,7 +104,7 @@ def zetaWeilDirichletPart (s : ℂ) : ℂ :=
 
 /-- The gamma-factor part of the centered completed zeta. -/
 def zetaWeilGammaPart (s : ℂ) : ℂ :=
-  Gammaℝ (1 / 2 + s)
+  Complex.Gammaℝ (1 / 2 + s)
 
 theorem zetaWeilForm_eq_main_minus_correction (s : ℂ) :
     zetaWeilForm s = zetaWeilMainTerm s - zetaWeilCorrection s := by
@@ -149,16 +149,16 @@ theorem zetaWeilMainTerm_neg (s : ℂ) :
     _ = zetaWeilMainTerm s := rfl
 
 theorem zetaWeilCompletedPart_eq_dirichlet_mul_gamma (s : ℂ)
-    (hs : (1 / 2 : ℂ) + s ≠ 0) (hΓ : Gammaℝ (1 / 2 + s) ≠ 0) :
+    (hs : (1 / 2 : ℂ) + s ≠ 0) (hΓ : Complex.Gammaℝ (1 / 2 + s) ≠ 0) :
     zetaWeilCompletedPart s = zetaWeilDirichletPart s * zetaWeilGammaPart s := by
   have h := riemannZeta_def_of_ne_zero (s := (1 / 2 : ℂ) + s) hs
   have hcompleted :
       completedRiemannZeta (1 / 2 + s) =
-        riemannZeta (1 / 2 + s) * Gammaℝ (1 / 2 + s) :=
+        riemannZeta (1 / 2 + s) * Complex.Gammaℝ (1 / 2 + s) :=
     (div_eq_iff hΓ).mp h.symm
   calc
     zetaWeilCompletedPart s = completedRiemannZeta (1 / 2 + s) := rfl
-    _ = riemannZeta (1 / 2 + s) * Gammaℝ (1 / 2 + s) := hcompleted
+    _ = riemannZeta (1 / 2 + s) * Complex.Gammaℝ (1 / 2 + s) := hcompleted
     _ = zetaWeilDirichletPart s * zetaWeilGammaPart s := rfl
 
 /-- Criterion-facing form of the centered completed zeta, expressed in the
@@ -226,6 +226,15 @@ theorem boundaryRiemannHypothesis_pole_shift
   intro h1
   exact hpole ((boundaryRiemannHypothesis_shift_eq z).symm.trans h1)
 
+/-- The real part of the complex half is the real half, with the coercion path exposed. -/
+theorem complex_half_re_eq_real_half :
+    ((1 / 2 : ℂ).re : ℝ) = (1 / 2 : ℝ) := by
+  have hcoerce : ((↑(1 / 2 : ℝ) : ℂ) : ℂ) = (1 / 2 : ℂ) :=
+    Complex.ofReal_div (1 : ℝ) (2 : ℝ)
+  have hre : ((↑(1 / 2 : ℝ) : ℂ).re : ℝ) = (1 / 2 : ℝ) :=
+    Complex.ofReal_re (1 / 2 : ℝ)
+  exact (congrArg Complex.re hcoerce).symm.trans hre
+
 /-- The centered zero-criterion transport rewrites the real part conclusion. -/
 theorem boundaryRiemannHypothesis_realPart_of_centered
     (z : ℂ) (hsre : (z - 1 / 2).re = 0) :
@@ -233,8 +242,8 @@ theorem boundaryRiemannHypothesis_realPart_of_centered
   have hsre' : z.re - 1 / 2 = 0 := by
     have hcomplex' : (z - 1 / 2 : ℂ).re = z.re - (1 / 2 : ℂ).re := by
       exact Complex.sub_re z (1 / 2 : ℂ)
-    have hhalf : (1 / 2 : ℂ).re = (1 / 2 : ℝ) :=
-      Complex.ofReal_re (1 / 2 : ℝ)
+    have hhalf : ((1 / 2 : ℂ).re : ℝ) = (1 / 2 : ℝ) :=
+      complex_half_re_eq_real_half
     have hcomplex : (z - 1 / 2 : ℂ).re = z.re - 1 / 2 := by
       exact hcomplex'.trans (congrArg (fun x : ℝ => z.re - x) hhalf)
     exact hcomplex.symm.trans hsre
@@ -288,6 +297,14 @@ The first inequality says the chosen finite centered zero orbit is a genuinely n
 direction. The second says the complementary zero tail is dominated by that negative margin
 for the same autocorrelation probe. -/
 theorem exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation_of_offCriticalCenteredZero
+    (hZeroTailSmallValuesOwnerRunge :
+      ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        ∀ ε : ℝ, 0 < ε →
+          ∃ r : ℝ,
+            r ∈
+              ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailRealAbsValues
+                S P f₀ ∧
+              r < ε)
     (z : OffCriticalCenteredZetaZero)
     (hcompleted : ZetaCompletedZero z.point)
     (horbit : ∀ η : ℂ, η ∈ zetaZeroOrbitFinset z.point → ZetaCompletedZero η) :
@@ -301,13 +318,21 @@ theorem exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation_of_of
   exact exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation
     z.point
     (exists_uniform_zeroOrbit_autocorrelation_separator
-      z.point hcompleted z.offCritical horbit)
+      hZeroTailSmallValuesOwnerRunge z.point hcompleted z.offCritical horbit)
 
 /-- Off-critical zero separation after isolating the finite zero orbit.
 
 The finite orbit is the controlled negative direction; the orbit remainder is the tail that
 must be made small by the separating admissible autocorrelation probe. -/
 theorem exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalCenteredZero
+    (hZeroTailSmallValuesOwnerRunge :
+      ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        ∀ ε : ℝ, 0 < ε →
+          ∃ r : ℝ,
+            r ∈
+              ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailRealAbsValues
+                S P f₀ ∧
+              r < ε)
     (z : OffCriticalCenteredZetaZero)
     (hcompleted : ZetaCompletedZero z.point)
     (horbit : ∀ η : ℂ, η ∈ zetaZeroOrbitFinset z.point → ZetaCompletedZero η) :
@@ -319,7 +344,7 @@ theorem exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalC
   exact
     match
       exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation_of_offCriticalCenteredZero
-        z hcompleted horbit with
+        hZeroTailSmallValuesOwnerRunge z hcompleted horbit with
     | ⟨f, _hfinite_negative, hremainder_dominated⟩ =>
         ⟨f, zeroOrbit_add_remainder_lt_zero_of_remainder_lt_neg
           hremainder_dominated⟩
@@ -338,13 +363,35 @@ theorem offCriticalCenteredZero_shift_ne_zero
       _ = 0 := z.zeta_zero
   exact riemannZeta_zero_ne_zero hzeta_at_zero
 
+/-- Casting a natural successor into the complex field as `↑n + 1`, explicitly. -/
+theorem complex_natCast_add_one_eq_natCast_add_one (n : ℕ) :
+    (((n + 1 : ℕ) : ℂ)) = (n : ℂ) + 1 := by
+  have hone : (((1 : ℕ) : ℂ)) = 1 :=
+    Nat.cast_one
+  have hadd : (((n + 1 : ℕ) : ℂ)) = (n : ℂ) + ((1 : ℕ) : ℂ) :=
+    Nat.cast_add n 1
+  exact hadd.trans (congrArg (fun x : ℂ => (n : ℂ) + x) hone)
+
 /-- The completed Gamma factor is nonzero at a nontrivial centered zeta zero. -/
 theorem offCriticalCenteredZero_gamma_ne_zero
     (z : OffCriticalCenteredZetaZero) :
-    Gammaℝ ((1 / 2 : ℂ) + z.point) ≠ 0 := by
+    Complex.Gammaℝ ((1 / 2 : ℂ) + z.point) ≠ 0 := by
+  have hnot_negative_even :
+      ¬ ∃ n : ℕ,
+        (1 / 2 : ℂ) + z.point = (-2 : ℂ) * (((n + 1 : ℕ) : ℂ)) := by
+    intro hnegative
+    exact
+      match hnegative with
+      | ⟨n, hn⟩ =>
+          z.nontrivial
+            ⟨n,
+              hn.trans
+                (congrArg
+                  (fun x : ℂ => (-2 : ℂ) * x)
+                  (complex_natCast_add_one_eq_natCast_add_one n))⟩
   exact Gammaℝ_ne_zero_of_ne_zero_and_not_negative_even
     (offCriticalCenteredZero_shift_ne_zero z)
-    z.nontrivial
+    hnot_negative_even
 
 /-- An off-critical centered ordinary zeta zero is a centered completed-zeta zero. -/
 theorem offCriticalCenteredZero_completedZero
@@ -358,7 +405,7 @@ theorem offCriticalCenteredZero_completedZero
           (1 / 2 : ℂ) + z.point =
               (1 / 2 : ℂ) + (-(1 / 2 : ℂ)) := by
             exact congrArg (fun w : ℂ => (1 / 2 : ℂ) + w) hpoint
-          _ = 0 := add_neg_self (1 / 2 : ℂ)))
+          _ = 0 := add_neg_cancel (1 / 2 : ℂ)))
     (fun hpoint =>
       z.not_pole
       (by
@@ -366,7 +413,8 @@ theorem offCriticalCenteredZero_completedZero
           (1 / 2 : ℂ) + z.point =
               (1 / 2 : ℂ) + (1 / 2 : ℂ) := by
             exact congrArg (fun w : ℂ => (1 / 2 : ℂ) + w) hpoint
-          _ = 1 := (two_mul_inv_two (1 : ℂ)).symm))
+          _ = 1 := by
+            exact add_halves (1 : ℂ)))
     ((centeredCompletedRiemannZetaFunction_eq z.point).trans
       (centeredCompletedRiemannZeta_eq_zero_of_riemannZeta_eq_zero
         (offCriticalCenteredZero_shift_ne_zero z)
@@ -386,13 +434,11 @@ theorem offCriticalCenteredZero_orbit_completedZero
   exact
     match hfaces with
     | Or.inl hpos =>
-        match hpos with
-        | rfl => hcompleted
+        Eq.subst (motive := fun w : ℂ => ZetaCompletedZero w) hpos.symm hcompleted
     | Or.inr hneg =>
         have hnegzero : ZetaCompletedZero (-z.point) :=
           zetaCompletedZero_neg hcompleted
-        match hneg with
-        | rfl => hnegzero
+        Eq.subst (motive := fun w : ℂ => ZetaCompletedZero w) hneg.symm hnegzero
 
 /-- An off-critical centered Riemann-zeta zero is a centered completed-zeta zero, and its
 functional-equation orbit remains in the centered completed zero locus. -/
@@ -408,10 +454,19 @@ theorem offCriticalCenteredZero_completedZero_and_orbit
 This is the real analytic separation step in Weil's criterion: an off-critical centered
 zero produces an admissible autocorrelation seed whose zero-side quadratic form is negative. -/
 theorem exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
+    (hZeroTailSmallValuesOwnerRunge :
+      ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        ∀ ε : ℝ, 0 < ε →
+          ∃ r : ℝ,
+            r ∈
+              ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailRealAbsValues
+                S P f₀ ∧
+              r < ε)
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
@@ -422,7 +477,7 @@ theorem exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
     match offCriticalCenteredZero_completedZero_and_orbit z with
     | ⟨hcompleted, horbit⟩ =>
         match exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalCenteredZero
-            z hcompleted horbit with
+            hZeroTailSmallValuesOwnerRunge z hcompleted horbit with
         | ⟨f, hf⟩ =>
             ⟨f,
               zetaCompletedZeroSideRe_lt_zero_of_orbitContribution_add_remainderRe_lt_zero
@@ -433,6 +488,7 @@ theorem exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
                 (summable_zetaZeroSideContribution
                   hbranch
                   hpartialOneTwo htailOneTwo hcompactOneTwo
+                  hfinite
                   hpartialLeft htailBoundary hcompactBoundary
                   (ZetaAdmissibleFunction.convolutionAutocorrelation f))
                 hf⟩
@@ -443,10 +499,19 @@ An off-critical nontrivial centered zero can be separated by an admissible
 autocorrelation seed whose completed Weil quadratic form is strictly negative.
 This theorem is now only the Weil-form transport of the zero-side separation theorem above. -/
 theorem exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
+    (hZeroTailSmallValuesOwnerRunge :
+      ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        ∀ ε : ℝ, 0 < ε →
+          ∃ r : ℝ,
+            r ∈
+              ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailRealAbsValues
+                S P f₀ ∧
+              r < ε)
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
@@ -455,8 +520,10 @@ theorem exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
       zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
   exact
     match exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
+        hZeroTailSmallValuesOwnerRunge
         hbranch
         hpartialOneTwo htailOneTwo hcompactOneTwo
+        hfinite
         hpartialLeft htailBoundary hcompactBoundary z with
     | ⟨f, hf⟩ =>
         ⟨f,
@@ -468,10 +535,19 @@ theorem exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
 
 /-- Parameter-facing wrapper for the zero-detecting direction of Weil's criterion. -/
 theorem exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZero
+    (hZeroTailSmallValuesOwnerRunge :
+      ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        ∀ ε : ℝ, 0 < ε →
+          ∃ r : ℝ,
+            r ∈
+              ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailRealAbsValues
+                S P f₀ ∧
+              r < ε)
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
@@ -483,17 +559,28 @@ theorem exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZer
     ∃ f : ZetaAdmissibleFunction,
       zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
   exact exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
+    hZeroTailSmallValuesOwnerRunge
     hbranch
     hpartialOneTwo htailOneTwo hcompactOneTwo
+    hfinite
     hpartialLeft htailBoundary hcompactBoundary
     ⟨s, hz, htriv, hpole, hoff⟩
 
 /-- Quadratic Weil positivity excludes off-critical nontrivial centered zeros. -/
 theorem not_offCritical_centeredZero_of_zetaWeilQuadraticPositivity
+    (hZeroTailSmallValuesOwnerRunge :
+      ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        ∀ ε : ℝ, 0 < ε →
+          ∃ r : ℝ,
+            r ∈
+              ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailRealAbsValues
+                S P f₀ ∧
+              r < ε)
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
@@ -506,8 +593,10 @@ theorem not_offCritical_centeredZero_of_zetaWeilQuadraticPositivity
   intro hoff
   exact
     match exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZero
+        hZeroTailSmallValuesOwnerRunge
         hbranch
         hpartialOneTwo htailOneTwo hcompactOneTwo
+        hfinite
         hpartialLeft htailBoundary hcompactBoundary
         s hz htriv hpole hoff with
     | ⟨f, hfneg⟩ =>
@@ -533,33 +622,53 @@ This is the standard Weil-criterion formalization point: once the completed Weil
 form is nonnegative on all autocorrelation seeds, every nontrivial centered zero lies on the
 critical line. -/
 theorem centeredZeroCriterion_of_zetaWeilQuadraticPositivity
+    (hZeroTailSmallValuesOwnerRunge :
+      ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        ∀ ε : ℝ, 0 < ε →
+          ∃ r : ℝ,
+            r ∈
+              ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailRealAbsValues
+                S P f₀ ∧
+              r < ε)
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (h : ZetaWeilQuadraticPositivity) :
     ∀ s : ℂ,
-	      riemannZeta (1 / 2 + s) = 0 →
-	        (¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1)) →
-	          (1 / 2 + s) ≠ 1 →
-	            s.re = 0 := by
+      riemannZeta (1 / 2 + s) = 0 →
+        (¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1)) →
+          (1 / 2 + s) ≠ 1 →
+            s.re = 0 := by
   intro s hz htriv hpole
   exact real_eq_zero_of_not_ne_zero s.re
     (not_offCritical_centeredZero_of_zetaWeilQuadraticPositivity
+      hZeroTailSmallValuesOwnerRunge
       hbranch
       hpartialOneTwo htailOneTwo hcompactOneTwo
+      hfinite
       hpartialLeft htailBoundary hcompactBoundary
       h s hz htriv hpole)
 
 /-- The standard Weil criterion in the quadratic/autocorrelation form. -/
 theorem boundaryRiemannHypothesis_of_zetaWeilQuadraticPositivity
+    (hZeroTailSmallValuesOwnerRunge :
+      ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        ∀ ε : ℝ, 0 < ε →
+          ∃ r : ℝ,
+            r ∈
+              ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailRealAbsValues
+                S P f₀ ∧
+              r < ε)
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
@@ -567,8 +676,10 @@ theorem boundaryRiemannHypothesis_of_zetaWeilQuadraticPositivity
     boundaryRiemannHypothesis := by
   exact boundaryRiemannHypothesis_of_centeredZeroCriterion
     (centeredZeroCriterion_of_zetaWeilQuadraticPositivity
+      hZeroTailSmallValuesOwnerRunge
       hbranch
       hpartialOneTwo htailOneTwo hcompactOneTwo
+      hfinite
       hpartialLeft htailBoundary hcompactBoundary h)
 
 end

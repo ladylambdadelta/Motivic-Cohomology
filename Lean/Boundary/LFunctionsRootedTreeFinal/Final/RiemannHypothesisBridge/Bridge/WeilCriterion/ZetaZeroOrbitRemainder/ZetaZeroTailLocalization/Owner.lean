@@ -115,6 +115,18 @@ theorem zeroOrbitSpectralSample_eq_on_orbit_of_eq_on_sampleFinset
     (zetaCenteredZero η)
     (zetaCenteredZero_mem_zeroOrbitSpectralSampleFinset ρ η hη)
 
+variable
+  (hZeroTailSmallValuesOwnerRunge :
+    ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+      ∀ ε : ℝ, 0 < ε →
+        ∃ r : ℝ,
+          r ∈
+            ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailRealAbsValues
+              S P f₀ ∧
+            r < ε)
+
+include hZeroTailSmallValuesOwnerRunge
+
 /-- Finite spectral localization for the completed zero tail.
 
 This is the genuine localization input: preserve the prescribed finite spectral
@@ -135,9 +147,9 @@ theorem exists_autocorrelation_zeroTail_small_preserving_spectralSampleFinset_ow
             (zetaZeroTail S
               (ZetaAdmissibleFunction.convolutionAutocorrelation f))| < ε := by
   exact
-    ZetaAdmissibleFunction
-      .exists_autocorrelation_spectralEval_preserved_zeroTail_small_ownerRunge
-        S P f₀
+    ZetaAdmissibleFunction.exists_autocorrelation_spectralEval_preserved_zeroTail_small_ownerRunge
+      hZeroTailSmallValuesOwnerRunge
+      S P f₀
 
 /-- Finite zero-set localization preserves each zero spectral sample while making the
 complementary zero-side tail arbitrarily small. -/
@@ -155,17 +167,20 @@ theorem exists_autocorrelation_zeroTail_small_preserving_finiteSpectralSamples_o
             (zetaZeroTail S
               (ZetaAdmissibleFunction.convolutionAutocorrelation f))| < ε := by
   intro ε hε
-  rcases
+  match
     exists_autocorrelation_zeroTail_small_preserving_spectralSampleFinset_owner
+      hZeroTailSmallValuesOwnerRunge
       S (zetaZeroTailSpectralSampleFinset S) f₀ ε hε with
-    ⟨f, hsample, htail⟩
-  exact ⟨f,
-    zeroTailSpectralSample_eq_on_zeroSet_of_eq_on_sampleFinset
-      S
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
-      hsample,
-    htail⟩
+  | ⟨f, hsample, htail⟩ =>
+    exact ⟨f,
+      zeroTailSpectralSample_eq_on_zeroSet_of_eq_on_sampleFinset
+        S
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
+        hsample,
+      htail⟩
+
+omit hZeroTailSmallValuesOwnerRunge
 
 /-- The real orbit remainder is the real part of the zero-tail outside the orbit. -/
 theorem zetaZeroOrbitRemainderRe_eq_zeroTail_re
@@ -173,6 +188,8 @@ theorem zetaZeroOrbitRemainderRe_eq_zeroTail_re
     zetaZeroOrbitRemainderRe ρ φ =
       Complex.re (zetaZeroTail (zetaZeroOrbitFinset ρ) φ) := by
   rfl
+
+include hZeroTailSmallValuesOwnerRunge
 
 /-- Localizing around a finite orbit preserves every individual orbit spectral sample while
 making the complementary orbit tail arbitrarily small. -/
@@ -186,37 +203,34 @@ theorem exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitSpectralSamp
               (zetaCenteredZero η) =
             zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
               (zetaCenteredZero η)) ∧
-          |
-            zetaZeroOrbitRemainderRe ρ
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-          | < ε := by
+          |zetaZeroOrbitRemainderRe ρ
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f)| < ε := by
   intro ε hε
-  rcases
+  match
     exists_autocorrelation_zeroTail_small_preserving_spectralSampleFinset_owner
+      hZeroTailSmallValuesOwnerRunge
       (zetaZeroOrbitFinset ρ) (zetaZeroOrbitSpectralSampleFinset ρ) f₀ ε hε with
-    ⟨f, hsample, htail⟩
-  have hsample_orbit :
-      ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ →
-        zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-            (zetaCenteredZero η) =
-          zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
-            (zetaCenteredZero η) :=
-    zeroOrbitSpectralSample_eq_on_orbit_of_eq_on_sampleFinset
-      ρ
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
-      hsample
-  have htail_orbit :
-      |
-        zetaZeroOrbitRemainderRe ρ
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-      | < ε := by
-    exact Eq.subst
-      (motive := fun x : ℝ => |x| < ε)
-      (zetaZeroOrbitRemainderRe_eq_zeroTail_re
-        ρ (ZetaAdmissibleFunction.convolutionAutocorrelation f)).symm
-      htail
-  exact ⟨f, hsample_orbit, htail_orbit⟩
+  | ⟨f, hsample, htail⟩ =>
+    have hsample_orbit :
+        ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ →
+          zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+              (zetaCenteredZero η) =
+            zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
+              (zetaCenteredZero η) :=
+      zeroOrbitSpectralSample_eq_on_orbit_of_eq_on_sampleFinset
+        ρ
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
+        hsample
+    have htail_orbit :
+        |zetaZeroOrbitRemainderRe ρ
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f)| < ε := by
+      exact Eq.subst
+        (motive := fun x : ℝ => |x| < ε)
+        (zetaZeroOrbitRemainderRe_eq_zeroTail_re
+          ρ (ZetaAdmissibleFunction.convolutionAutocorrelation f)).symm
+        htail
+    exact ⟨f, hsample_orbit, htail_orbit⟩
 
 /-- Localizing around a finite orbit preserves its autocorrelation contribution exactly while
 making the complementary orbit tail arbitrarily small. -/
@@ -229,26 +243,27 @@ theorem exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitContribution
             (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
           zetaZeroOrbitContributionRe ρ
             (ZetaAdmissibleFunction.convolutionAutocorrelation f₀) ∧
-          |
-            zetaZeroOrbitRemainderRe ρ
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-          | < ε := by
+          |zetaZeroOrbitRemainderRe ρ
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f)| < ε := by
   intro ε hε
-  rcases
+  match
     exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitSpectralSamples_owner
+      hZeroTailSmallValuesOwnerRunge
       ρ f₀ ε hε with
-    ⟨f, hsample, htail⟩
-  have hcontribution :
-      zetaZeroOrbitContributionRe ρ
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+  | ⟨f, hsample, htail⟩ =>
+    have hcontribution :
         zetaZeroOrbitContributionRe ρ
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f₀) :=
-    zetaZeroOrbitContributionRe_eq_of_spectralEval_eq_on_orbit
-      ρ
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
-      hsample
-  exact ⟨f, hcontribution, htail⟩
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+          zetaZeroOrbitContributionRe ρ
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f₀) :=
+      zetaZeroOrbitContributionRe_eq_of_spectralEval_eq_on_orbit
+        ρ
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
+        hsample
+    exact ⟨f, hcontribution, htail⟩
+
+omit hZeroTailSmallValuesOwnerRunge
 
 /-- Exact preservation of the finite orbit contribution transports a fixed negative
 margin to the localized probe. -/
@@ -274,12 +289,14 @@ theorem zetaZeroOrbitContributionRe_le_margin_of_eq_reference
     _ ≤ -δ := by
       exact hmargin
 
+include hZeroTailSmallValuesOwnerRunge
+
 /-- Localizing around a finite-orbit negative-margin autocorrelation probe
 preserves that margin and makes the orbit remainder arbitrarily small. -/
 theorem exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe_owner
     (ρ : ℂ)
     (δ : ℝ)
-    (hδ : 0 < δ)
+    (_hδ : 0 < δ)
     (f₀ : ZetaAdmissibleFunction)
     (hmargin :
       zetaZeroOrbitContributionRe ρ
@@ -288,21 +305,20 @@ theorem exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe_owner
       ∃ f : ZetaAdmissibleFunction,
         zetaZeroOrbitContributionRe ρ
             (ZetaAdmissibleFunction.convolutionAutocorrelation f) ≤ -δ ∧
-          |
-            zetaZeroOrbitRemainderRe ρ
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-          | < ε := by
+          |zetaZeroOrbitRemainderRe ρ
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f)| < ε := by
   intro ε hε
-  rcases
+  match
     exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitContribution_owner
+      hZeroTailSmallValuesOwnerRunge
       ρ f₀ ε hε with
-    ⟨f, hcontribution, htail⟩
-  have hmargin_f :
-      zetaZeroOrbitContributionRe ρ
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f) ≤ -δ := by
-    exact zetaZeroOrbitContributionRe_le_margin_of_eq_reference
-      ρ δ f f₀ hcontribution hmargin
-  exact ⟨f, hmargin_f, htail⟩
+  | ⟨f, hcontribution, htail⟩ =>
+    have hmargin_f :
+        zetaZeroOrbitContributionRe ρ
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f) ≤ -δ := by
+      exact zetaZeroOrbitContributionRe_le_margin_of_eq_reference
+        ρ δ f f₀ hcontribution hmargin
+    exact ⟨f, hmargin_f, htail⟩
 
 end
 

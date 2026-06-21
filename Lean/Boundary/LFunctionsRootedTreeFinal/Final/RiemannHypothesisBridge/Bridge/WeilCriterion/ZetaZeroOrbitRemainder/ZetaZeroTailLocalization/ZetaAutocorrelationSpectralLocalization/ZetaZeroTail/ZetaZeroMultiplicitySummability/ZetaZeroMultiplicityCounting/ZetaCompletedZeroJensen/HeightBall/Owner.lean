@@ -88,8 +88,29 @@ theorem completedZeroMultiplicityHeightBallSummand_le_closedDiskSummand
           | Or.inr hdisk =>
               Eq.subst
                 (motive := fun x : ℝ => 0 ≤ x)
-                (if_neg hdisk).symm
-                (le_refl (0 : ℝ)))
+                  (if_neg hdisk).symm
+                  (le_refl (0 : ℝ)))
+
+/-- Height-ball summands vanish off the centered height ball. This split-local helper
+avoids importing the older parent counting owner back into the Jensen sub-DAG. -/
+theorem completedZeroMultiplicityHeightBallSummand_eq_zero_of_not_mem_for_jensen
+    (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
+    (hρ : ρ ∉ completedZerosInCenteredHeightBall T) :
+    completedZeroMultiplicityHeightBallSummand T ρ = 0 := by
+  exact if_neg hρ
+
+/-- Finite centered-height balls give the height-ball summand needed for Jensen transport. -/
+theorem summable_completedZeroMultiplicityHeightBallSummand_for_jensen
+    (T : ℝ) :
+    Summable
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        completedZeroMultiplicityHeightBallSummand T ρ) := by
+  exact summable_of_finite_support_real
+    (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+      completedZeroMultiplicityHeightBallSummand T ρ)
+    (completedZerosInCenteredHeightBall T)
+    (finite_completedZerosInCenteredHeightBall T)
+    (completedZeroMultiplicityHeightBallSummand_eq_zero_of_not_mem_for_jensen T)
 
 /-- Centered-height multiplicity counting is bounded by closed-disk multiplicity counting
 at the controlled enlarged radius. -/
@@ -97,11 +118,11 @@ theorem completedZeroMultiplicityCounting_heightBall_le_closedDiskCounting
     (T : ℝ) (hT : 1 ≤ T) :
     completedZeroMultiplicityCountingInCenteredHeightBall T ≤
       completedZeroMultiplicityCountingInCenteredClosedDisk (T + 2) := by
-  exact tsum_le_tsum
-    (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-      completedZeroMultiplicityHeightBallSummand_le_closedDiskSummand T hT ρ)
-    (summable_completedZeroMultiplicityHeightBallSummand T)
-    (summable_completedZeroMultiplicityClosedDiskSummand (T + 2))
+    exact tsum_le_tsum
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        completedZeroMultiplicityHeightBallSummand_le_closedDiskSummand T hT ρ)
+      (summable_completedZeroMultiplicityHeightBallSummand_for_jensen T)
+      (summable_completedZeroMultiplicityClosedDiskSummand (T + 2))
 
 /-- A closed-disk polynomial bound at radius `T + 2` gives a centered-height polynomial
 bound at radius `T`, after increasing the polynomial constant. -/
@@ -241,6 +262,7 @@ theorem centeredCompletedRiemannZeta_finiteOrder_zeroMultiplicityCounting_height
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -254,6 +276,7 @@ theorem centeredCompletedRiemannZeta_finiteOrder_zeroMultiplicityCounting_height
       (completedRiemannZeta₀_finiteOrder_growth_bound
         hbranch
         hpartialOneTwo htailOneTwo hcompactOneTwo
+        hfinite
         hpartialLeft htailBoundary hcompactBoundary)
 
 /-- Coarse polynomial counting of completed zeros with multiplicity in centered
@@ -263,6 +286,7 @@ theorem exists_completedZeroMultiplicityCounting_height_bound
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
     (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
@@ -274,6 +298,7 @@ theorem exists_completedZeroMultiplicityCounting_height_bound
   exact centeredCompletedRiemannZeta_finiteOrder_zeroMultiplicityCounting_height_bound
     hbranch
     hpartialOneTwo htailOneTwo hcompactOneTwo
+    hfinite
     hpartialLeft htailBoundary hcompactBoundary
 
 

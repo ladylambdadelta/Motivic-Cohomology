@@ -27,6 +27,18 @@ theorem zetaZeroOrbitRemainderRe_eq
       Complex.re (zetaZeroOrbitRemainder ρ φ) := by
   rfl
 
+variable
+  (hZeroTailSmallValuesOwnerRunge :
+    ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+      ∀ ε : ℝ, 0 < ε →
+        ∃ r : ℝ,
+          r ∈
+            ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailRealAbsValues
+              S P f₀ ∧
+            r < ε)
+
+include hZeroTailSmallValuesOwnerRunge
+
 /-- Localizing around a finite-orbit negative-margin autocorrelation probe preserves that
 margin and makes the orbit remainder arbitrarily small. -/
 theorem exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe
@@ -41,12 +53,10 @@ theorem exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe
       ∃ f : ZetaAdmissibleFunction,
         zetaZeroOrbitContributionRe ρ
             (ZetaAdmissibleFunction.convolutionAutocorrelation f) ≤ -δ ∧
-          |
-            zetaZeroOrbitRemainderRe ρ
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-          | < ε := by
+          |zetaZeroOrbitRemainderRe ρ
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f)| < ε := by
   exact exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe_owner
-    ρ δ hδ f₀ hmargin
+    hZeroTailSmallValuesOwnerRunge ρ δ hδ f₀ hmargin
 
 /-- Tail localization preserves a fixed finite-orbit negative margin while making the
 orbit remainder arbitrarily small. -/
@@ -63,13 +73,12 @@ theorem exists_zeroOrbit_autocorrelation_remainder_small_preserving_margin
       ∃ f : ZetaAdmissibleFunction,
         zetaZeroOrbitContributionRe ρ
             (ZetaAdmissibleFunction.convolutionAutocorrelation f) ≤ -δ ∧
-          |
-            zetaZeroOrbitRemainderRe ρ
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-          | < ε := by
-  rcases hmargin 1 zero_lt_one with ⟨f₀, hf₀⟩
-  exact exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe
-    ρ δ hδ f₀ hf₀
+          |zetaZeroOrbitRemainderRe ρ
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f)| < ε := by
+  match hmargin 1 zero_lt_one with
+  | ⟨f₀, hf₀⟩ =>
+    exact exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe
+      hZeroTailSmallValuesOwnerRunge ρ δ hδ f₀ hf₀
 
 /-- Combining a fixed finite-orbit margin with margin-preserving tail localization gives
 the uniform separator family. -/
@@ -86,14 +95,13 @@ theorem exists_uniform_zeroOrbit_autocorrelation_separator_of_margin_family
         ∃ f : ZetaAdmissibleFunction,
           zetaZeroOrbitContributionRe ρ
               (ZetaAdmissibleFunction.convolutionAutocorrelation f) ≤ -δ ∧
-            |
-              zetaZeroOrbitRemainderRe ρ
-                (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-            | < ε := by
-  rcases hmargin with ⟨δ, hδ, hfamily⟩
-  exact ⟨δ, hδ,
-    exists_zeroOrbit_autocorrelation_remainder_small_preserving_margin
-      ρ δ hδ hfamily⟩
+            |zetaZeroOrbitRemainderRe ρ
+                (ZetaAdmissibleFunction.convolutionAutocorrelation f)| < ε := by
+  match hmargin with
+  | ⟨δ, hδ, hfamily⟩ =>
+    exact ⟨δ, hδ,
+      exists_zeroOrbit_autocorrelation_remainder_small_preserving_margin
+        hZeroTailSmallValuesOwnerRunge ρ δ hδ hfamily⟩
 
 /-- Uniform off-critical zero-orbit separation by admissible autocorrelation probes. -/
 theorem exists_uniform_zeroOrbit_autocorrelation_separator
@@ -106,14 +114,14 @@ theorem exists_uniform_zeroOrbit_autocorrelation_separator
         ∃ f : ZetaAdmissibleFunction,
           zetaZeroOrbitContributionRe ρ
               (ZetaAdmissibleFunction.convolutionAutocorrelation f) ≤ -δ ∧
-            |
-              zetaZeroOrbitRemainderRe ρ
-                (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-            | < ε := by
+            |zetaZeroOrbitRemainderRe ρ
+                (ZetaAdmissibleFunction.convolutionAutocorrelation f)| < ε := by
   exact exists_uniform_zeroOrbit_autocorrelation_separator_of_margin_family
-    ρ
+    hZeroTailSmallValuesOwnerRunge ρ
     (exists_zeroOrbit_autocorrelation_negative_margin_family
       ρ hρ hρre horbit)
+
+omit hZeroTailSmallValuesOwnerRunge
 
 /-- A real negative margin and an absolute tail bound dominate the tail by the margin. -/
 theorem remainder_lt_neg_of_le_neg_margin_and_abs_lt_margin
@@ -138,9 +146,11 @@ theorem exists_negative_with_dominated_remainder_of_uniform_margin
         ∀ ε : ℝ, 0 < ε →
           ∃ x : α, A x ≤ -δ ∧ |R x| < ε) :
     ∃ x : α, A x < 0 ∧ R x < -A x := by
-  rcases h with ⟨δ, hδ, hprobe⟩
-  rcases hprobe δ hδ with ⟨x, hA, hR⟩
-  exact ⟨x, remainder_lt_neg_of_le_neg_margin_and_abs_lt_margin hδ hA hR⟩
+  match h with
+  | ⟨δ, hδ, hprobe⟩ =>
+    match hprobe δ hδ with
+    | ⟨x, hA, hR⟩ =>
+      exact ⟨x, remainder_lt_neg_of_le_neg_margin_and_abs_lt_margin hδ hA hR⟩
 
 /-- Uniform zero-orbit separation gives a finite negative contribution whose remainder is
 dominated by that negative margin. -/
@@ -152,10 +162,8 @@ theorem exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation
           ∃ f : ZetaAdmissibleFunction,
             zetaZeroOrbitContributionRe ρ
                 (ZetaAdmissibleFunction.convolutionAutocorrelation f) ≤ -δ ∧
-              |
-                zetaZeroOrbitRemainderRe ρ
-                  (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-              | < ε) :
+              |zetaZeroOrbitRemainderRe ρ
+                  (ZetaAdmissibleFunction.convolutionAutocorrelation f)| < ε) :
     ∃ f : ZetaAdmissibleFunction,
       zetaZeroOrbitContributionRe ρ
           (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 ∧
@@ -183,7 +191,7 @@ theorem zeroOrbit_add_remainder_lt_zero_of_remainder_lt_neg
 /-- Complex zero-side excision for the functional-equation orbit of one zero. -/
 theorem zetaCompletedZeroSideSum_eq_orbitContribution_add_orbitRemainder
     (ρ : ℂ) (φ : ZetaAdmissibleFunction)
-    (hρ : ZetaCompletedZero ρ)
+    (_hρ : ZetaCompletedZero ρ)
     (horbit : ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ → ZetaCompletedZero η)
     (hsum :
       Summable

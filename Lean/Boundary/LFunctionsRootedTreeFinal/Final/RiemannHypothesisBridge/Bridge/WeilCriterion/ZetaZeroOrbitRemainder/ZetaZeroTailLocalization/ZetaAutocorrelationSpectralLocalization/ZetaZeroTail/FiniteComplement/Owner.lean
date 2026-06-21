@@ -35,138 +35,68 @@ noncomputable def completedZeroSubtypeFiniteComplementEquiv
     (S : Finset ℂ)
     (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η) :
     {ρ : ℂ // ZetaCompletedZero ρ} ≃
-      (S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}) := by
+      ({η : ℂ // η ∈ S} ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}) := by
   classical
-  refine
-    { toFun := fun ρ =>
-        if hρ : (ρ : ℂ) ∈ S then
-          Sum.inl ⟨(ρ : ℂ), hρ⟩
-        else
-          Sum.inr ⟨(ρ : ℂ), ρ.2, hρ⟩
-      invFun := fun x =>
-        match x with
-        | Sum.inl η => ⟨(η : ℂ), hS (η : ℂ) η.2⟩
-        | Sum.inr ρ => ⟨(ρ : ℂ), ρ.2.1⟩
-      left_inv := ?_
-      right_inv := ?_ }
-  · intro ρ
-    match Decidable.em ((ρ : ℂ) ∈ S) with
-    | Or.inl hρ =>
-      change
-        (match
-            (if h : (ρ : ℂ) ∈ S then
-              Sum.inl ⟨(ρ : ℂ), h⟩
-            else
-              Sum.inr ⟨(ρ : ℂ), ρ.2, h⟩) with
-          | Sum.inl η => ⟨(η : ℂ), hS (η : ℂ) η.2⟩
-          | Sum.inr ρ => ⟨(ρ : ℂ), ρ.2.1⟩) = ρ
-      have hif :
-          (if h : (ρ : ℂ) ∈ S then
-              Sum.inl ⟨(ρ : ℂ), h⟩
-            else
-              Sum.inr ⟨(ρ : ℂ), ρ.2, h⟩) =
-            Sum.inl ⟨(ρ : ℂ), hρ⟩ :=
-        dif_pos hρ
-      exact Eq.subst
-        (motive := fun x : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
-          (match x with
-          | Sum.inl η => ⟨(η : ℂ), hS (η : ℂ) η.2⟩
-          | Sum.inr ρ => ⟨(ρ : ℂ), ρ.2.1⟩) = ρ)
-        hif.symm
-        (Subtype.ext rfl)
-    | Or.inr hρ =>
-      change
-        (match
-            (if h : (ρ : ℂ) ∈ S then
-              Sum.inl ⟨(ρ : ℂ), h⟩
-            else
-              Sum.inr ⟨(ρ : ℂ), ρ.2, h⟩) with
-          | Sum.inl η => ⟨(η : ℂ), hS (η : ℂ) η.2⟩
-          | Sum.inr ρ => ⟨(ρ : ℂ), ρ.2.1⟩) = ρ
-      have hif :
-          (if h : (ρ : ℂ) ∈ S then
-              Sum.inl ⟨(ρ : ℂ), h⟩
-            else
-              Sum.inr ⟨(ρ : ℂ), ρ.2, h⟩) =
-            Sum.inr ⟨(ρ : ℂ), ρ.2, hρ⟩ :=
-        dif_neg hρ
-      exact Eq.subst
-        (motive := fun x : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
-          (match x with
-          | Sum.inl η => ⟨(η : ℂ), hS (η : ℂ) η.2⟩
-          | Sum.inr ρ => ⟨(ρ : ℂ), ρ.2.1⟩) = ρ)
-        hif.symm
-        (Subtype.ext rfl)
-  · intro x
-    cases x with
-    | inl η =>
-        change
-          (if h : (((⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
-                {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) ∈ S) then
-              Sum.inl
-                ⟨(((⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
-                  {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)), h⟩
-            else
-              Sum.inr
-                ⟨(((⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
-                  {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)),
-                  (⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
-                    {ρ : ℂ // ZetaCompletedZero ρ}).2,
-                  h⟩) = Sum.inl η
-        have hif :
-            (if h : (((⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
-                  {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) ∈ S) then
-                Sum.inl
-                  ⟨(((⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
-                    {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)), h⟩
-              else
-                Sum.inr
-                  ⟨(((⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
-                    {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)),
-                    (⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
-                      {ρ : ℂ // ZetaCompletedZero ρ}).2,
-                    h⟩) =
-              Sum.inl ⟨(η : ℂ), η.2⟩ :=
-          dif_pos η.2
-        exact Eq.subst
-          (motive := fun y : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
-            y = Sum.inl η)
-          hif.symm
-          (congrArg Sum.inl (Subtype.ext rfl))
-    | inr ρ =>
-        change
-          (if h : (((⟨(ρ : ℂ), ρ.2.1⟩ :
-                {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) ∈ S) then
-              Sum.inl
-                ⟨(((⟨(ρ : ℂ), ρ.2.1⟩ :
-                  {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)), h⟩
-            else
-              Sum.inr
-                ⟨(((⟨(ρ : ℂ), ρ.2.1⟩ :
-                  {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)),
-                  (⟨(ρ : ℂ), ρ.2.1⟩ :
-                    {ρ : ℂ // ZetaCompletedZero ρ}).2,
-                  h⟩) = Sum.inr ρ
-        have hif :
-            (if h : (((⟨(ρ : ℂ), ρ.2.1⟩ :
-                  {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) ∈ S) then
-                Sum.inl
-                  ⟨(((⟨(ρ : ℂ), ρ.2.1⟩ :
-                    {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)), h⟩
-              else
-                Sum.inr
-                  ⟨(((⟨(ρ : ℂ), ρ.2.1⟩ :
-                    {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)),
-                    (⟨(ρ : ℂ), ρ.2.1⟩ :
-                      {ρ : ℂ // ZetaCompletedZero ρ}).2,
-                    h⟩) =
-              Sum.inr ⟨(ρ : ℂ), ρ.2.1, ρ.2.2⟩ :=
-          dif_neg ρ.2.2
-        exact Eq.subst
-          (motive := fun y : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
-            y = Sum.inr ρ)
-        hif.symm
-          (congrArg Sum.inr (Subtype.ext rfl))
+  let toF :
+      {ρ : ℂ // ZetaCompletedZero ρ} →
+        {η : ℂ // η ∈ S} ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} :=
+    fun ρ =>
+      if hρ : (ρ : ℂ) ∈ S then
+        Sum.inl ⟨(ρ : ℂ), hρ⟩
+      else
+        Sum.inr ⟨(ρ : ℂ), ρ.2, hρ⟩
+  let invF :
+      {η : ℂ // η ∈ S} ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} →
+        {ρ : ℂ // ZetaCompletedZero ρ} :=
+    fun x =>
+      match x with
+      | Sum.inl η => ⟨(η : ℂ), hS (η : ℂ) η.2⟩
+      | Sum.inr ρ => ⟨(ρ : ℂ), ρ.2.1⟩
+  exact
+      { toFun := toF
+        invFun := invF
+        left_inv := fun ρ =>
+          match Decidable.em ((ρ : ℂ) ∈ S) with
+          | Or.inl hρ =>
+              have hif : toF ρ = Sum.inl ⟨(ρ : ℂ), hρ⟩ :=
+                dif_pos hρ
+              Eq.subst
+                (motive := fun x :
+                  {η : ℂ // η ∈ S} ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
+                  invF x = ρ)
+                hif.symm
+                (Subtype.ext rfl)
+          | Or.inr hρ =>
+              have hif : toF ρ = Sum.inr ⟨(ρ : ℂ), ρ.2, hρ⟩ :=
+                dif_neg hρ
+              Eq.subst
+                (motive := fun x :
+                  {η : ℂ // η ∈ S} ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
+                  invF x = ρ)
+                hif.symm
+                (Subtype.ext rfl)
+        right_inv := fun x =>
+          match x with
+          | Sum.inl η =>
+              have hif :
+                  toF (invF (Sum.inl η)) = Sum.inl ⟨(η : ℂ), η.2⟩ :=
+                dif_pos η.2
+              Eq.subst
+                (motive := fun y :
+                  {η : ℂ // η ∈ S} ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
+                  y = Sum.inl η)
+                hif.symm
+                (congrArg Sum.inl (Subtype.ext rfl))
+          | Sum.inr ρ =>
+              have hif :
+                  toF (invF (Sum.inr ρ)) = Sum.inr ⟨(ρ : ℂ), ρ.2.1, ρ.2.2⟩ :=
+                dif_neg ρ.2.2
+              Eq.subst
+                (motive := fun y :
+                  {η : ℂ // η ∈ S} ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
+                  y = Sum.inr ρ)
+                hif.symm
+                (congrArg Sum.inr (Subtype.ext rfl)) }
 
 /-- Transport the completed-zero `tsum` across the finite/complement equivalence. -/
 theorem completedZeroSubtype_tsum_eq_sumType_tsum_of_equiv
@@ -175,75 +105,69 @@ theorem completedZeroSubtype_tsum_eq_sumType_tsum_of_equiv
     (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η)
     (hF : Summable F) :
     (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ}, F ρ) =
-      (∑' x : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+      (∑' x : {η : ℂ // η ∈ S} ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
         F ((completedZeroSubtypeFiniteComplementEquiv S hS).symm x)) := by
+  have _hF_record : Summable F := hF
   exact ((completedZeroSubtypeFiniteComplementEquiv S hS).symm.tsum_eq F).symm
 
 /-- The left summand is equivalent to the range of the left injection. -/
 def sumInlRangeEquiv (α β : Type*) :
     α ≃ Set.range (Sum.inl : α → α ⊕ β) where
   toFun := fun a => ⟨Sum.inl a, ⟨a, rfl⟩⟩
-  invFun := fun x =>
-    match x.1 with
-    | Sum.inl a => a
-    | Sum.inr _ =>
-        False.elim
-          (match x.2 with
-          | ⟨_a, ha⟩ => by
-              cases ha)
-  left_inv := by
-    intro a
-    rfl
-  right_inv := by
-    intro x
-    cases x with
-    | mk y hy =>
-        cases y with
-        | inl a => rfl
-        | inr b =>
-            exfalso
-            exact
-              match hy with
-              | ⟨_a, ha⟩ => by
-                  cases ha
+  invFun := fun x => Classical.choose x.2
+  left_inv := fun a =>
+    have hchoose :
+        Sum.inl (Classical.choose (show ∃ a' : α, Sum.inl a' = Sum.inl a from
+          ⟨a, rfl⟩)) = Sum.inl a :=
+      Classical.choose_spec
+        (show ∃ a' : α, Sum.inl a' = Sum.inl a from ⟨a, rfl⟩)
+    Sum.inl.inj hchoose
+  right_inv := fun x =>
+    have hchoose : Sum.inl (Classical.choose x.2) = (x : α ⊕ β) :=
+      Classical.choose_spec x.2
+    Subtype.ext hchoose
 
 /-- The right summand is equivalent to the complement of the left-injection range. -/
 def sumInlRangeComplEquiv (α β : Type*) :
     β ≃ ((Set.range (Sum.inl : α → α ⊕ β))ᶜ : Set (α ⊕ β)) where
   toFun := fun b =>
-    ⟨Sum.inr b,
-      fun h =>
-        match h with
-        | ⟨_, ha⟩ => by cases ha⟩
+    (⟨Sum.inr b, fun h => match h with | ⟨_, ha⟩ => nomatch ha⟩ :
+      ((Set.range (Sum.inl : α → α ⊕ β))ᶜ : Set (α ⊕ β)))
   invFun := fun x =>
-    match x.1 with
-    | Sum.inl a => False.elim (x.2 ⟨a, rfl⟩)
-    | Sum.inr b => b
-  left_inv := by
-    intro b
-    rfl
-  right_inv := by
-    intro x
-    cases x with
-    | mk y hy =>
-        cases y with
-        | inl a =>
-            exfalso
-            exact hy ⟨a, rfl⟩
-        | inr b => rfl
+    match x with
+    | ⟨Sum.inl a, hx⟩ => False.elim (hx ⟨a, rfl⟩)
+    | ⟨Sum.inr b, _hx⟩ => b
+  left_inv := fun _b => rfl
+  right_inv := fun x =>
+    match x with
+    | ⟨Sum.inl a, hx⟩ => False.elim (hx ⟨a, rfl⟩)
+    | ⟨Sum.inr _b, _hx⟩ => Subtype.ext rfl
 
 /-- Summability on both summands gives summability on their sum type. -/
 theorem complex_summable_sum_type_of_summable_faces
     {α β : Type*}
-    (G : α ⊕ β → ℂ)
-    (hleft : Summable (fun a : α => G (Sum.inl a)))
-    (hright : Summable (fun b : β => G (Sum.inr b))) :
+      (G : α ⊕ β → ℂ)
+      (hleft : Summable (fun a : α => G (Sum.inl a)))
+      (hright : Summable (fun b : β => G (Sum.inr b))) :
     Summable G := by
   let s : Set (α ⊕ β) := Set.range (Sum.inl : α → α ⊕ β)
   have hleftSubtype : Summable (fun x : s => G x) := by
     exact ((sumInlRangeEquiv α β).summable_iff).mp hleft
-  have hrightSubtype : Summable (fun x : sᶜ => G x) := by
-    exact ((sumInlRangeComplEquiv α β).summable_iff).mp hright
+  have hrightSubtype : Summable (fun x : (sᶜ : Set (α ⊕ β)) => G x) := by
+    let rightF : (sᶜ : Set (α ⊕ β)) → ℂ := fun x => G x
+    have hright_comp :
+        (fun b : β => rightF ((sumInlRangeComplEquiv α β) b)) =
+          fun b : β => G (Sum.inr b) :=
+      funext (fun b =>
+        congrArg G
+          (show (((sumInlRangeComplEquiv α β) b :
+            (sᶜ : Set (α ⊕ β))) : α ⊕ β) = Sum.inr b from rfl))
+    have hright_base :
+        Summable (fun b : β => rightF ((sumInlRangeComplEquiv α β) b)) :=
+      Eq.subst (motive := fun u : β → ℂ => Summable u)
+        hright_comp.symm
+        hright
+    exact ((sumInlRangeComplEquiv α β).summable_iff).mp hright_base
   exact summable_subtype_and_compl.1 ⟨hleftSubtype, hrightSubtype⟩
 
 /-- A complex-valued `tsum` over a sum type splits into its two oriented faces.
@@ -261,15 +185,31 @@ theorem complex_tsum_sum_type_eq_add_of_summable_faces
   have htotal : Summable G :=
     complex_summable_sum_type_of_summable_faces G hleft hright
   have hsplit :
-      (∑' x : s, G x) + (∑' x : sᶜ, G x) =
+      (∑' x : s, G x) + (∑' x : (sᶜ : Set (α ⊕ β)), G x) =
         (∑' x : α ⊕ β, G x) :=
     tsum_subtype_add_tsum_subtype_compl htotal s
   have hleft_tsum :
       (∑' x : s, G x) = ∑' a : α, G (Sum.inl a) :=
     ((sumInlRangeEquiv α β).tsum_eq (fun x : s => G x)).symm
   have hright_tsum :
-      (∑' x : sᶜ, G x) = ∑' b : β, G (Sum.inr b) :=
-    ((sumInlRangeComplEquiv α β).tsum_eq (fun x : sᶜ => G x)).symm
+      (∑' x : (sᶜ : Set (α ⊕ β)), G x) = ∑' b : β, G (Sum.inr b) :=
+    let rightF : (sᶜ : Set (α ⊕ β)) → ℂ := fun x => G x
+    have hraw :
+        (∑' x : (sᶜ : Set (α ⊕ β)), rightF x) =
+          ∑' b : β, rightF ((sumInlRangeComplEquiv α β) b) :=
+      ((sumInlRangeComplEquiv α β).tsum_eq rightF).symm
+    have hfun :
+        (fun b : β => rightF ((sumInlRangeComplEquiv α β) b)) =
+          fun b : β => G (Sum.inr b) :=
+      funext (fun b =>
+        congrArg G
+          (show (((sumInlRangeComplEquiv α β) b :
+            (sᶜ : Set (α ⊕ β))) : α ⊕ β) = Sum.inr b from rfl))
+    have hrhs :
+        (∑' b : β, rightF ((sumInlRangeComplEquiv α β) b)) =
+          ∑' b : β, G (Sum.inr b) :=
+      congrArg (fun u : β → ℂ => ∑' b : β, u b) hfun
+    hraw.trans hrhs
   exact hsplit.symm.trans
     (congrArg₂
       (fun u v : ℂ => u + v)
@@ -282,13 +222,15 @@ theorem completedZeroFiniteFace_summable
     (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
     (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η)
     (hF : Summable F) :
-    Summable (fun η : S.attach => F ⟨η, hS η η.2⟩) := by
+    Summable (fun η : {η : ℂ // η ∈ S} => F ⟨η, hS η η.2⟩) := by
   have hinj :
       Function.Injective
-        (fun η : S.attach =>
+        (fun η : {η : ℂ // η ∈ S} =>
           (⟨η, hS η η.2⟩ : {ρ : ℂ // ZetaCompletedZero ρ})) := by
     intro η μ hημ
-    exact Subtype.ext (congrArg Subtype.val hημ)
+    have hval : (η : ℂ) = (μ : ℂ) :=
+      congrArg (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} => (ρ : ℂ)) hημ
+    exact Subtype.ext hval
   exact hF.comp_injective hinj
 
 /-- Restricting a summable completed-zero family to the complementary tail face is summable. -/
@@ -304,7 +246,9 @@ theorem completedZeroComplementFace_summable
         (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
           (⟨ρ, ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ})) := by
     intro ρ η hρη
-    exact Subtype.ext (congrArg Subtype.val hρη)
+    have hval : (ρ : ℂ) = (η : ℂ) :=
+      congrArg (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} => (ρ : ℂ)) hρη
+    exact Subtype.ext hval
   exact hF.comp_injective hinj
 
 /-- Split the finite/complement sum-type `tsum` into the selected finite side and the
@@ -314,21 +258,21 @@ theorem completedZeroFiniteComplement_sumType_tsum_eq_add
     (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
     (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η)
     (hF : Summable F) :
-    (∑' x : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+    (∑' x : {η : ℂ // η ∈ S} ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
         F ((completedZeroSubtypeFiniteComplementEquiv S hS).symm x)) =
-      (∑' η : S.attach, F ⟨η, hS η η.2⟩) +
+      (∑' η : {η : ℂ // η ∈ S}, F ⟨η, hS η η.2⟩) +
         (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}, F ⟨ρ, ρ.2.1⟩) := by
   let G :
-      S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} → ℂ :=
+      {η : ℂ // η ∈ S} ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} → ℂ :=
     fun x => F ((completedZeroSubtypeFiniteComplementEquiv S hS).symm x)
-  have hleft : Summable (fun η : S.attach => F ⟨η, hS η η.2⟩) :=
+  have hleft : Summable (fun η : {η : ℂ // η ∈ S} => F ⟨η, hS η η.2⟩) :=
     completedZeroFiniteFace_summable S F hS hF
   have hright :
       Summable
         (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
           F ⟨ρ, ρ.2.1⟩) :=
     completedZeroComplementFace_summable S F hF
-  have hleftG : Summable (fun η : S.attach => G (Sum.inl η)) :=
+  have hleftG : Summable (fun η : {η : ℂ // η ∈ S} => G (Sum.inl η)) :=
     hleft
   have hrightG :
       Summable
@@ -357,13 +301,13 @@ theorem completedZeroFiniteSubtype_tsum_eq_finset_sum
     (S : Finset ℂ)
     (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
     (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η) :
-    (∑' η : S.attach, F ⟨η, hS η η.2⟩) =
+    (∑' η : {η : ℂ // η ∈ S}, F ⟨η, hS η η.2⟩) =
       ∑ η in S.attach, F ⟨η, hS η η.2⟩ := by
   exact
     complex_tsum_fintype_eq_finset_sum_of_finset_eq_univ
       S.attach
       Finset.attach_eq_univ
-      (fun η : S.attach => F ⟨η, hS η η.2⟩)
+      (fun η : {η : ℂ // η ∈ S} => F ⟨η, hS η η.2⟩)
 
 /-- Finite/complement `tsum` transport for the completed-zero subtype. -/
 theorem completedZeroSubtype_tsum_eq_finiteSubtype_add_complement_of_equiv
@@ -376,17 +320,17 @@ theorem completedZeroSubtype_tsum_eq_finiteSubtype_add_complement_of_equiv
         (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}, F ⟨ρ, ρ.2.1⟩) := by
   have htransport :
       (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ}, F ρ) =
-        (∑' x : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+        (∑' x : {η : ℂ // η ∈ S} ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
           F ((completedZeroSubtypeFiniteComplementEquiv S hS).symm x)) :=
     completedZeroSubtype_tsum_eq_sumType_tsum_of_equiv S F hS hF
   have hsplit :
-      (∑' x : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+      (∑' x : {η : ℂ // η ∈ S} ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
           F ((completedZeroSubtypeFiniteComplementEquiv S hS).symm x)) =
-        (∑' η : S.attach, F ⟨η, hS η η.2⟩) +
+        (∑' η : {η : ℂ // η ∈ S}, F ⟨η, hS η η.2⟩) +
           (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}, F ⟨ρ, ρ.2.1⟩) :=
     completedZeroFiniteComplement_sumType_tsum_eq_add S F hS hF
   have hfinite :
-      (∑' η : S.attach, F ⟨η, hS η η.2⟩) =
+      (∑' η : {η : ℂ // η ∈ S}, F ⟨η, hS η η.2⟩) =
         ∑ η in S.attach, F ⟨η, hS η η.2⟩ :=
     completedZeroFiniteSubtype_tsum_eq_finset_sum S F hS
   exact htransport.trans
@@ -433,6 +377,10 @@ theorem zetaZeroSideContribution_sum_attach_eq_sum
     (S : Finset ℂ) (φ : ZetaAdmissibleFunction)
     (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η) :
     (∑ η in S.attach,
+        zetaZeroSideContribution (η : ℂ) φ) =
+      ∑ η in S, zetaZeroSideContribution η φ := by
+  have _hS_record : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η := hS
+  exact Finset.sum_attach S (fun η : ℂ => zetaZeroSideContribution η φ)
 
 end
 end LFunctions

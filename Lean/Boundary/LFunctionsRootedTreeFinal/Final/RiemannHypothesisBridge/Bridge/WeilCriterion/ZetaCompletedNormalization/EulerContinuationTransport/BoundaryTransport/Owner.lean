@@ -20,12 +20,51 @@ theorem one_sub_sub_one_eq_neg_for_boundaryTransport
     (z : ℂ) :
     (((1 : ℂ) - z) - 1) = -z := by
   calc
-    (((1 : ℂ) - z) - 1) = ((1 : ℂ) - 1) - z := by
-      exact sub_sub (1 : ℂ) z 1
-    _ = 0 - z := by
-      exact congrArg (fun x : ℂ => x - z) (sub_self (1 : ℂ))
+    (((1 : ℂ) - z) - 1) = (((1 : ℂ) - z) + (-1 : ℂ)) := by
+      exact sub_eq_add_neg ((1 : ℂ) - z) 1
+    _ = (((1 : ℂ) + (-z)) + (-1 : ℂ)) := by
+      exact congrArg (fun w : ℂ => w + (-1 : ℂ))
+        (sub_eq_add_neg (1 : ℂ) z)
+    _ = (1 : ℂ) + ((-z) + (-1 : ℂ)) := by
+      exact add_assoc (1 : ℂ) (-z) (-1 : ℂ)
+    _ = (1 : ℂ) + ((-1 : ℂ) + (-z)) := by
+      exact congrArg (fun w : ℂ => (1 : ℂ) + w)
+        (add_comm (-z) (-1 : ℂ))
+    _ = ((1 : ℂ) + (-1 : ℂ)) + (-z) := by
+      exact (add_assoc (1 : ℂ) (-1 : ℂ) (-z)).symm
+    _ = 0 + (-z) := by
+      exact congrArg (fun w : ℂ => w + (-z))
+        (add_neg_cancel (1 : ℂ))
     _ = -z := by
-      exact zero_sub z
+      exact zero_add (-z)
+
+/-- A real `1+1` spelling used to keep transport estimates explicit. -/
+theorem boundaryTransport_real_one_add_one_eq_two :
+    (1 : ℝ) + 1 = 2 := by
+  exact one_add_one_eq_two
+
+/-- Raising a real base above `2` dominates one additive copy of the base. -/
+theorem boundaryTransport_one_add_le_sq_of_two_le
+    {H : ℝ}
+    (hH : (2 : ℝ) ≤ H) :
+    1 + H ≤ H ^ (2 : ℕ) := by
+  have hone_le_H : (1 : ℝ) ≤ H :=
+    le_trans one_le_two hH
+  have hH_nonneg : 0 ≤ H :=
+    le_trans zero_le_one hone_le_H
+  have hone_add_le_twoH : 1 + H ≤ H + H :=
+    add_le_add_right hone_le_H H
+  have htwoH_le_HmulH : H + H ≤ H * H := by
+    calc
+      H + H = 2 * H := by
+        exact (two_mul H).symm
+      _ ≤ H * H := by
+        exact mul_le_mul_of_nonneg_right hH hH_nonneg
+  calc
+    1 + H ≤ H + H := hone_add_le_twoH
+    _ ≤ H * H := htwoH_le_HmulH
+    _ = H ^ (2 : ℕ) := by
+      exact (pow_two H).symm
 
 /-- Negating the reflected pole-clearing denominator recovers `z`. -/
 theorem neg_one_sub_sub_one_eq_self_for_boundaryTransport
@@ -51,10 +90,7 @@ theorem riemannZeta_poleCleared_boundaryLine_one_growth_bound_ownerPrimitive :
       ∀ w : ℂ,
         w.re = 1 →
         1 ≤ ‖w.im‖ →
-        (∀ {x : ℝ},
-          (⌊2 + ‖w.im‖⌋₊ : ℝ) ≤ x →
-            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum w.im ⌊x⌋₊‖ ≤
-              8 * ((x / ‖w.im‖) + Real.sqrt (1 + ‖w.im‖)) * Real.log (2 + x)) →
+        boundaryLineOneVerticalTruncationHypotheses w →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
   exact riemannZeta_poleCleared_boundaryLine_one_growth_bound_standard
@@ -72,20 +108,14 @@ theorem riemannZeta_reflected_leftBoundary_poleCleared_growth_bound_ownerPrimiti
       ∀ z : ℂ,
         z.re = 0 →
         1 ≤ ‖z.im‖ →
-        (∀ {x : ℝ},
-          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
-            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
-                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
-              8 * ((x / ‖((1 : ℂ) - z).im‖) +
-                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
-                Real.log (2 + x)) →
+        boundaryLineOneVerticalTruncationHypotheses ((1 : ℂ) - z) →
         ‖(((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z)‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   match riemannZeta_poleCleared_boundaryLine_one_growth_bound_ownerPrimitive with
   | ⟨A, B, m, hA, hB, hbound⟩ =>
       exact
         ⟨A, B, 2 * m, hA, hB,
-          fun z hz_re hz_im hpartial =>
+          fun z hz_re hz_im htrunc =>
           let w : ℂ := (1 : ℂ) - z
           have hw_re : w.re = 1 :=
             one_sub_leftBoundary_re_eq_one hz_re
@@ -117,14 +147,19 @@ theorem riemannZeta_reflected_leftBoundary_poleCleared_growth_bound_ownerPrimiti
               add_le_add_left hw_norm_le 1
             have htwoH_le_Hsq : 1 + (1 + ‖z‖) ≤ H ^ (2 : ℕ) := by
               have hH_ge_two : 2 ≤ H := by
-                have : 1 ≤ ‖z.im‖ := hz_im
-                have : 2 ≤ 1 + ‖z.im‖ := by exact Nat.add_one_le_iff.mpr this
-                calc (2 : ℝ) ≤ 1 + ‖z.im‖ := this
+                have hone_le_im : 1 ≤ ‖z.im‖ := hz_im
+                have htwo_le_one_add_im : 2 ≤ 1 + ‖z.im‖ := by
+                  calc
+                    (2 : ℝ) = 1 + 1 := by
+                      exact boundaryTransport_real_one_add_one_eq_two.symm
+                    _ ≤ 1 + ‖z.im‖ := by
+                      exact add_le_add_left hone_le_im 1
+                calc (2 : ℝ) ≤ 1 + ‖z.im‖ := htwo_le_one_add_im
                   _ ≤ 1 + ‖z‖ := add_le_add_left (Complex.abs_im_le_abs z) 1
                   _ = H := rfl
               calc
                 1 + (1 + ‖z‖) = 1 + H := rfl
-                _ ≤ H ^ 2 := by exact one_add_le_sq_of_two_le hH_ge_two
+                _ ≤ H ^ 2 := by exact boundaryTransport_one_add_le_sq_of_two_le hH_ge_two
                 _ = H ^ (2 : ℕ) := rfl
             exact le_trans hleft_le htwoH_le_Hsq
           have hpow_le : (1 + ‖w‖) ^ m ≤ (1 + ‖z‖) ^ (2 * m) := by
@@ -132,17 +167,17 @@ theorem riemannZeta_reflected_leftBoundary_poleCleared_growth_bound_ownerPrimiti
               le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg w))
             have hpow_base :
                 (1 + ‖w‖) ^ m ≤ ((1 + ‖z‖) ^ (2 : ℕ)) ^ m :=
-              pow_le_pow_right₀ hleft_nonneg hbase_le m
+              pow_le_pow_left₀ hleft_nonneg hbase_le m
             have htarget_ge :
                 ((1 + ‖z‖) ^ (2 : ℕ)) ^ m = (1 + ‖z‖) ^ (2 * m) := by
-              exact pow_mul (1 + ‖z‖) 2 m
+              exact (pow_mul (1 + ‖z‖) 2 m).symm
             exact hpow_base.trans_eq htarget_ge
           have hexp_le :
               Real.exp (B * (1 + ‖w‖) ^ m) ≤
                 Real.exp (B * (1 + ‖z‖) ^ (2 * m)) := by
             exact Real.exp_le_exp.mpr
               (mul_le_mul_of_nonneg_left hpow_le (le_of_lt hB))
-          le_trans (hbound w hw_re hw_im hpartial)
+          le_trans (hbound w hw_re hw_im htrunc)
             (mul_le_mul_of_nonneg_left hexp_le (le_of_lt hA))⟩
 
 /-- Functional-equation algebra for the left-edge pole-cleared zeta factor. -/
@@ -181,7 +216,7 @@ theorem riemannZeta_leftBoundary_completedFunctionalEquation_factorization
         have hzeta_z :
             riemannZeta z =
               riemannZeta ((1 : ℂ) - z) *
-                Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z := by
+                (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
           have hζw := riemannZeta_def_of_ne_zero (s := ((1 : ℂ) - z)) hw_ne_zero
           calc
             riemannZeta z =
@@ -199,64 +234,88 @@ theorem riemannZeta_leftBoundary_completedFunctionalEquation_factorization
                 exact hζw_mul.trans (div_mul_cancel₀ _ hGamma_reflected_ne)
               exact congrArg (fun x : ℂ => x / Complex.Gammaℝ z) hζw_completed.symm
             _ = riemannZeta ((1 : ℂ) - z) *
-                Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z := by
-              rfl
+                (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
+              exact _root_.mul_div_assoc
+                (riemannZeta ((1 : ℂ) - z))
+                (Complex.Gammaℝ ((1 : ℂ) - z))
+                (Complex.Gammaℝ z)
         calc
           (z - 1) * riemannZeta z =
               (z - 1) *
                 (riemannZeta ((1 : ℂ) - z) *
-                  Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
+                  (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) := by
             exact congrArg (fun x : ℂ => (z - 1) * x) hzeta_z
           _ = (((z - 1) / (((1 : ℂ) - z) - 1)) *
                 (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
               ((((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z)) := by
             show (z - 1) *
                 (riemannZeta ((1 : ℂ) - z) *
-                  Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) =
+                  (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) =
               (((z - 1) / (((1 : ℂ) - z) - 1)) *
                 (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
               ((((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z))
             have h_sub : ((1 : ℂ) - z) - 1 = -z :=
               one_sub_sub_one_eq_neg_for_boundaryTransport z
-            calc (z - 1) *
-                (riemannZeta ((1 : ℂ) - z) *
-                  Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)
-              = (z - 1) * riemannZeta ((1 : ℂ) - z) *
-                  (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
-                exact (mul_assoc (z - 1) _ _).symm
-              _ = (((z - 1) / (-z)) * (-z)) * riemannZeta ((1 : ℂ) - z) *
-                  (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
-                have : (z - 1) * riemannZeta ((1 : ℂ) - z) =
-                    (((z - 1) / (-z)) * (-z)) * riemannZeta ((1 : ℂ) - z) := by
-                  have h_ne : (-z : ℂ) ≠ 0 := by
-                    exact neg_ne_zero.mpr (show (z : ℂ) ≠ 0 from hw_minus_one_ne_zero ▸ h_sub)
-                  exact congrArg
-                    (fun x : ℂ => x * riemannZeta ((1 : ℂ) - z))
-                    (boundaryTransport_insert_neg_denominator h_ne)
-                exact congrArg (fun x : ℂ => x * (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) this
-              _ = (((z - 1) / (((1 : ℂ) - z) - 1)) *
-                  (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
-                  ((((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z)) := by
-                have h_neg :
-                    (((z - 1) / (-z)) * (-z)) * riemannZeta ((1 : ℂ) - z) *
-                      (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) =
-                      (((z - 1) / (-z)) *
-                        (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
-                      ((-z) * riemannZeta ((1 : ℂ) - z)) := by
-                  exact (mul_assoc _ _ _).symm.trans
-                    ((mul_assoc _ _ _).symm.trans
-                      ((mul_assoc _ _ _).trans
-                        ((mul_comm _ ((-z) * riemannZeta ((1 : ℂ) - z))).trans
-                          (mul_assoc _ _ _))))
-                exact Eq.subst
-                  (motive := fun d : ℂ =>
-                    (((z - 1) / (-z)) * (-z)) * riemannZeta ((1 : ℂ) - z) *
-                      (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) =
-                      (((z - 1) / d) *
-                        (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
-                      (d * riemannZeta ((1 : ℂ) - z)))
-                  h_sub.symm
-                  h_neg
+            have h_assoc :
+                (z - 1) *
+                    (riemannZeta ((1 : ℂ) - z) *
+                      (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) =
+                  (z - 1) * riemannZeta ((1 : ℂ) - z) *
+                    (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) :=
+              (mul_assoc (z - 1) _ _).symm
+            have h_insert :
+                (z - 1) * riemannZeta ((1 : ℂ) - z) *
+                    (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) =
+                  (((z - 1) / (-z)) * (-z)) * riemannZeta ((1 : ℂ) - z) *
+                    (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
+              have h_left : (z - 1) * riemannZeta ((1 : ℂ) - z) =
+                  (((z - 1) / (-z)) * (-z)) * riemannZeta ((1 : ℂ) - z) := by
+                have h_ne : (-z : ℂ) ≠ 0 := by
+                  exact fun hzero =>
+                    hw_minus_one_ne_zero (h_sub.trans hzero)
+                exact congrArg
+                  (fun x : ℂ => x * riemannZeta ((1 : ℂ) - z))
+                  (boundaryTransport_insert_neg_denominator h_ne)
+              exact congrArg
+                (fun x : ℂ => x * (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z))
+                h_left
+            have h_denominator :
+                (((z - 1) / (-z)) * (-z)) * riemannZeta ((1 : ℂ) - z) *
+                    (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) =
+                  (((z - 1) / (((1 : ℂ) - z) - 1)) *
+                    (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+                    ((((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z)) := by
+              have h_neg :
+                  (((z - 1) / (-z)) * (-z)) * riemannZeta ((1 : ℂ) - z) *
+                    (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) =
+                    (((z - 1) / (-z)) *
+                      (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+                    ((-z) * riemannZeta ((1 : ℂ) - z)) := by
+                let A : ℂ := (z - 1) / (-z)
+                let D : ℂ := -z
+                let R : ℂ := riemannZeta ((1 : ℂ) - z)
+                let G : ℂ := Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z
+                have h₁ : ((A * D) * R) * G = (A * D) * (R * G) :=
+                  mul_assoc (A * D) R G
+                have h₂ : (A * D) * (R * G) = A * (D * (R * G)) :=
+                  mul_assoc A D (R * G)
+                have h₃ : A * (D * (R * G)) = A * ((D * R) * G) :=
+                  congrArg (fun x : ℂ => A * x) (mul_assoc D R G).symm
+                have h₄ : A * ((D * R) * G) = A * (G * (D * R)) :=
+                  congrArg (fun x : ℂ => A * x) (mul_comm (D * R) G)
+                have h₅ : A * (G * (D * R)) = (A * G) * (D * R) :=
+                  (mul_assoc A G (D * R)).symm
+                exact h₁.trans (h₂.trans (h₃.trans (h₄.trans h₅)))
+              exact Eq.subst
+                (motive := fun d : ℂ =>
+                  (((z - 1) / (-z)) * (-z)) * riemannZeta ((1 : ℂ) - z) *
+                    (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) =
+                    (((z - 1) / d) *
+                      (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+                    (d * riemannZeta ((1 : ℂ) - z)))
+                h_sub.symm
+                h_neg
+            exact h_assoc.trans (h_insert.trans h_denominator)
 
 /-- Left-edge transport for the pole-cleared zeta factor through the completed functional
 equation before the removable-pole normalization is applied.
@@ -273,30 +332,17 @@ theorem riemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_
       ∀ z : ℂ,
         z.re = 0 →
         1 ≤ ‖z.im‖ →
-        (∀ {x : ℝ},
-          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
-            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
-                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
-              8 * ((x / ‖((1 : ℂ) - z).im‖) +
-                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
-                Real.log (2 + x)) →
+        boundaryLineOneVerticalTruncationHypotheses ((1 : ℂ) - z) →
         ‖(z - 1) * riemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   match leftBoundary_finiteOrder_product_growth_bound_of_condition
-      (fun z : ℂ =>
-        ∀ {x : ℝ},
-          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
-            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
-                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
-              8 * ((x / ‖((1 : ℂ) - z).im‖) +
-                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
-                Real.log (2 + x))
+      (fun z : ℂ => boundaryLineOneVerticalTruncationHypotheses ((1 : ℂ) - z))
       (Gammaℝ_leftBoundary_completedFunctionalEquation_multiplier_stirling_growth_bound hbranch)
       riemannZeta_reflected_leftBoundary_poleCleared_growth_bound_ownerPrimitive with
   | ⟨A, B, m, hA, hB, hproduct⟩ =>
     exact
       ⟨A, B, m, hA, hB,
-        fun z hz_re hz_im hpartial =>
+        fun z hz_re hz_im htrunc =>
           have hfactor :
               (z - 1) * riemannZeta z =
                 (((z - 1) / (((1 : ℂ) - z) - 1)) *
@@ -309,7 +355,18 @@ theorem riemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_
                     (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ *
                   ‖(((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z)‖ := by
             have hnorm_raw := congrArg norm hfactor
-            exact hnorm_raw
+            have hnorm_product :
+                ‖(((z - 1) / (((1 : ℂ) - z) - 1)) *
+                    (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+                  ((((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z))‖ =
+                    ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+                        (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ *
+                      ‖(((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z)‖ := by
+              exact norm_mul
+                (((z - 1) / (((1 : ℂ) - z) - 1)) *
+                  (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z))
+                ((((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z))
+            exact hnorm_raw.trans hnorm_product
           calc
             ‖(z - 1) * riemannZeta z‖ =
                 ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
@@ -317,7 +374,7 @@ theorem riemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_
                   ‖(((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z)‖ :=
               hnorm_factor
             _ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) :=
-              hproduct z hz_re hz_im hpartial⟩
+              hproduct z hz_re hz_im htrunc⟩
 
 /-- Left-edge transport for the pole-cleared zeta factor through the completed functional
 equation and the available vertical-tail Gamma/Stirling control. -/
@@ -329,20 +386,14 @@ theorem poleClearedRiemannZeta_leftBoundary_completedFunctionalEquation_stirling
       ∀ z : ℂ,
         z.re = 0 →
         1 ≤ ‖z.im‖ →
-        (∀ {x : ℝ},
-          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
-            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
-                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
-              8 * ((x / ‖((1 : ℂ) - z).im‖) +
-                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
-                Real.log (2 + x)) →
+        boundaryLineOneVerticalTruncationHypotheses ((1 : ℂ) - z) →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   match riemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_growth_bound hbranch with
   | ⟨A, B, m, hA, hB, hbound⟩ =>
     exact
       ⟨A, B, m, hA, hB,
-        fun z hz_re hz_im hpartial =>
+        fun z hz_re hz_im htrunc =>
           have hz_ne_one : z ≠ 1 :=
             fun hz_eq =>
               have hz_re_one : z.re = 1 := by
@@ -363,7 +414,7 @@ theorem poleClearedRiemannZeta_leftBoundary_completedFunctionalEquation_stirling
             ‖poleClearedRiemannZeta z‖ = ‖(z - 1) * riemannZeta z‖ :=
               congrArg norm hpole
             _ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) :=
-              hbound z hz_re hz_im hpartial⟩
+              hbound z hz_re hz_im htrunc⟩
 
 /-- Exact two-edge boundary-growth input for the pole-cleared zeta strip theorem.
 
@@ -378,13 +429,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquatio
       ∀ z : ℂ,
         z.re = 0 →
         1 ≤ ‖z.im‖ →
-        (∀ {x : ℝ},
-          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
-            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
-                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
-              8 * ((x / ‖((1 : ℂ) - z).im‖) +
-                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
-                Real.log (2 + x)) →
+        boundaryLineOneVerticalTruncationHypotheses ((1 : ℂ) - z) →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact poleClearedRiemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_growth_bound
@@ -399,60 +444,93 @@ theorem riemannZeta_sub_one_eq_dirichletSeries_tail
       ∑' n : ℕ, 1 / (((n + 2 : ℕ) : ℂ) ^ z) := by
   have h_one_lt_re : 1 < z.re :=
     lt_of_lt_of_le one_lt_two hz
-  let f : ℕ → ℂ := fun n : ℕ => 1 / ((n : ℂ) ^ z)
-  have hsum : Summable f :=
-    (Complex.summable_one_div_nat_cpow (p := z)).mpr h_one_lt_re
+  let f : ℕ → ℂ := fun n : ℕ => 1 / (((n + 1 : ℕ) : ℂ) ^ z)
+  have hsum : Summable f := by
+    have hfull : Summable (fun n : ℕ => 1 / ((n : ℂ) ^ z)) :=
+      (Complex.summable_one_div_nat_cpow (p := z)).mpr h_one_lt_re
+    exact (summable_nat_add_iff
+      (f := fun n : ℕ => 1 / ((n : ℂ) ^ z)) 1).mpr hfull
   have hzeta :
       riemannZeta z = ∑' n : ℕ, f n :=
-    zeta_eq_tsum_one_div_nat_cpow h_one_lt_re
+    have hzeta_raw :
+        riemannZeta z = ∑' n : ℕ, 1 / (((n : ℂ) + 1) ^ z) :=
+      zeta_eq_tsum_one_div_nat_add_one_cpow h_one_lt_re
+    have hseries_eq :
+        (∑' n : ℕ, 1 / (((n : ℂ) + 1) ^ z)) = ∑' n : ℕ, f n := by
+      exact tsum_congr
+        (fun n : ℕ =>
+          have hbase : ((n : ℂ) + 1) = (((n + 1 : ℕ) : ℂ)) := by
+            calc
+              ((n : ℂ) + 1) = ((n : ℕ) : ℂ) + ((1 : ℕ) : ℂ) := by
+                exact congrArg (fun w : ℂ => (n : ℂ) + w)
+                  (Nat.cast_one.symm : (1 : ℂ) = ((1 : ℕ) : ℂ))
+              _ = (((n + 1 : ℕ) : ℂ)) := by
+                exact (Nat.cast_add n 1).symm
+          congrArg (fun w : ℂ => (1 : ℂ) / (w ^ z)) hbase)
+    hzeta_raw.trans hseries_eq
   have hsplit :
-      (∑ n ∈ Finset.range 2, f n) + (∑' n : ℕ, f (n + 2)) =
+      (∑ n ∈ Finset.range 1, f n) + (∑' n : ℕ, f (n + 1)) =
         ∑' n : ℕ, f n :=
-    sum_add_tsum_nat_add 2 hsum
+    sum_add_tsum_nat_add 1 hsum
   have hprefix :
-      ∑ n ∈ Finset.range 2, f n = 1 := by
+      ∑ n ∈ Finset.range 1, f n = 1 := by
     calc
-      (∑ n ∈ Finset.range 2, (1 : ℂ) / ((n : ℂ) ^ z)) =
-          (1 : ℂ) / ((0 : ℂ) ^ z) + (1 : ℂ) / ((1 : ℂ) ^ z) :=
-        Finset.sum_range_two fun n => (1 : ℂ) / ((n : ℂ) ^ z)
+      (∑ n ∈ Finset.range 1, f n) = f 0 := by
+        exact Finset.sum_range_one f
+      _ = (1 : ℂ) / ((1 : ℂ) ^ z) := by
+        have hbase : (((0 + 1 : ℕ) : ℂ)) = (1 : ℂ) := by
+          calc
+            (((0 + 1 : ℕ) : ℂ)) = ((1 : ℕ) : ℂ) := rfl
+            _ = (1 : ℂ) := by
+              exact Nat.cast_one
+        exact congrArg (fun w : ℂ => (1 : ℂ) / (w ^ z)) hbase
       _ = 1 := by
-        have hzero : (0 : ℂ) ^ z = 0 := by
-          exact zero_cpow (Complex.ne_zero_of_one_lt_re h_one_lt_re)
         have hone : (1 : ℂ) ^ z = 1 :=
-          one_zpow z
+          Complex.one_cpow z
         calc
-          (1 : ℂ) / ((0 : ℂ) ^ z) + (1 : ℂ) / ((1 : ℂ) ^ z)
-              = (1 : ℂ) / 0 + (1 : ℂ) / 1 := by
-                exact congrArg₂ HAdd.hAdd (congrArg (fun w : ℂ => (1 : ℂ) / w) hzero)
-                  (congrArg (fun w : ℂ => (1 : ℂ) / w) hone)
+          (1 : ℂ) / ((1 : ℂ) ^ z) = (1 : ℂ) / 1 := by
+            exact congrArg (fun w : ℂ => (1 : ℂ) / w) hone
           _ = 1 := by
-            have h_div_zero : (1 : ℂ) / 0 = 0 :=
-              div_zero 1
             have h_div_one : (1 : ℂ) / 1 = 1 :=
               div_self one_ne_zero
-            calc (1 : ℂ) / 0 + (1 : ℂ) / 1
-                = 0 + (1 : ℂ) / 1 := by exact congrArg (· + (1 : ℂ) / 1) h_div_zero
-              _ = 0 + 1 := by exact congrArg (0 + ·) h_div_one
-              _ = 1 := zero_add 1
+            exact h_div_one
   have hone_add_tail_eq_zeta :
-      1 + (∑' n : ℕ, f (n + 2)) = riemannZeta z := by
+      1 + (∑' n : ℕ, f (n + 1)) = riemannZeta z := by
     calc
-      1 + (∑' n : ℕ, f (n + 2)) =
-          (∑ n ∈ Finset.range 2, f n) + (∑' n : ℕ, f (n + 2)) := by
-            exact congrArg (fun x : ℂ => x + (∑' n : ℕ, f (n + 2))) hprefix.symm
+      1 + (∑' n : ℕ, f (n + 1)) =
+          (∑ n ∈ Finset.range 1, f n) + (∑' n : ℕ, f (n + 1)) := by
+            exact congrArg (fun x : ℂ => x + (∑' n : ℕ, f (n + 1))) hprefix.symm
       _ = ∑' n : ℕ, f n := hsplit
       _ = riemannZeta z := hzeta.symm
   have hzeta_eq_one_add_tail :
-      riemannZeta z = 1 + (∑' n : ℕ, f (n + 2)) :=
+      riemannZeta z = 1 + (∑' n : ℕ, f (n + 1)) :=
     hone_add_tail_eq_zeta.symm
   calc
     riemannZeta z - 1 =
-        (1 + (∑' n : ℕ, f (n + 2))) - 1 := by
+        (1 + (∑' n : ℕ, f (n + 1))) - 1 := by
           exact congrArg (fun w : ℂ => w - 1) hzeta_eq_one_add_tail
-    _ = ∑' n : ℕ, f (n + 2) :=
-          add_sub_cancel 1 (∑' n : ℕ, f (n + 2))
+    _ = ∑' n : ℕ, f (n + 1) :=
+          calc
+            (1 + (∑' n : ℕ, f (n + 1))) - 1 =
+                ((∑' n : ℕ, f (n + 1)) + 1) - 1 := by
+              exact congrArg (fun x : ℂ => x - 1)
+                (add_comm 1 (∑' n : ℕ, f (n + 1)))
+            _ = ∑' n : ℕ, f (n + 1) := by
+              exact add_sub_cancel_right (∑' n : ℕ, f (n + 1)) 1
     _ = ∑' n : ℕ, 1 / (((n + 2 : ℕ) : ℂ) ^ z) := by
-          rfl
+          exact tsum_congr
+            (fun n : ℕ =>
+              have hbase :
+                  (((n + 1 + 1 : ℕ) : ℂ)) = ((n + 2 : ℕ) : ℂ) := by
+                calc
+                  (((n + 1 + 1 : ℕ) : ℂ)) = (((n + 1) + 1 : ℕ) : ℂ) := rfl
+                  _ = ((n + (1 + 1) : ℕ) : ℂ) := by
+                    exact congrArg (fun k : ℕ => ((k : ℕ) : ℂ))
+                      (Nat.add_assoc n 1 1).symm
+                  _ = ((n + 2 : ℕ) : ℂ) := by
+                    exact congrArg (fun k : ℕ => ((n + k : ℕ) : ℂ))
+                      (one_add_one_eq_two : (1 : ℕ) + 1 = 2)
+              congrArg (fun w : ℂ => (1 : ℂ) / (w ^ z)) hbase)
 
 /-- Uniform boundedness of the far-right Dirichlet-series tail.
 
@@ -469,7 +547,8 @@ theorem riemannZeta_farRightHalfPlane_dirichletSeries_tsum_tail_bound :
   have hg_summable : Summable g := by
     have hfull : Summable (fun n : ℕ => 1 / ((n : ℝ) ^ (2 : ℕ))) :=
       Real.summable_one_div_nat_pow.mpr one_lt_two
-    exact (summable_nat_add_iff 2).mpr hfull
+    exact (summable_nat_add_iff
+      (f := fun n : ℕ => 1 / ((n : ℝ) ^ (2 : ℕ))) 2).mpr hfull
   have hg_nonneg : ∀ n : ℕ, 0 ≤ g n :=
     fun n =>
       div_nonneg zero_le_one (pow_nonneg (Nat.cast_nonneg (n + 2)) 2)
@@ -484,16 +563,24 @@ theorem riemannZeta_farRightHalfPlane_dirichletSeries_tsum_tail_bound :
             have hfull : Summable (fun n : ℕ => 1 / ((n : ℂ) ^ z)) :=
               (Complex.summable_one_div_nat_cpow (p := z)).mpr hz_one_lt
             have htail : Summable (fun n : ℕ => 1 / (((n + 2 : ℕ) : ℂ) ^ z)) :=
-              (summable_nat_add_iff 2).mpr hfull
+              (summable_nat_add_iff
+                (f := fun n : ℕ => 1 / ((n : ℂ) ^ z)) 2).mpr hfull
             exact htail.norm
           have hterm_le : ∀ n : ℕ, ‖f n‖ ≤ g n :=
-            fun n =>
+            fun n => by
             have hn_nat_pos : 0 < n + 2 :=
               Nat.succ_pos (n + 1)
             have hn_real_pos : 0 < ((n + 2 : ℕ) : ℝ) :=
               Nat.cast_pos.mpr hn_nat_pos
             have hn_real_one_le : 1 ≤ ((n + 2 : ℕ) : ℝ) :=
-              Nat.cast_le.mpr (Nat.succ_le_iff.mpr (Nat.succ_pos (n + 1)))
+              have hnat_le : (1 : ℕ) ≤ n + 2 :=
+                Nat.succ_le_iff.mpr hn_nat_pos
+              have hcast_le : ((1 : ℕ) : ℝ) ≤ ((n + 2 : ℕ) : ℝ) :=
+                Nat.cast_le.mpr hnat_le
+              Eq.subst
+                (motive := fun x : ℝ => x ≤ ((n + 2 : ℕ) : ℝ))
+                Nat.cast_one
+                hcast_le
             have hnorm_cpow :
                 ‖(((n + 2 : ℕ) : ℂ) ^ z)‖ =
                   ((n + 2 : ℕ) : ℝ) ^ z.re :=
@@ -593,7 +680,7 @@ theorem riemannZeta_farRightHalfPlane_dirichletSeries_bound_of_tail_bound
               hdecomp.symm
               (norm_add_le (riemannZeta z - 1) (1 : ℂ))
           have hone_norm : ‖(1 : ℂ)‖ = (1 : ℝ) :=
-            Complex.norm_one
+            (norm_one : ‖(1 : ℂ)‖ = (1 : ℝ))
           have hsum :
               ‖riemannZeta z - 1‖ + ‖(1 : ℂ)‖ ≤ A + 1 :=
             Eq.subst
@@ -654,7 +741,7 @@ theorem riemannZeta_rightCriticalStrip_poleCleared_rightBoundary_growth_bound :
               _ ≤ H * A :=
                 mul_le_mul hsub_norm hzeta (norm_nonneg (riemannZeta z)) hH_nonneg
           have hH_le_expH : H ≤ Real.exp H :=
-            le_trans (le_add_of_nonneg_right zero_le_one) (add_one_le_exp H)
+            le_trans (le_add_of_nonneg_right zero_le_one) (Real.add_one_le_exp H)
           have hscaled :
               H * A ≤ A * Real.exp H := by
             calc
@@ -706,7 +793,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_rightBoundary_growth_bound :
                 calc
                   (2 : ℝ) = z.re := hz_re.symm
                   _ = 1 := hone_re
-              absurd htwo_eq_one (show (2 : ℝ) ≠ 1 from two_ne_one)
+              absurd htwo_eq_one (show (2 : ℝ) ≠ 1 from ne_of_gt one_lt_two)
           have hpc :
               poleClearedRiemannZeta z = (z - 1) * riemannZeta z :=
             poleClearedRiemannZeta_eq_of_ne_one hz_ne_one
@@ -742,13 +829,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_verticalBoundary_growth_bound
       ∀ z : ℂ,
         z.re = 0 →
         1 ≤ ‖z.im‖ →
-        (∀ {x : ℝ},
-          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
-            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
-                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
-              8 * ((x / ‖((1 : ℂ) - z).im‖) +
-                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
-                Real.log (2 + x)) →
+        boundaryLineOneVerticalTruncationHypotheses ((1 : ℂ) - z) →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m)) ∧
     (∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
@@ -763,9 +844,6 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_verticalBoundary_growth_bound
     ⟨poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquation_growth_bound
         hbranch,
       poleClearedRiemannZeta_rightCriticalStrip_rightBoundary_dirichletSeries_growth_bound⟩
-
-/-- A real `IsBigO` bound against a positive exponential envelope gives an
-eventual raw inequality with a positive multiplicative constant. -/
 
 end
 end LFunctions
