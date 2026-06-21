@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.BoundaryGrowth
+import Mathlib.Analysis.Complex.Basic
 
 /-!
 # Pole-cleared Euler-Maclaurin boundary growth
@@ -44,7 +45,7 @@ theorem Complex.poleClearedRiemannZeta_boundaryLine_growth_bound_of_zeta_log :
                         ((1 : ℂ) + (t : ℂ) * Complex.I) - 1 := by
                       rfl
                     _ = (t : ℂ) * Complex.I := by
-                      exact add_sub_cancel_left ((t : ℂ) * Complex.I) (1 : ℂ)
+                      exact add_sub_cancel_left (1 : ℂ) ((t : ℂ) * Complex.I)
                 have hpoint_norm :
                     ‖Complex.boundaryLineOnePointRealParam t - 1‖ = ‖t‖ := by
                   calc
@@ -54,7 +55,7 @@ theorem Complex.poleClearedRiemannZeta_boundaryLine_growth_bound_of_zeta_log :
                     _ = ‖(t : ℂ)‖ * ‖Complex.I‖ :=
                       norm_mul (t : ℂ) Complex.I
                     _ = ‖(t : ℂ)‖ * 1 := by
-                      exact congrArg (fun x : ℝ => ‖(t : ℂ)‖ * x) norm_I
+                      exact congrArg (fun x : ℝ => ‖(t : ℂ)‖ * x) Complex.norm_I
                     _ = ‖(t : ℂ)‖ :=
                       mul_one ‖(t : ℂ)‖
                     _ = ‖t‖ :=
@@ -71,9 +72,11 @@ theorem Complex.poleClearedRiemannZeta_boundaryLine_growth_bound_of_zeta_log :
                 have harg_eq : 2 + ‖t‖ = H + 1 := by
                   calc
                     2 + ‖t‖ = (1 + 1) + ‖t‖ := by
-                      rfl
+                      exact congrArg
+                        (fun x : ℝ => x + ‖t‖)
+                        (one_add_one_eq_two.symm : (2 : ℝ) = 1 + 1)
                     _ = 1 + (1 + ‖t‖) := by
-                      exact (add_assoc (1 : ℝ) 1 ‖t‖).symm
+                      exact add_assoc (1 : ℝ) 1 ‖t‖
                     _ = (1 + ‖t‖) + 1 := by
                       exact add_comm (1 : ℝ) (1 + ‖t‖)
                     _ = H + 1 := by
@@ -114,7 +117,7 @@ theorem Complex.poleClearedRiemannZeta_boundaryLine_growth_bound_of_zeta_log :
                   exact mul_le_mul
                     (le_trans (le_of_eq hpoint_norm) ht_le_H)
                     hzeta_le
-                    (mul_nonneg (le_of_lt hA_pos) (mul_nonneg zero_le_two hH_nonneg))
+                    (norm_nonneg (riemannZeta (Complex.boundaryLineOnePointRealParam t)))
                     hH_nonneg
                 have htarget :
                     H * (A * (2 * H)) = (2 * A) * H ^ (2 : ℕ) := by
@@ -122,15 +125,15 @@ theorem Complex.poleClearedRiemannZeta_boundaryLine_growth_bound_of_zeta_log :
                     H * (A * (2 * H)) = H * ((A * 2) * H) := by
                       exact congrArg (fun x : ℝ => H * x) (mul_assoc A 2 H).symm
                     _ = (H * (A * 2)) * H := by
-                      exact mul_assoc H (A * 2) H
+                      exact (mul_assoc H (A * 2) H).symm
                     _ = ((A * 2) * H) * H := by
                       exact congrArg (fun x : ℝ => x * H) (mul_comm H (A * 2))
                     _ = (A * 2) * (H * H) := by
-                      exact (mul_assoc (A * 2) H H).symm
+                      exact mul_assoc (A * 2) H H
                     _ = (2 * A) * (H * H) := by
                       exact congrArg (fun x : ℝ => x * (H * H)) (mul_comm A 2)
                     _ = (2 * A) * H ^ (2 : ℕ) := by
-                      rfl
+                      exact congrArg (fun x : ℝ => (2 * A) * x) (pow_two H).symm
                 exact Eq.subst
                   (motive := fun x : ℝ =>
                     ‖(Complex.boundaryLineOnePointRealParam t - 1) *

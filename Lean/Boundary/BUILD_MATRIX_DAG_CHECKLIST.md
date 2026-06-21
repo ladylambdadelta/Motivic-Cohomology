@@ -6,7 +6,7 @@ Use `lake --old build <module-target>` for local classification checkpoints when
 
 Total in checklist: 131. Levels: 54. Cyclic/unplaced: 0.
 
-Status totals: green:96, pending:1, red:6, unknown:28.
+Status totals: green:100, pending:1, red:6, unknown:24.
 
 ## Parallel Components
 
@@ -370,7 +370,7 @@ Complete earlier levels before later levels when files are connected by imports.
 
 - [x] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/AbelTail.lean | status: green; deps-in-checklist: 1; downstream-in-checklist: 2; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.AbelTail`; last: passed_lake_old_build_2026-06-21
 
-### Level 24 (2 files; green:1, unknown:1)
+### Level 24 (2 files; green:2)
 
 #### BoundaryEulerAbel normalization
 
@@ -378,23 +378,23 @@ Complete earlier levels before later levels when files are connected by imports.
 
 #### Classical Euler-Maclaurin
 
-- [ ] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/BoundaryGrowth.lean | status: unknown; deps-in-checklist: 1; downstream-in-checklist: 2; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.BoundaryGrowth`; last: not_checked
+- [x] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/BoundaryGrowth.lean | status: green; deps-in-checklist: 1; downstream-in-checklist: 2; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.BoundaryGrowth`; last: passed_lake_old_build_2026-06-21
 
-### Level 25 (2 files; green:1, unknown:1)
+### Level 25 (2 files; green:2)
 
 #### Classical Euler-Maclaurin
 
-- [ ] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/PoleClearedEulerMaclaurin.lean | status: unknown; deps-in-checklist: 1; downstream-in-checklist: 1; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.PoleClearedEulerMaclaurin`; last: not_checked
+- [x] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/PoleClearedEulerMaclaurin.lean | status: green; deps-in-checklist: 1; downstream-in-checklist: 1; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.PoleClearedEulerMaclaurin`; last: passed_lake_old_build_2026-06-21_after_boring_algebra_repair
 
 #### EulerContinuationTransport normalization
 
 - [x] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/EulerContinuationTransport/BoundaryTransport/Owner.lean | status: green; deps-in-checklist: 1; downstream-in-checklist: 1; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.EulerContinuationTransport.BoundaryTransport.Owner`; last: passed_lake_old_build_2026-06-21
 
-### Level 26 (2 files; green:1, unknown:1)
+### Level 26 (2 files; green:2)
 
 #### Classical Euler-Maclaurin
 
-- [ ] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/Owner.lean | status: unknown; deps-in-checklist: 4; downstream-in-checklist: 0; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.Owner`; last: not_checked
+- [x] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/Owner.lean | status: green; deps-in-checklist: 4; downstream-in-checklist: 0; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.Owner`; last: passed_lake_old_build_2026-06-21
 
 #### EulerContinuationTransport normalization
 
@@ -564,8 +564,8 @@ Complete earlier levels before later levels when files are connected by imports.
 
 - [x] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/Owner.lean | status: green; deps-in-checklist: 1; downstream-in-checklist: 1; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Owner`; last: passed_lake_old_build_2026-06-21_import_only_reexport
 
-### Level 53 (1 files; unknown:1)
+### Level 53 (1 files; green:1)
 
 #### Top RH bridge
 
-- [ ] Final/RiemannHypothesisBridge/Owner.lean | status: unknown; deps-in-checklist: 1; downstream-in-checklist: 0; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Owner`; last: not_checked
+- [x] Final/RiemannHypothesisBridge/Owner.lean | status: green; deps-in-checklist: 1; downstream-in-checklist: 0; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Owner`; last: passed_lake_old_build_2026-06-21

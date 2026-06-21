@@ -4406,15 +4406,15 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/BoundaryGrowth.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.BoundaryGrowth",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/BoundaryGrowth.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Verified on 2026-06-21 with targeted `lake --old build` after upstream Euler-Maclaurin boundary dependencies were green."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
@@ -4548,27 +4548,27 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Verified on 2026-06-21 with targeted `lake --old build` after the classical Euler-Maclaurin boundary chain passed."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/PoleClearedEulerMaclaurin.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.PoleClearedEulerMaclaurin",
+        "result": "passed_lake_old_build_2026-06-21_after_boring_algebra_repair"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ClassicalAnalysis/ZetaEulerMaclaurinBoundary/PoleClearedEulerMaclaurin.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Verified on 2026-06-21 with targeted `lake --old build` after replacing brittle local algebra with explicit boring equality transports and importing the complex norm API."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
@@ -6283,15 +6283,15 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "Verified on 2026-06-21 with targeted `lake --old build` after the top WeilCriterion owner re-export and downstream RH bridge aliases passed."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
