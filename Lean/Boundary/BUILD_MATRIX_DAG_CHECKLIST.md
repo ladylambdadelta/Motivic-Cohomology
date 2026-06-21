@@ -6,7 +6,7 @@ Use `lake --old build <module-target>` for local classification checkpoints when
 
 Total in checklist: 131. Levels: 54. Cyclic/unplaced: 0.
 
-Status totals: green:59, pending:4, red:22, unknown:46.
+Status totals: green:60, pending:4, red:21, unknown:46.
 
 ## Parallel Components
 
@@ -430,11 +430,11 @@ Complete earlier levels before later levels when files are connected by imports.
 
 - [x] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/FunctionalEquationTransport/Growth/Owner.lean | status: green; deps-in-checklist: 1; downstream-in-checklist: 1; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.FunctionalEquationTransport.Growth.Owner`; last: passed_lake_old_build_2026-06-21
 
-### Level 32 (1 files; red:1)
+### Level 32 (1 files; green:1)
 
 #### FunctionalEquationTransport normalization
 
-- [ ] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/FunctionalEquationTransport/Owner.lean | status: red; deps-in-checklist: 3; downstream-in-checklist: 1; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.FunctionalEquationTransport.Owner`; last: missing_import_artifact
+- [x] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/FunctionalEquationTransport/Owner.lean | status: green; deps-in-checklist: 3; downstream-in-checklist: 1; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.FunctionalEquationTransport.Owner`; last: passed_lake_old_build_2026-06-21
 
 ### Level 33 (1 files; red:1)
 

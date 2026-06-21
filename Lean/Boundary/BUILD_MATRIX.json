@@ -1801,16 +1801,16 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/FunctionalEquationTransport/Owner.lean",
-        "result": "missing_import_artifact"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.FunctionalEquationTransport.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/FunctionalEquationTransport/Owner.lean",
       "notes": [
-        "Discovered as the immediate missing import for CompletedZetaGrowth.Owner.",
-        "Clean file. Narrow check fails before local elaboration because EulerContinuationTransport.Owner.olean is missing.",
-        "Resolved from hazard to red: narrow build has known missing upstream artifact, so this is not ambiguous-green."
+        "Wrapper owner over FunctionalEquationTransport.Core.Owner, Analysis.Owner, and Growth.Owner.",
+        "No forbidden proof forms remain in the file; checked by local rg scan before the Lake checkpoint.",
+        "Lake --old module build completed successfully on 2026-06-21 after Growth.Owner was repaired."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
