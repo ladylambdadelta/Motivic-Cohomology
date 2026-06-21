@@ -244,40 +244,31 @@ theorem entireFunctionNonzeroZeroClosedDiskSummable_canonical_iff_zeroSubtype
             entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) :=
     hi.summable_iff houtside
   have hpoint :
-      (fun z : EntireFunctionNonzeroZero F =>
-          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R (i z)) =
-        (fun z : EntireFunctionNonzeroZero F =>
-          entireFunctionNonzeroZeroClosedDiskSummand F hF R z) := by
-    exact
-      funext
-        (fun z =>
-          have hz_ne : ((i z : EntireFunctionZero F) : ℂ) ≠ 0 := z.property.2
-          calc
-            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R (i z) =
-                if ((i z : EntireFunctionZero F) : ℂ) = 0 then
-                  0
-                else
-                  entireFunctionZeroMultiplicityClosedDiskSummand F hF R (i z) := rfl
-            _ = entireFunctionZeroMultiplicityClosedDiskSummand F hF R (i z) :=
-              if_neg hz_ne
-            _ =
-                if ‖((i z : EntireFunctionZero F) : ℂ)‖ ≤ R then
-                  (entireFunctionZeroMultiplicity F hF
-                    ((i z : EntireFunctionZero F) : ℂ) : ℝ)
-                else
-                  0 := rfl
-            _ = entireFunctionNonzeroZeroClosedDiskSummand F hF R z := rfl)
+      ∀ z : EntireFunctionNonzeroZero F,
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R (i z) =
+          entireFunctionNonzeroZeroClosedDiskSummand F hF R z := by
+    intro z
+    have hz_ne : ((i z : EntireFunctionZero F) : ℂ) ≠ 0 := z.property.2
+    calc
+      entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R (i z) =
+          if ((i z : EntireFunctionZero F) : ℂ) = 0 then
+            0
+          else
+            entireFunctionZeroMultiplicityClosedDiskSummand F hF R (i z) := rfl
+      _ = entireFunctionZeroMultiplicityClosedDiskSummand F hF R (i z) :=
+        if_neg hz_ne
+      _ =
+          if ‖((i z : EntireFunctionZero F) : ℂ)‖ ≤ R then
+            (entireFunctionZeroMultiplicity F hF
+              ((i z : EntireFunctionZero F) : ℂ) : ℝ)
+          else
+            0 := rfl
+      _ = entireFunctionNonzeroZeroClosedDiskSummand F hF R z := rfl
   constructor
   · intro hcanonical
-    exact hiff.mp (Eq.subst
-      (motive := fun f : EntireFunctionNonzeroZero F → ℝ => Summable f)
-      hpoint.symm
-      hcanonical)
+    exact hiff.mp (hcanonical.congr (fun z => (hpoint z).symm))
   · intro hold
-    exact Eq.subst
-      (motive := fun f : EntireFunctionNonzeroZero F → ℝ => Summable f)
-      hpoint
-      (hiff.mpr hold)
+    exact (hiff.mpr hold).congr hpoint
 
 /-- The old `EntireFunctionZero` radial-gap summability surface is equivalent
 to summability on the canonical nonzero-zero index. -/
@@ -344,43 +335,34 @@ theorem entireFunctionNonzeroZeroRadialGapSummable_canonical_iff_zeroSubtype
             entireFunctionJensenRadialGapSummand F hF ρ z) :=
     hi.summable_iff houtside
   have hpoint :
-      (fun z : EntireFunctionNonzeroZero F =>
-          entireFunctionJensenRadialGapSummand F hF ρ (i z)) =
-        (fun z : EntireFunctionNonzeroZero F =>
-          entireFunctionNonzeroZeroRadialGapSummand F hF ρ z) := by
-    exact
-      funext
-        (fun z =>
-          have hz_ne : ((i z : EntireFunctionZero F) : ℂ) ≠ 0 := z.property.2
-          calc
-            entireFunctionJensenRadialGapSummand F hF ρ (i z) =
-                if ((i z : EntireFunctionZero F) : ℂ) = 0 then
-                  0
-                else if ‖((i z : EntireFunctionZero F) : ℂ)‖ < ρ then
-                  (entireFunctionZeroMultiplicity F hF
-                    ((i z : EntireFunctionZero F) : ℂ) : ℝ) *
-                    Real.log (ρ / ‖((i z : EntireFunctionZero F) : ℂ)‖)
-                else
-                  0 := rfl
-            _ =
-                if ‖((i z : EntireFunctionZero F) : ℂ)‖ < ρ then
-                  (entireFunctionZeroMultiplicity F hF
-                    ((i z : EntireFunctionZero F) : ℂ) : ℝ) *
-                    Real.log (ρ / ‖((i z : EntireFunctionZero F) : ℂ)‖)
-                else
-                  0 := if_neg hz_ne
-            _ = entireFunctionNonzeroZeroRadialGapSummand F hF ρ z := rfl)
+      ∀ z : EntireFunctionNonzeroZero F,
+        entireFunctionJensenRadialGapSummand F hF ρ (i z) =
+          entireFunctionNonzeroZeroRadialGapSummand F hF ρ z := by
+    intro z
+    have hz_ne : ((i z : EntireFunctionZero F) : ℂ) ≠ 0 := z.property.2
+    calc
+      entireFunctionJensenRadialGapSummand F hF ρ (i z) =
+          if ((i z : EntireFunctionZero F) : ℂ) = 0 then
+            0
+          else if ‖((i z : EntireFunctionZero F) : ℂ)‖ < ρ then
+            (entireFunctionZeroMultiplicity F hF
+              ((i z : EntireFunctionZero F) : ℂ) : ℝ) *
+              Real.log (ρ / ‖((i z : EntireFunctionZero F) : ℂ)‖)
+          else
+            0 := rfl
+      _ =
+          if ‖((i z : EntireFunctionZero F) : ℂ)‖ < ρ then
+            (entireFunctionZeroMultiplicity F hF
+              ((i z : EntireFunctionZero F) : ℂ) : ℝ) *
+              Real.log (ρ / ‖((i z : EntireFunctionZero F) : ℂ)‖)
+          else
+            0 := if_neg hz_ne
+      _ = entireFunctionNonzeroZeroRadialGapSummand F hF ρ z := rfl
   constructor
   · intro hcanonical
-    exact hiff.mp (Eq.subst
-      (motive := fun f : EntireFunctionNonzeroZero F → ℝ => Summable f)
-      hpoint.symm
-      hcanonical)
+    exact hiff.mp (hcanonical.congr (fun z => (hpoint z).symm))
   · intro hold
-    exact Eq.subst
-      (motive := fun f : EntireFunctionNonzeroZero F → ℝ => Summable f)
-      hpoint
-      (hiff.mpr hold)
+    exact (hiff.mpr hold).congr hpoint
 
 /-- The old `EntireFunctionZero` radial-gap sum agrees with the canonical
 nonzero-zero radial-gap sum. -/
@@ -421,33 +403,30 @@ theorem entireFunctionNonzeroZeroRadialGap_tsum_eq_zeroSubtype_tsum
             0 := rfl
       _ = 0 := if_pos hz_zero
   have hpoint :
-      (fun z : EntireFunctionNonzeroZero F =>
-          entireFunctionJensenRadialGapSummand F hF ρ (i z)) =
-        (fun z : EntireFunctionNonzeroZero F =>
-          entireFunctionNonzeroZeroRadialGapSummand F hF ρ z) := by
-    exact
-      funext
-        (fun z =>
-          have hz_ne : ((i z : EntireFunctionZero F) : ℂ) ≠ 0 := z.property.2
-          calc
-            entireFunctionJensenRadialGapSummand F hF ρ (i z) =
-                if ((i z : EntireFunctionZero F) : ℂ) = 0 then
-                  0
-                else if ‖((i z : EntireFunctionZero F) : ℂ)‖ < ρ then
-                  (entireFunctionZeroMultiplicity F hF
-                    ((i z : EntireFunctionZero F) : ℂ) : ℝ) *
-                    Real.log (ρ / ‖((i z : EntireFunctionZero F) : ℂ)‖)
-                  else
-                    0 := rfl
-            _ =
-                  if ‖((i z : EntireFunctionZero F) : ℂ)‖ < ρ then
-                    (entireFunctionZeroMultiplicity F hF
-                      ((i z : EntireFunctionZero F) : ℂ) : ℝ) *
-                      Real.log (ρ / ‖((i z : EntireFunctionZero F) : ℂ)‖)
-                  else
-                    0 := by
-                exact if_neg hz_ne
-              _ = entireFunctionNonzeroZeroRadialGapSummand F hF ρ z := rfl)
+      ∀ z : EntireFunctionNonzeroZero F,
+        entireFunctionJensenRadialGapSummand F hF ρ (i z) =
+          entireFunctionNonzeroZeroRadialGapSummand F hF ρ z := by
+    intro z
+    have hz_ne : ((i z : EntireFunctionZero F) : ℂ) ≠ 0 := z.property.2
+    calc
+      entireFunctionJensenRadialGapSummand F hF ρ (i z) =
+          if ((i z : EntireFunctionZero F) : ℂ) = 0 then
+            0
+          else if ‖((i z : EntireFunctionZero F) : ℂ)‖ < ρ then
+            (entireFunctionZeroMultiplicity F hF
+              ((i z : EntireFunctionZero F) : ℂ) : ℝ) *
+              Real.log (ρ / ‖((i z : EntireFunctionZero F) : ℂ)‖)
+            else
+              0 := rfl
+      _ =
+            if ‖((i z : EntireFunctionZero F) : ℂ)‖ < ρ then
+              (entireFunctionZeroMultiplicity F hF
+                ((i z : EntireFunctionZero F) : ℂ) : ℝ) *
+                Real.log (ρ / ‖((i z : EntireFunctionZero F) : ℂ)‖)
+            else
+              0 := by
+          exact if_neg hz_ne
+      _ = entireFunctionNonzeroZeroRadialGapSummand F hF ρ z := rfl
   have hsupport :
         Function.support
             (entireFunctionJensenRadialGapSummand F hF ρ) ⊆
@@ -469,9 +448,7 @@ theorem entireFunctionNonzeroZeroRadialGap_tsum_eq_zeroSubtype_tsum
         entireFunctionNonzeroZeroRadialGapSummand F hF ρ z) =
         ∑' z : EntireFunctionNonzeroZero F,
           entireFunctionJensenRadialGapSummand F hF ρ (i z) := by
-      exact congrArg
-        (fun f : EntireFunctionNonzeroZero F → ℝ => ∑' z, f z)
-        hpoint.symm
+      exact tsum_congr (fun z => (hpoint z).symm)
     _ =
         ∑' z : EntireFunctionZero F,
           entireFunctionJensenRadialGapSummand F hF ρ z :=
@@ -498,12 +475,11 @@ theorem entireFunction_originTaylorFactor_nonzeroRadialGap_tsum_eq_quotient
         entireFunctionNonzeroZeroRadialGapSummand F hF ρ z) =
         ∑' z : EntireFunctionNonzeroZero F,
           entireFunctionNonzeroZeroRadialGapSummand G hG ρ (e z) := by
-      exact congrArg
-        (fun f : EntireFunctionNonzeroZero F → ℝ => ∑' z, f z)
-        (funext
+      exact
+        tsum_congr
           (fun z =>
             (entireFunction_originTaylorFactor_nonzeroRadialGapSummand_equiv
-              F G hF hG hfactor ρ z).symm))
+              F G hF hG hfactor ρ z).symm)
     _ =
         ∑' z : EntireFunctionNonzeroZero G,
           entireFunctionNonzeroZeroRadialGapSummand G hG ρ z :=
@@ -521,7 +497,7 @@ theorem entireFunction_originTaylorFactor_nonzeroClosedDiskSummable_of_quotient
       ∀ z : ℂ,
         F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
     {R : ℝ}
-    (hR : 1 ≤ R)
+    (_hR : 1 ≤ R)
     (hGsum :
       Summable
         (fun z : EntireFunctionZero G =>
@@ -555,7 +531,7 @@ theorem entireFunction_originTaylorFactor_radialGapSum_eq_quotient_radialGapSum
       ∀ z : ℂ,
         F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
     {ρ : ℝ}
-    (hρ : 1 ≤ ρ)
+    (_hρ : 1 ≤ ρ)
     (hGsum :
       Summable
         (fun z : EntireFunctionZero G =>

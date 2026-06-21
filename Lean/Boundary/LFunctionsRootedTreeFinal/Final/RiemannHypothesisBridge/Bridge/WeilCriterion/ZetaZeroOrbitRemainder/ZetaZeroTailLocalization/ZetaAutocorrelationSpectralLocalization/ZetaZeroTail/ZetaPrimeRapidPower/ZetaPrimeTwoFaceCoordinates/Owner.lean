@@ -71,59 +71,61 @@ theorem completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_owner
         Complex.re
           (∑' ι : ZetaPrimePowerIndex,
             -zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f) := by
-    exact
-      (Complex.tsum_re
+    let u : ZetaPrimePowerIndex → ℂ :=
+      fun ι : ZetaPrimePowerIndex =>
+        -zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f
+    have hzero : ∀ ι : ZetaPrimePowerIndex, Complex.im (u ι) = 0 := by
+      intro ι
+      calc
+        Complex.im (u ι) =
+            Complex.im (-zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f) := by
+          rfl
+        _ = -Complex.im (zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f) := by
+          exact Complex.neg_im (zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f)
+        _ = -0 := by
+          exact congrArg Neg.neg
+            (zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate_im_eq_zero ι f)
+        _ = 0 := by
+          exact neg_zero
+    have hpoint :
+        u = fun ι : ZetaPrimePowerIndex => (Complex.re (u ι) : ℂ) :=
+      funext
         (fun ι : ZetaPrimePowerIndex =>
-          -zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f)).symm
+          complex_eq_ofReal_re_of_im_eq_zero (u ι) (hzero ι))
+    have htsum_u :
+        (∑' ι : ZetaPrimePowerIndex, u ι) =
+          ∑' ι : ZetaPrimePowerIndex, (Complex.re (u ι) : ℂ) := by
+      exact congrArg
+        (fun v : ZetaPrimePowerIndex → ℂ =>
+          ∑' ι : ZetaPrimePowerIndex, v ι)
+        hpoint
+    have hofReal_tsum :
+        ((∑' ι : ZetaPrimePowerIndex, Complex.re (u ι) : ℝ) : ℂ) =
+          ∑' ι : ZetaPrimePowerIndex, (Complex.re (u ι) : ℂ) :=
+      Complex.ofReal_tsum
+        (fun ι : ZetaPrimePowerIndex => Complex.re (u ι))
+    have hre_u :
+        (∑' ι : ZetaPrimePowerIndex, Complex.re (u ι)) =
+          Complex.re (∑' ι : ZetaPrimePowerIndex, u ι) := by
+      calc
+        (∑' ι : ZetaPrimePowerIndex, Complex.re (u ι)) =
+            Complex.re
+              (((∑' ι : ZetaPrimePowerIndex, Complex.re (u ι) : ℝ) : ℂ)) := by
+          exact (Complex.ofReal_re
+            (∑' ι : ZetaPrimePowerIndex, Complex.re (u ι))).symm
+        _ =
+            Complex.re
+              (∑' ι : ZetaPrimePowerIndex, (Complex.re (u ι) : ℂ)) := by
+          exact congrArg Complex.re hofReal_tsum
+        _ = Complex.re (∑' ι : ZetaPrimePowerIndex, u ι) := by
+          exact congrArg Complex.re htsum_u.symm
+    exact hre_u
   have hboundary :
       (∑' ι : ZetaPrimePowerIndex,
           -zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f) =
         zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f :=
     zetaCompletedPrimeTwoFaceGNSBoundaryCoordinate_tsum_eq_boundaryCoefficient f
   exact hcoordinate.trans (hre.trans (congrArg Complex.re hboundary))
-
-/-- The finite time-side prime windows converge to the completed time-side prime
-distribution. -/
-theorem finitePrimeTimeDistributionWindow_tendsto_completed
-    (f : ZetaAdmissibleFunction) :
-    Tendsto
-      (fun N : ℕ =>
-        finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f))
-      atTop
-      (𝓝 (completedPrimeTimeDistributionPairing (convolutionAutocorrelation f))) := by
-  have hcoordinate :
-      ∀ ι : ZetaPrimePowerIndex,
-        zetaPrimeOffDiagonalCoordinate ι f =
-          completedPrimeTimeDistributionCoordinate ι
-            (convolutionAutocorrelation f) := by
-    intro ι
-    exact
-      (completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_physical
-        ι f).symm
-  have htime :
-      Summable (fun ι : ZetaPrimePowerIndex =>
-        completedPrimeTimeDistributionCoordinate ι
-          (convolutionAutocorrelation f)) :=
-    (summable_zetaPrimeOffDiagonalCoordinate f).congr hcoordinate
-  change
-    Tendsto
-      (fun N : ℕ =>
-        ∑ ι in ZetaPrimePowerIndex.window N,
-          completedPrimeTimeDistributionCoordinate ι
-            (convolutionAutocorrelation f))
-      atTop
-      (𝓝 (completedPrimeTimeDistributionPairing (convolutionAutocorrelation f)))
-  exact ZetaPrimePowerIndex.tendsto_sum_window_tsum_of_summable
-    (fun ι : ZetaPrimePowerIndex =>
-      completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f))
-    htime
-    (fun ι hι => by
-      have hphysical :
-          completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f) =
-            zetaPrimeOffDiagonalCoordinate ι f :=
-        completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_physical ι f
-      exact hphysical.trans
-        (zetaPrimeOffDiagonalCoordinate_eq_zero_of_not_isGenuine ι f hι))
 
 end ZetaAdmissibleFunction
 

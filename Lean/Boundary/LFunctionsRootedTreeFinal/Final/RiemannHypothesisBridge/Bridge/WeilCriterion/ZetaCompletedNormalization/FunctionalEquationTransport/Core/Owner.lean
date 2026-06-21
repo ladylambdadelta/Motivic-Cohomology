@@ -1,4 +1,5 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.EulerContinuationTransport.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.PoleClearedBoundarySetup.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.Owner
 
 /-!
 # Completed functional-equation core algebra
@@ -14,6 +15,29 @@ noncomputable section
 
 open scoped Filter Topology
 local notation "π" => Real.pi
+
+/-- The removable completed-functional-equation multiplier for the pole-cleared
+zeta factor on the left half-plane.
+
+Away from the removable point `z = 0`, this is the raw multiplier obtained by
+writing the completed functional equation as a relation between `(z - 1)ζ(z)`
+and `((1 - z) - 1)ζ(1 - z)`.  At `z = 0` the value is the removable value
+forced by the pole-cleared identity. -/
+noncomputable def poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+    (z : ℂ) : ℂ :=
+  if z = 0 then
+    poleClearedRiemannZeta 0
+  else if Complex.Gammaℝ z = 0 then
+    poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z)
+  else
+    ((z - 1) / (((1 : ℂ) - z) - 1)) *
+      (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)
+
+/-- Closed left half-unit ball used for the removable origin analysis of the
+completed-functional-equation multiplier. -/
+def poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet :
+    Set ℂ :=
+  {z : ℂ | z.re ≤ 0 ∧ ‖z‖ ≤ 1}
 
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_denominator_data
     {z : ℂ}
@@ -31,11 +55,10 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_denominator
         z.re = (1 : ℂ).re := by
           exact congrArg Complex.re hz_one
         _ = 1 := Complex.one_re
+    have hone_le_zre : (1 : ℝ) ≤ z.re := by
+      exact le_of_eq hz_re_one.symm
     have hone_le_zero : (1 : ℝ) ≤ 0 :=
-      Eq.subst
-        (motive := fun x : ℝ => x ≤ 0)
-        hz_re_one.symm
-        hz_re
+      le_trans hone_le_zre hz_re
     not_lt_of_ge hone_le_zero zero_lt_one
   have hone_sub_ne_zero : ((1 : ℂ) - z) ≠ 0 :=
     fun hsub =>
@@ -43,16 +66,49 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_denominator
       have hsub_add : ((1 : ℂ) - z) + z = 0 + z :=
         congrArg (fun w : ℂ => w + z) hsub
       have hone_eq_z : (1 : ℂ) = z := by
-        exact Eq.trans (sub_add_cancel (1 : ℂ) z).symm hsub_add
+        have h1 : (1 : ℂ) = ((1 : ℂ) - z) + z :=
+          (sub_add_cancel (1 : ℂ) z).symm
+        calc
+          (1 : ℂ) = ((1 : ℂ) - z) + z := h1
+          _ = 0 + z := hsub_add
+          _ = z := zero_add z
       exact hone_eq_z.symm
     hz_ne_one hz_one
   have hone_sub_minus_one_ne_zero : (((1 : ℂ) - z) - 1) ≠ 0 :=
     fun hden =>
     have hneg_zero : -z = 0 := by
-      calc
-        -z = ((1 : ℂ) - z) - 1 := by
-          exact (sub_sub_cancel (1 : ℂ) z).symm
-        _ = 0 := hden
+      have htmp : -z = ((1 : ℂ) - z) - 1 := by
+        calc
+          -z = (0 : ℂ) - z := by
+            exact (zero_sub z).symm
+          _ = ((1 : ℂ) - 1) - z := by
+            exact congrArg (fun x : ℂ => x - z) (sub_self (1 : ℂ)).symm
+          _ = ((1 : ℂ) - z) - 1 := by
+            calc
+              ((1 : ℂ) - 1) - z = (1 : ℂ) + ((-1) + (-z)) := by
+                calc
+                    ((1 : ℂ) - 1) - z = ((1 : ℂ) + (-1)) - z := by
+                      exact congrArg (fun x : ℂ => x - z) (sub_eq_add_neg (1 : ℂ) 1)
+                    _ = (1 : ℂ) + ((-1) + (-z)) := by
+                      calc
+                        ((1 : ℂ) + (-1)) - z =
+                            ((1 : ℂ) + (-1)) + (-z) := by
+                          exact sub_eq_add_neg ((1 : ℂ) + (-1)) z
+                        _ = (1 : ℂ) + ((-1) + (-z)) := by
+                          exact add_assoc (1 : ℂ) (-1) (-z)
+              _ = (1 : ℂ) + ((-z) + (-1)) := by
+                exact congrArg (fun x : ℂ => (1 : ℂ) + x) (add_comm (-1) (-z))
+              _ = ((1 : ℂ) + (-z)) + (-1) := by
+                exact (add_assoc 1 (-z) (-1)).symm
+              _ = ((1 : ℂ) - z) - 1 := by
+                calc
+                  ((1 : ℂ) + (-z)) + (-1) =
+                      ((1 : ℂ) - z) + (-1) := by
+                    exact congrArg (fun x : ℂ => x + (-1))
+                      (sub_eq_add_neg (1 : ℂ) z).symm
+                  _ = ((1 : ℂ) - z) - 1 := by
+                    exact (sub_eq_add_neg ((1 : ℂ) - z) 1).symm
+      exact Eq.trans htmp hden
     have hz_zero : z = 0 := by
       exact neg_eq_zero.mp hneg_zero
     hz_ne_zero hz_zero
@@ -127,7 +183,7 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_algebra
   calc
     ((a / b) * d) * (b * c) =
         (((a / b) * d) * b) * c := by
-      exact mul_assoc ((a / b) * d) b c
+      exact (mul_assoc ((a / b) * d) b c).symm
     _ = ((a / b) * (d * b)) * c := by
       exact congrArg (fun x : ℂ => x * c) (mul_assoc (a / b) d b)
     _ = ((a / b) * (b * d)) * c := by
@@ -137,7 +193,7 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_algebra
     _ = (a * d) * c := by
       exact congrArg (fun x : ℂ => (x * d) * c) (div_mul_cancel₀ a hb)
     _ = a * (d * c) := by
-      exact (mul_assoc a d c).symm
+      exact mul_assoc a d c
     _ = a * (c * d) := by
       exact congrArg (fun x : ℂ => a * x) (mul_comm d c)
 
@@ -160,19 +216,46 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_identit
         z.re = (1 : ℂ).re := by
           exact congrArg Complex.re hz_one
         _ = 1 := Complex.one_re
+    have hone_le_zre : (1 : ℝ) ≤ z.re := by
+      exact le_of_eq hz_re_one.symm
     have hone_le_zero : (1 : ℝ) ≤ 0 :=
-      Eq.subst
-        (motive := fun x : ℝ => x ≤ 0)
-        hz_re_one.symm
-        hz_re
+      le_trans hone_le_zre hz_re
     not_lt_of_ge hone_le_zero zero_lt_one
   have hw_minus_one_ne_zero : (((1 : ℂ) - z) - 1) ≠ 0 :=
     fun hden =>
     have hneg_zero : -z = 0 := by
-      calc
-        -z = ((1 : ℂ) - z) - 1 := by
-          exact (sub_sub_cancel (1 : ℂ) z).symm
-        _ = 0 := hden
+      have htmp : -z = ((1 : ℂ) - z) - 1 := by
+        calc
+          -z = (0 : ℂ) - z := by
+            exact (zero_sub z).symm
+          _ = ((1 : ℂ) - 1) - z := by
+            exact congrArg (fun x : ℂ => x - z) (sub_self (1 : ℂ)).symm
+          _ = ((1 : ℂ) - z) - 1 := by
+            calc
+              ((1 : ℂ) - 1) - z = (1 : ℂ) + ((-1) + (-z)) := by
+                calc
+                    ((1 : ℂ) - 1) - z = ((1 : ℂ) + (-1)) - z := by
+                      exact congrArg (fun x : ℂ => x - z) (sub_eq_add_neg (1 : ℂ) 1)
+                    _ = (1 : ℂ) + ((-1) + (-z)) := by
+                      calc
+                        ((1 : ℂ) + (-1)) - z =
+                            ((1 : ℂ) + (-1)) + (-z) := by
+                          exact sub_eq_add_neg ((1 : ℂ) + (-1)) z
+                        _ = (1 : ℂ) + ((-1) + (-z)) := by
+                          exact add_assoc (1 : ℂ) (-1) (-z)
+              _ = (1 : ℂ) + ((-z) + (-1)) := by
+                exact congrArg (fun x : ℂ => (1 : ℂ) + x) (add_comm (-1) (-z))
+              _ = ((1 : ℂ) + (-z)) + (-1) := by
+                exact (add_assoc 1 (-z) (-1)).symm
+              _ = ((1 : ℂ) - z) - 1 := by
+                calc
+                  ((1 : ℂ) + (-z)) + (-1) =
+                      ((1 : ℂ) - z) + (-1) := by
+                    exact congrArg (fun x : ℂ => x + (-1))
+                      (sub_eq_add_neg (1 : ℂ) z).symm
+                  _ = ((1 : ℂ) - z) - 1 := by
+                    exact (sub_eq_add_neg ((1 : ℂ) - z) 1).symm
+      exact Eq.trans htmp hden
     hz_ne_zero (neg_eq_zero.mp hneg_zero)
   have hw_ne_one : ((1 : ℂ) - z) ≠ 1 :=
     fun hw_one =>

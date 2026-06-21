@@ -196,10 +196,6 @@ theorem boundaryLineOnePointRealParam_dirichlet_series_abel_boundaryValue_eq_rie
       boundaryLineOnePointRealParam_dirichlet_series_abel_tendsto_riemannZeta
         t ht,
       rfl⟩
-
-/-- The Abel-damped finite cutoff prefix. -/
-def abelBoundary_logarithmicPhase_dampedPrefix
-
 end
 
 end LFunctions

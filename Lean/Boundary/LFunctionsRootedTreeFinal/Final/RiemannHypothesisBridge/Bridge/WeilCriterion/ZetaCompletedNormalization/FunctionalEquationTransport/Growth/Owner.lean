@@ -1,3 +1,4 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.FiniteOrderAlgebra.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.FunctionalEquationTransport.Analysis.Owner
 
 /-!
@@ -16,7 +17,29 @@ noncomputable section
 open scoped Filter Topology
 local notation "π" => Real.pi
 
-normalization is included. -/
+/-- Product of two equal exponential envelopes collapses by the exponential
+addition formula. -/
+theorem finiteOrderGrowthProductEnvelope_exp_collapse
+    (A B C P : ℝ) :
+    (A * Real.exp (C * P)) * (B * Real.exp (C * P)) =
+      A * B * Real.exp ((2 * C) * P) := by
+  calc
+    (A * Real.exp (C * P)) * (B * Real.exp (C * P)) =
+        (A * B) * (Real.exp (C * P) * Real.exp (C * P)) := by
+      exact real_mul_pair_reassociate A B (Real.exp (C * P)) (Real.exp (C * P))
+    _ = (A * B) * Real.exp ((C * P) + (C * P)) := by
+      exact congrArg (fun y : ℝ => (A * B) * y) (Real.exp_add (C * P) (C * P)).symm
+    _ = (A * B) * Real.exp ((C + C) * P) := by
+      exact congrArg (fun y : ℝ => (A * B) * Real.exp y)
+        (add_mul C C P).symm
+    _ = (A * B) * Real.exp ((2 * C) * P) := by
+      exact congrArg (fun y : ℝ => (A * B) * Real.exp (y * P))
+        (two_mul C).symm
+    _ = A * B * Real.exp ((2 * C) * P) := by
+      exact Eq.refl _
+
+/-- The elementary pole-clearing rational factor has finite-order growth on
+the closed left half-plane away from the removable origin. -/
 theorem leftHalfPlane_completedFunctionalEquation_poleClearing_ratio_growth_bound :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -30,10 +53,28 @@ theorem leftHalfPlane_completedFunctionalEquation_poleClearing_ratio_growth_boun
   refine ⟨2, 1, 1, zero_lt_two, zero_lt_one, ?_⟩
   intro z _hz_re hz_ne_zero hz_norm_ge_one
   have hz_norm_pos : 0 < ‖z‖ :=
-    lt_of_le_of_ne (norm_nonneg z) (fun hnorm_zero =>
-      hz_ne_zero (norm_eq_zero.mp hnorm_zero))
+    lt_of_le_of_ne (norm_nonneg z)
+      (fun hnorm_zero : (0 : ℝ) = ‖z‖ =>
+        hz_ne_zero (norm_eq_zero.mp hnorm_zero.symm))
   have hden_eq : (((1 : ℂ) - z) - 1) = -z := by
-    exact sub_sub_cancel (1 : ℂ) z
+    calc
+      (((1 : ℂ) - z) - 1) = (((1 : ℂ) - z) + (-1 : ℂ)) := by
+        exact sub_eq_add_neg ((1 : ℂ) - z) 1
+      _ = (((1 : ℂ) + (-z)) + (-1 : ℂ)) := by
+        exact congrArg (fun w : ℂ => w + (-1 : ℂ))
+          (sub_eq_add_neg (1 : ℂ) z)
+      _ = (1 : ℂ) + ((-z) + (-1 : ℂ)) := by
+        exact add_assoc (1 : ℂ) (-z) (-1 : ℂ)
+      _ = (1 : ℂ) + ((-1 : ℂ) + (-z)) := by
+        exact congrArg (fun w : ℂ => (1 : ℂ) + w)
+          (add_comm (-z) (-1 : ℂ))
+      _ = ((1 : ℂ) + (-1 : ℂ)) + (-z) := by
+        exact (add_assoc (1 : ℂ) (-1 : ℂ) (-z)).symm
+      _ = 0 + (-z) := by
+        exact congrArg (fun w : ℂ => w + (-z))
+          (add_neg_cancel (1 : ℂ))
+      _ = -z := by
+        exact zero_add (-z)
   have hnum_norm_le : ‖z - 1‖ ≤ ‖z‖ + 1 := by
     calc
       ‖z - 1‖ ≤ ‖z‖ + ‖(1 : ℂ)‖ := norm_sub_le z (1 : ℂ)
@@ -135,81 +176,50 @@ theorem one_sub_leftHalfPlane_ne_negative_odd
     (n : ℕ) :
     (1 : ℂ) - z ≠ -(2 * n + 1) := by
   intro hodd
-  have hz_re_eq : z.re = 2 * (n : ℝ) + 2 := by
+  have hleft_ge : (1 : ℝ) ≤ ((1 : ℂ) - z).re :=
+    one_sub_leftHalfPlane_re_one_le hz_re
+  have hright_re :
+      (-(2 * n + 1 : ℂ)).re = -(2 * (n : ℝ) + 1) := by
+    have hpos_re :
+        ((2 * n + 1 : ℂ).re) = 2 * (n : ℝ) + 1 := by
+      calc
+        ((2 * n + 1 : ℂ).re) =
+            ((2 : ℂ) * (n : ℂ) + (1 : ℂ)).re := rfl
+        _ = ((2 : ℂ) * (n : ℂ)).re + (1 : ℂ).re :=
+            Complex.add_re ((2 : ℂ) * (n : ℂ)) (1 : ℂ)
+        _ = ((2 : ℂ).re * (n : ℂ).re - (2 : ℂ).im * (n : ℂ).im) + 1 := by
+            exact congrArg (fun x : ℝ => x + (1 : ℂ).re)
+              (Complex.mul_re (2 : ℂ) (n : ℂ))
+        _ = (2 * (n : ℝ) - 0 * 0) + 1 := by
+            exact congrArg (fun x : ℝ => x + 1)
+              (congrArg (fun x : ℝ => 2 * (n : ℝ) - 0 * x)
+                (Complex.ofReal_im (n : ℝ))).symm
+        _ = (2 * (n : ℝ) - 0) + 1 := by
+            have h00 : (0 : ℝ) * 0 = 0 := zero_mul 0
+            exact congrArg (fun x : ℝ => (2 * (n : ℝ) - x) + 1) h00
+        _ = 2 * (n : ℝ) + 1 := by
+            exact congrArg (fun x : ℝ => x + 1) (sub_zero (2 * (n : ℝ)))
+    calc
+      (-(2 * n + 1 : ℂ)).re = -((2 * n + 1 : ℂ).re) :=
+        Complex.neg_re (2 * n + 1 : ℂ)
+      _ = -(2 * (n : ℝ) + 1) := by
+        exact congrArg Neg.neg hpos_re
+  have hright_nonpos : ((1 : ℂ) - z).re ≤ 0 := by
     have hsub_re :
         ((1 : ℂ) - z).re = (-(2 * n + 1 : ℂ)).re :=
       congrArg Complex.re hodd
-    have hleft_re : ((1 : ℂ) - z).re = 1 - z.re := by
-      calc
-        ((1 : ℂ) - z).re = (1 : ℂ).re - z.re := Complex.sub_re (1 : ℂ) z
-        _ = 1 - z.re := by
-          exact congrArg (fun x : ℝ => x - z.re) Complex.one_re
-    have hright_re : (-(2 * n + 1 : ℂ)).re = -(2 * (n : ℝ) + 1) := by
-      calc
-        (-(2 * n + 1 : ℂ)).re = -((2 * n + 1 : ℂ).re) :=
-          Complex.neg_re (2 * n + 1 : ℂ)
-        _ = -(2 * (n : ℝ) + 1) := by
-          exact congrArg Neg.neg (by
-            calc
-              ((2 * n + 1 : ℂ).re) =
-                  ((2 : ℂ) * (n : ℂ) + (1 : ℂ)).re := rfl
-              _ = ((2 : ℂ) * (n : ℂ)).re + (1 : ℂ).re :=
-                  Complex.add_re ((2 : ℂ) * (n : ℂ)) (1 : ℂ)
-              _ = ((2 : ℂ).re * (n : ℂ).re - (2 : ℂ).im * (n : ℂ).im) + 1 := by
-                  exact congrArg (fun x : ℝ => x + (1 : ℂ).re)
-                    (Complex.mul_re (2 : ℂ) (n : ℂ))
-              _ = (2 * (n : ℝ) - 0 * 0) + 1 := by
-                  exact congrArg (fun x : ℝ => x + 1)
-                    (congrArg (fun x : ℝ => 2 * (n : ℝ) - 0 * x)
-                      (Complex.ofReal_im (n : ℝ))).symm
-              _ = 2 * (n : ℝ) + 1 := by
-                  exact congrArg (fun x : ℝ => x + 1) (sub_zero (2 * (n : ℝ)))))
-    have hsub_real : 1 - z.re = -(2 * (n : ℝ) + 1) :=
-      Eq.trans hleft_re.symm (Eq.trans hsub_re hright_re)
-    have hadd : (1 - z.re) + z.re = -(2 * (n : ℝ) + 1) + z.re :=
-      congrArg (fun x : ℝ => x + z.re) hsub_real
-    have hone_eq : 1 = -(2 * (n : ℝ) + 1) + z.re := by
-      exact Eq.trans (sub_add_cancel 1 z.re).symm hadd
-    have hsolve :
-        z.re = 1 + (2 * (n : ℝ) + 1) := by
-      calc
-        z.re = z.re + 0 := (add_zero z.re).symm
-        _ = z.re + ((2 * (n : ℝ) + 1) + -(2 * (n : ℝ) + 1)) := by
-          exact congrArg (fun x : ℝ => z.re + x)
-            (add_neg_cancel (2 * (n : ℝ) + 1)).symm
-        _ = (z.re + -(2 * (n : ℝ) + 1)) + (2 * (n : ℝ) + 1) := by
-          calc
-            z.re + ((2 * (n : ℝ) + 1) + -(2 * (n : ℝ) + 1)) =
-                z.re + (-(2 * (n : ℝ) + 1) + (2 * (n : ℝ) + 1)) := by
-              exact congrArg (fun x : ℝ => z.re + x)
-                (add_comm (2 * (n : ℝ) + 1) (-(2 * (n : ℝ) + 1)))
-            _ = (z.re + -(2 * (n : ℝ) + 1)) + (2 * (n : ℝ) + 1) :=
-              add_assoc z.re (-(2 * (n : ℝ) + 1)) (2 * (n : ℝ) + 1)
-        _ = (-(2 * (n : ℝ) + 1) + z.re) + (2 * (n : ℝ) + 1) := by
-          exact congrArg (fun x : ℝ => x + (2 * (n : ℝ) + 1))
-            (add_comm z.re (-(2 * (n : ℝ) + 1)))
-        _ = 1 + (2 * (n : ℝ) + 1) := by
-          exact congrArg (fun x : ℝ => x + (2 * (n : ℝ) + 1)) hone_eq.symm
-    calc
-      z.re = 1 + (2 * (n : ℝ) + 1) := hsolve
-      _ = 2 * (n : ℝ) + 2 := by
-        calc
-          1 + (2 * (n : ℝ) + 1) = (1 + 1) + 2 * (n : ℝ) := by
-            exact Eq.trans (add_assoc 1 (2 * (n : ℝ)) 1).symm
-              (congrArg (fun x : ℝ => x + 2 * (n : ℝ))
-                (add_comm 1 1))
-          _ = 2 * (n : ℝ) + 2 := by
-            exact add_comm (1 + 1) (2 * (n : ℝ))
-  have hz_re_pos : 0 < z.re := by
-    have htwo_nonneg : 0 ≤ 2 * (n : ℝ) :=
-      mul_nonneg zero_le_two (Nat.cast_nonneg n)
-    have hright_pos : 0 < 2 * (n : ℝ) + 2 :=
-      add_pos_of_nonneg_of_pos htwo_nonneg zero_lt_two
+    have hneg_nonpos : (-(2 * (n : ℝ) + 1)) ≤ 0 := by
+      exact neg_nonpos.mpr
+        (add_nonneg
+          (mul_nonneg zero_le_two (Nat.cast_nonneg n))
+          zero_le_one)
     exact Eq.subst
-      (motive := fun x : ℝ => 0 < x)
-      hz_re_eq.symm
-      hright_pos
-  exact not_lt_of_ge hz_re hz_re_pos
+      (motive := fun r : ℝ => r ≤ 0)
+      (Eq.trans hsub_re hright_re).symm
+      hneg_nonpos
+  have hone_le_zero : (1 : ℝ) ≤ 0 :=
+    le_trans hleft_ge hright_nonpos
+  exact not_lt_of_ge hone_le_zero zero_lt_one
 
 /-- Deligne reflection gives the raw left-half-plane real-Gamma quotient as
 a right-half-plane `Gammaℂ` factor times the elementary cosine factor. -/
@@ -247,7 +257,7 @@ theorem finiteOrder_rightHalfPlane_product_growth_bound
         0 < A ∧
         0 < B ∧
         ∀ z : ℂ,
-          0 ≤ z.re →
+          1 ≤ z.re →
           1 ≤ ‖z‖ →
           ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
     (hg :
@@ -255,14 +265,14 @@ theorem finiteOrder_rightHalfPlane_product_growth_bound
         0 < A ∧
         0 < B ∧
         ∀ z : ℂ,
-          0 ≤ z.re →
+          1 ≤ z.re →
           1 ≤ ‖z‖ →
           ‖g z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m)) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
       ∀ z : ℂ,
-        0 ≤ z.re →
+        1 ≤ z.re →
         1 ≤ ‖z‖ →
         ‖f z * g z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   rcases hf with ⟨Af, Bf, mf, hAf, hBf, hf_bound⟩
@@ -326,16 +336,18 @@ theorem finiteOrder_rightHalfPlane_product_growth_bound
           (Ag * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) =
         Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)) :=
     finiteOrderGrowthProductEnvelope_exp_collapse
-      Af Ag ((Bf + Bg + 1) * H ^ (mf + mg))
-  exact Eq.subst
-    (motive := fun x : ℝ =>
-      x ≤ Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)))
-    hnorm.symm
-    (hproduct.trans_eq hcollapse)
+      Af Ag (Bf + Bg + 1) (H ^ (mf + mg))
+  calc
+    ‖f z * g z‖ = ‖f z‖ * ‖g z‖ := hnorm
+    _ ≤ (Af * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) *
+          (Ag * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) := hproduct
+    _ = Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)) :=
+      hcollapse
 
 /-- Right-half-plane finite-order growth for Deligne's complex Gamma factor
 `Gammaℂ`. -/
-theorem Gammaℂ_rightHalfPlane_finiteOrder_growth_bound :
+theorem Gammaℂ_rightHalfPlane_finiteOrder_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -343,42 +355,128 @@ theorem Gammaℂ_rightHalfPlane_finiteOrder_growth_bound :
         1 ≤ s.re →
         1 ≤ ‖s‖ →
         ‖Complex.Gammaℂ s‖ ≤ A * Real.exp (B * (1 + ‖s‖) ^ m) := by
-  rcases finiteOrder_rightHalfPlane_product_growth_bound
-      Gammaℝ_rightHalfPlane_stirling_growth_bound
-      (by
-        rcases Gammaℝ_rightHalfPlane_stirling_growth_bound with
-          ⟨A, B, m, hA, hB, hbound⟩
-        refine ⟨A, B, m, hA, hB, ?_⟩
-        intro s hs_re _hs_norm
-        have hs_add_re : 0 ≤ (s + 1).re := by
-          have hs_add_re_eq : (s + 1).re = s.re + 1 := by
+  have hGamma0 :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ s : ℂ,
+          1 ≤ s.re →
+          1 ≤ ‖s‖ →
+          ‖Complex.Gammaℝ s‖ ≤ A * Real.exp (B * (1 + ‖s‖) ^ m) := by
+    rcases Gammaℝ_rightHalfPlane_stirling_growth_bound hbranch with
+      ⟨A, B, m, hA, hB, hbound⟩
+    exact
+      ⟨A, B, m, hA, hB,
+        fun s hs_re hs_norm =>
+          hbound s (lt_of_lt_of_le zero_lt_one hs_re) hs_norm⟩
+  have hGamma1 :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ s : ℂ,
+          1 ≤ s.re →
+          1 ≤ ‖s‖ →
+          ‖Complex.Gammaℝ (s + 1)‖ ≤
+            A * Real.exp (B * (1 + ‖s‖) ^ m) := by
+    rcases Gammaℝ_rightHalfPlane_stirling_growth_bound hbranch with
+      ⟨A, B, m, hA, hB, hbound⟩
+    refine ⟨A, B * (2 : ℝ) ^ m, m, hA, ?_, ?_⟩
+    · exact mul_pos hB (pow_pos zero_lt_two m)
+    intro s hs_re _hs_norm
+    let H : ℝ := 1 + ‖s‖
+    have hs_add_re_eq : (s + 1).re = s.re + 1 := by
+      calc
+        (s + 1).re = s.re + (1 : ℂ).re := Complex.add_re s (1 : ℂ)
+        _ = s.re + 1 := by
+          exact congrArg (fun x : ℝ => s.re + x) Complex.one_re
+    have hs_re_nonneg : 0 ≤ s.re :=
+      le_trans zero_le_one hs_re
+    have hs_add_re : 0 < (s + 1).re := by
+      have hs_add_pos : 0 < s.re + 1 :=
+        lt_of_lt_of_le zero_lt_one
+          (calc
+            (1 : ℝ) ≤ s.re + 1 := by
+              exact le_add_of_nonneg_left hs_re_nonneg)
+      calc
+        0 < s.re + 1 := hs_add_pos
+        _ = (s + 1).re := hs_add_re_eq.symm
+    have hs_add_norm : 1 ≤ ‖s + 1‖ := by
+      have hone_le_add : (1 : ℝ) ≤ s.re + 1 := by
+        calc
+          (1 : ℝ) = 0 + 1 := (zero_add 1).symm
+          _ ≤ s.re + 1 := add_le_add_right hs_re_nonneg 1
+      have hs_add_re_one : 1 ≤ (s + 1).re := by
+        calc
+          (1 : ℝ) ≤ s.re + 1 := hone_le_add
+          _ = (s + 1).re := hs_add_re_eq.symm
+      exact one_le_norm_of_one_le_re hs_add_re_one
+    have hraw :
+        ‖Complex.Gammaℝ (s + 1)‖ ≤
+          A * Real.exp (B * (1 + ‖s + 1‖) ^ m) :=
+      hbound (s + 1) hs_add_re hs_add_norm
+    have hs_add_norm_le : ‖s + 1‖ ≤ ‖s‖ + 1 := by
+      calc
+        ‖s + 1‖ ≤ ‖s‖ + ‖(1 : ℂ)‖ := norm_add_le s (1 : ℂ)
+        _ = ‖s‖ + 1 := by
+          exact congrArg (fun x : ℝ => ‖s‖ + x)
+            (norm_one : ‖(1 : ℂ)‖ = (1 : ℝ))
+    have hbase_le : 1 + ‖s + 1‖ ≤ 2 * H := by
+      calc
+        1 + ‖s + 1‖ ≤ 1 + (‖s‖ + 1) := by
+          exact add_le_add_left hs_add_norm_le 1
+        _ = 2 + ‖s‖ := by
+          calc
+            1 + (‖s‖ + 1) = (1 + ‖s‖) + 1 := by
+              exact (add_assoc 1 ‖s‖ 1).symm
+            _ = (‖s‖ + 1) + 1 := by
+              exact congrArg (fun x : ℝ => x + 1) (add_comm 1 ‖s‖)
+            _ = ‖s‖ + (1 + 1) := by
+              exact add_assoc ‖s‖ 1 1
+            _ = (1 + 1) + ‖s‖ := by
+              exact add_comm ‖s‖ (1 + 1)
+            _ = 2 + ‖s‖ := by
+              exact congrArg (fun x : ℝ => x + ‖s‖) one_add_one_eq_two
+        _ ≤ 2 + 2 * ‖s‖ := by
+          have hsingle_le_double : ‖s‖ ≤ 2 * ‖s‖ := by
             calc
-              (s + 1).re = s.re + (1 : ℂ).re := Complex.add_re s (1 : ℂ)
-              _ = s.re + 1 := by
-                exact congrArg (fun x : ℝ => s.re + x) Complex.one_re
-          have hs_add_nonneg : 0 ≤ s.re + 1 :=
-            add_nonneg (le_trans zero_le_one hs_re) zero_le_one
-          exact Eq.subst
-            (motive := fun x : ℝ => 0 ≤ x)
-            hs_add_re_eq.symm
-            hs_add_nonneg
-        have hs_add_norm : 1 ≤ ‖s + 1‖ := by
-          have hs_add_re_one : 1 ≤ (s + 1).re := by
-            have hs_add_re_eq : (s + 1).re = s.re + 1 := by
-              calc
-                (s + 1).re = s.re + (1 : ℂ).re := Complex.add_re s (1 : ℂ)
-                _ = s.re + 1 := by
-                  exact congrArg (fun x : ℝ => s.re + x) Complex.one_re
-            have hone_le_add : (1 : ℝ) ≤ s.re + 1 :=
-              calc
-                (1 : ℝ) = 0 + 1 := (zero_add 1).symm
-                _ ≤ s.re + 1 := add_le_add_right (le_trans zero_le_one hs_re) 1
-            exact Eq.subst
-              (motive := fun x : ℝ => (1 : ℝ) ≤ x)
-              hs_add_re_eq.symm
-              hone_le_add
-          exact one_le_norm_of_one_le_re hs_add_re_one
-        exact hbound (s + 1) hs_add_re hs_add_norm) with
+              ‖s‖ = 1 * ‖s‖ := by
+                exact (one_mul ‖s‖).symm
+              _ ≤ 2 * ‖s‖ :=
+                mul_le_mul_of_nonneg_right one_le_two (norm_nonneg s)
+          exact add_le_add_left hsingle_le_double 2
+        _ = 2 * H := by
+          calc
+            2 + 2 * ‖s‖ = 2 * 1 + 2 * ‖s‖ := by
+              exact congrArg (fun x : ℝ => x + 2 * ‖s‖) (mul_one 2).symm
+            _ = 2 * (1 + ‖s‖) := by
+              exact (mul_add 2 1 ‖s‖).symm
+            _ = 2 * H := rfl
+    have hpow_le : (1 + ‖s + 1‖) ^ m ≤ (2 * H) ^ m :=
+      pow_le_pow_left₀ (le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg (s + 1))))
+        hbase_le m
+    have hmul_pow : (2 * H) ^ m = (2 : ℝ) ^ m * H ^ m :=
+      mul_pow 2 H m
+    have hexponent_le :
+        B * (1 + ‖s + 1‖) ^ m ≤ (B * (2 : ℝ) ^ m) * H ^ m := by
+      have hfirst :
+          B * (1 + ‖s + 1‖) ^ m ≤ B * (2 * H) ^ m :=
+        mul_le_mul_of_nonneg_left hpow_le (le_of_lt hB)
+      have htarget : B * (2 * H) ^ m = (B * (2 : ℝ) ^ m) * H ^ m := by
+        calc
+          B * (2 * H) ^ m = B * ((2 : ℝ) ^ m * H ^ m) := by
+            exact congrArg (fun x : ℝ => B * x) hmul_pow
+          _ = (B * (2 : ℝ) ^ m) * H ^ m := by
+            symm
+            exact mul_assoc B ((2 : ℝ) ^ m) (H ^ m)
+      exact hfirst.trans_eq htarget
+    have henv :
+        A * Real.exp (B * (1 + ‖s + 1‖) ^ m) ≤
+          A * Real.exp ((B * (2 : ℝ) ^ m) * H ^ m) :=
+      mul_le_mul_of_nonneg_left
+        (Real.exp_le_exp.mpr hexponent_le)
+        (le_of_lt hA)
+    exact hraw.trans henv
+  rcases finiteOrder_rightHalfPlane_product_growth_bound hGamma0 hGamma1 with
     ⟨A, B, m, hA, hB, hproduct⟩
   refine ⟨A, B, m, hA, hB, ?_⟩
   intro s hs_re hs_norm
@@ -390,10 +488,11 @@ theorem Gammaℂ_rightHalfPlane_finiteOrder_growth_bound :
       ‖Complex.Gammaℂ s‖ =
         ‖Complex.Gammaℝ s * Complex.Gammaℝ (s + 1)‖ :=
     congrArg norm hmul.symm
-  exact Eq.subst
-    (motive := fun x : ℝ => x ≤ A * Real.exp (B * (1 + ‖s‖) ^ m))
-    hnorm_eq.symm
-    (hproduct s (le_trans zero_le_one hs_re) hs_norm)
+  calc
+    ‖Complex.Gammaℂ s‖ =
+        ‖Complex.Gammaℝ s * Complex.Gammaℝ (s + 1)‖ := hnorm_eq
+    _ ≤ A * Real.exp (B * (1 + ‖s‖) ^ m) :=
+      hproduct s hs_re hs_norm
 
 /-- The norm of a complex exponential is bounded by the exponential of the
 norm of its exponent. -/
@@ -432,7 +531,7 @@ theorem complex_cos_pi_mul_div_two_exp_argument_norm_bound
   have harg_core :
       ‖(π * s / 2) * Complex.I‖ ≤ (Real.pi + 1) * (1 + ‖s‖) := by
     have hI_norm : ‖Complex.I‖ = (1 : ℝ) :=
-      norm_I
+      Complex.norm_I
     have hmulI :
         ‖(π * s / 2) * Complex.I‖ = ‖π * s / 2‖ := by
       calc
@@ -447,7 +546,7 @@ theorem complex_cos_pi_mul_div_two_exp_argument_norm_bound
           ‖π * s / 2‖ = ‖π * s‖ / ‖(2 : ℂ)‖ :=
         norm_div (π * s) (2 : ℂ)
       have htwo_norm : ‖(2 : ℂ)‖ = (2 : ℝ) :=
-        norm_ofNat 2
+        Complex.norm_ofNat 2
       have hdiv_two : ‖π * s‖ / ‖(2 : ℂ)‖ = ‖π * s‖ / 2 := by
         exact congrArg (fun x : ℝ => ‖π * s‖ / x) htwo_norm
       have hle_self : ‖π * s‖ / 2 ≤ ‖π * s‖ := by
@@ -455,7 +554,7 @@ theorem complex_cos_pi_mul_div_two_exp_argument_norm_bound
           norm_nonneg (π * s)
         calc
           ‖π * s‖ / 2 ≤ ‖π * s‖ / 1 :=
-            div_le_div_of_nonneg_left hnorm_nonneg zero_lt_one.le one_le_two
+            div_le_div_of_nonneg_left hnorm_nonneg zero_lt_one one_le_two
           _ = ‖π * s‖ := div_one ‖π * s‖
       exact Eq.subst
         (motive := fun x : ℝ => x ≤ ‖π * s‖)
@@ -466,7 +565,8 @@ theorem complex_cos_pi_mul_div_two_exp_argument_norm_bound
       have hnorm_mul : ‖π * s‖ = ‖(π : ℂ)‖ * ‖s‖ :=
         norm_mul (π : ℂ) s
       have hpi_norm : ‖(π : ℂ)‖ = Real.pi :=
-        Complex.norm_ofReal_of_nonneg hpi_nonneg
+        Eq.trans (RCLike.norm_ofReal (K := ℂ) Real.pi)
+          (abs_of_nonneg hpi_nonneg)
       calc
         ‖π * s‖ = ‖(π : ℂ)‖ * ‖s‖ := hnorm_mul
         _ = Real.pi * ‖s‖ := by
@@ -496,7 +596,7 @@ theorem complex_cos_pi_mul_div_two_exp_argument_norm_bound
       ‖-(π * s / 2) * Complex.I‖ = ‖(π * s / 2) * Complex.I‖ := by
     calc
       ‖-(π * s / 2) * Complex.I‖ = ‖-((π * s / 2) * Complex.I)‖ := by
-        exact congrArg norm (neg_mul (π * s / 2) Complex.I).symm
+        exact congrArg norm (neg_mul (π * s / 2) Complex.I)
       _ = ‖(π * s / 2) * Complex.I‖ := norm_neg ((π * s / 2) * Complex.I)
   exact ⟨harg_core,
     Eq.subst
@@ -594,7 +694,7 @@ theorem complex_cos_pi_mul_div_two_finiteOrder_growth_bound_of_exp_terms
         exact congrArg
           (fun x : ℝ =>
             ‖Complex.exp (u * Complex.I) + Complex.exp (-u * Complex.I)‖ / x)
-          (show ‖(2 : ℂ)‖ = (2 : ℝ) from norm_ofNat 2)
+          (show ‖(2 : ℂ)‖ = (2 : ℝ) from Complex.norm_ofNat 2)
       _ ≤ (‖Complex.exp (u * Complex.I)‖ +
             ‖Complex.exp (-u * Complex.I)‖) / 2 :=
         div_le_div_of_nonneg_right
@@ -678,7 +778,11 @@ theorem finiteOrder_reflectedLeftHalfPlane_affine_norm_absorption
       1 + ‖s‖ ≤ 1 + (1 + ‖z‖) :=
         add_le_add_left hs_norm_le 1
       _ = 2 + ‖z‖ := by
-        exact add_assoc 1 1 ‖z‖
+        calc
+          1 + (1 + ‖z‖) = (1 + 1) + ‖z‖ := by
+            exact (add_assoc 1 1 ‖z‖).symm
+          _ = 2 + ‖z‖ := by
+            exact congrArg (fun x : ℝ => x + ‖z‖) one_add_one_eq_two
       _ ≤ 2 + (2 * ‖z‖) := by
         exact add_le_add_left
           (by
@@ -690,7 +794,8 @@ theorem finiteOrder_reflectedLeftHalfPlane_affine_norm_absorption
         calc
           2 + 2 * ‖z‖ = 2 * 1 + 2 * ‖z‖ := by
             exact congrArg (fun x : ℝ => x + 2 * ‖z‖) (mul_one 2).symm
-          _ = 2 * (1 + ‖z‖) := (mul_add 2 1 ‖z‖).symm
+          _ = 2 * (1 + ‖z‖) := by
+            exact (mul_add 2 1 ‖z‖).symm
           _ = 2 * H := rfl
   have hleft_nonneg : 0 ≤ 1 + ‖s‖ :=
     le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg s))
@@ -704,10 +809,12 @@ theorem finiteOrder_reflectedLeftHalfPlane_affine_norm_absorption
     hpow_le.trans_eq hmul_pow
   have hexponent_le :
       B * (1 + ‖s‖) ^ m ≤ (B * (2 : ℝ) ^ m) * H ^ m := by
-    calc
-      B * (1 + ‖s‖) ^ m ≤ B * ((2 : ℝ) ^ m * H ^ m) :=
-        mul_le_mul_of_nonneg_left hpow_target (le_of_lt hB)
-      _ = (B * (2 : ℝ) ^ m) * H ^ m := mul_assoc B ((2 : ℝ) ^ m) (H ^ m)
+      calc
+        B * (1 + ‖s‖) ^ m ≤ B * ((2 : ℝ) ^ m * H ^ m) :=
+          mul_le_mul_of_nonneg_left hpow_target (le_of_lt hB)
+      _ = (B * (2 : ℝ) ^ m) * H ^ m := by
+        symm
+        exact mul_assoc B ((2 : ℝ) ^ m) (H ^ m)
   have henv :
       A * Real.exp (B * (1 + ‖s‖) ^ m) ≤
         A * Real.exp ((B * (2 : ℝ) ^ m) * H ^ m) :=
@@ -747,7 +854,8 @@ The Gamma part is obtained from `Gammaℝ s * Gammaℝ (s+1) = Gammaℂ s` and t
 right-half-plane Stirling envelope already proved above.  The cosine part is
 the elementary exponential estimate following from the definitions of complex
 trigonometric functions. -/
-theorem Gammaℂ_cos_rightHalfPlane_finiteOrder_growth_bound :
+theorem Gammaℂ_cos_rightHalfPlane_finiteOrder_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -758,7 +866,7 @@ theorem Gammaℂ_cos_rightHalfPlane_finiteOrder_growth_bound :
           A * Real.exp (B * (1 + ‖s‖) ^ m) := by
   exact
     finiteOrder_rightHalfPlane_product_growth_bound
-      Gammaℂ_rightHalfPlane_finiteOrder_growth_bound
+      (Gammaℂ_rightHalfPlane_finiteOrder_growth_bound hbranch)
       complex_cos_pi_mul_div_two_rightHalfPlane_finiteOrder_growth_bound
 
 /-- Reflected-left-half-plane finite-order form of the right-half-plane
@@ -767,7 +875,8 @@ theorem Gammaℂ_cos_rightHalfPlane_finiteOrder_growth_bound :
 This is the affine-envelope transport `s = 1 - z` applied to
 `Gammaℂ_cos_rightHalfPlane_finiteOrder_growth_bound`; the only estimates are
 `1 ≤ Re (1-z)` and the elementary norm comparison for `1 - z`. -/
-theorem Gammaℂ_cos_reflectedLeftHalfPlane_finiteOrder_growth_bound :
+theorem Gammaℂ_cos_reflectedLeftHalfPlane_finiteOrder_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -779,7 +888,7 @@ theorem Gammaℂ_cos_reflectedLeftHalfPlane_finiteOrder_growth_bound :
   exact
     finiteOrder_reflectedLeftHalfPlane_growth_bound_of_rightHalfPlane
       (fun s : ℂ => Complex.Gammaℂ s * Complex.cos (π * s / 2))
-      Gammaℂ_cos_rightHalfPlane_finiteOrder_growth_bound
+      (Gammaℂ_cos_rightHalfPlane_finiteOrder_growth_bound hbranch)
 
 /-- Deligne reflection/recurrence algebra for the left-half-plane `Gammaℝ`
 ratio, isolated from the analytic Stirling estimates.
@@ -790,7 +899,8 @@ The proof uses mathlib's `Gamma/Deligne.lean` identities
 `inv_Gammaℝ_one_sub`, and `inv_Gammaℝ_two_sub` to rewrite the quotient into
 right-half-plane Gamma factors and elementary trigonometric/exponential
 factors. -/
-theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_Deligne_transport_growth_bound :
+theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_Deligne_transport_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -800,7 +910,7 @@ theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_Delig
         1 ≤ ‖z‖ →
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  rcases Gammaℂ_cos_reflectedLeftHalfPlane_finiteOrder_growth_bound with
+  rcases Gammaℂ_cos_reflectedLeftHalfPlane_finiteOrder_growth_bound hbranch with
     ⟨A, B, m, hA, hB, hbound⟩
   refine ⟨A, B, m, hA, hB, ?_⟩
   intro z hz_re _hz_ne_zero _hz_norm
@@ -822,7 +932,8 @@ This branch is name transport from the Deligne reflection/recurrence algebra
 plus sectorial/vertical Stirling growth.  The owner proof separates the
 sectorial Gamma estimate from the Deligne Gamma bookkeeping; cf. DLMF §5.11
 and Titchmarsh, Ch. 2. -/
-theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_stirling_growth_bound :
+theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_stirling_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -833,14 +944,15 @@ theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_stirl
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact
-    Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_Deligne_transport_growth_bound
+    Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_Deligne_transport_growth_bound hbranch
 
 /-- Large-radius left-half-plane Gamma-ratio Stirling growth for the
 completed-functional-equation multiplier.
 
 This is the raw Gamma-ratio branch used away from the removable zero face.  The
 finite-radius branch belongs to the pole-cleared completed multiplier above. -/
-theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_global_stirling_growth_bound :
+theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_global_stirling_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -851,7 +963,7 @@ theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_global_stirling
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact
-    Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_stirling_growth_bound
+    Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_stirling_growth_bound hbranch
 
 /-- Large-radius left-half-plane Gamma-ratio Stirling growth for the
 completed-functional-equation multiplier.
@@ -859,7 +971,8 @@ completed-functional-equation multiplier.
 This public owner theorem is only name transport from the sectorial/strip
 Stirling estimate for the raw completed real-Gamma ratio away from the
 removable zero face. -/
-theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_stirling_growth_bound :
+theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_stirling_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -870,7 +983,7 @@ theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_stirling_growth
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact
-    Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_global_stirling_growth_bound
+    Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_global_stirling_growth_bound hbranch
 
 /-- Removable continuous extension of the raw completed-functional-equation
 multiplier on the closed unit ball.
@@ -914,6 +1027,65 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_nearOri
     Gammaℝ_ne_zero_of_ne_zero_norm_le_one hz_ne_zero hz_norm
   unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
   exact Eq.trans (if_neg hz_ne_zero) (if_neg hGamma_ne)
+
+/-- A continuous removable extension on the closed left half-unit set gives a
+uniform punctured bound for the raw branch. -/
+theorem compact_nearOriginLeftSet_punctured_norm_bound_of_removable_extension
+    (f F : ℂ → ℂ)
+    (hF_cont :
+      ContinuousOn F
+        poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet)
+    (hF_eq :
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        ‖z‖ ≤ 1 →
+        F z = f z) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        ‖z‖ ≤ 1 →
+        ‖f z‖ ≤ C := by
+  let S : Set ℂ :=
+    poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet
+  have hS_closed : IsClosed S := by
+    have hleft : IsClosed {z : ℂ | z.re ≤ 0} :=
+      isClosed_le Complex.continuous_re continuous_const
+    have hball : IsClosed {z : ℂ | ‖z‖ ≤ (1 : ℝ)} :=
+      isClosed_le continuous_norm continuous_const
+    exact hleft.inter hball
+  have hS_subset_closedBall : S ⊆ Metric.closedBall (0 : ℂ) 1 := by
+    intro z hz
+    have hdist : dist z 0 = ‖z‖ := by
+      calc
+        dist z 0 = ‖z - 0‖ := dist_eq_norm z 0
+        _ = ‖z‖ := by
+          exact congrArg norm (sub_zero z)
+    exact Eq.subst
+      (motive := fun r : ℝ => r ≤ (1 : ℝ))
+      hdist.symm
+      hz.2
+  have hS_compact : IsCompact S :=
+    IsCompact.of_isClosed_subset
+      (isCompact_closedBall (0 : ℂ) 1)
+      hS_closed
+      hS_subset_closedBall
+  rcases hS_compact.exists_bound_of_continuousOn hF_cont with
+    ⟨C₀, hC₀⟩
+  refine ⟨max (C₀ + 1) 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _), ?_⟩
+  intro z hz_re hz_ne_zero hz_norm
+  have hz_mem : z ∈ S := ⟨hz_re, hz_norm⟩
+  have hF_bound : ‖F z‖ ≤ C₀ :=
+    hC₀ z hz_mem
+  have hf_norm_eq : ‖f z‖ = ‖F z‖ := by
+    exact congrArg norm (hF_eq z hz_re hz_ne_zero hz_norm).symm
+  calc
+    ‖f z‖ = ‖F z‖ := hf_norm_eq
+    _ ≤ C₀ := hF_bound
+    _ ≤ C₀ + 1 := le_add_of_nonneg_right zero_le_one
+    _ ≤ max (C₀ + 1) 1 := le_max_left _ _
 
 /-- Compact/removable local boundedness of the raw completed-functional-equation
 multiplier near the origin.
@@ -1145,21 +1317,16 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHal
       have hraw :
           (Ar * Real.exp ((Br + Bg + 1) * H ^ mfar)) *
               (Ag * Real.exp ((Br + Bg + 1) * H ^ mfar)) =
-            Ar * Ag * Real.exp (2 * ((Br + Bg + 1) * H ^ mfar)) :=
+            Ar * Ag * Real.exp ((2 * (Br + Bg + 1)) * H ^ mfar) :=
         finiteOrderGrowthProductEnvelope_exp_collapse
-          Ar Ag ((Br + Bg + 1) * H ^ mfar)
+          Ar Ag (Br + Bg + 1) (H ^ mfar)
       have hexponent :
-          2 * ((Br + Bg + 1) * H ^ mfar) =
-            Bfar * H ^ mfar := by
-        calc
-          2 * ((Br + Bg + 1) * H ^ mfar) =
-              (2 * (Br + Bg + 1)) * H ^ mfar := by
-            exact (mul_assoc 2 (Br + Bg + 1) (H ^ mfar)).symm
-          _ = Bfar * H ^ mfar := rfl
+          (2 * (Br + Bg + 1)) * H ^ mfar =
+            Bfar * H ^ mfar := rfl
       calc
         (Ar * Real.exp ((Br + Bg + 1) * H ^ mfar)) *
             (Ag * Real.exp ((Br + Bg + 1) * H ^ mfar)) =
-          Ar * Ag * Real.exp (2 * ((Br + Bg + 1) * H ^ mfar)) := hraw
+          Ar * Ag * Real.exp ((2 * (Br + Bg + 1)) * H ^ mfar) := hraw
         _ = Afar * Real.exp (Bfar * H ^ mfar) := by
           exact congrArg (fun x : ℝ => Afar * Real.exp x) hexponent
     have hfar :
@@ -1180,7 +1347,8 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHal
 /-- Raw multiplier finite-order growth on the left half-plane away from the
 removable point.  This is the exact place where Gamma/Stirling and the
 elementary pole-clearing factor enter. -/
-theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_finiteOrder_growth :
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_finiteOrder_growth
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -1194,9 +1362,252 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHal
     poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_finiteOrder_growth_of_ratio_and_gamma
       poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_nearOrigin_growth
       leftHalfPlane_completedFunctionalEquation_poleClearing_ratio_growth_bound
-      Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_stirling_growth_bound
+      (Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_stirling_growth_bound hbranch)
 
-theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_finiteOrder_growth :
+/-- Away from the removable origin, the completed-functional-equation multiplier
+agrees with the raw Gamma-ratio branch on the closed left half-plane.  At
+Gamma-zero faces, both sides are zero: the raw branch divides by zero in Lean,
+and the quotient branch vanishes by the trivial-zero cancellation theorem. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_eq_raw_leftHalfPlane_of_ne_zero
+    {z : ℂ}
+    (hz_re : z.re ≤ 0)
+    (hz_ne_zero : z ≠ 0) :
+    poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+      ((z - 1) / (((1 : ℂ) - z) - 1)) *
+        (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
+  by_cases hGamma_zero : Complex.Gammaℝ z = 0
+  · have hpole_zero : poleClearedRiemannZeta z = 0 :=
+      poleClearedRiemannZeta_trivialZero_of_gammaZero_leftHalfPlane
+        hz_re hz_ne_zero hGamma_zero
+    have hgamma_div_zero :
+        Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z = 0 := by
+      calc
+        Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z =
+            Complex.Gammaℝ ((1 : ℂ) - z) / 0 := by
+          exact congrArg
+            (fun w : ℂ => Complex.Gammaℝ ((1 : ℂ) - z) / w)
+            hGamma_zero
+        _ = 0 := by
+          exact div_zero (Complex.Gammaℝ ((1 : ℂ) - z))
+    have hquot_eq_raw :
+        poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z) =
+          ((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
+      calc
+        poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z) =
+            0 / poleClearedRiemannZeta ((1 : ℂ) - z) := by
+          exact congrArg
+            (fun w : ℂ => w / poleClearedRiemannZeta ((1 : ℂ) - z))
+            hpole_zero
+        _ = 0 := by
+          exact zero_div (poleClearedRiemannZeta ((1 : ℂ) - z))
+        _ = ((z - 1) / (((1 : ℂ) - z) - 1)) * 0 := by
+          exact (mul_zero ((z - 1) / (((1 : ℂ) - z) - 1))).symm
+        _ = ((z - 1) / (((1 : ℂ) - z) - 1)) *
+              (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
+          exact congrArg
+            (fun w : ℂ => ((z - 1) / (((1 : ℂ) - z) - 1)) * w)
+            hgamma_div_zero.symm
+    unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+    exact Eq.trans (if_neg hz_ne_zero) (Eq.trans (if_pos hGamma_zero) hquot_eq_raw)
+  · unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+    exact Eq.trans (if_neg hz_ne_zero) (if_neg hGamma_zero)
+
+/-- The completed-functional-equation multiplier transports the pole-cleared
+zeta factor to the reflected point on the closed left half-plane. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity
+    {z : ℂ}
+    (hz_re : z.re ≤ 0) :
+    poleClearedRiemannZeta z =
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
+        poleClearedRiemannZeta ((1 : ℂ) - z) := by
+  by_cases hz_zero : z = 0
+  · have hzero :
+        poleClearedRiemannZeta (0 : ℂ) =
+          poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0 *
+            poleClearedRiemannZeta ((1 : ℂ) - (0 : ℂ)) := by
+      have hM_zero :
+          poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0 =
+            poleClearedRiemannZeta 0 := by
+        unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+        exact if_pos rfl
+      have hreflected_one :
+          poleClearedRiemannZeta ((1 : ℂ) - (0 : ℂ)) = 1 := by
+        have hsub : (1 : ℂ) - (0 : ℂ) = 1 :=
+          sub_zero (1 : ℂ)
+        exact Eq.subst
+          (motive := fun w : ℂ => poleClearedRiemannZeta w = 1)
+          hsub.symm
+          poleClearedRiemannZeta_one
+      calc
+        poleClearedRiemannZeta (0 : ℂ) =
+            poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0 := hM_zero.symm
+        _ = poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0 * 1 := by
+          exact (mul_one (poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0)).symm
+        _ =
+            poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0 *
+              poleClearedRiemannZeta ((1 : ℂ) - (0 : ℂ)) := by
+          exact congrArg
+            (fun w : ℂ =>
+              poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0 * w)
+            hreflected_one.symm
+    exact Eq.subst
+      (motive := fun w : ℂ =>
+        poleClearedRiemannZeta w =
+          poleClearedRiemannZeta_completedFunctionalEquationMultiplier w *
+            poleClearedRiemannZeta ((1 : ℂ) - w))
+      hz_zero.symm
+      hzero
+  · by_cases hGamma_zero : Complex.Gammaℝ z = 0
+    · have hpole_zero : poleClearedRiemannZeta z = 0 :=
+        poleClearedRiemannZeta_trivialZero_of_gammaZero_leftHalfPlane
+          hz_re hz_zero hGamma_zero
+      have hM_zero :
+          poleClearedRiemannZeta_completedFunctionalEquationMultiplier z = 0 := by
+        unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+        calc
+          (if z = 0 then poleClearedRiemannZeta 0
+            else if Complex.Gammaℝ z = 0 then
+              poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z)
+            else
+              ((z - 1) / (((1 : ℂ) - z) - 1)) *
+                (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) =
+              poleClearedRiemannZeta z /
+                poleClearedRiemannZeta ((1 : ℂ) - z) := by
+            exact Eq.trans (if_neg hz_zero) (if_pos hGamma_zero)
+          _ =
+              0 / poleClearedRiemannZeta ((1 : ℂ) - z) := by
+            exact congrArg
+              (fun w : ℂ => w / poleClearedRiemannZeta ((1 : ℂ) - z))
+              hpole_zero
+          _ = 0 := by
+            exact zero_div (poleClearedRiemannZeta ((1 : ℂ) - z))
+      calc
+        poleClearedRiemannZeta z = 0 := hpole_zero
+        _ =
+            0 * poleClearedRiemannZeta ((1 : ℂ) - z) := by
+          exact (zero_mul (poleClearedRiemannZeta ((1 : ℂ) - z))).symm
+        _ =
+            poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
+              poleClearedRiemannZeta ((1 : ℂ) - z) := by
+          exact congrArg
+            (fun w : ℂ => w * poleClearedRiemannZeta ((1 : ℂ) - z))
+            hM_zero.symm
+    · have hM_raw :
+          poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+            ((z - 1) / (((1 : ℂ) - z) - 1)) *
+              (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
+        unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+        exact Eq.trans (if_neg hz_zero) (if_neg hGamma_zero)
+      have hquotient :
+          riemannZeta z =
+            riemannZeta ((1 : ℂ) - z) *
+              Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z :=
+        riemannZeta_completedFunctionalEquation_quotient_of_gamma_ne_zero
+          hz_re hz_zero hGamma_zero
+      have hraw :
+          poleClearedRiemannZeta z =
+            (((z - 1) / (((1 : ℂ) - z) - 1)) *
+                (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+              poleClearedRiemannZeta ((1 : ℂ) - z) :=
+        poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_identity_of_zeta_quotient
+          hz_re hz_zero hquotient
+      calc
+        poleClearedRiemannZeta z =
+            (((z - 1) / (((1 : ℂ) - z) - 1)) *
+                (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+              poleClearedRiemannZeta ((1 : ℂ) - z) := hraw
+        _ =
+            poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
+              poleClearedRiemannZeta ((1 : ℂ) - z) := by
+          exact congrArg
+            (fun w : ℂ => w * poleClearedRiemannZeta ((1 : ℂ) - z))
+            hM_raw.symm
+
+/-- Finite-order growth for the completed multiplier follows from the raw
+branch growth plus the removable value at the origin. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_growth_of_raw_and_removable
+    (hraw :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re ≤ 0 →
+          z ≠ 0 →
+          ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+              (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  rcases hraw with ⟨A, B, m, hA, hB, hraw_bound⟩
+  let A' : ℝ :=
+    A + ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0‖ + 1
+  refine ⟨A', B, m, ?_, hB, ?_⟩
+  · exact add_pos_of_pos_of_nonneg
+      (add_pos_of_pos_of_nonneg hA
+        (norm_nonneg (poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0)))
+      zero_le_one
+  intro z hz_re
+  have hA_nonneg : 0 ≤ A := le_of_lt hA
+  have hA_le_A' : A ≤ A' := by
+    calc
+      A ≤ A + ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0‖ :=
+        le_add_of_nonneg_right
+          (norm_nonneg (poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0))
+      _ ≤ A' := le_add_of_nonneg_right zero_le_one
+  by_cases hz_zero : z = 0
+  · have hvalue_le_A' :
+        ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ ≤ A' := by
+      calc
+        ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ =
+            ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0‖ := by
+          exact congrArg
+            (fun w : ℂ => ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier w‖)
+            hz_zero
+        _ ≤ A + ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0‖ := by
+          exact le_add_of_nonneg_left hA_nonneg
+        _ ≤ A' := le_add_of_nonneg_right zero_le_one
+    have hexp_ge_one :
+        (1 : ℝ) ≤ Real.exp (B * (1 + ‖z‖) ^ m) := by
+      have hbase_nonneg : 0 ≤ 1 + ‖z‖ :=
+        le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))
+      have hexponent_nonneg : 0 ≤ B * (1 + ‖z‖) ^ m :=
+        mul_nonneg (le_of_lt hB) (pow_nonneg hbase_nonneg m)
+      exact le_trans (le_of_eq Real.exp_zero.symm)
+        (Real.exp_le_exp.mpr hexponent_nonneg)
+    exact hvalue_le_A'.trans
+      (le_mul_of_one_le_right
+        (le_trans (norm_nonneg _) hvalue_le_A')
+        hexp_ge_one)
+  · have hraw_eq :
+        poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+          ((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) :=
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_eq_raw_leftHalfPlane_of_ne_zero
+        hz_re hz_zero
+    have hraw_z :
+        ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) :=
+      hraw_bound z hz_re hz_zero
+    have henlarge :
+        A * Real.exp (B * (1 + ‖z‖) ^ m) ≤
+          A' * Real.exp (B * (1 + ‖z‖) ^ m) :=
+      mul_le_mul_of_nonneg_right hA_le_A'
+        (le_of_lt (Real.exp_pos (B * (1 + ‖z‖) ^ m)))
+    exact Eq.subst
+      (motive := fun w : ℂ =>
+        ‖w‖ ≤ A' * Real.exp (B * (1 + ‖z‖) ^ m))
+      hraw_eq.symm
+      (hraw_z.trans henlarge)
+
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_finiteOrder_growth
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -1206,7 +1617,8 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPla
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact
     poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_growth_of_raw_and_removable
-      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_finiteOrder_growth
+      (poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_finiteOrder_growth
+        hbranch)
 
 /-- Finite-order envelopes are stable under the affine reflection `z ↦ 1 - z`
 on the left half-plane.
@@ -1237,18 +1649,7 @@ theorem finiteOrder_leftHalfPlane_reflection_growth_bound
   let w : ℂ := (1 : ℂ) - z
   let H : ℝ := 1 + ‖z‖
   have hw_re : 1 ≤ w.re := by
-    have hone_re : (1 : ℂ).re = (1 : ℝ) :=
-      Complex.one_re
-    have hraw : w.re = 1 - z.re := by
-      calc
-        w.re = (1 : ℂ).re - z.re := by
-          exact Complex.sub_re (1 : ℂ) z
-        _ = 1 - z.re := by
-          exact congrArg (fun x : ℝ => x - z.re) hone_re
-    have hle : 1 ≤ 1 - z.re := by
-      exact le_sub_iff_add_le'.mpr
-        (le_trans (by exact le_add_of_nonneg_right hz_left) (le_refl (1 : ℝ)))
-    exact Eq.subst (motive := fun x : ℝ => 1 ≤ x) hraw.symm hle
+    exact one_sub_leftHalfPlane_re_one_le hz_left
   have hraw_bound :
       ‖f w‖ ≤ A * Real.exp (B * (1 + ‖w‖) ^ m) :=
     hbound w hw_re
@@ -1302,7 +1703,8 @@ theorem finiteOrder_leftHalfPlane_reflection_growth_bound
         B * (2 * H) ^ m = B * ((2 : ℝ) ^ m * H ^ m) := by
           exact congrArg (fun x : ℝ => B * x) hmul_pow
         _ = (B * (2 : ℝ) ^ m) * H ^ m := by
-          exact (mul_assoc B ((2 : ℝ) ^ m) (H ^ m)).symm
+          symm
+          exact mul_assoc B ((2 : ℝ) ^ m) (H ^ m)
     exact hfirst.trans_eq htarget
   have hexp_le :
       Real.exp (B * (1 + ‖w‖) ^ m) ≤
@@ -1410,7 +1812,7 @@ theorem finiteOrder_leftHalfPlane_growth_of_multiplier_reflection_identity
           (Af * Real.exp ((BM + Bf + 1) * H ^ (mM + mf))) =
         AM * Af * Real.exp ((2 * (BM + Bf + 1)) * H ^ (mM + mf)) := by
     exact finiteOrderGrowthProductEnvelope_exp_collapse
-      AM Af ((BM + Bf + 1) * H ^ (mM + mf))
+      AM Af (BM + Bf + 1) (H ^ (mM + mf))
   exact Eq.subst
     (motive := fun x : ℝ =>
       x ≤ AM * Af * Real.exp ((2 * (BM + Bf + 1)) * H ^ (mM + mf)))
@@ -1423,7 +1825,8 @@ This is the functional-equation side of the standard finite-order theorem:
 transport the right half-plane Euler-Maclaurin/Dirichlet-series control across
 the completed functional equation and use the exposed Gamma/Stirling owner
 estimates; cf. Titchmarsh, Ch. 2 and Edwards, Ch. 1. -/
-theorem poleClearedRiemannZeta_leftHalfPlane_completedFunctionalEquation_transport_identity :
+theorem poleClearedRiemannZeta_leftHalfPlane_completedFunctionalEquation_transport_identity
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ M : ℂ → ℂ,
       (∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
         0 < A ∧
@@ -1437,7 +1840,8 @@ theorem poleClearedRiemannZeta_leftHalfPlane_completedFunctionalEquation_transpo
           M z * poleClearedRiemannZeta ((1 : ℂ) - z) := by
   refine
     ⟨poleClearedRiemannZeta_completedFunctionalEquationMultiplier,
-      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_finiteOrder_growth,
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_finiteOrder_growth
+        hbranch,
       ?_⟩
   intro z hz
   exact poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity hz
@@ -1486,9 +1890,15 @@ theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_of_completedFunc
       hidentity
 
 theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_completedFunctionalEquation_and_GammaStirling
-    (hpartialLeft : BoundaryLineOneAbelPartialMajorant)
-    (htailBoundary : PoleClearedOneTwoStripBoundedTailBoundary)
-    (hcompactBoundary : PoleClearedOneTwoStripCompactBoundaryBound) :
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hright :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ w : ℂ,
+          1 ≤ w.re →
+          ‖poleClearedRiemannZeta w‖ ≤
+            A * Real.exp (B * (1 + ‖w‖) ^ m)) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -1498,18 +1908,24 @@ theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_completedFu
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact
     poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_of_completedFunctionalEquation_transport
-      poleClearedRiemannZeta_leftHalfPlane_completedFunctionalEquation_transport_identity
-      (poleClearedRiemannZeta_reflectedRightHalfPlane_finiteOrder_growth_from_EulerMaclaurin
-        hpartialLeft htailBoundary hcompactBoundary)
+      (poleClearedRiemannZeta_leftHalfPlane_completedFunctionalEquation_transport_identity
+        hbranch)
+      hright
 
 /-- Left half-plane finite-order growth for the pole-cleared zeta factor.
 
 This is only name transport from the completed functional equation plus the
 Gamma/Stirling owner estimates. -/
 theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_functionalEquation
-    (hpartialLeft : BoundaryLineOneAbelPartialMajorant)
-    (htailBoundary : PoleClearedOneTwoStripBoundedTailBoundary)
-    (hcompactBoundary : PoleClearedOneTwoStripCompactBoundaryBound) :
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hright :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ w : ℂ,
+          1 ≤ w.re →
+          ‖poleClearedRiemannZeta w‖ ≤
+            A * Real.exp (B * (1 + ‖w‖) ^ m)) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -1519,17 +1935,7 @@ theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_functionalE
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact
     poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_completedFunctionalEquation_and_GammaStirling
-      hpartialLeft htailBoundary hcompactBoundary
-
-/-- Compact core of the central strip for the pole-cleared zeta factor.
-
-This is the finite-height local boundedness part: continuity of the removable
-pole-cleared normalization on the compact rectangle `0 ≤ Re z ≤ 2`,
-`|Im z| ≤ 1`, converted to a degree-zero finite-order envelope. -/
-
-end
-end LFunctions
-end Boundary
+      hbranch hright
 
 end
 

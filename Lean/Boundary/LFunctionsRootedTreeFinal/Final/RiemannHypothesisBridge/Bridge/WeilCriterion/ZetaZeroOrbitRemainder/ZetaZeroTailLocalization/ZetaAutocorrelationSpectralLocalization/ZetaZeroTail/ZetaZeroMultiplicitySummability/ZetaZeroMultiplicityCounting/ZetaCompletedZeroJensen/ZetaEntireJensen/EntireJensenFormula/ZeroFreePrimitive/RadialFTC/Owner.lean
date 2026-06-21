@@ -379,7 +379,7 @@ theorem complex_centerSegmentIntegral_endpointDerivativeIntegrand_intervalIntegr
         IntervalIntegrable
           (fun t : ℝ =>
             complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
-          volume
+          MeasureTheory.volume
           (0 : ℝ)
           1 := by
   intro z hz
@@ -423,7 +423,7 @@ theorem complex_centerSegmentIntegral_radialFTC_integral_eq_endpoint_sub_base
       IntervalIntegrable
         (fun t : ℝ =>
           complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
-        volume
+        MeasureTheory.volume
         (0 : ℝ)
         1 :=
     complex_centerSegmentIntegral_endpointDerivativeIntegrand_intervalIntegrable
@@ -798,7 +798,7 @@ with differentiation of the segment integral. -/
 theorem complex_starConvexClosedBall_radialPrimitive_isPrimitive_on_starConvex
     (φ : ℂ → ℂ)
     {ρ : ℝ}
-    (hρ : 0 ≤ ρ)
+    (_hρ : 0 ≤ ρ)
     (hstar :
       StarConvex ℝ (0 : ℂ) (Metric.closedBall (0 : ℂ) ρ))
     (hφ : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ φ z) :

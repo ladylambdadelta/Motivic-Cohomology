@@ -389,7 +389,7 @@ theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedPairin
             Complex.re
               (completedPrimeContourRealizedSpectralCoordinate ι
                 (convolutionAutocorrelation f))) :=
-      hsum_complex.re
+      (RCLike.reCLM : ℂ →L[ℝ] ℝ).summable hsum_complex
     exact hmap.congr
       (fun ι : ZetaPrimePowerIndex =>
         (completedPrimeContourRealizedTimeDistributionCoordinate_eq_spectralCoordinate_re
@@ -437,13 +437,7 @@ theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedPairin
         ∑' ι : ZetaPrimePowerIndex,
           completedPrimeContourRealizedTimeDistributionCoordinate ι
             (convolutionAutocorrelation f) := by
-    exact Complex.re_tsum
-      (fun ι : ZetaPrimePowerIndex =>
-        -((ι.weight : ℂ) *
-          (zetaCompletedSpectralLaplaceTransform
-              (convolutionAutocorrelation f) ι.center +
-            star (zetaCompletedSpectralLaplaceTransform
-              (convolutionAutocorrelation f) ι.center))))
+    exact Complex.re_tsum hsum_complex
   exact Eq.subst
     (motive := fun u : ℕ → ℝ =>
       Tendsto u atTop
@@ -546,13 +540,34 @@ height schedule, and downstream prime tomography consumes this record instead of
 extracting a function from countable avoidance. -/
 structure CompletedPrimeContourTransportScheduledFamily where
   height_schedule : ExplicitFormulaCofinalHeightSchedule completedPrimeContourTransportFamily
+  horizontal_excisedStrip :
+    CompletedZetaZeroExcisedStrip
+      (min completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      (max completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+  horizontal_top_mem :
+    ∀ (T x : ℝ),
+      x ∈ Set.uIcc completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c) →
+        zetaCompletedExplicitFormulaTopPath
+            (completedPrimeContourTransportFamily.rectangle T) x ∈
+          horizontal_excisedStrip.carrier
+  horizontal_bottom_mem :
+    ∀ (T x : ℝ),
+      x ∈ Set.uIcc completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c) →
+        zetaCompletedExplicitFormulaBottomPath
+            (completedPrimeContourTransportFamily.rectangle T) x ∈
+          horizontal_excisedStrip.carrier
+  horizontal_decay_order : ℕ
   primeDistributionReconstruction :
     ∀ f : ZetaAdmissibleFunction,
       CompletedFiniteWindowPrimeDistributionReconstruction f
 
 /-- Scheduled contour data construct the completed finite-window prime distribution
 reconstruction datum consumed by the distribution-transport owner theorem. -/
-theorem completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily
+def completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily
     (S : CompletedPrimeContourTransportScheduledFamily)
     (f : ZetaAdmissibleFunction) :
     CompletedFiniteWindowPrimeDistributionReconstruction f :=
@@ -688,7 +703,27 @@ theorem finitePrimeHorizontalResidueShadow_tendsto_zero_of_package
     (f : ZetaAdmissibleFunction)
     (h : ExplicitFormulaFamilyAnalyticPackage
       (convolutionAutocorrelation f)
-      completedPrimeContourTransportFamily) :
+      completedPrimeContourTransportFamily)
+    (E : CompletedZetaZeroExcisedStrip
+      (min completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      (max completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c)))
+    (hTopMem :
+      ∀ (T x : ℝ),
+        x ∈ Set.uIcc completedPrimeContourTransportFamily.c
+            (1 - completedPrimeContourTransportFamily.c) →
+          zetaCompletedExplicitFormulaTopPath
+              (completedPrimeContourTransportFamily.rectangle T) x ∈
+            E.carrier)
+    (hBottomMem :
+      ∀ (T x : ℝ),
+        x ∈ Set.uIcc completedPrimeContourTransportFamily.c
+            (1 - completedPrimeContourTransportFamily.c) →
+          zetaCompletedExplicitFormulaBottomPath
+              (completedPrimeContourTransportFamily.rectangle T) x ∈
+            E.carrier)
+    (M : ℕ) :
     Tendsto
       (fun N : ℕ => finitePrimeHorizontalResidueShadow N f)
       atTop
@@ -703,22 +738,25 @@ theorem finitePrimeHorizontalResidueShadow_tendsto_zero_of_package
         atTop
         (𝓝 0) := by
     exact
-      (explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero
-        (convolutionAutocorrelation f)
-        completedPrimeContourTransportFamily
-        h
-        1).comp tendsto_natCast_atTop_atTop
+        (explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero
+          (convolutionAutocorrelation f)
+          completedPrimeContourTransportFamily
+          h
+          E
+          hTopMem
+          hBottomMem
+          M).comp tendsto_natCast_atTop_atTop
   have hre :
       Tendsto
         (fun N : ℕ =>
           Complex.re
             (explicitFormulaFamilyHorizontalResidueWindowError
-              (convolutionAutocorrelation f)
-              completedPrimeContourTransportFamily
-              (N : ℝ)))
+                (convolutionAutocorrelation f)
+                completedPrimeContourTransportFamily
+                (N : ℝ)))
         atTop
         (𝓝 (Complex.re 0)) :=
-    hcomplex.re
+    (RCLike.continuous_re.tendsto (0 : ℂ)).comp hcomplex
   have hzero : Complex.re (0 : ℂ) = (0 : ℝ) :=
     Complex.zero_re
   have hshadow :
@@ -762,6 +800,10 @@ theorem finitePrimeHorizontalResidueShadow_tendsto_zero_ownerTailEstimate
     finitePrimeHorizontalResidueShadow_tendsto_zero_of_package
       f
       (completedPrimeContourTransportFamilyAnalyticPackage S f)
+      S.horizontal_excisedStrip
+      S.horizontal_top_mem
+      S.horizontal_bottom_mem
+      S.horizontal_decay_order
 
 /-- The finite coordinate-remainder window converges to the horizontal residue shadow.
 

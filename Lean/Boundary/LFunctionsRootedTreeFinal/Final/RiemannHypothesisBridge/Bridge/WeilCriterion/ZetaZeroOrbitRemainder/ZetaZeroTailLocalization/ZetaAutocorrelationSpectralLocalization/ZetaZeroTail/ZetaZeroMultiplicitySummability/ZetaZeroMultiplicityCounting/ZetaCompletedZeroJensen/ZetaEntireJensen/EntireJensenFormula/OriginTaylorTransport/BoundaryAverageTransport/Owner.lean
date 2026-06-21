@@ -248,7 +248,7 @@ factorization, while the separated power contributes `m log ρ`. -/
 theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_from_entireQuotient
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (_hnontrivial : ∃ z : ℂ, F z ≠ 0)
     (G : ℂ → ℂ)
     (hG_entire : ∀ z : ℂ, AnalyticAt ℂ G z)
     (hG_ne : G 0 ≠ 0)

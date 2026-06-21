@@ -69,8 +69,12 @@ theorem logarithmicPhase_complexExponent_ne_zero_of_one_le_norm
     neg_eq_zero.mp hneg_t_zero
   have ht_real_zero : t = 0 :=
     Complex.ofReal_eq_zero.mp ht_complex_zero
-  have hnorm_zero : ‖t‖ = 0 :=
+  have hnorm_zero_raw : ‖t‖ = ‖(0 : ℝ)‖ :=
     congrArg (fun x : ℝ => ‖x‖) ht_real_zero
+  have hnorm_zero_target : ‖(0 : ℝ)‖ = 0 :=
+    norm_zero
+  have hnorm_zero : ‖t‖ = 0 :=
+    hnorm_zero_raw.trans hnorm_zero_target
   have hone_le_zero : (1 : ℝ) ≤ 0 :=
     Eq.subst
       (motive := fun x : ℝ => (1 : ℝ) ≤ x)
@@ -96,8 +100,14 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_eq_positiveInde
     boundaryLineOnePointRealParam_logarithmicPhasePartialSum t M =
       Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum t M := by
   let term : ℕ → ℂ := fun k => (k : ℂ) ^ (-(t : ℂ) * Complex.I)
-  have hzero : term 0 = 0 :=
+  have hzero_raw : (0 : ℂ) ^ (-(t : ℂ) * Complex.I) = 0 :=
     logarithmicPhase_zero_sample_eq_zero_of_one_le_norm t ht
+  have hzero_cast : ((0 : ℕ) : ℂ) = (0 : ℂ) :=
+    Nat.cast_zero
+  have hterm_zero : term 0 = (0 : ℂ) ^ (-(t : ℂ) * Complex.I) :=
+    congrArg (fun z : ℂ => z ^ (-(t : ℂ) * Complex.I)) hzero_cast
+  have hzero : term 0 = 0 :=
+    hterm_zero.trans hzero_raw
   have hlocal :
       boundaryLineOnePointRealParam_logarithmicPhasePartialSum t M =
         ∑ k ∈ Finset.Icc 0 M, term k :=
@@ -240,9 +250,30 @@ theorem finiteFirstDerivativeTest_exp_sum_norm_le
       40 *
         ((((⌊x⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
           Real.log (2 + ⌊x⌋₊)) := by
-  exact
+  have hraw :
+      ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+        40 *
+          (((⌊x⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+            Real.log (2 + ⌊x⌋₊) :=
     logarithmicPhase_localPartialSum_firstDerivative_bound_40_of_finiteDifference
       hfiniteDifference t ht ⌊x⌋₊
+  have hassoc :
+      40 *
+          (((⌊x⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+            Real.log (2 + ⌊x⌋₊) =
+        40 *
+          ((((⌊x⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+            Real.log (2 + ⌊x⌋₊)) :=
+    mul_assoc
+      (40 : ℝ)
+      (((⌊x⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))
+      (Real.log (2 + ⌊x⌋₊))
+  exact
+    Eq.subst
+      (motive := fun z : ℝ =>
+        ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤ z)
+      hassoc
+      hraw
 
 /-- Monotone-phase first-derivative test for the concrete logarithmic phase. -/
 theorem monotonePhase_firstDerivativeTest_partialSum_bound
@@ -507,8 +538,8 @@ theorem oscillatoryEulerMaclaurin_logarithmicPhase_endpoint_bound
           boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
             ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
         4 := by
-    have htwo_add_two : (2 : ℝ) + 2 = 4 := by
-      rfl
+    have htwo_add_two : (2 : ℝ) + 2 = 4 :=
+      two_add_two_eq_four
     exact (add_le_add hright hleft).trans_eq htwo_add_two
   have hlog_two : (1 : ℝ) ≤ Real.log (2 + ‖t‖) :=
     one_le_log_two_add_norm_of_one_le_norm ht
@@ -516,7 +547,7 @@ theorem oscillatoryEulerMaclaurin_logarithmicPhase_endpoint_bound
     exact add_le_add_right (show (2 : ℝ) ≤ 3 by
       calc
         (2 : ℝ) ≤ 2 + 1 := le_add_of_nonneg_right zero_le_one
-        _ = 3 := rfl) ‖t‖
+        _ = 3 := two_add_one_eq_three) ‖t‖
   have hlog_mono :
       Real.log (2 + ‖t‖) ≤ Real.log (3 + ‖t‖) := by
     have hpos : 0 < 2 + ‖t‖ :=
@@ -530,44 +561,19 @@ theorem oscillatoryEulerMaclaurin_logarithmicPhase_endpoint_bound
       (4 : ℝ) ≤ 2 + 8 * Real.log (3 + ‖t‖) := by
     have htwo_le_eight_log : (2 : ℝ) ≤ 8 * Real.log (3 + ‖t‖) := by
       have htwo_le_eight : (2 : ℝ) ≤ 8 := by
-        calc
-          (2 : ℝ) ≤ 2 + 6 := le_add_of_nonneg_right (show (0 : ℝ) ≤ 6 by
-            calc
-              (0 : ℝ) ≤ 1 := zero_le_one
-              _ ≤ 6 := by
-                calc
-                  (1 : ℝ) ≤ 1 + 5 := le_add_of_nonneg_right (show (0 : ℝ) ≤ 5 by
-                    calc
-                      (0 : ℝ) ≤ 1 := zero_le_one
-                      _ ≤ 5 := by
-                        calc
-                          (1 : ℝ) ≤ 1 + 4 := le_add_of_nonneg_right (show (0 : ℝ) ≤ 4 by
-                            calc
-                              (0 : ℝ) ≤ 1 := zero_le_one
-                              _ ≤ 4 := by
-                                calc
-                                  (1 : ℝ) ≤ 1 + 3 := le_add_of_nonneg_right (show (0 : ℝ) ≤ 3 by
-                                    calc
-                                      (0 : ℝ) ≤ 1 := zero_le_one
-                                      _ ≤ 3 := by
-                                        calc
-                                          (1 : ℝ) ≤ 1 + 2 := le_add_of_nonneg_right (le_of_lt two_pos)
-                                          _ = 3 := rfl)
-                                  _ = 4 := rfl)
-                          _ = 5 := rfl)
-                  _ = 6 := rfl)
-          _ = 8 := rfl
+        have hnat : (2 : ℕ) ≤ 8 :=
+          Nat.succ_le_succ (Nat.succ_le_succ (Nat.zero_le 6))
+        exact
+          show ((2 : ℕ) : ℝ) ≤ ((8 : ℕ) : ℝ) from
+            Nat.cast_le.mpr hnat
       calc
         (2 : ℝ) ≤ 8 * 1 := by
           exact Eq.subst (motive := fun x : ℝ => 2 ≤ x) (mul_one (8 : ℝ)).symm htwo_le_eight
         _ ≤ 8 * Real.log (3 + ‖t‖) :=
           mul_le_mul_of_nonneg_left hlog_one
-            (show (0 : ℝ) ≤ 8 by
-              calc
-                (0 : ℝ) ≤ 1 := zero_le_one
-                _ ≤ 8 := le_trans zero_le_one htwo_le_eight)
+            (Nat.cast_nonneg 8)
     calc
-      (4 : ℝ) = 2 + 2 := rfl
+      (4 : ℝ) = 2 + 2 := (two_add_two_eq_four : (2 : ℝ) + 2 = 4).symm
       _ ≤ 2 + 8 * Real.log (3 + ‖t‖) :=
         add_le_add_left htwo_le_eight_log 2
   exact le_trans hsum_le_four hfour_le

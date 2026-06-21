@@ -17,6 +17,8 @@ noncomputable section
 open scoped Filter Topology
 local notation "π" => Real.pi
 
+/- The Abel-damped finite cutoff prefix. -/
+def abelBoundary_logarithmicPhase_dampedPrefix
     (t σ : ℝ) : ℂ :=
   ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
     (1 : ℂ) /

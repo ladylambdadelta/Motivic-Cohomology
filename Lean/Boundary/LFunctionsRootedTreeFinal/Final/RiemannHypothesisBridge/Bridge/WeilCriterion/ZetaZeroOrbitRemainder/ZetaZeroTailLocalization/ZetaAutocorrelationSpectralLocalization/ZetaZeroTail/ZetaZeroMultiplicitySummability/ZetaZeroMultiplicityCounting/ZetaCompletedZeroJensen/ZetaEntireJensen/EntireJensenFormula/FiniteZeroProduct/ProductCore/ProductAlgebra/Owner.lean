@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.ZetaEntireJensen.EntireJensenFormula.ZeroFreePrimitive.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.ZetaEntireJensen.EntireJensenFormula.BoundaryZeroFactors.Owner
 
 /-!
 # Finite zero-product core
@@ -275,7 +275,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDi
     (hF0 : F 0 ≠ 0)
     (ρ : ℝ)
     (a z : EntireFunctionZero F)
-    (ha :
+    (_ha :
       a ∈
         entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
           F hF hF0 ρ)
@@ -447,7 +447,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
 support vanishes exactly at its indexed zero. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_factor_eq_zero_iff
     (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (_hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (S : Finset (EntireFunctionZero F))
     (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
     (z : EntireFunctionZero F)
@@ -488,7 +488,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorPr
     (S : Finset (EntireFunctionZero F))
     (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
     (a z : EntireFunctionZero F)
-    (ha : a ∈ S)
+    (_ha : a ∈ S)
     (hz : z ∈ S.erase a) :
     (1 - (a : ℂ) / (z : ℂ)) ^
         entireFunctionZeroMultiplicity F hF (z : ℂ) ≠ 0 := by

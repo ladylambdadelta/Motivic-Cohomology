@@ -68,17 +68,17 @@ theorem boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_of_pos
 theorem logarithmicPhaseFunction_positiveReal_derivative_reorder
     (t : ℝ)
     {x : ℝ}
-    (hx : 0 < x) :
+    (_hx : 0 < x) :
     Complex.exp (((-(t : ℂ) * Complex.I) * (Real.log x : ℂ))) *
-        (((-(t : ℂ) * Complex.I)) * (x⁻¹ : ℂ)) =
+        (((-(t : ℂ) * Complex.I)) * ((x⁻¹ : ℝ) : ℂ)) =
       (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
         boundaryLineOnePointRealParam_logarithmicPhaseFunction t x) := by
   let a : ℂ := -(t : ℂ) * Complex.I
   let E : ℂ := Complex.exp (a * (Real.log x : ℂ))
-  have hinv : (x⁻¹ : ℂ) = (x : ℂ)⁻¹ :=
-    Complex.ofReal_inv x
+  have hinv : ((x⁻¹ : ℝ) : ℂ) = (x : ℂ)⁻¹ :=
+    RCLike.ofReal_inv (K := ℂ) x
   have hreplace_inv :
-      E * (a * (x⁻¹ : ℂ)) = E * (a * (x : ℂ)⁻¹) :=
+      E * (a * ((x⁻¹ : ℝ) : ℂ)) = E * (a * (x : ℂ)⁻¹) :=
     congrArg (fun z : ℂ => E * (a * z)) hinv
   have hcomm :
       E * (a * (x : ℂ)⁻¹) = (a * (x : ℂ)⁻¹) * E :=
@@ -89,7 +89,7 @@ theorem logarithmicPhaseFunction_positiveReal_derivative_reorder
       (a * (x : ℂ)⁻¹) * E = (a / (x : ℂ)) * E :=
     congrArg (fun z : ℂ => z * E) hdiv.symm
   calc
-    E * (a * (x⁻¹ : ℂ)) = E * (a * (x : ℂ)⁻¹) :=
+    E * (a * ((x⁻¹ : ℝ) : ℂ)) = E * (a * (x : ℂ)⁻¹) :=
       hreplace_inv
     _ = (a * (x : ℂ)⁻¹) * E :=
       hcomm
@@ -110,22 +110,22 @@ theorem logarithmicPhaseFunction_positiveReal_hasDerivAt
   have hlog_real : HasDerivAt Real.log x⁻¹ x :=
     Real.hasDerivAt_log hx.ne'
   have hlog_complex :
-      HasDerivAt (fun y : ℝ => (Real.log y : ℂ)) (x⁻¹ : ℂ) x :=
+      HasDerivAt (fun y : ℝ => (Real.log y : ℂ)) ((x⁻¹ : ℝ) : ℂ) x :=
     hlog_real.ofReal_comp
   have hphase :
       HasDerivAt
         (fun y : ℝ => a * (Real.log y : ℂ))
-        (a * (x⁻¹ : ℂ))
+        (a * ((x⁻¹ : ℝ) : ℂ))
         x :=
     hlog_complex.const_mul a
   have hexp :
       HasDerivAt
         (fun y : ℝ => Complex.exp (a * (Real.log y : ℂ)))
-        (Complex.exp (a * (Real.log x : ℂ)) * (a * (x⁻¹ : ℂ)))
+        (Complex.exp (a * (Real.log x : ℂ)) * (a * ((x⁻¹ : ℝ) : ℂ)))
         x :=
     hphase.cexp
   have hderiv_reorder :
-      Complex.exp (a * (Real.log x : ℂ)) * (a * (x⁻¹ : ℂ)) =
+      Complex.exp (a * (Real.log x : ℂ)) * (a * ((x⁻¹ : ℝ) : ℂ)) =
         (a / (x : ℂ)) *
           boundaryLineOnePointRealParam_logarithmicPhaseFunction t x := by
     exact logarithmicPhaseFunction_positiveReal_derivative_reorder t hx
@@ -219,7 +219,7 @@ theorem logarithmicPhaseFunction_derivative_numerator_norm
   have hneg : ‖-(t : ℂ)‖ = ‖(t : ℂ)‖ :=
     norm_neg (t : ℂ)
   have hI : ‖Complex.I‖ = 1 :=
-    norm_I
+    RCLike.norm_I_of_ne_zero (K := ℂ) Complex.I_ne_zero
   have hreal : ‖(t : ℂ)‖ = ‖t‖ :=
     RCLike.norm_ofReal t
   calc
@@ -242,7 +242,7 @@ theorem logarithmicPhaseFunction_positiveReal_denominator_norm
   have hreal : ‖(x : ℂ)‖ = ‖x‖ :=
     RCLike.norm_ofReal x
   have hx_norm : ‖x‖ = x :=
-    norm_of_nonneg hx.le
+    Real.norm_of_nonneg hx.le
   exact hreal.trans hx_norm
 
 /-- Division by a positive real denominator after taking complex norms. -/
@@ -377,11 +377,63 @@ theorem complexReciprocalOfReal_hasDerivAt
       (-(1 : ℂ) / (x : ℂ) ^ 2)
       x := by
   have hreal :
-      HasDerivAt (fun y : ℝ => (y : ℂ)) (1 : ℂ) x :=
-    (hasDerivAt_id x).ofReal_comp
-  have hne : (fun y : ℝ => (y : ℂ)) x ≠ 0 :=
-    Complex.ofReal_ne_zero.mpr hx.ne'
-  exact hreal.inv hne
+      HasDerivAt (fun y : ℝ => y⁻¹) (-(x ^ 2)⁻¹) x :=
+    hasDerivAt_inv hx.ne'
+  have hcomplex_real :
+      HasDerivAt
+        (fun y : ℝ => ((y⁻¹ : ℝ) : ℂ))
+        (((-(x ^ 2)⁻¹ : ℝ) : ℂ))
+        x :=
+    hreal.ofReal_comp
+  have hfunction_transport :
+      (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) =ᶠ[𝓝 x]
+        (fun y : ℝ => ((y⁻¹ : ℝ) : ℂ)) :=
+    Filter.Eventually.of_forall
+      (fun y : ℝ => (RCLike.ofReal_inv (K := ℂ) y).symm)
+  have hderiv_value :
+      (((-(x ^ 2)⁻¹ : ℝ) : ℂ)) = -(1 : ℂ) / (x : ℂ) ^ 2 := by
+    have hcast_neg :
+        (((-(x ^ 2)⁻¹ : ℝ) : ℂ)) =
+          -((((x ^ 2)⁻¹ : ℝ) : ℂ)) :=
+      RCLike.ofReal_neg (K := ℂ) ((x ^ 2)⁻¹)
+    have hcast_inv :
+        ((((x ^ 2)⁻¹ : ℝ) : ℂ)) =
+          (((x ^ 2 : ℝ) : ℂ))⁻¹ :=
+      RCLike.ofReal_inv (K := ℂ) (x ^ 2)
+    have hcast_pow :
+        (((x ^ 2 : ℝ) : ℂ)) = (x : ℂ) ^ 2 :=
+      RCLike.ofReal_pow (K := ℂ) x 2
+    have hneg_one_div :
+        -(((x : ℂ) ^ 2)⁻¹) = -(1 : ℂ) / (x : ℂ) ^ 2 := by
+      let z : ℂ := (x : ℂ) ^ 2
+      have hone_mul : (1 : ℂ) * z⁻¹ = z⁻¹ :=
+        one_mul z⁻¹
+      have hneg_mul : (-(1 : ℂ)) * z⁻¹ = -((1 : ℂ) * z⁻¹) :=
+        neg_mul (1 : ℂ) z⁻¹
+      have hdiv : -(1 : ℂ) / z = (-(1 : ℂ)) * z⁻¹ :=
+        div_eq_mul_inv (-(1 : ℂ)) z
+      calc
+        -(((x : ℂ) ^ 2)⁻¹) = -z⁻¹ :=
+          rfl
+        _ = -((1 : ℂ) * z⁻¹) :=
+          congrArg Neg.neg hone_mul.symm
+        _ = (-(1 : ℂ)) * z⁻¹ :=
+          hneg_mul.symm
+        _ = -(1 : ℂ) / z :=
+          hdiv.symm
+    calc
+      (((-(x ^ 2)⁻¹ : ℝ) : ℂ)) =
+          -((((x ^ 2)⁻¹ : ℝ) : ℂ)) :=
+        hcast_neg
+      _ = -((((x ^ 2 : ℝ) : ℂ))⁻¹) :=
+        congrArg Neg.neg hcast_inv
+      _ = -(((x : ℂ) ^ 2)⁻¹) :=
+        congrArg (fun z : ℂ => -z⁻¹) hcast_pow
+      _ = -(1 : ℂ) / (x : ℂ) ^ 2 :=
+        hneg_one_div
+  exact
+    (hcomplex_real.congr_of_eventuallyEq hfunction_transport).congr_deriv
+      hderiv_value
 
 /-- The actual `deriv` of the reciprocal amplitude `x ↦ 1 / x` along the real
 axis. -/
@@ -438,14 +490,47 @@ theorem logarithmicPhase_nat_sample_norm_le_one
     ‖(k : ℂ) ^ (-(t : ℂ) * Complex.I)‖ ≤ 1 := by
   match Decidable.em (k = 0) with
   | Or.inl hk =>
+    let a : ℂ := -(t : ℂ) * Complex.I
     have hterm :
-        (k : ℂ) ^ (-(t : ℂ) * Complex.I) =
-          (0 : ℂ) ^ (-(t : ℂ) * Complex.I) := by
-      exact congrArg (fun n : ℕ => (n : ℂ) ^ (-(t : ℂ) * Complex.I)) hk
-    have hnorm_nonneg :
-        0 ≤ ‖(k : ℂ) ^ (-(t : ℂ) * Complex.I)‖ :=
-      norm_nonneg ((k : ℂ) ^ (-(t : ℂ) * Complex.I))
-    exact le_trans hnorm_nonneg zero_le_one
+        (k : ℂ) ^ a = (0 : ℂ) ^ a := by
+      have hnat_zero :
+          (k : ℂ) ^ a = ((0 : ℕ) : ℂ) ^ a :=
+        congrArg (fun n : ℕ => (n : ℂ) ^ a) hk
+      have hzero_cast : ((0 : ℕ) : ℂ) = (0 : ℂ) :=
+        Nat.cast_zero
+      have hcast_zero : (((0 : ℕ) : ℂ) ^ a) = (0 : ℂ) ^ a :=
+        congrArg (fun z : ℂ => z ^ a) hzero_cast
+      exact hnat_zero.trans hcast_zero
+    match Decidable.em (a = 0) with
+    | Or.inl ha =>
+      have hzero_pow : (0 : ℂ) ^ a = 1 := by
+        exact Eq.subst
+          (motive := fun z : ℂ => (0 : ℂ) ^ z = 1)
+          ha.symm
+          (Complex.cpow_zero (0 : ℂ))
+      have hnorm :
+          ‖(k : ℂ) ^ a‖ = 1 := by
+        calc
+          ‖(k : ℂ) ^ a‖ = ‖(0 : ℂ) ^ a‖ :=
+            congrArg norm hterm
+          _ = ‖(1 : ℂ)‖ :=
+            congrArg norm hzero_pow
+          _ = 1 :=
+            norm_one
+      exact le_of_eq hnorm
+    | Or.inr ha =>
+      have hzero_pow : (0 : ℂ) ^ a = 0 :=
+        Complex.zero_cpow ha
+      have hnorm :
+          ‖(k : ℂ) ^ a‖ = 0 := by
+        calc
+          ‖(k : ℂ) ^ a‖ = ‖(0 : ℂ) ^ a‖ :=
+            congrArg norm hterm
+          _ = ‖(0 : ℂ)‖ :=
+            congrArg norm hzero_pow
+          _ = 0 :=
+            norm_zero
+      exact hnorm.le.trans zero_le_one
   | Or.inr hk =>
     have hk_pos : 0 < k :=
       Nat.pos_of_ne_zero hk

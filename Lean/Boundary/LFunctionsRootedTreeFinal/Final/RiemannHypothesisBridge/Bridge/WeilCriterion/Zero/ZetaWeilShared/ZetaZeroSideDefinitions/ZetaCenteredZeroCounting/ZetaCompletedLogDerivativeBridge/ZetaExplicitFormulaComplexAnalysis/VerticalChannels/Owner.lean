@@ -1,3 +1,4 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.Owner
 
 /-!
@@ -168,12 +169,18 @@ theorem zetaCompletedExplicitFormulaVerticalBoundaryRemainder_tendsto_zero_of_ve
       htarget
       hsub)
 
-/-! ## Vertical-channel public wrappers -/
-
-/-- Public wrapper for prime vertical-channel convergence. -/
-theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution
+/-- Prime vertical-channel convergence from its scheduled transport-remainder estimate. -/
+theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_of_transportRemainder
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily) :
+    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily)
+    (htransport :
+      let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
+            f F.toContourFamily (h.height_schedule.height u))
+        atTop
+        (𝓝 0)) :
     let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
     Tendsto
       (fun u : ℝ =>
@@ -181,14 +188,33 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContributi
           (h.height_schedule.height u))
       atTop
       (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)) := by
+  let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
   exact
-    zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_ownerPrimeVerticalChannel
-      f F hSchedule
+    explicitFormulaScheduledVerticalChannel_tendsto_boundaryContribution_of_tendsto_transportRemainder
+      (zetaCompletedExplicitFormulaPrimeContribution f)
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
+          f F.toContourFamily (h.height_schedule.height u))
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaPrimeVerticalChannel f F.toContourFamily
+          (h.height_schedule.height u))
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaPrimeVerticalChannel_eq_contribution_add_transportRemainder
+          f F.toContourFamily (h.height_schedule.height u))
+      htransport
 
-/-- Public wrapper for archimedean vertical-channel convergence. -/
-theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimedeanContribution
+/-- Archimedean vertical-channel convergence from its scheduled transport-remainder estimate. -/
+theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimedeanContribution_of_transportRemainder
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily) :
+    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily)
+    (htransport :
+      let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaArchimedeanVerticalChannelTransportRemainder
+            f F.toContourFamily (h.height_schedule.height u))
+        atTop
+        (𝓝 0)) :
     let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
     Tendsto
       (fun u : ℝ =>
@@ -196,14 +222,33 @@ theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimede
           (h.height_schedule.height u))
       atTop
       (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f)) := by
+  let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
   exact
-    zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimedeanContribution_ownerArchimedeanVerticalChannel
-      f F hSchedule
+    explicitFormulaScheduledVerticalChannel_tendsto_boundaryContribution_of_tendsto_transportRemainder
+      (zetaCompletedExplicitFormulaArchimedeanContribution f)
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaArchimedeanVerticalChannelTransportRemainder
+          f F.toContourFamily (h.height_schedule.height u))
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaArchimedeanVerticalChannel f F.toContourFamily
+          (h.height_schedule.height u))
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaArchimedeanVerticalChannel_eq_contribution_add_transportRemainder
+          f F.toContourFamily (h.height_schedule.height u))
+      htransport
 
-/-- Public wrapper for correction vertical-channel convergence. -/
-theorem zetaCompletedExplicitFormulaCorrectionVerticalChannel_tendsto_correctionContribution
+/-- Correction vertical-channel convergence from its scheduled transport-remainder estimate. -/
+theorem zetaCompletedExplicitFormulaCorrectionVerticalChannel_tendsto_correctionContribution_of_transportRemainder
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily) :
+    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily)
+    (htransport :
+      let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionVerticalChannelTransportRemainder
+            f F.toContourFamily (h.height_schedule.height u))
+        atTop
+        (𝓝 0)) :
     let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
     Tendsto
       (fun u : ℝ =>
@@ -211,21 +256,57 @@ theorem zetaCompletedExplicitFormulaCorrectionVerticalChannel_tendsto_correction
           (h.height_schedule.height u))
       atTop
       (𝓝 (zetaCompletedExplicitFormulaCorrectionContribution f)) := by
+  let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
   exact
-    zetaCompletedExplicitFormulaCorrectionVerticalChannel_tendsto_correctionContribution_ownerCorrectionVerticalChannel
-      f F hSchedule
+    explicitFormulaScheduledVerticalChannel_tendsto_boundaryContribution_of_tendsto_transportRemainder
+      (zetaCompletedExplicitFormulaCorrectionContribution f)
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionVerticalChannelTransportRemainder
+          f F.toContourFamily (h.height_schedule.height u))
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionVerticalChannel f F.toContourFamily
+          (h.height_schedule.height u))
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionVerticalChannel_eq_contribution_add_transportRemainder
+          f F.toContourFamily (h.height_schedule.height u))
+      htransport
 
-/-- The three named vertical channels converge to the analytic boundary sum. -/
+/-- The three named vertical channels converge to the analytic boundary sum once their
+component transport remainders vanish. -/
 theorem zetaCompletedExplicitFormulaVerticalChannelSum_tendsto_boundarySum
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily) :
+    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily)
+    (hprimeTransport :
+      let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
+            f F.toContourFamily (h.height_schedule.height u))
+        atTop
+        (𝓝 0))
+    (harchTransport :
+      let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaArchimedeanVerticalChannelTransportRemainder
+            f F.toContourFamily (h.height_schedule.height u))
+        atTop
+        (𝓝 0))
+    (hcorrTransport :
+      let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionVerticalChannelTransportRemainder
+            f F.toContourFamily (h.height_schedule.height u))
+        atTop
+        (𝓝 0)) :
     let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaVerticalChannelSum f F.toContourFamily
           (h.height_schedule.height u))
       atTop
-      (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
+          (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
   let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
   have hprime :
       Tendsto
@@ -234,7 +315,8 @@ theorem zetaCompletedExplicitFormulaVerticalChannelSum_tendsto_boundarySum
             (h.height_schedule.height u))
         atTop
         (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)) :=
-    zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution f F hSchedule
+    zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_of_transportRemainder
+      f F hSchedule hprimeTransport
   have harch :
       Tendsto
         (fun u : ℝ =>
@@ -242,8 +324,8 @@ theorem zetaCompletedExplicitFormulaVerticalChannelSum_tendsto_boundarySum
             (h.height_schedule.height u))
         atTop
         (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f)) :=
-    zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimedeanContribution
-      f F hSchedule
+    zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimedeanContribution_of_transportRemainder
+      f F hSchedule harchTransport
   have hcorr :
       Tendsto
         (fun u : ℝ =>
@@ -251,8 +333,8 @@ theorem zetaCompletedExplicitFormulaVerticalChannelSum_tendsto_boundarySum
             (h.height_schedule.height u))
         atTop
         (𝓝 (zetaCompletedExplicitFormulaCorrectionContribution f)) :=
-    zetaCompletedExplicitFormulaCorrectionVerticalChannel_tendsto_correctionContribution
-      f F hSchedule
+    zetaCompletedExplicitFormulaCorrectionVerticalChannel_tendsto_correctionContribution_of_transportRemainder
+      f F hSchedule hcorrTransport
   have hsum :
       Tendsto
         (fun u : ℝ =>
@@ -480,16 +562,16 @@ theorem explicitFormulaVerticalSidePath_mem_boundary_of_mem_image
         Set.Icc (-(F.rectangle T).T) (F.rectangle T).T) :
     z ∈ explicitFormulaContourFamilyBoundary F T := by
   match hz with
-  | ⟨t, _ht, hzt⟩ =>
+  | ⟨t, ht, hzt⟩ =>
       cases side
       · exact Eq.subst
           (motive := fun w : ℂ => w ∈ explicitFormulaContourFamilyBoundary F T)
           hzt
-          (Or.inl ⟨t, rfl⟩)
+          (Or.inl ⟨t, ht, rfl⟩)
       · exact Eq.subst
           (motive := fun w : ℂ => w ∈ explicitFormulaContourFamilyBoundary F T)
           hzt
-          (Or.inr (Or.inl ⟨t, rfl⟩))
+          (Or.inr (Or.inl ⟨t, ht, rfl⟩))
 
 /-- The scheduled vertical side image avoids the pole at `0`. -/
 theorem explicitFormulaVerticalSidePath_image_ne_zero_of_avoidsSingularBoundary
@@ -1591,7 +1673,15 @@ log-derivative into its prime, archimedean, and correction terms: the right-minu
 vertical contour contribution converges to the analytic boundary sum. -/
 theorem zetaCompletedExplicitFormulaVerticalDifference_tendsto_boundarySum_core_ownerVerticalDecomposition
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily) :
+    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily)
+    (hchannels :
+      let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaVerticalChannelSum f F.toContourFamily
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f))) :
     let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
     Tendsto
       (fun u : ℝ =>
@@ -1622,7 +1712,7 @@ theorem zetaCompletedExplicitFormulaVerticalDifference_tendsto_boundarySum_core_
             (h.height_schedule.height u))
         atTop
         (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) :=
-    zetaCompletedExplicitFormulaVerticalChannelSum_tendsto_boundarySum f F hSchedule
+    hchannels
   have hsum :
       Tendsto
         (fun u : ℝ =>
@@ -1695,7 +1785,23 @@ theorem zetaCompletedExplicitFormulaScheduledVerticalRealizations_reconstruct_sa
     (f : ZetaAdmissibleFunction)
     (F₁ F₂ : ExplicitFormulaVerticallyRegularContourFamily)
     (hSchedule₁ : ExplicitFormulaCofinalHeightSchedule F₁.toContourFamily)
-    (hSchedule₂ : ExplicitFormulaCofinalHeightSchedule F₂.toContourFamily) :
+    (hSchedule₂ : ExplicitFormulaCofinalHeightSchedule F₂.toContourFamily)
+    (hchannels₁ :
+      let h₁ := explicitFormulaFamilyAnalyticPackage_of_admissible f F₁ hSchedule₁
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaVerticalChannelSum f F₁.toContourFamily
+            (h₁.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)))
+    (hchannels₂ :
+      let h₂ := explicitFormulaFamilyAnalyticPackage_of_admissible f F₂ hSchedule₂
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaVerticalChannelSum f F₂.toContourFamily
+            (h₂.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f))) :
     (Tendsto
       (let h₁ := explicitFormulaFamilyAnalyticPackage_of_admissible f F₁ hSchedule₁
        fun u : ℝ =>
@@ -1717,17 +1823,25 @@ theorem zetaCompletedExplicitFormulaScheduledVerticalRealizations_reconstruct_sa
   constructor
   · exact
       zetaCompletedExplicitFormulaVerticalDifference_tendsto_boundarySum_core_ownerVerticalDecomposition
-        f F₁ hSchedule₁
+        f F₁ hSchedule₁ hchannels₁
   · exact
       zetaCompletedExplicitFormulaVerticalDifference_tendsto_boundarySum_core_ownerVerticalDecomposition
-        f F₂ hSchedule₂
+        f F₂ hSchedule₂ hchannels₂
 
 /-- Owner vertical-boundary remainder theorem.
 
 This is the algebraic remainder form of the vertical decomposition theorem. -/
 theorem zetaCompletedExplicitFormulaVerticalBoundaryRemainder_tendsto_zero_ownerVerticalDecomposition
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily) :
+    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily)
+    (hchannels :
+      let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaVerticalChannelSum f F.toContourFamily
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f))) :
     let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
     Tendsto
       (fun u : ℝ =>
@@ -1746,7 +1860,7 @@ theorem zetaCompletedExplicitFormulaVerticalBoundaryRemainder_tendsto_zero_owner
         atTop
         (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) :=
     zetaCompletedExplicitFormulaVerticalDifference_tendsto_boundarySum_core_ownerVerticalDecomposition
-      f F hSchedule
+      f F hSchedule hchannels
   have hconst :
       Tendsto
         (fun _u : ℝ => zetaCompletedExplicitFormulaBoundarySumAnalytic f)
@@ -1807,7 +1921,15 @@ decomposition: the right-minus-left vertical contour contribution converges to t
 prime/archimedean/correction boundary sum. -/
 theorem zetaCompletedExplicitFormulaVerticalDifference_tendsto_boundarySum_ownerVerticalDecomposition
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily) :
+    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily)
+    (hchannels :
+      let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaVerticalChannelSum f F.toContourFamily
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f))) :
     Tendsto
       (let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
        fun u : ℝ =>
@@ -1820,7 +1942,7 @@ theorem zetaCompletedExplicitFormulaVerticalDifference_tendsto_boundarySum_owner
   let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
   exact
     zetaCompletedExplicitFormulaVerticalDifference_tendsto_boundarySum_core_ownerVerticalDecomposition
-      f F hSchedule
+      f F hSchedule hchannels
 
 end ZetaAdmissibleFunction
 

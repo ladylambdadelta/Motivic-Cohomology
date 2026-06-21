@@ -13,7 +13,7 @@ noncomputable section
 
 open scoped Topology
 
-created by dividing by `(1 - w / a)^m`. -/
+/-- One-step removable quotient created by dividing by `(1 - w / a)^m`. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_single_insert_removable_ownerRoot
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)

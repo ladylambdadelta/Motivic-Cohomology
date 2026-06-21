@@ -117,7 +117,7 @@ theorem leftEndpoint_sub_verticalStripCenter
           _ = a + ((a + -a) + -b) := by
             exact congrArg (fun x : ℝ => a + x) (add_assoc a (-a) (-b)).symm
           _ = a + (0 + -b) := by
-            exact congrArg (fun x : ℝ => a + (x + -b)) (add_right_neg a)
+            exact congrArg (fun x : ℝ => a + (x + -b)) (add_neg_cancel a)
           _ = a + -b := by
             exact congrArg (fun x : ℝ => a + x) (zero_add (-b))
           _ = a - b := by
@@ -160,7 +160,7 @@ theorem rightEndpoint_sub_verticalStripCenter
                   exact (add_assoc b (-b) (-a)).symm
             exact congrArg (fun x : ℝ => b + x) hinner
           _ = b + (0 + -a) := by
-            exact congrArg (fun x : ℝ => b + (x + -a)) (add_right_neg b)
+            exact congrArg (fun x : ℝ => b + (x + -a)) (add_neg_cancel b)
           _ = b + -a := by
             exact congrArg (fun x : ℝ => b + x) (zero_add (-a))
           _ = b - a := by
@@ -177,7 +177,7 @@ constant is absorbed into a degree-zero finite-order envelope. -/
 theorem strip_finite_order_growth_of_uniform_boundary_bound
     (f : ℂ → ℂ)
     (a b C : ℝ)
-    (hab : a < b)
+    (_hab : a < b)
     (hC : 0 < C)
     (hhol : DiffContOnCl ℂ f (Complex.re ⁻¹' Set.Ioo a b))
     (hfinite :
@@ -224,10 +224,11 @@ theorem strip_finite_order_growth_of_uniform_boundary_bound
             Eq.trans (congrArg (fun x : ℝ => 1 * x) hpow) (mul_one 1)
           have hone_le_exp_one : (1 : ℝ) ≤ Real.exp (1 : ℝ) :=
             Real.one_le_exp zero_le_one
-          Eq.subst
-            (motive := fun x : ℝ => (1 : ℝ) ≤ Real.exp x)
-            hexponent.symm
-            hone_le_exp_one
+          exact
+            Eq.subst
+              (motive := fun x : ℝ => (1 : ℝ) ≤ Real.exp x)
+              hexponent.symm
+              hone_le_exp_one
         have hC_nonneg : 0 ≤ C :=
           le_of_lt hC
         have hC_le_envelope :
@@ -447,7 +448,7 @@ theorem strip_finite_order_growth_of_common_boundary_envelope_by_damping
               Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
                 𝓟 (Complex.re ⁻¹' Set.Ioo a b)]
             fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)))
-    (hboundary :
+    (_hboundary :
       ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
         0 < A ∧
         0 < B ∧

@@ -18,29 +18,41 @@ theorem zetaZeroSideContributionMajorant_eq_multiplicityTransformMajorant
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     zetaZeroSideContributionMajorant φ ρ =
       zetaZeroMultiplicityTransformMajorant φ ρ := by
-  change
-    ‖-((zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
-        zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))‖ =
-      ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ *
-        ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖
-  calc
-    ‖-((zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
-        zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))‖ =
-        ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
-          zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ := by
-      exact norm_neg
-        ((zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
-          zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))
-    _ =
+  have hmajorant_unfold :
+      zetaZeroSideContributionMajorant φ ρ =
+        ‖-((zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
+            zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))‖ :=
+    rfl
+  have htransform_unfold :
+      zetaZeroMultiplicityTransformMajorant φ ρ =
+        ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ *
+          ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ :=
+    rfl
+  have hnorm :
+      ‖-((zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
+          zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))‖ =
         ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ *
           ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ := by
-      exact norm_mul
-        (zetaZeroMultiplicity (ρ : ℂ) : ℂ)
-        (zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))
+    calc
+      ‖-((zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
+          zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))‖ =
+          ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
+            zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ := by
+        exact norm_neg
+          ((zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
+            zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))
+      _ =
+          ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ *
+            ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ := by
+        exact norm_mul
+          (zetaZeroMultiplicity (ρ : ℂ) : ℂ)
+          (zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))
+  exact Eq.trans hmajorant_unfold (Eq.trans hnorm htransform_unfold.symm)
 
 /-- Zero-counting, multiplicity, and Paley-Wiener transform decay make the
 multiplicity-weighted transform majorant summable over the completed-zero locus. -/
 theorem summable_zetaZeroMultiplicityTransformMajorant
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -52,6 +64,7 @@ theorem summable_zetaZeroMultiplicityTransformMajorant
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
         zetaZeroMultiplicityTransformMajorant φ ρ) := by
   match exists_zetaZeroMultiplicityTransformEnvelope_bound
+      hbranch
       hpartialOneTwo htailOneTwo hcompactOneTwo
       hpartialLeft htailBoundary hcompactBoundary φ with
   | ⟨A, k, _hApos, henv, hbound⟩ =>
@@ -67,11 +80,10 @@ theorem summable_zetaZeroMultiplicityTransformMajorant
             ‖zetaZeroMultiplicityTransformMajorant φ ρ‖ =
               zetaZeroMultiplicityTransformMajorant φ ρ :=
           Real.norm_of_nonneg hmajorant_nonneg
-        exact Eq.subst
-          (motive := fun x : ℝ =>
-            x ≤ zetaZeroMultiplicityTransformEnvelope A k ρ)
-          hnorm.symm
-          (hbound ρ)
+        calc
+          ‖zetaZeroMultiplicityTransformMajorant φ ρ‖ =
+              zetaZeroMultiplicityTransformMajorant φ ρ := hnorm
+          _ ≤ zetaZeroMultiplicityTransformEnvelope A k ρ := hbound ρ
       exact Summable.of_norm_bounded
         (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
           zetaZeroMultiplicityTransformEnvelope A k ρ)
@@ -81,6 +93,7 @@ theorem summable_zetaZeroMultiplicityTransformMajorant
 /-- Zero-density, multiplicity, and transform-decay estimates make the zero-side majorant
 summable over the completed-zero locus. -/
 theorem summable_zetaZeroSideContributionMajorant
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -96,6 +109,7 @@ theorem summable_zetaZeroSideContributionMajorant
         (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
           zetaZeroMultiplicityTransformMajorant φ ρ) :=
     summable_zetaZeroMultiplicityTransformMajorant
+      hbranch
       hpartialOneTwo htailOneTwo hcompactOneTwo
       hpartialLeft htailBoundary hcompactBoundary φ
   have hfun :
@@ -105,16 +119,16 @@ theorem summable_zetaZeroSideContributionMajorant
           zetaZeroMultiplicityTransformMajorant φ ρ) := by
     funext ρ
     exact zetaZeroSideContributionMajorant_eq_multiplicityTransformMajorant φ ρ
-  exact Eq.subst
-    (motive := fun G : {ρ : ℂ // ZetaCompletedZero ρ} → ℝ => Summable G)
-    hfun.symm
-    hsum
+  exact
+    match hfun with
+    | rfl => hsum
 
 /-- The completed zero-side contribution is summable over the completed zero locus.
 
 This is the analytic convergence input that makes zero-tail excision a genuine decomposition
 of the completed zero-side `tsum`. -/
 theorem summable_zetaZeroSideContribution
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -126,10 +140,11 @@ theorem summable_zetaZeroSideContribution
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
         zetaZeroSideContribution (ρ : ℂ) φ) := by
   have hmajorant :
-      Summable
-        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-          zetaZeroSideContributionMajorant φ ρ) :=
+    Summable
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        zetaZeroSideContributionMajorant φ ρ) :=
     summable_zetaZeroSideContributionMajorant
+      hbranch
       hpartialOneTwo htailOneTwo hcompactOneTwo
       hpartialLeft htailBoundary hcompactBoundary φ
   have hmajorant_norm :
@@ -143,10 +158,9 @@ theorem summable_zetaZeroSideContribution
             ‖zetaZeroSideContribution (ρ : ℂ) φ‖) := by
       funext ρ
       rfl
-    exact Eq.subst
-      (motive := fun G : {ρ : ℂ // ZetaCompletedZero ρ} → ℝ => Summable G)
-      hfun
-      hmajorant
+    exact
+      match hfun with
+      | rfl => hmajorant
   exact hmajorant_norm.of_norm
 
 /-- Splitting the completed zero-side sum into a finite zero set and its complementary tail.
@@ -186,20 +200,34 @@ theorem zetaCompletedZeroSideSum_eq_finite_add_tail
           ((⟨η, hS η η.2⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) φ) =
         ∑ η in S, zetaZeroSideContribution η φ :=
     zetaZeroSideContribution_sum_attach_eq_sum S φ hS
-  change
-    (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        zetaZeroSideContribution (ρ : ℂ) φ) =
-      (∑ η in S, zetaZeroSideContribution η φ) +
+  have htail_unfold :
+      zetaZeroTail S φ =
         (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
-          zetaZeroSideContribution (ρ : ℂ) φ)
-  exact Eq.trans hsplit
-    (congrArg
-      (fun x : ℂ =>
-        x +
+          zetaZeroSideContribution (ρ : ℂ) φ) :=
+    rfl
+  have hsplit_target :
+      (∑ η in S.attach,
+          zetaZeroSideContribution
+            ((⟨η, hS η η.2⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) φ) +
           (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
             zetaZeroSideContribution
-              ((⟨ρ, ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) φ))
-      hfinite)
+              ((⟨ρ, ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) φ) =
+        (∑ η in S, zetaZeroSideContribution η φ) +
+          zetaZeroTail S φ :=
+    Eq.trans
+      (congrArg
+        (fun x : ℂ =>
+          x +
+            (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+              zetaZeroSideContribution
+                ((⟨ρ, ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) φ))
+        hfinite)
+      (congrArg
+        (fun x : ℂ =>
+          (∑ η in S, zetaZeroSideContribution η φ) + x)
+        htail_unfold.symm)
+  exact Eq.trans hsplit
+    hsplit_target
 
 end
 end LFunctions

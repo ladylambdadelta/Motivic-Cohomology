@@ -67,10 +67,11 @@ theorem horizontalTopLineIntegral_norm_le_constant
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (T : ℝ)
     (hTopMem :
       ∀ x : ℝ, x ∈ Set.uIcc F.c (1 - F.c) →
         zetaCompletedExplicitFormulaTopPath (F.rectangle T) x ∈ E.carrier)
-    (N : ℕ) (T : ℝ) :
+    (N : ℕ) :
     ‖∫ x in Set.uIcc F.c (1 - F.c),
         zetaCompletedExplicitFormulaContourIntegrand f
           (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x)‖
@@ -87,10 +88,11 @@ theorem horizontalBottomLineIntegral_norm_le_constant
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (T : ℝ)
     (hBottomMem :
       ∀ x : ℝ, x ∈ Set.uIcc F.c (1 - F.c) →
         zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x ∈ E.carrier)
-    (N : ℕ) (T : ℝ) :
+    (N : ℕ) :
     ‖∫ x in Set.uIcc F.c (1 - F.c),
         zetaCompletedExplicitFormulaContourIntegrand f
           (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x)‖
@@ -108,15 +110,16 @@ theorem horizontalLineIntegral_norm_le_contourBound
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (T : ℝ)
     (hTopMem :
       ∀ x : ℝ, x ∈ Set.uIcc F.c (1 - F.c) →
         zetaCompletedExplicitFormulaTopPath (F.rectangle T) x ∈ E.carrier)
-    (N : ℕ) (T : ℝ) :
+    (N : ℕ) :
     ‖zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T)‖ ≤
       horizontalUnorderedEdgeIntegrandBoundConstant
           h.phi_control h.logderiv_control (F.rectangle T) E N *
         horizontalEdgeLength F.c :=
-  horizontalTopLineIntegral_norm_le_constant h E hTopMem N T
+  horizontalTopLineIntegral_norm_le_constant h E T hTopMem N
 
 /-- The bottom horizontal line integral is bounded by the explicit edge constant. -/
 theorem horizontalLineIntegral_norm_le_contourBound_bottom
@@ -124,15 +127,16 @@ theorem horizontalLineIntegral_norm_le_contourBound_bottom
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (T : ℝ)
     (hBottomMem :
       ∀ x : ℝ, x ∈ Set.uIcc F.c (1 - F.c) →
         zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x ∈ E.carrier)
-    (N : ℕ) (T : ℝ) :
+    (N : ℕ) :
     ‖zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T)‖ ≤
       horizontalUnorderedEdgeIntegrandBoundConstant
           h.phi_control h.logderiv_control (F.rectangle T) E N *
         horizontalEdgeLength F.c :=
-  horizontalBottomLineIntegral_norm_le_constant h E hBottomMem N T
+  horizontalBottomLineIntegral_norm_le_constant h E T hBottomMem N
 
 /-- A lower bound for `T` gives the same lower bound for `1 + ‖T‖`. -/
 theorem le_one_add_norm_of_le_self {a T : ℝ} (hT : a ≤ T) :
@@ -277,15 +281,16 @@ theorem ExplicitFormulaFamilyAnalyticPackage.topLineIntegral_norm_le_core
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (T : ℝ)
     (hTopMem :
       ∀ x : ℝ, x ∈ Set.uIcc F.c (1 - F.c) →
         zetaCompletedExplicitFormulaTopPath (F.rectangle T) x ∈ E.carrier)
-    (N : ℕ) (T : ℝ) :
+    (N : ℕ) :
     ∃ C : ℝ, ‖zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T)‖ ≤ C :=
   ⟨horizontalUnorderedEdgeIntegrandBoundConstant
       h.phi_control h.logderiv_control (F.rectangle T) E N *
       horizontalEdgeLength F.c,
-    horizontalLineIntegral_norm_le_contourBound h E hTopMem N T⟩
+    horizontalLineIntegral_norm_le_contourBound h E T hTopMem N⟩
 
 /-- Thin wrapper for the top horizontal line integral estimate. -/
 theorem ExplicitFormulaFamilyAnalyticPackage.topLineIntegral_norm_le
@@ -293,12 +298,13 @@ theorem ExplicitFormulaFamilyAnalyticPackage.topLineIntegral_norm_le
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (T : ℝ)
     (hTopMem :
       ∀ x : ℝ, x ∈ Set.uIcc F.c (1 - F.c) →
         zetaCompletedExplicitFormulaTopPath (F.rectangle T) x ∈ E.carrier)
-    (N : ℕ) (T : ℝ) :
+    (N : ℕ) :
     ∃ C : ℝ, ‖zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T)‖ ≤ C :=
-  h.topLineIntegral_norm_le_core E hTopMem N T
+  h.topLineIntegral_norm_le_core E T hTopMem N
 
 /-- The shared decay envelope controlling the horizontal family estimates. -/
 theorem ExplicitFormulaFamilyAnalyticPackage.horizontalDecayEnvelope_core
@@ -378,15 +384,16 @@ theorem ExplicitFormulaFamilyAnalyticPackage.bottomLineIntegral_norm_le_core
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (T : ℝ)
     (hBottomMem :
       ∀ x : ℝ, x ∈ Set.uIcc F.c (1 - F.c) →
         zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x ∈ E.carrier)
-    (N : ℕ) (T : ℝ) :
+    (N : ℕ) :
     ∃ C : ℝ, ‖zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T)‖ ≤ C :=
   ⟨horizontalUnorderedEdgeIntegrandBoundConstant
       h.phi_control h.logderiv_control (F.rectangle T) E N *
       horizontalEdgeLength F.c,
-    horizontalLineIntegral_norm_le_contourBound_bottom h E hBottomMem N T⟩
+    horizontalLineIntegral_norm_le_contourBound_bottom h E T hBottomMem N⟩
 
 
 

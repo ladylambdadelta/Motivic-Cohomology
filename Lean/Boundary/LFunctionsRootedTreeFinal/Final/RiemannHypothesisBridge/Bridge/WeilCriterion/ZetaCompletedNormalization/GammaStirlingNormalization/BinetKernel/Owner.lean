@@ -1195,18 +1195,68 @@ theorem Complex.binetSecondFormula_arctan_tail_contourDeformed_kernel_fullSector
         Complex.binetSecondFormula_decayingTailKernel_uniform_majorant
           w _hw hRle⟩
 
+/-- Exact branch-coherence hypotheses required by the Binet owner theorem for
+the principal logarithm of `Gamma`.
+
+This lives at the Binet-kernel owner level because normalized Stirling consumes
+these hypotheses before the sectorial log-norm layer is imported. -/
+def Complex.BinetSecondFormulaBranchCoherence : Prop :=
+  (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) ∧
+  (∀ x : ℝ,
+    0 < x →
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+          Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+              Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) ∧
+  (∀ z : ℂ,
+    0 < z.re →
+      (∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+          Complex.binetAbelPlanaFiniteMainTerm N z +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+              Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+      (∀ᶠ y : ℂ in 𝓝 z,
+        ∀ N : ℕ,
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+            Complex.binetAbelPlanaFiniteMainTerm N y +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                Complex.binetAbelPlanaFiniteContourRemainder N y))
+
 /-- The owner-level full-sector branch-tail absorption input. -/
 def Complex.BinetSecondFormulaBranchUniformTailAbsorption : Prop :=
-  ∃ R : ℝ, ∃ C : ℝ,
-    0 < R ∧
-    0 < C ∧
-    ∀ w : ℂ,
-      0 < w.re →
-      R ≤ ‖w‖ →
-        ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
-          (C / ‖w‖) *
-            (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-              t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+  (∃ R : ℝ, ∃ C : ℝ,
+      0 < R ∧
+      0 < C ∧
+      ∀ w : ℂ,
+        0 < w.re →
+        R ≤ ‖w‖ →
+          ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+            (C / ‖w‖) *
+              (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))) ∧
+  Complex.BinetSecondFormulaBranchCoherence
+
+/-- Tail-absorption projection from the full Binet branch package. -/
+theorem Complex.BinetSecondFormulaBranchUniformTailAbsorption.tail
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
+    ∃ R : ℝ, ∃ C : ℝ,
+      0 < R ∧
+      0 < C ∧
+      ∀ w : ℂ,
+        0 < w.re →
+        R ≤ ‖w‖ →
+          ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+            (C / ‖w‖) *
+              (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+  hbranch.1
+
+/-- Branch-coherence projection from the full Binet branch package. -/
+theorem Complex.BinetSecondFormulaBranchUniformTailAbsorption.coherence
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
+    Complex.BinetSecondFormulaBranchCoherence :=
+  hbranch.2
 
 /-- Branch-uniform full-sector integral tail majorant for the Binet arctangent
 kernel, after contour deformation. -/
@@ -1222,7 +1272,7 @@ theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral
             (2 * C / ‖w‖) *
               (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
                 t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-  match hbranch with
+  match Complex.BinetSecondFormulaBranchUniformTailAbsorption.tail hbranch with
   | ⟨R, C, hR, hC, htail⟩ =>
       let htail' :
           ∀ w : ℂ,

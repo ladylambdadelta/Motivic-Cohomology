@@ -265,7 +265,8 @@ This is the remaining analytic component: reflect by
 `completedRiemannZeta_one_sub`, use the peeled vertical-growth input on the reflected
 line `re (1 - z) = 1`, and control the resulting Gamma/reflection multiplier by the
 left-boundary Stirling-ratio estimate. -/
-theorem riemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_growth_bound :
+theorem riemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -290,7 +291,7 @@ theorem riemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_
               8 * ((x / ‖((1 : ℂ) - z).im‖) +
                   Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
                 Real.log (2 + x))
-      Gammaℝ_leftBoundary_completedFunctionalEquation_multiplier_stirling_growth_bound
+      (Gammaℝ_leftBoundary_completedFunctionalEquation_multiplier_stirling_growth_bound hbranch)
       riemannZeta_reflected_leftBoundary_poleCleared_growth_bound_ownerPrimitive with
   | ⟨A, B, m, hA, hB, hproduct⟩ =>
     exact
@@ -309,14 +310,19 @@ theorem riemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_
                   ‖(((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z)‖ := by
             have hnorm_raw := congrArg norm hfactor
             exact hnorm_raw
-          Eq.subst
-            (motive := fun x : ℝ => x ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
-            hnorm_factor.symm
-            (hproduct z hz_re hz_im hpartial)⟩
+          calc
+            ‖(z - 1) * riemannZeta z‖ =
+                ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+                    (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ *
+                  ‖(((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z)‖ :=
+              hnorm_factor
+            _ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) :=
+              hproduct z hz_re hz_im hpartial⟩
 
 /-- Left-edge transport for the pole-cleared zeta factor through the completed functional
 equation and the available vertical-tail Gamma/Stirling control. -/
-theorem poleClearedRiemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_growth_bound :
+theorem poleClearedRiemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -332,7 +338,7 @@ theorem poleClearedRiemannZeta_leftBoundary_completedFunctionalEquation_stirling
                 Real.log (2 + x)) →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  match riemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_growth_bound with
+  match riemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_growth_bound hbranch with
   | ⟨A, B, m, hA, hB, hbound⟩ =>
     exact
       ⟨A, B, m, hA, hB,
@@ -353,18 +359,19 @@ theorem poleClearedRiemannZeta_leftBoundary_completedFunctionalEquation_stirling
           have hpole :
               poleClearedRiemannZeta z = (z - 1) * riemannZeta z :=
             poleClearedRiemannZeta_eq_of_ne_one hz_ne_one
-          Eq.subst
-            (motive := fun w : ℂ =>
-              ‖w‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
-            hpole.symm
-            (hbound z hz_re hz_im hpartial)⟩
+          calc
+            ‖poleClearedRiemannZeta z‖ = ‖(z - 1) * riemannZeta z‖ :=
+              congrArg norm hpole
+            _ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) :=
+              hbound z hz_re hz_im hpartial⟩
 
 /-- Exact two-edge boundary-growth input for the pole-cleared zeta strip theorem.
 
 This is the boundary-growth layer separated from the vertical-strip Phragmen-Lindelöf
 application: the left edge is the functional-equation/Gamma side, and the right edge is
 the Dirichlet-series side. -/
-theorem poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquation_growth_bound :
+theorem poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquation_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -381,6 +388,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquatio
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact poleClearedRiemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_growth_bound
+    hbranch
 
 /-- On `2 ≤ re z`, subtracting the leading Dirichlet coefficient identifies `ζ z - 1`
 with the honest Dirichlet tail starting at `n = 2`. -/
@@ -726,7 +734,8 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_rightBoundary_dirichletSeries_
 This public owner theorem is a thin wrapper over the two mathematically distinct vertical
 edge inputs: the left edge comes from the functional equation and Gamma control, while the
 right edge comes from the Dirichlet-series estimate. -/
-theorem poleClearedRiemannZeta_rightCriticalStrip_verticalBoundary_growth_bound :
+theorem poleClearedRiemannZeta_rightCriticalStrip_verticalBoundary_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     (∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -751,7 +760,8 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_verticalBoundary_growth_bound 
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m)) := by
   exact
-    ⟨poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquation_growth_bound,
+    ⟨poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquation_growth_bound
+        hbranch,
       poleClearedRiemannZeta_rightCriticalStrip_rightBoundary_dirichletSeries_growth_bound⟩
 
 /-- A real `IsBigO` bound against a positive exponential envelope gives an

@@ -179,12 +179,12 @@ theorem complex_centerSegmentIntegral_finiteTube_compactBound
                   AffineMap.lineMap (0 : ℂ) x t ∈
                     ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
             ∃ bound : ℝ → ℝ,
-              (∀ᵐ t ∂volume,
+              (∀ᵐ t ∂MeasureTheory.volume,
                 t ∈ Set.Ioc (0 : ℝ) 1 →
                   ∀ x ∈ Metric.ball w ε,
                     ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ x t‖ ≤ bound t) ∧
-                IntervalIntegrable bound volume (0 : ℝ) 1 := by
+                IntervalIntegrable bound MeasureTheory.volume (0 : ℝ) 1 := by
   intro w ε hε_pos htube_closed
   have hbdd :
       BddAbove
@@ -206,7 +206,7 @@ theorem complex_centerSegmentIntegral_finiteTube_compactBound
             hC_image
               ⟨y, hy, rfl⟩
         have hbound :
-            ∀ᵐ t ∂volume,
+            ∀ᵐ t ∂MeasureTheory.volume,
               t ∈ Set.Ioc (0 : ℝ) 1 →
                 ∀ x ∈ Metric.ball w ε,
                   ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
@@ -235,12 +235,12 @@ theorem complex_centerSegmentIntegral_finiteTube_constantBound
                   AffineMap.lineMap (0 : ℂ) x t ∈
                     ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
             ∃ bound : ℝ → ℝ,
-              (∀ᵐ t ∂volume,
+              (∀ᵐ t ∂MeasureTheory.volume,
                 t ∈ Set.Ioc (0 : ℝ) 1 →
                   ∀ x ∈ Metric.ball w ε,
                     ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ x t‖ ≤ bound t) ∧
-              IntervalIntegrable bound volume (0 : ℝ) 1 := by
+              IntervalIntegrable bound MeasureTheory.volume (0 : ℝ) 1 := by
   exact
     complex_centerSegmentIntegral_finiteTube_compactBound
       φ centers
@@ -259,7 +259,7 @@ theorem complex_centerSegmentIntegral_finiteTube_pointwiseDerivative_ae
                 t ∈ Set.Icc (0 : ℝ) 1 →
                   AffineMap.lineMap (0 : ℂ) x t ∈
                     ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
-            ∀ᵐ t ∂volume,
+            ∀ᵐ t ∂MeasureTheory.volume,
               t ∈ Set.Ioc (0 : ℝ) 1 →
                 ∀ x ∈ Metric.ball w ε,
                   HasDerivAt
@@ -298,13 +298,13 @@ theorem complex_centerSegmentIntegral_finiteTube_domination_and_derivative
                   AffineMap.lineMap (0 : ℂ) x t ∈
                     ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
             ∃ bound : ℝ → ℝ,
-              (∀ᵐ t ∂volume,
+              (∀ᵐ t ∂MeasureTheory.volume,
                 t ∈ Set.Ioc (0 : ℝ) 1 →
                   ∀ x ∈ Metric.ball w ε,
                     ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ x t‖ ≤ bound t) ∧
-              IntervalIntegrable bound volume (0 : ℝ) 1 ∧
-              (∀ᵐ t ∂volume,
+              IntervalIntegrable bound MeasureTheory.volume (0 : ℝ) 1 ∧
+              (∀ᵐ t ∂MeasureTheory.volume,
                 t ∈ Set.Ioc (0 : ℝ) 1 →
                   ∀ x ∈ Metric.ball w ε,
                     HasDerivAt
@@ -316,12 +316,12 @@ theorem complex_centerSegmentIntegral_finiteTube_domination_and_derivative
     intro w ε hε_pos htube
     have hconstant :
         ∃ bound : ℝ → ℝ,
-          (∀ᵐ t ∂volume,
+          (∀ᵐ t ∂MeasureTheory.volume,
             t ∈ Set.Ioc (0 : ℝ) 1 →
               ∀ x ∈ Metric.ball w ε,
                 ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                   φ x t‖ ≤ bound t) ∧
-          IntervalIntegrable bound volume (0 : ℝ) 1 :=
+          IntervalIntegrable bound MeasureTheory.volume (0 : ℝ) 1 :=
       complex_centerSegmentIntegral_finiteTube_constantBound
         φ centers w ε hε_pos htube
     exact
@@ -347,8 +347,8 @@ dominating function for the derivative integrand. -/
 theorem complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
     (φ : ℂ → ℂ)
     {s : Set ℂ}
-    (hstar : StarConvex ℝ (0 : ℂ) s)
-    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    (_hstar : StarConvex ℝ (0 : ℂ) s)
+    (_hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
     ∀ z : ℂ,
       z ∈ s →
         IsCompact
@@ -367,29 +367,29 @@ theorem complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
               ∃ ε : ℝ,
                 0 < ε ∧
                 (∀ᶠ x in 𝓝 w,
-                  AEStronglyMeasurable
+                  MeasureTheory.AEStronglyMeasurable
                     (fun t : ℝ =>
                       x * φ (AffineMap.lineMap (0 : ℂ) x t))
-                    (volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
+                    (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
                 IntervalIntegrable
                   (fun t : ℝ =>
                     w * φ (AffineMap.lineMap (0 : ℂ) w t))
-                  volume
+                  MeasureTheory.volume
                   (0 : ℝ)
                   1 ∧
-                AEStronglyMeasurable
+                MeasureTheory.AEStronglyMeasurable
                   (fun t : ℝ =>
                     complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ w t)
-                  (volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
+                  (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
                 ∃ bound : ℝ → ℝ,
-                  (∀ᵐ t ∂volume,
+                  (∀ᵐ t ∂MeasureTheory.volume,
                     t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                           φ x t‖ ≤ bound t) ∧
-                  IntervalIntegrable bound volume (0 : ℝ) 1 ∧
-                  (∀ᵐ t ∂volume,
+                  IntervalIntegrable bound MeasureTheory.volume (0 : ℝ) 1 ∧
+                  (∀ᵐ t ∂MeasureTheory.volume,
                     t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         HasDerivAt
@@ -417,29 +417,29 @@ theorem complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
                                   ∃ ε : ℝ,
                                     0 < ε ∧
                                     (∀ᶠ x in 𝓝 w,
-                                      AEStronglyMeasurable
+                                      MeasureTheory.AEStronglyMeasurable
                                         (fun t : ℝ =>
                                           x * φ (AffineMap.lineMap (0 : ℂ) x t))
-                                        (volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
+                                        (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
                                     IntervalIntegrable
                                       (fun t : ℝ =>
                                         w * φ (AffineMap.lineMap (0 : ℂ) w t))
-                                      volume
+                                      MeasureTheory.volume
                                       (0 : ℝ)
                                       1 ∧
-                                    AEStronglyMeasurable
+                                    MeasureTheory.AEStronglyMeasurable
                                       (fun t : ℝ =>
                                         complex_centerSegmentIntegral_endpointDerivativeIntegrand
                                           φ w t)
-                                      (volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
+                                      (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
                                     ∃ bound : ℝ → ℝ,
-                                      (∀ᵐ t ∂volume,
+                                      (∀ᵐ t ∂MeasureTheory.volume,
                                         t ∈ Set.Ioc (0 : ℝ) 1 →
                                           ∀ x ∈ Metric.ball w (ε),
                                             ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                                               φ x t‖ ≤ bound t) ∧
-                                      IntervalIntegrable bound volume (0 : ℝ) 1 ∧
-                                      (∀ᵐ t ∂volume,
+                                      IntervalIntegrable bound MeasureTheory.volume (0 : ℝ) 1 ∧
+                                      (∀ᵐ t ∂MeasureTheory.volume,
                                         t ∈ Set.Ioc (0 : ℝ) 1 →
                                           ∀ x ∈ Metric.ball w (ε),
                                             HasDerivAt
@@ -522,29 +522,29 @@ theorem complex_centerSegmentIntegral_compactFiniteTube_dominatedPackage
               ∃ ε : ℝ,
                 0 < ε ∧
                 (∀ᶠ x in 𝓝 w,
-                  AEStronglyMeasurable
+                  MeasureTheory.AEStronglyMeasurable
                     (fun t : ℝ =>
                       x * φ (AffineMap.lineMap (0 : ℂ) x t))
-                    (volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
+                    (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
                 IntervalIntegrable
                   (fun t : ℝ =>
                     w * φ (AffineMap.lineMap (0 : ℂ) w t))
-                  volume
+                  MeasureTheory.volume
                   (0 : ℝ)
                   1 ∧
-                AEStronglyMeasurable
+                MeasureTheory.AEStronglyMeasurable
                   (fun t : ℝ =>
                     complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ w t)
-                  (volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
+                  (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
                 ∃ bound : ℝ → ℝ,
-                  (∀ᵐ t ∂volume,
+                  (∀ᵐ t ∂MeasureTheory.volume,
                     t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                           φ x t‖ ≤ bound t) ∧
-                  IntervalIntegrable bound volume (0 : ℝ) 1 ∧
-                  (∀ᵐ t ∂volume,
+                  IntervalIntegrable bound MeasureTheory.volume (0 : ℝ) 1 ∧
+                  (∀ᵐ t ∂MeasureTheory.volume,
                     t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         HasDerivAt
@@ -586,29 +586,29 @@ theorem complex_centerSegmentIntegral_compactAnalyticTube_dominatedPackage
               ∃ ε : ℝ,
                 0 < ε ∧
                 (∀ᶠ x in 𝓝 w,
-                  AEStronglyMeasurable
+                  MeasureTheory.AEStronglyMeasurable
                     (fun t : ℝ =>
                       x * φ (AffineMap.lineMap (0 : ℂ) x t))
-                    (volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
+                    (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
                 IntervalIntegrable
                   (fun t : ℝ =>
                     w * φ (AffineMap.lineMap (0 : ℂ) w t))
-                  volume
+                  MeasureTheory.volume
                   (0 : ℝ)
                   1 ∧
-                AEStronglyMeasurable
+                MeasureTheory.AEStronglyMeasurable
                   (fun t : ℝ =>
                     complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ w t)
-                  (volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
+                  (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
                 ∃ bound : ℝ → ℝ,
-                  (∀ᵐ t ∂volume,
+                  (∀ᵐ t ∂MeasureTheory.volume,
                     t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                           φ x t‖ ≤ bound t) ∧
-                  IntervalIntegrable bound volume (0 : ℝ) 1 ∧
-                  (∀ᵐ t ∂volume,
+                  IntervalIntegrable bound MeasureTheory.volume (0 : ℝ) 1 ∧
+                  (∀ᵐ t ∂MeasureTheory.volume,
                     t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         HasDerivAt
@@ -645,29 +645,29 @@ theorem complex_centerSegmentIntegral_compact_dominatedHypotheses_on_nhd
               ∃ ε : ℝ,
                 0 < ε ∧
                 (∀ᶠ x in 𝓝 w,
-                  AEStronglyMeasurable
+                  MeasureTheory.AEStronglyMeasurable
                     (fun t : ℝ =>
                       x * φ (AffineMap.lineMap (0 : ℂ) x t))
-                    (volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
+                    (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
                 IntervalIntegrable
                   (fun t : ℝ =>
                     w * φ (AffineMap.lineMap (0 : ℂ) w t))
-                  volume
+                  MeasureTheory.volume
                   (0 : ℝ)
                   1 ∧
-                AEStronglyMeasurable
+                MeasureTheory.AEStronglyMeasurable
                   (fun t : ℝ =>
                     complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ w t)
-                  (volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
+                  (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
                 ∃ bound : ℝ → ℝ,
-                  (∀ᵐ t ∂volume,
+                  (∀ᵐ t ∂MeasureTheory.volume,
                     t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                           φ x t‖ ≤ bound t) ∧
-                  IntervalIntegrable bound volume (0 : ℝ) 1 ∧
-                  (∀ᵐ t ∂volume,
+                  IntervalIntegrable bound MeasureTheory.volume (0 : ℝ) 1 ∧
+                  (∀ᵐ t ∂MeasureTheory.volume,
                     t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         HasDerivAt
@@ -752,37 +752,37 @@ theorem complex_centerSegmentIntegral_dominatedParametricIntegral_hypotheses
                                                           (show (0 : ℝ) ≤ 1 from zero_le_one)
                                                       have hF_meas_interval :
                                                           ∀ᶠ x in 𝓝 w,
-                                                            AEStronglyMeasurable
+                                                            MeasureTheory.AEStronglyMeasurable
                                                               (fun t : ℝ =>
                                                                 x * φ (AffineMap.lineMap (0 : ℂ) x t))
-                                                              (volume.restrict (Ι (0 : ℝ) 1)) :=
+                                                              (MeasureTheory.volume.restrict (Ι (0 : ℝ) 1)) :=
                                                         hF_meas.mono
                                                           (fun x hx =>
                                                             Eq.subst
                                                               (motive := fun interval : Set ℝ =>
-                                                                AEStronglyMeasurable
+                                                                MeasureTheory.AEStronglyMeasurable
                                                                   (fun t : ℝ =>
                                                                     x * φ (AffineMap.lineMap (0 : ℂ) x t))
-                                                                  (volume.restrict interval))
+                                                                  (MeasureTheory.volume.restrict interval))
                                                               (Eq.symm h_uIoc_eq)
                                                               hx)
                                                       have hF'_meas_interval :
-                                                          AEStronglyMeasurable
+                                                          MeasureTheory.AEStronglyMeasurable
                                                             (fun t : ℝ =>
                                                               complex_centerSegmentIntegral_endpointDerivativeIntegrand
                                                                 φ w t)
-                                                            (volume.restrict (Ι (0 : ℝ) 1)) :=
+                                                            (MeasureTheory.volume.restrict (Ι (0 : ℝ) 1)) :=
                                                         Eq.subst
                                                           (motive := fun interval : Set ℝ =>
-                                                            AEStronglyMeasurable
+                                                            MeasureTheory.AEStronglyMeasurable
                                                               (fun t : ℝ =>
                                                                 complex_centerSegmentIntegral_endpointDerivativeIntegrand
                                                                   φ w t)
-                                                              (volume.restrict interval))
+                                                              (MeasureTheory.volume.restrict interval))
                                                           (Eq.symm h_uIoc_eq)
                                                           hF'_meas
                                                       have h_bound_interval :
-                                                          ∀ᵐ t ∂volume,
+                                                          ∀ᵐ t ∂MeasureTheory.volume,
                                                             t ∈ Ι (0 : ℝ) 1 →
                                                               ∀ x ∈ Metric.ball w ε,
                                                                 ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
@@ -796,7 +796,7 @@ theorem complex_centerSegmentIntegral_dominatedParametricIntegral_hypotheses
                                                                 h_uIoc_eq
                                                                 ht_interval))
                                                       have h_diff_interval :
-                                                          ∀ᵐ t ∂volume,
+                                                          ∀ᵐ t ∂MeasureTheory.volume,
                                                             t ∈ Ι (0 : ℝ) 1 →
                                                               ∀ x ∈ Metric.ball w ε,
                                                                 HasDerivAt
@@ -815,7 +815,7 @@ theorem complex_centerSegmentIntegral_dominatedParametricIntegral_hypotheses
                                                                 ht_interval))
                                                       have hparam :=
                                                         intervalIntegral.hasDerivAt_integral_of_dominated_loc_of_deriv_le
-                                                          (μ := volume)
+                                                          (μ := MeasureTheory.volume)
                                                           (a := (0 : ℝ))
                                                           (b := 1)
                                                           (ε_pos := hε_pos)

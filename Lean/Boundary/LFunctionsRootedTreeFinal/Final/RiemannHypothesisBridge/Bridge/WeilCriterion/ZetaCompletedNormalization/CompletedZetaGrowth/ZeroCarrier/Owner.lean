@@ -16,6 +16,7 @@ local notation "π" => Real.pi
 
 /-- Finite-order growth for the centered entire completed-zeta part. -/
 theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -30,7 +31,7 @@ theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact centeredCompletedRiemannZeta₀_finiteOrder_growth_bound_of_uncentered
     (completedRiemannZeta₀_finiteOrder_growth_bound
-      hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htailBoundary hcompactBoundary)
 
 /-- Multiplying a finite-order entire part by the quadratic clearing factor and subtracting
 `1` preserves exponential finite-order growth. -/
@@ -138,6 +139,7 @@ zero-carrier is the cleared entire divisor
 so this theorem is owned by the completed normalization layer rather than by the
 downstream zero-counting file. -/
 theorem centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -153,7 +155,7 @@ theorem centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound
   exact
     centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound_of_uncentered
       (completedRiemannZeta₀_finiteOrder_growth_bound
-        hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htailBoundary hcompactBoundary)
+        hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hpartialLeft htailBoundary hcompactBoundary)
 
 end
 

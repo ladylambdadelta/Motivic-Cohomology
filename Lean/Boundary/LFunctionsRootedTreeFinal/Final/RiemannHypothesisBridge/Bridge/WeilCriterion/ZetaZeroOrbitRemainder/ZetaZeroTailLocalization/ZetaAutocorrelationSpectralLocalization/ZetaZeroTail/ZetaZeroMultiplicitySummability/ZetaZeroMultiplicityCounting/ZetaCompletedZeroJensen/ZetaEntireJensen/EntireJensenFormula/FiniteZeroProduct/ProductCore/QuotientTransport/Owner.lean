@@ -51,7 +51,7 @@ after removing the local factor `(w-a)^m`. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_insertedProduct_localLeadingCoeff
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (S : Finset (EntireFunctionZero F))
+    (_S : Finset (EntireFunctionZero F))
     (a : EntireFunctionZero F)
     (ha0 : (a : ℂ) ≠ 0)
     (w : ℂ) :
@@ -123,8 +123,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_origin_factor
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hF0 : F 0 ≠ 0)
-    (ρ : ℝ)
+    (_hF0 : F 0 ≠ 0)
+    (_ρ : ℝ)
     (z : EntireFunctionZero F) :
     (1 - (0 : ℂ) / (z : ℂ)) ^
         entireFunctionZeroMultiplicity F hF (z : ℂ) = 1 := by
@@ -319,7 +319,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
               F hF hF0 ρ w)
     (w : ℂ)
     (hwρ : ‖w‖ ≤ ρ)
-    (hw :
+    (_hw :
       w ∉
         (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
           F hF hF0 ρ).image
@@ -362,7 +362,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
               F hF hF0 ρ w)
     (w : ℂ)
     (hwρ : ‖w‖ ≤ ρ)
-    (hw :
+    (_hw :
       w ∉
         (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
           F hF hF0 ρ).image
@@ -474,7 +474,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
     (hF0 : F 0 ≠ 0)
     (ρ : ℝ)
     (z : EntireFunctionZero F)
-    (hz :
+    (_hz :
       z ∈
         entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
           F hF hF0 ρ) :
@@ -507,7 +507,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
     (hF0 : F 0 ≠ 0)
     (ρ : ℝ)
     (z : EntireFunctionZero F)
-    (hz :
+    (_hz :
       z ∈
         entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
           F hF hF0 ρ) :

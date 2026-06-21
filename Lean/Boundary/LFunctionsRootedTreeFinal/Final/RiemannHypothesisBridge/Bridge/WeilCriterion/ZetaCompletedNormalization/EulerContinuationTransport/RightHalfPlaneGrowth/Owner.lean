@@ -992,23 +992,6 @@ theorem poleClearedRiemannZeta_reflectedRightHalfPlane_finiteOrder_growth_from_E
   exact poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin
     hpartialLeft htailBoundary hcompactBoundary
 
-/-- The removable completed-functional-equation multiplier for the pole-cleared
-zeta factor on the left half-plane.
-
-Away from the removable point `z = 0`, this is the raw multiplier obtained by
-writing the completed functional equation as a relation between `(z - 1)ζ(z)`
-and `((1 - z) - 1)ζ(1 - z)`.  At `z = 0` the value is the removable value
-forced by the pole-cleared identity. -/
-noncomputable def poleClearedRiemannZeta_completedFunctionalEquationMultiplier
-    (z : ℂ) : ℂ :=
-  if z = 0 then
-    poleClearedRiemannZeta 0
-  else if Complex.Gammaℝ z = 0 then
-    poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z)
-  else
-    ((z - 1) / (((1 : ℂ) - z) - 1)) *
-      (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)
-
 end
 end LFunctions
 end Boundary

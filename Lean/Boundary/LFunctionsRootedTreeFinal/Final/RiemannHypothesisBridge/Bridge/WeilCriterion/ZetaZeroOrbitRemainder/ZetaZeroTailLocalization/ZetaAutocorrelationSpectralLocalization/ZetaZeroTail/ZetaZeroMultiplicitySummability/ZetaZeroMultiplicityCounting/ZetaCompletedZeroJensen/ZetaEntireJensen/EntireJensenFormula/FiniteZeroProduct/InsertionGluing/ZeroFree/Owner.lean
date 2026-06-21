@@ -13,9 +13,6 @@ noncomputable section
 
 open scoped Topology
 
-        F hF S hS0 z hz g hg_ne
-    exact fun hQ_zero => hvalue_ne (Eq.trans hQ_value.symm hQ_zero)
-
 /-- Maximal-multiplicity zero-freeness for the quotient after finite removable
 gluing.
 
@@ -32,9 +29,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
       ∀ w : ℂ,
         ‖w‖ ≤ ρ →
         F w =
-          Q w *
-            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
-        F hF hF0 ρ w) :
+            Q w *
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+                F hF hF0 ρ w) :
     ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0 := by
   intro w hwρ
   exact
@@ -77,6 +74,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
     ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0 := by
   exact
     entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteRemovableQuotient_zeroFree_from_maximalMultiplicity_ownerRoot
+      F Q hF hF0 ρ hQ_an hfactor
 
 end
 end LFunctions

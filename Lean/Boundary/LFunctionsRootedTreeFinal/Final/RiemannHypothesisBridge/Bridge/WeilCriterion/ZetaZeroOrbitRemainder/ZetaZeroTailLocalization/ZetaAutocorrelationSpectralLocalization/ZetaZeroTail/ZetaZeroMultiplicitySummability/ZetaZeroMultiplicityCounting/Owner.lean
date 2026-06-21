@@ -313,6 +313,7 @@ theorem norm_complex_ofNat_zetaZeroMultiplicity
 /-- Completed-zero multiplicities have polynomial growth in centered height, as a local
 consequence of multiplicity-aware zero counting. -/
 theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound_from_counting
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -327,6 +328,7 @@ theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound_from_counting
   exact
     Exists.elim
       (exists_completedZeroMultiplicityCounting_height_bound
+        hbranch
         hpartialOneTwo htailOneTwo hcompactOneTwo
         hpartialLeft htailBoundary hcompactBoundary)
       (fun C hC =>

@@ -1,3 +1,4 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.VerticalRecurrence.Sectorial.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.VerticalRecurrence.Owner
 
 /-!
@@ -100,14 +101,119 @@ theorem Complex.sectorialStirling_shiftedRawGammaEnvelope_of_normalizedStirling
               mul_le_mul_of_nonneg_left hrecip_upper hCn_nonneg
             have htarget :
                 Cn * (Cd * E) = (Cn * Cd) * E :=
-              mul_assoc Cn Cd E
+              (mul_assoc Cn Cd E).symm
             exact le_trans (le_of_eq hdiv_eq)
               (le_trans hmul (le_of_eq htarget))
           have hlower_scale :
               (cn * cd) * E ≤ cn / D := by
             have hleft_assoc :
                 (cn * cd) * E = cn * (cd * E) :=
-              (mul_assoc cn cd E).symm
+              mul_assoc cn cd E
+            have hmul :
+                cn * (cd * E) ≤ cn * (1 / D) :=
+              mul_le_mul_of_nonneg_left hrecip_lower hcn_nonneg
+            have hdiv_eq : cn * (1 / D) = cn / D := by
+              calc
+                cn * (1 / D) = cn * D⁻¹ := by
+                  exact congrArg (fun u : ℝ => cn * u) (one_div D)
+                _ = cn / D := (div_eq_mul_inv cn D).symm
+            exact le_trans (le_of_eq hleft_assoc)
+              (le_trans hmul (le_of_eq hdiv_eq))
+          And.intro
+            (le_trans hgamma_upper_raw hupper_scale)
+            (le_trans hlower_scale hgamma_lower_raw)⟩
+
+/-- Branch-package shifted raw Gamma envelope bounds.
+
+This is the same denominator transport as
+`sectorialStirling_shiftedRawGammaEnvelope_of_normalizedStirling`, but it
+consumes the full Binet branch package directly so the strict right-half-plane
+and coherence hypotheses are discharged at the shifted-strip owner level. -/
+theorem Complex.sectorialStirling_shiftedRawGammaEnvelope_of_branchPackage
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (A B : ℝ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ‖Complex.Gamma
+              (Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y)‖ ≤
+            C * Complex.fixedRealPartVerticalStirlingEnvelope
+              (x + Complex.verticalStripTransportShift A) y ∧
+            c * Complex.fixedRealPartVerticalStirlingEnvelope
+              (x + Complex.verticalStripTransportShift A) y ≤
+            ‖Complex.Gamma
+              (Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y)‖ := by
+  match Complex.sectorialStirling_shiftedNormalizedFactor_twoSided_bounds_of_branchPackage
+      hbranch A B with
+  | ⟨Hn, Cn, cn, hHn_pos, hCn_pos, hcn_pos, hnormalized⟩ =>
+  match Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable A B with
+  | ⟨Hd, Cd, cd, hHd_pos, hCd_pos, hcd_pos, hdenom⟩ =>
+    let H : ℝ := max Hn Hd
+    exact
+      ⟨H, Cn * Cd, cn * cd,
+        lt_of_lt_of_le hHn_pos (le_max_left Hn Hd),
+        mul_pos hCn_pos hCd_pos,
+        mul_pos hcn_pos hcd_pos,
+        fun x y hxA hxB hy =>
+          have hy_n : Hn ≤ ‖y‖ :=
+            le_trans (le_max_left Hn Hd) hy
+          have hy_d : Hd ≤ ‖y‖ :=
+            le_trans (le_max_right Hn Hd) hy
+          let w : ℂ :=
+            Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y
+          let E : ℝ :=
+            Complex.fixedRealPartVerticalStirlingEnvelope
+              (x + Complex.verticalStripTransportShift A) y
+          let D : ℝ :=
+            ‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖
+          have hnormalized_xy := hnormalized x y hxA hxB hy_n
+          have hdenom_xy := hdenom x y hxA hxB hy_d
+          have hD_pos : 0 < D :=
+            hdenom_xy.1
+          have hrecip_upper : 1 / D ≤ Cd * E :=
+            hdenom_xy.2.1
+          have hrecip_lower : cd * E ≤ 1 / D :=
+            hdenom_xy.2.2
+          have hgamma_upper_raw :
+              ‖Complex.Gamma w‖ ≤ Cn / D :=
+            Complex.Gamma_norm_le_of_normalizedGammaStirlingFactor_norm_le
+              w Cn hnormalized_xy.1 hD_pos
+          have hgamma_lower_raw :
+              cn / D ≤ ‖Complex.Gamma w‖ :=
+            Complex.Gamma_norm_ge_of_normalizedGammaStirlingFactor_norm_ge
+              w cn hnormalized_xy.2 hD_pos
+          have hCn_nonneg : 0 ≤ Cn :=
+            le_of_lt hCn_pos
+          have hcn_nonneg : 0 ≤ cn :=
+            le_of_lt hcn_pos
+          have hupper_scale :
+              Cn / D ≤ (Cn * Cd) * E := by
+            have hdiv_eq : Cn / D = Cn * (1 / D) := by
+              calc
+                Cn / D = Cn * D⁻¹ := div_eq_mul_inv Cn D
+                _ = Cn * (1 / D) := by
+                  exact congrArg (fun u : ℝ => Cn * u) (one_div D).symm
+            have hmul :
+                Cn * (1 / D) ≤ Cn * (Cd * E) :=
+              mul_le_mul_of_nonneg_left hrecip_upper hCn_nonneg
+            have htarget :
+                Cn * (Cd * E) = (Cn * Cd) * E :=
+              (mul_assoc Cn Cd E).symm
+            exact le_trans (le_of_eq hdiv_eq)
+              (le_trans hmul (le_of_eq htarget))
+          have hlower_scale :
+              (cn * cd) * E ≤ cn / D := by
+            have hleft_assoc :
+                (cn * cd) * E = cn * (cd * E) :=
+              mul_assoc cn cd E
             have hmul :
                 cn * (cd * E) ≤ cn * (1 / D) :=
               mul_le_mul_of_nonneg_left hrecip_lower hcn_nonneg
@@ -131,7 +237,7 @@ into strip-dependent constants and recovers the unshifted envelope. -/
 theorem Complex.verticalStripGammaBounds_of_shiftedRawBounds_and_recurrenceProduct
     (A B : ℝ)
     (N : ℕ)
-    (hshift_eq : N = Complex.verticalStripTransportShift A)
+    (_hshift_eq : N = Complex.verticalStripTransportShift A)
     (hshifted :
       ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
         0 < H ∧
@@ -248,20 +354,28 @@ theorem Complex.verticalStripGammaBounds_of_shiftedRawBounds_and_recurrenceProdu
             ‖Complex.Gamma
                 (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ ≤
               Cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y :=
-          Eq.subst
-            (motive := fun t : ℝ =>
-              t ≤ Cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y)
-            hshifted_norm.symm
-            hshifted_xy.1
+          calc
+            ‖Complex.Gamma
+                (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ =
+              ‖Complex.Gamma
+                (Complex.fixedRealPartVerticalPoint (x + N) y)‖ :=
+              hshifted_norm
+            _ ≤ Cs *
+                Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y :=
+              hshifted_xy.1
         have hshifted_lower :
             cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y ≤
               ‖Complex.Gamma
                 (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ :=
-          Eq.subst
-            (motive := fun t : ℝ =>
-              cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y ≤ t)
-            hshifted_norm.symm
-            hshifted_xy.2
+          calc
+            cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y ≤
+              ‖Complex.Gamma
+                (Complex.fixedRealPartVerticalPoint (x + N) y)‖ :=
+              hshifted_xy.2
+            _ =
+              ‖Complex.Gamma
+                (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ :=
+              hshifted_norm.symm
         have hupper_div :
             ‖Complex.Gamma
                 (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ /
@@ -330,33 +444,38 @@ theorem Complex.verticalStripGammaBounds_of_shiftedRawBounds_and_recurrenceProdu
                 (Cs / cp) * Complex.fixedRealPartVerticalStirlingEnvelope x y :=
             Complex.fixedRealPartVerticalStirlingEnvelope_natShift_div_scale_eq
               x y N Cs cp hcp_pos
-          Eq.subst
-            (motive := fun t : ℝ =>
-              ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ ≤ t)
-            htarget
-            (Eq.subst
-              (motive := fun t : ℝ =>
-                t ≤
-                  Cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
-                    (cp * R ^ (N : ℝ)))
-              hnorm_rec.symm
-              hupper_div))
+          calc
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ =
+              ‖Complex.Gamma
+                (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ /
+                ‖Complex.gammaRecurrenceProduct
+                  (Complex.fixedRealPartVerticalPoint x y) N‖ :=
+              hnorm_rec
+            _ ≤ Cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
+                (cp * R ^ (N : ℝ)) :=
+              hupper_div
+            _ = (Cs / cp) *
+                Complex.fixedRealPartVerticalStirlingEnvelope x y :=
+              htarget)
           (have htarget :
               cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
                   (Cp * R ^ (N : ℝ)) =
                 (cs / Cp) * Complex.fixedRealPartVerticalStirlingEnvelope x y :=
             Complex.fixedRealPartVerticalStirlingEnvelope_natShift_div_scale_eq
               x y N cs Cp hCp_pos
-          Eq.subst
-            (motive := fun t : ℝ =>
-              t ≤ ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖)
-            htarget
-            (Eq.subst
-              (motive := fun t : ℝ =>
-                cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
-                    (Cp * R ^ (N : ℝ)) ≤ t)
-              hnorm_rec.symm
-              hlower_div))⟩
+          calc
+            (cs / Cp) * Complex.fixedRealPartVerticalStirlingEnvelope x y =
+              cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
+                (Cp * R ^ (N : ℝ)) :=
+              htarget.symm
+            _ ≤
+              ‖Complex.Gamma
+                (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ /
+                ‖Complex.gammaRecurrenceProduct
+                  (Complex.fixedRealPartVerticalPoint x y) N‖ :=
+              hlower_div
+            _ = ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ :=
+              hnorm_rec.symm)⟩
 
 /-- Sectorial Stirling at the deterministic right shift, transported back
 through the finite Gamma recurrence product.
@@ -404,25 +523,8 @@ theorem Complex.sectorialLogGammaAsymptotic_verticalStrip_largeHeight_bounds_of_
               ‖Complex.Gamma
                 (Complex.fixedRealPartVerticalPoint (x + N) y)‖ := by
     exact
-      Eq.subst
-        (motive := fun M : ℕ =>
-          ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
-            0 < H ∧
-            0 < C ∧
-            0 < c ∧
-            ∀ x y : ℝ,
-              A ≤ x →
-              x ≤ B →
-              H ≤ ‖y‖ →
-                ‖Complex.Gamma
-                    (Complex.fixedRealPartVerticalPoint (x + M) y)‖ ≤
-                  C * Complex.fixedRealPartVerticalStirlingEnvelope (x + M) y ∧
-                c * Complex.fixedRealPartVerticalStirlingEnvelope (x + M) y ≤
-                  ‖Complex.Gamma
-                    (Complex.fixedRealPartVerticalPoint (x + M) y)‖)
-        (show Complex.verticalStripTransportShift A = N from rfl)
-        (Complex.sectorialStirling_shiftedRawGammaEnvelope_of_normalizedStirling
-          hStirling A B)
+      Complex.sectorialStirling_shiftedRawGammaEnvelope_of_normalizedStirling
+        hStirling A B
   exact
     Complex.verticalStripGammaBounds_of_shiftedRawBounds_and_recurrenceProduct
       A B N rfl
@@ -525,9 +627,32 @@ theorem Complex.sectorialStirling_verticalStrip_largeHeight_classical
             C * Complex.fixedRealPartVerticalStirlingEnvelope x y ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope x y ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ := by
+  let N : ℕ := Complex.verticalStripTransportShift A
+  have hshifted_transport :
+      ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+        0 < H ∧
+        0 < C ∧
+        0 < c ∧
+        ∀ x y : ℝ,
+          A ≤ x →
+          x ≤ B →
+          H ≤ ‖y‖ →
+            ‖Complex.Gamma
+                (Complex.fixedRealPartVerticalPoint (x + N) y)‖ ≤
+              C * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y ∧
+            c * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y ≤
+              ‖Complex.Gamma
+                (Complex.fixedRealPartVerticalPoint (x + N) y)‖ := by
+    exact
+      Complex.sectorialStirling_shiftedRawGammaEnvelope_of_branchPackage
+        hbranch A B
   exact
-    Complex.sectorialLogGammaAsymptotic_verticalStrip_largeHeight_bounds
-      (Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane hbranch) A B
+    Complex.verticalStripGammaBounds_of_shiftedRawBounds_and_recurrenceProduct
+      A B N rfl
+      hshifted_transport
+      (Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds A B N)
+      (Complex.gammaRecurrenceProduct_factors_ne_zero_on_verticalStrip_largeHeight
+        A B N)
 
 /-- Classical large-height fixed-real-part vertical Stirling theorem.
 
@@ -634,10 +759,9 @@ theorem Complex.fixedRealPartVerticalCompactHeightSet_isCompact
     exact
       fun b hb =>
         have hb_abs_le : |b| ≤ H := by
-          exact Eq.subst
-            (motive := fun x : ℝ => x ≤ H)
-            (Real.norm_eq_abs b)
-            hb.2
+          calc
+            |b| = ‖b‖ := (Real.norm_eq_abs b).symm
+            _ ≤ H := hb.2
         abs_le.mp hb_abs_le
   exact isCompact_Icc.of_isClosed_subset hclosed hsubset
 
@@ -653,14 +777,10 @@ theorem Complex.fixedRealPartVerticalCompactHeightSet_nonempty
   exact
     ⟨(1 / 2 : ℝ),
       And.intro
-      (Eq.subst
-        (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x)
-        hnorm_half.symm
-        (le_refl (1 / 2 : ℝ)))
-      (Eq.subst
-        (motive := fun x : ℝ => x ≤ H)
-        hnorm_half.symm
-        hH)⟩
+      (le_of_eq hnorm_half.symm)
+      (calc
+        ‖(1 / 2 : ℝ)‖ = 1 / 2 := hnorm_half
+        _ ≤ H := hH)⟩
 
 /-- `Gamma` is nonzero on the fixed-line compact-height strip. -/
 theorem Complex.Gamma_fixedRealPartVerticalPoint_ne_zero_of_compactHeight
@@ -686,15 +806,16 @@ theorem Complex.Gamma_fixedRealPartVerticalPoint_ne_zero_of_compactHeight
         have hb_zero : b = 0 :=
           Eq.trans hleft_im.symm (Eq.trans him_eq hright_im)
         have hnorm_zero : ‖b‖ = 0 :=
-          congrArg norm hb_zero
+          Eq.trans (congrArg norm hb_zero) (norm_zero : ‖(0 : ℝ)‖ = 0)
         have hhalf_pos : (0 : ℝ) < 1 / 2 :=
           half_pos zero_lt_one
         have hnot : ¬ (1 / 2 : ℝ) ≤ 0 :=
           not_le.mpr hhalf_pos
-        hnot
-          (Eq.subst
-            (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x)
-            hnorm_zero hb.1)
+        have hhalf_le_zero : (1 / 2 : ℝ) ≤ 0 := by
+          calc
+            (1 / 2 : ℝ) ≤ ‖b‖ := hb.1
+            _ = 0 := hnorm_zero
+        hnot hhalf_le_zero
 
 /-- The fixed-line Gamma ratio is continuous on compact-height sets. -/
 theorem Complex.continuousOn_fixedRealPartVerticalGammaRatio_compactHeight
@@ -810,7 +931,17 @@ theorem Complex.fixedRealPartVerticalGammaUpperRatio_compactHeight_bound
     lt_of_lt_of_le zero_lt_one (le_max_left 1 M)
   exact
     ⟨C, hC_pos,
-      fun b hb => le_trans (hM b hb) (le_max_right 1 M)⟩
+      fun b hb =>
+        calc
+          Complex.fixedRealPartVerticalGammaUpperRatio a b ≤
+              ‖Complex.fixedRealPartVerticalGammaUpperRatio a b‖ := by
+            exact le_trans
+              (le_abs_self (Complex.fixedRealPartVerticalGammaUpperRatio a b))
+              (le_of_eq
+                (Real.norm_eq_abs
+                  (Complex.fixedRealPartVerticalGammaUpperRatio a b)).symm)
+          _ ≤ M := hM b hb
+          _ ≤ C := le_max_right 1 M⟩
 
 /-- Compact-height lower ratio has a positive global lower bound. -/
 theorem Complex.fixedRealPartVerticalGammaLowerRatio_compactHeight_pos_bound
@@ -839,7 +970,7 @@ theorem Complex.fixedRealPartVerticalGammaLowerRatio_compactHeight_pos_bound
   have hc_pos : 0 < c :=
     Complex.fixedRealPartVerticalGammaRatio_pos_on_compactHeight a H hb₀
   exact
-    ⟨c, hc_pos, fun b hb => hb₀_min b hb⟩
+    ⟨c, hc_pos, fun b hb => hb₀_min hb⟩
 
 /-- Canonical compact-height ratio theorem for a fixed vertical line.
 
@@ -1123,11 +1254,20 @@ theorem Complex.logGamma_closedRightHalfPlane_sectorial_log_norm_bound_classical
     ∃ C : ℝ,
       0 < C ∧
       ∀ w : ℂ,
-        0 ≤ w.re →
+        0 < w.re →
+        Complex.closedRightHalfPlaneSector w →
         (1 / 2 : ℝ) ≤ ‖w‖ →
         Real.log ‖Complex.Gamma w‖ ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := fun hbranch =>
-  Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane hbranch
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := fun hbranch => by
+  match Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane hbranch with
+  | ⟨C, hC_pos, hbound⟩ =>
+    have hcoh :
+        Complex.BinetSecondFormulaBranchCoherence :=
+      Complex.BinetSecondFormulaBranchUniformTailAbsorption.coherence hbranch
+    exact
+      ⟨C, hC_pos,
+        fun w hw_re_pos hw_sector hw_norm =>
+          hbound w hw_re_pos hw_sector hw_norm hcoh.1 hcoh.2.1 hcoh.2.2⟩
 
 /-- Fixed-line vertical upper envelope for `Complex.Gamma`.
 
@@ -1143,6 +1283,7 @@ theorem Complex.fixedLineVerticalGammaUpperEnvelope :
           1 / 2 ≤ ‖b‖ →
           ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
             C * Complex.fixedRealPartVerticalStirlingEnvelope a b := fun hbranch =>
+  by
   exact
     fun a =>
       match Complex.fixedLineVerticalGammaTwoSidedEnvelope hbranch a with
@@ -1163,8 +1304,22 @@ theorem Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical :
           1 / 2 ≤ ‖b‖ →
           ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
             C * Real.exp (-(Real.pi / 2) * ‖b‖) *
-              (1 + ‖b‖) ^ (a - 1 / 2) := fun hbranch =>
-  Complex.fixedLineVerticalGammaUpperEnvelope hbranch
+              (1 + ‖b‖) ^ (a - 1 / 2) := fun hbranch => by
+  intro a
+  match Complex.fixedLineVerticalGammaUpperEnvelope hbranch a with
+  | ⟨C, hC_pos, hupper⟩ =>
+    exact
+      ⟨C, hC_pos, fun b hb =>
+        calc
+          ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ =
+              ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := rfl
+          _ ≤ C * Complex.fixedRealPartVerticalStirlingEnvelope a b :=
+            hupper b hb
+          _ = C * Real.exp (-(Real.pi / 2) * ‖b‖) *
+              (1 + ‖b‖) ^ (a - 1 / 2) := by
+            exact
+              (mul_assoc C (Real.exp (-(Real.pi / 2) * ‖b‖))
+                ((1 + ‖b‖) ^ (a - 1 / 2))).symm⟩
 
 /-- Fixed-line vertical lower envelope for `Complex.Gamma`.
 
@@ -1180,6 +1335,7 @@ theorem Complex.fixedLineVerticalGammaLowerEnvelope :
           1 / 2 ≤ ‖b‖ →
           c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := fun hbranch =>
+  by
   exact
     fun a =>
       match Complex.fixedLineVerticalGammaTwoSidedEnvelope hbranch a with
@@ -1200,8 +1356,22 @@ theorem Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical :
           1 / 2 ≤ ‖b‖ →
           c * Real.exp (-(Real.pi / 2) * ‖b‖) *
               (1 + ‖b‖) ^ (a - 1 / 2) ≤
-            ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ := fun hbranch =>
-  Complex.fixedLineVerticalGammaLowerEnvelope hbranch
+            ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ := fun hbranch => by
+  intro a
+  match Complex.fixedLineVerticalGammaLowerEnvelope hbranch a with
+  | ⟨c, hc_pos, hlower⟩ =>
+    exact
+      ⟨c, hc_pos, fun b hb =>
+        calc
+          c * Real.exp (-(Real.pi / 2) * ‖b‖) *
+              (1 + ‖b‖) ^ (a - 1 / 2) =
+            c * Complex.fixedRealPartVerticalStirlingEnvelope a b := by
+            exact
+              mul_assoc c (Real.exp (-(Real.pi / 2) * ‖b‖))
+                ((1 + ‖b‖) ^ (a - 1 / 2))
+          _ ≤ ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ :=
+            hlower b hb
+          _ = ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ := rfl⟩
 
 /-- Two-sided fixed-real-part vertical Stirling bounds for `Complex.Gamma`, with the
 fixed-line point and envelope named by the owner API.
@@ -1221,9 +1391,9 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_owner
             C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
             c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
-  match Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical hbranch a with
+  match Complex.fixedLineVerticalGammaUpperEnvelope hbranch a with
   | ⟨C, hC_pos, hupper⟩ =>
-  match Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical hbranch a with
+  match Complex.fixedLineVerticalGammaLowerEnvelope hbranch a with
   | ⟨c, hc_pos, hlower⟩ =>
   exact
     ⟨C, c, hC_pos, hc_pos, fun b hb => ⟨hupper b hb, hlower b hb⟩⟩
@@ -1239,7 +1409,8 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_package_classical 
       0 < R ∧
       0 < K ∧
       ∀ w : ℂ,
-        0 ≤ w.re →
+        0 < w.re →
+        Complex.closedRightHalfPlaneSector w →
         R ≤ ‖w‖ →
         ‖Complex.Gamma w * Complex.exp w *
             w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
@@ -1247,7 +1418,8 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_package_classical 
     (∃ C : ℝ,
       0 < C ∧
       ∀ w : ℂ,
-        0 ≤ w.re →
+        0 < w.re →
+        Complex.closedRightHalfPlaneSector w →
         (1 / 2 : ℝ) ≤ ‖w‖ →
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) ∧
@@ -1267,8 +1439,29 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_package_classical 
           c * Real.exp (-(Real.pi / 2) * ‖b‖) *
               (1 + ‖b‖) ^ (a - 1 / 2) ≤
             ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖) := fun hbranch =>
+  by
+  have hcoh :
+      Complex.BinetSecondFormulaBranchCoherence :=
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption.coherence hbranch
+  have hexp :
+      ∃ R : ℝ, ∃ K : ℝ,
+        0 < R ∧
+        0 < K ∧
+        ∀ w : ℂ,
+          0 < w.re →
+          Complex.closedRightHalfPlaneSector w →
+          R ≤ ‖w‖ →
+          ‖Complex.Gamma w * Complex.exp w *
+              w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+            K / ‖w‖ := by
+    match Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expansion_classical hbranch with
+    | ⟨R, K, hR_pos, hK_pos, hbound⟩ =>
+      exact
+        ⟨R, K, hR_pos, hK_pos,
+          fun w hw_re_pos hw_sector hw_norm =>
+            hbound w hw_re_pos hw_sector hw_norm hcoh.1 hcoh.2.1 hcoh.2.2⟩
   exact
-    ⟨Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expansion_classical hbranch,
+    ⟨hexp,
       Complex.logGamma_closedRightHalfPlane_sectorial_log_norm_bound_classical hbranch,
       Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical hbranch,
       Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical hbranch⟩
@@ -1280,7 +1473,8 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_classical :
     ∃ C : ℝ,
       0 < C ∧
       ∀ w : ℂ,
-        0 ≤ w.re →
+        0 < w.re →
+        Complex.closedRightHalfPlaneSector w →
         (1 / 2 : ℝ) ≤ ‖w‖ →
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := fun hbranch =>
@@ -1323,12 +1517,16 @@ theorem Complex.Gamma_fixedRealPart_vertical_ne_zero_of_half_le_norm
         have hb_zero : b = 0 :=
           Eq.trans hleft_im.symm (Eq.trans him_eq hright_im)
         have hnorm_zero : ‖b‖ = 0 :=
-          congrArg norm hb_zero
+          Eq.trans (congrArg norm hb_zero) (norm_zero : ‖(0 : ℝ)‖ = 0)
         have hhalf_pos : (0 : ℝ) < 1 / 2 :=
           half_pos zero_lt_one
         have hnot : ¬ (1 / 2 : ℝ) ≤ 0 :=
           not_le.mpr hhalf_pos
-        hnot (Eq.subst (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x) hnorm_zero hb)
+        have hhalf_le_zero : (1 / 2 : ℝ) ≤ 0 := by
+          calc
+            (1 / 2 : ℝ) ≤ ‖b‖ := hb
+            _ = 0 := hnorm_zero
+        hnot hhalf_le_zero
 
 /-- Reciprocal transport for fixed-real-part vertical Gamma estimates.
 
@@ -1365,7 +1563,33 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_of_lower_bound
         mul_pos (mul_pos hc_pos hexp_pos) hrpow_pos
       have hG_lower :
           c * Real.exp (-x) * H ^ (a - 1 / 2) ≤ ‖G‖ := by
-        exact hlower b hb
+        have hx_def : x = (Real.pi / 2) * ‖b‖ := rfl
+        have hH_def : H = 1 + ‖b‖ := rfl
+        calc
+          c * Real.exp (-x) * H ^ (a - 1 / 2) =
+              c * Real.exp (-((Real.pi / 2) * ‖b‖)) *
+                H ^ (a - 1 / 2) := by
+            exact
+              congrArg
+                (fun u : ℝ => c * Real.exp (-u) * H ^ (a - 1 / 2))
+                hx_def
+          _ = c * Real.exp (-(Real.pi / 2) * ‖b‖) *
+                H ^ (a - 1 / 2) := by
+            exact
+              congrArg
+                (fun u : ℝ => c * Real.exp u * H ^ (a - 1 / 2))
+                (neg_mul (Real.pi / 2) ‖b‖).symm
+          _ = c * Real.exp (-(Real.pi / 2) * ‖b‖) *
+                (1 + ‖b‖) ^ (a - 1 / 2) := by
+            exact
+              congrArg
+                (fun u : ℝ =>
+                  c * Real.exp (-(Real.pi / 2) * ‖b‖) *
+                    u ^ (a - 1 / 2))
+                hH_def
+          _ ≤ ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ :=
+            hlower b hb
+          _ = ‖G‖ := rfl
       have hG_inv_norm :
           ‖G⁻¹‖ = ‖G‖⁻¹ :=
         norm_inv G
@@ -1377,6 +1601,11 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_of_lower_bound
             c⁻¹ * Real.exp x * H ^ (1 / 2 - a) := by
         have hexp_neg_eq : Real.exp (-x) = (Real.exp x)⁻¹ :=
           Real.exp_neg x
+        have hexp_neg_inv_eq : (Real.exp (-x))⁻¹ = Real.exp x := by
+          calc
+            (Real.exp (-x))⁻¹ = ((Real.exp x)⁻¹)⁻¹ :=
+              congrArg Inv.inv hexp_neg_eq
+            _ = Real.exp x := inv_inv (Real.exp x)
         have hpow_neg_eq :
             H ^ (1 / 2 - a) = (H ^ (a - 1 / 2))⁻¹ := by
           have hneg : 1 / 2 - a = -(a - 1 / 2) := by
@@ -1386,29 +1615,46 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_of_lower_bound
             (Real.rpow_neg (le_of_lt hH_pos) (a - 1 / 2))
         calc
           (c * Real.exp (-x) * H ^ (a - 1 / 2))⁻¹ =
-              (c * Real.exp (-x))⁻¹ * (H ^ (a - 1 / 2))⁻¹ := by
-                exact (mul_inv_rev c (Real.exp (-x)) (H ^ (a - 1 / 2))).symm
-          _ = (c⁻¹ * (Real.exp (-x))⁻¹) * (H ^ (a - 1 / 2))⁻¹ := by
-                exact congrArg (fun y : ℝ => y * (H ^ (a - 1 / 2))⁻¹)
-                  (mul_inv_rev c (Real.exp (-x)) 1)
+              (H ^ (a - 1 / 2))⁻¹ * (c * Real.exp (-x))⁻¹ := by
+                exact mul_inv_rev (c * Real.exp (-x)) (H ^ (a - 1 / 2))
+          _ = (H ^ (a - 1 / 2))⁻¹ *
+              ((Real.exp (-x))⁻¹ * c⁻¹) := by
+                exact congrArg
+                  (fun y : ℝ => (H ^ (a - 1 / 2))⁻¹ * y)
+                  (mul_inv_rev c (Real.exp (-x)))
+          _ = c⁻¹ * (Real.exp (-x))⁻¹ * (H ^ (a - 1 / 2))⁻¹ := by
+                calc
+                  (H ^ (a - 1 / 2))⁻¹ *
+                      ((Real.exp (-x))⁻¹ * c⁻¹) =
+                    ((H ^ (a - 1 / 2))⁻¹ * (Real.exp (-x))⁻¹) * c⁻¹ :=
+                      (mul_assoc (H ^ (a - 1 / 2))⁻¹ (Real.exp (-x))⁻¹ c⁻¹).symm
+                  _ = c⁻¹ *
+                      ((H ^ (a - 1 / 2))⁻¹ * (Real.exp (-x))⁻¹) :=
+                    mul_comm ((H ^ (a - 1 / 2))⁻¹ * (Real.exp (-x))⁻¹) c⁻¹
+                  _ = c⁻¹ *
+                      ((Real.exp (-x))⁻¹ * (H ^ (a - 1 / 2))⁻¹) := by
+                    exact congrArg
+                      (fun y : ℝ => c⁻¹ * y)
+                      (mul_comm (H ^ (a - 1 / 2))⁻¹ (Real.exp (-x))⁻¹)
+                  _ = c⁻¹ * (Real.exp (-x))⁻¹ *
+                      (H ^ (a - 1 / 2))⁻¹ :=
+                    (mul_assoc c⁻¹ (Real.exp (-x))⁻¹
+                      (H ^ (a - 1 / 2))⁻¹).symm
           _ = (c⁻¹ * Real.exp x) * (H ^ (a - 1 / 2))⁻¹ := by
                 exact congrArg
                   (fun y : ℝ => (c⁻¹ * y) * (H ^ (a - 1 / 2))⁻¹)
-                  (congrArg Inv.inv hexp_neg_eq)
+                  hexp_neg_inv_eq
           _ = (c⁻¹ * Real.exp x) * H ^ (1 / 2 - a) := by
                 exact congrArg
                   (fun y : ℝ => (c⁻¹ * Real.exp x) * y)
                   hpow_neg_eq.symm
-          _ = c⁻¹ * Real.exp x * H ^ (1 / 2 - a) := by
-                exact (mul_assoc c⁻¹ (Real.exp x) (H ^ (1 / 2 - a))).symm
-      Eq.subst
-        (motive := fun y : ℝ => ‖G⁻¹‖ ≤ y)
-        htarget_eq
-        (Eq.subst
-          (motive := fun y : ℝ => y ≤
-            (c * Real.exp (-x) * H ^ (a - 1 / 2))⁻¹)
-          hG_inv_norm.symm
-          hreciprocal_le)
+          _ = c⁻¹ * Real.exp x * H ^ (1 / 2 - a) := rfl
+      calc
+        ‖G⁻¹‖ = ‖G‖⁻¹ := hG_inv_norm
+        _ ≤ (c * Real.exp (-x) * H ^ (a - 1 / 2))⁻¹ :=
+          hreciprocal_le
+        _ = c⁻¹ * Real.exp x * H ^ (1 / 2 - a) :=
+          htarget_eq
 
 /-- Fixed-real-part reciprocal vertical Stirling bound for `Complex.Gamma`, obtained
 from the lower fixed-line estimate by reciprocal transport. -/
@@ -1518,28 +1764,34 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_classical 
             mul_assoc C (Real.exp ((Real.pi / 2) * ‖b‖))
               ((1 + ‖b‖) ^ (1 / 2 - a))
           And.intro
-            (Eq.subst
-              (motive := fun x : ℝ =>
-                ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤ x)
-              hdirect_target_assoc.symm
-              (le_trans
-                (Eq.subst
-                  (motive := fun x : ℝ =>
-                    ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤ x)
-                  hdirect_source_assoc
-                  (hCu b hb))
-                hdirect_scaled))
-            (Eq.subst
-              (motive := fun x : ℝ =>
-                ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤ x)
-              hreciprocal_target_assoc.symm
-              (le_trans
-                (Eq.subst
-                  (motive := fun x : ℝ =>
-                    ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤ x)
-                  hreciprocal_source_assoc
-                  (hCr b hb))
-                hreciprocal_scaled))⟩
+            (calc
+              ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
+                  Cu * Real.exp (-(Real.pi / 2) * ‖b‖) *
+                    (1 + ‖b‖) ^ (a - 1 / 2) :=
+                hCu b hb
+              _ = Cu * (Real.exp (-(Real.pi / 2) * ‖b‖) *
+                    (1 + ‖b‖) ^ (a - 1 / 2)) :=
+                hdirect_source_assoc
+              _ ≤ C * (Real.exp (-(Real.pi / 2) * ‖b‖) *
+                    (1 + ‖b‖) ^ (a - 1 / 2)) :=
+                hdirect_scaled
+              _ = C * Real.exp (-(Real.pi / 2) * ‖b‖) *
+                    (1 + ‖b‖) ^ (a - 1 / 2) :=
+                hdirect_target_assoc.symm)
+            (calc
+              ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
+                  Cr * Real.exp ((Real.pi / 2) * ‖b‖) *
+                    (1 + ‖b‖) ^ (1 / 2 - a) :=
+                hCr b hb
+              _ = Cr * (Real.exp ((Real.pi / 2) * ‖b‖) *
+                    (1 + ‖b‖) ^ (1 / 2 - a)) :=
+                hreciprocal_source_assoc
+              _ ≤ C * (Real.exp ((Real.pi / 2) * ‖b‖) *
+                    (1 + ‖b‖) ^ (1 / 2 - a)) :=
+                hreciprocal_scaled
+              _ = C * Real.exp ((Real.pi / 2) * ‖b‖) *
+                    (1 + ‖b‖) ^ (1 / 2 - a) :=
+                hreciprocal_target_assoc.symm)⟩
 
 /-- Classical closed-sector Stirling expansion for `Complex.Gamma`, with the
 sectorial and fixed-line consequences used by the normalization chain.
@@ -1553,7 +1805,8 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_expansion_with_ver
       0 < R ∧
       0 < K ∧
       ∀ w : ℂ,
-        0 ≤ w.re →
+        0 < w.re →
+        Complex.closedRightHalfPlaneSector w →
         R ≤ ‖w‖ →
         ‖Complex.Gamma w * Complex.exp w *
             w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
@@ -1561,7 +1814,8 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_expansion_with_ver
     (∃ C : ℝ,
       0 < C ∧
       ∀ w : ℂ,
-        0 ≤ w.re →
+        0 < w.re →
+        Complex.closedRightHalfPlaneSector w →
         (1 / 2 : ℝ) ≤ ‖w‖ →
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) ∧
@@ -1575,9 +1829,29 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_expansion_with_ver
                 (1 + ‖b‖) ^ (a - 1 / 2) ∧
           ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
               C * Real.exp ((Real.pi / 2) * ‖b‖) *
-                (1 + ‖b‖) ^ (1 / 2 - a)) := fun hbranch =>
+                (1 + ‖b‖) ^ (1 / 2 - a)) := fun hbranch => by
+  have hcoh :
+      Complex.BinetSecondFormulaBranchCoherence :=
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption.coherence hbranch
+  have hexp :
+      ∃ R : ℝ, ∃ K : ℝ,
+        0 < R ∧
+        0 < K ∧
+        ∀ w : ℂ,
+          0 < w.re →
+          Complex.closedRightHalfPlaneSector w →
+          R ≤ ‖w‖ →
+          ‖Complex.Gamma w * Complex.exp w *
+              w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+            K / ‖w‖ := by
+    match Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expansion_classical hbranch with
+    | ⟨R, K, hR_pos, hK_pos, hbound⟩ =>
+      exact
+        ⟨R, K, hR_pos, hK_pos,
+          fun w hw_re_pos hw_sector hw_norm =>
+            hbound w hw_re_pos hw_sector hw_norm hcoh.1 hcoh.2.1 hcoh.2.2⟩
   exact
-    ⟨Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expansion_classical hbranch,
+    ⟨hexp,
       Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_classical hbranch,
       Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_classical hbranch⟩
 

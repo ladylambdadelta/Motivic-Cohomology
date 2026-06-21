@@ -237,6 +237,7 @@ theorem centeredCompletedRiemannZeta_zeroMultiplicityCounting_height_bound_of_un
 /-- Finite-order/Jensen zero counting for the centered completed zeta divisor,
 with analytic multiplicities and centered vertical height. -/
 theorem centeredCompletedRiemannZeta_finiteOrder_zeroMultiplicityCounting_height_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -251,12 +252,14 @@ theorem centeredCompletedRiemannZeta_finiteOrder_zeroMultiplicityCounting_height
   exact
     centeredCompletedRiemannZeta_zeroMultiplicityCounting_height_bound_of_uncenteredFiniteOrder
       (completedRiemannZeta₀_finiteOrder_growth_bound
+        hbranch
         hpartialOneTwo htailOneTwo hcompactOneTwo
         hpartialLeft htailBoundary hcompactBoundary)
 
 /-- Coarse polynomial counting of completed zeros with multiplicity in centered
 height. -/
 theorem exists_completedZeroMultiplicityCounting_height_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -269,6 +272,7 @@ theorem exists_completedZeroMultiplicityCounting_height_bound
         1 ≤ T →
         completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d := by
   exact centeredCompletedRiemannZeta_finiteOrder_zeroMultiplicityCounting_height_bound
+    hbranch
     hpartialOneTwo htailOneTwo hcompactOneTwo
     hpartialLeft htailBoundary hcompactBoundary
 

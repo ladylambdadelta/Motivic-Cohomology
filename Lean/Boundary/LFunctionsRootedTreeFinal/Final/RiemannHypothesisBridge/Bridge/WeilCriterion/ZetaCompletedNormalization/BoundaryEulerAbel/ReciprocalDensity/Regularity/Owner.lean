@@ -1,5 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.FirstDerivative.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalVariation.Owner
+import Mathlib.MeasureTheory.Integral.Bochner
 
 /-!
 # Reciprocal-density variation estimates
@@ -14,6 +14,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped Filter Topology
+open MeasureTheory Set
 local notation "π" => Real.pi
 
 /-- Local regularity of the reciprocal-square density away from zero. -/
@@ -29,9 +30,9 @@ theorem scalarReciprocalDensity_reciprocalSquare_continuousAt
 theorem scalarReciprocalDensity_logTwoAdd_continuousAt
     {x : ℝ}
     (hx : 2 + x ≠ 0) :
-    ContinuousAt (fun y : ℝ => Real.log (2 + y)) x := by
+  ContinuousAt (fun y : ℝ => Real.log (2 + y)) x := by
   exact
-    (continuousAt_log hx).comp
+    (Real.continuousAt_log hx).comp
       (continuousAt_const.add continuousAt_id)
 
 /-- Local regularity of `log(2+x) / x` away from the two singular points. -/
@@ -74,34 +75,6 @@ theorem scalarReciprocalDensity_logTwoAdd_div_square_continuousAt
       (continuousAt_id.pow 2)
       hx_sq
 
-theorem reciprocalDerivative_norm_eq_on_positive_interval
-    {a b x : ℝ}
-    (ha : 0 < a)
-    (hx : x ∈ Set.Icc a b) :
-    ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
-      (1 : ℝ) / x ^ 2 := by
-  have hx_pos : 0 < x :=
-    lt_of_lt_of_le ha hx.1
-  exact complexReciprocalOfReal_deriv_norm_eq hx_pos
-
-/-- Concrete reciprocal variation bound on a finite post-cutoff interval.
-
-This is the non-oscillatory real-variable input used by partial summation:
-the total variation density of `u ↦ 1 / u` is `1/u^2` on the positive interval
-starting at the canonical cutoff. -/
-theorem concreteReciprocalVariation_density_bound_on_cutoff_interval
-    (t : ℝ)
-    {M : ℕ}
-    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
-    ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-      ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
-        (1 : ℝ) / x ^ 2 := by
-  exact
-    fun x hx =>
-      have hcutoff_pos : 0 < (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) :=
-        Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t)
-      reciprocalDerivative_norm_eq_on_positive_interval hcutoff_pos hx
-
 /-- Pointwise scalar majorization of the reciprocal-density integrand on the
 post-cutoff interval. -/
 theorem reciprocalDensityIntegral_pointwise_norm_le_scalar_majorant
@@ -112,7 +85,7 @@ theorem reciprocalDensityIntegral_pointwise_norm_le_scalar_majorant
           ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
             8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {M : ℕ}
-    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    (_hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
     (hreciprocal_density :
       ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
         ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
@@ -234,7 +207,7 @@ theorem reciprocalDensityIntegral_norm_le_scalar_majorant_of_pointwise
           hweighted.mul hlog
         (hreciprocal.mul hright).continuousWithinAt
   have hg : Integrable g (volume.restrict s) :=
-    (ContinuousOn.integrableOn_Icc hg_cont).mono_set Ioc_subset_Icc_self
+    (ContinuousOn.integrableOn_Icc hg_cont).mono_set Set.Ioc_subset_Icc_self
   have hbound : ∀ᵐ x ∂volume.restrict s, ‖f x‖ ≤ g x :=
     (ae_restrict_mem measurableSet_Ioc).mono
       (fun x hx => hpointwise x hx)

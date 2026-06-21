@@ -246,6 +246,71 @@ theorem completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound_of_strip
           (Nat.le_add_right ms mf))
   | Or.inr htwo_le_re =>
       have hdegree : mf ≤ ms + mf := by
+        calc
+          mf ≤ mf + ms := Nat.le_add_right mf ms
+          _ = ms + mf := Nat.add_comm mf ms
+      exact le_trans (hfar_bound z htwo_le_re)
+        (exponentialFiniteOrder_bound_le_of_le_constants_and_exponent
+          hAf_nonneg
+          hA_far_le
+          hB_far_le
+          hBf_nonneg
+          hdegree)
+
+/-- Strict strip and far-right estimates combine to a strict right-half-plane
+finite-order estimate. -/
+theorem completedRiemannZeta₀_strictRightHalfPlane_finiteOrder_growth_bound_of_strip_and_farRight
+    (hstrip :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          0 < z.re →
+          z.re ≤ 2 →
+          ‖completedRiemannZeta₀ z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m))
+    (hfar :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          2 ≤ z.re →
+          ‖completedRiemannZeta₀ z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 < z.re →
+        ‖completedRiemannZeta₀ z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  rcases hstrip with ⟨As, Bs, ms, hAs, hBs, hstrip_bound⟩
+  rcases hfar with ⟨Af, Bf, mf, hAf, hBf, hfar_bound⟩
+  refine ⟨As + Af, Bs + Bf, ms + mf, add_pos hAs hAf, add_pos hBs hBf, ?_⟩
+  intro z hz_re_pos
+  have hAs_nonneg : 0 ≤ As := le_of_lt hAs
+  have hAf_nonneg : 0 ≤ Af := le_of_lt hAf
+  have hBs_nonneg : 0 ≤ Bs := le_of_lt hBs
+  have hBf_nonneg : 0 ≤ Bf := le_of_lt hBf
+  have hA_strip_le : As ≤ As + Af :=
+    le_add_of_nonneg_right hAf_nonneg
+  have hA_far_le : Af ≤ As + Af :=
+    le_add_of_nonneg_left hAs_nonneg
+  have hB_strip_le : Bs ≤ Bs + Bf :=
+    le_add_of_nonneg_right hBf_nonneg
+  have hB_far_le : Bf ≤ Bs + Bf :=
+    le_add_of_nonneg_left hBs_nonneg
+  match le_total z.re 2 with
+  | Or.inl hz_re_le_two =>
+      exact le_trans (hstrip_bound z hz_re_pos hz_re_le_two)
+        (exponentialFiniteOrder_bound_le_of_le_constants_and_exponent
+          hAs_nonneg
+          hA_strip_le
+          hB_strip_le
+          hBs_nonneg
+          (Nat.le_add_right ms mf))
+  | Or.inr htwo_le_re =>
+      have hdegree : mf ≤ ms + mf := by
         exact Eq.subst
           (motive := fun d : ℕ => mf ≤ d)
           (Nat.add_comm mf ms)
@@ -368,6 +433,92 @@ theorem completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound_of_rightH
     hreflect_norm.symm
     (hraw.trans hscaled)
 
+/-- Strict right half-plane finite-order growth transports to the left half-plane
+by reflection, since `z.re ≤ 0` implies `(1 - z).re > 0`. -/
+theorem completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound_of_strictRightHalfPlane
+    (hright :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          0 < z.re →
+          ‖completedRiemannZeta₀ z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖completedRiemannZeta₀ z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  rcases hright with ⟨A, B, m, hApos, hBpos, hbound⟩
+  refine ⟨A, B * (2 : ℝ) ^ m, m, hApos, ?_, ?_⟩
+  · exact mul_pos hBpos (pow_pos zero_lt_two m)
+  intro z hz_left
+  let w : ℂ := 1 - z
+  let H : ℝ := 1 + ‖z‖
+  have hw_right : 0 < w.re := by
+    have hw_eq : w.re = 1 - z.re := by
+      calc
+        w.re = (1 - z).re := rfl
+        _ = (1 : ℂ).re - z.re := Complex.sub_re 1 z
+        _ = 1 - z.re := by
+          exact congrArg (fun x : ℝ => x - z.re) complex_one_re_eq_one
+    have hpos : 0 < 1 - z.re := by
+      have hneg_nonneg : 0 ≤ -z.re :=
+        neg_nonneg.mpr hz_left
+      have hone_le : (1 : ℝ) ≤ 1 - z.re := by
+        calc
+          (1 : ℝ) = 1 + 0 := (add_zero 1).symm
+          _ ≤ 1 + -z.re := add_le_add_left hneg_nonneg 1
+          _ = 1 - z.re := (sub_eq_add_neg 1 z.re).symm
+      exact lt_of_lt_of_le zero_lt_one hone_le
+    calc
+      0 < 1 - z.re := hpos
+      _ = w.re := hw_eq.symm
+  have hreflect_norm :
+      ‖completedRiemannZeta₀ z‖ = ‖completedRiemannZeta₀ w‖ := by
+    have hsymm : completedRiemannZeta₀ (1 - z) = completedRiemannZeta₀ z :=
+      completedRiemannZeta₀_one_sub z
+    exact congrArg (fun x : ℂ => ‖x‖) hsymm.symm
+  have hraw :
+      ‖completedRiemannZeta₀ w‖ ≤
+        A * Real.exp (B * (1 + ‖w‖) ^ m) :=
+    hbound w hw_right
+  have hheight_nonneg : 0 ≤ 1 + ‖w‖ := by
+    exact le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg w))
+  have hheight_le :
+      1 + ‖w‖ ≤ 2 * H :=
+    completedRiemannZeta₀_reflected_basicHeight_le z
+  have hpow_le :
+      (1 + ‖w‖) ^ m ≤ (2 * H) ^ m :=
+    pow_le_pow_left₀ hheight_nonneg hheight_le m
+  have hscale :
+      B * (1 + ‖w‖) ^ m ≤ B * (2 * H) ^ m :=
+    mul_le_mul_of_nonneg_left hpow_le (le_of_lt hBpos)
+  have hmul_pow :
+      (2 * H) ^ m = (2 : ℝ) ^ m * H ^ m :=
+    mul_pow 2 H m
+  have htarget :
+      B * (2 * H) ^ m = (B * (2 : ℝ) ^ m) * H ^ m := by
+    calc
+      B * (2 * H) ^ m = B * ((2 : ℝ) ^ m * H ^ m) := by
+        exact congrArg (fun x : ℝ => B * x) hmul_pow
+      _ = (B * (2 : ℝ) ^ m) * H ^ m := by
+        exact (mul_assoc B ((2 : ℝ) ^ m) (H ^ m)).symm
+  have hexp_le :
+      Real.exp (B * (1 + ‖w‖) ^ m) ≤
+        Real.exp ((B * (2 : ℝ) ^ m) * H ^ m) :=
+    Real.exp_le_exp.mpr (hscale.trans_eq htarget)
+  have hscaled :
+      A * Real.exp (B * (1 + ‖w‖) ^ m) ≤
+        A * Real.exp ((B * (2 : ℝ) ^ m) * H ^ m) :=
+    mul_le_mul_of_nonneg_left hexp_le (le_of_lt hApos)
+  calc
+    ‖completedRiemannZeta₀ z‖ = ‖completedRiemannZeta₀ w‖ := hreflect_norm
+    _ ≤ A * Real.exp (B * (1 + ‖w‖) ^ m) := hraw
+    _ ≤ A * Real.exp ((B * (2 : ℝ) ^ m) * H ^ m) := hscaled
+
 /-- Half-plane finite-order estimates combine to a global finite-order estimate. -/
 theorem completedRiemannZeta₀_global_finiteOrder_growth_bound_of_halfPlanes
     (hright :
@@ -419,10 +570,72 @@ theorem completedRiemannZeta₀_global_finiteOrder_growth_bound_of_halfPlanes
           (Nat.le_add_right mr ml))
   | Or.inr hleft_re =>
       have hdegree : ml ≤ mr + ml := by
-        exact Eq.subst
-          (motive := fun d : ℕ => ml ≤ d)
-          (Nat.add_comm ml mr)
-          (Nat.le_add_right ml mr)
+        calc
+          ml ≤ ml + mr := Nat.le_add_right ml mr
+          _ = mr + ml := Nat.add_comm ml mr
+      exact le_trans (hleft_bound z hleft_re)
+        (exponentialFiniteOrder_bound_le_of_le_constants_and_exponent
+          hAl_nonneg
+          hA_left_le
+          hB_left_le
+          hBl_nonneg
+          hdegree)
+
+/-- Strict right-half-plane and closed left-half-plane finite-order estimates
+combine to a global finite-order estimate. -/
+theorem completedRiemannZeta₀_global_finiteOrder_growth_bound_of_strictRight_and_leftHalfPlanes
+    (hright :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          0 < z.re →
+          ‖completedRiemannZeta₀ z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m))
+    (hleft :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re ≤ 0 →
+          ‖completedRiemannZeta₀ z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        ‖completedRiemannZeta₀ z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  rcases hright with ⟨Ar, Br, mr, hAr, hBr, hright_bound⟩
+  rcases hleft with ⟨Al, Bl, ml, hAl, hBl, hleft_bound⟩
+  refine ⟨Ar + Al, Br + Bl, mr + ml, add_pos hAr hAl, add_pos hBr hBl, ?_⟩
+  intro z
+  have hAr_nonneg : 0 ≤ Ar := le_of_lt hAr
+  have hAl_nonneg : 0 ≤ Al := le_of_lt hAl
+  have hBr_nonneg : 0 ≤ Br := le_of_lt hBr
+  have hBl_nonneg : 0 ≤ Bl := le_of_lt hBl
+  have hA_right_le : Ar ≤ Ar + Al :=
+    le_add_of_nonneg_right hAl_nonneg
+  have hA_left_le : Al ≤ Ar + Al :=
+    le_add_of_nonneg_left hAr_nonneg
+  have hB_right_le : Br ≤ Br + Bl :=
+    le_add_of_nonneg_right hBl_nonneg
+  have hB_left_le : Bl ≤ Br + Bl :=
+    le_add_of_nonneg_left hBr_nonneg
+  match lt_or_ge 0 z.re with
+  | Or.inl hright_re =>
+      exact le_trans (hright_bound z hright_re)
+        (exponentialFiniteOrder_bound_le_of_le_constants_and_exponent
+          hAr_nonneg
+          hA_right_le
+          hB_right_le
+          hBr_nonneg
+          (Nat.le_add_right mr ml))
+  | Or.inr hleft_re =>
+      have hdegree : ml ≤ mr + ml := by
+        calc
+          ml ≤ ml + mr := Nat.le_add_right ml mr
+          _ = mr + ml := Nat.add_comm ml mr
       exact le_trans (hleft_bound z hleft_re)
         (exponentialFiniteOrder_bound_le_of_le_constants_and_exponent
           hAl_nonneg

@@ -27,10 +27,16 @@ theorem Gammaℝ_ne_zero_of_ne_zero_norm_le_one
   cases n with
   | zero =>
       have hz_zero : z = 0 := by
+        have hmul_zero : (2 : ℂ) * ((0 : ℕ) : ℂ) = 0 := by
+          calc
+            (2 : ℂ) * ((0 : ℕ) : ℂ) = (2 : ℂ) * 0 := by
+              exact congrArg (fun x : ℂ => (2 : ℂ) * x) Nat.cast_zero
+            _ = 0 := by
+              exact mul_zero (2 : ℂ)
         calc
           z = -(2 * ((0 : ℕ) : ℂ)) := hz_eq
           _ = -0 := by
-            exact congrArg Neg.neg (mul_zero (2 : ℂ))
+            exact congrArg Neg.neg hmul_zero
           _ = 0 := by
             exact neg_zero
       exact hz_ne_zero hz_zero
@@ -77,7 +83,11 @@ theorem Gammaℝ_ne_zero_of_ne_zero_norm_le_one
           _ = -((2 : ℝ) * (Nat.succ n : ℝ)) := by
             exact congrArg Neg.neg hprod_re
       have hsucc_ge_one : (1 : ℝ) ≤ (Nat.succ n : ℝ) :=
-        Nat.cast_le.mpr (Nat.succ_le_succ (Nat.zero_le n))
+        calc
+          (1 : ℝ) = ((Nat.succ 0 : ℕ) : ℝ) := by
+            exact Nat.cast_one.symm
+          _ ≤ (Nat.succ n : ℝ) := by
+            exact Nat.cast_le.mpr (Nat.succ_le_succ (Nat.zero_le n))
       have htwo_le_prod : (2 : ℝ) ≤ (2 : ℝ) * (Nat.succ n : ℝ) := by
         calc
           (2 : ℝ) = 2 * 1 := by
@@ -91,6 +101,8 @@ theorem Gammaℝ_ne_zero_of_ne_zero_norm_le_one
         calc
           |z.re| = |-((2 : ℝ) * (Nat.succ n : ℝ))| := by
             exact congrArg abs hz_re_eq
+          _ = |(2 : ℝ) * (Nat.succ n : ℝ)| := by
+            exact abs_neg ((2 : ℝ) * (Nat.succ n : ℝ))
           _ = (2 : ℝ) * (Nat.succ n : ℝ) := by
             exact abs_of_nonneg hprod_nonneg
       have htwo_le_norm : (2 : ℝ) ≤ ‖z‖ := by
@@ -99,7 +111,7 @@ theorem Gammaℝ_ne_zero_of_ne_zero_norm_le_one
             (motive := fun x : ℝ => (2 : ℝ) ≤ x)
             habs_eq.symm
             htwo_le_prod)
-          (complex_abs_re_le_norm z)
+          (RCLike.abs_re_le_norm z)
       have htwo_le_one : (2 : ℝ) ≤ 1 :=
         le_trans htwo_le_norm hz_norm
       exact not_lt_of_ge htwo_le_one one_lt_two
@@ -154,7 +166,8 @@ theorem Gammaℝ_continuousAt_of_ne_zero_norm_le_one
       (Complex.differentiableAt_Gamma
         (z / 2)
         (Gamma_half_ne_neg_nat_of_ne_zero_norm_le_one hz_ne_zero hz_norm)).continuousAt.comp
-        (continuousAt_id.div_const 2)
+        (x := z)
+        (continuousAt_id.div_const (2 : ℂ))
   have hpow :
       ContinuousAt (fun w : ℂ => (Real.pi : ℂ) ^ (-w / 2)) z :=
     (continuousAt_id.neg.div_const 2).const_cpow
@@ -174,7 +187,7 @@ theorem Gammaℝ_continuousAt_of_re_pos
         calc
           0 < z.re / 2 := div_pos hz_re two_pos
           _ = (z / 2).re := by
-            exact (Complex.div_re_ofReal z 2).symm
+            exact (RCLike.div_re_ofReal (z := z) (r := (2 : ℝ))).symm
       have hhalf_re_nonpos : (z / 2).re ≤ 0 := by
         have hneg_re :
             (-((m : ℕ) : ℂ)).re ≤ 0 := by
@@ -191,7 +204,8 @@ theorem Gammaℝ_continuousAt_of_re_pos
           hneg_re
       exact not_le_of_gt hhalf_re_pos hhalf_re_nonpos
     exact (Complex.differentiableAt_Gamma (z / 2) hpoles).continuousAt.comp
-      (continuousAt_id.div_const 2)
+      (x := z)
+      (continuousAt_id.div_const (2 : ℂ))
   have hpow :
       ContinuousAt (fun w : ℂ => (Real.pi : ℂ) ^ (-w / 2)) z :=
     (continuousAt_id.neg.div_const 2).const_cpow
@@ -239,7 +253,7 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_continu
     Gammaℝ_ne_zero_of_ne_zero_norm_le_one hz_ne_zero hz_mem.2
   have hreflect_re_pos : 0 < ((1 : ℂ) - z).re := by
     have hsub_pos : 0 < 1 - z.re :=
-      sub_pos.mpr (lt_of_lt_of_le zero_lt_one hz_mem.1)
+      sub_pos.mpr (lt_of_le_of_lt hz_mem.1 zero_lt_one)
     have hcoord : ((1 : ℂ) - z).re = 1 - z.re := by
       calc
         ((1 : ℂ) - z).re = (1 : ℂ).re - z.re := by
@@ -256,10 +270,14 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_continu
     (continuousAt_id.sub continuousAt_const).div
       ((continuousAt_const.sub continuousAt_id).sub continuousAt_const)
       hden_raw
+  have hreflect_map :
+      ContinuousAt (fun w : ℂ => (1 : ℂ) - w) z :=
+    continuousAt_const.sub continuousAt_id
   have hGamma_reflect :
       ContinuousAt (fun w : ℂ => Complex.Gammaℝ ((1 : ℂ) - w)) z :=
     (Gammaℝ_continuousAt_of_re_pos hreflect_re_pos).comp
-      (continuousAt_const.sub continuousAt_id)
+      (x := z)
+      hreflect_map
   have hGamma_current :
       ContinuousAt (fun w : ℂ => Complex.Gammaℝ w) z :=
     Gammaℝ_continuousAt_of_ne_zero_norm_le_one hz_ne_zero hz_mem.2
@@ -326,8 +344,18 @@ theorem poleClearedRiemannZeta_reflected_near_zero_nonzero_eventually :
       poleClearedRiemannZeta ((1 : ℂ) - z) ≠ 0 := by
   have hcont :
       ContinuousAt (fun z : ℂ => poleClearedRiemannZeta ((1 : ℂ) - z)) 0 :=
-    (poleClearedRiemannZeta_continuousAt 1).comp
-      (continuousAt_const.sub continuousAt_id)
+    have hreflect_map :
+        ContinuousAt (fun z : ℂ => (1 : ℂ) - z) 0 :=
+      continuousAt_const.sub continuousAt_id
+    have hbase :
+        ContinuousAt poleClearedRiemannZeta ((1 : ℂ) - (0 : ℂ)) :=
+      Eq.subst
+        (motive := fun w : ℂ => ContinuousAt poleClearedRiemannZeta w)
+        (sub_zero (1 : ℂ)).symm
+        (poleClearedRiemannZeta_continuousAt 1)
+    hbase.comp
+      (x := (0 : ℂ))
+      hreflect_map
   have hvalue :
       poleClearedRiemannZeta ((1 : ℂ) - (0 : ℂ)) ≠ 0 := by
     have hsub : (1 : ℂ) - (0 : ℂ) = 1 :=
@@ -411,9 +439,58 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_eq_poleClea
         · have hidentity :
               poleClearedRiemannZeta z =
                 poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
-                  poleClearedRiemannZeta ((1 : ℂ) - z) :=
-            poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of_ne_zero
-              hz_mem.1 hz_zero
+                  poleClearedRiemannZeta ((1 : ℂ) - z) := by
+              by_cases hGamma_zero : Complex.Gammaℝ z = 0
+              · have hM :
+                  poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+                    poleClearedRiemannZeta z /
+                      poleClearedRiemannZeta ((1 : ℂ) - z) := by
+                  unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+                  exact Eq.trans (if_neg hz_zero) (if_pos hGamma_zero)
+                calc
+                  poleClearedRiemannZeta z =
+                      (poleClearedRiemannZeta z /
+                        poleClearedRiemannZeta ((1 : ℂ) - z)) *
+                        poleClearedRiemannZeta ((1 : ℂ) - z) := by
+                    exact (div_mul_cancel₀
+                      (poleClearedRiemannZeta z)
+                      hden_ne).symm
+                  _ =
+                      poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
+                        poleClearedRiemannZeta ((1 : ℂ) - z) := by
+                    exact congrArg
+                      (fun w : ℂ => w * poleClearedRiemannZeta ((1 : ℂ) - z))
+                      hM.symm
+              · have hM :
+                  poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+                    ((z - 1) / (((1 : ℂ) - z) - 1)) *
+                      (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
+                  unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+                  exact Eq.trans (if_neg hz_zero) (if_neg hGamma_zero)
+                have hquotient :
+                    riemannZeta z =
+                      riemannZeta ((1 : ℂ) - z) *
+                        Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z :=
+                  riemannZeta_completedFunctionalEquation_quotient_of_gamma_ne_zero
+                    hz_mem.1 hz_zero hGamma_zero
+                have hraw :
+                    poleClearedRiemannZeta z =
+                      (((z - 1) / (((1 : ℂ) - z) - 1)) *
+                          (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+                        poleClearedRiemannZeta ((1 : ℂ) - z) :=
+                  poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_identity_of_zeta_quotient
+                    hz_mem.1 hz_zero hquotient
+                calc
+                  poleClearedRiemannZeta z =
+                      (((z - 1) / (((1 : ℂ) - z) - 1)) *
+                          (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+                        poleClearedRiemannZeta ((1 : ℂ) - z) := hraw
+                  _ =
+                      poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
+                        poleClearedRiemannZeta ((1 : ℂ) - z) := by
+                    exact congrArg
+                      (fun w : ℂ => w * poleClearedRiemannZeta ((1 : ℂ) - z))
+                      hM.symm
           calc
             poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
                 (poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
@@ -439,8 +516,18 @@ theorem poleClearedRiemannZeta_reflected_quotient_continuousAt_zero :
     poleClearedRiemannZeta_continuousAt 0
   have hden :
       ContinuousAt (fun z : ℂ => poleClearedRiemannZeta ((1 : ℂ) - z)) 0 :=
-    (poleClearedRiemannZeta_continuousAt 1).comp
-      (continuousAt_const.sub continuousAt_id)
+    have hreflect_map :
+        ContinuousAt (fun z : ℂ => (1 : ℂ) - z) 0 :=
+      continuousAt_const.sub continuousAt_id
+    have hbase :
+        ContinuousAt poleClearedRiemannZeta ((1 : ℂ) - (0 : ℂ)) :=
+      Eq.subst
+        (motive := fun w : ℂ => ContinuousAt poleClearedRiemannZeta w)
+        (sub_zero (1 : ℂ)).symm
+        (poleClearedRiemannZeta_continuousAt 1)
+    hbase.comp
+      (x := (0 : ℂ))
+      hreflect_map
   have hden_ne :
       poleClearedRiemannZeta ((1 : ℂ) - (0 : ℂ)) ≠ 0 := by
     have hsub : (1 : ℂ) - (0 : ℂ) = 1 :=
@@ -517,10 +604,16 @@ theorem poleClearedRiemannZeta_trivialZero_of_gammaZero_leftHalfPlane
   cases n with
   | zero =>
       have hz_zero : z = 0 := by
+        have hmul_zero : (2 : ℂ) * ((0 : ℕ) : ℂ) = 0 := by
+          calc
+            (2 : ℂ) * ((0 : ℕ) : ℂ) = (2 : ℂ) * 0 := by
+              exact congrArg (fun x : ℂ => (2 : ℂ) * x) Nat.cast_zero
+            _ = 0 := by
+              exact mul_zero (2 : ℂ)
         calc
           z = -(2 * ((0 : ℕ) : ℂ)) := hz_eq
           _ = -0 := by
-            exact congrArg Neg.neg (mul_zero (2 : ℂ))
+            exact congrArg Neg.neg hmul_zero
           _ = 0 := by
             exact neg_zero
       exact False.elim (hz_ne_zero hz_zero)
@@ -534,17 +627,29 @@ theorem poleClearedRiemannZeta_trivialZero_of_gammaZero_leftHalfPlane
             _ = 1 := by
               exact Complex.one_re
         have hone_le_zero : (1 : ℝ) ≤ 0 :=
-          Eq.subst
-            (motive := fun x : ℝ => x ≤ 0)
-            hz_re_one.symm
-            hz_re
+          have hone_le_zre : (1 : ℝ) ≤ z.re :=
+            le_of_eq hz_re_one.symm
+          le_trans hone_le_zre hz_re
         exact not_lt_of_ge hone_le_zero zero_lt_one
       have hpole :
           poleClearedRiemannZeta z = (z - 1) * riemannZeta z :=
         poleClearedRiemannZeta_eq_of_ne_one hz_ne_one
       have hzeta_zero_at :
-          riemannZeta (-(2 * ((Nat.succ n : ℕ) : ℂ))) = 0 :=
-        riemannZeta_neg_two_mul_nat_add_one n
+          riemannZeta (-(2 * ((Nat.succ n : ℕ) : ℂ))) = 0 := by
+        have harg :
+            -2 * ((n : ℂ) + 1) =
+              -(2 * ((Nat.succ n : ℕ) : ℂ)) := by
+          calc
+            -2 * ((n : ℂ) + 1) =
+                -(2 * ((n : ℂ) + 1)) := by
+              exact neg_mul (2 : ℂ) ((n : ℂ) + 1)
+            _ = -(2 * ((Nat.succ n : ℕ) : ℂ)) := by
+              exact congrArg Neg.neg
+                (congrArg (fun x : ℂ => (2 : ℂ) * x) (Nat.cast_succ n).symm)
+        exact Eq.subst
+          (motive := fun w : ℂ => riemannZeta w = 0)
+          harg
+          (riemannZeta_neg_two_mul_nat_add_one n)
       have hzeta_zero : riemannZeta z = 0 := by
         exact Eq.subst
           (motive := fun w : ℂ => riemannZeta w = 0)

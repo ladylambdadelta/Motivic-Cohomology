@@ -19,29 +19,6 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaCompletedWeightStream.ZetaCompletedFinitePart.ZetaPrimeDistributionTransport.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaAnalyticPackage.Owner
-
-/-!
-# Prime contour tomography
-
-This file owns the sampled horizontal contour reconstruction used by completed
-boundary descent.  It sits below the prime distribution layer and above descent,
-so the remaining contour-tomography proof burden is no longer embedded in the
-large descent file.
--/
-
-namespace Boundary
-namespace LFunctions
-
-noncomputable section
-
-open Filter
-open scoped Topology
-
-namespace ZetaAdmissibleFunction
-
 /-- The real part of a complex number plus an embedded real scalar. -/
 theorem complex_re_add_ofReal
     (z : ℂ) (r : ℝ) :
@@ -187,8 +164,10 @@ theorem real_sub_add_tail_cancel
   calc
     C - (T + τ) + τ = C + (-(T + τ) + τ) := by
       exact add_assoc C (-(T + τ)) τ
+    _ = C + ((-T + -τ) + τ) := by
+      exact congrArg (fun x : ℝ => C + (x + τ)) (neg_add T τ)
     _ = C + (-T + (-τ + τ)) := by
-      exact congrArg (fun x : ℝ => C + x) (neg_add T τ)
+      exact congrArg (fun x : ℝ => C + x) (add_assoc (-T) (-τ) τ)
     _ = C + (-T + 0) := by
       exact congrArg (fun x : ℝ => C + (-T + x)) (neg_add_cancel τ)
     _ = C + -T := by

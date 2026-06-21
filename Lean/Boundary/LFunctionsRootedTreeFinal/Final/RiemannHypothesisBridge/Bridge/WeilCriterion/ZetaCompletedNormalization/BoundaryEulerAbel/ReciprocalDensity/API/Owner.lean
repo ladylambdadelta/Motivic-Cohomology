@@ -50,10 +50,24 @@ theorem reciprocalDensity_logarithmicPhase_finiteAbelDerivativeIntegral_bound
     ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
         deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
           boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-      2 + 8 * Real.log (3 + ‖t‖) := by
+      ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ((1 : ℝ) / x ^ 2) *
+          (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) := by
   exact
     logarithmicPhase_firstDerivative_finiteAbel_integral_arithmetic
       t ht hpartial hNM
+
+/-- Honest finite-endpoint majorant for the cutoff Abel tail.
+
+This records the endpoint contribution plus the scalar reciprocal-density
+integral that is actually proved at the reciprocal-variation owner layer. -/
+def boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant
+    (t : ℝ)
+    (M : ℕ) : ℝ :=
+  (2 + 8 * Real.log (3 + ‖t‖)) +
+    ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+      ((1 : ℝ) / x ^ 2) *
+        (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
 
 /-- Finite reciprocal-weighted logarithmic-phase tail estimate after the
 canonical cutoff.
@@ -73,7 +87,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
         ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+      boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M := by
   let N : ℕ := ⌊2 + ‖t‖⌋₊
   let SM : ℂ :=
     ((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ) *
@@ -96,42 +110,42 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
         (Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t))
         hx.1
     exact (complexReciprocalOfReal_hasDerivAt hx_pos).differentiableAt
-    have hf_int :
-        IntegrableOn
-          (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
-          (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
-      let d : ℝ → ℂ := fun x => -(1 : ℂ) / (x : ℂ) ^ 2
-      have hd_cont : ContinuousOn d
-          (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
-        intro x hx
-        have hx_pos : 0 < x :=
+  have hf_int :
+      IntegrableOn
+        (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
+        (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
+    let d : ℝ → ℂ := fun x => -(1 : ℂ) / (x : ℂ) ^ 2
+    have hd_cont : ContinuousOn d
+        (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
+      intro x hx
+      have hx_pos : 0 < x :=
+        lt_of_lt_of_le
+          (Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t))
+          hx.1
+      have hx_complex_ne : ((x : ℂ) ≠ 0) :=
+        Complex.ofReal_ne_zero.mpr hx_pos.ne'
+      have hx_sq_ne : ((x : ℂ) ^ 2) ≠ 0 :=
+        pow_ne_zero 2 hx_complex_ne
+      have hden :
+          ContinuousAt (fun y : ℝ => ((y : ℂ) ^ 2)) x :=
+        (Complex.continuous_ofReal.continuousAt.pow 2)
+      have hquot :
+          ContinuousAt (fun y : ℝ => (1 : ℂ) / ((y : ℂ) ^ 2)) x :=
+        continuousAt_const.div hden hx_sq_ne
+      exact hquot.neg.continuousWithinAt
+    have hd_int : IntegrableOn d
+        (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) :=
+      ContinuousOn.integrableOn_Icc hd_cont
+    have hd_eq : EqOn d
+        (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
+        (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) :=
+      fun x hx =>
+        let hx_pos : 0 < x :=
           lt_of_lt_of_le
             (Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t))
             hx.1
-        have hx_complex_ne : ((x : ℂ) ≠ 0) :=
-          Complex.ofReal_ne_zero.mpr hx_pos.ne'
-        have hx_sq_ne : ((x : ℂ) ^ 2) ≠ 0 :=
-          pow_ne_zero 2 hx_complex_ne
-        have hden :
-            ContinuousAt (fun y : ℝ => ((y : ℂ) ^ 2)) x :=
-          (Complex.continuous_ofReal.continuousAt.pow 2)
-        have hquot :
-            ContinuousAt (fun y : ℝ => (1 : ℂ) / ((y : ℂ) ^ 2)) x :=
-          continuousAt_const.div hden hx_sq_ne
-        exact hquot.neg.continuousWithinAt
-      have hd_int : IntegrableOn d
-          (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) :=
-        ContinuousOn.integrableOn_Icc hd_cont
-      have hd_eq : EqOn d
-          (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
-          (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) :=
-        fun x hx =>
-          let hx_pos : 0 < x :=
-            lt_of_lt_of_le
-              (Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t))
-              hx.1
-          (complexReciprocalOfReal_deriv_eq hx_pos).symm
-      exact hd_int.congr_fun hd_eq measurableSet_Icc
+        (complexReciprocalOfReal_deriv_eq hx_pos).symm
+    exact hd_int.congr_fun hd_eq measurableSet_Icc
   have hidentity :
       (∑ k ∈ Finset.Ioc ⌊(((N : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
           ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) =
@@ -145,7 +159,10 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
       reciprocalDensity_logarithmicPhase_finiteAbelEndpoint_bound
         t ht hNM
   have hintegral :
-      ‖J‖ ≤ 2 + 8 * Real.log (3 + ‖t‖) := by
+      ‖J‖ ≤
+        ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          ((1 : ℝ) / x ^ 2) *
+            (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) := by
     exact
       reciprocalDensity_logarithmicPhase_finiteAbelDerivativeIntegral_bound
         t ht hpartial hNM
@@ -159,61 +176,25 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
   have hpost_triangle :
       ‖SM‖ + ‖SN‖ + ‖J‖ ≤
         (2 + 8 * Real.log (3 + ‖t‖)) +
-          (2 + 8 * Real.log (3 + ‖t‖)) := by
+          ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+            ((1 : ℝ) / x ^ 2) *
+              (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) := by
     exact add_le_add hendpoint hintegral
-  have hconstant :
-      (2 + 8 * Real.log (3 + ‖t‖)) +
-          (2 + 8 * Real.log (3 + ‖t‖)) =
-        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-    let L : ℝ := Real.log (3 + ‖t‖)
-    have hadd :
-        (2 + 8 * L) + (2 + 8 * L) =
-          (2 + 2) + (8 * L + 8 * L) := by
-      let A : ℝ := 8 * L
-      have hinner :
-          A + (2 + A) = 2 + (A + A) := by
-        calc
-          A + (2 + A) = (A + 2) + A := by
-            exact (add_assoc A 2 A).symm
-          _ = (2 + A) + A := by
-            exact congrArg (fun y : ℝ => y + A) (add_comm A 2)
-          _ = 2 + (A + A) := by
-            exact add_assoc 2 A A
-      calc
-        (2 + A) + (2 + A) = 2 + (A + (2 + A)) := by
-          exact add_assoc 2 A (2 + A)
-        _ = 2 + (2 + (A + A)) := by
-          exact congrArg (fun y : ℝ => 2 + y) hinner
-        _ = (2 + 2) + (A + A) := by
-          exact (add_assoc 2 2 (A + A)).symm
-    have htwo : (2 : ℝ) + 2 = 4 := by
-      rfl
-    have height_coeff : (8 : ℝ) + 8 = 16 := by
-      rfl
-    have height : (8 : ℝ) * L + 8 * L = 16 * L := by
-      calc
-        (8 : ℝ) * L + 8 * L = ((8 : ℝ) + 8) * L := by
-          exact (add_mul (8 : ℝ) 8 L).symm
-        _ = 16 * L := by
-          exact congrArg (fun c : ℝ => c * L) height_coeff
-    calc
-      (2 + 8 * Real.log (3 + ‖t‖)) +
-          (2 + 8 * Real.log (3 + ‖t‖)) =
-          (2 + 8 * L) + (2 + 8 * L) := by
-        rfl
-      _ = (2 + 2) + (8 * L + 8 * L) :=
-        hadd
-      _ = 4 + (8 * L + 8 * L) := by
-        exact congrArg (fun x : ℝ => x + (8 * L + 8 * L)) htwo
-      _ = 4 + 16 * L := by
-        exact congrArg (fun x : ℝ => 4 + x) height
-      _ = boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-        rfl
   exact Eq.subst
     (motive := fun z : ℂ =>
-      ‖z‖ ≤ boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t)
+      ‖z‖ ≤
+        boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M)
     hidentity.symm
-    (le_trans htriangle (le_trans hpost_triangle (le_of_eq hconstant)))
+    (Eq.subst
+      (motive := fun r : ℝ => ‖SM - SN - J‖ ≤ r)
+      (show
+        (2 + 8 * Real.log (3 + ‖t‖)) +
+          ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+            ((1 : ℝ) / x ^ 2) *
+              (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) =
+          boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M by
+        rfl)
+      (le_trans htriangle hpost_triangle))
 
 /-- The enlarged logarithmic argument `3 + |t|` is absorbed by twice the
 canonical boundary-line logarithm.  This is duplicated locally rather than
@@ -410,7 +391,8 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_finiteTail_nor
     (hNM : N ≤ M) :
     ‖∑ n ∈ Finset.Ioc N M,
         ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-      72 * Real.log (2 + ‖t‖) := by
+      boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M +
+        boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t N := by
   let C : ℕ := ⌊2 + ‖t‖⌋₊
   let f : ℕ → ℂ :=
     fun n => ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
@@ -427,53 +409,46 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_finiteTail_nor
     exact Nat.floor_natCast C
   have hM_tail :
       ‖∑ n ∈ Finset.Ioc C M, f n‖ ≤
-        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+        boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M := by
     exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
       t ht hpartial (le_trans hCN hNM)
   have hN_tail :
       ‖∑ n ∈ Finset.Ioc C N, f n‖ ≤
-        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+        boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t N := by
     exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
       t ht hpartial hCN
   have htriangle :
       ‖(∑ n ∈ Finset.Ioc C M, f n) -
           ∑ n ∈ Finset.Ioc C N, f n‖ ≤
-        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
-          boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+        boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M +
+          boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t N := by
     exact le_trans
       (norm_sub_le (∑ n ∈ Finset.Ioc C M, f n) (∑ n ∈ Finset.Ioc C N, f n))
       (add_le_add hM_tail hN_tail)
-  have hconstant :
-      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
-          boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
-        72 * Real.log (2 + ‖t‖) := by
-    have hone :
-        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
-          36 * Real.log (2 + ‖t‖) :=
-      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant_le_log t ht
-    calc
-      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
-          boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
-          36 * Real.log (2 + ‖t‖) + 36 * Real.log (2 + ‖t‖) :=
-        add_le_add hone hone
-      _ = 72 * Real.log (2 + ‖t‖) := by
-        calc
-          36 * Real.log (2 + ‖t‖) + 36 * Real.log (2 + ‖t‖) =
-              (36 + 36) * Real.log (2 + ‖t‖) :=
-            (add_mul 36 36 (Real.log (2 + ‖t‖))).symm
-          _ = 72 * Real.log (2 + ‖t‖) := by
-            exact congrArg
-              (fun c : ℝ => c * Real.log (2 + ‖t‖))
-              (by
-                have hnat : (36 : ℕ) + 36 = 72 := by decide
-                have hcast :
-                    (((36 : ℕ) + 36 : ℕ) : ℝ) = (72 : ℝ) :=
-                  congrArg (fun n : ℕ => (n : ℝ)) hnat
-                exact Eq.trans (Nat.cast_add 36 36) hcast)
   exact Eq.subst
-    (motive := fun z : ℂ => ‖z‖ ≤ 72 * Real.log (2 + ‖t‖))
+    (motive := fun z : ℂ =>
+      ‖z‖ ≤
+        boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M +
+          boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t N)
     hsplit.symm
-    (le_trans htriangle hconstant)
+    htriangle
+
+/-- Honest piecewise majorant for arbitrary finite reciprocal-weighted
+logarithmic-phase tails.
+
+The three cases are: the whole block is before the canonical cutoff, the whole
+block is after it, or the block crosses it. -/
+def boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailMajorant
+    (t : ℝ)
+    (N M : ℕ) : ℝ :=
+  if M ≤ ⌊2 + ‖t‖⌋₊ then
+    2 * Real.log (2 + ‖t‖)
+  else if ⌊2 + ‖t‖⌋₊ ≤ N then
+    boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M +
+      boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t N
+  else
+    2 * Real.log (2 + ‖t‖) +
+      boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M
 
 /-- All finite reciprocal-weighted logarithmic-phase tails are logarithmically
 bounded, using the constructive pre-cutoff estimate and the cutoff Abel tail. -/
@@ -490,7 +465,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
     (hNM : N ≤ M) :
     ‖∑ n ∈ Finset.Ioc N M,
         ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-      74 * Real.log (2 + ‖t‖) := by
+      boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailMajorant t N M := by
   match Decidable.em (M ≤ ⌊2 + ‖t‖⌋₊) with
   | Or.inl hMcut =>
     have hpre :
@@ -499,15 +474,16 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
           2 * Real.log (2 + ‖t‖) :=
       boundaryLineOnePointRealParam_logarithmicPhase_preCutoff_finiteTail_norm_le
         t ht hN hMcut
-      have hlog_nonneg : 0 ≤ Real.log (2 + ‖t‖) :=
-        le_trans zero_le_one (one_le_log_two_add_norm_of_one_le_norm ht)
-      have htwo_le :
-          2 * Real.log (2 + ‖t‖) ≤
-            74 * Real.log (2 + ‖t‖) :=
-      mul_le_mul_of_nonneg_right
-        (Nat.cast_le.mpr (show (2 : ℕ) ≤ 74 by decide) : (2 : ℝ) ≤ 74)
-        hlog_nonneg
-    exact le_trans hpre htwo_le
+    exact
+      Eq.subst
+        (motive := fun r : ℝ =>
+          ‖∑ n ∈ Finset.Ioc N M,
+              ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ r)
+        (show
+          2 * Real.log (2 + ‖t‖) =
+            boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailMajorant t N M by
+          exact (if_pos hMcut).symm)
+        hpre
   | Or.inr hMcut =>
     have hC_le_M : ⌊2 + ‖t‖⌋₊ ≤ M :=
       Nat.le_of_not_ge hMcut
@@ -516,21 +492,24 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
       have hpost :
           ‖∑ n ∈ Finset.Ioc N M,
               ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-            72 * Real.log (2 + ‖t‖) :=
+            boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M +
+              boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t N :=
         boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_finiteTail_norm_le
           t ht hpartial hC_le_N hNM
-      have hlog_nonneg : 0 ≤ Real.log (2 + ‖t‖) :=
-        le_trans zero_le_one (one_le_log_two_add_norm_of_one_le_norm ht)
-      have hle :
-        72 * Real.log (2 + ‖t‖) ≤
-          74 * Real.log (2 + ‖t‖) :=
-        mul_le_mul_of_nonneg_right
-          (Nat.cast_le.mpr (show (72 : ℕ) ≤ 74 by decide) : (72 : ℝ) ≤ 74)
-          hlog_nonneg
-      exact le_trans hpost hle
-      | Or.inr hC_le_N =>
-        have hN_le_C : N ≤ ⌊2 + ‖t‖⌋₊ :=
-          Nat.le_of_not_ge hC_le_N
+      exact
+        Eq.subst
+          (motive := fun r : ℝ =>
+            ‖∑ n ∈ Finset.Ioc N M,
+                ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ r)
+          (show
+            boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M +
+                boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t N =
+              boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailMajorant t N M by
+            exact (if_pos hC_le_N).symm.trans (if_neg hMcut).symm)
+          hpost
+    | Or.inr hC_le_N =>
+      have hN_le_C : N ≤ ⌊2 + ‖t‖⌋₊ :=
+        Nat.le_of_not_ge hC_le_N
       let C : ℕ := ⌊2 + ‖t‖⌋₊
       let f : ℕ → ℂ :=
         fun n => ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
@@ -567,55 +546,31 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
         exact Nat.floor_natCast M
       have hcut :
           ‖∑ n ∈ Finset.Ioc C M, f n‖ ≤
-            boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+            boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M := by
         exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
           t ht hpartial hC_le_M
-      have hcut_log :
-          boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
-            36 * Real.log (2 + ‖t‖) :=
-        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant_le_log t ht
       have htriangle :
           ‖(∑ n ∈ Finset.Ioc N C, f n) +
               ∑ n ∈ Finset.Ioc C M, f n‖ ≤
             2 * Real.log (2 + ‖t‖) +
-              boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+              boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M := by
         exact le_trans
           (norm_add_le (∑ n ∈ Finset.Ioc N C, f n) (∑ n ∈ Finset.Ioc C M, f n))
           (add_le_add hpre hcut)
-      have hconstant :
-          2 * Real.log (2 + ‖t‖) +
-              boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
-            74 * Real.log (2 + ‖t‖) := by
-        calc
-          2 * Real.log (2 + ‖t‖) +
-              boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
-              2 * Real.log (2 + ‖t‖) + 36 * Real.log (2 + ‖t‖) :=
-            add_le_add_left hcut_log (2 * Real.log (2 + ‖t‖))
-          _ = 38 * Real.log (2 + ‖t‖) := by
-            calc
-              2 * Real.log (2 + ‖t‖) + 36 * Real.log (2 + ‖t‖) =
-                  (2 + 36) * Real.log (2 + ‖t‖) :=
-                (add_mul 2 36 (Real.log (2 + ‖t‖))).symm
-              _ = 38 * Real.log (2 + ‖t‖) := by
-                exact congrArg
-                  (fun c : ℝ => c * Real.log (2 + ‖t‖))
-                  (by
-                    have hnat : (2 : ℕ) + 36 = 38 := by decide
-                    have hcast :
-                        (((2 : ℕ) + 36 : ℕ) : ℝ) = (38 : ℝ) :=
-                      congrArg (fun n : ℕ => (n : ℝ)) hnat
-                    exact Eq.trans (Nat.cast_add 2 36) hcast)
-          _ ≤ 74 * Real.log (2 + ‖t‖) := by
-            have hlog_nonneg : 0 ≤ Real.log (2 + ‖t‖) :=
-              le_trans zero_le_one (one_le_log_two_add_norm_of_one_le_norm ht)
-            exact
-              mul_le_mul_of_nonneg_right
-                (Nat.cast_le.mpr (show (38 : ℕ) ≤ 74 by decide) : (38 : ℝ) ≤ 74)
-                hlog_nonneg
       exact Eq.subst
-        (motive := fun z : ℂ => ‖z‖ ≤ 74 * Real.log (2 + ‖t‖))
+        (motive := fun z : ℂ =>
+          ‖z‖ ≤ boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailMajorant t N M)
         hsplit_sum.symm
-        (le_trans htriangle hconstant)
+        (Eq.subst
+          (motive := fun r : ℝ =>
+            ‖(∑ n ∈ Finset.Ioc N C, f n) +
+                ∑ n ∈ Finset.Ioc C M, f n‖ ≤ r)
+          (show
+            2 * Real.log (2 + ‖t‖) +
+                boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M =
+              boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailMajorant t N M by
+            exact (if_neg hC_le_N).symm.trans (if_neg hMcut).symm)
+          htriangle)
 
 end
 

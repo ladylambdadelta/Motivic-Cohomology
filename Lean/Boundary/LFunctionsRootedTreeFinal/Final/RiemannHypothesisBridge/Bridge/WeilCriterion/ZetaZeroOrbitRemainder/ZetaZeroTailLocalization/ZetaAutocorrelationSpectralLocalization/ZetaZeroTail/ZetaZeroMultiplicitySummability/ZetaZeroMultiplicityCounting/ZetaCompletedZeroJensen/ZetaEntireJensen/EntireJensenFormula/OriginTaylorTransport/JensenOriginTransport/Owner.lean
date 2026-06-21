@@ -22,7 +22,7 @@ boundary averages. -/
 theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_of_zeroAtOrigin
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hF0 : F 0 = 0)
+    (_hF0 : F 0 = 0)
     (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
     ∃ C : ℝ,
       (∀ R : ℝ,

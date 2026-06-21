@@ -144,7 +144,7 @@ theorem entireFunction_singleZeroFactor_boundary_factorization
 theorem entireFunction_singleZeroFactor_outer_norm
     {a : ℂ}
     {ρ : ℝ}
-    (ha0 : a ≠ 0)
+    (_ha0 : a ≠ 0)
     (hρ_pos : 0 < ρ)
     (θ : ℝ) :
     ‖-(((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a)‖ =

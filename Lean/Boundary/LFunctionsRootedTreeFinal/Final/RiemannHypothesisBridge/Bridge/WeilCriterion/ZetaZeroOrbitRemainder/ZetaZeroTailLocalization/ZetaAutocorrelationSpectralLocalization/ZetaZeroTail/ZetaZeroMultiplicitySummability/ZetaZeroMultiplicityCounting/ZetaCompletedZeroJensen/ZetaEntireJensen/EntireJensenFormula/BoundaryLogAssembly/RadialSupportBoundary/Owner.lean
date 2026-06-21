@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.ZetaEntireJensen.EntireJensenFormula.BoundaryLogAssembly.ClosedSupportBoundary.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.ZetaEntireJensen.EntireJensenFormula.ZeroFreePrimitive.Owner
 
 /-!
 # Boundary-log assembly for Jensen formula
@@ -97,7 +98,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
     (hF0 : F 0 ≠ 0)
     (ρ : ℝ)
     (hρ : 1 ≤ ρ)
-    (hQ_an : ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w)
+    (_hQ_an : ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w)
     (hfactor :
       ∀ w : ℂ,
         ‖w‖ ≤ ρ →
@@ -105,7 +106,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
           Q w *
             entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
               F hF hF0 ρ w)
-    (hzero : ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) :
+    (_hzero : ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) :
     entireFunctionJensenBoundaryLogAverage F ρ =
       Real.log ‖Q 0‖ +
         (∑ z in
@@ -176,7 +177,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDi
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
     (ρ : ℝ)
-    (hρ : 1 ≤ ρ) :
+    (_hρ : 1 ≤ ρ) :
     Real.log
         ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
             F hF hF0 ρ 0‖ =
@@ -334,6 +335,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_bo
             F hF ρ
             (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
               F hF hF0 ρ))).symm
+    _ = entireFunctionJensenBoundaryLogAverage F ρ - Real.log ‖F 0‖ := by
+      exact congrArg (fun x : ℝ => x - Real.log ‖F 0‖) hboundary.symm
 
 end
 end LFunctions

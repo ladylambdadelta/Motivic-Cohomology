@@ -13,9 +13,6 @@ noncomputable section
 
 open scoped Topology
 
-    _ = entireFunctionJensenBoundaryLogAverage F ρ - Real.log ‖F 0‖ := by
-      exact congrArg (fun x : ℝ => x - Real.log ‖F 0‖) hboundary.symm
-
 /-- Analytic-log, harmonic mean-value, and single-zero-factor form of the
 classical Jensen product theorem.
 
@@ -292,7 +289,7 @@ nonzero-origin Jensen package. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSummable
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hF0 : F 0 ≠ 0)
+    (_hF0 : F 0 ≠ 0)
     (C : ℝ)
     (hJ :
       (∀ R : ℝ,
@@ -319,7 +316,7 @@ package. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummable
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hF0 : F 0 ≠ 0)
+    (_hF0 : F 0 ≠ 0)
     (C : ℝ)
     (hJ :
       (∀ R : ℝ,
@@ -346,7 +343,7 @@ package. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSum_eq_boundaryLogAverage
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hF0 : F 0 ≠ 0)
+    (_hF0 : F 0 ≠ 0)
     (C : ℝ)
     (hJ :
       (∀ R : ℝ,
@@ -428,6 +425,9 @@ theorem entireFunction_classicalJensenFormula_nonzeroAtOrigin_radialGapSum_eq_bo
               entireFunctionJensenRadialGapSummand F hF ρ z) ∧
           entireFunctionJensenRadialGapSum F hF ρ + C =
             entireFunctionJensenBoundaryLogAverage F ρ) := by
+  exact
+    entireFunction_classicalJensenFormula_nonzeroAtOrigin_ownerRoot
+      F hF hF0
 
 end
 end LFunctions

@@ -140,8 +140,12 @@ theorem strip_negative_abs_sum_le_negative_left_abs
     calc
       -S = -(|a| + |b|) := congrArg Neg.neg hS
       _ = -|a| + -|b| := neg_add |a| |b|
-  have hsum_le : -|a| + -|b| ≤ -|a| :=
-    add_le_self (neg_nonpos.mpr (abs_nonneg b))
+  have hsum_le : -|a| + -|b| ≤ -|a| := by
+    have hb_nonpos : -|b| ≤ 0 :=
+      neg_nonpos.mpr (abs_nonneg b)
+    have hstep : -|a| + -|b| ≤ -|a| + 0 :=
+      add_le_add_left hb_nonpos (-|a|)
+    exact le_trans hstep (le_of_eq (add_zero (-|a|)))
   exact le_trans (le_of_eq hneg_sum) hsum_le
 
 /-- Algebraic domination of the basic strip height by the product envelope. -/
@@ -359,7 +363,7 @@ theorem exp_negative_growth_mul_growth_cancel
   calc
     Real.exp (-X) * (A * Real.exp X) =
         (Real.exp (-X) * A) * Real.exp X := by
-      exact mul_assoc (Real.exp (-X)) A (Real.exp X)
+      exact (mul_assoc (Real.exp (-X)) A (Real.exp X)).symm
     _ = (A * Real.exp (-X)) * Real.exp X := by
       exact congrArg (fun t : ℝ => t * Real.exp X) (mul_comm (Real.exp (-X)) A)
     _ = A * (Real.exp (-X) * Real.exp X) := by

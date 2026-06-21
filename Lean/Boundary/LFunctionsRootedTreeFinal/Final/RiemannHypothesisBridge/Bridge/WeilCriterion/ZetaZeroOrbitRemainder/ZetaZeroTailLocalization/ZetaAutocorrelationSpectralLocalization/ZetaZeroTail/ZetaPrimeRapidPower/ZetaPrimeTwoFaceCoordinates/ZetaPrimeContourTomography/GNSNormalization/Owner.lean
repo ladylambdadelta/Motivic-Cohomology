@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaPrimeRapidPower.ZetaPrimeTwoFaceCoordinates.ZetaPrimeContourTomography.TailEstimates.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaHermitianPacket.HermitianBoundaryDefect
 
 /-!
 # Prime contour tomography
@@ -53,7 +54,7 @@ The positive defect kernel absorbs the diagonal debt and leaves the signed two-f
 coefficient.  This is the completed form of the finite defect-square expansion. -/
 theorem completedPrimeContourGNS_diagonalDebtAbsorption
     (f : ZetaAdmissibleFunction) :
-    zetaCompletedPrimeDefectKernelPositiveForm f =
+      zetaCompletedPrimeDefectKernelPositiveForm f =
       zetaCompletedPrimeDefectKernelDiagonalDebt f +
         zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f := by
   exact zetaCompletedPrimeDefectKernelPositiveForm_eq_diagonalDebt_add_boundaryCoefficient
@@ -177,7 +178,17 @@ theorem finitePrimeContourTransportTomographicErrorRemainderMajorant_tendsto_zer
           finitePrimeContourTransportTomographicErrorRemainderMajorant N f) =
         (fun N : ℕ => ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainder N f‖) := by
     funext N
-    exact (finitePrimeContourTransportTomographicError_norm_eq_remainderMajorant N f).symm
+    have hmajorant :
+        finitePrimeContourTransportTomographicErrorRemainderMajorant N f =
+          ‖finitePrimeContourTransportTomographicError N f‖ :=
+      (finitePrimeContourTransportTomographicError_norm_eq_remainderMajorant N f).symm
+    have hbox :
+        ‖finitePrimeContourTransportTomographicError N f‖ =
+          ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainder N f‖ := by
+      exact congrArg norm
+        (finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_eq_tomographicError
+          N f).symm
+    exact hmajorant.trans hbox
   exact Eq.subst
     (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
     hfun.symm

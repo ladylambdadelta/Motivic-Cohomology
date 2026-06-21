@@ -389,7 +389,7 @@ theorem complex_neg_star_neg_star
     -star (-star z) = z := by
   calc
     -star (-star z) = -(-star (star z)) := by
-      exact congrArg Neg.neg (map_neg star (star z))
+      exact congrArg Neg.neg (star_neg (star z))
     _ = -(-z) := by
       exact congrArg (fun w : ℂ => -(-w)) (star_star z)
     _ = z := by
@@ -400,12 +400,10 @@ theorem complex_star_mul_star_right_comm
     (A B : ℂ) :
     star (A * star B) = B * star A := by
   calc
-    star (A * star B) = star A * star (star B) := by
-      exact map_mul star A (star B)
-    _ = star A * B := by
-      exact congrArg (fun w : ℂ => star A * w) (star_star B)
+    star (A * star B) = star (star B) * star A := by
+      exact star_mul A (star B)
     _ = B * star A := by
-      exact mul_comm (star A) B
+      exact congrArg (fun w : ℂ => w * star A) (star_star B)
 
 /-- Pointwise transport from the spectral Laplace transform notation to the `Φ` notation. -/
 theorem zetaCompletedSpectralLaplaceTransform_eq_explicitFormulaPhi

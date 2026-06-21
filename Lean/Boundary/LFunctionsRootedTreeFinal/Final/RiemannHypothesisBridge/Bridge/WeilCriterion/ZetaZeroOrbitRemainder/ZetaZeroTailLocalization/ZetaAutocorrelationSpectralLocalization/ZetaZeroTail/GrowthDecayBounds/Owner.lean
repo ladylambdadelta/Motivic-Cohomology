@@ -14,6 +14,7 @@ noncomputable section
 
 /-- Completed-zero multiplicities have polynomial growth in centered height. -/
 theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -26,6 +27,7 @@ theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound
         ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ ≤
           zetaZeroMultiplicityGrowthEnvelope M d ρ := by
   match exists_zetaZeroMultiplicityGrowthEnvelope_bound_from_counting
+      hbranch
       hpartialOneTwo htailOneTwo hcompactOneTwo
       hpartialLeft htailBoundary hcompactBoundary with
   | ⟨M, d, hMpos, hbound⟩ =>
@@ -71,11 +73,11 @@ theorem zetaZeroSpectralEval_norm_le_of_verticalStripDecayConstant
   change
     ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ ≤
       C * (1 + ‖(zetaCenteredZero (ρ : ℂ)).im‖) ^ (-(N : ℤ))
-  exact Eq.subst
-    (motive := fun x : ℂ =>
-      ‖x‖ ≤ C * (1 + ‖(zetaCenteredZero (ρ : ℂ)).im‖) ^ (-(N : ℤ)))
-    heval.symm
-    hbound
+  calc
+    ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ =
+        ‖Boundary.zetaLaplaceTransform φ.toZetaTestFunction'
+            (zetaCenteredZero (ρ : ℂ))‖ := congrArg norm heval
+    _ ≤ C * (1 + ‖(zetaCenteredZero (ρ : ℂ)).im‖) ^ (-(N : ℤ)) := hbound
 
 /-- Paley-Wiener decay bounds the spectral transform on the completed-zero locus. -/
 theorem exists_zetaZeroSpectralEvalDecayEnvelope_bound
@@ -186,6 +188,7 @@ theorem exists_zetaZeroMultiplicityTransformEnvelope_bound_of_growth_and_decay
 /-- Zero multiplicity growth and Paley-Wiener transform decay give a summable polynomial
 envelope for the multiplicity-weighted transform majorant. -/
 theorem exists_zetaZeroMultiplicityTransformEnvelope_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -202,10 +205,12 @@ theorem exists_zetaZeroMultiplicityTransformEnvelope_bound
         zetaZeroMultiplicityTransformMajorant φ ρ ≤
           zetaZeroMultiplicityTransformEnvelope A k ρ := by
   match exists_completedZeroMultiplicityCounting_height_bound
+      hbranch
       hpartialOneTwo htailOneTwo hcompactOneTwo
       hpartialLeft htailBoundary hcompactBoundary with
   | ⟨C, dCount, hCpos, hcount⟩ =>
       match exists_zetaZeroMultiplicityGrowthEnvelope_bound
+          hbranch
           hpartialOneTwo htailOneTwo hcompactOneTwo
           hpartialLeft htailBoundary hcompactBoundary with
       | ⟨M, dGrowth, hMpos, hgrowth_bound⟩ =>

@@ -27,7 +27,7 @@ private lemma neg_sum_le_neg_nat (N : ℕ) :
       _ ≤ (N : ℤ) + 1 := add_le_add_left zero_le_one (N : ℤ)
   have hN_add_one_nonnegative :
       0 ≤ (N : ℤ) + 1 :=
-    Int.add_nonneg (Int.coe_nat_nonneg N) zero_le_one
+    Int.add_nonneg (Int.natCast_nonneg N) zero_le_one
   have hN_add_one_le_double :
       (N : ℤ) + 1 ≤ ((N : ℤ) + 1) + ((N : ℤ) + 1) := by
     calc
@@ -62,6 +62,10 @@ private lemma mixed_exp_le_neg_nat (N : ℕ) :
         exact congrArg
           (fun x : ℤ => (N : ℤ) + (x + -1))
           (neg_add (N : ℤ) (N : ℤ))
+      _ = (N : ℤ) + (-(N : ℤ) + (-(N : ℤ) + -1)) := by
+        exact congrArg
+          (fun x : ℤ => (N : ℤ) + x)
+          (add_assoc (-(N : ℤ)) (-(N : ℤ)) (-1))
       _ = ((N : ℤ) + -(N : ℤ)) + (-(N : ℤ) + -1) := by
         exact (add_assoc (N : ℤ) (-(N : ℤ)) (-(N : ℤ) + -1)).symm
       _ = 0 + (-(N : ℤ) + -1) := by
@@ -71,7 +75,7 @@ private lemma mixed_exp_le_neg_nat (N : ℕ) :
       _ = -((N : ℤ) + 1) := (neg_add (N : ℤ) 1).symm
   have hnonnegative :
       0 ≤ (N : ℤ) + 1 :=
-    Int.add_nonneg (Int.coe_nat_nonneg N) zero_le_one
+    Int.add_nonneg (Int.natCast_nonneg N) zero_le_one
   have hneg_le : -((N : ℤ) + 1) ≤ -(N : ℤ) :=
     Int.neg_le_neg
       (calc
@@ -99,6 +103,10 @@ private lemma poly_deg_exp_le_neg_nat (K N : ℕ) :
         exact congrArg
           (fun x : ℤ => (K : ℤ) + (x + -1))
           (neg_add (K : ℤ) (N : ℤ))
+      _ = (K : ℤ) + (-(K : ℤ) + (-(N : ℤ) + -1)) := by
+        exact congrArg
+          (fun x : ℤ => (K : ℤ) + x)
+          (add_assoc (-(K : ℤ)) (-(N : ℤ)) (-1))
       _ = ((K : ℤ) + -(K : ℤ)) + (-(N : ℤ) + -1) := by
         exact (add_assoc (K : ℤ) (-(K : ℤ)) (-(N : ℤ) + -1)).symm
       _ = 0 + (-(N : ℤ) + -1) := by

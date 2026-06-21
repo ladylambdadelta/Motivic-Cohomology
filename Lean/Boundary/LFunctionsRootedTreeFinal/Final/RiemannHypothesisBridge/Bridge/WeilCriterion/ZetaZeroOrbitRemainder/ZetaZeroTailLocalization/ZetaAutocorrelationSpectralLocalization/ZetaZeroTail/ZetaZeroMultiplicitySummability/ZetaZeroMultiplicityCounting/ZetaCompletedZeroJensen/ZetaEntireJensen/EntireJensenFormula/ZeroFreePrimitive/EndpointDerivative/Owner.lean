@@ -434,7 +434,9 @@ integrands. -/
 theorem complex_interval_aestronglyMeasurable_of_continuousOn_Icc
     {f : ℝ → ℂ} :
     ContinuousOn f (Set.Icc (0 : ℝ) 1) →
-      AEStronglyMeasurable f (volume.restrict (Set.Ioc (0 : ℝ) 1)) := by
+      MeasureTheory.AEStronglyMeasurable
+        f
+        (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1)) := by
   intro hf
   exact
     (hf.mono Set.Ioc_subset_Icc_self).aestronglyMeasurable
@@ -445,7 +447,7 @@ theorem complex_interval_aestronglyMeasurable_of_continuousOn_Icc
 theorem complex_interval_intervalIntegrable_of_continuousOn_Icc
     {f : ℝ → ℂ} :
     ContinuousOn f (Set.Icc (0 : ℝ) 1) →
-      IntervalIntegrable f volume (0 : ℝ) 1 := by
+      IntervalIntegrable f MeasureTheory.volume (0 : ℝ) 1 := by
   intro hf
   exact
     ContinuousOn.intervalIntegrable_of_Icc
@@ -454,7 +456,7 @@ theorem complex_interval_intervalIntegrable_of_continuousOn_Icc
 
 theorem complex_centerSegmentIntegral_finiteTube_integrability_of_continuousOn
     (φ : ℂ → ℂ)
-    (centers : Finset ℂ) :
+    (_centers : Finset ℂ) :
     ∀ w : ℂ,
       (∀ᶠ x in 𝓝 w,
         ContinuousOn
@@ -470,28 +472,28 @@ theorem complex_centerSegmentIntegral_finiteTube_integrability_of_continuousOn
           complex_centerSegmentIntegral_endpointDerivativeIntegrand φ w t)
         (Set.Icc (0 : ℝ) 1) →
         (∀ᶠ x in 𝓝 w,
-          AEStronglyMeasurable
+          MeasureTheory.AEStronglyMeasurable
             (fun t : ℝ =>
               x * φ (AffineMap.lineMap (0 : ℂ) x t))
-            (volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
+            (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
         IntervalIntegrable
           (fun t : ℝ =>
             w * φ (AffineMap.lineMap (0 : ℂ) w t))
-          volume
+          MeasureTheory.volume
           (0 : ℝ)
           1 ∧
-        AEStronglyMeasurable
+        MeasureTheory.AEStronglyMeasurable
           (fun t : ℝ =>
             complex_centerSegmentIntegral_endpointDerivativeIntegrand
               φ w t)
-          (volume.restrict (Set.Ioc (0 : ℝ) 1)) := by
+          (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1)) := by
   intro w hcont_eventually hcont_base hcont_deriv
   have hmeas_eventually :
       ∀ᶠ x in 𝓝 w,
-        AEStronglyMeasurable
+        MeasureTheory.AEStronglyMeasurable
           (fun t : ℝ =>
             x * φ (AffineMap.lineMap (0 : ℂ) x t))
-          (volume.restrict (Set.Ioc (0 : ℝ) 1)) :=
+          (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1)) :=
     hcont_eventually.mono
       (fun x hx =>
         complex_interval_aestronglyMeasurable_of_continuousOn_Icc hx)
@@ -499,16 +501,16 @@ theorem complex_centerSegmentIntegral_finiteTube_integrability_of_continuousOn
       IntervalIntegrable
         (fun t : ℝ =>
           w * φ (AffineMap.lineMap (0 : ℂ) w t))
-        volume
+        MeasureTheory.volume
         (0 : ℝ)
         1 :=
     complex_interval_intervalIntegrable_of_continuousOn_Icc hcont_base
   have hderiv_meas :
-      AEStronglyMeasurable
+      MeasureTheory.AEStronglyMeasurable
         (fun t : ℝ =>
           complex_centerSegmentIntegral_endpointDerivativeIntegrand
             φ w t)
-        (volume.restrict (Set.Ioc (0 : ℝ) 1)) :=
+        (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1)) :=
     complex_interval_aestronglyMeasurable_of_continuousOn_Icc hcont_deriv
   exact ⟨hmeas_eventually, hint, hderiv_meas⟩
 
@@ -528,21 +530,21 @@ theorem complex_centerSegmentIntegral_finiteTube_integrability
             AffineMap.lineMap (0 : ℂ) x t ∈
               ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
         (∀ᶠ x in 𝓝 w,
-          AEStronglyMeasurable
+          MeasureTheory.AEStronglyMeasurable
             (fun t : ℝ =>
               x * φ (AffineMap.lineMap (0 : ℂ) x t))
-            (volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
+            (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
         IntervalIntegrable
           (fun t : ℝ =>
             w * φ (AffineMap.lineMap (0 : ℂ) w t))
-          volume
+          MeasureTheory.volume
           (0 : ℝ)
           1 ∧
-        AEStronglyMeasurable
+        MeasureTheory.AEStronglyMeasurable
           (fun t : ℝ =>
             complex_centerSegmentIntegral_endpointDerivativeIntegrand
               φ w t)
-          (volume.restrict (Set.Ioc (0 : ℝ) 1)) := by
+          (MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1)) := by
   intro w htube htube_eventually
   have hcont_eventually :
       ∀ᶠ x in 𝓝 w,

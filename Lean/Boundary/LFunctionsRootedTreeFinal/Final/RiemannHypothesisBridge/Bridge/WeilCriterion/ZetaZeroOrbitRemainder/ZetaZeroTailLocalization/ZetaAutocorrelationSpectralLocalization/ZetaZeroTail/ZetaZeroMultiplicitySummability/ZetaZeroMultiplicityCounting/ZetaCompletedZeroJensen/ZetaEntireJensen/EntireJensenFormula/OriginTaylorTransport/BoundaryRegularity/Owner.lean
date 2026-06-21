@@ -726,7 +726,7 @@ theorem jensenBoundaryLogSample_not_eventually_zero_of_nontrivial
 model. -/
 theorem jensenBoundaryLogIntegrand_continuousAt_localRemainder
     (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (_hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (R : ℝ)
     (θ₀ : ℝ)
     (n : ℕ)

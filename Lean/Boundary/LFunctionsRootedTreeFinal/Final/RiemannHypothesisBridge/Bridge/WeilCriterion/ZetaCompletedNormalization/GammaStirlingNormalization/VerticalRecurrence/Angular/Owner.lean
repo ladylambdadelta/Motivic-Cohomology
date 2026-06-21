@@ -56,7 +56,7 @@ theorem Real.norm_mul_arctan_div_norm_le_self_of_nonneg
       _ ≤ u := hu
   | Or.inr hy_ne_zero =>
     have hy_pos : 0 < ‖y‖ :=
-      lt_of_le_of_ne (norm_nonneg y) hy_ne_zero.symm
+      lt_of_le_of_ne (norm_nonneg y) (Ne.symm hy_ne_zero)
     have hratio_nonneg : 0 ≤ u / ‖y‖ :=
       div_nonneg hu (le_of_lt hy_pos)
     have harctan_le : Real.arctan (u / ‖y‖) ≤ u / ‖y‖ :=
@@ -106,7 +106,7 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_pos_im_eq_pi_div_two_sub_arcta
         exact congrArg (fun r : ℝ => Real.pi / 2 - r) hatan_zero.symm
   | Or.inr hu_ne_zero =>
     have hu_pos : 0 < u :=
-      lt_of_le_of_ne hu hu_ne_zero
+      lt_of_le_of_ne hu (Ne.symm hu_ne_zero)
     have hz_re_pos : 0 < z.re := by
       calc
         0 < u := hu_pos
@@ -196,7 +196,7 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_neg_im_eq_neg_pi_div_two_add_a
         exact congrArg (fun r : ℝ => -(Real.pi / 2) + r) hatan_zero.symm
   | Or.inr hu_ne_zero =>
     have hu_pos : 0 < u :=
-      lt_of_le_of_ne hu hu_ne_zero
+      lt_of_le_of_ne hu (Ne.symm hu_ne_zero)
     have hy_norm_pos : 0 < ‖y‖ :=
       norm_pos_iff.mpr (ne_of_lt hy)
     have hz_re_pos : 0 < z.re := by
@@ -234,7 +234,7 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_neg_im_eq_neg_pi_div_two_add_a
       have hdiv_eq : y / u = -(‖y‖ / u) := by
         calc
           y / u = (-‖y‖) / u := congrArg (fun r : ℝ => r / u) hy_eq_neg_norm
-          _ = -(‖y‖ / u) := neg_div ‖y‖ u
+          _ = -(‖y‖ / u) := neg_div u ‖y‖
       exact Eq.trans
         (congrArg Real.arctan hdiv_eq)
         (Real.arctan_neg (‖y‖ / u))
@@ -506,7 +506,7 @@ theorem Complex.shiftedVertical_arg_linear_defect_bounded
         H ≤ ‖y‖ →
           let w : ℂ :=
             Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y
+              (x + Complex.verticalStripTransportShift A) y;
           -(Complex.arg w * y) ≤ D + (-(Real.pi / 2) * ‖y‖) ∧
           (-(Real.pi / 2) * ‖y‖) - D ≤ -(Complex.arg w * y) := by
   let D : ℝ :=
@@ -517,16 +517,7 @@ theorem Complex.shiftedVertical_arg_linear_defect_bounded
       (le_max_left
         |A + Complex.verticalStripTransportShift A|
         |B + Complex.verticalStripTransportShift A|)
-  have hpointwise :
-      ∀ x y : ℝ,
-        A ≤ x →
-        x ≤ B →
-        (1 : ℝ) ≤ ‖y‖ →
-          let w : ℂ :=
-            Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y
-          -(Complex.arg w * y) ≤ D + (-(Real.pi / 2) * ‖y‖) ∧
-          (-(Real.pi / 2) * ‖y‖) - D ≤ -(Complex.arg w * y) := by
+  refine ⟨1, D, zero_lt_one, hD_nonneg, ?_⟩
   intro x y hxA hxB _hy
   let u : ℝ := x + Complex.verticalStripTransportShift A
   let w : ℂ :=
@@ -537,7 +528,7 @@ theorem Complex.shiftedVertical_arg_linear_defect_bounded
       Complex.neg_lower_le_verticalStripRightShift A
     calc
       0 = A + -A := by
-        exact (add_right_neg A).symm
+        exact (add_neg_cancel A).symm
       _ ≤ x + (Complex.verticalStripRightShift A : ℝ) :=
         add_le_add hxA hshift
   have hu_abs_le_D : |u| ≤ D := by
@@ -574,9 +565,36 @@ theorem Complex.shiftedVertical_arg_linear_defect_bounded
       calc
         -(Complex.arg w * y) =
             ((Real.pi / 2) * ‖y‖ - Complex.arg w * y) +
+              -((Real.pi / 2) * ‖y‖) := by
+          calc
+            -(Complex.arg w * y) =
+                (Real.pi / 2) * ‖y‖ +
+                  (-((Real.pi / 2) * ‖y‖) + -(Complex.arg w * y)) :=
+              (add_neg_cancel_left ((Real.pi / 2) * ‖y‖)
+                (-(Complex.arg w * y))).symm
+            _ = (Real.pi / 2) * ‖y‖ +
+                  (-(Complex.arg w * y) + -((Real.pi / 2) * ‖y‖)) := by
+              exact congrArg
+                (fun t : ℝ => (Real.pi / 2) * ‖y‖ + t)
+                (add_comm (-((Real.pi / 2) * ‖y‖))
+                  (-(Complex.arg w * y)))
+            _ = ((Real.pi / 2) * ‖y‖ + -(Complex.arg w * y)) +
+                  -((Real.pi / 2) * ‖y‖) :=
+              (add_assoc ((Real.pi / 2) * ‖y‖)
+                (-(Complex.arg w * y))
+                (-((Real.pi / 2) * ‖y‖))).symm
+            _ = ((Real.pi / 2) * ‖y‖ - Complex.arg w * y) +
+                  -((Real.pi / 2) * ‖y‖) := by
+              exact congrArg
+                (fun t : ℝ => t + -((Real.pi / 2) * ‖y‖))
+                (sub_eq_add_neg ((Real.pi / 2) * ‖y‖)
+                  (Complex.arg w * y)).symm
+        _ = ((Real.pi / 2) * ‖y‖ - Complex.arg w * y) +
               (-(Real.pi / 2) * ‖y‖) := by
-          exact (add_neg_cancel_left ((Real.pi / 2) * ‖y‖)
-            (-(Complex.arg w * y))).symm
+          exact congrArg
+            (fun t : ℝ =>
+              ((Real.pi / 2) * ‖y‖ - Complex.arg w * y) + t)
+            (neg_mul (Real.pi / 2) ‖y‖).symm
         _ ≤ D + (-(Real.pi / 2) * ‖y‖) :=
           add_le_add_right hdef_upper (-(Real.pi / 2) * ‖y‖)
     exact htarget
@@ -596,10 +614,36 @@ theorem Complex.shiftedVertical_arg_linear_defect_bounded
               (-(Real.pi / 2) * ‖y‖) :=
           add_le_add_right hdef_lower (-(Real.pi / 2) * ‖y‖)
         _ = -(Complex.arg w * y) := by
-          exact add_neg_cancel_left ((Real.pi / 2) * ‖y‖)
-            (-(Complex.arg w * y))
+          calc
+            ((Real.pi / 2) * ‖y‖ - Complex.arg w * y) +
+                (-(Real.pi / 2) * ‖y‖) =
+              ((Real.pi / 2) * ‖y‖ - Complex.arg w * y) +
+                -((Real.pi / 2) * ‖y‖) := by
+              exact congrArg
+                (fun t : ℝ =>
+                  ((Real.pi / 2) * ‖y‖ - Complex.arg w * y) + t)
+                (neg_mul (Real.pi / 2) ‖y‖)
+            _ = ((Real.pi / 2) * ‖y‖ + -(Complex.arg w * y)) +
+                -((Real.pi / 2) * ‖y‖) := by
+              exact congrArg
+                (fun t : ℝ => t + -((Real.pi / 2) * ‖y‖))
+                (sub_eq_add_neg ((Real.pi / 2) * ‖y‖)
+                  (Complex.arg w * y))
+            _ = (Real.pi / 2) * ‖y‖ +
+                (-(Complex.arg w * y) + -((Real.pi / 2) * ‖y‖)) :=
+              add_assoc ((Real.pi / 2) * ‖y‖)
+                (-(Complex.arg w * y))
+                (-((Real.pi / 2) * ‖y‖))
+            _ = (Real.pi / 2) * ‖y‖ +
+                (-((Real.pi / 2) * ‖y‖) + -(Complex.arg w * y)) := by
+              exact congrArg
+                (fun t : ℝ => (Real.pi / 2) * ‖y‖ + t)
+                (add_comm (-(Complex.arg w * y))
+                  (-((Real.pi / 2) * ‖y‖)))
+            _ = -(Complex.arg w * y) :=
+              add_neg_cancel_left ((Real.pi / 2) * ‖y‖)
+                (-(Complex.arg w * y))
     exact htarget
-  exact ⟨1, D, zero_lt_one, hD_nonneg, hpointwise⟩
 
 /-- Quantitative arctangent-defect comparison for shifted right-half-plane
 vertical strips.
@@ -621,7 +665,7 @@ theorem Complex.shiftedVertical_arg_exponential_defect_comparable_quantitative
         H ≤ ‖y‖ →
           let w : ℂ :=
             Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y
+              (x + Complex.verticalStripTransportShift A) y;
           Real.exp (-(Complex.arg w * y)) ≤
             C * Real.exp (-(Real.pi / 2) * ‖y‖) ∧
           c * Real.exp (-(Real.pi / 2) * ‖y‖) ≤
@@ -632,18 +676,7 @@ theorem Complex.shiftedVertical_arg_exponential_defect_comparable_quantitative
     Real.exp_pos D
   have hc_pos : 0 < Real.exp (-D) :=
     Real.exp_pos (-D)
-  have hpointwise :
-      ∀ x y : ℝ,
-        A ≤ x →
-        x ≤ B →
-        H ≤ ‖y‖ →
-          let w : ℂ :=
-            Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y
-          Real.exp (-(Complex.arg w * y)) ≤
-            Real.exp D * Real.exp (-(Real.pi / 2) * ‖y‖) ∧
-          Real.exp (-D) * Real.exp (-(Real.pi / 2) * ‖y‖) ≤
-            Real.exp (-(Complex.arg w * y)) := by
+  refine ⟨H, Real.exp D, Real.exp (-D), hH_pos, hC_pos, hc_pos, ?_⟩
   intro x y hxA hxB hy
   let w : ℂ :=
     Complex.fixedRealPartVerticalPoint
@@ -678,7 +711,6 @@ theorem Complex.shiftedVertical_arg_exponential_defect_comparable_quantitative
         _ = Real.exp (-D) * Real.exp b :=
           mul_comm (Real.exp b) (Real.exp (-D))
     exact le_trans (le_of_eq hsplit.symm) hlower_exp
-  exact ⟨H, Real.exp D, Real.exp (-D), hH_pos, hC_pos, hc_pos, hpointwise⟩
 
 /-- Quantitative vertical argument-defect estimate for shifted right-half-plane
 strip points.
@@ -699,7 +731,7 @@ theorem Complex.shiftedVertical_arg_exponential_defect_comparable
         H ≤ ‖y‖ →
           let w : ℂ :=
             Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y
+              (x + Complex.verticalStripTransportShift A) y;
           Real.exp (-(Complex.arg w * y)) ≤
             C * Real.exp (-(Real.pi / 2) * ‖y‖) ∧
           c * Real.exp (-(Real.pi / 2) * ‖y‖) ≤
@@ -725,7 +757,7 @@ theorem Complex.shiftedVertical_radius_base_comparable
         H ≤ ‖y‖ →
           let w : ℂ :=
             Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y
+              (x + Complex.verticalStripTransportShift A) y;
           ‖w‖ ≤ C * (1 + ‖y‖) ∧
           c * (1 + ‖y‖) ≤ ‖w‖ := by
   match
@@ -753,7 +785,7 @@ theorem Complex.shiftedVertical_radius_base_comparable
     Nat.zero_lt_one
   have hupper_w :
       ‖Complex.fixedRealPartVerticalPoint
-          (x + Complex.verticalStripTransportShift A) y + (0 : ℂ)‖ ≤
+          (x + Complex.verticalStripTransportShift A) y + ((0 : ℕ) : ℂ)‖ ≤
         C * (1 + ‖y‖) :=
     hupper (x + Complex.verticalStripTransportShift A) y
       hxA_shift hxB_shift 0 hzero_lt_one_nat
@@ -769,19 +801,37 @@ theorem Complex.shiftedVertical_radius_base_comparable
           ‖Complex.fixedRealPartVerticalPoint
             (x + Complex.verticalStripTransportShift A) y + (0 : ℂ)‖ :=
         congrArg norm hzero_add.symm
+      _ =
+          ‖Complex.fixedRealPartVerticalPoint
+            (x + Complex.verticalStripTransportShift A) y + ((0 : ℕ) : ℂ)‖ := by
+        exact congrArg norm
+          (congrArg
+            (fun t : ℂ =>
+              Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y + t)
+            (Nat.cast_zero.symm))
       _ ≤ C * (1 + ‖y‖) := hupper_w
   have hlower_final :
       (1 / 2 : ℝ) * (1 + ‖y‖) ≤ ‖w‖ := by
     have hlower_raw :
         (1 / 2 : ℝ) * (1 + ‖y‖) ≤
           ‖Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y + (0 : ℂ)‖ :=
+              (x + Complex.verticalStripTransportShift A) y + ((0 : ℕ) : ℂ)‖ :=
       Complex.gammaRecurrenceProduct_factor_largeHeight_lower 0 hy
     calc
       (1 / 2 : ℝ) * (1 + ‖y‖) ≤
           ‖Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y + (0 : ℂ)‖ :=
+              (x + Complex.verticalStripTransportShift A) y + ((0 : ℕ) : ℂ)‖ :=
         hlower_raw
+      _ =
+          ‖Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y + (0 : ℂ)‖ := by
+        exact congrArg norm
+          (congrArg
+            (fun t : ℂ =>
+              Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y + t)
+            Nat.cast_zero)
       _ = ‖w‖ := congrArg norm hzero_add
   exact ⟨hupper_final, hlower_final⟩⟩
 
@@ -793,7 +843,7 @@ stays in a fixed bounded interval, then `R^e` is uniformly comparable to
 comparison has removed all complex geometry. -/
 theorem real_rpow_comparable_of_base_comparable_and_bounded_exponent
     (C c L U : ℝ)
-    (hC_pos : 0 < C)
+    (_hC_pos : 0 < C)
     (hc_pos : 0 < c) :
     ∃ K : ℝ, ∃ k : ℝ,
       0 < K ∧
@@ -889,7 +939,7 @@ theorem real_rpow_comparable_of_base_comparable_and_bounded_exponent
       |e * Real.log q| = |e| * |Real.log q| :=
         abs_mul e (Real.log q)
       _ ≤ E * M :=
-        mul_le_mul he_abs hlog_abs hM_nonneg (abs_nonneg e)
+        mul_le_mul he_abs hlog_abs (abs_nonneg (Real.log q)) hE_nonneg
   have hupper_exp_arg : e * Real.log q ≤ E * M :=
     le_trans (le_abs_self (e * Real.log q)) hmul_abs
   have hlower_exp_arg : -(E * M) ≤ e * Real.log q := by
@@ -952,7 +1002,7 @@ theorem Complex.shiftedVertical_radiusPower_comparable_boundedExponent
         H ≤ ‖y‖ →
           let w : ℂ :=
             Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y
+              (x + Complex.verticalStripTransportShift A) y;
           ‖w‖ ^ (w.re - 1 / 2) ≤
             C * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ∧
           c * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ≤
@@ -1020,7 +1070,7 @@ theorem Complex.shiftedVertical_radiusPower_comparable
         H ≤ ‖y‖ →
           let w : ℂ :=
             Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y
+              (x + Complex.verticalStripTransportShift A) y;
           ‖w‖ ^ (w.re - 1 / 2) ≤
             C * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ∧
           c * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ≤
@@ -1041,7 +1091,7 @@ theorem Complex.shiftedVertical_realPartExp_bounded
         x ≤ B →
           let w : ℂ :=
             Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y
+              (x + Complex.verticalStripTransportShift A) y;
           Real.exp (-w.re) ≤ C ∧
           c ≤ Real.exp (-w.re) := by
   let N : ℝ := Complex.verticalStripTransportShift A
@@ -1229,7 +1279,7 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
         H ≤ ‖y‖ →
           let w : ℂ :=
             Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y
+              (x + Complex.verticalStripTransportShift A) y;
           0 < ‖Complex.exp w‖ *
                 ‖w ^ ((1 / 2 : ℂ) - w)‖ ∧
           1 / (‖Complex.exp w‖ *
@@ -1302,11 +1352,7 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
   constructor
   · have hrad_upper :
         ‖w‖ ^ (w.re - 1 / 2) ≤ Cr * P := by
-      calc
-        ‖w‖ ^ (w.re - 1 / 2) =
-            ‖w‖ ^ ((x + Complex.verticalStripTransportShift A) - 1 / 2) :=
-          congrArg (fun t : ℝ => ‖w‖ ^ (t - 1 / 2)) hw_re
-        _ ≤ Cr * P := hradius_xy.1
+      exact hradius_xy.1
     have harg_upper :
         Real.exp (-(Complex.arg w * y)) ≤ Ca * Eexp :=
       harg_xy.1
@@ -1353,13 +1399,13 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
         calc
           ((Ca * Eexp) * (Cr * P)) * Ce =
               (Ca * Eexp) * ((Cr * P) * Ce) :=
-            (mul_assoc (Ca * Eexp) (Cr * P) Ce).symm
+            mul_assoc (Ca * Eexp) (Cr * P) Ce
           _ = (Ca * Eexp) * (Ce * (Cr * P)) := by
             exact congrArg
               (fun t : ℝ => (Ca * Eexp) * t)
               (mul_comm (Cr * P) Ce)
           _ = ((Ca * Eexp) * Ce) * (Cr * P) :=
-            mul_assoc (Ca * Eexp) Ce (Cr * P)
+            (mul_assoc (Ca * Eexp) Ce (Cr * P)).symm
           _ = (Ca * (Eexp * Ce)) * (Cr * P) := by
             exact congrArg
               (fun t : ℝ => t * (Cr * P))
@@ -1373,13 +1419,13 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
               (fun t : ℝ => t * (Cr * P))
               (mul_assoc Ca Ce Eexp).symm
           _ = (Ca * Ce) * (Eexp * (Cr * P)) :=
-            (mul_assoc (Ca * Ce) Eexp (Cr * P)).symm
+            mul_assoc (Ca * Ce) Eexp (Cr * P)
           _ = (Ca * Ce) * ((Cr * P) * Eexp) := by
             exact congrArg
               (fun t : ℝ => (Ca * Ce) * t)
               (mul_comm Eexp (Cr * P))
           _ = ((Ca * Ce) * (Cr * P)) * Eexp :=
-            mul_assoc (Ca * Ce) (Cr * P) Eexp
+            (mul_assoc (Ca * Ce) (Cr * P) Eexp).symm
           _ = (Ca * (Ce * (Cr * P))) * Eexp := by
             exact congrArg
               (fun t : ℝ => t * Eexp)
@@ -1402,13 +1448,13 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
               (mul_assoc Cr Ce P).symm
           _ = ((Ca * (Cr * Ce)) * P) * Eexp :=
             congrArg (fun t : ℝ => t * Eexp)
-              (mul_assoc Ca (Cr * Ce) P)
+              (mul_assoc Ca (Cr * Ce) P).symm
           _ = (((Ca * Cr) * Ce) * P) * Eexp := by
             exact congrArg
               (fun t : ℝ => (t * P) * Eexp)
               (mul_assoc Ca Cr Ce).symm
           _ = ((Ca * Cr) * Ce) * (P * Eexp) :=
-            (mul_assoc ((Ca * Cr) * Ce) P Eexp).symm
+            mul_assoc ((Ca * Cr) * Ce) P Eexp
           _ = ((Ca * Cr) * Ce) * (Eexp * P) := by
             exact congrArg
               (fun t : ℝ => ((Ca * Cr) * Ce) * t)
@@ -1431,12 +1477,7 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
         congrArg (fun t : ℝ => ((Ca * Cr) * Ce) * t) henv_eq
   · have hrad_lower :
         cr * P ≤ ‖w‖ ^ (w.re - 1 / 2) := by
-      calc
-        cr * P ≤
-            ‖w‖ ^ ((x + Complex.verticalStripTransportShift A) - 1 / 2) :=
-          hradius_xy.2
-        _ = ‖w‖ ^ (w.re - 1 / 2) :=
-          (congrArg (fun t : ℝ => ‖w‖ ^ (t - 1 / 2)) hw_re).symm
+      exact hradius_xy.2
     have harg_lower :
         ca * Eexp ≤ Real.exp (-(Complex.arg w * y)) :=
       harg_xy.2
@@ -1465,13 +1506,13 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
         calc
           ((ca * cr) * ce) * (Eexp * P) =
               (ca * cr) * (ce * (Eexp * P)) :=
-            (mul_assoc (ca * cr) ce (Eexp * P)).symm
+            mul_assoc (ca * cr) ce (Eexp * P)
           _ = (ca * cr) * ((Eexp * P) * ce) := by
             exact congrArg
               (fun t : ℝ => (ca * cr) * t)
               (mul_comm ce (Eexp * P))
           _ = ((ca * cr) * (Eexp * P)) * ce :=
-            mul_assoc (ca * cr) (Eexp * P) ce
+            (mul_assoc (ca * cr) (Eexp * P) ce).symm
           _ = (ca * (cr * (Eexp * P))) * ce := by
             exact congrArg
               (fun t : ℝ => t * ce)
@@ -1516,13 +1557,13 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
                 calc
                   (ca * cr) * (P * Eexp) =
                       ca * (cr * (P * Eexp)) :=
-                    (mul_assoc ca cr (P * Eexp)).symm
+                    mul_assoc ca cr (P * Eexp)
                   _ = ca * ((cr * P) * Eexp) := by
                     exact congrArg
                       (fun t : ℝ => ca * t)
-                      (mul_assoc cr P Eexp)
+                      (mul_assoc cr P Eexp).symm
                   _ = ca * (cr * P) * Eexp :=
-                    mul_assoc ca (cr * P) Eexp)
+                    (mul_assoc ca (cr * P) Eexp).symm)
           _ = (Eexp * (ca * (cr * P))) * ce := by
             exact congrArg
               (fun t : ℝ => t * ce)
@@ -1534,7 +1575,7 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
           _ = (ca * ((cr * P) * Eexp)) * ce := by
             exact congrArg
               (fun t : ℝ => t * ce)
-              (mul_assoc ca (cr * P) Eexp).symm
+              (mul_assoc ca (cr * P) Eexp)
           _ = (ca * (Eexp * (cr * P))) * ce := by
             exact congrArg
               (fun t : ℝ => (ca * t) * ce)
@@ -1542,7 +1583,7 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
           _ = ((ca * Eexp) * (cr * P)) * ce := by
             exact congrArg
               (fun t : ℝ => t * ce)
-              (mul_assoc ca Eexp (cr * P))
+              (mul_assoc ca Eexp (cr * P)).symm
           _ = (ca * Eexp) * (cr * P) * ce := rfl
       have hfirst :
           (ca * Eexp) * (cr * P) ≤

@@ -17,6 +17,13 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- The canonical contour family used to compare the finite prime transport remainder with
+the horizontal top-minus-bottom contour remainder. -/
+def completedPrimeContourTransportFamily : ExplicitFormulaContourFamily where
+  c := (1 / 2 : ℝ) + 1
+  c_gt_half := by
+    exact lt_add_of_pos_right (1 / 2 : ℝ) zero_lt_one
+
 /-- The coordinatewise contour-transport remainder between the contour-realized and
 time-side prime distributions. -/
 noncomputable def completedPrimeContourTransportCoordinateRemainder
@@ -115,7 +122,7 @@ theorem finitePrimeHorizontalResidueShadow_eq_horizontalResidueWindowError_re
           (convolutionAutocorrelation f)
           completedPrimeContourTransportFamily
           (N : ℝ)) := by
-  rfl
+  exact rfl
 
 /-- The norm of a contour-transport coordinate remainder is bounded by the two coordinate
 norms before any height localization estimate is applied. -/
@@ -308,7 +315,17 @@ theorem real_finset_sum_sub_distrib
     (u v : ZetaPrimePowerIndex → ℝ) :
     (∑ ι in s, u ι) - (∑ ι in s, v ι) =
       ∑ ι in s, (u ι - v ι) := by
-  exact Finset.sum_sub_distrib
+  have hneg : ∑ ι in s, (- v ι) = - ∑ ι in s, v ι := by
+    exact Finset.sum_neg_distrib
+  calc
+    (∑ ι in s, u ι) - (∑ ι in s, v ι) =
+        (∑ ι in s, u ι) + ∑ ι in s, (- v ι) := by
+      exact (sub_eq_add_neg (∑ ι in s, u ι) (∑ ι in s, v ι)).trans
+        (congrArg (fun x : ℝ => (∑ ι in s, u ι) + x) hneg.symm)
+    _ = ∑ ι in s, (u ι + - v ι) := by
+      exact (Finset.sum_add_distrib).symm
+    _ = ∑ ι in s, (u ι - v ι) := by
+      exact Finset.sum_congr rfl (fun ι _ => (sub_eq_add_neg (u ι) (v ι)).symm)
 
 /-- Transport finite coordinate-window descriptions into a coordinatewise subtraction
 description. -/

@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.CenteredZeros.Owner
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.Analysis.SpecialFunctions.Gamma.Deligne
 
@@ -7,8 +7,8 @@ import Mathlib.Analysis.SpecialFunctions.Gamma.Deligne
 
 This file packages the completed-zeta normalization lemmas needed by the
 analytic explicit-formula route. It does not prove the contour argument; it
-just exposes the completed zeta identities in the owner namespace where the
-future proof will consume them.
+just exposes the completed zeta identities in the owner namespace used by the
+contour-shift proof chain.
 -/
 
 namespace Boundary

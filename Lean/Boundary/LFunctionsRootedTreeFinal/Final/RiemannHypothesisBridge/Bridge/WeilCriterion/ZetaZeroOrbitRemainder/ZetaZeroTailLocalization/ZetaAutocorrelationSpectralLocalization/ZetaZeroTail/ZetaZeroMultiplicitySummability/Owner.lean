@@ -29,7 +29,6 @@ theorem completedZeroCenteredHeightShellTailConstant_pos
     (C : ℝ) (d k : ℕ)
     (hCpos : 0 < C) :
     0 < completedZeroCenteredHeightShellTailConstant C d k := by
-  change 0 < C * (2 : ℝ) ^ (d + k + 3)
   exact mul_pos hCpos (pow_pos zero_lt_two (d + k + 3))
 
 /-- The lower decay factor attached to a centered-height shell. -/
@@ -41,7 +40,6 @@ noncomputable def completedZeroCenteredHeightShellLowerDecay
 theorem completedZeroCenteredHeightShellLowerDecay_nonnegative
     (d k m : ℕ) :
     0 ≤ completedZeroCenteredHeightShellLowerDecay d k m := by
-  change 0 ≤ (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ))
   exact zpow_nonneg
     (le_trans zero_le_one (le_max_left 1 ‖((m : ℕ) : ℝ)‖))
     (-(d + k + 3 : ℤ))
@@ -50,13 +48,6 @@ theorem completedZeroCenteredHeightShellLowerDecay_nonnegative
 theorem completedZeroCenteredHeightShellDecayMass_nonnegative
     (d k m : ℕ) :
     0 ≤ completedZeroCenteredHeightShellDecayMass d k m := by
-  change
-    0 ≤
-      tsum
-        (fun x : completedZeroCenteredHeightShellFiber m =>
-          zetaCompletedZeroCenteredHeight
-              (x : {ρ : ℂ // ZetaCompletedZero ρ}) ^
-            (-(d + k + 3 : ℤ)))
   exact tsum_nonneg
     (fun x : completedZeroCenteredHeightShellFiber m =>
       zpow_nonneg
@@ -163,11 +154,6 @@ theorem completedZeroCenteredHeightShell_decay_le_lowerDecay
         (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
         (-(d + k + 3 : ℤ)) ≤
       completedZeroCenteredHeightShellLowerDecay d k m := by
-  change
-    zetaCompletedZeroCenteredHeight
-        (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
-        (-(d + k + 3 : ℤ)) ≤
-      (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ))
   exact real_zpow_negNat_antitone_on_one_le
     (d + k + 3)
     (le_max_left 1 ‖((m : ℕ) : ℝ)‖)
@@ -269,12 +255,6 @@ theorem one_le_completedZeroMultiplicityHeightBallSummand_of_mem
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
     (hρ : ρ ∈ completedZerosInCenteredHeightBall T) :
     (1 : ℝ) ≤ completedZeroMultiplicityHeightBallSummand T ρ := by
-  change
-    (1 : ℝ) ≤
-      if ρ ∈ completedZerosInCenteredHeightBall T then
-        (zetaZeroMultiplicity (ρ : ℂ) : ℝ)
-      else
-        0
   have hpos :
       0 < zetaZeroMultiplicity (ρ : ℂ) :=
     zetaZeroMultiplicity_pos_of_completedZero ρ
@@ -340,10 +320,6 @@ theorem completedZeroCenteredHeightShell_unweightedCount_le_multiplicityCounting
       hsummable
       hnonnegative
       hi
-  change
-    (Nat.card (completedZeroCenteredHeightShellFiber m) : ℝ) ≤
-      ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        completedZeroMultiplicityHeightBallSummand T ρ
   exact le_trans hcard_le_shell_tsum hshell_tsum_le_total
 
 /-- A finite nonnegative shell `tsum` is bounded by cardinal times a uniform
@@ -355,13 +331,6 @@ theorem completedZeroCenteredHeightShellDecayMass_le_card_mul_lowerDecay
         completedZeroCenteredHeightShellLowerDecay d k m := by
   haveI : Fintype (completedZeroCenteredHeightShellFiber m) :=
     (finite_completedZeroCenteredHeightShell m).fintype
-  change
-    (∑' ρ : completedZeroCenteredHeightShellFiber m,
-      zetaCompletedZeroCenteredHeight
-          (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
-        (-(d + k + 3 : ℤ))) ≤
-      (Nat.card (completedZeroCenteredHeightShellFiber m) : ℝ) *
-        completedZeroCenteredHeightShellLowerDecay d k m
   exact real_tsum_le_natCard_mul_of_forall_le
     (fun ρ : completedZeroCenteredHeightShellFiber m =>
       zetaCompletedZeroCenteredHeight
@@ -639,20 +608,17 @@ theorem completedZeroCenteredHeightShellCountingEnvelope_le_tailConstant_of_heig
     one_add_natNorm_le_two_mul_max_one_natNorm m
   have hdk_eq :
       d + K = d + k + 2 := by
-    change d + (k + 2) = d + k + 2
     exact (Nat.add_assoc d k 2).symm
   have hdk_le_raw :
       d + k + 2 ≤ d + k + 3 :=
     Nat.le_succ (d + k + 2)
   have hdk : d + K ≤ D := by
-    change d + K ≤ d + k + 3
     exact Eq.subst
-      (motive := fun x : ℕ => x ≤ d + k + 3)
+      (motive := fun x : ℕ => x ≤ D)
       hdk_eq.symm
       hdk_le_raw
   have hsucc :
       (((m + 1 : ℕ) : ℝ)) = b := by
-    change (((m + 1 : ℕ) : ℝ)) = 1 + ‖((m : ℕ) : ℝ)‖
     exact natSucc_cast_eq_one_add_natNorm m
   have hsucc_pow :
       (((m + 1 : ℕ) : ℝ) ^ d) = b ^ d :=
@@ -662,21 +628,21 @@ theorem completedZeroCenteredHeightShellCountingEnvelope_le_tailConstant_of_heig
         C * ((2 : ℝ) ^ D * b ^ (-(K : ℤ))) :=
     real_const_mul_growth_decay_product_le_tail_of_baseComparison
       d D K hCpos ha hb hbase hdk
-  change
-    C * (((m + 1 : ℕ) : ℝ) ^ d) *
-        (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ)) ≤
-      C * (2 : ℝ) ^ (d + k + 3) *
-        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ))
+  have henvelope_unfold :
+      completedZeroCenteredHeightShellCountingEnvelope C d k m =
+        C * (((m + 1 : ℕ) : ℝ) ^ d) *
+          (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ)) :=
+    rfl
+  have htailConstant_unfold :
+      completedZeroCenteredHeightShellTailConstant C d k *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) =
+        C * (2 : ℝ) ^ (d + k + 3) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) :=
+    rfl
   have hleft :
       C * (((m + 1 : ℕ) : ℝ) ^ d) *
           (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ)) =
         C * (b ^ d * a ^ (-(D : ℤ))) := by
-    change
-      C * (((m + 1 : ℕ) : ℝ) ^ d) *
-          (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ)) =
-        C *
-          (b ^ d *
-            (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ)))
     have hreplace :
         C * (((m + 1 : ℕ) : ℝ) ^ d) *
             (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ)) =
@@ -700,24 +666,33 @@ theorem completedZeroCenteredHeightShellCountingEnvelope_le_tailConstant_of_heig
       C * (2 : ℝ) ^ (d + k + 3) *
           (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) =
         C * ((2 : ℝ) ^ D * b ^ (-(K : ℤ))) := by
-    change
-      C * (2 : ℝ) ^ (d + k + 3) *
-          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) =
-        C *
-          ((2 : ℝ) ^ (d + k + 3) *
-            (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)))
     exact mul_assoc C ((2 : ℝ) ^ (d + k + 3))
       ((1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)))
+  have hunfolded_bound :
+      C * (((m + 1 : ℕ) : ℝ) ^ d) *
+          (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ)) ≤
+        C * (2 : ℝ) ^ (d + k + 3) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) :=
+    Eq.subst
+      (motive := fun x : ℝ =>
+        x ≤ C * (2 : ℝ) ^ (d + k + 3) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)))
+      hleft.symm
+      (Eq.subst
+        (motive := fun x : ℝ =>
+          C * (b ^ d * a ^ (-(D : ℤ))) ≤ x)
+        hright.symm
+        hcore)
   exact Eq.subst
     (motive := fun x : ℝ =>
-      x ≤ completedZeroCenteredHeightShellTailConstant C d k *
-        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)))
-    hleft.symm
+      completedZeroCenteredHeightShellCountingEnvelope C d k m ≤ x)
+    htailConstant_unfold.symm
     (Eq.subst
       (motive := fun x : ℝ =>
-        C * (b ^ d * a ^ (-(D : ℤ))) ≤ x)
-      hright.symm
-      hcore)
+        x ≤ C * (2 : ℝ) ^ (d + k + 3) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)))
+      henvelope_unfold.symm
+      hunfolded_bound)
 
 /-- The shell counting envelope is bounded by the explicit polynomial tail
 constant. -/
@@ -821,6 +796,7 @@ theorem summable_completedZero_centeredHeight_negativePower_of_counting_bound
 /-- The completed-zero counting theorem supplies a counting degree after which
 all further polynomial negative-height envelopes are summable. -/
 theorem exists_summable_completedZero_centeredHeight_negativePower_with_countingMargin
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -833,6 +809,7 @@ theorem exists_summable_completedZero_centeredHeight_negativePower_with_counting
           (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
             zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))) := by
   match exists_completedZeroMultiplicityCounting_height_bound
+      hbranch
       hpartialOneTwo htailOneTwo hcompactOneTwo
       hpartialLeft htailBoundary hcompactBoundary with
   | ⟨C, d, hCpos, hcount⟩ =>

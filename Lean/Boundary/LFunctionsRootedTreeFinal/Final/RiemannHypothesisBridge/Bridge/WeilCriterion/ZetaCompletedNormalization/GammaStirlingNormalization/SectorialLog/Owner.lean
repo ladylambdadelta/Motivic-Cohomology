@@ -1343,21 +1343,74 @@ theorem real_natShift_mem_strip_of_mem_strip
   ⟨add_le_add_right hxA (N : ℝ),
     add_le_add_right hxB (N : ℝ)⟩
 
-/-- Deterministic right shift for a vertical strip.  It is the least natural
-integer produced by the floor API which is at least `max 0 (-A)`, hence it
-moves the strip lower edge `A` into the closed right half-plane. -/
+/-- Deterministic right shift for a vertical strip.
+
+It is a natural shift at least `1 - A`, so it moves the strip lower edge `A`
+into the strict right half-plane with real part at least `1`. -/
 def Complex.verticalStripRightShift (A : ℝ) : ℕ :=
-  Nat.ceil (max 0 (-A))
+  Nat.ceil (max 1 (1 - A))
 
 /-- The deterministic strip shift dominates the negative lower endpoint. -/
 theorem Complex.neg_lower_le_verticalStripRightShift
     (A : ℝ) :
     -A ≤ (Complex.verticalStripRightShift A : ℝ) :=
-  let hmax : -A ≤ max 0 (-A) :=
-    le_max_right 0 (-A)
-  let hceil : max 0 (-A) ≤ (Complex.verticalStripRightShift A : ℝ) :=
-    Nat.le_ceil (max 0 (-A))
-  le_trans hmax hceil
+  let hneg_le_one_sub : -A ≤ 1 - A := by
+    calc
+      -A = 0 + -A := by
+        exact (zero_add (-A)).symm
+      _ ≤ 1 + -A :=
+        add_le_add_right zero_le_one (-A)
+      _ = 1 - A := (sub_eq_add_neg 1 A).symm
+  let hmax : 1 - A ≤ max 1 (1 - A) :=
+    le_max_right 1 (1 - A)
+  let hceil : max 1 (1 - A) ≤ (Complex.verticalStripRightShift A : ℝ) :=
+    Nat.le_ceil (max 1 (1 - A))
+  le_trans hneg_le_one_sub (le_trans hmax hceil)
+
+/-- The deterministic strip shift places the lower endpoint at real part at
+least `1`. -/
+theorem Complex.one_le_lower_add_verticalStripRightShift
+    (A : ℝ) :
+    1 ≤ A + (Complex.verticalStripRightShift A : ℝ) :=
+  let hmax : 1 - A ≤ max 1 (1 - A) :=
+    le_max_right 1 (1 - A)
+  let hceil : max 1 (1 - A) ≤ (Complex.verticalStripRightShift A : ℝ) :=
+    Nat.le_ceil (max 1 (1 - A))
+  have hshift : 1 - A ≤ (Complex.verticalStripRightShift A : ℝ) :=
+    le_trans hmax hceil
+  calc
+    1 = A + (1 - A) := by
+      calc
+        1 = (1 - A) + A := by
+          exact (sub_add_cancel 1 A).symm
+        _ = A + (1 - A) := by
+          exact add_comm (1 - A) A
+    _ ≤ A + (Complex.verticalStripRightShift A : ℝ) :=
+      add_le_add_left hshift A
+
+/-- Shifted strip points have strictly positive real part. -/
+theorem Complex.fixedRealPartVerticalPoint_verticalStripRightShift_re_pos
+    {A x y : ℝ}
+    (hx : A ≤ x) :
+    0 <
+      (Complex.fixedRealPartVerticalPoint
+        (x + Complex.verticalStripRightShift A) y).re :=
+  have hone_le : 1 ≤ x + (Complex.verticalStripRightShift A : ℝ) :=
+    calc
+      1 ≤ A + (Complex.verticalStripRightShift A : ℝ) :=
+        Complex.one_le_lower_add_verticalStripRightShift A
+      _ ≤ x + (Complex.verticalStripRightShift A : ℝ) :=
+        add_le_add_right hx (Complex.verticalStripRightShift A : ℝ)
+  have hzero_lt_one : (0 : ℝ) < 1 := zero_lt_one
+  have hpos : 0 < x + (Complex.verticalStripRightShift A : ℝ) :=
+    lt_of_lt_of_le hzero_lt_one hone_le
+  calc
+    0 < x + (Complex.verticalStripRightShift A : ℝ) := hpos
+    _ =
+        (Complex.fixedRealPartVerticalPoint
+          (x + Complex.verticalStripRightShift A) y).re :=
+      (Complex.fixedRealPartVerticalPoint_re
+        (x + Complex.verticalStripRightShift A) y).symm
 
 /-- The deterministic strip shift is nonnegative as a real number. -/
 theorem Complex.verticalStripRightShift_nonneg

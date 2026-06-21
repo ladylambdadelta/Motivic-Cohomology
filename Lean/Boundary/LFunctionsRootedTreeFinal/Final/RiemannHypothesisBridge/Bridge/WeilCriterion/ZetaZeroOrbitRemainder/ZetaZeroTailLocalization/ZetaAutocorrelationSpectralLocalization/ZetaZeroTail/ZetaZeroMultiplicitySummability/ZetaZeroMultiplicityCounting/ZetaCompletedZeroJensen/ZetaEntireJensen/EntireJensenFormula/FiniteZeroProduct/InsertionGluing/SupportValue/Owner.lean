@@ -761,6 +761,10 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
                 (1 - (z : ℂ) / (a : ℂ)) ^
                   entireFunctionZeroMultiplicity F hF (a : ℂ))) ≠ 0 :=
       entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_supportPoint_removableValue_nonzero
+        F hF S hS0 z hz g hg_ne
+    exact
+      fun hQ_zero =>
+        hvalue_ne (Eq.trans hQ_value.symm hQ_zero)
 
 end
 end LFunctions

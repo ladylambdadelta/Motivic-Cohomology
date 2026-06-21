@@ -17,13 +17,6 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- The canonical contour family used to compare the finite prime transport remainder with
-the horizontal top-minus-bottom contour remainder. -/
-def completedPrimeContourTransportFamily : ExplicitFormulaContourFamily where
-  c := (1 / 2 : ℝ) + 1
-  c_gt_half := by
-    exact lt_add_of_pos_right (1 / 2 : ℝ) zero_lt_one
-
 /-- The sampled top horizontal contour integral along the prime transport family. -/
 noncomputable def sampledHorizontalTopIntegral
     (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
@@ -276,9 +269,9 @@ theorem finitePrimeContourRealizedComplexWindow_re_eq_coordinateSum
         completedPrimeContourRealizedTimeDistributionCoordinate ι g := by
   exact
     (Complex.re_sum
+      (ZetaPrimePowerIndex.window N)
       (fun ι : ZetaPrimePowerIndex =>
-        finitePrimeContourRealizedComplexCoordinate ι g)
-      (ZetaPrimePowerIndex.window N)).trans
+        finitePrimeContourRealizedComplexCoordinate ι g)).trans
       (Finset.sum_congr
         rfl
         (fun ι _ =>
@@ -383,9 +376,9 @@ theorem finitePrimeTimeDistributionComplexWindow_re_eq_coordinateSum
         completedPrimeTimeDistributionCoordinate ι g := by
   exact
     (Complex.re_sum
+      (ZetaPrimePowerIndex.window N)
       (fun ι : ZetaPrimePowerIndex =>
-        finitePrimeTimeDistributionComplexCoordinate ι g)
-      (ZetaPrimePowerIndex.window N)).trans
+        finitePrimeTimeDistributionComplexCoordinate ι g)).trans
       (Finset.sum_congr
         rfl
         (fun ι _ =>

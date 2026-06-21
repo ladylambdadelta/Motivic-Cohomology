@@ -2,6 +2,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaCompletedLogDerivativeControl.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaNormalizationBridge.Owner
 import Mathlib.Analysis.Calculus.LogDeriv
+import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.Analysis.SpecialFunctions.Gamma.Deligne
 
 /-!
@@ -94,13 +95,25 @@ theorem explicitFormulaCorrectionLogDerivative_eq_poleCorrection
 theorem analyticAt_deriv_continuousAt
     {g : ℂ → ℂ} {s : ℂ} (hg : AnalyticAt ℂ g s) :
     ContinuousAt (fun z : ℂ => deriv g z) s := by
-  exact hg.deriv.continuousAt
+  have hfderiv :
+      ContinuousAt (fun z : ℂ => fderiv ℂ g z) s :=
+    hg.fderiv.continuousAt
+  have happly :
+      ContinuousAt (fun z : ℂ => (fderiv ℂ g z : ℂ →L[ℂ] ℂ) (1 : ℂ)) s :=
+    isBoundedBilinearMap_apply.continuous.continuousAt.comp₂
+      hfderiv
+      continuousAt_const
+  exact happly.congr_of_eventuallyEq
+    (Filter.Eventually.of_forall
+      (fun z : ℂ => (fderiv_deriv (𝕜 := ℂ) (f := g) (x := z)).symm))
 
 /-- The ordinary Riemann zeta function is analytic away from its pole at `1`. -/
 theorem riemannZeta_analyticAt_of_ne_one
     (s : ℂ) (hs1 : s ≠ 1) :
     AnalyticAt ℂ riemannZeta s := by
-  exact analyticAt_riemannZeta hs1
+  exact analyticAt_iff_eventually_differentiableAt.mpr
+    ((eventually_ne_nhds hs1).mono
+      (fun z hz1 => differentiableAt_riemannZeta hz1))
 
 /-- Continuity of the ordinary zeta derivative at a regular point. -/
 theorem deriv_riemannZeta_continuousAt_of_analyticAt
@@ -114,25 +127,6 @@ theorem deriv_riemannZeta_continuousAt_of_regular
     (s : ℂ) (hs1 : s ≠ 1) :
     ContinuousAt (fun z : ℂ => deriv riemannZeta z) s := by
   exact deriv_riemannZeta_continuousAt_of_analyticAt s hs1
-
-/-- Continuity of the Gamma logarithmic derivative term at a regular point. -/
-theorem log_Gammaℝ_analyticAt_of_ne_zero
-    (s : ℂ) (hΓ : Gammaℝ s ≠ 0) :
-    AnalyticAt ℂ (fun z : ℂ => Complex.log (Gammaℝ z)) s := by
-  exact (Complex.analyticAt_log hΓ).comp (Complex.analyticAt_Gammaℝ s)
-
-/-- Continuity of the Gamma logarithmic derivative term at a regular point. -/
-theorem deriv_log_Gammaℝ_continuousAt_of_analyticAt
-    (s : ℂ) (hΓ : Gammaℝ s ≠ 0) :
-    ContinuousAt (fun z : ℂ => deriv (fun w : ℂ => Complex.log (Gammaℝ w)) z) s := by
-  exact analyticAt_deriv_continuousAt
-    (log_Gammaℝ_analyticAt_of_ne_zero s hΓ)
-
-/-- Continuity of the Gamma logarithmic derivative term at a regular point. -/
-theorem deriv_log_Gammaℝ_continuousAt_of_regular
-    (s : ℂ) (hΓ : Gammaℝ s ≠ 0) :
-    ContinuousAt (fun z : ℂ => deriv (fun w : ℂ => Complex.log (Gammaℝ w)) z) s := by
-  exact deriv_log_Gammaℝ_continuousAt_of_analyticAt s hΓ
 
 /-- Regular completed-zeta points give nonvanishing of the ordinary zeta denominator in the
 prime channel. -/
@@ -171,8 +165,12 @@ theorem explicitFormulaPrimeLogDerivative_continuousAt_of_regular
     [eventually_ne_nhds hs0,
       eventually_ne_nhds hs1,
       (differentiableAt_completedZeta hs0 hs1).continuousAt.eventually_ne hΛ,
-      (Complex.analyticAt_Gammaℝ s).continuousAt.eventually_ne hΓ]
-    with z hz0 hz1 hΛz hΓz
+      Complex.differentiable_Gammaℝ_inv.continuous.continuousAt.eventually_ne
+        (inv_ne_zero hΓ)]
+    with z hz0 hz1 hΛz hΓinvz
+  have hΓz : Gammaℝ z ≠ 0 := by
+    intro hzero
+    exact hΓinvz (inv_eq_zero.mpr hzero)
   exact
     explicitFormulaPrimeLogDerivative_eq_neg_logDeriv_of_regular
       z hz0 hz1 hΛz hΓz
@@ -183,7 +181,7 @@ This is the local regularity of the Gamma/digamma logarithmic derivative under t
 normalization exclusions. -/
 theorem explicitFormulaArchimedeanLogDerivative_continuousAt_of_regular
     (s : ℂ) (hs0 : s ≠ 0) (hs1 : s ≠ 1)
-    (hΛ : completedRiemannZeta s ≠ 0) (hΓ : Gammaℝ s ≠ 0) :
+    (_hΛ : completedRiemannZeta s ≠ 0) (hΓ : Gammaℝ s ≠ 0) :
     ContinuousAt explicitFormulaArchimedeanLogDerivative s := by
   have hΓinv : (Gammaℝ s)⁻¹ ≠ 0 :=
     inv_ne_zero hΓ
@@ -244,9 +242,9 @@ theorem inverseGammaCorrection_eq_archimedean_add_poleCorrection
       exact (inverseGammaCompletionLogDeriv_eq s).symm
     _ = explicitFormulaArchimedeanLogDerivative s +
           explicitFormulaCorrectionLogDerivative s := by
-      exact sub_add_cancel
+      exact (sub_add_cancel
         (inverseGammaCompletionLogDeriv s)
-        (explicitFormulaCorrectionLogDerivative s)
+        (explicitFormulaCorrectionLogDerivative s)).symm
 
 /-- Completed negative logarithmic derivative decomposition on the regular completed-zeta
 domain. -/

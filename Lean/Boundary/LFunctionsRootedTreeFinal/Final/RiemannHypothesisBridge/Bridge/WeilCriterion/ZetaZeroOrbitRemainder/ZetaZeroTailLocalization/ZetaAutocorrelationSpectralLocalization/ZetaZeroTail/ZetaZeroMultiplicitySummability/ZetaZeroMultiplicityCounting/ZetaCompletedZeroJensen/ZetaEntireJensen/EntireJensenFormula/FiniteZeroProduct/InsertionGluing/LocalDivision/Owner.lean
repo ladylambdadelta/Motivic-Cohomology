@@ -777,13 +777,6 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_singleZeroNormalize
     entireFunction_singleZeroNormalizedFactor_removableQuotient
       F hF ρ hρ S a ha_not_mem hS0 ha0 hlocal_a hS
 
-/-- Single insertion removable quotient theorem for a finite normalized
-divisor.
-
-This is the canonical local-to-global step in finite divisor extraction.  The
-local input is the exact order factorization at the inserted zero `a`; the
-already extracted quotient for `S` is patched through the removable singularity
-
 end
 end LFunctions
 end Boundary

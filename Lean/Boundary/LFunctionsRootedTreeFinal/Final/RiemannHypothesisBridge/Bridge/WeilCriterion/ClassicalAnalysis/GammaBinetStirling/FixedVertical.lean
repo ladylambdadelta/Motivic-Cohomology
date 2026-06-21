@@ -1,3 +1,4 @@
+import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.SectorialLogNorm
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.FixedVerticalEnvelope.Owner
 
@@ -12,7 +13,8 @@ namespace LFunctions
 
 noncomputable section
 
-open scoped Filter Topology
+open Filter
+open scoped Topology
 
 /-- The shifted norm base is at least one. -/
 theorem Real.one_le_one_add_norm
@@ -79,6 +81,24 @@ positive. -/
 theorem Real.pi_div_four_pos : 0 < Real.pi / 4 := by
   exact div_pos Real.pi_pos zero_lt_four
 
+/-- The fixed-real-part vertical line has real coordinate `σ`. -/
+theorem Complex.fixedRealPartLine_re
+    (σ t : ℝ) :
+    (σ + t * Complex.I : ℂ).re = σ := by
+  calc
+    (σ + t * Complex.I : ℂ).re =
+        (σ : ℂ).re + ((t : ℂ) * Complex.I).re := by
+      exact Complex.add_re (σ : ℂ) ((t : ℂ) * Complex.I)
+    _ = σ + 0 := by
+      have hmul_re : ((t : ℂ) * Complex.I).re = 0 := by
+        calc
+          ((t : ℂ) * Complex.I).re = -((t : ℂ).im) :=
+            Complex.mul_I_re (t : ℂ)
+          _ = -0 := congrArg Neg.neg (Complex.ofReal_im t)
+          _ = 0 := neg_zero
+      exact congrArg₂ HAdd.hAdd (Complex.ofReal_re σ) hmul_re
+    _ = σ := add_zero σ
+
 /-- A fixed real power is eventually bounded by a slightly larger exponential
 after the harmless shift `x ↦ 1 + x`. -/
 theorem Real.one_add_rpow_le_exp_mul_of_large
@@ -91,19 +111,19 @@ theorem Real.one_add_rpow_le_exp_mul_of_large
           (1 + x) ^ s ≤ Real.exp ((2 * b) * x) := by
   have hsmall :
       (fun y : ℝ => y ^ s) =o[atTop] fun y : ℝ => Real.exp (b * y) :=
-    Real.isLittleO_rpow_exp_pos_mul_atTop s hb
+    isLittleO_rpow_exp_pos_mul_atTop s hb
   have hbound_eventually :
       (fun y : ℝ => ‖y ^ s‖) ≤ᶠ[atTop]
         fun y : ℝ => ‖Real.exp (b * y)‖ :=
-    hsmall.bound zero_lt_one
+    by
+      simpa only [one_mul] using hsmall.bound zero_lt_one
   have hnonneg_eventually : ∀ᶠ y : ℝ in atTop, 0 ≤ y :=
     eventually_ge_atTop 0
   have heventually :
       ∀ᶠ y : ℝ in atTop,
         ‖y ^ s‖ ≤ ‖Real.exp (b * y)‖ ∧ 0 ≤ y :=
     hbound_eventually.and hnonneg_eventually
-  exact eventually_atTop.mp heventually
-  rcases heventually with ⟨Y, hY⟩
+  rcases eventually_atTop.mp heventually with ⟨Y, hY⟩
   let T : ℝ := max 1 (Y - 1)
   refine ⟨T, ?_, ?_⟩
   · exact lt_of_lt_of_le zero_lt_one (le_max_left 1 (Y - 1))
@@ -162,7 +182,7 @@ theorem Complex.fixedRealPart_vertical_stirling_upper_envelope_le_polynomial
       (1 + ‖t‖) ^ (σ - 1 / 2) ≤ (1 + ‖t‖) ^ (m : ℝ) :=
         Real.rpow_le_rpow_of_exponent_le hbase_one hexponent_le
       _ = (1 + ‖t‖) ^ m := by
-        exact (Real.rpow_natCast (1 + ‖t‖) m).symm
+        exact Real.rpow_natCast (1 + ‖t‖) m
   calc
     Real.exp (-(Real.pi / 2) * ‖t‖) *
         (1 + ‖t‖) ^ (σ - 1 / 2) ≤
@@ -174,8 +194,8 @@ theorem Complex.fixedRealPart_vertical_stirling_upper_envelope_le_polynomial
 /-- Large-vertical polynomial upper bound on a fixed positive real-part line,
 obtained from the sectorial Binet/Stirling estimate. -/
 theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_large_from_openSector
-    (σ : ℝ)
-    (hσ : 0 < σ) :
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (σ : ℝ) :
     ∃ T : ℝ, ∃ C : ℝ, ∃ m : ℕ,
       0 < T ∧ 0 < C ∧
       ∀ t : ℝ,
@@ -184,7 +204,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_large_from_openSector
             C * (1 + ‖t‖) ^ m := by
   rcases
       Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical
-        σ with
+        hbranch σ with
     ⟨C, hC_pos, hstirling⟩
   rcases
       Complex.fixedRealPart_vertical_stirling_upper_envelope_le_polynomial
@@ -233,32 +253,47 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_compact
     intro t
     have hne : ∀ m : ℕ, (σ + t * Complex.I : ℂ) ≠ -m := by
       intro m hm
-      have hre : (σ + t * Complex.I : ℂ).re = 0 := by
-        have := congrArg Complex.re hm
-        exact this
-      have hpos : 0 < (σ + t * Complex.I : ℂ).re := by
-        exact hσ
-      have hzero_pos : 0 < (0 : ℝ) :=
-        hre ▸ hpos
-      exact (lt_irrefl (0 : ℝ) hzero_pos).elim
+      have hre_eq : (σ + t * Complex.I : ℂ).re = (-(m : ℂ)).re :=
+        congrArg Complex.re hm
+      have hright : (-(m : ℂ)).re = -(m : ℝ) :=
+        rfl
+      have hleft : (σ + t * Complex.I : ℂ).re = σ :=
+        Complex.fixedRealPartLine_re σ t
+      have hσ_nonpos : σ ≤ 0 := by
+        calc
+          σ = (σ + t * Complex.I : ℂ).re := hleft.symm
+          _ = (-(m : ℂ)).re := hre_eq
+          _ = -(m : ℝ) := hright
+          _ ≤ 0 := by
+            exact neg_nonpos.mpr (Nat.cast_nonneg m)
+      exact (not_le_of_gt hσ) hσ_nonpos
     have hline_cont :
         ContinuousAt (fun u : ℝ => (σ : ℂ) + u * Complex.I) t := by
       fun_prop
-    exact
+    have hgamma_at :
+        ContinuousAt Complex.Gamma ((σ : ℂ) + (t : ℂ) * Complex.I) :=
       (Complex.differentiableAt_Gamma
-        (σ + t * Complex.I) hne).continuousAt.comp t hline_cont
+        ((σ : ℂ) + (t : ℂ) * Complex.I) hne).continuousAt
+    show ContinuousAt
+      (fun u : ℝ => Complex.Gamma ((σ : ℂ) + (u : ℂ) * Complex.I)) t
+    exact
+      ContinuousAt.comp' hgamma_at hline_cont
   have hcompact : IsCompact (Set.Icc (-T) T) :=
     isCompact_Icc
   have hbound :
       ∃ C : ℝ, ∀ t : ℝ, t ∈ Set.Icc (-T) T → ‖Complex.Gamma (σ + t * Complex.I)‖ ≤ C :=
-    hcompact.exists_bound_of_continuousOn' hcont.continuousOn
+    hcompact.exists_bound_of_continuousOn
+      (f := fun t : ℝ => Complex.Gamma ((σ : ℂ) + (t : ℂ) * Complex.I))
+      hcont.continuousOn
   rcases hbound with ⟨C0, hC0⟩
   refine ⟨max C0 1, ?_, ?_⟩
   · have h1 : (0 : ℝ) < 1 := zero_lt_one
     exact lt_of_lt_of_le h1 (le_max_right C0 1)
   · intro t ht
     have hmem : t ∈ Set.Icc (-T) T := by
-      exact ⟨neg_le.2 (le_of_abs_le ht), le_of_abs_le ht⟩
+      have ht_abs : |t| ≤ T := by
+        simpa only [Real.norm_eq_abs] using ht
+      exact abs_le.mp ht_abs
     have hleC0 : ‖Complex.Gamma (σ + t * Complex.I)‖ ≤ C0 :=
       hC0 t hmem
     exact le_trans hleC0 (le_max_left C0 1)
@@ -266,6 +301,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_compact
 /-- Compact and large-vertical upper estimates assemble to a global polynomial
 upper bound on a fixed positive real-part vertical line. -/
 theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (σ : ℝ)
     (hσ : 0 < σ) :
     ∃ C : ℝ, ∃ m : ℕ,
@@ -275,7 +311,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble
           C * (1 + ‖t‖) ^ m := by
   rcases
     Complex.Gamma_fixedRealPart_vertical_upper_bound_large_from_openSector
-      σ hσ with
+      hbranch σ with
     ⟨T, Ctail, m, hT_pos, hCtail_pos, htail⟩
   rcases
     Complex.Gamma_fixedRealPart_vertical_upper_bound_compact
@@ -317,6 +353,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble
 /-- Fixed-real-part vertical upper bound obtained by combining open-sector
 Binet estimates for large `|t|` with compact-interval boundedness. -/
 theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_from_openSector_and_compact
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (σ : ℝ)
     (hσ : 0 < σ) :
     ∃ C : ℝ, ∃ m : ℕ,
@@ -325,10 +362,11 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_from_openSector_and_com
         ‖Complex.Gamma (σ + t * Complex.I)‖ ≤
           C * (1 + ‖t‖) ^ m := by
   exact
-    Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble σ hσ
+    Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble hbranch σ hσ
 
 /-- Fixed-real-part vertical upper bound for Gamma. -/
 theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_classical
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (σ : ℝ)
     (hσ : 0 < σ) :
     ∃ C : ℝ, ∃ m : ℕ,
@@ -338,13 +376,13 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_classical
           C * (1 + ‖t‖) ^ m := by
   exact
     Complex.Gamma_fixedRealPart_vertical_upper_bound_from_openSector_and_compact
-      σ hσ
+      hbranch σ hσ
 
 /-- Large-vertical reciprocal Gamma bound on a fixed positive real-part line,
 with the correct exponential scale. -/
 theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_large_from_stirling
-    (σ : ℝ)
-    (hσ : 0 < σ) :
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (σ : ℝ) :
     ∃ T : ℝ, ∃ C : ℝ, ∃ A : ℝ,
       0 < T ∧ 0 < C ∧ 0 < A ∧
       ∀ t : ℝ,
@@ -353,7 +391,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_large_from_stirlin
             C * Real.exp (A * ‖t‖) := by
   rcases
       Complex.Gamma_fixedRealPart_vertical_reciprocal_stirling_bound_classical
-        σ with
+        hbranch σ with
     ⟨C0, hC0_pos, hstirling⟩
   let b : ℝ := Real.pi / 4
   have hb_pos : 0 < b := by
@@ -402,7 +440,13 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_large_from_stirlin
               Real.exp ((2 * b) * ‖t‖) :=
           mul_le_mul_of_nonneg_left hpoly hexp_nonneg
         _ = Real.exp (((Real.pi / 2) + (2 * b)) * ‖t‖) := by
-          exact (Real.exp_add ((Real.pi / 2) * ‖t‖) ((2 * b) * ‖t‖)).symm
+          calc
+            Real.exp ((Real.pi / 2) * ‖t‖) *
+                Real.exp ((2 * b) * ‖t‖) =
+                Real.exp ((Real.pi / 2) * ‖t‖ + (2 * b) * ‖t‖) :=
+              (Real.exp_add ((Real.pi / 2) * ‖t‖) ((2 * b) * ‖t‖)).symm
+            _ = Real.exp (((Real.pi / 2) + (2 * b)) * ‖t‖) := by
+              exact congrArg Real.exp (add_mul (Real.pi / 2) (2 * b) ‖t‖).symm
         _ = Real.exp (A * ‖t‖) := by
           rfl
     have htarget :
@@ -438,7 +482,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_compact
     refine continuous_iff_continuousAt.2 ?_
     intro t
     have hpoint_re_pos : 0 < (σ + t * Complex.I : ℂ).re := by
-      exact hσ
+      exact (Complex.fixedRealPartLine_re σ t).symm ▸ hσ
     have hne : Complex.Gamma (σ + t * Complex.I) ≠ 0 :=
       Complex.Gamma_ne_zero_of_re_pos hpoint_re_pos
     have hgamma_cont :
@@ -450,7 +494,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_compact
         have hright : (-(m : ℂ)).re = -(m : ℝ) :=
           rfl
         have hleft : (σ + t * Complex.I : ℂ).re = σ := by
-          exact Complex.add_re (σ : ℂ) (t * Complex.I)
+          exact Complex.fixedRealPartLine_re σ t
         have hσ_nonpos : σ ≤ 0 := by
           calc
             σ = (σ + t * Complex.I : ℂ).re := hleft.symm
@@ -460,9 +504,17 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_compact
               exact neg_nonpos.mpr (Nat.cast_nonneg m)
         exact (not_le_of_gt hσ) hσ_nonpos
       exact
-        (Complex.differentiableAt_Gamma
-          (σ + t * Complex.I) havoid).continuousAt.comp t (by fun_prop)
-    exact hgamma_cont.inv hne
+        have hline_cont :
+            ContinuousAt (fun u : ℝ => (σ : ℂ) + u * Complex.I) t := by
+          fun_prop
+        have hgamma_at :
+            ContinuousAt Complex.Gamma ((σ : ℂ) + (t : ℂ) * Complex.I) :=
+          (Complex.differentiableAt_Gamma
+            ((σ : ℂ) + (t : ℂ) * Complex.I) havoid).continuousAt
+        show ContinuousAt
+          (fun u : ℝ => Complex.Gamma ((σ : ℂ) + (u : ℂ) * Complex.I)) t from
+        ContinuousAt.comp' hgamma_at hline_cont
+    exact hgamma_cont.inv₀ hne
   have hcompact : IsCompact (Set.Icc (-T) T) :=
     isCompact_Icc
   have hbound :
@@ -470,13 +522,17 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_compact
         ∀ t : ℝ,
           t ∈ Set.Icc (-T) T →
             ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤ C :=
-    hcompact.exists_bound_of_continuousOn' hcont.continuousOn
+    hcompact.exists_bound_of_continuousOn
+      (f := fun t : ℝ => (Complex.Gamma ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹)
+      hcont.continuousOn
   rcases hbound with ⟨C0, hC0⟩
   refine ⟨max C0 1, ?_, ?_⟩
   · exact lt_of_lt_of_le zero_lt_one (le_max_right C0 1)
   · intro t ht
-    have hmem : t ∈ Set.Icc (-T) T :=
-      ⟨neg_le.2 (le_of_abs_le ht), le_of_abs_le ht⟩
+    have hmem : t ∈ Set.Icc (-T) T := by
+      have ht_abs : |t| ≤ T := by
+        simpa only [Real.norm_eq_abs] using ht
+      exact abs_le.mp ht_abs
     have hleC0 :
         ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤ C0 :=
       hC0 t hmem
@@ -485,6 +541,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_compact
 /-- Compact and large-vertical reciprocal estimates assemble to the global
 fixed-line exponential reciprocal bound. -/
 theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_assemble
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (σ : ℝ)
     (hσ : 0 < σ) :
     ∃ C : ℝ, ∃ A : ℝ,
@@ -494,7 +551,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_assemble
           C * Real.exp (A * ‖t‖) := by
   rcases
     Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_large_from_stirling
-      σ hσ with
+      hbranch σ with
     ⟨T, Ctail, A, hT_pos, hCtail_pos, hA_pos, htail⟩
   rcases
     Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_compact
@@ -540,6 +597,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_assemble
 /-- Fixed-real-part reciprocal bound from nonvanishing, compact-interval
 control, and the large-vertical Stirling/Binet estimate. -/
 theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_from_nonvanishing_and_stirling
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (σ : ℝ)
     (hσ : 0 < σ) :
     ∃ C : ℝ, ∃ A : ℝ,
@@ -548,7 +606,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_from_nonvanishing_
         ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤
           C * Real.exp (A * ‖t‖) := by
   exact
-    Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_assemble σ hσ
+    Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_assemble hbranch σ hσ
 
 /-- Fixed-real-part vertical reciprocal bound for Gamma.
 
@@ -556,6 +614,7 @@ The reciprocal has exponential, not polynomial, vertical growth:
 `1 / Γ(σ + it)` grows like `exp (π |t| / 2)` up to powers of `|t|`.
 This owner statement records the correct classical growth scale. -/
 theorem Complex.Gamma_fixedRealPart_vertical_lower_bound_classical
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (σ : ℝ)
     (hσ : 0 < σ) :
     ∃ C : ℝ, ∃ A : ℝ,
@@ -565,7 +624,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_lower_bound_classical
           C * Real.exp (A * ‖t‖) := by
   exact
     Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_from_nonvanishing_and_stirling
-      σ hσ
+      hbranch σ hσ
 
 end
 

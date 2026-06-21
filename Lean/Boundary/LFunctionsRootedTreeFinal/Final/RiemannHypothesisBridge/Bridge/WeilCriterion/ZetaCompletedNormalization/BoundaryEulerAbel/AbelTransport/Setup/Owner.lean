@@ -63,7 +63,9 @@ theorem logarithmicPhase_finiteAbelDerivativeIntegral_bound
     ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
         deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
           boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-      2 + 8 * Real.log (3 + ‖t‖) := by
+      ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ((1 : ℝ) / x ^ 2) *
+          (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) := by
   exact
     logarithmicPhase_firstDerivative_finiteAbel_integral_arithmetic
       t ht hpartial hNM
@@ -84,7 +86,9 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelDerivativeInteg
     ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
         deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
           boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-      2 + 8 * Real.log (3 + ‖t‖) := by
+      ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ((1 : ℝ) / x ^ 2) *
+          (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) := by
   exact logarithmicPhase_finiteAbelDerivativeIntegral_bound t ht hpartial hNM
 
 /-- Concrete finite Abel-tail estimate obtained through Mathlib's Abel
@@ -106,7 +110,7 @@ theorem mathlibAbelSummation_boundaryLineOnePointRealParam_logarithmicPhase_fini
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
         ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+      boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M := by
   exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
     t ht hpartial hNM
 
@@ -130,7 +134,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_abelTail_norm_le_explicit
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
         ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+      boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M := by
   exact
     boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
       t ht hpartial hNM
@@ -363,7 +367,7 @@ theorem abelSummation_boundaryLineOnePointRealParam_cutoff_finite_tail_norm_le
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
         ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+      boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M := by
   exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
     t ht hpartial hNM
 

@@ -122,14 +122,6 @@ noncomputable def explicitFormulaFamilyContourZeroSideWindowError
   zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) -
     explicitFormulaCompletedZeroHeightWindowZeroSideSum f T
 
-/-- The scheduled finite-rectangle residue sum before zero-side accounting.  The supplied
-cofinal schedule provides the heights used by the finite residue theorem, which computes the
-contour integral against this residue-window presentation. -/
-noncomputable def explicitFormulaScheduledRectangleResidueSum
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) : ℂ :=
-  explicitFormulaCompletedZeroHeightWindowResidueSum f (h.height_schedule.height u)
-
 /-- The scheduled finite-rectangle residue equality error: contour integral minus the finite
 residue sum obtained from the residue theorem at the scheduled height. -/
 noncomputable def explicitFormulaScheduledRectangleResidueEqualityError
@@ -363,7 +355,7 @@ theorem explicitFormulaFamilyContourZeroSideWindowError_scheduled_eq_residueEqua
     C - Z = C + -Z := by
       exact sub_eq_add_neg C Z
     _ = C + (0 + -Z) := by
-      exact congrArg (fun x : ℂ => C + (x + -Z)) (zero_add (0 : ℂ)).symm
+      exact congrArg (fun x : ℂ => C + x) (zero_add (-Z)).symm
     _ = C + ((-R + R) + -Z) := by
       exact congrArg (fun x : ℂ => C + (x + -Z)) (neg_add_cancel R).symm
     _ = C + (-R + (R + -Z)) := by
@@ -388,7 +380,7 @@ theorem explicitFormulaFamilyVerticalZeroSideWindowError_eq_contourZeroSide_sub_
   let B : ℂ := zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T)
   let S : ℂ := explicitFormulaCompletedZeroHeightWindowZeroSideSum f T
   change R - L - S = ((R - L + U - B) - S) - (U - B)
-  calc
+  exact (calc
     ((R - L + U - B) - S) - (U - B)
         = (((R - L) + U - B) - S) - (U - B) := by
       rfl
@@ -421,6 +413,7 @@ theorem explicitFormulaFamilyVerticalZeroSideWindowError_eq_contourZeroSide_sub_
       exact add_zero ((R - L) + -S)
     _ = R - L - S := by
       exact (sub_eq_add_neg (R - L) S).symm
+  ).symm
 
 /-- Owner complex zero-limit theorem for the finite completed-zero residue windows.
 
@@ -861,6 +854,16 @@ theorem explicitFormulaScheduledProjectedRectangleResidueEqualityError_tendsto_z
 theorem explicitFormulaScheduledProjectedHorizontalError_tendsto_zero_ownerProjectedHorizontalDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
     (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily)
+    (E : CompletedZetaZeroExcisedStrip
+      (min F.toContourFamily.c (1 - F.toContourFamily.c))
+      (max F.toContourFamily.c (1 - F.toContourFamily.c)))
+    (hTopMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.toContourFamily.c (1 - F.toContourFamily.c) →
+        zetaCompletedExplicitFormulaTopPath (F.toContourFamily.rectangle T) x ∈ E.carrier)
+    (hBottomMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.toContourFamily.c (1 - F.toContourFamily.c) →
+        zetaCompletedExplicitFormulaBottomPath (F.toContourFamily.rectangle T) x ∈ E.carrier)
+    (N : ℕ)
     (channel : ExplicitFormulaScheduledVerticalChannelProjection) :
     let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
     Tendsto
@@ -872,7 +875,7 @@ theorem explicitFormulaScheduledProjectedHorizontalError_tendsto_zero_ownerProje
   let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
   exact
     explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_scheduled
-      f F.toContourFamily h 1
+      f F.toContourFamily h E hTopMem hBottomMem N
 
 /-- The projected contour spine error vanishes once the three owner inputs are supplied:
 scheduled rectangle residue equality, projected horizontal decay, and projected vertical
@@ -881,6 +884,24 @@ theorem explicitFormulaScheduledProjectedContourSpineError_tendsto_zero_ownerPro
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
     (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily)
     (channel : ExplicitFormulaScheduledVerticalChannelProjection)
+    (E : CompletedZetaZeroExcisedStrip
+      (min F.toContourFamily.c (1 - F.toContourFamily.c))
+      (max F.toContourFamily.c (1 - F.toContourFamily.c)))
+    (hTopMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.toContourFamily.c (1 - F.toContourFamily.c) →
+        zetaCompletedExplicitFormulaTopPath (F.toContourFamily.rectangle T) x ∈ E.carrier)
+    (hBottomMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.toContourFamily.c (1 - F.toContourFamily.c) →
+        zetaCompletedExplicitFormulaBottomPath (F.toContourFamily.rectangle T) x ∈ E.carrier)
+    (N : ℕ)
+    (hvertical :
+      let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaScheduledProjectedVerticalDecompositionError
+            f F.toContourFamily h u channel)
+        atTop
+        (𝓝 0))
     (hfinite :
       let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
       ∀ u : ℝ,
@@ -913,16 +934,7 @@ theorem explicitFormulaScheduledProjectedContourSpineError_tendsto_zero_ownerPro
         atTop
         (𝓝 0) :=
     explicitFormulaScheduledProjectedHorizontalError_tendsto_zero_ownerProjectedHorizontalDecay
-      f F hSchedule channel
-  have hvertical :
-      Tendsto
-        (fun u : ℝ =>
-          explicitFormulaScheduledProjectedVerticalDecompositionError
-            f F.toContourFamily h u channel)
-        atTop
-        (𝓝 0) :=
-    explicitFormulaScheduledProjectedVerticalDecompositionError_tendsto_zero_ownerProjectedVerticalDecomposition
-      f F hSchedule channel
+      f F hSchedule E hTopMem hBottomMem N channel
   have hsum :
       Tendsto
         (fun u : ℝ =>
@@ -968,12 +980,20 @@ theorem explicitFormulaScheduledProjectedContourSpineError_tendsto_zero_ownerPro
       htarget
       hsum)
 
-/-- The shared selected-channel transport theorem is a thin wrapper over the projected
-vertical-decomposition owner input. -/
+/-- The shared selected-channel transport theorem is a thin wrapper over a supplied
+projected vertical-decomposition input. -/
 theorem explicitFormulaScheduledVerticalChannelProjectionTransportRemainder_tendsto_zero_ownerProjectedContourSpine
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
     (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily)
-    (channel : ExplicitFormulaScheduledVerticalChannelProjection) :
+    (channel : ExplicitFormulaScheduledVerticalChannelProjection)
+    (hvertical :
+      let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaScheduledProjectedVerticalDecompositionError
+            f F.toContourFamily h u channel)
+        atTop
+        (𝓝 0)) :
     let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
     Tendsto
       (fun u : ℝ =>
@@ -982,15 +1002,6 @@ theorem explicitFormulaScheduledVerticalChannelProjectionTransportRemainder_tend
       atTop
       (𝓝 0) := by
   let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
-  have hvertical :
-      Tendsto
-        (fun u : ℝ =>
-          explicitFormulaScheduledProjectedVerticalDecompositionError
-            f F.toContourFamily h u channel)
-        atTop
-        (𝓝 0) :=
-    explicitFormulaScheduledProjectedVerticalDecompositionError_tendsto_zero_ownerProjectedVerticalDecomposition
-      f F hSchedule channel
   have hpointwise :
       (fun u : ℝ =>
         explicitFormulaScheduledVerticalChannelProjectionTransportRemainder
@@ -1082,6 +1093,15 @@ vertical side differs from the finite zero-side window by an error tending to ze
 theorem explicitFormulaFamilyVerticalZeroSideWindowError_tendsto_zero_core_ownerFiniteRectangleResidueTheorem
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (E : CompletedZetaZeroExcisedStrip
+      (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (hTopMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaTopPath (F.rectangle T) x ∈ E.carrier)
+    (hBottomMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x ∈ E.carrier)
+    (N : ℕ)
     (hfinite :
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
@@ -1110,7 +1130,8 @@ theorem explicitFormulaFamilyVerticalZeroSideWindowError_tendsto_zero_core_owner
             (h.height_schedule.height u))
         atTop
         (𝓝 0) :=
-    explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_scheduled f F h 1
+    explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_scheduled
+      f F h E hTopMem hBottomMem N
   have hsub :
       Tendsto
         (fun u : ℝ =>
@@ -1156,6 +1177,15 @@ zero-side finite-rectangle residue theorem. -/
 theorem explicitFormulaFamilyVerticalResidueWindowError_tendsto_zero_core_ownerFiniteRectangleResidueTheorem
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (E : CompletedZetaZeroExcisedStrip
+      (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (hTopMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaTopPath (F.rectangle T) x ∈ E.carrier)
+    (hBottomMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x ∈ E.carrier)
+    (N : ℕ)
     (hfinite :
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
@@ -1176,7 +1206,7 @@ theorem explicitFormulaFamilyVerticalResidueWindowError_tendsto_zero_core_ownerF
         atTop
         (𝓝 0) :=
     explicitFormulaFamilyVerticalZeroSideWindowError_tendsto_zero_core_ownerFiniteRectangleResidueTheorem
-      f F h hfinite
+      f F h E hTopMem hBottomMem N hfinite
   have hpointwise :
       (fun u : ℝ =>
         explicitFormulaFamilyVerticalResidueWindowError f F
@@ -1200,6 +1230,15 @@ horizontal edge decay controls the latter. -/
 theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_core_ownerResidueCalculus
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (E : CompletedZetaZeroExcisedStrip
+      (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (hTopMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaTopPath (F.rectangle T) x ∈ E.carrier)
+    (hBottomMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x ∈ E.carrier)
+    (N : ℕ)
     (hfinite :
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
@@ -1220,7 +1259,7 @@ theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_core_ownerResidueCa
         atTop
         (𝓝 0) :=
     explicitFormulaFamilyVerticalResidueWindowError_tendsto_zero_core_ownerFiniteRectangleResidueTheorem
-      f F h hfinite
+      f F h E hTopMem hBottomMem N hfinite
   have hhorizontal :
       Tendsto
         (fun u : ℝ =>
@@ -1228,7 +1267,8 @@ theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_core_ownerResidueCa
             (h.height_schedule.height u))
         atTop
         (𝓝 0) :=
-    explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_scheduled f F h 1
+    explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_scheduled
+      f F h E hTopMem hBottomMem N
   have hsum :
       Tendsto
         (fun u : ℝ =>
@@ -1278,6 +1318,15 @@ providing the boundary-avoiding rectangle computation. -/
 theorem zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_core_ownerContourResidueTheorem
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (E : CompletedZetaZeroExcisedStrip
+      (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (hTopMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaTopPath (F.rectangle T) x ∈ E.carrier)
+    (hBottomMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x ∈ E.carrier)
+    (N : ℕ)
     (hfinite :
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
@@ -1311,7 +1360,7 @@ theorem zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_core
         atTop
         (𝓝 0) :=
     explicitFormulaFamilyResidueWindowError_tendsto_zero_core_ownerResidueCalculus f F h
-      hfinite
+      E hTopMem hBottomMem N hfinite
   have hsum :
       Tendsto
         (fun u : ℝ =>
@@ -1363,6 +1412,16 @@ contour family. -/
 theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_ownerResidueCalculus
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
     (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily)
+    (E : CompletedZetaZeroExcisedStrip
+      (min F.toContourFamily.c (1 - F.toContourFamily.c))
+      (max F.toContourFamily.c (1 - F.toContourFamily.c)))
+    (hTopMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.toContourFamily.c (1 - F.toContourFamily.c) →
+        zetaCompletedExplicitFormulaTopPath (F.toContourFamily.rectangle T) x ∈ E.carrier)
+    (hBottomMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.toContourFamily.c (1 - F.toContourFamily.c) →
+        zetaCompletedExplicitFormulaBottomPath (F.toContourFamily.rectangle T) x ∈ E.carrier)
+    (N : ℕ)
     (hfinite :
       let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
       ∀ u : ℝ,
@@ -1381,6 +1440,10 @@ theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_ownerResidueCalculu
     explicitFormulaFamilyResidueWindowError_tendsto_zero_core_ownerResidueCalculus
       f F.toContourFamily
       (explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule)
+      E
+      hTopMem
+      hBottomMem
+      N
       hfinite
 
 /-- The completed-zeta rectangle residue calculus reconstructs the complex zero-side
@@ -1388,6 +1451,16 @@ residue sum from the limiting contour integral. -/
 theorem zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_ownerResidueCalculus
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
     (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily)
+    (E : CompletedZetaZeroExcisedStrip
+      (min F.toContourFamily.c (1 - F.toContourFamily.c))
+      (max F.toContourFamily.c (1 - F.toContourFamily.c)))
+    (hTopMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.toContourFamily.c (1 - F.toContourFamily.c) →
+        zetaCompletedExplicitFormulaTopPath (F.toContourFamily.rectangle T) x ∈ E.carrier)
+    (hBottomMem :
+      ∀ (T x : ℝ), x ∈ Set.uIcc F.toContourFamily.c (1 - F.toContourFamily.c) →
+        zetaCompletedExplicitFormulaBottomPath (F.toContourFamily.rectangle T) x ∈ E.carrier)
+    (N : ℕ)
     (hfinite :
       let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
       ∀ u : ℝ,
@@ -1410,6 +1483,10 @@ theorem zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_owne
     zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_core_ownerContourResidueTheorem
       f F.toContourFamily
       (explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule)
+      E
+      hTopMem
+      hBottomMem
+      N
       hfinite
       hsum
 
