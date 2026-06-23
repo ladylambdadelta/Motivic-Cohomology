@@ -3367,6 +3367,24 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_classicalPrefix_curvature
       t hx)
     (norm_nonneg t)
 
+/-- Curvature lower scale for the real logarithmic phase on the canonical
+prefix window.  This is the concrete derivative estimate used by the
+second-derivative van der Corput block argument. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_canonicalPrefix_curvature_lower
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {x : ℝ}
+    (hx :
+      x ∈ Set.Icc (1 : ℝ)
+        (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ))) :
+    ‖t‖ *
+        ((((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) *
+          (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ)))⁻¹ ≤
+      ‖t‖ * (x * x)⁻¹ := by
+  exact
+    boundaryLineOnePointRealParam_logarithmicPhase_classicalPrefix_curvatureScale_le
+      t hx
+
 /-- At the canonical prefix cutoff, the logarithmic normalization is at least
 one. -/
 theorem boundaryLineOnePointRealParam_classicalPrefix_cutoff_log_ge_one
@@ -3389,6 +3407,93 @@ theorem boundaryLineOnePointRealParam_classicalPrefix_cutoff_log_ge_one
     add_le_add_left hnorm_le_C 2
   exact le_trans hbase (Real.log_le_log harg_pos harg_le)
 
+/-- One-block second-derivative van der Corput estimate for the logarithmic
+phase on a sub-block of the canonical prefix.
+
+The right side records the two classical scales for `φ(x) = -t log x`: the
+endpoint first-derivative scale and the square-root curvature scale. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhase_canonicalPrefix_curvatureSubblock_norm_le
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hb : b ≤ ⌊2 + ‖t‖⌋₊)
+    (hab : a ≤ b) :
+    ‖∑ n ∈ Finset.Icc a b,
+      ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      (((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖)) := by
+  exact
+    Complex.logarithmicPhase_curvature_integer_block_bound
+      t ht ha hab
+
+/-- Assembly of the canonical prefix from the curvature-controlled sub-blocks.
+This is the dyadic bookkeeping layer after the resonance-safe block estimate
+has replaced the separated-increment first-derivative hypothesis. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhase_canonicalPrefix_curvatureBlocks_assemble
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hblock :
+      ∀ {a b : ℕ},
+        1 ≤ a →
+          b ≤ ⌊2 + ‖t‖⌋₊ →
+            a ≤ b →
+              ‖∑ n ∈ Finset.Icc a b,
+                ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+                (((b + 1 : ℕ) : ℝ) / ‖t‖ +
+                  Real.sqrt (1 + ‖t‖))) :
+    ‖Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum
+        t ⌊2 + ‖t‖⌋₊‖ ≤
+      (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖)) := by
+  let C : ℕ := ⌊2 + ‖t‖⌋₊
+  have hC_pos : 0 < C :=
+    boundaryLineOnePointRealParam_cutoff_pos t
+  have hone_le_C : 1 ≤ C :=
+    Nat.succ_le_of_lt hC_pos
+  have hblock_C :
+      ‖∑ n ∈ Finset.Icc 1 C,
+        ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+        (((C + 1 : ℕ) : ℝ) / ‖t‖ +
+          Real.sqrt (1 + ‖t‖)) :=
+    hblock (a := 1) (b := C)
+      (Nat.le_refl 1)
+      (Nat.le_refl C)
+      hone_le_C
+  have hphase :
+      Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum t C =
+        ∑ n ∈ Finset.Icc 1 C,
+          ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_eq t C
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        ‖z‖ ≤
+          (((C + 1 : ℕ) : ℝ) / ‖t‖ +
+            Real.sqrt (1 + ‖t‖)))
+      hphase.symm
+      hblock_C
+
+/-- Resonance-safe second-derivative block estimate for the logarithmic phase
+on the canonical prefix window.
+
+This is the owner replacement for the impossible separated-increment hypothesis:
+it does not ask the adjacent phase increments to avoid `2πℤ`, and instead uses
+the curvature scale of `x ↦ -t log x` on the containing real interval. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonicalPrefix_curvatureBlock_norm_le
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    ‖Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum
+        t ⌊2 + ‖t‖⌋₊‖ ≤
+      (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖)) := by
+  exact
+    Complex.boundaryLineOnePointRealParam_logarithmicPhase_canonicalPrefix_curvatureBlocks_assemble
+      t ht
+      (fun {a} {b} ha hb hab =>
+        Complex.boundaryLineOnePointRealParam_logarithmicPhase_canonicalPrefix_curvatureSubblock_norm_le
+          t ht ha hb hab)
+
 /-- Canonical-prefix van der Corput scale estimate for the positive-index
 logarithmic phase sum.
 
@@ -3401,7 +3506,9 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonic
         t ⌊2 + ‖t‖⌋₊‖ ≤
       (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ +
         Real.sqrt (1 + ‖t‖)) := by
-  sorry
+  exact
+    Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonicalPrefix_curvatureBlock_norm_le
+      t ht
 
 /-- Canonical-prefix oscillatory estimate for the positive-index logarithmic
 phase sum.
@@ -9160,6 +9267,72 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlock
       Finset.sum_add_distrib
   exact hsum
 
+/-- Sharp endpoint/variation decomposition for the Bernoulli-weighted
+logarithmic phase integral.
+
+This is the true bounded-variation Dirichlet step for `B₁(x) x^{-it}` on the
+post-cutoff interval: after integration by parts, the selected endpoint and
+variation contributions each take one half of the final sharp budget. -/
+theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_globalPhaseIntegral_single_sharp_endpointVariation
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {K : ℕ}
+    (hK : ⌊2 + ‖t‖⌋₊ ≤ K) :
+    ∃ C V : ℂ,
+      (∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((K : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) =
+        C + V ∧
+      ‖C‖ ≤
+        (Real.sqrt (1 + ‖t‖) * Real.log (2 + K)) / 2 ∧
+      ‖V‖ ≤
+        (Real.sqrt (1 + ‖t‖) * Real.log (2 + K)) / 2 := by
+  sorry
+
+/-- Resonance-safe sharp estimate for the global Bernoulli-weighted logarithmic
+phase integral after the canonical cutoff.
+
+This is the analytic owner statement behind the Taylor-linear/remainder block
+surface below.  The proof is by the bounded-variation Dirichlet argument for
+`B₁(x) x^{-it}` on the post-cutoff interval, not by separate absolute bounds
+for the linear and nonlinear Taylor pieces. -/
+theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_globalPhaseIntegral_single_sharp_core
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {K : ℕ}
+    (hK : ⌊2 + ‖t‖⌋₊ ≤ K) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((K : ℕ) : ℝ)),
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+          (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      Real.sqrt (1 + ‖t‖) * Real.log (2 + K) := by
+  let A : ℝ := Real.sqrt (1 + ‖t‖) * Real.log (2 + K)
+  have hdecomp :
+      ∃ C V : ℂ,
+        (∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((K : ℕ) : ℝ)),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) =
+          C + V ∧
+        ‖C‖ ≤ A / 2 ∧
+        ‖V‖ ≤ A / 2 :=
+    boundaryLineOnePointRealParam_firstPeriodicBernoulli_globalPhaseIntegral_single_sharp_endpointVariation
+      t ht hK
+  match hdecomp with
+  | ⟨C, V, hsplit, hC, hV⟩ =>
+      have hsum :
+          ‖C + V‖ ≤ A / 2 + A / 2 :=
+        le_trans (norm_add_le C V) (add_le_add hC hV)
+      have hhalves :
+          A / 2 + A / 2 = A :=
+        add_halves A
+      exact
+        Eq.subst
+          (motive := fun z : ℂ => ‖z‖ ≤ A)
+          hsplit.symm
+          (Eq.subst
+            (motive := fun r : ℝ => ‖C + V‖ ≤ r)
+            hhalves
+            hsum)
+
 /-- Sharp estimate for the combined Taylor-linear and nonlinear remainder block
 sum after the canonical cutoff.
 
@@ -9176,7 +9349,42 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementLinea
       boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementRemainderBlockSum
         t K‖ ≤
       Real.sqrt (1 + ‖t‖) * Real.log (2 + K) := by
-  sorry
+  let L : ℂ :=
+    boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementLinearBlockSum
+      t K
+  let R : ℂ :=
+    boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementRemainderBlockSum
+      t K
+  let B : ℝ := Real.sqrt (1 + ‖t‖) * Real.log (2 + K)
+  let S : ℂ :=
+    ∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ K,
+      ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+          ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
+            ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
+              (-(t : ℂ) * Complex.I)))
+  have hglobal :
+      ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((K : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ B :=
+    boundaryLineOnePointRealParam_firstPeriodicBernoulli_globalPhaseIntegral_single_sharp_core
+      t ht hK
+  have hS :
+      ‖S‖ ≤ B :=
+    Eq.subst
+      (motive := fun z : ℂ => ‖z‖ ≤ B)
+      (boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlockSum_eq_globalPhaseIntegral
+        t).symm
+      hglobal
+  have hsplit :
+      S = L + R :=
+    boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlockSum_eq_linearBlockSum_add_remainderBlockSum
+      t
+  exact
+    Eq.subst
+      (motive := fun z : ℂ => ‖z‖ ≤ B)
+      hsplit
+      hS
 
 /-- Assembly of the finite phase-increment estimate from the Taylor-linear and
 nonlinear Taylor-remainder block estimates. -/
@@ -9276,10 +9484,8 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_globalPhaseIntegral
           (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
       Real.sqrt (1 + ‖t‖) * Real.log (2 + K) := by
   exact
-    boundaryLineOnePointRealParam_firstPeriodicBernoulli_globalPhaseIntegral_single_sharp_of_phaseIncrementBlockSum
-      t
-      (boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlockSum_norm_le_sharp_ownerGap
-        t ht hK)
+    boundaryLineOnePointRealParam_firstPeriodicBernoulli_globalPhaseIntegral_single_sharp_core
+      t ht hK
 
 /-- Sharp terminal-family estimate for the global Bernoulli-weighted
 logarithmic phase integral after the canonical cutoff. -/

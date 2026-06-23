@@ -876,6 +876,230 @@ theorem Complex.logarithmicPhase_dyadic_block_cover_bound
           20 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) :=
       Complex.logarithmicPhase_single_block_le_dyadic_cover_expression t N
     exact le_trans hsingle hcover
+
+/-- Concrete second-derivative curvature lower bound for the real scalar
+logarithmic phase on an integer block. -/
+theorem Complex.logarithmicPhaseRealPhase_secondDerivative_curvature_lower
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b) :
+    ∀ x : ℝ,
+      x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        ‖t‖ *
+            ((((b + 1 : ℕ) : ℝ) *
+              (((b + 1 : ℕ) : ℝ)))⁻¹ ≤
+          ‖deriv
+            (deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t))
+            x‖ := by
+  intro x hx
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  let B : ℝ := ((b + 1 : ℕ) : ℝ)
+  have ha_pos_nat : 0 < a :=
+    Nat.lt_of_succ_le ha
+  have ha_pos : (0 : ℝ) < (a : ℝ) :=
+    Nat.cast_pos.mpr ha_pos_nat
+  have hx_pos : (0 : ℝ) < x :=
+    lt_of_lt_of_le ha_pos hx.1
+  have hx_nonneg : 0 ≤ x :=
+    le_of_lt hx_pos
+  have hB_pos : (0 : ℝ) < B :=
+    Nat.cast_pos.mpr (Nat.succ_pos b)
+  have hB_nonneg : 0 ≤ B :=
+    le_of_lt hB_pos
+  have hx_le_B : x ≤ B :=
+    hx.2
+  have hxx_pos : 0 < x * x :=
+    mul_pos hx_pos hx_pos
+  have hxx_nonneg : 0 ≤ x * x :=
+    le_of_lt hxx_pos
+  have hxx_le_BB : x * x ≤ B * B :=
+    mul_le_mul hx_le_B hx_le_B hx_nonneg hB_nonneg
+  have hden_inv :
+      (B * B)⁻¹ ≤ (x * x)⁻¹ :=
+    inv_le_inv₀ hxx_pos hxx_le_BB
+  have hscale :
+      ‖t‖ * (B * B)⁻¹ ≤ ‖t‖ * (x * x)⁻¹ :=
+    mul_le_mul_of_nonneg_left hden_inv (norm_nonneg t)
+  have hpositive_mem_nhds : Set.Ioi (0 : ℝ) ∈ 𝓝 x :=
+    isOpen_Ioi.mem_nhds hx_pos
+  have hlocal :
+      (fun y : ℝ => deriv φ y) =ᶠ[𝓝 x]
+        (fun y : ℝ => -t / y) :=
+    hpositive_mem_nhds.mono
+      (fun y hy =>
+        Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_eq
+          t hy)
+  have hinv :
+      HasDerivAt (fun y : ℝ => y⁻¹) (-(x ^ 2)⁻¹) x :=
+    hasDerivAt_inv (ne_of_gt hx_pos)
+  have hdiv_raw :
+      HasDerivAt (fun y : ℝ => -t * y⁻¹)
+        ((-t) * (-(x ^ 2)⁻¹)) x :=
+    hinv.const_mul (-t)
+  have hdiv_fun :
+      (fun y : ℝ => -t / y) = (fun y : ℝ => -t * y⁻¹) := by
+    funext y
+    exact div_eq_mul_inv (-t) y
+  have hderiv_scalar :
+      (-t) * (-(x ^ 2)⁻¹) = t * (x * x)⁻¹ := by
+    have hpow : x ^ 2 = x * x :=
+      pow_two x
+    calc
+      (-t) * (-(x ^ 2)⁻¹) =
+          t * (x ^ 2)⁻¹ := by
+        exact neg_mul_neg t ((x ^ 2)⁻¹)
+      _ = t * (x * x)⁻¹ := by
+        exact congrArg (fun r : ℝ => t * r⁻¹) hpow
+  have hdiv :
+      HasDerivAt (fun y : ℝ => -t / y) (t * (x * x)⁻¹) x :=
+    Eq.subst
+      (motive := fun f : ℝ → ℝ =>
+        HasDerivAt f (t * (x * x)⁻¹) x)
+      hdiv_fun.symm
+      (hdiv_raw.congr_deriv hderiv_scalar)
+  have hderiv_eq :
+      deriv (deriv φ) x = t * (x * x)⁻¹ := by
+    have hderiv_local :
+        deriv (fun y : ℝ => deriv φ y) x =
+          deriv (fun y : ℝ => -t / y) x :=
+      hlocal.deriv_eq
+    have hderiv_rhs :
+        deriv (fun y : ℝ => -t / y) x = t * (x * x)⁻¹ :=
+      hdiv.deriv
+    exact Eq.trans hderiv_local hderiv_rhs
+  have hnorm_second :
+      ‖deriv (deriv φ) x‖ = ‖t‖ * (x * x)⁻¹ := by
+    calc
+      ‖deriv (deriv φ) x‖ =
+          ‖t * (x * x)⁻¹‖ := by
+        exact congrArg norm hderiv_eq
+      _ = ‖t‖ * ‖(x * x)⁻¹‖ :=
+        norm_mul t ((x * x)⁻¹)
+      _ = ‖t‖ * ‖x * x‖⁻¹ := by
+        exact congrArg (fun r : ℝ => ‖t‖ * r) (norm_inv (x * x))
+      _ = ‖t‖ * (x * x)⁻¹ := by
+        exact congrArg (fun r : ℝ => ‖t‖ * r⁻¹)
+          (Real.norm_of_nonneg hxx_nonneg)
+  exact
+    Eq.subst
+      (motive := fun r : ℝ =>
+        ‖t‖ * (B * B)⁻¹ ≤ r)
+      hnorm_second.symm
+      hscale
+
+/-- Resonance-safe second-derivative van der Corput estimate for the real
+scalar logarithmic phase, parameterized by the concrete curvature lower bound.
+
+This is the classical analytic primitive for `φ(x) = -t log x`: it combines the
+endpoint first-derivative scale with the square-root curvature scale without
+any separation-from-`2πℤ` hypothesis. -/
+theorem Complex.logarithmicPhaseRealPhase_secondDerivative_vdc_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hcurvature_lower :
+      ∀ x : ℝ,
+        x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+          ‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹ ≤
+            ‖deriv
+              (deriv
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t))
+              x‖) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      (((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖)) := by
+  sorry
+
+/-- Resonance-safe second-derivative van der Corput block estimate for the real
+scalar logarithmic phase.
+
+This is the classical analytic primitive needed when the adjacent increments
+may pass close to `2πℤ`, so the Kusmin-Landau separated-increment theorem is
+not applicable.  The proof uses the nonzero curvature of `x ↦ -t log x` on the
+integer block rather than a no-resonance finite-difference hypothesis. -/
+theorem Complex.logarithmicPhaseRealPhase_curvature_integer_block_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      (((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖)) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_secondDerivative_vdc_bound
+      t ht ha hab
+      (Complex.logarithmicPhaseRealPhase_secondDerivative_curvature_lower
+        t ht ha hab)
+
+/-- Resonance-safe second-derivative van der Corput block estimate for the
+concrete logarithmic phase. -/
+theorem Complex.logarithmicPhase_curvature_integer_block_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b) :
+    ‖∑ n ∈ Finset.Icc a b,
+      ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      (((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖)) := by
+  have hsample :
+      (∑ n ∈ Finset.Icc a b,
+        ((n : ℂ) ^ (-(t : ℂ) * Complex.I))) =
+        ∑ n ∈ Finset.Icc a b,
+          Complex.exp
+            (Complex.I *
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ)) := by
+    exact Finset.sum_congr rfl
+      (fun n hn_mem =>
+        have hn_one : 1 ≤ n :=
+          le_trans ha (Finset.mem_Icc.mp hn_mem).1
+        have hn_pos : 0 < n :=
+          Nat.lt_of_succ_le hn_one
+        have hsample_function :
+            ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) =
+              Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t n :=
+          Complex.logarithmicPhase_integer_sample_eq t hn_pos
+        have hfunction_phase :
+            Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t n =
+              Complex.exp
+                (Complex.I *
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ)) :=
+          Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_realPhase
+            t n
+        Eq.trans hsample_function hfunction_phase)
+  have hblock :
+      ‖∑ n ∈ Finset.Icc a b,
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+        (((b + 1 : ℕ) : ℝ) / ‖t‖ +
+          Real.sqrt (1 + ‖t‖)) :=
+    Complex.logarithmicPhaseRealPhase_curvature_integer_block_bound
+      t ht ha hab
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        ‖z‖ ≤
+          (((b + 1 : ℕ) : ℝ) / ‖t‖ +
+            Real.sqrt (1 + ‖t‖)))
+      hsample.symm
+      hblock
 end
 
 end LFunctions
