@@ -3367,6 +3367,107 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_classicalPrefix_curvature
       t hx)
     (norm_nonneg t)
 
+/-- At the canonical prefix cutoff, the logarithmic normalization is at least
+one. -/
+theorem boundaryLineOnePointRealParam_classicalPrefix_cutoff_log_ge_one
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    (1 : ℝ) ≤ Real.log (2 + ⌊2 + ‖t‖⌋₊) := by
+  let C : ℕ := ⌊2 + ‖t‖⌋₊
+  have hnorm_le_C : ‖t‖ ≤ (C : ℝ) := by
+    have hone_add_le_C :
+        (1 : ℝ) + ‖t‖ ≤ (C : ℝ) :=
+      boundaryLineOnePointRealParam_postCutoff_one_add_norm_le_cutoff t
+    have hnorm_le_one_add : ‖t‖ ≤ (1 : ℝ) + ‖t‖ :=
+      le_add_of_nonneg_left zero_le_one
+    exact le_trans hnorm_le_one_add hone_add_le_C
+  have hbase : (1 : ℝ) ≤ Real.log (2 + ‖t‖) :=
+    one_le_log_two_add_norm_of_one_le_norm ht
+  have harg_pos : 0 < 2 + ‖t‖ :=
+    lt_of_lt_of_le zero_lt_one (one_le_two_add_norm t)
+  have harg_le : 2 + ‖t‖ ≤ 2 + C :=
+    add_le_add_left hnorm_le_C 2
+  exact le_trans hbase (Real.log_le_log harg_pos harg_le)
+
+/-- Canonical-prefix van der Corput scale estimate for the positive-index
+logarithmic phase sum.
+
+This is the true finite-prefix oscillatory sink: it must account for resonant
+and nonresonant frequencies without assuming separated adjacent increments. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonicalPrefix_vdcScale_norm_le_ownerGap
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    ‖Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum
+        t ⌊2 + ‖t‖⌋₊‖ ≤
+      (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖)) := by
+  sorry
+
+/-- Canonical-prefix oscillatory estimate for the positive-index logarithmic
+phase sum.
+
+This is the precise remaining finite-prefix analytic sink: the bound is
+unconditional in the frequency, so it cannot be obtained from the separated
+finite-difference/no-resonance package. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonicalPrefix_norm_le_ownerGap
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    ‖Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum
+        t ⌊2 + ‖t‖⌋₊‖ ≤
+      8 * Real.sqrt (1 + ‖t‖) * Real.log (2 + ⌊2 + ‖t‖⌋₊) := by
+  have hvdc :
+      ‖Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum
+          t ⌊2 + ‖t‖⌋₊‖ ≤
+        (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ +
+          Real.sqrt (1 + ‖t‖)) :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonicalPrefix_vdcScale_norm_le_ownerGap
+      t ht
+  have hscale :
+      (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ +
+          Real.sqrt (1 + ‖t‖)) ≤
+        5 * Real.sqrt (1 + ‖t‖) :=
+    boundaryLineOnePointRealParam_classicalPrefix_cutoff_vdcScale_le_five_sqrt
+      t ht
+  have hlog_ge_one :
+      (1 : ℝ) ≤ Real.log (2 + ⌊2 + ‖t‖⌋₊) :=
+    boundaryLineOnePointRealParam_classicalPrefix_cutoff_log_ge_one t ht
+  have hsqrt_nonneg : 0 ≤ Real.sqrt (1 + ‖t‖) :=
+    Real.sqrt_nonneg (1 + ‖t‖)
+  have hsqrt_le_sqrt_log :
+      Real.sqrt (1 + ‖t‖) ≤
+        Real.sqrt (1 + ‖t‖) * Real.log (2 + ⌊2 + ‖t‖⌋₊) := by
+    calc
+      Real.sqrt (1 + ‖t‖) = Real.sqrt (1 + ‖t‖) * 1 := by
+        exact (mul_one (Real.sqrt (1 + ‖t‖))).symm
+      _ ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + ⌊2 + ‖t‖⌋₊) :=
+        mul_le_mul_of_nonneg_left hlog_ge_one hsqrt_nonneg
+  have hfive_le_eight_log :
+      5 * Real.sqrt (1 + ‖t‖) ≤
+        8 * Real.sqrt (1 + ‖t‖) * Real.log (2 + ⌊2 + ‖t‖⌋₊) := by
+    have hfive_le_eight : (5 : ℝ) ≤ 8 :=
+      Nat.cast_le.mpr (show (5 : ℕ) ≤ 8 from Nat.le_add_right 5 3)
+    have hfive_sqrt_le_eight_sqrt :
+        5 * Real.sqrt (1 + ‖t‖) ≤ 8 * Real.sqrt (1 + ‖t‖) :=
+      mul_le_mul_of_nonneg_right hfive_le_eight hsqrt_nonneg
+    have height_sqrt_le_target :
+        8 * Real.sqrt (1 + ‖t‖) ≤
+          8 * Real.sqrt (1 + ‖t‖) * Real.log (2 + ⌊2 + ‖t‖⌋₊) := by
+      calc
+        8 * Real.sqrt (1 + ‖t‖) =
+            8 * (Real.sqrt (1 + ‖t‖) * 1) := by
+          exact congrArg (fun r : ℝ => 8 * r)
+            (mul_one (Real.sqrt (1 + ‖t‖))).symm
+        _ ≤ 8 * (Real.sqrt (1 + ‖t‖) *
+            Real.log (2 + ⌊2 + ‖t‖⌋₊)) :=
+          mul_le_mul_of_nonneg_left hsqrt_le_sqrt_log
+            (show (0 : ℝ) ≤ 8 from Nat.cast_nonneg 8)
+        _ = 8 * Real.sqrt (1 + ‖t‖) *
+            Real.log (2 + ⌊2 + ‖t‖⌋₊) :=
+          (mul_assoc 8 (Real.sqrt (1 + ‖t‖))
+            (Real.log (2 + ⌊2 + ‖t‖⌋₊))).symm
+    exact le_trans hfive_sqrt_le_eight_sqrt height_sqrt_le_target
+  exact le_trans hvdc (le_trans hscale hfive_le_eight_log)
+
 /-- Finite prefix estimate for the unweighted logarithmic-phase partial sums up
 to the natural cutoff `C = ⌊2 + |t|⌋₊`.
 
@@ -3379,7 +3480,11 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix
     (ht : 1 ≤ ‖t‖) :
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊2 + ‖t‖⌋₊‖ ≤
       8 * Real.sqrt (1 + ‖t‖) * Real.log (2 + ⌊2 + ‖t‖⌋₊) := by
-  sorry
+  exact
+    boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix_norm_le_of_positiveIndex
+      t ht
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonicalPrefix_norm_le_ownerGap
+        t ht)
 
 /-- The finite prefix `[0, C]` is disjoint from the open-right tail `(C, M]`. -/
 theorem boundaryGrowth_Icc_zero_disjoint_Ioc
@@ -8388,6 +8493,116 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_ca
     boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_canonicalFixedInterval_selectedEndpointVariation_decomposition_bounds_of_finiteDefect
       t ht hM hdefect
 
+/-- Finite oscillatory zero-mean block estimate for the normalized Bernoulli
+kernel after the canonical cutoff.
+
+This is the precise finite-block analytic sink left after the global normalized
+kernel has been decomposed into right-endpoint zero-mean unit blocks. -/
+theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBlockSum_norm_le_ownerGap
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
+        ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (((((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+                (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) -
+              (((-(t : ℂ) * Complex.I) /
+                  (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
+                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
+                  (-(t : ℂ) * Complex.I))))))‖ ≤
+      2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + M) := by
+  sorry
+
+/-- Transport of a finite zero-mean block estimate back to the global normalized
+Bernoulli kernel integral. -/
+theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_blockCancellation_of_finiteOscillatoryBlockSum
+    (t : ℝ)
+    {M : ℕ}
+    (hM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    (hblock :
+      ‖∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
+          ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+                  (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) -
+                (((-(t : ℂ) * Complex.I) /
+                    (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
+                  ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
+                    (-(t : ℂ) * Complex.I))))))‖ ≤
+        2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + M)) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+          (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+            (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))‖ ≤
+      2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + M) := by
+  have hdecomp :
+      (∫ x in Set.Ioc
+          (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))
+          (((M : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+              (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))) =
+        ∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
+          ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+                  (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) -
+                (((-(t : ℂ) * Complex.I) /
+                    (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
+                  ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
+                    (-(t : ℂ) * Complex.I)))))) :=
+    boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_integral_eq_sum_Ioc_pred_self_subtracted_of_integrable
+      t
+      hM
+      (fun n hn =>
+        boundaryLineOnePointRealParam_firstPeriodicBernoulli_Ioc_pred_self_normalizedKernel_integrable
+          t hn)
+      (fun n hn =>
+        boundaryLineOnePointRealParam_firstPeriodicBernoulli_Ioc_pred_self_leftEndpoint_normalizedKernel_integrable
+          t hn)
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        ‖z‖ ≤ 2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + M))
+      hdecomp.symm
+      hblock
+
+/-- Normalized Bernoulli block-cancellation estimate on the canonical
+post-cutoff interval.
+
+This is the exact oscillatory remainder sink needed by the selected
+endpoint/variation package.  It is stronger than the already-assembled `6A`
+absolute endpoint-plus-variation consequence and supplies the `2A` cancellation
+input required for the finite-defect estimate. -/
+theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_canonicalFixedInterval_blockCancellation_ownerGap
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+          (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+            (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))‖ ≤
+      2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + M) := by
+  have hblock :
+      ‖∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
+          ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+                  (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) -
+                (((-(t : ℂ) * Complex.I) /
+                    (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
+                  ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
+                    (-(t : ℂ) * Complex.I))))))‖ ≤
+        2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + M) :=
+    boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBlockSum_norm_le_ownerGap
+      t ht hM
+  exact
+    boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_blockCancellation_of_finiteOscillatoryBlockSum
+      t hM hblock
+
 /-- Canonical fixed-interval integration-by-parts decomposition together with
 the endpoint and reciprocal-variation estimates for the selected terms. -/
 theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_canonicalFixedInterval_selectedEndpointVariation_decomposition_bounds_ownerIntegrationByParts
@@ -8403,7 +8618,11 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_ca
         C + V ∧
       ‖C‖ ≤ 2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + M) ∧
       ‖V‖ ≤ 4 * Real.sqrt (1 + ‖t‖) * Real.log (2 + M) := by
-  sorry
+  exact
+    boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_canonicalFixedInterval_selectedEndpointVariation_decomposition_bounds_of_blockCancellation
+      t ht hM
+      (boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_canonicalFixedInterval_blockCancellation_ownerGap
+        t ht hM)
 
 /-- Exact zero-endpoint decomposition for the normalized Bernoulli kernel,
 with the endpoint estimate proved directly.
