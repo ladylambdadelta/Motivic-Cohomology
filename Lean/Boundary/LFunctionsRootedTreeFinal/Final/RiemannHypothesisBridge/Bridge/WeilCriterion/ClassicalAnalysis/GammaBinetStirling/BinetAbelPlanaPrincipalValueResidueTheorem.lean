@@ -334,6 +334,8 @@ theorem Complex.finiteAbelPlana_log_puncturedRectangleResidueAccountingPV
     {w : ℂ}
     (hw : 0 < w.re)
     (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)))
     (T : ℝ)
     (hT : 0 < T) :
     Filter.Tendsto
@@ -357,7 +359,7 @@ theorem Complex.finiteAbelPlana_log_puncturedRectangleResidueAccountingPV
         (𝓝[>] (0 : ℝ))
       (𝓝 (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)) :=
     Complex.finiteAbelPlana_log_pvDeletedBoundaryIntegralContribution_tendsto_pvResidues
-      hw N
+      hw N hdecInteriorPole
   have hsum :
       Filter.Tendsto
         (fun ρ : ℝ =>
@@ -399,6 +401,8 @@ theorem Complex.finiteAbelPlana_log_finiteHeightPuncturedRectangleBoundary_tends
     {w : ℂ}
     (hw : 0 < w.re)
     (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)))
     (T : ℝ)
     (hT : 0 < T) :
     Filter.Tendsto
@@ -408,7 +412,7 @@ theorem Complex.finiteAbelPlana_log_finiteHeightPuncturedRectangleBoundary_tends
       (𝓝 (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)) := by
   exact
     Complex.finiteAbelPlana_log_puncturedRectangleResidueAccountingPV
-      hw N T hT
+      hw N hdecInteriorPole T hT
 
 /-- Principal-value residue theorem for the finite Abel-Plana logarithmic
 rectangle.
@@ -430,6 +434,8 @@ theorem Complex.finiteAbelPlana_log_finiteHeightRectangle_principalValueResidueT
     {w : ℂ}
     (hw : 0 < w.re)
     (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)))
     (T : ℝ)
     (hT : 0 < T) :
     Filter.Tendsto
@@ -445,7 +451,7 @@ theorem Complex.finiteAbelPlana_log_finiteHeightRectangle_principalValueResidueT
         (𝓝[>] (0 : ℝ))
         (𝓝 (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)) :=
     Complex.finiteAbelPlana_log_finiteHeightPuncturedRectangleBoundary_tendsto_residues
-      hw N T hT
+      hw N hdecInteriorPole T hT
   exact hlim
 
 /-- Real segment plus endpoint-principal-value contribution in the
@@ -725,6 +731,465 @@ theorem Complex.finiteAbelPlana_log_upperHorizontalPath_mem_slitPlane
   have hre : 0 < (w + ((x : ℂ) + (T : ℂ) * Complex.I)).re :=
     hpath_re.symm ▸ add_pos_of_pos_of_nonneg hw hx_nonneg
   exact Complex.mem_slitPlane_iff.mpr (Or.inl hre)
+
+/-- Complex primitive for the logarithmic Abel-Plana summand on arbitrary
+straight line segments. -/
+noncomputable def Complex.finiteAbelPlanaLogComplexPrimitive
+    (w u : ℂ) : ℂ :=
+  (w + u) * Complex.log (w + u) - (w + u)
+
+/-- Unfolding of the complex logarithmic primitive. -/
+theorem Complex.finiteAbelPlanaLogComplexPrimitive_unfold
+    (w u : ℂ) :
+    Complex.finiteAbelPlanaLogComplexPrimitive w u =
+      (w + u) * Complex.log (w + u) - (w + u) :=
+  Eq.refl (Complex.finiteAbelPlanaLogComplexPrimitive w u)
+
+/-- Derivative of the logarithmic primitive along a straight complex line. -/
+theorem Complex.hasDerivAt_finiteAbelPlanaLogComplexPrimitive_line
+    (w a v : ℂ)
+    {t : ℝ}
+    (hslit : w + ((t : ℂ) * v + a) ∈ Complex.slitPlane) :
+    HasDerivAt
+      (fun s : ℝ =>
+        Complex.finiteAbelPlanaLogComplexPrimitive w ((s : ℂ) * v + a))
+      (v * Complex.finiteAbelPlanaLogSummand w ((t : ℂ) * v + a))
+      t := by
+  let g : ℝ → ℂ := fun s : ℝ => w + ((s : ℂ) * v + a)
+  have hg : HasDerivAt g v t := by
+    have hcomplex :
+        HasDerivAt
+          (fun z : ℂ => w + (z * v + a))
+          ((1 : ℂ) * v)
+          (t : ℂ) :=
+      (((hasDerivAt_id (t : ℂ)).mul_const v).const_add a).const_add w
+    exact (one_mul v) ▸ hcomplex.comp_ofReal
+  have hlog :
+      HasDerivAt
+        (fun s : ℝ => Complex.log (g s))
+        (v / g t)
+        t :=
+    hg.clog_real hslit
+  have hmul :
+      HasDerivAt
+        (fun s : ℝ => g s * Complex.log (g s))
+        (v * Complex.log (g t) + g t * (v / g t))
+        t :=
+    hg.mul hlog
+  have hsub :
+      HasDerivAt
+        (fun s : ℝ => g s * Complex.log (g s) - g s)
+        ((v * Complex.log (g t) + g t * (v / g t)) - v)
+        t :=
+    hmul.sub hg
+  have hg_ne : g t ≠ 0 :=
+    Complex.slitPlane_ne_zero hslit
+  have hcancel : g t * (v / g t) = v := by
+    calc
+      g t * (v / g t) = g t * (v * (g t)⁻¹) := by
+        exact congrArg (fun z : ℂ => g t * z) (div_eq_mul_inv v (g t))
+      _ = (g t * v) * (g t)⁻¹ := by
+        exact mul_assoc (g t) v (g t)⁻¹
+      _ = (v * g t) * (g t)⁻¹ := by
+        exact congrArg (fun z : ℂ => z * (g t)⁻¹) (mul_comm (g t) v)
+      _ = v * (g t * (g t)⁻¹) := by
+        exact mul_assoc v (g t) (g t)⁻¹
+      _ = v * 1 := by
+        exact congrArg (fun z : ℂ => v * z) (mul_inv_cancel₀ hg_ne)
+      _ = v := by
+        exact mul_one v
+  have hderiv :
+      (v * Complex.log (g t) + g t * (v / g t)) - v =
+        v * Complex.finiteAbelPlanaLogSummand w ((t : ℂ) * v + a) := by
+    calc
+      (v * Complex.log (g t) + g t * (v / g t)) - v =
+          (v * Complex.log (g t) + v) - v := by
+        exact congrArg
+          (fun z : ℂ => (v * Complex.log (g t) + z) - v)
+          hcancel
+      _ = v * Complex.log (g t) := by
+        exact add_sub_cancel_right (v * Complex.log (g t)) v
+      _ = v * Complex.finiteAbelPlanaLogSummand w ((t : ℂ) * v + a) := by
+        exact Eq.refl (v * Complex.finiteAbelPlanaLogSummand w ((t : ℂ) * v + a))
+  exact hderiv ▸ hsub
+
+/-- FTC for the top horizontal logarithmic primitive along the finite
+Abel-Plana rectangle. -/
+theorem Complex.finiteAbelPlana_log_topHorizontalPrimitive_integral
+    (N : ℕ)
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (T : ℝ) :
+    let M : ℕ := N + 1
+    ∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+        Complex.finiteAbelPlanaLogSummand w
+          ((x : ℂ) + (T : ℂ) * Complex.I) =
+      Complex.finiteAbelPlanaLogComplexPrimitive w
+          (((M : ℝ) : ℂ) + (T : ℂ) * Complex.I) -
+        Complex.finiteAbelPlanaLogComplexPrimitive w
+          ((0 : ℂ) + (T : ℂ) * Complex.I) := by
+  intro M
+  have hderiv :
+      ∀ x ∈ Set.uIcc (0 : ℝ) (M : ℝ),
+        HasDerivAt
+          (fun y : ℝ =>
+            Complex.finiteAbelPlanaLogComplexPrimitive w
+              ((y : ℂ) * (1 : ℂ) + (T : ℂ) * Complex.I))
+          (Complex.finiteAbelPlanaLogSummand w
+            ((x : ℂ) + (T : ℂ) * Complex.I))
+          x := by
+    intro x hx
+    have hx_cast :
+        (x : ℂ) * (1 : ℂ) + (T : ℂ) * Complex.I =
+          (x : ℂ) + (T : ℂ) * Complex.I := by
+      exact congrArg (fun z : ℂ => z + (T : ℂ) * Complex.I) (mul_one (x : ℂ))
+    have hslit :
+        w + ((x : ℂ) * (1 : ℂ) + (T : ℂ) * Complex.I) ∈ Complex.slitPlane := by
+      exact hx_cast ▸
+        Complex.finiteAbelPlana_log_upperHorizontalPath_mem_slitPlane
+          N hw T hx
+    have hline :=
+      Complex.hasDerivAt_finiteAbelPlanaLogComplexPrimitive_line
+        w ((T : ℂ) * Complex.I) (1 : ℂ) hslit
+    have hderiv_value :
+        (1 : ℂ) *
+            Complex.finiteAbelPlanaLogSummand w
+              ((x : ℂ) * (1 : ℂ) + (T : ℂ) * Complex.I) =
+          Complex.finiteAbelPlanaLogSummand w
+            ((x : ℂ) + (T : ℂ) * Complex.I) := by
+      calc
+        (1 : ℂ) *
+            Complex.finiteAbelPlanaLogSummand w
+              ((x : ℂ) * (1 : ℂ) + (T : ℂ) * Complex.I) =
+            Complex.finiteAbelPlanaLogSummand w
+              ((x : ℂ) * (1 : ℂ) + (T : ℂ) * Complex.I) := by
+          exact one_mul _
+        _ =
+            Complex.finiteAbelPlanaLogSummand w
+              ((x : ℂ) + (T : ℂ) * Complex.I) := by
+          exact congrArg (fun z : ℂ => Complex.finiteAbelPlanaLogSummand w z) hx_cast
+    exact hderiv_value ▸ hline
+  have hcont :
+      ContinuousOn
+        (fun x : ℝ =>
+          Complex.finiteAbelPlanaLogSummand w
+            ((x : ℂ) + (T : ℂ) * Complex.I))
+        (Set.uIcc (0 : ℝ) (M : ℝ)) := by
+    intro x hx
+    have hslit :
+        w + ((x : ℂ) + (T : ℂ) * Complex.I) ∈ Complex.slitPlane :=
+      Complex.finiteAbelPlana_log_upperHorizontalPath_mem_slitPlane
+        N hw T hx
+    exact
+      (((continuous_const.add
+        (Complex.continuous_ofReal.add continuous_const)).continuousAt).clog hslit).continuousWithinAt
+  have hint :
+      IntervalIntegrable
+        (fun x : ℝ =>
+          Complex.finiteAbelPlanaLogSummand w
+            ((x : ℂ) + (T : ℂ) * Complex.I))
+        volume
+        (0 : ℝ)
+        (M : ℝ) :=
+    hcont.intervalIntegrable
+  have hFTC :
+      ∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+          Complex.finiteAbelPlanaLogSummand w
+            ((x : ℂ) + (T : ℂ) * Complex.I) =
+        Complex.finiteAbelPlanaLogComplexPrimitive w
+            (((M : ℝ) : ℂ) * (1 : ℂ) + (T : ℂ) * Complex.I) -
+          Complex.finiteAbelPlanaLogComplexPrimitive w
+            (((0 : ℝ) : ℂ) * (1 : ℂ) + (T : ℂ) * Complex.I) :=
+    intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv hint
+  have htop :
+      ((M : ℝ) : ℂ) * (1 : ℂ) + (T : ℂ) * Complex.I =
+        ((M : ℝ) : ℂ) + (T : ℂ) * Complex.I := by
+    exact congrArg (fun z : ℂ => z + (T : ℂ) * Complex.I)
+      (mul_one (((M : ℝ) : ℂ)))
+  have hbottom :
+      ((0 : ℝ) : ℂ) * (1 : ℂ) + (T : ℂ) * Complex.I =
+        (0 : ℂ) + (T : ℂ) * Complex.I := by
+    exact congrArg (fun z : ℂ => z + (T : ℂ) * Complex.I)
+      (mul_one (((0 : ℝ) : ℂ)))
+  exact Eq.trans hFTC
+    (congrArg₂ Sub.sub
+      (congrArg (fun z : ℂ => Complex.finiteAbelPlanaLogComplexPrimitive w z) htop)
+      (congrArg (fun z : ℂ => Complex.finiteAbelPlanaLogComplexPrimitive w z) hbottom))
+
+/-- FTC for a left vertical constant-kernel segment of the logarithmic
+primitive. -/
+theorem Complex.finiteAbelPlana_log_leftVerticalConstantPrimitive_integral
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (a b : ℝ) :
+    ∫ y : ℝ in a..b,
+        Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+          ((Real.pi : ℂ) * Complex.I) =
+      (Real.pi : ℂ) *
+        (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (b : ℂ)) -
+          Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (a : ℂ))) := by
+  let P : ℂ := (Real.pi : ℂ)
+  let F : ℝ → ℂ := fun y : ℝ =>
+    P * Complex.finiteAbelPlanaLogComplexPrimitive w ((y : ℂ) * Complex.I + 0)
+  have hderiv :
+      ∀ y ∈ Set.uIcc a b,
+        HasDerivAt F
+          (Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+            ((Real.pi : ℂ) * Complex.I))
+          y := by
+    intro y _hy
+    have hy_comm :
+        (y : ℂ) * Complex.I = Complex.I * (y : ℂ) :=
+      mul_comm (y : ℂ) Complex.I
+    have hslit :
+        w + ((y : ℂ) * Complex.I + 0) ∈ Complex.slitPlane := by
+      have harg :
+          (y : ℂ) * Complex.I + 0 = Complex.I * (y : ℂ) := by
+        exact Eq.trans (add_zero ((y : ℂ) * Complex.I)) hy_comm
+      exact harg ▸
+        Complex.finiteAbelPlana_log_leftVerticalPath_mem_slitPlane hw y
+    have hline :
+        HasDerivAt
+          (fun s : ℝ =>
+            Complex.finiteAbelPlanaLogComplexPrimitive w
+              ((s : ℂ) * Complex.I + 0))
+          (Complex.I *
+            Complex.finiteAbelPlanaLogSummand w ((y : ℂ) * Complex.I + 0))
+          y :=
+      Complex.hasDerivAt_finiteAbelPlanaLogComplexPrimitive_line
+        w 0 Complex.I hslit
+    have hscaled :
+        HasDerivAt F
+          (P *
+            (Complex.I *
+              Complex.finiteAbelPlanaLogSummand w ((y : ℂ) * Complex.I + 0)))
+          y :=
+      hline.const_mul P
+    have hvalue :
+        P *
+            (Complex.I *
+              Complex.finiteAbelPlanaLogSummand w ((y : ℂ) * Complex.I + 0)) =
+          Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+            ((Real.pi : ℂ) * Complex.I) := by
+      have hsummand :
+          Complex.finiteAbelPlanaLogSummand w ((y : ℂ) * Complex.I + 0) =
+            Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) := by
+        have harg :
+            (y : ℂ) * Complex.I + 0 = Complex.I * (y : ℂ) := by
+          exact Eq.trans (add_zero ((y : ℂ) * Complex.I)) hy_comm
+        exact congrArg (fun z : ℂ => Complex.finiteAbelPlanaLogSummand w z) harg
+      calc
+        P *
+            (Complex.I *
+              Complex.finiteAbelPlanaLogSummand w ((y : ℂ) * Complex.I + 0)) =
+            P *
+              (Complex.I *
+                Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ))) := by
+          exact congrArg
+            (fun z : ℂ => P * (Complex.I * z))
+            hsummand
+        _ =
+            (P * Complex.I) *
+              Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) := by
+          exact (mul_assoc P Complex.I
+            (Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)))).symm
+        _ =
+            Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+              (P * Complex.I) := by
+          exact mul_comm (P * Complex.I)
+            (Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)))
+        _ =
+            Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+              ((Real.pi : ℂ) * Complex.I) := by
+          exact Eq.refl _
+    exact hvalue ▸ hscaled
+  have hcont :
+      ContinuousOn
+        (fun y : ℝ =>
+          Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+            ((Real.pi : ℂ) * Complex.I))
+        (Set.uIcc a b) := by
+    intro y _hy
+    have hslit :
+        w + Complex.I * (y : ℂ) ∈ Complex.slitPlane :=
+      Complex.finiteAbelPlana_log_leftVerticalPath_mem_slitPlane hw y
+    have harg_cont :
+        ContinuousAt (fun s : ℝ => w + Complex.I * (s : ℂ)) y :=
+      (continuous_const.add (continuous_const.mul Complex.continuous_ofReal)).continuousAt
+    exact ((harg_cont.clog hslit).mul continuousAt_const).continuousWithinAt
+  have hint :
+      IntervalIntegrable
+        (fun y : ℝ =>
+          Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+            ((Real.pi : ℂ) * Complex.I))
+        volume a b :=
+    hcont.intervalIntegrable
+  have hFTC :
+      ∫ y : ℝ in a..b,
+          Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+            ((Real.pi : ℂ) * Complex.I) =
+        F b - F a :=
+    intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv hint
+  have hendpoints :
+      F b - F a =
+        (Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (b : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (a : ℂ))) := by
+    have hb :
+        ((b : ℂ) * Complex.I + 0) = Complex.I * (b : ℂ) := by
+      exact Eq.trans (add_zero ((b : ℂ) * Complex.I)) (mul_comm (b : ℂ) Complex.I)
+    have ha :
+        ((a : ℂ) * Complex.I + 0) = Complex.I * (a : ℂ) := by
+      exact Eq.trans (add_zero ((a : ℂ) * Complex.I)) (mul_comm (a : ℂ) Complex.I)
+    calc
+      F b - F a =
+          P * Complex.finiteAbelPlanaLogComplexPrimitive w ((b : ℂ) * Complex.I + 0) -
+            P * Complex.finiteAbelPlanaLogComplexPrimitive w ((a : ℂ) * Complex.I + 0) := by
+        exact Eq.refl _
+      _ =
+          P * Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (b : ℂ)) -
+            P * Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (a : ℂ)) := by
+        exact congrArg₂ Sub.sub
+          (congrArg (fun z : ℂ => P * Complex.finiteAbelPlanaLogComplexPrimitive w z) hb)
+          (congrArg (fun z : ℂ => P * Complex.finiteAbelPlanaLogComplexPrimitive w z) ha)
+      _ =
+          P *
+            (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (b : ℂ)) -
+              Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (a : ℂ))) := by
+        exact (mul_sub P
+          (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (b : ℂ)))
+          (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (a : ℂ)))).symm
+      _ =
+          (Real.pi : ℂ) *
+            (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (b : ℂ)) -
+              Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (a : ℂ))) := by
+        exact Eq.refl _
+  exact Eq.trans hFTC hendpoints
+
+/-- FTC for the bottom horizontal logarithmic primitive along the finite
+Abel-Plana rectangle. -/
+theorem Complex.finiteAbelPlana_log_bottomHorizontalPrimitive_integral
+    (N : ℕ)
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (T : ℝ) :
+    let M : ℕ := N + 1
+    ∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+        Complex.finiteAbelPlanaLogSummand w
+          ((x : ℂ) - (T : ℂ) * Complex.I) =
+      Complex.finiteAbelPlanaLogComplexPrimitive w
+          (((M : ℝ) : ℂ) - (T : ℂ) * Complex.I) -
+        Complex.finiteAbelPlanaLogComplexPrimitive w
+          ((0 : ℂ) - (T : ℂ) * Complex.I) := by
+  intro M
+  let a : ℂ := -((T : ℂ) * Complex.I)
+  have hderiv :
+      ∀ x ∈ Set.uIcc (0 : ℝ) (M : ℝ),
+        HasDerivAt
+          (fun y : ℝ =>
+            Complex.finiteAbelPlanaLogComplexPrimitive w
+              ((y : ℂ) * (1 : ℂ) + a))
+          (Complex.finiteAbelPlanaLogSummand w
+            ((x : ℂ) - (T : ℂ) * Complex.I))
+          x := by
+    intro x hx
+    have hx_cast :
+        (x : ℂ) * (1 : ℂ) + a =
+          (x : ℂ) - (T : ℂ) * Complex.I := by
+      calc
+        (x : ℂ) * (1 : ℂ) + a =
+            (x : ℂ) + a := by
+          exact congrArg (fun z : ℂ => z + a) (mul_one (x : ℂ))
+        _ = (x : ℂ) + -((T : ℂ) * Complex.I) := by
+          exact Eq.refl _
+        _ = (x : ℂ) - (T : ℂ) * Complex.I := by
+          exact (sub_eq_add_neg (x : ℂ) ((T : ℂ) * Complex.I)).symm
+    have hslit :
+        w + ((x : ℂ) * (1 : ℂ) + a) ∈ Complex.slitPlane := by
+      exact hx_cast ▸
+        Complex.finiteAbelPlana_log_lowerHorizontalPath_mem_slitPlane
+          N hw T hx
+    have hline :=
+      Complex.hasDerivAt_finiteAbelPlanaLogComplexPrimitive_line
+        w a (1 : ℂ) hslit
+    have hderiv_value :
+        (1 : ℂ) *
+            Complex.finiteAbelPlanaLogSummand w
+              ((x : ℂ) * (1 : ℂ) + a) =
+          Complex.finiteAbelPlanaLogSummand w
+            ((x : ℂ) - (T : ℂ) * Complex.I) := by
+      calc
+        (1 : ℂ) *
+            Complex.finiteAbelPlanaLogSummand w
+              ((x : ℂ) * (1 : ℂ) + a) =
+            Complex.finiteAbelPlanaLogSummand w
+              ((x : ℂ) * (1 : ℂ) + a) := by
+          exact one_mul _
+        _ =
+            Complex.finiteAbelPlanaLogSummand w
+              ((x : ℂ) - (T : ℂ) * Complex.I) := by
+          exact congrArg (fun z : ℂ => Complex.finiteAbelPlanaLogSummand w z) hx_cast
+    exact hderiv_value ▸ hline
+  have hcont :
+      ContinuousOn
+        (fun x : ℝ =>
+          Complex.finiteAbelPlanaLogSummand w
+            ((x : ℂ) - (T : ℂ) * Complex.I))
+        (Set.uIcc (0 : ℝ) (M : ℝ)) := by
+    intro x hx
+    have hslit :
+        w + ((x : ℂ) - (T : ℂ) * Complex.I) ∈ Complex.slitPlane :=
+      Complex.finiteAbelPlana_log_lowerHorizontalPath_mem_slitPlane
+        N hw T hx
+    exact
+      (((continuous_const.add
+        (Complex.continuous_ofReal.sub continuous_const)).continuousAt).clog hslit).continuousWithinAt
+  have hint :
+      IntervalIntegrable
+        (fun x : ℝ =>
+          Complex.finiteAbelPlanaLogSummand w
+            ((x : ℂ) - (T : ℂ) * Complex.I))
+        volume
+        (0 : ℝ)
+        (M : ℝ) :=
+    hcont.intervalIntegrable
+  have hFTC :
+      ∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+          Complex.finiteAbelPlanaLogSummand w
+            ((x : ℂ) - (T : ℂ) * Complex.I) =
+        Complex.finiteAbelPlanaLogComplexPrimitive w
+            (((M : ℝ) : ℂ) * (1 : ℂ) + a) -
+          Complex.finiteAbelPlanaLogComplexPrimitive w
+            (((0 : ℝ) : ℂ) * (1 : ℂ) + a) :=
+    intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv hint
+  have htop :
+      ((M : ℝ) : ℂ) * (1 : ℂ) + a =
+        ((M : ℝ) : ℂ) - (T : ℂ) * Complex.I := by
+    calc
+      ((M : ℝ) : ℂ) * (1 : ℂ) + a =
+          ((M : ℝ) : ℂ) + a := by
+        exact congrArg (fun z : ℂ => z + a)
+          (mul_one (((M : ℝ) : ℂ)))
+      _ = ((M : ℝ) : ℂ) + -((T : ℂ) * Complex.I) := by
+        exact Eq.refl _
+      _ = ((M : ℝ) : ℂ) - (T : ℂ) * Complex.I := by
+        exact (sub_eq_add_neg (((M : ℝ) : ℂ)) ((T : ℂ) * Complex.I)).symm
+  have hbottom :
+      ((0 : ℝ) : ℂ) * (1 : ℂ) + a =
+        (0 : ℂ) - (T : ℂ) * Complex.I := by
+    calc
+      ((0 : ℝ) : ℂ) * (1 : ℂ) + a =
+          ((0 : ℝ) : ℂ) + a := by
+        exact congrArg (fun z : ℂ => z + a)
+          (mul_one (((0 : ℝ) : ℂ)))
+      _ = (0 : ℂ) + -((T : ℂ) * Complex.I) := by
+        exact Eq.refl _
+      _ = (0 : ℂ) - (T : ℂ) * Complex.I := by
+        exact (sub_eq_add_neg (0 : ℂ) ((T : ℂ) * Complex.I)).symm
+  exact Eq.trans hFTC
+    (congrArg₂ Sub.sub
+      (congrArg (fun z : ℂ => Complex.finiteAbelPlanaLogComplexPrimitive w z) htop)
+      (congrArg (fun z : ℂ => Complex.finiteAbelPlanaLogComplexPrimitive w z) hbottom))
 
 /-- Nonzero height excludes cotangent poles on the lower horizontal side. -/
 theorem Complex.finiteAbelPlana_log_lowerHorizontalPath_sin_ne_zero
@@ -1635,6 +2100,176 @@ theorem Complex.continuous_finiteAbelPlana_log_rightVerticalSummand
     (fun y =>
       congrArg Complex.log
         (add_assoc w (((N + 1 : ℕ) : ℂ)) (Complex.I * (y : ℂ))))
+
+/-- FTC for a right vertical constant-kernel segment of the logarithmic
+primitive. -/
+theorem Complex.finiteAbelPlana_log_rightVerticalConstantPrimitive_integral
+    (N : ℕ)
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (a b : ℝ) :
+    let M : ℕ := N + 1
+    ∫ y : ℝ in a..b,
+        Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) *
+          ((Real.pi : ℂ) * Complex.I) =
+      (Real.pi : ℂ) *
+        (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (b : ℂ)) -
+          Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (a : ℂ))) := by
+  intro M
+  let P : ℂ := (Real.pi : ℂ)
+  let c : ℂ := (M : ℂ)
+  let F : ℝ → ℂ := fun y : ℝ =>
+    P * Complex.finiteAbelPlanaLogComplexPrimitive w ((y : ℂ) * Complex.I + c)
+  have hderiv :
+      ∀ y ∈ Set.uIcc a b,
+        HasDerivAt F
+          (Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) *
+            ((Real.pi : ℂ) * Complex.I))
+          y := by
+    intro y _hy
+    have hy_arg :
+        (y : ℂ) * Complex.I + c = (M : ℂ) + Complex.I * (y : ℂ) := by
+      calc
+        (y : ℂ) * Complex.I + c =
+            Complex.I * (y : ℂ) + c := by
+          exact congrArg (fun z : ℂ => z + c) (mul_comm (y : ℂ) Complex.I)
+        _ = c + Complex.I * (y : ℂ) := by
+          exact add_comm (Complex.I * (y : ℂ)) c
+        _ = (M : ℂ) + Complex.I * (y : ℂ) := by
+          exact Eq.refl _
+    have hslit :
+        w + ((y : ℂ) * Complex.I + c) ∈ Complex.slitPlane := by
+      have hpath :
+          w + ((M : ℂ) + Complex.I * (y : ℂ)) =
+            w + (((N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ)) := by
+        exact Eq.refl _
+      exact hy_arg ▸
+        (hpath ▸
+          Complex.finiteAbelPlana_log_rightVerticalPath_mem_slitPlane N hw y)
+    have hline :
+        HasDerivAt
+          (fun s : ℝ =>
+            Complex.finiteAbelPlanaLogComplexPrimitive w
+              ((s : ℂ) * Complex.I + c))
+          (Complex.I *
+            Complex.finiteAbelPlanaLogSummand w ((y : ℂ) * Complex.I + c))
+          y :=
+      Complex.hasDerivAt_finiteAbelPlanaLogComplexPrimitive_line
+        w c Complex.I hslit
+    have hscaled :
+        HasDerivAt F
+          (P *
+            (Complex.I *
+              Complex.finiteAbelPlanaLogSummand w ((y : ℂ) * Complex.I + c)))
+          y :=
+      hline.const_mul P
+    have hvalue :
+        P *
+            (Complex.I *
+              Complex.finiteAbelPlanaLogSummand w ((y : ℂ) * Complex.I + c)) =
+          Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) *
+            ((Real.pi : ℂ) * Complex.I) := by
+      have hsummand :
+          Complex.finiteAbelPlanaLogSummand w ((y : ℂ) * Complex.I + c) =
+            Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) := by
+        exact congrArg (fun z : ℂ => Complex.finiteAbelPlanaLogSummand w z) hy_arg
+      calc
+        P *
+            (Complex.I *
+              Complex.finiteAbelPlanaLogSummand w ((y : ℂ) * Complex.I + c)) =
+            P *
+              (Complex.I *
+                Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ))) := by
+          exact congrArg
+            (fun z : ℂ => P * (Complex.I * z))
+            hsummand
+        _ =
+            (P * Complex.I) *
+              Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) := by
+          exact (mul_assoc P Complex.I
+            (Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)))).symm
+        _ =
+            Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) *
+              (P * Complex.I) := by
+          exact mul_comm (P * Complex.I)
+            (Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)))
+        _ =
+            Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) *
+              ((Real.pi : ℂ) * Complex.I) := by
+          exact Eq.refl _
+    exact hvalue ▸ hscaled
+  have hcont :
+      ContinuousOn
+        (fun y : ℝ =>
+          Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) *
+            ((Real.pi : ℂ) * Complex.I))
+        (Set.uIcc a b) := by
+    intro y _hy
+    exact
+      ((Complex.continuous_finiteAbelPlana_log_rightVerticalSummand N hw).continuousAt.mul
+        continuousAt_const).continuousWithinAt
+  have hint :
+      IntervalIntegrable
+        (fun y : ℝ =>
+          Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) *
+            ((Real.pi : ℂ) * Complex.I))
+        volume a b :=
+    hcont.intervalIntegrable
+  have hFTC :
+      ∫ y : ℝ in a..b,
+          Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) *
+            ((Real.pi : ℂ) * Complex.I) =
+        F b - F a :=
+    intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv hint
+  have hendpoints :
+      F b - F a =
+        (Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (b : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (a : ℂ))) := by
+    have hb :
+        (b : ℂ) * Complex.I + c = (M : ℂ) + Complex.I * (b : ℂ) := by
+      calc
+        (b : ℂ) * Complex.I + c =
+            Complex.I * (b : ℂ) + c := by
+          exact congrArg (fun z : ℂ => z + c) (mul_comm (b : ℂ) Complex.I)
+        _ = c + Complex.I * (b : ℂ) := by
+          exact add_comm (Complex.I * (b : ℂ)) c
+        _ = (M : ℂ) + Complex.I * (b : ℂ) := by
+          exact Eq.refl _
+    have ha :
+        (a : ℂ) * Complex.I + c = (M : ℂ) + Complex.I * (a : ℂ) := by
+      calc
+        (a : ℂ) * Complex.I + c =
+            Complex.I * (a : ℂ) + c := by
+          exact congrArg (fun z : ℂ => z + c) (mul_comm (a : ℂ) Complex.I)
+        _ = c + Complex.I * (a : ℂ) := by
+          exact add_comm (Complex.I * (a : ℂ)) c
+        _ = (M : ℂ) + Complex.I * (a : ℂ) := by
+          exact Eq.refl _
+    calc
+      F b - F a =
+          P * Complex.finiteAbelPlanaLogComplexPrimitive w ((b : ℂ) * Complex.I + c) -
+            P * Complex.finiteAbelPlanaLogComplexPrimitive w ((a : ℂ) * Complex.I + c) := by
+        exact Eq.refl _
+      _ =
+          P * Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (b : ℂ)) -
+            P * Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (a : ℂ)) := by
+        exact congrArg₂ Sub.sub
+          (congrArg (fun z : ℂ => P * Complex.finiteAbelPlanaLogComplexPrimitive w z) hb)
+          (congrArg (fun z : ℂ => P * Complex.finiteAbelPlanaLogComplexPrimitive w z) ha)
+      _ =
+          P *
+            (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (b : ℂ)) -
+              Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (a : ℂ))) := by
+        exact (mul_sub P
+          (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (b : ℂ)))
+          (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (a : ℂ)))).symm
+      _ =
+          (Real.pi : ℂ) *
+            (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (b : ℂ)) -
+              Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (a : ℂ))) := by
+        exact Eq.refl _
+  exact Eq.trans hFTC hendpoints
 
 /-- PV left vertical side splits into its constant and exponential-remainder
 parts. -/

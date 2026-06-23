@@ -272,6 +272,86 @@ theorem eulerMaclaurin_firstOrder_finite_Ioc_identity_of_hasDerivAt
     eulerMaclaurin_firstPeriodicBernoulli_integrationByParts_Ioc
       f f' N M hNM hf_cont hf_deriv hf'_int
 
+/-- Solved-for finite Bernoulli remainder in the first-order Euler-Maclaurin
+identity on a natural `Ioc` interval.
+
+This is the finite bounded-primitive integration-by-parts primitive exposed by
+the one-interval Bernoulli calculation: the Bernoulli remainder is exactly the
+finite endpoint sum minus the main integral and the two half-endpoint terms. -/
+theorem eulerMaclaurin_firstPeriodicBernoulli_remainderIntegral_eq_sum_sub_integral_sub_endpoints
+    (f f' : ℝ → ℂ)
+    (N M : ℕ)
+    (hNM : N ≤ M)
+    (hf_cont : ContinuousOn f
+      (Set.Icc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))))
+    (hf_deriv : ∀ x : ℝ,
+      x ∈ Set.Ioo (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)) →
+        HasDerivAt f (f' x) x)
+    (hf'_int : IntegrableOn f'
+      (Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)))) :
+    (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) =
+      (∑ n in Finset.Ioc N M, f ((n : ℕ) : ℝ)) -
+        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) -
+        (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) -
+        ((1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) := by
+  let S : ℂ := ∑ n in Finset.Ioc N M, f ((n : ℕ) : ℝ)
+  let I : ℂ := ∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x
+  let L : ℂ := -(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))
+  let U : ℂ := (1 / 2 : ℂ) * f (((M : ℕ) : ℝ))
+  let R : ℂ :=
+    ∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+      ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x
+  have hem :
+      S = I + L + U + R :=
+    eulerMaclaurin_firstOrder_finite_Ioc_identity_of_hasDerivAt
+      f f' N M hNM hf_cont hf_deriv hf'_int
+  have hsolve :
+      R = S - I - L - U := by
+    have hpeel_I :
+        I + L + U + R - I = L + U + R := by
+      calc
+        I + L + U + R - I =
+            (I + (L + U + R)) - I := by
+          exact congrArg (fun z : ℂ => z - I)
+            (Eq.trans
+              (add_assoc (I + L) U R)
+              (Eq.trans
+                (add_assoc I L (U + R))
+                (congrArg (fun z : ℂ => I + z) (add_assoc L U R).symm)))
+        _ = L + U + R := by
+          exact add_sub_cancel_left I (L + U + R)
+    have hpeel_L :
+        (L + U + R) - L = U + R := by
+      calc
+        (L + U + R) - L =
+            (L + (U + R)) - L := by
+          exact congrArg (fun z : ℂ => z - L)
+            (add_assoc L U R)
+        _ = U + R := by
+          exact add_sub_cancel_left L (U + R)
+    have hpeel_U :
+        (U + R) - U = R := by
+      calc
+        (U + R) - U = R + U - U := by
+          exact congrArg (fun z : ℂ => z - U) (add_comm U R)
+        _ = R := by
+          exact add_sub_cancel_right R U
+    have hraw :
+        (I + L + U + R) - I - L - U = R := by
+      calc
+        (I + L + U + R) - I - L - U =
+            (L + U + R) - L - U := by
+          exact congrArg (fun z : ℂ => z - L - U) hpeel_I
+        _ = (U + R) - U := by
+          exact congrArg (fun z : ℂ => z - U) hpeel_L
+        _ = R := hpeel_U
+    calc
+      R = (I + L + U + R) - I - L - U := hraw.symm
+      _ = S - I - L - U := by
+        exact congrArg (fun z : ℂ => z - I - L - U) hem.symm
+  exact hsolve
+
 /-- Continuity of the zeta complex-power profile on a positive finite real
 interval. -/
 theorem eulerMaclaurin_cpow_neg_continuousOn_Icc_nat
@@ -703,7 +783,6 @@ theorem sum_range_succ_strictTail_eq_sum_Ioc
     (N M : ℕ) :
     (∑ n in Finset.range (M + 1), if N < n then f n else 0) =
       ∑ n in Finset.Ioc N M, f n := by
-  classical
   calc
     (∑ n in Finset.range (M + 1), if N < n then f n else 0) =
         ∑ n in (Finset.range (M + 1)).filter (fun n : ℕ => N < n), f n := by

@@ -16,11 +16,9 @@ noncomputable section
 theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     ∃ M : ℝ, ∃ d : ℕ,
       0 < M ∧
@@ -29,9 +27,9 @@ theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound
           zetaZeroMultiplicityGrowthEnvelope M d ρ := by
   exact match exists_zetaZeroMultiplicityGrowthEnvelope_bound_from_counting
       hbranch
-      hpartialOneTwo htailOneTwo hcompactOneTwo
+      hpartialOneTwo hcompactOneTwo
       hfinite
-      hpartialLeft htailBoundary hcompactBoundary with
+      hpartialLeft hcompactBoundary with
   | ⟨M, d, hMpos, hbound⟩ =>
       Exists.intro M
         (Exists.intro d
@@ -207,11 +205,9 @@ envelope for the multiplicity-weighted transform majorant. -/
 theorem exists_zetaZeroMultiplicityTransformEnvelope_bound
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (φ : ZetaAdmissibleFunction) :
     ∃ A : ℝ, ∃ k : ℕ,
@@ -224,15 +220,15 @@ theorem exists_zetaZeroMultiplicityTransformEnvelope_bound
           zetaZeroMultiplicityTransformEnvelope A k ρ := by
   exact match exists_completedZeroMultiplicityCounting_height_bound
       hbranch
-      hpartialOneTwo htailOneTwo hcompactOneTwo
+      hpartialOneTwo hcompactOneTwo
       hfinite
-      hpartialLeft htailBoundary hcompactBoundary with
+      hpartialLeft hcompactBoundary with
   | ⟨C, dCount, hCpos, hcount⟩ =>
       match exists_zetaZeroMultiplicityGrowthEnvelope_bound
           hbranch
-          hpartialOneTwo htailOneTwo hcompactOneTwo
+          hpartialOneTwo hcompactOneTwo
           hfinite
-          hpartialLeft htailBoundary hcompactBoundary with
+          hpartialLeft hcompactBoundary with
       | ⟨M, dGrowth, hMpos, hgrowth_bound⟩ =>
           let k : ℕ := dCount + (dGrowth + 1)
           match exists_zetaZeroSpectralEvalDecayEnvelope_bound

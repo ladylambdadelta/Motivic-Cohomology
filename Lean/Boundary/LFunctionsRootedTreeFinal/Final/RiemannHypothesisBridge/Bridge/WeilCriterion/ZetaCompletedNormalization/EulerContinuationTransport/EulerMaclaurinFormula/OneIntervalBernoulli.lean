@@ -88,6 +88,46 @@ theorem complex_oneInterval_endpoint_algebra
     abel_nf
   exact (hcancel.trans htwo).symm
 
+/-- The quadratic primitive of the centered affine sawtooth has equal values
+at the endpoints of a unit interval. -/
+theorem real_oneInterval_centeredSawtooth_primitive_endpoint_eq
+    (a : ℝ) :
+    (((a + 1 - a) ^ 2) / 2 - (a + 1 - a) / 2 : ℝ) =
+      (((a - a) ^ 2) / 2 - (a - a) / 2 : ℝ) := by
+  have hstep : a + 1 - a = (1 : ℝ) := by
+    exact add_sub_cancel_left a 1
+  have hbase : a - a = (0 : ℝ) := by
+    exact sub_self a
+  have hone_square : ((1 : ℝ) ^ 2) = (1 : ℝ) := by
+    exact one_pow 2
+  have hzero_square : ((0 : ℝ) ^ 2) = (0 : ℝ) := by
+    exact zero_pow (show (2 : ℕ) ≠ 0 from Nat.succ_ne_zero 1)
+  have hleft :
+      (((a + 1 - a) ^ 2) / 2 - (a + 1 - a) / 2 : ℝ) =
+        ((1 : ℝ) ^ 2) / 2 - (1 : ℝ) / 2 := by
+    exact congrArg (fun y : ℝ => y ^ 2 / 2 - y / 2) hstep
+  have hleft_zero :
+      ((1 : ℝ) ^ 2) / 2 - (1 : ℝ) / 2 = (0 : ℝ) := by
+    calc
+      ((1 : ℝ) ^ 2) / 2 - (1 : ℝ) / 2 =
+          (1 : ℝ) / 2 - (1 : ℝ) / 2 := by
+        exact congrArg (fun y : ℝ => y / 2 - (1 : ℝ) / 2) hone_square
+      _ = (0 : ℝ) := by
+        exact sub_self ((1 : ℝ) / 2)
+  have hright :
+      (((a - a) ^ 2) / 2 - (a - a) / 2 : ℝ) =
+        ((0 : ℝ) ^ 2) / 2 - (0 : ℝ) / 2 := by
+    exact congrArg (fun y : ℝ => y ^ 2 / 2 - y / 2) hbase
+  have hright_zero :
+      ((0 : ℝ) ^ 2) / 2 - (0 : ℝ) / 2 = (0 : ℝ) := by
+    calc
+      ((0 : ℝ) ^ 2) / 2 - (0 : ℝ) / 2 =
+          (0 : ℝ) / 2 - (0 : ℝ) / 2 := by
+        exact congrArg (fun y : ℝ => y / 2 - (0 : ℝ) / 2) hzero_square
+      _ = (0 : ℝ) := by
+        exact sub_self ((0 : ℝ) / 2)
+  exact Eq.trans (Eq.trans hleft hleft_zero) (Eq.trans hright hright_zero).symm
+
 theorem eulerMaclaurinFirstPeriodicBernoulli_eq_sub_nat_sub_half_on_Ioo
     (n : ℕ)
     {x : ℝ}
@@ -339,6 +379,162 @@ theorem eulerMaclaurin_firstPeriodicBernoulli_oneInterval_remainder_integral_eq_
         congrArg (fun c : ℂ => c * f' x) (congrArg Complex.ofReal hsaw))
   exact
     setIntegral_congr_ae measurableSet_Ioc h_ae
+
+/-- The centered affine sawtooth has zero integral on each unit interval. -/
+theorem eulerMaclaurin_affineSawtooth_oneInterval_integral_eq_zero
+    (n : ℕ) :
+    (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+      (((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ))) = 0 := by
+  let a : ℝ := ((n : ℕ) : ℝ)
+  let b : ℝ := (((n + 1 : ℕ) : ℝ))
+  let F : ℝ → ℂ := fun x =>
+    (((x - a) ^ 2 / 2 - (x - a) / 2 : ℝ) : ℂ)
+  let f : ℝ → ℂ := fun x =>
+    (((x - a - 1 / 2 : ℝ) : ℂ))
+  have hab : a ≤ b := by
+    exact Nat.cast_le.mpr (Nat.le_succ n)
+  have hb_eq : b = a + 1 := by
+    exact Nat.cast_add_one n
+  have hderiv : ∀ x ∈ Set.uIcc a b, HasDerivAt F (f x) x := by
+    intro x _hx
+    have hsq :
+        HasDerivAt (fun y : ℝ => (y - a) ^ 2 / 2) (x - a) x := by
+      have hbase : HasDerivAt (fun y : ℝ => y - a) (1 : ℝ) x :=
+        (hasDerivAt_id x).sub_const a
+      have hsquare :
+          HasDerivAt (fun y : ℝ => (y - a) ^ 2)
+            (((2 : ℕ) : ℝ) * (x - a) ^ (2 - 1) * 1) x :=
+        hbase.pow 2
+      have hpow_one :
+          (x - a) ^ (2 - 1) = x - a := by
+        exact pow_one (x - a)
+      have hraw_deriv :
+          ((2 : ℕ) : ℝ) * (x - a) ^ (2 - 1) * 1 =
+            2 * (x - a) := by
+        calc
+          ((2 : ℕ) : ℝ) * (x - a) ^ (2 - 1) * 1 =
+              2 * (x - a) ^ (2 - 1) * 1 := by
+            rfl
+          _ = 2 * (x - a) * 1 := by
+            exact congrArg (fun y : ℝ => 2 * y * 1) hpow_one
+          _ = 2 * (x - a) := by
+            exact mul_one (2 * (x - a))
+      have hsquare' :
+          HasDerivAt (fun y : ℝ => (y - a) ^ 2)
+            (2 * (x - a)) x :=
+        Eq.subst
+          (motive := fun r : ℝ =>
+            HasDerivAt (fun y : ℝ => (y - a) ^ 2) r x)
+          hraw_deriv
+          hsquare
+      have hdiv :
+          HasDerivAt (fun y : ℝ => (y - a) ^ 2 / 2)
+            ((2 * (x - a)) / 2) x :=
+        hsquare'.div_const 2
+      have hcancel :
+          (2 * (x - a)) / 2 = x - a := by
+        exact mul_div_cancel_left₀ (x - a) (show (2 : ℝ) ≠ 0 from two_ne_zero)
+      exact Eq.subst
+        (motive := fun r : ℝ =>
+          HasDerivAt (fun y : ℝ => (y - a) ^ 2 / 2) r x)
+        hcancel
+        hdiv
+    have hlin :
+        HasDerivAt (fun y : ℝ => (y - a) / 2) (1 / 2 : ℝ) x :=
+      ((hasDerivAt_id x).sub_const a).div_const 2
+    have hreal :
+        HasDerivAt
+          (fun y : ℝ => (y - a) ^ 2 / 2 - (y - a) / 2)
+          ((x - a) - 1 / 2) x :=
+      hsq.sub hlin
+    exact hreal.ofReal_comp
+  have hint :
+      IntervalIntegrable f volume a b := by
+    have hcont : ContinuousOn f (Set.uIcc a b) := by
+      exact
+        (Complex.continuous_ofReal.comp
+          ((continuous_id.sub continuous_const).sub continuous_const)).continuousOn
+    exact hcont.intervalIntegrable
+  have hinterval :
+      (∫ x in a..b, f x) = F b - F a :=
+    intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv hint
+  have hset :
+      (∫ x in Set.Ioc a b, f x) = F b - F a := by
+    exact Eq.trans (intervalIntegral.integral_of_le hab).symm hinterval
+  have hendpoints : F b = F a := by
+    have hraw :
+        (((b - a) ^ 2 / 2 - (b - a) / 2 : ℝ) : ℂ) =
+          (((a - a) ^ 2 / 2 - (a - a) / 2 : ℝ) : ℂ) := by
+      exact congrArg Complex.ofReal
+        (Eq.subst
+          (motive := fun y : ℝ =>
+            (((y - a) ^ 2) / 2 - (y - a) / 2 : ℝ) =
+              (((a - a) ^ 2) / 2 - (a - a) / 2 : ℝ))
+          hb_eq.symm
+          (real_oneInterval_centeredSawtooth_primitive_endpoint_eq a))
+    exact hraw
+  have hzero : F b - F a = 0 := by
+    exact sub_eq_zero.mpr hendpoints
+  exact Eq.trans hset hzero
+
+/-- The first periodic Bernoulli factor has zero mean on each unit interval. -/
+theorem eulerMaclaurinFirstPeriodicBernoulli_oneInterval_integral_eq_zero
+    (n : ℕ) :
+    (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+      ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)) = 0 := by
+  let f' : ℝ → ℂ := fun _x => (1 : ℂ)
+  have hf'_int :
+      IntegrableOn f'
+        (Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ))) := by
+    have hab :
+        (((n : ℕ) : ℝ)) ≤ (((n + 1 : ℕ) : ℝ)) :=
+      Nat.cast_le.mpr (Nat.le_succ n)
+    exact
+      (intervalIntegrable_iff_integrableOn_Ioc_of_le hab).mp
+        (intervalIntegrable_const
+          (μ := volume)
+          (a := (((n : ℕ) : ℝ)))
+          (b := (((n + 1 : ℕ) : ℝ)))
+          (c := (1 : ℂ)))
+  have hperiodic :
+      (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) =
+        (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+          (((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ) * f' x)) :=
+    eulerMaclaurin_firstPeriodicBernoulli_oneInterval_remainder_integral_eq_affine
+      f' n hf'_int
+  have hleft :
+      (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) =
+        (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)) :=
+    setIntegral_congr_fun measurableSet_Ioc
+      (fun x _hx =>
+        mul_one ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ))
+  have hright :
+      (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+        (((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ) * f' x)) =
+        (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+          (((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ))) :=
+    setIntegral_congr_fun measurableSet_Ioc
+      (fun x _hx =>
+        mul_one (((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ)))
+  calc
+    (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+      ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)) =
+        (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
+      exact hleft.symm
+    _ =
+        (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+          (((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ) * f' x)) :=
+      hperiodic
+    _ =
+        (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+          (((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ)) ) := by
+      exact hright
+    _ = 0 :=
+      eulerMaclaurin_affineSawtooth_oneInterval_integral_eq_zero n
 
 /-- One-unit-interval integration-by-parts identity for the first periodic
 Bernoulli factor.

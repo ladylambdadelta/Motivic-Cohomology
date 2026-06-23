@@ -20,13 +20,14 @@ theorem eulerMaclaurin_riemannZeta_tail_identity_with_bernoulliIntegralRemainder
     (z : ℂ)
     (hz_one : 1 ≤ z.re)
     (hz_two : z.re ≤ 2)
-    (hz_ne_one : z ≠ 1) :
+    (hz_ne_one : z ≠ 1)
+    [hz_half_plane_dec : Decidable (1 < z.re)] :
     riemannZeta z - eulerMaclaurinZetaFinitePart z =
         eulerMaclaurinZetaMainTerm z +
         eulerMaclaurinZetaEndpointTerm z +
         eulerMaclaurinZetaBernoulliIntegralRemainder z := by
-  exact match Decidable.em (1 < z.re) with
-  | Or.inl hhalf_plane =>
+  exact match hz_half_plane_dec with
+  | isTrue hhalf_plane =>
       have hsplit :
           HasSum
             (fun n : ℕ =>
@@ -49,7 +50,7 @@ theorem eulerMaclaurin_riemannZeta_tail_identity_with_bernoulliIntegralRemainder
         eulerMaclaurin_riemannZeta_postCutoffTail_eulerMaclaurin_hasSum_standard
           z hz_one hz_two hhalf_plane
       hsplit.unique htail
-  | Or.inr hnot_half_plane =>
+  | isFalse hnot_half_plane =>
       have hz_re_le_one : z.re ≤ 1 :=
         le_of_not_gt hnot_half_plane
       have hz_re_eq_one : z.re = 1 :=

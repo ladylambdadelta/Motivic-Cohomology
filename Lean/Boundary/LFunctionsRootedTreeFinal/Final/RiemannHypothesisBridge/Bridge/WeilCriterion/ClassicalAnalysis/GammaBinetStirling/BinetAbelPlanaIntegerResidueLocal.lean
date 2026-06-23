@@ -421,9 +421,9 @@ theorem Complex.finiteAbelPlana_log_integer_eq_center_of_mem_integerResidueIsola
     exact lt_trans habs_half one_half_lt_one
   have hdiff_zero : (k : ℤ) - (n : ℤ) = 0 := by
     exact
-      match Classical.em ((k : ℤ) - (n : ℤ) = 0) with
-      | Or.inl hzero => hzero
-      | Or.inr hne =>
+      match (inferInstance : Decidable ((k : ℤ) - (n : ℤ) = 0)) with
+      | isTrue hzero => hzero
+      | isFalse hne =>
           False.elim
             (by
               have hnat_abs_pos : 0 < Int.natAbs ((k : ℤ) - (n : ℤ)) :=
@@ -652,7 +652,8 @@ continuity at the center. -/
 theorem Complex.differentiableOn_finiteAbelPlanaLogIntegerResidueExtension_isolationBall
     {w : ℂ}
     (hw : 0 < w.re)
-    (n : ℕ) :
+    (n : ℕ)
+    [∀ z : ℂ, Decidable (z = (n : ℂ))] :
     DifferentiableOn ℂ
       (fun z : ℂ =>
         Complex.finiteAbelPlanaLogIntegerResidueExtension w n z)
@@ -660,12 +661,12 @@ theorem Complex.differentiableOn_finiteAbelPlanaLogIntegerResidueExtension_isola
         (Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n)) := by
   intro z hz
   exact
-    match Classical.em (z = (n : ℂ)) with
-    | Or.inl hzn =>
+    match (inferInstance : Decidable (z = (n : ℂ))) with
+    | isTrue hzn =>
         hzn ▸
           (Complex.differentiableAt_finiteAbelPlanaLogIntegerResidueExtension_at_pole
             hw n).differentiableWithinAt
-    | Or.inr hzn =>
+    | isFalse hzn =>
         (Complex.differentiableAt_finiteAbelPlanaLogIntegerResidueExtension_of_ne
           hw n hz hzn).differentiableWithinAt
 
@@ -743,6 +744,7 @@ theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_eq_residue_of_
     {w : ℂ}
     (hw : 0 < w.re)
     (n : ℕ)
+    [∀ z : ℂ, Decidable (z = (n : ℂ))]
     {ρ : ℝ}
     (hρ : 0 < ρ)
     (hρR : ρ <
@@ -831,7 +833,8 @@ formula gives the normalized circle integral as the residue. -/
 theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_eq_residue_of_isolated
     {w : ℂ}
     (hw : 0 < w.re)
-    (n : ℕ) :
+    (n : ℕ)
+    [∀ z : ℂ, Decidable (z = (n : ℂ))] :
     ∀ᶠ ρ : ℝ in 𝓝[>] (0 : ℝ),
       Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n : ℂ) ρ =
         Complex.finiteAbelPlanaLogIntegerResidue w n := by
@@ -856,7 +859,8 @@ residue. -/
 theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_tendsto_residue
     {w : ℂ}
     (hw : 0 < w.re)
-    (n : ℕ) :
+    (n : ℕ)
+    [∀ z : ℂ, Decidable (z = (n : ℂ))] :
     Filter.Tendsto
       (fun ρ : ℝ =>
         Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n : ℂ) ρ)

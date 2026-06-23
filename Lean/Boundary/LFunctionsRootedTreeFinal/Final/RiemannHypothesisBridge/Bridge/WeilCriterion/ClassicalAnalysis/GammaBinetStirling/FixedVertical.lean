@@ -195,7 +195,9 @@ theorem Complex.fixedRealPart_vertical_stirling_upper_envelope_le_polynomial
 obtained from the sectorial Binet/Stirling estimate. -/
 theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_large_from_openSector
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
-    (σ : ℝ) :
+    (σ : ℝ)
+    (hcompact_half_dec : ∀ H : ℝ, Decidable ((1 / 2 : ℝ) ≤ H))
+    (height_split_dec : ∀ H b : ℝ, Decidable (H ≤ ‖b‖)) :
     ∃ T : ℝ, ∃ C : ℝ, ∃ m : ℕ,
       0 < T ∧ 0 < C ∧
       ∀ t : ℝ,
@@ -204,7 +206,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_large_from_openSector
             C * (1 + ‖t‖) ^ m := by
   rcases
       Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical
-        hbranch σ with
+        hbranch hcompact_half_dec height_split_dec σ with
     ⟨C, hC_pos, hstirling⟩
   rcases
       Complex.fixedRealPart_vertical_stirling_upper_envelope_le_polynomial
@@ -303,7 +305,10 @@ upper bound on a fixed positive real-part vertical line. -/
 theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (σ : ℝ)
-    (hσ : 0 < σ) :
+    (hσ : 0 < σ)
+    (hcompact_half_dec : ∀ H : ℝ, Decidable ((1 / 2 : ℝ) ≤ H))
+    (height_split_dec : ∀ H b : ℝ, Decidable (H ≤ ‖b‖))
+    (tail_split_dec : ∀ T t : ℝ, Decidable (T ≤ ‖t‖)) :
     ∃ C : ℝ, ∃ m : ℕ,
       0 < C ∧
       ∀ t : ℝ,
@@ -311,7 +316,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble
           C * (1 + ‖t‖) ^ m := by
   rcases
     Complex.Gamma_fixedRealPart_vertical_upper_bound_large_from_openSector
-      hbranch σ with
+      hbranch σ hcompact_half_dec height_split_dec with
     ⟨T, Ctail, m, hT_pos, hCtail_pos, htail⟩
   rcases
     Complex.Gamma_fixedRealPart_vertical_upper_bound_compact
@@ -320,8 +325,9 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble
   refine ⟨max Ctail Ccompact, m, ?_, ?_⟩
   · exact lt_of_lt_of_le hCtail_pos (le_max_left Ctail Ccompact)
   · intro t
-    by_cases ht_tail : T ≤ ‖t‖
-    · have htail_bound :
+    match tail_split_dec T t with
+    | Or.inl ht_tail =>
+      have htail_bound :
           ‖Complex.Gamma (σ + t * Complex.I)‖ ≤
             Ctail * (1 + ‖t‖) ^ m :=
         htail t ht_tail
@@ -332,7 +338,8 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble
       exact
         le_trans htail_bound
           (mul_le_mul_of_nonneg_right hC_le hpow_nonneg)
-    · have ht_compact : ‖t‖ ≤ T :=
+    | Or.inr ht_tail =>
+      have ht_compact : ‖t‖ ≤ T :=
         le_of_not_ge ht_tail
       have hcompact_bound :
           ‖Complex.Gamma (σ + t * Complex.I)‖ ≤ Ccompact :=
@@ -355,20 +362,27 @@ Binet estimates for large `|t|` with compact-interval boundedness. -/
 theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_from_openSector_and_compact
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (σ : ℝ)
-    (hσ : 0 < σ) :
+    (hσ : 0 < σ)
+    (hcompact_half_dec : ∀ H : ℝ, Decidable ((1 / 2 : ℝ) ≤ H))
+    (height_split_dec : ∀ H b : ℝ, Decidable (H ≤ ‖b‖))
+    (tail_split_dec : ∀ T t : ℝ, Decidable (T ≤ ‖t‖)) :
     ∃ C : ℝ, ∃ m : ℕ,
       0 < C ∧
       ∀ t : ℝ,
         ‖Complex.Gamma (σ + t * Complex.I)‖ ≤
           C * (1 + ‖t‖) ^ m := by
   exact
-    Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble hbranch σ hσ
+    Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble
+      hbranch σ hσ hcompact_half_dec height_split_dec tail_split_dec
 
 /-- Fixed-real-part vertical upper bound for Gamma. -/
 theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_classical
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (σ : ℝ)
-    (hσ : 0 < σ) :
+    (hσ : 0 < σ)
+    (hcompact_half_dec : ∀ H : ℝ, Decidable ((1 / 2 : ℝ) ≤ H))
+    (height_split_dec : ∀ H b : ℝ, Decidable (H ≤ ‖b‖))
+    (tail_split_dec : ∀ T t : ℝ, Decidable (T ≤ ‖t‖)) :
     ∃ C : ℝ, ∃ m : ℕ,
       0 < C ∧
       ∀ t : ℝ,
@@ -376,13 +390,15 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_classical
           C * (1 + ‖t‖) ^ m := by
   exact
     Complex.Gamma_fixedRealPart_vertical_upper_bound_from_openSector_and_compact
-      hbranch σ hσ
+      hbranch σ hσ hcompact_half_dec height_split_dec tail_split_dec
 
 /-- Large-vertical reciprocal Gamma bound on a fixed positive real-part line,
 with the correct exponential scale. -/
 theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_large_from_stirling
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
-    (σ : ℝ) :
+    (σ : ℝ)
+    (hcompact_half_dec : ∀ H : ℝ, Decidable ((1 / 2 : ℝ) ≤ H))
+    (height_split_dec : ∀ H b : ℝ, Decidable (H ≤ ‖b‖)) :
     ∃ T : ℝ, ∃ C : ℝ, ∃ A : ℝ,
       0 < T ∧ 0 < C ∧ 0 < A ∧
       ∀ t : ℝ,
@@ -391,7 +407,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_large_from_stirlin
             C * Real.exp (A * ‖t‖) := by
   rcases
       Complex.Gamma_fixedRealPart_vertical_reciprocal_stirling_bound_classical
-        hbranch σ with
+        hbranch hcompact_half_dec height_split_dec σ with
     ⟨C0, hC0_pos, hstirling⟩
   let b : ℝ := Real.pi / 4
   have hb_pos : 0 < b := by
@@ -543,7 +559,10 @@ fixed-line exponential reciprocal bound. -/
 theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_assemble
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (σ : ℝ)
-    (hσ : 0 < σ) :
+    (hσ : 0 < σ)
+    (hcompact_half_dec : ∀ H : ℝ, Decidable ((1 / 2 : ℝ) ≤ H))
+    (height_split_dec : ∀ H b : ℝ, Decidable (H ≤ ‖b‖))
+    (tail_split_dec : ∀ T t : ℝ, Decidable (T ≤ ‖t‖)) :
     ∃ C : ℝ, ∃ A : ℝ,
       0 < C ∧ 0 < A ∧
       ∀ t : ℝ,
@@ -551,7 +570,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_assemble
           C * Real.exp (A * ‖t‖) := by
   rcases
     Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_large_from_stirling
-      hbranch σ with
+      hbranch σ hcompact_half_dec height_split_dec with
     ⟨T, Ctail, A, hT_pos, hCtail_pos, hA_pos, htail⟩
   rcases
     Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_compact
@@ -560,8 +579,9 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_assemble
   refine ⟨max Ctail Ccompact, A, ?_, hA_pos, ?_⟩
   · exact lt_of_lt_of_le hCtail_pos (le_max_left Ctail Ccompact)
   · intro t
-    by_cases ht_tail : T ≤ ‖t‖
-    · have htail_bound :
+    match tail_split_dec T t with
+    | Or.inl ht_tail =>
+      have htail_bound :
           ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤
             Ctail * Real.exp (A * ‖t‖) :=
         htail t ht_tail
@@ -572,7 +592,8 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_assemble
       exact
         le_trans htail_bound
           (mul_le_mul_of_nonneg_right hC_le hexp_nonneg)
-    · have ht_compact : ‖t‖ ≤ T :=
+    | Or.inr ht_tail =>
+      have ht_compact : ‖t‖ ≤ T :=
         le_of_not_ge ht_tail
       have hcompact_bound :
           ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤ Ccompact :=
@@ -599,14 +620,18 @@ control, and the large-vertical Stirling/Binet estimate. -/
 theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_from_nonvanishing_and_stirling
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (σ : ℝ)
-    (hσ : 0 < σ) :
+    (hσ : 0 < σ)
+    (hcompact_half_dec : ∀ H : ℝ, Decidable ((1 / 2 : ℝ) ≤ H))
+    (height_split_dec : ∀ H b : ℝ, Decidable (H ≤ ‖b‖))
+    (tail_split_dec : ∀ T t : ℝ, Decidable (T ≤ ‖t‖)) :
     ∃ C : ℝ, ∃ A : ℝ,
       0 < C ∧ 0 < A ∧
       ∀ t : ℝ,
         ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤
           C * Real.exp (A * ‖t‖) := by
   exact
-    Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_assemble hbranch σ hσ
+    Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_assemble
+      hbranch σ hσ hcompact_half_dec height_split_dec tail_split_dec
 
 /-- Fixed-real-part vertical reciprocal bound for Gamma.
 
@@ -616,7 +641,10 @@ This owner statement records the correct classical growth scale. -/
 theorem Complex.Gamma_fixedRealPart_vertical_lower_bound_classical
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (σ : ℝ)
-    (hσ : 0 < σ) :
+    (hσ : 0 < σ)
+    (hcompact_half_dec : ∀ H : ℝ, Decidable ((1 / 2 : ℝ) ≤ H))
+    (height_split_dec : ∀ H b : ℝ, Decidable (H ≤ ‖b‖))
+    (tail_split_dec : ∀ T t : ℝ, Decidable (T ≤ ‖t‖)) :
     ∃ C : ℝ, ∃ A : ℝ,
       0 < C ∧ 0 < A ∧
       ∀ t : ℝ,
@@ -624,7 +652,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_lower_bound_classical
           C * Real.exp (A * ‖t‖) := by
   exact
     Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_from_nonvanishing_and_stirling
-      hbranch σ hσ
+      hbranch σ hσ hcompact_half_dec height_split_dec tail_split_dec
 
 end
 

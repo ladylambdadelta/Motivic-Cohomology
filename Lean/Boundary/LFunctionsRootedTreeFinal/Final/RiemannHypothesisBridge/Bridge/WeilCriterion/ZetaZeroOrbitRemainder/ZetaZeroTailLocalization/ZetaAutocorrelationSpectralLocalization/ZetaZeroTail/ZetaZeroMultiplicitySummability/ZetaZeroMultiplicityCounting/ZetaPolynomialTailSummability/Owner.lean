@@ -21,17 +21,15 @@ theorem summable_of_finite_support_real
     (hs : s.Finite)
     (hsupport : ∀ a : α, a ∉ s → u a = 0) :
     Summable u := by
-  classical
-  let t : Finset α := hs.toFinset
-  have ht : ∀ a : α, a ∉ t → u a = 0 := by
-    intro a ha
-    have has : a ∉ s := by
-      intro hmem
-      have htmem : a ∈ t :=
-        (Set.Finite.mem_toFinset hs).2 hmem
-      exact ha htmem
-    exact hsupport a has
-  exact ⟨∑ a in t, u a, hasSum_sum_of_ne_finset_zero ht⟩
+  match hs.exists_finset with
+  | ⟨t, ht_mem⟩ =>
+      have ht : ∀ a : α, a ∉ t → u a = 0 := by
+        intro a ha
+        have has : a ∉ s := by
+          intro hmem
+          exact ha ((ht_mem a).2 hmem)
+        exact hsupport a has
+      exact ⟨∑ a in t, u a, hasSum_sum_of_ne_finset_zero ht⟩
 
 /-- The natural height base is positive. -/
 theorem one_add_nat_norm_pos

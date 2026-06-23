@@ -154,9 +154,11 @@ theorem real_log_abs_sin_continuousOn_Icc_compl_endpoints :
 
 This is the derivative-slope form of `sin θ / θ → 1`. -/
 theorem real_filled_sin_div_self_continuousAt_zero :
+    [DecidableEq ℝ] →
     ContinuousAt
       (Function.update (fun x : ℝ => Real.sin x / x) 0 1)
       0 := by
+  intro _hdec
   have hslope :
       ContinuousAt
         (Function.update
@@ -174,7 +176,7 @@ theorem real_filled_sin_div_self_continuousAt_zero :
     exact
       funext
         (fun x =>
-          match Classical.decEq ℝ x 0 with
+          match (inferInstance : Decidable (x = 0)) with
           | isTrue hx =>
               have hleft :
                   Function.update
@@ -303,12 +305,14 @@ theorem real_log_abs_local_intervalIntegrable_of_continuous_nonzero
 
 /-- The sine quotient filled by value `1` at the origin is continuous. -/
 theorem real_filled_sin_div_self_continuous :
+    [DecidableEq ℝ] →
     Continuous
       (Function.update (fun x : ℝ => Real.sin x / x) 0 1) := by
+  intro _hdec
   exact
     continuous_iff_continuousAt.2
       (fun x : ℝ =>
-        match Classical.decEq ℝ x 0 with
+        match (inferInstance : Decidable (x = 0)) with
         | isTrue hx =>
             Eq.subst
               (motive := fun y : ℝ =>
@@ -328,6 +332,7 @@ The filled ratio is continuous at `0` by applying
 `1`, so the logarithm is locally continuous and hence locally
 interval-integrable. -/
 theorem real_log_abs_filled_sin_div_self_local_intervalIntegrable_zero :
+    [DecidableEq ℝ] →
     ∃ u v : ℝ,
       u < (0 : ℝ) ∧ (0 : ℝ) < v ∧
       IntervalIntegrable
@@ -336,6 +341,7 @@ theorem real_log_abs_filled_sin_div_self_local_intervalIntegrable_zero :
         MeasureTheory.volume
         u
         v := by
+  intro _hdec
   have hvalue :
       Function.update (fun x : ℝ => Real.sin x / x) 0 1 0 = 1 :=
     Function.update_same 0 1 (fun x : ℝ => Real.sin x / x)
@@ -354,11 +360,13 @@ theorem real_log_abs_filled_sin_div_self_local_intervalIntegrable_zero :
 
 /-- The derivative-slope quotient for `sin` filled at `π` is continuous. -/
 theorem real_filled_sin_sub_pi_div_sub_pi_continuous :
+    [DecidableEq ℝ] →
     Continuous
       (Function.update
         (fun x : ℝ => (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
         Real.pi
         (Real.cos Real.pi)) := by
+  intro _hdec
   have hcont_at_pi :
       ContinuousAt
         (Function.update
@@ -370,7 +378,7 @@ theorem real_filled_sin_sub_pi_div_sub_pi_continuous :
   exact
     continuous_iff_continuousAt.2
       (fun x : ℝ =>
-        match Classical.decEq ℝ x Real.pi with
+        match (inferInstance : Decidable (x = Real.pi)) with
         | isTrue hx =>
             Eq.subst
               (motive := fun y : ℝ =>
@@ -392,6 +400,7 @@ theorem real_filled_sin_sub_pi_div_sub_pi_continuous :
 /-- The filled derivative-slope logarithm for `sin` is locally
 interval-integrable near `π`. -/
 theorem real_log_abs_filled_sin_sub_pi_div_sub_pi_local_intervalIntegrable_pi :
+    [DecidableEq ℝ] →
     ∃ u v : ℝ,
       u < Real.pi ∧ Real.pi < v ∧
       IntervalIntegrable
@@ -406,6 +415,7 @@ theorem real_log_abs_filled_sin_sub_pi_div_sub_pi_local_intervalIntegrable_pi :
         MeasureTheory.volume
         u
         v := by
+  intro _hdec
   have hvalue :
       Function.update
           (fun x : ℝ => (Real.sin x - Real.sin Real.pi) / (x - Real.pi))

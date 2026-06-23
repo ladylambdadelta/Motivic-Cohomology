@@ -31,12 +31,12 @@ theorem zetaZeroTailRe_eq
   rfl
 
 /-- The completed-zero subtype splits into a selected finite part and its complement. -/
-noncomputable def completedZeroSubtypeFiniteComplementEquiv
+def completedZeroSubtypeFiniteComplementEquiv
     (S : Finset ℂ)
+    [∀ η : ℂ, Decidable (η ∈ S)]
     (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η) :
     {ρ : ℂ // ZetaCompletedZero ρ} ≃
       ({η : ℂ // η ∈ S} ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}) := by
-  classical
   let toF :
       {ρ : ℂ // ZetaCompletedZero ρ} →
         {η : ℂ // η ∈ S} ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} :=
@@ -56,8 +56,8 @@ noncomputable def completedZeroSubtypeFiniteComplementEquiv
       { toFun := toF
         invFun := invF
         left_inv := fun ρ =>
-          match Decidable.em ((ρ : ℂ) ∈ S) with
-          | Or.inl hρ =>
+          match (inferInstance : Decidable ((ρ : ℂ) ∈ S)) with
+          | isTrue hρ =>
               have hif : toF ρ = Sum.inl ⟨(ρ : ℂ), hρ⟩ :=
                 dif_pos hρ
               Eq.subst
@@ -66,7 +66,7 @@ noncomputable def completedZeroSubtypeFiniteComplementEquiv
                   invF x = ρ)
                 hif.symm
                 (Subtype.ext rfl)
-          | Or.inr hρ =>
+          | isFalse hρ =>
               have hif : toF ρ = Sum.inr ⟨(ρ : ℂ), ρ.2, hρ⟩ :=
                 dif_neg hρ
               Eq.subst
@@ -101,6 +101,7 @@ noncomputable def completedZeroSubtypeFiniteComplementEquiv
 /-- Transport the completed-zero `tsum` across the finite/complement equivalence. -/
 theorem completedZeroSubtype_tsum_eq_sumType_tsum_of_equiv
     (S : Finset ℂ)
+    [∀ η : ℂ, Decidable (η ∈ S)]
     (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
     (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η)
     (hF : Summable F) :
@@ -114,18 +115,21 @@ theorem completedZeroSubtype_tsum_eq_sumType_tsum_of_equiv
 def sumInlRangeEquiv (α β : Type*) :
     α ≃ Set.range (Sum.inl : α → α ⊕ β) where
   toFun := fun a => ⟨Sum.inl a, ⟨a, rfl⟩⟩
-  invFun := fun x => Classical.choose x.2
-  left_inv := fun a =>
-    have hchoose :
-        Sum.inl (Classical.choose (show ∃ a' : α, Sum.inl a' = Sum.inl a from
-          ⟨a, rfl⟩)) = Sum.inl a :=
-      Classical.choose_spec
-        (show ∃ a' : α, Sum.inl a' = Sum.inl a from ⟨a, rfl⟩)
-    Sum.inl.inj hchoose
+  invFun := fun x =>
+    match x with
+    | ⟨Sum.inl a, _hx⟩ => a
+    | ⟨Sum.inr _b, hx⟩ =>
+        False.elim
+          (match hx with
+          | ⟨_a, ha⟩ => nomatch ha)
+  left_inv := fun _a => rfl
   right_inv := fun x =>
-    have hchoose : Sum.inl (Classical.choose x.2) = (x : α ⊕ β) :=
-      Classical.choose_spec x.2
-    Subtype.ext hchoose
+    match x with
+    | ⟨Sum.inl _a, _hx⟩ => Subtype.ext rfl
+    | ⟨Sum.inr _b, hx⟩ =>
+        False.elim
+          (match hx with
+          | ⟨_a, ha⟩ => nomatch ha)
 
 /-- The right summand is equivalent to the complement of the left-injection range. -/
 def sumInlRangeComplEquiv (α β : Type*) :
@@ -255,6 +259,7 @@ theorem completedZeroComplementFace_summable
 complementary tail side. -/
 theorem completedZeroFiniteComplement_sumType_tsum_eq_add
     (S : Finset ℂ)
+    [∀ η : ℂ, Decidable (η ∈ S)]
     (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
     (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η)
     (hF : Summable F) :
@@ -312,6 +317,7 @@ theorem completedZeroFiniteSubtype_tsum_eq_finset_sum
 /-- Finite/complement `tsum` transport for the completed-zero subtype. -/
 theorem completedZeroSubtype_tsum_eq_finiteSubtype_add_complement_of_equiv
     (S : Finset ℂ)
+    [∀ η : ℂ, Decidable (η ∈ S)]
     (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
     (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η)
     (hF : Summable F) :

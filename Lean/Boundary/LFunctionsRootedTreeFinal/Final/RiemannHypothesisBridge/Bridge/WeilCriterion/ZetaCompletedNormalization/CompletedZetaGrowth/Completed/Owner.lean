@@ -597,11 +597,9 @@ right-critical strip. -/
 theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_growth_bound
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -614,7 +612,10 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_growth_bound
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact completedRiemannZeta₀_rightCriticalStrip_verticalTail_growth_bound_of_zeta_and_gamma
     (riemannZeta_rightCriticalStrip_poleCleared_verticalTail_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo hcompactOneTwo
+      (poleClearedRiemannZeta_rightCriticalStrip_ordinaryFiniteOrder_growth_from_functionalEquation_and_EulerMaclaurin
+        hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary)
+      hpartialLeft hcompactBoundary)
     (Gammaℝ_rightCriticalStrip_verticalTail_stirling_growth_bound hbranch)
 
 /-- Compact and vertical-tail completed-zeta estimates combine to the right-critical-strip
@@ -688,11 +689,9 @@ part. -/
 theorem completedRiemannZeta₀_rightCriticalStrip_finiteOrder_growth_bound
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -705,7 +704,7 @@ theorem completedRiemannZeta₀_rightCriticalStrip_finiteOrder_growth_bound
   exact completedRiemannZeta₀_rightCriticalStrip_finiteOrder_growth_bound_of_compact_and_tail
     completedRiemannZeta₀_rightCriticalStrip_compact_growth_bound
     (completedRiemannZeta₀_rightCriticalStrip_verticalTail_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary)
 
 /-- Far-right logarithmic Stirling bound for the archimedean factor.
 
@@ -1009,11 +1008,9 @@ theorem completedRiemannZeta₀_farRightHalfPlane_finiteOrder_growth_bound
 theorem completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -1024,18 +1021,16 @@ theorem completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact completedRiemannZeta₀_strictRightHalfPlane_finiteOrder_growth_bound_of_strip_and_farRight
     (completedRiemannZeta₀_rightCriticalStrip_finiteOrder_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary)
     (completedRiemannZeta₀_farRightHalfPlane_finiteOrder_growth_bound hbranch)
 
 /-- Left half-plane finite-order growth for the uncentered entire completed-zeta part. -/
 theorem completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -1046,7 +1041,7 @@ theorem completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound_of_strictRightHalfPlane
     (completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary)
 
 /-- Owner finite-order growth for the uncentered entire completed-zeta part.
 
@@ -1056,11 +1051,9 @@ normalization layer only needs this specialization. -/
 theorem completedRiemannZeta₀_finiteOrder_growth_bound_ownerZeta
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -1070,19 +1063,17 @@ theorem completedRiemannZeta₀_finiteOrder_growth_bound_ownerZeta
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact completedRiemannZeta₀_global_finiteOrder_growth_bound_of_strictRight_and_leftHalfPlanes
     (completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary)
     (completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary)
 
 /-- Finite-order growth for the uncentered entire completed-zeta part. -/
 theorem completedRiemannZeta₀_finiteOrder_growth_bound
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -1091,7 +1082,7 @@ theorem completedRiemannZeta₀_finiteOrder_growth_bound
         ‖completedRiemannZeta₀ z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact completedRiemannZeta₀_finiteOrder_growth_bound_ownerZeta
-    hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary
+    hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
 
 end
 end LFunctions

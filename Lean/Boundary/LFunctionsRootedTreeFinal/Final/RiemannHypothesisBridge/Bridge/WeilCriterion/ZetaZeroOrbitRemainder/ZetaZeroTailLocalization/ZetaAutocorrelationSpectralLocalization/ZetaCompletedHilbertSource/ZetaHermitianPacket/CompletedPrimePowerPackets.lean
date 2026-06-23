@@ -159,6 +159,12 @@ noncomputable def zetaCompletedPrimeDefectKernelPositiveCoordinateTsum
   ∑' ι : ZetaPrimePowerIndex,
     zetaCompletedPrimeDefectKernelPositiveCoordinate ι f
 
+/-- The real scalar attached to the raw completed positive prime defect-kernel coordinate
+presentation. -/
+noncomputable def zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  Complex.re (zetaCompletedPrimeDefectKernelPositiveCoordinateTsum f)
+
 /-- The completed positive prime defect kernel.
 
 This is owned by the completed defect-square expansion: positive square equals completed
@@ -271,6 +277,12 @@ noncomputable def zetaCompletedPrimeDefectKernelDiagonalDebtWindow
   ∑ ι in ZetaPrimePowerIndex.window N,
     zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f
 
+/-- The real part of the completed diagonal-debt coordinate presentation over a finite
+prime-power window. -/
+noncomputable def zetaCompletedPrimeDefectKernelDiagonalDebtRealWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtWindow N f)
+
 /-- The real part of the completed positive prime defect kernel over a finite prime-power
 window. -/
 noncomputable def zetaCompletedPrimeDefectKernelPositiveRealWindow
@@ -365,6 +377,149 @@ theorem zetaCompletedPrimeDefectKernelPositiveCoordinate_re_nonnegative
   let b : ℂ := zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f
   exact complex_re_mul_star_self_nonnegative_hermitianPacket (a - b)
 
+/-- One completed diagonal-debt coordinate has nonnegative real part. -/
+theorem zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_re_nonnegative
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    0 ≤ Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f) := by
+  let a : ℂ := zetaCompletedPrimeSpectralAmplitudeIndex ι f
+  let b : ℂ := zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f
+  have ha : 0 ≤ Complex.re (a * star a) :=
+    complex_re_mul_star_self_nonnegative_hermitianPacket a
+  have hb : 0 ≤ Complex.re (b * star b) :=
+    complex_re_mul_star_self_nonnegative_hermitianPacket b
+  calc
+    0 ≤ Complex.re (a * star a) + Complex.re (b * star b) := by
+      exact add_nonneg ha hb
+    _ = Complex.re (a * star a + b * star b) := by
+      exact (Complex.add_re (a * star a) (b * star b)).symm
+
+/-- A completed diagonal-debt coordinate is real-valued. -/
+theorem zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_im_eq_zero
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    Complex.im (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f) = 0 := by
+  let a : ℂ := zetaCompletedPrimeSpectralAmplitudeIndex ι f
+  let b : ℂ := zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f
+  have ha : a * star a = (Complex.normSq a : ℂ) :=
+    Complex.mul_conj a
+  have hb : b * star b = (Complex.normSq b : ℂ) :=
+    Complex.mul_conj b
+  calc
+    Complex.im (a * star a + b * star b) =
+        Complex.im ((Complex.normSq a : ℂ) + b * star b) := by
+      exact congrArg
+        (fun z : ℂ => Complex.im (z + b * star b))
+        ha
+    _ = Complex.im ((Complex.normSq a : ℂ) + (Complex.normSq b : ℂ)) := by
+      exact congrArg
+        (fun z : ℂ => Complex.im ((Complex.normSq a : ℂ) + z))
+        hb
+    _ =
+        Complex.im (((Complex.normSq a + Complex.normSq b : ℝ) : ℂ)) := by
+      exact congrArg Complex.im
+        (Complex.ofReal_add (Complex.normSq a) (Complex.normSq b)).symm
+    _ = 0 := by
+      exact Complex.ofReal_im (Complex.normSq a + Complex.normSq b)
+
+/-- The real scalar of one completed diagonal-debt coordinate is the sum of the two face
+norm-squares. -/
+theorem zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_re_eq_normSq_add_normSq
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f) =
+      Complex.normSq (zetaCompletedPrimeSpectralAmplitudeIndex ι f) +
+        Complex.normSq (zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f) := by
+  let a : ℂ := zetaCompletedPrimeSpectralAmplitudeIndex ι f
+  let b : ℂ := zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f
+  have ha : Complex.re (a * star a) = Complex.normSq a :=
+    complex_re_mul_star_self_eq_normSq_hermitianPacket a
+  have hb : Complex.re (b * star b) = Complex.normSq b :=
+    complex_re_mul_star_self_eq_normSq_hermitianPacket b
+  calc
+    Complex.re (a * star a + b * star b) =
+        Complex.re (a * star a) + Complex.re (b * star b) := by
+      exact Complex.add_re (a * star a) (b * star b)
+    _ = Complex.normSq a + Complex.re (b * star b) := by
+      exact congrArg (fun x : ℝ => x + Complex.re (b * star b)) ha
+    _ = Complex.normSq a + Complex.normSq b := by
+      exact congrArg (fun x : ℝ => Complex.normSq a + x) hb
+
+/-- A completed diagonal-debt coordinate has zero real scalar when both weighted faces
+vanish. -/
+theorem zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_re_eq_zero_of_faces_eq_zero
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction)
+    (hpos : zetaCompletedPrimeSpectralAmplitudeIndex ι f = 0)
+    (hneg : zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f = 0) :
+    Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f) = 0 := by
+  calc
+    Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f) =
+        Complex.normSq (zetaCompletedPrimeSpectralAmplitudeIndex ι f) +
+          Complex.normSq (zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f) := by
+      exact zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_re_eq_normSq_add_normSq
+        ι f
+    _ = Complex.normSq 0 +
+          Complex.normSq (zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f) := by
+      exact congrArg
+        (fun z : ℂ =>
+          Complex.normSq z +
+            Complex.normSq (zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f))
+        hpos
+    _ = Complex.normSq 0 + Complex.normSq 0 := by
+      exact congrArg
+        (fun z : ℂ => Complex.normSq 0 + Complex.normSq z)
+        hneg
+    _ = 0 + Complex.normSq 0 := by
+      exact congrArg
+        (fun x : ℝ => x + Complex.normSq 0)
+        Complex.normSq_zero
+    _ = 0 + 0 := by
+      exact congrArg
+        (fun x : ℝ => 0 + x)
+        Complex.normSq_zero
+    _ = 0 := by
+      exact add_zero 0
+
+/-- A completed diagonal-debt coordinate has zero real scalar only when both weighted faces
+vanish. -/
+theorem zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_faces_eq_zero_of_re_eq_zero
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction)
+    (hzero : Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f) = 0) :
+    zetaCompletedPrimeSpectralAmplitudeIndex ι f = 0 ∧
+      zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f = 0 := by
+  let a : ℂ := zetaCompletedPrimeSpectralAmplitudeIndex ι f
+  let b : ℂ := zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f
+  have hre :
+      Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f) =
+        Complex.normSq a + Complex.normSq b :=
+    zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_re_eq_normSq_add_normSq
+      ι f
+  have hsum : Complex.normSq a + Complex.normSq b = 0 :=
+    hre.symm.trans hzero
+  have hparts :
+      Complex.normSq a = 0 ∧ Complex.normSq b = 0 :=
+    (add_eq_zero_iff_of_nonneg
+      (Complex.normSq_nonneg a)
+      (Complex.normSq_nonneg b)).mp
+      hsum
+  exact
+    ⟨Complex.normSq_eq_zero.mp hparts.left,
+      Complex.normSq_eq_zero.mp hparts.right⟩
+
+/-- A completed diagonal-debt coordinate has zero real scalar exactly when both weighted
+faces vanish. -/
+theorem zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_re_eq_zero_iff_faces_eq_zero
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f) = 0 ↔
+      zetaCompletedPrimeSpectralAmplitudeIndex ι f = 0 ∧
+        zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f = 0 := by
+  constructor
+  · intro hzero
+    exact
+      zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_faces_eq_zero_of_re_eq_zero
+        ι f hzero
+  · intro hfaces
+    exact
+      zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_re_eq_zero_of_faces_eq_zero
+        ι f hfaces.left hfaces.right
+
 /-- A finite completed positive prime defect-kernel window has nonnegative real part. -/
 theorem zetaCompletedPrimeDefectKernelPositiveWindow_re_nonnegative
     (N : ℕ) (f : ZetaAdmissibleFunction) :
@@ -382,6 +537,24 @@ theorem zetaCompletedPrimeDefectKernelPositiveWindow_re_nonnegative
         (ZetaPrimePowerIndex.window N)
         (fun ι =>
           zetaCompletedPrimeDefectKernelPositiveCoordinate ι f)).symm
+
+/-- A finite completed diagonal-debt coordinate window has nonnegative real part. -/
+theorem zetaCompletedPrimeDefectKernelDiagonalDebtRealWindow_nonnegative
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    0 ≤ zetaCompletedPrimeDefectKernelDiagonalDebtRealWindow N f := by
+  calc
+    0 ≤ ∑ ι in ZetaPrimePowerIndex.window N,
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f) := by
+      exact Finset.sum_nonneg
+        (fun ι _ =>
+          zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_re_nonnegative ι f)
+    _ = Complex.re
+        (∑ ι in ZetaPrimePowerIndex.window N,
+          zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f) := by
+      exact (Complex.re_sum
+        (ZetaPrimePowerIndex.window N)
+        (fun ι =>
+          zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f)).symm
 
 /-- Nongenuine prime-power indices have zero completed positive defect coordinate. -/
 theorem zetaCompletedPrimeDefectKernelPositiveCoordinate_eq_zero_of_not_isGenuine
@@ -424,6 +597,51 @@ theorem zetaCompletedPrimeDefectKernelPositiveCoordinate_eq_zero_of_not_isGenuin
           (fun z : ℂ => z * star (0 - 0 : ℂ))
           (sub_self (0 : ℂ)))
         (zero_mul (star (0 - 0 : ℂ)))
+
+/-- Nongenuine prime-power indices have zero completed diagonal-debt coordinate. -/
+theorem zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_eq_zero_of_not_isGenuine
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction)
+    (hι : ¬ ZetaPrimePowerIndex.IsGenuine ι) :
+    zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f = 0 := by
+  have hweight : ZetaPrimePowerIndex.weight ι = 0 :=
+    ZetaPrimePowerIndex.weight_eq_zero_of_not_isGenuine ι hι
+  have hsqrt : ZetaPrimePowerIndex.sqrtWeight ι = 0 := by
+    exact (congrArg Real.sqrt hweight).trans Real.sqrt_zero
+  have hpos :
+      zetaCompletedPrimeSpectralAmplitudeIndex ι f = 0 := by
+    exact Eq.trans
+      (congrArg
+        (fun x : ℝ =>
+          (x : ℂ) * zetaCompletedPrimeHermitianSeedAmplitude ι.p ι.n f)
+        hsqrt)
+      (zero_mul (zetaCompletedPrimeHermitianSeedAmplitude ι.p ι.n f))
+  have hneg :
+      zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f = 0 := by
+    exact Eq.trans
+      (congrArg
+        (fun x : ℝ =>
+          (x : ℂ) * zetaCompletedPrimeHermitianNegativeSeedAmplitude ι.p ι.n f)
+        hsqrt)
+      (zero_mul (zetaCompletedPrimeHermitianNegativeSeedAmplitude ι.p ι.n f))
+  calc
+    zetaCompletedPrimeSpectralAmplitudeIndex ι f *
+          star (zetaCompletedPrimeSpectralAmplitudeIndex ι f) +
+        zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f *
+          star (zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f) =
+        0 * star (0 : ℂ) + 0 * star (0 : ℂ) := by
+      exact congrArg₂ HAdd.hAdd
+        (congrArg₂ HMul.hMul hpos (congrArg star hpos))
+        (congrArg₂ HMul.hMul hneg (congrArg star hneg))
+    _ = 0 + 0 * star (0 : ℂ) := by
+      exact congrArg
+        (fun z : ℂ => z + 0 * star (0 : ℂ))
+        (zero_mul (star (0 : ℂ)))
+    _ = 0 + 0 := by
+      exact congrArg
+        (fun z : ℂ => 0 + z)
+        (zero_mul (star (0 : ℂ)))
+    _ = 0 := by
+      exact add_zero 0
 
 /-- The prime spectral majorant for the two real-axis amplitude families.
 
@@ -622,6 +840,40 @@ theorem norm_zetaCompletedPrimeTwoFaceGNSOrientedCoordinate_le_spectralMajorant
       (zetaCompletedPrimeSpectralAmplitudeIndex ι f)
       (zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f)
 
+/-- The completed diagonal-debt coordinate is bounded by the spectral majorant. -/
+theorem norm_zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_le_spectralMajorant
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    ‖zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f‖ ≤
+      zetaCompletedPrimeSpectralCoordinateMajorant ι f := by
+  let a : ℂ := zetaCompletedPrimeSpectralAmplitudeIndex ι f
+  let b : ℂ := zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f
+  have ha :
+      ‖a * star a‖ = ‖a‖ ^ 2 := by
+    calc
+      ‖a * star a‖ = ‖a‖ * ‖star a‖ := by
+        exact norm_mul a (star a)
+      _ = ‖a‖ * ‖a‖ := by
+        exact congrArg (fun x : ℝ => ‖a‖ * x) (norm_star a)
+      _ = ‖a‖ ^ 2 := by
+        exact (pow_two ‖a‖).symm
+  have hb :
+      ‖b * star b‖ = ‖b‖ ^ 2 := by
+    calc
+      ‖b * star b‖ = ‖b‖ * ‖star b‖ := by
+        exact norm_mul b (star b)
+      _ = ‖b‖ * ‖b‖ := by
+        exact congrArg (fun x : ℝ => ‖b‖ * x) (norm_star b)
+      _ = ‖b‖ ^ 2 := by
+        exact (pow_two ‖b‖).symm
+  calc
+    ‖a * star a + b * star b‖ ≤
+        ‖a * star a‖ + ‖b * star b‖ := by
+      exact norm_add_le (a * star a) (b * star b)
+    _ = ‖a‖ ^ 2 + ‖b * star b‖ := by
+      exact congrArg (fun x : ℝ => x + ‖b * star b‖) ha
+    _ = ‖a‖ ^ 2 + ‖b‖ ^ 2 := by
+      exact congrArg (fun x : ℝ => ‖a‖ ^ 2 + x) hb
+
 /-- A complex family bounded by twice the completed spectral majorant is summable. -/
 theorem summable_complex_family_of_norm_le_two_spectralMajorant
     (f : ZetaAdmissibleFunction)
@@ -707,6 +959,50 @@ theorem summable_zetaCompletedPrimeTwoFaceGNSOrientedCoordinate_of_spectralMajor
         norm_zetaCompletedPrimeTwoFaceGNSOrientedCoordinate_le_spectralMajorant
           ι f)
 
+/-- Summability of the spectral majorant implies summability of the completed diagonal-debt
+coordinates. -/
+theorem summable_zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_of_spectralMajorant
+    (f : ZetaAdmissibleFunction)
+    (hmajorant :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f)) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f) := by
+  exact
+    summable_complex_family_of_norm_le_spectralMajorant
+      f
+      (fun ι : ZetaPrimePowerIndex =>
+        zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f)
+      hmajorant
+      (fun ι : ZetaPrimePowerIndex =>
+        norm_zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_le_spectralMajorant
+          ι f)
+
+/-- Summability of the spectral majorant implies summability of the symmetrized two-face
+coordinates. -/
+theorem summable_zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate_of_spectralMajorant
+    (f : ZetaAdmissibleFunction)
+    (hmajorant :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f)) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f) := by
+  let C : ZetaPrimePowerIndex → ℂ :=
+    fun ι : ZetaPrimePowerIndex =>
+      zetaCompletedPrimeTwoFaceGNSOrientedCoordinate ι f
+  have hC : Summable C :=
+    summable_zetaCompletedPrimeTwoFaceGNSOrientedCoordinate_of_spectralMajorant
+      f hmajorant
+  have hstar : Summable (fun ι : ZetaPrimePowerIndex => star (C ι)) :=
+    hC.star
+  have hsum : Summable (fun ι : ZetaPrimePowerIndex => C ι + star (C ι)) :=
+    hC.add hstar
+  exact hsum
+
 /-- Taking real parts commutes with the completed prime-power sum of positive defect
 coordinates. -/
 theorem zetaCompletedPrimeDefectKernelPositiveCoordinate_re_tsum_eq_coordinateTsum_re
@@ -717,9 +1013,228 @@ theorem zetaCompletedPrimeDefectKernelPositiveCoordinate_re_tsum_eq_coordinateTs
           zetaCompletedPrimeDefectKernelPositiveCoordinate ι f)) :
     (∑' ι : ZetaPrimePowerIndex,
         Complex.re (zetaCompletedPrimeDefectKernelPositiveCoordinate ι f)) =
-      Complex.re (zetaCompletedPrimeDefectKernelPositiveCoordinateTsum f) := by
+      zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f := by
   exact
     (Complex.re_tsum hsum).symm
+
+/-- Taking real parts commutes with the completed prime-power sum of diagonal-debt
+coordinates. -/
+theorem zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_re_tsum_eq_coordinateTsum_re
+    (f : ZetaAdmissibleFunction)
+    (hsum :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f)) :
+    (∑' ι : ZetaPrimePowerIndex,
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f)) =
+      Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f) := by
+  exact
+    (Complex.re_tsum hsum).symm
+
+set_option maxHeartbeats 800000
+
+/-- Completed positive prime defect-square windows exhaust the real coordinate presentation,
+provided the completed spectral-coordinate majorant is summable.
+
+This is only a Hermitian prime-power window exhaustion theorem.  It does not identify these
+spectral windows with a physical time-domain stream. -/
+theorem zetaCompletedPrimeDefectKernelPositiveRealWindow_tendsto_coordinateTsum_re_of_spectralMajorant
+    (f : ZetaAdmissibleFunction)
+    (hmajorant :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f)) :
+    Tendsto
+      (fun N : ℕ => zetaCompletedPrimeDefectKernelPositiveRealWindow N f)
+      atTop
+      (𝓝 (zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f)) := by
+  let u : ZetaPrimePowerIndex → ℝ :=
+    fun ι : ZetaPrimePowerIndex =>
+      Complex.re (zetaCompletedPrimeDefectKernelPositiveCoordinate ι f)
+  have hsum_complex :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeDefectKernelPositiveCoordinate ι f) :=
+    summable_zetaCompletedPrimeDefectKernelPositiveCoordinate_of_spectralMajorant
+      f hmajorant
+  have hsum_re : Summable u :=
+    (RCLike.reCLM : ℂ →L[ℝ] ℝ).summable hsum_complex
+  have hzero :
+      ∀ ι : ZetaPrimePowerIndex,
+        ¬ ZetaPrimePowerIndex.IsGenuine ι → u ι = 0 := by
+    intro ι hι
+    exact
+      (congrArg Complex.re
+        (zetaCompletedPrimeDefectKernelPositiveCoordinate_eq_zero_of_not_isGenuine
+          ι f hι)).trans
+        Complex.zero_re
+  have hwindow :
+      (fun N : ℕ => zetaCompletedPrimeDefectKernelPositiveRealWindow N f) =
+        (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.window N, u ι) := by
+    exact funext
+      (fun N : ℕ => by
+        unfold zetaCompletedPrimeDefectKernelPositiveRealWindow
+        unfold zetaCompletedPrimeDefectKernelPositiveWindow
+        exact Complex.re_sum
+          (ZetaPrimePowerIndex.window N)
+          (fun ι : ZetaPrimePowerIndex =>
+            zetaCompletedPrimeDefectKernelPositiveCoordinate ι f))
+  have hlimit :
+      Tendsto
+        (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.window N, u ι)
+        atTop
+        (𝓝 (∑' ι : ZetaPrimePowerIndex, u ι)) :=
+    ZetaPrimePowerIndex.tendsto_sum_window_tsum_of_summable
+      u hsum_re hzero
+  have htarget :
+      (∑' ι : ZetaPrimePowerIndex, u ι) =
+        zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f :=
+    zetaCompletedPrimeDefectKernelPositiveCoordinate_re_tsum_eq_coordinateTsum_re
+      f hsum_complex
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      Tendsto
+        (fun N : ℕ => zetaCompletedPrimeDefectKernelPositiveRealWindow N f)
+        atTop
+        (𝓝 x))
+    htarget
+    (Eq.subst
+      (motive := fun v : ℕ → ℝ =>
+        Tendsto v atTop (𝓝 (∑' ι : ZetaPrimePowerIndex, u ι)))
+      hwindow.symm
+      hlimit)
+
+/-- Completed diagonal-debt windows exhaust the real diagonal-debt coordinate presentation,
+provided the completed spectral-coordinate majorant is summable. -/
+theorem zetaCompletedPrimeDefectKernelDiagonalDebtRealWindow_tendsto_coordinateTsum_re_of_spectralMajorant
+    (f : ZetaAdmissibleFunction)
+    (hmajorant :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f)) :
+    Tendsto
+      (fun N : ℕ => zetaCompletedPrimeDefectKernelDiagonalDebtRealWindow N f)
+      atTop
+      (𝓝 (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f))) := by
+  let u : ZetaPrimePowerIndex → ℝ :=
+    fun ι : ZetaPrimePowerIndex =>
+      Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f)
+  have hsum_complex :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f) :=
+    summable_zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_of_spectralMajorant
+      f hmajorant
+  have hsum_re : Summable u :=
+    (RCLike.reCLM : ℂ →L[ℝ] ℝ).summable hsum_complex
+  have hzero :
+      ∀ ι : ZetaPrimePowerIndex,
+        ¬ ZetaPrimePowerIndex.IsGenuine ι → u ι = 0 := by
+    intro ι hι
+    exact
+      (congrArg Complex.re
+        (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_eq_zero_of_not_isGenuine
+          ι f hι)).trans
+        Complex.zero_re
+  have hwindow :
+      (fun N : ℕ => zetaCompletedPrimeDefectKernelDiagonalDebtRealWindow N f) =
+        (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.window N, u ι) := by
+    exact funext
+      (fun N : ℕ => by
+        unfold zetaCompletedPrimeDefectKernelDiagonalDebtRealWindow
+        unfold zetaCompletedPrimeDefectKernelDiagonalDebtWindow
+        exact Complex.re_sum
+          (ZetaPrimePowerIndex.window N)
+          (fun ι : ZetaPrimePowerIndex =>
+            zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f))
+  have hlimit :
+      Tendsto
+        (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.window N, u ι)
+        atTop
+        (𝓝 (∑' ι : ZetaPrimePowerIndex, u ι)) :=
+    ZetaPrimePowerIndex.tendsto_sum_window_tsum_of_summable
+      u hsum_re hzero
+  have htarget :
+      (∑' ι : ZetaPrimePowerIndex, u ι) =
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f) :=
+    zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_re_tsum_eq_coordinateTsum_re
+      f hsum_complex
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      Tendsto
+        (fun N : ℕ => zetaCompletedPrimeDefectKernelDiagonalDebtRealWindow N f)
+        atTop
+        (𝓝 x))
+    htarget
+    (Eq.subst
+      (motive := fun v : ℕ → ℝ =>
+        Tendsto v atTop (𝓝 (∑' ι : ZetaPrimePowerIndex, u ι)))
+      hwindow.symm
+      hlimit)
+
+/-- Under spectral-majorant summability, convergence of the completed positive prime-power
+windows to the owner positive channel is exactly the comparison between the raw positive
+coordinate presentation and the completed positive channel. -/
+theorem zetaCompletedPrimeDefectKernelPositiveRealWindow_tendsto_positiveChannel_iff_coordinateTsum_re
+    (f : ZetaAdmissibleFunction)
+    (hmajorant :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f)) :
+    Tendsto
+      (fun N : ℕ => zetaCompletedPrimeDefectKernelPositiveRealWindow N f)
+      atTop
+      (𝓝 (completedPrimeDefectKernelPositiveChannel f)) ↔
+    zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f =
+      completedPrimeDefectKernelPositiveChannel f := by
+  constructor
+  · intro hpositive
+    have hcoordinate :
+        Tendsto
+          (fun N : ℕ => zetaCompletedPrimeDefectKernelPositiveRealWindow N f)
+          atTop
+          (𝓝 (zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f)) :=
+      zetaCompletedPrimeDefectKernelPositiveRealWindow_tendsto_coordinateTsum_re_of_spectralMajorant
+        f hmajorant
+    exact tendsto_nhds_unique hcoordinate hpositive
+  · intro hcoordinate
+    have hlimit :
+        Tendsto
+          (fun N : ℕ => zetaCompletedPrimeDefectKernelPositiveRealWindow N f)
+          atTop
+          (𝓝 (zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f)) :=
+      zetaCompletedPrimeDefectKernelPositiveRealWindow_tendsto_coordinateTsum_re_of_spectralMajorant
+        f hmajorant
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        Tendsto
+          (fun N : ℕ => zetaCompletedPrimeDefectKernelPositiveRealWindow N f)
+          atTop
+          (𝓝 x))
+      hcoordinate
+      hlimit
+
+/-- The coordinate-presentation comparison turns completed positive prime-power window
+convergence into convergence to the owner positive channel. -/
+theorem zetaCompletedPrimeDefectKernelPositiveRealWindow_tendsto_positiveChannel_of_coordinateTsum_re
+    (f : ZetaAdmissibleFunction)
+    (hmajorant :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f))
+    (hcoordinate :
+      zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f =
+        completedPrimeDefectKernelPositiveChannel f) :
+    Tendsto
+      (fun N : ℕ => zetaCompletedPrimeDefectKernelPositiveRealWindow N f)
+      atTop
+      (𝓝 (completedPrimeDefectKernelPositiveChannel f)) := by
+  exact
+    (zetaCompletedPrimeDefectKernelPositiveRealWindow_tendsto_positiveChannel_iff_coordinateTsum_re
+      f hmajorant).mpr
+      hcoordinate
+
+set_option maxHeartbeats 200000
 
 /-- Dagger commutes with the completed oriented prime-power sum. -/
 theorem zetaCompletedPrimeTwoFaceGNSOrientedCoordinate_star_tsum
@@ -912,6 +1427,60 @@ theorem zetaCompletedPrimeDefectKernelPositiveCoordinate_add_twoFaceCoordinate_t
       zetaCompletedPrimeDefectKernelPositiveCoordinate_add_twoFace_eq_diagonalDebtCoordinate
         ι f)
 
+/-- The completed coordinatewise defect expansion separates into the positive coordinate
+presentation plus the completed two-face matrix coefficient. -/
+theorem zetaCompletedPrimeDefectKernelPositiveCoordinateTsum_add_twoFace_eq_diagonalDebtCoordinateTsum
+    (f : ZetaAdmissibleFunction)
+    (hmajorant :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f)) :
+    zetaCompletedPrimeDefectKernelPositiveCoordinateTsum f +
+        zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f =
+      zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f := by
+  let P : ZetaPrimePowerIndex → ℂ :=
+    fun ι : ZetaPrimePowerIndex =>
+      zetaCompletedPrimeDefectKernelPositiveCoordinate ι f
+  let T : ZetaPrimePowerIndex → ℂ :=
+    fun ι : ZetaPrimePowerIndex =>
+      zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f
+  have hP : Summable P :=
+    summable_zetaCompletedPrimeDefectKernelPositiveCoordinate_of_spectralMajorant
+      f hmajorant
+  have hT : Summable T :=
+    summable_zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate_of_spectralMajorant
+      f hmajorant
+  have hsum :
+      (∑' ι : ZetaPrimePowerIndex, (P ι + T ι)) =
+        (∑' ι : ZetaPrimePowerIndex, P ι) +
+          (∑' ι : ZetaPrimePowerIndex, T ι) :=
+    tsum_add hP hT
+  have hdiagonal :
+      (∑' ι : ZetaPrimePowerIndex, (P ι + T ι)) =
+        zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f :=
+    zetaCompletedPrimeDefectKernelPositiveCoordinate_add_twoFaceCoordinate_tsum_eq_diagonalDebt
+      f
+  have htwoFace :
+      (∑' ι : ZetaPrimePowerIndex, T ι) =
+        zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f :=
+    zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate_tsum_eq_matrixCoefficient f
+  calc
+    zetaCompletedPrimeDefectKernelPositiveCoordinateTsum f +
+        zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f =
+        (∑' ι : ZetaPrimePowerIndex, P ι) +
+          zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f := by
+      rfl
+    _ =
+        (∑' ι : ZetaPrimePowerIndex, P ι) +
+          (∑' ι : ZetaPrimePowerIndex, T ι) := by
+      exact congrArg
+        (fun z : ℂ => (∑' ι : ZetaPrimePowerIndex, P ι) + z)
+        htwoFace.symm
+    _ = ∑' ι : ZetaPrimePowerIndex, (P ι + T ι) := by
+      exact hsum.symm
+    _ = zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f := by
+      exact hdiagonal
+
 /-- The raw completed positive prime defect-kernel presentation is its coordinate sum. -/
 theorem zetaCompletedPrimeDefectKernelPositiveCoordinateTsum_eq_positiveCoordinateTsum
     (f : ZetaAdmissibleFunction) :
@@ -939,6 +1508,249 @@ theorem zetaCompletedPrimeDefectKernelPositiveWindow_expansion_passes_to_complet
   let Tf : ℂ := zetaPrimeTwoFaceGNSMatrixCoefficient f
   exact sub_add_cancel (Df - Tf + T) T
 
+/-- If the completed diagonal-debt coordinate presentation transports to the owner completed
+diagonal debt, then the raw completed positive coordinate presentation has the owner positive
+channel as its real scalar. -/
+theorem zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe_eq_completedPrimeDefectKernelPositiveChannel_of_diagonalDebtCoordinateTsum_re
+    (f : ZetaAdmissibleFunction)
+    (hmajorant :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f))
+    (hdiagonal :
+      Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f) =
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f)) :
+    zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f =
+      completedPrimeDefectKernelPositiveChannel f := by
+  let Pcoord : ℂ := zetaCompletedPrimeDefectKernelPositiveCoordinateTsum f
+  let T : ℂ := zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f
+  let Dcoord : ℂ := zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f
+  let Powner : ℂ := zetaCompletedPrimeDefectKernelPositiveForm f
+  let Downer : ℂ := zetaCompletedPrimeDefectKernelDiagonalDebt f
+  have hcoord_complex : Pcoord + T = Dcoord :=
+    zetaCompletedPrimeDefectKernelPositiveCoordinateTsum_add_twoFace_eq_diagonalDebtCoordinateTsum
+      f hmajorant
+  have howner_complex : Powner + T = Downer :=
+    zetaCompletedPrimeDefectKernelPositiveWindow_expansion_passes_to_completedForms f
+  have hcoord_re :
+      Complex.re Pcoord + Complex.re T = Complex.re Dcoord := by
+    calc
+      Complex.re Pcoord + Complex.re T = Complex.re (Pcoord + T) := by
+        exact (Complex.add_re Pcoord T).symm
+      _ = Complex.re Dcoord := by
+        exact congrArg Complex.re hcoord_complex
+  have howner_re :
+      completedPrimeDefectKernelPositiveChannel f + Complex.re T =
+        Complex.re Downer := by
+    calc
+      completedPrimeDefectKernelPositiveChannel f + Complex.re T =
+          Complex.re Powner + Complex.re T := by
+        rfl
+      _ = Complex.re (Powner + T) := by
+        exact (Complex.add_re Powner T).symm
+      _ = Complex.re Downer := by
+        exact congrArg Complex.re howner_complex
+  have hsame_sum :
+      Complex.re Pcoord + Complex.re T =
+        completedPrimeDefectKernelPositiveChannel f + Complex.re T := by
+    exact hcoord_re.trans (hdiagonal.trans howner_re.symm)
+  have hcancel :
+      (Complex.re Pcoord + Complex.re T) + -Complex.re T =
+        (completedPrimeDefectKernelPositiveChannel f + Complex.re T) +
+          -Complex.re T := by
+    exact congrArg (fun x : ℝ => x + -Complex.re T) hsame_sum
+  have hleft :
+      (Complex.re Pcoord + Complex.re T) + -Complex.re T =
+        Complex.re Pcoord := by
+    calc
+      (Complex.re Pcoord + Complex.re T) + -Complex.re T =
+          Complex.re Pcoord + (Complex.re T + -Complex.re T) := by
+        exact add_assoc (Complex.re Pcoord) (Complex.re T) (-Complex.re T)
+      _ = Complex.re Pcoord + 0 := by
+        exact congrArg
+          (fun x : ℝ => Complex.re Pcoord + x)
+          (add_neg_cancel (Complex.re T))
+      _ = Complex.re Pcoord := by
+        exact add_zero (Complex.re Pcoord)
+  have hright :
+      (completedPrimeDefectKernelPositiveChannel f + Complex.re T) +
+          -Complex.re T =
+        completedPrimeDefectKernelPositiveChannel f := by
+    calc
+      (completedPrimeDefectKernelPositiveChannel f + Complex.re T) +
+          -Complex.re T =
+          completedPrimeDefectKernelPositiveChannel f +
+            (Complex.re T + -Complex.re T) := by
+        exact add_assoc
+          (completedPrimeDefectKernelPositiveChannel f)
+          (Complex.re T)
+          (-Complex.re T)
+      _ = completedPrimeDefectKernelPositiveChannel f + 0 := by
+        exact congrArg
+          (fun x : ℝ => completedPrimeDefectKernelPositiveChannel f + x)
+          (add_neg_cancel (Complex.re T))
+      _ = completedPrimeDefectKernelPositiveChannel f := by
+        exact add_zero (completedPrimeDefectKernelPositiveChannel f)
+  calc
+    zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f =
+        Complex.re Pcoord := by
+      rfl
+    _ =
+        (Complex.re Pcoord + Complex.re T) + -Complex.re T := by
+      exact hleft.symm
+    _ =
+        (completedPrimeDefectKernelPositiveChannel f + Complex.re T) +
+          -Complex.re T := by
+      exact hcancel
+    _ = completedPrimeDefectKernelPositiveChannel f := by
+      exact hright
+
+/-- Under spectral-majorant summability, comparing the raw completed positive coordinate
+presentation with the owner positive channel is equivalent to comparing the corresponding
+diagonal-debt presentations. -/
+theorem zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe_eq_completedPrimeDefectKernelPositiveChannel_iff_diagonalDebtCoordinateTsum_re
+    (f : ZetaAdmissibleFunction)
+    (hmajorant :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f)) :
+    zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f =
+        completedPrimeDefectKernelPositiveChannel f ↔
+      Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f) =
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by
+  constructor
+  · intro hpositive
+    let Pcoord : ℂ := zetaCompletedPrimeDefectKernelPositiveCoordinateTsum f
+    let T : ℂ := zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f
+    let Dcoord : ℂ := zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f
+    let Powner : ℂ := zetaCompletedPrimeDefectKernelPositiveForm f
+    let Downer : ℂ := zetaCompletedPrimeDefectKernelDiagonalDebt f
+    have hcoord_complex : Pcoord + T = Dcoord :=
+      zetaCompletedPrimeDefectKernelPositiveCoordinateTsum_add_twoFace_eq_diagonalDebtCoordinateTsum
+        f hmajorant
+    have howner_complex : Powner + T = Downer :=
+      zetaCompletedPrimeDefectKernelPositiveWindow_expansion_passes_to_completedForms f
+    have hcoord_re :
+        Complex.re Dcoord =
+          zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f + Complex.re T := by
+      calc
+        Complex.re Dcoord = Complex.re (Pcoord + T) := by
+          exact congrArg Complex.re hcoord_complex.symm
+        _ = Complex.re Pcoord + Complex.re T := by
+          exact Complex.add_re Pcoord T
+        _ =
+            zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f +
+              Complex.re T := by
+          rfl
+    have howner_re :
+        Complex.re Downer =
+          completedPrimeDefectKernelPositiveChannel f + Complex.re T := by
+      calc
+        Complex.re Downer = Complex.re (Powner + T) := by
+          exact congrArg Complex.re howner_complex.symm
+        _ = Complex.re Powner + Complex.re T := by
+          exact Complex.add_re Powner T
+        _ =
+            completedPrimeDefectKernelPositiveChannel f + Complex.re T := by
+          rfl
+    calc
+      Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f) =
+          Complex.re Dcoord := by
+        rfl
+      _ =
+          zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f +
+            Complex.re T := by
+        exact hcoord_re
+      _ =
+          completedPrimeDefectKernelPositiveChannel f + Complex.re T := by
+        exact congrArg (fun x : ℝ => x + Complex.re T) hpositive
+      _ = Complex.re Downer := by
+        exact howner_re.symm
+      _ = Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by
+        rfl
+  · intro hdiagonal
+    exact
+      zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe_eq_completedPrimeDefectKernelPositiveChannel_of_diagonalDebtCoordinateTsum_re
+        f hmajorant hdiagonal
+
+/-- Diagonal-debt finite-window convergence to the owner completed diagonal debt identifies
+the raw positive coordinate presentation with the owner positive channel. -/
+theorem zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe_eq_completedPrimeDefectKernelPositiveChannel_of_diagonalDebtRealWindow_tendsto
+    (f : ZetaAdmissibleFunction)
+    (hmajorant :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f))
+    (hdiagonalOwnerLimit :
+      Tendsto
+        (fun N : ℕ => zetaCompletedPrimeDefectKernelDiagonalDebtRealWindow N f)
+        atTop
+        (𝓝 (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f)))) :
+    zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f =
+      completedPrimeDefectKernelPositiveChannel f := by
+  have hcoordinateLimit :
+      Tendsto
+        (fun N : ℕ => zetaCompletedPrimeDefectKernelDiagonalDebtRealWindow N f)
+        atTop
+        (𝓝 (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f))) :=
+    zetaCompletedPrimeDefectKernelDiagonalDebtRealWindow_tendsto_coordinateTsum_re_of_spectralMajorant
+      f hmajorant
+  have hdiagonal :
+      Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f) =
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) :=
+    tendsto_nhds_unique hcoordinateLimit hdiagonalOwnerLimit
+  exact
+    zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe_eq_completedPrimeDefectKernelPositiveChannel_of_diagonalDebtCoordinateTsum_re
+      f hmajorant hdiagonal
+
+/-- The owner completed diagonal debt has zero real part once the completed and reconstructed
+two-face real coefficients agree. -/
+theorem zetaCompletedPrimeDefectKernelDiagonalDebt_re_eq_zero_of_twoFace_re_eq
+    (f : ZetaAdmissibleFunction)
+    (htwoFace :
+      Complex.re (zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) =
+        Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f)) :
+    Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) = 0 := by
+  let Df : ℂ := zetaPrimeDefectKernelDiagonalDebt f
+  let Tf : ℂ := zetaPrimeTwoFaceGNSMatrixCoefficient f
+  let Tc : ℂ := zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f
+  have hfinite : Complex.re Df = 0 := by
+    unfold Df
+    exact zetaPrimeDefectKernelDiagonalDebt_re_eq_zero_of_completedLowerWeightNormalization
+      f
+  have hre :
+      Complex.re (Df - Tf + Tc) =
+        Complex.re Df - Complex.re Tf + Complex.re Tc := by
+    calc
+      Complex.re (Df - Tf + Tc) =
+          Complex.re (Df - Tf) + Complex.re Tc := by
+        exact Complex.add_re (Df - Tf) Tc
+      _ = (Complex.re Df - Complex.re Tf) + Complex.re Tc := by
+        exact congrArg (fun x : ℝ => x + Complex.re Tc)
+          (Complex.sub_re Df Tf)
+      _ = Complex.re Df - Complex.re Tf + Complex.re Tc := by
+        rfl
+  calc
+    Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        Complex.re (Df - Tf + Tc) := by
+      rfl
+    _ = Complex.re Df - Complex.re Tf + Complex.re Tc := by
+      exact hre
+    _ = 0 - Complex.re Tf + Complex.re Tc := by
+      exact congrArg
+        (fun x : ℝ => x - Complex.re Tf + Complex.re Tc)
+        hfinite
+    _ = 0 - Complex.re Tf + Complex.re Tf := by
+      exact congrArg
+        (fun x : ℝ => 0 - Complex.re Tf + x)
+        htwoFace
+    _ = -Complex.re Tf + Complex.re Tf := by
+      exact congrArg
+        (fun x : ℝ => x + Complex.re Tf)
+        (zero_sub (Complex.re Tf))
+    _ = 0 := by
+      exact neg_add_cancel (Complex.re Tf)
+
 /-- The completed positive prime defect-kernel channel is the finite positive prime defect
 form transported through the completed defect-square expansion. -/
 theorem completedPrimeDefectKernelPositiveChannel_eq_finitePositiveForm_re
@@ -964,6 +1776,19 @@ theorem completedPrimeDefectKernelPositiveChannel_eq_finitePositiveForm_re
           _ = zetaPrimeDefectKernelPositiveForm f := by
             exact add_sub_cancel_right (zetaPrimeDefectKernelPositiveForm f) Tf
       exact congrArg Complex.re hpositive
+
+/-- Under the current finite-display lower-weight normalization, the owner completed positive
+prime defect-kernel channel has zero real scalar. -/
+theorem completedPrimeDefectKernelPositiveChannel_eq_zero_of_completedLowerWeightNormalization
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeDefectKernelPositiveChannel f = 0 := by
+  calc
+    completedPrimeDefectKernelPositiveChannel f =
+        Complex.re (zetaPrimeDefectKernelPositiveForm f) := by
+      exact completedPrimeDefectKernelPositiveChannel_eq_finitePositiveForm_re f
+    _ = 0 := by
+      exact zetaPrimeDefectKernelPositiveForm_re_eq_zero_of_completedLowerWeightNormalization
+        f
 
 /-- The completed positive prime defect-kernel channel is nonnegative. -/
 theorem completedPrimeDefectKernelPositiveChannel_nonnegative

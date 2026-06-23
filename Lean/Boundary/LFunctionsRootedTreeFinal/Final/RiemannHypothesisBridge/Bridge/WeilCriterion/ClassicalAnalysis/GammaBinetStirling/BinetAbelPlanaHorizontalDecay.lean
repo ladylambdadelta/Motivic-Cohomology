@@ -735,6 +735,8 @@ theorem Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEd
     {w : ℂ}
     (hw : 0 < w.re)
     (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)))
     (T : ℝ)
     (hT : 0 < T)
     (hevent : Complex.FiniteHeightPVRectangleBoundaryBridge N w T)
@@ -743,7 +745,7 @@ theorem Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEd
       -Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
   exact
     Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEdgeError_residueAccounting
-      hw N T hT hevent htarget
+      hw N hdecInteriorPole T hT hevent htarget
 
 /-- Owner-side form of
 `finiteAbelPlana_log_horizontalEdgeError_tendsto_zero`. -/
@@ -765,6 +767,8 @@ theorem Complex.finiteAbelPlana_log_finiteHeightContourError_tendsto_zero_owner
     {w : ℂ}
     (hw : 0 < w.re)
     (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)))
     (hbridges : Complex.FiniteHeightPVBridgePackageAt N w) :
     Tendsto
       (fun T : ℝ =>
@@ -778,7 +782,7 @@ theorem Complex.finiteAbelPlana_log_finiteHeightContourError_tendsto_zero_owner
     exact hbridges.mono
       (fun T hbridge =>
         Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEdgeError_owner
-          hw N T hbridge.1 hbridge.2.1 hbridge.2.2)
+          hw N hdecInteriorPole T hbridge.1 hbridge.2.1 hbridge.2.2)
   have hdecay :
       Tendsto
         (fun T : ℝ =>

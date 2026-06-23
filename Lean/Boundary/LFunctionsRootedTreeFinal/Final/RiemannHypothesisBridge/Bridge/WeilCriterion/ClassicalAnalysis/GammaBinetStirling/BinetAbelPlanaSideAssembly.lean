@@ -54,6 +54,61 @@ def Complex.FiniteHeightPVBoundaryTargetBridge
       Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T +
         Complex.finiteAbelPlanaLogHorizontalEdgeError N w T
 
+/-- Endpoint-restored finite-height bridge from the normalized
+principal-value rectangle side to the two normalized boundary faces and the
+horizontal edge error.
+
+The endpoint principal-value indentation is not part of the two vertical
+boundary faces.  This bridge records the convention used by the named
+finite-height side: add the endpoint indentation to both sides before taking
+the limiting boundary target. -/
+def Complex.FiniteHeightPVRectangleBoundaryBridgeEndpointRestored
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) : Prop :=
+  (fun ρ : ℝ =>
+      Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized N w T ρ +
+        Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w) =ᶠ[
+    𝓝[>] (0 : ℝ)]
+    (fun ρ : ℝ =>
+      (Complex.finiteAbelPlanaLogLeftBoundaryFacePVNormalized N w T ρ +
+        Complex.finiteAbelPlanaLogRightBoundaryFacePVNormalized N w T ρ) +
+        Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w +
+        Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
+
+/-- Endpoint-restored target-side finite-height bridge identifying the
+limiting normalized boundary-face sum, after adding the endpoint indentation,
+with the named finite-height side. -/
+def Complex.FiniteHeightPVBoundaryTargetBridgeEndpointRestored
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) : Prop :=
+  ((((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+          Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T)) +
+      (-Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T)) +
+    ((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+          Complex.I *
+            Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T)) +
+      (-Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T))) +
+    Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w) =
+      Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T
+
+/-- Eventual endpoint-restored finite-height bridge package. -/
+def Complex.FiniteHeightPVBridgePackageAtEndpointRestored
+    (N : ℕ)
+    (w : ℂ) : Prop :=
+  ∀ᶠ T : ℝ in atTop,
+    0 < T ∧
+      Complex.FiniteHeightPVRectangleBoundaryBridgeEndpointRestored N w T ∧
+      Complex.FiniteHeightPVBoundaryTargetBridgeEndpointRestored N w T
+
+/-- All-`N` endpoint-restored finite-height bridge package. -/
+def Complex.FiniteHeightPVBridgePackageEndpointRestored
+    (w : ℂ) : Prop :=
+  ∀ N : ℕ, Complex.FiniteHeightPVBridgePackageAtEndpointRestored N w
+
 /-- Eventual finite-height bridge package used by the finite contour wrappers. -/
 def Complex.FiniteHeightPVBridgePackageAt
     (N : ℕ)
@@ -393,6 +448,273 @@ theorem Complex.finiteAbelPlana_log_finiteHeightPVBoundaryTargetBridge_eventuall
     Complex.finiteAbelPlana_log_finiteHeightPVBoundaryTargetBridge_of_boundaryFaces
       N w T hT
 
+/-- Restoring the endpoint indentation on both sides of the rectangle-to-face
+bridge preserves the eventual equality. -/
+theorem Complex.finiteAbelPlana_log_finiteHeightPVRectangleBoundaryBridge_endpointRestored_of_boundaryBridge
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ)
+    (hbridge : Complex.FiniteHeightPVRectangleBoundaryBridge N w T) :
+    Complex.FiniteHeightPVRectangleBoundaryBridgeEndpointRestored N w T := by
+  filter_upwards [hbridge] with ρ hρ
+  let R : ℂ :=
+    Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized N w T ρ
+  let F : ℂ :=
+    Complex.finiteAbelPlanaLogLeftBoundaryFacePVNormalized N w T ρ +
+      Complex.finiteAbelPlanaLogRightBoundaryFacePVNormalized N w T ρ
+  let E : ℂ :=
+    Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w
+  let H : ℂ :=
+    Complex.finiteAbelPlanaLogHorizontalEdgeError N w T
+  have hbase : R = F + H := hρ
+  calc
+    R + E = (F + H) + E := by
+      exact congrArg (fun z : ℂ => z + E) hbase
+    _ = F + (H + E) := by
+      exact add_assoc F H E
+    _ = F + (E + H) := by
+      exact congrArg (fun z : ℂ => F + z) (add_comm H E)
+    _ = F + E + H := by
+      exact (add_assoc F E H).symm
+
+/-- Eventual endpoint-restored rectangle bridge obtained from an eventual
+endpoint-free rectangle bridge. -/
+theorem Complex.finiteAbelPlana_log_finiteHeightPVRectangleBoundaryBridge_endpointRestored_eventually_of_boundaryBridge
+    (N : ℕ)
+    (w : ℂ)
+    (hbridge :
+      ∀ᶠ T : ℝ in atTop,
+        Complex.FiniteHeightPVRectangleBoundaryBridge N w T) :
+    ∀ᶠ T : ℝ in atTop,
+      Complex.FiniteHeightPVRectangleBoundaryBridgeEndpointRestored N w T := by
+  filter_upwards [hbridge] with T hT
+  exact
+    Complex.finiteAbelPlana_log_finiteHeightPVRectangleBoundaryBridge_endpointRestored_of_boundaryBridge
+      N w T hT
+
+/-- Constructor for the endpoint-restored target bridge from its defining
+boundary-face equality. -/
+theorem Complex.finiteAbelPlana_log_finiteHeightPVBoundaryTargetBridge_endpointRestored_of_boundaryFaces
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ)
+    (hboundary :
+      ((((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+            (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+              Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T)) +
+          (-Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T)) +
+        ((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+            (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+              Complex.I *
+                Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T)) +
+          (-Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T))) +
+        Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w) =
+          Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T) :
+    Complex.FiniteHeightPVBoundaryTargetBridgeEndpointRestored N w T := by
+  exact hboundary
+
+/-- Eventual constructor for endpoint-restored target bridges. -/
+theorem Complex.finiteAbelPlana_log_finiteHeightPVBoundaryTargetBridge_endpointRestored_eventually_of_boundaryFaces
+    (N : ℕ)
+    (w : ℂ)
+    (hboundary :
+      ∀ᶠ T : ℝ in atTop,
+        ((((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+              (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+                Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T)) +
+            (-Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T)) +
+          ((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+              (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+                Complex.I *
+                  Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T)) +
+            (-Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T))) +
+          Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w) =
+            Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T) :
+    ∀ᶠ T : ℝ in atTop,
+      Complex.FiniteHeightPVBoundaryTargetBridgeEndpointRestored N w T := by
+  filter_upwards [hboundary] with T hT
+  exact
+    Complex.finiteAbelPlana_log_finiteHeightPVBoundaryTargetBridge_endpointRestored_of_boundaryFaces
+      N w T hT
+
+/-- Fixed-`N` endpoint-restored finite-height bridge package from restored
+target bridges and endpoint-free rectangle bridges. -/
+theorem Complex.finiteAbelPlana_log_finiteHeightPVBridgePackageAt_endpointRestored_of_boundaryBridge_and_targets
+    (N : ℕ)
+    {w : ℂ}
+    (hrectangle :
+      ∀ᶠ T : ℝ in atTop,
+        Complex.FiniteHeightPVRectangleBoundaryBridge N w T)
+    (htarget :
+      ∀ᶠ T : ℝ in atTop,
+        Complex.FiniteHeightPVBoundaryTargetBridgeEndpointRestored N w T) :
+    Complex.FiniteHeightPVBridgePackageAtEndpointRestored N w := by
+  filter_upwards [eventually_gt_atTop (0 : ℝ), hrectangle, htarget] with
+    T hT hrectangleT htargetT
+  exact ⟨hT,
+    Complex.finiteAbelPlana_log_finiteHeightPVRectangleBoundaryBridge_endpointRestored_of_boundaryBridge
+      N w T hrectangleT,
+    htargetT⟩
+
+/-- Fixed-`N` endpoint-restored finite-height bridge package from an existing
+endpoint-free bridge package and a restored target bridge. -/
+theorem Complex.finiteAbelPlana_log_finiteHeightPVBridgePackageAt_endpointRestored_of_packageAt_and_target
+    (N : ℕ)
+    {w : ℂ}
+    (hpackage : Complex.FiniteHeightPVBridgePackageAt N w)
+    (htarget :
+      ∀ᶠ T : ℝ in atTop,
+        Complex.FiniteHeightPVBoundaryTargetBridgeEndpointRestored N w T) :
+    Complex.FiniteHeightPVBridgePackageAtEndpointRestored N w := by
+  have hrectangle :
+      ∀ᶠ T : ℝ in atTop,
+        Complex.FiniteHeightPVRectangleBoundaryBridge N w T := by
+    filter_upwards [hpackage] with T hT
+    exact hT.2.1
+  exact
+    Complex.finiteAbelPlana_log_finiteHeightPVBridgePackageAt_endpointRestored_of_boundaryBridge_and_targets
+      N hrectangle htarget
+
+/-- All-`N` endpoint-restored finite-height bridge package from an existing
+endpoint-free package and restored target bridges. -/
+theorem Complex.finiteAbelPlana_log_finiteHeightPVBridgePackage_endpointRestored_of_package_and_targets
+    {w : ℂ}
+    (hpackage : Complex.FiniteHeightPVBridgePackage w)
+    (htarget :
+      ∀ N : ℕ,
+        ∀ᶠ T : ℝ in atTop,
+          Complex.FiniteHeightPVBoundaryTargetBridgeEndpointRestored N w T) :
+    Complex.FiniteHeightPVBridgePackageEndpointRestored w := by
+  intro N
+  exact
+    Complex.finiteAbelPlana_log_finiteHeightPVBridgePackageAt_endpointRestored_of_packageAt_and_target
+      N (hpackage N) (htarget N)
+
+/-- Additive collection for the endpoint-restored boundary target once the
+two scaled cotangent constant faces have been identified with the real segment
+only. -/
+theorem Complex.finiteAbelPlana_endpointRestoredBoundaryTarget_of_realSegmentConstantFaces
+    (leftConstant rightConstant realSegment endpointIndentation lower upper : ℂ)
+    (hconstant : leftConstant + rightConstant = realSegment) :
+    ((leftConstant + (-lower)) + (rightConstant + (-upper))) +
+        endpointIndentation =
+      (realSegment + endpointIndentation) + (-lower - upper) := by
+  calc
+    ((leftConstant + (-lower)) + (rightConstant + (-upper))) +
+        endpointIndentation =
+      (((leftConstant + (-lower)) + rightConstant) + (-upper)) +
+        endpointIndentation := by
+      exact congrArg
+        (fun z : ℂ => z + endpointIndentation)
+        (add_assoc (leftConstant + (-lower)) rightConstant (-upper)).symm
+    _ =
+      ((leftConstant + ((-lower) + rightConstant)) + (-upper)) +
+        endpointIndentation := by
+      exact congrArg
+        (fun z : ℂ => (z + (-upper)) + endpointIndentation)
+        (add_assoc leftConstant (-lower) rightConstant)
+    _ =
+      ((leftConstant + (rightConstant + (-lower))) + (-upper)) +
+        endpointIndentation := by
+      exact congrArg
+        (fun z : ℂ => ((leftConstant + z) + (-upper)) + endpointIndentation)
+        (add_comm (-lower) rightConstant)
+    _ =
+      (((leftConstant + rightConstant) + (-lower)) + (-upper)) +
+        endpointIndentation := by
+      exact congrArg
+        (fun z : ℂ => (z + (-upper)) + endpointIndentation)
+        (add_assoc leftConstant rightConstant (-lower)).symm
+    _ =
+      ((realSegment + (-lower)) + (-upper)) + endpointIndentation := by
+      exact congrArg
+        (fun z : ℂ => ((z + (-lower)) + (-upper)) + endpointIndentation)
+        hconstant
+    _ =
+      (realSegment + ((-lower) + (-upper))) + endpointIndentation := by
+      exact congrArg
+        (fun z : ℂ => z + endpointIndentation)
+        (add_assoc realSegment (-lower) (-upper))
+    _ =
+      realSegment + (((-lower) + (-upper)) + endpointIndentation) := by
+      exact add_assoc realSegment ((-lower) + (-upper)) endpointIndentation
+    _ =
+      realSegment + (endpointIndentation + ((-lower) + (-upper))) := by
+      exact congrArg
+        (fun z : ℂ => realSegment + z)
+        (add_comm ((-lower) + (-upper)) endpointIndentation)
+    _ =
+      (realSegment + endpointIndentation) + ((-lower) + (-upper)) := by
+      exact (add_assoc realSegment endpointIndentation ((-lower) + (-upper))).symm
+    _ =
+      (realSegment + endpointIndentation) + (-lower - upper) := by
+      exact congrArg
+        (fun z : ℂ => (realSegment + endpointIndentation) + z)
+        (sub_eq_add_neg (-lower) upper).symm
+
+/-- Restored target bridge from the four-side constant-kernel reconstruction
+of the real segment. -/
+theorem Complex.finiteAbelPlana_log_finiteHeightPVBoundaryTargetBridge_endpointRestored_of_realSegmentConstantFaces
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ)
+    (hconstant :
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+          (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+            Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T) +
+        ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+          (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+            Complex.I *
+              Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T) =
+        (let M : ℕ := N + 1;
+          ∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+            Complex.finiteAbelPlanaLogSummand w (x : ℂ))) :
+    Complex.FiniteHeightPVBoundaryTargetBridgeEndpointRestored N w T := by
+  let leftConstant : ℂ :=
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+      (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+        Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T)
+  let rightConstant : ℂ :=
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+      (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+        Complex.I *
+          Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T)
+  let realSegment : ℂ :=
+    let M : ℕ := N + 1
+    ∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+      Complex.finiteAbelPlanaLogSummand w (x : ℂ)
+  let endpointIndentation : ℂ :=
+    Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w
+  let lower : ℂ :=
+    Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T
+  let upper : ℂ :=
+    Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T
+  have hcollected :
+      ((leftConstant + (-lower)) + (rightConstant + (-upper))) +
+          endpointIndentation =
+        (realSegment + endpointIndentation) + (-lower - upper) :=
+    Complex.finiteAbelPlana_endpointRestoredBoundaryTarget_of_realSegmentConstantFaces
+      leftConstant rightConstant realSegment endpointIndentation lower upper hconstant
+  have hrealEndpoint :
+      Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression N w =
+        realSegment + endpointIndentation := by
+    exact Eq.refl (Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression N w)
+  have hvertical :
+      Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T =
+        -lower - upper :=
+    Complex.finiteAbelPlana_log_finiteHeightNamedVerticalSideExpression_unfold N w T
+  have hnamed :
+      Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T =
+        (realSegment + endpointIndentation) + (-lower - upper) := by
+    have hside :
+        Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T =
+          Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression N w +
+            Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T :=
+      Complex.finiteAbelPlana_log_finiteHeightNamedSideExpression_eq_realEndpoint_add_vertical
+        N w T
+    exact Eq.trans hside (congrArg₂ HAdd.hAdd hrealEndpoint hvertical)
+  exact Eq.trans hcollected hnamed.symm
+
 /-- Lower/upper cotangent half-plane algebra for the full finite-height side
 expression.
 
@@ -607,7 +929,9 @@ the remaining side contribution as the horizontal pair. -/
 theorem Complex.finiteAbelPlana_log_rectangleSideExpressionPV_tendsto_integerResidues
     {w : ℂ}
     (hw : 0 < w.re)
-    (N : ℕ) :
+    (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ))) :
     ∀ T : ℝ,
       0 < T →
       Tendsto
@@ -618,7 +942,7 @@ theorem Complex.finiteAbelPlana_log_rectangleSideExpressionPV_tendsto_integerRes
   intro T hT
   exact
     Complex.finiteAbelPlana_log_finiteHeightRectangle_principalValueResidueTheorem
-      hw N T hT
+      hw N hdecInteriorPole T hT
 
 /-- Pointwise decomposition of the PV-normalized rectangle side expression
 into the two PV-normalized boundary faces and the horizontal edge error. -/
@@ -2181,6 +2505,152 @@ theorem Complex.finiteAbelPlana_log_rectangleSideExpressionPV_tendsto_namedSide_
     htarget ▸ hsum
   exact htarget_tendsto.congr' hevent.symm
 
+/-- Endpoint-augmented principal-value boundary-face convergence.
+
+The normalized left and right boundary faces converge only to the constant-face
+and named-vertical contribution.  The endpoint principal-value indentation is
+therefore added as its own constant term before comparing with the finite
+named side. -/
+theorem Complex.finiteAbelPlana_log_boundaryFacesPV_endpointIndentation_tendsto_namedSide_add_horizontalError
+    (N : ℕ)
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (T : ℝ)
+    (hT : 0 < T)
+    (hboundary :
+      ((((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+              (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+                Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T)) +
+            (-Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T)) +
+          ((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+              (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+                Complex.I *
+                  Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T)) +
+            (-Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T))) +
+          Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w) =
+        Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T) :
+    Tendsto
+      (fun ρ : ℝ =>
+        ((Complex.finiteAbelPlanaLogLeftBoundaryFacePVNormalized N w T ρ +
+            Complex.finiteAbelPlanaLogRightBoundaryFacePVNormalized N w T ρ) +
+          Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w) +
+          Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
+      (𝓝[>] (0 : ℝ))
+      (𝓝
+        (Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T +
+          Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)) := by
+  have hfaces :
+      Tendsto
+        (fun ρ : ℝ =>
+          Complex.finiteAbelPlanaLogLeftBoundaryFacePVNormalized N w T ρ +
+            Complex.finiteAbelPlanaLogRightBoundaryFacePVNormalized N w T ρ)
+        (𝓝[>] (0 : ℝ))
+        (𝓝
+          (((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+                (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+                  Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T)) +
+              (-Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T)) +
+            ((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+                (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+                  Complex.I *
+                    Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T)) +
+              (-Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T)))) :=
+    Complex.finiteAbelPlana_log_boundaryFacesPV_tendsto_namedBoundary
+      N hw T hT
+  have hwith_endpoint :
+      Tendsto
+        (fun ρ : ℝ =>
+          (Complex.finiteAbelPlanaLogLeftBoundaryFacePVNormalized N w T ρ +
+            Complex.finiteAbelPlanaLogRightBoundaryFacePVNormalized N w T ρ) +
+            Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w)
+        (𝓝[>] (0 : ℝ))
+        (𝓝
+          ((((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+                (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+                  Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T)) +
+              (-Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T)) +
+            ((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+                (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+                  Complex.I *
+                    Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T)) +
+              (-Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T))) +
+            Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w)) :=
+    hfaces.add tendsto_const_nhds
+  have hwith_horizontal :
+      Tendsto
+        (fun ρ : ℝ =>
+          ((Complex.finiteAbelPlanaLogLeftBoundaryFacePVNormalized N w T ρ +
+              Complex.finiteAbelPlanaLogRightBoundaryFacePVNormalized N w T ρ) +
+            Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w) +
+            Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
+        (𝓝[>] (0 : ℝ))
+        (𝓝
+          (((((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+                  (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+                    Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T)) +
+                (-Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T)) +
+              ((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+                  (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+                    Complex.I *
+                      Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T)) +
+                (-Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T))) +
+              Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w) +
+            Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)) :=
+    hwith_endpoint.add tendsto_const_nhds
+  have htarget :
+      ((((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+              (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+                Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T)) +
+            (-Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T)) +
+          ((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+              (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+                Complex.I *
+                  Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T)) +
+            (-Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T))) +
+          Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w) +
+          Complex.finiteAbelPlanaLogHorizontalEdgeError N w T =
+        Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T +
+          Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
+    exact congrArg
+      (fun z : ℂ => z + Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
+      hboundary
+  exact htarget ▸ hwith_horizontal
+
+/-- The endpoint-restored principal-value finite-height rectangle side tends
+to the named finite-height side plus the horizontal error. -/
+theorem Complex.finiteAbelPlana_log_rectangleSideExpressionPV_endpointRestored_tendsto_namedSide_add_horizontalError
+    (N : ℕ)
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (T : ℝ)
+    (hT : 0 < T)
+    (hevent :
+      Complex.FiniteHeightPVRectangleBoundaryBridgeEndpointRestored N w T)
+    (htarget :
+      Complex.FiniteHeightPVBoundaryTargetBridgeEndpointRestored N w T) :
+    Tendsto
+      (fun ρ : ℝ =>
+        Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized N w T ρ +
+          Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w)
+      (𝓝[>] (0 : ℝ))
+      (𝓝
+        (Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T +
+          Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)) := by
+  have hfaces :
+      Tendsto
+        (fun ρ : ℝ =>
+          ((Complex.finiteAbelPlanaLogLeftBoundaryFacePVNormalized N w T ρ +
+              Complex.finiteAbelPlanaLogRightBoundaryFacePVNormalized N w T ρ) +
+            Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w) +
+            Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
+        (𝓝[>] (0 : ℝ))
+        (𝓝
+          (Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T +
+            Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)) :=
+    Complex.finiteAbelPlana_log_boundaryFacesPV_endpointIndentation_tendsto_namedSide_add_horizontalError
+      N hw T hT htarget
+  exact hfaces.congr' hevent.symm
+
 /-- Addition of a negated term is subtraction. -/
 theorem Complex.add_neg_eq_sub (a b : ℂ) :
     a + (-b) = a - b := by
@@ -2225,7 +2695,9 @@ used in the contour-error definition. -/
 theorem Complex.finiteAbelPlana_log_namedSideExpression_eq_residueSum_sub_horizontalError
     {w : ℂ}
     (hw : 0 < w.re)
-    (N : ℕ) :
+    (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ))) :
     ∀ T : ℝ,
       0 < T →
       Complex.FiniteHeightPVRectangleBoundaryBridge N w T →
@@ -2246,7 +2718,7 @@ theorem Complex.finiteAbelPlana_log_namedSideExpression_eq_residueSum_sub_horizo
         (𝓝[>] (0 : ℝ))
         (𝓝 (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)) :=
     Complex.finiteAbelPlana_log_rectangleSideExpressionPV_tendsto_integerResidues
-      hw N T hT
+      hw N hdecInteriorPole T hT
   have hside :
       Tendsto
         (fun ρ : ℝ =>
@@ -2274,7 +2746,9 @@ principal-value residue contribution. -/
 theorem Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEdgeError_residueAccounting
     {w : ℂ}
     (hw : 0 < w.re)
-    (N : ℕ) :
+    (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ))) :
     ∀ T : ℝ,
       0 < T →
       Complex.FiniteHeightPVRectangleBoundaryBridge N w T →
@@ -2287,7 +2761,7 @@ theorem Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEd
         Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w -
           Complex.finiteAbelPlanaLogHorizontalEdgeError N w T :=
     Complex.finiteAbelPlana_log_namedSideExpression_eq_residueSum_sub_horizontalError
-      hw N T hT hevent htarget
+      hw N hdecInteriorPole T hT hevent htarget
   have herror :
       Complex.finiteAbelPlanaLogFiniteHeightContourError N w T =
         Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T -

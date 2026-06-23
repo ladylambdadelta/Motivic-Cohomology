@@ -486,9 +486,10 @@ theorem complexReciprocalOfReal_deriv_norm_eq
 /-- Integer samples of the logarithmic phase have norm at most one. -/
 theorem logarithmicPhase_nat_sample_norm_le_one
     (t : ℝ)
-    (k : ℕ) :
+    (k : ℕ)
+    [Decidable (-(t : ℂ) * Complex.I = 0)] :
     ‖(k : ℂ) ^ (-(t : ℂ) * Complex.I)‖ ≤ 1 := by
-  match Decidable.em (k = 0) with
+  match (inferInstance : Decidable (k = 0)) with
   | Or.inl hk =>
     let a : ℂ := -(t : ℂ) * Complex.I
     have hterm :
@@ -501,7 +502,7 @@ theorem logarithmicPhase_nat_sample_norm_le_one
       have hcast_zero : (((0 : ℕ) : ℂ) ^ a) = (0 : ℂ) ^ a :=
         congrArg (fun z : ℂ => z ^ a) hzero_cast
       exact hnat_zero.trans hcast_zero
-    match Decidable.em (a = 0) with
+    match (inferInstance : Decidable (a = 0)) with
     | Or.inl ha =>
       have hzero_pow : (0 : ℂ) ^ a = 1 := by
         exact Eq.subst

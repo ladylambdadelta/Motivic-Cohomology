@@ -37,7 +37,9 @@ structure ExplicitFormulaContourData where
 /-- A contour family indexed by the height parameter `T`. -/
 structure ExplicitFormulaContourFamily where
   c : ℝ
+  c_gt_one : (1 : ℝ) < c
   c_gt_half : (1 / 2 : ℝ) < c
+  c_ne_one : c ≠ 1
 
 /-- The contour rectangle at height `T` in a contour family. -/
 def ExplicitFormulaContourFamily.rectangle (F : ExplicitFormulaContourFamily) (T : ℝ) :
@@ -49,6 +51,27 @@ theorem ExplicitFormulaContourFamily.c_pos
     (F : ExplicitFormulaContourFamily) :
     0 < F.c :=
   lt_trans real_half_pos_for_contourGeometry F.c_gt_half
+
+/-- The left vertical edge lies strictly to the left of `0` for pole-enclosing
+explicit-formula contours. -/
+theorem ExplicitFormulaContourFamily.one_sub_c_neg
+    (F : ExplicitFormulaContourFamily) :
+    1 - F.c < 0 :=
+  sub_neg.mpr F.c_gt_one
+
+/-- The pole at `0` lies in the open horizontal span of a pole-enclosing contour. -/
+theorem ExplicitFormulaContourFamily.zero_mem_horizontal_uIoo
+    (F : ExplicitFormulaContourFamily) :
+    (0 : ℝ) ∈ Set.uIoo F.c (1 - F.c) :=
+  Set.mem_uIoo_of_gt F.one_sub_c_neg F.c_pos
+
+/-- The pole at `1` lies in the open horizontal span of a pole-enclosing contour. -/
+theorem ExplicitFormulaContourFamily.one_mem_horizontal_uIoo
+    (F : ExplicitFormulaContourFamily) :
+    (1 : ℝ) ∈ Set.uIoo F.c (1 - F.c) :=
+  Set.mem_uIoo_of_gt
+    (sub_lt_self (1 : ℝ) F.c_pos)
+    F.c_gt_one
 
 /-- The rectangle attached to a contour family has real edge `F.c`. -/
 theorem ExplicitFormulaContourFamily.rectangle_c
@@ -93,6 +116,92 @@ theorem ExplicitFormulaContourFamily.bottomPath_strip
     F.c ≤ (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x).re ∧
       (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x).re ≤ 1 - F.c := by
   exact zetaCompletedExplicitFormulaBottomPath_strip (F.rectangle T) x hx1 hx2
+
+/-- The open rectangle enclosed by the contour family at height `T`. -/
+def explicitFormulaContourFamilyInterior
+    (F : ExplicitFormulaContourFamily) (T : ℝ) : Set ℂ :=
+  {z : ℂ | z.re ∈ Set.uIoo F.c (1 - F.c) ∧ z.im ∈ Set.Ioo (-T) T}
+
+/-- Membership in the contour-family interior is exactly membership in the open unordered
+horizontal interval and the open vertical height interval. -/
+theorem explicitFormulaContourFamilyInterior_mem_iff
+    (F : ExplicitFormulaContourFamily) (T : ℝ) (z : ℂ) :
+    z ∈ explicitFormulaContourFamilyInterior F T ↔
+      z.re ∈ Set.uIoo F.c (1 - F.c) ∧ z.im ∈ Set.Ioo (-T) T := by
+  rfl
+
+/-- The contour-family interior is an open rectangle. -/
+theorem explicitFormulaContourFamilyInterior_isOpen
+    (F : ExplicitFormulaContourFamily) (T : ℝ) :
+    IsOpen (explicitFormulaContourFamilyInterior F T) := by
+  have hre :
+      IsOpen {z : ℂ | z.re ∈ Set.uIoo F.c (1 - F.c)} := by
+    change IsOpen ((fun z : ℂ => z.re) ⁻¹' Set.uIoo F.c (1 - F.c))
+    unfold Set.uIoo
+    exact isOpen_Ioo.preimage Complex.continuous_re
+  have him :
+      IsOpen {z : ℂ | z.im ∈ Set.Ioo (-T) T} := by
+    change IsOpen ((fun z : ℂ => z.im) ⁻¹' Set.Ioo (-T) T)
+    exact isOpen_Ioo.preimage Complex.continuous_im
+  exact hre.inter him
+
+/-- Every point of the contour-family interior has a metric ball still contained in that
+interior. -/
+theorem explicitFormulaContourFamilyInterior_exists_ball_subset
+    (F : ExplicitFormulaContourFamily) (T : ℝ) {z : ℂ}
+    (hz : z ∈ explicitFormulaContourFamilyInterior F T) :
+    ∃ r : ℝ, 0 < r ∧ Metric.ball z r ⊆ explicitFormulaContourFamilyInterior F T := by
+  exact
+    Metric.mem_nhds_iff.mp
+      ((explicitFormulaContourFamilyInterior_isOpen F T).mem_nhds hz)
+
+/-- At positive height the pole `0` lies in the finite rectangle enclosed by a
+pole-enclosing explicit-formula contour family. -/
+theorem explicitFormulaContourFamilyInterior_zero_mem
+    (F : ExplicitFormulaContourFamily) (T : ℝ) (hT : 0 < T) :
+    (0 : ℂ) ∈ explicitFormulaContourFamilyInterior F T := by
+  have hre :
+      (0 : ℂ).re ∈ Set.uIoo F.c (1 - F.c) :=
+    F.zero_mem_horizontal_uIoo
+  have him_left : -T < (0 : ℝ) :=
+    neg_lt_zero.mpr hT
+  have him_zero :
+      (0 : ℂ).im = (0 : ℝ) :=
+    rfl
+  have him_interval :
+      (0 : ℝ) ∈ Set.Ioo (-T) T :=
+    And.intro him_left hT
+  have him :
+      (0 : ℂ).im ∈ Set.Ioo (-T) T :=
+    Eq.subst
+      (motive := fun y : ℝ => y ∈ Set.Ioo (-T) T)
+      him_zero.symm
+      him_interval
+  exact And.intro hre him
+
+/-- At positive height the pole `1` lies in the finite rectangle enclosed by a
+pole-enclosing explicit-formula contour family. -/
+theorem explicitFormulaContourFamilyInterior_one_mem
+    (F : ExplicitFormulaContourFamily) (T : ℝ) (hT : 0 < T) :
+    (1 : ℂ) ∈ explicitFormulaContourFamilyInterior F T := by
+  have hre :
+      (1 : ℂ).re ∈ Set.uIoo F.c (1 - F.c) :=
+    F.one_mem_horizontal_uIoo
+  have him_left : -T < (0 : ℝ) :=
+    neg_lt_zero.mpr hT
+  have him_zero :
+      (1 : ℂ).im = (0 : ℝ) :=
+    rfl
+  have him_interval :
+      (0 : ℝ) ∈ Set.Ioo (-T) T :=
+    And.intro him_left hT
+  have him :
+      (1 : ℂ).im ∈ Set.Ioo (-T) T :=
+    Eq.subst
+      (motive := fun y : ℝ => y ∈ Set.Ioo (-T) T)
+      him_zero.symm
+      him_interval
+  exact And.intro hre him
 
 /-- Data describing a zero of the completed zeta function with multiplicity. -/
 structure ExplicitFormulaZeroData where

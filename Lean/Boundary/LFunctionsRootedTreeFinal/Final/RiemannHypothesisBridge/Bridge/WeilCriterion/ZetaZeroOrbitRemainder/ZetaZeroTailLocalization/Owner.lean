@@ -17,18 +17,18 @@ their single zero-side contributions at that zero agree. -/
 theorem zetaZeroSideContribution_eq_of_spectralEval_eq
     (η : ℂ) (φ ψ : ZetaAdmissibleFunction)
     (hsample :
-      zetaSpectralEval φ (zetaCenteredZero η) =
-        zetaSpectralEval ψ (zetaCenteredZero η)) :
+      zetaSpectralEval φ η =
+        zetaSpectralEval ψ η) :
     zetaZeroSideContribution η φ =
       zetaZeroSideContribution η ψ := by
   calc
     zetaZeroSideContribution η φ =
         - (zetaZeroMultiplicity η : ℂ) *
-          zetaSpectralEval φ (zetaCenteredZero η) := by
+          zetaSpectralEval φ η := by
       exact zetaZeroSideContribution_def η φ
     _ =
         - (zetaZeroMultiplicity η : ℂ) *
-          zetaSpectralEval ψ (zetaCenteredZero η) := by
+          zetaSpectralEval ψ η := by
       exact congrArg
         (fun z : ℂ => - (zetaZeroMultiplicity η : ℂ) * z)
         hsample
@@ -41,8 +41,8 @@ theorem zetaZeroOrbitContribution_eq_of_spectralEval_eq_on_orbit
     (ρ : ℂ) (φ ψ : ZetaAdmissibleFunction)
     (hsample :
       ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ →
-        zetaSpectralEval φ (zetaCenteredZero η) =
-          zetaSpectralEval ψ (zetaCenteredZero η)) :
+        zetaSpectralEval φ η =
+          zetaSpectralEval ψ η) :
     zetaZeroOrbitContribution ρ φ =
       zetaZeroOrbitContribution ρ ψ := by
   unfold zetaZeroOrbitContribution
@@ -57,8 +57,8 @@ theorem zetaZeroOrbitContributionRe_eq_of_spectralEval_eq_on_orbit
     (ρ : ℂ) (φ ψ : ZetaAdmissibleFunction)
     (hsample :
       ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ →
-        zetaSpectralEval φ (zetaCenteredZero η) =
-          zetaSpectralEval ψ (zetaCenteredZero η)) :
+        zetaSpectralEval φ η =
+          zetaSpectralEval ψ η) :
     zetaZeroOrbitContributionRe ρ φ =
       zetaZeroOrbitContributionRe ρ ψ := by
   exact congrArg Complex.re

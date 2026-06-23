@@ -1101,13 +1101,14 @@ The derivative is
 `[0,∞)` gives the global minimum; evaluating there is positive. -/
 theorem Complex.realLogDyadicComparisonDefect_nonneg
     {x : ℝ}
-    (hx : 0 ≤ x) :
+    (hx : 0 ≤ x)
+    [Decidable (x ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
     0 ≤ Complex.realLogDyadicComparisonDefect x := by
   exact
-    match Classical.em (x ≤ Complex.realLogDyadicComparisonCriticalPoint) with
-    | Or.inl hx_left =>
+    match (inferInstance : Decidable (x ≤ Complex.realLogDyadicComparisonCriticalPoint)) with
+    | isTrue hx_left =>
         Complex.realLogDyadicComparisonDefect_nonneg_of_le_critical hx hx_left
-    | Or.inr hx_not_left =>
+    | isFalse hx_not_left =>
         have hx_right :
             Complex.realLogDyadicComparisonCriticalPoint ≤ x :=
           (lt_of_not_ge hx_not_left).le
@@ -1120,7 +1121,8 @@ This is the monotonic one-variable estimate needed to keep the downstream
 constant `2`. -/
 theorem Complex.real_log_two_mul_one_add_le_two_log_shift_mul_log_two
     {x : ℝ}
-    (hx : 0 ≤ x) :
+    (hx : 0 ≤ x)
+    [Decidable (x ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
     Real.log (2 * (x + 1)) ≤
       (2 * Real.log (x + 2)) * Real.log (2 : ℝ) := by
   have hdefect :
@@ -1133,7 +1135,8 @@ theorem Complex.real_log_two_mul_one_add_le_two_log_shift_mul_log_two
 /-- Natural-number specialization of the real logarithmic comparison behind
 the dyadic-log estimate. -/
 theorem Complex.real_log_two_mul_nat_succ_le_two_log_shift_mul_log_two
-    (N : ℕ) :
+    (N : ℕ)
+    [Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
     Real.log ((((N + 1) * 2 : ℕ) : ℝ)) ≤
       (2 * Real.log (2 + N)) * Real.log (2 : ℝ) := by
   have hreal :
@@ -1160,7 +1163,8 @@ theorem Complex.real_log_two_mul_nat_succ_le_two_log_shift_mul_log_two
 
 /-- Real-logarithm comparison for the doubled shifted natural cutoff. -/
 theorem Complex.real_logb_two_mul_nat_succ_le_two_log_shift
-    (N : ℕ) :
+    (N : ℕ)
+    [Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
     Real.logb (2 : ℝ) (((N + 1) * 2 : ℕ) : ℝ) ≤
       2 * Real.log (2 + N) := by
   have hlog2_pos : 0 < Real.log (2 : ℝ) :=
@@ -1186,7 +1190,8 @@ theorem Complex.real_logb_two_mul_nat_succ_le_two_log_shift
 /-- Dyadic integer logarithm is dominated by twice the natural logarithm on the
 shifted natural cutoff. -/
 theorem Complex.nat_log2_add_one_le_two_log
-    (N : ℕ) :
+    (N : ℕ)
+    [Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
     (Nat.log2 (N + 1) : ℝ) + 1 ≤ 2 * Real.log (2 + N) := by
   have hnat_eq :
       Nat.log2 (N + 1) + 1 = Nat.log 2 ((N + 1) * 2) :=
@@ -1231,7 +1236,8 @@ theorem Complex.two_le_two_mul_sqrt_one_add_norm
 `sqrt(1 + |t|) log(2+N)` transition factor. -/
 theorem Complex.logarithmicPhase_log2_add_one_le_sqrt_transition
     (t : ℝ)
-    (N : ℕ) :
+    (N : ℕ)
+    [Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
     (Nat.log2 (N + 1) : ℝ) + 1 ≤
       2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) := by
   have hlog2 :
@@ -1283,7 +1289,8 @@ theorem Complex.logarithmicPhase_quotient_term_le_standard
 standard transition factor. -/
 theorem Complex.logarithmicPhase_counting_term_le_standard
     (t : ℝ)
-    (N : ℕ) :
+    (N : ℕ)
+    [Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
     8 * ((Nat.log2 (N + 1) : ℝ) + 1) ≤
       16 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) := by
   have htransition :
@@ -1313,7 +1320,8 @@ standard logarithmic first-derivative bound. -/
 theorem Complex.logarithmicPhase_dyadic_cover_expression_le_standard
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
-    (N : ℕ) :
+    (N : ℕ)
+    [Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
     8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) ≤
       16 *
         (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *

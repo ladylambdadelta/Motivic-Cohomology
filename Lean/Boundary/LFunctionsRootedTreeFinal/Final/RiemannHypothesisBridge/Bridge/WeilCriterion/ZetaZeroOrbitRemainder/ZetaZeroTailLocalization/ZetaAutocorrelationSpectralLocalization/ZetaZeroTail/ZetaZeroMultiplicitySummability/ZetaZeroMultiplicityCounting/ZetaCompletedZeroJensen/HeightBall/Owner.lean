@@ -54,11 +54,13 @@ theorem completedZero_mem_centeredClosedDisk_of_mem_centeredHeightBall
 controlled closed-disk summand. -/
 theorem completedZeroMultiplicityHeightBallSummand_le_closedDiskSummand
     (T : ℝ) (hT : 1 ≤ T)
-    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
+    [Decidable (zetaCompletedZeroCenteredHeight ρ ≤ T)]
+    [Decidable (‖(ρ : ℂ)‖ ≤ T + 2)] :
     completedZeroMultiplicityHeightBallSummand T ρ ≤
       completedZeroMultiplicityClosedDiskSummand (T + 2) ρ := by
   exact
-    match Decidable.em (zetaCompletedZeroCenteredHeight ρ ≤ T) with
+    match (inferInstance : Decidable (zetaCompletedZeroCenteredHeight ρ ≤ T)) with
     | Or.inl hheight =>
         have hdisk : ‖(ρ : ℂ)‖ ≤ T + 2 :=
           completedZero_mem_centeredClosedDisk_of_mem_centeredHeightBall
@@ -79,7 +81,7 @@ theorem completedZeroMultiplicityHeightBallSummand_le_closedDiskSummand
             x ≤ if ‖(ρ : ℂ)‖ ≤ T + 2 then
               (zetaZeroMultiplicity (ρ : ℂ) : ℝ) else 0)
           (if_neg hheight).symm
-          (match Decidable.em (‖(ρ : ℂ)‖ ≤ T + 2) with
+          (match (inferInstance : Decidable (‖(ρ : ℂ)‖ ≤ T + 2)) with
           | Or.inl hdisk =>
               Eq.subst
                 (motive := fun x : ℝ => 0 ≤ x)
@@ -260,11 +262,9 @@ with analytic multiplicities and centered vertical height. -/
 theorem centeredCompletedRiemannZeta_finiteOrder_zeroMultiplicityCounting_height_bound
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     ∃ C : ℝ, ∃ d : ℕ,
       0 < C ∧
@@ -275,20 +275,18 @@ theorem centeredCompletedRiemannZeta_finiteOrder_zeroMultiplicityCounting_height
     centeredCompletedRiemannZeta_zeroMultiplicityCounting_height_bound_of_uncenteredFiniteOrder
       (completedRiemannZeta₀_finiteOrder_growth_bound
         hbranch
-        hpartialOneTwo htailOneTwo hcompactOneTwo
+        hpartialOneTwo hcompactOneTwo
         hfinite
-        hpartialLeft htailBoundary hcompactBoundary)
+        hpartialLeft hcompactBoundary)
 
 /-- Coarse polynomial counting of completed zeros with multiplicity in centered
 height. -/
 theorem exists_completedZeroMultiplicityCounting_height_bound
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     ∃ C : ℝ, ∃ d : ℕ,
       0 < C ∧
@@ -297,9 +295,9 @@ theorem exists_completedZeroMultiplicityCounting_height_bound
         completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d := by
   exact centeredCompletedRiemannZeta_finiteOrder_zeroMultiplicityCounting_height_bound
     hbranch
-    hpartialOneTwo htailOneTwo hcompactOneTwo
+    hpartialOneTwo hcompactOneTwo
     hfinite
-    hpartialLeft htailBoundary hcompactBoundary
+    hpartialLeft hcompactBoundary
 
 
 end

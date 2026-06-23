@@ -40,6 +40,20 @@ structure ZetaPhiAnalyticControl (f : ZetaAdmissibleFunction) where
           z.re ≤ b →
           ‖zetaCompletedExplicitFormulaPhi f z‖
             ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))
+  /-- A concrete rapid-decay constant for `Φ_f` on each vertical strip. -/
+  vertical_strip_rapid_decay_constant : ℝ → ℝ → ℕ → ℝ
+  /-- The concrete vertical-strip rapid-decay constant is positive. -/
+  vertical_strip_rapid_decay_constant_pos :
+    ∀ (a b : ℝ) (N : ℕ),
+      0 < vertical_strip_rapid_decay_constant a b N
+  /-- The concrete vertical-strip rapid-decay constant bounds `Φ_f` on the strip. -/
+  vertical_strip_rapid_decay_constant_bound :
+    ∀ (a b : ℝ) (N : ℕ) (z : ℂ),
+      a ≤ z.re →
+      z.re ≤ b →
+      ‖zetaCompletedExplicitFormulaPhi f z‖
+        ≤ vertical_strip_rapid_decay_constant a b N *
+          (1 + ‖z.im‖) ^ (-(N : ℤ))
 
 /-- The analytic control package exposes pointwise differentiability. -/
 theorem ZetaPhiAnalyticControl.differentiableAt
@@ -66,20 +80,20 @@ theorem ZetaPhiAnalyticControl.verticalStripRapidDecay
           ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
   exact h.vertical_strip_rapid_decay a b N
 
-/-- The chosen rapid-decay constant for `Φ_f` on a vertical strip. -/
-noncomputable def ZetaPhiAnalyticControl.verticalStripRapidDecayConstant
+/-- The recorded rapid-decay constant for `Φ_f` on a vertical strip. -/
+def ZetaPhiAnalyticControl.verticalStripRapidDecayConstant
     {f : ZetaAdmissibleFunction} (h : ZetaPhiAnalyticControl f)
     (a b : ℝ) (N : ℕ) : ℝ :=
-  Classical.choose (h.verticalStripRapidDecay a b N)
+  h.vertical_strip_rapid_decay_constant a b N
 
-/-- The chosen vertical-strip rapid-decay constant is positive. -/
+/-- The recorded vertical-strip rapid-decay constant is positive. -/
 theorem ZetaPhiAnalyticControl.verticalStripRapidDecayConstant_pos
     {f : ZetaAdmissibleFunction} (h : ZetaPhiAnalyticControl f)
     (a b : ℝ) (N : ℕ) :
     0 < h.verticalStripRapidDecayConstant a b N := by
-  exact (Classical.choose_spec (h.verticalStripRapidDecay a b N)).1
+  exact h.vertical_strip_rapid_decay_constant_pos a b N
 
-/-- The chosen vertical-strip rapid-decay constant bounds `Φ_f` on the strip. -/
+/-- The recorded vertical-strip rapid-decay constant bounds `Φ_f` on the strip. -/
 theorem ZetaPhiAnalyticControl.verticalStripRapidDecayConstant_bound
     {f : ZetaAdmissibleFunction} (h : ZetaPhiAnalyticControl f)
     (a b : ℝ) (N : ℕ) (z : ℂ)
@@ -87,7 +101,7 @@ theorem ZetaPhiAnalyticControl.verticalStripRapidDecayConstant_bound
     ‖zetaCompletedExplicitFormulaPhi f z‖
       ≤ h.verticalStripRapidDecayConstant a b N *
         (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
-  exact (Classical.choose_spec (h.verticalStripRapidDecay a b N)).2 z ha hb
+  exact h.vertical_strip_rapid_decay_constant_bound a b N z ha hb
 
 /-- `Φ_f` is differentiable along the right contour edge whenever the control package is present. -/
 theorem ZetaPhiAnalyticControl.differentiableAt_rightPath
@@ -150,9 +164,11 @@ theorem ZetaPhiAnalyticControl.bottomPath_verticalStripBound
 transform. -/
 theorem zetaLaplaceTransform_entire_of_compactSupport
     (f : ZetaAdmissibleFunction) :
+    [∀ t : ℝ, Decidable (t ∈ tsupport f.toZetaTestFunction')] →
     AnalyticOn ℂ
       (fun z => Boundary.zetaLaplaceTransform f.toZetaTestFunction' z)
       Set.univ := by
+  intro _inst
   intro z _hz
   exact
     (Iff.mpr
@@ -164,9 +180,11 @@ theorem zetaLaplaceTransform_entire_of_compactSupport
 transform. -/
 theorem zetaPhi_entire_of_compactSupport
     (f : ZetaAdmissibleFunction) :
+    [∀ t : ℝ, Decidable (t ∈ tsupport f.toZetaTestFunction')] →
     AnalyticOn ℂ
       (fun z => zetaCompletedExplicitFormulaPhi f z)
       Set.univ := by
+  intro _inst
   have hbase :
       AnalyticOn ℂ
         (fun z => Boundary.zetaLaplaceTransform f.toZetaTestFunction' z)
@@ -185,9 +203,11 @@ theorem zetaPhi_entire_of_compactSupport
 Laplace transform at every spectral parameter. -/
 theorem zetaPhi_differentiableAt_of_compactSupport
     (f : ZetaAdmissibleFunction) (z : ℂ) :
+    [∀ t : ℝ, Decidable (t ∈ tsupport f.toZetaTestFunction')] →
     DifferentiableAt ℂ
       (fun z => zetaCompletedExplicitFormulaPhi f z)
       z := by
+  intro _inst
   have hbase :
       DifferentiableAt ℂ
         (fun z => Boundary.zetaLaplaceTransform f.toZetaTestFunction' z)
@@ -202,18 +222,42 @@ theorem zetaPhi_differentiableAt_of_compactSupport
     hphi.symm
     hbase
 
-/-- The admissible source has the completed transform control package. -/
-noncomputable def zetaPhiAnalyticControl_of_admissible
-    (f : ZetaAdmissibleFunction) :
-    ZetaPhiAnalyticControl f := by
-  exact
-    { entire_phi := zetaPhi_entire_of_compactSupport f
-      differentiableAt_phi := fun z => zetaPhi_differentiableAt_of_compactSupport f z
-      vertical_strip_rapid_decay :=
-        fun a b N => zetaPhi_verticalStripRapidDecay_of_admissible f a b N }
+/-- Build the completed transform control package from supplied concrete strip constants. -/
+def zetaPhiAnalyticControl_of_suppliedConstants
+    (f : ZetaAdmissibleFunction)
+    [∀ t : ℝ, Decidable (t ∈ tsupport f.toZetaTestFunction')]
+    (C : ℝ → ℝ → ℕ → ℝ)
+    (hCpos : ∀ (a b : ℝ) (N : ℕ), 0 < C a b N)
+    (hCbound :
+      ∀ (a b : ℝ) (N : ℕ) (z : ℂ),
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖zetaCompletedExplicitFormulaPhi f z‖
+          ≤ C a b N * (1 + ‖z.im‖) ^ (-(N : ℤ))) :
+    ZetaPhiAnalyticControl f :=
+  { entire_phi := zetaPhi_entire_of_compactSupport f
+    differentiableAt_phi := fun z => zetaPhi_differentiableAt_of_compactSupport f z
+    vertical_strip_rapid_decay :=
+      fun a b N => ⟨C a b N, hCpos a b N, hCbound a b N⟩
+    vertical_strip_rapid_decay_constant := C
+    vertical_strip_rapid_decay_constant_pos := hCpos
+    vertical_strip_rapid_decay_constant_bound := hCbound }
+
+/-- Owner gap: vertical-strip rapid decay of the completed transform.  This is the
+analytic integration-by-parts estimate for the compactly supported admissible source. -/
+theorem zetaPhi_verticalStripRapidDecay_ownerGap
+    (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖zetaCompletedExplicitFormulaPhi f z‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
+  exact zetaPhi_verticalStripRapidDecay_of_admissible f a b N
 
 /-- The transform package is the owner-level input for contour estimates. -/
-def ZetaPhiAnalyticControlPackage (f : ZetaAdmissibleFunction) : Prop :=
+def ZetaPhiAnalyticControlPackage (f : ZetaAdmissibleFunction) : Type :=
   ZetaPhiAnalyticControl f
 
 /-- The transform package is exactly the analytic control data. -/

@@ -42,10 +42,11 @@ theorem Real.arctan_le_self_of_nonneg
 `t = u / |y|`. -/
 theorem Real.norm_mul_arctan_div_norm_le_self_of_nonneg
     {u y : ℝ}
-    (hu : 0 ≤ u) :
+    (hu : 0 ≤ u)
+    [hy_norm_zero_dec : Decidable (‖y‖ = 0)] :
     ‖y‖ * Real.arctan (u / ‖y‖) ≤ u := by
-  match Decidable.em (‖y‖ = 0) with
-  | Or.inl hy_zero =>
+  match hy_norm_zero_dec with
+  | isTrue hy_zero =>
     have hleft_eq_zero :
         ‖y‖ * Real.arctan (u / ‖y‖) = 0 := by
       exact Eq.trans
@@ -54,7 +55,7 @@ theorem Real.norm_mul_arctan_div_norm_le_self_of_nonneg
     calc
       ‖y‖ * Real.arctan (u / ‖y‖) = 0 := hleft_eq_zero
       _ ≤ u := hu
-  | Or.inr hy_ne_zero =>
+  | isFalse hy_ne_zero =>
     have hy_pos : 0 < ‖y‖ :=
       lt_of_le_of_ne (norm_nonneg y) (Ne.symm hy_ne_zero)
     have hratio_nonneg : 0 ≤ u / ‖y‖ :=
@@ -76,12 +77,13 @@ written in the reciprocal arctangent form suited to the linear defect estimate. 
 theorem Complex.arg_fixedRealPartVerticalPoint_of_pos_im_eq_pi_div_two_sub_arctan
     {u y : ℝ}
     (hu : 0 ≤ u)
-    (hy : 0 < y) :
+    (hy : 0 < y)
+    [hu_zero_dec : Decidable (u = 0)] :
     Complex.arg (Complex.fixedRealPartVerticalPoint u y) =
       Real.pi / 2 - Real.arctan (u / y) := by
   let z : ℂ := Complex.fixedRealPartVerticalPoint u y
-  match Decidable.em (u = 0) with
-  | Or.inl hu_zero =>
+  match hu_zero_dec with
+  | isTrue hu_zero =>
     have hz_re_zero : z.re = 0 := by
       calc
         z.re = u := Complex.fixedRealPartVerticalPoint_re u y
@@ -104,7 +106,7 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_pos_im_eq_pi_div_two_sub_arcta
       _ = Real.pi / 2 - 0 := (sub_zero (Real.pi / 2)).symm
       _ = Real.pi / 2 - Real.arctan (u / y) := by
         exact congrArg (fun r : ℝ => Real.pi / 2 - r) hatan_zero.symm
-  | Or.inr hu_ne_zero =>
+  | isFalse hu_ne_zero =>
     have hu_pos : 0 < u :=
       lt_of_le_of_ne hu (Ne.symm hu_ne_zero)
     have hz_re_pos : 0 < z.re := by
@@ -166,12 +168,13 @@ written in the reciprocal arctangent form suited to the linear defect estimate. 
 theorem Complex.arg_fixedRealPartVerticalPoint_of_neg_im_eq_neg_pi_div_two_add_arctan
     {u y : ℝ}
     (hu : 0 ≤ u)
-    (hy : y < 0) :
+    (hy : y < 0)
+    [hu_zero_dec : Decidable (u = 0)] :
     Complex.arg (Complex.fixedRealPartVerticalPoint u y) =
       -(Real.pi / 2) + Real.arctan (u / ‖y‖) := by
   let z : ℂ := Complex.fixedRealPartVerticalPoint u y
-  match Decidable.em (u = 0) with
-  | Or.inl hu_zero =>
+  match hu_zero_dec with
+  | isTrue hu_zero =>
     have hz_re_zero : z.re = 0 := by
       calc
         z.re = u := Complex.fixedRealPartVerticalPoint_re u y
@@ -194,7 +197,7 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_neg_im_eq_neg_pi_div_two_add_a
       _ = -(Real.pi / 2) + 0 := (add_zero (-(Real.pi / 2))).symm
       _ = -(Real.pi / 2) + Real.arctan (u / ‖y‖) := by
         exact congrArg (fun r : ℝ => -(Real.pi / 2) + r) hatan_zero.symm
-  | Or.inr hu_ne_zero =>
+  | isFalse hu_ne_zero =>
     have hu_pos : 0 < u :=
       lt_of_le_of_ne hu (Ne.symm hu_ne_zero)
     have hy_norm_pos : 0 < ‖y‖ :=
@@ -902,37 +905,28 @@ theorem real_rpow_comparable_of_base_comparable_and_bounded_exponent
   have he_abs : |e| ≤ E :=
     real_abs_le_max_abs_of_mem_Icc hL hU
   have hlog_abs : |Real.log q| ≤ M := by
-    match Decidable.em (0 ≤ Real.log q) with
-    | Or.inl hlog_nonneg =>
-      have hlog_le_C : Real.log q ≤ Real.log C :=
-        Real.log_le_log hq_pos hq_upper
-      have hlog_abs_eq : |Real.log q| = Real.log q :=
-        abs_of_nonneg hlog_nonneg
-      have hC_le_abs : Real.log C ≤ |Real.log C| :=
-        le_abs_self (Real.log C)
+    have hlog_le_C : Real.log q ≤ Real.log C :=
+      Real.log_le_log hq_pos hq_upper
+    have hlog_c_le : Real.log c ≤ Real.log q :=
+      Real.log_le_log hc_pos hq_lower
+    have hupper : Real.log q ≤ M := by
       calc
-        |Real.log q| = Real.log q := hlog_abs_eq
-        _ ≤ Real.log C := hlog_le_C
-        _ ≤ |Real.log C| := hC_le_abs
+        Real.log q ≤ Real.log C := hlog_le_C
+        _ ≤ |Real.log C| := le_abs_self (Real.log C)
         _ ≤ |Real.log c| + |Real.log C| :=
           le_add_of_nonneg_left (abs_nonneg (Real.log c))
-    | Or.inr hlog_not_nonneg =>
-      have hlog_nonpos : Real.log q ≤ 0 :=
-        le_of_not_ge hlog_not_nonneg
-      have hlog_c_le : Real.log c ≤ Real.log q :=
-        Real.log_le_log hc_pos hq_lower
-      have hneg_le : -Real.log q ≤ -Real.log c :=
-        neg_le_neg hlog_c_le
-      have hneg_c_le_abs : -Real.log c ≤ |Real.log c| :=
-        neg_le_abs (Real.log c)
-      have hlog_abs_eq : |Real.log q| = -Real.log q :=
-        abs_of_nonpos hlog_nonpos
-      calc
-        |Real.log q| = -Real.log q := hlog_abs_eq
-        _ ≤ -Real.log c := hneg_le
-        _ ≤ |Real.log c| := hneg_c_le_abs
-        _ ≤ |Real.log c| + |Real.log C| :=
-          le_add_of_nonneg_right (abs_nonneg (Real.log C))
+    have hlower : -M ≤ Real.log q := by
+      have hneg_log_q_le : -Real.log q ≤ |Real.log c| := by
+        calc
+          -Real.log q ≤ -Real.log c := neg_le_neg hlog_c_le
+          _ ≤ |Real.log c| := neg_le_abs (Real.log c)
+      have hneg_log_q_le_M : -Real.log q ≤ M := by
+        calc
+          -Real.log q ≤ |Real.log c| := hneg_log_q_le
+          _ ≤ |Real.log c| + |Real.log C| :=
+            le_add_of_nonneg_right (abs_nonneg (Real.log C))
+      exact neg_le.mp hneg_log_q_le_M
+    exact abs_le.mpr ⟨hlower, hupper⟩
   have hmul_abs :
       |e * Real.log q| ≤ E * M := by
     calc

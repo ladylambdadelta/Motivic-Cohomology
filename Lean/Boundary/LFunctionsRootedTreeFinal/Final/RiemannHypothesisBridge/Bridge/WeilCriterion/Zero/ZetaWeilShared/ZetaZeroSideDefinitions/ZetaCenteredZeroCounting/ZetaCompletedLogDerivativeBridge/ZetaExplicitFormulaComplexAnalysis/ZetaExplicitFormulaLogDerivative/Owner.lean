@@ -4,6 +4,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Mathlib.Analysis.Calculus.LogDeriv
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.Analysis.SpecialFunctions.Gamma.Deligne
+import Mathlib.NumberTheory.LSeries.Dirichlet
 
 /-!
 # Boundary explicit-formula log derivative channel API
@@ -20,6 +21,9 @@ namespace LFunctions
 noncomputable section
 
 open Complex
+open LSeries ArithmeticFunction
+open scoped ArithmeticFunction
+open scoped LSeries.notation
 
 namespace ZetaAdmissibleFunction
 
@@ -75,6 +79,62 @@ theorem explicitFormulaPrimeLogDerivative_eq_neg_logDeriv_of_regular
     _ = zetaSideNegLogDeriv s := hbridge.symm
     _ = riemannZetaNegLogDeriv s := hside
     _ = -logDeriv riemannZeta s := hriemann
+
+/-- In the absolute-convergence half-plane, the prime logarithmic-derivative channel is the
+von Mangoldt Dirichlet series. -/
+theorem explicitFormulaPrimeLogDerivative_eq_vonMangoldt_LSeries_of_one_lt_re
+    (s : ℂ) (hs : (1 : ℝ) < s.re) :
+    explicitFormulaPrimeLogDerivative s = L ↗Λ s := by
+  have hs0 : s ≠ 0 := by
+    intro hzero
+    have hre : s.re = (0 : ℂ).re := congrArg Complex.re hzero
+    have hzero_re : (0 : ℂ).re = (0 : ℝ) := Complex.zero_re
+    have hbad : (1 : ℝ) < 0 :=
+      Eq.subst
+        (motive := fun x : ℝ => (1 : ℝ) < x)
+        (hre.trans hzero_re)
+        hs
+    exact (not_lt_of_ge zero_le_one) hbad
+  have hs1 : s ≠ 1 := by
+    intro hone
+    have hre : s.re = (1 : ℂ).re := congrArg Complex.re hone
+    have hone_re : (1 : ℂ).re = (1 : ℝ) := Complex.one_re
+    have hbad : (1 : ℝ) < 1 :=
+      Eq.subst
+        (motive := fun x : ℝ => (1 : ℝ) < x)
+        (hre.trans hone_re)
+        hs
+    exact (lt_irrefl (1 : ℝ)) hbad
+  have hΓ : Gammaℝ s ≠ 0 :=
+    Complex.Gammaℝ_ne_zero_of_re_pos
+      (lt_trans zero_lt_one hs)
+  have hζ : riemannZeta s ≠ 0 :=
+    riemannZeta_ne_zero_of_one_lt_re hs
+  have hΛcompleted : completedRiemannZeta s ≠ 0 := by
+    have hfactor :
+        completedRiemannZeta s = riemannZeta s * Gammaℝ s :=
+      zetaCompletedExplicitFormula_completed_factorization hs0 hΓ
+    have hproduct : riemannZeta s * Gammaℝ s ≠ 0 :=
+      mul_ne_zero hζ hΓ
+    intro hzero
+    exact hproduct (hfactor.symm.trans hzero)
+  have hprime :
+      explicitFormulaPrimeLogDerivative s = -logDeriv riemannZeta s :=
+    explicitFormulaPrimeLogDerivative_eq_neg_logDeriv_of_regular
+      s hs0 hs1 hΛcompleted hΓ
+  have hlog :
+      -logDeriv riemannZeta s =
+        -deriv riemannZeta s / riemannZeta s := by
+    calc
+      -logDeriv riemannZeta s =
+          -(deriv riemannZeta s / riemannZeta s) := by
+        exact congrArg Neg.neg (logDeriv_apply (f := riemannZeta) (x := s))
+      _ = -deriv riemannZeta s / riemannZeta s := by
+        exact (neg_div (riemannZeta s) (deriv riemannZeta s)).symm
+  have hseries :
+      L ↗Λ s = -deriv riemannZeta s / riemannZeta s :=
+    ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs
+  exact hprime.trans (hlog.trans hseries.symm)
 
 /-- The archimedean channel is normalized so that adding the pole-correction channel gives
 the inverse-Gamma correction from the completed-zeta factorization. -/

@@ -22,6 +22,14 @@ theorem Complex.exists_rightSemicircleStaircaseSafeRe_eq_graphRe_of_cell
     {ρ : ℝ}
     (hρ : 0 < ρ)
     (m k : ℕ)
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))]
+    [Decidable
+      (Complex.rightSemicircleGraphRe ρ
+          (Complex.rightSemicircleStaircaseY ρ m k) ≤
+        Complex.rightSemicircleGraphRe ρ
+          (Complex.rightSemicircleStaircaseY ρ m (k + 1)))]
     (_hk : k ∈ Finset.range (m + 1)) :
     ∃ yₛ ∈
         [[Complex.rightSemicircleStaircaseY ρ m k,
@@ -30,8 +38,8 @@ theorem Complex.exists_rightSemicircleStaircaseSafeRe_eq_graphRe_of_cell
         Complex.rightSemicircleGraphRe ρ yₛ :=
   let y₀ : ℝ := Complex.rightSemicircleStaircaseY ρ m k
   let y₁ : ℝ := Complex.rightSemicircleStaircaseY ρ m (k + 1)
-  match Classical.em (y₀ ≤ 0 ∧ 0 ≤ y₁) with
-  | Or.inl hcross =>
+  match (inferInstance : Decidable (y₀ ≤ 0 ∧ 0 ≤ y₁)) with
+  | isTrue hcross =>
       let hmem : (0 : ℝ) ∈ [[y₀, y₁]] :=
         (Set.mem_uIcc).mpr
           (Or.inl (And.intro hcross.1 hcross.2))
@@ -47,7 +55,7 @@ theorem Complex.exists_rightSemicircleStaircaseSafeRe_eq_graphRe_of_cell
           _ = Complex.rightSemicircleGraphRe ρ 0 :=
             Eq.symm hgraph_zero
       Exists.intro 0 (And.intro hmem hvalue)
-  | Or.inr hcross =>
+  | isFalse hcross =>
       let hsafe_eq :
           Complex.rightSemicircleStaircaseSafeRe ρ m k =
             max
@@ -55,10 +63,10 @@ theorem Complex.exists_rightSemicircleStaircaseSafeRe_eq_graphRe_of_cell
               (Complex.rightSemicircleGraphRe ρ y₁) :=
         Complex.rightSemicircleStaircaseSafeRe_eq_endpointMax_of_not_crossing
           ρ m k hcross
-      match Classical.em
+      match (inferInstance : Decidable
           (Complex.rightSemicircleGraphRe ρ y₀ ≤
-            Complex.rightSemicircleGraphRe ρ y₁) with
-      | Or.inl hmax =>
+            Complex.rightSemicircleGraphRe ρ y₁)) with
+      | isTrue hmax =>
           let hvalue :
               Complex.rightSemicircleStaircaseSafeRe ρ m k =
                 Complex.rightSemicircleGraphRe ρ y₁ :=
@@ -71,7 +79,7 @@ theorem Complex.exists_rightSemicircleStaircaseSafeRe_eq_graphRe_of_cell
               _ = Complex.rightSemicircleGraphRe ρ y₁ :=
                 max_eq_right hmax
           Exists.intro y₁ (And.intro Set.right_mem_uIcc hvalue)
-      | Or.inr hmax =>
+      | isFalse hmax =>
           let hvalue :
               Complex.rightSemicircleStaircaseSafeRe ρ m k =
                 Complex.rightSemicircleGraphRe ρ y₀ :=

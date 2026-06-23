@@ -604,21 +604,23 @@ cut behind the compact gluing induction. -/
 theorem finite_log_singularity_set_isolates_point_in_compact
     {a b c : ℝ}
     {S : Set ℝ}
+    [DecidableEq ℝ]
     (hS : S.Finite)
     (hcS : c ∈ S) :
     ∃ u v : ℝ,
       u < c ∧ c < v ∧
       (Set.Ioo u v ∩ S) ⊆ {c} := by
   let T : Finset ℝ := hS.toFinset.erase c
-  match Classical.decEq (Finset ℝ) T ∅ with
+  match (inferInstance : Decidable (T = ∅)) with
   | isTrue hT =>
       have hsubset :
           (Set.Ioo (c - 1) (c + 1) ∩ S) ⊆ {c} := by
         intro x hx
         have hxS : x ∈ S := hx.2
         exact Set.mem_singleton_iff.mpr
-          (Classical.byContradiction
-            (fun hxc =>
+          (match (inferInstance : Decidable (x = c)) with
+          | isTrue hxc => hxc
+          | isFalse hxc =>
               have hxT : x ∈ T := by
                 show x ∈ hS.toFinset.erase c
                 have hxT0 : x ≠ c := hxc
@@ -627,7 +629,7 @@ theorem finite_log_singularity_set_isolates_point_in_compact
                 exact Finset.mem_erase.2 ⟨hxT0, hxSin⟩
               have hxEmpty : x ∈ (∅ : Finset ℝ) := by
                 exact Eq.subst (motive := fun U : Finset ℝ => x ∈ U) hT hxT
-              False.elim (Finset.not_mem_empty x hxEmpty)))
+              False.elim (Finset.not_mem_empty x hxEmpty))
       exact ⟨c - 1, c + 1, sub_one_lt c, lt_add_one c, hsubset⟩
   | isFalse hT =>
       let D : Finset ℝ := T.image fun x => dist x c
@@ -655,8 +657,9 @@ theorem finite_log_singularity_set_isolates_point_in_compact
         intro x hx
         have hxS : x ∈ S := hx.2
         exact Set.mem_singleton_iff.mpr
-          (Classical.byContradiction
-            (fun hxc =>
+          (match (inferInstance : Decidable (x = c)) with
+          | isTrue hxc => hxc
+          | isFalse hxc =>
               have hxT : x ∈ T := by
                 show x ∈ hS.toFinset.erase c
                 have hxT0 : x ≠ c := hxc
@@ -690,7 +693,7 @@ theorem finite_log_singularity_set_isolates_point_in_compact
                 calc
                   dist x c = |x - c| := Real.dist_eq x c
                   _ < D.min' hD := habs
-              False.elim ((not_lt_of_ge hmin_le) hdist_lt)))
+              False.elim ((not_lt_of_ge hmin_le) hdist_lt))
       exact ⟨c - D.min' hD / 2, c + D.min' hD / 2, hleft, hright, hsubset⟩
 
 /-- A locally interval-integrable neighborhood gives integrability at the
@@ -767,6 +770,7 @@ theorem intervalIntegrable_of_finite_log_singularity_cover
     (f : ℝ → ℝ)
     (a b : ℝ)
     (S : Set ℝ)
+    [∀ x : ℝ, Decidable (x ∈ S)]
     (hab : a ≤ b)
     (hS : S.Finite)
     (hlocalInt :
@@ -780,7 +784,7 @@ theorem intervalIntegrable_of_finite_log_singularity_cover
       MeasureTheory.LocallyIntegrableOn
         f (Set.Icc a b) MeasureTheory.volume := by
     intro x hxIcc
-    match Classical.dec (x ∈ S) with
+    match (inferInstance : Decidable (x ∈ S)) with
     | isTrue hxS =>
         match hlocalInt x hxS with
         | ⟨u, v, hux, hxv, hfint⟩ =>
@@ -806,6 +810,7 @@ theorem intervalIntegrable_of_finite_log_singularities_on_compact_glue
     (f : ℝ → ℝ)
     (a b : ℝ)
     (S : Set ℝ)
+    [∀ x : ℝ, Decidable (x ∈ S)]
     (hab : a ≤ b)
     (hS : S.Finite)
     (hlocal :
@@ -843,6 +848,7 @@ theorem intervalIntegrable_of_finite_log_singularities_on_compact
     (f : ℝ → ℝ)
     (a b : ℝ)
     (S : Set ℝ)
+    [∀ x : ℝ, Decidable (x ∈ S)]
     (hab : a ≤ b)
     (hS : S.Finite)
     (hlocal :

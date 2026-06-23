@@ -13,6 +13,23 @@ namespace LFunctions
 
 noncomputable section
 
+attribute [local instance] Classical.propDecidable
+
+local instance entireFunctionZero_coe_eq_zero_decidable
+    (F : ℂ → ℂ) :
+    ∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0) :=
+  fun _z => Classical.propDecidable _
+
+local instance entireFunctionZero_norm_lt_decidable
+    (F : ℂ → ℂ) (ρ : ℝ) :
+    ∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ) :=
+  fun _z => Classical.propDecidable _
+
+local instance entireFunctionZero_norm_le_decidable
+    (F : ℂ → ℂ) (ρ : ℝ) :
+    ∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ ρ) :=
+  fun _z => Classical.propDecidable _
+
 open scoped Topology
 
 theorem entireFunction_unitCircle_boundaryZero_log_mean_zero_ownerRoot
@@ -310,11 +327,11 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
       (fun z =>
         Iff.intro
           (fun hz =>
-            match Classical.em (‖(z : ℂ)‖ < ρ) with
-            | Or.inl hzρ =>
+            match (inferInstance : Decidable (‖(z : ℂ)‖ < ρ)) with
+            | isTrue hzρ =>
                 Finset.mem_union.2
                   (Or.inl (Finset.mem_filter.2 ⟨hz, hzρ⟩))
-            | Or.inr hzρ =>
+            | isFalse hzρ =>
                 Finset.mem_union.2
                   (Or.inr (Finset.mem_filter.2 ⟨hz, hzρ⟩)))
           (fun hz =>
@@ -332,13 +349,17 @@ theorem entireFunctionJensenRadialGapSummand_ne_zero_of_ne_zero_norm_lt_ownerRoo
     (z : EntireFunctionZero F)
     (hz0 : (z : ℂ) ≠ 0)
     (hzρ : ‖(z : ℂ)‖ < ρ) :
-    entireFunctionJensenRadialGapSummand F hF ρ z ≠ 0 := by
+    @entireFunctionJensenRadialGapSummand F hF ρ
+        (entireFunctionZero_coe_eq_zero_decidable F)
+        (entireFunctionZero_norm_lt_decidable F ρ) z ≠ 0 := by
   have hvalue :
-      entireFunctionJensenRadialGapSummand F hF ρ z =
+      @entireFunctionJensenRadialGapSummand F hF ρ
+          (entireFunctionZero_coe_eq_zero_decidable F)
+          (entireFunctionZero_norm_lt_decidable F ρ) z =
         (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
           Real.log (ρ / ‖(z : ℂ)‖) :=
     entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFactor_radialContribution_identity
-      F hF ρ z hz0 hzρ
+      F hF ρ (z := z) hz0 hzρ
   have hmult_nat_ne :
       entireFunctionZeroMultiplicity F hF (z : ℂ) ≠ 0 :=
     entireFunctionZeroMultiplicity_ne_zero_of_zero_of_nontrivial
@@ -368,10 +389,14 @@ theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_eq_multiplicity_o
     (z : EntireFunctionZero F)
     (hz0 : (z : ℂ) ≠ 0)
     (hzρ : ‖(z : ℂ)‖ ≤ ρ) :
-    entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ z =
+    @entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ
+        (entireFunctionZero_coe_eq_zero_decidable F)
+        (entireFunctionZero_norm_le_decidable F ρ) z =
       (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) := by
   calc
-    entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ z =
+    @entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ
+        (entireFunctionZero_coe_eq_zero_decidable F)
+        (entireFunctionZero_norm_le_decidable F ρ) z =
         if (z : ℂ) = 0 then
           0
         else
@@ -412,7 +437,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorS
   have hsupport :
       z ∈ Function.support
         (fun w : EntireFunctionZero F =>
-          entireFunctionJensenRadialGapSummand F hF ρ w) :=
+          @entireFunctionJensenRadialGapSummand F hF ρ
+            (entireFunctionZero_coe_eq_zero_decidable F)
+            (entireFunctionZero_norm_lt_decidable F ρ) w) :=
     entireFunctionJensenRadialGapSummand_ne_zero_of_ne_zero_norm_lt_ownerRoot
       F hF hF0 ρ z hz0 hzρ
   exact
@@ -429,9 +456,13 @@ theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_ne_zero_of_ne_zer
     (z : EntireFunctionZero F)
     (hz0 : (z : ℂ) ≠ 0)
     (hzρ : ‖(z : ℂ)‖ ≤ ρ) :
-    entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ z ≠ 0 := by
+    @entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ
+        (entireFunctionZero_coe_eq_zero_decidable F)
+        (entireFunctionZero_norm_le_decidable F ρ) z ≠ 0 := by
   have hvalue :
-      entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ z =
+      @entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ
+          (entireFunctionZero_coe_eq_zero_decidable F)
+          (entireFunctionZero_norm_le_decidable F ρ) z =
         (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) :=
     entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_eq_multiplicity_of_ne_zero_norm_le_ownerRoot
       F hF ρ z hz0 hzρ
@@ -459,7 +490,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFin
           F hF hF0 ρ) :
     z ∈ Function.support
         (fun w : EntireFunctionZero F =>
-          entireFunctionJensenRadialGapSummand F hF ρ w) := by
+          @entireFunctionJensenRadialGapSummand F hF ρ
+            (entireFunctionZero_coe_eq_zero_decidable F)
+            (entireFunctionZero_norm_lt_decidable F ρ) w) := by
   exact
     (entireFunctionJensenRadialGapSummand_support_finite F hF hF0 ρ).mem_toFinset.1
       hz
@@ -480,13 +513,17 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFin
     have hsupport :
         z ∈ Function.support
           (fun w : EntireFunctionZero F =>
-            entireFunctionJensenRadialGapSummand F hF ρ w) :=
+            @entireFunctionJensenRadialGapSummand F hF ρ
+              (entireFunctionZero_coe_eq_zero_decidable F)
+              (entireFunctionZero_norm_lt_decidable F ρ) w) :=
       entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_support
         F hF hF0 ρ z hz
     have hzero :
-        entireFunctionJensenRadialGapSummand F hF ρ z = 0 :=
+        @entireFunctionJensenRadialGapSummand F hF ρ
+            (entireFunctionZero_coe_eq_zero_decidable F)
+            (entireFunctionZero_norm_lt_decidable F ρ) z = 0 :=
       entireFunction_standardJensenFormula_nonzeroAtOrigin_origin_radialContribution_eq_zero
-        F hF ρ z hz0
+        F hF ρ (z := z) hz0
     hsupport hzero
 
 /-- Every zero in the radial-gap support divisor lies strictly inside the
@@ -505,17 +542,23 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFin
   have hsupport :
       z ∈ Function.support
         (fun w : EntireFunctionZero F =>
-          entireFunctionJensenRadialGapSummand F hF ρ w) :=
+          @entireFunctionJensenRadialGapSummand F hF ρ
+            (entireFunctionZero_coe_eq_zero_decidable F)
+            (entireFunctionZero_norm_lt_decidable F ρ) w) :=
     entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_support
       F hF hF0 ρ z hz
   have hnot_not_lt : ¬ ¬ ‖(z : ℂ)‖ < ρ :=
     fun hzρ =>
       have hzero :
-          entireFunctionJensenRadialGapSummand F hF ρ z = 0 :=
+          @entireFunctionJensenRadialGapSummand F hF ρ
+              (entireFunctionZero_coe_eq_zero_decidable F)
+              (entireFunctionZero_norm_lt_decidable F ρ) z = 0 :=
         entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFactor_radialContribution_eq_zero_of_not_lt
-          F hF ρ z hzρ
+          F hF ρ (z := z) hzρ
       hsupport hzero
-  exact Classical.not_not.1 hnot_not_lt
+  match (inferInstance : Decidable (‖(z : ℂ)‖ < ρ)) with
+  | isTrue hzρ => exact hzρ
+  | isFalse hzρ => exact False.elim (hnot_not_lt hzρ)
 
 /-- A radial-gap support member is a closed-disk interior support member. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_subset_closedDiskInteriorSupportFiniteZeroDivisor
@@ -537,7 +580,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFin
   have hclosed_support :
       z ∈ Function.support
         (fun w : EntireFunctionZero F =>
-          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ w) := by
+          @entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ
+            (entireFunctionZero_coe_eq_zero_decidable F)
+            (entireFunctionZero_norm_le_decidable F ρ) w) := by
     have hzle : ‖(z : ℂ)‖ ≤ ρ :=
       le_of_lt hzρ
     exact
@@ -583,7 +628,10 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadial
     (s : Finset (EntireFunctionZero F)) :
     entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
         F hF ρ s =
-      ∑ z in s, entireFunctionJensenRadialGapSummand F hF ρ z := by
+      ∑ z in s,
+        @entireFunctionJensenRadialGapSummand F hF ρ
+          (entireFunctionZero_coe_eq_zero_decidable F)
+          (entireFunctionZero_norm_lt_decidable F ρ) z := by
   exact rfl
 
 /-- The radial-gap summand has the finite product divisor sum as its infinite
@@ -595,7 +643,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummand_ha
     (ρ : ℝ) :
     HasSum
       (fun z : EntireFunctionZero F =>
-        entireFunctionJensenRadialGapSummand F hF ρ z)
+        @entireFunctionJensenRadialGapSummand F hF ρ
+          (entireFunctionZero_coe_eq_zero_decidable F)
+          (entireFunctionZero_norm_lt_decidable F ρ) z)
       (entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
         F hF ρ
         (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
@@ -605,7 +655,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummand_ha
       F hF hF0 ρ
   let f : EntireFunctionZero F → ℝ :=
     fun z : EntireFunctionZero F =>
-      entireFunctionJensenRadialGapSummand F hF ρ z
+      @entireFunctionJensenRadialGapSummand F hF ρ
+        (entireFunctionZero_coe_eq_zero_decidable F)
+        (entireFunctionZero_norm_lt_decidable F ρ) z
   have hsum_def :
       entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
           F hF ρ s =
@@ -641,7 +693,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSum_eq_sup
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
     (ρ : ℝ) :
-    entireFunctionJensenRadialGapSum F hF ρ =
+    @entireFunctionJensenRadialGapSum F hF ρ
+        (entireFunctionZero_coe_eq_zero_decidable F)
+        (entireFunctionZero_norm_lt_decidable F ρ) =
       entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
         F hF ρ
         (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor

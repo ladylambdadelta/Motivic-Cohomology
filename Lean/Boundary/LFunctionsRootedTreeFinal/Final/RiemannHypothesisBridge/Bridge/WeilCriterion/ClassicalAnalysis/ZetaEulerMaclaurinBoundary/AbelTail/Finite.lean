@@ -171,7 +171,7 @@ theorem Complex.boundaryLineOnePointRealParam_reciprocalWeightedTail_bound_of_ph
             have hle : (38 : ℝ) ≤ 74 := by
               exact Nat.cast_le.mpr Nat.thirty_eight_le_seventy_four_for_abelTail
             exact mul_le_mul_of_nonneg_right hle hlog_nonneg
-          match Decidable.em (M ≤ C) with
+          match (inferInstance : Decidable (M ≤ C)) with
           | Or.inl hMcut =>
               have hpre :
                   ‖∑ n ∈ Finset.Ioc N M, f n‖ ≤
@@ -182,7 +182,7 @@ theorem Complex.boundaryLineOnePointRealParam_reciprocalWeightedTail_bound_of_ph
           | Or.inr hMcut =>
               have hC_le_M : C ≤ M :=
                 Nat.le_of_not_ge hMcut
-              match Decidable.em (C ≤ N) with
+              match (inferInstance : Decidable (C ≤ N)) with
               | Or.inl hC_le_N =>
                   have hsplit :
                       (∑ n ∈ Finset.Ioc N M, f n) =

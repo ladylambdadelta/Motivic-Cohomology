@@ -255,7 +255,7 @@ record the actual Abel endpoint and reciprocal-derivative contribution rather
 than hiding it behind a false unit-bound surface. -/
 noncomputable def boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant
     (t : ℝ) : ℝ :=
-  4 + 16 * Real.log (3 + ‖t‖)
+  5 + 16 * Real.log (3 + ‖t‖)
 
 /-- Exponent normal form for the boundary-line finite-tail summand. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhase_tail_exponent_eq

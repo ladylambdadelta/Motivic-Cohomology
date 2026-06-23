@@ -58,6 +58,14 @@ theorem Complex.fixedRealPartVerticalPoint_im
       exact Complex.mul_I_im (b : ℂ)
     _ = b := zero_add b
 
+/-- A complex number is its fixed-real-part vertical point. -/
+theorem Complex.fixedRealPartVerticalPoint_re_im
+    (z : ℂ) :
+    Complex.fixedRealPartVerticalPoint z.re z.im = z := by
+  exact Complex.ext
+    (Complex.fixedRealPartVerticalPoint_re z.re z.im)
+    (Complex.fixedRealPartVerticalPoint_im z.re z.im)
+
 /-- The direct fixed-real-part vertical Stirling envelope. -/
 def Complex.fixedRealPartVerticalStirlingEnvelope (a b : ℝ) : ℝ :=
   Real.exp (-(Real.pi / 2) * ‖b‖) * (1 + ‖b‖) ^ (a - 1 / 2)
@@ -215,7 +223,6 @@ theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane :
         0 < w.re →
         Complex.closedRightHalfPlaneSector w →
         R ≤ ‖w‖ →
-        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
         (∀ x : ℝ,
           0 < x →
             ∀ N : ℕ,
@@ -246,8 +253,8 @@ theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane :
   | ⟨R, K, hR, hK, hbound⟩ =>
     exact
       ⟨R, K, hR, hK,
-        fun w hw_re_pos _hw_sector hw_norm hgamma_slit_open hfinite_real hfinite_open =>
-          hbound w hw_re_pos hw_norm hgamma_slit_open hfinite_real hfinite_open⟩
+        fun w hw_re_pos _hw_sector hw_norm hfinite_real hfinite_open =>
+          hbound w hw_re_pos hw_norm hfinite_real hfinite_open⟩
 
 /-- Classical sectorial Stirling estimate for the normalized Gamma factor on
 the closed right half-plane.
@@ -262,7 +269,6 @@ theorem Complex.classical_sectorialStirling_normalizedGamma_closedRightHalfPlane
         0 < w.re →
         Complex.closedRightHalfPlaneSector w →
         R ≤ ‖w‖ →
-        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
         (∀ x : ℝ,
           0 < x →
             ∀ N : ℕ,
@@ -303,7 +309,6 @@ theorem Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane :
         0 < w.re →
         Complex.closedRightHalfPlaneSector w →
         R ≤ ‖w‖ →
-        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
         (∀ x : ℝ,
           0 < x →
             ∀ N : ℕ,
@@ -2545,7 +2550,6 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_of_exponenti
           0 < w.re →
           Complex.closedRightHalfPlaneSector w →
           R ≤ ‖w‖ →
-          (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
           (∀ x : ℝ,
             0 < x →
               ∀ N : ℕ,
@@ -2575,7 +2579,6 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_of_exponenti
         0 < w.re →
         Complex.closedRightHalfPlaneSector w →
         (1 / 2 : ℝ) ≤ ‖w‖ →
-        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
         (∀ x : ℝ,
           0 < x →
             ∀ N : ℕ,
@@ -2611,7 +2614,6 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_of_exponenti
         Complex.closedRightHalfPlaneSector w →
         R₀ ≤ ‖w‖ →
         0 < w.re →
-        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
         (∀ x : ℝ,
           0 < x →
             ∀ N : ℕ,
@@ -2649,11 +2651,11 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_of_exponenti
       let hK_div_le : K / ‖w‖ ≤ Real.sqrt (2 * Real.pi) :=
         real_stirlingError_div_norm_le_sqrt_two_pi_of_cutoff
           K ‖w‖ hK_pos hw_norm_pos hw_cutoff
-      fun hw_re_pos hgamma_slit_open hfinite_real hfinite_open =>
+      fun hw_re_pos hfinite_real hfinite_open =>
         Complex.normalizedGammaFactor_norm_le_two_sqrt_two_pi_of_pointwise_exponentialStirling_error
           K w
           (hStirling_pointwise w hw_re_pos hw_sector hw_R
-            hgamma_slit_open hfinite_real hfinite_open)
+            hfinite_real hfinite_open)
           hK_div_le
   let hB_pos : 0 < 2 * Real.sqrt (2 * Real.pi) :=
     mul_pos two_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
@@ -2667,7 +2669,7 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_of_exponenti
   | ⟨Clarge, hClarge_pos, hloss⟩, ⟨Cannulus, _hCannulus_pos, hannulus_bound⟩ =>
     ⟨max Clarge Cannulus,
       lt_of_lt_of_le hClarge_pos (le_max_left Clarge Cannulus),
-      fun w hw_re_pos hw_sector hw_norm hgamma_slit_open hfinite_real hfinite_open =>
+      fun w hw_re_pos hw_sector hw_norm hfinite_real hfinite_open =>
         let htwo_norm_nonneg : 0 ≤ 2 * ‖w‖ :=
           mul_nonneg zero_le_two (norm_nonneg w)
         let hH_nonneg : 0 ≤ 1 + 2 * ‖w‖ :=
@@ -2687,7 +2689,7 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_of_exponenti
           let hfactor_bound :
               ‖Complex.normalizedGammaStirlingFactor w‖ ≤ B :=
             hfactor w hw_sector hlarge_radius hw_re_pos
-              hgamma_slit_open hfinite_real hfinite_open
+              hfinite_real hfinite_open
           let hfactor_log :
               Real.log ‖Complex.normalizedGammaStirlingFactor w‖ ≤ Real.log B :=
             Complex.normalizedGammaStirlingFactor_log_le_of_norm_bound
@@ -2752,7 +2754,6 @@ theorem Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane_of_asympt
           0 < w.re →
           Complex.closedRightHalfPlaneSector w →
           R ≤ ‖w‖ →
-          (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
           (∀ x : ℝ,
             0 < x →
               ∀ N : ℕ,
@@ -2782,7 +2783,6 @@ theorem Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane_of_asympt
         0 < w.re →
         Complex.closedRightHalfPlaneSector w →
         (1 / 2 : ℝ) ≤ ‖w‖ →
-        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
         (∀ x : ℝ,
           0 < x →
             ∀ N : ℕ,
@@ -2824,7 +2824,6 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expans
         0 < w.re →
         Complex.closedRightHalfPlaneSector w →
         R ≤ ‖w‖ →
-        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
         (∀ x : ℝ,
           0 < x →
             ∀ N : ℕ,
@@ -2863,7 +2862,6 @@ theorem Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane :
         0 < w.re →
         Complex.closedRightHalfPlaneSector w →
         (1 / 2 : ℝ) ≤ ‖w‖ →
-        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
         (∀ x : ℝ,
           0 < x →
             ∀ N : ℕ,

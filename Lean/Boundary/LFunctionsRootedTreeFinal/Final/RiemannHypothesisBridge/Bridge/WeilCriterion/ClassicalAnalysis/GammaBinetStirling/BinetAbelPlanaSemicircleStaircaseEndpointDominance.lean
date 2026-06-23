@@ -82,6 +82,9 @@ theorem Complex.rightSemicircleStaircaseSafeRe_ge_left_endpoint_graph
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
     (m k : ℕ)
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))]
     (hk : k ∈ Finset.range (m + 1)) :
     Complex.rightSemicircleGraphRe ρ
         (Complex.rightSemicircleStaircaseY ρ m k) ≤
@@ -89,11 +92,11 @@ theorem Complex.rightSemicircleStaircaseSafeRe_ge_left_endpoint_graph
   let hcrossProp :=
       Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
         0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1)
-  match Classical.em hcrossProp with
-  | Or.inl hcross =>
+  match (inferInstance : Decidable hcrossProp) with
+  | isTrue hcross =>
       Complex.rightSemicircleStaircaseSafeRe_ge_left_endpoint_graph_of_crossing
         hρ m k hk hcross
-  | Or.inr hcross =>
+  | isFalse hcross =>
       Complex.rightSemicircleStaircaseSafeRe_ge_left_endpoint_graph_of_not_crossing
         ρ m k hcross
 

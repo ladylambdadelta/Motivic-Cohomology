@@ -35,7 +35,7 @@ starting at the canonical cutoff. -/
 theorem concreteReciprocalVariation_density_bound_on_cutoff_interval
     (t : ℝ)
     {M : ℕ}
-    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    (_hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
       ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
         (1 : ℝ) / x ^ 2 := by
@@ -79,7 +79,7 @@ theorem concreteReciprocalVariation_logarithmicPhase_integral_norm_le_scalar_maj
 reciprocal derivative density has been identified. -/
 theorem concreteReciprocalVariation_logarithmicPhase_integral_bound_of_density
     (t : ℝ)
-    (ht : 1 ≤ ‖t‖)
+    (_ht : 1 ≤ ‖t‖)
     (hpartial :
       ∀ {x : ℝ},
         (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
@@ -115,11 +115,11 @@ theorem concreteReciprocalVariation_logarithmicPhase_integral_bound
         (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
           ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
             8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
-    (hreciprocal_deriv :
+    (_hreciprocal_deriv :
       ∀ {u : ℝ}, 0 < u →
         deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) u =
           (-(1 : ℂ) / (u : ℂ) ^ 2))
-    (hreciprocal_deriv_norm :
+    (_hreciprocal_deriv_norm :
       ∀ {u : ℝ}, 0 < u →
         ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) u‖ =
           (1 : ℝ) / u ^ 2)

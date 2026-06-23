@@ -668,32 +668,36 @@ theorem CompletedPrimeContourTransportScheduledFamily.toScheduledContourFamily_h
 contour-transport family, using supplied scheduled contour data. -/
 noncomputable def completedPrimeContourTransportFamilyAnalyticPackage
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     ExplicitFormulaFamilyAnalyticPackage
       (convolutionAutocorrelation f)
       completedPrimeContourTransportFamily :=
-  { phi_control := zetaPhiAnalyticControl_of_admissible (convolutionAutocorrelation f)
-    logderiv_control :=
-      completedZetaNegLogDerivControl_of_admissible (convolutionAutocorrelation f)
+  { phi_control := hPhi
+    logderiv_control := hLog
     height_schedule := S.height_schedule }
 
 /-- The prime contour-transport package has the supplied cofinal height schedule as its
 schedule field. -/
 theorem completedPrimeContourTransportFamilyAnalyticPackage_height_schedule
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
-    (completedPrimeContourTransportFamilyAnalyticPackage S f).height_schedule =
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
+    (completedPrimeContourTransportFamilyAnalyticPackage S f hPhi hLog).height_schedule =
       S.height_schedule := by
   rfl
 
 /-- The prime contour-transport package is the scheduled-contour-family analytic package
-for the scheduled prime transport object. -/
-theorem completedPrimeContourTransportFamilyAnalyticPackage_eq_scheduledContourFamilyPackage
+for the scheduled prime transport object when the same analytic controls are supplied. -/
+theorem completedPrimeContourTransportFamilyAnalyticPackage_eq_scheduledContourFamilyPackage_of_controls
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
-    completedPrimeContourTransportFamilyAnalyticPackage S f =
-      explicitFormulaFamilyAnalyticPackage_of_scheduledContourFamily
-        (convolutionAutocorrelation f)
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
+    completedPrimeContourTransportFamilyAnalyticPackage S f hPhi hLog =
+      explicitFormulaFamilyAnalyticPackage_of_scheduledContourFamily hPhi hLog
         S.toScheduledContourFamily := by
   rfl
 
@@ -791,7 +795,9 @@ theorem finitePrimeHorizontalResidueShadow_tendsto_zero_of_package
 contour-transport data. -/
 theorem finitePrimeHorizontalResidueShadow_tendsto_zero_ownerTailEstimate
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ => finitePrimeHorizontalResidueShadow N f)
       atTop
@@ -799,7 +805,7 @@ theorem finitePrimeHorizontalResidueShadow_tendsto_zero_ownerTailEstimate
   exact
     finitePrimeHorizontalResidueShadow_tendsto_zero_of_package
       f
-      (completedPrimeContourTransportFamilyAnalyticPackage S f)
+      (completedPrimeContourTransportFamilyAnalyticPackage S f hPhi hLog)
       S.horizontal_excisedStrip
       S.horizontal_top_mem
       S.horizontal_bottom_mem
@@ -812,7 +818,9 @@ owned at the coordinate-remainder-window level, before box support bookkeeping o
 packaging. -/
 theorem finitePrimeHorizontalResidueCoordinateRemainderWindow_sub_residueShadow_tendsto_zero_ownerTailEstimate
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ =>
         finitePrimeContourTransportCoordinateRemainderWindow N f -
@@ -837,6 +845,8 @@ theorem finitePrimeHorizontalResidueCoordinateRemainderWindow_sub_residueShadow_
       finitePrimeHorizontalResidueShadow_tendsto_zero_ownerTailEstimate
         S
         f
+        hPhi
+        hLog
   have hsub :
       Tendsto
         (fun N : ℕ =>
@@ -916,7 +926,9 @@ support reduction, the only omitted term is the boxed coordinate-shadow remainde
 the horizontal residue shadow. -/
 theorem finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_norm_tendsto_zero_ownerTailEstimate
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ => ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainder N f‖)
       atTop
@@ -931,6 +943,8 @@ theorem finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_norm_tendsto_ze
     finitePrimeHorizontalResidueCoordinateRemainderWindow_sub_residueShadow_tendsto_zero_ownerTailEstimate
       S
       f
+      hPhi
+      hLog
   have hnorm :
       Tendsto
         (fun N : ℕ =>

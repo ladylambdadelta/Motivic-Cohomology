@@ -70,6 +70,8 @@ noncomputable def entireFunctionJensenRadialGapSummand
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (z : EntireFunctionZero F) : ℝ :=
   if hz₀ : (z : ℂ) = 0 then
     0
@@ -83,7 +85,9 @@ noncomputable def entireFunctionJensenRadialGapSummand
 noncomputable def entireFunctionJensenRadialGapSum
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (ρ : ℝ) : ℝ :=
+    (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)] : ℝ :=
   ∑' z : EntireFunctionZero F,
     entireFunctionJensenRadialGapSummand F hF ρ z
 
@@ -95,6 +99,8 @@ noncomputable def entireFunctionNonzeroZeroMultiplicityClosedDiskSummand
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (R : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
     (z : EntireFunctionZero F) : ℝ :=
   if (z : ℂ) = 0 then
     0
@@ -110,6 +116,8 @@ noncomputable def entireFunctionOriginZeroMultiplicityClosedDiskSummand
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (R : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
     (z : EntireFunctionZero F) : ℝ :=
   if (z : ℂ) = 0 then
     entireFunctionZeroMultiplicityClosedDiskSummand F hF R z
@@ -122,6 +130,8 @@ theorem entireFunctionOriginZeroMultiplicityClosedDiskSummand_tsum_eq
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {R : ℝ}
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
     {z₀ : EntireFunctionZero F}
     (hz₀ : (z₀ : ℂ) = 0) :
     (∑' z : EntireFunctionZero F,
@@ -144,7 +154,7 @@ theorem entireFunctionOriginZeroMultiplicityClosedDiskSummand_tsum_eq
           entireFunctionZeroMultiplicityClosedDiskSummand F hF R z₀
         else
           0
-    match Classical.dec ((z : ℂ) = 0) with
+    match (inferInstance : Decidable ((z : ℂ) = 0)) with
     | isTrue hz_origin =>
         have hz_eq : z = z₀ := by
           exact Subtype.ext (Eq.trans hz_origin hz₀.symm)
@@ -195,6 +205,8 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummand_eq_nonzero_add_origin
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (R : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
     (z : EntireFunctionZero F) :
     entireFunctionZeroMultiplicityClosedDiskSummand F hF R z =
       entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z +
@@ -209,7 +221,7 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummand_eq_nonzero_add_origin
         entireFunctionZeroMultiplicityClosedDiskSummand F hF R z
       else
         0)
-  match Classical.dec ((z : ℂ) = 0) with
+  match (inferInstance : Decidable ((z : ℂ) = 0)) with
   | isTrue hz₀ =>
       have hnonzero :
           (if (z : ℂ) = 0 then

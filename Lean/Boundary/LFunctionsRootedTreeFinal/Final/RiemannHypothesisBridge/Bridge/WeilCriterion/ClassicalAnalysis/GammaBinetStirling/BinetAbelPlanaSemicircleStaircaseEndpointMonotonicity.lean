@@ -170,6 +170,9 @@ theorem Complex.rightSemicircleStaircaseSafeRe_eq_right_endpoint_of_upper_nonpos
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
     (m k : ℕ)
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))]
     (hupper :
       Complex.rightSemicircleStaircaseY ρ m (k + 1) ≤ 0) :
     Complex.rightSemicircleStaircaseSafeRe ρ m k =
@@ -178,11 +181,11 @@ theorem Complex.rightSemicircleStaircaseSafeRe_eq_right_endpoint_of_upper_nonpos
   let hcrossProp :=
       Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
         0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1)
-  match Classical.em hcrossProp with
-  | Or.inl hcross =>
+  match (inferInstance : Decidable hcrossProp) with
+  | isTrue hcross =>
       Complex.rightSemicircleStaircaseSafeRe_eq_right_endpoint_of_upper_nonpos_of_crossing
         hρ m k hupper hcross
-  | Or.inr hcross =>
+  | isFalse hcross =>
       Complex.rightSemicircleStaircaseSafeRe_eq_right_endpoint_of_upper_nonpos_of_not_crossing
         hρ m k hupper hcross
 
@@ -264,6 +267,9 @@ theorem Complex.rightSemicircleStaircaseSafeRe_eq_left_endpoint_of_lower_nonneg
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
     (m k : ℕ)
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))]
     (hlower :
       0 ≤ Complex.rightSemicircleStaircaseY ρ m k) :
     Complex.rightSemicircleStaircaseSafeRe ρ m k =
@@ -272,11 +278,11 @@ theorem Complex.rightSemicircleStaircaseSafeRe_eq_left_endpoint_of_lower_nonneg
   let hcrossProp :=
       Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
         0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1)
-  match Classical.em hcrossProp with
-  | Or.inl hcross =>
+  match (inferInstance : Decidable hcrossProp) with
+  | isTrue hcross =>
       Complex.rightSemicircleStaircaseSafeRe_eq_left_endpoint_of_lower_nonneg_of_crossing
         hρ m k hlower hcross
-  | Or.inr hcross =>
+  | isFalse hcross =>
       Complex.rightSemicircleStaircaseSafeRe_eq_left_endpoint_of_lower_nonneg_of_not_crossing
         hρ m k hlower hcross
 
@@ -285,7 +291,10 @@ height cell containing the midpoint height `0`. -/
 theorem Complex.rightSemicircleStaircaseSafeRe_monotone_prefix_midpoint
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
-    (m : ℕ) :
+    (m : ℕ)
+    [∀ k : ℕ, Decidable
+      (Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))] :
     ∀ k : ℕ, k < (m + 1) / 2 →
       Complex.rightSemicircleStaircaseSafeRe ρ m k ≤
         Complex.rightSemicircleStaircaseSafeRe ρ m (k + 1) := by
@@ -324,16 +333,17 @@ then the lower endpoint is nonnegative. -/
 theorem Complex.rightSemicircleStaircaseY_nonneg_of_not_crossing_of_succ_nonneg
     {ρ : ℝ}
     {m k : ℕ}
+    [Decidable (Complex.rightSemicircleStaircaseY ρ m k ≤ 0)]
     (hy_succ_nonneg :
       0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))
     (hcross :
       ¬ (Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
         0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))) :
     0 ≤ Complex.rightSemicircleStaircaseY ρ m k :=
-  match Classical.em (Complex.rightSemicircleStaircaseY ρ m k ≤ 0) with
-  | Or.inl hy_nonpos =>
+  match (inferInstance : Decidable (Complex.rightSemicircleStaircaseY ρ m k ≤ 0)) with
+  | isTrue hy_nonpos =>
       False.elim (hcross (And.intro hy_nonpos hy_succ_nonneg))
-  | Or.inr hy_not_nonpos =>
+  | isFalse hy_not_nonpos =>
       le_of_not_ge hy_not_nonpos
 
 /-- Crossing branch for the antitone suffix of the safe staircase coordinate. -/
@@ -365,6 +375,13 @@ theorem Complex.rightSemicircleStaircaseSafeRe_antitone_suffix_midpoint_of_not_c
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
     (m k : ℕ)
+    [Decidable (Complex.rightSemicircleStaircaseY ρ m k ≤ 0)]
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))]
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m (k + 1) ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 2))]
     (hy_succ_nonneg :
       0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))
     (hcross :
@@ -423,7 +440,11 @@ height cell containing the midpoint height `0`. -/
 theorem Complex.rightSemicircleStaircaseSafeRe_antitone_suffix_midpoint
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
-    (m : ℕ) :
+    (m : ℕ)
+    [∀ k : ℕ, Decidable
+      (Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))]
+    [∀ k : ℕ, Decidable (Complex.rightSemicircleStaircaseY ρ m k ≤ 0)] :
     ∀ k : ℕ, (m + 1) / 2 ≤ k → k < m →
       Complex.rightSemicircleStaircaseSafeRe ρ m (k + 1) ≤
         Complex.rightSemicircleStaircaseSafeRe ρ m k :=
@@ -435,11 +456,11 @@ theorem Complex.rightSemicircleStaircaseSafeRe_antitone_suffix_midpoint
   let hcrossProp :=
       Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
         0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1)
-  match Classical.em hcrossProp with
-  | Or.inl hcross =>
+  match (inferInstance : Decidable hcrossProp) with
+  | isTrue hcross =>
       Complex.rightSemicircleStaircaseSafeRe_antitone_suffix_midpoint_of_crossing
         hρ hkm hcross
-  | Or.inr hcross =>
+  | isFalse hcross =>
       Complex.rightSemicircleStaircaseSafeRe_antitone_suffix_midpoint_of_not_crossing
         hρ m k hy_succ_nonneg hcross
 

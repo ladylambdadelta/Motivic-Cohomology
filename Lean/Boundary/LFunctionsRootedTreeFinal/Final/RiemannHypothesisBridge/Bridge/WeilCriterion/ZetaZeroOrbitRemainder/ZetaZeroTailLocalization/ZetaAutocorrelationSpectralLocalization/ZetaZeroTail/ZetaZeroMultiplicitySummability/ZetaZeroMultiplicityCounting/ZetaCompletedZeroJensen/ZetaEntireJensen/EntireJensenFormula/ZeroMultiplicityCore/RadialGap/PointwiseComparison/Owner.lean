@@ -23,6 +23,7 @@ theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_eq_zero_of_eq_zer
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {R : ℝ}
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
     (z : EntireFunctionZero F)
     (hz₀ : (z : ℂ) = 0) :
     entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z = 0 := by
@@ -37,6 +38,8 @@ theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_eq_closedDisk_of_
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {R : ℝ}
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
     (z : EntireFunctionZero F)
     (hz₀ : (z : ℂ) ≠ 0)
     (hz_disk : ‖(z : ℂ)‖ ≤ R) :
@@ -70,6 +73,8 @@ theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_eq_zero_of_not_cl
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {R : ℝ}
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
     (z : EntireFunctionZero F)
     (hz₀ : (z : ℂ) ≠ 0)
     (hz_disk : ¬ ‖(z : ℂ)‖ ≤ R) :
@@ -99,19 +104,21 @@ theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_support_subset_cl
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {R : ℝ}
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
     (z : EntireFunctionZero F)
     (hz :
       entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z ≠ 0) :
     ‖(z : ℂ)‖ ≤ R := by
-  match Decidable.em ((z : ℂ) = 0) with
-  | Or.inl hz₀ =>
+  match (inferInstance : Decidable ((z : ℂ) = 0)) with
+  | isTrue hz₀ =>
       exact False.elim
         (hz (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_eq_zero_of_eq_zero
           F hF z hz₀))
-  | Or.inr hz₀_ne =>
-      match Decidable.em (‖(z : ℂ)‖ ≤ R) with
-      | Or.inl hclosed => exact hclosed
-      | Or.inr hnot =>
+  | isFalse hz₀_ne =>
+      match (inferInstance : Decidable (‖(z : ℂ)‖ ≤ R)) with
+      | isTrue hclosed => exact hclosed
+      | isFalse hnot =>
           exact False.elim
             (hz
               (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_eq_zero_of_not_closedDisk
@@ -121,12 +128,14 @@ theorem entireFunctionJensenRadialGapSummand_support_subset_closedDisk
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {ρ : ℝ}
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (z : EntireFunctionZero F)
     (hz :
       entireFunctionJensenRadialGapSummand F hF ρ z ≠ 0) :
     ‖(z : ℂ)‖ < ρ := by
-  match Decidable.em ((z : ℂ) = 0) with
-  | Or.inl hz₀ =>
+  match (inferInstance : Decidable ((z : ℂ) = 0)) with
+  | isTrue hz₀ =>
       exact False.elim
         (hz (by
           change (if h : (z : ℂ) = 0 then 0 else
@@ -136,10 +145,10 @@ theorem entireFunctionJensenRadialGapSummand_support_subset_closedDisk
             else
               0) = 0
           exact dif_pos hz₀))
-  | Or.inr hz₀_ne =>
-      match Decidable.em (‖(z : ℂ)‖ < ρ) with
-      | Or.inl hlt => exact hlt
-      | Or.inr hnot =>
+  | isFalse hz₀_ne =>
+      match (inferInstance : Decidable (‖(z : ℂ)‖ < ρ)) with
+      | isTrue hlt => exact hlt
+      | isFalse hnot =>
           exact False.elim
             (hz (by
               change (if h : (z : ℂ) = 0 then 0 else
@@ -155,6 +164,8 @@ theorem entireFunctionJensenRadialGapSummand_eq_zero_of_zero
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {ρ : ℝ}
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (z : EntireFunctionZero F)
     (hz₀ : (z : ℂ) = 0) :
     entireFunctionJensenRadialGapSummand F hF ρ z = 0 := by
@@ -170,6 +181,8 @@ theorem entireFunctionJensenRadialGapSummand_support_subset_nonzeroClosedDisk
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {ρ : ℝ}
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (z : EntireFunctionZero F)
     (hz :
       entireFunctionJensenRadialGapSummand F hF ρ z ≠ 0) :
@@ -184,6 +197,8 @@ theorem entireFunctionJensenRadialGapSummand_eq_mul_log_of_lt
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {ρ : ℝ}
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (z : EntireFunctionZero F)
     (hz₀ : (z : ℂ) ≠ 0)
     (hzlt : ‖(z : ℂ)‖ < ρ) :
@@ -204,6 +219,8 @@ theorem entireFunctionJensenRadialGapSummand_eq_zero_of_not_lt
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {ρ : ℝ}
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (z : EntireFunctionZero F)
     (hz₀ : (z : ℂ) ≠ 0)
     (hznot : ¬ ‖(z : ℂ)‖ < ρ) :
@@ -220,12 +237,15 @@ theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_mul_log_two_le_ra
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {R : ℝ}
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < 2 * R)]
     (hR : 1 ≤ R)
     (z : EntireFunctionZero F) :
     entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z * Real.log 2 ≤
       entireFunctionJensenRadialGapSummand F hF (2 * R) z := by
-  match Decidable.em ((z : ℂ) = 0) with
-  | Or.inl hz₀ =>
+  match (inferInstance : Decidable ((z : ℂ) = 0)) with
+  | isTrue hz₀ =>
     have hleft :
         entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z * Real.log 2 = 0 := by
       calc
@@ -243,9 +263,9 @@ theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_mul_log_two_le_ra
           = 0 := hleft
       _ ≤ 0 := le_rfl
       _ = entireFunctionJensenRadialGapSummand F hF (2 * R) z := hright.symm
-  | Or.inr hz₀ =>
-    match Decidable.em (‖(z : ℂ)‖ ≤ R) with
-    | Or.inl hz_disk =>
+  | isFalse hz₀ =>
+    match (inferInstance : Decidable (‖(z : ℂ)‖ ≤ R)) with
+    | isTrue hz_disk =>
       have hgap :
           Real.log 2 ≤ Real.log ((2 * R) / ‖(z : ℂ)‖) :=
         log_two_le_log_doubled_radius_div_norm hR hz₀ hz_disk
@@ -284,9 +304,9 @@ theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_mul_log_two_le_ra
               Real.log ((2 * R) / ‖(z : ℂ)‖) := hmult
         _ = entireFunctionJensenRadialGapSummand F hF (2 * R) z :=
           hright.symm
-    | Or.inr hz_disk =>
-      match Decidable.em (‖(z : ℂ)‖ < 2 * R) with
-      | Or.inl hstrict =>
+    | isFalse hz_disk =>
+      match (inferInstance : Decidable (‖(z : ℂ)‖ < 2 * R)) with
+      | isTrue hstrict =>
         have hnonneg :
             0 ≤ (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) :=
           Nat.cast_nonneg _
@@ -322,7 +342,7 @@ theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_mul_log_two_le_ra
                 Real.log ((2 * R) / ‖(z : ℂ)‖) := hmult
           _ = entireFunctionJensenRadialGapSummand F hF (2 * R) z :=
             hright.symm
-      | Or.inr hstrict =>
+      | isFalse hstrict =>
         have hleft :
             entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z *
                 Real.log 2 = 0 := by

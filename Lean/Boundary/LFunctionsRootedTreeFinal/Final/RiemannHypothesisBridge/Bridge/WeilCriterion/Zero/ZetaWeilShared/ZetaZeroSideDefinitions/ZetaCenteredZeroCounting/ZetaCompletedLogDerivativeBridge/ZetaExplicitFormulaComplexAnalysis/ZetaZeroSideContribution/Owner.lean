@@ -16,7 +16,7 @@ noncomputable section
 theorem zetaZeroSideContribution_eq
     (ρ : ℂ) (φ : ZetaAdmissibleFunction) :
     zetaZeroSideContribution ρ φ =
-      - (zetaZeroMultiplicity ρ : ℂ) * zetaSpectralEval φ (zetaCenteredZero ρ) := by
+      - (zetaZeroMultiplicity ρ : ℂ) * zetaSpectralEval φ ρ := by
   rfl
 
 /-- The real-valued zero-side contribution is the real part of the complex one. -/

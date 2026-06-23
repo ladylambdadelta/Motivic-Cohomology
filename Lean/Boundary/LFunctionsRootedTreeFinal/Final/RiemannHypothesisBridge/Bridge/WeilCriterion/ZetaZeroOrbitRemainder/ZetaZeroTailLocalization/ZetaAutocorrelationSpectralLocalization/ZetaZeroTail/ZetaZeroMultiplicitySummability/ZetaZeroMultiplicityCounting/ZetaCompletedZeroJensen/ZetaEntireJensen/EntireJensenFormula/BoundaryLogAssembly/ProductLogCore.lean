@@ -20,12 +20,12 @@ This is the algebraic product-log identity used after the finite boundary
 exception set has removed every vanishing boundary factor. -/
 theorem finiteComplexProduct_log_norm_eq_sum_log_norm_of_nonzero
     {ι : Type*}
+    [DecidableEq ι]
     (S : Finset ι)
     (f : ι → ℂ)
     (hf : ∀ i : ι, i ∈ S → f i ≠ 0) :
     Real.log ‖∏ i in S, f i‖ =
       ∑ i in S, Real.log ‖f i‖ := by
-  letI : DecidableEq ι := Classical.decEq ι
   exact
     (Finset.induction_on
       (p := fun T : Finset ι =>
@@ -82,12 +82,12 @@ theorem finiteComplexProduct_log_norm_eq_sum_log_norm_of_nonzero
 /-- Pull a fixed scalar into the second factor of a finite real weighted sum. -/
 theorem finiteReal_sum_scalar_mul_weighted_integrals
     {ι : Type*}
+    [DecidableEq ι]
     (S : Finset ι)
     (c : ℝ)
     (m I : ι → ℝ) :
     c * (∑ i in S, m i * I i) =
       ∑ i in S, m i * (c * I i) := by
-  letI : DecidableEq ι := Classical.decEq ι
   exact
     Finset.induction_on
       (p := fun T : Finset ι =>

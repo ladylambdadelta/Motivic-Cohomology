@@ -107,10 +107,11 @@ theorem support_add_subset (f g : ZetaAdmissibleFunction) :
   · left
     exact hfx
 
-/-- If two admissible functions have disjoint supports, the support of their sum is the union of
-their supports. -/
+/-- If two admissible functions vanish on each other's supports, the support of their sum is
+the union of their supports. -/
 theorem support_add_eq (f g : ZetaAdmissibleFunction)
-    (hfg : Disjoint (Function.support f) (Function.support g)) :
+    (hg_zero : ∀ x : ℝ, x ∈ Function.support f → g x = 0)
+    (hf_zero : ∀ x : ℝ, x ∈ Function.support g → f x = 0) :
     Function.support (f + g) = Function.support f ∪ Function.support g := by
   ext x
   constructor
@@ -119,11 +120,8 @@ theorem support_add_eq (f g : ZetaAdmissibleFunction)
   · intro hx
     rcases hx with hx | hx
     · have hx' : f x ≠ 0 := hx
-      have hgx : g x = 0 := by
-        by_contra hgx
-        have hgx' : x ∈ Function.support g := by
-          exact hgx
-        exact (Set.disjoint_left.mp hfg) hx' hgx'
+      have hgx : g x = 0 :=
+        hg_zero x hx'
       intro hsum
       have hfx_zero : f x = 0 :=
         calc
@@ -133,11 +131,8 @@ theorem support_add_eq (f g : ZetaAdmissibleFunction)
           _ = 0 := hsum
       exact hx' hfx_zero
     · have hx' : g x ≠ 0 := hx
-      have hfx : f x = 0 := by
-        by_contra hfx
-        have hfx' : x ∈ Function.support f := by
-          exact hfx
-        exact (Set.disjoint_left.mp hfg) hfx' hx'
+      have hfx : f x = 0 :=
+        hf_zero x hx'
       intro hsum
       have hgx_zero : g x = 0 :=
         calc

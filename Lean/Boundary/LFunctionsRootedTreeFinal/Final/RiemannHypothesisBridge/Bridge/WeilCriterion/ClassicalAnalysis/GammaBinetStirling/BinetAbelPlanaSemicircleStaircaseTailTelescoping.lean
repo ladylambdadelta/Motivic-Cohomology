@@ -45,7 +45,6 @@ theorem Complex.sum_rightTail_integral_sub_successor_eq_endpoint_sub_connectors
           (∑ k in Finset.range (m + 1),
             ∫ t : ℝ in (x k)..(x (k + 1)), F k t) -
           (∫ t : ℝ in (x (m + 1))..(x 0), F (m + 1) t) := by
-  classical
   let T : ℕ → ℂ := fun k => ∫ t : ℝ in (x k)..B, F k t
   let C : ℕ → ℂ := fun k => ∫ t : ℝ in (x k)..(x (k + 1)), F k t
   have hsplit :

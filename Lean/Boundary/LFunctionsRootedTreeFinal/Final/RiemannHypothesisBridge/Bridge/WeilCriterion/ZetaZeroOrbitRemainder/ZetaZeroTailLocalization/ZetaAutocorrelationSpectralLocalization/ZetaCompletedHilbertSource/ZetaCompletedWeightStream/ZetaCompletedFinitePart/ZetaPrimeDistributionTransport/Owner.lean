@@ -1137,6 +1137,121 @@ theorem completedPrimeDistributionTransport_timePairing_eq_contourRealizedPairin
         (convolutionAutocorrelation f) := by
   exact completedPrimeDistributionTransport_finiteWindow_contourReconstruction f D
 
+/-- Summed finite-window prime reconstruction data with the contour/time remainder visible.
+
+The two finite presentations are not required to be equal at a fixed window.  The datum
+records the exact finite additive transport through a named remainder and separately records
+the completed limits of the time/log and contour-realized streams. -/
+structure CompletedSummedPrimeContourTimeTransport
+    (f : ZetaAdmissibleFunction) where
+  timeWindow : ℕ → ℝ
+  contourWindow : ℕ → ℝ
+  remainderWindow : ℕ → ℝ
+  timeWindow_eq :
+    ∀ N : ℕ,
+      timeWindow N =
+        finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f)
+  contourWindow_eq :
+    ∀ N : ℕ,
+      contourWindow N =
+        finitePrimeContourRealizedTimeDistributionWindow N
+          (convolutionAutocorrelation f)
+  finite_additive_transport :
+    ∀ N : ℕ,
+      timeWindow N + remainderWindow N = contourWindow N
+  timeWindow_tendsto :
+    Tendsto timeWindow atTop
+      (𝓝 (completedPrimeTimeDistributionPairing
+        (convolutionAutocorrelation f)))
+  remainderWindow_tendsto_zero :
+    Tendsto remainderWindow atTop (𝓝 0)
+  contourWindow_tendsto :
+    Tendsto contourWindow atTop
+      (𝓝 (completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f)))
+
+/-- The visible-remainder transport identifies the completed time/log and contour-realized
+prime pairings by uniqueness of the completed summed finite-window limits. -/
+theorem CompletedSummedPrimeContourTimeTransport.timePairing_eq_contourPairing
+    (f : ZetaAdmissibleFunction)
+    (D : CompletedSummedPrimeContourTimeTransport f) :
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+      completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f) := by
+  let timeLimit : ℝ :=
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f)
+  let contourLimit : ℝ :=
+    completedPrimeContourRealizedTimeDistributionPairing
+      (convolutionAutocorrelation f)
+  have hsum_tendsto :
+      Tendsto
+        (fun N : ℕ => D.timeWindow N + D.remainderWindow N)
+        atTop
+        (𝓝 (timeLimit + 0)) := by
+    exact D.timeWindow_tendsto.add D.remainderWindow_tendsto_zero
+  have hsum_tendsto_time :
+      Tendsto
+        (fun N : ℕ => D.timeWindow N + D.remainderWindow N)
+        atTop
+        (𝓝 timeLimit) := by
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        Tendsto
+          (fun N : ℕ => D.timeWindow N + D.remainderWindow N)
+          atTop
+          (𝓝 x))
+      (add_zero timeLimit)
+      hsum_tendsto
+  have hsum_eq_contour :
+      (fun N : ℕ => D.timeWindow N + D.remainderWindow N) =
+        D.contourWindow := by
+    funext N
+    exact D.finite_additive_transport N
+  have hcontour_from_sum :
+      Tendsto
+        (fun N : ℕ => D.timeWindow N + D.remainderWindow N)
+        atTop
+        (𝓝 contourLimit) := by
+    exact Eq.subst
+      (motive := fun u : ℕ → ℝ =>
+        Tendsto u atTop (𝓝 contourLimit))
+      hsum_eq_contour.symm
+      D.contourWindow_tendsto
+  exact tendsto_nhds_unique hsum_tendsto_time hcontour_from_sum
+
+/-- The visible-remainder provider supplies the same completed prime distribution transport
+as the older common-stream provider, without asserting finite physical/spectral equality. -/
+theorem completedPrimeDistributionTransport_timePairing_eq_contourRealizedPairing_ownerSummedTransport
+    (f : ZetaAdmissibleFunction)
+    (D : CompletedSummedPrimeContourTimeTransport f) :
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+      completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f) := by
+  exact CompletedSummedPrimeContourTimeTransport.timePairing_eq_contourPairing f D
+
+/-- The historical common-stream provider induces the visible-remainder provider with zero
+remainder.  This is a compatibility theorem only; the visible-remainder provider is the
+honest finite-window shape for contour/time transport. -/
+def CompletedFiniteWindowPrimeDistributionReconstruction.toSummedTransport
+    (f : ZetaAdmissibleFunction)
+    (D : CompletedFiniteWindowPrimeDistributionReconstruction f) :
+    CompletedSummedPrimeContourTimeTransport f where
+  timeWindow := D.finiteWindow
+  contourWindow := D.finiteWindow
+  remainderWindow := fun _N : ℕ => 0
+  timeWindow_eq := D.finiteWindow_eq_timeWindow
+  contourWindow_eq := D.finiteWindow_eq_contourWindow
+  finite_additive_transport := by
+    intro N
+    exact (add_zero (D.finiteWindow N)).trans rfl
+  timeWindow_tendsto :=
+    CompletedFiniteWindowPrimeDistributionReconstruction.finiteWindow_tendsto_timePairing
+      f D
+  remainderWindow_tendsto_zero := tendsto_const_nhds
+  contourWindow_tendsto :=
+    CompletedFiniteWindowPrimeDistributionReconstruction.finiteWindow_tendsto_contourPairing
+      f D
+
 /-- Completed prime-power transport from the time/log presentation to the spectral-sample
 presentation on an autocorrelation probe.
 
@@ -1157,6 +1272,44 @@ theorem completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalCha
         completedPrimeContourRealizedTimeDistributionPairing
           (convolutionAutocorrelation f) :=
     completedPrimeDistributionTransport_timePairing_eq_contourRealizedPairing_ownerFiniteWindowTransport
+      f D
+  have hcontour :
+      completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) =
+        completedSpectralPrimeOffDiagonalChannel f := by
+    have hrealized :
+        completedPrimeContourRealizedTimeDistributionPairing
+            (convolutionAutocorrelation f) =
+          completedPrimeSpectralDistributionPairing
+            (zetaCompletedSpectralLaplaceTransform
+              (convolutionAutocorrelation f)) := by
+      rfl
+    have hspectral :
+        completedSpectralPrimeOffDiagonalChannel f =
+          completedPrimeSpectralDistributionPairing
+            (zetaCompletedSpectralLaplaceTransform
+              (convolutionAutocorrelation f)) :=
+      completedSpectralPrimeOffDiagonalChannel_eq_spectralDistributionPairing
+        f
+    exact hrealized.trans hspectral.symm
+  exact htime.trans (htransport.trans hcontour)
+
+/-- Completed prime-power transport from the time/log presentation to the spectral-sample
+presentation, using the visible summed contour/time transport provider. -/
+theorem completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalChannel_ownerSummedDistributionTransport_core
+    (f : ZetaAdmissibleFunction)
+    (D : CompletedSummedPrimeContourTimeTransport f) :
+    completedPrimeOffDiagonalChannel f =
+      completedSpectralPrimeOffDiagonalChannel f := by
+  have htime :
+      completedPrimeOffDiagonalChannel f =
+        completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) :=
+    (completedPrimeTimeDistributionPairing_eq_completedPrimeOffDiagonalChannel f).symm
+  have htransport :
+      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+        completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) :=
+    completedPrimeDistributionTransport_timePairing_eq_contourRealizedPairing_ownerSummedTransport
       f D
   have hcontour :
       completedPrimeContourRealizedTimeDistributionPairing
@@ -1227,6 +1380,17 @@ theorem completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalCha
   exact completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalChannel_ownerDistributionTransport_core
     f D
 
+/-- Completed prime distribution transport from the physical/time presentation to the
+spectral contour presentation, using the summed contour/time provider. -/
+theorem completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalChannel_ownerSummedDistributionTransport
+    (f : ZetaAdmissibleFunction)
+    (D : CompletedSummedPrimeContourTimeTransport f) :
+    completedPrimeOffDiagonalChannel f =
+      completedSpectralPrimeOffDiagonalChannel f := by
+  exact
+    completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalChannel_ownerSummedDistributionTransport_core
+      f D
+
 /-- Completed prime finite-window normalization reaches the two-face/GNS boundary scalar.
 
 This is the owner bridge from the physical/time-side completed prime finite-part channel
@@ -1245,6 +1409,92 @@ theorem completedPrimeOffDiagonalChannel_eq_completedTwoFaceGNSBoundaryCoefficie
   unfold completedSpectralPrimeOffDiagonalChannel at hspectral
   unfold zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient
   exact hspectral
+
+/-- Completed prime finite-window normalization reaches the two-face/GNS boundary scalar,
+using the summed contour/time transport provider. -/
+theorem completedPrimeOffDiagonalChannel_eq_completedTwoFaceGNSBoundaryCoefficient_re_ownerSummedDistributionTransport
+    (f : ZetaAdmissibleFunction)
+    (D : CompletedSummedPrimeContourTimeTransport f) :
+    completedPrimeOffDiagonalChannel f =
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+  have hspectral :
+      completedPrimeOffDiagonalChannel f =
+        completedSpectralPrimeOffDiagonalChannel f :=
+    completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalChannel_ownerSummedDistributionTransport
+      f D
+  unfold completedSpectralPrimeOffDiagonalChannel at hspectral
+  unfold zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient
+  exact hspectral
+
+/-- The transported completed prime channel is the negative real part of the completed
+prime-power two-face/GNS matrix coefficient. -/
+theorem zetaCompletedPrimeTwoFaceGNSMatrixCoefficient_re_eq_neg_completedPrimeOffDiagonalChannel_ownerDistributionTransport
+    (f : ZetaAdmissibleFunction)
+    (D : CompletedFiniteWindowPrimeDistributionReconstruction f) :
+    Complex.re (zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) =
+      -completedPrimeOffDiagonalChannel f := by
+  let T : ℂ := zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f
+  let B : ℂ := zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f
+  have hboundary :
+      B = -T := by
+    unfold B
+    unfold T
+    exact zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient_eq_neg_matrixCoefficient f
+  have hboundary_re :
+      Complex.re B = -Complex.re T := by
+    calc
+      Complex.re B = Complex.re (-T) := by
+        exact congrArg Complex.re hboundary
+      _ = -Complex.re T := by
+        exact Complex.neg_re T
+  have hchannel :
+      completedPrimeOffDiagonalChannel f = Complex.re B := by
+    unfold B
+    exact
+      completedPrimeOffDiagonalChannel_eq_completedTwoFaceGNSBoundaryCoefficient_re_ownerDistributionTransport
+        f D
+  calc
+    Complex.re T = -(-Complex.re T) := by
+      exact (neg_neg (Complex.re T)).symm
+    _ = -Complex.re B := by
+      exact congrArg Neg.neg hboundary_re.symm
+    _ = -completedPrimeOffDiagonalChannel f := by
+      exact congrArg Neg.neg hchannel.symm
+
+/-- The summed visible-remainder transport identifies the completed prime-power two-face/GNS
+matrix coefficient with the negative transported completed prime channel. -/
+theorem zetaCompletedPrimeTwoFaceGNSMatrixCoefficient_re_eq_neg_completedPrimeOffDiagonalChannel_ownerSummedDistributionTransport
+    (f : ZetaAdmissibleFunction)
+    (D : CompletedSummedPrimeContourTimeTransport f) :
+    Complex.re (zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) =
+      -completedPrimeOffDiagonalChannel f := by
+  let T : ℂ := zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f
+  let B : ℂ := zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f
+  have hboundary :
+      B = -T := by
+    unfold B
+    unfold T
+    exact zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient_eq_neg_matrixCoefficient f
+  have hboundary_re :
+      Complex.re B = -Complex.re T := by
+    calc
+      Complex.re B = Complex.re (-T) := by
+        exact congrArg Complex.re hboundary
+      _ = -Complex.re T := by
+        exact Complex.neg_re T
+  have hchannel :
+      completedPrimeOffDiagonalChannel f = Complex.re B := by
+    unfold B
+    exact
+      completedPrimeOffDiagonalChannel_eq_completedTwoFaceGNSBoundaryCoefficient_re_ownerSummedDistributionTransport
+        f D
+  calc
+    Complex.re T = -(-Complex.re T) := by
+      exact (neg_neg (Complex.re T)).symm
+    _ = -Complex.re B := by
+      exact congrArg Neg.neg hboundary_re.symm
+    _ = -completedPrimeOffDiagonalChannel f := by
+      exact congrArg Neg.neg hchannel.symm
 
 /-- The prime boundary channel of the convolution pair is the raw time-side prime
 distribution. -/

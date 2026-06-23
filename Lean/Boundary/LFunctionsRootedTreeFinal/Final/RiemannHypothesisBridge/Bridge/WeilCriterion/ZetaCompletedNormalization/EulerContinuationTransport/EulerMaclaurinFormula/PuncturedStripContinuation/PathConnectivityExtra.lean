@@ -156,28 +156,30 @@ theorem eulerMaclaurin_puncturedVerticalStrip_rightColumn_verticalJoined
 vertical corridors at its own imaginary height. -/
 theorem eulerMaclaurin_puncturedVerticalStrip_joinedTo_safeCorridor
     {z : ℂ}
-    (hz : z ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})) :
+    (hz : z ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1}))
+    [hz_left_dec : Decidable (z.re < 1)]
+    [hz_one_dec : Decidable (z.re = 1)] :
     JoinedIn
         ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})
         z
         (Complex.mk (1 / 2) z.im) ∨
-      JoinedIn
+    JoinedIn
         ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})
         z
         (Complex.mk (3 / 2) z.im) := by
-  exact match Decidable.em (z.re < 1) with
-  | Or.inl hz_left =>
+  exact match hz_left_dec with
+  | isTrue hz_left =>
       Or.inl
         (puncturedVerticalStrip_leftHalf_joined
           hz
           eulerMaclaurin_puncturedVerticalStrip_leftColumn_mem
           hz_left
           real_one_half_lt_one_for_puncturedVerticalStrip)
-  | Or.inr hz_not_left =>
+  | isFalse hz_not_left =>
       have hz_one_le : 1 ≤ z.re :=
         le_of_not_gt hz_not_left
-      match Decidable.em (z.re = 1) with
-      | Or.inl hz_re_eq_one =>
+      match hz_one_dec with
+      | isTrue hz_re_eq_one =>
           have hz_im_ne_zero : z.im ≠ 0 := by
             intro hz_im_zero
             have hz_eq_one : z = (1 : ℂ) := by
@@ -215,7 +217,7 @@ theorem eulerMaclaurin_puncturedVerticalStrip_joinedTo_safeCorridor
                   (Complex.mk (1 / 2) z.im))
               (Complex.eta z)
               hjoined)
-      | Or.inr hz_re_ne_one =>
+      | isFalse hz_re_ne_one =>
           have hz_right : 1 < z.re :=
             lt_of_le_of_ne hz_one_le (Ne.symm hz_re_ne_one)
           Or.inr

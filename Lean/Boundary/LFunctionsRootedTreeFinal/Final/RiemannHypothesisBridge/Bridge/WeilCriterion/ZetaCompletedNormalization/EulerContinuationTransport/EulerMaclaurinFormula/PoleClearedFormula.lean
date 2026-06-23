@@ -257,13 +257,14 @@ remainder. -/
 theorem eulerMaclaurin_poleClearedRiemannZeta_formula_with_bernoulliIntegralRemainder_standard
     (z : ℂ)
     (hz_one : 1 ≤ z.re)
-    (hz_two : z.re ≤ 2) :
+    (hz_two : z.re ≤ 2)
+    [hz_dec : Decidable (z ≠ 1)] :
     poleClearedRiemannZeta z =
       eulerMaclaurinPoleClearedZetaFinitePart z +
         eulerMaclaurinPoleClearedZetaMainTerm z +
         eulerMaclaurinPoleClearedZetaEndpointTerm z +
         eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z := by
-  exact match Decidable.em (z ≠ 1) with
+  exact match hz_dec with
   | Or.inl hz_ne_one =>
       have hraw :
           riemannZeta z =

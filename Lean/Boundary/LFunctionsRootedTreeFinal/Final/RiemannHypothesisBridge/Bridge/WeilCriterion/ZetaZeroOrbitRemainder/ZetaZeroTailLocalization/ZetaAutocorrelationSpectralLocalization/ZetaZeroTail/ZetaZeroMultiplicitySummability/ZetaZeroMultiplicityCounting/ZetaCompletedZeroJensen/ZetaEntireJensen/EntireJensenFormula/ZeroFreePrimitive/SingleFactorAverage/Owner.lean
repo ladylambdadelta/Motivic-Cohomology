@@ -313,7 +313,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduc
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
-    (ρ : ℝ) :
+    (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)] :
     entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
         F hF ρ
         (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor

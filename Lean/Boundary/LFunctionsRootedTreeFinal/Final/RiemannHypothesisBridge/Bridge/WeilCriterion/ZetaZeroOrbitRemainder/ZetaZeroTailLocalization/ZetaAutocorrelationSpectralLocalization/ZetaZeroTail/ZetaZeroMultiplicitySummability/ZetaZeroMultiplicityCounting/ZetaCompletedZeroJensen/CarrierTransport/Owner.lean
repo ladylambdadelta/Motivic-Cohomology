@@ -219,10 +219,11 @@ theorem carrierZeroToCompletedZero_mem_closedDisk
 
 /-- Carrier closed-disk multiplicity summands are nonnegative. -/
 theorem centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand_nonnegative
-    (R : ℝ) (z : CenteredCompletedZetaZeroCarrierZero) :
+    (R : ℝ) (z : CenteredCompletedZetaZeroCarrierZero)
+    [Decidable (‖(z : ℂ)‖ ≤ R)] :
     0 ≤ centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand R z := by
   exact
-    match Decidable.em (‖(z : ℂ)‖ ≤ R) with
+    match (inferInstance : Decidable (‖(z : ℂ)‖ ≤ R)) with
     | Or.inl hz =>
         Eq.subst
           (motive := fun x : ℝ => 0 ≤ x)
@@ -288,12 +289,13 @@ theorem zetaZeroMultiplicity_eq_carrierMultiplicity
 
 /-- Closed-disk completed-zero summands are the pullback of carrier-zero summands. -/
 theorem completedZeroMultiplicityClosedDiskSummand_eq_carrierPullback
-    (R : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    (R : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
+    [Decidable (‖(ρ : ℂ)‖ ≤ R)] :
     completedZeroMultiplicityClosedDiskSummand R ρ =
       centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand R
         (completedZeroToCarrierZero ρ) := by
   exact
-    match Decidable.em (‖(ρ : ℂ)‖ ≤ R) with
+    match (inferInstance : Decidable (‖(ρ : ℂ)‖ ≤ R)) with
     | Or.inl hρ =>
         have hleft :
             completedZeroMultiplicityClosedDiskSummand R ρ =

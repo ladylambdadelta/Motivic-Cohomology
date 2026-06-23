@@ -32,6 +32,48 @@ def explicitFormulaContourSingularPoint (z : ℂ) : Prop :=
   z = 0 ∨ z = 1 ∨ Gammaℝ z = 0 ∨ Gammaℝ (z / 2) = 0 ∨
     (z ≠ 0 ∧ z ≠ 1 ∧ completedRiemannZeta z = 0)
 
+/-- A nonsingular contour point is not the completed-zeta pole at `0`. -/
+theorem explicitFormulaContourSingularPoint.ne_zero_of_not
+    {z : ℂ} (hz : ¬ explicitFormulaContourSingularPoint z) :
+    z ≠ 0 := by
+  intro hz0
+  exact hz (Or.inl hz0)
+
+/-- A nonsingular contour point is not the completed-zeta pole at `1`. -/
+theorem explicitFormulaContourSingularPoint.ne_one_of_not
+    {z : ℂ} (hz : ¬ explicitFormulaContourSingularPoint z) :
+    z ≠ 1 := by
+  intro hz1
+  exact hz (Or.inr (Or.inl hz1))
+
+/-- A nonsingular contour point is away from the `Gammaℝ z` zero locus. -/
+theorem explicitFormulaContourSingularPoint.gamma_ne_zero_of_not
+    {z : ℂ} (hz : ¬ explicitFormulaContourSingularPoint z) :
+    Gammaℝ z ≠ 0 := by
+  intro hgamma
+  exact hz (Or.inr (Or.inr (Or.inl hgamma)))
+
+/-- A nonsingular contour point is away from the half-argument Gamma zero locus. -/
+theorem explicitFormulaContourSingularPoint.gamma_half_ne_zero_of_not
+    {z : ℂ} (hz : ¬ explicitFormulaContourSingularPoint z) :
+    Gammaℝ (z / 2) ≠ 0 := by
+  intro hgamma
+  exact hz (Or.inr (Or.inr (Or.inr (Or.inl hgamma))))
+
+/-- A nonsingular contour point away from `0` and `1` is not a completed-zeta zero. -/
+theorem explicitFormulaContourSingularPoint.completedRiemannZeta_ne_zero_of_not
+    {z : ℂ} (hz : ¬ explicitFormulaContourSingularPoint z) :
+    completedRiemannZeta z ≠ 0 := by
+  intro hzeta
+  exact hz
+    (Or.inr
+      (Or.inr
+        (Or.inr
+          (Or.inr
+            ⟨explicitFormulaContourSingularPoint.ne_zero_of_not hz,
+              explicitFormulaContourSingularPoint.ne_one_of_not hz,
+              hzeta⟩))))
+
 /-- The boundary of the rectangle at height `T` for a contour family. -/
 def explicitFormulaContourFamilyBoundary
     (F : ExplicitFormulaContourFamily) (T : ℝ) : Set ℂ :=
@@ -231,12 +273,155 @@ structure CountableAvoidingCofinalHeightSchedule (s : Set ℝ) where
   cofinal : Tendsto height atTop atTop
   avoids : ∀ u : ℝ, height u ∉ s
 
+/-- Package a supplied cofinal height function avoiding a countable bad-height set. -/
+def CountableAvoidingCofinalHeightSchedule.of_height
+    (s : Set ℝ) (hs : s.Countable)
+    (height : ℝ → ℝ)
+    (hcofinal : Tendsto height atTop atTop)
+    (havoid : ∀ u : ℝ, height u ∉ s) :
+    CountableAvoidingCofinalHeightSchedule s :=
+  { bad_countable := hs
+    height := height
+    cofinal := hcofinal
+    avoids := havoid }
+
 /-- A countable avoiding schedule remembers the intervalwise existence theorem for its
 bad-height set. -/
 theorem CountableAvoidingCofinalHeightSchedule.exists_height_between_not_mem
     {s : Set ℝ} (schedule : CountableAvoidingCofinalHeightSchedule s) (u : ℝ) :
     ∃ T : ℝ, u < T ∧ T < u + 1 ∧ T ∉ s :=
   exists_height_between_not_mem_countable s schedule.bad_countable u
+
+/-- A real height avoiding a finite list of bad heights has a positive separation from
+that whole finite list. -/
+theorem height_list_positive_separation_of_forall_ne
+    (bad : List ℝ) (T : ℝ)
+    (hT : ∀ y : ℝ, y ∈ bad → T ≠ y) :
+    ∃ δ : ℝ, 0 < δ ∧ ∀ y : ℝ, y ∈ bad → δ ≤ ‖T - y‖ :=
+  List.rec
+    (motive := fun bad =>
+      (∀ y : ℝ, y ∈ bad → T ≠ y) →
+        ∃ δ : ℝ, 0 < δ ∧ ∀ y : ℝ, y ∈ bad → δ ≤ ‖T - y‖)
+    (fun _ =>
+      ⟨1, zero_lt_one,
+        fun y hy =>
+          False.elim (List.not_mem_nil y hy)⟩)
+    (fun y ys ih hT =>
+      have hTail : ∀ z : ℝ, z ∈ ys → T ≠ z :=
+        fun z hz =>
+          hT z (List.mem_cons_of_mem y hz)
+      match ih hTail with
+      | ⟨δ, hδ_pos, hδ_sep⟩ =>
+          have hT_y : T ≠ y :=
+            hT y (List.mem_cons_self y ys)
+          have hsub_ne : T - y ≠ 0 :=
+            fun hsub =>
+              hT_y (sub_eq_zero.mp hsub)
+          have hhead_pos : 0 < ‖T - y‖ :=
+            norm_pos_iff.mpr hsub_ne
+          ⟨min δ ‖T - y‖, lt_min hδ_pos hhead_pos,
+            fun z hz =>
+              match List.mem_cons.mp hz with
+              | Or.inl hzy =>
+                  Eq.subst
+                    (motive := fun w : ℝ => min δ ‖T - y‖ ≤ ‖T - w‖)
+                    hzy.symm
+                    (min_le_right δ ‖T - y‖)
+              | Or.inr hzTail =>
+                  (min_le_left δ ‖T - y‖).trans
+                    (hδ_sep z hzTail)⟩)
+    bad hT
+
+/-- A countable avoiding schedule is positively separated from every supplied finite
+sublist of its avoided bad-height set, at each scheduled height. -/
+theorem CountableAvoidingCofinalHeightSchedule.height_list_positive_separation
+    {s : Set ℝ} (schedule : CountableAvoidingCofinalHeightSchedule s)
+    (bad : List ℝ) (hbad : ∀ y : ℝ, y ∈ bad → y ∈ s) (u : ℝ) :
+    ∃ δ : ℝ, 0 < δ ∧
+      ∀ y : ℝ, y ∈ bad → δ ≤ ‖schedule.height u - y‖ :=
+  height_list_positive_separation_of_forall_ne
+    bad
+    (schedule.height u)
+    (fun y hy hEq =>
+      schedule.avoids u
+        (Eq.subst
+          (motive := fun w : ℝ => w ∈ s)
+          hEq.symm
+          (hbad y hy)))
+
+/-- The finite list of horizontal bad heights generated by a finite list of singular
+points: top hits occur at `z.im`, bottom hits at `-z.im`. -/
+def explicitFormulaContourSingularHeightList
+    (points : List ℂ) : List ℝ :=
+  points.map (fun z : ℂ => z.im) ++
+    points.map (fun z : ℂ => -z.im)
+
+/-- Heights extracted from a finite singular-point list lie in the horizontal bad-height
+set. -/
+theorem explicitFormulaContourSingularHeightList_subset_horizontalBadHeightSet
+    (F : ExplicitFormulaContourFamily) (points : List ℂ)
+    (hpoints : ∀ z : ℂ, z ∈ points → explicitFormulaContourSingularPoint z) :
+    ∀ y : ℝ,
+      y ∈ explicitFormulaContourSingularHeightList points →
+        y ∈ explicitFormulaContourHorizontalBadHeightSet F := by
+  intro y hy
+  match List.mem_append.mp hy with
+  | Or.inl htop =>
+      match List.mem_map.mp htop with
+      | ⟨z, hz_points, hzy⟩ =>
+          exact Or.inl ⟨z, hpoints z hz_points, hzy⟩
+  | Or.inr hbottom =>
+      match List.mem_map.mp hbottom with
+      | ⟨z, hz_points, hzy⟩ =>
+          exact Or.inr ⟨z, hpoints z hz_points, hzy⟩
+
+/-- A horizontal avoiding schedule has positive separation from the finite set of
+horizontal bad heights generated by any finite singular-point list. -/
+theorem CountableAvoidingCofinalHeightSchedule.singular_height_list_positive_separation
+    {F : ExplicitFormulaContourFamily}
+    (schedule : CountableAvoidingCofinalHeightSchedule
+      (explicitFormulaContourHorizontalBadHeightSet F))
+    (points : List ℂ)
+    (hpoints : ∀ z : ℂ, z ∈ points → explicitFormulaContourSingularPoint z)
+    (u : ℝ) :
+    ∃ δ : ℝ, 0 < δ ∧
+      ∀ y : ℝ,
+        y ∈ explicitFormulaContourSingularHeightList points →
+          δ ≤ ‖schedule.height u - y‖ :=
+  CountableAvoidingCofinalHeightSchedule.height_list_positive_separation
+    schedule
+    (explicitFormulaContourSingularHeightList points)
+    (explicitFormulaContourSingularHeightList_subset_horizontalBadHeightSet
+      F points hpoints)
+    u
+
+/-- A horizontal avoiding schedule has one positive separation constant for the top and
+bottom bad heights generated by each singular point in a finite list. -/
+theorem CountableAvoidingCofinalHeightSchedule.singular_points_top_bottom_positive_separation
+    {F : ExplicitFormulaContourFamily}
+    (schedule : CountableAvoidingCofinalHeightSchedule
+      (explicitFormulaContourHorizontalBadHeightSet F))
+    (points : List ℂ)
+    (hpoints : ∀ z : ℂ, z ∈ points → explicitFormulaContourSingularPoint z)
+    (u : ℝ) :
+    ∃ δ : ℝ, 0 < δ ∧
+      ∀ z : ℂ, z ∈ points →
+        δ ≤ ‖schedule.height u - z.im‖ ∧
+          δ ≤ ‖schedule.height u - (-z.im)‖ := by
+  match schedule.singular_height_list_positive_separation points hpoints u with
+  | ⟨δ, hδ_pos, hδ⟩ =>
+      exact
+        ⟨δ, hδ_pos,
+          fun z hz =>
+            And.intro
+              (hδ z.im
+                (List.mem_append.mpr
+                  (Or.inl
+                    (List.mem_map.mpr ⟨z, hz, rfl⟩))))
+              (hδ (-z.im)
+                (List.mem_append.mpr
+                  (Or.inr
+                    (List.mem_map.mpr ⟨z, hz, rfl⟩))))⟩
 
 /-- The bad heights for a contour family are exactly the heights whose rectangle boundary
 meets a completed-zeta singular point. -/
@@ -253,6 +438,40 @@ theorem explicitFormulaContourFamilyAvoidsSingularBoundary_of_not_mem_badHeightS
   not_not.mp
     (show ¬ ¬ explicitFormulaContourFamilyAvoidsSingularBoundary F T from hT)
 
+/-- A top horizontal boundary point of an avoided rectangle is not a completed-zeta
+contour singular point. -/
+theorem explicitFormulaContourFamily_topPath_not_singular_of_avoidsBoundary
+    (F : ExplicitFormulaContourFamily) (T x : ℝ)
+    (havoid : explicitFormulaContourFamilyAvoidsSingularBoundary F T)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    ¬ explicitFormulaContourSingularPoint
+      (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x) := by
+  intro hsingular
+  exact havoid
+    (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x)
+    hsingular
+    (Or.inr
+      (Or.inr
+        (Or.inl
+          ⟨x, hx, rfl⟩)))
+
+/-- A bottom horizontal boundary point of an avoided rectangle is not a completed-zeta
+contour singular point. -/
+theorem explicitFormulaContourFamily_bottomPath_not_singular_of_avoidsBoundary
+    (F : ExplicitFormulaContourFamily) (T x : ℝ)
+    (havoid : explicitFormulaContourFamilyAvoidsSingularBoundary F T)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    ¬ explicitFormulaContourSingularPoint
+      (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x) := by
+  intro hsingular
+  exact havoid
+    (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x)
+    hsingular
+    (Or.inr
+      (Or.inr
+        (Or.inr
+          ⟨x, hx, rfl⟩)))
+
 /-- A cofinal height schedule whose rectangles avoid zero/pole hits on the boundary. -/
 structure ExplicitFormulaCofinalHeightSchedule
     (F : ExplicitFormulaContourFamily) where
@@ -260,6 +479,118 @@ structure ExplicitFormulaCofinalHeightSchedule
   cofinal : Tendsto height atTop atTop
   avoids_boundary :
     ∀ u : ℝ, explicitFormulaContourFamilyAvoidsSingularBoundary F (height u)
+
+/-- A cofinal height schedule is eventually above any fixed lower bound. -/
+theorem ExplicitFormulaCofinalHeightSchedule.eventually_height_gt
+    {F : ExplicitFormulaContourFamily}
+    (schedule : ExplicitFormulaCofinalHeightSchedule F) (a : ℝ) :
+    ∀ᶠ u in atTop, a < schedule.height u :=
+  schedule.cofinal.eventually (eventually_gt_atTop a)
+
+/-- A cofinal height schedule is eventually positive. -/
+theorem ExplicitFormulaCofinalHeightSchedule.eventually_height_pos
+    {F : ExplicitFormulaContourFamily}
+    (schedule : ExplicitFormulaCofinalHeightSchedule F) :
+    ∀ᶠ u in atTop, 0 < schedule.height u :=
+  schedule.eventually_height_gt 0
+
+/-- If an avoided rectangle had height zero, the pole `1` would lie on its top
+horizontal edge. -/
+theorem explicitFormulaContourFamilyAvoidsSingularBoundary.height_ne_zero
+    (F : ExplicitFormulaContourFamily) (T : ℝ)
+    (havoid : explicitFormulaContourFamilyAvoidsSingularBoundary F T) :
+    T ≠ 0 := by
+  intro hT
+  have hsingular : explicitFormulaContourSingularPoint (1 : ℂ) :=
+    Or.inr (Or.inl rfl)
+  have hx_lower : min F.c (1 - F.c) ≤ (1 : ℝ) := by
+    have hmin : min F.c (1 - F.c) ≤ 1 - F.c :=
+      min_le_right F.c (1 - F.c)
+    have hleft : 1 - F.c ≤ (1 : ℝ) := by
+      exact sub_le_self (1 : ℝ) (le_of_lt F.c_pos)
+    exact le_trans hmin hleft
+  have hx_upper : (1 : ℝ) ≤ max F.c (1 - F.c) := by
+    have hone_c : (1 : ℝ) ≤ F.c :=
+      le_of_lt F.c_gt_one
+    have hc_max : F.c ≤ max F.c (1 - F.c) :=
+      le_max_left F.c (1 - F.c)
+    exact le_trans hone_c hc_max
+  have hx : (1 : ℝ) ∈ Set.uIcc F.c (1 - F.c) :=
+    ⟨hx_lower, hx_upper⟩
+  have htop_eq : (1 : ℂ) =
+      zetaCompletedExplicitFormulaTopPath (F.rectangle T) 1 := by
+    apply Complex.ext
+    · calc
+        (1 : ℂ).re = (1 : ℝ) := by
+          exact Complex.one_re
+        _ = (zetaCompletedExplicitFormulaTopPath (F.rectangle T) 1).re := by
+          exact (zetaCompletedExplicitFormulaTopPath_re_eq (F.rectangle T) 1).symm
+    · calc
+        (1 : ℂ).im = (0 : ℝ) := by
+          exact Complex.one_im
+        _ = T := by
+          exact hT.symm
+        _ = (zetaCompletedExplicitFormulaTopPath (F.rectangle T) 1).im := by
+          exact (zetaCompletedExplicitFormulaTopPath_im (F.rectangle T) 1).symm
+  have hboundary :
+      (1 : ℂ) ∈ explicitFormulaContourFamilyBoundary F T :=
+    Or.inr
+      (Or.inr
+        (Or.inl
+          ⟨1, hx, htop_eq⟩))
+  exact havoid (1 : ℂ) hsingular hboundary
+
+/-- Every height in a boundary-avoiding cofinal schedule is nonzero. -/
+theorem ExplicitFormulaCofinalHeightSchedule.height_ne_zero
+    {F : ExplicitFormulaContourFamily}
+    (schedule : ExplicitFormulaCofinalHeightSchedule F) (u : ℝ) :
+    schedule.height u ≠ 0 :=
+  explicitFormulaContourFamilyAvoidsSingularBoundary.height_ne_zero
+    F (schedule.height u) (schedule.avoids_boundary u)
+
+/-- Along a cofinal schedule, the pole `0` is eventually inside the finite
+contour-family rectangle. -/
+theorem ExplicitFormulaCofinalHeightSchedule.eventually_zero_mem_interior
+    {F : ExplicitFormulaContourFamily}
+    (schedule : ExplicitFormulaCofinalHeightSchedule F) :
+    ∀ᶠ u in atTop,
+      (0 : ℂ) ∈
+        explicitFormulaContourFamilyInterior F (schedule.height u) :=
+  schedule.eventually_height_pos.mono
+    (fun u hu =>
+      explicitFormulaContourFamilyInterior_zero_mem F (schedule.height u) hu)
+
+/-- Along a cofinal schedule, the pole `1` is eventually inside the finite
+contour-family rectangle. -/
+theorem ExplicitFormulaCofinalHeightSchedule.eventually_one_mem_interior
+    {F : ExplicitFormulaContourFamily}
+    (schedule : ExplicitFormulaCofinalHeightSchedule F) :
+    ∀ᶠ u in atTop,
+      (1 : ℂ) ∈
+        explicitFormulaContourFamilyInterior F (schedule.height u) :=
+  schedule.eventually_height_pos.mono
+    (fun u hu =>
+      explicitFormulaContourFamilyInterior_one_mem F (schedule.height u) hu)
+
+/-- Along a cofinal schedule, the pole `0` is eventually inside the finite
+contour-family rectangle. -/
+theorem explicitFormulaContourFamilyInterior_zero_mem_eventually
+    (F : ExplicitFormulaContourFamily)
+    (schedule : ExplicitFormulaCofinalHeightSchedule F) :
+    ∀ᶠ u in atTop,
+      (0 : ℂ) ∈
+        explicitFormulaContourFamilyInterior F (schedule.height u) :=
+  schedule.eventually_zero_mem_interior
+
+/-- Along a cofinal schedule, the pole `1` is eventually inside the finite
+contour-family rectangle. -/
+theorem explicitFormulaContourFamilyInterior_one_mem_eventually
+    (F : ExplicitFormulaContourFamily)
+    (schedule : ExplicitFormulaCofinalHeightSchedule F) :
+    ∀ᶠ u in atTop,
+      (1 : ℂ) ∈
+        explicitFormulaContourFamilyInterior F (schedule.height u) :=
+  schedule.eventually_one_mem_interior
 
 /-- A contour family together with the cofinal boundary-avoiding schedule supplied by its
 construction.  This is the owner object used when downstream arguments need an actual
@@ -364,6 +695,16 @@ theorem explicitFormulaScheduledContourFamily_of_horizontalAvoidingSchedule_heig
       explicitFormulaCofinalHeightSchedule_of_horizontalAvoidingSchedule F schedule := by
   rfl
 
+/-- The cofinal schedule induced from a horizontal-avoiding schedule has the same height
+function as the original horizontal schedule. -/
+theorem explicitFormulaCofinalHeightSchedule_of_horizontalAvoidingSchedule_height
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (schedule :
+      ExplicitFormulaHorizontalAvoidingHeightSchedule F.toContourFamily) :
+    (explicitFormulaCofinalHeightSchedule_of_horizontalAvoidingSchedule
+      F schedule).height = schedule.height := by
+  rfl
+
 /-- A supplied horizontal avoiding schedule also carries the countability fact for the
 completed-zeta horizontal bad-height set. -/
 theorem ExplicitFormulaHorizontalAvoidingHeightSchedule.exists_height_between_not_mem
@@ -374,6 +715,103 @@ theorem ExplicitFormulaHorizontalAvoidingHeightSchedule.exists_height_between_no
         T ∉ explicitFormulaContourHorizontalBadHeightSet F :=
   CountableAvoidingCofinalHeightSchedule.exists_height_between_not_mem
     schedule u
+
+/-- A horizontal avoiding schedule is positively separated from every finite list of
+horizontal bad heights, at each scheduled height. -/
+theorem ExplicitFormulaHorizontalAvoidingHeightSchedule.height_list_positive_separation
+    (F : ExplicitFormulaContourFamily)
+    (schedule : ExplicitFormulaHorizontalAvoidingHeightSchedule F)
+    (bad : List ℝ)
+    (hbad : ∀ y : ℝ, y ∈ bad → y ∈ explicitFormulaContourHorizontalBadHeightSet F)
+    (u : ℝ) :
+    ∃ δ : ℝ, 0 < δ ∧
+      ∀ y : ℝ, y ∈ bad → δ ≤ ‖schedule.height u - y‖ :=
+  CountableAvoidingCofinalHeightSchedule.height_list_positive_separation
+    schedule bad hbad u
+
+/-- A horizontal avoiding schedule is positively separated from the finite horizontal
+bad-height list generated by any finite list of singular points. -/
+theorem ExplicitFormulaHorizontalAvoidingHeightSchedule.singular_height_list_positive_separation
+    (F : ExplicitFormulaContourFamily)
+    (schedule : ExplicitFormulaHorizontalAvoidingHeightSchedule F)
+    (points : List ℂ)
+    (hpoints : ∀ z : ℂ, z ∈ points → explicitFormulaContourSingularPoint z)
+    (u : ℝ) :
+    ∃ δ : ℝ, 0 < δ ∧
+      ∀ y : ℝ,
+        y ∈ explicitFormulaContourSingularHeightList points →
+          δ ≤ ‖schedule.height u - y‖ :=
+  CountableAvoidingCofinalHeightSchedule.singular_height_list_positive_separation
+    schedule points hpoints u
+
+/-- A horizontal avoiding schedule has one positive separation constant for top and bottom
+heights of each singular point in a finite list. -/
+theorem ExplicitFormulaHorizontalAvoidingHeightSchedule.singular_points_top_bottom_positive_separation
+    (F : ExplicitFormulaContourFamily)
+    (schedule : ExplicitFormulaHorizontalAvoidingHeightSchedule F)
+    (points : List ℂ)
+    (hpoints : ∀ z : ℂ, z ∈ points → explicitFormulaContourSingularPoint z)
+    (u : ℝ) :
+    ∃ δ : ℝ, 0 < δ ∧
+      ∀ z : ℂ, z ∈ points →
+        δ ≤ ‖schedule.height u - z.im‖ ∧
+          δ ≤ ‖schedule.height u - (-z.im)‖ :=
+  CountableAvoidingCofinalHeightSchedule.singular_points_top_bottom_positive_separation
+    schedule points hpoints u
+
+/-- The boundary-avoiding cofinal schedule induced from a horizontal-avoiding schedule
+inherits finite-list horizontal singular-height separation. -/
+theorem explicitFormulaCofinalHeightSchedule_of_horizontalAvoidingSchedule_singular_height_list_positive_separation
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (schedule :
+      ExplicitFormulaHorizontalAvoidingHeightSchedule F.toContourFamily)
+    (points : List ℂ)
+    (hpoints : ∀ z : ℂ, z ∈ points → explicitFormulaContourSingularPoint z)
+    (u : ℝ) :
+    ∃ δ : ℝ, 0 < δ ∧
+      ∀ y : ℝ,
+        y ∈ explicitFormulaContourSingularHeightList points →
+          δ ≤ ‖
+            (explicitFormulaCofinalHeightSchedule_of_horizontalAvoidingSchedule
+              F schedule).height u - y‖ :=
+  Eq.subst
+    (motive := fun height : ℝ → ℝ =>
+      ∃ δ : ℝ, 0 < δ ∧
+        ∀ y : ℝ,
+          y ∈ explicitFormulaContourSingularHeightList points →
+            δ ≤ ‖height u - y‖)
+    (explicitFormulaCofinalHeightSchedule_of_horizontalAvoidingSchedule_height
+      F schedule).symm
+    (ExplicitFormulaHorizontalAvoidingHeightSchedule.singular_height_list_positive_separation
+      F.toContourFamily schedule points hpoints u)
+
+/-- The boundary-avoiding cofinal schedule induced from a horizontal-avoiding schedule
+inherits one finite-window separation constant for both top and bottom singular heights. -/
+theorem explicitFormulaCofinalHeightSchedule_of_horizontalAvoidingSchedule_singular_points_top_bottom_positive_separation
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (schedule :
+      ExplicitFormulaHorizontalAvoidingHeightSchedule F.toContourFamily)
+    (points : List ℂ)
+    (hpoints : ∀ z : ℂ, z ∈ points → explicitFormulaContourSingularPoint z)
+    (u : ℝ) :
+    ∃ δ : ℝ, 0 < δ ∧
+      ∀ z : ℂ, z ∈ points →
+        δ ≤ ‖
+          (explicitFormulaCofinalHeightSchedule_of_horizontalAvoidingSchedule
+            F schedule).height u - z.im‖ ∧
+          δ ≤ ‖
+            (explicitFormulaCofinalHeightSchedule_of_horizontalAvoidingSchedule
+              F schedule).height u - (-z.im)‖ :=
+  Eq.subst
+    (motive := fun height : ℝ → ℝ =>
+      ∃ δ : ℝ, 0 < δ ∧
+        ∀ z : ℂ, z ∈ points →
+          δ ≤ ‖height u - z.im‖ ∧
+            δ ≤ ‖height u - (-z.im)‖)
+    (explicitFormulaCofinalHeightSchedule_of_horizontalAvoidingSchedule_height
+      F schedule).symm
+    (ExplicitFormulaHorizontalAvoidingHeightSchedule.singular_points_top_bottom_positive_separation
+      F.toContourFamily schedule points hpoints u)
 
 /-- Owner-level analytic package for a single explicit-formula contour rectangle. -/
 structure ExplicitFormulaAnalyticPackage (f : ZetaAdmissibleFunction) where
@@ -387,6 +825,731 @@ structure ExplicitFormulaFamilyAnalyticPackage
   phi_control : ZetaPhiAnalyticControl f
   logderiv_control : CompletedZetaNegLogDerivControl f
   height_schedule : ExplicitFormulaCofinalHeightSchedule F
+
+/-- The height schedule stored in a family analytic package is eventually positive. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.eventually_height_pos
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    ∀ᶠ u in atTop, 0 < h.height_schedule.height u :=
+  h.height_schedule.eventually_height_pos
+
+/-- Along a family analytic package, the pole `0` is eventually inside the
+scheduled finite contour-family rectangle. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.eventually_zero_mem_interior
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    ∀ᶠ u in atTop,
+      (0 : ℂ) ∈
+        explicitFormulaContourFamilyInterior F (h.height_schedule.height u) :=
+  h.height_schedule.eventually_zero_mem_interior
+
+/-- Along a family analytic package, the pole `1` is eventually inside the
+scheduled finite contour-family rectangle. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.eventually_one_mem_interior
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    ∀ᶠ u in atTop,
+      (1 : ℂ) ∈
+        explicitFormulaContourFamilyInterior F (h.height_schedule.height u) :=
+  h.height_schedule.eventually_one_mem_interior
+
+/-- Along a family analytic package, the pole `0` is eventually inside the
+scheduled finite contour-family rectangle. -/
+theorem explicitFormulaFamilyAnalyticPackage_zero_mem_interior_eventually
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    ∀ᶠ u in atTop,
+      (0 : ℂ) ∈
+        explicitFormulaContourFamilyInterior F (h.height_schedule.height u) :=
+  h.eventually_zero_mem_interior
+
+/-- Along a family analytic package, the pole `1` is eventually inside the
+scheduled finite contour-family rectangle. -/
+theorem explicitFormulaFamilyAnalyticPackage_one_mem_interior_eventually
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    ∀ᶠ u in atTop,
+      (1 : ℂ) ∈
+        explicitFormulaContourFamilyInterior F (h.height_schedule.height u) :=
+  h.eventually_one_mem_interior
+
+/-- Construct a family analytic package from a vertically regular family and a horizontal
+bad-height-avoiding schedule. -/
+def ExplicitFormulaFamilyAnalyticPackage.of_horizontalAvoidingSchedule
+    {f : ZetaAdmissibleFunction}
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (schedule :
+      ExplicitFormulaHorizontalAvoidingHeightSchedule F.toContourFamily)
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f) :
+    ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily :=
+  { phi_control := hPhi
+    logderiv_control := hLog
+    height_schedule :=
+      explicitFormulaCofinalHeightSchedule_of_horizontalAvoidingSchedule
+        F schedule }
+
+/-- The analytic package built from a horizontal-avoiding schedule stores the induced
+cofinal height schedule. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.of_horizontalAvoidingSchedule_height_schedule
+    {f : ZetaAdmissibleFunction}
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (schedule :
+      ExplicitFormulaHorizontalAvoidingHeightSchedule F.toContourFamily)
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f) :
+    (ExplicitFormulaFamilyAnalyticPackage.of_horizontalAvoidingSchedule
+      F schedule hPhi hLog).height_schedule =
+      explicitFormulaCofinalHeightSchedule_of_horizontalAvoidingSchedule
+        F schedule := by
+  rfl
+
+/-- A family analytic package built from a horizontal-avoiding schedule has finite-list
+horizontal singular-height separation along its stored schedule. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.of_horizontalAvoidingSchedule_singular_points_top_bottom_positive_separation
+    {f : ZetaAdmissibleFunction}
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (schedule :
+      ExplicitFormulaHorizontalAvoidingHeightSchedule F.toContourFamily)
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
+    (points : List ℂ)
+    (hpoints : ∀ z : ℂ, z ∈ points → explicitFormulaContourSingularPoint z)
+    (u : ℝ) :
+    ∃ δ : ℝ, 0 < δ ∧
+      ∀ z : ℂ, z ∈ points →
+        δ ≤ ‖
+          (ExplicitFormulaFamilyAnalyticPackage.of_horizontalAvoidingSchedule
+            F schedule hPhi hLog).height_schedule.height u - z.im‖ ∧
+          δ ≤ ‖
+            (ExplicitFormulaFamilyAnalyticPackage.of_horizontalAvoidingSchedule
+              F schedule hPhi hLog).height_schedule.height u - (-z.im)‖ :=
+  Eq.subst
+    (motive := fun h :
+      ExplicitFormulaCofinalHeightSchedule F.toContourFamily =>
+      ∃ δ : ℝ, 0 < δ ∧
+        ∀ z : ℂ, z ∈ points →
+          δ ≤ ‖h.height u - z.im‖ ∧
+            δ ≤ ‖h.height u - (-z.im)‖)
+    (ExplicitFormulaFamilyAnalyticPackage.of_horizontalAvoidingSchedule_height_schedule
+      F schedule hPhi hLog).symm
+    (explicitFormulaCofinalHeightSchedule_of_horizontalAvoidingSchedule_singular_points_top_bottom_positive_separation
+      F schedule points hpoints u)
+
+/-- Along the package schedule, every top horizontal boundary point avoids the
+completed-zeta contour singular set. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_topPath_not_singular
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    ¬ explicitFormulaContourSingularPoint
+      (zetaCompletedExplicitFormulaTopPath
+        (F.rectangle (h.height_schedule.height u)) x) :=
+  explicitFormulaContourFamily_topPath_not_singular_of_avoidsBoundary
+    F
+    (h.height_schedule.height u)
+    x
+    (h.height_schedule.avoids_boundary u)
+    hx
+
+/-- Along the package schedule, every bottom horizontal boundary point avoids the
+completed-zeta contour singular set. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_bottomPath_not_singular
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    ¬ explicitFormulaContourSingularPoint
+      (zetaCompletedExplicitFormulaBottomPath
+        (F.rectangle (h.height_schedule.height u)) x) :=
+  explicitFormulaContourFamily_bottomPath_not_singular_of_avoidsBoundary
+    F
+    (h.height_schedule.height u)
+    x
+    (h.height_schedule.avoids_boundary u)
+    hx
+
+/-- Along the package schedule, the top horizontal boundary point is not a
+completed-zeta zero. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_topPath_completedRiemannZeta_ne_zero
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    completedRiemannZeta
+      (zetaCompletedExplicitFormulaTopPath
+        (F.rectangle (h.height_schedule.height u)) x) ≠ 0 :=
+  explicitFormulaContourSingularPoint.completedRiemannZeta_ne_zero_of_not
+    (h.scheduled_topPath_not_singular u x hx)
+
+/-- Along the package schedule, the bottom horizontal boundary point is not a
+completed-zeta zero. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_bottomPath_completedRiemannZeta_ne_zero
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    completedRiemannZeta
+      (zetaCompletedExplicitFormulaBottomPath
+        (F.rectangle (h.height_schedule.height u)) x) ≠ 0 :=
+  explicitFormulaContourSingularPoint.completedRiemannZeta_ne_zero_of_not
+    (h.scheduled_bottomPath_not_singular u x hx)
+
+/-- Along the package schedule, the top horizontal boundary point is away from
+the completed Gamma zero locus. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_topPath_Gammaℝ_ne_zero
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    Gammaℝ
+      (zetaCompletedExplicitFormulaTopPath
+        (F.rectangle (h.height_schedule.height u)) x) ≠ 0 :=
+  explicitFormulaContourSingularPoint.gamma_ne_zero_of_not
+    (h.scheduled_topPath_not_singular u x hx)
+
+/-- Along the package schedule, the bottom horizontal boundary point is away from
+the completed Gamma zero locus. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_bottomPath_Gammaℝ_ne_zero
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    Gammaℝ
+      (zetaCompletedExplicitFormulaBottomPath
+        (F.rectangle (h.height_schedule.height u)) x) ≠ 0 :=
+  explicitFormulaContourSingularPoint.gamma_ne_zero_of_not
+    (h.scheduled_bottomPath_not_singular u x hx)
+
+/-- Along the package schedule, the top horizontal boundary point is not the
+completed-zeta pole at `0`. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_topPath_ne_zero
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    zetaCompletedExplicitFormulaTopPath
+      (F.rectangle (h.height_schedule.height u)) x ≠ 0 :=
+  explicitFormulaContourSingularPoint.ne_zero_of_not
+    (h.scheduled_topPath_not_singular u x hx)
+
+/-- Along the package schedule, the bottom horizontal boundary point is not the
+completed-zeta pole at `0`. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_bottomPath_ne_zero
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    zetaCompletedExplicitFormulaBottomPath
+      (F.rectangle (h.height_schedule.height u)) x ≠ 0 :=
+  explicitFormulaContourSingularPoint.ne_zero_of_not
+    (h.scheduled_bottomPath_not_singular u x hx)
+
+/-- Along the package schedule, the top horizontal boundary point is not the
+completed-zeta pole at `1`. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_topPath_ne_one
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    zetaCompletedExplicitFormulaTopPath
+      (F.rectangle (h.height_schedule.height u)) x ≠ 1 :=
+  explicitFormulaContourSingularPoint.ne_one_of_not
+    (h.scheduled_topPath_not_singular u x hx)
+
+/-- Along the package schedule, the bottom horizontal boundary point is not the
+completed-zeta pole at `1`. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_bottomPath_ne_one
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    zetaCompletedExplicitFormulaBottomPath
+      (F.rectangle (h.height_schedule.height u)) x ≠ 1 :=
+  explicitFormulaContourSingularPoint.ne_one_of_not
+    (h.scheduled_bottomPath_not_singular u x hx)
+
+/-- Along the package schedule, the top horizontal boundary point is away from
+the half-argument completed Gamma zero locus. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_topPath_Gammaℝ_half_ne_zero
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    Gammaℝ
+      (zetaCompletedExplicitFormulaTopPath
+        (F.rectangle (h.height_schedule.height u)) x / 2) ≠ 0 :=
+  explicitFormulaContourSingularPoint.gamma_half_ne_zero_of_not
+    (h.scheduled_topPath_not_singular u x hx)
+
+/-- Along the package schedule, the bottom horizontal boundary point is away from
+the half-argument completed Gamma zero locus. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_bottomPath_Gammaℝ_half_ne_zero
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    Gammaℝ
+      (zetaCompletedExplicitFormulaBottomPath
+        (F.rectangle (h.height_schedule.height u)) x / 2) ≠ 0 :=
+  explicitFormulaContourSingularPoint.gamma_half_ne_zero_of_not
+    (h.scheduled_bottomPath_not_singular u x hx)
+
+/-- Scheduled top horizontal points satisfy the pointwise zero-excised strip
+conditions supplied by boundary avoidance.  The strip carrier is geometric; analytic
+polynomial bounds remain owned by `CompletedZetaNegLogDerivControl`. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_topPath_zeroExcisedPointwise
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    (min F.c (1 - F.c) ≤
+        (zetaCompletedExplicitFormulaTopPath
+          (F.rectangle (h.height_schedule.height u)) x).re ∧
+      (zetaCompletedExplicitFormulaTopPath
+          (F.rectangle (h.height_schedule.height u)) x).re ≤
+        max F.c (1 - F.c)) ∧
+    zetaCompletedExplicitFormulaTopPath
+      (F.rectangle (h.height_schedule.height u)) x ≠ 0 ∧
+    zetaCompletedExplicitFormulaTopPath
+      (F.rectangle (h.height_schedule.height u)) x ≠ 1 ∧
+    completedRiemannZeta
+      (zetaCompletedExplicitFormulaTopPath
+        (F.rectangle (h.height_schedule.height u)) x) ≠ 0 ∧
+    Gammaℝ
+      (zetaCompletedExplicitFormulaTopPath
+        (F.rectangle (h.height_schedule.height u)) x) ≠ 0 ∧
+  Gammaℝ
+      (zetaCompletedExplicitFormulaTopPath
+        (F.rectangle (h.height_schedule.height u)) x / 2) ≠ 0 :=
+  And.intro
+    (And.intro
+      (Eq.subst
+        (motive := fun y : ℝ => min F.c (1 - F.c) ≤ y)
+        (zetaCompletedExplicitFormulaTopPath_re_eq
+          (F.rectangle (h.height_schedule.height u)) x).symm
+        hx.1)
+      (Eq.subst
+        (motive := fun y : ℝ => y ≤ max F.c (1 - F.c))
+        (zetaCompletedExplicitFormulaTopPath_re_eq
+          (F.rectangle (h.height_schedule.height u)) x).symm
+        hx.2))
+    (And.intro
+      (h.scheduled_topPath_ne_zero u x hx)
+      (And.intro
+        (h.scheduled_topPath_ne_one u x hx)
+        (And.intro
+          (h.scheduled_topPath_completedRiemannZeta_ne_zero u x hx)
+          (And.intro
+            (h.scheduled_topPath_Gammaℝ_ne_zero u x hx)
+            (h.scheduled_topPath_Gammaℝ_half_ne_zero u x hx)))))
+
+/-- Scheduled bottom horizontal points satisfy the pointwise zero-excised strip
+conditions supplied by boundary avoidance.  The strip carrier is geometric; analytic
+polynomial bounds remain owned by `CompletedZetaNegLogDerivControl`. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_bottomPath_zeroExcisedPointwise
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    (min F.c (1 - F.c) ≤
+        (zetaCompletedExplicitFormulaBottomPath
+          (F.rectangle (h.height_schedule.height u)) x).re ∧
+      (zetaCompletedExplicitFormulaBottomPath
+          (F.rectangle (h.height_schedule.height u)) x).re ≤
+        max F.c (1 - F.c)) ∧
+    zetaCompletedExplicitFormulaBottomPath
+      (F.rectangle (h.height_schedule.height u)) x ≠ 0 ∧
+    zetaCompletedExplicitFormulaBottomPath
+      (F.rectangle (h.height_schedule.height u)) x ≠ 1 ∧
+    completedRiemannZeta
+      (zetaCompletedExplicitFormulaBottomPath
+        (F.rectangle (h.height_schedule.height u)) x) ≠ 0 ∧
+    Gammaℝ
+      (zetaCompletedExplicitFormulaBottomPath
+        (F.rectangle (h.height_schedule.height u)) x) ≠ 0 ∧
+  Gammaℝ
+      (zetaCompletedExplicitFormulaBottomPath
+        (F.rectangle (h.height_schedule.height u)) x / 2) ≠ 0 :=
+  And.intro
+    (And.intro
+      (Eq.subst
+        (motive := fun y : ℝ => min F.c (1 - F.c) ≤ y)
+        (zetaCompletedExplicitFormulaBottomPath_re_eq
+          (F.rectangle (h.height_schedule.height u)) x).symm
+        hx.1)
+      (Eq.subst
+        (motive := fun y : ℝ => y ≤ max F.c (1 - F.c))
+        (zetaCompletedExplicitFormulaBottomPath_re_eq
+          (F.rectangle (h.height_schedule.height u)) x).symm
+        hx.2))
+    (And.intro
+      (h.scheduled_bottomPath_ne_zero u x hx)
+      (And.intro
+        (h.scheduled_bottomPath_ne_one u x hx)
+        (And.intro
+          (h.scheduled_bottomPath_completedRiemannZeta_ne_zero u x hx)
+          (And.intro
+            (h.scheduled_bottomPath_Gammaℝ_ne_zero u x hx)
+            (h.scheduled_bottomPath_Gammaℝ_half_ne_zero u x hx)))))
+
+/-- The full scheduled horizontal edge family has a shared geometric zero-excised carrier.
+
+The carrier is the union of all top and bottom horizontal points along the stored schedule.
+Analytic polynomial log-derivative bounds for this geometric carrier are supplied by
+`CompletedZetaNegLogDerivControl`, not by the carrier itself. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_horizontalFamilyZeroExcisedStrip
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    ∃ E : CompletedZetaZeroExcisedStrip
+        (min F.c (1 - F.c)) (max F.c (1 - F.c)),
+      (∀ u x : ℝ, x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaTopPath
+          (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) ∧
+      (∀ u x : ℝ, x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaBottomPath
+          (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) := by
+  let topCarrier : Set ℂ :=
+    {z : ℂ |
+      ∃ u x : ℝ,
+        x ∈ Set.uIcc F.c (1 - F.c) ∧
+          z =
+            zetaCompletedExplicitFormulaTopPath
+              (F.rectangle (h.height_schedule.height u)) x}
+  let bottomCarrier : Set ℂ :=
+    {z : ℂ |
+      ∃ u x : ℝ,
+        x ∈ Set.uIcc F.c (1 - F.c) ∧
+          z =
+            zetaCompletedExplicitFormulaBottomPath
+              (F.rectangle (h.height_schedule.height u)) x}
+  let E : CompletedZetaZeroExcisedStrip
+      (min F.c (1 - F.c)) (max F.c (1 - F.c)) :=
+    { carrier := topCarrier ∪ bottomCarrier
+      in_strip :=
+        fun z hz =>
+          match (Set.mem_union z topCarrier bottomCarrier).mp hz with
+          | Or.inl hztop =>
+              match hztop with
+              | ⟨u, x, hx, hz_eq⟩ =>
+                  have hpoint :
+                      (min F.c (1 - F.c) ≤
+                          (zetaCompletedExplicitFormulaTopPath
+                            (F.rectangle (h.height_schedule.height u)) x).re ∧
+                        (zetaCompletedExplicitFormulaTopPath
+                            (F.rectangle (h.height_schedule.height u)) x).re ≤
+                          max F.c (1 - F.c)) :=
+                    (h.scheduled_topPath_zeroExcisedPointwise u x hx).1
+                  Eq.subst
+                    (motive := fun w : ℂ =>
+                      min F.c (1 - F.c) ≤ w.re ∧
+                        w.re ≤ max F.c (1 - F.c))
+                    hz_eq.symm
+                    hpoint
+          | Or.inr hzbottom =>
+              match hzbottom with
+              | ⟨u, x, hx, hz_eq⟩ =>
+                  have hpoint :
+                      (min F.c (1 - F.c) ≤
+                          (zetaCompletedExplicitFormulaBottomPath
+                            (F.rectangle (h.height_schedule.height u)) x).re ∧
+                        (zetaCompletedExplicitFormulaBottomPath
+                            (F.rectangle (h.height_schedule.height u)) x).re ≤
+                          max F.c (1 - F.c)) :=
+                    (h.scheduled_bottomPath_zeroExcisedPointwise u x hx).1
+                  Eq.subst
+                    (motive := fun w : ℂ =>
+                      min F.c (1 - F.c) ≤ w.re ∧
+                        w.re ≤ max F.c (1 - F.c))
+                    hz_eq.symm
+                    hpoint
+      ne_zero :=
+        fun z hz =>
+          match (Set.mem_union z topCarrier bottomCarrier).mp hz with
+          | Or.inl hztop =>
+              match hztop with
+              | ⟨u, x, hx, hz_eq⟩ =>
+                  Eq.subst
+                    (motive := fun w : ℂ => w ≠ 0)
+                    hz_eq.symm
+                    (h.scheduled_topPath_ne_zero u x hx)
+          | Or.inr hzbottom =>
+              match hzbottom with
+              | ⟨u, x, hx, hz_eq⟩ =>
+                  Eq.subst
+                    (motive := fun w : ℂ => w ≠ 0)
+                    hz_eq.symm
+                    (h.scheduled_bottomPath_ne_zero u x hx)
+      ne_one :=
+        fun z hz =>
+          match (Set.mem_union z topCarrier bottomCarrier).mp hz with
+          | Or.inl hztop =>
+              match hztop with
+              | ⟨u, x, hx, hz_eq⟩ =>
+                  Eq.subst
+                    (motive := fun w : ℂ => w ≠ 1)
+                    hz_eq.symm
+                    (h.scheduled_topPath_ne_one u x hx)
+          | Or.inr hzbottom =>
+              match hzbottom with
+              | ⟨u, x, hx, hz_eq⟩ =>
+                  Eq.subst
+                    (motive := fun w : ℂ => w ≠ 1)
+                    hz_eq.symm
+                    (h.scheduled_bottomPath_ne_one u x hx)
+      zeta_ne_zero :=
+        fun z hz =>
+          match (Set.mem_union z topCarrier bottomCarrier).mp hz with
+          | Or.inl hztop =>
+              match hztop with
+              | ⟨u, x, hx, hz_eq⟩ =>
+                  Eq.subst
+                    (motive := fun w : ℂ => completedRiemannZeta w ≠ 0)
+                    hz_eq.symm
+                    (h.scheduled_topPath_completedRiemannZeta_ne_zero u x hx)
+          | Or.inr hzbottom =>
+              match hzbottom with
+              | ⟨u, x, hx, hz_eq⟩ =>
+                  Eq.subst
+                    (motive := fun w : ℂ => completedRiemannZeta w ≠ 0)
+                    hz_eq.symm
+                    (h.scheduled_bottomPath_completedRiemannZeta_ne_zero u x hx)
+      gamma_ne_zero :=
+        fun z hz =>
+          match (Set.mem_union z topCarrier bottomCarrier).mp hz with
+          | Or.inl hztop =>
+              match hztop with
+              | ⟨u, x, hx, hz_eq⟩ =>
+                  Eq.subst
+                    (motive := fun w : ℂ => Gammaℝ w ≠ 0)
+                    hz_eq.symm
+                    (h.scheduled_topPath_Gammaℝ_ne_zero u x hx)
+          | Or.inr hzbottom =>
+              match hzbottom with
+              | ⟨u, x, hx, hz_eq⟩ =>
+                  Eq.subst
+                    (motive := fun w : ℂ => Gammaℝ w ≠ 0)
+                    hz_eq.symm
+                    (h.scheduled_bottomPath_Gammaℝ_ne_zero u x hx) }
+  exact
+    ⟨E,
+      And.intro
+        (fun u x hx =>
+          Set.mem_union_left bottomCarrier ⟨u, x, hx, rfl⟩)
+        (fun u x hx =>
+          Set.mem_union_right topCarrier ⟨u, x, hx, rfl⟩)⟩
+
+/-- A scheduled top horizontal point determines its own singleton zero-excised strip. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_topPath_singletonZeroExcisedStrip
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    ∃ E : CompletedZetaZeroExcisedStrip
+        (min F.c (1 - F.c)) (max F.c (1 - F.c)),
+      zetaCompletedExplicitFormulaTopPath
+        (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier := by
+  let z : ℂ :=
+    zetaCompletedExplicitFormulaTopPath
+      (F.rectangle (h.height_schedule.height u)) x
+  match h.scheduled_topPath_zeroExcisedPointwise u x hx with
+  | ⟨hstrip, hz0, hz1, hzeta, hgamma, _hgamma_half⟩ =>
+      exact
+        ⟨CompletedZetaZeroExcisedStrip.singleton z hstrip hz0 hz1 hzeta hgamma,
+          CompletedZetaZeroExcisedStrip.mem_singleton z hstrip hz0 hz1 hzeta hgamma⟩
+
+/-- A scheduled bottom horizontal point determines its own singleton zero-excised strip. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_bottomPath_singletonZeroExcisedStrip
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    ∃ E : CompletedZetaZeroExcisedStrip
+        (min F.c (1 - F.c)) (max F.c (1 - F.c)),
+      zetaCompletedExplicitFormulaBottomPath
+        (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier := by
+  let z : ℂ :=
+    zetaCompletedExplicitFormulaBottomPath
+      (F.rectangle (h.height_schedule.height u)) x
+  match h.scheduled_bottomPath_zeroExcisedPointwise u x hx with
+  | ⟨hstrip, hz0, hz1, hzeta, hgamma, _hgamma_half⟩ =>
+      exact
+        ⟨CompletedZetaZeroExcisedStrip.singleton z hstrip hz0 hz1 hzeta hgamma,
+          CompletedZetaZeroExcisedStrip.mem_singleton z hstrip hz0 hz1 hzeta hgamma⟩
+
+/-- A scheduled top/bottom horizontal pair at one parameter value has a shared finite
+zero-excised strip carrier. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_horizontalPairZeroExcisedStrip
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u x : ℝ)
+    (hx : x ∈ Set.uIcc F.c (1 - F.c)) :
+    ∃ E : CompletedZetaZeroExcisedStrip
+        (min F.c (1 - F.c)) (max F.c (1 - F.c)),
+      zetaCompletedExplicitFormulaTopPath
+        (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier ∧
+      zetaCompletedExplicitFormulaBottomPath
+        (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier := by
+  let ztop : ℂ :=
+    zetaCompletedExplicitFormulaTopPath
+      (F.rectangle (h.height_schedule.height u)) x
+  let zbottom : ℂ :=
+    zetaCompletedExplicitFormulaBottomPath
+      (F.rectangle (h.height_schedule.height u)) x
+  match h.scheduled_topPath_zeroExcisedPointwise u x hx with
+  | ⟨htop_strip, htop_zero, htop_one, htop_zeta, htop_gamma, _htop_gamma_half⟩ =>
+      match h.scheduled_bottomPath_zeroExcisedPointwise u x hx with
+      | ⟨hbottom_strip, hbottom_zero, hbottom_one, hbottom_zeta,
+          hbottom_gamma, _hbottom_gamma_half⟩ =>
+          let Etop : CompletedZetaZeroExcisedStrip
+              (min F.c (1 - F.c)) (max F.c (1 - F.c)) :=
+            CompletedZetaZeroExcisedStrip.singleton
+              ztop htop_strip htop_zero htop_one htop_zeta htop_gamma
+          let Ebottom : CompletedZetaZeroExcisedStrip
+              (min F.c (1 - F.c)) (max F.c (1 - F.c)) :=
+            CompletedZetaZeroExcisedStrip.singleton
+              zbottom hbottom_strip hbottom_zero hbottom_one hbottom_zeta hbottom_gamma
+          exact
+            ⟨CompletedZetaZeroExcisedStrip.union Etop Ebottom,
+              And.intro
+                (CompletedZetaZeroExcisedStrip.mem_union_left Etop Ebottom
+                  (CompletedZetaZeroExcisedStrip.mem_singleton
+                    ztop htop_strip htop_zero htop_one htop_zeta htop_gamma))
+                (CompletedZetaZeroExcisedStrip.mem_union_right Etop Ebottom
+                  (CompletedZetaZeroExcisedStrip.mem_singleton
+                    zbottom hbottom_strip hbottom_zero hbottom_one hbottom_zeta
+                      hbottom_gamma))⟩
+
+/-- A finite scheduled horizontal window has a shared zero-excised strip carrier for all
+top and bottom points indexed by the window. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_horizontalFiniteWindowZeroExcisedStrip
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ)
+    (xs : List ℝ)
+    (hxs : ∀ x : ℝ, x ∈ xs → x ∈ Set.uIcc F.c (1 - F.c)) :
+    ∃ E : CompletedZetaZeroExcisedStrip
+        (min F.c (1 - F.c)) (max F.c (1 - F.c)),
+      (∀ x : ℝ, x ∈ xs →
+        zetaCompletedExplicitFormulaTopPath
+          (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) ∧
+      (∀ x : ℝ, x ∈ xs →
+        zetaCompletedExplicitFormulaBottomPath
+          (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :=
+  List.rec
+    (motive := fun xs =>
+      (∀ x : ℝ, x ∈ xs → x ∈ Set.uIcc F.c (1 - F.c)) →
+        ∃ E : CompletedZetaZeroExcisedStrip
+            (min F.c (1 - F.c)) (max F.c (1 - F.c)),
+          (∀ x : ℝ, x ∈ xs →
+            zetaCompletedExplicitFormulaTopPath
+              (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) ∧
+          (∀ x : ℝ, x ∈ xs →
+            zetaCompletedExplicitFormulaBottomPath
+              (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier))
+    (fun _ =>
+      ⟨CompletedZetaZeroExcisedStrip.empty
+          (min F.c (1 - F.c)) (max F.c (1 - F.c)),
+        And.intro
+          (fun x hx => False.elim (List.not_mem_nil x hx))
+          (fun x hx => False.elim (List.not_mem_nil x hx))⟩)
+    (fun x xs ih hxs =>
+      have htail : ∀ y : ℝ, y ∈ xs → y ∈ Set.uIcc F.c (1 - F.c) :=
+        fun y hy =>
+          hxs y (List.mem_cons_of_mem x hy)
+      match h.scheduled_horizontalPairZeroExcisedStrip
+          u x (hxs x (List.mem_cons_self x xs)), ih htail with
+      | ⟨Ehead, hhead_top, hhead_bottom⟩, ⟨Etail, htail_top, htail_bottom⟩ =>
+          let E : CompletedZetaZeroExcisedStrip
+              (min F.c (1 - F.c)) (max F.c (1 - F.c)) :=
+            CompletedZetaZeroExcisedStrip.union Ehead Etail
+          ⟨E,
+            And.intro
+              (fun y hy =>
+                match List.mem_cons.mp hy with
+                | Or.inl hyx =>
+                    Eq.subst
+                      (motive := fun w : ℝ =>
+                        zetaCompletedExplicitFormulaTopPath
+                          (F.rectangle (h.height_schedule.height u)) w ∈ E.carrier)
+                      hyx.symm
+                      (CompletedZetaZeroExcisedStrip.mem_union_left Ehead Etail
+                        hhead_top)
+                | Or.inr hytail =>
+                    CompletedZetaZeroExcisedStrip.mem_union_right Ehead Etail
+                      (htail_top y hytail))
+              (fun y hy =>
+                match List.mem_cons.mp hy with
+                | Or.inl hyx =>
+                    Eq.subst
+                      (motive := fun w : ℝ =>
+                        zetaCompletedExplicitFormulaBottomPath
+                          (F.rectangle (h.height_schedule.height u)) w ∈ E.carrier)
+                      hyx.symm
+                      (CompletedZetaZeroExcisedStrip.mem_union_left Ehead Etail
+                        hhead_bottom)
+                | Or.inr hytail =>
+                    CompletedZetaZeroExcisedStrip.mem_union_right Ehead Etail
+                      (htail_bottom y hytail))⟩)
+    xs hxs
+
+/-- Any finite scheduled horizontal sample has a shared zero-excised strip carrier for
+all sampled top and bottom points.  The sample records both the schedule parameter and
+the horizontal edge parameter. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.scheduled_horizontalFiniteSampleZeroExcisedStrip
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (samples : List (ℝ × ℝ))
+    (hsamples :
+      ∀ p : ℝ × ℝ, p ∈ samples → p.2 ∈ Set.uIcc F.c (1 - F.c)) :
+    ∃ E : CompletedZetaZeroExcisedStrip
+        (min F.c (1 - F.c)) (max F.c (1 - F.c)),
+      (∀ p : ℝ × ℝ, p ∈ samples →
+        zetaCompletedExplicitFormulaTopPath
+          (F.rectangle (h.height_schedule.height p.1)) p.2 ∈ E.carrier) ∧
+      (∀ p : ℝ × ℝ, p ∈ samples →
+        zetaCompletedExplicitFormulaBottomPath
+          (F.rectangle (h.height_schedule.height p.1)) p.2 ∈ E.carrier) :=
+  List.rec
+    (motive := fun samples =>
+      (∀ p : ℝ × ℝ, p ∈ samples → p.2 ∈ Set.uIcc F.c (1 - F.c)) →
+        ∃ E : CompletedZetaZeroExcisedStrip
+            (min F.c (1 - F.c)) (max F.c (1 - F.c)),
+          (∀ p : ℝ × ℝ, p ∈ samples →
+            zetaCompletedExplicitFormulaTopPath
+              (F.rectangle (h.height_schedule.height p.1)) p.2 ∈ E.carrier) ∧
+          (∀ p : ℝ × ℝ, p ∈ samples →
+            zetaCompletedExplicitFormulaBottomPath
+              (F.rectangle (h.height_schedule.height p.1)) p.2 ∈ E.carrier))
+    (fun _ =>
+      ⟨CompletedZetaZeroExcisedStrip.empty
+          (min F.c (1 - F.c)) (max F.c (1 - F.c)),
+        And.intro
+          (fun p hp => False.elim (List.not_mem_nil p hp))
+          (fun p hp => False.elim (List.not_mem_nil p hp))⟩)
+    (fun p samples ih hsamples =>
+      have htail :
+          ∀ q : ℝ × ℝ, q ∈ samples → q.2 ∈ Set.uIcc F.c (1 - F.c) :=
+        fun q hq =>
+          hsamples q (List.mem_cons_of_mem p hq)
+      match h.scheduled_horizontalPairZeroExcisedStrip
+          p.1 p.2 (hsamples p (List.mem_cons_self p samples)), ih htail with
+      | ⟨Ehead, hhead_top, hhead_bottom⟩, ⟨Etail, htail_top, htail_bottom⟩ =>
+          let E : CompletedZetaZeroExcisedStrip
+              (min F.c (1 - F.c)) (max F.c (1 - F.c)) :=
+            CompletedZetaZeroExcisedStrip.union Ehead Etail
+          ⟨E,
+            And.intro
+              (fun q hq =>
+                match List.mem_cons.mp hq with
+                | Or.inl hqp =>
+                    Eq.subst
+                      (motive := fun r : ℝ × ℝ =>
+                        zetaCompletedExplicitFormulaTopPath
+                          (F.rectangle (h.height_schedule.height r.1)) r.2 ∈ E.carrier)
+                      hqp.symm
+                      (CompletedZetaZeroExcisedStrip.mem_union_left Ehead Etail
+                        hhead_top)
+                | Or.inr hqtail =>
+                    CompletedZetaZeroExcisedStrip.mem_union_right Ehead Etail
+                      (htail_top q hqtail))
+              (fun q hq =>
+                match List.mem_cons.mp hq with
+                | Or.inl hqp =>
+                    Eq.subst
+                      (motive := fun r : ℝ × ℝ =>
+                        zetaCompletedExplicitFormulaBottomPath
+                          (F.rectangle (h.height_schedule.height r.1)) r.2 ∈ E.carrier)
+                      hqp.symm
+                      (CompletedZetaZeroExcisedStrip.mem_union_left Ehead Etail
+                        hhead_bottom)
+                | Or.inr hqtail =>
+                    CompletedZetaZeroExcisedStrip.mem_union_right Ehead Etail
+                      (htail_bottom q hqtail))⟩)
+    samples hsamples
 
 /-- A family package has the same transform-control field as its record projection. -/
 theorem ExplicitFormulaFamilyAnalyticPackage.phi_control_eq
@@ -402,45 +1565,99 @@ theorem ExplicitFormulaFamilyAnalyticPackage.logderiv_control_eq
     h.logderiv_control = h.logderiv_control :=
   rfl
 
-/-- The admissible source has completed log-derivative strip control. -/
-noncomputable def completedZetaNegLogDerivControl_of_admissible
-    (f : ZetaAdmissibleFunction) :
+/-- Build completed log-derivative strip control from supplied concrete strip constants. -/
+def completedZetaNegLogDerivControl_of_suppliedConstants
+    (f : ZetaAdmissibleFunction)
+    (C : ∀ (a b : ℝ), CompletedZetaZeroExcisedStrip a b → ℕ → ℝ)
+    (hCpos :
+      ∀ (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ),
+        0 < C a b E N)
+    (hCbound :
+      ∀ (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ)
+        (z : ℂ),
+        z ∈ E.carrier →
+        ‖completedZetaNegLogDeriv z‖ ≤ C a b E N * (1 + ‖z.im‖) ^ N) :
     CompletedZetaNegLogDerivControl f :=
   { zero_excised_polynomial_growth :=
       fun a b E =>
-        completedZetaNegLogDeriv_zeroExcisedPolynomialGrowth a b E
+        ⟨1, C a b E 1, hCpos a b E 1, hCbound a b E 1⟩
     zero_excised_polynomial_strip_bound :=
-      fun a b E N =>
-        completedZetaNegLogDeriv_zeroExcisedPolynomialStripBound a b E N }
+      fun a b E N => ⟨C a b E N, hCpos a b E N, hCbound a b E N⟩
+    zero_excised_polynomial_strip_bound_constant := C
+    zero_excised_polynomial_strip_bound_constant_pos := hCpos
+    zero_excised_polynomial_strip_bound_constant_bound := hCbound }
 
-/-- The admissible source has the family analytic package for every vertically regular
-contour family. -/
-noncomputable def explicitFormulaFamilyAnalyticPackage_of_admissible
-    (f : ZetaAdmissibleFunction)
+/-- Supplied transform and log-derivative controls give the family analytic package for
+every vertically regular contour family. -/
+def explicitFormulaFamilyAnalyticPackage_of_controls
+    {f : ZetaAdmissibleFunction}
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily) :
     ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily :=
-  { phi_control := zetaPhiAnalyticControl_of_admissible f
-    logderiv_control := completedZetaNegLogDerivControl_of_admissible f
+  { phi_control := hPhi
+    logderiv_control := hLog
     height_schedule := hSchedule }
 
-/-- The admissible source has the family analytic package for any scheduled contour
-family. -/
-noncomputable def explicitFormulaFamilyAnalyticPackage_of_scheduledContourFamily
-    (f : ZetaAdmissibleFunction)
+/-- Supplied transform and log-derivative controls give the family analytic package for
+any scheduled contour family. -/
+def explicitFormulaFamilyAnalyticPackage_of_scheduledContourFamily
+    {f : ZetaAdmissibleFunction}
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
     (F : ExplicitFormulaScheduledContourFamily) :
     ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily :=
-  { phi_control := zetaPhiAnalyticControl_of_admissible f
-    logderiv_control := completedZetaNegLogDerivControl_of_admissible f
+  { phi_control := hPhi
+    logderiv_control := hLog
     height_schedule := F.height_schedule }
 
 /-- The analytic package built from a scheduled contour family uses the stored schedule. -/
 theorem explicitFormulaFamilyAnalyticPackage_of_scheduledContourFamily_height_schedule
-    (f : ZetaAdmissibleFunction)
+    {f : ZetaAdmissibleFunction}
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
     (F : ExplicitFormulaScheduledContourFamily) :
-    (explicitFormulaFamilyAnalyticPackage_of_scheduledContourFamily f F).height_schedule =
+    (explicitFormulaFamilyAnalyticPackage_of_scheduledContourFamily hPhi hLog F).height_schedule =
       F.height_schedule := by
   rfl
+
+/-- The fixed right edge used for the autocorrelation explicit-formula contour family. -/
+def zetaCompletedExplicitFormula_autocorrelation_contourFamily_rightEdge
+    (_f : ZetaAdmissibleFunction) : ℝ :=
+  (1 / 2 : ℝ) + 1
+
+/-- The autocorrelation contour right edge lies strictly to the right of the critical line. -/
+theorem zetaCompletedExplicitFormula_autocorrelation_contourFamily_rightEdge_gt_half
+    (f : ZetaAdmissibleFunction) :
+    (1 / 2 : ℝ) <
+      zetaCompletedExplicitFormula_autocorrelation_contourFamily_rightEdge f := by
+  exact lt_add_of_pos_right (1 / 2 : ℝ) zero_lt_one
+
+/-- The contour family used by the completed explicit formula on an autocorrelation probe. -/
+def zetaCompletedExplicitFormula_autocorrelation_contourFamily
+    (f : ZetaAdmissibleFunction) :
+    ExplicitFormulaContourFamily :=
+  { c := zetaCompletedExplicitFormula_autocorrelation_contourFamily_rightEdge f
+    c_gt_one := by
+      have hhalf_pos : (0 : ℝ) < 1 / 2 :=
+        real_half_pos_for_contourGeometry
+      have hadd :
+          (0 : ℝ) + 1 < (1 / 2 : ℝ) + 1 :=
+        add_lt_add_right hhalf_pos 1
+      exact Eq.subst
+        (motive := fun x : ℝ => x < (1 / 2 : ℝ) + 1)
+        (zero_add (1 : ℝ))
+        hadd
+    c_gt_half :=
+      zetaCompletedExplicitFormula_autocorrelation_contourFamily_rightEdge_gt_half f
+    c_ne_one := by
+      intro h
+      have hhalf_zero : (1 / 2 : ℝ) = 0 := by
+        have hone : (1 / 2 : ℝ) + 1 = 0 + 1 := by
+          exact h.trans (zero_add (1 : ℝ)).symm
+        exact add_right_cancel hone
+      exact (ne_of_gt real_half_pos_for_contourGeometry) hhalf_zero }
 
 end ZetaAdmissibleFunction
 

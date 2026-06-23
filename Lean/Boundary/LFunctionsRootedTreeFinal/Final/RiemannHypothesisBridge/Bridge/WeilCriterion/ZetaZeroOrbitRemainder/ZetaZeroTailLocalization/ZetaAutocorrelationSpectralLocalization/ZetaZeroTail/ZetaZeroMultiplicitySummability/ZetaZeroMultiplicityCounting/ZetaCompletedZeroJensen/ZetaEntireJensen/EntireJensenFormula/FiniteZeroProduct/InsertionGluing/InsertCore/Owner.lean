@@ -105,6 +105,7 @@ theorem entireFunction_finiteZeroDivisorProduct_factor_analyticAt
 /-- Analyticity of a finite normalized zero-divisor product. -/
 theorem entireFunction_finiteZeroDivisorProduct_analyticAt
     (F : ℂ → ℂ)
+    [DecidableEq (EntireFunctionZero F)]
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (S : Finset (EntireFunctionZero F))
     (w : ℂ) :
@@ -113,7 +114,6 @@ theorem entireFunction_finiteZeroDivisorProduct_analyticAt
         entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
           F hF S x)
       w := by
-  classical
   have hempty :
       AnalyticAt ℂ
         (fun x : ℂ =>

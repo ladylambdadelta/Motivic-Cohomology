@@ -93,10 +93,11 @@ def centeredCompletedZetaZeroCarrierZerosInClosedDisk
 
 /-- Closed-disk multiplicity summands are nonnegative. -/
 theorem completedZeroMultiplicityClosedDiskSummand_nonnegative
-    (R : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    (R : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
+    [Decidable (‖(ρ : ℂ)‖ ≤ R)] :
     0 ≤ completedZeroMultiplicityClosedDiskSummand R ρ := by
   exact
-    match Decidable.em (‖(ρ : ℂ)‖ ≤ R) with
+    match (inferInstance : Decidable (‖(ρ : ℂ)‖ ≤ R)) with
     | Or.inl hρ =>
         Eq.subst
           (motive := fun x : ℝ => 0 ≤ x)

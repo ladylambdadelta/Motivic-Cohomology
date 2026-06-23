@@ -177,6 +177,136 @@ theorem analyticAt_order_eq_of_eventuallyEq_mul_left
     analyticAt_order_mul_left_eq hu huz hg
   exact hfirst.trans hsecond
 
+/-- Translating the source coordinate preserves analytic order. -/
+theorem analyticAt_order_eq_comp_add_const
+    {f : ℂ → ℂ} {z c : ℂ}
+    (hf : AnalyticAt ℂ f (c + z)) :
+    hf.order =
+      (hf.comp
+        ((show AnalyticAt ℂ (fun _ : ℂ => c) z from analyticAt_const).add
+          (show AnalyticAt ℂ (fun w : ℂ => w) z from analyticAt_id))).order := by
+  let hid : AnalyticAt ℂ (fun w : ℂ => w) z :=
+    analyticAt_id
+  let hconst : AnalyticAt ℂ (fun _ : ℂ => c) z :=
+    analyticAt_const
+  let hshift : AnalyticAt ℂ (fun w : ℂ => c + w) z :=
+    hconst.add hid
+  by_cases htop : hf.order = ⊤
+  · have hfzero : ∀ᶠ w in 𝓝 (c + z), f w = 0 :=
+      (AnalyticAt.order_eq_top_iff hf).mp htop
+    have hshift_zero :
+        ∀ᶠ w in 𝓝 z, (f ∘ fun y : ℂ => c + y) w = 0 :=
+      ((continuous_const.add continuous_id).continuousAt.tendsto).eventually hfzero
+    have hshift_order :
+        (hf.comp hshift).order = ⊤ :=
+      (AnalyticAt.order_eq_top_iff
+        (hf.comp hshift)).mpr hshift_zero
+    exact htop.trans hshift_order.symm
+  · let n : ℕ := hf.order.toNat
+    have hforder : hf.order = (n : ℕ∞) :=
+      (ENat.coe_toNat htop).symm
+    obtain ⟨a, ha, haz, hfactor⟩ :=
+      (AnalyticAt.order_eq_nat_iff hf n).mp hforder
+    let b : ℂ → ℂ := fun w : ℂ => a (c + w)
+    have hb : AnalyticAt ℂ b z :=
+      ha.comp hshift
+    have hbz : b z ≠ 0 :=
+      haz
+    have hshift_factor :
+        ∀ᶠ w in 𝓝 z,
+          (f ∘ fun y : ℂ => c + y) w = (w - z) ^ n • b w := by
+      have hpull :
+          ∀ᶠ w in 𝓝 z, f (c + w) = ((c + w) - (c + z)) ^ n • a (c + w) :=
+        ((continuous_const.add continuous_id).continuousAt.tendsto).eventually hfactor
+      exact hpull.mono
+        (fun w hw =>
+          have hsub : (c + w) - (c + z) = w - z := by
+            calc
+              (c + w) - (c + z) = (c + w) - c - z := by
+                exact sub_add_eq_sub_sub (c + w) c z
+              _ = w - z := by
+                exact congrArg (fun u : ℂ => u - z) (add_sub_cancel_left c w)
+          Eq.trans hw
+            (congrArg (fun u : ℂ => u ^ n • a (c + w)) hsub))
+    have hshift_order :
+        (hf.comp hshift).order = (n : ℕ∞) :=
+      (AnalyticAt.order_eq_nat_iff
+        (hf.comp hshift) n).mpr
+        ⟨b, hb, hbz, hshift_factor⟩
+    exact hforder.trans hshift_order.symm
+
+/-- Translating the source coordinate by subtracting a constant preserves analytic order. -/
+theorem analyticAt_order_eq_comp_sub_const
+    {f : ℂ → ℂ} {z c : ℂ}
+    (hf : AnalyticAt ℂ f z) :
+    hf.order =
+      (hf.comp_of_eq
+        ((show AnalyticAt ℂ (fun w : ℂ => w) (c + z) from analyticAt_id).sub
+          (show AnalyticAt ℂ (fun _ : ℂ => c) (c + z) from analyticAt_const))
+        (add_sub_cancel_left c z)).order := by
+  let base : ℂ := c + z
+  let hsub_analytic :
+      AnalyticAt ℂ (fun w : ℂ => w - c) base :=
+    (show AnalyticAt ℂ (fun w : ℂ => w) base from analyticAt_id).sub
+      (show AnalyticAt ℂ (fun _ : ℂ => c) base from analyticAt_const)
+  have hbase_sub : base - c = z := by
+    exact add_sub_cancel_left c z
+  by_cases htop : hf.order = ⊤
+  · have hfzero : ∀ᶠ w in 𝓝 z, f w = 0 :=
+      (AnalyticAt.order_eq_top_iff hf).mp htop
+    have hshift_zero :
+        ∀ᶠ w in 𝓝 base, (f ∘ fun y : ℂ => y - c) w = 0 :=
+      ((continuous_id.sub continuous_const).continuousAt.tendsto).eventually
+        (Eq.subst
+          (motive := fun u : ℂ => ∀ᶠ w in 𝓝 u, f w = 0)
+          hbase_sub.symm
+          hfzero)
+    have hshift_order :
+        (hf.comp_of_eq hsub_analytic hbase_sub).order = ⊤ :=
+      (AnalyticAt.order_eq_top_iff
+        (hf.comp_of_eq hsub_analytic hbase_sub)).mpr hshift_zero
+    exact htop.trans hshift_order.symm
+  · let n : ℕ := hf.order.toNat
+    have hforder : hf.order = (n : ℕ∞) :=
+      (ENat.coe_toNat htop).symm
+    obtain ⟨a, ha, haz, hfactor⟩ :=
+      (AnalyticAt.order_eq_nat_iff hf n).mp hforder
+    let b : ℂ → ℂ := fun w : ℂ => a (w - c)
+    have hb : AnalyticAt ℂ b base :=
+      ha.comp_of_eq hsub_analytic hbase_sub
+    have hbz : b base ≠ 0 := by
+      exact Eq.subst
+        (motive := fun u : ℂ => a u ≠ 0)
+        hbase_sub.symm
+        haz
+    have hshift_factor :
+        ∀ᶠ w in 𝓝 base,
+          (f ∘ fun y : ℂ => y - c) w = (w - base) ^ n • b w := by
+      have hpull :
+          ∀ᶠ w in 𝓝 base, f (w - c) = ((w - c) - z) ^ n • a (w - c) :=
+        ((continuous_id.sub continuous_const).continuousAt.tendsto).eventually
+          (Eq.subst
+            (motive := fun u : ℂ =>
+              ∀ᶠ w in 𝓝 u, f w = (w - z) ^ n • a w)
+            hbase_sub.symm
+            hfactor)
+      exact hpull.mono
+        (fun w hw =>
+          have hsub : (w - c) - z = w - base := by
+            calc
+              (w - c) - z = w - (c + z) := by
+                exact (sub_add_eq_sub_sub w c z).symm
+              _ = w - base := by
+                rfl
+          Eq.trans hw
+            (congrArg (fun u : ℂ => u ^ n • a (w - c)) hsub))
+    have hshift_order :
+        (hf.comp_of_eq hsub_analytic hbase_sub).order = (n : ℕ∞) :=
+      (AnalyticAt.order_eq_nat_iff
+        (hf.comp_of_eq hsub_analytic hbase_sub) n).mpr
+        ⟨b, hb, hbz, hshift_factor⟩
+    exact hforder.trans hshift_order.symm
+
 /-- An analytic zero which is not locally identically zero has positive finite
 order. -/
 theorem analyticAt_order_toNat_pos_of_zero_not_eventually_zero

@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaCompletedWeightStream.ZetaCompletedFinitePart.ZetaCompletedSquareLedger.ZetaAutocorrelationHilbert.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaHermitianPacket.ZetaPrimePowerWindow.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaHermitianPacket.ConvolutionChannels
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaPacketComparison.ZetaCompletionCorrection.Owner
 
@@ -457,11 +458,12 @@ def zetaArchimedeanAutocorrelationSquareEnergy
     (f : ZetaAdmissibleFunction) : ℝ :=
   2 * Complex.normSq (zetaCompletedExplicitFormulaPhi f 0)
 
-/-- The correction autocorrelation square energy is the normalized correction coordinate square. -/
+/-- The correction autocorrelation square energy is the centered-pole Hermitian correction
+packet gram. -/
 def zetaCorrectionAutocorrelationSquareEnergy
-    (_f : ZetaAdmissibleFunction) : ℝ :=
-  zetaCompletionCorrectionPacketCoordinate *
-    zetaCompletionCorrectionPacketCoordinate
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  ZetaHermitianPacketEnsemble.correctionPacketGram
+    (zetaCompletedHermitianBoundaryDefect f)
 
 /-- The honest non-prime completed square energy: archimedean square plus correction square. -/
 def zetaArchimedeanCorrectionAutocorrelationSquareEnergy
@@ -547,21 +549,22 @@ theorem zetaCorrectionAutocorrelationChannel_eq_squareEnergy
           (ZetaAdmissibleFunction.convolutionAutocorrelation f)) =
       zetaCorrectionAutocorrelationSquareEnergy f := by
   unfold zetaCorrectionAutocorrelationSquareEnergy
-  have hcorr :
+  have howner :
       zetaCompletedExplicitFormulaCorrectionContribution
           (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-        zetaCompletionCorrection 0 := by
-    exact zetaCompletionCorrection_zero.symm
+        zetaCompletedExplicitFormulaCorrectionConvolutionContribution f :=
+    zetaCompletedExplicitFormulaCorrectionContribution_convolutionAutocorrelation_eq_owner
+      f
   calc
     Complex.re
         (zetaCompletedExplicitFormulaCorrectionContribution
           (ZetaAdmissibleFunction.convolutionAutocorrelation f)) =
-        Complex.re (zetaCompletionCorrection 0) := by
-      exact congrArg Complex.re hcorr
+        Complex.re (zetaCompletedExplicitFormulaCorrectionConvolutionContribution f) := by
+      exact congrArg Complex.re howner
     _ =
-        zetaCompletionCorrectionPacketCoordinate *
-          zetaCompletionCorrectionPacketCoordinate := by
-      exact zetaCompletionCorrectionPacketCoordinate_sq.symm
+        ZetaHermitianPacketEnsemble.correctionPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) := by
+      exact zetaCompletedExplicitFormulaCorrectionConvolutionChannel_holographic f
 
 /-- Archimedean plus correction is exactly the honest non-prime completed square energy. -/
 theorem zetaArchimedeanCorrectionAutocorrelationChannel_eq_squareEnergy
@@ -588,7 +591,9 @@ theorem zetaCorrectionAutocorrelationSquareEnergy_nonnegative
     (f : ZetaAdmissibleFunction) :
     0 ≤ zetaCorrectionAutocorrelationSquareEnergy f := by
   unfold zetaCorrectionAutocorrelationSquareEnergy
-  exact mul_self_nonneg zetaCompletionCorrectionPacketCoordinate
+  exact
+    ZetaHermitianPacketEnsemble.correctionPacketGram_nonnegative
+      (zetaCompletedHermitianBoundaryDefect f)
 
 /-- The honest non-prime completed square energy is nonnegative. -/
 theorem zetaArchimedeanCorrectionAutocorrelationSquareEnergy_nonnegative
@@ -908,6 +913,63 @@ theorem finitePartPrimeDefectRenormalizedWindow_eq_primeOffDiagonalWindow
       exact congrArg (fun x : ℝ => P + x) hcancel
     _ = P := by
       exact add_zero P
+
+/-- The absorbed finite prime defect-square window is exactly the finite prime
+off-diagonal window.
+
+This is the prime-only triangular transport: the positive translation-defect square expands
+as off-diagonal plus diagonal debt, and the finite lower-weight absorption channel cancels
+that diagonal debt before any completed limit is taken. -/
+theorem zetaPrimeTranslationDefectEnergy_add_debtAbsorption_eq_offDiagonal
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    zetaPrimeTranslationDefectEnergy N f +
+        finitePartDebtAbsorptionWindow N f =
+      zetaPrimeOffDiagonalChannel N f := by
+  let P : ℝ := zetaPrimeOffDiagonalChannel N f
+  let D : ℝ := zetaPrimeDiagonalDebt N f
+  let Q : ℝ := zetaPrimeTranslationDefectEnergy N f
+  have hsquare : P + D = Q :=
+    zetaPrimeOffDiagonal_add_diagonalDebt_eq_translationDefectEnergy N f
+  have hcancel : D + -D = 0 := by
+    exact add_neg_cancel D
+  unfold finitePartDebtAbsorptionWindow
+  calc
+    Q + -D = (P + D) + -D := by
+      exact congrArg (fun x : ℝ => x + -D) hsquare.symm
+    _ = P + (D + -D) := by
+      exact add_assoc P D (-D)
+    _ = P + 0 := by
+      exact congrArg (fun x : ℝ => P + x) hcancel
+    _ = P := by
+      exact add_zero P
+
+/-- The absorbed finite prime defect-square windows converge to the completed prime
+off-diagonal channel.
+
+This is the prime-only finite-window limit supplied by the square-ledger owner.  It keeps the
+positive square and the lower-weight absorption visible, rather than replacing them by a
+pointwise physical/spectral equality. -/
+theorem zetaPrimeTranslationDefectEnergy_add_debtAbsorption_tendsto_completedPrimeOffDiagonalChannel
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ =>
+        zetaPrimeTranslationDefectEnergy N f +
+          finitePartDebtAbsorptionWindow N f)
+      atTop
+      (nhds (completedPrimeOffDiagonalChannel f)) := by
+  have hwindow :
+      (fun N : ℕ =>
+        zetaPrimeTranslationDefectEnergy N f +
+          finitePartDebtAbsorptionWindow N f) =
+        (fun N : ℕ => zetaPrimeOffDiagonalChannel N f) := by
+    exact funext
+      (fun N : ℕ =>
+        zetaPrimeTranslationDefectEnergy_add_debtAbsorption_eq_offDiagonal N f)
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ =>
+      Tendsto u atTop (nhds (completedPrimeOffDiagonalChannel f)))
+    hwindow.symm
+    (zetaPrimeOffDiagonalChannel_tendsto_completedPrimeOffDiagonalChannel f)
 
 /-- The completed renormalized prime-defect package is exactly the completed prime
 off-diagonal finite part. -/

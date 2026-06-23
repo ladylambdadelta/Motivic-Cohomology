@@ -259,9 +259,6 @@ theorem Complex.sectorialStirling_shiftedNormalizedFactor_twoSided_bounds_of_bra
           Complex.BinetSecondFormulaBranchCoherence :=
         Complex.BinetSecondFormulaBranchUniformTailAbsorption.coherence
           hbranch
-      have hgamma_slit :
-          ∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane :=
-        hcoh.1
       have hfinite_real :
           ∀ x : ℝ,
             0 < x →
@@ -362,7 +359,7 @@ theorem Complex.sectorialStirling_shiftedNormalizedFactor_twoSided_bounds_of_bra
                 w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
               K / ‖w‖ :=
           hStirling_pointwise w hw_re_pos hw_sector hw_R
-            hgamma_slit hfinite_real hfinite_open
+            hfinite_real hfinite_open
         constructor
         · exact
             Complex.normalizedGammaFactor_norm_le_two_sqrt_two_pi_of_pointwise_exponentialStirling_error

@@ -106,12 +106,12 @@ theorem zetaZeroOrbitContribution_eq_self_add_neg
 analytic multiplicity. -/
 theorem zetaZeroSideContribution_eq_neg_multiplicity_of_unitSample
     (η : ℂ) (φ : ZetaAdmissibleFunction)
-    (hsample : zetaSpectralEval φ (zetaCenteredZero η) = 1) :
+    (hsample : zetaSpectralEval φ η = 1) :
     zetaZeroSideContribution η φ = - (zetaZeroMultiplicity η : ℂ) := by
   calc
     zetaZeroSideContribution η φ =
         - (zetaZeroMultiplicity η : ℂ) *
-          zetaSpectralEval φ (zetaCenteredZero η) := by
+          zetaSpectralEval φ η := by
       exact zetaZeroSideContribution_def η φ
     _ = - (zetaZeroMultiplicity η : ℂ) * 1 := by
       exact congrArg
@@ -135,7 +135,7 @@ theorem complex_re_neg_natMultiplicity
 analytic multiplicity. -/
 theorem zetaZeroSideContribution_re_eq_neg_multiplicity_of_unitSample
     (η : ℂ) (φ : ZetaAdmissibleFunction)
-    (hsample : zetaSpectralEval φ (zetaCenteredZero η) = 1) :
+    (hsample : zetaSpectralEval φ η = 1) :
     Complex.re (zetaZeroSideContribution η φ) =
       - (zetaZeroMultiplicity η : ℝ) := by
   calc
@@ -154,7 +154,7 @@ theorem zetaZeroOrbitContributionRe_eq_neg_multiplicity_add_neg_multiplicity
     (φ : ZetaAdmissibleFunction)
     (hsample :
       ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ →
-        zetaSpectralEval φ (zetaCenteredZero η) = 1) :
+        zetaSpectralEval φ η = 1) :
     zetaZeroOrbitContributionRe ρ φ =
       - (zetaZeroMultiplicity ρ : ℝ) +
         - (zetaZeroMultiplicity (-ρ) : ℝ) := by

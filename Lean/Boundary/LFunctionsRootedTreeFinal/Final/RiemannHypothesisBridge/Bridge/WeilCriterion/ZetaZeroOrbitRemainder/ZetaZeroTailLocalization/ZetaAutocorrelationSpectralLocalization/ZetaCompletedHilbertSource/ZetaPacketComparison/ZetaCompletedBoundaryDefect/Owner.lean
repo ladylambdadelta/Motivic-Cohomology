@@ -249,16 +249,13 @@ theorem zetaCompletedBoundaryDefect_correctionPacketGram_eq_coordinate_sq
           zetaCompletionCorrectionPacketCoordinate := by
       exact congrArg (fun t : ℝ => t * t) hcorrPart
 
-/-- The correction Gram of the completed boundary defect is the real correction
-contribution. -/
-theorem zetaCompletedBoundaryDefect_correctionPacketGram_eq_correctionContribution_re
+/-- The correction Gram of the real-shadow completed boundary defect is the centered
+basepoint correction value. The owner correction contribution now depends on `Φ_f(0)`;
+the variable autocorrelation normalization is handled in the Hermitian packet lane. -/
+theorem zetaCompletedBoundaryDefect_correctionPacketGram_eq_centeredBasepointCorrection_re
     (f : ZetaAdmissibleFunction) :
     ZetaPacketEnsemble.correctionPacketGram (zetaCompletedBoundaryDefect f) =
-      Complex.re (zetaCompletedExplicitFormulaCorrectionContribution f) := by
-  have hcorrection :
-      zetaCompletedExplicitFormulaCorrectionContribution f =
-        zetaCompletionCorrection 0 := by
-    exact Boundary.LFunctions.zetaCompletionCorrection_zero.symm
+      Complex.re (zetaCompletionCorrection 0) := by
   have hsquare :
       zetaCompletionCorrectionPacketCoordinate *
           zetaCompletionCorrectionPacketCoordinate =
@@ -270,8 +267,6 @@ theorem zetaCompletedBoundaryDefect_correctionPacketGram_eq_correctionContributi
           zetaCompletionCorrectionPacketCoordinate :=
       zetaCompletedBoundaryDefect_correctionPacketGram_eq_coordinate_sq f
     _ = Complex.re (zetaCompletionCorrection 0) := hsquare
-    _ = Complex.re (zetaCompletedExplicitFormulaCorrectionContribution f) := by
-      exact congrArg Complex.re hcorrection.symm
 
 /-- The completed zeta boundary defect Gram norm square. -/
 noncomputable def zetaCompletedBoundaryDefectGram (f : ZetaAdmissibleFunction) : ℝ :=

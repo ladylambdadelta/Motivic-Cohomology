@@ -76,15 +76,18 @@ theorem Complex.rightSemicircleStaircaseSafeRe_nonneg_of_not_crossing
 theorem Complex.rightSemicircleStaircaseSafeRe_nonneg
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
-    (m k : ℕ) :
+    (m k : ℕ)
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))] :
     0 ≤ Complex.rightSemicircleStaircaseSafeRe ρ m k :=
   let hcrossProp :=
     Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
       0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1)
-  match Classical.em hcrossProp with
-  | Or.inl hcross =>
+  match (inferInstance : Decidable hcrossProp) with
+  | isTrue hcross =>
       Complex.rightSemicircleStaircaseSafeRe_nonneg_of_crossing hρ m k hcross
-  | Or.inr hcross =>
+  | isFalse hcross =>
       Complex.rightSemicircleStaircaseSafeRe_nonneg_of_not_crossing ρ m k hcross
 
 /-- On a zero-crossing cell, the safe coordinate is radius-bounded. -/
@@ -152,15 +155,18 @@ theorem Complex.rightSemicircleStaircaseSafeRe_le_radius
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
     {m k : ℕ}
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))]
     (hk : k ∈ Finset.range (m + 1)) :
     Complex.rightSemicircleStaircaseSafeRe ρ m k ≤ ρ :=
   let hcrossProp :=
     Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
       0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1)
-  match Classical.em hcrossProp with
-  | Or.inl hcross =>
+  match (inferInstance : Decidable hcrossProp) with
+  | isTrue hcross =>
       Complex.rightSemicircleStaircaseSafeRe_le_radius_of_crossing ρ m k hcross
-  | Or.inr hcross =>
+  | isFalse hcross =>
       Complex.rightSemicircleStaircaseSafeRe_le_radius_of_not_crossing hρ hk
         hcross
 
@@ -169,6 +175,9 @@ theorem Complex.rightSemicircleStaircaseSafeRe_mem_Icc
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
     (m k : ℕ)
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))]
     (hk : k ∈ Finset.range (m + 1)) :
     Complex.rightSemicircleStaircaseSafeRe ρ m k ∈ [[(0 : ℝ), ρ]] := by
   have hleft :
@@ -203,6 +212,9 @@ theorem Complex.rightSemicircleStaircasePrevSafeRe_nonneg_of_ne_zero
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
     {m k : ℕ}
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m (k - 1) ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m ((k - 1) + 1))]
     (hk0 : k ≠ 0) :
     0 ≤ Complex.rightSemicircleStaircasePrevSafeRe ρ m k := by
   have hsafe :
@@ -222,16 +234,20 @@ theorem Complex.rightSemicircleStaircasePrevSafeRe_nonneg
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
     {m k : ℕ}
+    [Decidable (k = 0)]
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m (k - 1) ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m ((k - 1) + 1))]
     (_hk : k ∈ Finset.range (m + 1)) :
     0 ≤ Complex.rightSemicircleStaircasePrevSafeRe ρ m k :=
-  match Classical.em (k = 0) with
-  | Or.inl hk0 =>
+  match (inferInstance : Decidable (k = 0)) with
+  | isTrue hk0 =>
       Eq.ndrec
         (motive := fun j : ℕ =>
           0 ≤ Complex.rightSemicircleStaircasePrevSafeRe ρ m j)
         (Complex.rightSemicircleStaircasePrevSafeRe_nonneg_of_zero ρ m)
         (Eq.symm hk0)
-  | Or.inr hk0 =>
+  | isFalse hk0 =>
       Complex.rightSemicircleStaircasePrevSafeRe_nonneg_of_ne_zero hρ hk0
 
 /-- At the first cell, the predecessor safe coordinate is radius-bounded. -/
@@ -253,6 +269,9 @@ theorem Complex.rightSemicircleStaircasePrevSafeRe_le_radius_of_ne_zero
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
     {m k : ℕ}
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m (k - 1) ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m ((k - 1) + 1))]
     (hk : k ∈ Finset.range (m + 1))
     (hk0 : k ≠ 0) :
     Complex.rightSemicircleStaircasePrevSafeRe ρ m k ≤ ρ := by
@@ -276,16 +295,20 @@ theorem Complex.rightSemicircleStaircasePrevSafeRe_le_radius
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
     {m k : ℕ}
+    [Decidable (k = 0)]
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m (k - 1) ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m ((k - 1) + 1))]
     (hk : k ∈ Finset.range (m + 1)) :
     Complex.rightSemicircleStaircasePrevSafeRe ρ m k ≤ ρ :=
-  match Classical.em (k = 0) with
-  | Or.inl hk0 =>
+  match (inferInstance : Decidable (k = 0)) with
+  | isTrue hk0 =>
       Eq.ndrec
         (motive := fun j : ℕ =>
           Complex.rightSemicircleStaircasePrevSafeRe ρ m j ≤ ρ)
         (Complex.rightSemicircleStaircasePrevSafeRe_le_radius_of_zero hρ m)
         (Eq.symm hk0)
-  | Or.inr hk0 =>
+  | isFalse hk0 =>
       Complex.rightSemicircleStaircasePrevSafeRe_le_radius_of_ne_zero hρ hk
         hk0
 
@@ -294,6 +317,10 @@ theorem Complex.rightSemicircleStaircasePrevSafeRe_mem_Icc
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
     (m k : ℕ)
+    [Decidable (k = 0)]
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m (k - 1) ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m ((k - 1) + 1))]
     (hk : k ∈ Finset.range (m + 1)) :
     Complex.rightSemicircleStaircasePrevSafeRe ρ m k ∈ [[(0 : ℝ), ρ]] := by
   have hleft :
@@ -320,7 +347,10 @@ theorem Complex.rightSemicircleStaircase_last_mem_range
 theorem Complex.rightSemicircleStaircaseSafeRe_last_mem_Icc
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
-    (m : ℕ) :
+    (m : ℕ)
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m m ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (m + 1))] :
     Complex.rightSemicircleStaircaseSafeRe ρ m m ∈ [[(0 : ℝ), ρ]] :=
   Complex.rightSemicircleStaircaseSafeRe_mem_Icc hρ m m
     (Complex.rightSemicircleStaircase_last_mem_range m)
@@ -329,7 +359,10 @@ theorem Complex.rightSemicircleStaircaseSafeRe_last_mem_Icc
 theorem Complex.rightSemicircleStaircaseSafeRe_last_nonneg
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
-    (m : ℕ) :
+    (m : ℕ)
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m m ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (m + 1))] :
     0 ≤ Complex.rightSemicircleStaircaseSafeRe ρ m m :=
   Complex.rightSemicircleStaircaseSafeRe_nonneg hρ m m
 
@@ -337,7 +370,10 @@ theorem Complex.rightSemicircleStaircaseSafeRe_last_nonneg
 theorem Complex.rightSemicircleStaircaseSafeRe_last_le_radius
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
-    (m : ℕ) :
+    (m : ℕ)
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m m ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (m + 1))] :
     Complex.rightSemicircleStaircaseSafeRe ρ m m ≤ ρ :=
   Complex.rightSemicircleStaircaseSafeRe_le_radius hρ
     (Complex.rightSemicircleStaircase_last_mem_range m)
@@ -347,7 +383,10 @@ radius. -/
 theorem Complex.abs_top_sub_rightSemicircleStaircaseSafeRe_le_radius
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
-    (m : ℕ) :
+    (m : ℕ)
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m m ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (m + 1))] :
     |(0 : ℝ) - Complex.rightSemicircleStaircaseSafeRe ρ m m| ≤ ρ := by
   have hnonneg :
       0 ≤ Complex.rightSemicircleStaircaseSafeRe ρ m m :=

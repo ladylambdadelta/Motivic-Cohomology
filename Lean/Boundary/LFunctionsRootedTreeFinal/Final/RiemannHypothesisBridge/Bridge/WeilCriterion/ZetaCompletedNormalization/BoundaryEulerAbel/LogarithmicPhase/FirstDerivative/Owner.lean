@@ -199,7 +199,8 @@ theorem logarithmicPhase_localPartialSum_firstDerivative_bound_40_of_finiteDiffe
     (hfiniteDifference : logarithmicPhaseFiniteDifferenceHypothesis)
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
-    (N : ℕ) :
+    (N : ℕ)
+    [Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t N‖ ≤
       40 *
         (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
@@ -245,7 +246,8 @@ theorem finiteFirstDerivativeTest_exp_sum_norm_le
     (hphase_deriv_antitone :
       AntitoneOn (fun u : ℝ => ‖t‖ / u) (Set.Ioi 0))
     {x : ℝ}
-    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
+    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x)
+    [Decidable ((⌊x⌋₊ : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       40 *
         ((((⌊x⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
@@ -292,7 +294,8 @@ theorem monotonePhase_firstDerivativeTest_partialSum_bound
     (hphase_deriv_antitone :
       AntitoneOn (fun u : ℝ => ‖t‖ / u) (Set.Ioi 0))
     {x : ℝ}
-    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
+    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x)
+    [Decidable ((⌊x⌋₊ : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       40 *
         ((((⌊x⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *

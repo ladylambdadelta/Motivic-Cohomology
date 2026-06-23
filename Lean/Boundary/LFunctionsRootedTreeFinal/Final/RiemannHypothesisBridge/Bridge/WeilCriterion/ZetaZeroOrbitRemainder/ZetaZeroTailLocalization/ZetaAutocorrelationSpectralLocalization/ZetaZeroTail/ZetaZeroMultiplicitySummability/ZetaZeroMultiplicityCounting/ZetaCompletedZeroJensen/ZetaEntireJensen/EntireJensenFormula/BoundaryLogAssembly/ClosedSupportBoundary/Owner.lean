@@ -162,7 +162,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupport_b
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
-    (ρ : ℝ) :
+    (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)] :
     (∑ z in
       entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
         F hF hF0 ρ,

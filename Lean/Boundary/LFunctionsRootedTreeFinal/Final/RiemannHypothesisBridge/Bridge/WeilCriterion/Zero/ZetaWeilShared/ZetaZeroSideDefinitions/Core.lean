@@ -770,7 +770,7 @@ theorem zetaSpectralEval_autocorrelation
 
 /-- The single zero contribution to the completed zero side. -/
 def zetaZeroSideContribution (ρ : ℂ) (φ : ZetaAdmissibleFunction) : ℂ :=
-  - (zetaZeroMultiplicity ρ : ℂ) * zetaSpectralEval φ (zetaCenteredZero ρ)
+  - (zetaZeroMultiplicity ρ : ℂ) * zetaSpectralEval φ ρ
 
 /-- The functional-equation orbit of a centered zero. -/
 def zetaZeroOrbitFinset (ρ : ℂ) : Finset ℂ :=
@@ -837,7 +837,7 @@ def zetaZeroOrbitRemainderRe (ρ : ℂ) (φ : ZetaAdmissibleFunction) : ℝ :=
 
 theorem zetaZeroSideContribution_def (ρ : ℂ) (φ : ZetaAdmissibleFunction) :
     zetaZeroSideContribution ρ φ =
-      - (zetaZeroMultiplicity ρ : ℂ) * zetaSpectralEval φ (zetaCenteredZero ρ) := by
+      - (zetaZeroMultiplicity ρ : ℂ) * zetaSpectralEval φ ρ := by
   exact Eq.refl _
 
 /-- The spectral transform of an autocorrelation is the constructed Laplace transform. -/

@@ -19,6 +19,7 @@ noncomputable def entireFunctionZeroMultiplicityClosedDiskSummand
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (R : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
     (z : EntireFunctionZero F) : ℝ :=
   if ‖(z : ℂ)‖ ≤ R then
     (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ)
@@ -29,7 +30,8 @@ noncomputable def entireFunctionZeroMultiplicityClosedDiskSummand
 noncomputable def entireFunctionZeroMultiplicityCountingInClosedDisk
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (R : ℝ) : ℝ :=
+    (R : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)] : ℝ :=
   ∑' z : EntireFunctionZero F,
     entireFunctionZeroMultiplicityClosedDiskSummand F hF R z
 
@@ -38,6 +40,7 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummand_nonnegative
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (R : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
     (z : EntireFunctionZero F) :
     0 ≤ entireFunctionZeroMultiplicityClosedDiskSummand F hF R z := by
   show
@@ -46,7 +49,7 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummand_nonnegative
         (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ)
       else
         0
-  match Classical.dec (‖(z : ℂ)‖ ≤ R) with
+  match (inferInstance : Decidable (‖(z : ℂ)‖ ≤ R)) with
   | isTrue hz =>
       exact Eq.subst
         (motive := fun x : ℝ => 0 ≤ x)
@@ -63,6 +66,8 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummand_mono
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {R S : ℝ}
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ S)]
     (hRS : R ≤ S)
     (z : EntireFunctionZero F) :
     entireFunctionZeroMultiplicityClosedDiskSummand F hF R z ≤
@@ -76,7 +81,7 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummand_mono
         (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ)
       else
         0
-  match Classical.dec (‖(z : ℂ)‖ ≤ R) with
+  match (inferInstance : Decidable (‖(z : ℂ)‖ ≤ R)) with
   | isTrue hzR =>
       have hzS : ‖(z : ℂ)‖ ≤ S :=
         le_trans hzR hRS
@@ -104,6 +109,8 @@ theorem entireFunctionZeroMultiplicityCountingInClosedDisk_mono_of_summable
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {R S : ℝ}
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ S)]
     (hRS : R ≤ S)
     (hR :
       Summable

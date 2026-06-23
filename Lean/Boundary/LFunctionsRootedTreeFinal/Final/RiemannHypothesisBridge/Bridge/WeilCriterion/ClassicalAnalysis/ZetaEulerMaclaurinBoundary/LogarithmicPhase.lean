@@ -74,7 +74,8 @@ theorem Real.five_div_two_mul_sixteen_eq_forty_for_logarithmicPhase :
 theorem Complex.logarithmicPhase_dyadic_cover_expression_twenty_le_standard
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
-    (N : ℕ) :
+    (N : ℕ)
+    [Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
     20 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) ≤
       40 *
         (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
@@ -182,6 +183,7 @@ theorem Complex.logarithmicPhase_dyadic_decomposition_bound_of_block
                 ‖∑ n ∈ Finset.Icc a b,
                   ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
                   20 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + 1)) :
+    (∀ N : ℕ, Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)) →
     ∀ t : ℝ,
       1 ≤ ‖t‖ →
         ∀ N : ℕ,
@@ -190,7 +192,10 @@ theorem Complex.logarithmicPhase_dyadic_decomposition_bound_of_block
               40 *
                 (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
                   Real.log (2 + N) := by
+  intro hdecCritical
   intro t ht N
+  letI : Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint) :=
+    hdecCritical N
   have hcover :
       ‖∑ n ∈ Finset.Icc 1 N,
         ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
@@ -223,19 +228,39 @@ theorem Complex.logarithmicPhase_dyadic_firstDerivative_sum_bound
                 Complex.realPhase_integerIncrementSeparatedOn
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
                   (‖t‖ / ((b + 1 : ℕ) : ℝ)))
-    (N : ℕ) :
+    (N : ℕ)
+    [Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
     ‖∑ n ∈ Finset.Icc 1 N,
       ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
         40 *
           (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
             Real.log (2 + N) := by
-  exact
-    Complex.logarithmicPhase_dyadic_decomposition_bound_of_block
-      (fun t ht {a} {b} ha hab =>
-        let hfd := hfiniteDifference t ht ha hab
-        Complex.logarithmicPhase_monotone_firstDerivative_block_bound
-          t ht ha hab hfd.1 hfd.2.1 hfd.2.2)
-      t ht N
+  let hblock :
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ {a b : ℕ},
+            1 ≤ a →
+              a ≤ b →
+                ‖∑ n ∈ Finset.Icc a b,
+                  ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+                  20 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + 1) :=
+    fun t ht {a} {b} ha hab =>
+      let hfd := hfiniteDifference t ht ha hab
+      Complex.logarithmicPhase_monotone_firstDerivative_block_bound
+        t ht ha hab hfd.1 hfd.2.1 hfd.2.2
+  have hcover :
+      ‖∑ n ∈ Finset.Icc 1 N,
+        ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+          20 *
+            (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) :=
+    Complex.logarithmicPhase_dyadic_block_cover_bound hblock t ht N
+  have hcomparison :
+      20 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) ≤
+        40 *
+          (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+            Real.log (2 + N) :=
+    Complex.logarithmicPhase_dyadic_cover_expression_twenty_le_standard t ht N
+  exact le_trans hcover hcomparison
 
 /-- Classical first-derivative estimate for the concrete logarithmic phase
 `x ↦ exp(-it log x)` after the required finite-difference arithmetic is
@@ -256,7 +281,9 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_finiteD
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
                 Complex.realPhase_integerIncrementSeparatedOn
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
-                  (‖t‖ / ((b + 1 : ℕ) : ℝ))) :
+                  (‖t‖ / ((b + 1 : ℕ) : ℝ)))
+    (hdecCritical : ∀ N : ℕ,
+      Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)) :
     ∃ A : ℝ,
       0 < A ∧
       ∀ t : ℝ,
@@ -280,6 +307,8 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_finiteD
                   (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
                     Real.log (2 + N) :=
     fun t ht N =>
+      letI : Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint) :=
+        hdecCritical N
       Complex.logarithmicPhase_dyadic_firstDerivative_sum_bound
         t ht hfiniteDifference N
   exact Exists.intro (40 : ℝ) (And.intro hA_pos hA_bound)
@@ -308,7 +337,9 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_derivat
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
                 Complex.realPhase_integerIncrementSeparatedOn
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
-                  (‖t‖ / ((b + 1 : ℕ) : ℝ))) :
+                  (‖t‖ / ((b + 1 : ℕ) : ℝ)))
+    (hdecCritical : ∀ N : ℕ,
+      Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)) :
     ∃ A : ℝ,
       0 < A ∧
       ∀ t : ℝ,
@@ -321,7 +352,7 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_derivat
                     Real.log (2 + N) := by
   exact
     Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_finiteDifference
-      hfiniteDifference
+      hfiniteDifference hdecCritical
 
 /-- The standard first-derivative-test owner root for the concrete logarithmic
 phase.  This is the analytic input behind the Euler-Maclaurin boundary
@@ -339,7 +370,9 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
                 Complex.realPhase_integerIncrementSeparatedOn
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
-                  (‖t‖ / ((b + 1 : ℕ) : ℝ))) :
+                  (‖t‖ / ((b + 1 : ℕ) : ℝ)))
+    (hdecCritical : ∀ N : ℕ,
+      Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)) :
     ∃ A : ℝ,
       0 < A ∧
       ∀ t : ℝ,
@@ -356,7 +389,7 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound
         Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_eq t hx)
       (fun t {x} hx =>
         Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_norm_eq t hx)
-      hfiniteDifference
+      hfiniteDifference hdecCritical
 
 /-- First-derivative estimate for the logarithmic phase sums on the boundary
 line.
@@ -366,6 +399,8 @@ The previous scaffold stated an `O(log N)` bound for the unweighted sums
 oscillatory-sum size shown here; the reciprocal Abel weight is introduced in
 `AbelTail`. -/
 theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_bound :
+    (∀ N : ℕ,
+      Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)) →
     (∀ t : ℝ,
       1 ≤ ‖t‖ →
         ∀ {a b : ℕ},
@@ -388,10 +423,11 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_bound :
                 A *
                   (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
                     Real.log (2 + N) := by
+  intro hdecCritical
   intro hfiniteDifference
   exact
     Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound
-      hfiniteDifference
+      hfiniteDifference hdecCritical
 
 end
 

@@ -164,6 +164,14 @@ theorem Real.two_mul_div_mul_half_eq
     _ = B := by
       exact Eq.symm (Real.eq_two_mul_mul_half B)
 
+/-- Twice a real half recovers the original real number. -/
+theorem Real.two_mul_div_two
+    (x : ℝ) :
+    2 * (x / 2) = x := by
+  calc
+    2 * (x / 2) = x / 2 + x / 2 := two_mul (x / 2)
+    _ = x := add_halves x
+
 /-- Reassociate an `ε * (3 * N)` product into `3 * (ε * N)`. -/
 theorem Real.mul_three_mul_reassoc
     (ε N : ℝ) :
@@ -321,6 +329,36 @@ theorem Complex.sub_im_re (w : ℂ) (t : ℝ) :
           exact congrArg (fun x : ℝ => w.re - x) hI
         _ = w.re := by
           exact sub_zero w.re
+
+/-- The imaginary part of `w - t⋅I` is the vertical distance coordinate from
+the arctangent branch point. -/
+theorem Complex.sub_im_im (w : ℂ) (t : ℝ) :
+    (w - (t : ℂ) * Complex.I).im = w.im - t := by
+  calc
+    (w - (t : ℂ) * Complex.I).im =
+        w.im - ((t : ℂ) * Complex.I).im := by
+      exact Complex.sub_im w ((t : ℂ) * Complex.I)
+    _ = w.im - (t : ℂ).re := by
+      exact congrArg (fun x : ℝ => w.im - x)
+        (Complex.mul_I_im (t : ℂ))
+    _ = w.im - t := by
+      exact congrArg (fun x : ℝ => w.im - x)
+        (Complex.ofReal_re t)
+
+/-- The denominator distance in the Binet arctangent ratio controls the
+vertical indentation distance to the branch wall. -/
+theorem Complex.binetSecondFormula_arctan_tail_denominator_branchWall_distance_le
+    (w : ℂ)
+    (t : ℝ) :
+    |w.im - t| ≤ ‖w - (t : ℂ) * Complex.I‖ := by
+  have him :
+      (w - (t : ℂ) * Complex.I).im = w.im - t :=
+    Complex.sub_im_im w t
+  calc
+    |w.im - t| = |(w - (t : ℂ) * Complex.I).im| := by
+      exact congrArg abs him.symm
+    _ ≤ ‖w - (t : ℂ) * Complex.I‖ := by
+      exact Complex.abs_im_le_abs (w - (t : ℂ) * Complex.I)
 
 /-- Multiplying by `1 / 3` cancels a leading factor `3`. -/
 theorem Real.one_div_three_mul_three_mul
@@ -772,6 +810,21 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_denominator_lower
     _ ≤ ‖w - (t : ℂ) * Complex.I‖ := by
       exact Complex.abs_re_le_abs (w - (t : ℂ) * Complex.I)
 
+/-- The denominator distance in the Binet arctangent ratio simultaneously
+controls the right-half-plane indentation radius and the vertical branch-wall
+distance. -/
+theorem Complex.binetSecondFormula_arctan_tail_denominator_max_branchWall_distance_le
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (t : ℝ) :
+    max w.re |w.im - t| ≤ ‖w - (t : ℂ) * Complex.I‖ := by
+  exact
+    max_le
+      (Complex.binetSecondFormula_arctan_tail_ratio_denominator_lower
+        hw_re_pos t)
+      (Complex.binetSecondFormula_arctan_tail_denominator_branchWall_distance_le
+        w t)
+
 /-- On the bounded part of the tail, the unnormalized numerator is bounded by
 `3 * ‖w‖`. -/
 theorem Complex.binetSecondFormula_arctan_tail_numerator_le_three_norm
@@ -791,6 +844,983 @@ theorem Complex.binetSecondFormula_arctan_tail_numerator_le_three_norm
     _ ≤ ‖w‖ + 2 * ‖w‖ := add_le_add_left ht_le _
     _ = 3 * ‖w‖ := by
       exact Real.add_two_mul_eq_three_mul ‖w‖
+
+/-- On the bounded part of the tail, the cleared arctangent ratio is bounded
+by the branch-wall indentation denominator.
+
+This is the pointwise local-indentation majorant: the numerator is at most
+`3‖w‖`, while the denominator controls both the right-half-plane indentation
+radius and the vertical distance to the branch wall. -/
+theorem Complex.binetSecondFormula_arctan_tail_cleared_ratio_norm_le_three_norm_div_branchWall_distance
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    {t : ℝ}
+    (ht_nonneg : 0 ≤ t)
+    (ht_le : t ≤ 2 * ‖w‖) :
+    ‖(w + (t : ℂ) * Complex.I) /
+        (w - (t : ℂ) * Complex.I)‖ ≤
+      (3 * ‖w‖) / max w.re |w.im - t| := by
+  have hnum_upper :
+      ‖w + (t : ℂ) * Complex.I‖ ≤ 3 * ‖w‖ :=
+    Complex.binetSecondFormula_arctan_tail_numerator_le_three_norm
+      ht_nonneg ht_le
+  have hden_lower :
+      max w.re |w.im - t| ≤ ‖w - (t : ℂ) * Complex.I‖ :=
+    Complex.binetSecondFormula_arctan_tail_denominator_max_branchWall_distance_le
+      hw_re_pos t
+  have hmax_pos : 0 < max w.re |w.im - t| :=
+    lt_of_lt_of_le hw_re_pos (le_max_left w.re |w.im - t|)
+  calc
+    ‖(w + (t : ℂ) * Complex.I) /
+        (w - (t : ℂ) * Complex.I)‖ =
+        ‖w + (t : ℂ) * Complex.I‖ /
+          ‖w - (t : ℂ) * Complex.I‖ := by
+      exact norm_div _ _
+    _ ≤ (3 * ‖w‖) / max w.re |w.im - t| := by
+      exact
+        Real.div_le_div_of_le_of_le
+          hmax_pos
+          (norm_nonneg (w + (t : ℂ) * Complex.I))
+          hnum_upper
+          hden_lower
+
+/-- Normalized arctangent-ratio version of the branch-wall indentation
+majorant on the bounded part of the tail. -/
+theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_le_three_norm_div_branchWall_distance
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    {t : ℝ}
+    (ht_nonneg : 0 ≤ t)
+    (ht_le : t ≤ 2 * ‖w‖) :
+    ‖(1 + ((t : ℂ) / w) * Complex.I) /
+        (1 - ((t : ℂ) / w) * Complex.I)‖ ≤
+      (3 * ‖w‖) / max w.re |w.im - t| := by
+  have hw_ne_zero : w ≠ 0 := by
+    intro hw_zero
+    cases hw_zero
+    exact (lt_irrefl (0 : ℝ)) hw_re_pos
+  calc
+    ‖(1 + ((t : ℂ) / w) * Complex.I) /
+        (1 - ((t : ℂ) / w) * Complex.I)‖ =
+        ‖(w + (t : ℂ) * Complex.I) /
+          (w - (t : ℂ) * Complex.I)‖ := by
+      exact Complex.binetSecondFormula_arctan_tail_ratio_eq_norm
+        w hw_ne_zero t
+    _ ≤ (3 * ‖w‖) / max w.re |w.im - t| :=
+      Complex.binetSecondFormula_arctan_tail_cleared_ratio_norm_le_three_norm_div_branchWall_distance
+        hw_re_pos ht_nonneg ht_le
+
+/-- The branch-wall logarithmic spike produced by the local arctangent-ratio
+majorant is integrable on the bounded tail window against the Binet
+exponential denominator. -/
+theorem Complex.binetSecondFormula_branchWall_logSpike_integrableOn_boundedTailWindow
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    IntegrableOn
+      (fun t : ℝ =>
+        (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+      (Set.Icc (‖w‖ / 2) (2 * ‖w‖)) := by
+  let S : Set ℝ := Set.Icc (‖w‖ / 2) (2 * ‖w‖)
+  let D : ℝ → ℝ := fun t : ℝ => max w.re |w.im - t|
+  let A : ℝ → ℝ := fun t : ℝ => (3 * ‖w‖) / D t
+  let E : ℝ → ℝ := fun t : ℝ =>
+    Real.exp ((2 : ℝ) * Real.pi * t) - 1
+  have hw_norm_pos : 0 < ‖w‖ :=
+    Complex.norm_pos_of_re_pos hw_re_pos
+  have hD_pos : ∀ t : ℝ, 0 < D t := by
+    intro t
+    exact lt_of_lt_of_le hw_re_pos (le_max_left w.re |w.im - t|)
+  have hA_pos : ∀ t : ℝ, 0 < A t := by
+    intro t
+    exact div_pos (mul_pos Real.zero_lt_three hw_norm_pos) (hD_pos t)
+  have hS_lower : ∀ t : ℝ, t ∈ S → ‖w‖ / 2 ≤ t := by
+    intro t ht
+    exact ht.1
+  have hhalf_pos : 0 < ‖w‖ / 2 :=
+    div_pos hw_norm_pos zero_lt_two
+  have ht_pos : ∀ t : ℝ, t ∈ S → 0 < t := by
+    intro t ht
+    exact lt_of_lt_of_le hhalf_pos (hS_lower t ht)
+  have hE_ne : ∀ t : ℝ, t ∈ S → E t ≠ 0 := by
+    intro t ht
+    exact (Real.binetSecondFormula_exp_denominator_pos (ht_pos t ht)).ne'
+  have hD_cont : Continuous D := by
+    have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
+      (continuous_const.sub continuous_id).abs
+    exact continuous_const.max hdist_cont
+  have hA_cont : Continuous A := by
+    exact continuous_const.div hD_cont (fun t => (hD_pos t).ne')
+  have hlog_contOn : ContinuousOn (fun t : ℝ => Real.log (A t)) S :=
+    (hA_cont.continuousOn).log (fun t ht => (hA_pos t).ne')
+  have hnum_contOn :
+      ContinuousOn (fun t : ℝ => |Real.log (A t)| + Real.pi) S :=
+    hlog_contOn.abs.add continuousOn_const
+  have hlinear_cont : Continuous fun t : ℝ => (2 : ℝ) * Real.pi * t :=
+    (continuous_const.mul continuous_const).mul continuous_id
+  have hE_cont : Continuous E := by
+    exact (Real.continuous_exp.comp hlinear_cont).sub continuous_const
+  have hquot_contOn :
+      ContinuousOn
+        (fun t : ℝ => (|Real.log (A t)| + Real.pi) / E t) S :=
+    hnum_contOn.div hE_cont.continuousOn hE_ne
+  exact hquot_contOn.integrableOn_Icc
+
+/-- Pointwise bounded-window control of the branch-wall logarithmic spike
+against the Binet exponential denominator. -/
+theorem Complex.binetSecondFormula_branchWall_logSpike_pointwise_le_boundedTailWindow
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    {t : ℝ}
+    (ht_mem : t ∈ Set.Icc (‖w‖ / 2) (2 * ‖w‖)) :
+    (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+        (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      (max |Real.log (1 : ℝ)|
+          |Real.log ((3 * ‖w‖) / w.re)| + Real.pi) /
+        (Real.exp (Real.pi * ‖w‖) - 1) := by
+  let D : ℝ := max w.re |w.im - t|
+  let A : ℝ := (3 * ‖w‖) / D
+  let U : ℝ := (3 * ‖w‖) / w.re
+  let E : ℝ := Real.exp ((2 : ℝ) * Real.pi * t) - 1
+  let E₀ : ℝ := Real.exp (Real.pi * ‖w‖) - 1
+  have hw_norm_pos : 0 < ‖w‖ :=
+    Complex.norm_pos_of_re_pos hw_re_pos
+  have ht_lower : ‖w‖ / 2 ≤ t :=
+    ht_mem.1
+  have ht_upper : t ≤ 2 * ‖w‖ :=
+    ht_mem.2
+  have hhalf_pos : 0 < ‖w‖ / 2 :=
+    div_pos hw_norm_pos zero_lt_two
+  have ht_pos : 0 < t :=
+    lt_of_lt_of_le hhalf_pos ht_lower
+  have ht_nonneg : 0 ≤ t :=
+    le_of_lt ht_pos
+  have hD_pos : 0 < D :=
+    lt_of_lt_of_le hw_re_pos (le_max_left w.re |w.im - t|)
+  have hD_lower : w.re ≤ D :=
+    le_max_left w.re |w.im - t|
+  have hnum_pos : 0 < 3 * ‖w‖ :=
+    mul_pos Real.zero_lt_three hw_norm_pos
+  have hU_pos : 0 < U :=
+    div_pos hnum_pos hw_re_pos
+  have hre_le_norm : w.re ≤ ‖w‖ := by
+    calc
+      w.re = |w.re| := Eq.symm (abs_of_pos hw_re_pos)
+      _ ≤ ‖w‖ := Complex.abs_re_le_abs w
+  have hre_le_three : w.re ≤ 3 * ‖w‖ := by
+    calc
+      w.re ≤ ‖w‖ := hre_le_norm
+      _ ≤ 3 * ‖w‖ :=
+        le_mul_of_one_le_left (le_of_lt hw_norm_pos) Real.one_le_three_real
+  have hU_ge_one : (1 : ℝ) ≤ U := by
+    exact (le_div_iff₀ hw_re_pos).2
+      (calc
+        (1 : ℝ) * w.re = w.re := one_mul w.re
+        _ ≤ 3 * ‖w‖ := hre_le_three)
+  have hD_upper : D ≤ 3 * ‖w‖ := by
+    have him_le_three : |w.im - t| ≤ 3 * ‖w‖ := by
+      calc
+        |w.im - t| ≤ ‖w - (t : ℂ) * Complex.I‖ :=
+          Complex.binetSecondFormula_arctan_tail_denominator_branchWall_distance_le
+            w t
+        _ ≤ ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
+          calc
+            ‖w - (t : ℂ) * Complex.I‖ =
+                ‖w + -((t : ℂ) * Complex.I)‖ := by
+              exact congrArg norm (sub_eq_add_neg w ((t : ℂ) * Complex.I))
+            _ ≤ ‖w‖ + ‖-((t : ℂ) * Complex.I)‖ :=
+              norm_add_le w (-((t : ℂ) * Complex.I))
+            _ = ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
+              exact congrArg (fun x : ℝ => ‖w‖ + x)
+                (norm_neg ((t : ℂ) * Complex.I))
+        _ = ‖w‖ + t := by
+          have htI_norm : ‖(t : ℂ) * Complex.I‖ = t := by
+            calc
+              ‖(t : ℂ) * Complex.I‖ = |t| :=
+                Complex.norm_real_mul_I t
+              _ = t := abs_of_nonneg ht_nonneg
+          exact congrArg (fun x : ℝ => ‖w‖ + x) htI_norm
+        _ ≤ ‖w‖ + 2 * ‖w‖ :=
+          add_le_add_left ht_upper ‖w‖
+        _ = 3 * ‖w‖ :=
+          Real.add_two_mul_eq_three_mul ‖w‖
+    exact max_le hre_le_three him_le_three
+  have hA_lower : (1 : ℝ) ≤ A := by
+    exact (le_div_iff₀ hD_pos).2
+      (calc
+        (1 : ℝ) * D = D := one_mul D
+        _ ≤ 3 * ‖w‖ := hD_upper)
+  have hA_upper : A ≤ U := by
+    exact div_le_div_of_nonneg_left (le_of_lt hnum_pos) hw_re_pos hD_lower
+  have hlog_bound :
+      |Real.log A| ≤
+        max |Real.log (1 : ℝ)| |Real.log U| :=
+    Real.abs_log_le_max_abs_log_of_bounds
+      zero_lt_one hU_ge_one hA_lower hA_upper
+  have hnum_bound :
+      |Real.log A| + Real.pi ≤
+        max |Real.log (1 : ℝ)| |Real.log U| + Real.pi :=
+    add_le_add_right hlog_bound Real.pi
+  have hE0_pos : 0 < E₀ := by
+    have hpi_norm_pos : 0 < Real.pi * ‖w‖ :=
+      mul_pos Real.pi_pos hw_norm_pos
+    exact sub_pos.mpr
+      (calc
+        (1 : ℝ) = Real.exp 0 := Eq.symm Real.exp_zero
+        _ < Real.exp (Real.pi * ‖w‖) :=
+          Real.exp_lt_exp.mpr hpi_norm_pos)
+  have hE_lower : E₀ ≤ E := by
+    have hpi_le : Real.pi * ‖w‖ ≤ (2 : ℝ) * Real.pi * t := by
+      have hmul_lower :
+          Real.pi * (‖w‖ / 2) ≤ Real.pi * t :=
+        mul_le_mul_of_nonneg_left ht_lower (le_of_lt Real.pi_pos)
+      calc
+        Real.pi * ‖w‖ =
+            (2 : ℝ) * (Real.pi * (‖w‖ / 2)) := by
+          exact Eq.symm <| by
+            calc
+              (2 : ℝ) * (Real.pi * (‖w‖ / 2)) =
+                  ((2 : ℝ) * Real.pi) * (‖w‖ / 2) := by
+                exact (mul_assoc (2 : ℝ) Real.pi (‖w‖ / 2)).symm
+              _ = (Real.pi * 2) * (‖w‖ / 2) := by
+                exact congrArg (fun x : ℝ => x * (‖w‖ / 2))
+                  (mul_comm (2 : ℝ) Real.pi)
+              _ = Real.pi * (2 * (‖w‖ / 2)) := by
+                exact mul_assoc Real.pi 2 (‖w‖ / 2)
+              _ = Real.pi * ‖w‖ := by
+                exact congrArg (fun x : ℝ => Real.pi * x)
+                  (Real.two_mul_div_two ‖w‖)
+        _ ≤ (2 : ℝ) * (Real.pi * t) :=
+          mul_le_mul_of_nonneg_left hmul_lower Real.zero_le_two_real
+        _ = (2 : ℝ) * Real.pi * t :=
+          (mul_assoc (2 : ℝ) Real.pi t).symm
+    exact sub_le_sub_right (Real.exp_le_exp.mpr hpi_le) 1
+  have hnum_nonneg : 0 ≤ |Real.log A| + Real.pi :=
+    add_nonneg (abs_nonneg (Real.log A)) Real.pi_nonneg
+  exact
+    Real.div_le_div_of_le_of_le
+      hE0_pos hnum_nonneg hnum_bound hE_lower
+
+/-- Quantitative bounded-window integral estimate for the branch-wall
+logarithmic spike produced by the local-indentation majorant. -/
+theorem Complex.binetSecondFormula_branchWall_logSpike_integral_le_boundedTailWindow
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∫ t : ℝ in Set.Icc (‖w‖ / 2) (2 * ‖w‖),
+        (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      ((max |Real.log (1 : ℝ)|
+          |Real.log ((3 * ‖w‖) / w.re)| + Real.pi) /
+        (Real.exp (Real.pi * ‖w‖) - 1)) *
+        (volume (Set.Icc (‖w‖ / 2) (2 * ‖w‖))).toReal := by
+  let S : Set ℝ := Set.Icc (‖w‖ / 2) (2 * ‖w‖)
+  let F : ℝ → ℝ := fun t : ℝ =>
+    (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+      (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  let C : ℝ :=
+    (max |Real.log (1 : ℝ)|
+        |Real.log ((3 * ‖w‖) / w.re)| + Real.pi) /
+      (Real.exp (Real.pi * ‖w‖) - 1)
+  have hF_bound : ∀ t : ℝ, t ∈ S → ‖F t‖ ≤ C := by
+    intro t ht
+    have hle :
+        F t ≤ C :=
+      Complex.binetSecondFormula_branchWall_logSpike_pointwise_le_boundedTailWindow
+        hw_re_pos ht
+    have hw_norm_pos : 0 < ‖w‖ :=
+      Complex.norm_pos_of_re_pos hw_re_pos
+    have ht_lower : ‖w‖ / 2 ≤ t :=
+      ht.1
+    have hhalf_pos : 0 < ‖w‖ / 2 :=
+      div_pos hw_norm_pos zero_lt_two
+    have ht_pos : 0 < t :=
+      lt_of_lt_of_le hhalf_pos ht_lower
+    have hden_pos :
+        0 < Real.exp ((2 : ℝ) * Real.pi * t) - 1 :=
+      Real.binetSecondFormula_exp_denominator_pos ht_pos
+    have hF_nonneg : 0 ≤ F t :=
+      div_nonneg
+        (add_nonneg
+          (abs_nonneg
+            (Real.log ((3 * ‖w‖) / max w.re |w.im - t|)))
+          Real.pi_nonneg)
+        (le_of_lt hden_pos)
+    calc
+      ‖F t‖ = |F t| := Real.norm_eq_abs (F t)
+      _ = F t := abs_of_nonneg hF_nonneg
+      _ ≤ C := hle
+  have hnorm_integral :
+      ‖∫ t : ℝ in S, F t‖ ≤ C * (volume S).toReal :=
+    norm_setIntegral_le_of_norm_le_const'
+      measure_Icc_lt_top measurableSet_Icc hF_bound
+  calc
+    ∫ t : ℝ in S, F t ≤ |∫ t : ℝ in S, F t| :=
+      le_abs_self (∫ t : ℝ in S, F t)
+    _ = ‖∫ t : ℝ in S, F t‖ :=
+      Eq.symm (Real.norm_eq_abs (∫ t : ℝ in S, F t))
+    _ ≤ C * (volume S).toReal :=
+      hnorm_integral
+
+/-- Any nonnegative numerator over the positive Binet tail denominator is
+controlled by twice the same numerator over the pure exponential. -/
+theorem Real.binetSecondFormula_nonneg_div_exp_denominator_le_two_mul_div_exp
+    {N t : ℝ}
+    (hN_nonneg : 0 ≤ N)
+    (ht : t ∈ Set.Ioi (1 : ℝ)) :
+    N / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      (2 * N) / Real.exp ((2 : ℝ) * Real.pi * t) := by
+  let E : ℝ := Real.exp ((2 : ℝ) * Real.pi * t)
+  let D : ℝ := Real.exp ((2 : ℝ) * Real.pi * t) - 1
+  have hE_pos : 0 < E :=
+    Real.exp_pos ((2 : ℝ) * Real.pi * t)
+  have hE_half_pos : 0 < E / 2 :=
+    div_pos hE_pos two_pos
+  have hD_lower : E / 2 ≤ D :=
+    Real.binetSecondFormula_kernel_majorant_tail_denominator_lower ht
+  have hdiv :
+      N / D ≤ N / (E / 2) :=
+    div_le_div_of_nonneg_left hN_nonneg hE_half_pos hD_lower
+  have hrewrite :
+      N / (E / 2) = (2 * N) / E := by
+    calc
+      N / (E / 2) = N * 2 / E := by
+        exact div_div_eq_mul_div N E 2
+      _ = (N * 2) / E := rfl
+      _ = (2 * N) / E := by
+        exact congrArg (fun x : ℝ => x / E) (mul_comm N 2)
+  exact le_trans hdiv (le_of_eq hrewrite)
+
+/-- On the C5 bounded branch-wall window, the exponential Binet denominator
+turns the logarithmic spike into an explicitly exponentially weighted spike.
+
+This is the first real-variable reduction needed for the local-indentation
+absorption: it replaces the Binet denominator by a pure exponential weight. -/
+theorem Complex.binetSecondFormula_branchWall_logSpike_denominator_le_expWeighted_on_boundedTailWindow
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (hw_large : 2 ≤ ‖w‖)
+    {t : ℝ}
+    (ht_mem : t ∈ Set.Ioc (‖w‖ / 2) (2 * ‖w‖)) :
+    (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+        (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      (2 *
+        (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+        Real.exp ((2 : ℝ) * Real.pi * t) := by
+  let N : ℝ :=
+    |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi
+  have hhalf_ge_one : (1 : ℝ) ≤ ‖w‖ / 2 := by
+    exact (le_div_iff₀ zero_lt_two).2
+      (calc
+        (1 : ℝ) * 2 = 2 := one_mul 2
+        _ ≤ ‖w‖ := hw_large)
+  have ht_gt_one : t ∈ Set.Ioi (1 : ℝ) :=
+    lt_of_le_of_lt hhalf_ge_one ht_mem.1
+  have hN_nonneg : 0 ≤ N :=
+    add_nonneg
+      (abs_nonneg
+        (Real.log ((3 * ‖w‖) / max w.re |w.im - t|)))
+      Real.pi_nonneg
+  exact
+    Real.binetSecondFormula_nonneg_div_exp_denominator_le_two_mul_div_exp
+      hN_nonneg ht_gt_one
+
+/-- Integrated denominator replacement for the branch-wall logarithmic spike
+on the bounded local-indentation window.
+
+The theorem isolates the exact remaining real-variable absorption problem:
+the right hand side is an exponentially weighted logarithmic spike over
+`Ioc (‖w‖ / 2) (2‖w‖)`. -/
+theorem Complex.binetSecondFormula_branchWall_logSpike_integral_le_expWeighted_boundedTailWindow_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (hw_large : 2 ≤ ‖w‖) :
+    ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (2 *
+          (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+          Real.exp ((2 : ℝ) * Real.pi * t) := by
+  let S : Set ℝ := Set.Ioc (‖w‖ / 2) (2 * ‖w‖)
+  let F : ℝ → ℝ := fun t : ℝ =>
+    (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+      (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  let G : ℝ → ℝ := fun t : ℝ =>
+    (2 *
+      (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+      Real.exp ((2 : ℝ) * Real.pi * t)
+  have hF_integrable :
+      IntegrableOn F S :=
+    (Complex.binetSecondFormula_branchWall_logSpike_integrableOn_boundedTailWindow
+      (w := w) hw_re_pos).mono_set Ioc_subset_Icc_self
+  have hG_integrable : IntegrableOn G S := by
+    let Scc : Set ℝ := Set.Icc (‖w‖ / 2) (2 * ‖w‖)
+    let B : ℝ → ℝ := fun t : ℝ => max w.re |w.im - t|
+    let A : ℝ → ℝ := fun t : ℝ => (3 * ‖w‖) / B t
+    let H : ℝ → ℝ := fun t : ℝ =>
+      (2 * (|Real.log (A t)| + Real.pi)) /
+        Real.exp ((2 : ℝ) * Real.pi * t)
+    have hw_norm_pos : 0 < ‖w‖ :=
+      Complex.norm_pos_of_re_pos hw_re_pos
+    have hB_pos : ∀ t : ℝ, 0 < B t := by
+      intro t
+      exact lt_of_lt_of_le hw_re_pos (le_max_left w.re |w.im - t|)
+    have hA_pos : ∀ t : ℝ, 0 < A t := by
+      intro t
+      exact div_pos (mul_pos Real.zero_lt_three hw_norm_pos) (hB_pos t)
+    have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
+      (continuous_const.sub continuous_id).abs
+    have hB_cont : Continuous B :=
+      continuous_const.max hdist_cont
+    have hA_cont : Continuous A :=
+      continuous_const.div hB_cont (fun t => (hB_pos t).ne')
+    have hlog_contOn :
+        ContinuousOn (fun t : ℝ => Real.log (A t)) Scc :=
+      (hA_cont.continuousOn).log (fun t ht => (hA_pos t).ne')
+    have hnum_contOn :
+        ContinuousOn (fun t : ℝ => 2 * (|Real.log (A t)| + Real.pi)) Scc :=
+      continuousOn_const.mul (hlog_contOn.abs.add continuousOn_const)
+    have hlinear_cont : Continuous fun t : ℝ => (2 : ℝ) * Real.pi * t :=
+      (continuous_const.mul continuous_const).mul continuous_id
+    have hden_cont : Continuous fun t : ℝ =>
+        Real.exp ((2 : ℝ) * Real.pi * t) :=
+      Real.continuous_exp.comp hlinear_cont
+    have hden_ne : ∀ t : ℝ, t ∈ Scc →
+        Real.exp ((2 : ℝ) * Real.pi * t) ≠ 0 := by
+      intro t ht
+      exact (Real.exp_pos ((2 : ℝ) * Real.pi * t)).ne'
+    have hH_contOn : ContinuousOn H Scc :=
+      hnum_contOn.div hden_cont.continuousOn hden_ne
+    have hH_integrable_Icc : IntegrableOn H Scc :=
+      hH_contOn.integrableOn_Icc
+    exact hH_integrable_Icc.mono_set Ioc_subset_Icc_self
+  have hpoint :
+      ∀ᵐ t ∂volume.restrict S, F t ≤ G t :=
+    (ae_restrict_mem measurableSet_Ioc).mono
+      (fun t ht =>
+        Complex.binetSecondFormula_branchWall_logSpike_denominator_le_expWeighted_on_boundedTailWindow
+          (w := w) hw_re_pos hw_large ht)
+  exact
+    setIntegral_mono_ae_restrict hF_integrable hG_integrable hpoint
+
+/-- Local-indentation pointwise domination of the principal Binet tail kernel
+by the branch-wall logarithmic spike on the bounded tail window. -/
+theorem Complex.binetSecondFormula_principalTailKernel_norm_le_branchWall_logSpike_boundedTailWindow
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    {t : ℝ}
+    (ht_mem : t ∈ Set.Icc (‖w‖ / 2) (2 * ‖w‖)) :
+    ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤
+      (max |Real.log (w.re / (3 * ‖w‖))|
+            |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+        (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+  let z : ℂ := (t : ℂ) / w
+  let R : ℂ :=
+    (1 + z * Complex.I) / (1 - z * Complex.I)
+  let D : ℝ := Real.exp ((2 : ℝ) * Real.pi * t) - 1
+  let m : ℝ := w.re / (3 * ‖w‖)
+  let M : ℝ := (3 * ‖w‖) / max w.re |w.im - t|
+  have hw_norm_pos : 0 < ‖w‖ :=
+    Complex.norm_pos_of_re_pos hw_re_pos
+  have ht_lower : ‖w‖ / 2 ≤ t :=
+    ht_mem.1
+  have ht_upper : t ≤ 2 * ‖w‖ :=
+    ht_mem.2
+  have hhalf_pos : 0 < ‖w‖ / 2 :=
+    div_pos hw_norm_pos zero_lt_two
+  have ht_pos : 0 < t :=
+    lt_of_lt_of_le hhalf_pos ht_lower
+  have ht_nonneg : 0 ≤ t :=
+    le_of_lt ht_pos
+  have hm_pos : 0 < m :=
+    div_pos hw_re_pos (mul_pos Real.zero_lt_three hw_norm_pos)
+  have hratio_lower :
+      m ≤ ‖R‖ := by
+    have hw_ne_zero : w ≠ 0 := by
+      intro hw_zero
+      cases hw_zero
+      exact (lt_irrefl (0 : ℝ)) hw_re_pos
+    have hnum_lower :
+        w.re ≤ ‖w + (t : ℂ) * Complex.I‖ :=
+      Complex.binetSecondFormula_arctan_tail_ratio_numerator_lower
+        hw_re_pos t
+    have hden_upper :
+        ‖w - (t : ℂ) * Complex.I‖ ≤ 3 * ‖w‖ :=
+      calc
+        ‖w - (t : ℂ) * Complex.I‖ ≤ ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
+          calc
+            ‖w - (t : ℂ) * Complex.I‖ =
+                ‖w + -((t : ℂ) * Complex.I)‖ := by
+              exact congrArg norm (sub_eq_add_neg w ((t : ℂ) * Complex.I))
+            _ ≤ ‖w‖ + ‖-((t : ℂ) * Complex.I)‖ :=
+              norm_add_le w (-((t : ℂ) * Complex.I))
+            _ = ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
+              exact congrArg (fun x : ℝ => ‖w‖ + x)
+                (norm_neg ((t : ℂ) * Complex.I))
+        _ = ‖w‖ + t := by
+          have htI_norm : ‖(t : ℂ) * Complex.I‖ = t := by
+            calc
+              ‖(t : ℂ) * Complex.I‖ = |t| :=
+                Complex.norm_real_mul_I t
+              _ = t := abs_of_nonneg ht_nonneg
+          exact congrArg (fun x : ℝ => ‖w‖ + x) htI_norm
+        _ ≤ ‖w‖ + 2 * ‖w‖ :=
+          add_le_add_left ht_upper ‖w‖
+        _ = 3 * ‖w‖ :=
+          Real.add_two_mul_eq_three_mul ‖w‖
+    have hden_pos : 0 < ‖w - (t : ℂ) * Complex.I‖ := by
+      have hden_lower :
+          w.re ≤ ‖w - (t : ℂ) * Complex.I‖ :=
+        Complex.binetSecondFormula_arctan_tail_ratio_denominator_lower
+          hw_re_pos t
+      exact lt_of_lt_of_le hw_re_pos hden_lower
+    have hcleared :
+        w.re / (3 * ‖w‖) ≤
+          ‖(w + (t : ℂ) * Complex.I) /
+            (w - (t : ℂ) * Complex.I)‖ := by
+      calc
+        w.re / (3 * ‖w‖) ≤
+            ‖w + (t : ℂ) * Complex.I‖ /
+              ‖w - (t : ℂ) * Complex.I‖ :=
+          Real.div_le_div_of_le_of_le'
+            hw_re_pos
+            (mul_pos Real.zero_lt_three hw_norm_pos)
+            hden_pos
+            hden_upper
+            hnum_lower
+        _ =
+            ‖(w + (t : ℂ) * Complex.I) /
+              (w - (t : ℂ) * Complex.I)‖ := by
+          exact Eq.symm (norm_div _ _)
+    calc
+      m = w.re / (3 * ‖w‖) := rfl
+      _ ≤ ‖(w + (t : ℂ) * Complex.I) /
+              (w - (t : ℂ) * Complex.I)‖ := hcleared
+      _ = ‖R‖ := by
+        exact Eq.symm (Complex.binetSecondFormula_arctan_tail_ratio_eq_norm
+          w hw_ne_zero t)
+  have hratio_upper : ‖R‖ ≤ M := by
+    calc
+      ‖R‖ =
+          ‖(1 + ((t : ℂ) / w) * Complex.I) /
+            (1 - ((t : ℂ) / w) * Complex.I)‖ := rfl
+      _ ≤ (3 * ‖w‖) / max w.re |w.im - t| :=
+        Complex.binetSecondFormula_arctan_tail_ratio_norm_le_three_norm_div_branchWall_distance
+          hw_re_pos ht_nonneg ht_upper
+  have hmM : m ≤ M :=
+    le_trans hratio_lower hratio_upper
+  have hlog :
+      ‖Complex.log R‖ ≤
+        max |Real.log m| |Real.log M| + Real.pi :=
+    Complex.log_norm_le_of_norm_bounds
+      hm_pos hmM hratio_lower hratio_upper
+  have harctan :
+      ‖Complex.arctan ((t : ℂ) / w)‖ ≤
+        max |Real.log m| |Real.log M| + Real.pi := by
+    have hfactor_norm_le_one : ‖(-Complex.I / 2 : ℂ)‖ ≤ (1 : ℝ) :=
+      Complex.norm_neg_I_div_two_le_one
+    have hmul :
+        ‖(-Complex.I / 2 : ℂ) * Complex.log R‖ ≤
+          ‖Complex.log R‖ := by
+      calc
+        ‖(-Complex.I / 2 : ℂ) * Complex.log R‖ ≤
+            ‖(-Complex.I / 2 : ℂ)‖ * ‖Complex.log R‖ :=
+          norm_mul_le _ _
+        _ ≤ 1 * ‖Complex.log R‖ :=
+          mul_le_mul_of_nonneg_right hfactor_norm_le_one
+            (norm_nonneg (Complex.log R))
+        _ = ‖Complex.log R‖ :=
+          one_mul ‖Complex.log R‖
+    calc
+      ‖Complex.arctan ((t : ℂ) / w)‖ =
+          ‖(-Complex.I / 2 : ℂ) * Complex.log R‖ := by
+        exact congrArg norm
+          (Complex.binetSecondFormula_arctan_tail_expr_eq w t)
+      _ ≤ ‖Complex.log R‖ := hmul
+      _ ≤ max |Real.log m| |Real.log M| + Real.pi := hlog
+  have hden_norm :
+      ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ = D :=
+    Complex.exp_tail_denominator_norm_eq t ht_pos
+  have hD_nonneg : 0 ≤ D :=
+    le_of_lt (Real.binetSecondFormula_exp_denominator_pos ht_pos)
+  calc
+    ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ =
+        ‖Complex.arctan ((t : ℂ) / w) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ := by
+      rfl
+    _ =
+        ‖Complex.arctan ((t : ℂ) / w)‖ /
+          ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ := by
+      exact norm_div _ _
+    _ = ‖Complex.arctan ((t : ℂ) / w)‖ / D := by
+      exact congrArg
+        (fun x : ℝ => ‖Complex.arctan ((t : ℂ) / w)‖ / x)
+        hden_norm
+    _ ≤ (max |Real.log m| |Real.log M| + Real.pi) / D :=
+      div_le_div_of_nonneg_right harctan hD_nonneg
+
+/-- Pointwise constant envelope for the local-indentation principal-tail
+kernel on the bounded branch-wall window. -/
+theorem Complex.binetSecondFormula_principalTailKernel_norm_le_branchWall_localIndentation_constant_boundedTailWindow
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    {t : ℝ}
+    (ht_mem : t ∈ Set.Icc (‖w‖ / 2) (2 * ‖w‖)) :
+    ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤
+      ((max |Real.log (w.re / (3 * ‖w‖))|
+            (max |Real.log (1 : ℝ)|
+              |Real.log ((3 * ‖w‖) / w.re)|) + Real.pi) /
+        (Real.exp (Real.pi * ‖w‖) - 1)) := by
+  let B : ℝ := max w.re |w.im - t|
+  let M : ℝ := (3 * ‖w‖) / B
+  let U : ℝ := (3 * ‖w‖) / w.re
+  let E : ℝ := Real.exp ((2 : ℝ) * Real.pi * t) - 1
+  let E₀ : ℝ := Real.exp (Real.pi * ‖w‖) - 1
+  let N : ℝ :=
+    max |Real.log (w.re / (3 * ‖w‖))| |Real.log M| + Real.pi
+  let C : ℝ :=
+    max |Real.log (w.re / (3 * ‖w‖))|
+      (max |Real.log (1 : ℝ)| |Real.log U|) + Real.pi
+  have hw_norm_pos : 0 < ‖w‖ :=
+    Complex.norm_pos_of_re_pos hw_re_pos
+  have ht_lower : ‖w‖ / 2 ≤ t :=
+    ht_mem.1
+  have ht_upper : t ≤ 2 * ‖w‖ :=
+    ht_mem.2
+  have hhalf_pos : 0 < ‖w‖ / 2 :=
+    div_pos hw_norm_pos zero_lt_two
+  have ht_pos : 0 < t :=
+    lt_of_lt_of_le hhalf_pos ht_lower
+  have ht_nonneg : 0 ≤ t :=
+    le_of_lt ht_pos
+  have hB_pos : 0 < B :=
+    lt_of_lt_of_le hw_re_pos (le_max_left w.re |w.im - t|)
+  have hB_lower : w.re ≤ B :=
+    le_max_left w.re |w.im - t|
+  have hnum_pos : 0 < 3 * ‖w‖ :=
+    mul_pos Real.zero_lt_three hw_norm_pos
+  have hre_le_norm : w.re ≤ ‖w‖ := by
+    calc
+      w.re = |w.re| := Eq.symm (abs_of_pos hw_re_pos)
+      _ ≤ ‖w‖ := Complex.abs_re_le_abs w
+  have hre_le_three : w.re ≤ 3 * ‖w‖ := by
+    calc
+      w.re ≤ ‖w‖ := hre_le_norm
+      _ ≤ 3 * ‖w‖ :=
+        le_mul_of_one_le_left (le_of_lt hw_norm_pos) Real.one_le_three_real
+  have hU_ge_one : (1 : ℝ) ≤ U := by
+    exact (le_div_iff₀ hw_re_pos).2
+      (calc
+        (1 : ℝ) * w.re = w.re := one_mul w.re
+        _ ≤ 3 * ‖w‖ := hre_le_three)
+  have hB_upper : B ≤ 3 * ‖w‖ := by
+    have him_le_three : |w.im - t| ≤ 3 * ‖w‖ := by
+      calc
+        |w.im - t| ≤ ‖w - (t : ℂ) * Complex.I‖ :=
+          Complex.binetSecondFormula_arctan_tail_denominator_branchWall_distance_le
+            w t
+        _ ≤ ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
+          calc
+            ‖w - (t : ℂ) * Complex.I‖ =
+                ‖w + -((t : ℂ) * Complex.I)‖ := by
+              exact congrArg norm (sub_eq_add_neg w ((t : ℂ) * Complex.I))
+            _ ≤ ‖w‖ + ‖-((t : ℂ) * Complex.I)‖ :=
+              norm_add_le w (-((t : ℂ) * Complex.I))
+            _ = ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
+              exact congrArg (fun x : ℝ => ‖w‖ + x)
+                (norm_neg ((t : ℂ) * Complex.I))
+        _ = ‖w‖ + t := by
+          have htI_norm : ‖(t : ℂ) * Complex.I‖ = t := by
+            calc
+              ‖(t : ℂ) * Complex.I‖ = |t| :=
+                Complex.norm_real_mul_I t
+              _ = t := abs_of_nonneg ht_nonneg
+          exact congrArg (fun x : ℝ => ‖w‖ + x) htI_norm
+        _ ≤ ‖w‖ + 2 * ‖w‖ :=
+          add_le_add_left ht_upper ‖w‖
+        _ = 3 * ‖w‖ :=
+          Real.add_two_mul_eq_three_mul ‖w‖
+    exact max_le hre_le_three him_le_three
+  have hM_lower : (1 : ℝ) ≤ M := by
+    exact (le_div_iff₀ hB_pos).2
+      (calc
+        (1 : ℝ) * B = B := one_mul B
+        _ ≤ 3 * ‖w‖ := hB_upper)
+  have hM_upper : M ≤ U :=
+    div_le_div_of_nonneg_left (le_of_lt hnum_pos) hw_re_pos hB_lower
+  have hlogM :
+      |Real.log M| ≤
+        max |Real.log (1 : ℝ)| |Real.log U| :=
+    Real.abs_log_le_max_abs_log_of_bounds
+      zero_lt_one hU_ge_one hM_lower hM_upper
+  have hN_le_C : N ≤ C := by
+    have hmax :
+        max |Real.log (w.re / (3 * ‖w‖))| |Real.log M| ≤
+          max |Real.log (w.re / (3 * ‖w‖))|
+            (max |Real.log (1 : ℝ)| |Real.log U|) :=
+      max_le
+        (le_max_left _ _)
+        (le_trans hlogM (le_max_right _ _))
+    exact add_le_add_right hmax Real.pi
+  have hE0_pos : 0 < E₀ := by
+    have hpi_norm_pos : 0 < Real.pi * ‖w‖ :=
+      mul_pos Real.pi_pos hw_norm_pos
+    exact sub_pos.mpr
+      (calc
+        (1 : ℝ) = Real.exp 0 := Eq.symm Real.exp_zero
+        _ < Real.exp (Real.pi * ‖w‖) :=
+          Real.exp_lt_exp.mpr hpi_norm_pos)
+  have hE_lower : E₀ ≤ E := by
+    have hpi_le : Real.pi * ‖w‖ ≤ (2 : ℝ) * Real.pi * t := by
+      have hmul_lower :
+          Real.pi * (‖w‖ / 2) ≤ Real.pi * t :=
+        mul_le_mul_of_nonneg_left ht_lower (le_of_lt Real.pi_pos)
+      calc
+        Real.pi * ‖w‖ =
+            (2 : ℝ) * (Real.pi * (‖w‖ / 2)) := by
+          exact Eq.symm <| by
+            calc
+              (2 : ℝ) * (Real.pi * (‖w‖ / 2)) =
+                  ((2 : ℝ) * Real.pi) * (‖w‖ / 2) := by
+                exact (mul_assoc (2 : ℝ) Real.pi (‖w‖ / 2)).symm
+              _ = (Real.pi * 2) * (‖w‖ / 2) := by
+                exact congrArg (fun x : ℝ => x * (‖w‖ / 2))
+                  (mul_comm (2 : ℝ) Real.pi)
+              _ = Real.pi * (2 * (‖w‖ / 2)) := by
+                exact mul_assoc Real.pi 2 (‖w‖ / 2)
+              _ = Real.pi * ‖w‖ := by
+                exact congrArg (fun x : ℝ => Real.pi * x)
+                  (Real.two_mul_div_two ‖w‖)
+        _ ≤ (2 : ℝ) * (Real.pi * t) :=
+          mul_le_mul_of_nonneg_left hmul_lower Real.zero_le_two_real
+        _ = (2 : ℝ) * Real.pi * t :=
+          (mul_assoc (2 : ℝ) Real.pi t).symm
+    exact sub_le_sub_right (Real.exp_le_exp.mpr hpi_le) 1
+  have hN_nonneg : 0 ≤ N :=
+    add_nonneg
+      (le_max_of_le_left
+        (abs_nonneg (Real.log (w.re / (3 * ‖w‖)))))
+      Real.pi_nonneg
+  have hkernel :
+      ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤ N / E :=
+    Complex.binetSecondFormula_principalTailKernel_norm_le_branchWall_logSpike_boundedTailWindow
+      hw_re_pos ht_mem
+  have hratio : N / E ≤ C / E₀ :=
+    Real.div_le_div_of_le_of_le hE0_pos hN_nonneg hN_le_C hE_lower
+  exact le_trans hkernel hratio
+
+/-- Integrated local-indentation estimate for the principal Binet tail kernel
+over the bounded branch-wall window. -/
+theorem Complex.binetSecondFormula_principalTailKernel_integral_le_branchWall_localIndentation_boundedTailWindow
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∫ t : ℝ in Set.Icc (‖w‖ / 2) (2 * ‖w‖),
+        ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤
+      ((max |Real.log (w.re / (3 * ‖w‖))|
+            (max |Real.log (1 : ℝ)|
+              |Real.log ((3 * ‖w‖) / w.re)|) + Real.pi) /
+        (Real.exp (Real.pi * ‖w‖) - 1)) *
+        (volume (Set.Icc (‖w‖ / 2) (2 * ‖w‖))).toReal := by
+  let S : Set ℝ := Set.Icc (‖w‖ / 2) (2 * ‖w‖)
+  let F : ℝ → ℝ := fun t : ℝ =>
+    ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖
+  let C : ℝ :=
+    (max |Real.log (w.re / (3 * ‖w‖))|
+        (max |Real.log (1 : ℝ)|
+          |Real.log ((3 * ‖w‖) / w.re)|) + Real.pi) /
+      (Real.exp (Real.pi * ‖w‖) - 1)
+  have hF_bound : ∀ t : ℝ, t ∈ S → ‖F t‖ ≤ C := by
+    intro t ht
+    have hpoint :
+        F t ≤ C :=
+      Complex.binetSecondFormula_principalTailKernel_norm_le_branchWall_localIndentation_constant_boundedTailWindow
+        hw_re_pos ht
+    have hF_nonneg : 0 ≤ F t :=
+      norm_nonneg (Complex.binetSecondFormulaPrincipalTailKernel w t)
+    calc
+      ‖F t‖ = |F t| := Real.norm_eq_abs (F t)
+      _ = F t := abs_of_nonneg hF_nonneg
+      _ ≤ C := hpoint
+  have hnorm_integral :
+      ‖∫ t : ℝ in S, F t‖ ≤ C * (volume S).toReal :=
+    norm_setIntegral_le_of_norm_le_const'
+      measure_Icc_lt_top measurableSet_Icc hF_bound
+  calc
+    ∫ t : ℝ in S, F t ≤ |∫ t : ℝ in S, F t| :=
+      le_abs_self (∫ t : ℝ in S, F t)
+    _ = ‖∫ t : ℝ in S, F t‖ :=
+      Eq.symm (Real.norm_eq_abs (∫ t : ℝ in S, F t))
+    _ ≤ C * (volume S).toReal :=
+      hnorm_integral
+
+/-- Integrated local-indentation estimate for the principal Binet tail kernel
+over the half-open bounded branch-wall window.  This is the interval form that
+splits exactly with the far tail into `Ioi (‖w‖ / 2)`. -/
+theorem Complex.binetSecondFormula_principalTailKernel_integral_le_branchWall_localIndentation_boundedTailWindow_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤
+      ((max |Real.log (w.re / (3 * ‖w‖))|
+            (max |Real.log (1 : ℝ)|
+              |Real.log ((3 * ‖w‖) / w.re)|) + Real.pi) /
+        (Real.exp (Real.pi * ‖w‖) - 1)) *
+        (volume (Set.Ioc (‖w‖ / 2) (2 * ‖w‖))).toReal := by
+  let S : Set ℝ := Set.Ioc (‖w‖ / 2) (2 * ‖w‖)
+  let F : ℝ → ℝ := fun t : ℝ =>
+    ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖
+  let C : ℝ :=
+    (max |Real.log (w.re / (3 * ‖w‖))|
+        (max |Real.log (1 : ℝ)|
+          |Real.log ((3 * ‖w‖) / w.re)|) + Real.pi) /
+      (Real.exp (Real.pi * ‖w‖) - 1)
+  have hmeasure : volume S < ∞ :=
+    measure_Ioc_lt_top
+  have hF_bound : ∀ t : ℝ, t ∈ S → ‖F t‖ ≤ C := by
+    intro t ht
+    have ht_Icc : t ∈ Set.Icc (‖w‖ / 2) (2 * ‖w‖) :=
+      And.intro (le_of_lt ht.1) ht.2
+    have hpoint :
+        F t ≤ C :=
+      Complex.binetSecondFormula_principalTailKernel_norm_le_branchWall_localIndentation_constant_boundedTailWindow
+        hw_re_pos ht_Icc
+    have hF_nonneg : 0 ≤ F t :=
+      norm_nonneg (Complex.binetSecondFormulaPrincipalTailKernel w t)
+    calc
+      ‖F t‖ = |F t| := Real.norm_eq_abs (F t)
+      _ = F t := abs_of_nonneg hF_nonneg
+      _ ≤ C := hpoint
+  have hnorm_integral :
+      ‖∫ t : ℝ in S, F t‖ ≤ C * (volume S).toReal :=
+    norm_setIntegral_le_of_norm_le_const'
+      hmeasure measurableSet_Ioc hF_bound
+  calc
+    ∫ t : ℝ in S, F t ≤ |∫ t : ℝ in S, F t| :=
+      le_abs_self (∫ t : ℝ in S, F t)
+    _ = ‖∫ t : ℝ in S, F t‖ :=
+      Eq.symm (Real.norm_eq_abs (∫ t : ℝ in S, F t))
+    _ ≤ C * (volume S).toReal :=
+      hnorm_integral
+
+/-- Integrated local-indentation estimate for the principal Binet tail kernel
+with the Binet denominator replaced by a pure exponential weight.
+
+This is the real-variable local estimate immediately upstream of the C5
+branch-spike absorption: it retains the full logarithmic envelope required by
+the principal-branch arctangent bound, but no longer contains
+`exp (2πt) - 1`. -/
+theorem Complex.binetSecondFormula_principalTailKernel_integral_le_expWeighted_fullLogEnvelope_boundedTailWindow_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (hw_large : 2 ≤ ‖w‖) :
+    ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (2 *
+          (max |Real.log (w.re / (3 * ‖w‖))|
+            |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+          Real.exp ((2 : ℝ) * Real.pi * t) := by
+  let S : Set ℝ := Set.Ioc (‖w‖ / 2) (2 * ‖w‖)
+  let P : ℝ → ℝ := fun t : ℝ =>
+    ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖
+  let G : ℝ → ℝ := fun t : ℝ =>
+    (2 *
+      (max |Real.log (w.re / (3 * ‖w‖))|
+        |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+      Real.exp ((2 : ℝ) * Real.pi * t)
+  have hP_integrable :
+      IntegrableOn P S :=
+    (Complex.binetSecondFormula_arctanKernel_integrableOn_tail_interval
+      (w := w) hw_re_pos).norm.mono_set Ioc_subset_Ioi_self
+  have hG_integrable : IntegrableOn G S := by
+    let Scc : Set ℝ := Set.Icc (‖w‖ / 2) (2 * ‖w‖)
+    let B : ℝ → ℝ := fun t : ℝ => max w.re |w.im - t|
+    let A : ℝ → ℝ := fun t : ℝ => (3 * ‖w‖) / B t
+    let H : ℝ → ℝ := fun t : ℝ =>
+      (2 *
+        (max |Real.log (w.re / (3 * ‖w‖))|
+          |Real.log (A t)| + Real.pi)) /
+        Real.exp ((2 : ℝ) * Real.pi * t)
+    have hw_norm_pos : 0 < ‖w‖ :=
+      Complex.norm_pos_of_re_pos hw_re_pos
+    have hB_pos : ∀ t : ℝ, 0 < B t := by
+      intro t
+      exact lt_of_lt_of_le hw_re_pos (le_max_left w.re |w.im - t|)
+    have hA_pos : ∀ t : ℝ, 0 < A t := by
+      intro t
+      exact div_pos (mul_pos Real.zero_lt_three hw_norm_pos) (hB_pos t)
+    have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
+      (continuous_const.sub continuous_id).abs
+    have hB_cont : Continuous B :=
+      continuous_const.max hdist_cont
+    have hA_cont : Continuous A :=
+      continuous_const.div hB_cont (fun t => (hB_pos t).ne')
+    have hlog_contOn :
+        ContinuousOn (fun t : ℝ => Real.log (A t)) Scc :=
+      (hA_cont.continuousOn).log (fun t ht => (hA_pos t).ne')
+    have hfull_log_contOn :
+        ContinuousOn
+          (fun t : ℝ =>
+            max |Real.log (w.re / (3 * ‖w‖))|
+              |Real.log (A t)| + Real.pi)
+          Scc :=
+      (continuousOn_const.max hlog_contOn.abs).add continuousOn_const
+    have hnum_contOn :
+        ContinuousOn
+          (fun t : ℝ =>
+            2 *
+              (max |Real.log (w.re / (3 * ‖w‖))|
+                |Real.log (A t)| + Real.pi))
+          Scc :=
+      continuousOn_const.mul hfull_log_contOn
+    have hlinear_cont : Continuous fun t : ℝ => (2 : ℝ) * Real.pi * t :=
+      (continuous_const.mul continuous_const).mul continuous_id
+    have hden_cont : Continuous fun t : ℝ =>
+        Real.exp ((2 : ℝ) * Real.pi * t) :=
+      Real.continuous_exp.comp hlinear_cont
+    have hden_ne : ∀ t : ℝ, t ∈ Scc →
+        Real.exp ((2 : ℝ) * Real.pi * t) ≠ 0 := by
+      intro t ht
+      exact (Real.exp_pos ((2 : ℝ) * Real.pi * t)).ne'
+    have hH_contOn : ContinuousOn H Scc :=
+      hnum_contOn.div hden_cont.continuousOn hden_ne
+    have hH_integrable_Icc : IntegrableOn H Scc :=
+      hH_contOn.integrableOn_Icc
+    exact hH_integrable_Icc.mono_set Ioc_subset_Icc_self
+  have hpoint :
+      ∀ᵐ t ∂volume.restrict S, P t ≤ G t :=
+    (ae_restrict_mem measurableSet_Ioc).mono
+      (fun t ht => by
+        have ht_Icc : t ∈ Set.Icc (‖w‖ / 2) (2 * ‖w‖) :=
+          And.intro (le_of_lt ht.1) ht.2
+        let N : ℝ :=
+          max |Real.log (w.re / (3 * ‖w‖))|
+            |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi
+        have hkernel :
+            P t ≤
+              N / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+          Complex.binetSecondFormula_principalTailKernel_norm_le_branchWall_logSpike_boundedTailWindow
+            hw_re_pos ht_Icc
+        have hhalf_ge_one : (1 : ℝ) ≤ ‖w‖ / 2 := by
+          exact (le_div_iff₀ zero_lt_two).2
+            (calc
+              (1 : ℝ) * 2 = 2 := one_mul 2
+              _ ≤ ‖w‖ := hw_large)
+        have ht_gt_one : t ∈ Set.Ioi (1 : ℝ) :=
+          lt_of_le_of_lt hhalf_ge_one ht.1
+        have hN_nonneg : 0 ≤ N :=
+          add_nonneg
+            (le_max_of_le_left
+              (abs_nonneg (Real.log (w.re / (3 * ‖w‖)))))
+            Real.pi_nonneg
+        have hexp :
+            N / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+              (2 * N) / Real.exp ((2 : ℝ) * Real.pi * t) :=
+          Real.binetSecondFormula_nonneg_div_exp_denominator_le_two_mul_div_exp
+            hN_nonneg ht_gt_one
+        exact le_trans hkernel hexp)
+  exact
+    setIntegral_mono_ae_restrict hP_integrable hG_integrable hpoint
 
 /-- On the bounded part of the tail, the unnormalized denominator is bounded
 by `3 * ‖w‖`. -/

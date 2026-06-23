@@ -21,8 +21,25 @@ namespace ZetaAdmissibleFunction
 the horizontal top-minus-bottom contour remainder. -/
 def completedPrimeContourTransportFamily : ExplicitFormulaContourFamily where
   c := (1 / 2 : ℝ) + 1
+  c_gt_one := by
+    have hhalf_pos : (0 : ℝ) < 1 / 2 :=
+      real_half_pos_for_contourGeometry
+    have hadd :
+        (0 : ℝ) + 1 < (1 / 2 : ℝ) + 1 :=
+      add_lt_add_right hhalf_pos 1
+    exact Eq.subst
+      (motive := fun x : ℝ => x < (1 / 2 : ℝ) + 1)
+      (zero_add (1 : ℝ))
+      hadd
   c_gt_half := by
     exact lt_add_of_pos_right (1 / 2 : ℝ) zero_lt_one
+  c_ne_one := by
+    intro h
+    have hhalf_zero : (1 / 2 : ℝ) = 0 := by
+      have hone : (1 / 2 : ℝ) + 1 = 0 + 1 := by
+        exact h.trans (zero_add (1 : ℝ)).symm
+      exact add_right_cancel hone
+    exact (ne_of_gt real_half_pos_for_contourGeometry) hhalf_zero
 
 /-- The coordinatewise contour-transport remainder between the contour-realized and
 time-side prime distributions. -/

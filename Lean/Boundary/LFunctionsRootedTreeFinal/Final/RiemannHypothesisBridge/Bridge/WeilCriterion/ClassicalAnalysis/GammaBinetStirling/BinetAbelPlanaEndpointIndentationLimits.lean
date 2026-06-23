@@ -1210,6 +1210,7 @@ theorem Complex.continuousOn_endpointSemicircleResidueExtension_comp_arc
     {w : ℂ}
     (hw : 0 < w.re)
     (n : ℕ)
+    [∀ z : ℂ, Decidable (z = (n : ℂ))]
     (a b ρ : ℝ)
     (hρpos : 0 < ρ)
     (hρR : ρ <
@@ -1247,6 +1248,7 @@ theorem Complex.continuousOn_endpointSemicircleRemainderIntegrand
     {w : ℂ}
     (hw : 0 < w.re)
     (n : ℕ)
+    [∀ z : ℂ, Decidable (z = (n : ℂ))]
     (a b ρ : ℝ)
     (hρpos : 0 < ρ)
     (hρR : ρ <
@@ -1305,6 +1307,7 @@ theorem Complex.intervalIntegrable_endpointSemicircleRemainder
     {w : ℂ}
     (hw : 0 < w.re)
     (n : ℕ)
+    [∀ z : ℂ, Decidable (z = (n : ℂ))]
     (a b ρ : ℝ)
     (hρpos : 0 < ρ)
     (hρR : ρ <
@@ -1602,7 +1605,9 @@ principal-value residue contribution. -/
 theorem Complex.finiteAbelPlana_log_pvDeletedBoundaryIntegralContribution_tendsto_pvResidues
     {w : ℂ}
     (hw : 0 < w.re)
-    (N : ℕ) :
+    (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ))) :
     Filter.Tendsto
       (fun ρ : ℝ =>
         Complex.finiteAbelPlanaLogPVDeletedBoundaryIntegralContribution N w ρ)
@@ -1626,7 +1631,7 @@ theorem Complex.finiteAbelPlana_log_pvDeletedBoundaryIntegralContribution_tendst
         (𝓝[>] (0 : ℝ))
         (𝓝 (Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w)) :=
     Complex.finiteAbelPlana_log_pvInteriorSmallCircleIntegral_tendsto_residues
-      hw N
+      hw N hdecInteriorPole
   have htotal :
       Filter.Tendsto
         (fun ρ : ℝ =>

@@ -373,8 +373,8 @@ theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
         ‖∑ n ∈ Finset.Ioc N M, a n * (w n : ℂ)‖ ≤ B := by
   intro M hNM_le
   exact
-    match Classical.em (N < M) with
-    | Or.inl hNM =>
+    match (inferInstance : Decidable (N < M)) with
+    | isTrue hNM =>
       by
         have hB_nonneg : 0 ≤ B := by
           have hzero_bound := hfinite N (le_rfl : N ≤ N)
@@ -511,7 +511,7 @@ theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
           _ ≤ 1 * B :=
             mul_le_mul_of_nonneg_right hmass hB_nonneg
           _ = B := one_mul B
-    | Or.inr hNM =>
+    | isFalse hNM =>
       by
         have hMN : M ≤ N := le_of_not_gt hNM
         have hempty : Finset.Ioc N M = ∅ := Finset.Ioc_eq_empty_of_le hMN

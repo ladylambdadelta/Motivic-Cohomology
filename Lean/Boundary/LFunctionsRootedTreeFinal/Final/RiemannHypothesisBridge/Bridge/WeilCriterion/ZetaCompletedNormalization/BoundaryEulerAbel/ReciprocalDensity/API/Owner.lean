@@ -72,6 +72,27 @@ def boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant
       ((1 : ℝ) / x ^ 2) *
         (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
 
+/-- Finite-endpoint bound for the honest Abel-tail majorant.
+
+The reciprocal-density integral contains the `x / |t|` partial-sum term, so the
+owner comparison has finite-endpoint logarithmic-square growth in `M`. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant_le_finiteEndpoint
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    boundaryLineOnePointRealParam_logarithmicPhaseFiniteAbelTailMajorant t M ≤
+      (2 + 8 * Real.log (3 + ‖t‖)) +
+        (8 * (Real.log (2 + ((M : ℕ) : ℝ))) ^ 2 +
+          8 * Real.sqrt (1 + ‖t‖) * Real.log (3 + ‖t‖)) := by
+  exact
+    add_le_add
+      (le_rfl :
+        2 + 8 * Real.log (3 + ‖t‖) ≤
+          2 + 8 * Real.log (3 + ‖t‖))
+      (scalarReciprocalDensityMajorant_finiteEndpoint_integral_bound
+        t ht hNM)
+
 /-- Abel summation in the precise finite form needed for the boundary-line tail:
 coefficients are the logarithmic-phase oscillatory partial sums of `n^{-it}` and
 the weight is `1/x`. -/
@@ -473,7 +494,6 @@ theorem finite_sum_Ioc_eq_sub_left
     (∑ n ∈ Finset.Ioc N M, f n) =
       (∑ n ∈ Finset.Ioc C M, f n) -
         ∑ n ∈ Finset.Ioc C N, f n := by
-  classical
   have hdisjoint :
       Disjoint (Finset.Ioc C N) (Finset.Ioc N M) := by
     exact Finset.disjoint_left.mpr
@@ -629,11 +649,13 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
             8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {N M : ℕ}
     (hN : 1 ≤ N)
-    (hNM : N ≤ M) :
+    (hNM : N ≤ M)
+    [hM_cut_dec : Decidable (M ≤ ⌊2 + ‖t‖⌋₊)]
+    [hN_cut_dec : Decidable (⌊2 + ‖t‖⌋₊ ≤ N)] :
     ‖∑ n ∈ Finset.Ioc N M,
         ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailMajorant t N M := by
-  match Decidable.em (M ≤ ⌊2 + ‖t‖⌋₊) with
+  match hM_cut_dec with
   | Or.inl hMcut =>
     have hpre :
         ‖∑ n ∈ Finset.Ioc N M,
@@ -654,7 +676,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
   | Or.inr hMcut =>
     have hC_le_M : ⌊2 + ‖t‖⌋₊ ≤ M :=
       Nat.le_of_not_ge hMcut
-    match Decidable.em (⌊2 + ‖t‖⌋₊ ≤ N) with
+    match hN_cut_dec with
     | Or.inl hC_le_N =>
       have hpost :
           ‖∑ n ∈ Finset.Ioc N M,

@@ -46,11 +46,11 @@ theorem zetaZeroSideContribution_eq_of_spectralTomography
     (ρ : ℂ) :
     zetaZeroSideContribution ρ X.seed =
       zetaZeroSideContribution ρ Y.seed := by
-  show - (zetaZeroMultiplicity ρ : ℂ) * zetaSpectralEval X.seed (zetaCenteredZero ρ) =
-       - (zetaZeroMultiplicity ρ : ℂ) * zetaSpectralEval Y.seed (zetaCenteredZero ρ)
+  show - (zetaZeroMultiplicity ρ : ℂ) * zetaSpectralEval X.seed ρ =
+       - (zetaZeroMultiplicity ρ : ℂ) * zetaSpectralEval Y.seed ρ
   exact congrArg
     (fun w : ℂ => - (zetaZeroMultiplicity ρ : ℂ) * w)
-    (hXY (zetaCenteredZero ρ))
+    (hXY ρ)
 
 /-- Spectral tomography identifies every completed zero-tail functional. -/
 theorem zetaZeroTail_eq_of_spectralTomography

@@ -90,17 +90,12 @@ theorem zetaCorrectionPacketAsEnsemble_eq_normalizedCorrectionPacket
         zetaCompletionCorrectionPacketCoordinate := by
   rfl
 
-/-- The square of the correction packet coordinate is the real part of the explicit
-centered correction contribution. -/
-theorem zetaCorrectionPacketCoordinate_sq_eq_explicitFormulaCorrectionReal
-    (f : ZetaAdmissibleFunction) :
+/-- The square of the real-shadow correction packet coordinate is the centered basepoint
+correction value. -/
+theorem zetaCorrectionPacketCoordinate_sq_eq_centeredBasepointCorrectionReal :
     zetaCompletionCorrectionPacketCoordinate *
         zetaCompletionCorrectionPacketCoordinate =
-      Complex.re (zetaCompletedExplicitFormulaCorrectionContribution f) := by
-  have hcorrection :
-      zetaCompletedExplicitFormulaCorrectionContribution f =
-        zetaCompletionCorrection 0 := by
-    exact Boundary.LFunctions.zetaCompletionCorrection_zero.symm
+      Complex.re (zetaCompletionCorrection 0) := by
   have hsquare :
       zetaCompletionCorrectionPacketCoordinate *
           zetaCompletionCorrectionPacketCoordinate =
@@ -110,8 +105,6 @@ theorem zetaCorrectionPacketCoordinate_sq_eq_explicitFormulaCorrectionReal
     zetaCompletionCorrectionPacketCoordinate *
         zetaCompletionCorrectionPacketCoordinate =
         Complex.re (zetaCompletionCorrection 0) := hsquare
-    _ = Complex.re (zetaCompletedExplicitFormulaCorrectionContribution f) := by
-      exact congrArg Complex.re hcorrection.symm
 
 /-- The reconstructed completed packet is exactly the packet built from the explicit-formula
 prime and archimedean coordinates together with the normalized correction coordinate. -/
@@ -186,16 +179,15 @@ theorem zetaCompletedBoundaryDefectGram_eq_realShadowComponents
   unfold zetaCompletedBoundaryDefectGram
   exact ZetaPacketEnsemble.zetaPacketNormSquare (zetaCompletedBoundaryDefect f)
 
-/-- The real-shadow correction packet Gram agrees with the Hermitian correction packet Gram. -/
-theorem zetaCompletedBoundaryDefect_correctionPacketGram_eq_HermitianCorrectionPacketGram
+/-- The real-shadow correction packet Gram is the centered basepoint correction square.
+The variable centered-pole Hermitian correction Gram is owned by the Hermitian packet lane. -/
+theorem zetaCompletedBoundaryDefect_correctionPacketGram_eq_centeredBasepointCorrectionReal
     (f : ZetaAdmissibleFunction) :
     ZetaPacketEnsemble.correctionPacketGram (zetaCompletedBoundaryDefect f) =
-      ZetaHermitianPacketEnsemble.correctionPacketGram
-        (zetaCompletedHermitianBoundaryDefect f) := by
+      Complex.re (zetaCompletionCorrection 0) := by
   exact
     (zetaCompletedBoundaryDefect_correctionPacketGram_eq_coordinate_sq f).trans
-      (zetaCompletedHermitianBoundaryDefect_correctionPacketGram_eq_coordinate_sq
-        f).symm
+      zetaCorrectionPacketCoordinate_sq_eq_centeredBasepointCorrectionReal
 
 end ZetaAdmissibleFunction
 

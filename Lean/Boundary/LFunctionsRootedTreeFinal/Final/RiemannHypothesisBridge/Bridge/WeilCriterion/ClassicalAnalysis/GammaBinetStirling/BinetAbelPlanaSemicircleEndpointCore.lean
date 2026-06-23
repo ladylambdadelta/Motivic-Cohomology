@@ -46,6 +46,9 @@ theorem Complex.rightSemicircleStaircaseSafeEndpointDefect_eq_zero_of_lt_midpoin
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
     {m k : ℕ}
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))]
     (hk : k < (m + 1) / 2) :
     Complex.rightSemicircleStaircaseSafeEndpointDefect ρ m k = 0 := by
   have hk_succ_le_mid : k + 1 ≤ (m + 1) / 2 :=
@@ -142,6 +145,9 @@ theorem Complex.abs_rightSemicircleStaircaseSafeEndpointDefect_eq_graph_drop_of_
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
     {m k : ℕ}
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))]
     (hk : (m + 1) / 2 < k) :
     |Complex.rightSemicircleStaircaseSafeEndpointDefect ρ m k| =
         Complex.rightSemicircleGraphRe ρ

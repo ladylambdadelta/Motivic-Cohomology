@@ -21,7 +21,6 @@ theorem hasSum_singletonSupport_real
     HasSum
       (fun x : α => if x = a then u a else 0)
       (u a) := by
-  classical
   have hoff :
       ∀ x : α, x ∉ ({a} : Finset α) →
         (if x = a then u a else 0) = 0 := by
@@ -63,7 +62,6 @@ theorem real_term_le_tsum_of_summable_nonnegative
     (h_nonneg : ∀ a : α, 0 ≤ u a)
     (a : α) :
     u a ≤ ∑' x : α, u x := by
-  classical
   let v : α → ℝ := fun x : α => if x = a then u a else 0
   have hv_hasSum : HasSum v (u a) :=
     hasSum_singletonSupport_real u a
@@ -74,7 +72,7 @@ theorem real_term_le_tsum_of_summable_nonnegative
   have hv_le_u : ∀ x : α, v x ≤ u x := by
     intro x
     exact
-      match Decidable.em (x = a) with
+      match (inferInstance : Decidable (x = a)) with
       | Or.inl hxa =>
           have hxvalue : v x = u a :=
             if_pos hxa
@@ -106,10 +104,11 @@ theorem real_term_le_tsum_of_summable_nonnegative
 
 /-- Height-ball multiplicity summands are nonnegative. -/
 theorem completedZeroMultiplicityHeightBallSummand_nonnegative
-    (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
+    [Decidable (zetaCompletedZeroCenteredHeight ρ ≤ T)] :
     0 ≤ completedZeroMultiplicityHeightBallSummand T ρ := by
   exact
-    match Decidable.em (zetaCompletedZeroCenteredHeight ρ ≤ T) with
+    match (inferInstance : Decidable (zetaCompletedZeroCenteredHeight ρ ≤ T)) with
     | Or.inl hρ =>
         Eq.subst
           (motive := fun x : ℝ => 0 ≤ x)
@@ -124,11 +123,13 @@ theorem completedZeroMultiplicityHeightBallSummand_nonnegative
 /-- Height-ball summands are monotone in the radius. -/
 theorem completedZeroMultiplicityHeightBallSummand_mono
     {S T : ℝ} (hST : S ≤ T)
-    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
+    [Decidable (zetaCompletedZeroCenteredHeight ρ ≤ S)]
+    [Decidable (zetaCompletedZeroCenteredHeight ρ ≤ T)] :
     completedZeroMultiplicityHeightBallSummand S ρ ≤
       completedZeroMultiplicityHeightBallSummand T ρ := by
   exact
-    match Decidable.em (zetaCompletedZeroCenteredHeight ρ ≤ S) with
+    match (inferInstance : Decidable (zetaCompletedZeroCenteredHeight ρ ≤ S)) with
     | Or.inl hS =>
         have hT : zetaCompletedZeroCenteredHeight ρ ≤ T :=
           le_trans hS hST
@@ -143,7 +144,7 @@ theorem completedZeroMultiplicityHeightBallSummand_mono
             (if_pos hT).symm
             (le_refl (zetaZeroMultiplicity (ρ : ℂ) : ℝ)))
     | Or.inr hS =>
-        match Decidable.em (zetaCompletedZeroCenteredHeight ρ ≤ T) with
+        match (inferInstance : Decidable (zetaCompletedZeroCenteredHeight ρ ≤ T)) with
         | Or.inl hT =>
             Eq.subst
               (motive := fun x : ℝ =>
@@ -316,11 +317,9 @@ consequence of multiplicity-aware zero counting. -/
 theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound_from_counting
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     ∃ M : ℝ, ∃ d : ℕ,
       0 < M ∧
@@ -331,9 +330,9 @@ theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound_from_counting
     Exists.elim
       (exists_completedZeroMultiplicityCounting_height_bound
         hbranch
-        hpartialOneTwo htailOneTwo hcompactOneTwo
+        hpartialOneTwo hcompactOneTwo
         hfinite
-        hpartialLeft htailBoundary hcompactBoundary)
+        hpartialLeft hcompactBoundary)
       (fun C hC =>
         Exists.elim hC
           (fun d hd =>
@@ -466,9 +465,10 @@ theorem finite_univ_subtype_of_finite_set
     {α : Type*} {s : Set α}
     (hs : s.Finite) :
     (Set.univ : Set s).Finite := by
-  classical
-  haveI : Fintype s := hs.fintype
-  exact Set.finite_univ
+  match hs.nonempty_fintype with
+  | ⟨inst⟩ =>
+      letI : Fintype s := inst
+      exact Set.finite_univ
 
 /-- The completed-zero shell fiber at integer height `m`. -/
 def completedZeroCenteredHeightShellFiber

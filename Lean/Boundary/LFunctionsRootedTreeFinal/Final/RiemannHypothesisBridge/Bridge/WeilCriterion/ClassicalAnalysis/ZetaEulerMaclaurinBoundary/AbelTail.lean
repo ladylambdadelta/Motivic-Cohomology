@@ -101,8 +101,8 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAb
                   (if_pos hn_tail).symm)))
         htail_dirichlet.congr
           (fun n =>
-            match Classical.em (N < n) with
-            | Or.inl hn_tail =>
+            match (inferInstance : Decidable (N < n)) with
+            | isTrue hn_tail =>
                 have hn_pos : 0 < n :=
                   Nat.lt_of_lt_of_le Nat.zero_lt_one (le_of_lt (lt_of_le_of_lt hN hn_tail))
                 calc
@@ -120,7 +120,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAb
                       else
                         0 :=
                     (if_pos hn_tail).symm
-            | Or.inr hn_tail =>
+            | isFalse hn_tail =>
                 calc
                   (if N < n then
                     ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹

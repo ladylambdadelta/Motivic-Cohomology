@@ -61,11 +61,8 @@ theorem dotProduct_eq_zero_of_disjoint_support_aux {x y : ZetaPacketEnsemble} (�
   · have hy' : ℓ ∉ y.support := by
       intro hy
       exact hxy' ℓ hx hy
-    have hy0 : y ℓ = 0 := by
-      by_contra hy0
-      have hy_mem : ℓ ∈ y.support := by
-        exact Finsupp.mem_support_iff.mpr hy0
-      exact hy' hy_mem
+    have hy0 : y ℓ = 0 :=
+      Finsupp.not_mem_support_iff.mp hy'
     calc
       x ℓ * y ℓ = x ℓ * 0 := by
         exact congrArg (fun t => x ℓ * t) hy0
@@ -74,11 +71,8 @@ theorem dotProduct_eq_zero_of_disjoint_support_aux {x y : ZetaPacketEnsemble} (�
   · have hx' : ℓ ∉ x.support := by
       intro hx
       exact hxy' ℓ hx hy
-    have hx0 : x ℓ = 0 := by
-      by_contra hx0
-      have hx_mem : ℓ ∈ x.support := by
-        exact Finsupp.mem_support_iff.mpr hx0
-      exact hx' hx_mem
+    have hx0 : x ℓ = 0 :=
+      Finsupp.not_mem_support_iff.mp hx'
     calc
       x ℓ * y ℓ = 0 * y ℓ := by
         exact congrArg (fun t => t * y ℓ) hx0
@@ -162,11 +156,8 @@ theorem packetDotProduct_eq_zero_of_disjoint_support {x y : ZetaPacketEnsemble}
   · have hy' : ℓ ∉ y.support := by
       intro hy
       exact hxy' ℓ hx hy
-    have hy0 : y ℓ = 0 := by
-      by_contra hy0
-      have hy_mem : ℓ ∈ y.support := by
-        exact Finsupp.mem_support_iff.mpr hy0
-      exact hy' hy_mem
+    have hy0 : y ℓ = 0 :=
+      Finsupp.not_mem_support_iff.mp hy'
     calc
       x ℓ * y ℓ = x ℓ * 0 := by
         exact congrArg (fun t => x ℓ * t) hy0
@@ -175,11 +166,8 @@ theorem packetDotProduct_eq_zero_of_disjoint_support {x y : ZetaPacketEnsemble}
   · have hx' : ℓ ∉ x.support := by
       intro hx
       exact hxy' ℓ hx hy
-    have hx0 : x ℓ = 0 := by
-      by_contra hx0
-      have hx_mem : ℓ ∈ x.support := by
-        exact Finsupp.mem_support_iff.mpr hx0
-      exact hx' hx_mem
+    have hx0 : x ℓ = 0 :=
+      Finsupp.not_mem_support_iff.mp hx'
     calc
       x ℓ * y ℓ = 0 * y ℓ := by
         exact congrArg (fun t => t * y ℓ) hx0

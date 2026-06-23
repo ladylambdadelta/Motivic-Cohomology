@@ -164,15 +164,15 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_eq_weightedTail
           0) := by
   exact tsum_congr
     (fun n =>
-      match Classical.em (N < n) with
-      | Or.inl hn_tail =>
+      match (inferInstance : Decidable (N < n)) with
+      | isTrue hn_tail =>
           have hn_pos : 0 < n :=
             Nat.lt_of_lt_of_le Nat.zero_lt_one (le_of_lt (lt_of_le_of_lt hN hn_tail))
           if_pos hn_tail ▸
             if_pos hn_tail ▸
               Complex.boundaryLineOnePointRealParam_abelDampedDirichletTerm_eq_weighted
                 t σ hn_pos
-      | Or.inr hn_tail =>
+      | isFalse hn_tail =>
           if_neg hn_tail ▸ if_neg hn_tail ▸ rfl)
 
 /-- Early owner copy of the summable Nat tail split, used before the Abel
@@ -195,14 +195,14 @@ theorem Complex.summable_nat_tail_eq_tsum_sub_Icc_of_zero_for_abel_boundary
         fun n : ℕ => if n ∈ (S : Set ℕ)ᶜ then f n else 0 := by
     funext n
     exact
-      match Classical.em (N < n) with
-      | Or.inl hn_tail =>
+      match (inferInstance : Decidable (N < n)) with
+      | isTrue hn_tail =>
           have hn_not_mem : n ∉ S := by
             intro hn_mem
             have hn_le_N : n ≤ N := (Finset.mem_Icc.mp hn_mem).2
             exact (not_le_of_gt hn_tail) hn_le_N
           if_pos hn_tail ▸ if_pos hn_not_mem ▸ rfl
-      | Or.inr hn_tail =>
+      | isFalse hn_tail =>
           have hn_mem_or_zero : n ∈ S ∨ n = 0 := by
             have hn_le_N : n ≤ N := le_of_not_gt hn_tail
             cases n with
@@ -251,14 +251,14 @@ theorem Complex.summable_nat_tail_eq_tsum_sub_Icc_of_zero_for_abel_boundary
           Set.indicator ((S : Set ℕ)ᶜ) f := by
       funext n
       exact
-        match Classical.em (n ∈ (S : Set ℕ)ᶜ) with
-        | Or.inl hn_mem =>
+        match (inferInstance : Decidable (n ∈ (S : Set ℕ)ᶜ)) with
+        | isTrue hn_mem =>
             calc
               (if n ∈ (S : Set ℕ)ᶜ then f n else 0) = f n :=
                 if_pos hn_mem
               _ = Set.indicator ((S : Set ℕ)ᶜ) f n :=
                 (Set.indicator_of_mem hn_mem f).symm
-        | Or.inr hn_not_mem =>
+        | isFalse hn_not_mem =>
             calc
               (if n ∈ (S : Set ℕ)ᶜ then f n else 0) = 0 :=
                 if_neg hn_not_mem

@@ -2,6 +2,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaContourBounds.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaAdmissibleTransformRegularity.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaCompletedLogDerivativeControl.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaAnalyticPackage.Owner
 import Mathlib.Order.Filter.Basic
 
 /-!
@@ -924,6 +925,37 @@ theorem zetaCompletedExplicitFormulaHorizontalDifference_norm_le_familyEnvelopeS
     (fun x hx => hBottomMem T x hx)
     logN phiN
 
+/-- Scheduled horizontal difference bound from scheduled zero-excised membership. -/
+theorem zetaCompletedExplicitFormulaHorizontalDifference_norm_le_scheduledFamilyEnvelopeSplit
+    {f : ZetaAdmissibleFunction}
+    (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (E : CompletedZetaZeroExcisedStrip
+      (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (hTopMem :
+      ∀ (u x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaTopPath
+          (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier)
+    (hBottomMem :
+      ∀ (u x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaBottomPath
+          (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier)
+    (logN phiN : ℕ) (u : ℝ) :
+    ‖zetaCompletedExplicitFormulaTopLineIntegral f
+          (F.rectangle (h.height_schedule.height u)) -
+        zetaCompletedExplicitFormulaBottomLineIntegral f
+          (F.rectangle (h.height_schedule.height u))‖
+      ≤ horizontalUnorderedFamilyDifferenceEnvelopeSplit
+          h.phi_control h.logderiv_control F E logN phiN
+          (h.height_schedule.height u) := by
+  exact zetaCompletedExplicitFormulaHorizontalDifference_norm_le_unorderedEnvelopeSplit
+    h.phi_control h.logderiv_control
+    (F.rectangle (h.height_schedule.height u))
+    E
+    (fun x hx => hTopMem u x hx)
+    (fun x hx => hBottomMem u x hx)
+    logN phiN
+
 /-- The split-exponent unordered family edge envelope tends to zero once the transform
 decay exponent dominates the logarithmic-derivative polynomial-growth exponent. -/
 theorem horizontalUnorderedFamilyEdgeEnvelopeSplit_tendsto_zero
@@ -1055,6 +1087,27 @@ theorem horizontalUnorderedFamilyDifferenceEnvelopeSplit_tendsto_zero
       hsum
   exact htarget
 
+/-- The scheduled split-exponent unordered family difference envelope tends to zero along
+the package height schedule. -/
+theorem horizontalUnorderedFamilyDifferenceEnvelopeSplit_tendsto_zero_scheduled
+    {f : ZetaAdmissibleFunction}
+    (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (E : CompletedZetaZeroExcisedStrip
+      (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (logN requestedDecay : ℕ) :
+    Tendsto
+      (fun u : ℝ =>
+        horizontalUnorderedFamilyDifferenceEnvelopeSplit
+          h.phi_control h.logderiv_control F E logN
+          (logN + requestedDecay.succ)
+          (h.height_schedule.height u))
+      atTop
+      (𝓝 (0 : ℝ)) :=
+  (horizontalUnorderedFamilyDifferenceEnvelopeSplit_tendsto_zero
+    h.phi_control h.logderiv_control F E logN requestedDecay).comp
+      h.height_schedule.cofinal
+
 /-- The unordered horizontal family difference tends to zero. -/
 theorem zetaCompletedExplicitFormulaHorizontalDifference_tendsto_zero
     {f : ZetaAdmissibleFunction}
@@ -1082,6 +1135,139 @@ theorem zetaCompletedExplicitFormulaHorizontalDifference_tendsto_zero
         zetaCompletedExplicitFormulaHorizontalDifference_norm_le_familyEnvelopeSplit
           hPhi hLog F E hTopMem hBottomMem N (N + N.succ) T))
     (horizontalUnorderedFamilyDifferenceEnvelopeSplit_tendsto_zero hPhi hLog F E N N)
+
+/-- The unordered horizontal family difference tends to zero along a package schedule,
+requiring zero-excised strip membership only at the scheduled heights. -/
+theorem zetaCompletedExplicitFormulaHorizontalDifference_tendsto_zero_scheduled
+    {f : ZetaAdmissibleFunction}
+    (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (E : CompletedZetaZeroExcisedStrip
+      (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (hTopMem :
+      ∀ (u x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaTopPath
+          (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier)
+    (hBottomMem :
+      ∀ (u x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaBottomPath
+          (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier)
+    (N : ℕ) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaTopLineIntegral f
+            (F.rectangle (h.height_schedule.height u)) -
+          zetaCompletedExplicitFormulaBottomLineIntegral f
+            (F.rectangle (h.height_schedule.height u)))
+      atTop
+      (𝓝 (0 : ℂ)) :=
+  squeeze_zero_norm'
+    (Eventually.of_forall
+      (fun u =>
+        zetaCompletedExplicitFormulaHorizontalDifference_norm_le_scheduledFamilyEnvelopeSplit
+          F h E hTopMem hBottomMem N (N + N.succ) u))
+    (horizontalUnorderedFamilyDifferenceEnvelopeSplit_tendsto_zero_scheduled
+      F h E N N)
+
+/-- The unordered horizontal family difference tends to zero along a package schedule,
+using the scheduled horizontal-edge carrier constructed by the analytic package. -/
+theorem zetaCompletedExplicitFormulaHorizontalDifference_tendsto_zero_of_scheduledCarrier
+    {f : ZetaAdmissibleFunction}
+    (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (N : ℕ) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaTopLineIntegral f
+            (F.rectangle (h.height_schedule.height u)) -
+          zetaCompletedExplicitFormulaBottomLineIntegral f
+            (F.rectangle (h.height_schedule.height u)))
+      atTop
+      (𝓝 (0 : ℂ)) := by
+  match h.scheduled_horizontalFamilyZeroExcisedStrip with
+  | ⟨E, hTopMem, hBottomMem⟩ =>
+      exact
+        zetaCompletedExplicitFormulaHorizontalDifference_tendsto_zero_scheduled
+          F h E hTopMem hBottomMem N
+
+/-- The logarithmic-growth exponent used before the transform rapid-decay domination step. -/
+def zetaCompletedExplicitFormula_autocorrelation_horizontalDecayExponent
+    (_f : ZetaAdmissibleFunction) : ℕ :=
+  1
+
+/-- Scheduled autocorrelation specialization of the horizontal edge decay theorem, using
+only a supplied scheduled shared zero-excised carrier. -/
+theorem zetaCompletedExplicitFormula_autocorrelation_horizontal_tendsto_zero_scheduled
+    (f : ZetaAdmissibleFunction)
+    (h :
+      ExplicitFormulaFamilyAnalyticPackage
+        (convolutionAutocorrelation f)
+        (zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
+    (E : CompletedZetaZeroExcisedStrip
+      (min (zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c
+        (1 - (zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c))
+      (max (zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c
+        (1 - (zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c)))
+    (hTopMem :
+      ∀ (u x : ℝ),
+        x ∈ Set.uIcc
+          (zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c
+          (1 - (zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c) →
+        zetaCompletedExplicitFormulaTopPath
+          ((zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
+            (h.height_schedule.height u)) x ∈ E.carrier)
+    (hBottomMem :
+      ∀ (u x : ℝ),
+        x ∈ Set.uIcc
+          (zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c
+          (1 - (zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c) →
+        zetaCompletedExplicitFormulaBottomPath
+          ((zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
+            (h.height_schedule.height u)) x ∈ E.carrier) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaTopLineIntegral
+            (convolutionAutocorrelation f)
+            ((zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
+              (h.height_schedule.height u)) -
+          zetaCompletedExplicitFormulaBottomLineIntegral
+            (convolutionAutocorrelation f)
+            ((zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
+              (h.height_schedule.height u)))
+      atTop
+      (𝓝 0) :=
+  zetaCompletedExplicitFormulaHorizontalDifference_tendsto_zero_scheduled
+    (zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
+    h
+    E
+    hTopMem
+    hBottomMem
+    (zetaCompletedExplicitFormula_autocorrelation_horizontalDecayExponent f)
+
+/-- Scheduled autocorrelation horizontal edge decay with the scheduled carrier constructed
+from the analytic package. -/
+theorem zetaCompletedExplicitFormula_autocorrelation_horizontal_tendsto_zero_of_scheduledCarrier
+    (f : ZetaAdmissibleFunction)
+    (h :
+      ExplicitFormulaFamilyAnalyticPackage
+        (convolutionAutocorrelation f)
+        (zetaCompletedExplicitFormula_autocorrelation_contourFamily f)) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaTopLineIntegral
+            (convolutionAutocorrelation f)
+            ((zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
+              (h.height_schedule.height u)) -
+          zetaCompletedExplicitFormulaBottomLineIntegral
+            (convolutionAutocorrelation f)
+            ((zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
+              (h.height_schedule.height u)))
+      atTop
+      (𝓝 0) :=
+  zetaCompletedExplicitFormulaHorizontalDifference_tendsto_zero_of_scheduledCarrier
+    (zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
+    h
+    (zetaCompletedExplicitFormula_autocorrelation_horizontalDecayExponent f)
 
 /-- A generic pointwise contour-integrand strip bound along a horizontal contour point. -/
 theorem zetaCompletedExplicitFormulaContourIntegrand_horizontalPoint_bound

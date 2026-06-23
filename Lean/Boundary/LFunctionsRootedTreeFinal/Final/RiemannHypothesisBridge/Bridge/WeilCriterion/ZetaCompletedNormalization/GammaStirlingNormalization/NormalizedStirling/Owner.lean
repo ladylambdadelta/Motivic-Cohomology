@@ -28,7 +28,6 @@ theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_bine
       ∀ w : ℂ,
         0 < w.re →
         R ≤ ‖w‖ →
-        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
         (∀ x : ℝ,
           0 < x →
             ∀ N : ℕ,
@@ -68,12 +67,12 @@ theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_bine
       exact mul_pos htwo_sqrt_pos hK
     exact
       ⟨R', K', hR', hK',
-        fun w hw_re_pos hw_radius hgamma_slit_open hfinite_real hfinite_open =>
+        fun w hw_re_pos hw_radius hfinite_real hfinite_open =>
           have hR_le : R ≤ ‖w‖ :=
             le_trans (le_max_left R K) hw_radius
           have hK_le : K ≤ ‖w‖ :=
             le_trans (le_max_right R K) hw_radius
-          match hBinet w hw_re_pos hR_le hgamma_slit_open hfinite_real hfinite_open with
+          match hBinet w hw_re_pos hR_le with
           | ⟨hlog, hrem⟩ =>
             let E : ℂ := Complex.binetSecondFormulaRemainder w
             have hnorm_pos : 0 < ‖w‖ :=
@@ -84,14 +83,18 @@ theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_bine
               exact hrem.trans hdiv_le_one
             have hw_ne : w ≠ 0 :=
               norm_pos_iff.mp hnorm_pos
-            have hGamma_ne : Complex.Gamma w ≠ 0 :=
-              Complex.Gamma_ne_zero_of_re_pos hw_re_pos
+            have hexp_branch :
+                Complex.exp (Complex.binetLogGammaBranch w) =
+                  Complex.Gamma w :=
+              Complex.exp_binetLogGammaBranch_eq_Gamma_of_finiteAbelPlana
+                hw_re_pos
+                (hfinite_open w hw_re_pos).1
             have hlinear :
                 ‖Complex.Gamma w * Complex.exp w *
                     w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
                   2 * Real.sqrt (2 * Real.pi) * ‖E‖ :=
               Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_norm_le_of_binetRemainder_norm_le_one
-                hGamma_ne hw_ne hlog hsmall
+                hw_ne hexp_branch hlog hsmall
             have hscale :
                 2 * Real.sqrt (2 * Real.pi) * ‖E‖ ≤
                   K' / ‖w‖ := by

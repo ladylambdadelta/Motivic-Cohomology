@@ -35,7 +35,7 @@ noncomputable def zetaZeroMultiplicityTransformMajorant
     (φ : ZetaAdmissibleFunction)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℝ :=
   ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ *
-    ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖
+    ‖zetaSpectralEval φ (ρ : ℂ)‖
 
 /-- The zero-side multiplicity-transform majorant is nonnegative. -/
 theorem zetaZeroMultiplicityTransformMajorant_nonnegative
@@ -46,10 +46,10 @@ theorem zetaZeroMultiplicityTransformMajorant_nonnegative
     (show
     0 ≤
       ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ *
-        ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ from
+        ‖zetaSpectralEval φ (ρ : ℂ)‖ from
       mul_nonneg
         (norm_nonneg ((zetaZeroMultiplicity (ρ : ℂ) : ℂ)))
-        (norm_nonneg (zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))))
+        (norm_nonneg (zetaSpectralEval φ (ρ : ℂ))))
 
 /-- Polynomial zero-side envelope for multiplicity-weighted transform values. -/
 noncomputable def zetaZeroMultiplicityTransformEnvelope

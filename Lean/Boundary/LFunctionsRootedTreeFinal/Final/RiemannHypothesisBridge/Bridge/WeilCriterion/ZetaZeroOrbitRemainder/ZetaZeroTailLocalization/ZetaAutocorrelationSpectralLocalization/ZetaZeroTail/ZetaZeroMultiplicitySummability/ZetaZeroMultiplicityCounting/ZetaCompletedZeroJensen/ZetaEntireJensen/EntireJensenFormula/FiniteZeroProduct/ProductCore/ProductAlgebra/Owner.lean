@@ -39,6 +39,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorPr
 /-- Finite normalized product after inserting a new support point. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_insert
     (F : ℂ → ℂ)
+    [DecidableEq (EntireFunctionZero F)]
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (S : Finset (EntireFunctionZero F))
     (a : EntireFunctionZero F)
@@ -55,6 +56,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorPr
 product. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_mul_erase
     (F : ℂ → ℂ)
+    [DecidableEq (EntireFunctionZero F)]
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (S : Finset (EntireFunctionZero F))
     (a : EntireFunctionZero F)

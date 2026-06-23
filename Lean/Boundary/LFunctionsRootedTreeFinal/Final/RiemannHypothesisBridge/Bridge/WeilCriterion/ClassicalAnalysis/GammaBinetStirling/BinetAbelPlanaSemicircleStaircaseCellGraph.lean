@@ -118,6 +118,7 @@ theorem abs_min_le_of_nonneg_mem_uIcc
 used by the endpoint graph bound. -/
 theorem min_endpoint_sq_le_sq_of_abs_min_le
     {y₀ y₁ y : ℝ}
+    [Decidable (|y₀| ≤ |y₁|)]
     (habs : min |y₀| |y₁| ≤ |y|) :
     min (y₀ ^ 2) (y₁ ^ 2) ≤ y ^ 2 :=
   let hmin_abs_nonneg : 0 ≤ min |y₀| |y₁| :=
@@ -136,21 +137,22 @@ theorem min_endpoint_sq_le_sq_of_abs_min_le
 /-- Crossing cells are bounded by the radius branch of the safe coordinate. -/
 theorem Complex.rightSemicircleGraphRe_le_safeRe_of_mem_cell_crossing
     {ρ y₀ y₁ y : ℝ}
+    [hcross_dec : Decidable (y₀ ≤ 0 ∧ 0 ≤ y₁)]
     (hρ : 0 ≤ ρ)
     (hy₀ : y₀ ∈ [[-ρ, ρ]])
     (hy₁ : y₁ ∈ [[-ρ, ρ]])
     (hy : y ∈ [[y₀, y₁]])
     (hcross : y₀ ≤ 0 ∧ 0 ≤ y₁) :
     Complex.rightSemicircleGraphRe ρ y ≤
-      if y₀ ≤ 0 ∧ 0 ≤ y₁ then
-        ρ
-      else
+      @ite ℝ (y₀ ≤ 0 ∧ 0 ≤ y₁) hcross_dec
+      ρ
+      (
         max (Complex.rightSemicircleGraphRe ρ y₀)
-          (Complex.rightSemicircleGraphRe ρ y₁) :=
+          (Complex.rightSemicircleGraphRe ρ y₁)) :=
   let hif :
-      (if y₀ ≤ 0 ∧ 0 ≤ y₁ then
-          ρ
-        else
+      @ite ℝ (y₀ ≤ 0 ∧ 0 ≤ y₁) hcross_dec
+        ρ
+        (
           max (Complex.rightSemicircleGraphRe ρ y₀)
             (Complex.rightSemicircleGraphRe ρ y₁)) = ρ :=
     if_pos hcross
@@ -160,9 +162,9 @@ theorem Complex.rightSemicircleGraphRe_le_safeRe_of_mem_cell_crossing
     Complex.rightSemicircleGraphRe_le_radius hρ hy_bounds
   calc
     Complex.rightSemicircleGraphRe ρ y ≤ ρ := hgraph_le
-    _ = (if y₀ ≤ 0 ∧ 0 ≤ y₁ then
-          ρ
-        else
+    _ = @ite ℝ (y₀ ≤ 0 ∧ 0 ≤ y₁) hcross_dec
+        ρ
+        (
           max (Complex.rightSemicircleGraphRe ρ y₀)
             (Complex.rightSemicircleGraphRe ρ y₁)) := Eq.symm hif
 
@@ -170,19 +172,23 @@ theorem Complex.rightSemicircleGraphRe_le_safeRe_of_mem_cell_crossing
 safe coordinate. -/
 theorem Complex.rightSemicircleGraphRe_le_safeRe_of_mem_cell_not_crossing
     {ρ y₀ y₁ y : ℝ}
+    [hcross_dec : Decidable (y₀ ≤ 0 ∧ 0 ≤ y₁)]
+    [Decidable (|y₀| ≤ |y₁|)]
+    [Decidable (y₀ ^ 2 ≤ y₁ ^ 2)]
+    [Decidable (ρ ^ 2 - y₀ ^ 2 ≤ ρ ^ 2 - y₁ ^ 2)]
     (horder : y₀ ≤ y₁)
     (hcross : ¬ (y₀ ≤ 0 ∧ 0 ≤ y₁))
     (hy : y ∈ [[y₀, y₁]]) :
     Complex.rightSemicircleGraphRe ρ y ≤
-      if y₀ ≤ 0 ∧ 0 ≤ y₁ then
-        ρ
-      else
+      @ite ℝ (y₀ ≤ 0 ∧ 0 ≤ y₁) hcross_dec
+      ρ
+      (
         max (Complex.rightSemicircleGraphRe ρ y₀)
-          (Complex.rightSemicircleGraphRe ρ y₁) :=
+          (Complex.rightSemicircleGraphRe ρ y₁)) :=
   let hif :
-      (if y₀ ≤ 0 ∧ 0 ≤ y₁ then
-          ρ
-        else
+      @ite ℝ (y₀ ≤ 0 ∧ 0 ≤ y₁) hcross_dec
+        ρ
+        (
           max (Complex.rightSemicircleGraphRe ρ y₀)
             (Complex.rightSemicircleGraphRe ρ y₁)) =
         max (Complex.rightSemicircleGraphRe ρ y₀)
@@ -210,34 +216,11 @@ theorem Complex.rightSemicircleGraphRe_le_safeRe_of_mem_cell_not_crossing
     Complex.rightSemicircleGraphRe ρ y ≤
         max (Complex.rightSemicircleGraphRe ρ y₀)
           (Complex.rightSemicircleGraphRe ρ y₁) := hgraph
-    _ = (if y₀ ≤ 0 ∧ 0 ≤ y₁ then
-          ρ
-        else
+    _ = @ite ℝ (y₀ ≤ 0 ∧ 0 ≤ y₁) hcross_dec
+        ρ
+        (
           max (Complex.rightSemicircleGraphRe ρ y₀)
             (Complex.rightSemicircleGraphRe ρ y₁)) := Eq.symm hif
-
-/-- The right semicircle graph on a vertical interval is bounded by the safe
-endpoint/crossing value. -/
-theorem Complex.rightSemicircleGraphRe_le_safeRe_of_mem_cell
-    {ρ y₀ y₁ y : ℝ}
-    (hρ : 0 ≤ ρ)
-    (horder : y₀ ≤ y₁)
-    (hy₀ : y₀ ∈ [[-ρ, ρ]])
-    (hy₁ : y₁ ∈ [[-ρ, ρ]])
-    (hy : y ∈ [[y₀, y₁]]) :
-    Complex.rightSemicircleGraphRe ρ y ≤
-      if y₀ ≤ 0 ∧ 0 ≤ y₁ then
-        ρ
-      else
-        max (Complex.rightSemicircleGraphRe ρ y₀)
-          (Complex.rightSemicircleGraphRe ρ y₁) :=
-  match Classical.em (y₀ ≤ 0 ∧ 0 ≤ y₁) with
-  | Or.inl hcross =>
-      Complex.rightSemicircleGraphRe_le_safeRe_of_mem_cell_crossing
-        hρ hy₀ hy₁ hy hcross
-  | Or.inr hcross =>
-      Complex.rightSemicircleGraphRe_le_safeRe_of_mem_cell_not_crossing
-        horder hcross hy
 
 /-- The safe staircase real coordinate dominates the circular graph on its
 vertical cell. -/
@@ -246,6 +229,18 @@ theorem Complex.rightSemicircleStaircaseSafeRe_ge_graph_on_cell
     (hρ : 0 ≤ ρ)
     (m k : ℕ)
     (hk : k ∈ Finset.range (m + 1))
+    [hcross_dec : Decidable
+      (Complex.rightSemicircleStaircaseY ρ m k ≤ 0 ∧
+        0 ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1))]
+    [Decidable
+      (|Complex.rightSemicircleStaircaseY ρ m k| ≤
+        |Complex.rightSemicircleStaircaseY ρ m (k + 1)|)]
+    [Decidable
+      (Complex.rightSemicircleStaircaseY ρ m k ^ 2 ≤
+        Complex.rightSemicircleStaircaseY ρ m (k + 1) ^ 2)]
+    [Decidable
+      (ρ ^ 2 - Complex.rightSemicircleStaircaseY ρ m k ^ 2 ≤
+        ρ ^ 2 - Complex.rightSemicircleStaircaseY ρ m (k + 1) ^ 2)]
     {y : ℝ}
     (hy :
       y ∈
@@ -253,22 +248,62 @@ theorem Complex.rightSemicircleStaircaseSafeRe_ge_graph_on_cell
           Complex.rightSemicircleStaircaseY ρ m (k + 1)]]) :
     Complex.rightSemicircleGraphRe ρ y ≤
       Complex.rightSemicircleStaircaseSafeRe ρ m k :=
+  let y₀ : ℝ := Complex.rightSemicircleStaircaseY ρ m k
+  let y₁ : ℝ := Complex.rightSemicircleStaircaseY ρ m (k + 1)
   let hk0 : k ∈ Finset.range (m + 2) :=
     Complex.staircase_lower_sample_mem_range hk
   let hk1 : k + 1 ∈ Finset.range (m + 2) :=
     Complex.staircase_upper_sample_mem_range hk
-  let hy0 :
-      Complex.rightSemicircleStaircaseY ρ m k ∈ [[-ρ, ρ]] :=
+  let hy0 : y₀ ∈ [[-ρ, ρ]] :=
     Complex.rightSemicircleStaircaseY_mem_Icc hρ m k hk0
-  let hy1 :
-      Complex.rightSemicircleStaircaseY ρ m (k + 1) ∈ [[-ρ, ρ]] :=
+  let hy1 : y₁ ∈ [[-ρ, ρ]] :=
     Complex.rightSemicircleStaircaseY_mem_Icc hρ m (k + 1) hk1
-  let horder :
-      Complex.rightSemicircleStaircaseY ρ m k ≤
-        Complex.rightSemicircleStaircaseY ρ m (k + 1) :=
+  let horder : y₀ ≤ y₁ :=
     Complex.rightSemicircleStaircaseY_le_succ hρ m k
-  Complex.rightSemicircleGraphRe_le_safeRe_of_mem_cell
-    hρ horder hy0 hy1 hy
+  match hcross_dec with
+  | isTrue hcross =>
+      have hgraph :
+          Complex.rightSemicircleGraphRe ρ y ≤ ρ :=
+        let hy_bounds : y ∈ [[-ρ, ρ]] :=
+          Real.mem_radius_uIcc_of_endpoint_mem_of_mem hρ hy0 hy1 hy
+        Complex.rightSemicircleGraphRe_le_radius hρ hy_bounds
+      have hsafe :
+          Complex.rightSemicircleStaircaseSafeRe ρ m k = ρ :=
+        Complex.rightSemicircleStaircaseSafeRe_eq_radius_of_crossing
+          ρ m k hcross
+      Eq.subst
+        (motive := fun r : ℝ => Complex.rightSemicircleGraphRe ρ y ≤ r)
+        hsafe.symm
+        hgraph
+  | isFalse hcross =>
+      have hgraph :
+          Complex.rightSemicircleGraphRe ρ y ≤
+            max (Complex.rightSemicircleGraphRe ρ y₀)
+              (Complex.rightSemicircleGraphRe ρ y₁) :=
+        let hy_pair : (y₀ ≤ y ∧ y ≤ y₁) ∨ (y₁ ≤ y ∧ y ≤ y₀) :=
+          Set.mem_uIcc.mp hy
+        let hsame_side : y₁ ≤ 0 ∨ 0 ≤ y₀ :=
+          same_side_of_not_crossing hcross
+        let h_abs_le_endpoint : min |y₀| |y₁| ≤ |y| :=
+          match hsame_side with
+          | Or.inl hnonpos =>
+              abs_min_le_of_nonpos_mem_uIcc horder hy_pair hnonpos
+          | Or.inr hnonneg =>
+              abs_min_le_of_nonneg_mem_uIcc horder hy_pair hnonneg
+        let hsq_ge : min (y₀ ^ 2) (y₁ ^ 2) ≤ y ^ 2 :=
+          min_endpoint_sq_le_sq_of_abs_min_le h_abs_le_endpoint
+        Complex.rightSemicircleGraphRe_le_endpointMax_of_min_sq_le
+          ρ y₀ y₁ y hsq_ge
+      have hsafe :
+          Complex.rightSemicircleStaircaseSafeRe ρ m k =
+            max (Complex.rightSemicircleGraphRe ρ y₀)
+              (Complex.rightSemicircleGraphRe ρ y₁) :=
+        Complex.rightSemicircleStaircaseSafeRe_eq_endpointMax_of_not_crossing
+          ρ m k hcross
+      Eq.subst
+        (motive := fun r : ℝ => Complex.rightSemicircleGraphRe ρ y ≤ r)
+        hsafe.symm
+        hgraph
 
 end
 

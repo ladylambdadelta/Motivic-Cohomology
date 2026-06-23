@@ -496,10 +496,10 @@ theorem Complex.finiteAbel_Ico_mul_sub_telescope
           · intro hn
             have hn_bounds : a < n ∧ n < m + 1 :=
               Finset.mem_Ioo.mp hn
-            match Classical.em (n = m) with
-            | Or.inl hnm =>
+            match (inferInstance : Decidable (n = m)) with
+            | isTrue hnm =>
                 exact Finset.mem_insert.mpr (Or.inl hnm)
-            | Or.inr hnm =>
+            | isFalse hnm =>
                 have hn_lt_m : n < m :=
                   match Nat.lt_succ_iff_lt_or_eq.mp hn_bounds.right with
                   | Or.inl hn_lt_m => hn_lt_m

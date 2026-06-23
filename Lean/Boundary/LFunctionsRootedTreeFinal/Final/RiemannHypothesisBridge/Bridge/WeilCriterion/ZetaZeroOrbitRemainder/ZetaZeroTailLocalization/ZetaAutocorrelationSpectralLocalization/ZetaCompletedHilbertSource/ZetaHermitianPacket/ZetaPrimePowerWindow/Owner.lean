@@ -172,14 +172,14 @@ theorem heightShell_mem_vertical_or_horizontal
     have hp_lt : ι.p < m :=
       Nat.lt_of_le_of_ne hp_le hp_eq
     have hn_eq : ι.n = m := by
-      by_contra hn_ne
-      have hn_lt : ι.n < m :=
-        Nat.lt_of_le_of_ne hn_le hn_ne
-      have hmax_lt : max ι.p ι.n < m :=
-        max_lt hp_lt hn_lt
-      have hm_le_max : m ≤ max ι.p ι.n :=
-        le_of_eq hheight.symm
-      exact (not_lt_of_ge hm_le_max) hmax_lt
+      exact Nat.le_antisymm hn_le
+        (le_of_not_gt
+          (fun hn_lt =>
+          have hmax_lt : max ι.p ι.n < m :=
+            max_lt hp_lt hn_lt
+          have hm_le_max : m ≤ max ι.p ι.n :=
+            le_of_eq hheight.symm
+          (not_lt_of_ge hm_le_max) hmax_lt))
     unfold heightShellHorizontalEdge
     exact Finset.mem_filter.mpr ⟨hraw, hn_eq⟩
 
@@ -932,7 +932,6 @@ theorem sum_box_eq_sum_window_of_zero_not_isGenuine
     (hzero : ∀ ι : ZetaPrimePowerIndex, ¬ IsGenuine ι → a ι = 0)
     (N : ℕ) :
     ∑ ι in box N, a ι = ∑ ι in window N, a ι := by
-  classical
   have hsubset : window N ⊆ box N := by
     intro ι hι
     exact ((mem_window_iff_mem_box_and_isGenuine N ι).mp hι).1
@@ -1547,7 +1546,6 @@ theorem exists_box_bound_of_isGenuine_center_le
 theorem finite_setOf_isGenuine_and_center_le
     (B : ℝ) :
     ({ι : ZetaPrimePowerIndex | IsGenuine ι ∧ center ι ≤ B} : Set ZetaPrimePowerIndex).Finite := by
-  classical
   obtain ⟨N, hN⟩ := exists_box_bound_of_isGenuine_center_le B
   exact Set.Finite.subset (Finset.finite_toSet (box N))
     (fun ι hι => hN ι hι.1 hι.2)

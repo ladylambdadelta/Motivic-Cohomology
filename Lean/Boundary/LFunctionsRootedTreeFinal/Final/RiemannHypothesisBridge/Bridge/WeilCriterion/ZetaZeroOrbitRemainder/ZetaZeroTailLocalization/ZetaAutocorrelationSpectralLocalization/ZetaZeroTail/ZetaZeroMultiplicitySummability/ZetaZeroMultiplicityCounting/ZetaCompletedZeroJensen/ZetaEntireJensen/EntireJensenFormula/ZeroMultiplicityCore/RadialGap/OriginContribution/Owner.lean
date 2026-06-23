@@ -18,12 +18,15 @@ open scoped Topology Interval
 theorem entireFunctionOriginZeroMultiplicityClosedDiskSummable
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (R : ℝ) :
+    (R : ℝ)
+    [Decidable (F 0 = 0)]
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [DecidableEq (EntireFunctionZero F)] :
     Summable
       (fun z : EntireFunctionZero F =>
         entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z) := by
-  match Decidable.em (F 0 = 0) with
-  | Or.inl hF0 =>
+  match (inferInstance : Decidable (F 0 = 0)) with
+  | isTrue hF0 =>
     let z₀ : EntireFunctionZero F := ⟨0, hF0⟩
     have hsingle :
         Summable
@@ -55,8 +58,8 @@ theorem entireFunctionOriginZeroMultiplicityClosedDiskSummable
             entireFunctionZeroMultiplicityClosedDiskSummand F hF R z₀
           else
             0)
-        match Decidable.em (z = z₀) with
-        | Or.inl hz =>
+        match (inferInstance : Decidable (z = z₀)) with
+        | isTrue hz =>
           have hz₀ : (z : ℂ) = 0 := by
             exact congrArg Subtype.val hz
           have horigin :
@@ -83,7 +86,7 @@ theorem entireFunctionOriginZeroMultiplicityClosedDiskSummable
                   entireFunctionZeroMultiplicityClosedDiskSummand F hF R z₀
                 else
                   0) := (if_pos hz).symm
-        | Or.inr hz =>
+        | isFalse hz =>
           have hz₀ : (z : ℂ) ≠ 0 := by
             intro hval
             exact hz (Subtype.ext hval)
@@ -100,7 +103,7 @@ theorem entireFunctionOriginZeroMultiplicityClosedDiskSummable
       (motive := fun φ : EntireFunctionZero F → ℝ => Summable φ)
       hfun_eq.symm
       hsingle
-  | Or.inr hF0 =>
+  | isFalse hF0 =>
     have hzero :
         (fun z : EntireFunctionZero F =>
           entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z)
@@ -206,13 +209,14 @@ theorem entireFunctionOriginZeroMultiplicityClosedDisk_tsum_mul_log_two_le_origi
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {R : ℝ}
-    (hR : 1 ≤ R) :
+    (hR : 1 ≤ R)
+    [Decidable (F 0 = 0)] :
     (∑' z : EntireFunctionZero F,
         entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z) *
         Real.log 2 ≤
       entireFunctionOriginMultiplicityLogContribution F hF := by
-  match Decidable.em (F 0 = 0) with
-  | Or.inl hF0 =>
+  match (inferInstance : Decidable (F 0 = 0)) with
+  | isTrue hF0 =>
     let z₀ : EntireFunctionZero F := ⟨0, hF0⟩
     have horigin_eq :
         (∑' z : EntireFunctionZero F,
@@ -250,7 +254,7 @@ theorem entireFunctionOriginZeroMultiplicityClosedDisk_tsum_mul_log_two_le_origi
           (entireFunctionZeroMultiplicity F hF 0 : ℝ) * Real.log 2 := by
       exact congrArg (fun t : ℝ => t * Real.log 2) hsum_eq
     exact le_of_eq hprod_eq
-  | Or.inr hF0 =>
+  | isFalse hF0 =>
     have horigin_zero :
         (∑' z : EntireFunctionZero F,
           entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z) =

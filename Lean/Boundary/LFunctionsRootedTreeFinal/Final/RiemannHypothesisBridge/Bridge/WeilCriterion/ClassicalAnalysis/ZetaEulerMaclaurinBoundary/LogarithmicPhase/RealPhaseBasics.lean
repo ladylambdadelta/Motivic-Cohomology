@@ -71,6 +71,230 @@ def Complex.realPhase_integerIncrement
     (n : ℕ) : ℝ :=
   φ (n + 1 : ℕ) - φ n
 
+/-- Adjacent increments of the concrete logarithmic phase are logarithms of
+successive integer ratios.
+
+This is the first arithmetic reduction behind the unweighted oscillatory
+defect: the discrete phase difference is not an abstract finite-difference
+input, but the explicit quantity `-t * log ((n+1)/n)`. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_eq_neg_mul_log_ratio
+    (t : ℝ)
+    {n : ℕ}
+    (hn : 0 < n) :
+    Complex.realPhase_integerIncrement
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n =
+      -t * Real.log ((((n + 1 : ℕ) : ℝ)) / (((n : ℕ) : ℝ))) := by
+  have hn_real_pos : (0 : ℝ) < (((n : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr hn
+  have hn_real_ne : (((n : ℕ) : ℝ)) ≠ 0 :=
+    ne_of_gt hn_real_pos
+  have hsucc_pos_nat : 0 < n + 1 :=
+    Nat.succ_pos n
+  have hsucc_real_pos : (0 : ℝ) < (((n + 1 : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr hsucc_pos_nat
+  have hsucc_real_ne : (((n + 1 : ℕ) : ℝ)) ≠ 0 :=
+    ne_of_gt hsucc_real_pos
+  have hlog_ratio :
+      Real.log ((((n + 1 : ℕ) : ℝ)) / (((n : ℕ) : ℝ))) =
+        Real.log (((n + 1 : ℕ) : ℝ)) -
+          Real.log (((n : ℕ) : ℝ)) :=
+    Real.log_div hsucc_real_ne hn_real_ne
+  calc
+    Complex.realPhase_integerIncrement
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n =
+        (-t * Real.log (((n + 1 : ℕ) : ℝ))) -
+          (-t * Real.log (((n : ℕ) : ℝ))) := by
+      rfl
+    _ =
+        -t *
+          (Real.log (((n + 1 : ℕ) : ℝ)) -
+            Real.log (((n : ℕ) : ℝ))) := by
+      exact
+        (mul_sub
+          (-t)
+          (Real.log (((n + 1 : ℕ) : ℝ)))
+          (Real.log (((n : ℕ) : ℝ)))).symm
+    _ = -t * Real.log ((((n + 1 : ℕ) : ℝ)) / (((n : ℕ) : ℝ))) := by
+      exact congrArg (fun y : ℝ => -t * y) hlog_ratio.symm
+
+/-- Successive integer logarithmic ratios have the canonical reciprocal lower
+bound.
+
+This is the non-oscillatory arithmetic core behind the zero-frequency part of
+the logarithmic-phase block analysis. -/
+theorem Complex.logarithmicPhase_successive_log_ratio_lower_bound
+    {n : ℕ}
+    (hn : 0 < n) :
+    (((n + 1 : ℕ) : ℝ))⁻¹ ≤
+      Real.log ((((n + 1 : ℕ) : ℝ)) / (((n : ℕ) : ℝ))) := by
+  have hn_real_pos : (0 : ℝ) < (((n : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr hn
+  have hsucc_pos_nat : 0 < n + 1 :=
+    Nat.succ_pos n
+  have hsucc_real_pos : (0 : ℝ) < (((n + 1 : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr hsucc_pos_nat
+  have hratio_pos :
+      0 < (((n + 1 : ℕ) : ℝ)) / (((n : ℕ) : ℝ)) :=
+    div_pos hsucc_real_pos hn_real_pos
+  have hlog_lower :
+      1 - ((((n + 1 : ℕ) : ℝ) / (((n : ℕ) : ℝ)))⁻¹) ≤
+        Real.log ((((n + 1 : ℕ) : ℝ)) / (((n : ℕ) : ℝ))) :=
+    Real.one_sub_inv_le_log_of_pos hratio_pos
+  have hn_real_ne : (((n : ℕ) : ℝ)) ≠ 0 :=
+    ne_of_gt hn_real_pos
+  have hsucc_real_ne : (((n + 1 : ℕ) : ℝ)) ≠ 0 :=
+    ne_of_gt hsucc_real_pos
+  have hratio_inv :
+      ((((n + 1 : ℕ) : ℝ) / (((n : ℕ) : ℝ)))⁻¹) =
+        (((n : ℕ) : ℝ)) / (((n + 1 : ℕ) : ℝ)) :=
+    inv_div (((n + 1 : ℕ) : ℝ)) (((n : ℕ) : ℝ))
+  have hone_as_ratio :
+      (1 : ℝ) =
+        (((n + 1 : ℕ) : ℝ)) / (((n + 1 : ℕ) : ℝ)) := by
+    exact (div_self hsucc_real_ne).symm
+  have hsucc_sub :
+      (((n + 1 : ℕ) : ℝ)) - (((n : ℕ) : ℝ)) = 1 := by
+    calc
+      (((n + 1 : ℕ) : ℝ)) - (((n : ℕ) : ℝ)) =
+          (((n : ℕ) : ℝ) + 1) - (((n : ℕ) : ℝ)) := by
+        exact congrArg (fun y : ℝ => y - (((n : ℕ) : ℝ))) (Nat.cast_add_one n)
+      _ = 1 := by
+        exact add_sub_cancel_left (((n : ℕ) : ℝ)) 1
+  have hone_sub_ratio :
+      1 - (((n : ℕ) : ℝ)) / (((n + 1 : ℕ) : ℝ)) =
+        (((n + 1 : ℕ) : ℝ))⁻¹ := by
+    calc
+      1 - (((n : ℕ) : ℝ)) / (((n + 1 : ℕ) : ℝ)) =
+          (((n + 1 : ℕ) : ℝ)) / (((n + 1 : ℕ) : ℝ)) -
+            (((n : ℕ) : ℝ)) / (((n + 1 : ℕ) : ℝ)) := by
+        exact congrArg
+          (fun y : ℝ => y - (((n : ℕ) : ℝ)) / (((n + 1 : ℕ) : ℝ)))
+          hone_as_ratio
+      _ =
+          ((((n + 1 : ℕ) : ℝ)) - (((n : ℕ) : ℝ))) /
+            (((n + 1 : ℕ) : ℝ)) := by
+        exact
+          (sub_div
+            (((n + 1 : ℕ) : ℝ))
+            (((n : ℕ) : ℝ))
+            (((n + 1 : ℕ) : ℝ))).symm
+      _ = 1 / (((n + 1 : ℕ) : ℝ)) := by
+        exact congrArg
+          (fun y : ℝ => y / (((n + 1 : ℕ) : ℝ)))
+          hsucc_sub
+      _ = (((n + 1 : ℕ) : ℝ))⁻¹ := by
+        exact one_div (((n + 1 : ℕ) : ℝ))
+  have hleft :
+      1 - ((((n + 1 : ℕ) : ℝ) / (((n : ℕ) : ℝ)))⁻¹) =
+        (((n + 1 : ℕ) : ℝ))⁻¹ := by
+    exact Eq.trans
+      (congrArg (fun y : ℝ => 1 - y) hratio_inv)
+      hone_sub_ratio
+  exact Eq.subst
+    (motive := fun y : ℝ =>
+      y ≤ Real.log ((((n + 1 : ℕ) : ℝ)) / (((n : ℕ) : ℝ))))
+    hleft
+    hlog_lower
+
+/-- On a finite integer block, the concrete logarithmic-phase adjacent
+increment is separated from zero by the endpoint derivative scale.
+
+This is the honest zero-frequency part of the block analysis.  It is weaker
+than the old no-resonance separation from every `2πℤ`, but it is the true
+source lemma needed before a resonance-aware oscillatory estimate can be
+assembled. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_norm_ge_blockScale
+    (t : ℝ)
+    {a b n : ℕ}
+    (ha : 1 ≤ a)
+    (hn_mem : n ∈ Finset.Ico a b) :
+    ‖Complex.realPhase_integerIncrement
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n‖ ≥
+      ‖t‖ / (((b + 1 : ℕ) : ℝ)) := by
+  have hn_bounds : a ≤ n ∧ n < b :=
+    Finset.mem_Ico.mp hn_mem
+  have hone_le_n : 1 ≤ n :=
+    le_trans ha hn_bounds.1
+  have hn_pos : 0 < n :=
+    Nat.lt_of_succ_le hone_le_n
+  let L : ℝ :=
+    Real.log ((((n + 1 : ℕ) : ℝ)) / (((n : ℕ) : ℝ)))
+  have hratio_lower :
+      (((n + 1 : ℕ) : ℝ))⁻¹ ≤ L :=
+    Complex.logarithmicPhase_successive_log_ratio_lower_bound hn_pos
+  have hnsucc_pos_nat : 0 < n + 1 :=
+    Nat.succ_pos n
+  have hnsucc_pos_real : (0 : ℝ) < (((n + 1 : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr hnsucc_pos_nat
+  have hbsucc_pos_nat : 0 < b + 1 :=
+    Nat.succ_pos b
+  have hbsucc_pos_real : (0 : ℝ) < (((b + 1 : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr hbsucc_pos_nat
+  have hnsucc_le_bsucc_nat : n + 1 ≤ b + 1 :=
+    Nat.succ_le_succ (le_of_lt hn_bounds.2)
+  have hnsucc_le_bsucc_real :
+      (((n + 1 : ℕ) : ℝ)) ≤ (((b + 1 : ℕ) : ℝ)) :=
+    Nat.cast_le.mpr hnsucc_le_bsucc_nat
+  have hblock_inv_le :
+      (((b + 1 : ℕ) : ℝ))⁻¹ ≤ (((n + 1 : ℕ) : ℝ))⁻¹ := by
+    have hdiv :
+        (1 : ℝ) / (((b + 1 : ℕ) : ℝ)) ≤
+          (1 : ℝ) / (((n + 1 : ℕ) : ℝ)) :=
+      one_div_le_one_div_of_le hnsucc_pos_real hnsucc_le_bsucc_real
+    exact Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤ (((n + 1 : ℕ) : ℝ))⁻¹)
+      (one_div (((b + 1 : ℕ) : ℝ)))
+      (Eq.subst
+        (motive := fun right : ℝ =>
+          (1 : ℝ) / (((b + 1 : ℕ) : ℝ)) ≤ right)
+        (one_div (((n + 1 : ℕ) : ℝ)))
+        hdiv)
+  have hblock_inv_le_log :
+      (((b + 1 : ℕ) : ℝ))⁻¹ ≤ L :=
+    le_trans hblock_inv_le hratio_lower
+  have hL_nonneg : 0 ≤ L :=
+    le_trans (inv_nonneg.mpr (le_of_lt hbsucc_pos_real)) hblock_inv_le_log
+  have hscale_mul :
+      ‖t‖ * (((b + 1 : ℕ) : ℝ))⁻¹ ≤ ‖t‖ * L :=
+    mul_le_mul_of_nonneg_left hblock_inv_le_log (norm_nonneg t)
+  have hincrement_eq :
+      Complex.realPhase_integerIncrement
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n =
+        -t * L :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_eq_neg_mul_log_ratio
+      t hn_pos
+  have hincrement_norm :
+      ‖Complex.realPhase_integerIncrement
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n‖ =
+        ‖t‖ * L := by
+    calc
+      ‖Complex.realPhase_integerIncrement
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n‖ =
+          ‖-t * L‖ := by
+        exact congrArg (fun y : ℝ => ‖y‖) hincrement_eq
+      _ = ‖-t‖ * ‖L‖ := by
+        exact norm_mul (-t) L
+      _ = ‖t‖ * ‖L‖ := by
+        exact congrArg (fun y : ℝ => y * ‖L‖) (norm_neg t)
+      _ = ‖t‖ * L := by
+        exact congrArg (fun y : ℝ => ‖t‖ * y) (Real.norm_of_nonneg hL_nonneg)
+  have htarget_eq :
+      ‖t‖ / (((b + 1 : ℕ) : ℝ)) =
+        ‖t‖ * (((b + 1 : ℕ) : ℝ))⁻¹ :=
+    div_eq_mul_inv ‖t‖ (((b + 1 : ℕ) : ℝ))
+  exact Eq.subst
+    (motive := fun left : ℝ =>
+      left ≤
+        ‖Complex.realPhase_integerIncrement
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n‖)
+    htarget_eq
+    (Eq.subst
+      (motive := fun right : ℝ =>
+        ‖t‖ * (((b + 1 : ℕ) : ℝ))⁻¹ ≤ right)
+      hincrement_norm.symm
+      hscale_mul)
+
 /-- Separation of all adjacent phase increments from integral multiples of
 `2π`.  This is the missing frequency-separation hypothesis in the honest
 Kusmin-Landau estimate for `exp(i φ(n))`. -/

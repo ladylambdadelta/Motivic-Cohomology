@@ -323,7 +323,10 @@ integer residues, summed over the finite rectangle poles. -/
 theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegralSum_tendsto_residueContribution
     {w : ℂ}
     (hw : 0 < w.re)
-    (N : ℕ) :
+    (N : ℕ)
+    [∀ n : ℕ, Decidable (n ∈ Finset.range (N + 2))]
+    (hdecPole : ∀ n : ℕ, n ∈ Finset.range (N + 2) →
+      ∀ z : ℂ, Decidable (z = (n : ℂ))) :
     Filter.Tendsto
       (fun ρ : ℝ =>
         Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegralSum N w ρ)
@@ -337,6 +340,7 @@ theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegralSum_tendsto_res
           (𝓝[>] (0 : ℝ))
           (𝓝 (Complex.finiteAbelPlanaLogIntegerResidue w n)) :=
     fun n _hn =>
+      letI : ∀ z : ℂ, Decidable (z = (n : ℂ)) := hdecPole n _hn
       Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_tendsto_residue
         hw n
   have hsum :
@@ -372,7 +376,9 @@ integer residue contribution. -/
 theorem Complex.finiteAbelPlana_log_pvInteriorSmallCircleIntegral_tendsto_residues
     {w : ℂ}
     (hw : 0 < w.re)
-    (N : ℕ) :
+    (N : ℕ)
+    (hdecPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ))) :
     Filter.Tendsto
       (fun ρ : ℝ =>
         ∑ n in Finset.range N,
@@ -387,6 +393,7 @@ theorem Complex.finiteAbelPlana_log_pvInteriorSmallCircleIntegral_tendsto_residu
           (𝓝[>] (0 : ℝ))
           (𝓝 (Complex.finiteAbelPlanaLogIntegerResidue w (n + 1))) :=
     fun n _hn =>
+      letI : ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)) := hdecPole n _hn
       Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_tendsto_residue
         hw (n + 1)
   have hsum :
@@ -412,7 +419,9 @@ half-residue expression. -/
 theorem Complex.finiteAbelPlana_log_pvEndpointSmallCircleIntegral_tendsto_rawResidues
     {w : ℂ}
     (hw : 0 < w.re)
-    (N : ℕ) :
+    (N : ℕ)
+    [∀ z : ℂ, Decidable (z = ((0 : ℕ) : ℂ))]
+    [∀ z : ℂ, Decidable (z = ((N + 1 : ℕ) : ℂ))] :
     Filter.Tendsto
       (fun ρ : ℝ =>
         (Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((0 : ℕ) : ℂ) ρ +
@@ -453,7 +462,11 @@ integer residue contribution. -/
 theorem Complex.finiteAbelPlana_log_pvSmallCircleIntegralContribution_tendsto_endpoint_add_interior_residues
     {w : ℂ}
     (hw : 0 < w.re)
-    (N : ℕ) :
+    (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)))
+    [∀ z : ℂ, Decidable (z = ((0 : ℕ) : ℂ))]
+    [∀ z : ℂ, Decidable (z = ((N + 1 : ℕ) : ℂ))] :
     Filter.Tendsto
       (fun ρ : ℝ =>
         Complex.finiteAbelPlanaLogPVSmallCircleIntegralContribution N w ρ)
@@ -469,7 +482,7 @@ theorem Complex.finiteAbelPlana_log_pvSmallCircleIntegralContribution_tendsto_en
         (𝓝[>] (0 : ℝ))
         (𝓝 (Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w)) :=
     Complex.finiteAbelPlana_log_pvInteriorSmallCircleIntegral_tendsto_residues
-      hw N
+      hw N hdecInteriorPole
   have hendpoints :
       Filter.Tendsto
         (fun ρ : ℝ =>
@@ -515,7 +528,11 @@ residues. -/
 theorem Complex.finiteAbelPlana_log_pvSmallCircleIntegralContribution_tendsto_pvResidues
     {w : ℂ}
     (hw : 0 < w.re)
-    (N : ℕ) :
+    (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)))
+    [∀ z : ℂ, Decidable (z = ((0 : ℕ) : ℂ))]
+    [∀ z : ℂ, Decidable (z = ((N + 1 : ℕ) : ℂ))] :
     Filter.Tendsto
       (fun ρ : ℝ =>
         Complex.finiteAbelPlanaLogPVSmallCircleIntegralContribution N w ρ)
@@ -530,7 +547,7 @@ theorem Complex.finiteAbelPlana_log_pvSmallCircleIntegralContribution_tendsto_pv
   exact
     htarget ▸
       Complex.finiteAbelPlana_log_pvSmallCircleIntegralContribution_tendsto_endpoint_add_interior_residues
-        hw N
+        hw N hdecInteriorPole
 
 end
 

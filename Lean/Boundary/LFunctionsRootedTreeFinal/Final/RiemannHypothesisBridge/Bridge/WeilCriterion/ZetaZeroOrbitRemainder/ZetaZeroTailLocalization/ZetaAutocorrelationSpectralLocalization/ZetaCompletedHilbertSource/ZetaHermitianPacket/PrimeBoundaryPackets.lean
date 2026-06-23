@@ -58,9 +58,10 @@ noncomputable def zetaArchimedeanRealizedGramPacketAsEnsemble
 
 /-- The realized correction Gram packet attached to the seed probe. -/
 noncomputable def zetaCorrectionRealizedGramPacketAsEnsemble
-    (_f : ZetaAdmissibleFunction) : ZetaCompletedBoundaryRealizedGramPacket :=
+    (f : ZetaAdmissibleFunction) : ZetaCompletedBoundaryRealizedGramPacket :=
   ZetaCompletedBoundaryRealizedGramPacket.single .correction
-    (zetaCompletionCorrection 0)
+    (zetaCompletedExplicitFormulaCorrectionContribution
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f))
 
 /-- The completed realized Gram boundary packet attached to a seed probe. -/
 noncomputable def zetaCompletedBoundaryRealizedGramPacket
@@ -75,7 +76,8 @@ noncomputable def zetaCompletedBoundaryRealizedGram
   (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
     zetaCompletedPrimeBoundaryRealizedCoordinateGram ℓ.1 ℓ.2 f) +
     zetaCompletedArchimedeanBoundaryRealizedCoordinateGram f +
-    zetaCompletionCorrection 0
+    zetaCompletedExplicitFormulaCorrectionContribution
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
 
 /-- The prime realized Gram channel. -/
 noncomputable def zetaCompletedPrimeBoundaryRealizedGram
@@ -90,8 +92,9 @@ noncomputable def zetaCompletedArchimedeanBoundaryRealizedGram
 
 /-- The correction realized Gram channel. -/
 noncomputable def zetaCompletedCorrectionBoundaryRealizedGram
-    (_f : ZetaAdmissibleFunction) : ℂ :=
-  zetaCompletionCorrection 0
+    (f : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaCorrectionContribution
+    (ZetaAdmissibleFunction.convolutionAutocorrelation f)
 
 /-- The completed paired spectral boundary form. -/
 noncomputable def zetaCompletedPairedSpectralBoundaryForm
@@ -104,7 +107,8 @@ noncomputable def zetaCompletedPairedSpectralBoundaryForm
             star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f)))) +
     (zetaCompletedExplicitFormulaArchimedeanSpectralAmplitude f *
       star (zetaCompletedExplicitFormulaArchimedeanSpectralAmplitude f)) +
-    zetaCompletionCorrection 0
+    zetaCompletedExplicitFormulaCorrectionContribution
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
 
 /-- The completed paired spectral boundary real form. -/
 noncomputable def zetaCompletedPairedSpectralBoundaryRealForm
@@ -369,11 +373,250 @@ noncomputable def zetaPrimeDefectKernelDiagonalDebt
   ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
     zetaPrimeDefectKernelDiagonalDebtCoordinate ℓ.1 ℓ.2 f
 
+/-- Every label in the current finite explicit prime support has first coordinate below `2`. -/
+theorem zetaCompletedExplicitFormulaPrimeSupport_fst_lt_two
+    {ℓ : ℕ × ℕ}
+    (hℓ : ℓ ∈ zetaCompletedExplicitFormulaPrimeSupport) :
+    ℓ.1 < 2 := by
+  have hexp : Real.exp 0 = 1 := by
+    exact Real.exp_zero
+  have hceil : Nat.ceil (Real.exp 0) = 1 := by
+    exact (congrArg Nat.ceil hexp).trans Nat.ceil_one
+  have hrange :
+      Finset.range (Nat.ceil (Real.exp 0) + 1) = Finset.range 2 := by
+    exact congrArg
+      (fun m : ℕ => Finset.range (m + 1))
+      hceil
+  have hproduct :
+      ℓ.1 ∈ Finset.range (Nat.ceil (Real.exp 0) + 1) ∧
+        ℓ.2 ∈ Finset.range (Nat.ceil (Real.exp 0) + 1) := by
+    exact Finset.mem_product.mp hℓ
+  have hmem_two : ℓ.1 ∈ Finset.range 2 := by
+    exact Eq.subst
+      (motive := fun s : Finset ℕ => ℓ.1 ∈ s)
+      hrange
+      hproduct.1
+  exact Finset.mem_range.mp hmem_two
+
+/-- Labels in the current finite explicit prime support are nongenuine prime labels. -/
+theorem zetaCompletedExplicitFormulaPrimeSupport_not_prime_fst
+    {ℓ : ℕ × ℕ}
+    (hℓ : ℓ ∈ zetaCompletedExplicitFormulaPrimeSupport) :
+    ¬ Nat.Prime ℓ.1 := by
+  intro hp
+  have hlt : ℓ.1 < 2 :=
+    zetaCompletedExplicitFormulaPrimeSupport_fst_lt_two hℓ
+  have hle : 2 ≤ ℓ.1 :=
+    Nat.Prime.two_le hp
+  exact (not_lt_of_ge hle) hlt
+
+/-- The explicit-support prime spectral amplitude vanishes on the current finite support. -/
+theorem zetaCompletedExplicitFormulaPrimeSpectralAmplitude_eq_zero_of_mem_support
+    {ℓ : ℕ × ℕ} (f : ZetaAdmissibleFunction)
+    (hℓ : ℓ ∈ zetaCompletedExplicitFormulaPrimeSupport) :
+    zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f = 0 := by
+  have hnot_prime :
+      ¬ Nat.Prime ℓ.1 :=
+    zetaCompletedExplicitFormulaPrimeSupport_not_prime_fst hℓ
+  have hweight :
+      zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 = 0 :=
+    zetaCompletedExplicitFormulaPrimeWeight_eq_zero_of_not_prime
+      ℓ.1 ℓ.2 hnot_prime
+  have hsqrt :
+      zetaCompletedExplicitFormulaPrimeSqrtWeight ℓ.1 ℓ.2 = 0 :=
+    zetaCompletedExplicitFormulaPrimeSqrtWeight_eq_zero_of_weight_eq_zero
+      ℓ.1 ℓ.2 hweight
+  unfold zetaCompletedExplicitFormulaPrimeSpectralAmplitude
+  exact Eq.trans
+    (congrArg
+      (fun r : ℝ =>
+        (r : ℂ) * zetaCompletedPrimeHermitianSeedAmplitude ℓ.1 ℓ.2 f)
+      hsqrt)
+    (zero_mul (zetaCompletedPrimeHermitianSeedAmplitude ℓ.1 ℓ.2 f))
+
+/-- The explicit-support opposite prime spectral amplitude vanishes on the current finite
+support. -/
+theorem zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude_eq_zero_of_mem_support
+    {ℓ : ℕ × ℕ} (f : ZetaAdmissibleFunction)
+    (hℓ : ℓ ∈ zetaCompletedExplicitFormulaPrimeSupport) :
+    zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f = 0 := by
+  have hnot_prime :
+      ¬ Nat.Prime ℓ.1 :=
+    zetaCompletedExplicitFormulaPrimeSupport_not_prime_fst hℓ
+  have hweight :
+      zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 = 0 :=
+    zetaCompletedExplicitFormulaPrimeWeight_eq_zero_of_not_prime
+      ℓ.1 ℓ.2 hnot_prime
+  have hsqrt :
+      zetaCompletedExplicitFormulaPrimeSqrtWeight ℓ.1 ℓ.2 = 0 :=
+    zetaCompletedExplicitFormulaPrimeSqrtWeight_eq_zero_of_weight_eq_zero
+      ℓ.1 ℓ.2 hweight
+  unfold zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude
+  exact Eq.trans
+    (congrArg
+      (fun r : ℝ =>
+        (r : ℂ) * zetaCompletedPrimeBoundaryRealizedNegativeFace ℓ.1 ℓ.2 f)
+      hsqrt)
+    (zero_mul (zetaCompletedPrimeBoundaryRealizedNegativeFace ℓ.1 ℓ.2 f))
+
+/-- The explicit-support diagonal-debt coordinate vanishes after completed lower-weight
+normalization. -/
+theorem zetaPrimeDefectKernelDiagonalDebtCoordinate_eq_zero_of_mem_support
+    {ℓ : ℕ × ℕ} (f : ZetaAdmissibleFunction)
+    (hℓ : ℓ ∈ zetaCompletedExplicitFormulaPrimeSupport) :
+    zetaPrimeDefectKernelDiagonalDebtCoordinate ℓ.1 ℓ.2 f = 0 := by
+  have hpos :
+      zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f = 0 :=
+    zetaCompletedExplicitFormulaPrimeSpectralAmplitude_eq_zero_of_mem_support f hℓ
+  have hneg :
+      zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f = 0 :=
+    zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude_eq_zero_of_mem_support f hℓ
+  unfold zetaPrimeDefectKernelDiagonalDebtCoordinate
+  calc
+    zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+          star (zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f) +
+        zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f *
+          star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f) =
+        0 * star 0 + 0 * star 0 := by
+      exact congrArg₂ Add.add
+        (congrArg₂ Mul.mul hpos (congrArg star hpos))
+        (congrArg₂ Mul.mul hneg (congrArg star hneg))
+    _ = 0 + 0 * star 0 := by
+      exact congrArg (fun z : ℂ => z + 0 * star 0) (zero_mul (star 0 : ℂ))
+    _ = 0 + 0 := by
+      exact congrArg (fun z : ℂ => 0 + z) (zero_mul (star 0 : ℂ))
+    _ = 0 := by
+      exact add_zero 0
+
+/-- The displayed prime diagonal debt vanishes after the completed lower-weight
+normalization. -/
+theorem zetaPrimeDefectKernelDiagonalDebt_eq_zero_of_completedLowerWeightNormalization
+    (f : ZetaAdmissibleFunction) :
+    zetaPrimeDefectKernelDiagonalDebt f = 0 := by
+  unfold zetaPrimeDefectKernelDiagonalDebt
+  exact Finset.sum_eq_zero
+    (fun ℓ hℓ =>
+      zetaPrimeDefectKernelDiagonalDebtCoordinate_eq_zero_of_mem_support f hℓ)
+
+/-- Real form of the completed lower-weight normalization for the displayed prime diagonal
+debt. -/
+theorem zetaPrimeDefectKernelDiagonalDebt_re_eq_zero_of_completedLowerWeightNormalization
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (zetaPrimeDefectKernelDiagonalDebt f) = 0 := by
+  exact Eq.trans
+    (congrArg Complex.re
+      (zetaPrimeDefectKernelDiagonalDebt_eq_zero_of_completedLowerWeightNormalization f))
+    Complex.zero_re
+
+/-- The displayed finite-support oriented two-face coefficient vanishes under the current
+completed lower-weight normalization. -/
+theorem zetaPrimeTwoFaceGNSOrientedCoefficient_eq_zero_of_completedLowerWeightNormalization
+    (f : ZetaAdmissibleFunction) :
+    zetaPrimeTwoFaceGNSOrientedCoefficient f = 0 := by
+  unfold zetaPrimeTwoFaceGNSOrientedCoefficient
+  exact Finset.sum_eq_zero
+    (fun ℓ hℓ => by
+      have hpos :
+          zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f = 0 :=
+        zetaCompletedExplicitFormulaPrimeSpectralAmplitude_eq_zero_of_mem_support
+          f hℓ
+      calc
+        zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+            star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f) =
+            0 *
+              star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f) := by
+          exact congrArg
+            (fun z : ℂ =>
+              z *
+                star
+                  (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude
+                    ℓ.1 ℓ.2 f))
+            hpos
+        _ = 0 := by
+          exact zero_mul
+            (star
+              (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude
+                ℓ.1 ℓ.2 f)))
+
+/-- The displayed finite-support two-face/GNS matrix coefficient vanishes under the current
+completed lower-weight normalization. -/
+theorem zetaPrimeTwoFaceGNSMatrixCoefficient_eq_zero_of_completedLowerWeightNormalization
+    (f : ZetaAdmissibleFunction) :
+    zetaPrimeTwoFaceGNSMatrixCoefficient f = 0 := by
+  have horiented :
+      zetaPrimeTwoFaceGNSOrientedCoefficient f = 0 :=
+    zetaPrimeTwoFaceGNSOrientedCoefficient_eq_zero_of_completedLowerWeightNormalization
+      f
+  unfold zetaPrimeTwoFaceGNSMatrixCoefficient
+  calc
+    zetaPrimeTwoFaceGNSOrientedCoefficient f +
+        star (zetaPrimeTwoFaceGNSOrientedCoefficient f) =
+        0 + star 0 := by
+      exact congrArg₂ HAdd.hAdd horiented (congrArg star horiented)
+    _ = 0 + 0 := by
+      exact congrArg (fun z : ℂ => 0 + z) (star_zero ℂ)
+    _ = 0 := by
+      exact add_zero 0
+
+/-- Real form of the completed lower-weight normalization for the displayed finite-support
+two-face/GNS matrix coefficient. -/
+theorem zetaPrimeTwoFaceGNSMatrixCoefficient_re_eq_zero_of_completedLowerWeightNormalization
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) = 0 := by
+  exact Eq.trans
+    (congrArg Complex.re
+      (zetaPrimeTwoFaceGNSMatrixCoefficient_eq_zero_of_completedLowerWeightNormalization f))
+    Complex.zero_re
+
 /-- The positive prime defect kernel over the explicit prime support. -/
 noncomputable def zetaPrimeDefectKernelPositiveForm
     (f : ZetaAdmissibleFunction) : ℂ :=
   ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
     zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f
+
+/-- The displayed finite-support positive prime defect-kernel form vanishes under the current
+completed lower-weight normalization. -/
+theorem zetaPrimeDefectKernelPositiveForm_eq_zero_of_completedLowerWeightNormalization
+    (f : ZetaAdmissibleFunction) :
+    zetaPrimeDefectKernelPositiveForm f = 0 := by
+  unfold zetaPrimeDefectKernelPositiveForm
+  exact Finset.sum_eq_zero
+    (fun ℓ hℓ => by
+      have hpos :
+          zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f = 0 :=
+        zetaCompletedExplicitFormulaPrimeSpectralAmplitude_eq_zero_of_mem_support
+          f hℓ
+      have hneg :
+          zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f = 0 :=
+        zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude_eq_zero_of_mem_support
+          f hℓ
+      unfold zetaPrimeDefectKernelPositiveCoordinate
+      calc
+        (zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f -
+              zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f) *
+            star
+              (zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f -
+                zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f) =
+            (0 - 0) * star (0 - 0 : ℂ) := by
+          exact congrArg₂ HMul.hMul
+            (congrArg₂ Sub.sub hpos hneg)
+            (congrArg star (congrArg₂ Sub.sub hpos hneg))
+        _ = 0 * star (0 - 0 : ℂ) := by
+          exact congrArg
+            (fun z : ℂ => z * star (0 - 0 : ℂ))
+            (sub_self (0 : ℂ))
+        _ = 0 := by
+          exact zero_mul (star (0 - 0 : ℂ)))
+
+/-- Real form of the completed lower-weight normalization for the displayed finite-support
+positive prime defect-kernel form. -/
+theorem zetaPrimeDefectKernelPositiveForm_re_eq_zero_of_completedLowerWeightNormalization
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (zetaPrimeDefectKernelPositiveForm f) = 0 := by
+  exact Eq.trans
+    (congrArg Complex.re
+      (zetaPrimeDefectKernelPositiveForm_eq_zero_of_completedLowerWeightNormalization f))
+    Complex.zero_re
 
 /-- The additive cancellation at the end of the one-coordinate defect-square expansion. -/
 private theorem defect_square_cross_cancel

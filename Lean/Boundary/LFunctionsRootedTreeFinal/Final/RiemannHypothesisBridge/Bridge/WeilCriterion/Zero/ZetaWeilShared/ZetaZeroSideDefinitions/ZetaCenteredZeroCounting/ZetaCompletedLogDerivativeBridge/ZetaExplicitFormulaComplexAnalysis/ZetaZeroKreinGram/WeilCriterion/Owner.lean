@@ -464,11 +464,9 @@ theorem exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
               r < ε)
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (z : OffCriticalCenteredZetaZero) :
     ∃ f : ZetaAdmissibleFunction,
@@ -487,9 +485,9 @@ theorem exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
                 horbit
                 (summable_zetaZeroSideContribution
                   hbranch
-                  hpartialOneTwo htailOneTwo hcompactOneTwo
+                  hpartialOneTwo hcompactOneTwo
                   hfinite
-                  hpartialLeft htailBoundary hcompactBoundary
+                  hpartialLeft hcompactBoundary
                   (ZetaAdmissibleFunction.convolutionAutocorrelation f))
                 hf⟩
 
@@ -509,11 +507,9 @@ theorem exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
               r < ε)
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (z : OffCriticalCenteredZetaZero) :
     ∃ f : ZetaAdmissibleFunction,
@@ -522,9 +518,9 @@ theorem exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
     match exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
         hZeroTailSmallValuesOwnerRunge
         hbranch
-        hpartialOneTwo htailOneTwo hcompactOneTwo
+        hpartialOneTwo hcompactOneTwo
         hfinite
-        hpartialLeft htailBoundary hcompactBoundary z with
+        hpartialLeft hcompactBoundary z with
     | ⟨f, hf⟩ =>
         ⟨f,
           calc
@@ -545,11 +541,9 @@ theorem exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZer
               r < ε)
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (s : ℂ)
     (hz : riemannZeta (1 / 2 + s) = 0)
@@ -561,9 +555,9 @@ theorem exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZer
   exact exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
     hZeroTailSmallValuesOwnerRunge
     hbranch
-    hpartialOneTwo htailOneTwo hcompactOneTwo
+    hpartialOneTwo hcompactOneTwo
     hfinite
-    hpartialLeft htailBoundary hcompactBoundary
+    hpartialLeft hcompactBoundary
     ⟨s, hz, htriv, hpole, hoff⟩
 
 /-- Quadratic Weil positivity excludes off-critical nontrivial centered zeros. -/
@@ -578,11 +572,9 @@ theorem not_offCritical_centeredZero_of_zetaWeilQuadraticPositivity
               r < ε)
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (h : ZetaWeilQuadraticPositivity)
     (s : ℂ)
@@ -595,9 +587,9 @@ theorem not_offCritical_centeredZero_of_zetaWeilQuadraticPositivity
     match exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZero
         hZeroTailSmallValuesOwnerRunge
         hbranch
-        hpartialOneTwo htailOneTwo hcompactOneTwo
+        hpartialOneTwo hcompactOneTwo
         hfinite
-        hpartialLeft htailBoundary hcompactBoundary
+        hpartialLeft hcompactBoundary
         s hz htriv hpole hoff with
     | ⟨f, hfneg⟩ =>
         (not_lt_of_ge (h f)) hfneg
@@ -632,11 +624,9 @@ theorem centeredZeroCriterion_of_zetaWeilQuadraticPositivity
               r < ε)
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (h : ZetaWeilQuadraticPositivity) :
     ∀ s : ℂ,
@@ -649,9 +639,9 @@ theorem centeredZeroCriterion_of_zetaWeilQuadraticPositivity
     (not_offCritical_centeredZero_of_zetaWeilQuadraticPositivity
       hZeroTailSmallValuesOwnerRunge
       hbranch
-      hpartialOneTwo htailOneTwo hcompactOneTwo
+      hpartialOneTwo hcompactOneTwo
       hfinite
-      hpartialLeft htailBoundary hcompactBoundary
+      hpartialLeft hcompactBoundary
       h s hz htriv hpole)
 
 /-- The standard Weil criterion in the quadratic/autocorrelation form. -/
@@ -666,11 +656,9 @@ theorem boundaryRiemannHypothesis_of_zetaWeilQuadraticPositivity
               r < ε)
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (h : ZetaWeilQuadraticPositivity) :
     boundaryRiemannHypothesis := by
@@ -678,9 +666,9 @@ theorem boundaryRiemannHypothesis_of_zetaWeilQuadraticPositivity
     (centeredZeroCriterion_of_zetaWeilQuadraticPositivity
       hZeroTailSmallValuesOwnerRunge
       hbranch
-      hpartialOneTwo htailOneTwo hcompactOneTwo
+      hpartialOneTwo hcompactOneTwo
       hfinite
-      hpartialLeft htailBoundary hcompactBoundary h)
+      hpartialLeft hcompactBoundary h)
 
 end
 

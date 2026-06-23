@@ -59,14 +59,15 @@ theorem min_sq_sq_of_ge {a b : ℝ}
 /-- Squaring preserves the minimum of two nonnegative real numbers. -/
 theorem min_sq_sq {a b : ℝ}
     (ha : 0 ≤ a)
-    (hb : 0 ≤ b) :
+    (hb : 0 ≤ b)
+    [Decidable (a ≤ b)] :
     (min a b) ^ 2 = min (a ^ 2) (b ^ 2) :=
   le_antisymm
     (min_sq_sq_le ha hb)
-    (match Classical.em (a ≤ b) with
-    | Or.inl hab =>
+    (match (inferInstance : Decidable (a ≤ b)) with
+    | isTrue hab =>
         le_of_eq (Eq.symm (min_sq_sq_of_le ha hab))
-    | Or.inr hnot =>
+    | isFalse hnot =>
         le_of_eq (Eq.symm (min_sq_sq_of_ge hb (le_of_not_ge hnot))))
 
 /-- Subtracting from a fixed real number turns endpoint minimum into endpoint
@@ -100,12 +101,13 @@ theorem max_sub_sub_left_eq_sub_min_of_ge
 /-- Subtracting from a fixed real number turns endpoint minimum into endpoint
 maximum. -/
 theorem max_sub_sub_left_eq_sub_min
-    (a b c : ℝ) :
+    (a b c : ℝ)
+    [Decidable (b ≤ c)] :
     max (a - b) (a - c) = a - (min b c) :=
-  match Classical.em (b ≤ c) with
-  | Or.inl hbc =>
+  match (inferInstance : Decidable (b ≤ c)) with
+  | isTrue hbc =>
       max_sub_sub_left_eq_sub_min_of_le a b c hbc
-  | Or.inr hnot =>
+  | isFalse hnot =>
       max_sub_sub_left_eq_sub_min_of_ge a b c (le_of_not_ge hnot)
 
 namespace Real
@@ -137,19 +139,21 @@ theorem sqrt_max_of_ge (a b : ℝ)
       Eq.symm hmaxsqrt
 
 /-- Square-root distributes over binary maximum. -/
-theorem sqrt_max (a b : ℝ) :
+theorem sqrt_max (a b : ℝ)
+    [Decidable (a ≤ b)] :
     Real.sqrt (max a b) = max (Real.sqrt a) (Real.sqrt b) :=
-  match Classical.em (a ≤ b) with
-  | Or.inl hab =>
+  match (inferInstance : Decidable (a ≤ b)) with
+  | isTrue hab =>
       Real.sqrt_max_of_le a b hab
-  | Or.inr hnot =>
+  | isFalse hnot =>
       Real.sqrt_max_of_ge a b (le_of_not_ge hnot)
 
 end Real
 
 /-- Squaring absolute values commutes with taking the endpoint minimum. -/
 theorem min_sq_eq_min_abs_sq
-    (y₀ y₁ : ℝ) :
+    (y₀ y₁ : ℝ)
+    [Decidable (|y₀| ≤ |y₁|)] :
     min (y₀ ^ 2) (y₁ ^ 2) = min |y₀| |y₁| ^ 2 :=
   let hleft : y₀ ^ 2 = |y₀| ^ 2 :=
     Eq.symm (sq_abs y₀)
@@ -166,6 +170,7 @@ endpoint squared-radius expressions when the point is farther from zero than
 the nearer endpoint. -/
 theorem radius_sub_sq_le_endpoint_max_sub_sq_of_min_sq_le
     (ρ y₀ y₁ y : ℝ)
+    [Decidable (y₀ ^ 2 ≤ y₁ ^ 2)]
     (hsq_ge : min (y₀ ^ 2) (y₁ ^ 2) ≤ y ^ 2) :
     ρ ^ 2 - y ^ 2 ≤ max (ρ ^ 2 - y₀ ^ 2) (ρ ^ 2 - y₁ ^ 2) :=
   let hmax_sub :
@@ -182,6 +187,8 @@ theorem radius_sub_sq_le_endpoint_max_sub_sq_of_min_sq_le
 corresponding graph-coordinate maximum bound. -/
 theorem sqrt_radius_sub_sq_le_endpoint_sqrt_max_of_min_sq_le
     (ρ y₀ y₁ y : ℝ)
+    [Decidable (y₀ ^ 2 ≤ y₁ ^ 2)]
+    [Decidable (ρ ^ 2 - y₀ ^ 2 ≤ ρ ^ 2 - y₁ ^ 2)]
     (hsq_ge : min (y₀ ^ 2) (y₁ ^ 2) ≤ y ^ 2) :
     Real.sqrt (ρ ^ 2 - y ^ 2) ≤
       max (Real.sqrt (ρ ^ 2 - y₀ ^ 2))
@@ -206,6 +213,8 @@ theorem sqrt_radius_sub_sq_le_endpoint_sqrt_max_of_min_sq_le
 endpoint, the right semicircle graph is bounded by the endpoint maximum. -/
 theorem Complex.rightSemicircleGraphRe_le_endpointMax_of_min_sq_le
     (ρ y₀ y₁ y : ℝ)
+    [Decidable (y₀ ^ 2 ≤ y₁ ^ 2)]
+    [Decidable (ρ ^ 2 - y₀ ^ 2 ≤ ρ ^ 2 - y₁ ^ 2)]
     (hsq_ge : min (y₀ ^ 2) (y₁ ^ 2) ≤ y ^ 2) :
     Complex.rightSemicircleGraphRe ρ y ≤
       max (Complex.rightSemicircleGraphRe ρ y₀)

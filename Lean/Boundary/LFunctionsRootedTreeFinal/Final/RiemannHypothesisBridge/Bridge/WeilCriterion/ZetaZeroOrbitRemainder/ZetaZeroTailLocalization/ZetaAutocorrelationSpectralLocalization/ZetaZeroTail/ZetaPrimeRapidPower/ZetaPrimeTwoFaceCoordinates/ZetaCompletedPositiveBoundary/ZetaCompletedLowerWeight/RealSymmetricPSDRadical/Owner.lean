@@ -30,9 +30,10 @@ theorem real_symmetric_bilinear_psd_left_radical_of_self_zero
     (B_symm : ∀ x y : V, B x y = B y x)
     (B_psd : ∀ x : V, 0 ≤ B x x)
     {d t : V}
-    (hdd : B d d = 0) :
+    (hdd : B d d = 0)
+    [Decidable (B t d = 0)] :
     B d t = 0 := by
-  match Decidable.em (B t d = 0) with
+  match (inferInstance : Decidable (B t d = 0)) with
   | Or.inl htd => exact (B_symm d t).trans htd
   | Or.inr htd =>
     let b : ℝ := B t t

@@ -331,9 +331,9 @@ theorem positiveRadius_exp_arc_eventually_ne_base
                 _ = n * (2 * Real.pi) :=
                   add_sub_cancel_left θ₀ (n * (2 * Real.pi))
             have hn0 : n = 0 := by
-              match Decidable.em (n = 0) with
-              | Or.inl hn0 => exact hn0
-              | Or.inr hn0_ne =>
+              match (inferInstance : Decidable (n = 0)) with
+              | isTrue hn0 => exact hn0
+              | isFalse hn0_ne =>
                   have hperiod :
                       |θ - θ₀| = |(n : ℝ)| * (2 * Real.pi) := by
                     calc

@@ -172,22 +172,52 @@ theorem completedZetaContourIntegrand_continuousOn_boundary_of_avoidsBoundary
     (completedZetaContourIntegrand_regularAt_all_boundary_points_of_avoidsBoundary
       f F h T havoid z hz).1.continuousWithinAt
 
-/-- The explicit-formula residue datum attached to a completed zero.  The zero coordinate
-is the same coordinate used by the completed-zero side, so the residue summand evaluates
-`Φ_f` at `ρ - 1 / 2`, matching `zetaCenteredZero ρ`. -/
+/-- The uncentered residue coordinate attached to a centered completed zero. -/
+noncomputable def completedZeroResidueCoordinate
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ :=
+  (1 / 2 : ℂ) + (ρ : ℂ)
+
+/-- The uncentered residue coordinate re-centers to the completed-zero carrier. -/
+theorem completedZeroResidueCoordinate_sub_half
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    completedZeroResidueCoordinate ρ - (1 / 2 : ℂ) = (ρ : ℂ) := by
+  exact add_sub_cancel_left (1 / 2 : ℂ) (ρ : ℂ)
+
+/-- The explicit-formula residue datum attached to a completed zero.
+
+The rectangle residue theorem sees the uncentered pole `1 / 2 + ρ`; since
+`explicitFormulaZeroResidue` internally subtracts `1 / 2`, this datum samples
+`Φ_f ρ`. -/
 noncomputable def explicitFormulaZeroDataOfCompletedZero
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ExplicitFormulaZeroData :=
-  { zero := (ρ : ℂ)
+  { zero := completedZeroResidueCoordinate ρ
     multiplicity := zetaZeroMultiplicity (ρ : ℂ) }
 
-/-- The explicit-formula residue attached to a completed zero is the existing zero-side
-contribution.  This is bookkeeping: both sides are the same multiplicity-weighted spectral
-evaluation at the centered zero coordinate. -/
-theorem explicitFormulaZeroResidue_ofCompletedZero_eq_zeroSideContribution
+/-- The explicit-formula residue attached to a completed zero unfolds at the centered
+completed-zero coordinate. -/
+theorem explicitFormulaZeroResidue_ofCompletedZero_unfold
     (f : ZetaAdmissibleFunction) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ) =
-      zetaZeroSideContribution (ρ : ℂ) f := by
-  rfl
+      - (zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
+        zetaCompletedExplicitFormulaPhi f (ρ : ℂ) := by
+  calc
+    explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ)
+        = - ((explicitFormulaZeroDataOfCompletedZero ρ).multiplicity : ℂ) *
+            zetaCompletedExplicitFormulaPhi f
+              ((explicitFormulaZeroDataOfCompletedZero ρ).zero - (1 / 2 : ℂ)) := by
+          exact explicitFormulaZeroResidue_def f (explicitFormulaZeroDataOfCompletedZero ρ)
+    _ = - (zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
+          zetaCompletedExplicitFormulaPhi f
+            (completedZeroResidueCoordinate ρ - (1 / 2 : ℂ)) := by
+          rfl
+    _ = - (zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
+          zetaCompletedExplicitFormulaPhi f (ρ : ℂ) := by
+          exact
+            congrArg
+              (fun z : ℂ =>
+                - (zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
+                  zetaCompletedExplicitFormulaPhi f z)
+              (completedZeroResidueCoordinate_sub_half ρ)
 
 /-- The finite completed-zero height window used by the residue-side contour approximation. -/
 noncomputable def explicitFormulaCompletedZeroHeightWindow
@@ -240,15 +270,13 @@ noncomputable def explicitFormulaCompletedZeroHeightWindowZeroSideSum
   ∑ ρ in explicitFormulaCompletedZeroHeightWindow T,
     zetaZeroSideContribution (ρ : ℂ) f
 
-/-- The residue-window presentation and the zero-side presentation are the same finite sum. -/
-theorem explicitFormulaCompletedZeroHeightWindowResidueSum_eq_zeroSideSum
+/-- The residue-window presentation unfolds to the uncentered completed-zero residue data. -/
+theorem explicitFormulaCompletedZeroHeightWindowResidueSum_unfold
     (f : ZetaAdmissibleFunction) (T : ℝ) :
     explicitFormulaCompletedZeroHeightWindowResidueSum f T =
-      explicitFormulaCompletedZeroHeightWindowZeroSideSum f T := by
-  exact Finset.sum_congr
-    rfl
-    (fun ρ _hρ =>
-      explicitFormulaZeroResidue_ofCompletedZero_eq_zeroSideContribution f ρ)
+      ∑ ρ in explicitFormulaCompletedZeroHeightWindow T,
+        explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ) := by
+  rfl
 
 /-- The zero-side presentation of the finite completed-zero height windows converges to the
 completed zero-side complex `tsum`. -/
@@ -290,41 +318,45 @@ theorem explicitFormulaCompletedZeroHeightWindowZeroSideSum_tendsto_tsum
     hpointwise.symm
     hwindow
 
-/-- The residue presentation of the finite completed-zero height windows converges to the
-completed zero-side complex `tsum`. -/
-theorem explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroSideTsum
+/-- Convergence of the residue presentation is exactly convergence of its uncentered
+completed-zero residue summands. -/
+theorem explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_residueTsum
     (f : ZetaAdmissibleFunction)
     (hsum :
       Summable
         (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-          zetaZeroSideContribution (ρ : ℂ) f)) :
+          explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))) :
     Tendsto
       (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowResidueSum f T)
       atTop
       (𝓝
         (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          zetaZeroSideContribution (ρ : ℂ) f)) := by
-  have hzeroSide :
+          explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))) := by
+  have hresidue :
       Tendsto
-        (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowZeroSideSum f T)
+        (fun T : ℝ =>
+          ∑ ρ in explicitFormulaCompletedZeroHeightWindow T,
+            explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))
         atTop
         (𝓝
           (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-            zetaZeroSideContribution (ρ : ℂ) f)) :=
-    explicitFormulaCompletedZeroHeightWindowZeroSideSum_tendsto_tsum f hsum
+            explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))) :=
+    hsum.hasSum.comp explicitFormulaCompletedZeroHeightWindow_tendsto_atTop
   have hpointwise :
       (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowResidueSum f T) =
-        (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowZeroSideSum f T) := by
+        (fun T : ℝ =>
+          ∑ ρ in explicitFormulaCompletedZeroHeightWindow T,
+            explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ)) := by
     funext T
-    exact explicitFormulaCompletedZeroHeightWindowResidueSum_eq_zeroSideSum f T
+    rfl
   exact Eq.subst
     (motive := fun u : ℝ → ℂ =>
       Tendsto u atTop
         (𝓝
           (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-            zetaZeroSideContribution (ρ : ℂ) f)))
+            explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))))
     hpointwise.symm
-    hzeroSide
+    hresidue
 
 /-- Finite rectangle Cauchy-residue computation with the chosen boundary avoiding the
 completed-zeta singular set.

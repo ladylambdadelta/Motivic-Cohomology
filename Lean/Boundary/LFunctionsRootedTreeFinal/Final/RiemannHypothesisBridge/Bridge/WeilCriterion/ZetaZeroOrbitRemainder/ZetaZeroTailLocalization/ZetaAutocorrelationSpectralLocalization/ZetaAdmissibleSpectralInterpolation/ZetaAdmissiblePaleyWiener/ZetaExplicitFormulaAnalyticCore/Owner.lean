@@ -364,8 +364,9 @@ noncomputable def zetaCompletedExplicitFormulaArchimedeanContribution
 
 /-- The correction contribution in the completed explicit formula. -/
 noncomputable def zetaCompletedExplicitFormulaCorrectionContribution
-    (_f : ZetaAdmissibleFunction) : ℂ :=
-  1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ))
+    (f : ZetaAdmissibleFunction) : ℂ :=
+  (1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ))) *
+    zetaCompletedExplicitFormulaPhi f 0
 
 /-- The prime contribution unfolds to the completed prime-power owner distribution. -/
 theorem zetaCompletedExplicitFormulaPrimeContribution_eq
@@ -385,8 +386,28 @@ theorem zetaCompletedExplicitFormulaArchimedeanContribution_eq
 theorem zetaCompletedExplicitFormulaCorrectionContribution_eq
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaCorrectionContribution f =
-      1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ)) := by
+      (1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ))) *
+        zetaCompletedExplicitFormulaPhi f 0 := by
   rfl
+
+/-- The centered correction contribution vanishes on the zero admissible probe. -/
+theorem zetaCompletedExplicitFormulaCorrectionContribution_zero :
+    zetaCompletedExplicitFormulaCorrectionContribution
+        (0 : ZetaAdmissibleFunction) = 0 := by
+  calc
+    zetaCompletedExplicitFormulaCorrectionContribution
+        (0 : ZetaAdmissibleFunction) =
+        (1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ))) *
+          zetaCompletedExplicitFormulaPhi (0 : ZetaAdmissibleFunction) 0 := by
+      exact zetaCompletedExplicitFormulaCorrectionContribution_eq 0
+    _ =
+        (1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ))) * 0 := by
+      exact congrArg
+        (fun z : ℂ =>
+          (1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ))) * z)
+        (zetaCompletedExplicitFormulaPhi_zero 0)
+    _ = 0 := by
+      exact mul_zero _
 
 /-- The combined completed explicit-formula boundary sum. -/
 noncomputable def zetaCompletedExplicitFormulaBoundarySumCore

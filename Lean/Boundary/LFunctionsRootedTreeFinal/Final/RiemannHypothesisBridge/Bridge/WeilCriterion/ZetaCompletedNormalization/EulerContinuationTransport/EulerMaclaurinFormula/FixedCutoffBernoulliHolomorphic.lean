@@ -96,22 +96,15 @@ theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_i
   let hdata :=
     eulerMaclaurinBernoulliKernel_parameterDerivative_local_integrable_majorant_on_puncturedStrip
       N hN z hz
-  let r : ℝ := Classical.choose hdata
-  have hr_pos : 0 < r := (Classical.choose_spec hdata).1
-  have haux : ∃ g : ℝ → ℝ,
-      IntegrableOn g (Set.Ioi (((N : ℕ) : ℝ))) ∧
-      ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
-        ∀ w ∈ Metric.ball z r,
-          ‖eulerMaclaurinBernoulliKernel_realTailParameterDerivative x w‖ ≤ g x :=
-    (Classical.choose_spec hdata).2
-  let g : ℝ → ℝ := Classical.choose haux
+  let ⟨r, hr_pos, haux_data⟩ := hdata
+  let ⟨g, hg_integrable_data, hmajorant_data⟩ := haux_data
   have hg_integrable : IntegrableOn g (Set.Ioi (((N : ℕ) : ℝ))) :=
-    (Classical.choose_spec haux).1
+    hg_integrable_data
   have hmajorant :
       ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
         ∀ w ∈ Metric.ball z r,
           ‖eulerMaclaurinBernoulliKernel_realTailParameterDerivative x w‖ ≤ g x :=
-    (Classical.choose_spec haux).2
+    hmajorant_data
   let F : ℂ → ℝ → ℂ := fun (w : ℂ) (x : ℝ) =>
     ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
       (((x : ℝ) : ℂ) ^ (-(w + 1)))
@@ -148,24 +141,16 @@ theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_i
     let hdata₀ :=
       eulerMaclaurinBernoulliKernel_local_integrable_majorant_on_puncturedStrip
         N hN z hz
-    let r₀ : ℝ := Classical.choose hdata₀
-    have hr₀_pos : 0 < r₀ := (Classical.choose_spec hdata₀).1
-    have haux₀ : ∃ g₀ : ℝ → ℝ,
-        IntegrableOn g₀ (Set.Ioi (((N : ℕ) : ℝ))) ∧
-        ∀ w : ℂ, w ∈ Metric.ball z r₀ →
-          ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
-            ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-              (((x : ℝ) : ℂ) ^ (-(w + 1)))‖ ≤ g₀ x :=
-      (Classical.choose_spec hdata₀).2
-    let g₀ : ℝ → ℝ := Classical.choose haux₀
+    let ⟨r₀, hr₀_pos, haux₀_data⟩ := hdata₀
+    let ⟨g₀, hg₀_integrable_data, hmajorant₀_data⟩ := haux₀_data
     have hg₀_integrable : IntegrableOn g₀ (Set.Ioi (((N : ℕ) : ℝ))) :=
-      (Classical.choose_spec haux₀).1
+      hg₀_integrable_data
     have hmajorant₀ :
         ∀ w : ℂ, w ∈ Metric.ball z r₀ →
           ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
             ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
               (((x : ℝ) : ℂ) ^ (-(w + 1)))‖ ≤ g₀ x :=
-      (Classical.choose_spec haux₀).2
+      hmajorant₀_data
     have hz_ball₀ : z ∈ Metric.ball z r₀ :=
       Metric.mem_ball_self hr₀_pos
     have hbound₀ :

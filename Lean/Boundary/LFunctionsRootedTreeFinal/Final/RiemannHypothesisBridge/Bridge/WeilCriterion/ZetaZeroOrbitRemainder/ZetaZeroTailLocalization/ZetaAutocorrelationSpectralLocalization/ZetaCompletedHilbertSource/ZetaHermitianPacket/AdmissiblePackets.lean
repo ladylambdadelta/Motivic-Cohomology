@@ -419,10 +419,13 @@ theorem zetaCompletedArchimedeanBoundaryCoordinate_isReconstructed
     (zetaCompletedArchimedeanBoundaryCoordinate f).IsReconstructed := by
   rfl
 
-/-- The correction spectral coordinate is the normalized completion-correction coordinate. -/
+/-- The correction spectral coordinate is the centered pole amplitude evaluated on the
+seed transform. Its Hermitian Gram is the centered-pole correction evaluated on the
+autocorrelation probe. -/
 noncomputable def zetaCompletedExplicitFormulaCorrectionSpectralAmplitude
-    (_f : ZetaAdmissibleFunction) : ℂ :=
-  (Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate : ℂ)
+    (f : ZetaAdmissibleFunction) : ℂ :=
+  (Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate : ℂ) *
+    zetaCompletedExplicitFormulaPhi f 0
 
 end ZetaAdmissibleFunction
 

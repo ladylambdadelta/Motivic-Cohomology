@@ -455,7 +455,7 @@ theorem one_add_natNorm_le_two_mul_max_one_natNorm
     (m : ℕ) :
     1 + ‖((m : ℕ) : ℝ)‖ ≤
       (2 : ℝ) * max 1 ‖((m : ℕ) : ℝ)‖ := by
-  match Decidable.em (1 ≤ ‖((m : ℕ) : ℝ)‖) with
+  match (inferInstance : Decidable (1 ≤ ‖((m : ℕ) : ℝ)‖)) with
   | Or.inl hlarge =>
     have hmax :
         max 1 ‖((m : ℕ) : ℝ)‖ =
@@ -825,11 +825,9 @@ all further polynomial negative-height envelopes are summable. -/
 theorem exists_summable_completedZero_centeredHeight_negativePower_with_countingMargin
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     ∃ d : ℕ,
       ∀ k : ℕ,
@@ -838,9 +836,9 @@ theorem exists_summable_completedZero_centeredHeight_negativePower_with_counting
             zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))) := by
   exact match exists_completedZeroMultiplicityCounting_height_bound
       hbranch
-      hpartialOneTwo htailOneTwo hcompactOneTwo
+      hpartialOneTwo hcompactOneTwo
       hfinite
-      hpartialLeft htailBoundary hcompactBoundary with
+      hpartialLeft hcompactBoundary with
   | ⟨C, d, hCpos, hcount⟩ =>
       Exists.intro d
         (fun k =>

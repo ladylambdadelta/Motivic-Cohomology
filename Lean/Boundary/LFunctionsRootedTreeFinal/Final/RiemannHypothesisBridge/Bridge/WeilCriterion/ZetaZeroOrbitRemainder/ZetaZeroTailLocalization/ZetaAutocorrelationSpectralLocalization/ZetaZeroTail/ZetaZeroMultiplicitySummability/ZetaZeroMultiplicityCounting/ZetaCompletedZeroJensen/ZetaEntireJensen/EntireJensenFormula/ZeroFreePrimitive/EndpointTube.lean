@@ -145,10 +145,7 @@ theorem complex_centerSegment_openTube_ballWitness
           ∀ t : ℝ,
             t ∈ Set.Icc (0 : ℝ) 1 →
               AffineMap.lineMap (k := ℝ) (0 : ℂ) x t ∈ U := by
-  let ε : ℝ := Classical.choose (Metric.isOpen_iff.1 hu_open w hw)
-  have hε_data :
-      0 < ε ∧ Metric.ball w ε ⊆ u :=
-    Classical.choose_spec (Metric.isOpen_iff.1 hu_open w hw)
+  let ⟨ε, hε_data⟩ := Metric.isOpen_iff.1 hu_open w hw
   have hε_pos : 0 < ε :=
     hε_data.1
   have hε_subset : Metric.ball w ε ⊆ u :=
@@ -239,25 +236,7 @@ theorem complex_centerSegment_endpointStability_openTube
           u ×ˢ v ⊆
             {p : ℂ × ℝ | AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 ∈ U} :=
     complex_centerSegment_openTube_tubeWitness z U hU_open hseg
-  let u : Set ℂ := Classical.choose htube
-  have hu_exists :
-      ∃ v : Set ℝ,
-        IsOpen u ∧
-        IsOpen v ∧
-        ({z} : Set ℂ) ⊆ u ∧
-        Set.Icc (0 : ℝ) 1 ⊆ v ∧
-        u ×ˢ v ⊆
-          {p : ℂ × ℝ | AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 ∈ U} :=
-    Classical.choose_spec htube
-  let v : Set ℝ := Classical.choose hu_exists
-  have huv_data :
-      IsOpen u ∧
-      IsOpen v ∧
-      ({z} : Set ℂ) ⊆ u ∧
-      Set.Icc (0 : ℝ) 1 ⊆ v ∧
-      u ×ˢ v ⊆
-        {p : ℂ × ℝ | AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 ∈ U} :=
-    Classical.choose_spec hu_exists
+  let ⟨u, v, huv_data⟩ := htube
   have hu_open : IsOpen u :=
     huv_data.1
   have hz_subset : ({z} : Set ℂ) ⊆ u :=

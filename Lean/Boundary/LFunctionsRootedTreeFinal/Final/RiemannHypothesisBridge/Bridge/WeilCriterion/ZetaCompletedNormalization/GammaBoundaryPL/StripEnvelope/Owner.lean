@@ -431,6 +431,86 @@ theorem strip_vertical_boundary_envelope_exp_damped_bound
           exact exp_negative_growth_mul_growth_cancel A X
         hscaled.trans_eq hcollapse)
 
+/-- After the matching exponential damping, scaling by the positive boundary
+constant gives a unit bound on both vertical tails. -/
+theorem strip_vertical_boundary_envelope_exp_damped_unit_bound
+    (f : ℂ → ℂ)
+    (a b A B : ℝ)
+    (m : ℕ)
+    (hA : 0 < A)
+    (hboundary :
+      (∀ z : ℂ,
+        z.re = a →
+        1 ≤ ‖z.im‖ →
+        ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z.im‖) ^ m)) ∧
+      (∀ z : ℂ,
+        z.re = b →
+        1 ≤ ‖z.im‖ →
+        ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z.im‖) ^ m))) :
+    (∀ z : ℂ,
+      z.re = a →
+      1 ≤ ‖z.im‖ →
+      A⁻¹ * Real.exp (-(B * (1 + ‖z.im‖) ^ m)) * ‖f z‖ ≤ 1) ∧
+    (∀ z : ℂ,
+      z.re = b →
+      1 ≤ ‖z.im‖ →
+      A⁻¹ * Real.exp (-(B * (1 + ‖z.im‖) ^ m)) * ‖f z‖ ≤ 1) := by
+  let dampedBound :=
+    strip_vertical_boundary_envelope_exp_damped_bound
+      f a b A B m hboundary
+  have hA_inv_nonneg : 0 ≤ A⁻¹ :=
+    inv_nonneg.mpr (le_of_lt hA)
+  have hA_inv_mul : A⁻¹ * A = 1 :=
+    inv_mul_cancel₀ hA.ne'
+  exact
+    And.intro
+      (fun z hz_re hz_im =>
+        let X : ℝ := B * (1 + ‖z.im‖) ^ m
+        have htail :
+            Real.exp (-X) * ‖f z‖ ≤ A :=
+          dampedBound.1 z hz_re hz_im
+        have hscaled :
+            A⁻¹ * (Real.exp (-X) * ‖f z‖) ≤ A⁻¹ * A :=
+          mul_le_mul_of_nonneg_left htail hA_inv_nonneg
+        have hleft_assoc :
+            A⁻¹ * Real.exp (-X) * ‖f z‖ =
+              A⁻¹ * (Real.exp (-X) * ‖f z‖) :=
+          mul_assoc A⁻¹ (Real.exp (-X)) ‖f z‖
+        have hscaled_left :
+            A⁻¹ * Real.exp (-X) * ‖f z‖ ≤ A⁻¹ * A :=
+          Eq.subst
+            (motive := fun y : ℝ => y ≤ A⁻¹ * A)
+            hleft_assoc.symm
+            hscaled
+        Eq.subst
+          (motive := fun y : ℝ =>
+            A⁻¹ * Real.exp (-X) * ‖f z‖ ≤ y)
+          hA_inv_mul
+          hscaled_left)
+      (fun z hz_re hz_im =>
+        let X : ℝ := B * (1 + ‖z.im‖) ^ m
+        have htail :
+            Real.exp (-X) * ‖f z‖ ≤ A :=
+          dampedBound.2 z hz_re hz_im
+        have hscaled :
+            A⁻¹ * (Real.exp (-X) * ‖f z‖) ≤ A⁻¹ * A :=
+          mul_le_mul_of_nonneg_left htail hA_inv_nonneg
+        have hleft_assoc :
+            A⁻¹ * Real.exp (-X) * ‖f z‖ =
+              A⁻¹ * (Real.exp (-X) * ‖f z‖) :=
+          mul_assoc A⁻¹ (Real.exp (-X)) ‖f z‖
+        have hscaled_left :
+            A⁻¹ * Real.exp (-X) * ‖f z‖ ≤ A⁻¹ * A :=
+          Eq.subst
+            (motive := fun y : ℝ => y ≤ A⁻¹ * A)
+            hleft_assoc.symm
+            hscaled
+        Eq.subst
+          (motive := fun y : ℝ =>
+            A⁻¹ * Real.exp (-X) * ‖f z‖ ≤ y)
+          hA_inv_mul
+          hscaled_left)
+
 /-- Tail and compact boundary bounds combine to a single uniform boundary bound.
 
 This is the boundary bookkeeping step used after damping: the vertical tail is
@@ -458,7 +538,8 @@ theorem strip_uniform_boundary_bound_of_tail_and_compact
       (∀ z : ℂ,
         z.re = b →
         ¬ 1 ≤ ‖z.im‖ →
-        ‖g z‖ ≤ C)) :
+        ‖g z‖ ≤ C))
+    [height_split_dec : ∀ z : ℂ, Decidable (1 ≤ ‖z.im‖)] :
     ∃ D : ℝ,
       0 < D ∧
       (∀ z : ℂ,
@@ -479,20 +560,20 @@ theorem strip_uniform_boundary_bound_of_tail_and_compact
         z.re = a →
         ‖g z‖ ≤ D :=
     fun z hz_re =>
-      match Decidable.em (1 ≤ ‖z.im‖) with
-      | Or.inl hlarge =>
+      match height_split_dec z with
+      | isTrue hlarge =>
           le_trans (htail.1 z hz_re hlarge) hA_le_D
-      | Or.inr hsmall =>
+      | isFalse hsmall =>
           le_trans (hcompact.1 z hz_re hsmall) hC_le_D
   have hright :
       ∀ z : ℂ,
         z.re = b →
         ‖g z‖ ≤ D :=
     fun z hz_re =>
-      match Decidable.em (1 ≤ ‖z.im‖) with
-      | Or.inl hlarge =>
+      match height_split_dec z with
+      | isTrue hlarge =>
           le_trans (htail.2 z hz_re hlarge) hA_le_D
-      | Or.inr hsmall =>
+      | isFalse hsmall =>
           le_trans (hcompact.2 z hz_re hsmall) hC_le_D
   exact ⟨D, hD, hleft, hright⟩
 

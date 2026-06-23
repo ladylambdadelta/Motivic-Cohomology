@@ -181,7 +181,9 @@ theorem zetaCompletedExplicitFormulaArchimedeanConvolutionPairedContribution_eq_
       exact congrArg (fun z : ℂ => z * (a * star a)) hsqrt_sq_complex
 
 /-- The prime explicit-formula channel evaluated on the convolution autocorrelation kernel.
-This is the paired spectral channel produced by the convolution transform identity. -/
+This is the finite paired spectral display channel produced by the convolution transform
+identity. The completed cone-facing two-face coefficient is
+`zetaCompletedPrimeTwoFaceGNSMatrixCoefficient`. -/
 noncomputable def zetaCompletedExplicitFormulaPrimeConvolutionContribution
     (f : ZetaAdmissibleFunction) : ℂ :=
   zetaCompletedExplicitFormulaPrimeConvolutionPairedContribution f
@@ -192,10 +194,12 @@ noncomputable def zetaCompletedExplicitFormulaArchimedeanConvolutionContribution
     (f : ZetaAdmissibleFunction) : ℂ :=
   zetaCompletedExplicitFormulaArchimedeanConvolutionPairedContribution f
 
-/-- The correction channel evaluated on autocorrelation is the centered correction scalar. -/
-def zetaCompletedExplicitFormulaCorrectionConvolutionContribution
-    (_f : ZetaAdmissibleFunction) : ℂ :=
-  zetaCompletionCorrection 0
+/-- The correction channel evaluated on autocorrelation is the centered-pole owner
+contribution of the autocorrelation probe. -/
+noncomputable def zetaCompletedExplicitFormulaCorrectionConvolutionContribution
+    (f : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaCorrectionContribution
+    (ZetaAdmissibleFunction.convolutionAutocorrelation f)
 
 /-- The prime paired channel is definitionally the convolution prime contribution. -/
 theorem zetaCompletedExplicitFormulaPrimeConvolutionContribution_eq_paired
@@ -582,7 +586,7 @@ theorem zetaCompletedExplicitFormulaCorrectionContribution_convolutionAutocorrel
     zetaCompletedExplicitFormulaCorrectionContribution
         (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
       zetaCompletedExplicitFormulaCorrectionConvolutionContribution f := by
-  exact Boundary.LFunctions.zetaCompletionCorrection_zero.symm
+  rfl
 
 /-- The finite paired prime contribution is the finite two-face/GNS matrix coefficient.
 
@@ -676,6 +680,17 @@ theorem zetaCompletedExplicitFormulaPrimeConvolutionContribution_add_primeDefect
     _ = zetaPrimeDefectKernelDiagonalDebt f := by
       exact zetaPrimeDefectKernelPositiveForm_add_twoFace_eq_diagonalDebt f
 
+/-- Completed prime-power cone equation for the genuine `ZetaPrimePowerIndex` channel.
+
+This is the B3 cone-facing version of the prime defect-square identity.  It deliberately
+uses the completed prime-power two-face coefficient rather than the finite display support. -/
+theorem zetaCompletedPrimeTwoFaceGNSMatrixCoefficient_add_completedPrimeDefectKernelPositiveForm_eq_completedDiagonalDebt
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedPrimeDefectKernelPositiveForm f +
+        zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f =
+      zetaCompletedPrimeDefectKernelDiagonalDebt f := by
+  exact zetaCompletedPrimeDefectKernelPositiveForm_add_twoFace_eq_diagonalDebt f
+
 /-- The archimedean convolution contribution is the reconstructed Hermitian archimedean Gram. -/
 theorem zetaCompletedExplicitFormulaArchimedeanConvolutionContribution_eq_archimedeanPacketGram
     (f : ZetaAdmissibleFunction) :
@@ -731,11 +746,152 @@ theorem zetaCompletedExplicitFormulaArchimedeanConvolutionContribution_re_eq_arc
   exact congrArg Complex.re
     (zetaCompletedExplicitFormulaArchimedeanConvolutionContribution_eq_archimedeanPacketGram f)
 
+/-- The autocorrelation correction channel unfolds to the centered coefficient times the
+self-paired transform value. -/
+theorem zetaCompletedExplicitFormulaCorrectionConvolutionContribution_eq_four_phi_pair
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaCorrectionConvolutionContribution f =
+      (4 : ℂ) *
+        (zetaCompletedExplicitFormulaPhi f 0 *
+          star (zetaCompletedExplicitFormulaPhi f 0)) := by
+  have hcoeff :
+      1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ)) = (4 : ℂ) :=
+    zetaCompletionCorrection_zero.symm.trans zetaCompletionCorrection_zero_eq_four
+  have hzero :
+      zetaCompletedExplicitFormulaPhi
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) 0 =
+        zetaCompletedExplicitFormulaPhi f 0 *
+          star (zetaCompletedExplicitFormulaPhi f 0) := by
+    have hpair :=
+      zetaCompletedExplicitFormulaPhi_convolutionAutocorrelation_real_pair f 0
+    have hneg :
+        zetaCompletedExplicitFormulaPhi f (-(0 : ℂ)) =
+          zetaCompletedExplicitFormulaPhi f 0 := by
+      exact congrArg (zetaCompletedExplicitFormulaPhi f) (neg_zero : -(0 : ℂ) = 0)
+    exact hpair.trans
+      (congrArg
+        (fun z : ℂ => zetaCompletedExplicitFormulaPhi f 0 * star z)
+        hneg)
+  calc
+    zetaCompletedExplicitFormulaCorrectionConvolutionContribution f =
+        (1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ))) *
+          zetaCompletedExplicitFormulaPhi
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f) 0 := by
+      exact zetaCompletedExplicitFormulaCorrectionContribution_eq
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+    _ =
+        (4 : ℂ) *
+          zetaCompletedExplicitFormulaPhi
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f) 0 := by
+      exact congrArg
+        (fun c : ℂ =>
+          c *
+            zetaCompletedExplicitFormulaPhi
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f) 0)
+        hcoeff
+    _ =
+        (4 : ℂ) *
+          (zetaCompletedExplicitFormulaPhi f 0 *
+            star (zetaCompletedExplicitFormulaPhi f 0)) := by
+      exact congrArg (fun z : ℂ => (4 : ℂ) * z) hzero
+
+/-- The correction Hermitian packet Gram is the square of the centered correction amplitude
+`2 * Φ_f(0)`, hence the same `4 * Φ_f(0) * star Φ_f(0)` scalar. -/
+theorem zetaCompletedHermitianBoundaryDefect_correctionPacketGram_eq_four_phi_pair
+    (f : ZetaAdmissibleFunction) :
+    (ZetaHermitianPacketEnsemble.correctionPacketGram
+        (zetaCompletedHermitianBoundaryDefect f) : ℂ) =
+      (4 : ℂ) *
+        (zetaCompletedExplicitFormulaPhi f 0 *
+          star (zetaCompletedExplicitFormulaPhi f 0)) := by
+  let c : ℝ := zetaCompletionCorrectionPacketCoordinate
+  let a : ℂ := zetaCompletedExplicitFormulaPhi f 0
+  have hgram :
+      ZetaHermitianPacketEnsemble.correctionPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) =
+        ZetaHermitianPacketEnsemble.coordinateGram ((c : ℂ) * a) :=
+    zetaCompletedHermitianBoundaryDefect_correctionPacketGram_eq_centeredPolePhiNormSq f
+  have hc_sq_real : c * c = 4 := by
+    exact zetaCompletionCorrectionPacketCoordinate_sq.trans
+      zetaCompletionCorrection_zero_re
+  have hc_sq_complex : (c : ℂ) * (c : ℂ) = (4 : ℂ) := by
+    calc
+      (c : ℂ) * (c : ℂ) = ((c * c : ℝ) : ℂ) := by
+        exact (Complex.ofReal_mul c c).symm
+      _ = (4 : ℂ) := by
+        exact congrArg (fun x : ℝ => (x : ℂ)) hc_sq_real
+  have hc_star : star (c : ℂ) = (c : ℂ) := by
+    exact Complex.conj_ofReal c
+  have hstar : star ((c : ℂ) * a) = (c : ℂ) * star a := by
+    calc
+      star ((c : ℂ) * a) = star a * star (c : ℂ) := by
+        exact star_mul (c : ℂ) a
+      _ = star a * (c : ℂ) := by
+        exact congrArg (fun z : ℂ => star a * z) hc_star
+      _ = (c : ℂ) * star a := by
+        exact mul_comm (star a) (c : ℂ)
+  have hcoord :
+      (ZetaHermitianPacketEnsemble.coordinateGram ((c : ℂ) * a) : ℂ) =
+        (4 : ℂ) * (a * star a) := by
+    calc
+      (ZetaHermitianPacketEnsemble.coordinateGram ((c : ℂ) * a) : ℂ) =
+          ((c : ℂ) * a) * star ((c : ℂ) * a) := by
+        exact (Complex.mul_conj ((c : ℂ) * a)).symm
+      _ = ((c : ℂ) * a) * ((c : ℂ) * star a) := by
+        exact congrArg (fun z : ℂ => ((c : ℂ) * a) * z) hstar
+      _ = ((c : ℂ) * (c : ℂ)) * (a * star a) := by
+        calc
+          ((c : ℂ) * a) * ((c : ℂ) * star a) =
+              (c : ℂ) * (a * ((c : ℂ) * star a)) := by
+            exact mul_assoc (c : ℂ) a ((c : ℂ) * star a)
+          _ = (c : ℂ) * ((a * (c : ℂ)) * star a) := by
+            exact congrArg (fun z : ℂ => (c : ℂ) * z)
+              ((mul_assoc a (c : ℂ) (star a)).symm)
+          _ = (c : ℂ) * (((c : ℂ) * a) * star a) := by
+            exact congrArg (fun z : ℂ => (c : ℂ) * (z * star a))
+              (mul_comm a (c : ℂ))
+          _ = (c : ℂ) * ((c : ℂ) * (a * star a)) := by
+            exact congrArg (fun z : ℂ => (c : ℂ) * z)
+              (mul_assoc (c : ℂ) a (star a))
+          _ = ((c : ℂ) * (c : ℂ)) * (a * star a) := by
+            exact (mul_assoc (c : ℂ) (c : ℂ) (a * star a)).symm
+      _ = (4 : ℂ) * (a * star a) := by
+        exact congrArg (fun z : ℂ => z * (a * star a)) hc_sq_complex
+  calc
+    (ZetaHermitianPacketEnsemble.correctionPacketGram
+        (zetaCompletedHermitianBoundaryDefect f) : ℂ) =
+        (ZetaHermitianPacketEnsemble.coordinateGram ((c : ℂ) * a) : ℂ) := by
+      exact congrArg (fun r : ℝ => (r : ℂ)) hgram
+    _ = (4 : ℂ) * (a * star a) := hcoord
+
+/-- The centered-pole correction contribution on the autocorrelation probe is the Hermitian
+correction packet Gram. This is the downstream correction-normalization owner theorem after
+the correction contribution was changed from the old constant to the centered-pole
+`Φ_f(0)` value. -/
+theorem zetaCompletedExplicitFormulaCorrectionConvolutionContribution_eq_centeredPolePhiPacketGram_ownerGap
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaCorrectionConvolutionContribution f =
+      (ZetaHermitianPacketEnsemble.correctionPacketGram
+        (zetaCompletedHermitianBoundaryDefect f) : ℂ) := by
+  exact (zetaCompletedExplicitFormulaCorrectionConvolutionContribution_eq_four_phi_pair f).trans
+    (zetaCompletedHermitianBoundaryDefect_correctionPacketGram_eq_four_phi_pair f).symm
+
 /-- The correction convolution contribution is real-valued. -/
 theorem zetaCompletedExplicitFormulaCorrectionConvolutionContribution_im_eq_zero
     (f : ZetaAdmissibleFunction) :
     Complex.im (zetaCompletedExplicitFormulaCorrectionConvolutionContribution f) = 0 := by
-  exact Boundary.LFunctions.zetaCompletionCorrection_zero_im
+  calc
+    Complex.im (zetaCompletedExplicitFormulaCorrectionConvolutionContribution f) =
+        Complex.im
+          (ZetaHermitianPacketEnsemble.correctionPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) : ℂ) := by
+      exact congrArg Complex.im
+        (zetaCompletedExplicitFormulaCorrectionConvolutionContribution_eq_centeredPolePhiPacketGram_ownerGap
+          f)
+    _ = 0 := by
+      exact Complex.ofReal_im
+        (ZetaHermitianPacketEnsemble.correctionPacketGram
+          (zetaCompletedHermitianBoundaryDefect f))
 
 /-- Prime-channel two-face/GNS holography. -/
 theorem zetaCompletedExplicitFormulaPrimeConvolutionChannel_holographic_twoFace
@@ -758,30 +914,20 @@ theorem zetaCompletedExplicitFormulaCorrectionConvolutionChannel_holographic
     Complex.re (zetaCompletedExplicitFormulaCorrectionConvolutionContribution f) =
       ZetaHermitianPacketEnsemble.correctionPacketGram
         (zetaCompletedHermitianBoundaryDefect f) := by
-  have hleft :
-      Complex.re (zetaCompletedExplicitFormulaCorrectionConvolutionContribution f) =
-        Complex.re (zetaCompletionCorrection 0) := by
-    rfl
-  have hsquare :
-      Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate *
-          Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate =
-        Complex.re (zetaCompletionCorrection 0) :=
-    Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate_sq
-  have hright :
-      ZetaHermitianPacketEnsemble.correctionPacketGram
-          (zetaCompletedHermitianBoundaryDefect f) =
-        Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate *
-          Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate := by
-    exact zetaCompletedHermitianBoundaryDefect_correctionPacketGram_eq_coordinate_sq f
   calc
     Complex.re (zetaCompletedExplicitFormulaCorrectionConvolutionContribution f) =
-        Complex.re (zetaCompletionCorrection 0) := hleft
-    _ =
-        Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate *
-          Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate := hsquare.symm
+        Complex.re
+          (ZetaHermitianPacketEnsemble.correctionPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) : ℂ) := by
+      exact congrArg Complex.re
+        (zetaCompletedExplicitFormulaCorrectionConvolutionContribution_eq_centeredPolePhiPacketGram_ownerGap
+          f)
     _ =
         ZetaHermitianPacketEnsemble.correctionPacketGram
-          (zetaCompletedHermitianBoundaryDefect f) := hright.symm
+          (zetaCompletedHermitianBoundaryDefect f) := by
+      exact Complex.ofReal_re
+        (ZetaHermitianPacketEnsemble.correctionPacketGram
+          (zetaCompletedHermitianBoundaryDefect f))
 
 /-- Correction completed boundary reconstruction. -/
 theorem zetaCompletedCorrectionBoundaryReconstruction_pairing_eq_gram
@@ -789,18 +935,9 @@ theorem zetaCompletedCorrectionBoundaryReconstruction_pairing_eq_gram
     zetaCompletedExplicitFormulaCorrectionConvolutionContribution f =
       (ZetaHermitianPacketEnsemble.correctionPacketGram
         (zetaCompletedHermitianBoundaryDefect f) : ℂ) := by
-  apply Complex.ext
-  · exact zetaCompletedExplicitFormulaCorrectionConvolutionChannel_holographic f
-  · calc
-      Complex.im (zetaCompletedExplicitFormulaCorrectionConvolutionContribution f) = 0 := by
-        exact zetaCompletedExplicitFormulaCorrectionConvolutionContribution_im_eq_zero f
-      _ =
-          Complex.im
-            (ZetaHermitianPacketEnsemble.correctionPacketGram
-              (zetaCompletedHermitianBoundaryDefect f) : ℂ) := by
-        exact (Complex.ofReal_im
-          (ZetaHermitianPacketEnsemble.correctionPacketGram
-            (zetaCompletedHermitianBoundaryDefect f))).symm
+  exact
+    zetaCompletedExplicitFormulaCorrectionConvolutionContribution_eq_centeredPolePhiPacketGram_ownerGap
+      f
 
 end ZetaAdmissibleFunction
 

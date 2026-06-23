@@ -716,8 +716,8 @@ theorem Complex.finiteAbelPlana_horizontalSubdivisionEndpoint_mem_closedInterval
     Real.lt_one_of_lt_one_div_four hρquarter
   have hzero_le_right : (0 : ℝ) ≤ ((N + 1 : ℕ) : ℝ) := by
     exact Nat.cast_nonneg (N + 1)
-  match Classical.em (i = 0) with
-  | Or.inl hzero =>
+  match (inferInstance : Decidable (i = 0)) with
+  | isTrue hzero =>
     have hendpoint :
         Complex.finiteAbelPlanaHorizontalSubdivisionEndpoint N ρ i = 0 := by
       exact hzero ▸ Complex.finiteAbelPlana_horizontalSubdivisionEndpoint_start N ρ
@@ -727,9 +727,9 @@ theorem Complex.finiteAbelPlana_horizontalSubdivisionEndpoint_mem_closedInterval
           (fun x : ℝ => x ∈ [[(0 : ℝ), ((N + 1 : ℕ) : ℝ)]])
           hendpoint.symm)
         (Set.left_mem_uIcc : (0 : ℝ) ∈ [[(0 : ℝ), ((N + 1 : ℕ) : ℝ)]])
-  | Or.inr hzero_ne =>
-    match Classical.em (i = 2 * N + 3) with
-    | Or.inl hlast =>
+  | isFalse hzero_ne =>
+    match (inferInstance : Decidable (i = 2 * N + 3)) with
+    | isTrue hlast =>
       have hendpoint :
           Complex.finiteAbelPlanaHorizontalSubdivisionEndpoint N ρ i =
             ((N + 1 : ℕ) : ℝ) := by
@@ -741,7 +741,7 @@ theorem Complex.finiteAbelPlana_horizontalSubdivisionEndpoint_mem_closedInterval
             hendpoint.symm)
           (Set.right_mem_uIcc :
             ((N + 1 : ℕ) : ℝ) ∈ [[(0 : ℝ), ((N + 1 : ℕ) : ℝ)]])
-    | Or.inr hlast_ne =>
+    | isFalse hlast_ne =>
       have hilt : i < 2 * N + 3 :=
         lt_of_le_of_ne hi hlast_ne
       let j : ℕ := i - 1
@@ -756,8 +756,8 @@ theorem Complex.finiteAbelPlana_horizontalSubdivisionEndpoint_mem_closedInterval
           Eq.trans
             (Complex.finiteAbelPlana_horizontalSubdivisionEndpoint_unfold N ρ i)
             (Eq.trans (if_neg hzero_ne) (if_neg hlast_ne))
-      match Classical.em (j % 2 = 0) with
-      | Or.inl hmod =>
+      match (inferInstance : Decidable (j % 2 = 0)) with
+      | isTrue hmod =>
         have hendpoint :
             Complex.finiteAbelPlanaHorizontalSubdivisionEndpoint N ρ i =
               ((j / 2 : ℕ) : ℝ) + ρ :=
@@ -795,7 +795,7 @@ theorem Complex.finiteAbelPlana_horizontalSubdivisionEndpoint_mem_closedInterval
               (fun x : ℝ => x ∈ [[(0 : ℝ), ((N + 1 : ℕ) : ℝ)]])
               hendpoint.symm)
             hmem
-      | Or.inr hmod_ne =>
+      | isFalse hmod_ne =>
         have hendpoint :
             Complex.finiteAbelPlanaHorizontalSubdivisionEndpoint N ρ i =
               (((j + 1) / 2 : ℕ) : ℝ) - ρ :=

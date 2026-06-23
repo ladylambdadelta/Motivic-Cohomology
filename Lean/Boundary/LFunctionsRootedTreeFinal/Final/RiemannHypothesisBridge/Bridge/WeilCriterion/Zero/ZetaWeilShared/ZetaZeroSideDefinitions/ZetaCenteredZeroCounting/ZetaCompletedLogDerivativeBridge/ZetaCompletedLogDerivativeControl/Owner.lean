@@ -51,7 +51,11 @@ theorem riemannZetaNegLogDeriv_eq
       - deriv riemannZeta z / riemannZeta z :=
   rfl
 
-/-- A zero-excised vertical strip for the completed zeta logarithmic derivative. -/
+/-- A zero-excised vertical strip carrier for the completed zeta logarithmic derivative.
+
+This is geometric data only: it records the vertical strip and singular-locus exclusions.
+Polynomial logarithmic-derivative bounds are owned by `CompletedZetaNegLogDerivControl`,
+so scheduled carriers can be constructed from avoidance without circular analytic fields. -/
 structure CompletedZetaZeroExcisedStrip (a b : ℝ) where
   carrier : Set ℂ
   in_strip : ∀ z : ℂ, z ∈ carrier → a ≤ z.re ∧ z.re ≤ b
@@ -59,29 +63,172 @@ structure CompletedZetaZeroExcisedStrip (a b : ℝ) where
   ne_one : ∀ z : ℂ, z ∈ carrier → z ≠ 1
   zeta_ne_zero : ∀ z : ℂ, z ∈ carrier → completedRiemannZeta z ≠ 0
   gamma_ne_zero : ∀ z : ℂ, z ∈ carrier → Complex.Gammaℝ z ≠ 0
-  riemann_zeta_negLogDeriv_polynomial_bound :
-    ∀ N : ℕ,
-      ∃ C : ℝ,
-        0 < C ∧
-        ∀ z : ℂ,
-          z ∈ carrier →
-          ‖riemannZetaNegLogDeriv z‖
-            ≤ C * (1 + ‖z.im‖) ^ N
-  inverse_gamma_logDeriv_polynomial_bound :
-    ∀ N : ℕ,
-      ∃ C : ℝ,
-        0 < C ∧
-        ∀ z : ℂ,
-          z ∈ carrier →
-          ‖inverseGammaCompletionLogDeriv z‖
-            ≤ C * (1 + ‖z.im‖) ^ N
+
+/-- A singleton carrier has a polynomial bound for any fixed complex-valued function. -/
+theorem singleton_polynomial_bound
+    (g : ℂ → ℂ) (z₀ : ℂ) (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        z ∈ ({z₀} : Set ℂ) →
+        ‖g z‖ ≤ C * (1 + ‖z.im‖) ^ N := by
+  let C : ℝ := ‖g z₀‖ + 1
+  have hCpos : 0 < C :=
+    add_pos_of_nonneg_of_pos (norm_nonneg (g z₀)) zero_lt_one
+  refine ⟨C, hCpos, ?_⟩
+  intro z hz
+  have hzz₀ : z = z₀ :=
+    Set.eq_of_mem_singleton hz
+  have hnorm_eq : ‖g z‖ = ‖g z₀‖ :=
+    congrArg (fun w : ℂ => ‖g w‖) hzz₀
+  have hnorm_le_C_at_z₀ : ‖g z₀‖ ≤ C :=
+    le_add_of_nonneg_right zero_le_one
+  have hnorm_le_C : ‖g z‖ ≤ C :=
+    Eq.subst
+      (motive := fun y : ℝ => y ≤ C)
+      hnorm_eq.symm
+      hnorm_le_C_at_z₀
+  have hbase : 1 ≤ 1 + ‖z.im‖ :=
+    le_add_of_nonneg_right (norm_nonneg z.im)
+  have hpow : 1 ≤ (1 + ‖z.im‖) ^ N :=
+    one_le_pow₀ hbase
+  have hCnonneg : 0 ≤ C :=
+    le_of_lt hCpos
+  exact hnorm_le_C.trans
+    (le_mul_of_one_le_right hCnonneg hpow)
+
+/-- The singleton zero-excised strip at a point satisfying the zero-excision predicates. -/
+def CompletedZetaZeroExcisedStrip.singleton
+    {a b : ℝ}
+    (z₀ : ℂ)
+    (hz₀_strip : a ≤ z₀.re ∧ z₀.re ≤ b)
+    (hz₀_zero : z₀ ≠ 0)
+    (hz₀_one : z₀ ≠ 1)
+    (hz₀_zeta : completedRiemannZeta z₀ ≠ 0)
+    (hz₀_gamma : Complex.Gammaℝ z₀ ≠ 0) :
+    CompletedZetaZeroExcisedStrip a b :=
+  { carrier := {z₀}
+    in_strip :=
+      fun _z hz =>
+        Eq.subst
+          (motive := fun w : ℂ => a ≤ w.re ∧ w.re ≤ b)
+          (Set.eq_of_mem_singleton hz).symm
+          hz₀_strip
+    ne_zero :=
+      fun _z hz =>
+        Eq.subst
+          (motive := fun w : ℂ => w ≠ 0)
+          (Set.eq_of_mem_singleton hz).symm
+          hz₀_zero
+    ne_one :=
+      fun _z hz =>
+        Eq.subst
+          (motive := fun w : ℂ => w ≠ 1)
+          (Set.eq_of_mem_singleton hz).symm
+          hz₀_one
+    zeta_ne_zero :=
+      fun _z hz =>
+        Eq.subst
+          (motive := fun w : ℂ => completedRiemannZeta w ≠ 0)
+          (Set.eq_of_mem_singleton hz).symm
+          hz₀_zeta
+    gamma_ne_zero :=
+      fun _z hz =>
+        Eq.subst
+          (motive := fun w : ℂ => Complex.Gammaℝ w ≠ 0)
+          (Set.eq_of_mem_singleton hz).symm
+          hz₀_gamma }
+
+/-- The point of a singleton zero-excised strip belongs to its carrier. -/
+theorem CompletedZetaZeroExcisedStrip.mem_singleton
+    {a b : ℝ}
+    (z₀ : ℂ)
+    (hz₀_strip : a ≤ z₀.re ∧ z₀.re ≤ b)
+    (hz₀_zero : z₀ ≠ 0)
+    (hz₀_one : z₀ ≠ 1)
+    (hz₀_zeta : completedRiemannZeta z₀ ≠ 0)
+    (hz₀_gamma : Complex.Gammaℝ z₀ ≠ 0) :
+    z₀ ∈
+      (CompletedZetaZeroExcisedStrip.singleton
+        z₀ hz₀_strip hz₀_zero hz₀_one hz₀_zeta hz₀_gamma).carrier :=
+  Set.mem_singleton z₀
+
+/-- The empty carrier is a zero-excised strip with vacuous polynomial bounds. -/
+def CompletedZetaZeroExcisedStrip.empty
+    (a b : ℝ) :
+    CompletedZetaZeroExcisedStrip a b :=
+  { carrier := ∅
+    in_strip :=
+      fun z hz =>
+        False.elim (Set.not_mem_empty z hz)
+    ne_zero :=
+      fun z hz =>
+        False.elim (Set.not_mem_empty z hz)
+    ne_one :=
+      fun z hz =>
+        False.elim (Set.not_mem_empty z hz)
+    zeta_ne_zero :=
+      fun z hz =>
+        False.elim (Set.not_mem_empty z hz)
+    gamma_ne_zero :=
+      fun z hz =>
+        False.elim (Set.not_mem_empty z hz) }
+
+/-- The union of two zero-excised strips over the same vertical strip is again a
+zero-excised strip. -/
+def CompletedZetaZeroExcisedStrip.union
+    {a b : ℝ}
+    (E₁ E₂ : CompletedZetaZeroExcisedStrip a b) :
+    CompletedZetaZeroExcisedStrip a b :=
+  { carrier := E₁.carrier ∪ E₂.carrier
+    in_strip :=
+      fun z hz =>
+        match (Set.mem_union z E₁.carrier E₂.carrier).mp hz with
+        | Or.inl hz₁ => E₁.in_strip z hz₁
+        | Or.inr hz₂ => E₂.in_strip z hz₂
+    ne_zero :=
+      fun z hz =>
+        match (Set.mem_union z E₁.carrier E₂.carrier).mp hz with
+        | Or.inl hz₁ => E₁.ne_zero z hz₁
+        | Or.inr hz₂ => E₂.ne_zero z hz₂
+    ne_one :=
+      fun z hz =>
+        match (Set.mem_union z E₁.carrier E₂.carrier).mp hz with
+        | Or.inl hz₁ => E₁.ne_one z hz₁
+        | Or.inr hz₂ => E₂.ne_one z hz₂
+    zeta_ne_zero :=
+      fun z hz =>
+        match (Set.mem_union z E₁.carrier E₂.carrier).mp hz with
+        | Or.inl hz₁ => E₁.zeta_ne_zero z hz₁
+        | Or.inr hz₂ => E₂.zeta_ne_zero z hz₂
+    gamma_ne_zero :=
+      fun z hz =>
+        match (Set.mem_union z E₁.carrier E₂.carrier).mp hz with
+        | Or.inl hz₁ => E₁.gamma_ne_zero z hz₁
+        | Or.inr hz₂ => E₂.gamma_ne_zero z hz₂ }
+
+/-- The left component of a zero-excised strip union is contained in the union carrier. -/
+theorem CompletedZetaZeroExcisedStrip.mem_union_left
+    {a b : ℝ}
+    (E₁ E₂ : CompletedZetaZeroExcisedStrip a b)
+    {z : ℂ} (hz : z ∈ E₁.carrier) :
+    z ∈ (CompletedZetaZeroExcisedStrip.union E₁ E₂).carrier :=
+  Set.mem_union_left E₂.carrier hz
+
+/-- The right component of a zero-excised strip union is contained in the union carrier. -/
+theorem CompletedZetaZeroExcisedStrip.mem_union_right
+    {a b : ℝ}
+    (E₁ E₂ : CompletedZetaZeroExcisedStrip a b)
+    {z : ℂ} (hz : z ∈ E₂.carrier) :
+    z ∈ (CompletedZetaZeroExcisedStrip.union E₁ E₂).carrier :=
+  Set.mem_union_right E₁.carrier hz
 
 /-- Pointwise compatibility between the completed zeta-side factor and the ordinary
 Riemann-zeta logarithmic derivative. -/
 theorem zetaSideNegLogDeriv_eq_riemannZetaNegLogDeriv
     {z : ℂ}
     (hz0 : z ≠ 0)
-    (hΛ : completedRiemannZeta z ≠ 0)
+    (_hΛ : completedRiemannZeta z ≠ 0)
     (hΓ : Complex.Gammaℝ z ≠ 0) :
     zetaSideNegLogDeriv z = riemannZetaNegLogDeriv z := by
   have hderiv :
@@ -110,120 +257,6 @@ theorem zetaSideNegLogDeriv_eq_riemannZetaNegLogDeriv_of_mem_zeroExcisedStrip
     (E.ne_zero z hz)
     (E.zeta_ne_zero z hz)
     (E.gamma_ne_zero z hz)
-
-/-- Polynomial strip growth for the ordinary Riemann-zeta logarithmic derivative on a
-zero-excised completed strip. -/
-theorem riemannZetaNegLogDeriv_zeroFreeVerticalStripPolynomialBound
-    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ z : ℂ,
-        z ∈ E.carrier →
-        ‖riemannZetaNegLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ N := by
-  exact E.riemann_zeta_negLogDeriv_polynomial_bound N
-
-/-- Completed-strip form of ordinary zeta logarithmic derivative polynomial growth. -/
-theorem riemannZetaNegLogDeriv_zeroExcisedPolynomialStripBound
-    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ z : ℂ,
-        z ∈ E.carrier →
-        ‖riemannZetaNegLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ N :=
-  riemannZetaNegLogDeriv_zeroFreeVerticalStripPolynomialBound a b E N
-
-/-- Polynomial strip growth for the zeta-side logarithmic derivative. -/
-theorem zetaSideNegLogDeriv_zeroExcisedPolynomialStripBound
-    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ z : ℂ,
-        z ∈ E.carrier →
-        ‖zetaSideNegLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ N := by
-  rcases riemannZetaNegLogDeriv_zeroExcisedPolynomialStripBound a b E N with
-    ⟨C, hCpos, hCbound⟩
-  refine ⟨C, hCpos, ?_⟩
-  intro z hz
-  have heq :
-      zetaSideNegLogDeriv z = riemannZetaNegLogDeriv z :=
-    zetaSideNegLogDeriv_eq_riemannZetaNegLogDeriv_of_mem_zeroExcisedStrip
-      a b E z hz
-  exact Eq.subst
-    (motive := fun w : ℂ => ‖w‖ ≤ C * (1 + ‖z.im‖) ^ N)
-    heq.symm
-    (hCbound z hz)
-
-/-- Stirling polynomial control for the inverse-Gamma logarithmic derivative on a fixed
-vertical strip away from the Gamma singular locus. -/
-theorem inverseGammaCompletionLogDeriv_stirlingVerticalStripBound
-    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ z : ℂ,
-        z ∈ E.carrier →
-        ‖inverseGammaCompletionLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ N := by
-  exact E.inverse_gamma_logDeriv_polynomial_bound N
-
-/-- Polynomial strip growth for the inverse-Gamma logarithmic derivative, by the
-Stirling/asymptotic control of the archimedean completion factor. -/
-theorem inverseGammaCompletionLogDeriv_stirlingPolynomialStripBound
-    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ z : ℂ,
-        z ∈ E.carrier →
-        ‖inverseGammaCompletionLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ N :=
-  inverseGammaCompletionLogDeriv_stirlingVerticalStripBound a b E N
-
-/-- Polynomial strip growth for the inverse-Gamma completion logarithmic derivative. -/
-theorem inverseGammaCompletionLogDeriv_zeroExcisedPolynomialStripBound
-    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ z : ℂ,
-        z ∈ E.carrier →
-        ‖inverseGammaCompletionLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ N :=
-  inverseGammaCompletionLogDeriv_stirlingPolynomialStripBound a b E N
-
-/-- Polynomial strip growth for the zeta-side logarithmic derivative. -/
-theorem zetaSideNegLogDeriv_polynomialStripBound
-    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ z : ℂ,
-        z ∈ E.carrier →
-        ‖zetaSideNegLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ N :=
-  zetaSideNegLogDeriv_zeroExcisedPolynomialStripBound a b E N
-
-/-- Polynomial strip growth for the archimedean completion logarithmic derivative. -/
-theorem gammaCompletionLogDeriv_polynomialStripBound
-    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ z : ℂ,
-        z ∈ E.carrier →
-        ‖deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z / (Complex.Gammaℝ z)⁻¹‖
-          ≤ C * (1 + ‖z.im‖) ^ N := by
-  rcases inverseGammaCompletionLogDeriv_zeroExcisedPolynomialStripBound a b E N with
-    ⟨C, hCpos, hCbound⟩
-  refine ⟨C, hCpos, ?_⟩
-  intro z hz
-  have hgamma :
-      inverseGammaCompletionLogDeriv z =
-        deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z / (Complex.Gammaℝ z)⁻¹ :=
-    inverseGammaCompletionLogDeriv_eq z
-  exact Eq.subst
-    (motive := fun w : ℂ =>
-      ‖w‖ ≤ C * (1 + ‖z.im‖) ^ N)
-    hgamma
-    (hCbound z hz)
 
 /-- The completed negative log-derivative is bounded by the zeta-side and archimedean
 completion logarithmic derivative bounds on vertical strips. -/
@@ -303,37 +336,6 @@ theorem completedZetaNegLogDeriv_polynomialStripBound_of_zetaSide_and_gamma
     exact (add_mul Czeta Cgamma ((1 + ‖z.im‖) ^ N)).symm
   exact hnorm_split.trans (hbounds.trans_eq hfactor)
 
-/-- The completed negative logarithmic derivative has polynomial growth on the canonical
-zero-excised strip region. -/
-theorem completedZetaNegLogDeriv_zeroExcisedPolynomialStripBound
-    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ z : ℂ,
-        z ∈ E.carrier →
-        ‖completedZetaNegLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ N := by
-  exact completedZetaNegLogDeriv_polynomialStripBound_of_zetaSide_and_gamma
-    a b E N
-    (zetaSideNegLogDeriv_polynomialStripBound a b E N)
-    (gammaCompletionLogDeriv_polynomialStripBound a b E N)
-
-/-- Honest polynomial growth form for the completed negative logarithmic derivative.
-
-The logarithmic derivative has some finite polynomial growth degree on a zero-excised
-vertical strip; downstream rapid-decay arguments should absorb this degree rather than
-requiring bounds of every requested degree. -/
-theorem completedZetaNegLogDeriv_zeroExcisedPolynomialGrowth
-    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) :
-    ∃ K : ℕ,
-      ∃ C : ℝ,
-        0 < C ∧
-        ∀ z : ℂ,
-          z ∈ E.carrier →
-          ‖completedZetaNegLogDeriv z‖
-            ≤ C * (1 + ‖z.im‖) ^ K := by
-  exact ⟨1, completedZetaNegLogDeriv_zeroExcisedPolynomialStripBound a b E 1⟩
-
 /-- Strip control data for the completed zeta negative logarithmic derivative. -/
 structure CompletedZetaNegLogDerivControl (f : ZetaAdmissibleFunction) where
   /-- Fixed-degree polynomial growth for the completed negative log derivative on a
@@ -356,6 +358,22 @@ structure CompletedZetaNegLogDerivControl (f : ZetaAdmissibleFunction) where
             z ∈ E.carrier →
             ‖completedZetaNegLogDeriv z‖
               ≤ C * (1 + ‖z.im‖) ^ N
+  /-- A concrete polynomial-growth constant for each zero-excised strip and degree. -/
+  zero_excised_polynomial_strip_bound_constant :
+    ∀ (a b : ℝ), CompletedZetaZeroExcisedStrip a b → ℕ → ℝ
+  /-- The concrete zero-excised strip-bound constant is positive. -/
+  zero_excised_polynomial_strip_bound_constant_pos :
+    ∀ (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ),
+      0 < zero_excised_polynomial_strip_bound_constant a b E N
+  /-- The concrete zero-excised strip-bound constant bounds the completed negative
+  logarithmic derivative on the excised carrier. -/
+  zero_excised_polynomial_strip_bound_constant_bound :
+    ∀ (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ)
+      (z : ℂ),
+      z ∈ E.carrier →
+      ‖completedZetaNegLogDeriv z‖ ≤
+        zero_excised_polynomial_strip_bound_constant a b E N *
+          (1 + ‖z.im‖) ^ N
 
 /-- The strip-control package exposes fixed-degree zero-excised polynomial growth. -/
 theorem CompletedZetaNegLogDerivControl.zeroExcisedPolynomialGrowth
@@ -382,20 +400,20 @@ theorem CompletedZetaNegLogDerivControl.zeroExcisedStripBound
           ≤ C * (1 + ‖z.im‖) ^ N := by
   exact h.zero_excised_polynomial_strip_bound a b E N
 
-/-- The chosen zero-excised strip-bound constant. -/
-noncomputable def CompletedZetaNegLogDerivControl.zeroExcisedStripBoundConstant
+/-- The recorded zero-excised strip-bound constant. -/
+def CompletedZetaNegLogDerivControl.zeroExcisedStripBoundConstant
     {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f)
     (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) : ℝ :=
-  Classical.choose (h.zeroExcisedStripBound a b E N)
+  h.zero_excised_polynomial_strip_bound_constant a b E N
 
-/-- The chosen zero-excised strip-bound constant is positive. -/
+/-- The recorded zero-excised strip-bound constant is positive. -/
 theorem CompletedZetaNegLogDerivControl.zeroExcisedStripBoundConstant_pos
     {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f)
     (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
     0 < h.zeroExcisedStripBoundConstant a b E N :=
-  (Classical.choose_spec (h.zeroExcisedStripBound a b E N)).1
+  h.zero_excised_polynomial_strip_bound_constant_pos a b E N
 
-/-- The chosen zero-excised strip-bound constant bounds the completed negative
+/-- The recorded zero-excised strip-bound constant bounds the completed negative
 logarithmic derivative on the excised carrier. -/
 theorem CompletedZetaNegLogDerivControl.zeroExcisedStripBoundConstant_bound
     {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f)
@@ -403,10 +421,10 @@ theorem CompletedZetaNegLogDerivControl.zeroExcisedStripBoundConstant_bound
     (z : ℂ) (hz : z ∈ E.carrier) :
     ‖completedZetaNegLogDeriv z‖ ≤
       h.zeroExcisedStripBoundConstant a b E N * (1 + ‖z.im‖) ^ N :=
-  (Classical.choose_spec (h.zeroExcisedStripBound a b E N)).2 z hz
+  h.zero_excised_polynomial_strip_bound_constant_bound a b E N z hz
 
 /-- The completed negative log-derivative control is the owner-level strip package. -/
-def CompletedZetaNegLogDerivControlPackage (f : ZetaAdmissibleFunction) : Prop :=
+def CompletedZetaNegLogDerivControlPackage (f : ZetaAdmissibleFunction) : Type :=
   CompletedZetaNegLogDerivControl f
 
 /-- The package is exactly the strip-control data. -/

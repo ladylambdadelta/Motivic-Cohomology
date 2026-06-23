@@ -38,9 +38,9 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_and_vertical_stirling_bound
                 (1 + ‖b‖) ^ (1 / 2 - a)) := fun hbranch => by
   exact
     ⟨(Complex.Gamma_closedRightHalfPlane_sectorial_stirling_expansion_with_vertical_bounds_classical
-        hbranch).2.1,
+        hbranch (fun H => inferInstance) (fun H b => inferInstance)).2.1,
       (Complex.Gamma_closedRightHalfPlane_sectorial_stirling_expansion_with_vertical_bounds_classical
-        hbranch).2.2⟩
+        hbranch (fun H => inferInstance) (fun H b => inferInstance)).2.2⟩
 
 /-- Standard sectorial logarithmic Stirling for `Complex.Gamma` in the closed right half-plane.
 
@@ -831,6 +831,471 @@ theorem Gammaℝ_rightCriticalStrip_verticalTail_stirling_growth_bound :
       exact
         ⟨A, B, m, hA, hB, fun z hz0 _hz2 hzim =>
           hbound z hz0 (one_le_norm_of_one_le_norm_im hzim)⟩
+
+/-- The `π ^ (-z / 2)` normalization has norm at most `1` on
+`0 ≤ Re z`. -/
+theorem pi_cpow_neg_halfArgument_norm_le_one
+    {z : ℂ}
+    (hz_re_nonneg : 0 ≤ z.re) :
+    ‖((π : ℂ) ^ (-z / 2 : ℂ))‖ ≤ 1 := by
+  let P : ℂ := (π : ℂ) ^ (-z / 2 : ℂ)
+  have hpi_pos : (0 : ℝ) < π := Real.pi_pos
+  have hpi_one_le : (1 : ℝ) ≤ π := by
+    have hone_lt_three : (1 : ℝ) < 3 :=
+      Nat.one_lt_ofNat
+    exact le_of_lt (lt_trans hone_lt_three Real.pi_gt_three)
+  have hnorm_eq : ‖P‖ = π ^ (-z / 2 : ℂ).re := by
+    calc
+      ‖P‖ = Complex.abs P := Complex.norm_eq_abs P
+      _ = π ^ (-z / 2 : ℂ).re :=
+        Complex.abs_cpow_eq_rpow_re_of_pos hpi_pos (-z / 2 : ℂ)
+  have hre_neg_half : (-z / 2 : ℂ).re = -z.re / 2 :=
+    neg_halfArgument_re_eq_neg_re_div_two z
+  have hre_nonpos : (-z / 2 : ℂ).re ≤ 0 := by
+    have hneg_re_nonpos : -z.re ≤ 0 :=
+      neg_nonpos.mpr hz_re_nonneg
+    have htwo_nonneg : (0 : ℝ) ≤ 2 :=
+      zero_le_two
+    calc
+      (-z / 2 : ℂ).re = -z.re / 2 := hre_neg_half
+      _ ≤ 0 / 2 := div_le_div_of_nonneg_right hneg_re_nonpos htwo_nonneg
+      _ = 0 := zero_div 2
+  have hrpow_le_one : π ^ (-z / 2 : ℂ).re ≤ 1 :=
+    Real.rpow_le_one_of_one_le_of_nonpos hpi_one_le hre_nonpos
+  calc
+    ‖((π : ℂ) ^ (-z / 2 : ℂ))‖ = ‖P‖ := rfl
+    _ = π ^ (-z / 2 : ℂ).re := hnorm_eq
+    _ ≤ 1 := hrpow_le_one
+
+/-- Closed-boundary vertical-tail Stirling bound for `Gammaℝ` on
+`0 ≤ Re z ≤ 1`. -/
+theorem Gammaℝ_closedRightCriticalStrip_verticalTail_stirling_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 1 →
+        1 ≤ ‖z.im‖ →
+          ‖Complex.Gammaℝ z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  match Complex.Gamma_zero_half_strip_verticalTail_finiteOrder_bound hbranch with
+  | ⟨AΓ, BΓ, mΓ, hAΓ_pos, hBΓ_pos, hΓ_bound⟩ =>
+      exact
+        ⟨AΓ, BΓ, mΓ, hAΓ_pos, hBΓ_pos,
+          fun z hz_re_nonneg hz_re_le_one hz_im_tail =>
+            have hw_re_nonneg : 0 ≤ (z / 2 : ℂ).re :=
+              halfArgument_re_nonneg_of_re_nonneg hz_re_nonneg
+            have hw_re_half : (z / 2 : ℂ).re ≤ (1 / 2 : ℝ) := by
+              have hdiv : (z / 2 : ℂ).re = z.re / 2 :=
+                RCLike.div_re_ofReal (z := z) (r := (2 : ℝ))
+              have hhalf : z.re / 2 ≤ 1 / 2 :=
+                div_le_div_of_nonneg_right hz_re_le_one zero_le_two
+              calc
+                (z / 2 : ℂ).re = z.re / 2 := hdiv
+                _ ≤ 1 / 2 := hhalf
+            have hw_im_tail : (1 / 2 : ℝ) ≤ ‖(z / 2 : ℂ).im‖ := by
+              have him : (z / 2 : ℂ).im = z.im / 2 :=
+                Complex.div_ofNat_im z 2
+              have hnorm_div : ‖z.im / 2‖ = ‖z.im‖ / 2 := by
+                calc
+                  ‖z.im / 2‖ = ‖z.im‖ / ‖(2 : ℝ)‖ := norm_div z.im 2
+                  _ = ‖z.im‖ / 2 := by
+                    exact congrArg (fun u : ℝ => ‖z.im‖ / u)
+                      (Real.norm_of_nonneg zero_le_two)
+              have htail_div : (1 / 2 : ℝ) ≤ ‖z.im‖ / 2 := by
+                have htwo_pos : (0 : ℝ) < 2 := two_pos
+                calc
+                  (1 / 2 : ℝ) = 1 / 2 := rfl
+                  _ ≤ ‖z.im‖ / 2 :=
+                    div_le_div_of_nonneg_right hz_im_tail (le_of_lt htwo_pos)
+              calc
+                (1 / 2 : ℝ) ≤ ‖z.im‖ / 2 := htail_div
+                _ = ‖z.im / 2‖ := hnorm_div.symm
+                _ = ‖(z / 2 : ℂ).im‖ := congrArg norm him.symm
+            have hΓ :
+                ‖Complex.Gamma (z / 2)‖ ≤
+                  AΓ * Real.exp (BΓ * (1 + ‖z / 2‖) ^ mΓ) :=
+              hΓ_bound (z / 2) hw_re_nonneg hw_re_half hw_im_tail
+            have hπ :
+                ‖((π : ℂ) ^ (-z / 2 : ℂ))‖ ≤ 1 :=
+              pi_cpow_neg_halfArgument_norm_le_one hz_re_nonneg
+            have hfactor :
+                ‖Complex.Gammaℝ z‖ =
+                  ‖((π : ℂ) ^ (-z / 2 : ℂ))‖ *
+                    ‖Complex.Gamma (z / 2)‖ :=
+              norm_Gammaℝ_eq_norm_pi_mul_norm_complexGamma_half z
+            have hproduct :
+                ‖((π : ℂ) ^ (-z / 2 : ℂ))‖ *
+                    ‖Complex.Gamma (z / 2)‖ ≤
+                  1 * (AΓ * Real.exp (BΓ * (1 + ‖z / 2‖) ^ mΓ)) :=
+              mul_le_mul hπ hΓ
+                (norm_nonneg (Complex.Gamma (z / 2)))
+                zero_le_one
+            have hhalf_norm_le : ‖z / 2‖ ≤ ‖z‖ := by
+              have hnorm_div : ‖z / 2‖ = ‖z‖ / ‖(2 : ℂ)‖ :=
+                norm_div z 2
+              have htwo_norm : ‖(2 : ℂ)‖ = (2 : ℝ) := by
+                calc
+                  ‖(2 : ℂ)‖ = ‖(2 : ℝ)‖ := Complex.norm_real 2
+                  _ = (2 : ℝ) := Real.norm_of_nonneg zero_le_two
+              have hdiv_le : ‖z‖ / 2 ≤ ‖z‖ := by
+                exact div_le_self (norm_nonneg z) one_le_two
+              calc
+                ‖z / 2‖ = ‖z‖ / ‖(2 : ℂ)‖ := hnorm_div
+                _ = ‖z‖ / 2 := congrArg (fun u : ℝ => ‖z‖ / u) htwo_norm
+                _ ≤ ‖z‖ := hdiv_le
+            have hbase_le : 1 + ‖z / 2‖ ≤ 1 + ‖z‖ :=
+              add_le_add_left hhalf_norm_le 1
+            have hbase_nonneg : 0 ≤ 1 + ‖z / 2‖ :=
+              le_trans zero_le_one
+                (le_add_of_nonneg_right (norm_nonneg (z / 2)))
+            have hpow_le :
+                (1 + ‖z / 2‖) ^ mΓ ≤ (1 + ‖z‖) ^ mΓ :=
+              pow_le_pow_left₀ hbase_nonneg hbase_le mΓ
+            have hexponent_le :
+                BΓ * (1 + ‖z / 2‖) ^ mΓ ≤
+                  BΓ * (1 + ‖z‖) ^ mΓ :=
+              mul_le_mul_of_nonneg_left hpow_le (le_of_lt hBΓ_pos)
+            have hexp_le :
+                Real.exp (BΓ * (1 + ‖z / 2‖) ^ mΓ) ≤
+                  Real.exp (BΓ * (1 + ‖z‖) ^ mΓ) :=
+              Real.exp_le_exp.mpr hexponent_le
+            have hscaled_exp :
+                AΓ * Real.exp (BΓ * (1 + ‖z / 2‖) ^ mΓ) ≤
+                  AΓ * Real.exp (BΓ * (1 + ‖z‖) ^ mΓ) :=
+              mul_le_mul_of_nonneg_left hexp_le (le_of_lt hAΓ_pos)
+            calc
+              ‖Complex.Gammaℝ z‖ =
+                  ‖((π : ℂ) ^ (-z / 2 : ℂ))‖ *
+                    ‖Complex.Gamma (z / 2)‖ := hfactor
+              _ ≤ 1 * (AΓ * Real.exp (BΓ * (1 + ‖z / 2‖) ^ mΓ)) :=
+                hproduct
+              _ = AΓ * Real.exp (BΓ * (1 + ‖z / 2‖) ^ mΓ) :=
+                one_mul (AΓ * Real.exp (BΓ * (1 + ‖z / 2‖) ^ mΓ))
+              _ ≤ AΓ * Real.exp (BΓ * (1 + ‖z‖) ^ mΓ) :=
+                hscaled_exp⟩
+
+/-- Closed-boundary vertical-tail Stirling bound for the reflected numerator
+`Gammaℝ (1 - z)` on `0 ≤ Re z ≤ 1`. -/
+theorem Gammaℝ_one_sub_zeroOneStrip_verticalTail_stirling_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 1 →
+        1 ≤ ‖z.im‖ →
+          ‖Complex.Gammaℝ ((1 : ℂ) - z)‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  match Gammaℝ_closedRightCriticalStrip_verticalTail_stirling_growth_bound hbranch with
+  | ⟨A, B, m, hA_pos, hB_pos, hbound⟩ =>
+      let B' : ℝ := B * (2 : ℝ) ^ m
+      have htwo_pow_pos : 0 < (2 : ℝ) ^ m :=
+        pow_pos two_pos m
+      have hB'_pos : 0 < B' :=
+        mul_pos hB_pos htwo_pow_pos
+      exact
+        ⟨A, B', m, hA_pos, hB'_pos,
+          fun z hz_re_nonneg hz_re_le_one hz_im_tail =>
+            have hs_re_eq :
+                ((1 : ℂ) - z).re = 1 - z.re := by
+              calc
+                ((1 : ℂ) - z).re = (1 : ℂ).re - z.re :=
+                  Complex.sub_re (1 : ℂ) z
+                _ = 1 - z.re :=
+                  congrArg (fun u : ℝ => u - z.re) Complex.one_re
+            have hs_re_nonneg : 0 ≤ ((1 : ℂ) - z).re := by
+              calc
+                0 ≤ 1 - z.re := sub_nonneg.mpr hz_re_le_one
+                _ = ((1 : ℂ) - z).re := hs_re_eq.symm
+            have hs_re_le_one : ((1 : ℂ) - z).re ≤ 1 := by
+              calc
+                ((1 : ℂ) - z).re = 1 - z.re := hs_re_eq
+                _ ≤ 1 := sub_le_self 1 hz_re_nonneg
+            have hs_im_eq :
+                ((1 : ℂ) - z).im = -z.im := by
+              calc
+                ((1 : ℂ) - z).im = (1 : ℂ).im - z.im :=
+                  Complex.sub_im (1 : ℂ) z
+                _ = 0 - z.im :=
+                  congrArg (fun u : ℝ => u - z.im) Complex.one_im
+                _ = -z.im := zero_sub z.im
+            have hs_im_tail : 1 ≤ ‖((1 : ℂ) - z).im‖ := by
+              calc
+                1 ≤ ‖z.im‖ := hz_im_tail
+                _ = ‖-z.im‖ := (norm_neg z.im).symm
+                _ = ‖((1 : ℂ) - z).im‖ := congrArg norm hs_im_eq.symm
+            have hs_bound :
+                ‖Complex.Gammaℝ ((1 : ℂ) - z)‖ ≤
+                  A * Real.exp (B * (1 + ‖(1 : ℂ) - z‖) ^ m) :=
+              hbound ((1 : ℂ) - z) hs_re_nonneg hs_re_le_one hs_im_tail
+            have hnorm_one : ‖(1 : ℂ)‖ = (1 : ℝ) := by
+              calc
+                ‖(1 : ℂ)‖ = ‖(1 : ℝ)‖ := Complex.norm_real 1
+                _ = (1 : ℝ) := Real.norm_of_nonneg zero_le_one
+            have hnorm_one_sub : ‖(1 : ℂ) - z‖ ≤ 1 + ‖z‖ := by
+              calc
+                ‖(1 : ℂ) - z‖ ≤ ‖(1 : ℂ)‖ + ‖z‖ :=
+                  norm_sub_le (1 : ℂ) z
+                _ = 1 + ‖z‖ :=
+                  congrArg (fun u : ℝ => u + ‖z‖) hnorm_one
+            let H : ℝ := 1 + ‖z‖
+            have hH_nonneg : 0 ≤ H :=
+              le_trans zero_le_one
+                (le_add_of_nonneg_right (norm_nonneg z))
+            have hbase_sub_le : 1 + ‖(1 : ℂ) - z‖ ≤ 2 * H := by
+              calc
+                1 + ‖(1 : ℂ) - z‖ ≤ 1 + (1 + ‖z‖) :=
+                  add_le_add_left hnorm_one_sub 1
+                _ = 2 + ‖z‖ := by
+                  exact (add_assoc 1 1 ‖z‖).symm.trans
+                    (congrArg (fun u : ℝ => u + ‖z‖) one_add_one_eq_two)
+                _ ≤ 2 * H := by
+                  calc
+                    2 + ‖z‖ ≤ 2 + 2 * ‖z‖ := by
+                      exact add_le_add_left
+                        (le_mul_of_one_le_left (norm_nonneg z) one_le_two) 2
+                    _ = 2 * H := by
+                      calc
+                        2 + 2 * ‖z‖ = 2 * 1 + 2 * ‖z‖ := by
+                          exact congrArg (fun u : ℝ => u + 2 * ‖z‖)
+                            (mul_one 2).symm
+                        _ = 2 * (1 + ‖z‖) := (mul_add 2 1 ‖z‖).symm
+                        _ = 2 * H := rfl
+            have hbase_sub_nonneg : 0 ≤ 1 + ‖(1 : ℂ) - z‖ :=
+              le_trans zero_le_one
+                (le_add_of_nonneg_right (norm_nonneg ((1 : ℂ) - z)))
+            have hpow_le :
+                (1 + ‖(1 : ℂ) - z‖) ^ m ≤ (2 * H) ^ m :=
+              pow_le_pow_left₀ hbase_sub_nonneg hbase_sub_le m
+            have htwoH_pow :
+                (2 * H) ^ m = (2 : ℝ) ^ m * H ^ m :=
+              mul_pow 2 H m
+            have hpow_scaled :
+                (1 + ‖(1 : ℂ) - z‖) ^ m ≤ (2 : ℝ) ^ m * H ^ m :=
+              le_trans hpow_le (le_of_eq htwoH_pow)
+            have hexponent_le :
+                B * (1 + ‖(1 : ℂ) - z‖) ^ m ≤ B' * H ^ m := by
+              calc
+                B * (1 + ‖(1 : ℂ) - z‖) ^ m ≤
+                    B * ((2 : ℝ) ^ m * H ^ m) :=
+                  mul_le_mul_of_nonneg_left hpow_scaled (le_of_lt hB_pos)
+                _ = B' * H ^ m := by
+                  calc
+                    B * ((2 : ℝ) ^ m * H ^ m) =
+                        (B * (2 : ℝ) ^ m) * H ^ m :=
+                      (mul_assoc B ((2 : ℝ) ^ m) (H ^ m)).symm
+                    _ = B' * H ^ m := rfl
+            have hexp_le :
+                Real.exp (B * (1 + ‖(1 : ℂ) - z‖) ^ m) ≤
+                  Real.exp (B' * H ^ m) :=
+              Real.exp_le_exp.mpr hexponent_le
+            have hscaled_exp :
+                A * Real.exp (B * (1 + ‖(1 : ℂ) - z‖) ^ m) ≤
+                  A * Real.exp (B' * H ^ m) :=
+              mul_le_mul_of_nonneg_left hexp_le (le_of_lt hA_pos)
+            calc
+              ‖Complex.Gammaℝ ((1 : ℂ) - z)‖ ≤
+                  A * Real.exp (B * (1 + ‖(1 : ℂ) - z‖) ^ m) :=
+                hs_bound
+              _ ≤ A * Real.exp (B' * H ^ m) := hscaled_exp⟩
+
+/-- The reciprocal `π ^ (-z / 2)` normalization is uniformly bounded on
+`0 ≤ Re z ≤ 1`. -/
+theorem pi_cpow_neg_halfArgument_inv_norm_le_pi
+    {z : ℂ}
+    (hz_re_nonneg : 0 ≤ z.re)
+    (hz_re_le_one : z.re ≤ 1) :
+    ‖((π : ℂ) ^ (-z / 2 : ℂ))⁻¹‖ ≤ π := by
+  let P : ℂ := (π : ℂ) ^ (-z / 2 : ℂ)
+  have hpi_pos : (0 : ℝ) < π := Real.pi_pos
+  have hpi_one_le : (1 : ℝ) ≤ π := by
+    have hone_lt_three : (1 : ℝ) < 3 :=
+      Nat.one_lt_ofNat
+    exact le_of_lt (lt_trans hone_lt_three Real.pi_gt_three)
+  have hnorm_eq : ‖P‖ = π ^ (-z / 2 : ℂ).re := by
+    calc
+      ‖P‖ = Complex.abs P := Complex.norm_eq_abs P
+      _ = π ^ (-z / 2 : ℂ).re :=
+        Complex.abs_cpow_eq_rpow_re_of_pos hpi_pos (-z / 2 : ℂ)
+  have hP_norm_pos : 0 < ‖P‖ := by
+    exact hnorm_eq ▸ Real.rpow_pos_of_pos hpi_pos (-z / 2 : ℂ).re
+  have hinv_norm_eq : ‖P⁻¹‖ = ‖P‖⁻¹ :=
+    norm_inv P
+  have hre_neg_half : (-z / 2 : ℂ).re = -z.re / 2 :=
+    neg_halfArgument_re_eq_neg_re_div_two z
+  have hnorm_inv_rpow :
+      ‖P‖⁻¹ = π ^ (z.re / 2) := by
+    have hpow_neg :
+        π ^ (z.re / 2) = (π ^ (-z.re / 2))⁻¹ := by
+      have hneg : z.re / 2 = -(-z.re / 2) := by
+        have hneg_div : -(z.re / 2) = -z.re / 2 :=
+          neg_div z.re 2
+        exact Eq.trans (neg_neg (z.re / 2)).symm
+          (congrArg Neg.neg hneg_div)
+      exact Eq.trans
+        (congrArg (fun u : ℝ => π ^ u) hneg)
+        (Real.rpow_neg (le_of_lt hpi_pos) (-z.re / 2))
+    calc
+      ‖P‖⁻¹ = (π ^ (-z / 2 : ℂ).re)⁻¹ :=
+        congrArg Inv.inv hnorm_eq
+      _ = (π ^ (-z.re / 2))⁻¹ :=
+        congrArg Inv.inv (congrArg (fun u : ℝ => π ^ u) hre_neg_half)
+      _ = π ^ (z.re / 2) := hpow_neg.symm
+  have hre_div_le_one : z.re / 2 ≤ 1 := by
+    have htwo_pos : (0 : ℝ) < 2 := two_pos
+    have hdiv_le_half : z.re / 2 ≤ 1 / 2 :=
+      div_le_div_of_nonneg_right hz_re_le_one (le_of_lt htwo_pos)
+    exact le_trans hdiv_le_half (div_le_self zero_le_one one_le_two)
+  have hrpow_le_pi :
+      π ^ (z.re / 2) ≤ π ^ (1 : ℝ) :=
+    Real.rpow_le_rpow_of_exponent_le hpi_one_le hre_div_le_one
+  calc
+    ‖((π : ℂ) ^ (-z / 2 : ℂ))⁻¹‖ = ‖P⁻¹‖ := rfl
+    _ = ‖P‖⁻¹ := hinv_norm_eq
+    _ = π ^ (z.re / 2) := hnorm_inv_rpow
+    _ ≤ π ^ (1 : ℝ) := hrpow_le_pi
+    _ = π := Real.rpow_one π
+
+/-- Reciprocal finite-order Stirling bound for `Gammaℝ` on the closed
+right critical half-strip. -/
+theorem Gammaℝ_rightCriticalStrip_verticalTail_reciprocal_stirling_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 1 →
+        1 ≤ ‖z.im‖ →
+          ‖(Complex.Gammaℝ z)⁻¹‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  match Complex.Gamma_inv_zero_half_strip_verticalTail_finiteOrder_bound hbranch with
+  | ⟨AΓ, BΓ, mΓ, hAΓ_pos, hBΓ_pos, hΓ_bound⟩ =>
+      let A : ℝ := AΓ * π
+      let B : ℝ := BΓ
+      have hA_pos : 0 < A :=
+        mul_pos hAΓ_pos Real.pi_pos
+      have hB_pos : 0 < B := hBΓ_pos
+      exact
+        ⟨A, B, mΓ, hA_pos, hB_pos,
+          fun z hz_re_nonneg hz_re_le_one hz_im_tail =>
+            have hw_re_nonneg : 0 ≤ (z / 2 : ℂ).re :=
+              halfArgument_re_nonneg_of_re_nonneg hz_re_nonneg
+            have hw_re_half : (z / 2 : ℂ).re ≤ (1 / 2 : ℝ) := by
+              have hdiv : (z / 2 : ℂ).re = z.re / 2 :=
+                RCLike.div_re_ofReal (z := z) (r := (2 : ℝ))
+              have hhalf : z.re / 2 ≤ 1 / 2 :=
+                div_le_div_of_nonneg_right hz_re_le_one zero_le_two
+              calc
+                (z / 2 : ℂ).re = z.re / 2 := hdiv
+                _ ≤ 1 / 2 := hhalf
+            have hw_im_tail : (1 / 2 : ℝ) ≤ ‖(z / 2 : ℂ).im‖ := by
+              have him : (z / 2 : ℂ).im = z.im / 2 :=
+                Complex.div_ofNat_im z 2
+              have hnorm_div : ‖z.im / 2‖ = ‖z.im‖ / 2 := by
+                calc
+                  ‖z.im / 2‖ = ‖z.im‖ / ‖(2 : ℝ)‖ := norm_div z.im 2
+                  _ = ‖z.im‖ / 2 := by
+                    exact congrArg (fun u : ℝ => ‖z.im‖ / u)
+                      (Real.norm_of_nonneg zero_le_two)
+              have htail_div : (1 / 2 : ℝ) ≤ ‖z.im‖ / 2 := by
+                have htwo_pos : (0 : ℝ) < 2 := two_pos
+                calc
+                  (1 / 2 : ℝ) = 1 / 2 := rfl
+                  _ ≤ ‖z.im‖ / 2 :=
+                    div_le_div_of_nonneg_right hz_im_tail (le_of_lt htwo_pos)
+              calc
+                (1 / 2 : ℝ) ≤ ‖z.im‖ / 2 := htail_div
+                _ = ‖z.im / 2‖ := hnorm_div.symm
+                _ = ‖(z / 2 : ℂ).im‖ := congrArg norm him.symm
+            have hΓ :
+                ‖(Complex.Gamma (z / 2))⁻¹‖ ≤
+                  AΓ * Real.exp (BΓ * (1 + ‖z / 2‖) ^ mΓ) :=
+              hΓ_bound (z / 2) hw_re_nonneg hw_re_half hw_im_tail
+            have hπ :
+                ‖((π : ℂ) ^ (-z / 2 : ℂ))⁻¹‖ ≤ π :=
+              pi_cpow_neg_halfArgument_inv_norm_le_pi
+                hz_re_nonneg hz_re_le_one
+            have hfactor :
+                ‖(Complex.Gammaℝ z)⁻¹‖ =
+                  ‖(Complex.Gamma (z / 2))⁻¹‖ *
+                    ‖((π : ℂ) ^ (-z / 2 : ℂ))⁻¹‖ :=
+              norm_inv_Gammaℝ_eq_norm_inv_complexGamma_half_mul_norm_inv_pi z
+            have hproduct :
+                ‖(Complex.Gamma (z / 2))⁻¹‖ *
+                    ‖((π : ℂ) ^ (-z / 2 : ℂ))⁻¹‖ ≤
+                  (AΓ * Real.exp (BΓ * (1 + ‖z / 2‖) ^ mΓ)) * π :=
+              mul_le_mul hΓ hπ
+                (norm_nonneg (((π : ℂ) ^ (-z / 2 : ℂ))⁻¹))
+                (mul_nonneg (le_of_lt hAΓ_pos)
+                  (le_of_lt (Real.exp_pos (BΓ * (1 + ‖z / 2‖) ^ mΓ))))
+            have hhalf_norm_le : ‖z / 2‖ ≤ ‖z‖ := by
+              have hnorm_div : ‖z / 2‖ = ‖z‖ / ‖(2 : ℂ)‖ :=
+                norm_div z 2
+              have htwo_norm : ‖(2 : ℂ)‖ = (2 : ℝ) := by
+                calc
+                  ‖(2 : ℂ)‖ = ‖(2 : ℝ)‖ := Complex.norm_real 2
+                  _ = (2 : ℝ) := Real.norm_of_nonneg zero_le_two
+              have hdiv_le : ‖z‖ / 2 ≤ ‖z‖ := by
+                exact div_le_self (norm_nonneg z) one_le_two
+              calc
+                ‖z / 2‖ = ‖z‖ / ‖(2 : ℂ)‖ := hnorm_div
+                _ = ‖z‖ / 2 := congrArg (fun u : ℝ => ‖z‖ / u) htwo_norm
+                _ ≤ ‖z‖ := hdiv_le
+            have hbase_le : 1 + ‖z / 2‖ ≤ 1 + ‖z‖ :=
+              add_le_add_left hhalf_norm_le 1
+            have hbase_nonneg : 0 ≤ 1 + ‖z / 2‖ :=
+              le_trans zero_le_one
+                (le_add_of_nonneg_right (norm_nonneg (z / 2)))
+            have hpow_le :
+                (1 + ‖z / 2‖) ^ mΓ ≤ (1 + ‖z‖) ^ mΓ :=
+              pow_le_pow_left₀ hbase_nonneg hbase_le mΓ
+            have hexponent_le :
+                BΓ * (1 + ‖z / 2‖) ^ mΓ ≤
+                  BΓ * (1 + ‖z‖) ^ mΓ :=
+              mul_le_mul_of_nonneg_left hpow_le (le_of_lt hBΓ_pos)
+            have hexp_le :
+                Real.exp (BΓ * (1 + ‖z / 2‖) ^ mΓ) ≤
+                  Real.exp (BΓ * (1 + ‖z‖) ^ mΓ) :=
+              Real.exp_le_exp.mpr hexponent_le
+            have hscaled_exp :
+                (AΓ * Real.exp (BΓ * (1 + ‖z / 2‖) ^ mΓ)) * π ≤
+                  (AΓ * Real.exp (BΓ * (1 + ‖z‖) ^ mΓ)) * π := by
+              have hleft :
+                  AΓ * Real.exp (BΓ * (1 + ‖z / 2‖) ^ mΓ) ≤
+                    AΓ * Real.exp (BΓ * (1 + ‖z‖) ^ mΓ) :=
+                mul_le_mul_of_nonneg_left hexp_le (le_of_lt hAΓ_pos)
+              exact mul_le_mul_of_nonneg_right hleft (le_of_lt Real.pi_pos)
+            have htarget_assoc :
+                (AΓ * Real.exp (BΓ * (1 + ‖z‖) ^ mΓ)) * π =
+                  A * Real.exp (B * (1 + ‖z‖) ^ mΓ) := by
+              calc
+                (AΓ * Real.exp (BΓ * (1 + ‖z‖) ^ mΓ)) * π =
+                    (AΓ * π) * Real.exp (BΓ * (1 + ‖z‖) ^ mΓ) := by
+                  calc
+                    (AΓ * Real.exp (BΓ * (1 + ‖z‖) ^ mΓ)) * π =
+                        AΓ * (Real.exp (BΓ * (1 + ‖z‖) ^ mΓ) * π) :=
+                      mul_assoc AΓ (Real.exp (BΓ * (1 + ‖z‖) ^ mΓ)) π
+                    _ = AΓ * (π * Real.exp (BΓ * (1 + ‖z‖) ^ mΓ)) := by
+                      exact congrArg (fun u : ℝ => AΓ * u)
+                        (mul_comm (Real.exp (BΓ * (1 + ‖z‖) ^ mΓ)) π)
+                    _ = (AΓ * π) * Real.exp (BΓ * (1 + ‖z‖) ^ mΓ) :=
+                      (mul_assoc AΓ π (Real.exp (BΓ * (1 + ‖z‖) ^ mΓ))).symm
+                _ = A * Real.exp (B * (1 + ‖z‖) ^ mΓ) := rfl
+            calc
+              ‖(Complex.Gammaℝ z)⁻¹‖ =
+                  ‖(Complex.Gamma (z / 2))⁻¹‖ *
+                    ‖((π : ℂ) ^ (-z / 2 : ℂ))⁻¹‖ := hfactor
+              _ ≤ (AΓ * Real.exp (BΓ * (1 + ‖z / 2‖) ^ mΓ)) * π :=
+                hproduct
+              _ ≤ (AΓ * Real.exp (BΓ * (1 + ‖z‖) ^ mΓ)) * π :=
+                hscaled_exp
+              _ = A * Real.exp (B * (1 + ‖z‖) ^ mΓ) :=
+                htarget_assoc⟩
 
 end
 end LFunctions

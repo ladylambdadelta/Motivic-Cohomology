@@ -19,6 +19,8 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummand_eq_nonzero_add_origin_po
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {R : ℝ}
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
     (z : EntireFunctionZero F) :
     entireFunctionZeroMultiplicityClosedDiskSummand F hF R z =
       entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z +
@@ -29,6 +31,10 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummable_of_nonzeroClosedDiskSum
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {R : ℝ}
+    [Decidable (F 0 = 0)]
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
+    [DecidableEq (EntireFunctionZero F)]
     (hclosed :
       Summable
         (fun z : EntireFunctionZero F =>
@@ -126,7 +132,9 @@ theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_support_finite
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
-    (R : ℝ) :
+    (R : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)] :
     (Function.support
       (fun z : EntireFunctionZero F =>
         entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)).Finite := by
@@ -154,7 +162,9 @@ theorem entireFunctionJensenRadialGapSummand_support_finite
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
-    (ρ : ℝ) :
+    (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)] :
     (Function.support
       (fun z : EntireFunctionZero F =>
         entireFunctionJensenRadialGapSummand F hF ρ z)).Finite := by
@@ -182,13 +192,18 @@ summand is removed. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisor_closedDiskMultiplicitySummable_ownerRoot
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hF0 : F 0 ≠ 0) :
+    (hF0 : F 0 ≠ 0)
+    [Decidable (F 0 = 0)]
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [DecidableEq (EntireFunctionZero F)] :
     ∀ R : ℝ,
       1 ≤ R →
       Summable
         (fun z : EntireFunctionZero F =>
           entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) := by
   intro R _hR
+  letI : ∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R) :=
+    fun z => inferInstance
   exact summable_of_finite_support
     (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_support_finite
       F hF hF0 R)
@@ -201,13 +216,16 @@ disk of radius `ρ`, counted by analytic multiplicity. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummability_from_finiteZeroDivisor_ownerRoot
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hF0 : F 0 ≠ 0) :
+    (hF0 : F 0 ≠ 0)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)] :
     ∀ ρ : ℝ,
       1 ≤ ρ →
       Summable
         (fun z : EntireFunctionZero F =>
           entireFunctionJensenRadialGapSummand F hF ρ z) := by
   intro ρ _hρ
+  letI : ∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ) :=
+    fun z => inferInstance
   exact summable_of_finite_support
     (entireFunctionJensenRadialGapSummand_support_finite F hF hF0 ρ)
 
@@ -220,6 +238,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFactor_radialCo
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (z : EntireFunctionZero F)
     (hz0 : (z : ℂ) ≠ 0)
     (hzρ : ‖(z : ℂ)‖ < ρ) :
@@ -234,13 +254,15 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFactor_radialCo
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (z : EntireFunctionZero F)
     (hzρ : ¬ ‖(z : ℂ)‖ < ρ) :
     entireFunctionJensenRadialGapSummand F hF ρ z = 0 := by
-  match Decidable.em ((z : ℂ) = 0) with
-  | Or.inl hz0 =>
+  match (inferInstance : Decidable ((z : ℂ) = 0)) with
+  | isTrue hz0 =>
       exact entireFunctionJensenRadialGapSummand_eq_zero_of_zero F hF z hz0
-  | Or.inr hz0 =>
+  | isFalse hz0 =>
       exact entireFunctionJensenRadialGapSummand_eq_zero_of_not_lt F hF z hz0 hzρ
 
 /-- The origin zero is absent from the nonzero-origin Jensen radial-gap sum. -/
@@ -248,6 +270,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_origin_radialContri
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (z : EntireFunctionZero F)
     (hz0 : (z : ℂ) = 0) :
     entireFunctionJensenRadialGapSummand F hF ρ z = 0 := by
@@ -262,6 +286,8 @@ noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_finitePro
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (s : Finset (EntireFunctionZero F)) : ℝ :=
   ∑ z in s, entireFunctionJensenRadialGapSummand F hF ρ z
 
@@ -271,6 +297,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProduct_sum_i
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (s : Finset (EntireFunctionZero F)) :
     entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
         F hF ρ s =
@@ -285,6 +313,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProduct_expli
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (s : Finset (EntireFunctionZero F)) :
     entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
         F hF ρ s =
@@ -323,9 +353,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProduct_expli
         Real.log (ρ / ‖(z : ℂ)‖)
     else
       0)
-  match Decidable.em ((z : ℂ) = 0) with
-  | Or.inl hz0 => exact Eq.trans (dif_pos hz0) (if_pos hz0).symm
-  | Or.inr hz0 => exact Eq.trans (dif_neg hz0) (if_neg hz0).symm
+  match (inferInstance : Decidable ((z : ℂ) = 0)) with
+  | isTrue hz0 => exact Eq.trans (dif_pos hz0) (if_pos hz0).symm
+  | isFalse hz0 => exact Eq.trans (dif_neg hz0) (if_neg hz0).symm
 
 /-- If a finite zero divisor contains the support of the Jensen radial-gap
 summand, the infinite radial-gap sum is the corresponding finite product
@@ -338,6 +368,8 @@ theorem entireFunctionJensenRadialGapSum_eq_finiteProductRadialGapSum_of_support
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (s : Finset (EntireFunctionZero F))
     (hsupport :
       Function.support
@@ -354,10 +386,10 @@ theorem entireFunctionJensenRadialGapSum_eq_finiteProductRadialGapSum_of_support
   exact tsum_eq_sum
     (s := s)
     (fun z hz_not_mem => by
-      match Decidable.em
-          (entireFunctionJensenRadialGapSummand F hF ρ z = 0) with
-      | Or.inl hz_zero => exact hz_zero
-      | Or.inr hz_ne_zero =>
+      match (inferInstance :
+          Decidable (entireFunctionJensenRadialGapSummand F hF ρ z = 0)) with
+      | isTrue hz_zero => exact hz_zero
+      | isFalse hz_ne_zero =>
           have hz_support :
               z ∈ Function.support
                 (fun w : EntireFunctionZero F =>
@@ -375,6 +407,8 @@ theorem entireFunctionJensenRadialGapSum_eq_zero_of_no_nonzero_zeros_in_disk
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (hzero :
       ∀ z : EntireFunctionZero F,
         (z : ℂ) ≠ 0 →
@@ -393,9 +427,9 @@ theorem entireFunctionJensenRadialGapSum_eq_zero_of_no_nonzero_zeros_in_disk
           Real.log (ρ / ‖(z : ℂ)‖)
       else
         0) = 0
-    match Decidable.em ((z : ℂ) = 0) with
-    | Or.inl hz0 => exact dif_pos hz0
-    | Or.inr hz0 => exact Eq.trans (dif_neg hz0) (if_neg (hzero z hz0))
+    match (inferInstance : Decidable ((z : ℂ) = 0)) with
+    | isTrue hz0 => exact dif_pos hz0
+    | isFalse hz0 => exact Eq.trans (dif_neg hz0) (if_neg (hzero z hz0))
   calc
     (∑' z : EntireFunctionZero F,
       entireFunctionJensenRadialGapSummand F hF ρ z)
@@ -412,7 +446,10 @@ noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDis
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
-    (R : ℝ) : Finset (EntireFunctionZero F) :=
+    (R : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)] :
+    Finset (EntireFunctionZero F) :=
   (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_support_finite
     F hF hF0 R).toFinset
 
@@ -422,7 +459,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
-    (R : ℝ) :
+    (R : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)] :
     Function.support
         (fun z : EntireFunctionZero F =>
           entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) ⊆
@@ -443,7 +482,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSummand_h
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
-    (R : ℝ) :
+    (R : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)] :
     HasSum
       (fun z : EntireFunctionZero F =>
         entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)
@@ -458,10 +499,10 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSummand_h
     (f := fun z : EntireFunctionZero F =>
       entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)
     (fun z hz_not_mem => by
-      match Decidable.em
-          (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z = 0) with
-      | Or.inl hz_zero => exact hz_zero
-      | Or.inr hz_ne =>
+      match (inferInstance :
+          Decidable (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z = 0)) with
+      | isTrue hz_zero => exact hz_zero
+      | isFalse hz_ne =>
           have hz_support :
               z ∈ Function.support
                 (fun w : EntireFunctionZero F =>
@@ -483,7 +524,10 @@ noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGap
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
-    (ρ : ℝ) : Finset (EntireFunctionZero F) :=
+    (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)] :
+    Finset (EntireFunctionZero F) :=
   (entireFunctionJensenRadialGapSummand_support_finite F hF hF0 ρ).toFinset
 
 /-- The radial-gap finite divisor contains the support of the Jensen radial-gap
@@ -492,7 +536,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFin
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
-    (ρ : ℝ) :
+    (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)] :
     Function.support
         (fun z : EntireFunctionZero F =>
           entireFunctionJensenRadialGapSummand F hF ρ z) ⊆
@@ -512,7 +558,11 @@ noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDis
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
-    (ρ : ℝ) : Finset (EntireFunctionZero F) :=
+    (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ ρ)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)] :
+    Finset (EntireFunctionZero F) :=
   (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
     F hF hF0 ρ).filter
     (fun z : EntireFunctionZero F => ‖(z : ℂ)‖ < ρ)
@@ -523,7 +573,11 @@ noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDis
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
-    (ρ : ℝ) : Finset (EntireFunctionZero F) :=
+    (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ ρ)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)] :
+    Finset (EntireFunctionZero F) :=
   (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
     F hF hF0 ρ).filter
     (fun z : EntireFunctionZero F => ¬ ‖(z : ℂ)‖ < ρ)
@@ -534,6 +588,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundaryS
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
     (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ ρ)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (z : EntireFunctionZero F)
     (hz :
       z ∈
@@ -552,6 +609,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
     (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ ρ)]
     (z : EntireFunctionZero F)
     (hz :
       z ∈
@@ -580,6 +639,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
     (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ ρ)]
     (z : EntireFunctionZero F)
     (hz :
       z ∈
@@ -606,9 +667,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
     exact hz_nonzero
       (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_eq_zero_of_eq_zero
         F hF z hz0)
-  match Decidable.em (‖(z : ℂ)‖ ≤ ρ) with
-  | Or.inl hle => exact hle
-  | Or.inr hle =>
+  match (inferInstance : Decidable (‖(z : ℂ)‖ ≤ ρ)) with
+  | isTrue hle => exact hle
+  | isFalse hle =>
       exact False.elim
         (hz_nonzero
           (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_eq_zero_of_not_closedDisk
@@ -620,6 +681,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundaryS
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0)
     (ρ : ℝ)
+    [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ ρ)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)]
     (z : EntireFunctionZero F)
     (hz :
       z ∈

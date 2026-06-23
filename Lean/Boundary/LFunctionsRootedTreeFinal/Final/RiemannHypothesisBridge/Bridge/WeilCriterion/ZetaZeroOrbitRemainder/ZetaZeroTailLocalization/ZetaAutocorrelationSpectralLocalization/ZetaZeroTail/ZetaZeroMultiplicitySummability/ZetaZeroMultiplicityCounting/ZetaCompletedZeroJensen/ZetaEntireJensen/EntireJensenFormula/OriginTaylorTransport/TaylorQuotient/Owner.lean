@@ -72,12 +72,7 @@ theorem entireFunction_originTaylorFactor_entireQuotient_ownerRoot
           g 0 ≠ 0 ∧
             ∀ᶠ z in 𝓝 0, F z = (z - 0) ^ m • g z :=
     (hF 0).order_eq_nat_iff m |>.mp horder
-  let g : ℂ → ℂ := Classical.choose hmodel
-  have hg_spec :
-      AnalyticAt ℂ g 0 ∧
-        g 0 ≠ 0 ∧
-          ∀ᶠ z in 𝓝 0, F z = (z - 0) ^ m • g z :=
-    Classical.choose_spec hmodel
+  let ⟨g, hg_spec⟩ := hmodel
   have hg_an : AnalyticAt ℂ g 0 :=
     hg_spec.1
   have hg_ne : g 0 ≠ 0 :=

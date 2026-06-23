@@ -18,11 +18,9 @@ local notation "π" => Real.pi
 theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -32,7 +30,7 @@ theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact centeredCompletedRiemannZeta₀_finiteOrder_growth_bound_of_uncentered
     (completedRiemannZeta₀_finiteOrder_growth_bound
-      hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
+      hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary)
 
 /-- Multiplying a finite-order entire part by the quadratic clearing factor and subtracting
 `1` preserves exponential finite-order growth. -/
@@ -142,11 +140,9 @@ downstream zero-counting file. -/
 theorem centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
     (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
     (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -157,7 +153,7 @@ theorem centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound
   exact
     centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound_of_uncentered
       (completedRiemannZeta₀_finiteOrder_growth_bound
-        hbranch hpartialOneTwo htailOneTwo hcompactOneTwo hfinite hpartialLeft htailBoundary hcompactBoundary)
+        hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary)
 
 end
 

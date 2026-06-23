@@ -24,12 +24,15 @@ theorem Complex.finiteAbelPlana_log_finiteHeightPrincipalValueContour_residueThe
     (hw : 0 < w.re)
     (hbridges : Complex.FiniteHeightPVBridgePackage w) :
     ∀ N : ℕ,
+      (∀ n : ℕ, n ∈ Finset.range N →
+        ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ))) →
       Filter.Tendsto
         (fun T : ℝ =>
           Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T)
         atTop
         (𝓝 (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)) := by
   intro N
+  intro hdecInteriorPole
   have hside :
       (fun T : ℝ =>
           Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T) =
@@ -54,7 +57,7 @@ theorem Complex.finiteAbelPlana_log_finiteHeightPrincipalValueContour_residueThe
         atTop
         (𝓝 (0 : ℂ)) :=
     Complex.finiteAbelPlana_log_finiteHeightContourError_tendsto_zero_owner
-      hw N (hbridges N)
+      hw N hdecInteriorPole (hbridges N)
   have hsum :
       Filter.Tendsto
         (fun T : ℝ =>
@@ -92,12 +95,15 @@ theorem Complex.finiteAbelPlana_log_finiteHeightPrincipalValueCotangentFormula_f
     (hw : 0 < w.re)
     (hbridges : Complex.FiniteHeightPVBridgePackage w) :
     ∀ N : ℕ,
+      (∀ n : ℕ, n ∈ Finset.range N →
+        ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ))) →
       Filter.Tendsto
         (fun T : ℝ =>
           Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T)
         atTop
         (𝓝 (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)) := by
   intro N
+  intro hdecInteriorPole
   have hcontour :
       Filter.Tendsto
         (fun T : ℝ =>
@@ -105,7 +111,7 @@ theorem Complex.finiteAbelPlana_log_finiteHeightPrincipalValueCotangentFormula_f
         atTop
         (𝓝 (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)) :=
     Complex.finiteAbelPlana_log_finiteHeightPrincipalValueContour_residueTheorem
-      hw hbridges N
+      hw hbridges N hdecInteriorPole
   have hside :
       (fun T : ℝ =>
           Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T) =

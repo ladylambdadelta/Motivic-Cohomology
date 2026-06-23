@@ -731,6 +731,7 @@ theorem Real.monotoneOn_reducedArc_side_decomposition
     (ψ : ℕ → ℝ)
     {a b m : ℕ}
     {lam : ℝ}
+    [∀ n : ℕ, Decidable (ψ n ∈ Set.Ioc (0 : ℝ) Real.pi)]
     (hm : m ∈ Finset.Icc a b)
     (hlam_pos : 0 < lam)
     (hψ_mem :
@@ -756,7 +757,6 @@ theorem Real.monotoneOn_reducedArc_side_decomposition
           (∀ n : ℕ,
             n ∈ Finset.Ico c m →
               ψ n ∈ Set.Ioc (0 : ℝ) Real.pi) := by
-  classical
   let positives : Finset ℕ :=
     (Finset.Ico a m).filter
       (fun n : ℕ => ψ n ∈ Set.Ioc (0 : ℝ) Real.pi)
@@ -850,6 +850,7 @@ theorem Real.antitoneOn_reducedArc_side_decomposition
     (ψ : ℕ → ℝ)
     {a b m : ℕ}
     {lam : ℝ}
+    [∀ n : ℕ, Decidable (ψ n ∈ Set.Ioc (-Real.pi) (0 : ℝ))]
     (hm : m ∈ Finset.Icc a b)
     (hlam_pos : 0 < lam)
     (hψ_mem :
@@ -875,7 +876,6 @@ theorem Real.antitoneOn_reducedArc_side_decomposition
           (∀ n : ℕ,
             n ∈ Finset.Ico c m →
               ψ n ∈ Set.Ioc (-Real.pi) (0 : ℝ)) := by
-  classical
   let negatives : Finset ℕ :=
     (Finset.Ico a m).filter
       (fun n : ℕ => ψ n ∈ Set.Ioc (-Real.pi) (0 : ℝ))
