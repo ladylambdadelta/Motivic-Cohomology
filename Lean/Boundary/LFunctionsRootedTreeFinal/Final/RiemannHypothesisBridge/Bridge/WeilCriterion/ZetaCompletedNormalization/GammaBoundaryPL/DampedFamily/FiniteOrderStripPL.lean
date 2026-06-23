@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaBoundaryPL.DampedFamily.BoundaryNormalization
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaBoundaryPL.DampedFamily.KernelEnvelope
 
 namespace Boundary
 namespace LFunctions
@@ -1865,7 +1865,47 @@ theorem strip_finite_order_growth_upperTail_finiteOrderPL_ownerGap
         z.re ≤ b →
         1 ≤ z.im →
         ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  match hfinite with
+  | ⟨c, hc_threshold, D, hD⟩ =>
+      have hwidth_pos : 0 < b - a :=
+        sub_pos.mpr hab
+      have hstrip_threshold_pos : 0 < π / (b - a) :=
+        div_pos Real.pi_pos hwidth_pos
+      have hmax_lt_threshold : max c 0 < π / (b - a) :=
+        max_lt hc_threshold hstrip_threshold_pos
+      match exists_between hmax_lt_threshold with
+      | ⟨d, hd_gt_max, hd_threshold⟩ =>
+          have hd_pos : 0 < d :=
+            lt_of_le_of_lt (le_max_right c 0) hd_gt_max
+          have hcd : c < d :=
+            lt_of_le_of_lt (le_max_left c 0) hd_gt_max
+          let q : ℝ :=
+            sectorPowerRealConstant
+              ((2 * ((m₀ + 1 : ℕ) : ℝ))⁻¹) m₀
+          let Cpoly : ℝ := B₀ * q⁻¹
+          have hCpoly_pos : 0 < Cpoly :=
+            finiteOrderPL_degreePolynomialBoundaryCoefficient_pos B₀ m₀ hB₀
+          have hCpoly_nonneg : 0 ≤ Cpoly :=
+            le_of_lt hCpoly_pos
+          match
+            verticalStripUpperTailDegreePolynomialBoundedFactor_bound_from_uniform_mixed_upperHalfStrip
+              f hab hd_pos hd_threshold hcd hA₀ hB₀ hhol hD hleft hright
+          with
+          | ⟨M, hM_pos, hM_bound⟩ =>
+              match
+                verticalStripUpperTailDegreePolynomialKernel_re_le_one_add_norm_envelope
+                  a b Cpoly m₀ hCpoly_nonneg
+              with
+              | ⟨Bgeom, hBgeom_pos, hkernel_envelope⟩ =>
+                  exact
+                    ⟨A₀ * M, Bgeom, m₀,
+                      mul_pos hA₀ hM_pos,
+                      hBgeom_pos,
+                      fun z hza hzb hzim =>
+                        verticalStripUpperTailDegreePolynomialBoundedFactor_undamps_to_finiteEnvelope_of_bound
+                          f a b A₀ Bgeom Cpoly M m₀ m₀ z hA₀ hM_pos
+                          (hM_bound z hza hzb hzim)
+                          (hkernel_envelope z hza hzb hzim)⟩
 
 /-- If the normalizing factor has norm at most one, the normalized finite-order
 envelope is bounded by the original finite-order envelope. -/
