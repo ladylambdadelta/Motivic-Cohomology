@@ -2803,6 +2803,180 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_tangentResidueInputs_of_po
       f hPhi
   exact And.intro hinterior (And.intro hregular hlocal)
 
+/-- A one-pole kernel restricted to a continuous real parametrized segment is
+interval-integrable once the complex kernel is continuous on that segment
+image. -/
+theorem zetaCompletedExplicitFormulaCorrectionOnePoleKernel_param_intervalIntegrable_of_continuousOn
+    (f : ZetaAdmissibleFunction)
+    (γ : ℝ → ℂ)
+    {a b : ℝ}
+    (hγ : ContinuousOn γ (Set.uIcc a b))
+    (hkernel :
+      ContinuousOn
+        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
+        (γ '' Set.uIcc a b)) :
+    IntervalIntegrable
+      (fun x : ℝ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f (γ x))
+      volume a b := by
+  have hmaps :
+      Set.MapsTo γ (Set.uIcc a b) (γ '' Set.uIcc a b) := by
+    intro x hx
+    exact Set.mem_image_of_mem γ hx
+  have hcont :
+      ContinuousOn
+        (fun x : ℝ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f (γ x))
+      (Set.uIcc a b) :=
+    ContinuousOn.comp hkernel hγ hmaps
+  exact hcont.intervalIntegrable
+
+/-- The isolated one-pole correction kernel is continuous on any set that avoids
+the pole `1`. -/
+theorem zetaCompletedExplicitFormulaCorrectionOnePoleKernel_continuousOn_of_avoids_pole
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl f)
+    (s : Set ℂ)
+    (havoid : ∀ z : ℂ, z ∈ s → z - 1 ≠ 0) :
+    ContinuousOn
+      (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
+      s := by
+  intro z hz
+  exact
+    (zetaCompletedExplicitFormulaCorrectionOnePoleKernel_continuousAt_off_pole
+      f hPhi (havoid z hz)).continuousWithinAt
+
+/-- Combined off-pole parametrized segment integrability for the one-pole
+correction kernel. -/
+theorem zetaCompletedExplicitFormulaCorrectionOnePoleKernel_param_intervalIntegrable_of_avoids_pole
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl f)
+    (γ : ℝ → ℂ)
+    {a b : ℝ}
+    (hγ : ContinuousOn γ (Set.uIcc a b))
+    (havoid : ∀ z : ℂ, z ∈ γ '' Set.uIcc a b → z - 1 ≠ 0) :
+    IntervalIntegrable
+      (fun x : ℝ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f (γ x))
+      volume a b := by
+  exact
+    zetaCompletedExplicitFormulaCorrectionOnePoleKernel_param_intervalIntegrable_of_continuousOn
+      f γ hγ
+      (zetaCompletedExplicitFormulaCorrectionOnePoleKernel_continuousOn_of_avoids_pole
+        f hPhi (γ '' Set.uIcc a b) havoid)
+
+/-- Horizontal affine line parametrizations used by one-pole rectangular
+subsegments are continuous on every real interval. -/
+theorem zetaExplicitFormulaOnePole_horizontalAffine_continuousOn
+    (y : ℝ) (a b : ℝ) :
+    ContinuousOn
+      (fun x : ℝ => (x : ℂ) + y * Complex.I)
+      (Set.uIcc a b) :=
+  (Complex.continuous_ofReal.add continuous_const).continuousOn
+
+/-- Vertical affine line parametrizations used by one-pole rectangular
+subsegments are continuous on every real interval. -/
+theorem zetaExplicitFormulaOnePole_verticalAffine_continuousOn
+    (x : ℝ) (a b : ℝ) :
+    ContinuousOn
+      (fun y : ℝ => (x : ℂ) + y * Complex.I)
+      (Set.uIcc a b) :=
+  (continuous_const.add (Complex.continuous_ofReal.mul continuous_const)).continuousOn
+
+/-- Horizontal rectangular one-pole segment integrability from off-pole image
+avoidance. -/
+theorem zetaCompletedExplicitFormulaCorrectionOnePoleKernel_horizontal_intervalIntegrable_of_avoids_pole
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl f)
+    (y : ℝ)
+    (a b : ℝ)
+    (havoid :
+      ∀ z : ℂ,
+        z ∈ (fun x : ℝ => (x : ℂ) + y * Complex.I) '' Set.uIcc a b →
+          z - 1 ≠ 0) :
+    IntervalIntegrable
+      (fun x : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+          ((x : ℂ) + y * Complex.I))
+      volume a b := by
+  exact
+    zetaCompletedExplicitFormulaCorrectionOnePoleKernel_param_intervalIntegrable_of_avoids_pole
+      f hPhi (fun x : ℝ => (x : ℂ) + y * Complex.I)
+      (zetaExplicitFormulaOnePole_horizontalAffine_continuousOn y a b)
+      havoid
+
+/-- Vertical rectangular one-pole segment integrability from off-pole image
+avoidance. -/
+theorem zetaCompletedExplicitFormulaCorrectionOnePoleKernel_vertical_intervalIntegrable_of_avoids_pole
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl f)
+    (x : ℝ)
+    (a b : ℝ)
+    (havoid :
+      ∀ z : ℂ,
+        z ∈ (fun y : ℝ => (x : ℂ) + y * Complex.I) '' Set.uIcc a b →
+          z - 1 ≠ 0) :
+    IntervalIntegrable
+      (fun y : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+          ((x : ℂ) + y * Complex.I))
+      volume a b := by
+  exact
+    zetaCompletedExplicitFormulaCorrectionOnePoleKernel_param_intervalIntegrable_of_avoids_pole
+      f hPhi (fun y : ℝ => (x : ℂ) + y * Complex.I)
+      (zetaExplicitFormulaOnePole_verticalAffine_continuousOn x a b)
+      havoid
+
+/-- Canonical one-pole square-punctured boundary bookkeeping: the punctured
+outer rectangle boundary is the four-cell boundary sum around the isolated
+`s = 1` square.
+
+This is pure finite contour accounting.  It owns no Cauchy theorem and no
+residue computation; it only identifies the two boundary expressions at the
+canonical puncture radius. -/
+theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalSquarePuncturedBoundary_eq_fourCellBoundary
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (T : ℝ)
+    (hT : 0 < T) :
+    zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral
+        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
+        F T (zetaExplicitFormulaOnePolePunctureRadius F T) =
+      zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum
+        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
+        F T (zetaExplicitFormulaOnePolePunctureRadius F T) := by
+  sorry
+
+/-- Canonical one-pole four-cell Cauchy cancellation for the isolated `s = 1`
+correction kernel.
+
+The geometric square bookkeeping and local residue calculation are deliberately
+not part of this theorem; this is only the Cauchy-Goursat vanishing of the four
+regular cells. -/
+theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalFourCellBoundary_eq_zero_of_pos_height
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (T : ℝ)
+    (hT : 0 < T) :
+    zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum
+        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
+        F T (zetaExplicitFormulaOnePolePunctureRadius F T) = 0 := by
+  sorry
+
+/-- Canonical one-pole inner-square residue value for the isolated `s = 1`
+correction kernel.
+
+This is the square-contour residue input corresponding to the local residue
+`-Phi f (1 / 2)`. -/
+theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalInnerSquareBoundary_eq_residue_of_pos_height
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (T : ℝ)
+    (hT : 0 < T) :
+    zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral
+        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
+        (zetaExplicitFormulaOnePolePunctureRadius F T) =
+        (2 * (Real.pi : ℂ) * Complex.I) *
+          (-zetaCompletedExplicitFormulaPhi f (1 / 2)) := by
+  sorry
+
 end ZetaAdmissibleFunction
 
 end
