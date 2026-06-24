@@ -1,4 +1,5 @@
 import Mathlib.Analysis.Fourier.AddCircle
+import Mathlib.Analysis.Fourier.Inversion
 import Mathlib.Analysis.Calculus.ParametricIntegral
 import Mathlib.Analysis.MellinInversion
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
@@ -127,7 +128,133 @@ theorem boundary_mellin_inversion (σ : ℝ) (f : ℝ → E) {x : ℝ} (hx : 0 <
     mellinInv σ (mellin f) x = f x := by
   exact mellin_inversion (σ := σ) (f := f) (x := x) hx hf hFf hfx
 
+/-- Pointwise exponential algebra behind the vertical-line Laplace/Fourier
+identification. -/
+theorem zetaLaplaceTransform_verticalLine_fourierIntegrand_eq
+    (φ : LFunctions.ZetaTestFunction) (σ y t : ℝ) :
+    φ t * Complex.exp ((σ + 2 * π * y * Complex.I) * (t : ℂ)) =
+      Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I) •
+        (Complex.exp ((σ : ℂ) * (t : ℂ)) * φ t) := by
+  rw [smul_eq_mul]
+  simp [Complex.exp_add, mul_add, add_mul, mul_assoc, mul_comm, mul_left_comm]
+
+/-- The vertical Laplace slice on `σ + 2π y i` is the real Fourier transform
+of the exponentially twisted time kernel, evaluated at `-y`.
+
+This records the sign convention in mathlib's real Fourier transform:
+`𝓕 g w = ∫ exp (-2π i t w) • g t`.  Therefore the vertical line
+`σ + 2π y i` corresponds to Fourier frequency `-y`. -/
+theorem zetaLaplaceTransform_verticalLine_eq_fourierIntegral_expTwist
+    (φ : LFunctions.ZetaTestFunction) (σ y : ℝ) :
+    zetaLaplaceTransform φ (σ + 2 * π * y * Complex.I) =
+      𝓕 (fun t : ℝ => Complex.exp ((σ : ℂ) * (t : ℂ)) * φ t) (-y) := by
+  calc
+    zetaLaplaceTransform φ (σ + 2 * π * y * Complex.I)
+        = ∫ t : ℝ, φ t * Complex.exp ((σ + 2 * π * y * Complex.I) * (t : ℂ)) := by
+            rfl
+    _ =
+        ∫ t : ℝ,
+          Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I) •
+            (Complex.exp ((σ : ℂ) * (t : ℂ)) * φ t) := by
+      exact integral_congr_ae (Filter.Eventually.of_forall fun t =>
+        zetaLaplaceTransform_verticalLine_fourierIntegrand_eq φ σ y t)
+    _ =
+        𝓕 (fun t : ℝ => Complex.exp ((σ : ℂ) * (t : ℂ)) * φ t) (-y) := by
+      exact
+        (Real.fourierIntegral_real_eq_integral_exp_smul
+          (fun t : ℝ => Complex.exp ((σ : ℂ) * (t : ℂ)) * φ t)
+          (-y)).symm
+
 end Mellin
+
+section FourierInversion
+
+variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
+  [FiniteDimensional ℝ V] [MeasurableSpace V] [BorelSpace V]
+  {f : V → E} {v : V}
+
+/-- Boundary name for Fourier inversion in the convention used by the explicit
+formula transform calculus. -/
+theorem boundary_fourier_inversion
+    [CompleteSpace E]
+    (hf : Integrable f)
+    (hFf : Integrable (𝓕 f))
+    (hfv : ContinuousAt f v) :
+    𝓕⁻ (𝓕 f) v = f v := by
+  exact MeasureTheory.Integrable.fourier_inversion hf hFf hfv
+
+/-- Boundary name for inverse-Fourier inversion in the convention used by the
+explicit formula transform calculus. -/
+theorem boundary_fourier_inversion_inv
+    [CompleteSpace E]
+    (hf : Integrable f)
+    (hFf : Integrable (𝓕⁻ f))
+    (hfv : ContinuousAt f v) :
+    𝓕 (𝓕⁻ f) v = f v := by
+  exact MeasureTheory.Integrable.fourier_inversion_inv hf hFf hfv
+
+/-- Real-line specialization of `boundary_fourier_inversion`.
+
+The completed explicit formula uses the logarithmic real variable, so this
+wrapper is the form consumed by Paley-Wiener sampling lemmas. -/
+theorem boundary_real_fourier_inversion
+    [CompleteSpace E]
+    {f : ℝ → E} {x : ℝ}
+    (hf : Integrable f)
+    (hFf : Integrable (𝓕 f))
+    (hfx : ContinuousAt f x) :
+    𝓕⁻ (𝓕 f) x = f x := by
+  exact boundary_fourier_inversion hf hFf hfx
+
+/-- Real Fourier inversion with the reflected frequency convention.
+
+The vertical explicit-formula line naturally produces `y ↦ 𝓕 f (-y)`.
+Composing inverse Fourier with the real negation isometry reduces this to the
+ordinary inversion theorem. -/
+theorem boundary_real_fourier_inversion_reflected
+    [CompleteSpace E]
+    {f : ℝ → E} {x : ℝ}
+    (hf : Integrable f)
+    (hFf : Integrable (𝓕 f))
+    (hfx : ContinuousAt f x) :
+    𝓕⁻ (fun y : ℝ => 𝓕 f (-y)) (-x) = f x := by
+  have hcomp :
+      𝓕⁻ ((𝓕 f) ∘ LinearIsometryEquiv.neg ℝ) (-x) =
+        (𝓕⁻ (𝓕 f)) (LinearIsometryEquiv.neg ℝ (-x)) :=
+    fourierIntegralInv_comp_linearIsometry
+      (A := LinearIsometryEquiv.neg ℝ)
+      (f := 𝓕 f)
+      (w := -x)
+  have hneg :
+      LinearIsometryEquiv.neg ℝ (-x) = x := by
+    exact neg_neg x
+  have hinv : 𝓕⁻ (𝓕 f) x = f x :=
+    boundary_real_fourier_inversion hf hFf hfx
+  calc
+    𝓕⁻ (fun y : ℝ => 𝓕 f (-y)) (-x) =
+        𝓕⁻ ((𝓕 f) ∘ LinearIsometryEquiv.neg ℝ) (-x) := by
+      rfl
+    _ = (𝓕⁻ (𝓕 f)) (LinearIsometryEquiv.neg ℝ (-x)) :=
+      hcomp
+    _ = 𝓕⁻ (𝓕 f) x := by
+      exact congrArg (fun y : ℝ => 𝓕⁻ (𝓕 f) y) hneg
+    _ = f x :=
+      hinv
+
+/-- Real-line specialization of `boundary_fourier_inversion_inv`.
+
+This is the inverse-transform orientation useful when a vertical Laplace slice
+has first been identified with an inverse Fourier transform. -/
+theorem boundary_real_fourier_inversion_inv
+    [CompleteSpace E]
+    {f : ℝ → E} {x : ℝ}
+    (hf : Integrable f)
+    (hFf : Integrable (𝓕⁻ f))
+    (hfx : ContinuousAt f x) :
+    𝓕 (𝓕⁻ f) x = f x := by
+  exact boundary_fourier_inversion_inv hf hFf hfx
+
+end FourierInversion
 
 section FourierInterval
 

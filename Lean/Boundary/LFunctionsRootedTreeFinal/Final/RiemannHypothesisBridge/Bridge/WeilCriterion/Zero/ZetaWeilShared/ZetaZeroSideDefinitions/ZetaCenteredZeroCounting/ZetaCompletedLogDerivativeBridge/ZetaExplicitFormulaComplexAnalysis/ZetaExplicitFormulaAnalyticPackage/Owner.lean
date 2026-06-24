@@ -494,6 +494,33 @@ theorem ExplicitFormulaCofinalHeightSchedule.eventually_height_pos
     ∀ᶠ u in atTop, 0 < schedule.height u :=
   schedule.eventually_height_gt 0
 
+/-- A cofinal height schedule eventually has rectangle height norm at least any
+fixed lower bound. -/
+theorem ExplicitFormulaCofinalHeightSchedule.eventually_rectangle_height_norm_ge
+    {F : ExplicitFormulaContourFamily}
+    (schedule : ExplicitFormulaCofinalHeightSchedule F) (a : ℝ) :
+    ∀ᶠ u in atTop, a ≤ ‖(F.rectangle (schedule.height u)).T‖ :=
+  (schedule.eventually_height_gt a).mono
+    (fun u hu =>
+      have hle_height : a ≤ schedule.height u :=
+        le_of_lt hu
+      have hheight_le_norm :
+          schedule.height u ≤ ‖schedule.height u‖ := by
+        calc
+          schedule.height u ≤ |schedule.height u| := by
+            exact le_abs_self (schedule.height u)
+          _ = ‖schedule.height u‖ := by
+            exact (Real.norm_eq_abs (schedule.height u)).symm
+      le_trans hle_height hheight_le_norm)
+
+/-- A cofinal height schedule eventually has rectangle height norm at least
+one. -/
+theorem ExplicitFormulaCofinalHeightSchedule.eventually_one_le_rectangle_height_norm
+    {F : ExplicitFormulaContourFamily}
+    (schedule : ExplicitFormulaCofinalHeightSchedule F) :
+    ∀ᶠ u in atTop, 1 ≤ ‖(F.rectangle (schedule.height u)).T‖ :=
+  schedule.eventually_rectangle_height_norm_ge 1
+
 /-- If an avoided rectangle had height zero, the pole `1` would lie on its top
 horizontal edge. -/
 theorem explicitFormulaContourFamilyAvoidsSingularBoundary.height_ne_zero

@@ -1,4 +1,8 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part34
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.CorrectionPoleSides
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OrientationAlgebra
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleContourPrimitives
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleFourCellContour
 
 namespace Boundary
 namespace LFunctions
@@ -453,6 +457,201 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPole_eventually_tangentResidue
         f F h.phi_control (h.height_schedule.height u) hu
         (h.height_schedule.avoids_boundary u))
 
+/-- The residue coefficient `z * g(z)` of the zero-pole correction kernel is
+continuous on every set with the pole removed. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPole_deletedCoefficient_continuousOn_deletedSet
+    (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
+    (s : Set ℂ) :
+    ContinuousOn
+      (fun z : ℂ =>
+        z * zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+      (s \ ({(0 : ℂ)} : Set ℂ)) := by
+  intro z hz
+  have hz_not_mem : z ∉ ({(0 : ℂ)} : Set ℂ) :=
+    hz.2
+  have hz_ne : z ≠ 0 := by
+    intro hzero
+    have hz_mem : z ∈ ({(0 : ℂ)} : Set ℂ) :=
+      hzero
+    exact hz_not_mem hz_mem
+  have hleft :
+      ContinuousAt (fun w : ℂ => w) z :=
+    continuous_id.continuousAt
+  have hright :
+      ContinuousAt
+        (fun w : ℂ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f w)
+        z :=
+    zetaCompletedExplicitFormulaCorrectionZeroPole_continuousAt_off_pole
+      f hPhi hz_ne
+  exact (hleft.mul hright).continuousWithinAt
+
+/-- The residue coefficient `z * g(z)` of the zero-pole correction kernel is
+differentiable away from the removed singleton. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPole_deletedCoefficient_differentiableAt_of_not_mem_singleton
+    (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
+    {z : ℂ} (hz : z ∉ ({(0 : ℂ)} : Set ℂ)) :
+    DifferentiableAt ℂ
+      (fun w : ℂ =>
+        w * zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f w)
+      z := by
+  have hz_ne : z ≠ 0 := by
+    intro hzero
+    have hz_mem : z ∈ ({(0 : ℂ)} : Set ℂ) :=
+      hzero
+    exact hz hz_mem
+  have hleft :
+      DifferentiableAt ℂ (fun w : ℂ => w) z :=
+    differentiableAt_id
+  have hright :
+      DifferentiableAt ℂ
+        (fun w : ℂ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f w)
+        z :=
+    zetaCompletedExplicitFormulaCorrectionZeroPole_differentiableAt_off_pole
+      f hPhi hz_ne
+  exact hleft.mul hright
+
+/-- Zero-centered finite square boundary residue for the isolated `s = 0`
+correction kernel. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPole_finiteSquareBoundaryIntegral_eq_residue
+    (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
+    {R : ℝ} (hR : 0 < R) :
+    finiteRectangleSquareBoundaryIntegral
+        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+        (0 : ℂ) R =
+      (2 * (Real.pi : ℂ) * Complex.I) *
+        (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))) := by
+  have hcontinuous :
+      ContinuousOn
+        (fun z : ℂ =>
+          (z - (0 : ℂ)) *
+            zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+        (([[(0 : ℂ).re - R, (0 : ℂ).re + R]] ×ℂ
+          [[(0 : ℂ).im - R, (0 : ℂ).im + R]]) \
+            ({(0 : ℂ)} : Set ℂ)) := by
+    have hcoeff :
+        (fun z : ℂ =>
+          (z - (0 : ℂ)) *
+            zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z) =
+        (fun z : ℂ =>
+          z * zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z) := by
+      funext z
+      exact congrArg
+        (fun x : ℂ => x * zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+        (sub_zero z)
+    exact
+      Eq.subst
+        (motive := fun φ : ℂ → ℂ =>
+          ContinuousOn φ
+            (([[(0 : ℂ).re - R, (0 : ℂ).re + R]] ×ℂ
+              [[(0 : ℂ).im - R, (0 : ℂ).im + R]]) \
+                ({(0 : ℂ)} : Set ℂ)))
+        hcoeff.symm
+        (zetaCompletedExplicitFormulaCorrectionZeroPole_deletedCoefficient_continuousOn_deletedSet
+          f hPhi
+          ([[ (0 : ℂ).re - R, (0 : ℂ).re + R ]] ×ℂ
+            [[ (0 : ℂ).im - R, (0 : ℂ).im + R ]]))
+  have hdifferentiable :
+      ∀ z : ℂ,
+        z ∈
+            ((Set.Ioo ((0 : ℂ).re - R) ((0 : ℂ).re + R) ×ℂ
+                Set.Ioo ((0 : ℂ).im - R) ((0 : ℂ).im + R)) \
+                ({(0 : ℂ)} : Set ℂ)) \ (∅ : Set ℂ) →
+          DifferentiableAt ℂ
+            (fun w : ℂ =>
+              (w - (0 : ℂ)) *
+                zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f w)
+            z := by
+    intro z hz
+    have hcoeff :
+        (fun w : ℂ =>
+            (w - (0 : ℂ)) *
+              zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f w) =
+          (fun w : ℂ =>
+            w * zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f w) := by
+      funext w
+      exact congrArg
+        (fun x : ℂ => x * zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f w)
+        (sub_zero w)
+    exact
+      Eq.subst
+        (motive := fun φ : ℂ → ℂ => DifferentiableAt ℂ φ z)
+        hcoeff.symm
+        (zetaCompletedExplicitFormulaCorrectionZeroPole_deletedCoefficient_differentiableAt_of_not_mem_singleton
+          f hPhi hz.1.2)
+  have hfinite_square :
+      finiteRectangleSquareBoundaryIntegral
+          (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+          (0 : ℂ) R =
+        (2 * (Real.pi : ℂ) * Complex.I) •
+          (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))) := by
+    have hlocal :
+        Tendsto
+          (fun z : ℂ =>
+            (z - (0 : ℂ)) *
+              zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+          (𝓝[≠] (0 : ℂ))
+          (𝓝 (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))) := by
+      have hcoeff :
+          (fun z : ℂ =>
+            (z - (0 : ℂ)) *
+              zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z) =
+          (fun z : ℂ =>
+            z * zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z) := by
+        funext z
+        exact congrArg
+          (fun x : ℂ => x * zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+          (sub_zero z)
+      exact
+        Eq.subst
+          (motive := fun φ : ℂ → ℂ =>
+            Tendsto φ (𝓝[≠] (0 : ℂ))
+              (𝓝 (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))))
+          hcoeff.symm
+          (zetaCompletedExplicitFormulaCorrectionZeroPole_localResidue_tendsto
+            f hPhi)
+    exact
+      finiteRectangleSquareBoundaryIntegral_eq_twoPiI_smul_residue
+        (0 : ℂ) hR
+        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+        (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))
+        (∅ : Set ℂ)
+        Set.countable_empty
+        hcontinuous
+        hdifferentiable
+        hlocal
+  calc
+    finiteRectangleSquareBoundaryIntegral
+        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+        (0 : ℂ) R =
+        (2 * (Real.pi : ℂ) * Complex.I) •
+          (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))) := hfinite_square
+    _ = (2 * (Real.pi : ℂ) * Complex.I) *
+          (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))) := by
+      exact
+        smul_eq_mul
+          (2 * (Real.pi : ℂ) * Complex.I)
+          (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))
+
+/-- Radius-parametrized inner-square residue value for the isolated `s = 0`
+correction kernel.
+
+This is the inner-square component needed by the eventual zero-pole
+standard-rectangle Cauchy assembly.  It deliberately does not assert the full
+outer standard-boundary theorem; the square-punctured rectangle cancellation is
+a separate contour input. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPole_innerSquareBoundary_eq_residue_of_radius
+    (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
+    {R : ℝ} (hR : 0 < R) :
+    finiteRectangleSquareBoundaryIntegral
+        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+        (0 : ℂ) R =
+      (2 * (Real.pi : ℂ) * Complex.I) *
+        (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))) :=
+  zetaCompletedExplicitFormulaCorrectionZeroPole_finiteSquareBoundaryIntegral_eq_residue
+    f hPhi hR
+
 /-- The normalized local residue value for the isolated `s = 0` correction
 kernel.  This is the residue value that any finite single-pole rectangle theorem
 for `zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral`
@@ -663,6 +862,312 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleNormalizedStandardRectangl
     _ = R := by
       exact one_mul R
 
+/-- The zero-pole square-punctured boundary expression attached to a chosen
+inner square radius.
+
+This is only the algebraic outer-minus-inner boundary object.  Its vanishing is
+the geometric Cauchy theorem still to be proved by a zero-pole punctured
+rectangle owner. -/
+noncomputable def zetaCompletedExplicitFormulaCorrectionZeroPoleSquarePuncturedBoundaryIntegral
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T R : ℝ) : ℂ :=
+  zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral f F T -
+    finiteRectangleSquareBoundaryIntegral
+      (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+      (0 : ℂ) R
+
+/-- The zero-pole square-punctured boundary unfolds to outer standard boundary
+minus the zero-centered inner square boundary. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPoleSquarePuncturedBoundaryIntegral_eq
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T R : ℝ) :
+    zetaCompletedExplicitFormulaCorrectionZeroPoleSquarePuncturedBoundaryIntegral
+        f F T R =
+      zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral f F T -
+        finiteRectangleSquareBoundaryIntegral
+          (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+          (0 : ℂ) R :=
+  rfl
+
+/-- If the zero-pole square-punctured boundary vanishes, the outer standard
+boundary equals the zero-centered inner square boundary. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPoleStandardBoundary_eq_innerSquare_of_squarePunctured_zero
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T R : ℝ)
+    (hcauchy :
+      zetaCompletedExplicitFormulaCorrectionZeroPoleSquarePuncturedBoundaryIntegral
+        f F T R = 0) :
+    zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+        f F T =
+      finiteRectangleSquareBoundaryIntegral
+        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+        (0 : ℂ) R := by
+  let S : ℂ :=
+    zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+      f F T
+  let I : ℂ :=
+    finiteRectangleSquareBoundaryIntegral
+      (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+      (0 : ℂ) R
+  have hsub : S - I = 0 := by
+    calc
+      S - I =
+          zetaCompletedExplicitFormulaCorrectionZeroPoleSquarePuncturedBoundaryIntegral
+            f F T R := by
+        rfl
+      _ = 0 := hcauchy
+  calc
+    zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+        f F T = S := by
+      rfl
+    _ = (S - I) + I := by
+      exact (sub_add_cancel S I).symm
+    _ = 0 + I := by
+      exact congrArg (fun z : ℂ => z + I) hsub
+    _ =
+      finiteRectangleSquareBoundaryIntegral
+        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+        (0 : ℂ) R := by
+      exact zero_add I
+
+/-- Algebraic raw Cauchy assembly for the isolated `s = 0` correction kernel
+from an outer-boundary/inner-square identification.
+
+The missing contour theorem for `s = 0` is precisely the boundary
+identification supplied here as `hboundary`.  Once that geometric
+square-punctured cancellation has been proved in its owner layer, this lemma
+turns it into the raw standard rectangle Cauchy value. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_boundary_eq_innerSquare
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (hPhi : ZetaPhiAnalyticControl f) (T : ℝ) {R : ℝ}
+    (hR : 0 < R)
+    (hboundary :
+      zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+        f F T =
+      finiteRectangleSquareBoundaryIntegral
+        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+        (0 : ℂ) R) :
+    zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+      f F T =
+      (2 * (Real.pi : ℂ) * Complex.I) *
+        (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))) := by
+  exact
+    Eq.trans hboundary
+      (zetaCompletedExplicitFormulaCorrectionZeroPole_innerSquareBoundary_eq_residue_of_radius
+        f hPhi hR)
+
+/-- Scheduled form of the zero-pole raw Cauchy assembly from an eventual
+outer-boundary/inner-square identification.
+
+This theorem is the exact consumer needed by the scheduled transport layer
+after the zero-pole square-punctured contour identity has been established. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPole_eventually_standardBoundaryResidueValue_of_eventual_boundary_eq_innerSquare
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (R : ℝ)
+    (hR : 0 < R)
+    (hboundary :
+      ∀ᶠ u in atTop,
+        zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+          f F (h.height_schedule.height u) =
+        finiteRectangleSquareBoundaryIntegral
+          (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+          (0 : ℂ) R) :
+    ∀ᶠ u in atTop,
+      zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+        f F (h.height_schedule.height u) =
+      (2 * (Real.pi : ℂ) * Complex.I) *
+        (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))) := by
+  exact hboundary.mono
+    (fun u hu =>
+      zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_boundary_eq_innerSquare
+        f F h.phi_control (h.height_schedule.height u) hR hu)
+
+/-- Raw Cauchy assembly for the isolated `s = 0` correction kernel from
+square-punctured boundary cancellation and the inner-square residue value. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_squarePunctured_zero
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (hPhi : ZetaPhiAnalyticControl f) (T : ℝ) {R : ℝ}
+    (hR : 0 < R)
+    (hcauchy :
+      zetaCompletedExplicitFormulaCorrectionZeroPoleSquarePuncturedBoundaryIntegral
+        f F T R = 0) :
+    zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+      f F T =
+      (2 * (Real.pi : ℂ) * Complex.I) *
+        (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))) := by
+  have hboundary :
+      zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+        f F T =
+      finiteRectangleSquareBoundaryIntegral
+        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+        (0 : ℂ) R :=
+    zetaCompletedExplicitFormulaCorrectionZeroPoleStandardBoundary_eq_innerSquare_of_squarePunctured_zero
+      f F T R hcauchy
+  exact
+    zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_boundary_eq_innerSquare
+      f F hPhi T hR hboundary
+
+/-- The canonical zero-pole puncture radius attached to a positive-height
+rectangle is positive. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPole_punctureRadius_pos_of_pos_height
+    (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T) :
+    0 < zetaExplicitFormulaZeroPolePunctureRadius F T :=
+  zetaExplicitFormulaZeroPolePunctureRadius_pos F hT
+
+/-- The canonical zero-pole puncture radius lies inside the right horizontal
+margin of a positive-height contour. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPole_punctureRadius_lt_rightMargin_of_pos_height
+    (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T) :
+    zetaExplicitFormulaZeroPolePunctureRadius F T < F.c :=
+  zetaExplicitFormulaZeroPolePunctureRadius_lt_rightMargin F hT
+
+/-- The canonical zero-pole puncture radius lies inside the left horizontal
+margin of a positive-height contour. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPole_punctureRadius_lt_leftMargin_of_pos_height
+    (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T) :
+    zetaExplicitFormulaZeroPolePunctureRadius F T < F.c - 1 :=
+  zetaExplicitFormulaZeroPolePunctureRadius_lt_leftMargin F hT
+
+/-- The canonical zero-pole puncture radius is strictly below the contour
+height. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPole_punctureRadius_lt_height_of_pos_height
+    (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T) :
+    zetaExplicitFormulaZeroPolePunctureRadius F T < T :=
+  zetaExplicitFormulaZeroPolePunctureRadius_lt_height F hT
+
+/-- Canonical inner-square residue value for the isolated `s = 0` correction
+kernel at positive height. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPole_canonicalInnerSquareBoundary_eq_residue_of_pos_height
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (hPhi : ZetaPhiAnalyticControl f)
+    {T : ℝ}
+    (hT : 0 < T) :
+    finiteRectangleSquareBoundaryIntegral
+        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
+        (0 : ℂ)
+        (zetaExplicitFormulaZeroPolePunctureRadius F T) =
+      (2 * (Real.pi : ℂ) * Complex.I) *
+        (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))) := by
+  have hR :
+      0 < zetaExplicitFormulaZeroPolePunctureRadius F T :=
+    zetaCompletedExplicitFormulaCorrectionZeroPole_punctureRadius_pos_of_pos_height
+      F hT
+  exact
+    zetaCompletedExplicitFormulaCorrectionZeroPole_innerSquareBoundary_eq_residue_of_radius
+      f hPhi hR
+
+/-- Positive-height raw standard Cauchy assembly from canonical zero-pole
+square-punctured cancellation. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_pos_height_canonicalSquarePunctured_zero
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (hPhi : ZetaPhiAnalyticControl f) {T : ℝ}
+    (hT : 0 < T)
+    (hcauchy :
+      zetaCompletedExplicitFormulaCorrectionZeroPoleSquarePuncturedBoundaryIntegral
+        f F T (zetaExplicitFormulaZeroPolePunctureRadius F T) = 0) :
+    zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+      f F T =
+      (2 * (Real.pi : ℂ) * Complex.I) *
+        (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))) := by
+  have hR :
+      0 < zetaExplicitFormulaZeroPolePunctureRadius F T :=
+    zetaCompletedExplicitFormulaCorrectionZeroPole_punctureRadius_pos_of_pos_height
+      F hT
+  exact
+    zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_squarePunctured_zero
+      f F hPhi T hR hcauchy
+
+/-- Scheduled raw Cauchy assembly for the isolated `s = 0` correction kernel
+from eventual square-punctured boundary cancellation. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPole_eventually_standardBoundaryResidueValue_of_eventual_squarePunctured_zero
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (R : ℝ)
+    (hR : 0 < R)
+    (hcauchy :
+      ∀ᶠ u in atTop,
+        zetaCompletedExplicitFormulaCorrectionZeroPoleSquarePuncturedBoundaryIntegral
+          f F (h.height_schedule.height u) R = 0) :
+    ∀ᶠ u in atTop,
+      zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+        f F (h.height_schedule.height u) =
+      (2 * (Real.pi : ℂ) * Complex.I) *
+        (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))) := by
+  exact hcauchy.mono
+    (fun u hu =>
+      zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_squarePunctured_zero
+        f F h.phi_control (h.height_schedule.height u) hR hu)
+
+/-- Scheduled raw Cauchy assembly for the isolated `s = 0` correction kernel
+from eventual cancellation at the canonical zero-pole puncture radius. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPole_eventually_standardBoundaryResidueValue_of_eventual_canonicalSquarePunctured_zero
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hcauchy :
+      ∀ᶠ u in atTop,
+        zetaCompletedExplicitFormulaCorrectionZeroPoleSquarePuncturedBoundaryIntegral
+          f F (h.height_schedule.height u)
+          (zetaExplicitFormulaZeroPolePunctureRadius
+            F (h.height_schedule.height u)) = 0) :
+    ∀ᶠ u in atTop,
+      zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+        f F (h.height_schedule.height u) =
+      (2 * (Real.pi : ℂ) * Complex.I) *
+        (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))) := by
+  have hboth :
+      ∀ᶠ u in atTop,
+        0 < h.height_schedule.height u ∧
+          zetaCompletedExplicitFormulaCorrectionZeroPoleSquarePuncturedBoundaryIntegral
+            f F (h.height_schedule.height u)
+            (zetaExplicitFormulaZeroPolePunctureRadius
+              F (h.height_schedule.height u)) = 0 :=
+    h.height_schedule.eventually_height_pos.and hcauchy
+  exact hboth.mono
+    (fun u hu =>
+      match hu with
+      | ⟨hT, hcauchy_u⟩ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_pos_height_canonicalSquarePunctured_zero
+            f F h.phi_control hT hcauchy_u)
+
+/-- A positive-height raw standard Cauchy theorem supplies the corresponding
+scheduled raw zero-pole standard boundary value eventually. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPole_eventually_standardBoundaryResidueValue_of_positiveHeight_rawCauchy
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hpositive :
+      ∀ T : ℝ,
+        0 < T →
+          zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+            f F T =
+            (2 * (Real.pi : ℂ) * Complex.I) *
+              (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))) :
+    ∀ᶠ u in atTop,
+      zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+        f F (h.height_schedule.height u) =
+        (2 * (Real.pi : ℂ) * Complex.I) *
+          (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))) := by
+  exact h.height_schedule.eventually_height_pos.mono
+    (fun u hu =>
+      hpositive (h.height_schedule.height u) hu)
+
+/-- A positive-height raw standard Cauchy theorem gives the scheduled normalized
+zero-pole standard boundary value equal to the local residue. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPole_eventually_normalizedStandardBoundaryResidueValue_of_positiveHeight_rawCauchy
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hpositive :
+      ∀ T : ℝ,
+        0 < T →
+          zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+            f F T =
+            (2 * (Real.pi : ℂ) * Complex.I) *
+              (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))) :
+    ∀ᶠ u in atTop,
+      zetaCompletedExplicitFormulaCorrectionZeroPoleNormalizedStandardRectangleBoundaryIntegral
+        f F (h.height_schedule.height u) =
+        -zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)) := by
+  exact h.height_schedule.eventually_height_pos.mono
+    (fun u hu =>
+      zetaCompletedExplicitFormulaCorrectionZeroPoleNormalizedStandardRectangleBoundaryIntegral_eq_residue_of_rawCauchy
+        f F (h.height_schedule.height u)
+        (hpositive (h.height_schedule.height u) hu))
+
 /-- The exact orientation defect between the project's tangent side convention
 and the standard positively oriented rectangle boundary. -/
 noncomputable def zetaCompletedExplicitFormulaCorrectionZeroPoleTangentOrientationDefect
@@ -714,46 +1219,15 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledTangentBoundary_e
 /-- Additive algebra for the project/standard horizontal orientation defect. -/
 theorem zetaCompletedExplicitFormulaCorrectionZeroPole_orientationDefect_horizontal_algebra
     (A H : ℂ) :
-    (A + H) - (A - H) = H + H := by
-  have hsum :
-      (A - H) + (H + H) = A + H := by
-    calc
-      (A - H) + (H + H) = (A + -H) + (H + H) := by
-        exact congrArg (fun x : ℂ => x + (H + H)) (sub_eq_add_neg A H)
-      _ = A + (-H + (H + H)) := by
-        exact add_assoc A (-H) (H + H)
-      _ = A + ((-H + H) + H) := by
-        exact congrArg (fun x : ℂ => A + x) (add_assoc (-H) H H).symm
-      _ = A + (0 + H) := by
-        exact congrArg (fun x : ℂ => A + (x + H)) (neg_add_cancel H)
-      _ = A + H := by
-        exact congrArg (fun x : ℂ => A + x) (zero_add H)
-  exact eq_sub_of_add_eq' hsum
+    (A + H) - (A - H) = H + H :=
+  explicitFormula_orientationDefect_horizontal_algebra A H
 
 /-- Additive algebra putting the standard rectangle horizontal convention in
 `right-minus-left` plus negative horizontal-remainder form. -/
 theorem zetaCompletedExplicitFormulaCorrectionZeroPole_standardBoundary_horizontal_algebra
     (R L U B : ℂ) :
-    B - U + R - L = R - L - (U - B) := by
-  calc
-    B - U + R - L = (B + -U) + R - L := by
-      exact congrArg (fun x : ℂ => x + R - L) (sub_eq_add_neg B U)
-    _ = R + (B + -U) - L := by
-      exact congrArg (fun x : ℂ => x - L) (add_comm (B + -U) R)
-    _ = R + (B - U) - L := by
-      exact congrArg (fun x : ℂ => R + x - L) (sub_eq_add_neg B U).symm
-    _ = R + (B - U + -L) := by
-      exact sub_eq_add_neg (R + (B - U)) L
-    _ = R + (-L + (B - U)) := by
-      exact congrArg (fun x : ℂ => R + x) (add_comm (B - U) (-L))
-    _ = R + -L + (B - U) := by
-      exact (add_assoc R (-L) (B - U)).symm
-    _ = R - L + (B - U) := by
-      exact congrArg (fun x : ℂ => x + (B - U)) (sub_eq_add_neg R L).symm
-    _ = R - L + -(U - B) := by
-      exact congrArg (fun x : ℂ => R - L + x) (neg_sub U B).symm
-    _ = R - L - (U - B) := by
-      exact (sub_eq_add_neg (R - L) (U - B)).symm
+    B - U + R - L = R - L - (U - B) :=
+  explicitFormula_standardBoundary_horizontal_algebra R L U B
 
 /-- The scheduled project/standard orientation defect is exactly two copies of
 the scheduled horizontal zero-pole remainder. -/
@@ -987,56 +1461,6 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_eventually_tangentResidueI
       zetaCompletedExplicitFormulaCorrectionOnePole_tangentResidueInputs_of_pos_height
         f F h.phi_control (h.height_schedule.height u) hu
         (h.height_schedule.avoids_boundary u))
-
-/-- Right-face one-pole Cauchy limit for the `s = 0` correction pole. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tendsto_centeredPolePhi_ownerChannelTransportAnalytic
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    Tendsto
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
-          f F (h.height_schedule.height u))
-      atTop
-      (𝓝 ((1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0)) := by
-  sorry
-
-/-- The scheduled right-face off-pole `s = 1` correction integral, isolated as
-the object controlled by the contour-cancellation argument. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) : ℂ :=
-  ∫ t in
-      Set.Icc
-        (-(F.rectangle (h.height_schedule.height u)).T)
-        (F.rectangle (h.height_schedule.height u)).T,
-      (-1 /
-          (zetaCompletedExplicitFormulaRightPath
-              (F.rectangle (h.height_schedule.height u)) t - 1)) *
-        zetaCompletedExplicitFormulaPhi f
-          (zetaCompletedExplicitFormulaRightPath
-              (F.rectangle (h.height_schedule.height u)) t - 1 / 2)
-
-/-- The scheduled Cauchy/oscillatory cancellation package for the right-face
-off-pole `s = 1` correction integral.
-
-This is the analytic step obtained by applying the scheduled contour
-cancellation or integration-by-parts package to the fixed-displacement
-vertical face.  The inverse-quadratic decay is not a pointwise
-denominator-separation consequence. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledRectangleCauchyCancellation_ownerGap
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    ∃ A : ℝ,
-      0 < A ∧
-      ∀ u : ℝ,
-        ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
-          f F h u‖
-          ≤
-            ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖ +
-              A *
-                (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
-  sorry
-
 
 end ZetaAdmissibleFunction
 

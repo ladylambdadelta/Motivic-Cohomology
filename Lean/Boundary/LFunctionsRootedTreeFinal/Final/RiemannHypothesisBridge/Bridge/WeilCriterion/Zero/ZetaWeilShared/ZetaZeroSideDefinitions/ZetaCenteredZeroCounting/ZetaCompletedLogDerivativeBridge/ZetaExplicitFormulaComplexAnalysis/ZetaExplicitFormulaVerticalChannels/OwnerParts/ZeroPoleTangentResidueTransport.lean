@@ -101,28 +101,6 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIn
       (zetaCompletedExplicitFormulaCorrectionZeroPoleTangentOrientationDefect_tendsto_zero
         f F h)
 
-/-- A positive-height raw standard Cauchy theorem gives the normalized standard
-boundary value equal to the local residue. -/
-theorem zetaCompletedExplicitFormulaCorrectionZeroPole_eventually_normalizedStandardBoundaryResidueValue_of_positiveHeight_rawCauchy
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (hpositive :
-      ∀ T : ℝ,
-        0 < T →
-          zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
-            f F T =
-            (2 * (Real.pi : ℂ) * Complex.I) *
-              (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))) :
-    ∀ᶠ u in atTop,
-      zetaCompletedExplicitFormulaCorrectionZeroPoleNormalizedStandardRectangleBoundaryIntegral
-        f F (h.height_schedule.height u) =
-        -zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)) := by
-  exact h.height_schedule.eventually_height_pos.mono
-    (fun u hu =>
-      zetaCompletedExplicitFormulaCorrectionZeroPoleNormalizedStandardRectangleBoundaryIntegral_eq_residue_of_rawCauchy
-        f F (h.height_schedule.height u)
-        (hpositive (h.height_schedule.height u) hu))
-
 /-- A positive-height raw standard Cauchy theorem gives the normalized `s = 1`
 standard boundary value equal to its local residue. -/
 theorem zetaCompletedExplicitFormulaCorrectionOnePole_eventually_normalizedStandardBoundaryResidueValue_of_positiveHeight_rawCauchy
@@ -151,10 +129,16 @@ value whose tangent contribution cancels the right-face limit. -/
 theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentBoundaryDefect_tendsto_zero_of_eventually_tangentBoundaryResidueValue
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (B : ℂ)
+    (A B : ℂ)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 A))
     (hcancel :
-      ((1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0) +
-        B * Complex.I = 0)
+      A + B * Complex.I = 0)
     (hboundary :
       ∀ᶠ u in atTop,
         zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
@@ -167,16 +151,6 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentBoundaryDefect_tend
             f F (h.height_schedule.height u) * Complex.I)
       atTop
       (𝓝 0) := by
-  let A : ℂ := (1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0
-  have hright :
-      Tendsto
-        (fun u : ℝ =>
-          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
-            f F (h.height_schedule.height u))
-        atTop
-        (𝓝 A) :=
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tendsto_centeredPolePhi_ownerChannelTransportAnalytic
-      f F h
   have hboundary_event :
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
@@ -222,10 +196,16 @@ zero-pole face. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_of_eventually_tangentBoundaryResidueValue
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (B : ℂ)
+    (A B : ℂ)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 A))
     (hcancel :
-      ((1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0) +
-        B * Complex.I = 0)
+      A + B * Complex.I = 0)
     (hboundary :
       ∀ᶠ u in atTop,
         zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
@@ -240,7 +220,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIn
     zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_of_tangentBoundaryDefect
       f F h
       (zetaCompletedExplicitFormulaCorrectionZeroPoleTangentBoundaryDefect_tendsto_zero_of_eventually_tangentBoundaryResidueValue
-        f F h B hcancel hboundary)
+        f F h A B hright hcancel hboundary)
 
 /-- A positive-height finite tangent residue theorem with value `B` supplies
 that scheduled zero-pole tangent residue value eventually. -/
@@ -266,10 +246,16 @@ identity kept explicit. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_of_positiveHeight_tangentBoundaryResidueValue
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (B : ℂ)
+    (A B : ℂ)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 A))
     (hcancel :
-      ((1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0) +
-        B * Complex.I = 0)
+      A + B * Complex.I = 0)
     (hpositive :
       ∀ T : ℝ,
         0 < T →
@@ -283,7 +269,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIn
       (𝓝 0) := by
   exact
     zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_of_eventually_tangentBoundaryResidueValue
-      f F h B hcancel
+      f F h A B hright hcancel
       (zetaCompletedExplicitFormulaCorrectionZeroPole_eventually_tangentBoundaryResidueValue_of_positiveHeight
         f F h B hpositive)
 

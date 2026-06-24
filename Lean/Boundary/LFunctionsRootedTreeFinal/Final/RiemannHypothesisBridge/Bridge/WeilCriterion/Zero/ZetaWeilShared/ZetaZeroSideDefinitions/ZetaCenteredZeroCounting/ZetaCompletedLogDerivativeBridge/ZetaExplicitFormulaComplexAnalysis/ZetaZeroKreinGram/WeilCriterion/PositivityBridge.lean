@@ -30,6 +30,16 @@ theorem zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryCha
       (ZetaAdmissibleFunction.convolutionAutocorrelation f))
     (hLog : CompletedZetaNegLogDerivControl
       (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+    (hone :
+      Tendsto
+        (fun u : ℝ =>
+          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+            (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
+            ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+              f schedule hPhi hLog).height_schedule.height u))
+        atTop
+        (𝓝 0))
     (hcontourScheduled :
       Tendsto
         (fun u : ℝ =>
@@ -71,7 +81,7 @@ theorem zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryCha
           (ZetaAdmissibleFunction.convolutionAutocorrelation f)) := by
   exact
     ZetaAdmissibleFunction.zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_of_scheduledHorizontalCarrier_ownerContourAssembly
-      f schedule hPhi hLog hcontourScheduled E hTopMem hBottomMem
+      f schedule hPhi hLog hone hcontourScheduled E hTopMem hBottomMem
 
 /-- Upstream owner theorem: completed Weil quadratic positivity on autocorrelation probes,
 assembled from the contour-shift bridge, the prime finite-window reconstruction, and the
@@ -89,6 +99,17 @@ theorem zetaWeilQuadraticPositivity_ownerGap
       ∀ f : ZetaAdmissibleFunction,
         CompletedZetaNegLogDerivControl
           (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+    (hone :
+      ∀ f : ZetaAdmissibleFunction,
+        Tendsto
+          (fun u : ℝ =>
+            ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+              (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
+              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+                f (hschedule f) (hPhi f) (hLog f)).height_schedule.height u))
+          atTop
+          (𝓝 0))
     (hcontourScheduled :
       ∀ f : ZetaAdmissibleFunction,
         Tendsto
@@ -141,7 +162,7 @@ theorem zetaWeilQuadraticPositivity_ownerGap
         (ZetaAdmissibleFunction.completedBoundaryChannel
           (ZetaAdmissibleFunction.convolutionAutocorrelation f)) :=
         zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_ownerGap
-          f (hschedule f) (hPhi f) (hLog f) (hcontourScheduled f) (E f) (hTopMem f) (hBottomMem f)
+          f (hschedule f) (hPhi f) (hLog f) (hone f) (hcontourScheduled f) (E f) (hTopMem f) (hBottomMem f)
       Eq.subst
         (motive := fun x : ℝ => 0 ≤ x)
         hbridge.symm
@@ -160,6 +181,16 @@ theorem zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryCha
       (ZetaAdmissibleFunction.convolutionAutocorrelation f))
     (hLog : CompletedZetaNegLogDerivControl
       (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+    (hone :
+      Tendsto
+        (fun u : ℝ =>
+          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+            (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
+            ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+              f schedule hPhi hLog).height_schedule.height u))
+        atTop
+        (𝓝 0))
     (hcontourScheduled :
       Tendsto
         (fun u : ℝ =>
@@ -178,7 +209,7 @@ theorem zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryCha
           (ZetaAdmissibleFunction.convolutionAutocorrelation f)) := by
   exact
     ZetaAdmissibleFunction.zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_of_constructedScheduledHorizontalCarrier_ownerContourAssembly
-      f schedule hPhi hLog hcontourScheduled
+      f schedule hPhi hLog hone hcontourScheduled
 
 /-- Owner theorem: packaged contour-shift equality using constructed scheduled
 horizontal carrier and the finite-rectangle residue-calculus contour limit. -/
@@ -191,6 +222,16 @@ theorem zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryCha
       (ZetaAdmissibleFunction.convolutionAutocorrelation f))
     (hLog : CompletedZetaNegLogDerivControl
       (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+    (hone :
+      Tendsto
+        (fun u : ℝ =>
+          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+            (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
+            ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+              f schedule hPhi hLog).height_schedule.height u))
+        atTop
+        (𝓝 0))
     (N : ℕ)
     (hfinite :
       ∀ u : ℝ,
@@ -215,7 +256,7 @@ theorem zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryCha
           (ZetaAdmissibleFunction.convolutionAutocorrelation f)) := by
   exact
     ZetaAdmissibleFunction.zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_of_constructedScheduledContour_ownerContourAssembly
-      f schedule hPhi hLog N hfinite hsum
+      f schedule hPhi hLog hone N hfinite hsum
 
 /-- Upstream owner theorem: completed Weil quadratic positivity on autocorrelation probes,
 using the scheduled horizontal carrier constructed by the analytic package. -/
@@ -232,6 +273,17 @@ theorem zetaWeilQuadraticPositivity_of_constructedScheduledCarrier
       ∀ f : ZetaAdmissibleFunction,
         CompletedZetaNegLogDerivControl
           (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+    (hone :
+      ∀ f : ZetaAdmissibleFunction,
+        Tendsto
+          (fun u : ℝ =>
+            ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+              (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
+              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+                f (hschedule f) (hPhi f) (hLog f)).height_schedule.height u))
+          atTop
+          (𝓝 0))
     (hcontourScheduled :
       ∀ f : ZetaAdmissibleFunction,
         Tendsto
@@ -257,7 +309,7 @@ theorem zetaWeilQuadraticPositivity_of_constructedScheduledCarrier
               (ZetaAdmissibleFunction.completedBoundaryChannel
                 (ZetaAdmissibleFunction.convolutionAutocorrelation f)) :=
         zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_constructedScheduledCarrier
-          f (hschedule f) (hPhi f) (hLog f) (hcontourScheduled f)
+          f (hschedule f) (hPhi f) (hLog f) (hone f) (hcontourScheduled f)
       Eq.subst
         (motive := fun x : ℝ => 0 ≤ x)
         hbridge.symm
@@ -280,6 +332,17 @@ theorem zetaWeilQuadraticPositivity_of_constructedScheduledContour
       ∀ f : ZetaAdmissibleFunction,
         CompletedZetaNegLogDerivControl
           (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+    (hone :
+      ∀ f : ZetaAdmissibleFunction,
+        Tendsto
+          (fun u : ℝ =>
+            ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+              (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
+              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+                f (hschedule f) (hPhi f) (hLog f)).height_schedule.height u))
+          atTop
+          (𝓝 0))
     (N : ℕ)
     (hfinite :
       ∀ f : ZetaAdmissibleFunction,
@@ -312,7 +375,7 @@ theorem zetaWeilQuadraticPositivity_of_constructedScheduledContour
               (ZetaAdmissibleFunction.completedBoundaryChannel
                 (ZetaAdmissibleFunction.convolutionAutocorrelation f)) :=
         zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_constructedScheduledContour
-          f (hschedule f) (hPhi f) (hLog f) N (hfinite f) (hsum f)
+          f (hschedule f) (hPhi f) (hLog f) (hone f) N (hfinite f) (hsum f)
       Eq.subst
         (motive := fun x : ℝ => 0 ≤ x)
         hbridge.symm

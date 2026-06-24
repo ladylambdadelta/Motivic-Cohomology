@@ -1,4 +1,5 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.BasicChannels
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ArchimedeanTransport
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLogDerivativeTransport
 
 namespace Boundary
 namespace LFunctions
@@ -13,17 +14,6 @@ open scoped ArithmeticFunction
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
-
-/-! ## Channel transport remainders -/
-
-/-- Prime vertical-channel transport remainder.
-
-The channel-specific convergence theorem is not a consequence of the total residue
-identity alone.  The analytic content is the vanishing of this scheduled remainder. -/
-noncomputable def zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  zetaCompletedExplicitFormulaPrimeVerticalChannel f F T -
-    zetaCompletedExplicitFormulaPrimeContribution f
 
 /-- The prime vertical channel is its completed contribution plus its transport remainder. -/
 theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_eq_contribution_add_transportRemainder
@@ -46,15 +36,6 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_eq_contribution_add_tra
     _ = P + (V - P) := by
       exact congrArg (fun x : ℂ => P + x) (sub_eq_add_neg V P).symm
 
-/-- Archimedean vertical-channel transport remainder.
-
-The channel-specific convergence theorem is the vanishing of this scheduled remainder,
-after the Gamma/completion channel has been normalized. -/
-noncomputable def zetaCompletedExplicitFormulaArchimedeanVerticalChannelTransportRemainder
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  zetaCompletedExplicitFormulaArchimedeanVerticalChannel f F T -
-    zetaCompletedExplicitFormulaArchimedeanContribution f
-
 /-- The archimedean vertical channel is its completed contribution plus its transport remainder. -/
 theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_eq_contribution_add_transportRemainder
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
@@ -75,26 +56,6 @@ theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_eq_contribution_a
       exact add_comm (V + -A) A
     _ = A + (V - A) := by
       exact congrArg (fun x : ℂ => A + x) (sub_eq_add_neg V A).symm
-
-/-- The standard-contour correction boundary value obtained from the separated
-`s = 0` and `s = 1` pole-face transports.  This is intentionally distinct from
-the older centered contribution normalization until the contour-side basepoint
-transport theorem identifies them. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionStandardContourContribution
-    (f : ZetaAdmissibleFunction) : ℂ :=
-  ((1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0) -
-    (((2 * (Real.pi : ℂ) * Complex.I) *
-      (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)
-
-/-- The standard-contour correction boundary value unfolds to the separated
-right-minus-left pole-face residue expression. -/
-theorem zetaCompletedExplicitFormulaCorrectionStandardContourContribution_eq
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaCorrectionStandardContourContribution f =
-      ((1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0) -
-        (((2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) :=
-  rfl
 
 /-- Pole-correction vertical-channel transport remainder, normalized by the
 standard-contour correction boundary value. -/
@@ -767,165 +728,104 @@ theorem explicitFormulaScheduledVerticalChannelProjectionTransportRemainder_tend
     hpointwise.symm
     herror
 
-/-- Owner analytic leaf: the prime logarithmic-derivative vertical-channel transport
-remainder vanishes along the scheduled contour heights. -/
-theorem zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder_tendsto_zero_ownerPrimeLogDerivativeTransport
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+/-- Vertically regular concrete prime-channel analytic transport.
+
+This is the non-circular projection form of the prime-channel theorem when the
+caller owns a vertically regular contour family.  It uses the vertically
+regular prime transport theorem directly, rather than the arbitrary-contour
+extension leaf. -/
+theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_concrete_of_verticallyRegular_ownerChannelTransportAnalytic
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
     Tendsto
       (fun u : ℝ =>
-        zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
-          f F (h.height_schedule.height u))
+        zetaCompletedExplicitFormulaPrimeVerticalChannel f F.toContourFamily
+          (h.height_schedule.height u))
       atTop
-      (𝓝 0) := by
-  sorry
+      (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)) := by
+  exact
+    zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_of_verticallyRegular_gammaBinet_owner
+      f F h hcoh
 
-/-- Selected prime-channel analytic transport: the scheduled selected prime channel
-converges to its selected boundary contribution. -/
-theorem explicitFormulaSelectedScheduledVerticalChannel_prime_tendsto_boundary_ownerChannelTransportAnalytic
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+/-- Vertically regular selected prime-channel analytic transport.
+
+This wraps the concrete vertically regular prime-channel convergence in the
+selected-channel projection API.  It is the theorem downstream vertically
+regular callers should use instead of the arbitrary-contour prime extension
+leaf. -/
+theorem explicitFormulaSelectedScheduledVerticalChannel_prime_tendsto_boundary_of_verticallyRegular_ownerChannelTransportAnalytic
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
     Tendsto
       (fun u : ℝ =>
         explicitFormulaSelectedScheduledVerticalChannel
-          f F h u ExplicitFormulaScheduledVerticalChannelProjection.prime)
+          f F.toContourFamily h u
+          ExplicitFormulaScheduledVerticalChannelProjection.prime)
       atTop
       (𝓝
         (explicitFormulaSelectedVerticalBoundaryChannel
           f ExplicitFormulaScheduledVerticalChannelProjection.prime)) := by
-  exact
-    explicitFormulaScheduledVerticalChannel_tendsto_boundaryContribution_of_tendsto_transportRemainder
-      (explicitFormulaSelectedVerticalBoundaryChannel
-        f ExplicitFormulaScheduledVerticalChannelProjection.prime)
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
-          f F (h.height_schedule.height u))
-      (fun u : ℝ =>
-        explicitFormulaSelectedScheduledVerticalChannel
-          f F h u ExplicitFormulaScheduledVerticalChannelProjection.prime)
-      (fun u : ℝ =>
-        calc
-          explicitFormulaSelectedScheduledVerticalChannel
-              f F h u ExplicitFormulaScheduledVerticalChannelProjection.prime =
-            zetaCompletedExplicitFormulaPrimeVerticalChannel
-              f F (h.height_schedule.height u) := by
-              exact explicitFormulaSelectedScheduledVerticalChannel_prime_eq f F h u
-          _ =
-            zetaCompletedExplicitFormulaPrimeContribution f +
-              zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
-                f F (h.height_schedule.height u) := by
-              exact
-                zetaCompletedExplicitFormulaPrimeVerticalChannel_eq_contribution_add_transportRemainder
-                  f F (h.height_schedule.height u)
-          _ =
-            explicitFormulaSelectedVerticalBoundaryChannel
-                f ExplicitFormulaScheduledVerticalChannelProjection.prime +
-              zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
-                f F (h.height_schedule.height u) := by
-              exact
-                congrArg
-                  (fun z : ℂ =>
-                    z +
-                      zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
-                        f F (h.height_schedule.height u))
-                  (explicitFormulaSelectedVerticalBoundaryChannel_prime_eq f).symm)
-      (zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder_tendsto_zero_ownerPrimeLogDerivativeTransport
-        f F h)
-
-/-- Concrete prime-channel analytic transport: the scheduled prime logarithmic-derivative
-vertical integral converges to the completed prime contribution. -/
-theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_concrete_ownerChannelTransportAnalytic
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    Tendsto
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaPrimeVerticalChannel f F
-          (h.height_schedule.height u))
-      atTop
-      (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)) := by
-  have hselected :
+  have hconcrete :
       Tendsto
         (fun u : ℝ =>
-          explicitFormulaSelectedScheduledVerticalChannel
-            f F h u ExplicitFormulaScheduledVerticalChannelProjection.prime)
+          zetaCompletedExplicitFormulaPrimeVerticalChannel f F.toContourFamily
+            (h.height_schedule.height u))
         atTop
-        (𝓝
-          (explicitFormulaSelectedVerticalBoundaryChannel
-            f ExplicitFormulaScheduledVerticalChannelProjection.prime)) :=
-    explicitFormulaSelectedScheduledVerticalChannel_prime_tendsto_boundary_ownerChannelTransportAnalytic
-      f F h
+        (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)) :=
+    zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_concrete_of_verticallyRegular_ownerChannelTransportAnalytic
+      f F h hcoh
   have hpointwise :
       (fun u : ℝ =>
         explicitFormulaSelectedScheduledVerticalChannel
-          f F h u ExplicitFormulaScheduledVerticalChannelProjection.prime) =
+          f F.toContourFamily h u
+          ExplicitFormulaScheduledVerticalChannelProjection.prime) =
         (fun u : ℝ =>
-          zetaCompletedExplicitFormulaPrimeVerticalChannel f F
+          zetaCompletedExplicitFormulaPrimeVerticalChannel f F.toContourFamily
             (h.height_schedule.height u)) := by
     funext u
-    exact explicitFormulaSelectedScheduledVerticalChannel_prime_eq f F h u
+    exact
+      explicitFormulaSelectedScheduledVerticalChannel_prime_eq
+        f F.toContourFamily h u
   have htarget :
       explicitFormulaSelectedVerticalBoundaryChannel
           f ExplicitFormulaScheduledVerticalChannelProjection.prime =
         zetaCompletedExplicitFormulaPrimeContribution f :=
     explicitFormulaSelectedVerticalBoundaryChannel_prime_eq f
-  have hselectedConcreteTarget :
-      Tendsto
-        (fun u : ℝ =>
-          explicitFormulaSelectedScheduledVerticalChannel
-            f F h u ExplicitFormulaScheduledVerticalChannelProjection.prime)
-        atTop
-        (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)) :=
-    Eq.subst
-      (motive := fun z : ℂ =>
-        Tendsto
-          (fun u : ℝ =>
-            explicitFormulaSelectedScheduledVerticalChannel
-              f F h u ExplicitFormulaScheduledVerticalChannelProjection.prime)
-          atTop
-          (𝓝 z))
-      htarget
-      hselected
-  exact Eq.subst
-    (motive := fun φ : ℝ → ℂ =>
-      Tendsto φ atTop (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)))
-    hpointwise
-    hselectedConcreteTarget
-
-/-- Prime-channel analytic transport: the scheduled prime vertical integral converges to
-the completed prime boundary contribution. -/
-theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_ownerChannelTransportAnalytic
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    Tendsto
-      (fun u : ℝ =>
-        explicitFormulaSelectedScheduledVerticalChannel
-          f F h u ExplicitFormulaScheduledVerticalChannelProjection.prime)
-      atTop
-      (𝓝
-        (explicitFormulaSelectedVerticalBoundaryChannel
-          f ExplicitFormulaScheduledVerticalChannelProjection.prime)) := by
   exact
-    explicitFormulaSelectedScheduledVerticalChannel_prime_tendsto_boundary_ownerChannelTransportAnalytic
-      f F h
-
-/-- Owner analytic leaf: the archimedean Gamma/completion vertical-channel
-transport remainder vanishes along the scheduled contour heights. -/
-theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannelTransportRemainder_tendsto_zero_ownerArchimedeanTransport
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    Tendsto
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaArchimedeanVerticalChannelTransportRemainder
-          f F (h.height_schedule.height u))
-      atTop
-      (𝓝 0) := by
-  sorry
+    Eq.subst
+      (motive := fun φ : ℝ → ℂ =>
+        Tendsto φ atTop
+          (𝓝
+            (explicitFormulaSelectedVerticalBoundaryChannel
+              f ExplicitFormulaScheduledVerticalChannelProjection.prime)))
+      hpointwise.symm
+      (Eq.subst
+        (motive := fun z : ℂ =>
+          Tendsto
+            (fun u : ℝ =>
+              zetaCompletedExplicitFormulaPrimeVerticalChannel
+                f F.toContourFamily (h.height_schedule.height u))
+            atTop
+            (𝓝 z))
+        htarget.symm
+        hconcrete)
 
 /-- Selected archimedean-channel analytic transport: the scheduled selected
 archimedean channel converges to its selected boundary contribution. -/
 theorem explicitFormulaSelectedScheduledVerticalChannel_archimedean_tendsto_boundary_ownerChannelTransportAnalytic
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hvalue :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel f F t) =
+        zetaCompletedExplicitFormulaArchimedeanContribution f +
+          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f) :
     Tendsto
       (fun u : ℝ =>
         explicitFormulaSelectedScheduledVerticalChannel
@@ -948,13 +848,20 @@ theorem explicitFormulaSelectedScheduledVerticalChannel_archimedean_tendsto_boun
         explicitFormulaSelectedScheduledVerticalChannel_archimedean_eq_boundary_add_transportRemainder
           f F h u)
       (zetaCompletedExplicitFormulaArchimedeanVerticalChannelTransportRemainder_tendsto_zero_ownerArchimedeanTransport
-        f F h)
+        f F h hregular hcoh hvalue)
 
 /-- Concrete archimedean-channel analytic transport: the scheduled Gamma/completion
 vertical integral converges to the completed archimedean contribution. -/
 theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimedeanContribution_concrete_ownerChannelTransportAnalytic
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hvalue :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel f F t) =
+        zetaCompletedExplicitFormulaArchimedeanContribution f +
+          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaArchimedeanVerticalChannel f F
@@ -971,7 +878,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimede
           (explicitFormulaSelectedVerticalBoundaryChannel
             f ExplicitFormulaScheduledVerticalChannelProjection.archimedean)) :=
     explicitFormulaSelectedScheduledVerticalChannel_archimedean_tendsto_boundary_ownerChannelTransportAnalytic
-      f F h
+      f F h hregular hcoh hvalue
   have hpointwise :
       (fun u : ℝ =>
         explicitFormulaSelectedScheduledVerticalChannel
@@ -1013,7 +920,14 @@ theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimede
 integral converges to the completed archimedean boundary contribution. -/
 theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimedeanContribution_ownerChannelTransportAnalytic
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hvalue :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel f F t) =
+        zetaCompletedExplicitFormulaArchimedeanContribution f +
+          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f) :
     Tendsto
       (fun u : ℝ =>
         explicitFormulaSelectedScheduledVerticalChannel
@@ -1024,7 +938,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimede
           f ExplicitFormulaScheduledVerticalChannelProjection.archimedean)) := by
   exact
     explicitFormulaSelectedScheduledVerticalChannel_archimedean_tendsto_boundary_ownerChannelTransportAnalytic
-      f F h
+      f F h hregular hcoh hvalue
 
 end ZetaAdmissibleFunction
 

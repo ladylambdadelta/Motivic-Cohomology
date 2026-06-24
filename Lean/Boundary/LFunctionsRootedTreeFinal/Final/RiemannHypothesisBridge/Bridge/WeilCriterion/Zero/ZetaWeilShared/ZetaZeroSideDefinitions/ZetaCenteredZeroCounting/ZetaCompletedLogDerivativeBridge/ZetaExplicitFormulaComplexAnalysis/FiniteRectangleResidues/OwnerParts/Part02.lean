@@ -164,6 +164,53 @@ theorem explicitFormulaCompletedZeroHeightWindow_mem_of_centeredHeight_le
   exact
     (explicitFormulaCompletedZeroHeightWindow_mem_iff_centeredHeight_le T ρ).mpr hρ
 
+/-- Completed-zero height windows are monotone in the height cutoff.  This local
+alias keeps finite-rectangle residue-window comparisons inside the
+finite-rectangle owner layer. -/
+theorem explicitFormulaCompletedZeroHeightWindow_subset_of_le
+    {S T : ℝ} (hST : S ≤ T) :
+    explicitFormulaCompletedZeroHeightWindow S ⊆
+      explicitFormulaCompletedZeroHeightWindow T :=
+  explicitFormulaCompletedZeroHeightWindow_mono hST
+
+/-- The completed-zero coordinates in the outer band between two height
+windows.  The parameter order is `(inner, outer)`. -/
+def explicitFormulaCompletedZeroHeightOuterBand (S T : ℝ) :
+    Finset {ρ : ℂ // ZetaCompletedZero ρ} :=
+  (explicitFormulaCompletedZeroHeightWindow T).filter
+    (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+      ρ ∉ explicitFormulaCompletedZeroHeightWindow S)
+
+/-- Residue contribution of the completed-zero outer band, defined as the
+exact difference of the outer and inner finite residue windows.
+
+This is the comparison term needed when a rectangle of height `S` must use a
+larger zero carrier, such as `S + 1`, to contain all interior zero
+singularities. -/
+noncomputable def explicitFormulaCompletedZeroHeightOuterBandResidueError
+    (f : ZetaAdmissibleFunction) (S T : ℝ) : ℂ :=
+  explicitFormulaCompletedZeroHeightWindowResidueSum f T -
+    explicitFormulaCompletedZeroHeightWindowResidueSum f S
+
+/-- Enlarging a completed-zero residue window is exactly the inner window plus
+the named outer-band residue error. -/
+theorem explicitFormulaCompletedZeroHeightWindowResidueSum_eq_inner_add_outerBandResidueError
+    (f : ZetaAdmissibleFunction) (S T : ℝ) :
+    explicitFormulaCompletedZeroHeightWindowResidueSum f T =
+      explicitFormulaCompletedZeroHeightWindowResidueSum f S +
+        explicitFormulaCompletedZeroHeightOuterBandResidueError f S T := by
+  let A : ℂ := explicitFormulaCompletedZeroHeightWindowResidueSum f S
+  let B : ℂ := explicitFormulaCompletedZeroHeightWindowResidueSum f T
+  calc
+    explicitFormulaCompletedZeroHeightWindowResidueSum f T = B := by
+      rfl
+    _ = A + (B - A) := by
+      exact (add_sub_cancel'_right A B).symm
+    _ =
+        explicitFormulaCompletedZeroHeightWindowResidueSum f S +
+          explicitFormulaCompletedZeroHeightOuterBandResidueError f S T := by
+      rfl
+
 /-- Exact coordinate blocker for the forward residue-window classification: completed
 zero-side coordinates must be transported to the contour-integrand singular set. -/
 theorem explicitFormulaCompletedZero_mem_contourIntegrandSingularSet_ownerGap :

@@ -1,4 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.LeftZeroCancellation
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleHorizontalEdgeBounds
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleResidueTailEstimate
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.RightOnePoleCauchyCancellation
 
 namespace Boundary
 namespace LFunctions
@@ -24,6 +27,13 @@ controlled in this file. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_neg_centeredPolePhi_of_rectangleBoundaryResidue
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 0))
     (hboundary :
       Tendsto
         (fun u : ℝ =>
@@ -38,15 +48,6 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendst
       atTop
       (𝓝 (-(1 / (1 - (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0))) := by
   let K : ℂ := 1 / (1 - (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0
-  have hright :
-      Tendsto
-        (fun u : ℝ =>
-          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-            f F (h.height_schedule.height u))
-        atTop
-        (𝓝 0) :=
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_zero_ownerChannelTransportAnalytic
-      f F h
   have hhorizontal :
       Tendsto
         (fun u : ℝ =>
@@ -177,6 +178,13 @@ on-pole vertical channel. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_neg_centeredPolePhi_of_positiveHeight_boundaryResidue
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 0))
     (hpositive :
       ∀ T : ℝ,
         0 < T →
@@ -191,7 +199,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendst
       (𝓝 (-(1 / (1 - (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0))) := by
   exact
     zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_neg_centeredPolePhi_of_rectangleBoundaryResidue
-      f F h
+      f F h hright
       (zetaCompletedExplicitFormulaCorrectionOnePoleRectangleBoundaryIntegral_tendsto_centeredPolePhi_of_positiveHeight_boundaryResidue
         f F h hpositive)
 
@@ -203,6 +211,13 @@ This is the value forced by the standard contour convention:
 theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_of_standardBoundaryResidue
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) (B : ℂ)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 0))
     (hstandard :
       Tendsto
         (fun u : ℝ =>
@@ -216,15 +231,6 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendst
           f F (h.height_schedule.height u))
       atTop
       (𝓝 (B * Complex.I)) := by
-  have hright :
-      Tendsto
-        (fun u : ℝ =>
-          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-            f F (h.height_schedule.height u))
-        atTop
-        (𝓝 0) :=
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_zero_ownerChannelTransportAnalytic
-      f F h
   have hhorizontal :
       Tendsto
         (fun u : ℝ =>
@@ -447,6 +453,13 @@ side, with the standard contour normalization. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_of_positiveHeight_rawStandardCauchy
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 0))
     (hpositive :
       ∀ T : ℝ,
         0 < T →
@@ -486,115 +499,8 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendst
       f F h
       ((2 * (Real.pi : ℂ) * Complex.I) *
         (-zetaCompletedExplicitFormulaPhi f (1 / 2)))
+      hright
       hstandard
-
-/-- Algebraic assembly of the positive-height raw standard Cauchy value for
-the isolated `s = 1` correction kernel from the two finite contour inputs:
-the square-punctured rectangle boundary vanishes and the inner puncture square
-has the deleted-pole residue value.
-
-The analytic work is intentionally not hidden here; this theorem only consumes
-the two contour facts at the canonical one-pole puncture radius. -/
-theorem zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_canonicalPunctureInputs
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (T : ℝ)
-    (hT : 0 < T)
-    (hsquare :
-      zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral
-        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        F T (zetaExplicitFormulaOnePolePunctureRadius F T) = 0)
-    (hinner :
-      zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral
-        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        (zetaExplicitFormulaOnePolePunctureRadius F T) =
-        (2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) :
-    zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral
-      f F T =
-      (2 * (Real.pi : ℂ) * Complex.I) *
-        (-zetaCompletedExplicitFormulaPhi f (1 / 2)) := by
-  exact
-    Eq.trans
-      (zetaCompletedExplicitFormulaCorrectionOnePoleStandardBoundary_eq_innerSquare_of_squarePunctured_zero
-        f F (le_of_lt hT)
-        (zetaExplicitFormulaOnePolePunctureRadius F T)
-        hsquare)
-      hinner
-
-/-- Positive-height finite Cauchy inputs for the canonical isolated `s = 1`
-puncture rectangle.
-
-This is the true finite-contour analytic sink beneath the raw standard
-rectangle boundary theorem: it packages exactly the square-punctured Cauchy
-cancellation and the inner-square residue value. -/
-theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalPunctureInputs_of_pos_height
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (T : ℝ)
-    (hT : 0 < T) :
-    zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral
-        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        F T (zetaExplicitFormulaOnePolePunctureRadius F T) = 0 ∧
-      zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral
-        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        (zetaExplicitFormulaOnePolePunctureRadius F T) =
-        (2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2)) := by
-  have hboundary :
-      zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral
-          (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-          F T (zetaExplicitFormulaOnePolePunctureRadius F T) =
-        zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum
-          (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-          F T (zetaExplicitFormulaOnePolePunctureRadius F T) :=
-    zetaCompletedExplicitFormulaCorrectionOnePole_canonicalSquarePuncturedBoundary_eq_fourCellBoundary
-      f F h T hT
-  have hfour :
-      zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum
-          (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-          F T (zetaExplicitFormulaOnePolePunctureRadius F T) = 0 :=
-    zetaCompletedExplicitFormulaCorrectionOnePole_canonicalFourCellBoundary_eq_zero_of_pos_height
-      f F h T hT
-  have hsquare :
-      zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral
-          (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-          F T (zetaExplicitFormulaOnePolePunctureRadius F T) = 0 :=
-    Eq.trans hboundary hfour
-  have hinner :
-      zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral
-        (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        (zetaExplicitFormulaOnePolePunctureRadius F T) =
-        (2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2)) :=
-    zetaCompletedExplicitFormulaCorrectionOnePole_canonicalInnerSquareBoundary_eq_residue_of_pos_height
-      f F h T hT
-  exact And.intro hsquare hinner
-
-/-- Positive-height raw standard finite Cauchy theorem for the isolated `s = 1`
-correction kernel.
-
-This is the finite contour-residue owner theorem needed by the scheduled
-left-face one-pole transport.  It keeps the honest standard-contour
-normalization:
-`standard boundary = 2πi * residue`, with residue
-`-Phi f (1 / 2)` for the kernel `-1 / (z - 1) * Phi f (z - 1 / 2)`. -/
-theorem zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_pos_height
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (T : ℝ)
-    (hT : 0 < T) :
-    zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral
-      f F T =
-      (2 * (Real.pi : ℂ) * Complex.I) *
-        (-zetaCompletedExplicitFormulaPhi f (1 / 2)) := by
-  match
-    zetaCompletedExplicitFormulaCorrectionOnePole_canonicalPunctureInputs_of_pos_height
-      f F h T hT with
-  | ⟨hsquare, hinner⟩ =>
-      exact
-        zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_canonicalPunctureInputs
-          f F h T hT hsquare hinner
 
 /-- Left-face one-pole Cauchy limit for the `s = 1` correction pole, including the
 left boundary orientation.
@@ -607,7 +513,14 @@ normalization and must not be supplied by this single-pole contour theorem.
 -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_standardContourResidue_ownerChannelTransportAnalytic
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 0)) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
@@ -617,16 +530,45 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendst
         (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)) := by
   exact
     zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_of_positiveHeight_rawStandardCauchy
-      f F h
+      f F h hright
       (fun T hT =>
         zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_pos_height
           f F h T hT)
+
+/-- Quantitative left-face residue transport for the `s = 1` correction pole.
+
+This is the direct residue-tail estimate needed by the right off-pole Cauchy
+decay theorem.  It is deliberately stated at the left one-pole owner level:
+downstream files must consume this theorem rather than thread a hypothesis
+through the contour-cancellation stack. -/
+theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_of_standardResidue
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    ∃ ML : ℝ,
+      0 < ML ∧
+        ∀ᶠ u in atTop,
+          ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+              f F (h.height_schedule.height u) -
+            ((2 * (Real.pi : ℂ) * Complex.I) *
+              (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I‖
+            ≤ ML *
+      (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
+  exact
+    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_ownerResidueTail
+      f F h
 
 /-- The right pole face transports to the pole at `s = 0`, evaluated at the centered
 basepoint of the test transform. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightPoleVerticalIntegral_tendsto_centeredPolePhi_ownerChannelTransportAnalytic
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hone :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 0)) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaCorrectionRightPoleVerticalIntegral
@@ -649,8 +591,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightPoleVerticalIntegral_tendsto_
             f F (h.height_schedule.height u))
         atTop
         (𝓝 0) :=
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_zero_ownerChannelTransportAnalytic
-      f F h
+    hone
   have hsum :
       Tendsto
         (fun u : ℝ =>
@@ -699,7 +640,14 @@ theorem zetaCompletedExplicitFormulaCorrectionRightPoleVerticalIntegral_tendsto_
 normalization. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral_tendsto_standardContourResidue_ownerChannelTransportAnalytic
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 0)) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral
@@ -725,7 +673,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral_tendsto_s
         (𝓝 (((2 * (Real.pi : ℂ) * Complex.I) *
           (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)) :=
     zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_standardContourResidue_ownerChannelTransportAnalytic
-      f F h
+      f F h hright
   have hsum :
       Tendsto
         (fun u : ℝ =>

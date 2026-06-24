@@ -85,7 +85,39 @@ theorem complex_oneInterval_endpoint_algebra
   have hcancel :
       I + A + (1 / 2 : ℂ) * F + ((1 / 2 : ℂ) * F - A - I) =
       (1 / 2 : ℂ) * F + (1 / 2 : ℂ) * F := by
-    abel_nf
+    let H : ℂ := (1 / 2 : ℂ) * F
+    have hsub :
+        H - A - I = H - (A + I) :=
+      sub_sub H A I
+    have hfront :
+        I + A + H + (H - (A + I)) =
+          (I + A + H + H) - (A + I) := by
+      exact (add_sub_assoc (I + A + H) H (A + I)).symm
+    have hregroup :
+        I + A + H + H = H + H + (A + I) := by
+      calc
+        I + A + H + H = (I + A) + H + H := by
+          exact rfl
+        _ = (I + A) + (H + H) := by
+          exact add_assoc (I + A) H H
+        _ = (H + H) + (I + A) := by
+          exact add_comm (I + A) (H + H)
+        _ = (H + H) + (A + I) := by
+          exact congrArg (fun z : ℂ => (H + H) + z) (add_comm I A)
+    calc
+      I + A + (1 / 2 : ℂ) * F + ((1 / 2 : ℂ) * F - A - I) =
+          I + A + H + (H - A - I) := by
+        exact rfl
+      _ = I + A + H + (H - (A + I)) := by
+        exact congrArg (fun z : ℂ => I + A + H + z) hsub
+      _ = (I + A + H + H) - (A + I) := by
+        exact hfront
+      _ = (H + H + (A + I)) - (A + I) := by
+        exact congrArg (fun z : ℂ => z - (A + I)) hregroup
+      _ = H + H := by
+        exact add_sub_cancel_right (H + H) (A + I)
+      _ = (1 / 2 : ℂ) * F + (1 / 2 : ℂ) * F := by
+        exact rfl
   exact (hcancel.trans htwo).symm
 
 /-- The quadratic primitive of the centered affine sawtooth has equal values
@@ -477,6 +509,270 @@ theorem eulerMaclaurin_affineSawtooth_oneInterval_integral_eq_zero
     exact sub_eq_zero.mpr hendpoints
   exact Eq.trans hset hzero
 
+/-- The first moment of the centered affine sawtooth on a unit interval is
+`1/12`. -/
+theorem eulerMaclaurin_affineSawtooth_oneInterval_firstMoment_eq_one_twelfth
+    (n : ℕ) :
+    (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+      (((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ) *
+        ((((x - ((n : ℕ) : ℝ)) : ℝ) : ℂ))) =
+      (1 / 12 : ℂ) := by
+  let a : ℝ := ((n : ℕ) : ℝ)
+  let b : ℝ := (((n + 1 : ℕ) : ℝ))
+  let F : ℝ → ℂ := fun x =>
+    ((((x - a) ^ 3) / 3 - ((x - a) ^ 2) / 4 : ℝ) : ℂ)
+  let f : ℝ → ℂ := fun x =>
+    (((x - a - 1 / 2 : ℝ) : ℂ) * ((((x - a) : ℝ) : ℂ)))
+  have hab : a ≤ b := by
+    exact Nat.cast_le.mpr (Nat.le_succ n)
+  have hb_eq : b = a + 1 := by
+    exact Nat.cast_add_one n
+  have hderiv : ∀ x ∈ Set.uIcc a b, HasDerivAt F (f x) x := by
+    intro x _hx
+    have hbase : HasDerivAt (fun y : ℝ => y - a) (1 : ℝ) x :=
+      (hasDerivAt_id x).sub_const a
+    have hcube :
+        HasDerivAt (fun y : ℝ => (y - a) ^ 3)
+          (((3 : ℕ) : ℝ) * (x - a) ^ (3 - 1) * 1) x :=
+      hbase.pow 3
+    have hcube_raw :
+        ((3 : ℕ) : ℝ) * (x - a) ^ (3 - 1) * 1 =
+          3 * (x - a) ^ 2 := by
+      have hpred : (3 - 1 : ℕ) = 2 := rfl
+      calc
+        ((3 : ℕ) : ℝ) * (x - a) ^ (3 - 1) * 1 =
+            3 * (x - a) ^ (3 - 1) * 1 := by
+          rfl
+        _ = 3 * (x - a) ^ 2 * 1 := by
+          exact congrArg (fun m : ℕ => 3 * (x - a) ^ m * 1) hpred
+        _ = 3 * (x - a) ^ 2 := by
+          exact mul_one (3 * (x - a) ^ 2)
+    have hcube' :
+        HasDerivAt (fun y : ℝ => (y - a) ^ 3)
+          (3 * (x - a) ^ 2) x :=
+      Eq.subst
+        (motive := fun r : ℝ =>
+          HasDerivAt (fun y : ℝ => (y - a) ^ 3) r x)
+        hcube_raw
+        hcube
+    have hcube_div :
+        HasDerivAt (fun y : ℝ => ((y - a) ^ 3) / 3)
+          ((3 * (x - a) ^ 2) / 3) x :=
+      hcube'.div_const 3
+    have hcube_cancel :
+        (3 * (x - a) ^ 2) / 3 = (x - a) ^ 2 := by
+      exact mul_div_cancel_left₀ ((x - a) ^ 2)
+        (show (3 : ℝ) ≠ 0 from three_ne_zero)
+    have hcube_term :
+        HasDerivAt (fun y : ℝ => ((y - a) ^ 3) / 3)
+          ((x - a) ^ 2) x :=
+      Eq.subst
+        (motive := fun r : ℝ =>
+          HasDerivAt (fun y : ℝ => ((y - a) ^ 3) / 3) r x)
+        hcube_cancel
+        hcube_div
+    have hsquare :
+        HasDerivAt (fun y : ℝ => (y - a) ^ 2)
+          (((2 : ℕ) : ℝ) * (x - a) ^ (2 - 1) * 1) x :=
+      hbase.pow 2
+    have hsquare_raw :
+        ((2 : ℕ) : ℝ) * (x - a) ^ (2 - 1) * 1 =
+          2 * (x - a) := by
+      have hpow_one : (x - a) ^ (2 - 1) = x - a :=
+        pow_one (x - a)
+      calc
+        ((2 : ℕ) : ℝ) * (x - a) ^ (2 - 1) * 1 =
+            2 * (x - a) ^ (2 - 1) * 1 := by
+          rfl
+        _ = 2 * (x - a) * 1 := by
+          exact congrArg (fun y : ℝ => 2 * y * 1) hpow_one
+        _ = 2 * (x - a) := by
+          exact mul_one (2 * (x - a))
+    have hsquare' :
+        HasDerivAt (fun y : ℝ => (y - a) ^ 2)
+          (2 * (x - a)) x :=
+      Eq.subst
+        (motive := fun r : ℝ =>
+          HasDerivAt (fun y : ℝ => (y - a) ^ 2) r x)
+        hsquare_raw
+        hsquare
+    have hsquare_div :
+        HasDerivAt (fun y : ℝ => ((y - a) ^ 2) / 4)
+          ((2 * (x - a)) / 4) x :=
+      hsquare'.div_const 4
+    have hreal :
+        HasDerivAt
+          (fun y : ℝ => ((y - a) ^ 3) / 3 - ((y - a) ^ 2) / 4)
+          ((x - a - 1 / 2) * (x - a)) x := by
+      have hsub :
+          HasDerivAt
+            (fun y : ℝ => ((y - a) ^ 3) / 3 - ((y - a) ^ 2) / 4)
+            ((x - a) ^ 2 - (2 * (x - a)) / 4) x :=
+        hcube_term.sub hsquare_div
+      have halg :
+          (x - a) ^ 2 - (2 * (x - a)) / 4 =
+            (x - a - 1 / 2) * (x - a) := by
+        let u : ℝ := x - a
+        have hsquare :
+            u ^ 2 = u * u :=
+          pow_two u
+        have hfour :
+            (4 : ℝ) = 2 * 2 := by
+          have hnat : (2 * 2 : ℕ) = 4 := rfl
+          exact Eq.trans (Nat.cast_mul 2 2).symm (congrArg Nat.cast hnat)
+        have htwo_over_four :
+            (2 * u) / 4 = u / 2 := by
+          calc
+            (2 * u) / 4 = (2 * u) / (2 * 2) := by
+              exact congrArg (fun r : ℝ => (2 * u) / r) hfour
+            _ = u / 2 := by
+              exact mul_div_mul_left u 2 (show (2 : ℝ) ≠ 0 from two_ne_zero)
+        have hhalf_mul :
+            (1 / 2 : ℝ) * u = u / 2 :=
+          one_div_mul_eq_div u 2
+        calc
+          (x - a) ^ 2 - (2 * (x - a)) / 4 =
+              u ^ 2 - (2 * u) / 4 := by
+            exact rfl
+          _ = u * u - (2 * u) / 4 := by
+            exact congrArg (fun r : ℝ => r - (2 * u) / 4) hsquare
+          _ = u * u - u / 2 := by
+            exact congrArg (fun r : ℝ => u * u - r) htwo_over_four
+          _ = u * u - (1 / 2 : ℝ) * u := by
+            exact congrArg (fun r : ℝ => u * u - r) hhalf_mul.symm
+          _ = (u - 1 / 2) * u := by
+            exact (sub_mul u (1 / 2 : ℝ) u).symm
+          _ = (x - a - 1 / 2) * (x - a) := by
+            exact rfl
+      exact Eq.subst
+        (motive := fun r : ℝ =>
+          HasDerivAt
+            (fun y : ℝ => ((y - a) ^ 3) / 3 - ((y - a) ^ 2) / 4)
+            r x)
+        halg
+        hsub
+    exact hreal.ofReal_comp
+  have hint :
+      IntervalIntegrable f volume a b := by
+    have hcont : ContinuousOn f (Set.uIcc a b) := by
+      exact
+        ((Complex.continuous_ofReal.comp
+            ((continuous_id.sub continuous_const).sub continuous_const)).mul
+          (Complex.continuous_ofReal.comp
+            (continuous_id.sub continuous_const))).continuousOn
+    exact hcont.intervalIntegrable
+  have hinterval :
+      (∫ x in a..b, f x) = F b - F a :=
+    intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv hint
+  have hset :
+      (∫ x in Set.Ioc a b, f x) = F b - F a := by
+    exact Eq.trans (intervalIntegral.integral_of_le hab).symm hinterval
+  have hendpoint :
+      F b - F a = (1 / 12 : ℂ) := by
+    have hb_step : b - a = 1 := by
+      exact Eq.subst
+        (motive := fun y : ℝ => y - a = 1)
+        hb_eq.symm
+        (add_sub_cancel_left a 1)
+    have ha_step : a - a = 0 :=
+      sub_self a
+    have hraw :
+        ((((b - a) ^ 3) / 3 - ((b - a) ^ 2) / 4 : ℝ) : ℂ) -
+            ((((a - a) ^ 3) / 3 - ((a - a) ^ 2) / 4 : ℝ) : ℂ) =
+          (1 / 12 : ℂ) := by
+      have hb_eval :
+          ((b - a) ^ 3 / 3 - (b - a) ^ 2 / 4 : ℝ) =
+            (1 / 12 : ℝ) := by
+        have hsubst :
+            ((b - a) ^ 3 / 3 - (b - a) ^ 2 / 4 : ℝ) =
+              ((1 : ℝ) ^ 3 / 3 - (1 : ℝ) ^ 2 / 4) := by
+          exact congrArg (fun y : ℝ => y ^ 3 / 3 - y ^ 2 / 4) hb_step
+        have hone :
+            ((1 : ℝ) ^ 3 / 3 - (1 : ℝ) ^ 2 / 4) =
+              (1 / 12 : ℝ) := by
+          have hpow3 :
+              ((1 : ℝ) ^ 3) = 1 :=
+            one_pow 3
+          have hpow2 :
+              ((1 : ℝ) ^ 2) = 1 :=
+            one_pow 2
+          have hthree_ne : (3 : ℝ) ≠ 0 :=
+            Nat.cast_ne_zero.mpr (show (3 : ℕ) ≠ 0 from Nat.succ_ne_zero 2)
+          have hfour_ne : (4 : ℝ) ≠ 0 :=
+            Nat.cast_ne_zero.mpr (show (4 : ℕ) ≠ 0 from Nat.succ_ne_zero 3)
+          have hcommon :
+              (1 / 3 : ℝ) - 1 / 4 =
+                ((1 : ℝ) * 4 - (1 : ℝ) * 3) / (3 * 4) := by
+            exact div_sub_div (1 : ℝ) (1 : ℝ) hthree_ne hfour_ne
+          have hnum :
+              (1 : ℝ) * 4 - (1 : ℝ) * 3 = 1 := by
+            calc
+              (1 : ℝ) * 4 - (1 : ℝ) * 3 = 4 - (1 : ℝ) * 3 := by
+                exact congrArg (fun r : ℝ => r - (1 : ℝ) * 3) (one_mul 4)
+              _ = 4 - 3 := by
+                exact congrArg (fun r : ℝ => 4 - r) (one_mul 3)
+              _ = 1 := by
+                exact sub_eq_iff_eq_add.mpr rfl
+          have hden :
+              (3 : ℝ) * 4 = 12 := by
+            have hnat : (3 * 4 : ℕ) = 12 := rfl
+            exact Eq.trans (Nat.cast_mul 3 4).symm (congrArg Nat.cast hnat)
+          calc
+            ((1 : ℝ) ^ 3 / 3 - (1 : ℝ) ^ 2 / 4) =
+                1 / 3 - (1 : ℝ) ^ 2 / 4 := by
+              exact congrArg (fun r : ℝ => r / 3 - (1 : ℝ) ^ 2 / 4) hpow3
+            _ = 1 / 3 - 1 / 4 := by
+              exact congrArg (fun r : ℝ => 1 / 3 - r / 4) hpow2
+            _ = ((1 : ℝ) * 4 - (1 : ℝ) * 3) / (3 * 4) := by
+              exact hcommon
+            _ = 1 / (3 * 4) := by
+              exact congrArg (fun r : ℝ => r / (3 * 4)) hnum
+            _ = 1 / 12 := by
+              exact congrArg (fun r : ℝ => 1 / r) hden
+        exact Eq.trans hsubst hone
+      have ha_eval :
+          ((a - a) ^ 3 / 3 - (a - a) ^ 2 / 4 : ℝ) =
+            0 := by
+        have hsubst :
+            ((a - a) ^ 3 / 3 - (a - a) ^ 2 / 4 : ℝ) =
+              ((0 : ℝ) ^ 3 / 3 - (0 : ℝ) ^ 2 / 4) := by
+          exact congrArg (fun y : ℝ => y ^ 3 / 3 - y ^ 2 / 4) ha_step
+        have hzero_pow3 :
+            ((0 : ℝ) ^ 3) = 0 :=
+          zero_pow (show (3 : ℕ) ≠ 0 from Nat.succ_ne_zero 2)
+        have hzero_pow2 :
+            ((0 : ℝ) ^ 2) = 0 :=
+          zero_pow (show (2 : ℕ) ≠ 0 from Nat.succ_ne_zero 1)
+        have hzero_eval :
+            ((0 : ℝ) ^ 3 / 3 - (0 : ℝ) ^ 2 / 4) = 0 := by
+          calc
+            ((0 : ℝ) ^ 3 / 3 - (0 : ℝ) ^ 2 / 4) =
+                0 / 3 - (0 : ℝ) ^ 2 / 4 := by
+              exact congrArg (fun y : ℝ => y / 3 - (0 : ℝ) ^ 2 / 4)
+                hzero_pow3
+            _ = 0 / 3 - 0 / 4 := by
+              exact congrArg (fun y : ℝ => 0 / 3 - y / 4) hzero_pow2
+            _ = 0 - 0 / 4 := by
+              exact congrArg (fun y : ℝ => y - 0 / 4) (zero_div 3)
+            _ = 0 - 0 := by
+              exact congrArg (fun y : ℝ => 0 - y) (zero_div 4)
+            _ = 0 := by
+              exact sub_self 0
+        exact Eq.trans hsubst hzero_eval
+      calc
+        ((((b - a) ^ 3) / 3 - ((b - a) ^ 2) / 4 : ℝ) : ℂ) -
+            ((((a - a) ^ 3) / 3 - ((a - a) ^ 2) / 4 : ℝ) : ℂ) =
+            ((1 / 12 : ℝ) : ℂ) - (0 : ℂ) := by
+          exact congrArg₂ Sub.sub
+            (congrArg Complex.ofReal hb_eval)
+            (congrArg Complex.ofReal ha_eval)
+        _ = ((1 / 12 : ℝ) : ℂ) := by
+          exact sub_zero ((1 / 12 : ℝ) : ℂ)
+        _ = (1 / 12 : ℂ) := by
+          exact Complex.ofReal_div 1 12
+    exact hraw
+  exact Eq.trans hset hendpoint
+
 /-- The first periodic Bernoulli factor has zero mean on each unit interval. -/
 theorem eulerMaclaurinFirstPeriodicBernoulli_oneInterval_integral_eq_zero
     (n : ℕ) :
@@ -535,6 +831,44 @@ theorem eulerMaclaurinFirstPeriodicBernoulli_oneInterval_integral_eq_zero
       exact hright
     _ = 0 :=
       eulerMaclaurin_affineSawtooth_oneInterval_integral_eq_zero n
+
+/-- First centered moment of the first-periodic Bernoulli factor on one unit
+interval.
+
+On `(n,n+1)`, the factor is `x - n - 1/2`; multiplying by `x - n` and
+integrating over one unit interval gives `1/12`.  This is the local moment used
+by the Taylor-linear part of the sharp boundary-growth estimate. -/
+theorem eulerMaclaurinFirstPeriodicBernoulli_oneInterval_firstMoment_eq_one_twelfth
+    (n : ℕ) :
+    (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+      ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+        ((((x - ((n : ℕ) : ℝ)) : ℝ) : ℂ))) =
+      (1 / 12 : ℂ) := by
+  let f' : ℝ → ℂ := fun x =>
+    ((((x - ((n : ℕ) : ℝ)) : ℝ) : ℂ))
+  have hf'_int :
+      IntegrableOn f'
+        (Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ))) := by
+    have hab :
+        (((n : ℕ) : ℝ)) ≤ (((n + 1 : ℕ) : ℝ)) :=
+      Nat.cast_le.mpr (Nat.le_succ n)
+    have hcont : ContinuousOn f'
+        (Set.uIcc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ))) := by
+      exact
+        (Complex.continuous_ofReal.comp
+          (continuous_id.sub continuous_const)).continuousOn
+    exact
+      (intervalIntegrable_iff_integrableOn_Ioc_of_le hab).mp
+        hcont.intervalIntegrable
+  have hperiodic :
+      (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) =
+        (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+          (((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ) * f' x)) :=
+    eulerMaclaurin_firstPeriodicBernoulli_oneInterval_remainder_integral_eq_affine
+      f' n hf'_int
+  exact Eq.trans hperiodic
+    (eulerMaclaurin_affineSawtooth_oneInterval_firstMoment_eq_one_twelfth n)
 
 /-- One-unit-interval integration-by-parts identity for the first periodic
 Bernoulli factor.

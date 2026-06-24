@@ -1,4 +1,5 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.CorrectionPoleResidues
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.RightOnePoleCauchyCancellation
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleHorizontalEdgeBounds
 
 namespace Boundary
 namespace LFunctions
@@ -369,6 +370,45 @@ theorem explicitFormulaScheduledHorizontalSideDifference_inverseQuadraticBound_o
   | ⟨B, hBpos, hB⟩ =>
       exact ⟨B, hBpos, hB⟩
 
+/-- The scheduled horizontal side difference tends to zero once its horizontal
+edges are carried by a common zero-excised strip. -/
+theorem explicitFormulaScheduledHorizontalSideDifference_tendsto_zero_ownerGap
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (E : CompletedZetaZeroExcisedStrip
+      (min F.c (1 - F.c)) (max F.c (1 - F.c)))
+    (hTopMem :
+      ∀ (u x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaTopPath
+          (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier)
+    (hBottomMem :
+      ∀ (u x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
+        zetaCompletedExplicitFormulaBottomPath
+          (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
+    Tendsto
+      (fun u : ℝ => explicitFormulaScheduledHorizontalSideDifference f F h u)
+      atTop
+      (𝓝 0) := by
+  match explicitFormulaScheduledHorizontalSideDifference_inverseQuadraticBound_ownerGap
+      f F h E hTopMem hBottomMem with
+  | ⟨B, _hBpos, hB⟩ =>
+      have hbound :
+          ∀ᶠ u in atTop,
+            ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖
+              ≤ B *
+                (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) :=
+        Filter.Eventually.of_forall hB
+      have hmajorant :
+          Tendsto
+            (fun u : ℝ =>
+              B *
+                (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)))
+            atTop
+            (𝓝 0) :=
+        zetaCompletedExplicitFormulaCorrection_scheduledInverseQuadraticTailMajorant_tendsto_zero
+          F h.height_schedule B
+      exact squeeze_zero_norm' hbound hmajorant
+
 /-- Horizontal-edge cancellation for the scheduled right-face opposite-pole
 integral.  This is the decay of the horizontal remainder exposed by the Cauchy
 rectangle identity, not a vertical pointwise denominator estimate. -/
@@ -400,6 +440,16 @@ horizontal-edge inverse-quadratic bound for the right-face off-pole pole. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_inverseQuadraticBound_from_cauchyHorizontal_ownerGap
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (A : ℝ)
+    (hApos : 0 < A)
+    (htangent :
+      ∀ᶠ u in atTop,
+        ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+            f F (h.height_schedule.height u) -
+          zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u) * Complex.I‖
+          ≤ A *
+            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)))
     (E : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
     (hTopMem :
@@ -412,46 +462,40 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_inverseQuadraticBound
           (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
     ∃ M : ℝ,
       0 < M ∧
-      ∀ u : ℝ,
+      ∀ᶠ u in atTop,
         ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
           f F h u‖
           ≤ M *
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   match
     zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledRectangleCauchyCancellation_ownerGap
-      f F h,
+      f F h A hApos htangent,
     zetaCompletedExplicitFormulaCorrectionRightOnePole_horizontalEdgeCancellation_inverseQuadraticBound_ownerGap
       f F h E hTopMem hBottomMem with
   | ⟨A, hApos, hA⟩, ⟨B, hBpos, hB⟩ =>
       refine ⟨A + B, add_pos hApos hBpos, ?_⟩
-      intro u
-      let q : ℝ :=
-        (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ))
-      have hrectangle :
-          ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
-            f F h u‖
-            ≤
-              ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖ +
-                A * q :=
-        hA u
-      have hhorizontal :
-          ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖
-            ≤ B * q :=
-        hB u
-      have hcombined :
-          ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖ + A * q
-            ≤ B * q + A * q :=
-        add_le_add_right hhorizontal (A * q)
-      have hcommuted :
-          B * q + A * q = A * q + B * q :=
-        add_comm (B * q) (A * q)
-      have hfactored :
-          A * q + B * q = (A + B) * q :=
-        (add_mul A B q).symm
-      have htarget :
-          B * q + A * q = (A + B) * q :=
-        Eq.trans hcommuted hfactored
-      exact le_trans hrectangle (le_trans hcombined (le_of_eq htarget))
+      exact hA.mono
+        (fun u hrectangle =>
+          let q : ℝ :=
+            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ))
+          have hhorizontal :
+              ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖
+                ≤ B * q :=
+            hB u
+          have hcombined :
+              ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖ + A * q
+                ≤ B * q + A * q :=
+            add_le_add_right hhorizontal (A * q)
+          have hcommuted :
+              B * q + A * q = A * q + B * q :=
+            add_comm (B * q) (A * q)
+          have hfactored :
+              A * q + B * q = (A + B) * q :=
+            (add_mul A B q).symm
+          have htarget :
+              B * q + A * q = (A + B) * q :=
+            Eq.trans hcommuted hfactored
+          le_trans hrectangle (le_trans hcombined (le_of_eq htarget)))
 
 /-- The scheduled Cauchy/oscillatory cancellation package for the right-face
 off-pole `s = 1` correction integral.
@@ -461,6 +505,16 @@ horizontal-edge cancellation estimate, and the final inverse-quadratic algebra. 
 theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledContourCancellation_inverseQuadraticBound_ownerGap
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (A : ℝ)
+    (hApos : 0 < A)
+    (htangent :
+      ∀ᶠ u in atTop,
+        ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+            f F (h.height_schedule.height u) -
+          zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u) * Complex.I‖
+          ≤ A *
+            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)))
     (E : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
     (hTopMem :
@@ -473,33 +527,14 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledContourCance
           (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
     ∃ M : ℝ,
       0 < M ∧
-      ∀ u : ℝ,
+      ∀ᶠ u in atTop,
         ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
           f F h u‖
           ≤ M *
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   exact
     zetaCompletedExplicitFormulaCorrectionRightOnePole_inverseQuadraticBound_from_cauchyHorizontal_ownerGap
-      f F h E hTopMem hBottomMem
-
-/-- Definition transport from the named scheduled right-face oscillatory integral
-to the explicit integral used in the correction channel. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryIntegral_eq_named
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
-    (∫ t in
-        Set.Icc
-          (-(F.rectangle (h.height_schedule.height u)).T)
-          (F.rectangle (h.height_schedule.height u)).T,
-        (-1 /
-            (zetaCompletedExplicitFormulaRightPath
-                (F.rectangle (h.height_schedule.height u)) t - 1)) *
-          zetaCompletedExplicitFormulaPhi f
-            (zetaCompletedExplicitFormulaRightPath
-                (F.rectangle (h.height_schedule.height u)) t - 1 / 2)) =
-      zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
-        f F h u :=
-  rfl
+      f F h A hApos htangent E hTopMem hBottomMem
 
 /-- Scheduled Cauchy cancellation for the explicit right-face off-pole `s = 1`
 correction integral.
@@ -512,6 +547,16 @@ named-integral theorem only unfolds the owner definition. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryIntegral_inverseQuadraticBound_ownerGap
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (A : ℝ)
+    (hApos : 0 < A)
+    (htangent :
+      ∀ᶠ u in atTop,
+        ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+            f F (h.height_schedule.height u) -
+          zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u) * Complex.I‖
+          ≤ A *
+            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)))
     (E : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
     (hTopMem :
@@ -524,7 +569,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryI
           (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
     ∃ M : ℝ,
       0 < M ∧
-      ∀ u : ℝ,
+      ∀ᶠ u in atTop,
         ‖∫ t in
             Set.Icc
               (-(F.rectangle (h.height_schedule.height u)).T)
@@ -539,32 +584,43 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryI
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   match
     zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledContourCancellation_inverseQuadraticBound_ownerGap
-      f F h E hTopMem hBottomMem with
+      f F h A hApos htangent E hTopMem hBottomMem with
   | ⟨M, hMpos, hbound⟩ =>
       refine ⟨M, hMpos, ?_⟩
-      intro u
-      have hnamed :
-          (∫ t in
-              Set.Icc
-                (-(F.rectangle (h.height_schedule.height u)).T)
-                (F.rectangle (h.height_schedule.height u)).T,
-              (-1 /
-                  (zetaCompletedExplicitFormulaRightPath
-                      (F.rectangle (h.height_schedule.height u)) t - 1)) *
-                zetaCompletedExplicitFormulaPhi f
-                  (zetaCompletedExplicitFormulaRightPath
-                      (F.rectangle (h.height_schedule.height u)) t - 1 / 2)) =
-            zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
-              f F h u :=
-        zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryIntegral_eq_named
-          f F h u
-      exact Eq.symm hnamed ▸ hbound u
+      exact hbound.mono
+        (fun u hu =>
+          have hnamed :
+              (∫ t in
+                  Set.Icc
+                    (-(F.rectangle (h.height_schedule.height u)).T)
+                    (F.rectangle (h.height_schedule.height u)).T,
+                  (-1 /
+                      (zetaCompletedExplicitFormulaRightPath
+                          (F.rectangle (h.height_schedule.height u)) t - 1)) *
+                    zetaCompletedExplicitFormulaPhi f
+                      (zetaCompletedExplicitFormulaRightPath
+                          (F.rectangle (h.height_schedule.height u)) t - 1 / 2)) =
+                zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
+                  f F h u :=
+            zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryIntegral_eq_named
+              f F h u
+          Eq.symm hnamed ▸ hu)
 
 /-- Definition transport from the right-face off-pole correction integral to its
 explicit oscillatory-integral cancellation estimate. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_scheduledCauchyCancellation_rawInverseQuadraticBound_ownerGap
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (A : ℝ)
+    (hApos : 0 < A)
+    (htangent :
+      ∀ᶠ u in atTop,
+        ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+            f F (h.height_schedule.height u) -
+          zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u) * Complex.I‖
+          ≤ A *
+            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)))
     (E : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
     (hTopMem :
@@ -577,14 +633,14 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_sched
           (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
     ∃ M : ℝ,
       0 < M ∧
-      ∀ u : ℝ,
+      ∀ᶠ u in atTop,
         ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
           f F (h.height_schedule.height u)‖
           ≤ M *
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   exact
     zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryIntegral_inverseQuadraticBound_ownerGap
-      f F h E hTopMem hBottomMem
+      f F h A hApos htangent E hTopMem hBottomMem
 
 /-- Algebraic transport from the scheduled right-face Cauchy cancellation estimate
 to the public inverse-quadratic off-pole bound.  The only remaining content of
@@ -592,6 +648,16 @@ the preceding theorem is the scheduled contour cancellation itself. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_scheduledCauchyCancellation_inverseQuadraticBound_ownerGap
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (A : ℝ)
+    (hApos : 0 < A)
+    (htangent :
+      ∀ᶠ u in atTop,
+        ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+            f F (h.height_schedule.height u) -
+          zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u) * Complex.I‖
+          ≤ A *
+            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)))
     (E : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
     (hTopMem :
@@ -604,14 +670,14 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_sched
           (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
     ∃ M : ℝ,
       0 < M ∧
-      ∀ u : ℝ,
+      ∀ᶠ u in atTop,
         ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
           f F (h.height_schedule.height u)‖
           ≤ M *
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   exact
     zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_scheduledCauchyCancellation_rawInverseQuadraticBound_ownerGap
-      f F h E hTopMem hBottomMem
+      f F h A hApos htangent E hTopMem hBottomMem
 
 /-- Off-pole right-face correction tail estimate for the `s = 1` pole.
 
@@ -621,6 +687,16 @@ alone controls the expanding vertical integral. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_offPoleTailBound_ownerGap
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (A : ℝ)
+    (hApos : 0 < A)
+    (htangent :
+      ∀ᶠ u in atTop,
+        ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+            f F (h.height_schedule.height u) -
+          zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u) * Complex.I‖
+          ≤ A *
+            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)))
     (E : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
     (hTopMem :
@@ -633,57 +709,14 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_offPo
           (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
     ∃ M : ℝ,
       0 < M ∧
-      ∀ u : ℝ,
+      ∀ᶠ u in atTop,
         ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
           f F (h.height_schedule.height u)‖
           ≤ M *
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   exact
     zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_scheduledCauchyCancellation_inverseQuadraticBound_ownerGap
-      f F h E hTopMem hBottomMem
-
-/-- The scheduled inverse-quadratic tail weight tends to zero on any cofinal
-height schedule. -/
-theorem zetaCompletedExplicitFormulaCorrection_scheduledInverseQuadraticTailMajorant_tendsto_zero
-    (F : ExplicitFormulaContourFamily)
-    (hSchedule : ExplicitFormulaCofinalHeightSchedule F) (M : ℝ) :
-    Tendsto
-      (fun u : ℝ =>
-        M * (1 + ‖(F.rectangle (hSchedule.height u)).T‖) ^ (-(2 : ℤ)))
-      atTop
-      (𝓝 0) := by
-  have hheight_norm :
-      Tendsto
-        (fun u : ℝ => ‖(F.rectangle (hSchedule.height u)).T‖)
-        atTop
-        atTop :=
-    tendsto_norm_atTop_atTop.comp hSchedule.cofinal
-  have hheight_norm_plus_one :
-      Tendsto
-        (fun u : ℝ => 1 + ‖(F.rectangle (hSchedule.height u)).T‖)
-        atTop
-        atTop :=
-    tendsto_atTop_add_const_left atTop (1 : ℝ) hheight_norm
-  have hexponent_negative : (-(2 : ℤ)) < 0 :=
-    Int.negSucc_lt_zero 1
-  have hinverse_quadratic :
-      Tendsto
-        (fun u : ℝ =>
-          (1 + ‖(F.rectangle (hSchedule.height u)).T‖) ^ (-(2 : ℤ)))
-        atTop
-        (𝓝 0) :=
-    (tendsto_zpow_atTop_zero hexponent_negative).comp
-      hheight_norm_plus_one
-  have hscaled :
-      Tendsto
-        (fun u : ℝ =>
-          M * (1 + ‖(F.rectangle (hSchedule.height u)).T‖) ^ (-(2 : ℤ)))
-        atTop
-        (𝓝 (M * 0)) :=
-    hinverse_quadratic.const_mul M
-  have hzero : M * 0 = 0 :=
-    mul_zero M
-  exact hzero ▸ hscaled
+      f F h A hApos htangent E hTopMem hBottomMem
 
 /-- The off-pole right-face correction tail majorant tends to zero along the
 cofinal scheduled heights. -/
@@ -705,7 +738,6 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (M : ℝ)
-    (hMpos : 0 < M)
     (hbound :
       ∀ u : ℝ,
         ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
@@ -723,10 +755,45 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
       (zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tailMajorant_tendsto_zero
         f F h M)
 
-/-- Right-face one-pole Cauchy limit for the opposite `s = 1` pole contribution. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_zero_ownerChannelTransportAnalytic
+/-- Eventual off-pole right-face correction tail bounds are enough for the
+scheduled right one-pole vertical integral to vanish.  This is the asymptotic
+form actually used by contour transport; a global all-height inverse-quadratic
+bound is a stronger compact-initial-segment statement. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_zero_of_eventualOffPoleTailBound
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (M : ℝ)
+    (hbound :
+      ∀ᶠ u in atTop,
+        ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+          f F (h.height_schedule.height u)‖
+          ≤ M *
+            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ))) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+          f F (h.height_schedule.height u))
+      atTop
+      (𝓝 0) := by
+  exact
+    squeeze_zero_norm' hbound
+      (zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tailMajorant_tendsto_zero
+        f F h M)
+
+/-- Right-face one-pole Cauchy limit for the opposite `s = 1` pole contribution. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_zero_of_eventualTangentBound
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (A : ℝ)
+    (hApos : 0 < A)
+    (htangent :
+      ∀ᶠ u in atTop,
+        ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+            f F (h.height_schedule.height u) -
+          zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u) * Complex.I‖
+          ≤ A *
+            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ))) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
@@ -739,77 +806,11 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
   | ⟨E, hTopMem, hBottomMem⟩ =>
       match
         zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_offPoleTailBound_ownerGap
-          f F h E hTopMem hBottomMem with
-      | ⟨C, hCpos, hCbound⟩ =>
+          f F h A hApos htangent E hTopMem hBottomMem with
+      | ⟨C, _hCpos, hCbound⟩ =>
           exact
-            zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_zero_of_offPoleTailBound
-              f F h C hCpos hCbound
-
-/-- The scheduled left-face off-pole `s = 0` correction integral, isolated as
-the object controlled by the contour-cancellation argument. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) : ℂ :=
-  ∫ t in
-      Set.Icc
-        (-(F.rectangle (h.height_schedule.height u)).T)
-        (F.rectangle (h.height_schedule.height u)).T,
-      (-1 /
-          zetaCompletedExplicitFormulaLeftPath
-            (F.rectangle (h.height_schedule.height u)) t) *
-        zetaCompletedExplicitFormulaPhi f
-          (zetaCompletedExplicitFormulaLeftPath
-              (F.rectangle (h.height_schedule.height u)) t - 1 / 2)
-
-/-- The scheduled horizontal remainder for the `s = 0` single-pole rectangle. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) : ℂ :=
-  zetaCompletedExplicitFormulaCorrectionTopZeroPoleHorizontalIntegral
-      f F (h.height_schedule.height u) -
-    zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegral
-      f F (h.height_schedule.height u)
-
-/-- The scheduled horizontal remainder for the `s = 1` single-pole rectangle. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) : ℂ :=
-  zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral
-      f F (h.height_schedule.height u) -
-    zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral
-      f F (h.height_schedule.height u)
-
-/-- The scheduled `s = 0` horizontal single-pole remainder unfolds to its top-minus-bottom
-definition. -/
-theorem zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_eq
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
-    zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference f F h u =
-      zetaCompletedExplicitFormulaCorrectionTopZeroPoleHorizontalIntegral
-          f F (h.height_schedule.height u) -
-        zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegral
-          f F (h.height_schedule.height u) :=
-  rfl
-
-/-- The isolated scheduled `s = 0` horizontal remainder is bounded by the two
-single-pole horizontal edges. -/
-theorem zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_norm_le_edges
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
-    ‖zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference f F h u‖
-      ≤
-        ‖zetaCompletedExplicitFormulaCorrectionTopZeroPoleHorizontalIntegral
-          f F (h.height_schedule.height u)‖ +
-        ‖zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegral
-          f F (h.height_schedule.height u)‖ := by
-  let U : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionTopZeroPoleHorizontalIntegral
-      f F (h.height_schedule.height u)
-  let B : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegral
-      f F (h.height_schedule.height u)
-  change ‖U - B‖ ≤ ‖U‖ + ‖B‖
-  exact norm_sub_le U B
+            zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_zero_of_eventualOffPoleTailBound
+              f F h C hCbound
 
 /-- A pointwise bound on the top `s = 0` single-pole horizontal integrand
 controls the corresponding horizontal edge integral. -/
@@ -1226,21 +1227,10 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDiffere
         ≤ (C * L + C * L) *
           (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ))
   exact
-    (h.height_schedule.eventually_height_gt 1).mono
-      (fun u hu =>
+    (h.height_schedule.eventually_one_le_rectangle_height_norm).mono
+      (fun u hT =>
         let q : ℝ :=
           (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ))
-        have hT : 1 ≤ ‖(F.rectangle (h.height_schedule.height u)).T‖ := by
-          have hle_height : 1 ≤ h.height_schedule.height u :=
-            le_of_lt hu
-          have hheight_le_norm :
-              h.height_schedule.height u ≤ ‖h.height_schedule.height u‖ := by
-            calc
-              h.height_schedule.height u ≤ |h.height_schedule.height u| := by
-                exact le_abs_self (h.height_schedule.height u)
-              _ = ‖h.height_schedule.height u‖ := by
-                exact (Real.norm_eq_abs (h.height_schedule.height u)).symm
-          exact le_trans hle_height hheight_le_norm
         have hraw :
             ‖zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference
                 f F h u‖
@@ -1292,525 +1282,6 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDiffere
           ≤ (C * L + C * L) *
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) :=
     zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_eventually_norm_le_inverseQuadratic
-      f F h
-  have hmajorant :
-      Tendsto
-        (fun u : ℝ =>
-          (C * L + C * L) *
-            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)))
-        atTop
-        (𝓝 0) :=
-    zetaCompletedExplicitFormulaCorrection_scheduledInverseQuadraticTailMajorant_tendsto_zero
-      F h.height_schedule (C * L + C * L)
-  exact squeeze_zero_norm' hbound hmajorant
-
-/-- The scheduled `s = 1` horizontal single-pole remainder unfolds to its top-minus-bottom
-definition. -/
-theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference_eq
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
-    zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference f F h u =
-      zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral
-          f F (h.height_schedule.height u) -
-        zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral
-          f F (h.height_schedule.height u) :=
-  rfl
-
-/-- The isolated scheduled `s = 1` horizontal remainder is bounded by the two
-single-pole horizontal edges. -/
-theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference_norm_le_edges
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
-    ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference f F h u‖
-      ≤
-        ‖zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral
-          f F (h.height_schedule.height u)‖ +
-        ‖zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral
-          f F (h.height_schedule.height u)‖ := by
-  let U : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral
-      f F (h.height_schedule.height u)
-  let B : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral
-      f F (h.height_schedule.height u)
-  change ‖U - B‖ ≤ ‖U‖ + ‖B‖
-  exact norm_sub_le U B
-
-/-- A pointwise bound on the top `s = 1` single-pole horizontal integrand
-controls the corresponding horizontal edge integral. -/
-theorem zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral_norm_le_of_pointwise
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T C : ℝ)
-    (hC :
-      ∀ x : ℝ, x ∈ Set.uIcc F.c (1 - F.c) →
-        ‖(-1 / (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1)) *
-          zetaCompletedExplicitFormulaPhi f
-            (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1 / 2)‖ ≤ C) :
-    ‖zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral f F T‖
-      ≤ C * horizontalEdgeLength F.c := by
-  exact
-    norm_setIntegral_uIcc_le_horizontalEdgeLength_mul
-      (fun x : ℝ =>
-        (-1 / (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1)) *
-          zetaCompletedExplicitFormulaPhi f
-            (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1 / 2))
-      F.c C hC
-
-/-- A pointwise bound on the bottom `s = 1` single-pole horizontal integrand
-controls the corresponding horizontal edge integral. -/
-theorem zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral_norm_le_of_pointwise
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T C : ℝ)
-    (hC :
-      ∀ x : ℝ, x ∈ Set.uIcc F.c (1 - F.c) →
-        ‖(-1 / (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1)) *
-          zetaCompletedExplicitFormulaPhi f
-            (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1 / 2)‖ ≤ C) :
-    ‖zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T‖
-      ≤ C * horizontalEdgeLength F.c := by
-  exact
-    norm_setIntegral_uIcc_le_horizontalEdgeLength_mul
-      (fun x : ℝ =>
-        (-1 / (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1)) *
-          zetaCompletedExplicitFormulaPhi f
-            (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1 / 2))
-      F.c C hC
-
-/-- The top horizontal `s = 1` pole denominator is separated once the rectangle
-height has norm at least one. -/
-theorem zetaCompletedExplicitFormulaTopPath_onePoleInv_norm_le_one_of_one_le_height
-    (F : ExplicitFormulaContourFamily) (T x : ℝ)
-    (hT : 1 ≤ ‖(F.rectangle T).T‖) :
-    ‖-1 / (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1)‖ ≤ 1 := by
-  let z : ℂ := zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1
-  have him_le_norm : ‖(F.rectangle T).T‖ ≤ ‖z‖ := by
-    have him_abs_le : |z.im| ≤ Complex.abs z :=
-      Complex.abs_im_le_abs z
-    have him_norm_le : ‖z.im‖ ≤ ‖z‖ := by
-      calc
-        ‖z.im‖ = |z.im| := by
-          exact Real.norm_eq_abs z.im
-        _ ≤ Complex.abs z := him_abs_le
-        _ = ‖z‖ := by
-          exact (Complex.norm_eq_abs z).symm
-    have him_eq : ‖z.im‖ = ‖(F.rectangle T).T‖ := by
-      calc
-        ‖z.im‖ =
-            ‖(zetaCompletedExplicitFormulaTopPath (F.rectangle T) x).im‖ := by
-          exact congrArg norm
-            (Eq.trans
-              (Complex.sub_im
-                (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x) (1 : ℂ))
-              (Eq.trans
-                (congrArg
-                  (fun y : ℝ =>
-                    (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x).im - y)
-                  Complex.one_im)
-                (sub_zero
-                  (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x).im)))
-        _ = ‖(F.rectangle T).T‖ :=
-          zetaCompletedExplicitFormulaTopPath_im_norm (F.rectangle T) x
-    exact Eq.subst
-      (motive := fun q : ℝ => q ≤ ‖z‖)
-      him_eq
-      him_norm_le
-  have hone_le_norm : 1 ≤ ‖z‖ :=
-    le_trans hT him_le_norm
-  have hdiv :
-      ‖-1 / z‖ = 1 / ‖z‖ := by
-    calc
-      ‖-1 / z‖ = ‖(-1 : ℂ)‖ / ‖z‖ := by
-        exact norm_div (-1 : ℂ) z
-      _ = ‖(1 : ℂ)‖ / ‖z‖ := by
-        exact congrArg (fun q : ℝ => q / ‖z‖) (norm_neg (1 : ℂ))
-      _ = 1 / ‖z‖ := by
-        exact congrArg (fun q : ℝ => q / ‖z‖) norm_one
-  have hdiv_le : 1 / ‖z‖ ≤ 1 := by
-    calc
-      1 / ‖z‖ ≤ 1 / (1 : ℝ) := by
-        exact one_div_le_one_div_of_le zero_lt_one hone_le_norm
-      _ = 1 := by
-        exact div_one (1 : ℝ)
-  exact Eq.subst
-    (motive := fun q : ℝ => q ≤ 1)
-    hdiv.symm
-    hdiv_le
-
-/-- The bottom horizontal `s = 1` pole denominator is separated once the rectangle
-height has norm at least one. -/
-theorem zetaCompletedExplicitFormulaBottomPath_onePoleInv_norm_le_one_of_one_le_height
-    (F : ExplicitFormulaContourFamily) (T x : ℝ)
-    (hT : 1 ≤ ‖(F.rectangle T).T‖) :
-    ‖-1 / (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1)‖ ≤ 1 := by
-  let z : ℂ := zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1
-  have him_le_norm : ‖(F.rectangle T).T‖ ≤ ‖z‖ := by
-    have him_abs_le : |z.im| ≤ Complex.abs z :=
-      Complex.abs_im_le_abs z
-    have him_norm_le : ‖z.im‖ ≤ ‖z‖ := by
-      calc
-        ‖z.im‖ = |z.im| := by
-          exact Real.norm_eq_abs z.im
-        _ ≤ Complex.abs z := him_abs_le
-        _ = ‖z‖ := by
-          exact (Complex.norm_eq_abs z).symm
-    have him_eq : ‖z.im‖ = ‖(F.rectangle T).T‖ := by
-      calc
-        ‖z.im‖ =
-            ‖(zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x).im‖ := by
-          exact congrArg norm
-            (Eq.trans
-              (Complex.sub_im
-                (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x) (1 : ℂ))
-              (Eq.trans
-                (congrArg
-                  (fun y : ℝ =>
-                    (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x).im - y)
-                  Complex.one_im)
-                (sub_zero
-                  (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x).im)))
-        _ = ‖(F.rectangle T).T‖ :=
-          zetaCompletedExplicitFormulaBottomPath_im_norm (F.rectangle T) x
-    exact Eq.subst
-      (motive := fun q : ℝ => q ≤ ‖z‖)
-      him_eq
-      him_norm_le
-  have hone_le_norm : 1 ≤ ‖z‖ :=
-    le_trans hT him_le_norm
-  have hdiv :
-      ‖-1 / z‖ = 1 / ‖z‖ := by
-    calc
-      ‖-1 / z‖ = ‖(-1 : ℂ)‖ / ‖z‖ := by
-        exact norm_div (-1 : ℂ) z
-      _ = ‖(1 : ℂ)‖ / ‖z‖ := by
-        exact congrArg (fun q : ℝ => q / ‖z‖) (norm_neg (1 : ℂ))
-      _ = 1 / ‖z‖ := by
-        exact congrArg (fun q : ℝ => q / ‖z‖) norm_one
-  have hdiv_le : 1 / ‖z‖ ≤ 1 := by
-    calc
-      1 / ‖z‖ ≤ 1 / (1 : ℝ) := by
-        exact one_div_le_one_div_of_le zero_lt_one hone_le_norm
-      _ = 1 := by
-        exact div_one (1 : ℝ)
-  exact Eq.subst
-    (motive := fun q : ℝ => q ≤ 1)
-    hdiv.symm
-    hdiv_le
-
-/-- Pointwise top-edge decay for the isolated `s = 1` horizontal integrand once
-the pole denominator is bounded by one. -/
-theorem zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegrand_norm_le_phiDecay_of_inv_le_one
-    (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
-    (F : ExplicitFormulaContourFamily) (T x : ℝ)
-    (hx : x ∈ Set.uIcc F.c (1 - F.c))
-    (hinv :
-      ‖-1 / (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1)‖ ≤ 1)
-    (N : ℕ) :
-    ‖(-1 / (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1)) *
-      zetaCompletedExplicitFormulaPhi f
-        (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1 / 2)‖
-      ≤
-        hPhi.verticalStripRapidDecayConstant
-          (min F.c (1 - F.c) - 1 / 2)
-          (max F.c (1 - F.c) - 1 / 2) N *
-        (1 + ‖(F.rectangle T).T‖) ^ (-(N : ℤ)) := by
-  let a : ℂ := -1 / (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1)
-  let b : ℂ :=
-    zetaCompletedExplicitFormulaPhi f
-      (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1 / 2)
-  have hproduct : ‖a * b‖ ≤ ‖b‖ := by
-    calc
-      ‖a * b‖ = ‖a‖ * ‖b‖ := by
-        exact norm_mul a b
-      _ ≤ 1 * ‖b‖ := by
-        exact mul_le_mul_right (norm_nonneg b) hinv
-      _ = ‖b‖ := by
-        exact one_mul ‖b‖
-  have hstrip :
-      min F.c (1 - F.c) - 1 / 2
-          ≤ (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1 / 2 : ℂ).re ∧
-        (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1 / 2 : ℂ).re
-          ≤ max F.c (1 - F.c) - 1 / 2 :=
-    zetaCompletedExplicitFormulaTopPath_shift_re_mem_uIcc_bounds
-      (F.rectangle T) x hx
-  have hphi :
-      ‖b‖
-        ≤
-          hPhi.verticalStripRapidDecayConstant
-            (min F.c (1 - F.c) - 1 / 2)
-            (max F.c (1 - F.c) - 1 / 2) N *
-          (1 + ‖(F.rectangle T).T‖) ^ (-(N : ℤ)) :=
-    (hPhi.verticalStripRapidDecayConstant_bound
-        (min F.c (1 - F.c) - 1 / 2)
-        (max F.c (1 - F.c) - 1 / 2) N
-        (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1 / 2)
-        hstrip.1 hstrip.2).trans_eq
-      (congrArg
-        (fun u : ℝ =>
-          hPhi.verticalStripRapidDecayConstant
-            (min F.c (1 - F.c) - 1 / 2)
-            (max F.c (1 - F.c) - 1 / 2) N *
-            (1 + u) ^ (-(N : ℤ)))
-        (zetaCompletedExplicitFormulaTopPath_shift_im_norm (F.rectangle T) x))
-  exact le_trans hproduct hphi
-
-/-- Pointwise bottom-edge decay for the isolated `s = 1` horizontal integrand once
-the pole denominator is bounded by one. -/
-theorem zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegrand_norm_le_phiDecay_of_inv_le_one
-    (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
-    (F : ExplicitFormulaContourFamily) (T x : ℝ)
-    (hx : x ∈ Set.uIcc F.c (1 - F.c))
-    (hinv :
-      ‖-1 / (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1)‖ ≤ 1)
-    (N : ℕ) :
-    ‖(-1 / (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1)) *
-      zetaCompletedExplicitFormulaPhi f
-        (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1 / 2)‖
-      ≤
-        hPhi.verticalStripRapidDecayConstant
-          (min F.c (1 - F.c) - 1 / 2)
-          (max F.c (1 - F.c) - 1 / 2) N *
-        (1 + ‖(F.rectangle T).T‖) ^ (-(N : ℤ)) := by
-  let a : ℂ := -1 / (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1)
-  let b : ℂ :=
-    zetaCompletedExplicitFormulaPhi f
-      (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1 / 2)
-  have hproduct : ‖a * b‖ ≤ ‖b‖ := by
-    calc
-      ‖a * b‖ = ‖a‖ * ‖b‖ := by
-        exact norm_mul a b
-      _ ≤ 1 * ‖b‖ := by
-        exact mul_le_mul_right (norm_nonneg b) hinv
-      _ = ‖b‖ := by
-        exact one_mul ‖b‖
-  have hstrip :
-      min F.c (1 - F.c) - 1 / 2
-          ≤ (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1 / 2 : ℂ).re ∧
-        (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1 / 2 : ℂ).re
-          ≤ max F.c (1 - F.c) - 1 / 2 :=
-    zetaCompletedExplicitFormulaBottomPath_shift_re_mem_uIcc_bounds
-      (F.rectangle T) x hx
-  have hphi :
-      ‖b‖
-        ≤
-          hPhi.verticalStripRapidDecayConstant
-            (min F.c (1 - F.c) - 1 / 2)
-            (max F.c (1 - F.c) - 1 / 2) N *
-          (1 + ‖(F.rectangle T).T‖) ^ (-(N : ℤ)) :=
-    (hPhi.verticalStripRapidDecayConstant_bound
-        (min F.c (1 - F.c) - 1 / 2)
-        (max F.c (1 - F.c) - 1 / 2) N
-        (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1 / 2)
-        hstrip.1 hstrip.2).trans_eq
-      (congrArg
-        (fun u : ℝ =>
-          hPhi.verticalStripRapidDecayConstant
-            (min F.c (1 - F.c) - 1 / 2)
-            (max F.c (1 - F.c) - 1 / 2) N *
-            (1 + u) ^ (-(N : ℤ)))
-        (zetaCompletedExplicitFormulaBottomPath_shift_im_norm (F.rectangle T) x))
-  exact le_trans hproduct hphi
-
-/-- Top `s = 1` horizontal edge bound obtained from denominator separation and
-`Φ_f` vertical-strip decay. -/
-theorem zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral_norm_le_phiDecay_of_inv_le_one
-    (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
-    (F : ExplicitFormulaContourFamily) (T : ℝ)
-    (hinv :
-      ∀ x : ℝ, x ∈ Set.uIcc F.c (1 - F.c) →
-        ‖-1 / (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1)‖ ≤ 1)
-    (N : ℕ) :
-    ‖zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral f F T‖
-      ≤
-        (hPhi.verticalStripRapidDecayConstant
-          (min F.c (1 - F.c) - 1 / 2)
-          (max F.c (1 - F.c) - 1 / 2) N *
-        (1 + ‖(F.rectangle T).T‖) ^ (-(N : ℤ))) *
-          horizontalEdgeLength F.c := by
-  exact
-    zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral_norm_le_of_pointwise
-      f F T
-      (hPhi.verticalStripRapidDecayConstant
-          (min F.c (1 - F.c) - 1 / 2)
-          (max F.c (1 - F.c) - 1 / 2) N *
-        (1 + ‖(F.rectangle T).T‖) ^ (-(N : ℤ)))
-      (fun x hx =>
-        zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegrand_norm_le_phiDecay_of_inv_le_one
-          f hPhi F T x hx (hinv x hx) N)
-
-/-- Bottom `s = 1` horizontal edge bound obtained from denominator separation and
-`Φ_f` vertical-strip decay. -/
-theorem zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral_norm_le_phiDecay_of_inv_le_one
-    (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
-    (F : ExplicitFormulaContourFamily) (T : ℝ)
-    (hinv :
-      ∀ x : ℝ, x ∈ Set.uIcc F.c (1 - F.c) →
-        ‖-1 / (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1)‖ ≤ 1)
-    (N : ℕ) :
-    ‖zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T‖
-      ≤
-        (hPhi.verticalStripRapidDecayConstant
-          (min F.c (1 - F.c) - 1 / 2)
-          (max F.c (1 - F.c) - 1 / 2) N *
-        (1 + ‖(F.rectangle T).T‖) ^ (-(N : ℤ))) *
-          horizontalEdgeLength F.c := by
-  exact
-    zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral_norm_le_of_pointwise
-      f F T
-      (hPhi.verticalStripRapidDecayConstant
-          (min F.c (1 - F.c) - 1 / 2)
-          (max F.c (1 - F.c) - 1 / 2) N *
-        (1 + ‖(F.rectangle T).T‖) ^ (-(N : ℤ)))
-      (fun x hx =>
-        zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegrand_norm_le_phiDecay_of_inv_le_one
-          f hPhi F T x hx (hinv x hx) N)
-
-/-- Isolated scheduled `s = 1` horizontal remainder bound from the two
-single-pole horizontal edge estimates. -/
-theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference_norm_le_phiDecay_of_one_le_height
-    (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
-    (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ)
-    (hT : 1 ≤ ‖(F.rectangle (h.height_schedule.height u)).T‖)
-    (N : ℕ) :
-    ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference f F h u‖
-      ≤
-        (hPhi.verticalStripRapidDecayConstant
-          (min F.c (1 - F.c) - 1 / 2)
-          (max F.c (1 - F.c) - 1 / 2) N *
-        (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(N : ℤ))) *
-          horizontalEdgeLength F.c +
-        (hPhi.verticalStripRapidDecayConstant
-          (min F.c (1 - F.c) - 1 / 2)
-          (max F.c (1 - F.c) - 1 / 2) N *
-        (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(N : ℤ))) *
-          horizontalEdgeLength F.c := by
-  let T : ℝ := h.height_schedule.height u
-  let C : ℝ :=
-    hPhi.verticalStripRapidDecayConstant
-      (min F.c (1 - F.c) - 1 / 2)
-      (max F.c (1 - F.c) - 1 / 2) N *
-    (1 + ‖(F.rectangle T).T‖) ^ (-(N : ℤ))
-  have htop :
-      ‖zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral f F T‖
-        ≤ C * horizontalEdgeLength F.c :=
-    zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral_norm_le_phiDecay_of_inv_le_one
-      f hPhi F T
-      (fun x hx =>
-        zetaCompletedExplicitFormulaTopPath_onePoleInv_norm_le_one_of_one_le_height
-          F T x hT)
-      N
-  have hbottom :
-      ‖zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T‖
-        ≤ C * horizontalEdgeLength F.c :=
-    zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral_norm_le_phiDecay_of_inv_le_one
-      f hPhi F T
-      (fun x hx =>
-        zetaCompletedExplicitFormulaBottomPath_onePoleInv_norm_le_one_of_one_le_height
-          F T x hT)
-      N
-  have hedges :
-      ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference f F h u‖
-        ≤
-          ‖zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral f F T‖ +
-          ‖zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T‖ :=
-    zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference_norm_le_edges
-      f F h u
-  have hsum :
-      ‖zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral f F T‖ +
-        ‖zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T‖
-        ≤ C * horizontalEdgeLength F.c + C * horizontalEdgeLength F.c :=
-    add_le_add htop hbottom
-  exact le_trans hedges hsum
-
-/-- The isolated scheduled `s = 1` horizontal remainder is eventually bounded by
-an inverse-quadratic height envelope. -/
-theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference_eventually_norm_le_inverseQuadratic
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    let C : ℝ :=
-      h.phi_control.verticalStripRapidDecayConstant
-        (min F.c (1 - F.c) - 1 / 2)
-        (max F.c (1 - F.c) - 1 / 2) 2
-    let L : ℝ := horizontalEdgeLength F.c
-    ∀ᶠ u in atTop,
-      ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference f F h u‖
-        ≤ (C * L + C * L) *
-          (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
-  let C : ℝ :=
-    h.phi_control.verticalStripRapidDecayConstant
-      (min F.c (1 - F.c) - 1 / 2)
-      (max F.c (1 - F.c) - 1 / 2) 2
-  let L : ℝ := horizontalEdgeLength F.c
-  change
-    ∀ᶠ u in atTop,
-      ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference f F h u‖
-        ≤ (C * L + C * L) *
-          (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ))
-  exact
-    (h.height_schedule.eventually_height_gt 1).mono
-      (fun u hu =>
-        let q : ℝ :=
-          (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ))
-        have hT : 1 ≤ ‖(F.rectangle (h.height_schedule.height u)).T‖ := by
-          have hle_height : 1 ≤ h.height_schedule.height u :=
-            le_of_lt hu
-          have hheight_le_norm :
-              h.height_schedule.height u ≤ ‖h.height_schedule.height u‖ := by
-            calc
-              h.height_schedule.height u ≤ |h.height_schedule.height u| := by
-                exact le_abs_self (h.height_schedule.height u)
-              _ = ‖h.height_schedule.height u‖ := by
-                exact (Real.norm_eq_abs (h.height_schedule.height u)).symm
-          exact le_trans hle_height hheight_le_norm
-        have hraw :
-            ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
-                f F h u‖
-              ≤ C * q * L + C * q * L :=
-          zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference_norm_le_phiDecay_of_one_le_height
-            f h.phi_control F h u hT 2
-        have hedge :
-            C * q * L = C * L * q := by
-          calc
-            C * q * L = (C * q) * L := by
-              rfl
-            _ = C * (q * L) := by
-              exact mul_assoc C q L
-            _ = C * (L * q) := by
-              exact congrArg (fun x : ℝ => C * x) (mul_comm q L)
-            _ = C * L * q := by
-              exact (mul_assoc C L q).symm
-        have hsum :
-            C * q * L + C * q * L = (C * L + C * L) * q := by
-          calc
-            C * q * L + C * q * L = C * L * q + C * L * q := by
-              exact congrArg₂ (fun x y : ℝ => x + y) hedge hedge
-            _ = (C * L + C * L) * q := by
-              exact (add_mul (C * L) (C * L) q).symm
-        Eq.subst
-          (motive := fun x : ℝ =>
-            ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
-                f F h u‖ ≤ x)
-          hsum
-          hraw)
-
-/-- The isolated scheduled `s = 1` horizontal remainder tends to zero. -/
-theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference_tendsto_zero
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    Tendsto
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference f F h u)
-      atTop
-      (𝓝 0) := by
-  let C : ℝ :=
-    h.phi_control.verticalStripRapidDecayConstant
-      (min F.c (1 - F.c) - 1 / 2)
-      (max F.c (1 - F.c) - 1 / 2) 2
-  let L : ℝ := horizontalEdgeLength F.c
-  have hbound :
-      ∀ᶠ u in atTop,
-        ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference f F h u‖
-          ≤ (C * L + C * L) *
-            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) :=
-    zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference_eventually_norm_le_inverseQuadratic
       f F h
   have hmajorant :
       Tendsto

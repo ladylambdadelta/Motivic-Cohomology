@@ -163,6 +163,27 @@ noncomputable def zetaCompletedExplicitFormulaCorrectionVerticalChannel
         zetaCompletedExplicitFormulaPhi f
           (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1 / 2)
 
+/-! ## Channel transport remainders -/
+
+/-- Prime vertical-channel transport remainder.
+
+The channel-specific convergence theorem is not a consequence of the total
+residue identity alone. The analytic content is the vanishing of this
+scheduled remainder. -/
+noncomputable def zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
+  zetaCompletedExplicitFormulaPrimeVerticalChannel f F T -
+    zetaCompletedExplicitFormulaPrimeContribution f
+
+/-- Archimedean vertical-channel transport remainder.
+
+The channel-specific convergence theorem is the vanishing of this scheduled
+remainder, after the Gamma/completion channel has been normalized. -/
+noncomputable def zetaCompletedExplicitFormulaArchimedeanVerticalChannelTransportRemainder
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
+  zetaCompletedExplicitFormulaArchimedeanVerticalChannel f F T -
+    zetaCompletedExplicitFormulaArchimedeanContribution f
+
 /-- The inverse-Gamma completion logarithmic-derivative vertical channel.
 
 This is the direct owner object for the Gamma/completion transport limit: it is

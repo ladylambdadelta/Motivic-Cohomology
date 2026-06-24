@@ -39,6 +39,394 @@ theorem inverseGammaCompletionLogDeriv_eq
       deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z / (Complex.Gammaℝ z)⁻¹ :=
   rfl
 
+/-- The logarithmic derivative of an inverse is the negative logarithmic
+derivative of the original function, at a differentiability and nonvanishing
+point. -/
+theorem deriv_inv_div_inv_eq_neg_deriv_div
+    {g : ℂ → ℂ} {z : ℂ}
+    (hg : DifferentiableAt ℂ g z)
+    (hz : g z ≠ 0) :
+    deriv (fun w : ℂ => (g w)⁻¹) z / (g z)⁻¹ =
+      -deriv g z / g z := by
+  let a : ℂ := g z
+  let d : ℂ := deriv g z
+  have ha : a ≠ 0 := hz
+  have hderiv :
+      deriv (fun w : ℂ => (g w)⁻¹) z =
+        -d / a ^ 2 := by
+    exact deriv_inv'' hg hz
+  have hcancel :
+      (a ^ 2)⁻¹ * a = a⁻¹ := by
+    have hpow : a ^ 2 = a * a :=
+      pow_two a
+    calc
+      (a ^ 2)⁻¹ * a = (a * a)⁻¹ * a := by
+        exact congrArg (fun x : ℂ => x⁻¹ * a) hpow
+      _ = (a⁻¹ * a⁻¹) * a := by
+        exact congrArg (fun x : ℂ => x * a) (mul_inv_rev a a)
+      _ = a⁻¹ * (a⁻¹ * a) := by
+        exact mul_assoc a⁻¹ a⁻¹ a
+      _ = a⁻¹ * 1 := by
+        exact congrArg (fun x : ℂ => a⁻¹ * x) (inv_mul_cancel₀ ha)
+      _ = a⁻¹ :=
+        mul_one a⁻¹
+  have hquotient :
+      (-d / a ^ 2) / a⁻¹ = -d / a := by
+    calc
+      (-d / a ^ 2) / a⁻¹ =
+          (-d / a ^ 2) * (a⁻¹)⁻¹ := by
+        exact div_eq_mul_inv (-d / a ^ 2) a⁻¹
+      _ = (-d / a ^ 2) * a := by
+        exact congrArg (fun x : ℂ => (-d / a ^ 2) * x) (inv_inv a)
+      _ = (-d * (a ^ 2)⁻¹) * a := by
+        exact congrArg (fun x : ℂ => x * a) (div_eq_mul_inv (-d) (a ^ 2))
+      _ = -d * ((a ^ 2)⁻¹ * a) := by
+        exact mul_assoc (-d) (a ^ 2)⁻¹ a
+      _ = -d * a⁻¹ := by
+        exact congrArg (fun x : ℂ => -d * x) hcancel
+      _ = -d / a := by
+        exact (div_eq_mul_inv (-d) a).symm
+  calc
+    deriv (fun w : ℂ => (g w)⁻¹) z / (g z)⁻¹ =
+        (-d / a ^ 2) / a⁻¹ := by
+      exact congrArg (fun x : ℂ => x / a⁻¹) hderiv
+    _ = -d / a :=
+      hquotient
+
+/-- Deligne's `Gammaℝ` is complex-differentiable away from its nonpositive
+even singular locus. -/
+theorem Gammaℝ_differentiableAt_of_ne_zero_locus
+    {z : ℂ}
+    (hz : ∀ n : ℕ, z ≠ -(2 * (n : ℂ))) :
+    DifferentiableAt ℂ Complex.Gammaℝ z := by
+  have hpow :
+      DifferentiableAt ℂ
+        (fun s : ℂ => (Real.pi : ℂ) ^ (-s / 2)) z :=
+    (differentiableAt_id.neg.div_const (2 : ℂ)).const_cpow
+      (Or.inl (Complex.ofReal_ne_zero.mpr Real.pi_ne_zero))
+  have hgamma_arg :
+      ∀ n : ℕ, z / 2 ≠ -(n : ℂ) := by
+    intro n hzn
+    have hmul :
+        z / 2 * 2 = (-(n : ℂ)) * 2 :=
+      congrArg (fun w : ℂ => w * 2) hzn
+    have hz_eq_neg_two :
+        z = -(2 * (n : ℂ)) := by
+      calc
+        z = z / 2 * 2 := by
+          exact (div_mul_cancel₀ z (two_ne_zero : (2 : ℂ) ≠ 0)).symm
+        _ = (-(n : ℂ)) * 2 :=
+          hmul
+        _ = -((n : ℂ) * 2) :=
+          neg_mul (n : ℂ) 2
+        _ = -(2 * (n : ℂ)) := by
+          exact congrArg Neg.neg (mul_comm (n : ℂ) 2)
+    exact hz n hz_eq_neg_two
+  have hgamma :
+      DifferentiableAt ℂ (fun s : ℂ => Complex.Gamma (s / 2)) z :=
+    (Complex.differentiableAt_Gamma (z / 2) hgamma_arg).comp
+      z
+      (differentiableAt_id.div_const (2 : ℂ))
+  have hprod :
+      DifferentiableAt ℂ
+        (fun s : ℂ =>
+          (Real.pi : ℂ) ^ (-s / 2) * Complex.Gamma (s / 2)) z :=
+    hpow.mul hgamma
+  have hfun :
+      (fun s : ℂ =>
+          (Real.pi : ℂ) ^ (-s / 2) * Complex.Gamma (s / 2)) =
+        Complex.Gammaℝ := by
+    funext s
+    exact (Complex.Gammaℝ_def s).symm
+  exact
+    Eq.subst
+      (motive := fun φ : ℂ → ℂ => DifferentiableAt ℂ φ z)
+      hfun
+      hprod
+
+/-- Derivative of the elementary `π ^ (-s/2)` factor in Deligne's
+`Gammaℝ`. -/
+theorem Gammaℝ_piFactor_hasDerivAt
+    (z : ℂ) :
+    HasDerivAt
+      (fun s : ℂ => (Real.pi : ℂ) ^ (-s / 2))
+      ((Real.pi : ℂ) ^ (-z / 2) *
+        Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ)))
+      z := by
+  have hlinear :
+      HasDerivAt (fun s : ℂ => -s / 2) (-(1 / 2 : ℂ)) z := by
+    have hid : HasDerivAt (fun s : ℂ => s) 1 z :=
+      hasDerivAt_id z
+    have hneg : HasDerivAt (fun s : ℂ => -s) (-1) z :=
+      hid.neg
+    have hdiv : HasDerivAt (fun s : ℂ => -s / 2) ((-1 : ℂ) / 2) z :=
+      hneg.div_const (2 : ℂ)
+    have hderiv : ((-1 : ℂ) / 2) = -(1 / 2 : ℂ) := by
+      exact neg_div' (2 : ℂ) (1 : ℂ)
+    exact
+      Eq.subst
+        (motive := fun d : ℂ => HasDerivAt (fun s : ℂ => -s / 2) d z)
+        hderiv
+        hdiv
+  exact
+    hlinear.const_cpow
+      (Or.inl (Complex.ofReal_ne_zero.mpr Real.pi_ne_zero))
+
+/-- Derivative of the half-argument ordinary Gamma factor in Deligne's
+`Gammaℝ`. -/
+theorem Gammaℝ_halfGammaFactor_hasDerivAt
+    {z : ℂ}
+    (hz : ∀ n : ℕ, z / 2 ≠ -(n : ℂ)) :
+    HasDerivAt
+      (fun s : ℂ => Complex.Gamma (s / 2))
+      (deriv Complex.Gamma (z / 2) * (1 / 2 : ℂ))
+      z := by
+  have houter :
+      HasDerivAt Complex.Gamma (deriv Complex.Gamma (z / 2)) (z / 2) :=
+    (Complex.differentiableAt_Gamma (z / 2) hz).hasDerivAt
+  have hinner :
+      HasDerivAt (fun s : ℂ => s / 2) (1 / 2 : ℂ) z :=
+    (hasDerivAt_id z).div_const (2 : ℂ)
+  exact houter.comp z hinner
+
+/-- Exact derivative formula for Deligne's `Gammaℝ` away from its
+nonpositive-even singular locus. -/
+theorem Gammaℝ_hasDerivAt_of_ne_zero_locus
+    {z : ℂ}
+    (hz : ∀ n : ℕ, z ≠ -(2 * (n : ℂ))) :
+    HasDerivAt Complex.Gammaℝ
+      (((Real.pi : ℂ) ^ (-z / 2) * Complex.log (Real.pi : ℂ) *
+          (-(1 / 2 : ℂ))) *
+          Complex.Gamma (z / 2) +
+        (Real.pi : ℂ) ^ (-z / 2) *
+          (deriv Complex.Gamma (z / 2) * (1 / 2 : ℂ)))
+      z := by
+  have hgamma_arg :
+      ∀ n : ℕ, z / 2 ≠ -(n : ℂ) := by
+    intro n hzn
+    have hmul :
+        z / 2 * 2 = (-(n : ℂ)) * 2 :=
+      congrArg (fun w : ℂ => w * 2) hzn
+    have hz_eq_neg_two :
+        z = -(2 * (n : ℂ)) := by
+      calc
+        z = z / 2 * 2 := by
+          exact (div_mul_cancel₀ z (two_ne_zero : (2 : ℂ) ≠ 0)).symm
+        _ = (-(n : ℂ)) * 2 :=
+          hmul
+        _ = -((n : ℂ) * 2) :=
+          neg_mul (n : ℂ) 2
+        _ = -(2 * (n : ℂ)) := by
+          exact congrArg Neg.neg (mul_comm (n : ℂ) 2)
+    exact hz n hz_eq_neg_two
+  have hpi :
+      HasDerivAt
+        (fun s : ℂ => (Real.pi : ℂ) ^ (-s / 2))
+        ((Real.pi : ℂ) ^ (-z / 2) *
+          Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ)))
+        z :=
+    Gammaℝ_piFactor_hasDerivAt z
+  have hgamma :
+      HasDerivAt
+        (fun s : ℂ => Complex.Gamma (s / 2))
+        (deriv Complex.Gamma (z / 2) * (1 / 2 : ℂ))
+        z :=
+    Gammaℝ_halfGammaFactor_hasDerivAt hgamma_arg
+  have hprod :
+      HasDerivAt
+        (fun s : ℂ =>
+          (Real.pi : ℂ) ^ (-s / 2) * Complex.Gamma (s / 2))
+        (((Real.pi : ℂ) ^ (-z / 2) * Complex.log (Real.pi : ℂ) *
+            (-(1 / 2 : ℂ))) *
+            Complex.Gamma (z / 2) +
+          (Real.pi : ℂ) ^ (-z / 2) *
+            (deriv Complex.Gamma (z / 2) * (1 / 2 : ℂ)))
+        z :=
+    hpi.mul hgamma
+  have hfun :
+      (fun s : ℂ =>
+          (Real.pi : ℂ) ^ (-s / 2) * Complex.Gamma (s / 2)) =
+        Complex.Gammaℝ := by
+    funext s
+    exact (Complex.Gammaℝ_def s).symm
+  exact
+    Eq.subst
+      (motive := fun φ : ℂ → ℂ =>
+        HasDerivAt φ
+          (((Real.pi : ℂ) ^ (-z / 2) * Complex.log (Real.pi : ℂ) *
+              (-(1 / 2 : ℂ))) *
+              Complex.Gamma (z / 2) +
+            (Real.pi : ℂ) ^ (-z / 2) *
+              (deriv Complex.Gamma (z / 2) * (1 / 2 : ℂ)))
+          z)
+      hfun
+      hprod
+
+/-- Quotient algebra for the logarithmic derivative of a product. -/
+theorem mul_logDeriv_algebra
+    {p p' g g' : ℂ}
+    (hp : p ≠ 0)
+    (hg : g ≠ 0) :
+    (p' * g + p * g') / (p * g) = p' / p + g' / g := by
+  have hpg : p * g ≠ 0 :=
+    mul_ne_zero hp hg
+  have hsplit :
+      (p' * g + p * g') / (p * g) =
+        (p' * g) / (p * g) + (p * g') / (p * g) := by
+    exact add_div (p' * g) (p * g') (p * g)
+  have hleft :
+      (p' * g) / (p * g) = p' / p := by
+    calc
+      (p' * g) / (p * g) =
+          (p' * g) * (p * g)⁻¹ := by
+        exact div_eq_mul_inv (p' * g) (p * g)
+      _ = (p' * g) * (g⁻¹ * p⁻¹) := by
+        exact
+          congrArg (fun x : ℂ => (p' * g) * x)
+            (by
+              calc
+                (p * g)⁻¹ = g⁻¹ * p⁻¹ :=
+                  mul_inv_rev p g
+                _ = g⁻¹ * p⁻¹ :=
+                  rfl)
+      _ = p' * (g * (g⁻¹ * p⁻¹)) := by
+        exact mul_assoc p' g (g⁻¹ * p⁻¹)
+      _ = p' * ((g * g⁻¹) * p⁻¹) := by
+        exact congrArg (fun x : ℂ => p' * x) (mul_assoc g g⁻¹ p⁻¹).symm
+      _ = p' * (1 * p⁻¹) := by
+        exact congrArg (fun x : ℂ => p' * (x * p⁻¹)) (mul_inv_cancel₀ hg)
+      _ = p' * p⁻¹ := by
+        exact congrArg (fun x : ℂ => p' * x) (one_mul p⁻¹)
+      _ = p' / p := by
+        exact (div_eq_mul_inv p' p).symm
+  have hright :
+      (p * g') / (p * g) = g' / g := by
+    calc
+      (p * g') / (p * g) =
+          (p * g') * (p * g)⁻¹ := by
+        exact div_eq_mul_inv (p * g') (p * g)
+      _ = (p * g') * (g⁻¹ * p⁻¹) := by
+        exact congrArg (fun x : ℂ => (p * g') * x) (mul_inv_rev p g)
+      _ = p * (g' * (g⁻¹ * p⁻¹)) := by
+        exact mul_assoc p g' (g⁻¹ * p⁻¹)
+      _ = p * ((g' * g⁻¹) * p⁻¹) := by
+        exact congrArg (fun x : ℂ => p * x) (mul_assoc g' g⁻¹ p⁻¹).symm
+      _ = (p * (g' * g⁻¹)) * p⁻¹ := by
+        exact (mul_assoc p (g' * g⁻¹) p⁻¹).symm
+      _ = (g' * g⁻¹ * p) * p⁻¹ := by
+        exact congrArg (fun x : ℂ => x * p⁻¹) (mul_comm p (g' * g⁻¹))
+      _ = g' * g⁻¹ * (p * p⁻¹) := by
+        exact mul_assoc (g' * g⁻¹) p p⁻¹
+      _ = g' * g⁻¹ * 1 := by
+        exact congrArg (fun x : ℂ => g' * g⁻¹ * x) (mul_inv_cancel₀ hp)
+      _ = g' * g⁻¹ := by
+        exact mul_one (g' * g⁻¹)
+      _ = g' / g := by
+        exact (div_eq_mul_inv g' g).symm
+  calc
+    (p' * g + p * g') / (p * g) =
+        (p' * g) / (p * g) + (p * g') / (p * g) :=
+      hsplit
+    _ = p' / p + g' / g := by
+      exact congrArg₂ HAdd.hAdd hleft hright
+
+/-- The elementary `π ^ (-s/2)` factor has logarithmic derivative
+`-log π / 2`. -/
+theorem Gammaℝ_piFactor_logDeriv_eq
+    (z : ℂ) :
+    ((Real.pi : ℂ) ^ (-z / 2) *
+        Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ))) /
+      ((Real.pi : ℂ) ^ (-z / 2)) =
+        Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ)) := by
+  let p : ℂ := (Real.pi : ℂ) ^ (-z / 2)
+  let q : ℂ := Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ))
+  have hp : p ≠ 0 :=
+    Complex.cpow_ne_zero
+      (Complex.ofReal_ne_zero.mpr Real.pi_ne_zero)
+      (-z / 2)
+  calc
+    (p * q) / p = (p * q) * p⁻¹ := by
+      exact div_eq_mul_inv (p * q) p
+    _ = q * p * p⁻¹ := by
+      exact congrArg (fun x : ℂ => x * p⁻¹) (mul_comm p q)
+    _ = q * (p * p⁻¹) := by
+      exact mul_assoc q p p⁻¹
+    _ = q * 1 := by
+      exact congrArg (fun x : ℂ => q * x) (mul_inv_cancel₀ hp)
+    _ = q :=
+      mul_one q
+
+/-- Exact logarithmic derivative decomposition for Deligne's `Gammaℝ`. -/
+theorem Gammaℝ_logDeriv_eq_pi_add_halfGamma_logDeriv
+    {z : ℂ}
+    (hz : ∀ n : ℕ, z ≠ -(2 * (n : ℂ)))
+    (hΓ : Complex.Gammaℝ z ≠ 0) :
+    deriv Complex.Gammaℝ z / Complex.Gammaℝ z =
+      Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ)) +
+        (deriv Complex.Gamma (z / 2) * (1 / 2 : ℂ)) /
+          Complex.Gamma (z / 2) := by
+  let p : ℂ := (Real.pi : ℂ) ^ (-z / 2)
+  let p' : ℂ := p * Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ))
+  let g : ℂ := Complex.Gamma (z / 2)
+  let g' : ℂ := deriv Complex.Gamma (z / 2) * (1 / 2 : ℂ)
+  have hp : p ≠ 0 :=
+    Complex.cpow_ne_zero
+      (Complex.ofReal_ne_zero.mpr Real.pi_ne_zero)
+      (-z / 2)
+  have hΓ_def :
+      Complex.Gammaℝ z = p * g := by
+    exact Complex.Gammaℝ_def z
+  have hg : g ≠ 0 := by
+    intro hg_zero
+    have hprod_zero : p * g = 0 :=
+      mul_eq_zero_of_right p hg_zero
+    exact hΓ (hΓ_def.trans hprod_zero)
+  have hderiv :
+      deriv Complex.Gammaℝ z = p' * g + p * g' :=
+    (Gammaℝ_hasDerivAt_of_ne_zero_locus hz).deriv
+  have hquot :
+      deriv Complex.Gammaℝ z / Complex.Gammaℝ z =
+        (p' * g + p * g') / (p * g) := by
+    calc
+      deriv Complex.Gammaℝ z / Complex.Gammaℝ z =
+          (p' * g + p * g') / Complex.Gammaℝ z := by
+        exact congrArg (fun x : ℂ => x / Complex.Gammaℝ z) hderiv
+      _ = (p' * g + p * g') / (p * g) := by
+        exact congrArg (fun x : ℂ => (p' * g + p * g') / x) hΓ_def
+  have hproduct :
+      (p' * g + p * g') / (p * g) = p' / p + g' / g :=
+    mul_logDeriv_algebra hp hg
+  have hpi :
+      p' / p = Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ)) := by
+    exact Gammaℝ_piFactor_logDeriv_eq z
+  calc
+    deriv Complex.Gammaℝ z / Complex.Gammaℝ z =
+        (p' * g + p * g') / (p * g) :=
+      hquot
+    _ = p' / p + g' / g :=
+      hproduct
+    _ =
+        Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ)) +
+          (deriv Complex.Gamma (z / 2) * (1 / 2 : ℂ)) /
+            Complex.Gamma (z / 2) := by
+      exact congrArg₂ HAdd.hAdd hpi rfl
+
+/-- Conditional bridge from the inverse-`Gammaℝ` normalization used in the
+completed-zeta split to the ordinary `Gammaℝ` logarithmic derivative. -/
+theorem inverseGammaCompletionLogDeriv_eq_neg_Gammaℝ_logDeriv
+    {z : ℂ}
+    (hΓdiff : DifferentiableAt ℂ Complex.Gammaℝ z)
+    (hΓ : Complex.Gammaℝ z ≠ 0) :
+    inverseGammaCompletionLogDeriv z =
+      -deriv Complex.Gammaℝ z / Complex.Gammaℝ z := by
+  calc
+    inverseGammaCompletionLogDeriv z =
+        deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z /
+          (Complex.Gammaℝ z)⁻¹ :=
+      inverseGammaCompletionLogDeriv_eq z
+    _ = -deriv Complex.Gammaℝ z / Complex.Gammaℝ z :=
+      deriv_inv_div_inv_eq_neg_deriv_div hΓdiff hΓ
+
 /-- The negative logarithmic derivative of the ordinary Riemann zeta factor. -/
 noncomputable def riemannZetaNegLogDeriv (z : ℂ) : ℂ :=
   - deriv riemannZeta z / riemannZeta z

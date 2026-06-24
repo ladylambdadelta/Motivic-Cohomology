@@ -2491,7 +2491,17 @@ theorem zetaCompletedExplicitFormula_autocorrelation_correctionVerticalChannelTr
       ExplicitFormulaHorizontalAvoidingHeightSchedule
         (zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
     (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
-    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f))
+    (hone :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            (convolutionAutocorrelation f)
+            (zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
+            ((zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+              f schedule hPhi hLog).height_schedule.height u))
+        atTop
+        (𝓝 0)) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaCorrectionVerticalChannelTransportRemainder
@@ -2507,6 +2517,7 @@ theorem zetaCompletedExplicitFormula_autocorrelation_correctionVerticalChannelTr
       (zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
       (zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
         f schedule hPhi hLog)
+      hone
 
 /-- The autocorrelation vertical-channel sum converges to the analytic boundary sum along
 the analytic package schedule. -/
@@ -2516,7 +2527,17 @@ theorem zetaCompletedExplicitFormula_autocorrelation_verticalChannelSum_tendsto_
       ExplicitFormulaHorizontalAvoidingHeightSchedule
         (zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
     (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
-    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f))
+    (hone :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            (convolutionAutocorrelation f)
+            (zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
+            ((zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+              f schedule hPhi hLog).height_schedule.height u))
+        atTop
+        (𝓝 0)) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaVerticalChannelSum
@@ -2570,7 +2591,7 @@ theorem zetaCompletedExplicitFormula_autocorrelation_verticalChannelSum_tendsto_
         (𝓝 0) := by
     exact
       zetaCompletedExplicitFormula_autocorrelation_correctionVerticalChannelTransportRemainder_tendsto_zero
-        f schedule hPhi hLog
+        f schedule hPhi hLog hone
   have hscheduled :
       Tendsto
         (fun u : ℝ =>
@@ -2594,7 +2615,17 @@ theorem zetaCompletedExplicitFormula_autocorrelation_scheduledVertical_tendsto_b
       ExplicitFormulaHorizontalAvoidingHeightSchedule
         (zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
     (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
-    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f))
+    (hone :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            (convolutionAutocorrelation f)
+            (zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
+            ((zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+              f schedule hPhi hLog).height_schedule.height u))
+        atTop
+        (𝓝 0)) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaRightLineIntegral
@@ -2631,7 +2662,7 @@ theorem zetaCompletedExplicitFormula_autocorrelation_scheduledVertical_tendsto_b
             (convolutionAutocorrelation f))) := by
     exact
       zetaCompletedExplicitFormula_autocorrelation_verticalChannelSum_tendsto_boundarySum
-        f schedule hPhi hLog
+        f schedule hPhi hLog hone
   have hvertical :
       Tendsto
         (fun u : ℝ =>

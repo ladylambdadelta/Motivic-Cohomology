@@ -79,6 +79,13 @@ theorem ExplicitFormulaContourFamily.rectangle_c
     (F.rectangle T).c = F.c :=
   Eq.refl _
 
+/-- The contour-family rectangle remembers exactly the height parameter used to
+construct it. -/
+theorem ExplicitFormulaContourFamily.rectangle_T
+    (F : ExplicitFormulaContourFamily) (T : ℝ) :
+    (F.rectangle T).T = T :=
+  Eq.refl _
+
 /-- Positivity transports across the right-path real-coordinate identity. -/
 theorem rightPath_re_pos_of_family_re
     (F : ExplicitFormulaContourFamily) (t : ℝ)

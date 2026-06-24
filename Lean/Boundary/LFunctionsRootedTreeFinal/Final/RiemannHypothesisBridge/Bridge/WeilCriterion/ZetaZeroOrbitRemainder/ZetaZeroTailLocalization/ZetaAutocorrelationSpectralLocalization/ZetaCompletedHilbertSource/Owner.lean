@@ -3,6 +3,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaHermitianPacket.HermitianBoundaryDefect
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaHermitianPacket.ConvolutionChannels
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaPrimeRapidPower.ZetaPrimeTwoFaceCoordinates.ZetaPrimeContourTomography.HorizontalContour.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeNaturalTimeArithmetic
 
 /-!
 # Completed boundary Hilbert sources
@@ -17,6 +18,8 @@ namespace LFunctions
 noncomputable section
 
 open Filter
+open LSeries ArithmeticFunction
+open scoped ArithmeticFunction
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
@@ -1782,6 +1785,66 @@ theorem completedPrimeAutocorrelationSymmetrizedTimeSample_re_eq_two_translateIn
     _ = 2 * Complex.re (zetaSeedInner (zetaTranslate ι.center f) f) := by
       exact convolutionAutocorrelationKernel_add_neg_eq_two_re_translateInner
         f ι.center
+
+/-- The natural two-face boundary sample of a convolution-autocorrelation probe
+reduces to the Hermitian time-boundary sum at the positive natural center.
+
+This is the acyclic bridge from the Hilbert/autocorrelation symmetry theorem
+to the vertical-channel natural-prime arithmetic owner.  It still does not
+identify this two-face presentation with the vertical-channel `TimeSummand`;
+that remaining comparison owns the explicit-formula constants. -/
+theorem zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample_convolutionAutocorrelation_of_ne_zero
+    (seed : ZetaAdmissibleFunction) {n : ℕ} (hn : n ≠ 0) :
+    zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample
+        (convolutionAutocorrelation seed) n =
+      ((Λ n / Real.sqrt n : ℝ) : ℂ) *
+        ((2 * π : ℝ) •
+          (zetaCompletedTimeBoundaryValue
+              (convolutionAutocorrelation seed)
+              (zetaCompletedExplicitFormulaPrimeNaturalCenter n) +
+            star
+              (zetaCompletedTimeBoundaryValue
+                (convolutionAutocorrelation seed)
+                (zetaCompletedExplicitFormulaPrimeNaturalCenter n)))) := by
+  let a : ℝ := zetaCompletedExplicitFormulaPrimeNaturalCenter n
+  have hpos :
+      zetaCompletedTimeBoundaryValue (convolutionAutocorrelation seed) a =
+        convolutionAutocorrelationKernel seed a :=
+    zetaCompletedTimeBoundaryValue_convolutionAutocorrelation_eq_kernel seed a
+  have hneg_time :
+      zetaCompletedTimeBoundaryValue (convolutionAutocorrelation seed) (-a) =
+        convolutionAutocorrelationKernel seed (-a) :=
+    zetaCompletedTimeBoundaryValue_convolutionAutocorrelation_eq_kernel seed (-a)
+  have hneg_kernel :
+      convolutionAutocorrelationKernel seed (-a) =
+        star (convolutionAutocorrelationKernel seed a) :=
+    convolutionAutocorrelationKernel_neg_eq_conj seed a
+  have hreflect :
+      zetaCompletedTimeBoundaryValue
+          (convolutionAutocorrelation seed)
+          (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)) =
+        star
+          (zetaCompletedTimeBoundaryValue
+            (convolutionAutocorrelation seed)
+            (zetaCompletedExplicitFormulaPrimeNaturalCenter n)) := by
+    calc
+      zetaCompletedTimeBoundaryValue
+          (convolutionAutocorrelation seed)
+          (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)) =
+          zetaCompletedTimeBoundaryValue
+            (convolutionAutocorrelation seed) (-a) := by
+        rfl
+      _ = convolutionAutocorrelationKernel seed (-a) := hneg_time
+      _ = star (convolutionAutocorrelationKernel seed a) := hneg_kernel
+      _ =
+          star
+            (zetaCompletedTimeBoundaryValue
+              (convolutionAutocorrelation seed)
+              (zetaCompletedExplicitFormulaPrimeNaturalCenter n)) := by
+        exact congrArg star hpos.symm
+  exact
+    zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample_of_ne_zero_of_reflectionDagger
+      (convolutionAutocorrelation seed) hn hreflect
 
 /-- The spectral symmetrized autocorrelation sample is twice the real part of the paired
 seed spectral sample. -/
