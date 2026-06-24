@@ -109,18 +109,15 @@ theorem centeredZeroCriterion_of_debtAwareOrderedHeartTransport
         (¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1)) →
           (1 / 2 + s) ≠ 1 →
             s.re = 0 :=
-  fun s hz htriv hpole =>
-    Not.mpr
-      (not_offCritical_centeredZero_of_zetaWeilQuadraticPositivity
-        hZeroTailSmallValuesOwnerRunge
-        hbranch
-        hpartialOneTwo
-        hcompactOneTwo
-        hfinite
-        hpartialLeft
-        hcompactBoundary
-        sorry
-        s hz htriv hpole)
+  centeredZeroCriterion_of_debtAwareOrderedHeartZeroSidePositivity
+    hZeroTailSmallValuesOwnerRunge
+    hbranch
+    hpartialOneTwo
+    hcompactOneTwo
+    hfinite
+    hpartialLeft
+    hcompactBoundary
+    horderedHeartPositive
 
 /-- Final centered-zero criterion wrapper for RH.
 

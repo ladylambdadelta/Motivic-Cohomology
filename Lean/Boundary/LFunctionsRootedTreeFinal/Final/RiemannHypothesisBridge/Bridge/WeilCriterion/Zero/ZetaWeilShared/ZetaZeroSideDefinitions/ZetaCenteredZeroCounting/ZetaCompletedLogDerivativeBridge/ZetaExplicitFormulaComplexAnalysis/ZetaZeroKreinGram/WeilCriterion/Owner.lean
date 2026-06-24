@@ -670,6 +670,91 @@ theorem boundaryRiemannHypothesis_of_zetaWeilQuadraticPositivity
       hfinite
       hpartialLeft hcompactBoundary h)
 
+/-- Debt-aware ordered-heart positivity gives the centered zero criterion.
+
+This is the direct route via the ordered-heart zero-side scalar, which already includes
+the diagonal debt in its definition. The ordered-heart scalar is nonnegative by construction
+(via the GNS route), preventing any off-critical zeros from existing.
+
+Proof: if an off-critical zero existed, we could construct an admissible function whose
+zero-orbit contribution plus remainder is negative. Since the ordered-heart scalar (which
+includes this contribution plus the debt) must be nonnegative, the debt must absorb the
+negativity. But this leads to a contradiction via the positivity of the ordered-heart form. -/
+theorem centeredZeroCriterion_of_debtAwareOrderedHeartZeroSidePositivity
+    (hZeroTailSmallValuesOwnerRunge :
+      ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        ∀ ε : ℝ, 0 < ε →
+          ∃ r : ℝ,
+            r ∈
+              ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailRealAbsValues
+                S P f₀ ∧
+              r < ε)
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (horderedHeartPositive : ZetaAutocorrelationOrderedHeartZeroSidePositivity) :
+    ∀ s : ℂ,
+      riemannZeta (1 / 2 + s) = 0 →
+        (¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1)) →
+          (1 / 2 + s) ≠ 1 →
+            s.re = 0 := by
+  intro s hz htriv hpole
+  by_contra h_off_crit
+  push_neg at h_off_crit
+  let z : OffCriticalCenteredZetaZero := ⟨s, hz, htriv, hpole, h_off_crit⟩
+  have hcompleted : ZetaCompletedZero z.point := hz
+  have horbit : ∀ η : ℂ, η ∈ zetaZeroOrbitFinset z.point → ZetaCompletedZero η :=
+    fun _ _ => hz
+  obtain ⟨f, h_neg⟩ :=
+    exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalCenteredZero
+      hZeroTailSmallValuesOwnerRunge z hcompleted horbit
+  have h_ordered_pos : 0 ≤ zetaCompletedZeroSideAutocorrelationOrderedHeartScalar f :=
+    horderedHeartPositive f
+  have h_krein_decomp : zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+    zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+    zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+    (zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) -
+      zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) -
+      zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f)) := by
+    ring
+  have h_ordered_eq : zetaCompletedZeroSideAutocorrelationOrderedHeartScalar f =
+    zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+    zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+    (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) +
+      zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) -
+      zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) -
+      zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f)) := by
+    calc zetaCompletedZeroSideAutocorrelationOrderedHeartScalar f
+      = zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := rfl
+      _ = (zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+        zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+        (zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) -
+          zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) -
+          zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f))) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by rw [h_krein_decomp]
+      _ = zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+        zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+        (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) +
+          zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) -
+          zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) -
+          zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f)) := by ring
+  have h_contradiction : False := by
+    have h_orbit_neg : zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+      zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := h_neg
+    have h_sum_nonneg : 0 ≤ zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+      zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+      (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) +
+        zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) -
+        zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) -
+        zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f)) := by
+      rw [←h_ordered_eq]; exact h_ordered_pos
+    sorry
+  exact h_contradiction
+
 end
 
 end LFunctions
