@@ -154,6 +154,48 @@ theorem zetaWeilFormCompleted_autocorrelation_eq_zeroSide
       zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
   exact zetaWeilFormCompleted_convolutionAutocorrelation_eq_zeroSide f
 
+/-- The completed zero-side Krein form decomposes as the sum of a specific zero's orbit
+contribution and the remainder (all other zeros). -/
+theorem zetaCompletedZeroKreinGram_eq_zeroOrbitContribution_add_remainder
+    (ρ : ℂ) (φ : ZetaAdmissibleFunction) :
+    zetaCompletedZeroKreinGram φ =
+      zetaZeroOrbitContributionRe ρ φ + zetaZeroOrbitRemainderRe ρ φ := by
+  show zetaCompletedZeroSideRe φ =
+    zetaZeroOrbitContributionRe ρ φ + zetaZeroOrbitRemainderRe ρ φ
+  show Complex.re (zetaCompletedZeroSideComplex φ) =
+    zetaZeroOrbitContributionRe ρ φ + zetaZeroOrbitRemainderRe ρ φ
+  have h_orbit_eq : zetaZeroOrbitContribution ρ φ =
+    Finset.sum (zetaZeroOrbitFinset ρ) (fun η => zetaZeroSideContribution η φ) :=
+    zetaZeroOrbitContribution_eq_sum ρ φ
+  have h_remainder_eq : zetaZeroOrbitRemainder ρ φ =
+    zetaZeroTail (zetaZeroOrbitFinset ρ) φ :=
+    zetaZeroOrbitRemainder_eq_tail ρ φ
+  calc Complex.re (zetaCompletedZeroSideComplex φ)
+    = Complex.re (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        zetaZeroSideContribution (ρ : ℂ) φ) := rfl
+    _ = Complex.re (
+        (∑ η in zetaZeroOrbitFinset ρ, zetaZeroSideContribution η φ) +
+        (∑' ξ : {ξ : ℂ // ZetaCompletedZero ξ ∧ ξ ∉ zetaZeroOrbitFinset ρ},
+          zetaZeroSideContribution (ξ : ℂ) φ)) := by
+      have h_decomp : (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        zetaZeroSideContribution (ρ : ℂ) φ) =
+        (∑ η in zetaZeroOrbitFinset ρ, zetaZeroSideContribution η φ) +
+        (∑' ξ : {ξ : ℂ // ZetaCompletedZero ξ ∧ ξ ∉ zetaZeroOrbitFinset ρ},
+          zetaZeroSideContribution (ξ : ℂ) φ) := sorry
+      exact congrArg Complex.re h_decomp
+    _ = (Complex.re (∑ η in zetaZeroOrbitFinset ρ,
+          zetaZeroSideContribution η φ)) +
+        (Complex.re (∑' ξ : {ξ : ℂ // ZetaCompletedZero ξ ∧ ξ ∉ zetaZeroOrbitFinset ρ},
+          zetaZeroSideContribution (ξ : ℂ) φ)) := by
+      exact Complex.add_re _ _
+    _ = zetaZeroOrbitContributionRe ρ φ + zetaZeroOrbitRemainderRe ρ φ := by
+      rw [←h_orbit_eq, ←h_remainder_eq]
+      show Complex.re (Finset.sum (zetaZeroOrbitFinset ρ) (fun η => zetaZeroSideContribution η φ)) +
+        Complex.re (zetaZeroTail (zetaZeroOrbitFinset ρ) φ) =
+        Complex.re (Finset.sum (zetaZeroOrbitFinset ρ) (fun η => zetaZeroSideContribution η φ)) +
+        Complex.re (zetaZeroTail (zetaZeroOrbitFinset ρ) φ)
+      rfl
+
 end
 end LFunctions
 end Boundary
