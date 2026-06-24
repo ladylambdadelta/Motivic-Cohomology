@@ -181,7 +181,9 @@ theorem zetaCompletedZeroKreinGram_eq_zeroOrbitContribution_add_remainder
         zetaZeroSideContribution (ρ : ℂ) φ) =
         (∑ η in zetaZeroOrbitFinset ρ, zetaZeroSideContribution η φ) +
         (∑' ξ : {ξ : ℂ // ZetaCompletedZero ξ ∧ ξ ∉ zetaZeroOrbitFinset ρ},
-          zetaZeroSideContribution (ξ : ℂ) φ) := sorry
+          zetaZeroSideContribution (ξ : ℂ) φ) :=
+        Finset.tsum_subtype_add_tsum_subtype_compl (fun x : ℂ => zetaZeroSideContribution x φ)
+          (fun x => x ∈ zetaZeroOrbitFinset ρ)
       exact congrArg (fun x : ℂ => Complex.re x) h_decomp
     _ = (Complex.re (∑ η in zetaZeroOrbitFinset ρ,
           zetaZeroSideContribution η φ)) +
@@ -189,12 +191,7 @@ theorem zetaCompletedZeroKreinGram_eq_zeroOrbitContribution_add_remainder
           zetaZeroSideContribution (ξ : ℂ) φ)) := by
       exact Complex.add_re _ _
     _ = zetaZeroOrbitContributionRe ρ φ + zetaZeroOrbitRemainderRe ρ φ := by
-      rw [←h_orbit_eq, ←h_remainder_eq]
-      show Complex.re (Finset.sum (zetaZeroOrbitFinset ρ) (fun η => zetaZeroSideContribution η φ)) +
-        Complex.re (zetaZeroTail (zetaZeroOrbitFinset ρ) φ) =
-        Complex.re (Finset.sum (zetaZeroOrbitFinset ρ) (fun η => zetaZeroSideContribution η φ)) +
-        Complex.re (zetaZeroTail (zetaZeroOrbitFinset ρ) φ)
-      rfl
+      exact congrArg₂ HAdd.hAdd (congrArg Complex.re h_orbit_eq) (congrArg Complex.re h_remainder_eq)
 
 end
 end LFunctions
