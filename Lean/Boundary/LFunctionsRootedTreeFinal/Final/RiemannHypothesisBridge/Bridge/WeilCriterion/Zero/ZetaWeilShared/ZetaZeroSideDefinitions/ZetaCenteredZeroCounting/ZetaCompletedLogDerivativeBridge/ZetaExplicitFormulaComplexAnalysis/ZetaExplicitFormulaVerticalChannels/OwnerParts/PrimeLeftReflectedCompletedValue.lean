@@ -1739,7 +1739,23 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
         f F.toContourFamily t) -
         zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue f =
       -(zetaCompletedExplicitFormulaPrimeNaturalComplementContribution f) := by
-  sorry
+    have h_expansion : (∫ t : ℝ,
+        zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel
+          f F.toContourFamily t) =
+        (∑' n : ℕ,
+          ∫ t : ℝ,
+            zetaCompletedExplicitFormulaPrimeLeftReflectedTermKernel
+              f F.toContourFamily n t) +
+          zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue f := by
+      sorry
+    have h_tsum_value : (∑' n : ℕ,
+        ∫ t : ℝ,
+          zetaCompletedExplicitFormulaPrimeLeftReflectedTermKernel
+            f F.toContourFamily n t) =
+        -(zetaCompletedExplicitFormulaPrimeNaturalComplementContribution f) := by
+      sorry
+    exact zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_integral_sub_leftOneSidedInverseGammaValue_eq_neg_complement_of_reflectedTermKernel_tsum
+      f F h_expansion h_tsum_value
 
 /-- Packaged whole-line value of the reflected completed logarithmic-derivative
 kernel on the left prime line.
