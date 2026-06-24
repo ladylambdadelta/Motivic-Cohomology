@@ -182,7 +182,7 @@ theorem zetaCompletedZeroKreinGram_eq_zeroOrbitContribution_add_remainder
         (∑ η in zetaZeroOrbitFinset ρ, zetaZeroSideContribution η φ) +
         (∑' ξ : {ξ : ℂ // ZetaCompletedZero ξ ∧ ξ ∉ zetaZeroOrbitFinset ρ},
           zetaZeroSideContribution (ξ : ℂ) φ) := sorry
-      exact congrArg Complex.re h_decomp
+      exact congrArg (fun x : ℂ => Complex.re x) h_decomp
     _ = (Complex.re (∑ η in zetaZeroOrbitFinset ρ,
           zetaZeroSideContribution η φ)) +
         (Complex.re (∑' ξ : {ξ : ℂ // ZetaCompletedZero ξ ∧ ξ ∉ zetaZeroOrbitFinset ρ},

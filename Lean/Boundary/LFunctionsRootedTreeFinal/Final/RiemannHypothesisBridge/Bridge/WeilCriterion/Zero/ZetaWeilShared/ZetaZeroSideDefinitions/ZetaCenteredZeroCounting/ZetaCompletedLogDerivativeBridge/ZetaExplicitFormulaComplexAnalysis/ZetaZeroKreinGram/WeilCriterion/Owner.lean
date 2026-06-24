@@ -727,7 +727,8 @@ theorem centeredZeroCriterion_of_debtAwareOrderedHeartZeroSidePositivity
         Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := rfl
       _ = (zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
         zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f)) +
-        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by rw [h_krein_decomp]
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by
+        exact congrArg (fun x => x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f)) h_krein_decomp
       _ = zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
         zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
         Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by ring
@@ -737,7 +738,7 @@ theorem centeredZeroCriterion_of_debtAwareOrderedHeartZeroSidePositivity
     have h_nonneg : 0 ≤ zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
       zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
       Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by
-      rw [←h_ordered_eq]; exact h_ordered_pos
+      exact Eq.subst (motive := fun x => 0 ≤ x) h_ordered_eq.symm h_ordered_pos
     exact absurd h_nonneg (not_le.mpr h_sum)
   exact h_contradiction
 
