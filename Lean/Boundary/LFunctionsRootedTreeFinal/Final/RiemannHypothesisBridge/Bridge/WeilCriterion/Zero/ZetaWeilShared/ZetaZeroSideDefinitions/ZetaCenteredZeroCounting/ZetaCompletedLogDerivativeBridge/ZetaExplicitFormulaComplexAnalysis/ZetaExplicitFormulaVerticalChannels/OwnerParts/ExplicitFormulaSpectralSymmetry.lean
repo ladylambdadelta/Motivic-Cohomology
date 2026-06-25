@@ -56,9 +56,23 @@ theorem zetaExplicitFormulaPrimeLeft_conjugateOf_right
     (f : ZetaAdmissibleFunction) (z : ℂ) :
     zetaCompletedExplicitFormulaPrimeLeft f z =
     star (zetaCompletedExplicitFormulaPrimeRight f (-z)) := by
-  -- The left contour is the reflection of the right contour.
-  -- Combined with the conjugate-symmetric spectral transform property,
-  -- this gives the conjugacy.
+  -- The explicit formula computes the prime contribution as contour integrals
+  -- of the spectral transform against test functions.
+  --
+  -- Left contour: integrates spectral transform on left half-plane
+  -- Right contour: integrates spectral transform on right half-plane
+  --
+  -- By the functional equation of completed zeta:
+  -- ζ*(s) = ζ*(1-s), so ζ*(-s) = ζ*(1+s)
+  --
+  -- The contour integrals at z and -z relate by:
+  -- Left(z) = ∫ Φ_f(s) ds over left contour at z
+  -- Right(-z) = ∫ Φ_f(s) ds over right contour at -z
+  --
+  -- These are related by the reflection symmetry of the contours
+  -- and the conjugate-symmetric property of Φ_f
+
+  -- This requires detailed contour integral properties
   sorry
 
 /-- The functional equation of the completed zeta preserves conjugate symmetry

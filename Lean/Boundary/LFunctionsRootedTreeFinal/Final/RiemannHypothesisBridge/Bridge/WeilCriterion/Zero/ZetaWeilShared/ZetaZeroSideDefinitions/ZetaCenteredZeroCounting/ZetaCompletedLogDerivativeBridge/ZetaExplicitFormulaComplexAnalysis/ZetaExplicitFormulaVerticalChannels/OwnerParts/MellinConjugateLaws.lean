@@ -32,25 +32,34 @@ lemma mellin_conjugateSymmetric_property
   -- By the Mellin-Fourier bridge (boundary_mellin_eq_fourierIntegral):
   -- mellin(φ)(s) = 𝓕(λ u ↦ exp(-s.re * u) • φ(exp(-u)))(s.im / (2π))
   --
-  -- At -conj(s) = -σ - it (where s = σ + it):
-  -- mellin(φ)(-star s) = 𝓕(λ u ↦ exp(σ * u) • φ(exp(-u)))(-t / (2π))
-  --
-  -- The Fourier transform of the conjugate-weighted version relates to
-  -- the conjugate of the original via the kernel properties.
+  -- Key insight: At -star(s), the exponential weight behaves conjugately:
+  -- If s = σ + it, then -star(s) = -σ - it
+  -- exp(-(-σ - it).re * u) = exp(σ * u)
+  -- exp(-(σ + it).re * u) = exp(-σ * u)
+  -- So: exp(σ*u) = conj(exp(-σ*u)) via exponential conjugacy
 
   rw [boundary_mellin_eq_fourierIntegral φ (s := -star s)]
   rw [boundary_mellin_eq_fourierIntegral φ (s := s)]
 
-  -- The exponential weights at -star(s) and s satisfy:
-  -- exp(-(-star s).re * u) = exp(star s.re * u) = exp(s.re * u) [since s.re is real]
-  have h_weight : ∀ u : ℝ,
+  -- Real parts of conjugate points:
+  have h_real_neg : (-(-star s)).re = -(s.re) := by simp [Complex.neg_re, Complex.star_re]
+  have h_real_pos : s.re = s.re := rfl
+
+  -- The weighted test functions relate by:
+  -- exp(-(-star s).re * u) • φ(exp(-u)) relates conjugately to
+  -- exp(-(s.re) * u) • φ(exp(-u))
+  have h_weight_conj : ∀ u : ℝ,
       Real.exp ((-(-star s)).re * u) = Real.exp (-(s.re) * u) := by
     intro u
-    have : ((-(-star s)).re : ℝ) = -(s.re) := by simp [Complex.neg_re, Complex.star_re]
-    rw [this]
+    rw [h_real_neg]
 
-  -- The two Fourier transforms are conjugates due to the weight relationship
-  -- and the conjugate property of the exponential kernel
+  -- The Fourier transform at opposite frequencies gives conjugates
+  -- by the kernel property (exponential conjugacy)
+  have h_freq_conj : ((-star s).im : ℝ) / (2 * π) = -(s.im : ℝ) / (2 * π) := by
+    simp [Complex.neg_im, Complex.star_im]
+
+  -- By Fourier conjugacy at opposite frequencies and the weight relationship,
+  -- the integrals are conjugates
   sorry
 
 /-- Mellin inversion applied to a conjugate-symmetric transform produces
@@ -89,8 +98,18 @@ lemma mellinInv_conjugateSymmetric_domain_reflection
     (σ : ℝ) (x : ℝ) (hx : 0 < x) :
     let f := mellinInv σ M
     f (1 / x) = star (f x) := by
-  -- The substitution x ↦ 1/x in the Mellin inversion integral
-  -- combined with conjugate symmetry gives this relation
+  -- The Mellin inversion integral is:
+  -- f(x) = (1/(2πi)) ∫_{σ-i∞}^{σ+i∞} M(s) x^(-s) ds
+  --
+  -- At 1/x, with the substitution s ↦ -s:
+  -- f(1/x) = (1/(2πi)) ∫_{σ-i∞}^{σ+i∞} M(s) (1/x)^(-s) ds
+  --        = (1/(2πi)) ∫_{σ-i∞}^{σ+i∞} M(s) x^s ds
+  --
+  -- By conjugate symmetry M(-conj(s)) = conj(M(s)):
+  -- At the symmetric contour σ ± it, the contributions combine
+  -- to give star(f(x))
+
+  -- This requires the substitution x ↦ 1/x and contour analysis
   sorry
 
 /-- The completed Mellin transform (with exponential damping for decay)
@@ -99,9 +118,19 @@ lemma completed_mellin_conjugateSymmetric
     (φ : ℝ → ℂ) (s : ℂ) (σ : ℝ) :
     (mellin φ (-star (σ + I * (s : ℂ))) : ℂ) =
     star (mellin φ (σ + I * (s : ℂ))) := by
-  -- Same principle: the exponential weighting in Mellin
-  -- interacts with conjugacy in a controlled way
-  sorry
+  -- This is a direct application of mellin_conjugateSymmetric_property
+  -- with s = σ + It, since:
+  -- -star(σ + It) = -σ + It (as -star(a + bi) = -a - bi)
+  -- Wait, let me recalculate:
+  -- star(σ + It) = σ - It
+  -- -star(σ + It) = -σ + It
+  -- So we're evaluating at conjugate points on vertical lines
+
+  have h_point : σ + I * (s : ℂ) = (σ : ℂ) + I * s := by
+    simp [Complex.ofReal_mul]
+
+  rw [h_point]
+  exact mellin_conjugateSymmetric_property φ ((σ : ℂ) + I * s)
 
 /-- For compactly supported smooth functions, Mellin inversion of the
 conjugate-symmetric transform yields a compactly supported smooth function
