@@ -2,19 +2,25 @@ import Mathlib.Analysis.MellinInversion
 import Mathlib.Analysis.Fourier.AddCircle
 import Boundary.LFunctions.ZetaTransformCalculus
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeNaturalTimeArithmetic
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ConjugateSymmetricTransforms
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.MellinConjugateLaws
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ExplicitFormulaSpectralSymmetry
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.AdmissibleFromMellin
 
 /-!
-# Fourier-Mellin conjugate symmetry for admissible functions
+# Fourier-Mellin Conjugate Symmetry Core
 
-Proves that admissible test functions satisfy conjugate symmetry at opposite
-logarithmic centers. This is derived from:
+This file composes the four support libraries to prove that admissible functions
+satisfy conjugate symmetry at opposite points.
 
-1. Mellin inversion theorem (boundary_mellin_inversion from Mathlib)
-2. Fourier transform conjugate symmetry (standard in harmonic analysis)
-3. Composition via the Mellin-Fourier bridge
+The proof architecture:
+1. ConjugateSymmetricTransforms - Define conjugate-symmetric transforms
+2. MellinConjugateLaws - Show Mellin inversion preserves conjugacy
+3. ExplicitFormulaSpectralSymmetry - Prove Φ_f is conjugate-symmetric
+4. AdmissibleFromMellin - Connect admissible functions to Mellin inversion
 
-The key insight: For smooth compactly supported φ and its Mellin transform M(φ)(s),
-evaluating at opposite real points gives conjugate values by the inversion formula.
+The key insight: Admissible functions inherit conjugate symmetry from
+the explicit formula's spectral transform via Mellin inversion.
 -/
 
 namespace Boundary

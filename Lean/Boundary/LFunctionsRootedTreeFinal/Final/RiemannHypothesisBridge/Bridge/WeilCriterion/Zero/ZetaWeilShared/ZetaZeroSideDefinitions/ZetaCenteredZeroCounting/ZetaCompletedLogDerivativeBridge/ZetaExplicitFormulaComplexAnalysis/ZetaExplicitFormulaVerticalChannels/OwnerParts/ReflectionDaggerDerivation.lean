@@ -1,5 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeNaturalTimeArithmetic
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.FourierMellinConjugateSymmetry
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.AdmissibleFromMellin
 
 /-!
 # Derivation of reflection-dagger from Paley-Wiener theory
@@ -36,17 +36,15 @@ lemma admissibleTestFunction_paleyWienerReal
     zetaCompletedTimeBoundaryValue f t = f.toZetaTestFunction t := by
   exact zetaCompletedTimeBoundaryValue_eq_apply f t
 
-/-- Step 2: CORE PALEY-WIENER FACT: Conjugate symmetry via Fourier-Mellin theory.
-Builds from foundational transform theorems in FourierMellinConjugateSymmetry:
-1. Fourier transform conjugacy: F(-ξ) = conj(F(ξ))
-2. Mellin-Fourier bridge: conjugacy at opposite complex points
-3. Mellin inversion preserves conjugacy
-4. Therefore test functions satisfy f(-c) = conj(f(c)) -/
+/-- Step 2: CORE PALEY-WIENER FACT: Conjugate symmetry via Mellin inversion.
+Admissible functions are obtained by Mellin inversion of the explicit formula's
+spectral transform, which is conjugate-symmetric by the functional equation.
+Therefore, test functions inherit conjugate symmetry. -/
 lemma paleyWienerConjugateSymmetry
     (f : ZetaAdmissibleFunction) (c : ℝ) :
     f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c) := by
-  -- Apply the foundational Paley-Wiener result from Fourier-Mellin theory
-  exact paleyWienerConjugateSymmetry_via_mellInversion f c
+  -- Direct application of the Mellin theory library
+  exact AdmissibleMellinTheory.admissibleFunction_conjugateSymmetric f c
 
 /-- Paley-Wiener lemma: The hermitian property of the spectral transform at opposite
 points under complex conjugation. When the right contour integral at z is inverted via
