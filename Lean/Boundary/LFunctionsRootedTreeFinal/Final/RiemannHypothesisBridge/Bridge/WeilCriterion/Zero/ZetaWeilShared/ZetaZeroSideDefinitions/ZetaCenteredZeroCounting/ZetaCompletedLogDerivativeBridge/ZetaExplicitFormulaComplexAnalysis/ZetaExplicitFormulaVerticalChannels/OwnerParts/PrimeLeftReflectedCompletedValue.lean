@@ -1,6 +1,9 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftKernelReflection
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftReflectedTermKernelAlgebra
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftReflectedInverseGammaComponents
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftReflectedCorrectionPoleKernelValues
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftReflectedArchimedeanKernelValue
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftReflectedBoundarySymmetryValues
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftReflectedTermKernelFourierValue
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.InverseGammaOneSidedValues
 
@@ -1751,24 +1754,46 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
         (∫ t : ℝ,
           zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel
             f F.toContourFamily t) =
-          -(zetaCompletedExplicitFormulaPhi f 0) := by
-      /- This integral represents the Fourier/Mellin inversion of the archimedean
-         log derivative component. The result is the value of Phi at the origin.
-         Requires: Paley-Wiener inversion theorem for the reflected archimedean kernel
-         paired with left-centered Phi transform. -/
-      sorry
+          -(zetaCompletedExplicitFormulaPhi f 0) :=
+      zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel_integral_eq_neg_phiZero
+        f F.toContourFamily h hcoh
     have hcorr_value :
         (∫ t : ℝ,
           zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionKernel
             f F.toContourFamily t) =
           (((2 * (Real.pi : ℂ) * Complex.I) *
             (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) := by
-      /- This integral decomposes into the sum of zero-pole and one-pole integrals:
-         Correction = ZeroPole + OnePole
-         ZeroPole integral = 0 (residue at s=0 doesn't contribute to integral over ℝ)
-         OnePole integral = (2πi * (-Phi(1/2))) * i (standard pole residue formula)
-         Requires: Cauchy residue theorem computation for both poles and assembly. -/
-      sorry
+      have hzero_int :
+          Integrable
+            (zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionZeroPoleKernel
+              f F.toContourFamily)
+            (volume : Measure ℝ) :=
+        zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionZeroPoleKernel_integrable
+          f F.toContourFamily h
+      have hone_int :
+          Integrable
+            (zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionOnePoleKernel
+              f F.toContourFamily)
+            (volume : Measure ℝ) :=
+        zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionOnePoleKernel_integrable
+          f F.toContourFamily h
+      have hzero_value :
+          (∫ t : ℝ,
+            zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionZeroPoleKernel
+              f F.toContourFamily t) = 0 :=
+        zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionZeroPoleKernel_integral_eq_zero
+          f F.toContourFamily h
+      have hone_value :
+          (∫ t : ℝ,
+            zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionOnePoleKernel
+              f F.toContourFamily t) =
+            (((2 * (Real.pi : ℂ) * Complex.I) *
+              (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) :=
+        zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionOnePoleKernel_integral_eq_standardResidue
+          f F.toContourFamily h
+      exact
+        zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionKernel_integral_eq_standardResidue_of_zeroPole_onePole_values
+          f F.toContourFamily hzero_int hone_int hzero_value hone_value
     have hscalar :
         ∀ n : ℕ, n ≠ 0 →
           (-( (Λ n / Real.sqrt n) *
@@ -1800,64 +1825,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
       -/
       have hreflected_eq_complement :
           zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n =
-            zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n := by
-        /- COMPLETE PROOF via the explicit formula's fundamental decomposition property.
-
-           Key theorem (PrimeNaturalTimeArithmetic:1265):
-           - OneSided + Complement = TimeSummand (unconditional tautology)
-
-           The explicit formula asserts:
-           - TimeSummand = OneSided + Reflected (this is the decomposition)
-
-           By the fundamental property of the explicit formula (the decomposition),
-           these two facts together give:
-           - OneSided + Reflected = TimeSummand = OneSided + Complement
-           - Therefore: Reflected = Complement ✓
-
-           This equality represents the consistency of the explicit formula: the
-           reflected contribution (computed via left/reflected Paley-Wiener inversion)
-           equals the complement (defined as the difference from the symmetric summand).
-
-           The proof unfolds the definition of ComplementTimeSample and uses the
-           fundamental explicit formula decomposition property.
-        -/
-        have h_one_side_plus_complement : zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
-            zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n =
-          zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n :=
-          zetaCompletedExplicitFormulaPrimeNaturalOneSided_add_complementTimeSample f n
-        have h_defn_complement : zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n =
-            zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n -
-              zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n :=
-          rfl
-        have h_twoface : zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n =
-            zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
-              zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n :=
-          rfl
-        /- By the explicit formula, TimeSummand decomposes as OneSided + Reflected.
-           By definition, Complement = TimeSummand - OneSided.
-           Therefore: Reflected = Complement. -/
-        have h_summand_eq_twoface : zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
-            zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n := by
-          /- This is the core explicit formula decomposition assertion:
-             TimeSummand = OneSided + Reflected
-             This follows from how the explicit formula naturally structures
-             the symmetric summand in terms of one-sided and reflected parts. -/
-          sorry
-        calc zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n
-            = zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
-              zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n -
-              zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n := by
-            exact Eq.symm (add_sub_cancel _ _)
-            _ = zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n -
-              zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n := by
-            exact congrArg (fun z : ℂ =>
-              z - zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n) h_twoface.symm
-            _ = zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n -
-              zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n := by
-            exact congrArg (fun z : ℂ =>
-              z - zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n) h_summand_eq_twoface
-            _ = zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n := by
-            exact h_defn_complement.symm
+            zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n :=
+        zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_complementTimeSample f n
       have htwoFace : zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
           zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n :=
         zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_twoFaceBoundarySample_of_reflected_eq_complement
