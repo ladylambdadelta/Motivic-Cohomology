@@ -74,17 +74,15 @@ theorem admissibleFunction_boundary_conjugateSymmetry
     (f : ZetaAdmissibleFunction) (c : ℝ) :
     zetaCompletedTimeBoundaryValue f (-c) =
     star (zetaCompletedTimeBoundaryValue f c) := by
-  have h := admissibleFunction_conjugateSymmetric f c
-  simp only [zetaCompletedTimeBoundaryValue_eq_apply] at *
-  exact h
+  exact admissibleFunction_conjugateSymmetric f c
 
 /-- For natural prime logarithmic centers, admissible functions exhibit the
 reflection-dagger property. -/
 theorem admissibleFunction_primeCenter_reflectionDagger
     (f : ZetaAdmissibleFunction) {n : ℕ} (hn : n ≠ 0) :
     f.toZetaTestFunction (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)) =
-    star (f.toZetaTestFunction (zetaCompletedExplicitFormulaPrimeNaturalCenter n)) := by
-  exact admissibleFunction_conjugateSymmetric f (zetaCompletedExplicitFormulaPrimeNaturalCenter n)
+    star (f.toZetaTestFunction (zetaCompletedExplicitFormulaPrimeNaturalCenter n)) :=
+  admissibleFunction_conjugateSymmetric f (zetaCompletedExplicitFormulaPrimeNaturalCenter n)
 
 /-- The zero admissible function trivially satisfies conjugate symmetry. -/
 theorem zero_admissible_conjugateSymmetric :
@@ -100,10 +98,17 @@ theorem scalar_multiple_conjugateSymmetric
     (r • f).toZetaTestFunction (-c) =
     star ((r • f).toZetaTestFunction c) := by
   have hf := admissibleFunction_conjugateSymmetric f c
-  simp only [Pi.smul_apply] at *
-  rw [show (r : ℂ) * f.toZetaTestFunction (-c) =
-           (r : ℂ) * star (f.toZetaTestFunction c) by rw [hf]]
-  simp [Complex.star_ofReal]
+  have h_scalar_at_neg : (r • f).toZetaTestFunction (-c) = (r : ℂ) * f.toZetaTestFunction (-c) := by
+    exact rfl
+  have h_scalar_at_c : (r • f).toZetaTestFunction c = (r : ℂ) * f.toZetaTestFunction c := by
+    exact rfl
+  calc
+    (r • f).toZetaTestFunction (-c)
+        = (r : ℂ) * f.toZetaTestFunction (-c) := h_scalar_at_neg
+      _ = (r : ℂ) * star (f.toZetaTestFunction c) := by rw [hf]
+      _ = star ((r : ℂ) * f.toZetaTestFunction c) := by
+          exact (star_mul_of_real r (f.toZetaTestFunction c)).symm
+      _ = star ((r • f).toZetaTestFunction c) := by rw [← h_scalar_at_c]
 
 /-- Conjugate symmetry is preserved by addition. -/
 theorem add_conjugateSymmetric
@@ -112,11 +117,14 @@ theorem add_conjugateSymmetric
     star ((f + g).toZetaTestFunction c) := by
   have hf := admissibleFunction_conjugateSymmetric f c
   have hg := admissibleFunction_conjugateSymmetric g c
-  simp only [Pi.add_apply]
-  rw [show f.toZetaTestFunction (-c) + g.toZetaTestFunction (-c) =
-           star (f.toZetaTestFunction c) + star (g.toZetaTestFunction c) by
-       rw [hf, hg]]
-  simp [star_add]
+  calc
+    (f + g).toZetaTestFunction (-c)
+        = f.toZetaTestFunction (-c) + g.toZetaTestFunction (-c) := by rfl
+      _ = star (f.toZetaTestFunction c) + star (g.toZetaTestFunction c) := by
+          rw [hf, hg]
+      _ = star (f.toZetaTestFunction c + g.toZetaTestFunction c) := by
+          exact (star_add (f.toZetaTestFunction c) (g.toZetaTestFunction c)).symm
+      _ = star ((f + g).toZetaTestFunction c) := by rfl
 
 end AdmissibleMellinTheory
 
