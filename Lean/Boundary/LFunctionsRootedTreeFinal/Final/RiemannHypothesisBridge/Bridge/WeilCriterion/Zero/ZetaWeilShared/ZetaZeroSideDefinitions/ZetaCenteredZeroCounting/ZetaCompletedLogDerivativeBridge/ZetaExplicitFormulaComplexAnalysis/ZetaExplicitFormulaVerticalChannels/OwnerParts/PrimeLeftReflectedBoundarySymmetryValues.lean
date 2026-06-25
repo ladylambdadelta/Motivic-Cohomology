@@ -43,18 +43,24 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_oneSided_add_refl
     zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
       zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
         zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n := by
-  -- Rewrite using the unfolding theorem: unfold to weight and boundary values
-  have ht := zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_of_ne_zero f hn
-  rw [ht]
-  have h1 := zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample_of_ne_zero f hn
-  rw [h1]
-  have h2 := zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_of_ne_zero f hn
-  rw [h2]
-  -- Now we have:
-  -- LHS: -(w * Re(ζ(c) + conj(ζ(c))))
-  -- RHS: w * (2π • ζ(c)) + w * (2π • ζ(-c))
-  -- This requires the functional equation property: ζ(-c) = conj(ζ(c))
-  sorry
+  -- By the functional equation (Paley-Wiener) property at logarithmic centers:
+  -- ζ(-c) = conj(ζ(c)) at the natural prime center c = zetaCompletedExplicitFormulaPrimeNaturalCenter n
+  -- This means the reflected boundary value equals the conjugate of the original:
+  have hreflect : zetaCompletedTimeBoundaryValue f
+      (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)) =
+    star (zetaCompletedTimeBoundaryValue f
+      (zetaCompletedExplicitFormulaPrimeNaturalCenter n)) := by
+    sorry  -- Functional equation property (core analytical fact from explicit formula)
+  -- Therefore Reflected = Complement (by the reflection-dagger algebra)
+  have hreflected_eq_complement :
+    zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n =
+      zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n := by
+    exact zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample_of_ne_zero_of_reflectionDagger
+      f hn hreflect
+  -- Now apply: OneSided + Complement = TimeSummand (proven at line 1265)
+  exact (zetaCompletedExplicitFormulaPrimeNaturalOneSided_add_complementTimeSample f n).trans
+    (congrArg (fun z => zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n + z)
+      hreflected_eq_complement.symm)
 
 /-- The reflected time boundary sample equals the complement arithmetic sample.
 
