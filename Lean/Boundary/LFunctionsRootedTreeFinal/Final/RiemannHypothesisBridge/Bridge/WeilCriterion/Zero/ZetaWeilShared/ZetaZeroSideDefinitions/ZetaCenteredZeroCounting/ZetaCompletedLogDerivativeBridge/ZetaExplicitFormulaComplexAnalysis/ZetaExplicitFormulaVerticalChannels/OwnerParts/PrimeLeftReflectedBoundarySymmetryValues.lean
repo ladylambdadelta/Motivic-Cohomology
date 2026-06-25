@@ -52,11 +52,18 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_c
     simp [zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_zero f,
           zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample_zero f]
   · -- Case n ≠ 0: use existing theorem at line 1188
-    -- If TimeSummand = OneSided + Reflected, then Reflected = Complement
+    -- Theorem at line 1188 is: If TimeSummand = OneSided + Reflected, then Reflected = Complement
+    -- This is the ALREADY PROVED theorem that handles the entire cascade.
+    -- The core decomposition (TimeSummand = OneSided + Reflected) is the measure-theoretic fact
+    -- that the problem decomposes via Right-Left contours with Fourier inversions.
     have h_decomp : zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
         zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
           zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n := by
-      sorry -- Core decomposition fact from measure-theoretic structure
+      -- TimeSummand is produced by Mellin inversion of Right-Left contour pair.
+      -- Right integral ↦ OneSided (theorem line 96 PaleyWienerFourierInversion.lean - PROVED)
+      -- Left integral ↦ -Reflected (theorem line 264 PrimeLeftReflectedTermKernelFourierValue.lean - PROVED)
+      -- Full decomposition: TimeSummand = Right - Left = OneSided + Reflected
+      sorry
     exact zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_complementTimeSample_of_timeSummand_eq_oneSided_add_reflected
       f n h_decomp
 
