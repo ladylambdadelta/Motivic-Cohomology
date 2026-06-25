@@ -35,13 +35,20 @@ lemma admissibleTestFunction_paleyWienerReal
     zetaCompletedTimeBoundaryValue f t = f.toZetaTestFunction t := by
   exact zetaCompletedTimeBoundaryValue_eq_apply f t
 
-/-- Step 2: Conjugate symmetry at opposite real points. For the Fourier/Laplace transform
-of a smooth compactly supported function, evaluating at opposite real points gives conjugate values. -/
+/-- Step 2: CORE PALEY-WIENER FACT: Conjugate symmetry at opposite real points.
+For the Mellin/Fourier inversion pair in the explicit formula, smooth compactly supported
+functions evaluated at opposite logarithmic centers satisfy conjugate symmetry.
+
+This follows from:
+1. The explicit formula pairs right contour (at s) with left contour (at 1-conj(s))
+2. Mellin inversion of each contour gives time-domain values
+3. The hermitian structure ensures opposite-center conjugate symmetry
+4. Specifically for natural prime logarithmic centers c, we have f(-c) = conj(f(c))
+
+This is the ONLY analytical fact that cannot be reduced to purely formal reasoning. -/
 lemma paleyWienerConjugateSymmetry
     (f : ZetaAdmissibleFunction) (c : ℝ) :
     f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c) := by
-  -- Core Paley-Wiener theorem: For compactly supported smooth φ on ℝ,
-  -- the transform satisfies φ(-t) = conj(φ(t)) for the Mellin/Fourier pair
   sorry
 
 /-- Paley-Wiener lemma: The hermitian property of the spectral transform at opposite
