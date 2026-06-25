@@ -1844,12 +1844,20 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
              the symmetric summand in terms of one-sided and reflected parts. -/
           sorry
         calc zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n
-            = zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n -
+            = zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
+              zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n -
               zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n := by
-          rw [h_summand_eq_twoface, ← h_twoface]
-          ring
-          _ = zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n := by
-          exact h_defn_complement.symm
+            exact Eq.symm (add_sub_cancel _ _)
+            _ = zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n -
+              zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n := by
+            exact congrArg (fun z : ℂ =>
+              z - zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n) h_twoface.symm
+            _ = zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n -
+              zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n := by
+            exact congrArg (fun z : ℂ =>
+              z - zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n) h_summand_eq_twoface
+            _ = zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n := by
+            exact h_defn_complement.symm
       have htwoFace : zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
           zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n :=
         zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_twoFaceBoundarySample_of_reflected_eq_complement
