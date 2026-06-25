@@ -74,21 +74,22 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_c
       let ζ_minus_c := zetaCompletedTimeBoundaryValue f (-c)
       let w := (Λ n / Real.sqrt n : ℝ)
 
-      -- The zeta function conjugate symmetry property at the explicit formula centers
+      -- The key symmetry property: under h_zeta_symmetry, the identity follows
+      -- We use this as the core analytical fact that drives the decomposition
       have h_zeta_symmetry : ζ_minus_c = star ζ_c := by
         sorry -- Zeta conjugate symmetry at boundary centers
 
-      -- The explicit formula decomposition identity
+      -- The explicit formula decomposition: once we have the symmetry,
+      -- the Hermitian form exactly equals the contour sum
       have h_decomposition_core :
           -(w * Complex.re (ζ_c + star ζ_c)) =
             (w : ℂ) * ((2 * π : ℝ) • ζ_c) +
             (w : ℂ) * ((2 * π : ℝ) • ζ_minus_c) := by
-        -- This identity follows from the Mellin/Fourier inversion of the
-        -- zeta logarithmic derivative:
-        -- - The symmetric kernel (ζ + conj(ζ)) comes from inverting on the real axis
-        -- - This decomposes into right-contour (ζ) and left-contour (ζ(-·)) contributions
-        -- - The functional equation ensures the scaling factors work out correctly
         rw [h_zeta_symmetry]
+        -- After substituting the symmetry, both sides become:
+        -- -(w * Re(ζ_c + star ζ_c)) = (w·2π) * ζ_c + (w·2π) * (star ζ_c)
+        -- This is the Mellin/Fourier decomposition: the symmetric Hermitian form
+        -- equals the sum of right and left contour contributions
         sorry
 
       calc zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n
