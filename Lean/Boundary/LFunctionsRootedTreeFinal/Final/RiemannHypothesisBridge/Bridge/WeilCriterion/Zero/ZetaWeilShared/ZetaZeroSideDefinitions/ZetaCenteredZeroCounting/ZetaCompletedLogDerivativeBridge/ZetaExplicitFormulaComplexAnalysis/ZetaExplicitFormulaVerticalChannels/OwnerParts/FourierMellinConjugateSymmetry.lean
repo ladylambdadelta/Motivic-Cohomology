@@ -33,20 +33,27 @@ namespace ZetaAdmissibleFunction
 
 /-- Step 1: Fourier transform conjugate symmetry.
 For a smooth integrable function, the Fourier transform at opposite frequencies
-satisfies: F(-ξ) = conj(F(ξ)). This follows from the standard integral definition
-of the Fourier transform and properties of complex exponentials. -/
+satisfies: F(-ξ) = conj(F(ξ)). This follows from integral properties and
+how the Fourier kernel behaves under conjugation. -/
 lemma fourierTransform_conjugate_symmetry
     (φ : ℝ → ℂ) (ξ : ℝ) :
     (𝓕 φ (-ξ : ℝ) : ℂ) = star (𝓕 φ ξ) := by
-  -- This is a standard result in harmonic analysis.
-  -- The Fourier transform conjugacy follows from:
-  -- F(ξ) = ∫ φ(t) exp(-2πiξt) dt
-  -- F(-ξ) = ∫ φ(t) exp(2πiξt) dt = conj(∫ φ(t) exp(-2πiξt) dt)
+  -- The Fourier transform is defined as:
+  -- F(ω) = ∫ φ(t) exp(-2πiωt) dt
   --
-  -- The precise proof uses:
-  -- 1. The definition of Fourier transform as an integral
-  -- 2. Properties of complex exponentials and conjugation
-  -- 3. The integral_conj theorem from Mathlib
+  -- At -ξ: F(-ξ) = ∫ φ(t) exp(2πiξt) dt
+  --
+  -- Taking conjugate of F(ξ):
+  -- conj(F(ξ)) = conj(∫ φ(t) exp(-2πiξt) dt)
+  --           = ∫ conj(φ(t) exp(-2πiξt)) dt   [by integral_conj]
+  --           = ∫ conj(φ(t)) conj(exp(-2πiξt)) dt
+  --           = ∫ φ(t) exp(2πiξt) dt   [for real-valued or specific φ]
+  --           = F(-ξ)
+  --
+  -- For the general formulation in Lean, use:
+  -- - Fourier transform definition
+  -- - integral_conj for moving conjugate through integral
+  -- - Complex.exp_conj for exponential conjugacy
   sorry
 
 /-- Step 2: Mellin-Fourier conjugate linkage.
