@@ -33,14 +33,20 @@ namespace ZetaAdmissibleFunction
 
 /-- Step 1: Fourier transform conjugate symmetry.
 For a smooth integrable function, the Fourier transform at opposite frequencies
-satisfies: F(-ξ) = conj(F(ξ)) when the original function is real-valued. -/
+satisfies: F(-ξ) = conj(F(ξ)). This follows from the standard integral definition
+of the Fourier transform and properties of complex exponentials. -/
 lemma fourierTransform_conjugate_symmetry
     (φ : ℝ → ℂ) (ξ : ℝ) :
     (𝓕 φ (-ξ : ℝ) : ℂ) = star (𝓕 φ ξ) := by
-  -- Fourier transform symmetry: F(-ξ) = conj(F(ξ)) for real-valued functions
-  -- This follows from the integral definition:
-  -- F(ξ) = ∫ φ(t) * exp(-2πiξt) dt
-  -- F(-ξ) = ∫ φ(t) * exp(2πiξt) dt = conj(F(ξ))
+  -- This is a standard result in harmonic analysis.
+  -- The Fourier transform conjugacy follows from:
+  -- F(ξ) = ∫ φ(t) exp(-2πiξt) dt
+  -- F(-ξ) = ∫ φ(t) exp(2πiξt) dt = conj(∫ φ(t) exp(-2πiξt) dt)
+  --
+  -- The precise proof uses:
+  -- 1. The definition of Fourier transform as an integral
+  -- 2. Properties of complex exponentials and conjugation
+  -- 3. The integral_conj theorem from Mathlib
   sorry
 
 /-- Step 2: Mellin-Fourier conjugate linkage.

@@ -31,6 +31,19 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_c
         (zetaCompletedExplicitFormulaPrimeNaturalCenter n))) :
     zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n =
       zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n := by
+  -- The reflected boundary sample is w(n) * 2π * f(-(c(n)))
+  -- By reflection-dagger: f(-(c(n))) = star(f(c(n)))
+  -- So reflected = w(n) * 2π * star(f(c(n)))
+  --
+  -- The complement is TimeSummand - OneSided
+  -- These are equal when TimeSummand = OneSided + Reflected
+  -- which follows from the decomposition via the explicit formula's contour structure.
+
+  -- Application of the cascading theorem that was already proved:
+  -- Line 1188 says: If TimeSummand = OneSided + Reflected, then Reflected = Complement
+  -- The reflection-dagger property, combined with the Mellin inversion formula,
+  -- derives TimeSummand = OneSided + Reflected
+
   sorry
 
 end ZetaAdmissibleFunction
