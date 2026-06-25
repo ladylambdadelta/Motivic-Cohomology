@@ -76,9 +76,7 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_c
 
       -- The zeta function conjugate symmetry property at the explicit formula centers
       have h_zeta_symmetry : ζ_minus_c = star ζ_c := by
-        -- This is a consequence of the completed zeta function's functional equation
-        -- combined with the logarithmic structure of the explicit formula centers.
-        sorry
+        sorry -- Zeta conjugate symmetry at boundary centers
 
       -- The explicit formula decomposition identity
       have h_decomposition_core :
