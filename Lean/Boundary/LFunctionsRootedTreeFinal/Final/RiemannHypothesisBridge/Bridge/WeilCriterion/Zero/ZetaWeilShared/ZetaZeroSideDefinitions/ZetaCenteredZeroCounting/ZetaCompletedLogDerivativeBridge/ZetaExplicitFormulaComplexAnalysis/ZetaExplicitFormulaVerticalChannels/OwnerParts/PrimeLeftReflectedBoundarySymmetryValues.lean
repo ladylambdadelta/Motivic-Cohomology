@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeNaturalTimeArithmetic
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ReflectionDaggerProperty
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ReflectedEqualComplement
 
 /-!
 # Reflected boundary symmetry values
@@ -33,41 +35,6 @@ open scoped ArithmeticFunction
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
-
-/-- Functional equation property: completed zeta boundary values at natural prime centers
-satisfy conjugate symmetry under negation. -/
-theorem zetaCompletedTimeBoundaryValue_primeNaturalCenter_reflectionDagger
-    (f : ZetaAdmissibleFunction) {n : ℕ} (hn : n ≠ 0) :
-    zetaCompletedTimeBoundaryValue f
-      (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)) =
-      star (zetaCompletedTimeBoundaryValue f
-        (zetaCompletedExplicitFormulaPrimeNaturalCenter n)) := by
-  sorry
-
-/-- The reflected boundary sample equals the complement by the reflection-dagger property. -/
-theorem zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_complementTimeSample_of_reflectionDagger
-    (f : ZetaAdmissibleFunction) {n : ℕ} (hn : n ≠ 0)
-    (hreflect : zetaCompletedTimeBoundaryValue f
-      (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)) =
-      star (zetaCompletedTimeBoundaryValue f
-        (zetaCompletedExplicitFormulaPrimeNaturalCenter n))) :
-    zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n =
-      zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n := by
-  let w := zetaCompletedExplicitFormulaPrimeNaturalWeight n
-  let c := zetaCompletedExplicitFormulaPrimeNaturalCenter n
-  let V := zetaCompletedTimeBoundaryValue f c
-  let Vneg := zetaCompletedTimeBoundaryValue f (-c)
-  have hReflected : zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n =
-    ((w : ℝ) : ℂ) * ((2 * π : ℝ) • Vneg) :=
-    by unfold zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample; rfl
-  have hComplement : zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n =
-    zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n -
-      ((w : ℝ) : ℂ) * ((2 * π : ℝ) • V) :=
-    by unfold zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample; rfl
-  rw [hReflected, hComplement]
-  have hVneg : Vneg = star V := hreflect
-  rw [hVneg]
-  sorry
 
 /-- Core decomposition: TimeSummand = OneSided + Reflected
 This is the fundamental measure-theoretic fact that the explicit formula's
