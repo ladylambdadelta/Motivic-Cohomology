@@ -1739,23 +1739,39 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
         f F.toContourFamily t) -
         zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue f =
       -(zetaCompletedExplicitFormulaPrimeNaturalComplementContribution f) := by
-    have h_expansion : (∫ t : ℝ,
-        zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel
-          f F.toContourFamily t) =
-        (∑' n : ℕ,
-          ∫ t : ℝ,
-            zetaCompletedExplicitFormulaPrimeLeftReflectedTermKernel
-              f F.toContourFamily n t) +
-          zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue f := by
+    have harch_value :
+        (∫ t : ℝ,
+          zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel
+            f F.toContourFamily t) =
+          -(zetaCompletedExplicitFormulaPhi f 0) := by
       sorry
-    have h_tsum_value : (∑' n : ℕ,
-        ∫ t : ℝ,
-          zetaCompletedExplicitFormulaPrimeLeftReflectedTermKernel
-            f F.toContourFamily n t) =
-        -(zetaCompletedExplicitFormulaPrimeNaturalComplementContribution f) := by
+    have hcorr_value :
+        (∫ t : ℝ,
+          zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionKernel
+            f F.toContourFamily t) =
+          (((2 * (Real.pi : ℂ) * Complex.I) *
+            (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) := by
       sorry
-    exact zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_integral_sub_leftOneSidedInverseGammaValue_eq_neg_complement_of_reflectedTermKernel_tsum
-      f F h_expansion h_tsum_value
+    have hscalar :
+        ∀ n : ℕ, n ≠ 0 →
+          (-( (Λ n / Real.sqrt n) *
+            Complex.re
+              (zetaCompletedTimeBoundaryValue f
+                  (zetaCompletedExplicitFormulaPrimeNaturalCenter n) +
+                star
+                  (zetaCompletedTimeBoundaryValue f
+                    (zetaCompletedExplicitFormulaPrimeNaturalCenter n)))) : ℂ) =
+            ((Λ n / Real.sqrt n : ℝ) : ℂ) *
+                ((2 * π : ℝ) •
+                  zetaCompletedTimeBoundaryValue f
+                    (zetaCompletedExplicitFormulaPrimeNaturalCenter n)) +
+              ((Λ n / Real.sqrt n : ℝ) : ℂ) *
+                ((2 * π : ℝ) •
+                  zetaCompletedTimeBoundaryValue f
+                    (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n))) := by
+      sorry
+    exact zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_integral_sub_leftOneSidedInverseGammaValue_eq_neg_complement_of_componentValues_scalarHermitian
+      f F h hcoh hscalar harch_value hcorr_value
 
 /-- Packaged whole-line value of the reflected completed logarithmic-derivative
 kernel on the left prime line.
