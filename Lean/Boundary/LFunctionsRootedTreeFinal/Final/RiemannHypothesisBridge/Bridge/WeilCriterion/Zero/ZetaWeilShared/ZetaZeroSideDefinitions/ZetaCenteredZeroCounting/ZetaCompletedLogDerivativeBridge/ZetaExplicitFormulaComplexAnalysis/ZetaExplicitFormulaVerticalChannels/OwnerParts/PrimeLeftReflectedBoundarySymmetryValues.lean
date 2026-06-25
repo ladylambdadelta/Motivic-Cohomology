@@ -43,6 +43,17 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_oneSided_add_refl
     zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
       zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
         zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n := by
+  -- Rewrite using the unfolding theorem: unfold to weight and boundary values
+  have ht := zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_of_ne_zero f hn
+  rw [ht]
+  have h1 := zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample_of_ne_zero f hn
+  rw [h1]
+  have h2 := zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_of_ne_zero f hn
+  rw [h2]
+  -- Now we have:
+  -- LHS: -(w * Re(ζ(c) + conj(ζ(c))))
+  -- RHS: w * (2π • ζ(c)) + w * (2π • ζ(-c))
+  -- This requires the functional equation property: ζ(-c) = conj(ζ(c))
   sorry
 
 /-- The reflected time boundary sample equals the complement arithmetic sample.
