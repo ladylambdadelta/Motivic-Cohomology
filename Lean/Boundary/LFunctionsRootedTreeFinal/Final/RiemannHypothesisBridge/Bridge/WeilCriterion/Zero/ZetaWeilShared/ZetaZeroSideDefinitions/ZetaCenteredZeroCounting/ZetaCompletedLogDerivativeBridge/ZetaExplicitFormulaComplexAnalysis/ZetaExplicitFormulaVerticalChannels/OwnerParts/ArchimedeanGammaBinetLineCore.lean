@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.CorrectionAffineValues
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.InverseGammaAffineKernelEstimate
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ArchimedeanBinetKernelIntegrals
 
 /-!
 # Archimedean Gamma/Binet line values
@@ -3714,14 +3715,16 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetFullTransform_integral_
         (∫ t : ℝ,
           zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
             f F.toContourFamily t) =
-          zetaCompletedExplicitFormulaPhi f 0 := by
-      sorry
+          zetaCompletedExplicitFormulaPhi f 0 :=
+      zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_integral_eq_phiZero
+        f F h hcoh
     have hremainder_value :
         (∫ t : ℝ,
           zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
             f F.toContourFamily t) =
-          0 := by
-      sorry
+          0 :=
+      zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_integral_eq_zero
+        f F h hcoh
     have h_affine_eq :
         (∫ t : ℝ,
           zetaCompletedExplicitFormulaArchimedeanRightAffineKernel
@@ -3782,14 +3785,16 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetFullTransform_integral_e
         (∫ t : ℝ,
           zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
             f F.toContourFamily t) =
-          -(zetaCompletedExplicitFormulaPhi f 0) := by
-      sorry
+          -(zetaCompletedExplicitFormulaPhi f 0) :=
+      zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel_integral_eq_neg_phiZero
+        f F h hcoh
     have hremainder_value :
         (∫ t : ℝ,
           zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
             f F.toContourFamily t) =
-          0 := by
-      sorry
+          0 :=
+      zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_integral_eq_zero
+        f F h hcoh
     have h_affine_eq :
         (∫ t : ℝ,
           zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
