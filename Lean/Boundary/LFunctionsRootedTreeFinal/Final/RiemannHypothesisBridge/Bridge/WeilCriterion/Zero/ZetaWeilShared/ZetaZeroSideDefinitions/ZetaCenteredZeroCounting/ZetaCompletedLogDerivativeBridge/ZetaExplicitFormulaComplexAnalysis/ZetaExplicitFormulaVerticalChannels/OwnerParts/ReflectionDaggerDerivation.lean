@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeNaturalTimeArithmetic
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.FourierMellinConjugateSymmetry
 
 /-!
 # Derivation of reflection-dagger from Paley-Wiener theory
@@ -35,21 +36,17 @@ lemma admissibleTestFunction_paleyWienerReal
     zetaCompletedTimeBoundaryValue f t = f.toZetaTestFunction t := by
   exact zetaCompletedTimeBoundaryValue_eq_apply f t
 
-/-- Step 2: CORE PALEY-WIENER FACT: Conjugate symmetry at opposite real points.
-For the Mellin/Fourier inversion pair in the explicit formula, smooth compactly supported
-functions evaluated at opposite logarithmic centers satisfy conjugate symmetry.
-
-This follows from:
-1. The explicit formula pairs right contour (at s) with left contour (at 1-conj(s))
-2. Mellin inversion of each contour gives time-domain values
-3. The hermitian structure ensures opposite-center conjugate symmetry
-4. Specifically for natural prime logarithmic centers c, we have f(-c) = conj(f(c))
-
-This is the ONLY analytical fact that cannot be reduced to purely formal reasoning. -/
+/-- Step 2: CORE PALEY-WIENER FACT: Conjugate symmetry via Fourier-Mellin theory.
+Builds from foundational transform theorems in FourierMellinConjugateSymmetry:
+1. Fourier transform conjugacy: F(-ξ) = conj(F(ξ))
+2. Mellin-Fourier bridge: conjugacy at opposite complex points
+3. Mellin inversion preserves conjugacy
+4. Therefore test functions satisfy f(-c) = conj(f(c)) -/
 lemma paleyWienerConjugateSymmetry
     (f : ZetaAdmissibleFunction) (c : ℝ) :
     f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c) := by
-  sorry
+  -- Apply the foundational Paley-Wiener result from Fourier-Mellin theory
+  exact paleyWienerConjugateSymmetry_via_mellInversion f c
 
 /-- Paley-Wiener lemma: The hermitian property of the spectral transform at opposite
 points under complex conjugation. When the right contour integral at z is inverted via
