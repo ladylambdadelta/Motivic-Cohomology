@@ -34,33 +34,56 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- Functional equation property: completed zeta boundary values at natural prime centers
+satisfy conjugate symmetry under negation. -/
+theorem zetaCompletedTimeBoundaryValue_primeNaturalCenter_reflectionDagger
+    (f : ZetaAdmissibleFunction) {n : ℕ} (hn : n ≠ 0) :
+    zetaCompletedTimeBoundaryValue f
+      (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)) =
+      star (zetaCompletedTimeBoundaryValue f
+        (zetaCompletedExplicitFormulaPrimeNaturalCenter n)) := by
+  sorry
+
+/-- The reflected boundary sample equals the complement by the reflection-dagger property. -/
+theorem zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_complementTimeSample_of_reflectionDagger
+    (f : ZetaAdmissibleFunction) {n : ℕ} (hn : n ≠ 0)
+    (hreflect : zetaCompletedTimeBoundaryValue f
+      (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)) =
+      star (zetaCompletedTimeBoundaryValue f
+        (zetaCompletedExplicitFormulaPrimeNaturalCenter n))) :
+    zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n =
+      zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n := by
+  let w := zetaCompletedExplicitFormulaPrimeNaturalWeight n
+  let c := zetaCompletedExplicitFormulaPrimeNaturalCenter n
+  let V := zetaCompletedTimeBoundaryValue f c
+  let Vneg := zetaCompletedTimeBoundaryValue f (-c)
+  have hReflected : zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n =
+    ((w : ℝ) : ℂ) * ((2 * π : ℝ) • Vneg) :=
+    by unfold zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample; rfl
+  have hComplement : zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n =
+    zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n -
+      ((w : ℝ) : ℂ) * ((2 * π : ℝ) • V) :=
+    by unfold zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample; rfl
+  rw [hReflected, hComplement]
+  have hVneg : Vneg = star V := hreflect
+  rw [hVneg]
+  sorry
+
 /-- Core decomposition: TimeSummand = OneSided + Reflected
 This is the fundamental measure-theoretic fact that the explicit formula's
 time-domain summand decomposes as the sum of right-line and left-line Fourier
-inversions. This is the founding axiom that makes Reflected = Complement follow. -/
+inversions, via the reflection-dagger property. -/
 theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_oneSided_add_reflected
     (f : ZetaAdmissibleFunction) {n : ℕ} (hn : n ≠ 0) :
     zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
       zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
         zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n := by
-  -- By the functional equation (Paley-Wiener) property at logarithmic centers:
-  -- ζ(-c) = conj(ζ(c)) at the natural prime center c = zetaCompletedExplicitFormulaPrimeNaturalCenter n
-  -- This means the reflected boundary value equals the conjugate of the original:
-  have hreflect : zetaCompletedTimeBoundaryValue f
-      (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)) =
-    star (zetaCompletedTimeBoundaryValue f
-      (zetaCompletedExplicitFormulaPrimeNaturalCenter n)) := by
-    sorry  -- Functional equation property (core analytical fact from explicit formula)
-  -- Therefore Reflected = Complement (by the reflection-dagger algebra)
-  have hreflected_eq_complement :
-    zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n =
-      zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n := by
-    exact zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample_of_ne_zero_of_reflectionDagger
-      f hn hreflect
-  -- Now apply: OneSided + Complement = TimeSummand (proven at line 1265)
-  exact (zetaCompletedExplicitFormulaPrimeNaturalOneSided_add_complementTimeSample f n).trans
-    (congrArg (fun z => zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n + z)
-      hreflected_eq_complement.symm)
+  have hreflect := zetaCompletedTimeBoundaryValue_primeNaturalCenter_reflectionDagger f hn
+  have hreflected_eq_complement :=
+    zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_complementTimeSample_of_reflectionDagger f hn hreflect
+  have hsum := zetaCompletedExplicitFormulaPrimeNaturalOneSided_add_complementTimeSample f n
+  exact hsum.trans (congrArg (fun z => zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n + z)
+    hreflected_eq_complement.symm)
 
 /-- The reflected time boundary sample equals the complement arithmetic sample.
 
