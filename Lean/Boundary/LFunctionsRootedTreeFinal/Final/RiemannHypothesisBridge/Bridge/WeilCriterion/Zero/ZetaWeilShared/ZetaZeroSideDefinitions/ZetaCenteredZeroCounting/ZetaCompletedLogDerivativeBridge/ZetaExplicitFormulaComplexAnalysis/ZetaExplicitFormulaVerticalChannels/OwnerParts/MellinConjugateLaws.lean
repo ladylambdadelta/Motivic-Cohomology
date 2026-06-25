@@ -32,8 +32,25 @@ lemma mellin_conjugateSymmetric_property
   -- By the Mellin-Fourier bridge (boundary_mellin_eq_fourierIntegral):
   -- mellin(φ)(s) = 𝓕(λ u ↦ exp(-s.re * u) • φ(exp(-u)))(s.im / (2π))
   --
-  -- Key: At -conj(s), the exponential weight is exp(conj(s.re) * u)
-  -- which relates conjugately to exp(-s.re * u)
+  -- At -conj(s) = -σ - it (where s = σ + it):
+  -- mellin(φ)(-star s) = 𝓕(λ u ↦ exp(σ * u) • φ(exp(-u)))(-t / (2π))
+  --
+  -- The Fourier transform of the conjugate-weighted version relates to
+  -- the conjugate of the original via the kernel properties.
+
+  rw [boundary_mellin_eq_fourierIntegral φ (s := -star s)]
+  rw [boundary_mellin_eq_fourierIntegral φ (s := s)]
+
+  -- The exponential weights at -star(s) and s satisfy:
+  -- exp(-(-star s).re * u) = exp(star s.re * u) = exp(s.re * u) [since s.re is real]
+  have h_weight : ∀ u : ℝ,
+      Real.exp ((-(-star s)).re * u) = Real.exp (-(s.re) * u) := by
+    intro u
+    have : ((-(-star s)).re : ℝ) = -(s.re) := by simp [Complex.neg_re, Complex.star_re]
+    rw [this]
+
+  -- The two Fourier transforms are conjugates due to the weight relationship
+  -- and the conjugate property of the exponential kernel
   sorry
 
 /-- Mellin inversion applied to a conjugate-symmetric transform produces
@@ -44,8 +61,25 @@ lemma mellinInv_preserves_conjugateSymmetry
     mellinInv σ M x = star (mellinInv σ M x) := by
   -- From the Mellin inversion formula, if M is conjugate-symmetric,
   -- then the inverted function has real values.
-  -- This follows from integrating around the critical line where
-  -- M(σ ± it) are conjugates.
+  --
+  -- The Mellin inversion integral is:
+  -- f(x) = (1/(2πi)) ∫_{σ-i∞}^{σ+i∞} M(s) x^(-s) ds
+  --
+  -- When M is conjugate-symmetric, M(σ + it) = conj(M(σ - it))
+  -- The integral decomposes into upper and lower halves which are
+  -- conjugate pairs, making the result real-valued.
+
+  -- By the conjugate symmetry on the critical line:
+  have h_critical : ∀ t : ℝ, M (σ + t * I) = star (M (σ - t * I)) := by
+    intro t
+    have : -star (σ - t * I) = σ + t * I := by
+      simp [Complex.star_sub, Complex.star_ofReal, Complex.I_im]
+      ring
+    rw [← this]
+    exact hM (σ - t * I)
+
+  -- The Mellin inversion of a conjugate-symmetric transform on the critical
+  -- line produces a real-valued function
   sorry
 
 /-- When inverting a conjugate-symmetric Mellin transform, the domain reflection

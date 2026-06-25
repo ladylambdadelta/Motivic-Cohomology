@@ -33,16 +33,22 @@ theorem zetaExplicitFormulaSpectralTransform_conjugateSymmetric
     (f : ZetaAdmissibleFunction) :
     Transform.IsConjugateSymmetric (zetaCompletedExplicitFormulaPhi f) := by
   intro s
-  -- The explicit formula defines Φ_f as the contour integral of
-  -- the completed zeta function's logarithmic derivative against test function f.
+  -- The explicit formula defines Φ_f as:
+  -- Φ_f(s) = ∫ (spectral density depending on ζ*) · f(test value) ds
   --
-  -- By the functional equation ζ*(s) = ζ*(1-s) and the properties
-  -- of f as a smooth compactly supported function, we have:
+  -- Key facts:
+  -- 1. The completed zeta ζ*(s) satisfies functional equation: ζ*(s) = ζ*(1-s)
+  -- 2. The test function f is smooth and compactly supported
+  -- 3. The spectral transform integrand has conjugate-symmetric structure
   --
-  -- Φ_f(-conj(s)) = ∫ (log deriv ζ*)(λ) f(-conj(λ-ρ)) dλ
+  -- At -conj(s), the contour integral produces:
+  -- Φ_f(-conj(s)) = ∫ spectral_density(-conj(s)) · f(...) ds
   --
-  -- The reflection properties of both f and ζ* together ensure
-  -- this integral equals conj(Φ_f(s)).
+  -- By the functional equation and contour properties:
+  -- Φ_f(-conj(s)) = conj(Φ_f(s))
+
+  -- This requires applying the functional equation to the contour integral
+  -- and using properties of admissible test functions
   sorry
 
 /-- The left and right contour integrals in the explicit formula are conjugates. -/
@@ -75,9 +81,29 @@ theorem spectralTransform_real_on_critical_line
     (f : ZetaAdmissibleFunction) (t : ℝ) :
     (zetaCompletedExplicitFormulaPhi f (1/2 + t*I)).im = 0 := by
   have h := zetaExplicitFormulaSpectralTransform_conjugateSymmetric f
-  have := Transform.conjugateSymmetric_real_on_critical_line h (1/2) t
-  simp only [show (1/2 : ℂ) + t*I = 1/2 + t*I by ring] at this
-  exact Transform.conjugateSymmetric_real_on_real_line h (1/2 + t*I) |> fun _ => sorry
+  -- The spectral transform is conjugate-symmetric by assumption
+  -- On the critical line, at point (1/2 + it), conjugate symmetry gives:
+  -- Φ_f(1/2 + it) = conj(Φ_f(1/2 - it)) by the property
+  -- But 1/2 ± it are symmetric about the real axis
+  -- By conjugate symmetry, this implies the value is real
+  have h_real : zetaCompletedExplicitFormulaPhi f (1/2 + t*I) =
+                star (zetaCompletedExplicitFormulaPhi f (1/2 + t*I)) := by
+    have h_sym := h (1/2 + t*I)
+    have h_neg : -star (1/2 + t*I) = 1/2 - t*I := by ring
+    rw [← h_neg] at h_sym
+    -- h_sym : Φ_f(1/2 - it) = conj(Φ_f(1/2 + it))
+    -- We also have h(1/2 - it) : Φ_f(-(1/2 + it)) = conj(Φ_f(1/2 - it))
+    -- So Φ_f(1/2 + it) = conj(conj(Φ_f(1/2 + it))) = Φ_f(1/2 + it) [real]
+    exact h_sym.symm
+
+  -- If Φ_f(1/2 + it) = conj(Φ_f(1/2 + it)), then the value must be real
+  -- because conj(z) = z implies z.im = -z.im, so z.im = 0
+  have h_im_conj : (star (zetaCompletedExplicitFormulaPhi f (1/2 + t*I))).im =
+                   -(zetaCompletedExplicitFormulaPhi f (1/2 + t*I)).im :=
+    Complex.star_im (zetaCompletedExplicitFormulaPhi f (1/2 + t*I))
+
+  rw [h_real] at h_im_conj
+  exact eq_zero_of_neg_eq h_im_conj
 
 /-- The spectral transform of the zero admissible function is zero. -/
 theorem spectralTransform_zero :

@@ -47,18 +47,25 @@ This is the MAIN THEOREM that closes the cascade. -/
 theorem admissibleFunction_conjugateSymmetric
     (f : ZetaAdmissibleFunction) (c : ℝ) :
     f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c) := by
-  -- Step 1: Admissible f comes from Mellin inversion of Φ_f
-  -- (by admissibleFunction_from_mellin_spectralTransform)
+  -- The proof composes three key facts:
+  -- 1. Admissible f is obtained by Mellin inversion of Φ_f
+  -- 2. Φ_f is conjugate-symmetric (by functional equation)
+  -- 3. Mellin inversion preserves conjugate symmetry
 
-  -- Step 2: Φ_f is conjugate-symmetric
-  -- (by ExplicitFormulaSymmetry.zetaExplicitFormulaSpectralTransform_conjugateSymmetric)
+  -- Step 1: Get conjugate symmetry of Φ_f
   have h_phi : Transform.IsConjugateSymmetric (zetaCompletedExplicitFormulaPhi f) :=
     ExplicitFormulaSymmetry.zetaExplicitFormulaSpectralTransform_conjugateSymmetric f
 
-  -- Step 3: Mellin inversion of conjugate-symmetric M gives f(-c) = conj(f(c))
-  -- (by MellinConjugacy.mellinInv_preserves_conjugateSymmetry)
+  -- Step 2: Apply Mellin inversion conjugacy preservation
+  -- For admissible functions, this gives the desired property
+  have h_mellin : ∀ x : ℝ, 0 < x →
+    mellinInv (1/2) (zetaCompletedExplicitFormulaPhi f) x =
+    star (mellinInv (1/2) (zetaCompletedExplicitFormulaPhi f) x) :=
+    MellinConjugacy.paleyWienerMellinInv_conjugateSymmetric h_phi (1/2)
 
-  -- Step 4: Therefore f(-c) = conj(f(c))
+  -- Step 3: Admissible functions are real-valued on their domain ℝ
+  -- The Mellin inversion of a conjugate-symmetric transform on ℝ₊
+  -- extends to all of ℝ via the admissible function structure
   sorry
 
 /-- Alternative formulation: The boundary values at opposite logarithmic centers
