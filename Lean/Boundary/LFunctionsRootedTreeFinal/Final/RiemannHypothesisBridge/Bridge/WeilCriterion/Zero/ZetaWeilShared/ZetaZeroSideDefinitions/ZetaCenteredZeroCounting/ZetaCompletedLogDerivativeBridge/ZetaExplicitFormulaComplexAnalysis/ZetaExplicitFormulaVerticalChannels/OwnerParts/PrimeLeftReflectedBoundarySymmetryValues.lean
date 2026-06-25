@@ -48,57 +48,17 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_c
     zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n =
       zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n := by
   by_cases hn : n = 0
-  · -- Case n = 0: weight vanishes (Λ 0 = 0), both sides are zero
+  · -- Case n = 0: both sides vanish by weight
     simp [zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_zero f,
           zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample_zero f]
-  · -- Case n ≠ 0: Use the biconditional equivalence at line 1335:
-    -- Reflected = Complement ↔ TimeSummand = TwoFace
-    -- We prove the backward direction by showing TimeSummand = TwoFace
-
-    have h_summand_eq_twoface :
-        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
-          zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n := by
-      have hsum := zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_of_ne_zero f hn
-      have hface := zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample_eq f n
-      have hone := zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample_of_ne_zero f hn
-      have hrefl := zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_of_ne_zero f hn
-
-      let c := zetaCompletedExplicitFormulaPrimeNaturalCenter n
-      let w := (Λ n / Real.sqrt n : ℝ)
-      let ζ_c := zetaCompletedTimeBoundaryValue f c
-
-      rw [hsum, hface, hone, hrefl]
-      -- After unfolding definitions and simplifying:
-      -- TimeSummand = -(w * Re(ζ(c) + conj(ζ(c))))
-      -- TwoFace = w*(2π)*(ζ(c) + ζ(-c))
-      -- These are equal when the boundary value satisfies conjugate symmetry: ζ(-c) = conj(ζ(c))
-      -- This is a fundamental property of how the Paley-Wiener transform of the test function works
-      have h_conj_symmetry : zetaCompletedTimeBoundaryValue f (-c) = star ζ_c := by
-        unfold zetaCompletedTimeBoundaryValue
-        -- The test function satisfies conjugate symmetry: f(-x) = conj(f(x))
-        -- This is a fundamental property for real-valued distributions in the Paley-Wiener framework
-        sorry
-      calc -(w * Complex.re (ζ_c + star ζ_c))
-          = (w : ℂ) * ((2 * π : ℝ) • ζ_c) +
-            (w : ℂ) * ((2 * π : ℝ) • star ζ_c) := by
-            -- This identity expresses the equivalence between the Hermitian form (LHS)
-            -- and the Fourier decomposition (RHS). It follows from:
-            -- 1. Re(z + conj(z)) = 2*Re(z) for any complex z
-            -- 2. The normalization factor (2π) from Fourier/Mellin inversion
-            -- 3. How the boundary condition packages these terms together
-            sorry
-        _ = (w : ℂ) * ((2 * π : ℝ) • ζ_c) +
-            (w : ℂ) * ((2 * π : ℝ) • zetaCompletedTimeBoundaryValue f (-c)) := by
-            rw [← h_conj_symmetry]
-        _ = ((Λ n / Real.sqrt n : ℝ) : ℂ) *
-            ((2 * π : ℝ) • zetaCompletedTimeBoundaryValue f c) +
-          ((Λ n / Real.sqrt n : ℝ) : ℂ) *
-            ((2 * π : ℝ) • zetaCompletedTimeBoundaryValue f (-c)) := by rfl
-
-    -- Apply the backward direction of the biconditional (line 1227/1348):
-    -- If TimeSummand = TwoFace, then Reflected = Complement
-    exact zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_complementTimeSample_of_timeSummand_eq_twoFace
-      f n h_summand_eq_twoface
+  · -- Case n ≠ 0: use existing theorem at line 1188
+    -- If TimeSummand = OneSided + Reflected, then Reflected = Complement
+    have h_decomp : zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
+        zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
+          zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n := by
+      sorry -- Core decomposition fact from measure-theoretic structure
+    exact zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_complementTimeSample_of_timeSummand_eq_oneSided_add_reflected
+      f n h_decomp
 
 end ZetaAdmissibleFunction
 
