@@ -3710,6 +3710,25 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetFullTransform_integral_
       zetaCompletedExplicitFormulaArchimedeanRightBinetFullTransformIntegral
           f F.toContourFamily =
         zetaCompletedExplicitFormulaPhi f 0 := by
+    have hmain_value :
+        (∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
+            f F.toContourFamily t) =
+          zetaCompletedExplicitFormulaPhi f 0 := by
+      sorry
+    have hremainder_value :
+        (∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
+            f F.toContourFamily t) =
+          0 := by
+      sorry
+    have h_affine_eq :
+        (∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanRightAffineKernel
+            f F.toContourFamily t) =
+          zetaCompletedExplicitFormulaPhi f 0 :=
+      zetaCompletedExplicitFormulaArchimedeanRightAffineKernel_integral_eq_phiZero_of_fullLineBinetValues
+        f F h hcoh hmain_value hremainder_value
     have h_decomp :
         (∫ t : ℝ,
           zetaCompletedExplicitFormulaArchimedeanRightAffineKernel
@@ -3722,11 +3741,6 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetFullTransform_integral_
                 f F.toContourFamily t :=
       zetaCompletedExplicitFormulaArchimedeanRightAffineKernel_integral_eq_binetMain_add_remainder_integrals
         f F h hcoh
-    have h_affine_eq : (∫ t : ℝ,
-        zetaCompletedExplicitFormulaArchimedeanRightAffineKernel
-          f F.toContourFamily t) =
-      zetaCompletedExplicitFormulaPhi f 0 := by
-      sorry
     calc zetaCompletedExplicitFormulaArchimedeanRightBinetFullTransformIntegral
           f F.toContourFamily
         = (∫ t : ℝ,
@@ -3764,6 +3778,25 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetFullTransform_integral_e
       zetaCompletedExplicitFormulaArchimedeanLeftBinetFullTransformIntegral
           f F.toContourFamily =
         -(zetaCompletedExplicitFormulaPhi f 0) := by
+    have hmain_value :
+        (∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+            f F.toContourFamily t) =
+          -(zetaCompletedExplicitFormulaPhi f 0) := by
+      sorry
+    have hremainder_value :
+        (∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+            f F.toContourFamily t) =
+          0 := by
+      sorry
+    have h_affine_eq :
+        (∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
+            f F.toContourFamily t) =
+          -(zetaCompletedExplicitFormulaPhi f 0) :=
+      zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_integral_eq_neg_phiZero_of_fullLineBinetValues
+        f F h hcoh hmain_value hremainder_value
     have h_decomp :
         (∫ t : ℝ,
           zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
@@ -3776,11 +3809,6 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetFullTransform_integral_e
                 f F.toContourFamily t :=
       zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_integral_eq_binetMain_add_remainder_integrals
         f F h hcoh
-    have h_affine_eq : (∫ t : ℝ,
-        zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
-          f F.toContourFamily t) =
-      -(zetaCompletedExplicitFormulaPhi f 0) := by
-      sorry
     calc zetaCompletedExplicitFormulaArchimedeanLeftBinetFullTransformIntegral
           f F.toContourFamily
         = (∫ t : ℝ,
