@@ -1739,11 +1739,23 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
         f F.toContourFamily t) -
         zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue f =
       -(zetaCompletedExplicitFormulaPrimeNaturalComplementContribution f) := by
+    /- Three analytical components needed:
+       1. harch_value: integral of reflected archimedean kernel = -(Phi f 0)
+          Path: Fourier/Mellin inversion via Paley-Wiener theorem
+       2. hcorr_value: integral of reflected correction kernel = standard residue formula
+          Path: Cauchy residue computation for poles at s=0 and s=1
+       3. hscalar: symmetry condition on zeta time boundary values
+          Path: Verify from definition or find in time-domain symmetry theorems
+    -/
     have harch_value :
         (∫ t : ℝ,
           zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel
             f F.toContourFamily t) =
           -(zetaCompletedExplicitFormulaPhi f 0) := by
+      /- This integral represents the Fourier/Mellin inversion of the archimedean
+         log derivative component. The result is the value of Phi at the origin.
+         Requires: Paley-Wiener inversion theorem for the reflected archimedean kernel
+         paired with left-centered Phi transform. -/
       sorry
     have hcorr_value :
         (∫ t : ℝ,
@@ -1751,6 +1763,11 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
             f F.toContourFamily t) =
           (((2 * (Real.pi : ℂ) * Complex.I) *
             (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) := by
+      /- This integral decomposes into the sum of zero-pole and one-pole integrals:
+         Correction = ZeroPole + OnePole
+         ZeroPole integral = 0 (residue at s=0 doesn't contribute to integral over ℝ)
+         OnePole integral = (2πi * (-Phi(1/2))) * i (standard pole residue formula)
+         Requires: Cauchy residue theorem computation for both poles and assembly. -/
       sorry
     have hscalar :
         ∀ n : ℕ, n ≠ 0 →
@@ -1769,6 +1786,12 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
                 ((2 * π : ℝ) •
                   zetaCompletedTimeBoundaryValue f
                     (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n))) := by
+      /- Scalar-hermitian symmetry condition: relates the real part of the zeta
+         time boundary value (Hermitian form) to the two-face decomposition
+         (forward and backward time samples weighted by 2π).
+         This is fundamental to the explicit formula decomposition.
+         Requires: Either direct verification from zeta function properties,
+         or deduction from the two-face normalization equivalence. -/
       sorry
     exact zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_integral_sub_leftOneSidedInverseGammaValue_eq_neg_complement_of_componentValues_scalarHermitian
       f F h hcoh hscalar harch_value hcorr_value
