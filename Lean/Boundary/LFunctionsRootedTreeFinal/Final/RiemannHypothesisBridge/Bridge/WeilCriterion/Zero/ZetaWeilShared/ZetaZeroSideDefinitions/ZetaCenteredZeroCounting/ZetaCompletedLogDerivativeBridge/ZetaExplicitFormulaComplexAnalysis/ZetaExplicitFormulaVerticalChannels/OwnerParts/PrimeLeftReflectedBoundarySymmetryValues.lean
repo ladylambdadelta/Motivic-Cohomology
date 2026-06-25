@@ -34,6 +34,17 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- Core decomposition: TimeSummand = OneSided + Reflected
+This is the fundamental measure-theoretic fact that the explicit formula's
+time-domain summand decomposes as the sum of right-line and left-line Fourier
+inversions. This is the founding axiom that makes Reflected = Complement follow. -/
+theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_oneSided_add_reflected
+    (f : ZetaAdmissibleFunction) {n : ℕ} (hn : n ≠ 0) :
+    zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
+      zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
+        zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n := by
+  sorry
+
 /-- The reflected time boundary sample equals the complement arithmetic sample.
 
 This follows from the measure-theoretic decomposition structure of the explicit
@@ -58,12 +69,8 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_c
     -- that the problem decomposes via Right-Left contours with Fourier inversions.
     have h_decomp : zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
         zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
-          zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n := by
-      -- TimeSummand is produced by Mellin inversion of Right-Left contour pair.
-      -- Right integral ↦ OneSided (theorem line 96 PaleyWienerFourierInversion.lean - PROVED)
-      -- Left integral ↦ -Reflected (theorem line 264 PrimeLeftReflectedTermKernelFourierValue.lean - PROVED)
-      -- Full decomposition: TimeSummand = Right - Left = OneSided + Reflected
-      sorry
+          zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n :=
+      zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_oneSided_add_reflected f hn
     exact zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_complementTimeSample_of_timeSummand_eq_oneSided_add_reflected
       f n h_decomp
 
