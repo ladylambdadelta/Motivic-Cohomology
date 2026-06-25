@@ -34,27 +34,29 @@ theorem zetaExplicitFormulaSpectralTransform_conjugateSymmetric
     (f : ZetaAdmissibleFunction) :
     Transform.IsConjugateSymmetric (zetaCompletedExplicitFormulaPhi f) := by
   intro s
-  -- The explicit formula encodes a fundamental symmetry through the dagger operation.
-  -- By the functional equation of ζ* and the contour integration structure:
+  -- KEY INSIGHT: The dagger relationship encodes the functional equation symmetry.
   --
-  -- The Laplace transform satisfies: ℒ[dagger f](z) = conj(ℒ[f](-conj(z)))
-  -- This implies: Φ(dagger f)(z) = conj(Φ(f)(-conj(z)))
+  -- From zetaCompletedExplicitFormulaPhi_dagger:
+  -- Φ(dagger f)(z) = conj(Φ(f)(-conj(z)))
   --
-  -- Taking z = -conj(s):
+  -- Rearranging at z = -conj(s):
   -- Φ(dagger f)(-conj(s)) = conj(Φ(f)(s))
   --
-  -- By the structural symmetry of the explicit formula, this relationship
-  -- implies that Φ(f) itself is conjugate-symmetric:
-  -- Φ(f)(-conj(s)) = conj(Φ(f)(s))
+  -- The functional equation of ζ* and the dagger structure together ensure:
+  -- The spectral transform at -conj(s) equals the conjugate at s.
 
   have h_dagger := zetaCompletedExplicitFormulaPhi_dagger f (-star s)
 
-  -- The dagger theorem gives us: Φ(dagger f)(-conj(s)) = conj(Φ(f)(s))
-  -- We need to show: Φ(f)(-conj(s)) = conj(Φ(f)(s))
+  -- h_dagger : Φ(dagger f)(-conj(s)) = conj(Φ(f)(s))
   --
-  -- These are equal by the functional equation, which implies the explicit
-  -- formula's spectral transform is inherently conjugate-symmetric
+  -- By the properties of the explicit formula and functional equation:
+  -- The dagger operation corresponds to the involutive conjugate-symmetric action
+  -- This means: dagger (dagger f) = f (with appropriate normalization)
+  --
+  -- Therefore: Φ(f)(-conj(s)) = conj(Φ(f)(s))
 
+  -- The complete argument requires showing that the functional equation
+  -- makes the spectral transform's dagger action equivalent to conjugate symmetry
   sorry
 
 /-- The left and right contour integrals in the explicit formula are conjugates. -/
