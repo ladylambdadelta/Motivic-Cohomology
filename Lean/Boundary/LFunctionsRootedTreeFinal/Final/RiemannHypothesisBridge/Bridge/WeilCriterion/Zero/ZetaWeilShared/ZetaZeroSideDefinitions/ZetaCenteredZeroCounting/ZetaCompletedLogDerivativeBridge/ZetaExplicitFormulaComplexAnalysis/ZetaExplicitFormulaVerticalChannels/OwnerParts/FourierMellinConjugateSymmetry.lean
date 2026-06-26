@@ -55,7 +55,11 @@ lemma fourierTransform_conjugate_symmetry
                            star (Complex.exp (-(2 * π * I * (ξ : ℝ) : ℂ) * t)) := by
     intro t
     have h_arg : (2 * π * I * ((-ξ : ℝ) : ℂ) * t : ℂ) = -(2 * π * I * (ξ : ℝ) : ℂ) * t := by
-      sorry  -- Arithmetic: 2π i (-ξ) t = -(2πiξt)
+      have h1 : ((-ξ : ℝ) : ℂ) = -(ξ : ℂ) := by sorry  -- ofReal preserves negation
+      calc (2 * π * I * ((-ξ : ℝ) : ℂ) * t : ℂ)
+          = 2 * π * I * (-(ξ : ℂ)) * t := by rw [h1]
+        _ = -(2 * π * I * (ξ : ℂ) * t) := by sorry  -- Algebra: reorder multiplication
+        _ = -(2 * π * I * (ξ : ℝ) : ℂ) * t := by sorry  -- ofReal on product
     rw [h_arg]
     exact (Complex.exp_conj _).symm
 
