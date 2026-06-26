@@ -84,33 +84,30 @@ lemma functionalEquation_dagger_equivalence
   --
   -- Which means at (-star s), the dagger and non-dagger produce the same result.
 
+  /-- Helper: FE kernel property at functional-equation-symmetric point -/
+  have h_fe_kernel_property : ∀ t : ℝ,
+      ((dagger f).toZetaTestFunction' t) * Complex.exp ((-star s) * t) =
+      (f.toZetaTestFunction' (-t)) * Complex.exp ((-star s) * t) := by
+    intro t
+    -- At the FE-symmetric point (-star s), the kernel exp((-star s)*t) has a
+    -- conjugacy property that makes (dagger f)(t) = star(f(-t)) behave like f(-t)
+    -- when integrated with the kernel.
+    --
+    -- This requires the functional equation ζ*(s) = ζ*(1-s) structure:
+    -- The completed zeta has symmetry around the critical line, and
+    -- (-star s) is positioned such that the conjugacy cancels.
+    sorry  -- FE structure: exp((-star s)*t) conjugacy at FE-symmetric point
+
   have h_fe_equivalence : zetaCompletedExplicitFormulaPhi (zetaAdmissibleDagger f) (-star s) =
     zetaCompletedExplicitFormulaPhi f (-star s) := by
-    -- Key insight: At the point (-star s), the exponential kernel exp((-star s)*t)
-    -- has a functional-equation symmetry that makes the conjugate-reflection
-    -- (encoded by dagger) equivalent to the identity.
-    --
-    -- More precisely:
-    -- ∫ (dagger f)(t) · exp((-star s)*t) dt = ∫ f(-t) · exp((-star s)*t) dt
-    --
-    -- This is because the point (-star s) is special under the FE ζ*(s) = ζ*(1-s):
-    -- The kernel exp(z*t) satisfies a reflection property at z = -star s such that
-    -- the conjugacy from star(f(-t)) cancels with the kernel's symmetry.
-
     unfold zetaCompletedExplicitFormulaPhi zetaAutocorrelationSpectralTransform zetaLaplaceTransform
 
-    -- The dagger kernel lemma shows pointwise relationship
     have h_dagger_kernel := Boundary.dagger_laplaceKernel_pointwise_base f (-star s)
 
-    -- By properties of the exponential at the FE-symmetric point (-star s),
-    -- the integral of the dagger kernel equals the integral of the reflect kernel
     have h_integral_eq : (∫ t : ℝ, (dagger f).toZetaTestFunction' t * Complex.exp ((-star s) * t)) =
                          (∫ t : ℝ, f.toZetaTestFunction' (-t) * Complex.exp ((-star s) * t)) := by
-      -- This is the core functional-equation property:
-      -- The kernel exp((-star s)*t) is "self-conjugate" in the sense that
-      -- ∫ conj(φ) * kernel = ∫ φ * kernel when φ(t) = f(-t)
-      -- This holds because (-star s) is a functional-equation fixed point
-      sorry
+      apply integral_congr_ae
+      exact Filter.eventually_of_forall h_fe_kernel_property
 
     exact h_integral_eq
 

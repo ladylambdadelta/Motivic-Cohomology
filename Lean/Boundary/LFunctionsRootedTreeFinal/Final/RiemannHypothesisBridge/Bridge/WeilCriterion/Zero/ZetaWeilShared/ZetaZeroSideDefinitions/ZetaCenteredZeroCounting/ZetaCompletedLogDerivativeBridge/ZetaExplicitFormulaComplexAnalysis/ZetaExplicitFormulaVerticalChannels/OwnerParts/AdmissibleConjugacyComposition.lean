@@ -61,10 +61,18 @@ private lemma mellin_inv_at_opposite_points
 theorem admissible_conjugateSymmetric_composition
     (f : ZetaAdmissibleFunction) (c : ℝ) :
     f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c) := by
-  have h_phi := step1_spectral_conjugacy f
-  have h_contour := mellin_inv_at_opposite_points
-    (zetaCompletedExplicitFormulaPhi f) (1/2) (abs c) (abs_pos.mpr (fun h => sorry)) h_phi
-  sorry  -- Composition via Mellin contour decomposition and admissible function definition
+  by_cases hc : c = 0
+  · -- Case: c = 0
+    simp [hc]
+  · -- Case: c ≠ 0, so |c| > 0
+    have h_phi := step1_spectral_conjugacy f
+    have h_abs_pos : 0 < abs c := abs_pos.mpr hc
+    have h_contour := mellin_inv_at_opposite_points
+      (zetaCompletedExplicitFormulaPhi f) (1/2) (abs c) h_abs_pos h_phi
+    -- The admissible function f is defined via Mellin inversion at the critical line 1/2.
+    -- By the contour decomposition property, the value at -|c| is the conjugate at |c|.
+    -- Extending this to negative c requires using the reflection symmetry.
+    sorry  -- Relate admissible function values to Mellin inversion via definition
 
 end AdmissibleConjugacyComposition
 
