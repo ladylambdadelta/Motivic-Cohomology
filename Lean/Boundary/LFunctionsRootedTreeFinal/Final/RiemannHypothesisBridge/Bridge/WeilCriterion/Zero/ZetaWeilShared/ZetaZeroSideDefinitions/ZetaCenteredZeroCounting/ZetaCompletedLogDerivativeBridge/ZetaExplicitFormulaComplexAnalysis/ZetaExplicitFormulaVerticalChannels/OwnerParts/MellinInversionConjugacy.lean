@@ -61,8 +61,10 @@ For a measurable function f and the measure-preserving map x ↦ -x,
 lemma research_integral_comp_neg_Iic_to_Ioi
     (f : ℝ → ℂ) (hf_neg : IntegrableOn f (Set.Iic 0))
     (hf_reflected : IntegrableOn (fun ξ => f (-ξ)) (Set.Ioi 0)) :
-    ∫ ξ in Set.Iic 0, f ξ = ∫ η in Set.Ioi 0, f (-η) :=
-  sorry
+    ∫ ξ in Set.Iic 0, f ξ = ∫ η in Set.Ioi 0, f (-η) := by
+  have h := (integral_comp_neg_Ioi 0 f).symm
+  simp only [neg_zero] at h
+  exact h
 
 /-- RESEARCH LEMMA: Fourier inverse definition unfolding.
 The Fourier inverse of g at x is the scaled integral:
