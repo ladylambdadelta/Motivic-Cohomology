@@ -158,12 +158,10 @@ lemma integrableOn_conjugate_of_integrableOn_logSpace
 lemma integral_logSpace_symmetric_decomp
     (g : ℝ → ℂ) (hg_conj : IsLogConjugateSymmetric g) (hg : Integrable g) :
     ∫ t : ℝ, g t = ∫ t : ℝ, Complex.re (g t) := by
-  -- For conjugate-symmetric g: ∫ g = ∫ (g + star g)/2 = ∫ Re(g)
-  have h_decomp : ∀ t : ℝ, g t + star (g t) = 2 * Complex.re (g t) := fun t => by
-    ext
-    · simp [Complex.add_re, Complex.star_re]
-    · simp [Complex.add_im, Complex.star_im, hg_conj]
-  sorry  -- Follows from integral decomposition and h_decomp, but requires integral_add lemmas
+  -- Key: g(t) + star(g(t)) = 2·Re(g(t)) for any g
+  -- Since g(-t) = star(g(t)), the imaginary part cancels in the full integral
+  have h_as_real : ∫ t : ℝ, (g t : ℝ) = ∫ t : ℝ, Complex.re (g t) := by sorry
+  sorry  -- Reduce to proving imaginary integral is zero
 
 /-- Mellin-Fourier correspondence in log coordinates.
 The Mellin transform M(s) = ∫₀^∞ f(x) x^(s-1) dx can be rewritten as
@@ -174,7 +172,15 @@ lemma mellin_in_logSpace_is_bilateral_laplace
     (f : ℝ₊ → ℂ) (s : ℂ) (hf : IntegrableOn f (Set.Ioi 0)) :
     ∫ x in Set.Ioi 0, f x * (x : ℂ) ^ (s - 1) =
     ∫ t : ℝ, f ⟨Real.exp t, Real.exp_pos t⟩ * Complex.exp (s * (Real.log (Real.exp t) : ℂ)) := by
-  sorry  -- Substitution x = exp(t), then simplify using log(exp(t)) = t
+  -- Simplify RHS: log(exp(t)) = t, so exp(s * t) cancels with x^(s-1) * dx Jacobian
+  have h_log_simplify : ∀ t : ℝ, (Real.log (Real.exp t) : ℂ) = t := by
+    intro t
+    norm_cast
+    exact Real.log_exp t
+  congr 1
+  ext t
+  rw [h_log_simplify t]
+  sorry  -- Requires measure-theoretic change-of-variables formula for x = exp(t)
 
 /-- Conjugacy is preserved through log-space lift and projection.
 If f: ℝ₊ → ℂ is conjugate-symmetric in the sense that f(-x) = star(f(x)) when extended to ℝ,
@@ -183,9 +189,17 @@ lemma logSpace_conjugacy_from_extension
     (f : ℝ₊ → ℂ) (hf : ∀ x y : ℝ₊, x.val * y.val = 1 → f y = star (f x)) :
     IsLogConjugateSymmetric (toLogSpace f) := by
   intro t
-  unfold toLogSpace
-  have : (1 : ℝ) = Real.exp (t + (-t)) := by rw [add_neg_self, Real.exp_zero]
-  sorry  -- Use reciprocal property of exp: exp(-t) = 1/exp(t)
+  unfold toLogSpace IsLogConjugateSymmetric
+  -- Goal: f(exp(t)) = star(f(exp(-t)))
+  -- Use hf with x = exp(t), y = exp(-t)
+  -- Then x.val * y.val = exp(t) * exp(-t) = exp(0) = 1
+  have h_reciprocal : Real.exp t * Real.exp (-t) = 1 := by
+    calc Real.exp t * Real.exp (-t)
+        = Real.exp (t + (-t)) := by rw [Real.exp_add]
+      _ = Real.exp 0 := by rw [add_neg_self]
+      _ = 1 := Real.exp_zero
+  have h_conj := hf ⟨Real.exp t, Real.exp_pos t⟩ ⟨Real.exp (-t), Real.exp_pos (-t)⟩ h_reciprocal
+  exact h_conj
 
 end LogSpaceConjugacy
 
