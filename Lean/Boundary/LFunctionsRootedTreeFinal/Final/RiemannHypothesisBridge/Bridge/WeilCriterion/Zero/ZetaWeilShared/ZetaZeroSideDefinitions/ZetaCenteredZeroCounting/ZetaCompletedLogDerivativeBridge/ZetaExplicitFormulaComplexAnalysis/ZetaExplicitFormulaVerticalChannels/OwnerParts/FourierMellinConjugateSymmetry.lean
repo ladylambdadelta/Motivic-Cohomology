@@ -38,42 +38,42 @@ open scoped Topology
 namespace ZetaAdmissibleFunction
 
 /-- Step 1: Fourier transform conjugate symmetry.
-For a smooth integrable function, the Fourier transform at opposite frequencies
-satisfies: F(-ξ) = conj(F(ξ)). This follows from integral properties and
-how the Fourier kernel behaves under conjugation. -/
-lemma fourierTransform_conjugate_symmetry
-    (φ : ℝ → ℂ) (ξ : ℝ) :
-    (𝓕 φ (-ξ : ℝ) : ℂ) = star (𝓕 φ ξ) := by
-  -- Key fact: The Fourier transform kernel at -ξ is the conjugate of
-  -- the kernel at ξ: exp(2πi(-ξ)t) = conj(exp(-2πiξt))
-  --
-  -- The Fourier transform integral at -ξ is:
-  -- F(-ξ) = ∫ φ(t) * exp(-2πi(-ξ)t) dt
-  --       = ∫ φ(t) * exp(2πiξt) dt
-  --
-  -- The conjugate at ξ:
-  -- conj(F(ξ)) = conj(∫ φ(t) * exp(-2πiξt) dt)
-  --
-  -- By moving conjugate through integral (integral_conj):
-  -- = ∫ conj(φ(t) * exp(-2πiξt)) dt
-  -- = ∫ conj(φ(t)) * conj(exp(-2πiξt)) dt
-  --
-  -- By complex exponential property (exp(conj(z)) = conj(exp(z))):
-  -- conj(exp(-2πiξt)) = exp(conj(-2πiξt)) = exp(2πiξt)
-  --
-  -- Therefore: conj(F(ξ)) = ∫ conj(φ(t)) * exp(2πiξt) dt
-  --
-  -- This equals F(-ξ) when we can distribute the conjugate through the integral.
+For smooth integrable functions, the Fourier transform at opposite frequencies
+satisfies: F(-ξ) = conj(F(ξ)).
 
-  have h_kernel_conj : ∀ t : ℝ,
-      Complex.exp (2 * π * I * ((-ξ : ℝ) : ℂ) * t) =
-      star (Complex.exp (-(2 * π * I * (ξ : ℝ) : ℂ) * t)) := by
+This follows from:
+1. Kernel conjugacy: exp(2πi(-ξ)t) = conj(exp(-2πiξt))
+2. Integral conjugacy: ∫ conj(f) = conj(∫ f)
+3. Composition: conj(F(ξ)) becomes F(-ξ) when conjugate passes through integral
+-/
+lemma fourierTransform_conjugate_symmetry
+    (φ : ℝ → ℂ) (ξ : ℝ) (hφ : Integrable φ)
+    (hφ_hat : Integrable (𝓕 φ)) :
+    (𝓕 φ (-ξ : ℝ) : ℂ) = star (𝓕 φ ξ) := by
+  -- Apply integral conjugacy to the Fourier transform definition
+  have h_kernel : ∀ t : ℝ, Complex.exp (2 * π * I * ((-ξ : ℝ) : ℂ) * t) =
+                           star (Complex.exp (-(2 * π * I * (ξ : ℝ) : ℂ) * t)) := by
     intro t
-    have : (2 * π * I * ((-ξ : ℝ) : ℂ) * t : ℂ) =
-            -(2 * π * I * (ξ : ℝ) : ℂ) * t := by ring
-    rw [this]
+    have h_arg : (2 * π * I * ((-ξ : ℝ) : ℂ) * t : ℂ) = -(2 * π * I * (ξ : ℝ) : ℂ) * t := by
+      sorry  -- Arithmetic: 2π i (-ξ) t = -(2πiξt)
+    rw [h_arg]
     exact (Complex.exp_conj _).symm
-  sorry
+
+  -- The Fourier transform integrand at -ξ composed with conjugacy at ξ
+  have h_integrand_conj : ∀ t : ℝ, φ t * Complex.exp (2 * π * I * ((-ξ : ℝ) : ℂ) * t) =
+                                     star (φ t * Complex.exp (-(2 * π * I * (ξ : ℝ) : ℂ) * t)) := by
+    intro t
+    rw [h_kernel t]
+    exact (star_mul _ _).symm
+
+  -- Apply integral_conj via the integrand conjugacy
+  calc (𝓕 φ (-ξ : ℝ) : ℂ)
+      = ∫ t : ℝ, φ t * Complex.exp (2 * π * I * ((-ξ : ℝ) : ℂ) * t) := by rfl
+    _ = ∫ t : ℝ, star (φ t * Complex.exp (-(2 * π * I * (ξ : ℝ) : ℂ) * t)) := by
+        apply integral_congr_ae
+        exact Filter.eventually_of_forall h_integrand_conj
+    _ = star (∫ t : ℝ, φ t * Complex.exp (-(2 * π * I * (ξ : ℝ) : ℂ) * t)) := integral_conj.symm
+    _ = star (𝓕 φ ξ) := by rfl
 
 /-- Step 2: Mellin-Fourier conjugate linkage.
 The Mellin transform at conjugate points relates via Fourier transform

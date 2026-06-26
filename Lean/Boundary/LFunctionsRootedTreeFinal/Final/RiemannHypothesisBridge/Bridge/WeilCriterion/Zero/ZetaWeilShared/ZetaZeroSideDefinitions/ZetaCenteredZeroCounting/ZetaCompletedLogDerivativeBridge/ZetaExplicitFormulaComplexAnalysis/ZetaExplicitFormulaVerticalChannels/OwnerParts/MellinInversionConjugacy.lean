@@ -124,44 +124,46 @@ lemma fourierInv_conjugateSymmetric_is_real
     -- which is real-valued
 
     -- Therefore I = star(I)
+    /-- Helper: The Fourier integrand f_full is integrable on Iic 0 -/
+    have h_integrable_neg : IntegrableOn f_full (Set.Iic 0) := by
+      -- f_full(ξ) = g(ξ) * exp(-ix·ξ) where g is conjugate-symmetric
+      -- Decay on Iic 0 comes from exponential and g's decay properties
+      sorry
+
+    /-- Helper: The Fourier integrand f_full is integrable on Ioi 0 -/
+    have h_integrable_pos : IntegrableOn f_full (Set.Ioi 0) := by
+      -- f_full(ξ) = g(ξ) * exp(-ix·ξ) where g is conjugate-symmetric
+      -- Decay on Ioi 0 comes from exponential and g's decay properties
+      sorry
+
     have h_decomposed : (∫ ξ : ℝ, f_full ξ) =
                         ∫ ξ in Set.Iic 0, f_full ξ + ∫ ξ in Set.Ioi 0, f_full ξ := by
       rw [← integral_union disjoint_Iic_Ioi]
       · congr 1
         ext x
-        simp only [Set.mem_Iic, Set.mem_Ioi, Set.mem_union, Set.mem_univ, iff_true]
         exact le_or_lt 0 x
-      · sorry  -- Integrability on Iic 0 - depends on f_full decay
-      · sorry  -- Integrability on Ioi 0 - depends on f_full decay
+      · exact h_integrable_neg
+      · exact h_integrable_pos
 
     have h_neg_to_pos : ∫ ξ in Set.Iic 0, f_full ξ =
                         ∫ η in Set.Ioi 0, f_full (-η) := by
-      -- Change of variables: ξ ↦ -η maps Iic 0 to Ioi 0
-      have h_measurable_preserving : MeasurePreserving (fun x : ℝ => -x) (volume : Measure ℝ) volume :=
+      -- Measure-preserving change of variables: ξ ↦ -η
+      -- The map (fun x => -x) preserves the Lebesgue measure on ℝ
+      -- Under this map: Iic 0 ↔ Ioi 0
+      have h_mp : MeasurePreserving (fun x : ℝ => -x) (volume : Measure ℝ) volume :=
         Measure.measurePreserving_neg _
-      -- The set transformation: Iic 0 under ξ ↦ -ξ becomes Ioi 0
-      have h_set_map : (fun x : ℝ => -x) '' Set.Iic 0 = Set.Ioi 0 := by
-        ext y
-        simp only [Set.mem_image, Set.mem_Iic, Set.mem_Ioi]
-        constructor
-        · intro ⟨x, hx, rfl⟩
-          exact neg_pos_of_neg_of_neg hx
-        · intro hy
-          exact ⟨-y, by linarith, by simp⟩
-      -- Apply measure-preserving change of variables
-      calc ∫ ξ in Set.Iic 0, f_full ξ
-          = ∫ ξ in Set.Iic 0, (f_full ∘ (fun _ => 1 : ℝ → ℝ)) ξ := by
-            congr 1
-            ext x
-            simp
-        _ = ∫ η in Set.Ioi 0, f_full (-η) := by
-            -- This requires integral substitution lemma from Mathlib
-            sorry
+
+      -- Set integral substitution: ∫ f on Iic 0 = ∫ (f ∘ neg) on Ioi 0
+      sorry  -- MeasureTheory.integral_comp for set integrals with set transformation
+
+    /-- Helper: f_full(-ξ) is integrable on Ioi 0 by symmetry -/
+    have h_integrable_neg_on_pos : IntegrableOn (fun ξ => f_full (-ξ)) (Set.Ioi 0) := by
+      -- By conjugate symmetry, f_full(-ξ) has same decay as f_full(ξ)
+      sorry
 
     have h_combine : ∫ η in Set.Ioi 0, f_full (-η) + ∫ ξ in Set.Ioi 0, f_full ξ =
                      ∫ ξ in Set.Ioi 0, (f_full (-ξ) + f_full ξ) :=
-      (integral_add (sorry : IntegrableOn (fun ξ => f_full (-ξ)) (Set.Ioi 0) _)
-                    (sorry : IntegrableOn (fun ξ => f_full ξ) (Set.Ioi 0) _)).symm
+      (integral_add h_integrable_neg_on_pos h_integrable_pos).symm
 
     have h_is_real : ∫ ξ in Set.Ioi 0, (f_full (-ξ) + f_full ξ) =
                      ∫ ξ in Set.Ioi 0, 2 * Complex.re (f_full ξ) := by
