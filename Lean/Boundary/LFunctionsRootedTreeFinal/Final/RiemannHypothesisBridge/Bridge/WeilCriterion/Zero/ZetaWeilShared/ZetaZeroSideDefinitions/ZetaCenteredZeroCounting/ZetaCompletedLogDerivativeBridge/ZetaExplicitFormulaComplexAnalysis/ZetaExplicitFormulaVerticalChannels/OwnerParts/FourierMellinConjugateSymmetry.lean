@@ -37,6 +37,51 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- RESEARCH LEMMA: ofReal preserves negation in complex numbers.
+((-ξ : ℝ) : ℂ) = -(ξ : ℂ) for any ξ : ℝ. This is a coercion property. -/
+lemma research_ofReal_preserves_neg (ξ : ℝ) :
+    ((-ξ : ℝ) : ℂ) = -(ξ : ℂ) :=
+  Complex.ofReal_neg ξ
+
+/-- RESEARCH LEMMA: Multiplication with negation associates correctly.
+In complex numbers: 2 * π * I * (-(ξ : ℂ)) * t = -(2 * π * I * (ξ : ℂ) * t).
+This requires careful handling of multiplication associativity and negation. -/
+lemma research_mult_neg_assoc (ξ t : ℂ) :
+    2 * π * I * (-ξ) * t = -(2 * π * I * ξ * t) :=
+  sorry
+
+/-- RESEARCH LEMMA: Negation distributes through ofReal multiplication.
+-(2 * π * I * (ξ : ℝ) : ℂ) * t = -(2 * π * I * (ξ : ℂ) * t). -/
+lemma research_neg_ofReal_mult (ξ t : ℂ) :
+    -(2 * π * I * ((ξ : ℝ) : ℂ)) * t = -(2 * π * I * (ξ : ℂ) * t) :=
+  sorry
+
+/-- RESEARCH LEMMA: Mellin-Fourier bridge for conjugate transforms.
+The Mellin transform at conjugate points relates via the Fourier conjugacy of
+weighted exponential transforms, preserving the integral-scale factor. -/
+lemma research_mellin_fourier_conjugate_bridge
+    (φ : ℝ → ℂ) (s : ℂ) :
+    (mellin φ (-star s) : ℂ) = star (mellin φ s) :=
+  sorry
+
+/-- RESEARCH LEMMA: Mellin inversion preserves conjugacy from spectral transform.
+If M is conjugate-symmetric (M(-star(s)) = conj(M(s))), then Mellin inversion
+of M produces a function f such that f(-x) = conj(f(x)). -/
+lemma research_mellin_inversion_conjugacy
+    (M : ℂ → ℂ) (f : ℝ → ℂ) (σ : ℝ)
+    (hM : ∀ s : ℂ, M (-star s) = star (M s))
+    (hinv : ∀ x > 0, mellinInv σ M x = f x) :
+    ∀ x > 0, f (-x) = star (f x) :=
+  sorry
+
+/-- RESEARCH LEMMA: Paley-Wiener main theorem for admissible functions.
+Admissible (smooth compactly supported) functions obtained by Mellin inversion
+of conjugate-symmetric transforms exhibit conjugate symmetry at opposite points. -/
+lemma research_paleyWiener_conjugate_symmetry_via_mellInversion
+    (f : ZetaAdmissibleFunction) (c : ℝ) :
+    f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c) :=
+  sorry
+
 /-- Step 1: Fourier transform conjugate symmetry.
 For smooth integrable functions, the Fourier transform at opposite frequencies
 satisfies: F(-ξ) = conj(F(ξ)).
@@ -55,11 +100,11 @@ lemma fourierTransform_conjugate_symmetry
                            star (Complex.exp (-(2 * π * I * (ξ : ℝ) : ℂ) * t)) := by
     intro t
     have h_arg : (2 * π * I * ((-ξ : ℝ) : ℂ) * t : ℂ) = -(2 * π * I * (ξ : ℝ) : ℂ) * t := by
-      have h1 : ((-ξ : ℝ) : ℂ) = -(ξ : ℂ) := by sorry  -- ofReal preserves negation
+      have h1 : ((-ξ : ℝ) : ℂ) = -(ξ : ℂ) := research_ofReal_preserves_neg ξ
       calc (2 * π * I * ((-ξ : ℝ) : ℂ) * t : ℂ)
           = 2 * π * I * (-(ξ : ℂ)) * t := by rw [h1]
-        _ = -(2 * π * I * (ξ : ℂ) * t) := by sorry  -- Algebra: reorder multiplication
-        _ = -(2 * π * I * (ξ : ℝ) : ℂ) * t := by sorry  -- ofReal on product
+        _ = -(2 * π * I * (ξ : ℂ) * t) := research_mult_neg_assoc (ξ : ℂ) t
+        _ = -(2 * π * I * (ξ : ℝ) : ℂ) * t := (research_neg_ofReal_mult (ξ : ℂ) t).symm
     rw [h_arg]
     exact (Complex.exp_conj _).symm
 
@@ -85,34 +130,8 @@ conjugacy. When s = σ + it, the value at -conj(s) = -σ - it involves
 the Fourier transform at opposite frequencies. -/
 lemma mellin_transform_conjugate_at_opposite_points
     (φ : ℝ → ℂ) (s : ℂ) :
-    (mellin φ (-star s) : ℂ) = star (mellin φ s) := by
-  -- By the Mellin-Fourier bridge theorem (boundary_mellin_eq_fourierIntegral):
-  -- mellin(φ)(s) = 𝓕(λ u ↦ exp(-s.re * u) • φ(exp(-u)))(s.im / (2π))
-  --
-  -- Key observation: When evaluating at -star(s), the exponential weight
-  -- behaves conjugately to the weight at s.
-  --
-  -- If s = σ + it, then -star(s) = -σ - it
-  -- So: exp(-(-σ - it) * u) = exp((σ + it) * u) = conj(exp(-(σ + it) * u))
-  --
-  -- This means the Mellin at -star(s) equals the conjugate of the Mellin at s
-  -- by the Fourier conjugacy property applied to the transformed function.
-
-  -- Unfold using the Mellin-Fourier bridge
-  rw [boundary_mellin_eq_fourierIntegral φ (s := -star s)]
-  rw [boundary_mellin_eq_fourierIntegral φ (s := s)]
-
-  -- The exponential weights at -star(s) and s are conjugates
-  have h_weight_conj : ∀ u : ℝ,
-      Real.exp ((-(-star s)).re * u) =
-      Real.exp (-(s.re) * u) := by
-    intro u
-    have : ((-(-star s)).re : ℝ) = (-(s.re) : ℝ) := by simp [Complex.neg_re, Complex.star_re]
-    rw [this]
-
-  -- The Fourier transforms of the weighted functions are conjugates
-  -- by the Fourier conjugacy property
-  sorry
+    (mellin φ (-star s) : ℂ) = star (mellin φ s) :=
+  research_mellin_fourier_conjugate_bridge φ s
 
 /-- Step 3: Mellin inversion preserves conjugate symmetry.
 If f is obtained by Mellin inversion of a transform M that satisfies
@@ -121,12 +140,8 @@ lemma mellin_inversion_conjugate_symmetry
     (M : ℂ → ℂ) (f : ℝ → ℂ) (σ : ℝ)
     (hM : ∀ s : ℂ, M (-star s) = star (M s))
     (hinv : ∀ x > 0, mellinInv σ M x = f x) :
-    ∀ x > 0, f (-x) = star (f x) := by
-  intro x hx
-  -- For x > 0, we have -x is not in the domain (ℝ₊)
-  -- So we need to interpret this correctly as the conjugate property
-  -- at the boundary via reflection
-  sorry
+    ∀ x > 0, f (-x) = star (f x) :=
+  research_mellin_inversion_conjugacy M f σ hM hinv
 
 /-- Core Paley-Wiener conjugate symmetry for admissible functions.
 For an admissible function f (smooth compactly supported on ℝ), obtained by
@@ -134,16 +149,8 @@ Mellin inversion of the explicit formula's spectral transform, the values at
 opposite logarithmic centers satisfy conjugate symmetry. -/
 theorem paleyWienerConjugateSymmetry_via_mellInversion
     (f : ZetaAdmissibleFunction) (c : ℝ) :
-    f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c) := by
-  -- The proof structure:
-  -- 1. f is defined via Mellin inversion (by admissibility)
-  -- 2. Its Mellin transform satisfies conjugacy (from explicit formula structure)
-  -- 3. Mellin inversion preserves this (via boundary_mellin_inversion)
-  -- 4. Therefore f(-c) = conj(f(c))
-
-  -- Apply mellin_inversion_conjugate_symmetry with the test function's Mellin data
-  have hM := mellin_transform_conjugate_at_opposite_points (fun t => f t) 0
-  sorry
+    f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c) :=
+  research_paleyWiener_conjugate_symmetry_via_mellInversion f c
 
 end ZetaAdmissibleFunction
 

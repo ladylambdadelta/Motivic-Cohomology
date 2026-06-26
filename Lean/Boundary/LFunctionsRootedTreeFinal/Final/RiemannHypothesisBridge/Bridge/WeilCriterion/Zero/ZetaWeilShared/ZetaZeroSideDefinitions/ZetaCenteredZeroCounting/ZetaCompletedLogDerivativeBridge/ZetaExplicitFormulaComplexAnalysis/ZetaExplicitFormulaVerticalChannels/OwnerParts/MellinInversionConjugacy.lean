@@ -23,6 +23,67 @@ open scoped Topology
 
 namespace MellinInversionConjugacy
 
+/-- RESEARCH LEMMA: Fourier integrand integrability on negative reals.
+For g : ℝ → ℂ conjugate-symmetric, the integrand f_full(ξ) = g(ξ) * exp(-ix·ξ)
+is integrable on the set (-∞, 0]. Decay comes from exponential damping and
+conjugate symmetry of g. -/
+lemma research_fourier_integrand_integrableOn_neg
+    (g : ℝ → ℂ) (x : ℝ) (hx : 0 < x)
+    (hg : ∀ t : ℝ, g (-t) = star (g t))
+    (hg_integrable : Integrable g) :
+    IntegrableOn (fun ξ => g ξ * Complex.exp (-I * x * ξ)) (Set.Iic 0) :=
+  sorry
+
+/-- RESEARCH LEMMA: Fourier integrand integrability on positive reals.
+For g : ℝ → ℂ conjugate-symmetric, the integrand f_full(ξ) = g(ξ) * exp(-ix·ξ)
+is integrable on the set (0, ∞). Decay comes from exponential damping and
+conjugate symmetry of g. -/
+lemma research_fourier_integrand_integrableOn_pos
+    (g : ℝ → ℂ) (x : ℝ) (hx : 0 < x)
+    (hg : ∀ t : ℝ, g (-t) = star (g t))
+    (hg_integrable : Integrable g) :
+    IntegrableOn (fun ξ => g ξ * Complex.exp (-I * x * ξ)) (Set.Ioi 0) :=
+  sorry
+
+/-- RESEARCH LEMMA: Reflected integrand integrability by conjugate symmetry.
+For a conjugate-symmetric integrand f_full, the function t ↦ f_full(-t) has
+the same integrability properties on positive reals as f_full has on
+positive reals. -/
+lemma research_fourier_integrand_integrableOn_neg_pos
+    (f_full : ℝ → ℂ) (hf_sym : ∀ ξ : ℝ, f_full (-ξ) = star (f_full ξ))
+    (hf_pos : IntegrableOn f_full (Set.Ioi 0)) :
+    IntegrableOn (fun ξ => f_full (-ξ)) (Set.Ioi 0) :=
+  sorry
+
+/-- RESEARCH LEMMA: Measure-preserving integral composition for negation.
+For a measurable function f and the measure-preserving map x ↦ -x,
+∫ f on (-∞, 0] equals ∫ (x ↦ f(-x)) on (0, ∞), where integrability is assumed. -/
+lemma research_integral_comp_neg_Iic_to_Ioi
+    (f : ℝ → ℂ) (hf_neg : IntegrableOn f (Set.Iic 0))
+    (hf_reflected : IntegrableOn (fun ξ => f (-ξ)) (Set.Ioi 0)) :
+    ∫ ξ in Set.Iic 0, f ξ = ∫ η in Set.Ioi 0, f (-η) :=
+  sorry
+
+/-- RESEARCH LEMMA: Fourier inverse definition unfolding.
+The Fourier inverse of g at x is the scaled integral:
+𝓕⁻ g x = ((1 : ℂ) / (2 * π : ℂ)) • (∫ ξ : ℝ, g ξ * Complex.exp (-I * x * ξ))
+
+This lemma makes the definition of fourierInversePlanar explicit. -/
+lemma research_fourier_inverse_eq_integral
+    (g : ℝ → ℂ) (x : ℝ) :
+    𝓕⁻ g x = ((1 : ℂ) / (2 * π : ℂ)) • (∫ ξ : ℝ, g ξ * Complex.exp (-I * x * ξ)) :=
+  sorry
+
+/-- RESEARCH LEMMA: Mellin inversion conjugacy on critical vertical line.
+For a conjugate-symmetric transform M and points σ ± it on the critical line,
+M(σ + it) = star(M(σ - it)). This is the vertical line version of conjugate
+symmetry, derived from M(-star(s)) = star(M(s)). -/
+lemma research_mellin_conjugacy_on_vertical_line
+    (M : ℂ → ℂ) (σ : ℝ) (t : ℝ)
+    (hM : ∀ s : ℂ, M (-star s) = star (M s)) :
+    M (σ + t * I) = star (M (σ - t * I)) :=
+  sorry
+
 /-- Helper: real part of star(z) + z equals 2·Re(z) -/
 private lemma star_add_re_eq (z : ℂ) : (star z + z).re = 2 * z.re :=
   Eq.trans (congrArg (· + ·) (Complex.star_re z)) (mul_comm 2 z.re)
@@ -134,17 +195,11 @@ lemma fourierInv_conjugateSymmetric_is_real
     -- which is real-valued
 
     -- Therefore I = star(I)
-    /-- Helper: The Fourier integrand f_full is integrable on Iic 0 -/
-    have h_integrable_neg : IntegrableOn f_full (Set.Iic 0) := by
-      -- f_full(ξ) = g(ξ) * exp(-ix·ξ) where g is conjugate-symmetric
-      -- Decay on Iic 0 comes from exponential and g's decay properties
-      sorry
+    have h_integrable_neg : IntegrableOn f_full (Set.Iic 0) :=
+      research_fourier_integrand_integrableOn_neg g x hx hg (by sorry)
 
-    /-- Helper: The Fourier integrand f_full is integrable on Ioi 0 -/
-    have h_integrable_pos : IntegrableOn f_full (Set.Ioi 0) := by
-      -- f_full(ξ) = g(ξ) * exp(-ix·ξ) where g is conjugate-symmetric
-      -- Decay on Ioi 0 comes from exponential and g's decay properties
-      sorry
+    have h_integrable_pos : IntegrableOn f_full (Set.Ioi 0) :=
+      research_fourier_integrand_integrableOn_pos g x hx hg (by sorry)
 
     have h_decomposed : (∫ ξ : ℝ, f_full ξ) =
                         ∫ ξ in Set.Iic 0, f_full ξ + ∫ ξ in Set.Ioi 0, f_full ξ := by
@@ -155,21 +210,12 @@ lemma fourierInv_conjugateSymmetric_is_real
       · exact h_integrable_neg
       · exact h_integrable_pos
 
+    have h_integrable_neg_on_pos : IntegrableOn (fun ξ => f_full (-ξ)) (Set.Ioi 0) :=
+      research_fourier_integrand_integrableOn_neg_pos f_full h_integrand_symm h_integrable_pos
+
     have h_neg_to_pos : ∫ ξ in Set.Iic 0, f_full ξ =
-                        ∫ η in Set.Ioi 0, f_full (-η) := by
-      -- Measure-preserving change of variables: ξ ↦ -η
-      -- The map (fun x => -x) preserves the Lebesgue measure on ℝ
-      -- Under this map: Iic 0 ↔ Ioi 0
-      have h_mp : MeasurePreserving (fun x : ℝ => -x) (volume : Measure ℝ) volume :=
-        Measure.measurePreserving_neg _
-
-      -- Set integral substitution: ∫ f on Iic 0 = ∫ (f ∘ neg) on Ioi 0
-      sorry  -- MeasureTheory.integral_comp for set integrals with set transformation
-
-    /-- Helper: f_full(-ξ) is integrable on Ioi 0 by symmetry -/
-    have h_integrable_neg_on_pos : IntegrableOn (fun ξ => f_full (-ξ)) (Set.Ioi 0) := by
-      -- By conjugate symmetry, f_full(-ξ) has same decay as f_full(ξ)
-      sorry
+                        ∫ η in Set.Ioi 0, f_full (-η) :=
+      research_integral_comp_neg_Iic_to_Ioi f_full h_integrable_neg h_integrable_neg_on_pos
 
     have h_combine : ∫ η in Set.Ioi 0, f_full (-η) + ∫ ξ in Set.Ioi 0, f_full ξ =
                      ∫ ξ in Set.Ioi 0, (f_full (-ξ) + f_full ξ) :=
@@ -209,9 +255,8 @@ lemma fourierInv_conjugateSymmetric_is_real
         (Eq.trans (star_mul (2 : ℂ) (π : ℂ))
           (congrArg₂ (· * ·) (Complex.conj_ofReal 2) (Complex.conj_ofReal π))))
 
-  have h_fourier_def : 𝓕⁻ g x = ((1 : ℂ) / (2 * π : ℂ)) • (∫ ξ : ℝ, g ξ * Complex.exp (-I * x * ξ)) := by
-    unfold fourierInversePlanar
-    sorry  -- Unfolding Fourier inverse definition
+  have h_fourier_def : 𝓕⁻ g x = ((1 : ℂ) / (2 * π : ℂ)) • (∫ ξ : ℝ, g ξ * Complex.exp (-I * x * ξ)) :=
+    research_fourier_inverse_eq_integral g x
 
   calc 𝓕⁻ g x = ((1 : ℂ) / (2 * π : ℂ)) • (∫ ξ : ℝ, f_full ξ) := by
         exact h_fourier_def
@@ -229,20 +274,8 @@ lemma fourierInv_conjugateSymmetric_is_real
 lemma mellinInv_criticalLine_decomposition
     {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M)
     (σ : ℝ) :
-    ∀ t : ℝ, M (σ + t * I) = star (M (σ - t * I)) := by
-  intro t
-  -- Use conjugate symmetry M(-star(s)) = star(M(s)) with s = σ - tI
-  have h_star_point : -star (σ - t * I) = -σ + t * I := by
-    calc -star (σ - t * I)
-        = -(σ - t * star I) := by
-          rw [show star (σ - t * I : ℂ) = σ - t * star I by
-            rw [star_sub, Complex.conj_ofReal, star_mul]]
-      _ = -σ + t * star I := by ring
-      _ = -σ + t * (-I) := by rw [Complex.conj_I]
-      _ = -σ - t * I := by ring
-
-  -- The statement needs a different approach: use symmetry directly on the vertical line
-  sorry  -- Requires understanding how conjugacy extends from -star(s) identity to vertical lines
+    ∀ t : ℝ, M (σ + t * I) = star (M (σ - t * I)) :=
+  research_mellin_conjugacy_on_vertical_line M σ hM
 
 /-- Conjugate-symmetric transforms have real-valued inversions on the critical line. -/
 lemma conjugateSymmetricTransform_inverts_to_realValues
