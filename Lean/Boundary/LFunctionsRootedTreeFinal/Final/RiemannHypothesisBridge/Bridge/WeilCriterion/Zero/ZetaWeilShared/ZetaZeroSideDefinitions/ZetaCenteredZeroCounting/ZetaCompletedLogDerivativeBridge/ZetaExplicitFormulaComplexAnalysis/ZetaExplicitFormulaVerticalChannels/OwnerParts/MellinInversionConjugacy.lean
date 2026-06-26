@@ -74,7 +74,7 @@ This lemma makes the definition of fourierInversePlanar explicit. -/
 lemma research_fourier_inverse_eq_integral
     (g : ℝ → ℂ) (x : ℝ) :
     𝓕⁻ g x = ((1 : ℂ) / (2 * π : ℂ)) • (∫ ξ : ℝ, g ξ * Complex.exp (-I * x * ξ)) :=
-  sorry
+  rfl
 
 /-- RESEARCH LEMMA: Mellin inversion conjugacy on critical vertical line.
 For a conjugate-symmetric transform M and points σ ± it on the critical line,

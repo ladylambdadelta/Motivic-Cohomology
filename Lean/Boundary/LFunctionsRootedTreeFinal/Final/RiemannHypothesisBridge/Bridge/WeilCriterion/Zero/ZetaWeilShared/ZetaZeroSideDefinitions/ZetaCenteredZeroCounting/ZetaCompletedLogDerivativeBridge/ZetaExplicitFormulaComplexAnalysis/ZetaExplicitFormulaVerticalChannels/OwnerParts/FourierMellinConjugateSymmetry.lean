@@ -47,14 +47,14 @@ lemma research_ofReal_preserves_neg (ξ : ℝ) :
 In complex numbers: 2 * π * I * (-(ξ : ℂ)) * t = -(2 * π * I * (ξ : ℂ) * t).
 This requires careful handling of multiplication associativity and negation. -/
 lemma research_mult_neg_assoc (ξ t : ℂ) :
-    2 * π * I * (-ξ) * t = -(2 * π * I * ξ * t) :=
-  sorry
+    2 * π * I * (-ξ) * t = -(2 * π * I * ξ * t) := by
+  rw [mul_neg, mul_assoc]
 
 /-- RESEARCH LEMMA: Negation distributes through ofReal multiplication.
 -(2 * π * I * (ξ : ℝ) : ℂ) * t = -(2 * π * I * (ξ : ℂ) * t). -/
 lemma research_neg_ofReal_mult (ξ t : ℂ) :
     -(2 * π * I * ((ξ : ℝ) : ℂ)) * t = -(2 * π * I * (ξ : ℂ) * t) :=
-  sorry
+  rfl
 
 /-- RESEARCH LEMMA: Mellin-Fourier bridge for conjugate transforms.
 The Mellin transform at conjugate points relates via the Fourier conjugacy of
