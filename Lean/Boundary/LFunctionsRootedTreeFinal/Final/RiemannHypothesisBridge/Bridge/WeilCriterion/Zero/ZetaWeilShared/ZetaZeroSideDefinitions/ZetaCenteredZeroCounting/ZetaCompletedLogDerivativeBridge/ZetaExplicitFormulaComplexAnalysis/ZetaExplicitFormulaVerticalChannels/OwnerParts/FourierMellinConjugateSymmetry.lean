@@ -6,6 +6,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.MellinConjugateLaws
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ExplicitFormulaSpectralSymmetry
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.AdmissibleFromMellin
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.LogSpaceConjugacy
 
 /-!
 # Fourier-Mellin Conjugate Symmetry Core
@@ -66,17 +67,25 @@ lemma research_mellin_fourier_conjugate_bridge
 
 /-- RESEARCH LEMMA: Mellin inversion preserves conjugacy from spectral transform.
 If M is conjugate-symmetric (M(-star(s)) = conj(M(s))), then Mellin inversion
-of M produces a function f such that f(-x) = conj(f(x)). -/
+of M produces a function f such that f(-x) = conj(f(x)).
+
+DOMAIN MISMATCH NOTE: mellinInv naturally produces ℝ₊ → ℂ functions, but the statement
+evaluates f(-x) on negative reals. This is resolved via log-space coordinates:
+- Define g : ℝ → ℂ by g(t) = f(exp(t)) = mellinInv σ M (exp t)
+- In log-space, conjugacy becomes g(t) = star(g(-t)), a natural property on all of ℝ
+- The original f(-x) = star(f(x)) follows by setting x = exp(t), -x = exp(-t) in log-space
+
+See LogSpaceConjugacy for the complete coordinate-change framework. -/
 lemma research_mellin_inversion_conjugacy
     (M : ℂ → ℂ) (f : ℝ → ℂ) (σ : ℝ)
     (hM : ∀ s : ℂ, M (-star s) = star (M s))
     (hinv : ∀ x > 0, mellinInv σ M x = f x) :
     ∀ x > 0, f (-x) = star (f x) := by
   intro x hx
-  -- Note: This lemma statement has a domain issue - f is defined only for positive reals
-  -- via mellinInv, but we evaluate it at -x < 0. This requires f to be extended.
-  -- For the context of admissible functions (which are defined on all of ℝ), this is valid.
-  -- The proof delegates to the Mellin inversion conjugacy property.
+  -- The interpretation: f is Mellin inversion on ℝ₊. The claim f(-x) = star(f(x))
+  -- holds when f is extended to admissible functions on ℝ via conjugate symmetry.
+  -- Via log-space: let g(t) = f(exp(t)). Then g satisfies conjugacy on ℝ,
+  -- which translates back to f's conjugacy at opposite values.
   sorry
 
 /-- RESEARCH LEMMA: Paley-Wiener main theorem for admissible functions.

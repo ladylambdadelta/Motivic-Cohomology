@@ -31,8 +31,28 @@ lemma research_fourier_integrand_integrableOn_neg
     (g : ℝ → ℂ) (x : ℝ) (hx : 0 < x)
     (hg : ∀ t : ℝ, g (-t) = star (g t))
     (hg_integrable : Integrable g) :
-    IntegrableOn (fun ξ => g ξ * Complex.exp (-I * x * ξ)) (Set.Iic 0) :=
-  sorry
+    IntegrableOn (fun ξ => g ξ * Complex.exp (-I * x * ξ)) (Set.Iic 0) := by
+  -- The Fourier kernel exp(-ix·ξ) has unit norm for pure imaginary exponent
+  have h_exp_norm : ∀ ξ : ℝ, ‖Complex.exp (-I * x * ξ)‖ = 1 := by
+    intro ξ
+    -- For pure imaginary argument z, |exp(z)| = exp(Re(z)) = exp(0) = 1
+    have h_arg : (-I * x * ξ : ℂ).re = 0 := by
+      show ((-I : ℂ) * (x : ℂ) * (ξ : ℂ)).re = 0
+      have : (-I : ℂ) * (x : ℂ) * (ξ : ℂ) = -(x * ξ : ℝ) * I := by
+        rw [mul_comm (-I : ℂ) x, mul_assoc x (-I : ℂ) ξ, mul_neg, mul_one]
+        exact (mul_comm ξ (x : ℂ)).symm
+      rw [this]
+      exact Complex.mul_I_re _
+    calc ‖Complex.exp (-I * x * ξ)‖
+        = Complex.exp ((-I * x * ξ : ℂ).re) := Complex.norm_exp _
+      _ = Complex.exp 0 := by rw [h_arg]
+      _ = 1 := rfl
+  -- Since the kernel is bounded (norm 1), integrability follows from g's integrability
+  apply IntegrableOn.mul_of_bounded
+  · exact hg_integrable.integrableOn
+  · use 1
+    intro ξ _
+    exact ⟨h_exp_norm ξ, le_refl 1⟩
 
 /-- RESEARCH LEMMA: Fourier integrand integrability on positive reals.
 For g : ℝ → ℂ conjugate-symmetric, the integrand f_full(ξ) = g(ξ) * exp(-ix·ξ)
@@ -42,8 +62,28 @@ lemma research_fourier_integrand_integrableOn_pos
     (g : ℝ → ℂ) (x : ℝ) (hx : 0 < x)
     (hg : ∀ t : ℝ, g (-t) = star (g t))
     (hg_integrable : Integrable g) :
-    IntegrableOn (fun ξ => g ξ * Complex.exp (-I * x * ξ)) (Set.Ioi 0) :=
-  sorry
+    IntegrableOn (fun ξ => g ξ * Complex.exp (-I * x * ξ)) (Set.Ioi 0) := by
+  -- The Fourier kernel exp(-ix·ξ) has unit norm for pure imaginary exponent
+  have h_exp_norm : ∀ ξ : ℝ, ‖Complex.exp (-I * x * ξ)‖ = 1 := by
+    intro ξ
+    -- For pure imaginary argument z, |exp(z)| = exp(Re(z)) = exp(0) = 1
+    have h_arg : (-I * x * ξ : ℂ).re = 0 := by
+      show ((-I : ℂ) * (x : ℂ) * (ξ : ℂ)).re = 0
+      have : (-I : ℂ) * (x : ℂ) * (ξ : ℂ) = -(x * ξ : ℝ) * I := by
+        rw [mul_comm (-I : ℂ) x, mul_assoc x (-I : ℂ) ξ, mul_neg, mul_one]
+        exact (mul_comm ξ (x : ℂ)).symm
+      rw [this]
+      exact Complex.mul_I_re _
+    calc ‖Complex.exp (-I * x * ξ)‖
+        = Complex.exp ((-I * x * ξ : ℂ).re) := Complex.norm_exp _
+      _ = Complex.exp 0 := by rw [h_arg]
+      _ = 1 := rfl
+  -- Since the kernel is bounded (norm 1), integrability follows from g's integrability
+  apply IntegrableOn.mul_of_bounded
+  · exact hg_integrable.integrableOn
+  · use 1
+    intro ξ _
+    exact ⟨h_exp_norm ξ, le_refl 1⟩
 
 /-- RESEARCH LEMMA: Reflected integrand integrability by conjugate symmetry.
 For a conjugate-symmetric integrand f_full, the function t ↦ f_full(-t) has
@@ -52,8 +92,15 @@ positive reals. -/
 lemma research_fourier_integrand_integrableOn_neg_pos
     (f_full : ℝ → ℂ) (hf_sym : ∀ ξ : ℝ, f_full (-ξ) = star (f_full ξ))
     (hf_pos : IntegrableOn f_full (Set.Ioi 0)) :
-    IntegrableOn (fun ξ => f_full (-ξ)) (Set.Ioi 0) :=
-  sorry
+    IntegrableOn (fun ξ => f_full (-ξ)) (Set.Ioi 0) := by
+  calc IntegrableOn (fun ξ => f_full (-ξ)) (Set.Ioi 0)
+      = IntegrableOn (fun ξ => star (f_full ξ)) (Set.Ioi 0) := by
+        apply integrableOn_congr_fun
+        intro ξ _
+        exact (hf_sym ξ).symm
+    _ = IntegrableOn f_full (Set.Ioi 0) := by
+        rw [integrableOn_conj]
+  _ := hf_pos
 
 /-- RESEARCH LEMMA: Measure-preserving integral composition for negation.
 For a measurable function f and the measure-preserving map x ↦ -x,
@@ -102,11 +149,12 @@ lemma star_add_self_eq_two_mul_re (z : ℂ) : star z + z = 2 * Complex.re z :=
 
 /-- Helper: Fourier inversion of conjugate-symmetric functions is real-valued.
 
-If g: ℝ → ℂ satisfies g(-t) = conj(g(t)), then 𝓕⁻(g)(x) is real-valued:
+If g: ℝ → ℂ satisfies g(-t) = conj(g(t)) and is integrable, then 𝓕⁻(g)(x) is real-valued:
 𝓕⁻(g)(x) = conj(𝓕⁻(g)(x)) -/
 lemma fourierInv_conjugateSymmetric_is_real
     (g : ℝ → ℂ) (x : ℝ) (hx : 0 < x)
-    (hg : ∀ t : ℝ, g (-t) = star (g t)) :
+    (hg : ∀ t : ℝ, g (-t) = star (g t))
+    (hg_integrable : Integrable g) :
     𝓕⁻ g x = star (𝓕⁻ g x) := by
   -- The Fourier inverse formula integrates: ∫ g(ξ) e^(-ixξ) dξ
   --
@@ -199,10 +247,10 @@ lemma fourierInv_conjugateSymmetric_is_real
 
     -- Therefore I = star(I)
     have h_integrable_neg : IntegrableOn f_full (Set.Iic 0) :=
-      research_fourier_integrand_integrableOn_neg g x hx hg (by sorry)
+      research_fourier_integrand_integrableOn_neg g x hx hg hg_integrable
 
     have h_integrable_pos : IntegrableOn f_full (Set.Ioi 0) :=
-      research_fourier_integrand_integrableOn_pos g x hx hg (by sorry)
+      research_fourier_integrand_integrableOn_pos g x hx hg hg_integrable
 
     have h_decomposed : (∫ ξ : ℝ, f_full ξ) =
                         ∫ ξ in Set.Iic 0, f_full ξ + ∫ ξ in Set.Ioi 0, f_full ξ := by
@@ -332,7 +380,10 @@ lemma conjugateSymmetricTransform_inverts_to_realValues
     exact hM (σ - 2 * π * y * I)
 
   -- Step 2: Apply Fourier inverse real-value property
-  have h_fourier_real := fourierInv_conjugateSymmetric_is_real g (-Real.log x) hx hg_conj
+  -- Note: Integrability of g follows from M's regularity properties;
+  -- for now, assert it as a working hypothesis for the Fourier inverse to be well-defined
+  have hg_integrable : Integrable g := by sorry  -- Follows from M's decay at ∞
+  have h_fourier_real := fourierInv_conjugateSymmetric_is_real g (-Real.log x) hx hg_conj hg_integrable
 
   -- Step 3: The result x^(-σ) is real, so scalar mult preserves real-valuedness
   have h_scalar_real : x ^ (-(σ : ℂ)) = star (x ^ (-(σ : ℂ))) := by
