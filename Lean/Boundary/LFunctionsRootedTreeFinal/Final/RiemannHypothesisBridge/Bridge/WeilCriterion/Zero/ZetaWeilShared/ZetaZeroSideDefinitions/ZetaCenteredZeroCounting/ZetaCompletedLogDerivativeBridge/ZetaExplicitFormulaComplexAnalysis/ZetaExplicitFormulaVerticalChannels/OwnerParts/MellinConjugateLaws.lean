@@ -80,25 +80,23 @@ lemma mellinInv_preserves_conjugateSymmetry
   MellinInversionConjugacy.conjugateSymmetricTransform_inverts_to_realValues hM σ x hx
 
 /-- When inverting a conjugate-symmetric Mellin transform, the domain reflection
-property emerges: f(x) and f(1/x) relate via conjugacy. -/
+property emerges: f(x) and f(1/x) relate via conjugacy.
+
+Key insight: For conjugate-symmetric M, the Mellin inversion at 1/x gives the
+conjugate of the inversion at x because the exponent -s in x^(-s) becomes
+x^s = x^(-(-s)), and the conjugate symmetry relates M(s) to M(-conj(s)).
+-/
 lemma mellinInv_conjugateSymmetric_domain_reflection
     {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M)
     (σ : ℝ) (x : ℝ) (hx : 0 < x) :
     let f := mellinInv σ M
     f (1 / x) = star (f x) := by
-  -- The Mellin inversion integral is:
-  -- f(x) = (1/(2πi)) ∫_{σ-i∞}^{σ+i∞} M(s) x^(-s) ds
-  --
-  -- At 1/x, with the substitution s ↦ -s:
-  -- f(1/x) = (1/(2πi)) ∫_{σ-i∞}^{σ+i∞} M(s) (1/x)^(-s) ds
-  --        = (1/(2πi)) ∫_{σ-i∞}^{σ+i∞} M(s) x^s ds
-  --
-  -- By conjugate symmetry M(-conj(s)) = conj(M(s)):
-  -- At the symmetric contour σ ± it, the contributions combine
-  -- to give star(f(x))
-
-  -- This requires the substitution x ↦ 1/x and contour analysis
-  sorry
+  -- The domain reflection property requires:
+  -- 1. Contour integral for f(1/x) at vertical line σ + it
+  -- 2. Substitution u = -t to pair conjugate points
+  -- 3. Application of conjugate symmetry M(-conj(s)) = conj(M(s))
+  -- 4. Integral calculus to show f(1/x) = star(f(x))
+  sorry  -- Requires Mellin contour substitution and conjugate pairing lemmas
 
 /-- The completed Mellin transform (with exponential damping for decay)
 preserves conjugate symmetry. -/
