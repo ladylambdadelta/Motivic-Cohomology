@@ -69,13 +69,52 @@ lemma isLogConjugateSymmetric_preserved_roundTrip
 ∫₀^∞ f(x) x^(s-1) dx = ∫_{-∞}^∞ f(exp(t)) exp(st) dt
 
 This is the bridge between Mellin inversion on ℝ₊ and Fourier inversion on ℝ.
+
+The proof uses the substitution x = exp(t), which gives:
+- dx = exp(t) dt (Jacobian)
+- x^(s-1) dx = exp(t)^(s-1) · exp(t) dt = exp(t)^s dt
 -/
 lemma integral_Ioi_zero_eq_integral_exp_sub
     (f : ℝ₊ → ℂ) (s : ℂ) (hf : IntegrableOn f (Set.Ioi 0)) :
     (∫ x in Set.Ioi 0, f x * (x : ℂ) ^ (s - 1) : ℂ) =
     (∫ t : ℝ, f ⟨Real.exp t, Real.exp_pos t⟩ * ((Real.exp t : ℂ) ^ s) : ℂ) := by
-  sorry  -- Change of variables x = exp(t), dx = exp(t) dt
-          -- Requires measure-theoretic substitution: x^(s-1) dx → exp(st) dt
+  -- Define the substitution map: t ↦ exp(t)
+  let φ : ℝ → ℝ₊ := fun t => ⟨Real.exp t, Real.exp_pos t⟩
+
+  -- Key step: show that the composition formula with Jacobian holds
+  -- ∫_{x ∈ (0,∞)} f(x) x^(s-1) dx = ∫_{t ∈ ℝ} f(φ(t)) φ(t)^(s-1) · exp(t) dt
+  have h_comp_with_jac : ∫ x in Set.Ioi 0, f x * (x : ℂ) ^ (s - 1) =
+                         ∫ t : ℝ, f (φ t) * (φ t : ℂ) ^ (s - 1) * ((Real.exp t : ℂ)) := by
+    sorry  -- Measure-theoretic change-of-variables formula for x = exp(t)
+            -- Requires: integral_comp with exponential substitution and Jacobian exp(t)
+
+  -- Simplify the power: φ(t)^(s-1) · exp(t) = exp(t)^(s-1) · exp(t) = exp(t)^s
+  have h_power_simp : ∀ t : ℝ, (φ t : ℂ) ^ (s - 1) * ((Real.exp t : ℂ)) = ((Real.exp t : ℂ) ^ s) := by
+    intro t
+    -- Note: (φ t : ℂ) = (⟨exp(t), _⟩ : ℂ) = exp(t)
+    have h_phi_eq : (φ t : ℂ) = (Real.exp t : ℂ) := by
+      show (⟨Real.exp t, Real.exp_pos t⟩ : ℝ₊) = (Real.exp t : ℂ)
+      -- The coercion from ℝ₊ to ℂ extracts the real value
+      norm_cast
+      rfl
+    calc ((φ t : ℂ) ^ (s - 1)) * ((Real.exp t : ℂ))
+        = (((Real.exp t : ℂ)) ^ (s - 1)) * ((Real.exp t : ℂ)) := by rw [h_phi_eq]
+      _ = (((Real.exp t : ℂ)) ^ (s - 1)) * (((Real.exp t : ℂ)) ^ 1) := by rw [cpow_one]
+      _ = (((Real.exp t : ℂ)) ^ (s - 1 + 1)) := by
+          apply cpow_add
+          exact Complex.exp_ne_zero _
+      _ = (((Real.exp t : ℂ)) ^ s) := by ring
+
+  -- Combine: substitute the composition, then simplify powers
+  calc ∫ x in Set.Ioi 0, f x * (x : ℂ) ^ (s - 1)
+      = ∫ t : ℝ, f (φ t) * (φ t : ℂ) ^ (s - 1) * ((Real.exp t : ℂ)) := h_comp_with_jac
+    _ = ∫ t : ℝ, f (φ t) * ((Real.exp t : ℂ) ^ s) := by
+        apply integral_congr_ae
+        exact Filter.eventually_of_forall fun t => by rw [h_power_simp t]
+    _ = ∫ t : ℝ, f ⟨Real.exp t, Real.exp_pos t⟩ * ((Real.exp t : ℂ) ^ s) := by
+        congr 1
+        ext t
+        rfl
 
 /-- Log-space form: if M is conjugate-symmetric, the log-space Fourier inversion inherits conjugacy. -/
 theorem isLogConjugateSymmetric_of_conjugateSymmetric_transform
