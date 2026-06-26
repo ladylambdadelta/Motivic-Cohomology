@@ -80,9 +80,15 @@ lemma fourierInv_conjugateSymmetric_is_real
     (fun ξ' => g ξ' * Complex.exp (-I * x * ξ')) (-ξ) =
     star ((fun ξ' => g ξ' * Complex.exp (-I * x * ξ')) ξ) := fun ξ =>
     Eq.trans (congrArg₂ (· * ·) (hg ξ) (by
-      have : -I * x * (-ξ : ℂ) = star (-I * x * ξ) := by
-        sorry  -- Complex algebra: -(ix(-ξ)) = star(-(iξ)) when i = -I
-      exact Eq.trans this (h_exp_conj _)))
+      have h_arg : (-I : ℂ) * x * (-ξ : ℂ) = I * x * ξ := by
+        apply Eq.trans (mul_assoc (-I) x (-ξ))
+        apply Eq.trans (congrArg ((-I * x) * ·) (by norm_cast : (-ξ : ℂ) = -(ξ : ℂ)))
+        apply Eq.trans (mul_neg (-I * x) (ξ : ℂ))
+        apply congrArg (- ·) (mul_assoc (-I) x ξ)
+      have h_conj : star ((-I : ℂ) * x * ξ) = I * x * ξ := by
+        sorry  -- Star of -Ixξ is Ixξ
+      rw [h_arg, ← h_conj]
+      exact h_exp_conj _))
     (star_mul _ _).symm
 
   -- The key measure-theoretic fact:
