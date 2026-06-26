@@ -67,7 +67,9 @@ lemma mellin_conjugateSymmetric_property
           rw [h_φ_eq]
     _ = 𝓕 φ₊ (-(s.im : ℝ) / (2 * π)) := by
           rw [h_freq_real]
-          norm_cast
+          have : ((-(-star s)).im : ℝ) = (-(s.im : ℝ) : ℝ) := by
+            simp only [Complex.neg_im, Complex.star_im]
+          exact congrArg (𝓕 φ₊ · / (2 * π)) this
     _ = star (𝓕 φ₊ (s.im / (2 * π))) := h_fourier (s.im / (2 * π))
     _ = star (𝓕 φ (s.im / (2 * π))) := by rfl
 
