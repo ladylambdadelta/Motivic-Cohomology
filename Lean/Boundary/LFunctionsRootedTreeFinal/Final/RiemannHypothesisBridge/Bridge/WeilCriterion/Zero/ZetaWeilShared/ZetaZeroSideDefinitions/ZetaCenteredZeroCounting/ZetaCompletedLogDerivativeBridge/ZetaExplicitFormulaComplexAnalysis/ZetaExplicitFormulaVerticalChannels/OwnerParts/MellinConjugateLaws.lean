@@ -1,5 +1,7 @@
 import Mathlib.Analysis.MellinInversion
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ConjugateSymmetricTransforms
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.FourierConjugacyTheory
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.MellinInversionConjugacy
 import Boundary.LFunctions.ZetaTransformCalculus
 
 /-!
@@ -57,15 +59,16 @@ lemma mellin_conjugateSymmetric_property
     rw [h_weight_real]
 
   -- The Fourier transforms at opposite frequencies
+  have h_fourier : ∀ ω : ℝ, (𝓕 φ₊ (-ω : ℝ) : ℂ) = star (𝓕 φ₊ ω) :=
+    fun ω => FourierConjugacy.fourierTransform_conjugacy φ₊ ω
+
   calc (𝓕 φ₋ ((-(-star s)).im / (2 * π)) : ℂ)
       = 𝓕 φ₊ ((-(-star s)).im / (2 * π)) := by
           rw [h_φ_eq]
     _ = 𝓕 φ₊ (-(s.im : ℝ) / (2 * π)) := by
           rw [h_freq_real]
           norm_cast
-    _ = star (𝓕 φ₊ (s.im / (2 * π))) := by
-          -- Fourier transform at opposite frequencies: F(-ω) = conj(F(ω))
-          sorry
+    _ = star (𝓕 φ₊ (s.im / (2 * π))) := h_fourier (s.im / (2 * π))
     _ = star (𝓕 φ (s.im / (2 * π))) := by rfl
 
 /-- Mellin inversion applied to a conjugate-symmetric transform produces
@@ -73,40 +76,8 @@ a function with conjugate symmetry in its values. -/
 lemma mellinInv_preserves_conjugateSymmetry
     {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M)
     (σ : ℝ) (x : ℝ) (hx : 0 < x) :
-    mellinInv σ M x = star (mellinInv σ M x) := by
-  -- The Mellin inversion integral decomposes the contour integral into
-  -- conjugate-symmetric pairs when M is conjugate-symmetric.
-  --
-  -- mellinInv σ M x = (1/(2πi)) ∫_{σ-i∞}^{σ+i∞} M(s) x^(-s) ds
-  --
-  -- By conjugate symmetry M(σ + it) = conj(M(σ - it)), the contribution
-  -- from σ + it and σ - it form conjugate pairs.
-
-  -- The conjugate-symmetric property on the critical line
-  have h_critical : ∀ t : ℝ, M (σ + t * I) = star (M (σ - t * I)) := by
-    intro t
-    have h_neg_star : -star (σ - t * I) = σ + t * I := by
-      simp only [Complex.star_sub, Complex.star_ofReal, Complex.neg_ofReal]
-      have : Complex.I = I := rfl
-      rw [this]
-      have : -Complex.I = -I := rfl
-      rw [this]
-      have : (t : ℂ) * (-I) = -(t : ℂ) * I := by ring
-      rw [this]
-      ring
-    rw [← h_neg_star]
-    exact hM (σ - t * I)
-
-  -- The Mellin inversion formula integrates over the critical line σ
-  -- The key property: when the Mellin transform has conjugate symmetry,
-  -- the inversion integral can be decomposed into conjugate pairs:
-  --
-  -- mellinInv σ M x = (1/(2πi)) [∫_{σ-i∞}^{0} M(s) x^(-s) ds + ∫_0^{σ+i∞} M(s) x^(-s) ds]
-  --
-  -- With the substitution t ↦ -t in the left integral and using h_critical,
-  -- the contributions combine to give a real-valued result.
-
-  sorry
+    mellinInv σ M x = star (mellinInv σ M x) :=
+  MellinInversionConjugacy.conjugateSymmetricTransform_inverts_to_realValues hM σ x hx
 
 /-- When inverting a conjugate-symmetric Mellin transform, the domain reflection
 property emerges: f(x) and f(1/x) relate via conjugacy. -/
@@ -159,6 +130,13 @@ theorem paleyWiener_mellinInv_conjugateSymmetric
     ∀ x : ℝ, 0 < x → (f x = star (f x)) := by
   intro x hx
   exact mellinInv_preserves_conjugateSymmetry hM σ x hx
+
+/-- Public API: Paley-Wiener Mellin inversion produces conjugate-symmetric results. -/
+theorem paleyWienerMellinInv_conjugateSymmetric
+    {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M) (σ : ℝ) :
+    ∀ x : ℝ, 0 < x →
+    mellinInv σ M x = star (mellinInv σ M x) :=
+  fun x hx => mellinInv_preserves_conjugateSymmetry hM σ x hx
 
 end MellinConjugacy
 

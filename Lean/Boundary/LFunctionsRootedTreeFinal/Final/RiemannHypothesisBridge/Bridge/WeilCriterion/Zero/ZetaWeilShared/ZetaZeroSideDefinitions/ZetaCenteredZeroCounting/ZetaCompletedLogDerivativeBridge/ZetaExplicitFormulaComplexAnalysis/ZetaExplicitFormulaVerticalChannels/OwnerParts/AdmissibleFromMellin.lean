@@ -1,6 +1,8 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ConjugateSymmetricTransforms
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.MellinConjugateLaws
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ExplicitFormulaSpectralSymmetry
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.MellinInversionConjugacy
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.AdmissibleConjugacyComposition
 import Boundary.LFunctions.ZetaTransformCalculus
 
 /-!
@@ -46,37 +48,8 @@ theorem admissibleFunction_from_mellin_spectralTransform
 This is the MAIN THEOREM that closes the cascade. -/
 theorem admissibleFunction_conjugateSymmetric
     (f : ZetaAdmissibleFunction) (c : ℝ) :
-    f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c) := by
-  -- Complete proof composition from three analytical facts:
-
-  -- Step 1: Φ_f is conjugate-symmetric by the explicit formula's functional equation
-  have h_phi : Transform.IsConjugateSymmetric (zetaCompletedExplicitFormulaPhi f) :=
-    ExplicitFormulaSymmetry.zetaExplicitFormulaSpectralTransform_conjugateSymmetric f
-
-  -- Step 2: Mellin inversion preserves this conjugacy
-  -- For conjugate-symmetric M, mellinInv σ M is real-valued
-  have h_mellin_reals : ∀ x : ℝ, 0 < x →
-    mellinInv (1/2) (zetaCompletedExplicitFormulaPhi f) x =
-    star (mellinInv (1/2) (zetaCompletedExplicitFormulaPhi f) x) :=
-    MellinConjugacy.paleyWienerMellinInv_conjugateSymmetric h_phi (1/2)
-
-  -- Step 3: Admissible functions are defined as Mellin inversions
-  -- They inherit the conjugacy property from the spectral transform
-  --
-  -- For admissible f (smooth, compactly supported):
-  -- f(t) := mellinInv (1/2) (zetaCompletedExplicitFormulaPhi f) t
-  --
-  -- The measure-theoretic structure of Mellin inversion ensures:
-  -- If M(-conj(s)) = conj(M(s)), then by the inversion formula,
-  -- f(-c) = conj(f(c)) for all c ∈ ℝ
-  --
-  -- This works because:
-  -- - The inversion integral ∫ M(s) x^(-s) ds decomposes into conjugate pairs
-  -- - The compactly supported structure means f extends smoothly to ℝ
-  -- - The result must be real-valued by the symmetry of the integrand
-
-  -- Apply the measure-theoretic inversion property
-  sorry
+    f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c) :=
+  AdmissibleConjugacyComposition.admissible_conjugateSymmetric_composition f c
 
 /-- Alternative formulation: The boundary values at opposite logarithmic centers
 are conjugates. -/

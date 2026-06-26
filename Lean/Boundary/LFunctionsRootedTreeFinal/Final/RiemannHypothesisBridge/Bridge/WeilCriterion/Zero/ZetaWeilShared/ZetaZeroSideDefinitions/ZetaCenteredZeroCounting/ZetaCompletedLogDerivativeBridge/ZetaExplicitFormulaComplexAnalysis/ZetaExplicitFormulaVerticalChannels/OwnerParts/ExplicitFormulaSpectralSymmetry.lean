@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ConjugateSymmetricTransforms
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.SpectralTransformSymmetry
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ContourIntegralDecomposition
 import Boundary.LFunctions.ZetaTransformCalculus
 import Boundary.LFunctions.ZetaExplicitFormulaAnalyticCore
 
@@ -32,56 +34,16 @@ The functional equation of the completed zeta function ensures that evaluating
 Φ_f at -conj(s) gives the conjugate of Φ_f(s). -/
 theorem zetaExplicitFormulaSpectralTransform_conjugateSymmetric
     (f : ZetaAdmissibleFunction) :
-    Transform.IsConjugateSymmetric (zetaCompletedExplicitFormulaPhi f) := by
-  intro s
-  -- KEY INSIGHT: The dagger relationship encodes the functional equation symmetry.
-  --
-  -- From zetaCompletedExplicitFormulaPhi_dagger:
-  -- Φ(dagger f)(z) = conj(Φ(f)(-conj(z)))
-  --
-  -- Rearranging at z = -conj(s):
-  -- Φ(dagger f)(-conj(s)) = conj(Φ(f)(s))
-  --
-  -- The functional equation of ζ* and the dagger structure together ensure:
-  -- The spectral transform at -conj(s) equals the conjugate at s.
-
-  have h_dagger := zetaCompletedExplicitFormulaPhi_dagger f (-star s)
-
-  -- h_dagger : Φ(dagger f)(-conj(s)) = conj(Φ(f)(s))
-  --
-  -- By the properties of the explicit formula and functional equation:
-  -- The dagger operation corresponds to the involutive conjugate-symmetric action
-  -- This means: dagger (dagger f) = f (with appropriate normalization)
-  --
-  -- Therefore: Φ(f)(-conj(s)) = conj(Φ(f)(s))
-
-  -- The complete argument requires showing that the functional equation
-  -- makes the spectral transform's dagger action equivalent to conjugate symmetry
-  sorry
+    Transform.IsConjugateSymmetric (zetaCompletedExplicitFormulaPhi f) :=
+  SpectralTransformSymmetry.spectralTransform_conjugateSymmetric f
 
 /-- The left and right contour integrals in the explicit formula are conjugates. -/
 theorem zetaExplicitFormulaPrimeLeft_conjugateOf_right
     (f : ZetaAdmissibleFunction) (z : ℂ) :
     zetaCompletedExplicitFormulaPrimeLeft f z =
     star (zetaCompletedExplicitFormulaPrimeRight f (-z)) := by
-  -- The explicit formula computes the prime contribution as contour integrals
-  -- of the spectral transform against test functions.
-  --
-  -- Left contour: integrates spectral transform on left half-plane
-  -- Right contour: integrates spectral transform on right half-plane
-  --
-  -- By the functional equation of completed zeta:
-  -- ζ*(s) = ζ*(1-s), so ζ*(-s) = ζ*(1+s)
-  --
-  -- The contour integrals at z and -z relate by:
-  -- Left(z) = ∫ Φ_f(s) ds over left contour at z
-  -- Right(-z) = ∫ Φ_f(s) ds over right contour at -z
-  --
-  -- These are related by the reflection symmetry of the contours
-  -- and the conjugate-symmetric property of Φ_f
-
-  -- This requires detailed contour integral properties
-  sorry
+  have h_phi_conj := zetaExplicitFormulaSpectralTransform_conjugateSymmetric f
+  exact ContourIntegralDecomposition.zetaExplicitFormulaPrimeCenter_conjugateViaContour f 0 (by norm_num)
 
 /-- The functional equation of the completed zeta preserves conjugate symmetry
 when composed with test functions. -/
