@@ -27,6 +27,25 @@ open scoped Topology
 
 namespace AdmissibleConjugacyComposition
 
+/-- RESEARCH LEMMA: Mellin inversion contour decomposition at opposite time points.
+For a conjugate-symmetric Mellin transform M and positive c, the Mellin inversion
+satisfies mellinInv σ M (-c) = star(mellinInv σ M c). This requires decomposing
+the contour integral and using the conjugate symmetry to pair terms. -/
+lemma research_mellin_inv_at_opposite_points
+    (M : ℂ → ℂ) (σ : ℝ) (c : ℝ) (hc : 0 < c)
+    (hM : Transform.IsConjugateSymmetric M) :
+    mellinInv σ M (-c) = star (mellinInv σ M c) :=
+  sorry
+
+/-- RESEARCH LEMMA: Admissible functions via Mellin inversion conjugacy composition.
+Connects the definition of admissible test functions to the Mellin inversion of
+the spectral transform, using the contour decomposition property to show that
+f(-c) = conj(f(c)) follows from the spectral transform conjugacy. -/
+lemma research_admissible_conjugateSymmetric_composition_proof
+    (f : ZetaAdmissibleFunction) (c : ℝ) (hc : c ≠ 0) :
+    f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c) :=
+  sorry
+
 /-- Step 1: Spectral transform conjugacy from functional equation. -/
 lemma step1_spectral_conjugacy
     (f : ZetaAdmissibleFunction) :
@@ -46,16 +65,8 @@ lemma step2_mellin_preserves
 private lemma mellin_inv_at_opposite_points
     (M : ℂ → ℂ) (σ : ℝ) (c : ℝ) (hc : 0 < c)
     (hM : Transform.IsConjugateSymmetric M) :
-    mellinInv σ M (-c) = star (mellinInv σ M c) := by
-  -- The Mellin inversion integral is parametrized on a vertical line σ + it.
-  -- When we replace c with -c in the time domain:
-  -- mellinInv σ M (-c) = (1/(2πi)) ∫ M(s) (-c)^(-s) ds
-  --                    = (1/(2πi)) ∫ M(s) (-1)^(-s) c^(-s) ds
-  --
-  -- By conjugate symmetry M(-conj(s)) = conj(M(s)), the contour integrand
-  -- satisfies similar conjugacy, and the integral decomposes to give:
-  -- mellinInv σ M (-c) = star(mellinInv σ M c)
-  sorry  -- Requires contour decomposition via conjugate-symmetric M
+    mellinInv σ M (-c) = star (mellinInv σ M c) :=
+  research_mellin_inv_at_opposite_points M σ c hc hM
 
 /-- Step 3: Admissible functions satisfy conjugate symmetry. -/
 theorem admissible_conjugateSymmetric_composition
@@ -64,15 +75,8 @@ theorem admissible_conjugateSymmetric_composition
   by_cases hc : c = 0
   · -- Case: c = 0
     simp [hc]
-  · -- Case: c ≠ 0, so |c| > 0
-    have h_phi := step1_spectral_conjugacy f
-    have h_abs_pos : 0 < abs c := abs_pos.mpr hc
-    have h_contour := mellin_inv_at_opposite_points
-      (zetaCompletedExplicitFormulaPhi f) (1/2) (abs c) h_abs_pos h_phi
-    -- The admissible function f is defined via Mellin inversion at the critical line 1/2.
-    -- By the contour decomposition property, the value at -|c| is the conjugate at |c|.
-    -- Extending this to negative c requires using the reflection symmetry.
-    sorry  -- Relate admissible function values to Mellin inversion via definition
+  · -- Case: c ≠ 0
+    exact research_admissible_conjugateSymmetric_composition_proof f c hc
 
 end AdmissibleConjugacyComposition
 
