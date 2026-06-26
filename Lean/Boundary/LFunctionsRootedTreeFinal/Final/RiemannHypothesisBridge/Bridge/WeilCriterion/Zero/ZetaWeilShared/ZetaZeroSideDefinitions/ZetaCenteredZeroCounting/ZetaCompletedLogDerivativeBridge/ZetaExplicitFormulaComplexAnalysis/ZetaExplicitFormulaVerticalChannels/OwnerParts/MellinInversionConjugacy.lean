@@ -81,8 +81,9 @@ lemma fourierInv_conjugateSymmetric_is_real
     star ((fun ξ' => g ξ' * Complex.exp (-I * x * ξ')) ξ) := fun ξ =>
     Eq.trans (congrArg₂ (· * ·) (hg ξ) (by
       have h_arg : (-I : ℂ) * x * (-ξ : ℂ) = I * x * ξ := by
+        have h_neg : (-ξ : ℂ) = -(ξ : ℂ) := Complex.ofReal_neg ξ
         apply Eq.trans (mul_assoc (-I) x (-ξ))
-        apply Eq.trans (congrArg ((-I * x) * ·) (by norm_cast : (-ξ : ℂ) = -(ξ : ℂ)))
+        apply Eq.trans (congrArg ((-I * x) * ·) h_neg)
         apply Eq.trans (mul_neg (-I * x) (ξ : ℂ))
         apply congrArg (- ·) (mul_assoc (-I) x ξ)
       have h_conj : star ((-I : ℂ) * x * ξ) = I * x * ξ := by
