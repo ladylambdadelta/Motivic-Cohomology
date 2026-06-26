@@ -42,35 +42,29 @@ lemma step2_mellin_preserves
   have h_conj := step1_spectral_conjugacy f
   exact MellinConjugateLaws.paleyWienerMellinInv_conjugateSymmetric h_conj (1/2)
 
+/-- Helper: Mellin inversion contour decomposition at opposite time points. -/
+private lemma mellin_inv_at_opposite_points
+    (M : ℂ → ℂ) (σ : ℝ) (c : ℝ) (hc : 0 < c)
+    (hM : Transform.IsConjugateSymmetric M) :
+    mellinInv σ M (-c) = star (mellinInv σ M c) := by
+  -- The Mellin inversion integral is parametrized on a vertical line σ + it.
+  -- When we replace c with -c in the time domain:
+  -- mellinInv σ M (-c) = (1/(2πi)) ∫ M(s) (-c)^(-s) ds
+  --                    = (1/(2πi)) ∫ M(s) (-1)^(-s) c^(-s) ds
+  --
+  -- By conjugate symmetry M(-conj(s)) = conj(M(s)), the contour integrand
+  -- satisfies similar conjugacy, and the integral decomposes to give:
+  -- mellinInv σ M (-c) = star(mellinInv σ M c)
+  sorry  -- Requires contour decomposition via conjugate-symmetric M
+
 /-- Step 3: Admissible functions satisfy conjugate symmetry. -/
 theorem admissible_conjugateSymmetric_composition
     (f : ZetaAdmissibleFunction) (c : ℝ) :
     f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c) := by
-  -- By definition, f.toZetaTestFunction is obtained via Mellin inversion of Φ_f.
-  --
-  -- The proof composition:
-  -- (1) Φ_f is conjugate-symmetric: Φ_f(-conj(s)) = conj(Φ_f(s))  [from Step 1]
-  -- (2) Mellin inversion preserves this: mellinInv σ Φ_f is real-valued  [from Step 2]
-  -- (3) Therefore f(-c) = mellinInv (1/2) Φ_f (-c) = conj(mellinInv (1/2) Φ_f (c)) = conj(f(c))
-  --
-  -- Step (3) follows from the measure-theoretic decomposition of the Mellin inversion contour:
-  -- When we parametrize the contour as s = 1/2 + it and evaluate at -c (instead of c),
-  -- the resulting integral (1/(2πi)) ∫ Φ_f(s) (-c)^(-s) ds decomposes via conjugacy
-  -- to give the conjugate of the integral at c.
-
   have h_phi := step1_spectral_conjugacy f
-  have h_mellin_real := step2_mellin_preserves f
-
-  -- By the Mellin inversion formula and the structure of conjugate-symmetric transforms:
-  -- The time-domain value at c relates to the spectral transform via contour integration.
-  -- The conjugacy of the spectral transform at -conj(s) ensures that when we evaluate
-  -- at -c instead of c, the resulting Mellin inversion produces the conjugate value.
-
-  -- This requires the measure-theoretic contour decomposition property, which states:
-  -- For a conjugate-symmetric M, mellinInv σ M at different points relates by
-  -- the symmetry of the Mellin inversion formula itself.
-
-  sorry
+  have h_contour := mellin_inv_at_opposite_points
+    (zetaCompletedExplicitFormulaPhi f) (1/2) (abs c) (abs_pos.mpr (fun h => sorry)) h_phi
+  sorry  -- Composition via Mellin contour decomposition and admissible function definition
 
 end AdmissibleConjugacyComposition
 
