@@ -134,32 +134,36 @@ lemma isLogConjugateSymmetric_of_real_valued
     · simp [Complex.star_im, hg t]
   rw [this]
 
-/-- Integrable functions remain integrable under log-space lift when Jacobian is accounted for. -/
+/-- Integrable functions remain integrable under log-space lift when Jacobian is accounted for.
+The Jacobian of x = exp(t) is exp(t), which is bounded on compact sets.
+-/
 lemma integrable_of_integrableOn_Ioi_logSpace
     (f : ℝ₊ → ℂ) (hf : IntegrableOn f (Set.Ioi 0)) :
     Integrable (fun t : ℝ => f ⟨Real.exp t, Real.exp_pos t⟩ * (Real.exp t : ℂ)) := by
-  sorry  -- Change of variables: ∫ f(x) dx = ∫ f(exp t) exp(t) dt
+  -- The composition f ∘ exp(·) with Jacobian factor exp(t)
+  -- Integrability follows from change of variables formula
+  sorry  -- Requires integral_comp lemma for exponential substitution
 
 /-- Log-space conjugacy preserves integrability on positive reals. -/
 lemma integrableOn_conjugate_of_integrableOn_logSpace
     (g : ℝ → ℂ) (hg_conj : IsLogConjugateSymmetric g)
     (hg : IntegrableOn g (Set.Ioi 0)) :
     IntegrableOn (fun t : ℝ => star (g t)) (Set.Ioi 0) := by
-  calc IntegrableOn (fun t : ℝ => star (g t)) (Set.Ioi 0)
-      = IntegrableOn g (Set.Ioi 0) := by
-        apply integrableOn_congr_fun
-        intro t ht
-        have : g t = star (star (g t)) := (star_star _).symm
-        rw [this, hg_conj t]
-        simp [Set.Ioi]
-  _ = True := by trivial
-  _ := hg
+  apply integrableOn_congr_fun hg
+  intro t _
+  have : g t = star (star (g t)) := (star_star _).symm
+  rw [this, hg_conj t]
 
-/-- Decomposition of log-space integral via symmetry: ∫ g = ∫_{pos} (g + star g) / 2 -/
+/-- Decomposition of log-space integral via symmetry: conjugate-symmetric functions integrate to real values. -/
 lemma integral_logSpace_symmetric_decomp
     (g : ℝ → ℂ) (hg_conj : IsLogConjugateSymmetric g) (hg : Integrable g) :
     ∫ t : ℝ, g t = ∫ t : ℝ, Complex.re (g t) := by
-  sorry  -- Conjugate-symmetric functions integrate to real values
+  -- For conjugate-symmetric g: ∫ g = ∫ (g + star g)/2 = ∫ Re(g)
+  have h_decomp : ∀ t : ℝ, g t + star (g t) = 2 * Complex.re (g t) := fun t => by
+    ext
+    · simp [Complex.add_re, Complex.star_re]
+    · simp [Complex.add_im, Complex.star_im, hg_conj]
+  sorry  -- Follows from integral decomposition and h_decomp, but requires integral_add lemmas
 
 /-- Mellin-Fourier correspondence in log coordinates.
 The Mellin transform M(s) = ∫₀^∞ f(x) x^(s-1) dx can be rewritten as

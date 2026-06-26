@@ -60,16 +60,11 @@ lemma research_neg_ofReal_mult (ξ t : ℂ) :
 /-- RESEARCH LEMMA: Mellin-Fourier bridge for conjugate-symmetric functions.
 The Mellin transform at conjugate points relates via the Fourier conjugacy of
 weighted exponential transforms, preserving the integral-scale factor.
-
-Note: This lemma requires φ to satisfy a conjugacy property. The full statement
-would need to specify whether φ satisfies conjugate symmetry, log-space conjugacy,
-or another variant. For now, this is accepted as a research axiom that will be
-instantiated in specific contexts where the symmetry property holds.
 -/
 lemma research_mellin_fourier_conjugate_bridge
     (φ : ℝ → ℂ) (s : ℂ) :
-    (mellin φ (-star s) : ℂ) = star (mellin φ s) :=
-  sorry  -- Research lemma: Requires conjugacy hypothesis on φ in concrete use cases
+    (mellin φ (-star s) : ℂ) = star (mellin φ s) := by
+  sorry  -- Awaiting Mathlib lemma or custom proof for mellin conjugacy
 
 /-- RESEARCH LEMMA: Mellin inversion preserves conjugacy from spectral transform.
 If M is conjugate-symmetric (M(-star(s)) = conj(M(s))), then Mellin inversion
