@@ -83,8 +83,9 @@ symmetry, derived from M(-star(s)) = star(M(s)). -/
 lemma research_mellin_conjugacy_on_vertical_line
     (M : ℂ → ℂ) (σ : ℝ) (t : ℝ)
     (hM : ∀ s : ℂ, M (-star s) = star (M s)) :
-    M (σ + t * I) = star (M (σ - t * I)) :=
-  sorry
+    M (σ + t * I) = star (M (σ - t * I)) := by
+  have h_conj_sym : Transform.IsConjugateSymmetric M := hM
+  exact (Transform.conjugateSymmetric_on_critical_line h_conj_sym σ t).symm
 
 /-- Helper: real part of star(z) + z equals 2·Re(z) -/
 private lemma star_add_re_eq (z : ℂ) : (star z + z).re = 2 * z.re :=
