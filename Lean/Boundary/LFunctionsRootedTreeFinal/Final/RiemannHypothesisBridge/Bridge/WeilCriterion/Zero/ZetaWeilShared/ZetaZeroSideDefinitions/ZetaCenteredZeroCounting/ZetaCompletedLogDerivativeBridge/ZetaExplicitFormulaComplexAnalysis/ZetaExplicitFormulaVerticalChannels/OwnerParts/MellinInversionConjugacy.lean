@@ -86,7 +86,16 @@ lemma fourierInv_conjugateSymmetric_is_real
         apply Eq.trans (mul_neg (-I * x) (ξ : ℂ))
         apply congrArg (- ·) (mul_assoc (-I) x ξ)
       have h_conj : star ((-I : ℂ) * x * ξ) = I * x * ξ := by
-        sorry  -- Star of -Ixξ is Ixξ
+        have h1 : star (-I : ℂ) = I := by
+          calc star (-I : ℂ)
+              = -(star I) := star_neg I
+            _ = -(-I) := congrArg (- ·) Complex.conj_I
+            _ = I := by apply Eq.symm; exact neg_neg I
+        have h2 : star (x : ℂ) = (x : ℂ) := Complex.conj_ofReal x
+        have h3 : star (ξ : ℂ) = (ξ : ℂ) := Complex.conj_ofReal ξ
+        calc star ((-I : ℂ) * x * ξ)
+            = star (-I) * star (x : ℂ) * star (ξ : ℂ) := by rw [star_mul, star_mul]
+          _ = I * x * ξ := by rw [h1, h2, h3]
       rw [h_arg, ← h_conj]
       exact h_exp_conj _))
     (star_mul _ _).symm
@@ -221,16 +230,18 @@ lemma mellinInv_criticalLine_decomposition
     (σ : ℝ) :
     ∀ t : ℝ, M (σ + t * I) = star (M (σ - t * I)) := by
   intro t
-  have h_neg_star : -star (σ - t * I) = σ + t * I := by
-    -- -star(σ - tI) = -(σ - t(-I)) = -(σ + tI)* = -σ + tI... wait
-    -- star(σ - tI) = σ - t(-I) = σ + tI, so -star(...) = -(σ + tI)
-    -- Let me recalculate: star(a - bI) = a + bI (since star of real is itself, star I = -I)
-    -- So -star(σ - tI) = -(σ + tI) ... that's not equal to σ + tI
-    -- Unless t ranges over both signs... The property should be:
-    -- At point t on the contour, -star(σ - tI) means at the opposite point -t
-    sorry  -- Complex negation algebra: -star(σ - tI) = σ + (-t)I
-  rw [← h_neg_star]
-  exact hM (σ - t * I)
+  -- Use conjugate symmetry M(-star(s)) = star(M(s)) with s = σ - tI
+  have h_star_point : -star (σ - t * I) = -σ + t * I := by
+    calc -star (σ - t * I)
+        = -(σ - t * star I) := by
+          rw [show star (σ - t * I : ℂ) = σ - t * star I by
+            rw [star_sub, Complex.conj_ofReal, star_mul]]
+      _ = -σ + t * star I := by ring
+      _ = -σ + t * (-I) := by rw [Complex.conj_I]
+      _ = -σ - t * I := by ring
+
+  -- The statement needs a different approach: use symmetry directly on the vertical line
+  sorry  -- Requires understanding how conjugacy extends from -star(s) identity to vertical lines
 
 /-- Conjugate-symmetric transforms have real-valued inversions on the critical line. -/
 lemma conjugateSymmetricTransform_inverts_to_realValues
