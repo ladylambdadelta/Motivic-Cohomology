@@ -25,6 +25,26 @@ open Complex Filter MeasureTheory
 
 namespace LogSpaceConjugacy
 
+-- Helper lemmas for change-of-variables
+
+/-- Helper: exp(t)^(s-1) * exp(t) = exp(t)^s via cpow_add -/
+lemma cpow_mul_one_eq_cpow_add (t : ℝ) (s : ℂ) (ht : (t : ℂ) ≠ 0) :
+    ((t : ℂ) ^ (s - 1)) * ((t : ℂ)) = (t : ℂ) ^ s := by
+  calc ((t : ℂ) ^ (s - 1)) * ((t : ℂ))
+      = ((t : ℂ) ^ (s - 1)) * ((t : ℂ) ^ 1) := by rw [cpow_one]
+    _ = ((t : ℂ) ^ (s - 1 + 1)) := by apply cpow_add; exact ht
+    _ = ((t : ℂ) ^ s) := by ring
+
+/-- Helper: Real.log(Real.exp(t)) = t for all t -/
+lemma log_exp_eq_self (t : ℝ) : Real.log (Real.exp t) = t :=
+  Real.log_exp t
+
+/-- Helper: exp(t) ≠ 0 for any t -/
+lemma exp_ne_zero' (t : ℝ) : (Real.exp t : ℂ) ≠ 0 :=
+  Complex.exp_ne_zero _
+
+-- Core coordinate-change definitions
+
 /-- Lift a function on ℝ₊ to ℝ via exponential map: g(t) = f(exp(t)).
 This converts ℝ₊ functions to ℝ functions while preserving integrability structure.
 -/
@@ -65,6 +85,22 @@ lemma isLogConjugateSymmetric_preserved_roundTrip
     _ = star (toLogSpace (fromLogSpace g) (-t)) := by
         rw [toLogSpace_fromLogSpace_id g (-t)]
 
+/-- Sublemma: Power simplification in log-space substitution
+When x = exp(t), the Jacobian gives x^(s-1) dx = exp(t)^s dt
+-/
+lemma integral_exp_power_substitution_eq
+    (t : ℝ) (s : ℂ) :
+    ((Real.exp t : ℂ) ^ (s - 1)) * ((Real.exp t : ℂ)) = ((Real.exp t : ℂ) ^ s) :=
+  cpow_mul_one_eq_cpow_add t s (exp_ne_zero' t)
+
+/-- Sublemma: Logarithm cancels exponential in substitution
+Used to simplify exp(s * log(exp(t))) = exp(s * t)
+-/
+lemma mellin_log_exp_cancel (t : ℝ) (s : ℂ) :
+    (Real.log (Real.exp t) : ℂ) = t := by
+  norm_cast
+  exact Real.log_exp t
+
 /-- Key substitution lemma: integral over positive reals relates to log-space integral.
 ∫₀^∞ f(x) x^(s-1) dx = ∫_{-∞}^∞ f(exp(t)) exp(st) dt
 
@@ -88,22 +124,12 @@ lemma integral_Ioi_zero_eq_integral_exp_sub
     sorry  -- Measure-theoretic change-of-variables formula for x = exp(t)
             -- Requires: integral_comp with exponential substitution and Jacobian exp(t)
 
-  -- Simplify the power: φ(t)^(s-1) · exp(t) = exp(t)^(s-1) · exp(t) = exp(t)^s
+  -- Simplify the power using the extracted sublemma
   have h_power_simp : ∀ t : ℝ, (φ t : ℂ) ^ (s - 1) * ((Real.exp t : ℂ)) = ((Real.exp t : ℂ) ^ s) := by
     intro t
-    -- Note: (φ t : ℂ) = (⟨exp(t), _⟩ : ℂ) = exp(t)
-    have h_phi_eq : (φ t : ℂ) = (Real.exp t : ℂ) := by
-      show (⟨Real.exp t, Real.exp_pos t⟩ : ℝ₊) = (Real.exp t : ℂ)
-      -- The coercion from ℝ₊ to ℂ extracts the real value
-      norm_cast
-      rfl
-    calc ((φ t : ℂ) ^ (s - 1)) * ((Real.exp t : ℂ))
-        = (((Real.exp t : ℂ)) ^ (s - 1)) * ((Real.exp t : ℂ)) := by rw [h_phi_eq]
-      _ = (((Real.exp t : ℂ)) ^ (s - 1)) * (((Real.exp t : ℂ)) ^ 1) := by rw [cpow_one]
-      _ = (((Real.exp t : ℂ)) ^ (s - 1 + 1)) := by
-          apply cpow_add
-          exact Complex.exp_ne_zero _
-      _ = (((Real.exp t : ℂ)) ^ s) := by ring
+    have h_phi_eq : (φ t : ℂ) = (Real.exp t : ℂ) := rfl
+    rw [h_phi_eq]
+    exact integral_exp_power_substitution_eq t s
 
   -- Combine: substitute the composition, then simplify powers
   calc ∫ x in Set.Ioi 0, f x * (x : ℂ) ^ (s - 1)
@@ -134,6 +160,16 @@ lemma isLogConjugateSymmetric_of_real_valued
     · simp [Complex.star_im, hg t]
   rw [this]
 
+/-- Sublemma: Conjugate equivalence in log-space conjugacy -/
+lemma star_eq_via_conjugacy
+    (g : ℝ → ℂ) (hg_conj : IsLogConjugateSymmetric g) (t : ℝ) :
+    star (star (g t)) = g t := (star_star _).symm
+
+/-- Sublemma: Conjugacy from negation equivalence -/
+lemma conj_from_neg_eq
+    (g : ℝ → ℂ) (hg_conj : IsLogConjugateSymmetric g) (t : ℝ) :
+    g t = star (g (-t)) := hg_conj t
+
 /-- Integrable functions remain integrable under log-space lift when Jacobian is accounted for.
 The Jacobian of x = exp(t) is exp(t), which is bounded on compact sets.
 -/
@@ -151,8 +187,7 @@ lemma integrableOn_conjugate_of_integrableOn_logSpace
     IntegrableOn (fun t : ℝ => star (g t)) (Set.Ioi 0) := by
   apply integrableOn_congr_fun hg
   intro t _
-  have : g t = star (star (g t)) := (star_star _).symm
-  rw [this, hg_conj t]
+  rw [star_eq_via_conjugacy g hg_conj t, conj_from_neg_eq g hg_conj t]
 
 /-- Decomposition of log-space integral via symmetry: conjugate-symmetric functions integrate to real values. -/
 lemma integral_logSpace_symmetric_decomp
@@ -163,6 +198,12 @@ lemma integral_logSpace_symmetric_decomp
   have h_as_real : ∫ t : ℝ, (g t : ℝ) = ∫ t : ℝ, Complex.re (g t) := by sorry
   sorry  -- Reduce to proving imaginary integral is zero
 
+/-- Sublemma: Simplify exp(s * log(exp(t))) = exp(s * t) -/
+lemma mellin_exp_log_simplify (s : ℂ) (t : ℝ) :
+    Complex.exp (s * (Real.log (Real.exp t) : ℂ)) = Complex.exp (s * t) := by
+  congr 1
+  exact mellin_log_exp_cancel t s
+
 /-- Mellin-Fourier correspondence in log coordinates.
 The Mellin transform M(s) = ∫₀^∞ f(x) x^(s-1) dx can be rewritten as
 M(s) = ∫_{-∞}^∞ f(exp(t)) exp(st) dt by the substitution x = exp(t), dx = exp(t) dt.
@@ -172,34 +213,29 @@ lemma mellin_in_logSpace_is_bilateral_laplace
     (f : ℝ₊ → ℂ) (s : ℂ) (hf : IntegrableOn f (Set.Ioi 0)) :
     ∫ x in Set.Ioi 0, f x * (x : ℂ) ^ (s - 1) =
     ∫ t : ℝ, f ⟨Real.exp t, Real.exp_pos t⟩ * Complex.exp (s * (Real.log (Real.exp t) : ℂ)) := by
-  -- Simplify RHS: log(exp(t)) = t, so exp(s * t) cancels with x^(s-1) * dx Jacobian
-  have h_log_simplify : ∀ t : ℝ, (Real.log (Real.exp t) : ℂ) = t := by
-    intro t
-    norm_cast
-    exact Real.log_exp t
   congr 1
   ext t
-  rw [h_log_simplify t]
+  rw [mellin_exp_log_simplify s t]
   sorry  -- Requires measure-theoretic change-of-variables formula for x = exp(t)
+
+/-- Sublemma: Exponentials are reciprocals under negation -/
+lemma exp_reciprocal_under_neg (t : ℝ) : Real.exp t * Real.exp (-t) = 1 := by
+  calc Real.exp t * Real.exp (-t)
+      = Real.exp (t + (-t)) := by rw [Real.exp_add]
+    _ = Real.exp 0 := by rw [add_neg_self]
+    _ = 1 := Real.exp_zero
 
 /-- Conjugacy is preserved through log-space lift and projection.
 If f: ℝ₊ → ℂ is conjugate-symmetric in the sense that f(-x) = star(f(x)) when extended to ℝ,
-then g(t) = f(exp(t)) satisfies IsLogConjugateSymmetric. -/
+then g(t) = f(exp(t)) satisfies IsLogConjugateSymmetric.
+-/
 lemma logSpace_conjugacy_from_extension
     (f : ℝ₊ → ℂ) (hf : ∀ x y : ℝ₊, x.val * y.val = 1 → f y = star (f x)) :
     IsLogConjugateSymmetric (toLogSpace f) := by
   intro t
   unfold toLogSpace IsLogConjugateSymmetric
-  -- Goal: f(exp(t)) = star(f(exp(-t)))
-  -- Use hf with x = exp(t), y = exp(-t)
-  -- Then x.val * y.val = exp(t) * exp(-t) = exp(0) = 1
-  have h_reciprocal : Real.exp t * Real.exp (-t) = 1 := by
-    calc Real.exp t * Real.exp (-t)
-        = Real.exp (t + (-t)) := by rw [Real.exp_add]
-      _ = Real.exp 0 := by rw [add_neg_self]
-      _ = 1 := Real.exp_zero
-  have h_conj := hf ⟨Real.exp t, Real.exp_pos t⟩ ⟨Real.exp (-t), Real.exp_pos (-t)⟩ h_reciprocal
-  exact h_conj
+  have h_reciprocal := exp_reciprocal_under_neg t
+  exact hf ⟨Real.exp t, Real.exp_pos t⟩ ⟨Real.exp (-t), Real.exp_pos (-t)⟩ h_reciprocal
 
 end LogSpaceConjugacy
 

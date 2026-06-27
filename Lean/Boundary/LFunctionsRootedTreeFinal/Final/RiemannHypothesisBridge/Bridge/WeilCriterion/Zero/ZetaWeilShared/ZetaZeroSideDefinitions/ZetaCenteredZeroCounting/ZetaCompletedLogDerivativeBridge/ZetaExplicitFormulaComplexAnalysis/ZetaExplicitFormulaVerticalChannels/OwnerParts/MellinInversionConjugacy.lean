@@ -23,6 +23,23 @@ open scoped Topology
 
 namespace MellinInversionConjugacy
 
+-- Helper lemmas for Fourier kernel properties
+
+/-- Sublemma: Pure imaginary exponential has unit norm -/
+lemma fourier_kernel_unit_norm (x : ℝ) (ξ : ℝ) (hx : 0 < x) :
+    ‖Complex.exp (-I * x * ξ)‖ = 1 := by
+  have h_arg : (-I * x * ξ : ℂ).re = 0 := by
+    show ((-I : ℂ) * (x : ℂ) * (ξ : ℂ)).re = 0
+    have : (-I : ℂ) * (x : ℂ) * (ξ : ℂ) = -(x * ξ : ℝ) * I := by
+      rw [mul_comm (-I : ℂ) x, mul_assoc x (-I : ℂ) ξ, mul_neg, mul_one]
+      exact (mul_comm ξ (x : ℂ)).symm
+    rw [this]
+    exact Complex.mul_I_re _
+  calc ‖Complex.exp (-I * x * ξ)‖
+      = Complex.exp ((-I * x * ξ : ℂ).re) := Complex.norm_exp _
+    _ = Complex.exp 0 := by rw [h_arg]
+    _ = 1 := rfl
+
 /-- RESEARCH LEMMA: Fourier integrand integrability on negative reals.
 For g : ℝ → ℂ conjugate-symmetric, the integrand f_full(ξ) = g(ξ) * exp(-ix·ξ)
 is integrable on the set (-∞, 0]. Decay comes from exponential damping and
@@ -32,27 +49,11 @@ lemma research_fourier_integrand_integrableOn_neg
     (hg : ∀ t : ℝ, g (-t) = star (g t))
     (hg_integrable : Integrable g) :
     IntegrableOn (fun ξ => g ξ * Complex.exp (-I * x * ξ)) (Set.Iic 0) := by
-  -- The Fourier kernel exp(-ix·ξ) has unit norm for pure imaginary exponent
-  have h_exp_norm : ∀ ξ : ℝ, ‖Complex.exp (-I * x * ξ)‖ = 1 := by
-    intro ξ
-    -- For pure imaginary argument z, |exp(z)| = exp(Re(z)) = exp(0) = 1
-    have h_arg : (-I * x * ξ : ℂ).re = 0 := by
-      show ((-I : ℂ) * (x : ℂ) * (ξ : ℂ)).re = 0
-      have : (-I : ℂ) * (x : ℂ) * (ξ : ℂ) = -(x * ξ : ℝ) * I := by
-        rw [mul_comm (-I : ℂ) x, mul_assoc x (-I : ℂ) ξ, mul_neg, mul_one]
-        exact (mul_comm ξ (x : ℂ)).symm
-      rw [this]
-      exact Complex.mul_I_re _
-    calc ‖Complex.exp (-I * x * ξ)‖
-        = Complex.exp ((-I * x * ξ : ℂ).re) := Complex.norm_exp _
-      _ = Complex.exp 0 := by rw [h_arg]
-      _ = 1 := rfl
-  -- Since the kernel is bounded (norm 1), integrability follows from g's integrability
   apply IntegrableOn.mul_of_bounded
   · exact hg_integrable.integrableOn
   · use 1
     intro ξ _
-    exact ⟨h_exp_norm ξ, le_refl 1⟩
+    exact ⟨fourier_kernel_unit_norm x ξ hx, le_refl 1⟩
 
 /-- RESEARCH LEMMA: Fourier integrand integrability on positive reals.
 For g : ℝ → ℂ conjugate-symmetric, the integrand f_full(ξ) = g(ξ) * exp(-ix·ξ)
@@ -63,27 +64,11 @@ lemma research_fourier_integrand_integrableOn_pos
     (hg : ∀ t : ℝ, g (-t) = star (g t))
     (hg_integrable : Integrable g) :
     IntegrableOn (fun ξ => g ξ * Complex.exp (-I * x * ξ)) (Set.Ioi 0) := by
-  -- The Fourier kernel exp(-ix·ξ) has unit norm for pure imaginary exponent
-  have h_exp_norm : ∀ ξ : ℝ, ‖Complex.exp (-I * x * ξ)‖ = 1 := by
-    intro ξ
-    -- For pure imaginary argument z, |exp(z)| = exp(Re(z)) = exp(0) = 1
-    have h_arg : (-I * x * ξ : ℂ).re = 0 := by
-      show ((-I : ℂ) * (x : ℂ) * (ξ : ℂ)).re = 0
-      have : (-I : ℂ) * (x : ℂ) * (ξ : ℂ) = -(x * ξ : ℝ) * I := by
-        rw [mul_comm (-I : ℂ) x, mul_assoc x (-I : ℂ) ξ, mul_neg, mul_one]
-        exact (mul_comm ξ (x : ℂ)).symm
-      rw [this]
-      exact Complex.mul_I_re _
-    calc ‖Complex.exp (-I * x * ξ)‖
-        = Complex.exp ((-I * x * ξ : ℂ).re) := Complex.norm_exp _
-      _ = Complex.exp 0 := by rw [h_arg]
-      _ = 1 := rfl
-  -- Since the kernel is bounded (norm 1), integrability follows from g's integrability
   apply IntegrableOn.mul_of_bounded
   · exact hg_integrable.integrableOn
   · use 1
     intro ξ _
-    exact ⟨h_exp_norm ξ, le_refl 1⟩
+    exact ⟨fourier_kernel_unit_norm x ξ hx, le_refl 1⟩
 
 /-- RESEARCH LEMMA: Reflected integrand integrability by conjugate symmetry.
 For a conjugate-symmetric integrand f_full, the function t ↦ f_full(-t) has
