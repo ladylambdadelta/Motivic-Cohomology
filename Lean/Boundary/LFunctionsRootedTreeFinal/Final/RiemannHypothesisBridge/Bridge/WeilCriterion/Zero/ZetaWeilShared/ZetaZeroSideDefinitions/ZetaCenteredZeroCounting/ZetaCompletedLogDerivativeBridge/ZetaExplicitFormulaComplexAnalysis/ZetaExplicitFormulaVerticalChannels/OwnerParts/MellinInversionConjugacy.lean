@@ -87,6 +87,14 @@ lemma research_fourier_integrand_integrableOn_neg_pos
         rw [integrableOn_conj]
   _ := hf_pos
 
+/-- Sublemma: Negation cancels at zero -/
+lemma neg_zero_identity : (-0 : ℝ) = 0 := neg_zero
+
+/-- Sublemma: Apply integral_comp_neg_Ioi lemma -/
+lemma integral_comp_neg_Ioi_at_zero (f : ℝ → ℂ) :
+    (∫ x in Set.Ioi 0, f (-x)) = ∫ x in Set.Iic 0, f x :=
+  (integral_comp_neg_Ioi 0 f).symm
+
 /-- RESEARCH LEMMA: Measure-preserving integral composition for negation.
 For a measurable function f and the measure-preserving map x ↦ -x,
 ∫ f on (-∞, 0] equals ∫ (x ↦ f(-x)) on (0, ∞), where integrability is assumed. -/
@@ -94,9 +102,9 @@ lemma research_integral_comp_neg_Iic_to_Ioi
     (f : ℝ → ℂ) (hf_neg : IntegrableOn f (Set.Iic 0))
     (hf_reflected : IntegrableOn (fun ξ => f (-ξ)) (Set.Ioi 0)) :
     ∫ ξ in Set.Iic 0, f ξ = ∫ η in Set.Ioi 0, f (-η) := by
-  have h := (integral_comp_neg_Ioi 0 f).symm
-  simp only [neg_zero] at h
-  exact h
+  have h := integral_comp_neg_Ioi_at_zero f
+  simp only [neg_zero_identity] at h
+  exact h.symm
 
 /-- RESEARCH LEMMA: Fourier inverse definition unfolding.
 The Fourier inverse of g at x is the scaled integral:
