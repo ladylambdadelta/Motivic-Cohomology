@@ -652,6 +652,103 @@ theorem Complex.finiteAbelPlana_endpointRestoredBoundaryTarget_of_realSegmentCon
         (fun z : ℂ => (realSegment + endpointIndentation) + z)
         (sub_eq_add_neg (-lower) upper).symm
 
+/-- Pure assembly of the two normalized constant-face half packets.
+
+This lemma isolates the additive core of the constant-face reconstruction:
+once the left and right normalized constant faces have been reduced to their
+two half-packet forms, the height-corner terms cancel and the surviving
+primitive difference is transported to the real segment. -/
+theorem Complex.finiteAbelPlana_realSegmentConstantFaces_of_halfPackets
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ)
+    (lowerLeft upperRight leftReal rightReal realSegment : ℂ)
+    (hleft :
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+          (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+            Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T) =
+        (upperRight + lowerLeft - (leftReal + leftReal)) / (2 : ℂ))
+    (hright :
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+          (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+            Complex.I *
+              Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T) =
+        (rightReal + rightReal - lowerLeft - upperRight) / (2 : ℂ))
+    (hreal : rightReal - leftReal = realSegment) :
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+          Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T) +
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+          Complex.I *
+            Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T) =
+      realSegment := by
+  calc
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+          (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+            Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T) +
+        ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+          (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+            Complex.I *
+              Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T) =
+        (upperRight + lowerLeft - (leftReal + leftReal)) / (2 : ℂ) +
+          (rightReal + rightReal - lowerLeft - upperRight) / (2 : ℂ) := by
+      exact congrArg₂ HAdd.hAdd hleft hright
+    _ = rightReal - leftReal := by
+      exact
+        Complex.finiteAbelPlana_constantFace_halfPackets_cancel
+          lowerLeft upperRight leftReal rightReal
+    _ = realSegment := hreal
+
+/-- Pointwise real-segment reconstruction from the two normalized cotangent
+constant faces. -/
+theorem Complex.finiteAbelPlana_log_realSegmentConstantFaces
+    (N : ℕ)
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (T : ℝ) :
+    let M : ℕ := N + 1
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+          Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T) +
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+          Complex.I *
+            Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T) =
+      ∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+        Complex.finiteAbelPlanaLogSummand w (x : ℂ) := by
+  intro M
+  let F : ℂ → ℂ := fun z : ℂ => Complex.finiteAbelPlanaLogComplexPrimitive w z
+  let lowerLeft : ℂ := F ((0 : ℂ) - (T : ℂ) * Complex.I)
+  let upperRight : ℂ := F (((M : ℝ) : ℂ) + (T : ℂ) * Complex.I)
+  let leftReal : ℂ := F (0 : ℂ)
+  let rightReal : ℂ := F ((M : ℂ))
+  let realSegment : ℂ :=
+    ∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+      Complex.finiteAbelPlanaLogSummand w (x : ℂ)
+  have hleft :
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+          (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+            Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T) =
+        (upperRight + lowerLeft - (leftReal + leftReal)) / (2 : ℂ) :=
+    Complex.finiteAbelPlana_log_leftConstantPacket_normalized_eq_halfPacket
+      N hw T
+  have hright :
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+          (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+            Complex.I *
+              Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T) =
+        (rightReal + rightReal - lowerLeft - upperRight) / (2 : ℂ) :=
+    Complex.finiteAbelPlana_log_rightConstantPacket_normalized_eq_halfPacket
+      N hw T
+  have hreal :
+      rightReal - leftReal = realSegment :=
+    Complex.finiteAbelPlana_log_complexPrimitive_realEndpoint_sub_eq_realSegmentIntegral
+      N hw
+  exact
+    Complex.finiteAbelPlana_realSegmentConstantFaces_of_halfPackets
+      N w T lowerLeft upperRight leftReal rightReal realSegment hleft hright hreal
+
 /-- Restored target bridge from the four-side constant-kernel reconstruction
 of the real segment. -/
 theorem Complex.finiteAbelPlana_log_finiteHeightPVBoundaryTargetBridge_endpointRestored_of_realSegmentConstantFaces
@@ -2783,6 +2880,218 @@ theorem Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEd
       exact
         Complex.residue_sub_error_sub_residue
           (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)
+          (Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
+
+/-- Subtracting a residue contribution from an endpoint-restored
+residue-minus-error expression leaves the endpoint contribution minus the
+horizontal error. -/
+theorem Complex.residue_add_endpoint_sub_error_sub_residue
+    (residue endpoint error : ℂ) :
+    (residue + endpoint - error) - residue = endpoint - error := by
+  let A : ℂ := endpoint - error
+  have hsource :
+      residue + endpoint - error = residue + A := by
+    calc
+      residue + endpoint - error =
+          (residue + endpoint) - error := by
+        rfl
+      _ = (residue + endpoint) + -error := by
+        exact sub_eq_add_neg (residue + endpoint) error
+      _ = residue + (endpoint + -error) := by
+        exact add_assoc residue endpoint (-error)
+      _ = residue + (endpoint - error) := by
+        exact congrArg (fun z : ℂ => residue + z)
+          (sub_eq_add_neg endpoint error).symm
+      _ = residue + A := by
+        rfl
+  calc
+    (residue + endpoint - error) - residue =
+        (residue + A) - residue := by
+      exact congrArg (fun z : ℂ => z - residue) hsource
+    _ = (residue + A) + -residue := by
+      exact sub_eq_add_neg (residue + A) residue
+    _ = (A + residue) + -residue := by
+      exact congrArg (fun z : ℂ => z + -residue)
+        (add_comm residue A)
+    _ = A + (residue + -residue) := by
+      exact add_assoc A residue (-residue)
+    _ = A + 0 := by
+      exact congrArg (fun z : ℂ => A + z) (add_neg_cancel residue)
+    _ = A := by
+      exact add_zero A
+    _ = endpoint - error := by
+      rfl
+
+/-- Endpoint-restored residue accounting for the named finite-height side.
+
+This theorem records the exact accounting consequence of using the
+endpoint-restored bridge package with the current contour-error convention:
+the endpoint indentation remains as a fixed term on the residue side. -/
+theorem Complex.finiteAbelPlana_log_namedSideExpression_endpointRestored_eq_residue_add_endpoint_sub_horizontalError
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)))
+    (T : ℝ)
+    (hT : 0 < T)
+    (hevent : Complex.FiniteHeightPVRectangleBoundaryBridgeEndpointRestored N w T)
+    (htarget : Complex.FiniteHeightPVBoundaryTargetBridgeEndpointRestored N w T) :
+    Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T =
+      Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w +
+        Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w -
+          Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
+  have hresidue :
+      Tendsto
+        (fun ρ : ℝ =>
+          Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized N w T ρ)
+        (𝓝[>] (0 : ℝ))
+        (𝓝 (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)) :=
+    Complex.finiteAbelPlana_log_rectangleSideExpressionPV_tendsto_integerResidues
+      hw N hdecInteriorPole T hT
+  have hresidue_endpoint :
+      Tendsto
+        (fun ρ : ℝ =>
+          Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized N w T ρ +
+            Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w)
+        (𝓝[>] (0 : ℝ))
+        (𝓝
+          (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w +
+            Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w)) :=
+    hresidue.add tendsto_const_nhds
+  have hside :
+      Tendsto
+        (fun ρ : ℝ =>
+          Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized N w T ρ +
+            Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w)
+        (𝓝[>] (0 : ℝ))
+        (𝓝
+          (Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T +
+            Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)) :=
+    Complex.finiteAbelPlana_log_rectangleSideExpressionPV_endpointRestored_tendsto_namedSide_add_horizontalError
+      N hw T hT hevent htarget
+  have hsum :
+      Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T +
+          Complex.finiteAbelPlanaLogHorizontalEdgeError N w T =
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w +
+          Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w :=
+    tendsto_nhds_unique hside hresidue_endpoint
+  exact Complex.eq_sub_of_add_eq hsum
+
+/-- Endpoint-restored residue accounting unfolds the current contour error as
+the endpoint indentation contribution minus the horizontal error.
+
+This is the owner-level obstruction to using the endpoint-restored bridge as a
+drop-in replacement for the endpoint-free contour-error package. -/
+theorem Complex.finiteAbelPlana_log_finiteHeightContourError_eq_endpointIndentation_sub_horizontalEdgeError_residueAccounting
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)))
+    (T : ℝ)
+    (hT : 0 < T)
+    (hevent : Complex.FiniteHeightPVRectangleBoundaryBridgeEndpointRestored N w T)
+    (htarget : Complex.FiniteHeightPVBoundaryTargetBridgeEndpointRestored N w T) :
+    Complex.finiteAbelPlanaLogFiniteHeightContourError N w T =
+      Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w -
+        Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
+  have hnamed :
+      Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T =
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w +
+          Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w -
+            Complex.finiteAbelPlanaLogHorizontalEdgeError N w T :=
+    Complex.finiteAbelPlana_log_namedSideExpression_endpointRestored_eq_residue_add_endpoint_sub_horizontalError
+      hw N hdecInteriorPole T hT hevent htarget
+  have hboundary_named :
+      Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T =
+        Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T :=
+    Complex.finiteAbelPlana_log_finiteHeightNamedSideExpression_eq_boundaryNamedPiecesUpTo
+      N w T
+  have hboundary :
+      Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T =
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w +
+          Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w -
+            Complex.finiteAbelPlanaLogHorizontalEdgeError N w T :=
+    Eq.trans hboundary_named.symm hnamed
+  have herror :
+      Complex.finiteAbelPlanaLogFiniteHeightContourError N w T =
+        Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T -
+          Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w :=
+    Complex.finiteAbelPlana_log_finiteHeightContourError_unfold' N w T
+  calc
+    Complex.finiteAbelPlanaLogFiniteHeightContourError N w T =
+        Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T -
+          Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w :=
+      herror
+    _ =
+        (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w +
+            Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w -
+              Complex.finiteAbelPlanaLogHorizontalEdgeError N w T) -
+          Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w := by
+      exact congrArg
+        (fun z : ℂ => z - Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)
+        hboundary
+    _ =
+        Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w -
+          Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
+      exact
+        Complex.residue_add_endpoint_sub_error_sub_residue
+          (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)
+          (Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w)
+          (Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
+
+/-- Endpoint-restored finite-height contour error.
+
+The current finite-height contour error is normalized against the
+principal-value integer residue contribution alone.  When the endpoint-restored
+bridge is used, the endpoint indentation must be removed from that error before
+the horizontal-edge cancellation is obtained. -/
+noncomputable def Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) : ℂ :=
+  Complex.finiteAbelPlanaLogFiniteHeightContourError N w T -
+    Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w
+
+/-- Endpoint-restored residue accounting identifies the restored finite-height
+contour error with the negative horizontal edge error. -/
+theorem Complex.finiteAbelPlana_log_finiteHeightEndpointRestoredContourError_eq_neg_horizontalEdgeError_residueAccounting
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)))
+    (T : ℝ)
+    (hT : 0 < T)
+    (hevent : Complex.FiniteHeightPVRectangleBoundaryBridgeEndpointRestored N w T)
+    (htarget : Complex.FiniteHeightPVBoundaryTargetBridgeEndpointRestored N w T) :
+    Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T =
+      -Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
+  have herror :
+      Complex.finiteAbelPlanaLogFiniteHeightContourError N w T =
+        Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w -
+          Complex.finiteAbelPlanaLogHorizontalEdgeError N w T :=
+    Complex.finiteAbelPlana_log_finiteHeightContourError_eq_endpointIndentation_sub_horizontalEdgeError_residueAccounting
+      hw N hdecInteriorPole T hT hevent htarget
+  calc
+    Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T =
+        Complex.finiteAbelPlanaLogFiniteHeightContourError N w T -
+          Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w := by
+      rfl
+    _ =
+        (Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w -
+          Complex.finiteAbelPlanaLogHorizontalEdgeError N w T) -
+          Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w := by
+      exact congrArg
+        (fun z : ℂ =>
+          z - Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w)
+        herror
+    _ =
+        -Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
+      exact
+        Complex.residue_sub_error_sub_residue
+          (Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w)
           (Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
 
 end

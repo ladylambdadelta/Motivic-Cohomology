@@ -745,6 +745,70 @@ theorem Complex.finiteAbelPlanaLogComplexPrimitive_unfold
       (w + u) * Complex.log (w + u) - (w + u) :=
   Eq.refl (Complex.finiteAbelPlanaLogComplexPrimitive w u)
 
+/-- The complex logarithmic primitive restricted to the real endpoints is the
+endpoint primitive used by the finite Abel-Plana formula. -/
+theorem Complex.finiteAbelPlana_log_complexPrimitive_realEndpoint_sub_eq_endpointPrimitive
+    (N : ℕ)
+    (w : ℂ) :
+    let M : ℕ := N + 1
+    Complex.finiteAbelPlanaLogComplexPrimitive w (M : ℂ) -
+        Complex.finiteAbelPlanaLogComplexPrimitive w (0 : ℂ) =
+      Complex.finiteAbelPlanaLogSummandEndpointPrimitive N w := by
+  intro M
+  have hleft_zero :
+      Complex.finiteAbelPlanaLogComplexPrimitive w (0 : ℂ) =
+        w * Complex.log w - w := by
+    calc
+      Complex.finiteAbelPlanaLogComplexPrimitive w (0 : ℂ) =
+          (w + (0 : ℂ)) * Complex.log (w + (0 : ℂ)) - (w + (0 : ℂ)) := by
+        exact Complex.finiteAbelPlanaLogComplexPrimitive_unfold w 0
+      _ = w * Complex.log w - w := by
+        exact congrArg₂ Sub.sub
+          (congrArg₂ HMul.hMul
+            (add_zero w)
+            (congrArg Complex.log (add_zero w)))
+          (add_zero w)
+  have hright :
+      Complex.finiteAbelPlanaLogComplexPrimitive w (M : ℂ) =
+        (w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+          (w + (M : ℂ)) := by
+    exact Complex.finiteAbelPlanaLogComplexPrimitive_unfold w (M : ℂ)
+  calc
+    Complex.finiteAbelPlanaLogComplexPrimitive w (M : ℂ) -
+        Complex.finiteAbelPlanaLogComplexPrimitive w (0 : ℂ) =
+      ((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+          (w + (M : ℂ))) -
+        (w * Complex.log w - w) := by
+      exact congrArg₂ Sub.sub hright hleft_zero
+    _ = Complex.finiteAbelPlanaLogSummandEndpointPrimitive N w := by
+      exact (Complex.finiteAbelPlanaLogSummandEndpointPrimitive_unfold N w).symm
+
+/-- The surviving real-endpoint primitive difference is exactly the finite
+real-segment integral. -/
+theorem Complex.finiteAbelPlana_log_complexPrimitive_realEndpoint_sub_eq_realSegmentIntegral
+    (N : ℕ)
+    {w : ℂ}
+    (hw : 0 < w.re) :
+    let M : ℕ := N + 1
+    Complex.finiteAbelPlanaLogComplexPrimitive w (M : ℂ) -
+        Complex.finiteAbelPlanaLogComplexPrimitive w (0 : ℂ) =
+      ∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+        Complex.finiteAbelPlanaLogSummand w (x : ℂ) := by
+  intro M
+  have hprimitive :
+      Complex.finiteAbelPlanaLogComplexPrimitive w (M : ℂ) -
+          Complex.finiteAbelPlanaLogComplexPrimitive w (0 : ℂ) =
+        Complex.finiteAbelPlanaLogSummandEndpointPrimitive N w :=
+    Complex.finiteAbelPlana_log_complexPrimitive_realEndpoint_sub_eq_endpointPrimitive
+      N w
+  have hintegral :
+      (∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+        Complex.finiteAbelPlanaLogSummand w (x : ℂ)) =
+        Complex.finiteAbelPlanaLogSummandEndpointPrimitive N w :=
+    Complex.finiteAbelPlana_log_summand_realSegmentIntegral_eq_endpointPrimitive
+      hw N
+  exact hprimitive.trans hintegral.symm
+
 /-- Derivative of the logarithmic primitive along a straight complex line. -/
 theorem Complex.hasDerivAt_finiteAbelPlanaLogComplexPrimitive_line
     (w a v : ℂ)
@@ -1190,6 +1254,96 @@ theorem Complex.finiteAbelPlana_log_bottomHorizontalPrimitive_integral
     (congrArg₂ Sub.sub
       (congrArg (fun z : ℂ => Complex.finiteAbelPlanaLogComplexPrimitive w z) htop)
       (congrArg (fun z : ℂ => Complex.finiteAbelPlanaLogComplexPrimitive w z) hbottom))
+
+/-- Lower horizontal constant side evaluated by the logarithmic primitive. -/
+theorem Complex.finiteAbelPlana_log_lowerHorizontalCotangentConstantSide_eq_primitive
+    (N : ℕ)
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (T : ℝ) :
+    let M : ℕ := N + 1
+    Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T =
+      (Complex.finiteAbelPlanaLogComplexPrimitive w
+          (((M : ℝ) : ℂ) - (T : ℂ) * Complex.I) -
+        Complex.finiteAbelPlanaLogComplexPrimitive w
+          ((0 : ℂ) - (T : ℂ) * Complex.I)) *
+        ((Real.pi : ℂ) * Complex.I) := by
+  intro M
+  let c : ℂ := (Real.pi : ℂ) * Complex.I
+  let f : ℝ → ℂ := fun x : ℝ =>
+    Complex.finiteAbelPlanaLogSummand w
+      ((x : ℂ) - (T : ℂ) * Complex.I)
+  have hmul :
+      ∫ x : ℝ in (0 : ℝ)..(M : ℝ), f x * c =
+        (∫ x : ℝ in (0 : ℝ)..(M : ℝ), f x) * c :=
+    intervalIntegral.integral_mul_const c f
+  have hprimitive :
+      ∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+          Complex.finiteAbelPlanaLogSummand w
+            ((x : ℂ) - (T : ℂ) * Complex.I) =
+        Complex.finiteAbelPlanaLogComplexPrimitive w
+            (((M : ℝ) : ℂ) - (T : ℂ) * Complex.I) -
+          Complex.finiteAbelPlanaLogComplexPrimitive w
+            ((0 : ℂ) - (T : ℂ) * Complex.I) :=
+    Complex.finiteAbelPlana_log_bottomHorizontalPrimitive_integral N hw T
+  calc
+    Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T =
+        ∫ x : ℝ in (0 : ℝ)..(M : ℝ), f x * c := by
+      rfl
+    _ = (∫ x : ℝ in (0 : ℝ)..(M : ℝ), f x) * c :=
+      hmul
+    _ =
+        (Complex.finiteAbelPlanaLogComplexPrimitive w
+            (((M : ℝ) : ℂ) - (T : ℂ) * Complex.I) -
+          Complex.finiteAbelPlanaLogComplexPrimitive w
+            ((0 : ℂ) - (T : ℂ) * Complex.I)) *
+          ((Real.pi : ℂ) * Complex.I) := by
+      exact congrArg (fun z : ℂ => z * c) hprimitive
+
+/-- Upper horizontal constant side evaluated by the logarithmic primitive. -/
+theorem Complex.finiteAbelPlana_log_upperHorizontalCotangentConstantSide_eq_primitive
+    (N : ℕ)
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (T : ℝ) :
+    let M : ℕ := N + 1
+    Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T =
+      (Complex.finiteAbelPlanaLogComplexPrimitive w
+          (((M : ℝ) : ℂ) + (T : ℂ) * Complex.I) -
+        Complex.finiteAbelPlanaLogComplexPrimitive w
+          ((0 : ℂ) + (T : ℂ) * Complex.I)) *
+        (-(Real.pi : ℂ) * Complex.I) := by
+  intro M
+  let c : ℂ := -(Real.pi : ℂ) * Complex.I
+  let f : ℝ → ℂ := fun x : ℝ =>
+    Complex.finiteAbelPlanaLogSummand w
+      ((x : ℂ) + (T : ℂ) * Complex.I)
+  have hmul :
+      ∫ x : ℝ in (0 : ℝ)..(M : ℝ), f x * c =
+        (∫ x : ℝ in (0 : ℝ)..(M : ℝ), f x) * c :=
+    intervalIntegral.integral_mul_const c f
+  have hprimitive :
+      ∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+          Complex.finiteAbelPlanaLogSummand w
+            ((x : ℂ) + (T : ℂ) * Complex.I) =
+        Complex.finiteAbelPlanaLogComplexPrimitive w
+            (((M : ℝ) : ℂ) + (T : ℂ) * Complex.I) -
+          Complex.finiteAbelPlanaLogComplexPrimitive w
+            ((0 : ℂ) + (T : ℂ) * Complex.I) :=
+    Complex.finiteAbelPlana_log_topHorizontalPrimitive_integral N hw T
+  calc
+    Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T =
+        ∫ x : ℝ in (0 : ℝ)..(M : ℝ), f x * c := by
+      rfl
+    _ = (∫ x : ℝ in (0 : ℝ)..(M : ℝ), f x) * c :=
+      hmul
+    _ =
+        (Complex.finiteAbelPlanaLogComplexPrimitive w
+            (((M : ℝ) : ℂ) + (T : ℂ) * Complex.I) -
+          Complex.finiteAbelPlanaLogComplexPrimitive w
+            ((0 : ℂ) + (T : ℂ) * Complex.I)) *
+          (-(Real.pi : ℂ) * Complex.I) := by
+      exact congrArg (fun z : ℂ => z * c) hprimitive
 
 /-- Nonzero height excludes cotangent poles on the lower horizontal side. -/
 theorem Complex.finiteAbelPlana_log_lowerHorizontalPath_sin_ne_zero
@@ -2270,6 +2424,895 @@ theorem Complex.finiteAbelPlana_log_rightVerticalConstantPrimitive_integral
               Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (a : ℂ))) := by
         exact Eq.refl _
   exact Eq.trans hFTC hendpoints
+
+/-- Multiplication by the upper-half-plane vertical constant `-π i` is the
+negative of multiplication by the lower-half-plane vertical constant `π i`. -/
+theorem Complex.finiteAbelPlana_mul_neg_pi_I_eq_neg_mul_pi_I
+    (a : ℂ) :
+    a * (-(Real.pi : ℂ) * Complex.I) =
+      -(a * ((Real.pi : ℂ) * Complex.I)) := by
+  have hconst :
+      (-(Real.pi : ℂ) * Complex.I) =
+        -((Real.pi : ℂ) * Complex.I) := by
+    exact neg_mul (Real.pi : ℂ) Complex.I
+  calc
+    a * (-(Real.pi : ℂ) * Complex.I) =
+        a * (-((Real.pi : ℂ) * Complex.I)) := by
+      exact congrArg (fun z : ℂ => a * z) hconst
+    _ = -(a * ((Real.pi : ℂ) * Complex.I)) := by
+      exact mul_neg a ((Real.pi : ℂ) * Complex.I)
+
+/-- Interval-integral form of the upper-half-plane vertical sign
+normalization. -/
+theorem Complex.finiteAbelPlana_integral_mul_neg_pi_I_eq_neg_integral_mul_pi_I
+    (f : ℝ → ℂ)
+    (a b : ℝ) :
+    ∫ y : ℝ in a..b, f y * (-(Real.pi : ℂ) * Complex.I) =
+      -(∫ y : ℝ in a..b, f y * ((Real.pi : ℂ) * Complex.I)) := by
+  have hpoint :
+      Set.EqOn
+        (fun y : ℝ => f y * (-(Real.pi : ℂ) * Complex.I))
+        (fun y : ℝ => -(f y * ((Real.pi : ℂ) * Complex.I)))
+        [[a, b]] := by
+    intro y _hy
+    exact Complex.finiteAbelPlana_mul_neg_pi_I_eq_neg_mul_pi_I (f y)
+  calc
+    ∫ y : ℝ in a..b, f y * (-(Real.pi : ℂ) * Complex.I) =
+        ∫ y : ℝ in a..b, -(f y * ((Real.pi : ℂ) * Complex.I)) := by
+      exact intervalIntegral.integral_congr hpoint
+    _ = -(∫ y : ℝ in a..b, f y * ((Real.pi : ℂ) * Complex.I)) := by
+      exact intervalIntegral.integral_neg
+
+/-- Left vertical constant side evaluated by the logarithmic primitive. -/
+theorem Complex.finiteAbelPlana_log_leftVerticalCotangentConstantSide_eq_primitive
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (T : ℝ) :
+    Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T =
+      (Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (0 : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * ((-T : ℝ) : ℂ))) -
+        (Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (T : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (0 : ℂ))) := by
+  let f : ℝ → ℂ := fun y : ℝ =>
+    Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ))
+  have hfirst :
+      ∫ y : ℝ in (-T)..(0 : ℝ),
+          f y * ((Real.pi : ℂ) * Complex.I) =
+        (Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * ((0 : ℝ) : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * ((-T : ℝ) : ℂ))) :=
+    Complex.finiteAbelPlana_log_leftVerticalConstantPrimitive_integral
+      hw (-T) 0
+  have hsecond_pos :
+      ∫ y : ℝ in (0 : ℝ)..T,
+          f y * ((Real.pi : ℂ) * Complex.I) =
+        (Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (T : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * ((0 : ℝ) : ℂ))) :=
+    Complex.finiteAbelPlana_log_leftVerticalConstantPrimitive_integral
+      hw 0 T
+  have hsecond_neg :
+      ∫ y : ℝ in (0 : ℝ)..T,
+          f y * (-(Real.pi : ℂ) * Complex.I) =
+        -((Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (T : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * ((0 : ℝ) : ℂ)))) := by
+    calc
+      ∫ y : ℝ in (0 : ℝ)..T,
+          f y * (-(Real.pi : ℂ) * Complex.I) =
+          -(∫ y : ℝ in (0 : ℝ)..T,
+              f y * ((Real.pi : ℂ) * Complex.I)) := by
+        exact
+          Complex.finiteAbelPlana_integral_mul_neg_pi_I_eq_neg_integral_mul_pi_I
+            f 0 T
+      _ =
+          -((Real.pi : ℂ) *
+            (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (T : ℂ)) -
+              Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * ((0 : ℝ) : ℂ)))) := by
+        exact congrArg Neg.neg hsecond_pos
+  calc
+    Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T =
+        (∫ y : ℝ in (-T)..(0 : ℝ),
+          f y * ((Real.pi : ℂ) * Complex.I)) +
+        (∫ y : ℝ in (0 : ℝ)..T,
+          f y * (-(Real.pi : ℂ) * Complex.I)) := by
+      rfl
+    _ =
+        ((Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * ((0 : ℝ) : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * ((-T : ℝ) : ℂ)))) +
+        (-((Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (T : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * ((0 : ℝ) : ℂ))))) := by
+      exact congrArg₂ HAdd.hAdd hfirst hsecond_neg
+    _ =
+        (Real.pi : ℂ) *
+            (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (0 : ℂ)) -
+              Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * ((-T : ℝ) : ℂ))) -
+          (Real.pi : ℂ) *
+            (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (T : ℂ)) -
+              Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (0 : ℂ))) := by
+      exact
+        (sub_eq_add_neg
+          ((Real.pi : ℂ) *
+            (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (0 : ℂ)) -
+              Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * ((-T : ℝ) : ℂ))))
+          ((Real.pi : ℂ) *
+            (Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (T : ℂ)) -
+              Complex.finiteAbelPlanaLogComplexPrimitive w (Complex.I * (0 : ℂ))))).symm
+
+/-- Right vertical constant side evaluated by the logarithmic primitive. -/
+theorem Complex.finiteAbelPlana_log_rightVerticalCotangentConstantSide_eq_primitive
+    (N : ℕ)
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (T : ℝ) :
+    let M : ℕ := N + 1
+    Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T =
+      (Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (0 : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * ((-T : ℝ) : ℂ))) -
+        (Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (T : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (0 : ℂ))) := by
+  intro M
+  let f : ℝ → ℂ := fun y : ℝ =>
+    Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ))
+  have hfirst :
+      ∫ y : ℝ in (-T)..(0 : ℝ),
+          f y * ((Real.pi : ℂ) * Complex.I) =
+        (Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * ((0 : ℝ) : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * ((-T : ℝ) : ℂ))) :=
+    Complex.finiteAbelPlana_log_rightVerticalConstantPrimitive_integral
+      N hw (-T) 0
+  have hsecond_pos :
+      ∫ y : ℝ in (0 : ℝ)..T,
+          f y * ((Real.pi : ℂ) * Complex.I) =
+        (Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (T : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * ((0 : ℝ) : ℂ))) :=
+    Complex.finiteAbelPlana_log_rightVerticalConstantPrimitive_integral
+      N hw 0 T
+  have hsecond_neg :
+      ∫ y : ℝ in (0 : ℝ)..T,
+          f y * (-(Real.pi : ℂ) * Complex.I) =
+        -((Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (T : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * ((0 : ℝ) : ℂ)))) := by
+    calc
+      ∫ y : ℝ in (0 : ℝ)..T,
+          f y * (-(Real.pi : ℂ) * Complex.I) =
+          -(∫ y : ℝ in (0 : ℝ)..T,
+              f y * ((Real.pi : ℂ) * Complex.I)) := by
+        exact
+          Complex.finiteAbelPlana_integral_mul_neg_pi_I_eq_neg_integral_mul_pi_I
+            f 0 T
+      _ =
+          -((Real.pi : ℂ) *
+            (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (T : ℂ)) -
+              Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * ((0 : ℝ) : ℂ)))) := by
+        exact congrArg Neg.neg hsecond_pos
+  calc
+    Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T =
+        (∫ y : ℝ in (-T)..(0 : ℝ),
+          f y * ((Real.pi : ℂ) * Complex.I)) +
+        (∫ y : ℝ in (0 : ℝ)..T,
+          f y * (-(Real.pi : ℂ) * Complex.I)) := by
+      rfl
+    _ =
+        ((Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * ((0 : ℝ) : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * ((-T : ℝ) : ℂ)))) +
+        (-((Real.pi : ℂ) *
+          (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (T : ℂ)) -
+            Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * ((0 : ℝ) : ℂ))))) := by
+      exact congrArg₂ HAdd.hAdd hfirst hsecond_neg
+    _ =
+        (Real.pi : ℂ) *
+            (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (0 : ℂ)) -
+              Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * ((-T : ℝ) : ℂ))) -
+          (Real.pi : ℂ) *
+            (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (T : ℂ)) -
+              Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (0 : ℂ))) := by
+      exact
+        (sub_eq_add_neg
+          ((Real.pi : ℂ) *
+            (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (0 : ℂ)) -
+              Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * ((-T : ℝ) : ℂ))))
+          ((Real.pi : ℂ) *
+            (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (T : ℂ)) -
+              Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℂ) + Complex.I * (0 : ℂ))))).symm
+
+/-- Normalization by `(2πi)⁻¹` halves a term carrying one `πi` factor. -/
+theorem Complex.finiteAbelPlana_two_pi_I_inv_mul_pi_I_mul
+    (z : ℂ) :
+    (((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+      (((Real.pi : ℂ) * Complex.I) * z)) =
+      z / (2 : ℂ) := by
+  let p : ℂ := (Real.pi : ℂ) * Complex.I
+  have hp : p ≠ 0 :=
+    mul_ne_zero
+      ((Complex.ofReal_ne_zero).mpr Real.pi_ne_zero)
+      Complex.I_ne_zero
+  have hden :
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) = (2 : ℂ) * p := by
+    exact mul_assoc (2 : ℂ) (Real.pi : ℂ) Complex.I
+  calc
+    (((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+      (((Real.pi : ℂ) * Complex.I) * z)) =
+        ((2 : ℂ) * p)⁻¹ * (p * z) := by
+      exact
+        congrArg₂ HMul.hMul
+          (congrArg Inv.inv hden)
+          (Eq.refl (p * z))
+    _ = (p * z) * ((2 : ℂ) * p)⁻¹ := by
+      exact mul_comm ((2 : ℂ) * p)⁻¹ (p * z)
+    _ = (p * z) / ((2 : ℂ) * p) := by
+      exact (div_eq_mul_inv (p * z) ((2 : ℂ) * p)).symm
+    _ = (z * p) / ((2 : ℂ) * p) := by
+      exact congrArg (fun u : ℂ => u / ((2 : ℂ) * p)) (mul_comm p z)
+    _ = z / (2 : ℂ) := by
+      exact mul_div_mul_right z (2 : ℂ) hp
+
+/-- Right-factor form of the `(2πi)⁻¹` normalization. -/
+theorem Complex.finiteAbelPlana_two_pi_I_inv_mul_mul_pi_I
+    (z : ℂ) :
+    (((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+      (z * ((Real.pi : ℂ) * Complex.I))) =
+      z / (2 : ℂ) := by
+  have hcomm :
+      z * ((Real.pi : ℂ) * Complex.I) =
+        ((Real.pi : ℂ) * Complex.I) * z :=
+    mul_comm z ((Real.pi : ℂ) * Complex.I)
+  calc
+    (((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+      (z * ((Real.pi : ℂ) * Complex.I))) =
+        (((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+          (((Real.pi : ℂ) * Complex.I) * z)) := by
+      exact congrArg
+        (fun u : ℂ => ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ * u)
+        hcomm
+    _ = z / (2 : ℂ) :=
+      Complex.finiteAbelPlana_two_pi_I_inv_mul_pi_I_mul z
+
+/-- Left constant-face packet algebra after primitive evaluation.
+
+The upper horizontal constant side contributes the upper-left to upper-right
+primitive difference with factor `-πi`; the left vertical constant side
+contributes the two left vertical half-lines.  After orienting the normalized
+left boundary packet, only the lower-left/upper-right height corners and twice
+the left real endpoint remain. -/
+theorem Complex.finiteAbelPlana_leftConstantPacket_normalized_of_primitives
+    (upper lowerVertical leftReal lowerLeft upperLeft upperRight : ℂ)
+    (hupper :
+      upper = (upperRight - upperLeft) * (-(Real.pi : ℂ) * Complex.I))
+    (hleft :
+      lowerVertical =
+        (Real.pi : ℂ) * (leftReal - lowerLeft) -
+          (Real.pi : ℂ) * (upperLeft - leftReal)) :
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (-upper - Complex.I * lowerVertical) =
+      (upperRight + lowerLeft - (leftReal + leftReal)) / (2 : ℂ) := by
+  let p : ℂ := (Real.pi : ℂ) * Complex.I
+  let packet : ℂ := upperRight + lowerLeft - (leftReal + leftReal)
+  have hupper_oriented :
+      -upper = (upperRight - upperLeft) * p := by
+    have hneg_factor :
+        (-(Real.pi : ℂ) * Complex.I) = -p := by
+      exact neg_mul (Real.pi : ℂ) Complex.I
+    calc
+      -upper =
+          -((upperRight - upperLeft) * (-(Real.pi : ℂ) * Complex.I)) := by
+        exact congrArg Neg.neg hupper
+      _ = -((upperRight - upperLeft) * (-p)) := by
+        exact congrArg
+          (fun z : ℂ => -((upperRight - upperLeft) * z))
+          hneg_factor
+      _ = -(-(upperRight - upperLeft) * p) := by
+        exact congrArg Neg.neg (mul_neg (upperRight - upperLeft) p)
+      _ = (upperRight - upperLeft) * p := by
+        exact neg_neg ((upperRight - upperLeft) * p)
+  have hleft_oriented :
+      -(Complex.I * lowerVertical) =
+        (upperLeft - leftReal + (lowerLeft - leftReal)) * p := by
+    have hI_pi :
+        Complex.I * (Real.pi : ℂ) = p := by
+      exact mul_comm Complex.I (Real.pi : ℂ)
+    have hI_left :
+        Complex.I * lowerVertical =
+          p * (leftReal - lowerLeft) -
+            p * (upperLeft - leftReal) := by
+      calc
+        Complex.I * lowerVertical =
+            Complex.I *
+              ((Real.pi : ℂ) * (leftReal - lowerLeft) -
+                (Real.pi : ℂ) * (upperLeft - leftReal)) := by
+          exact congrArg (fun z : ℂ => Complex.I * z) hleft
+        _ =
+            Complex.I * ((Real.pi : ℂ) * (leftReal - lowerLeft)) -
+              Complex.I * ((Real.pi : ℂ) * (upperLeft - leftReal)) := by
+          exact mul_sub Complex.I
+            ((Real.pi : ℂ) * (leftReal - lowerLeft))
+            ((Real.pi : ℂ) * (upperLeft - leftReal))
+        _ =
+            (Complex.I * (Real.pi : ℂ)) * (leftReal - lowerLeft) -
+              (Complex.I * (Real.pi : ℂ)) * (upperLeft - leftReal) := by
+          exact congrArg₂ Sub.sub
+            (mul_assoc Complex.I (Real.pi : ℂ) (leftReal - lowerLeft))
+            (mul_assoc Complex.I (Real.pi : ℂ) (upperLeft - leftReal))
+        _ =
+            p * (leftReal - lowerLeft) -
+              p * (upperLeft - leftReal) := by
+          exact congrArg₂ Sub.sub
+            (congrArg (fun z : ℂ => z * (leftReal - lowerLeft)) hI_pi)
+            (congrArg (fun z : ℂ => z * (upperLeft - leftReal)) hI_pi)
+    have hleft_as_p :
+        p * (leftReal - lowerLeft) -
+            p * (upperLeft - leftReal) =
+          p * ((leftReal - lowerLeft) - (upperLeft - leftReal)) := by
+      exact
+        (mul_sub p (leftReal - lowerLeft) (upperLeft - leftReal)).symm
+    have hneg_inside :
+        -((leftReal - lowerLeft) - (upperLeft - leftReal)) =
+          upperLeft - leftReal + (lowerLeft - leftReal) := by
+      calc
+        -((leftReal - lowerLeft) - (upperLeft - leftReal)) =
+            (upperLeft - leftReal) - (leftReal - lowerLeft) := by
+          exact neg_sub (leftReal - lowerLeft) (upperLeft - leftReal)
+        _ =
+            (upperLeft - leftReal) + -(leftReal - lowerLeft) := by
+          exact sub_eq_add_neg (upperLeft - leftReal) (leftReal - lowerLeft)
+        _ =
+            (upperLeft - leftReal) + (lowerLeft - leftReal) := by
+          have hneg_left :
+              -(leftReal - lowerLeft) = lowerLeft - leftReal := by
+            exact neg_sub leftReal lowerLeft
+          exact congrArg
+            (fun z : ℂ => (upperLeft - leftReal) + z)
+            hneg_left
+        _ =
+            upperLeft - leftReal + (lowerLeft - leftReal) := by
+          rfl
+    calc
+      -(Complex.I * lowerVertical) =
+          -(p * ((leftReal - lowerLeft) - (upperLeft - leftReal))) := by
+        exact congrArg Neg.neg (Eq.trans hI_left hleft_as_p)
+      _ =
+          p * (-((leftReal - lowerLeft) - (upperLeft - leftReal))) := by
+        exact (mul_neg p ((leftReal - lowerLeft) - (upperLeft - leftReal))).symm
+      _ =
+          p * (upperLeft - leftReal + (lowerLeft - leftReal)) := by
+        exact congrArg (fun z : ℂ => p * z) hneg_inside
+      _ =
+          (upperLeft - leftReal + (lowerLeft - leftReal)) * p := by
+        exact mul_comm p (upperLeft - leftReal + (lowerLeft - leftReal))
+  have hpacket_sum :
+      (upperRight - upperLeft) +
+          (upperLeft - leftReal + (lowerLeft - leftReal)) =
+        packet := by
+    calc
+      (upperRight - upperLeft) +
+          (upperLeft - leftReal + (lowerLeft - leftReal)) =
+        ((upperRight - upperLeft) + (upperLeft - leftReal)) +
+          (lowerLeft - leftReal) := by
+        exact add_assoc (upperRight - upperLeft) (upperLeft - leftReal)
+          (lowerLeft - leftReal)
+      _ =
+        (upperRight - leftReal) + (lowerLeft - leftReal) := by
+        exact congrArg
+          (fun z : ℂ => z + (lowerLeft - leftReal))
+          (sub_add_sub_cancel upperRight upperLeft leftReal)
+      _ =
+        (upperRight + lowerLeft) - (leftReal + leftReal) := by
+        exact add_sub_add_comm upperRight leftReal lowerLeft leftReal
+      _ =
+        upperRight + lowerLeft - (leftReal + leftReal) := by
+        rfl
+      _ = packet := by
+        rfl
+  have hpacket_scalar :
+      -upper - Complex.I * lowerVertical = packet * p := by
+    calc
+      -upper - Complex.I * lowerVertical =
+          -upper + -(Complex.I * lowerVertical) := by
+        exact sub_eq_add_neg (-upper) (Complex.I * lowerVertical)
+      _ =
+          (upperRight - upperLeft) * p +
+            (upperLeft - leftReal + (lowerLeft - leftReal)) * p := by
+        exact congrArg₂ HAdd.hAdd hupper_oriented hleft_oriented
+      _ =
+          ((upperRight - upperLeft) +
+            (upperLeft - leftReal + (lowerLeft - leftReal))) * p := by
+        exact
+          (right_distrib (upperRight - upperLeft)
+            (upperLeft - leftReal + (lowerLeft - leftReal)) p).symm
+      _ = packet * p := by
+        exact congrArg (fun z : ℂ => z * p) hpacket_sum
+  calc
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (-upper - Complex.I * lowerVertical) =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (packet * ((Real.pi : ℂ) * Complex.I)) := by
+      exact congrArg
+        (fun z : ℂ => ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ * z)
+        hpacket_scalar
+    _ = packet / (2 : ℂ) := by
+      exact Complex.finiteAbelPlana_two_pi_I_inv_mul_mul_pi_I packet
+    _ = (upperRight + lowerLeft - (leftReal + leftReal)) / (2 : ℂ) := by
+      rfl
+
+/-- Right constant-face packet algebra after primitive evaluation.
+
+The lower horizontal constant side and the right vertical constant side have
+compatible orientations in the normalized right boundary packet.  The
+height-corner terms survive with negative sign, and twice the right real
+endpoint remains. -/
+theorem Complex.finiteAbelPlana_rightConstantPacket_normalized_of_primitives
+    (lower rightVertical rightReal lowerLeft lowerRight upperRight : ℂ)
+    (hlower :
+      lower = (lowerRight - lowerLeft) * ((Real.pi : ℂ) * Complex.I))
+    (hright :
+      rightVertical =
+        (Real.pi : ℂ) * (rightReal - lowerRight) -
+          (Real.pi : ℂ) * (upperRight - rightReal)) :
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (lower + Complex.I * rightVertical) =
+      (rightReal + rightReal - lowerLeft - upperRight) / (2 : ℂ) := by
+  let p : ℂ := (Real.pi : ℂ) * Complex.I
+  let packet : ℂ := rightReal + rightReal - lowerLeft - upperRight
+  have hright_oriented :
+      Complex.I * rightVertical =
+        (rightReal - lowerRight - (upperRight - rightReal)) * p := by
+    have hI_pi :
+        Complex.I * (Real.pi : ℂ) = p := by
+      exact mul_comm Complex.I (Real.pi : ℂ)
+    calc
+      Complex.I * rightVertical =
+          Complex.I *
+            ((Real.pi : ℂ) * (rightReal - lowerRight) -
+              (Real.pi : ℂ) * (upperRight - rightReal)) := by
+        exact congrArg (fun z : ℂ => Complex.I * z) hright
+      _ =
+          Complex.I * ((Real.pi : ℂ) * (rightReal - lowerRight)) -
+            Complex.I * ((Real.pi : ℂ) * (upperRight - rightReal)) := by
+        exact mul_sub Complex.I
+          ((Real.pi : ℂ) * (rightReal - lowerRight))
+          ((Real.pi : ℂ) * (upperRight - rightReal))
+      _ =
+          (Complex.I * (Real.pi : ℂ)) * (rightReal - lowerRight) -
+            (Complex.I * (Real.pi : ℂ)) * (upperRight - rightReal) := by
+        exact congrArg₂ Sub.sub
+          (mul_assoc Complex.I (Real.pi : ℂ) (rightReal - lowerRight))
+          (mul_assoc Complex.I (Real.pi : ℂ) (upperRight - rightReal))
+      _ =
+          p * (rightReal - lowerRight) -
+            p * (upperRight - rightReal) := by
+        exact congrArg₂ Sub.sub
+          (congrArg (fun z : ℂ => z * (rightReal - lowerRight)) hI_pi)
+          (congrArg (fun z : ℂ => z * (upperRight - rightReal)) hI_pi)
+      _ =
+          p * ((rightReal - lowerRight) - (upperRight - rightReal)) := by
+        exact
+          (mul_sub p (rightReal - lowerRight) (upperRight - rightReal)).symm
+      _ =
+          ((rightReal - lowerRight) - (upperRight - rightReal)) * p := by
+        exact mul_comm p ((rightReal - lowerRight) - (upperRight - rightReal))
+  have hpacket_sum :
+      (lowerRight - lowerLeft) +
+          ((rightReal - lowerRight) - (upperRight - rightReal)) =
+        packet := by
+    calc
+      (lowerRight - lowerLeft) +
+          ((rightReal - lowerRight) - (upperRight - rightReal)) =
+        (lowerRight - lowerLeft) +
+          ((rightReal - lowerRight) + -(upperRight - rightReal)) := by
+        exact congrArg
+          (fun z : ℂ => (lowerRight - lowerLeft) + z)
+          (sub_eq_add_neg (rightReal - lowerRight) (upperRight - rightReal))
+      _ =
+        ((lowerRight - lowerLeft) + (rightReal - lowerRight)) +
+          -(upperRight - rightReal) := by
+        exact add_assoc (lowerRight - lowerLeft) (rightReal - lowerRight)
+          (-(upperRight - rightReal))
+      _ =
+        (rightReal - lowerLeft) + -(upperRight - rightReal) := by
+        have hcancel :
+            (lowerRight - lowerLeft) + (rightReal - lowerRight) =
+              rightReal - lowerLeft := by
+          calc
+            (lowerRight - lowerLeft) + (rightReal - lowerRight) =
+                (rightReal - lowerRight) + (lowerRight - lowerLeft) := by
+              exact add_comm (lowerRight - lowerLeft) (rightReal - lowerRight)
+            _ = rightReal - lowerLeft := by
+              exact sub_add_sub_cancel rightReal lowerRight lowerLeft
+        exact congrArg
+          (fun z : ℂ => z + -(upperRight - rightReal))
+          hcancel
+      _ =
+        (rightReal - lowerLeft) + (rightReal - upperRight) := by
+        have hneg :
+            -(upperRight - rightReal) = rightReal - upperRight :=
+          neg_sub upperRight rightReal
+        exact congrArg
+          (fun z : ℂ => (rightReal - lowerLeft) + z)
+          hneg
+      _ =
+        (rightReal + rightReal) - (lowerLeft + upperRight) := by
+        exact add_sub_add_comm rightReal lowerLeft rightReal upperRight
+      _ =
+        rightReal + rightReal - lowerLeft - upperRight := by
+        exact (sub_sub (rightReal + rightReal) lowerLeft upperRight).symm
+      _ = packet := by
+        rfl
+  have hpacket_scalar :
+      lower + Complex.I * rightVertical = packet * p := by
+    calc
+      lower + Complex.I * rightVertical =
+          (lowerRight - lowerLeft) * p +
+            ((rightReal - lowerRight) - (upperRight - rightReal)) * p := by
+        exact congrArg₂ HAdd.hAdd hlower hright_oriented
+      _ =
+          ((lowerRight - lowerLeft) +
+            ((rightReal - lowerRight) - (upperRight - rightReal))) * p := by
+        exact
+          (right_distrib (lowerRight - lowerLeft)
+            ((rightReal - lowerRight) - (upperRight - rightReal)) p).symm
+      _ = packet * p := by
+        exact congrArg (fun z : ℂ => z * p) hpacket_sum
+  calc
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (lower + Complex.I * rightVertical) =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (packet * ((Real.pi : ℂ) * Complex.I)) := by
+      exact congrArg
+        (fun z : ℂ => ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ * z)
+        hpacket_scalar
+    _ = packet / (2 : ℂ) := by
+      exact Complex.finiteAbelPlana_two_pi_I_inv_mul_mul_pi_I packet
+    _ = (rightReal + rightReal - lowerLeft - upperRight) / (2 : ℂ) := by
+      rfl
+
+/-- Abstract half-packet cancellation for the four constant Abel-Plana faces.
+
+After the `(2πi)⁻¹` normalization, the left constant packet contributes
+`(upperRight + lowerLeft - 2 * leftReal) / 2`, while the right constant
+packet contributes `(2 * rightReal - lowerLeft - upperRight) / 2`.  The two
+height-corner terms cancel and only the real segment primitive difference
+remains. -/
+theorem Complex.finiteAbelPlana_constantFace_halfPackets_cancel
+    (lowerLeft upperRight leftReal rightReal : ℂ) :
+    ((upperRight + lowerLeft - (leftReal + leftReal)) / (2 : ℂ)) +
+      ((rightReal + rightReal - lowerLeft - upperRight) / (2 : ℂ)) =
+      rightReal - leftReal := by
+  let A : ℂ := upperRight + lowerLeft - (leftReal + leftReal)
+  let B : ℂ := rightReal + rightReal - lowerLeft - upperRight
+  let Y : ℂ := rightReal - leftReal
+  have hleft :
+      A + B = Y + Y := by
+    calc
+      A + B =
+          (upperRight + lowerLeft - (leftReal + leftReal)) +
+            (rightReal + rightReal - lowerLeft - upperRight) := by
+        rfl
+      _ =
+          ((upperRight + lowerLeft) - (leftReal + leftReal)) +
+            ((rightReal + rightReal) - (lowerLeft + upperRight)) := by
+        exact congrArg
+          (fun z : ℂ =>
+            (upperRight + lowerLeft - (leftReal + leftReal)) + z)
+          (sub_sub (rightReal + rightReal) lowerLeft upperRight)
+      _ =
+          ((upperRight + lowerLeft) + (rightReal + rightReal)) -
+            ((leftReal + leftReal) + (lowerLeft + upperRight)) := by
+        exact add_sub_add_comm
+          (upperRight + lowerLeft) (leftReal + leftReal)
+          (rightReal + rightReal) (lowerLeft + upperRight)
+      _ =
+          ((rightReal + rightReal) + (upperRight + lowerLeft)) -
+            ((leftReal + leftReal) + (lowerLeft + upperRight)) := by
+        exact congrArg
+          (fun z : ℂ => z - ((leftReal + leftReal) + (lowerLeft + upperRight)))
+          (add_comm (upperRight + lowerLeft) (rightReal + rightReal))
+      _ =
+          (rightReal + rightReal) -
+            (leftReal + leftReal) := by
+        have hright_reorder :
+            (leftReal + leftReal) + (lowerLeft + upperRight) =
+              (leftReal + leftReal) + (upperRight + lowerLeft) := by
+          exact congrArg
+            (fun z : ℂ => (leftReal + leftReal) + z)
+            (add_comm lowerLeft upperRight)
+        have hcancel :
+            ((rightReal + rightReal) + (upperRight + lowerLeft)) -
+              ((leftReal + leftReal) + (upperRight + lowerLeft)) =
+              (rightReal + rightReal) - (leftReal + leftReal) := by
+          exact add_sub_add_right_eq_sub (rightReal + rightReal) (leftReal + leftReal)
+            (upperRight + lowerLeft)
+        exact Eq.trans
+          (congrArg
+            (fun z : ℂ => ((rightReal + rightReal) + (upperRight + lowerLeft)) - z)
+            hright_reorder)
+          hcancel
+      _ =
+          (rightReal - leftReal) + (rightReal - leftReal) := by
+        exact (add_sub_add_comm rightReal leftReal rightReal leftReal).symm
+      _ = Y + Y := by
+        rfl
+  calc
+    (A / (2 : ℂ)) + (B / (2 : ℂ)) =
+        (A + B) / (2 : ℂ) := by
+      exact div_add_div_same A B (2 : ℂ)
+    _ = (Y + Y) / (2 : ℂ) := by
+      exact congrArg (fun z : ℂ => z / (2 : ℂ)) hleft
+    _ = Y := by
+      exact add_self_div_two Y
+    _ = rightReal - leftReal := by
+      rfl
+
+/-- Left vertical lower endpoint equals the lower-left rectangle corner. -/
+theorem Complex.finiteAbelPlana_leftVertical_lowerCorner_arg
+    (T : ℝ) :
+    Complex.I * ((-T : ℝ) : ℂ) =
+      (0 : ℂ) - (T : ℂ) * Complex.I := by
+  calc
+    Complex.I * ((-T : ℝ) : ℂ) =
+        Complex.I * (-(T : ℂ)) := by
+      exact congrArg (fun z : ℂ => Complex.I * z) (Complex.ofReal_neg T)
+    _ = -(Complex.I * (T : ℂ)) := by
+      exact mul_neg Complex.I (T : ℂ)
+    _ = -((T : ℂ) * Complex.I) := by
+      exact congrArg Neg.neg (mul_comm Complex.I (T : ℂ))
+    _ = (0 : ℂ) - (T : ℂ) * Complex.I := by
+      exact (zero_sub ((T : ℂ) * Complex.I)).symm
+
+/-- Left vertical upper endpoint equals the upper-left rectangle corner. -/
+theorem Complex.finiteAbelPlana_leftVertical_upperCorner_arg
+    (T : ℝ) :
+    Complex.I * (T : ℂ) =
+      (0 : ℂ) + (T : ℂ) * Complex.I := by
+  calc
+    Complex.I * (T : ℂ) =
+        (T : ℂ) * Complex.I := by
+      exact mul_comm Complex.I (T : ℂ)
+    _ = (0 : ℂ) + (T : ℂ) * Complex.I := by
+      exact (zero_add ((T : ℂ) * Complex.I)).symm
+
+/-- Left vertical middle endpoint is the left real corner. -/
+theorem Complex.finiteAbelPlana_leftVertical_realCorner_arg :
+    Complex.I * (0 : ℂ) = (0 : ℂ) := by
+  exact mul_zero Complex.I
+
+/-- Right vertical lower endpoint equals the lower-right rectangle corner. -/
+theorem Complex.finiteAbelPlana_rightVertical_lowerCorner_arg
+    (M : ℕ)
+    (T : ℝ) :
+    (M : ℂ) + Complex.I * ((-T : ℝ) : ℂ) =
+      ((M : ℝ) : ℂ) - (T : ℂ) * Complex.I := by
+  calc
+    (M : ℂ) + Complex.I * ((-T : ℝ) : ℂ) =
+        (M : ℂ) + ((0 : ℂ) - (T : ℂ) * Complex.I) := by
+      exact congrArg
+        (fun z : ℂ => (M : ℂ) + z)
+        (Complex.finiteAbelPlana_leftVertical_lowerCorner_arg T)
+    _ = ((M : ℝ) : ℂ) + ((0 : ℂ) - (T : ℂ) * Complex.I) := by
+      rfl
+    _ = ((M : ℝ) : ℂ) - (T : ℂ) * Complex.I := by
+      exact congrArg
+        (fun z : ℂ => z - (T : ℂ) * Complex.I)
+        (add_zero (((M : ℝ) : ℂ)))
+
+/-- Right vertical upper endpoint equals the upper-right rectangle corner. -/
+theorem Complex.finiteAbelPlana_rightVertical_upperCorner_arg
+    (M : ℕ)
+    (T : ℝ) :
+    (M : ℂ) + Complex.I * (T : ℂ) =
+      ((M : ℝ) : ℂ) + (T : ℂ) * Complex.I := by
+  calc
+    (M : ℂ) + Complex.I * (T : ℂ) =
+        (M : ℂ) + ((0 : ℂ) + (T : ℂ) * Complex.I) := by
+      exact congrArg
+        (fun z : ℂ => (M : ℂ) + z)
+        (Complex.finiteAbelPlana_leftVertical_upperCorner_arg T)
+    _ = ((M : ℝ) : ℂ) + ((0 : ℂ) + (T : ℂ) * Complex.I) := by
+      rfl
+    _ = ((M : ℝ) : ℂ) + (T : ℂ) * Complex.I := by
+      exact congrArg
+        (fun z : ℂ => ((M : ℝ) : ℂ) + z)
+        (zero_add ((T : ℂ) * Complex.I))
+
+/-- Right vertical middle endpoint is the right real corner. -/
+theorem Complex.finiteAbelPlana_rightVertical_realCorner_arg
+    (M : ℕ) :
+    (M : ℂ) + Complex.I * (0 : ℂ) = ((M : ℝ) : ℂ) := by
+  calc
+    (M : ℂ) + Complex.I * (0 : ℂ) =
+        (M : ℂ) + (0 : ℂ) := by
+      exact congrArg (fun z : ℂ => (M : ℂ) + z) (mul_zero Complex.I)
+    _ = (M : ℂ) := by
+      exact add_zero (M : ℂ)
+    _ = ((M : ℝ) : ℂ) := by
+      rfl
+
+/-- Concrete left normalized constant-face packet for the finite Abel-Plana
+rectangle. -/
+theorem Complex.finiteAbelPlana_log_leftConstantPacket_normalized_eq_halfPacket
+    (N : ℕ)
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (T : ℝ) :
+    let M : ℕ := N + 1
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+          Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T) =
+      (Complex.finiteAbelPlanaLogComplexPrimitive w
+          (((M : ℝ) : ℂ) + (T : ℂ) * Complex.I) +
+        Complex.finiteAbelPlanaLogComplexPrimitive w
+          ((0 : ℂ) - (T : ℂ) * Complex.I) -
+        (Complex.finiteAbelPlanaLogComplexPrimitive w (0 : ℂ) +
+          Complex.finiteAbelPlanaLogComplexPrimitive w (0 : ℂ))) / (2 : ℂ) := by
+  intro M
+  let F : ℂ → ℂ := fun z : ℂ => Complex.finiteAbelPlanaLogComplexPrimitive w z
+  have hupper :
+      Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T =
+        (F (((M : ℝ) : ℂ) + (T : ℂ) * Complex.I) -
+          F ((0 : ℂ) + (T : ℂ) * Complex.I)) *
+          (-(Real.pi : ℂ) * Complex.I) :=
+    Complex.finiteAbelPlana_log_upperHorizontalCotangentConstantSide_eq_primitive
+      N hw T
+  have hleft_raw :
+      Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T =
+        (Real.pi : ℂ) *
+            (F (Complex.I * (0 : ℂ)) -
+              F (Complex.I * ((-T : ℝ) : ℂ))) -
+          (Real.pi : ℂ) *
+            (F (Complex.I * (T : ℂ)) -
+              F (Complex.I * (0 : ℂ))) :=
+    Complex.finiteAbelPlana_log_leftVerticalCotangentConstantSide_eq_primitive
+      hw T
+  have hleft :
+      Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T =
+        (Real.pi : ℂ) *
+            (F (0 : ℂ) -
+              F ((0 : ℂ) - (T : ℂ) * Complex.I)) -
+          (Real.pi : ℂ) *
+            (F ((0 : ℂ) + (T : ℂ) * Complex.I) -
+              F (0 : ℂ)) := by
+    have hzero :
+        F (Complex.I * (0 : ℂ)) = F (0 : ℂ) :=
+      congrArg F Complex.finiteAbelPlana_leftVertical_realCorner_arg
+    have hlower :
+        F (Complex.I * ((-T : ℝ) : ℂ)) =
+          F ((0 : ℂ) - (T : ℂ) * Complex.I) :=
+      congrArg F (Complex.finiteAbelPlana_leftVertical_lowerCorner_arg T)
+    have hupper_left :
+        F (Complex.I * (T : ℂ)) =
+          F ((0 : ℂ) + (T : ℂ) * Complex.I) :=
+      congrArg F (Complex.finiteAbelPlana_leftVertical_upperCorner_arg T)
+    calc
+      Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T =
+          (Real.pi : ℂ) *
+              (F (Complex.I * (0 : ℂ)) -
+                F (Complex.I * ((-T : ℝ) : ℂ))) -
+            (Real.pi : ℂ) *
+              (F (Complex.I * (T : ℂ)) -
+                F (Complex.I * (0 : ℂ))) := hleft_raw
+      _ =
+          (Real.pi : ℂ) *
+              (F (0 : ℂ) -
+                F ((0 : ℂ) - (T : ℂ) * Complex.I)) -
+            (Real.pi : ℂ) *
+              (F ((0 : ℂ) + (T : ℂ) * Complex.I) -
+                F (0 : ℂ)) := by
+        exact congrArg₂ Sub.sub
+          (congrArg
+            (fun z : ℂ => (Real.pi : ℂ) * z)
+            (congrArg₂ Sub.sub hzero hlower))
+          (congrArg
+            (fun z : ℂ => (Real.pi : ℂ) * z)
+            (congrArg₂ Sub.sub hupper_left hzero))
+  exact
+    Complex.finiteAbelPlana_leftConstantPacket_normalized_of_primitives
+      (Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T)
+      (Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T)
+      (F (0 : ℂ))
+      (F ((0 : ℂ) - (T : ℂ) * Complex.I))
+      (F ((0 : ℂ) + (T : ℂ) * Complex.I))
+      (F (((M : ℝ) : ℂ) + (T : ℂ) * Complex.I))
+      hupper
+      hleft
+
+/-- Concrete right normalized constant-face packet for the finite Abel-Plana
+rectangle. -/
+theorem Complex.finiteAbelPlana_log_rightConstantPacket_normalized_eq_halfPacket
+    (N : ℕ)
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (T : ℝ) :
+    let M : ℕ := N + 1
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+          Complex.I *
+            Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T) =
+      (Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℝ) : ℂ) +
+          Complex.finiteAbelPlanaLogComplexPrimitive w ((M : ℝ) : ℂ) -
+        Complex.finiteAbelPlanaLogComplexPrimitive w
+          ((0 : ℂ) - (T : ℂ) * Complex.I) -
+        Complex.finiteAbelPlanaLogComplexPrimitive w
+          (((M : ℝ) : ℂ) + (T : ℂ) * Complex.I)) / (2 : ℂ) := by
+  intro M
+  let F : ℂ → ℂ := fun z : ℂ => Complex.finiteAbelPlanaLogComplexPrimitive w z
+  have hlower :
+      Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T =
+        (F (((M : ℝ) : ℂ) - (T : ℂ) * Complex.I) -
+          F ((0 : ℂ) - (T : ℂ) * Complex.I)) *
+          ((Real.pi : ℂ) * Complex.I) :=
+    Complex.finiteAbelPlana_log_lowerHorizontalCotangentConstantSide_eq_primitive
+      N hw T
+  have hright_raw :
+      Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T =
+        (Real.pi : ℂ) *
+            (F ((M : ℂ) + Complex.I * (0 : ℂ)) -
+              F ((M : ℂ) + Complex.I * ((-T : ℝ) : ℂ))) -
+          (Real.pi : ℂ) *
+            (F ((M : ℂ) + Complex.I * (T : ℂ)) -
+              F ((M : ℂ) + Complex.I * (0 : ℂ))) :=
+    Complex.finiteAbelPlana_log_rightVerticalCotangentConstantSide_eq_primitive
+      N hw T
+  have hright :
+      Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T =
+        (Real.pi : ℂ) *
+            (F ((M : ℝ) : ℂ) -
+              F (((M : ℝ) : ℂ) - (T : ℂ) * Complex.I)) -
+          (Real.pi : ℂ) *
+            (F (((M : ℝ) : ℂ) + (T : ℂ) * Complex.I) -
+              F ((M : ℝ) : ℂ)) := by
+    have hzero :
+        F ((M : ℂ) + Complex.I * (0 : ℂ)) =
+          F ((M : ℝ) : ℂ) :=
+      congrArg F (Complex.finiteAbelPlana_rightVertical_realCorner_arg M)
+    have hlower_right :
+        F ((M : ℂ) + Complex.I * ((-T : ℝ) : ℂ)) =
+          F (((M : ℝ) : ℂ) - (T : ℂ) * Complex.I) :=
+      congrArg F (Complex.finiteAbelPlana_rightVertical_lowerCorner_arg M T)
+    have hupper_right :
+        F ((M : ℂ) + Complex.I * (T : ℂ)) =
+          F (((M : ℝ) : ℂ) + (T : ℂ) * Complex.I) :=
+      congrArg F (Complex.finiteAbelPlana_rightVertical_upperCorner_arg M T)
+    calc
+      Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T =
+          (Real.pi : ℂ) *
+              (F ((M : ℂ) + Complex.I * (0 : ℂ)) -
+                F ((M : ℂ) + Complex.I * ((-T : ℝ) : ℂ))) -
+            (Real.pi : ℂ) *
+              (F ((M : ℂ) + Complex.I * (T : ℂ)) -
+                F ((M : ℂ) + Complex.I * (0 : ℂ))) := hright_raw
+      _ =
+          (Real.pi : ℂ) *
+              (F ((M : ℝ) : ℂ) -
+                F (((M : ℝ) : ℂ) - (T : ℂ) * Complex.I)) -
+            (Real.pi : ℂ) *
+              (F (((M : ℝ) : ℂ) + (T : ℂ) * Complex.I) -
+                F ((M : ℝ) : ℂ)) := by
+        exact congrArg₂ Sub.sub
+          (congrArg
+            (fun z : ℂ => (Real.pi : ℂ) * z)
+            (congrArg₂ Sub.sub hzero hlower_right))
+          (congrArg
+            (fun z : ℂ => (Real.pi : ℂ) * z)
+            (congrArg₂ Sub.sub hupper_right hzero))
+  exact
+    Complex.finiteAbelPlana_rightConstantPacket_normalized_of_primitives
+      (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T)
+      (Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T)
+      (F ((M : ℝ) : ℂ))
+      (F ((0 : ℂ) - (T : ℂ) * Complex.I))
+      (F (((M : ℝ) : ℂ) - (T : ℂ) * Complex.I))
+      (F (((M : ℝ) : ℂ) + (T : ℂ) * Complex.I))
+      hlower
+      hright
 
 /-- PV left vertical side splits into its constant and exponential-remainder
 parts. -/

@@ -802,6 +802,50 @@ theorem Complex.finiteAbelPlana_log_finiteHeightContourError_tendsto_zero_owner
         hw N).neg)
   exact hdecay.congr' (hidentify.mono (fun T hT => hT.symm))
 
+/-- Owner-side endpoint-restored finite-height contour-error cancellation.
+
+The endpoint-restored bridge cancels the horizontal edges after the endpoint
+indentation contribution has been subtracted from the original finite-height
+contour error. -/
+theorem Complex.finiteAbelPlana_log_finiteHeightEndpointRestoredContourError_tendsto_zero_owner
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)))
+    (hbridges : Complex.FiniteHeightPVBridgePackageAtEndpointRestored N w) :
+    Tendsto
+      (fun T : ℝ =>
+        Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T)
+      atTop
+      (𝓝 (0 : ℂ)) := by
+  have hidentify :
+      ∀ᶠ T : ℝ in atTop,
+        Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T =
+          -Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
+    exact hbridges.mono
+      (fun T hbridge =>
+        Complex.finiteAbelPlana_log_finiteHeightEndpointRestoredContourError_eq_neg_horizontalEdgeError_residueAccounting
+          hw N hdecInteriorPole T hbridge.1 hbridge.2.1 hbridge.2.2)
+  have hdecay :
+      Tendsto
+        (fun T : ℝ =>
+          -Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
+        atTop
+        (𝓝 (0 : ℂ)) := by
+    exact Eq.mpr
+      (congrArg
+        (fun z : ℂ =>
+          Tendsto
+            (fun T : ℝ =>
+              -Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
+            atTop
+            (𝓝 z))
+        (neg_zero : -(0 : ℂ) = 0).symm)
+      ((Complex.finiteAbelPlana_log_horizontalEdgeError_tendsto_zero_owner
+        hw N).neg)
+  exact hdecay.congr' (hidentify.mono (fun T hT => hT.symm))
+
 end
 
 end LFunctions

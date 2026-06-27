@@ -172,6 +172,73 @@ theorem Real.two_mul_div_two
     2 * (x / 2) = x / 2 + x / 2 := two_mul (x / 2)
     _ = x := add_halves x
 
+/-- Exponential tail integral bound for the decay `exp (-(2π)t)`. -/
+theorem Real.exp_neg_two_pi_tail_integral_le_exp
+    (a : ℝ) :
+    ∫ t : ℝ in Set.Ioi a,
+        Real.exp (-((2 : ℝ) * Real.pi) * t) ≤
+      Real.exp (-((2 : ℝ) * Real.pi) * a) := by
+  let k : ℝ := (2 : ℝ) * Real.pi
+  have hk_pos : 0 < k :=
+    mul_pos two_pos Real.pi_pos
+  have hchange :
+      ∫ t : ℝ in Set.Ioi a, Real.exp (-((2 : ℝ) * Real.pi) * t) =
+        k⁻¹ * ∫ u : ℝ in Set.Ioi (k * a), Real.exp (-u) := by
+    calc
+      ∫ t : ℝ in Set.Ioi a, Real.exp (-((2 : ℝ) * Real.pi) * t) =
+          ∫ t : ℝ in Set.Ioi a, (fun u : ℝ => Real.exp (-u)) (k * t) := by
+        exact
+          setIntegral_congr_fun measurableSet_Ioi
+            (fun t _ht =>
+              congrArg Real.exp
+                (by
+                  exact neg_mul ((2 : ℝ) * Real.pi) t))
+      _ =
+          k⁻¹ •
+            ∫ u : ℝ in Set.Ioi (k * a), Real.exp (-u) :=
+        integral_comp_mul_left_Ioi
+          (fun u : ℝ => Real.exp (-u)) a hk_pos
+      _ =
+          k⁻¹ * ∫ u : ℝ in Set.Ioi (k * a), Real.exp (-u) := by
+        rfl
+  have htail_exact :
+      ∫ u : ℝ in Set.Ioi (k * a), Real.exp (-u) =
+        Real.exp (-(k * a)) :=
+    integral_exp_neg_Ioi (k * a)
+  have htail_scaled :
+      ∫ t : ℝ in Set.Ioi a,
+          Real.exp (-((2 : ℝ) * Real.pi) * t) =
+        k⁻¹ * Real.exp (-((2 : ℝ) * Real.pi) * a) := by
+    calc
+      ∫ t : ℝ in Set.Ioi a, Real.exp (-((2 : ℝ) * Real.pi) * t) =
+          k⁻¹ * ∫ u : ℝ in Set.Ioi (k * a), Real.exp (-u) :=
+        hchange
+      _ = k⁻¹ * Real.exp (-(k * a)) := by
+        exact congrArg (fun x : ℝ => k⁻¹ * x) htail_exact
+      _ = k⁻¹ * Real.exp (-((2 : ℝ) * Real.pi) * a) := by
+        rfl
+  have hone_le_k : (1 : ℝ) ≤ k := by
+    have hone_le_two : (1 : ℝ) ≤ 2 := one_le_two
+    have hone_le_pi : (1 : ℝ) ≤ Real.pi :=
+      le_of_lt (lt_trans Real.binetMajorant_one_lt_three Real.pi_gt_three)
+    calc
+      (1 : ℝ) ≤ 2 := hone_le_two
+      _ = 2 * 1 := Eq.symm (mul_one (2 : ℝ))
+      _ ≤ 2 * Real.pi :=
+        mul_le_mul_of_nonneg_left hone_le_pi zero_le_two
+      _ = k := rfl
+  have hk_inv_le_one : k⁻¹ ≤ 1 :=
+    inv_le_one_of_one_le₀ hone_le_k
+  have hexp_nonneg :
+      0 ≤ Real.exp (-((2 : ℝ) * Real.pi) * a) :=
+    le_of_lt (Real.exp_pos (-((2 : ℝ) * Real.pi) * a))
+  exact
+    Eq.subst
+      (motive := fun x : ℝ =>
+        x ≤ Real.exp (-((2 : ℝ) * Real.pi) * a))
+      htail_scaled.symm
+      (mul_le_of_le_one_left hexp_nonneg hk_inv_le_one)
+
 /-- Reassociate an `ε * (3 * N)` product into `3 * (ε * N)`. -/
 theorem Real.mul_three_mul_reassoc
     (ε N : ℝ) :
@@ -910,6 +977,187 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_le_three_norm_div_bran
       Complex.binetSecondFormula_arctan_tail_cleared_ratio_norm_le_three_norm_div_branchWall_distance
         hw_re_pos ht_nonneg ht_le
 
+/-- The branch-wall distance package is bounded below by the real part. -/
+theorem Complex.binetSecondFormula_branchWall_distance_re_le
+    (w : ℂ)
+    (t : ℝ) :
+    w.re ≤ max w.re |w.im - t| := by
+  exact le_max_left w.re |w.im - t|
+
+/-- The branch-wall distance package is positive in the open right half-plane. -/
+theorem Complex.binetSecondFormula_branchWall_distance_pos
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (t : ℝ) :
+    0 < max w.re |w.im - t| := by
+  exact
+    lt_of_lt_of_le
+      hw_re_pos
+      (Complex.binetSecondFormula_branchWall_distance_re_le w t)
+
+/-- Increasing the branch-wall distance lowers the normalized arctangent
+ratio majorant. -/
+theorem Complex.binetSecondFormula_branchWall_ratio_le_realPart_ratio
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (t : ℝ) :
+    (3 * ‖w‖) / max w.re |w.im - t| ≤
+      (3 * ‖w‖) / w.re := by
+  have hnum_nonneg : 0 ≤ 3 * ‖w‖ :=
+    mul_nonneg Real.zero_le_three (norm_nonneg w)
+  have hden_le :
+      w.re ≤ max w.re |w.im - t| :=
+    Complex.binetSecondFormula_branchWall_distance_re_le w t
+  exact
+    div_le_div_of_nonneg_left
+      hnum_nonneg
+      hw_re_pos
+      hden_le
+
+/-- On the bounded branch-wall window the moving logarithmic ratio lies between
+`1` and the real-part ratio. -/
+theorem Complex.binetSecondFormula_branchWall_moving_ratio_bounds
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    {t : ℝ}
+    (ht_nonneg : 0 ≤ t)
+    (ht_le : t ≤ 2 * ‖w‖) :
+    (1 : ℝ) ≤ (3 * ‖w‖) / max w.re |w.im - t| ∧
+      (3 * ‖w‖) / max w.re |w.im - t| ≤
+        (3 * ‖w‖) / w.re := by
+  have hdist_pos :
+      0 < max w.re |w.im - t| :=
+    Complex.binetSecondFormula_branchWall_distance_pos hw_re_pos t
+  have hdist_le :
+      max w.re |w.im - t| ≤ 3 * ‖w‖ :=
+    Complex.binetSecondFormula_arctan_tail_denominator_max_branchWall_distance_le
+      (w := w) (t := t) ht_nonneg ht_le
+  have hlower :
+      (1 : ℝ) ≤ (3 * ‖w‖) / max w.re |w.im - t| := by
+    exact
+      (le_div_iff₀ hdist_pos).mpr
+        (Eq.subst
+          (motive := fun x : ℝ => x ≤ 3 * ‖w‖)
+          (one_mul (max w.re |w.im - t|)).symm
+          hdist_le)
+  have hupper :
+      (3 * ‖w‖) / max w.re |w.im - t| ≤
+        (3 * ‖w‖) / w.re :=
+    Complex.binetSecondFormula_branchWall_ratio_le_realPart_ratio
+      hw_re_pos t
+  exact And.intro hlower hupper
+
+/-- The moving branch-wall logarithm is bounded by the fixed real-part
+logarithmic window on the bounded tail interval. -/
+theorem Complex.binetSecondFormula_branchWall_moving_ratio_abs_log_le_realPart_window
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    {t : ℝ}
+    (ht_nonneg : 0 ≤ t)
+    (ht_le : t ≤ 2 * ‖w‖) :
+    |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| ≤
+      max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| := by
+  let A : ℝ := (3 * ‖w‖) / max w.re |w.im - t|
+  let U : ℝ := (3 * ‖w‖) / w.re
+  have hw_norm_pos : 0 < ‖w‖ :=
+    Complex.norm_pos_of_re_pos hw_re_pos
+  have hre_le_norm : w.re ≤ ‖w‖ := by
+    calc
+      w.re = |w.re| := Eq.symm (abs_of_pos hw_re_pos)
+      _ ≤ ‖w‖ := Complex.abs_re_le_abs w
+  have hre_le_three_norm : w.re ≤ 3 * ‖w‖ := by
+    calc
+      w.re ≤ ‖w‖ := hre_le_norm
+      _ ≤ 3 * ‖w‖ :=
+        le_mul_of_one_le_left
+          (le_of_lt hw_norm_pos)
+          Real.one_le_three_real
+  have hU_ge_one : (1 : ℝ) ≤ U := by
+    exact
+      (le_div_iff₀ hw_re_pos).mpr
+        (Eq.subst
+          (motive := fun x : ℝ => x ≤ 3 * ‖w‖)
+          (one_mul w.re).symm
+          hre_le_three_norm)
+  have hbounds :
+      (1 : ℝ) ≤ A ∧ A ≤ U :=
+    Complex.binetSecondFormula_branchWall_moving_ratio_bounds
+      hw_re_pos ht_nonneg ht_le
+  exact
+    Real.abs_log_le_max_abs_log_of_bounds
+      zero_lt_one
+      hU_ge_one
+      hbounds.1
+      hbounds.2
+
+/-- The moving branch-wall logarithmic numerator is bounded by the fixed
+real-part logarithmic numerator on the bounded tail interval. -/
+theorem Complex.binetSecondFormula_branchWall_moving_logNumerator_le_realPart_window
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    {t : ℝ}
+    (ht_nonneg : 0 ≤ t)
+    (ht_le : t ≤ 2 * ‖w‖) :
+    |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi ≤
+      max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+        Real.pi := by
+  exact
+    add_le_add_right
+      (Complex.binetSecondFormula_branchWall_moving_ratio_abs_log_le_realPart_window
+        hw_re_pos ht_nonneg ht_le)
+      Real.pi
+
+/-- On the bounded tail window, the exponential denominator is no smaller than
+the denominator at the lower split scale `‖w‖ / 2`. -/
+theorem Complex.binetSecondFormula_branchWall_exp_denominator_lower
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    {t : ℝ}
+    (ht_lower : ‖w‖ / 2 ≤ t) :
+    Real.exp (Real.pi * ‖w‖) - 1 ≤
+      Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
+  have hpi_le : Real.pi * ‖w‖ ≤ (2 : ℝ) * Real.pi * t := by
+    have hmul_lower :
+        Real.pi * (‖w‖ / 2) ≤ Real.pi * t :=
+      mul_le_mul_of_nonneg_left ht_lower (le_of_lt Real.pi_pos)
+    calc
+      Real.pi * ‖w‖ =
+          (2 : ℝ) * (Real.pi * (‖w‖ / 2)) := by
+        exact Eq.symm <| by
+          calc
+            (2 : ℝ) * (Real.pi * (‖w‖ / 2)) =
+                ((2 : ℝ) * Real.pi) * (‖w‖ / 2) := by
+              exact (mul_assoc (2 : ℝ) Real.pi (‖w‖ / 2)).symm
+            _ = (Real.pi * 2) * (‖w‖ / 2) := by
+              exact congrArg (fun x : ℝ => x * (‖w‖ / 2))
+                (mul_comm (2 : ℝ) Real.pi)
+            _ = Real.pi * (2 * (‖w‖ / 2)) := by
+              exact mul_assoc Real.pi 2 (‖w‖ / 2)
+            _ = Real.pi * ‖w‖ := by
+              exact congrArg (fun x : ℝ => Real.pi * x)
+                (Real.two_mul_div_two ‖w‖)
+      _ ≤ (2 : ℝ) * (Real.pi * t) :=
+        mul_le_mul_of_nonneg_left hmul_lower Real.zero_le_two_real
+      _ = (2 : ℝ) * Real.pi * t :=
+        (mul_assoc (2 : ℝ) Real.pi t).symm
+  exact sub_le_sub_right (Real.exp_le_exp.mpr hpi_le) 1
+
+/-- The lower split-scale Binet denominator is positive in the open right
+half-plane. -/
+theorem Complex.binetSecondFormula_branchWall_split_exp_denominator_pos
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    0 < Real.exp (Real.pi * ‖w‖) - 1 := by
+  have hw_norm_pos : 0 < ‖w‖ :=
+    Complex.norm_pos_of_re_pos hw_re_pos
+  have hpi_norm_pos : 0 < Real.pi * ‖w‖ :=
+    mul_pos Real.pi_pos hw_norm_pos
+  exact sub_pos.mpr
+    (calc
+      (1 : ℝ) = Real.exp 0 := Eq.symm Real.exp_zero
+      _ < Real.exp (Real.pi * ‖w‖) :=
+        Real.exp_lt_exp.mpr hpi_norm_pos)
+
 /-- The branch-wall logarithmic spike produced by the local arctangent-ratio
 majorant is integrable on the bounded tail window against the Binet
 exponential denominator. -/
@@ -965,6 +1213,79 @@ theorem Complex.binetSecondFormula_branchWall_logSpike_integrableOn_boundedTailW
         (fun t : ℝ => (|Real.log (A t)| + Real.pi) / E t) S :=
     hnum_contOn.div hE_cont.continuousOn hE_ne
   exact hquot_contOn.integrableOn_Icc
+
+/-- The branch-wall logarithmic spike is integrable on the half-open bounded
+tail window used by the exact Binet tail split. -/
+theorem Complex.binetSecondFormula_branchWall_logSpike_integrableOn_boundedTailWindow_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    IntegrableOn
+      (fun t : ℝ =>
+        (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+      (Set.Ioc (‖w‖ / 2) (2 * ‖w‖)) := by
+  have hIcc :
+      IntegrableOn
+        (fun t : ℝ =>
+          (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+            (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+        (Set.Icc (‖w‖ / 2) (2 * ‖w‖)) :=
+    Complex.binetSecondFormula_branchWall_logSpike_integrableOn_boundedTailWindow
+      hw_re_pos
+  have hsubset :
+      Set.Ioc (‖w‖ / 2) (2 * ‖w‖) ⊆
+        Set.Icc (‖w‖ / 2) (2 * ‖w‖) := by
+    intro t ht
+    exact ⟨le_of_lt ht.1, ht.2⟩
+  exact hIcc.mono_set hsubset
+
+/-- The unweighted branch-wall logarithmic spike is integrable on the
+half-open bounded tail window used by the Binet split.
+
+This is the real-variable core that should be used before any fixed
+real-part envelope is introduced: the singularity is the moving logarithmic
+one, and it is locally integrable on the exact split interval. -/
+theorem Complex.binetSecondFormula_branchWall_unweightedLogSpike_integrableOn_boundedTailWindow_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    IntegrableOn
+      (fun t : ℝ =>
+        |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)
+      (Set.Ioc (‖w‖ / 2) (2 * ‖w‖)) := by
+  let Scc : Set ℝ := Set.Icc (‖w‖ / 2) (2 * ‖w‖)
+  let D : ℝ → ℝ := fun t : ℝ => max w.re |w.im - t|
+  let A : ℝ → ℝ := fun t : ℝ => (3 * ‖w‖) / D t
+  have hw_norm_pos : 0 < ‖w‖ :=
+    Complex.norm_pos_of_re_pos hw_re_pos
+  have hD_pos : ∀ t : ℝ, 0 < D t := by
+    intro t
+    exact lt_of_lt_of_le hw_re_pos (le_max_left w.re |w.im - t|)
+  have hA_pos : ∀ t : ℝ, 0 < A t := by
+    intro t
+    exact div_pos (mul_pos Real.zero_lt_three hw_norm_pos) (hD_pos t)
+  have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
+    (continuous_const.sub continuous_id).abs
+  have hD_cont : Continuous D :=
+    continuous_const.max hdist_cont
+  have hA_cont : Continuous A :=
+    continuous_const.div hD_cont (fun t => (hD_pos t).ne')
+  have hlog_contOn : ContinuousOn (fun t : ℝ => Real.log (A t)) Scc :=
+    (hA_cont.continuousOn).log (fun t _ht => (hA_pos t).ne')
+  have hnum_contOn :
+      ContinuousOn (fun t : ℝ => |Real.log (A t)| + Real.pi) Scc :=
+    hlog_contOn.abs.add continuousOn_const
+  have hIcc :
+      IntegrableOn
+        (fun t : ℝ =>
+          |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)
+        Scc :=
+    hnum_contOn.integrableOn_Icc
+  have hsubset :
+      Set.Ioc (‖w‖ / 2) (2 * ‖w‖) ⊆
+        Set.Icc (‖w‖ / 2) (2 * ‖w‖) := by
+    intro t ht
+    exact ⟨le_of_lt ht.1, ht.2⟩
+  exact hIcc.mono_set hsubset
 
 /-- Pointwise bounded-window control of the branch-wall logarithmic spike
 against the Binet exponential denominator. -/
@@ -1055,46 +1376,21 @@ theorem Complex.binetSecondFormula_branchWall_logSpike_pointwise_le_boundedTailW
   have hlog_bound :
       |Real.log A| ≤
         max |Real.log (1 : ℝ)| |Real.log U| :=
-    Real.abs_log_le_max_abs_log_of_bounds
-      zero_lt_one hU_ge_one hA_lower hA_upper
+    Complex.binetSecondFormula_branchWall_moving_ratio_abs_log_le_realPart_window
+      hw_re_pos ht_nonneg ht_upper
   have hnum_bound :
       |Real.log A| + Real.pi ≤
         max |Real.log (1 : ℝ)| |Real.log U| + Real.pi :=
-    add_le_add_right hlog_bound Real.pi
+    Complex.binetSecondFormula_branchWall_moving_logNumerator_le_realPart_window
+      hw_re_pos ht_nonneg ht_upper
   have hE0_pos : 0 < E₀ := by
-    have hpi_norm_pos : 0 < Real.pi * ‖w‖ :=
-      mul_pos Real.pi_pos hw_norm_pos
-    exact sub_pos.mpr
-      (calc
-        (1 : ℝ) = Real.exp 0 := Eq.symm Real.exp_zero
-        _ < Real.exp (Real.pi * ‖w‖) :=
-          Real.exp_lt_exp.mpr hpi_norm_pos)
+    exact
+      Complex.binetSecondFormula_branchWall_split_exp_denominator_pos
+        hw_re_pos
   have hE_lower : E₀ ≤ E := by
-    have hpi_le : Real.pi * ‖w‖ ≤ (2 : ℝ) * Real.pi * t := by
-      have hmul_lower :
-          Real.pi * (‖w‖ / 2) ≤ Real.pi * t :=
-        mul_le_mul_of_nonneg_left ht_lower (le_of_lt Real.pi_pos)
-      calc
-        Real.pi * ‖w‖ =
-            (2 : ℝ) * (Real.pi * (‖w‖ / 2)) := by
-          exact Eq.symm <| by
-            calc
-              (2 : ℝ) * (Real.pi * (‖w‖ / 2)) =
-                  ((2 : ℝ) * Real.pi) * (‖w‖ / 2) := by
-                exact (mul_assoc (2 : ℝ) Real.pi (‖w‖ / 2)).symm
-              _ = (Real.pi * 2) * (‖w‖ / 2) := by
-                exact congrArg (fun x : ℝ => x * (‖w‖ / 2))
-                  (mul_comm (2 : ℝ) Real.pi)
-              _ = Real.pi * (2 * (‖w‖ / 2)) := by
-                exact mul_assoc Real.pi 2 (‖w‖ / 2)
-              _ = Real.pi * ‖w‖ := by
-                exact congrArg (fun x : ℝ => Real.pi * x)
-                  (Real.two_mul_div_two ‖w‖)
-        _ ≤ (2 : ℝ) * (Real.pi * t) :=
-          mul_le_mul_of_nonneg_left hmul_lower Real.zero_le_two_real
-        _ = (2 : ℝ) * Real.pi * t :=
-          (mul_assoc (2 : ℝ) Real.pi t).symm
-    exact sub_le_sub_right (Real.exp_le_exp.mpr hpi_le) 1
+    exact
+      Complex.binetSecondFormula_branchWall_exp_denominator_lower
+        hw_re_pos ht_lower
   have hnum_nonneg : 0 ≤ |Real.log A| + Real.pi :=
     add_nonneg (abs_nonneg (Real.log A)) Real.pi_nonneg
   exact
@@ -1224,6 +1520,244 @@ theorem Complex.binetSecondFormula_branchWall_logSpike_denominator_le_expWeighte
     Real.binetSecondFormula_nonneg_div_exp_denominator_le_two_mul_div_exp
       hN_nonneg ht_gt_one
 
+/-- Pointwise replacement of the moving branch-wall logarithmic numerator by
+the fixed real-part logarithmic numerator under the same exponential weight. -/
+theorem Complex.binetSecondFormula_branchWall_expWeighted_moving_le_realPart_window
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    {t : ℝ}
+    (ht_mem : t ∈ Set.Ioc (‖w‖ / 2) (2 * ‖w‖)) :
+    (2 *
+        (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+        Real.exp ((2 : ℝ) * Real.pi * t) ≤
+      (2 *
+        (max |Real.log (1 : ℝ)|
+          |Real.log ((3 * ‖w‖) / w.re)| + Real.pi)) /
+        Real.exp ((2 : ℝ) * Real.pi * t) := by
+  have ht_nonneg : 0 ≤ t := by
+    have hcut_nonneg : 0 ≤ ‖w‖ / 2 :=
+      div_nonneg (norm_nonneg w) Real.zero_le_two_real
+    exact le_trans hcut_nonneg (le_of_lt ht_mem.1)
+  have hnum :
+      |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi ≤
+        max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+          Real.pi :=
+    Complex.binetSecondFormula_branchWall_moving_logNumerator_le_realPart_window
+      hw_re_pos ht_nonneg ht_mem.2
+  have htwo_num :
+      2 *
+          (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) ≤
+        2 *
+          (max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+            Real.pi) :=
+    mul_le_mul_of_nonneg_left hnum Real.zero_le_two_real
+  exact
+    div_le_div_of_nonneg_right
+      htwo_num
+      (le_of_lt (Real.exp_pos ((2 : ℝ) * Real.pi * t)))
+
+/-- On the bounded branch-wall window, the pure exponential weight can be
+pulled down to the left endpoint scale while keeping the moving logarithmic
+spike intact.
+
+This is the pointwise step that avoids replacing the moving singularity by
+the fixed real-part envelope. -/
+theorem Complex.binetSecondFormula_branchWall_expWeighted_moving_le_cutoffExp
+    {w : ℂ}
+    {t : ℝ}
+    (ht_mem : t ∈ Set.Ioc (‖w‖ / 2) (2 * ‖w‖)) :
+    (2 *
+        (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+        Real.exp ((2 : ℝ) * Real.pi * t) ≤
+      (2 *
+        (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) *
+        Real.exp (-Real.pi * ‖w‖) := by
+  let L : ℝ :=
+    |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi
+  let K : ℝ := (2 : ℝ) * L
+  have hL_nonneg : 0 ≤ L :=
+    add_nonneg
+      (abs_nonneg
+        (Real.log ((3 * ‖w‖) / max w.re |w.im - t|)))
+      Real.pi_nonneg
+  have hK_nonneg : 0 ≤ K :=
+    mul_nonneg Real.zero_le_two hL_nonneg
+  have ht_lower : ‖w‖ / 2 ≤ t :=
+    le_of_lt ht_mem.1
+  have hcoeff_nonneg : 0 ≤ (2 : ℝ) * Real.pi :=
+    mul_nonneg Real.zero_le_two Real.pi_nonneg
+  have hmul_le :
+      ((2 : ℝ) * Real.pi) * (‖w‖ / 2) ≤
+        ((2 : ℝ) * Real.pi) * t :=
+    mul_le_mul_of_nonneg_left ht_lower hcoeff_nonneg
+  have hleft_scale :
+      ((2 : ℝ) * Real.pi) * (‖w‖ / 2) = Real.pi * ‖w‖ := by
+    calc
+      ((2 : ℝ) * Real.pi) * (‖w‖ / 2) =
+          (((2 : ℝ) * Real.pi) * ‖w‖) / 2 := by
+        exact mul_div_assoc ((2 : ℝ) * Real.pi) ‖w‖ 2
+      _ = ((Real.pi * ‖w‖) * 2) / 2 := by
+        exact
+          congrArg (fun x : ℝ => x / 2)
+            (calc
+              ((2 : ℝ) * Real.pi) * ‖w‖ =
+                  2 * (Real.pi * ‖w‖) := by
+                exact mul_assoc 2 Real.pi ‖w‖
+              _ = (Real.pi * ‖w‖) * 2 := by
+                exact mul_comm 2 (Real.pi * ‖w‖))
+      _ = Real.pi * ‖w‖ := by
+        exact mul_div_cancel_right₀ (Real.pi * ‖w‖) two_ne_zero
+  have hneg_le :
+      -(((2 : ℝ) * Real.pi) * t) ≤ -Real.pi * ‖w‖ := by
+    have hscale_le :
+        Real.pi * ‖w‖ ≤ ((2 : ℝ) * Real.pi) * t :=
+      Eq.subst
+        (motive := fun x : ℝ => x ≤ ((2 : ℝ) * Real.pi) * t)
+        hleft_scale
+        hmul_le
+    have hneg :
+        -(((2 : ℝ) * Real.pi) * t) ≤ -(Real.pi * ‖w‖) :=
+      neg_le_neg hscale_le
+    exact
+      Eq.subst
+        (motive := fun x : ℝ => -(((2 : ℝ) * Real.pi) * t) ≤ x)
+        (neg_mul Real.pi ‖w‖)
+        hneg
+  have hexp_le :
+      Real.exp (-(((2 : ℝ) * Real.pi) * t)) ≤
+        Real.exp (-Real.pi * ‖w‖) :=
+    Real.exp_le_exp.mpr hneg_le
+  have hweighted_le :
+      K * Real.exp (-(((2 : ℝ) * Real.pi) * t)) ≤
+        K * Real.exp (-Real.pi * ‖w‖) :=
+    mul_le_mul_of_nonneg_left hexp_le hK_nonneg
+  have hleft_eq :
+      (2 * L) / Real.exp ((2 : ℝ) * Real.pi * t) =
+        K * Real.exp (-(((2 : ℝ) * Real.pi) * t)) := by
+    calc
+      (2 * L) / Real.exp ((2 : ℝ) * Real.pi * t) =
+          K * (Real.exp ((2 : ℝ) * Real.pi * t))⁻¹ := by
+        rfl
+      _ = K * Real.exp (-(((2 : ℝ) * Real.pi) * t)) := by
+        exact congrArg (fun x : ℝ => K * x)
+          (Real.exp_neg (((2 : ℝ) * Real.pi) * t)).symm
+  exact
+    Eq.subst
+      (motive := fun x : ℝ =>
+        x ≤
+          (2 *
+            (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) *
+            Real.exp (-Real.pi * ‖w‖))
+      hleft_eq.symm
+      hweighted_le
+
+/-- Integrated cutoff-exponential extraction for the moving branch-wall
+logarithmic spike.
+
+This keeps the logarithmic singularity in its moving, locally integrable form
+and extracts only the uniform exponential scale from the bounded tail window. -/
+theorem Complex.binetSecondFormula_branchWall_expWeighted_integral_le_cutoffExp_integral_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (2 *
+          (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+          Real.exp ((2 : ℝ) * Real.pi * t) ≤
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (2 *
+          (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) *
+          Real.exp (-Real.pi * ‖w‖) := by
+  let S : Set ℝ := Set.Ioc (‖w‖ / 2) (2 * ‖w‖)
+  let G : ℝ → ℝ := fun t : ℝ =>
+    (2 *
+      (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+      Real.exp ((2 : ℝ) * Real.pi * t)
+  let H : ℝ → ℝ := fun t : ℝ =>
+    (2 *
+      (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) *
+      Real.exp (-Real.pi * ‖w‖)
+  have hG_integrable : IntegrableOn G S := by
+    let Scc : Set ℝ := Set.Icc (‖w‖ / 2) (2 * ‖w‖)
+    let B : ℝ → ℝ := fun t : ℝ => max w.re |w.im - t|
+    let A : ℝ → ℝ := fun t : ℝ => (3 * ‖w‖) / B t
+    let Gcc : ℝ → ℝ := fun t : ℝ =>
+      (2 * (|Real.log (A t)| + Real.pi)) /
+        Real.exp ((2 : ℝ) * Real.pi * t)
+    have hw_norm_pos : 0 < ‖w‖ :=
+      Complex.norm_pos_of_re_pos hw_re_pos
+    have hB_pos : ∀ t : ℝ, 0 < B t := by
+      intro t
+      exact lt_of_lt_of_le hw_re_pos (le_max_left w.re |w.im - t|)
+    have hA_pos : ∀ t : ℝ, 0 < A t := by
+      intro t
+      exact div_pos (mul_pos Real.zero_lt_three hw_norm_pos) (hB_pos t)
+    have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
+      (continuous_const.sub continuous_id).abs
+    have hB_cont : Continuous B :=
+      continuous_const.max hdist_cont
+    have hA_cont : Continuous A :=
+      continuous_const.div hB_cont (fun t => (hB_pos t).ne')
+    have hlog_contOn :
+        ContinuousOn (fun t : ℝ => Real.log (A t)) Scc :=
+      (hA_cont.continuousOn).log (fun t _ht => (hA_pos t).ne')
+    have hnum_contOn :
+        ContinuousOn (fun t : ℝ => 2 * (|Real.log (A t)| + Real.pi)) Scc :=
+      continuousOn_const.mul (hlog_contOn.abs.add continuousOn_const)
+    have hlinear_cont : Continuous fun t : ℝ => (2 : ℝ) * Real.pi * t :=
+      (continuous_const.mul continuous_const).mul continuous_id
+    have hden_cont : Continuous fun t : ℝ =>
+        Real.exp ((2 : ℝ) * Real.pi * t) :=
+      Real.continuous_exp.comp hlinear_cont
+    have hden_ne : ∀ t : ℝ, t ∈ Scc →
+        Real.exp ((2 : ℝ) * Real.pi * t) ≠ 0 := by
+      intro t _ht
+      exact (Real.exp_pos ((2 : ℝ) * Real.pi * t)).ne'
+    have hGcc_contOn : ContinuousOn Gcc Scc :=
+      hnum_contOn.div hden_cont.continuousOn hden_ne
+    have hGcc_integrable_Icc : IntegrableOn Gcc Scc :=
+      hGcc_contOn.integrableOn_Icc
+    exact hGcc_integrable_Icc.mono_set Ioc_subset_Icc_self
+  have hH_integrable : IntegrableOn H S := by
+    let Scc : Set ℝ := Set.Icc (‖w‖ / 2) (2 * ‖w‖)
+    let B : ℝ → ℝ := fun t : ℝ => max w.re |w.im - t|
+    let A : ℝ → ℝ := fun t : ℝ => (3 * ‖w‖) / B t
+    let Hcc : ℝ → ℝ := fun t : ℝ =>
+      (2 * (|Real.log (A t)| + Real.pi)) *
+        Real.exp (-Real.pi * ‖w‖)
+    have hw_norm_pos : 0 < ‖w‖ :=
+      Complex.norm_pos_of_re_pos hw_re_pos
+    have hB_pos : ∀ t : ℝ, 0 < B t := by
+      intro t
+      exact lt_of_lt_of_le hw_re_pos (le_max_left w.re |w.im - t|)
+    have hA_pos : ∀ t : ℝ, 0 < A t := by
+      intro t
+      exact div_pos (mul_pos Real.zero_lt_three hw_norm_pos) (hB_pos t)
+    have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
+      (continuous_const.sub continuous_id).abs
+    have hB_cont : Continuous B :=
+      continuous_const.max hdist_cont
+    have hA_cont : Continuous A :=
+      continuous_const.div hB_cont (fun t => (hB_pos t).ne')
+    have hlog_contOn :
+        ContinuousOn (fun t : ℝ => Real.log (A t)) Scc :=
+      (hA_cont.continuousOn).log (fun t _ht => (hA_pos t).ne')
+    have hnum_contOn :
+        ContinuousOn (fun t : ℝ => 2 * (|Real.log (A t)| + Real.pi)) Scc :=
+      continuousOn_const.mul (hlog_contOn.abs.add continuousOn_const)
+    have hHcc_contOn : ContinuousOn Hcc Scc :=
+      hnum_contOn.mul continuousOn_const
+    have hHcc_integrable_Icc : IntegrableOn Hcc Scc :=
+      hHcc_contOn.integrableOn_Icc
+    exact hHcc_integrable_Icc.mono_set Ioc_subset_Icc_self
+  have hpoint :
+      ∀ᵐ t ∂volume.restrict S, G t ≤ H t :=
+    (ae_restrict_mem measurableSet_Ioc).mono
+      (fun t ht =>
+        Complex.binetSecondFormula_branchWall_expWeighted_moving_le_cutoffExp
+          (w := w) ht)
+  exact
+    setIntegral_mono_ae_restrict hG_integrable hH_integrable hpoint
+
 /-- Integrated denominator replacement for the branch-wall logarithmic spike
 on the bounded local-indentation window.
 
@@ -1302,6 +1836,718 @@ theorem Complex.binetSecondFormula_branchWall_logSpike_integral_le_expWeighted_b
           (w := w) hw_re_pos hw_large ht)
   exact
     setIntegral_mono_ae_restrict hF_integrable hG_integrable hpoint
+
+/-- The branch-wall logarithmic spike with the Binet denominator is controlled
+by the moving singular integral times the left-endpoint exponential scale.
+
+This combines the denominator replacement with cutoff-exponential extraction
+without replacing the moving branch-wall singularity by a fixed real-part
+envelope. -/
+theorem Complex.binetSecondFormula_branchWall_logSpike_integral_le_cutoffExp_movingIntegral_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (hw_large : 2 ≤ ‖w‖) :
+    ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (2 *
+          (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) *
+          Real.exp (-Real.pi * ‖w‖) := by
+  exact
+    le_trans
+      (Complex.binetSecondFormula_branchWall_logSpike_integral_le_expWeighted_boundedTailWindow_Ioc
+        hw_re_pos hw_large)
+      (Complex.binetSecondFormula_branchWall_expWeighted_integral_le_cutoffExp_integral_Ioc
+        hw_re_pos)
+
+/-- The extracted cutoff exponential is a constant factor in the moving
+branch-wall spike integral. -/
+theorem Complex.binetSecondFormula_branchWall_cutoffExp_movingIntegral_eq_movingIntegral_mul_exp_Ioc
+    (w : ℂ) :
+    ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (2 *
+          (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) *
+          Real.exp (-Real.pi * ‖w‖) =
+      (∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        2 *
+          (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) *
+          Real.exp (-Real.pi * ‖w‖) := by
+  exact
+    integral_mul_right
+      (Real.exp (-Real.pi * ‖w‖))
+      (fun t : ℝ =>
+        2 *
+          (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi))
+
+/-- The branch-wall logarithmic spike with Binet denominator is bounded by the
+unweighted moving-spike integral times the cutoff exponential.
+
+This is the reusable moving-singularity form of the bounded-window estimate;
+no fixed `w.re` logarithmic envelope appears. -/
+theorem Complex.binetSecondFormula_branchWall_logSpike_integral_le_movingIntegral_mul_exp_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (hw_large : 2 ≤ ‖w‖) :
+    ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      (∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        2 *
+          (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) *
+          Real.exp (-Real.pi * ‖w‖) := by
+  have hcutoff :
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+          (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+            (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+        ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+          (2 *
+            (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) *
+            Real.exp (-Real.pi * ‖w‖) :=
+    Complex.binetSecondFormula_branchWall_logSpike_integral_le_cutoffExp_movingIntegral_Ioc
+      hw_re_pos hw_large
+  have hfactor :
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+          (2 *
+            (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) *
+            Real.exp (-Real.pi * ‖w‖) =
+        (∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+          2 *
+            (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) *
+            Real.exp (-Real.pi * ‖w‖) :=
+    Complex.binetSecondFormula_branchWall_cutoffExp_movingIntegral_eq_movingIntegral_mul_exp_Ioc
+      w
+  exact
+    Eq.subst
+      (motive := fun x : ℝ =>
+        ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+            (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+              (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤ x)
+      hfactor
+      hcutoff
+
+/-- Integrated replacement of the moving branch-wall logarithmic numerator by
+the fixed real-part logarithmic numerator under the exponential weight. -/
+theorem Complex.binetSecondFormula_branchWall_expWeighted_integral_le_realPart_window_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (2 *
+          (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+          Real.exp ((2 : ℝ) * Real.pi * t) ≤
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (2 *
+          (max |Real.log (1 : ℝ)|
+            |Real.log ((3 * ‖w‖) / w.re)| + Real.pi)) /
+          Real.exp ((2 : ℝ) * Real.pi * t) := by
+  let S : Set ℝ := Set.Ioc (‖w‖ / 2) (2 * ‖w‖)
+  let G : ℝ → ℝ := fun t : ℝ =>
+    (2 *
+      (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+      Real.exp ((2 : ℝ) * Real.pi * t)
+  let H : ℝ → ℝ := fun t : ℝ =>
+    (2 *
+      (max |Real.log (1 : ℝ)|
+        |Real.log ((3 * ‖w‖) / w.re)| + Real.pi)) /
+      Real.exp ((2 : ℝ) * Real.pi * t)
+  have hG_integrable : IntegrableOn G S := by
+    let Scc : Set ℝ := Set.Icc (‖w‖ / 2) (2 * ‖w‖)
+    let B : ℝ → ℝ := fun t : ℝ => max w.re |w.im - t|
+    let A : ℝ → ℝ := fun t : ℝ => (3 * ‖w‖) / B t
+    let Gcc : ℝ → ℝ := fun t : ℝ =>
+      (2 * (|Real.log (A t)| + Real.pi)) /
+        Real.exp ((2 : ℝ) * Real.pi * t)
+    have hw_norm_pos : 0 < ‖w‖ :=
+      Complex.norm_pos_of_re_pos hw_re_pos
+    have hB_pos : ∀ t : ℝ, 0 < B t := by
+      intro t
+      exact
+        lt_of_lt_of_le
+          hw_re_pos
+          (Complex.binetSecondFormula_branchWall_distance_re_le w t)
+    have hA_pos : ∀ t : ℝ, 0 < A t := by
+      intro t
+      exact div_pos (mul_pos Real.zero_lt_three hw_norm_pos) (hB_pos t)
+    have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
+      (continuous_const.sub continuous_id).abs
+    have hB_cont : Continuous B :=
+      continuous_const.max hdist_cont
+    have hA_cont : Continuous A :=
+      continuous_const.div hB_cont (fun t => (hB_pos t).ne')
+    have hlog_contOn :
+        ContinuousOn (fun t : ℝ => Real.log (A t)) Scc :=
+      (hA_cont.continuousOn).log (fun t ht => (hA_pos t).ne')
+    have hnum_contOn :
+        ContinuousOn (fun t : ℝ => 2 * (|Real.log (A t)| + Real.pi)) Scc :=
+      continuousOn_const.mul (hlog_contOn.abs.add continuousOn_const)
+    have hlinear_cont : Continuous fun t : ℝ => (2 : ℝ) * Real.pi * t :=
+      (continuous_const.mul continuous_const).mul continuous_id
+    have hden_cont : Continuous fun t : ℝ =>
+        Real.exp ((2 : ℝ) * Real.pi * t) :=
+      Real.continuous_exp.comp hlinear_cont
+    have hden_ne : ∀ t : ℝ, t ∈ Scc →
+        Real.exp ((2 : ℝ) * Real.pi * t) ≠ 0 := by
+      intro t ht
+      exact (Real.exp_pos ((2 : ℝ) * Real.pi * t)).ne'
+    have hGcc_contOn : ContinuousOn Gcc Scc :=
+      hnum_contOn.div hden_cont.continuousOn hden_ne
+    have hGcc_integrable_Icc : IntegrableOn Gcc Scc :=
+      hGcc_contOn.integrableOn_Icc
+    exact hGcc_integrable_Icc.mono_set Ioc_subset_Icc_self
+  have hH_integrable : IntegrableOn H S := by
+    let Scc : Set ℝ := Set.Icc (‖w‖ / 2) (2 * ‖w‖)
+    let K : ℝ := 2 *
+      (max |Real.log (1 : ℝ)|
+        |Real.log ((3 * ‖w‖) / w.re)| + Real.pi)
+    let Hcc : ℝ → ℝ := fun t : ℝ =>
+      K / Real.exp ((2 : ℝ) * Real.pi * t)
+    have hlinear_cont : Continuous fun t : ℝ => (2 : ℝ) * Real.pi * t :=
+      (continuous_const.mul continuous_const).mul continuous_id
+    have hden_cont : Continuous fun t : ℝ =>
+        Real.exp ((2 : ℝ) * Real.pi * t) :=
+      Real.continuous_exp.comp hlinear_cont
+    have hden_ne : ∀ t : ℝ, t ∈ Scc →
+        Real.exp ((2 : ℝ) * Real.pi * t) ≠ 0 := by
+      intro t ht
+      exact (Real.exp_pos ((2 : ℝ) * Real.pi * t)).ne'
+    have hHcc_contOn : ContinuousOn Hcc Scc :=
+      continuousOn_const.div hden_cont.continuousOn hden_ne
+    have hHcc_integrable_Icc : IntegrableOn Hcc Scc :=
+      hHcc_contOn.integrableOn_Icc
+    exact hHcc_integrable_Icc.mono_set Ioc_subset_Icc_self
+  have hpoint :
+      ∀ᵐ t ∂volume.restrict S, G t ≤ H t :=
+    (ae_restrict_mem measurableSet_Ioc).mono
+      (fun t ht =>
+        Complex.binetSecondFormula_branchWall_expWeighted_moving_le_realPart_window
+          hw_re_pos ht)
+  exact
+    setIntegral_mono_ae_restrict hG_integrable hH_integrable hpoint
+
+/-- The bounded branch-wall logarithmic spike is controlled by the fixed
+real-part logarithmic numerator under the pure exponential weight. -/
+theorem Complex.binetSecondFormula_branchWall_logSpike_integral_le_realPart_expWeighted_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (hw_large : 2 ≤ ‖w‖) :
+    ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (2 *
+          (max |Real.log (1 : ℝ)|
+            |Real.log ((3 * ‖w‖) / w.re)| + Real.pi)) /
+          Real.exp ((2 : ℝ) * Real.pi * t) := by
+  exact
+    le_trans
+      (Complex.binetSecondFormula_branchWall_logSpike_integral_le_expWeighted_boundedTailWindow_Ioc
+        hw_re_pos hw_large)
+      (Complex.binetSecondFormula_branchWall_expWeighted_integral_le_realPart_window_Ioc
+        hw_re_pos)
+
+/-- The fixed-window branch-wall exponential integral has the expected
+`exp (-π‖w‖)` scale. -/
+theorem Complex.binetSecondFormula_branchWall_realPart_expWeighted_integral_le_expScale_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (2 *
+          (max |Real.log (1 : ℝ)|
+            |Real.log ((3 * ‖w‖) / w.re)| + Real.pi)) /
+          Real.exp ((2 : ℝ) * Real.pi * t) ≤
+      (2 *
+        (max |Real.log (1 : ℝ)|
+          |Real.log ((3 * ‖w‖) / w.re)| + Real.pi)) *
+        Real.exp (-Real.pi * ‖w‖) := by
+  let N : ℝ := ‖w‖
+  let K : ℝ :=
+    2 *
+      (max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+        Real.pi)
+  let F : ℝ → ℝ := fun t : ℝ =>
+    Real.exp (-((2 : ℝ) * Real.pi) * t)
+  have hK_nonneg : 0 ≤ K := by
+    have hinside_nonneg :
+        0 ≤
+          max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+            Real.pi :=
+      add_nonneg
+        (le_max_of_le_left (abs_nonneg (Real.log (1 : ℝ))))
+        Real.pi_nonneg
+    exact mul_nonneg Real.zero_le_two hinside_nonneg
+  have htail_integrable :
+      IntegrableOn F (Set.Ioi (N / 2)) := by
+    have hcoeff_pos : 0 < (2 : ℝ) * Real.pi :=
+      mul_pos two_pos Real.pi_pos
+    exact exp_neg_integrableOn_Ioi (N / 2) hcoeff_pos
+  have htail_nonneg :
+      0 ≤ᵐ[volume.restrict (Set.Ioi (N / 2))] F :=
+    Filter.Eventually.of_forall
+      (fun t => le_of_lt (Real.exp_pos (-((2 : ℝ) * Real.pi) * t)))
+  have hsubset :
+      Set.Ioc (N / 2) (2 * N) ≤ᵐ[volume] Set.Ioi (N / 2) :=
+    Filter.Eventually.of_forall
+      (fun t ht => ht.1)
+  have hmono :
+      ∫ t : ℝ in Set.Ioc (N / 2) (2 * N), F t ≤
+        ∫ t : ℝ in Set.Ioi (N / 2), F t :=
+    setIntegral_mono_set htail_integrable htail_nonneg hsubset
+  have hscaled_mono :
+      K * (∫ t : ℝ in Set.Ioc (N / 2) (2 * N), F t) ≤
+        K * (∫ t : ℝ in Set.Ioi (N / 2), F t) :=
+    mul_le_mul_of_nonneg_left hmono hK_nonneg
+  have htail_bound :
+      ∫ t : ℝ in Set.Ioi (N / 2), F t ≤
+        Real.exp (-((2 : ℝ) * Real.pi) * (N / 2)) :=
+    Real.exp_neg_two_pi_tail_integral_le_exp (N / 2)
+  have hexponent :
+      -((2 : ℝ) * Real.pi) * (N / 2) = -Real.pi * ‖w‖ := by
+    calc
+      -((2 : ℝ) * Real.pi) * (N / 2) =
+          -(((2 : ℝ) * Real.pi) * (N / 2)) := by
+        exact neg_mul ((2 : ℝ) * Real.pi) (N / 2)
+      _ = -(Real.pi * ‖w‖) := by
+        have hinside :
+            ((2 : ℝ) * Real.pi) * (N / 2) =
+              Real.pi * ‖w‖ := by
+          calc
+            ((2 : ℝ) * Real.pi) * (N / 2) =
+                ((2 : ℝ) * Real.pi) * (‖w‖ / 2) := by
+              rfl
+            _ = (((2 : ℝ) * Real.pi) * ‖w‖) / 2 := by
+              exact mul_div_assoc ((2 : ℝ) * Real.pi) ‖w‖ 2
+            _ = ((Real.pi * ‖w‖) * 2) / 2 := by
+              exact
+                congrArg (fun x : ℝ => x / 2)
+                  (calc
+                    ((2 : ℝ) * Real.pi) * ‖w‖ =
+                        2 * (Real.pi * ‖w‖) := by
+                      exact mul_assoc 2 Real.pi ‖w‖
+                    _ = (Real.pi * ‖w‖) * 2 := by
+                      exact mul_comm 2 (Real.pi * ‖w‖))
+            _ = Real.pi * ‖w‖ := by
+              exact mul_div_cancel_right₀ (Real.pi * ‖w‖) two_ne_zero
+        exact congrArg Neg.neg hinside
+      _ = -Real.pi * ‖w‖ := by
+        exact (neg_mul Real.pi ‖w‖).symm
+  have htail_scale :
+      K * (∫ t : ℝ in Set.Ioi (N / 2), F t) ≤
+        K * Real.exp (-Real.pi * ‖w‖) := by
+    exact
+      mul_le_mul_of_nonneg_left
+        (Eq.subst
+          (motive := fun x : ℝ =>
+            ∫ t : ℝ in Set.Ioi (N / 2), F t ≤ Real.exp x)
+          hexponent
+          htail_bound)
+        hK_nonneg
+  have hintegrand_eq :
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+          (2 *
+            (max |Real.log (1 : ℝ)|
+              |Real.log ((3 * ‖w‖) / w.re)| + Real.pi)) /
+            Real.exp ((2 : ℝ) * Real.pi * t) =
+        K * ∫ t : ℝ in Set.Ioc (N / 2) (2 * N), F t := by
+    calc
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+          (2 *
+            (max |Real.log (1 : ℝ)|
+              |Real.log ((3 * ‖w‖) / w.re)| + Real.pi)) /
+            Real.exp ((2 : ℝ) * Real.pi * t) =
+          ∫ t : ℝ in Set.Ioc (N / 2) (2 * N),
+            K * F t := by
+        exact
+          setIntegral_congr_fun measurableSet_Ioc
+            (fun t _ht =>
+              calc
+                (2 *
+                    (max |Real.log (1 : ℝ)|
+                      |Real.log ((3 * ‖w‖) / w.re)| + Real.pi)) /
+                    Real.exp ((2 : ℝ) * Real.pi * t) =
+                    K * (Real.exp ((2 : ℝ) * Real.pi * t))⁻¹ := by
+                  rfl
+                _ = K * Real.exp (-((2 : ℝ) * Real.pi * t)) := by
+                  exact congrArg (fun x : ℝ => K * x)
+                    (Real.exp_neg ((2 : ℝ) * Real.pi * t)).symm
+                _ = K * F t := by
+                  exact congrArg (fun x : ℝ => K * Real.exp x)
+                    (neg_mul ((2 : ℝ) * Real.pi) t))
+      _ = K * ∫ t : ℝ in Set.Ioc (N / 2) (2 * N), F t := by
+        exact integral_mul_left K F
+  exact
+    Eq.subst
+      (motive := fun x : ℝ =>
+        x ≤
+          (2 *
+            (max |Real.log (1 : ℝ)|
+              |Real.log ((3 * ‖w‖) / w.re)| + Real.pi)) *
+            Real.exp (-Real.pi * ‖w‖))
+      hintegrand_eq.symm
+      (le_trans hscaled_mono htail_scale)
+
+/-- The bounded branch-wall logarithmic spike has the explicit exponential
+scale supplied by the lower split point. -/
+theorem Complex.binetSecondFormula_branchWall_logSpike_integral_le_expScale_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (hw_large : 2 ≤ ‖w‖) :
+    ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (|Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) /
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      (2 *
+        (max |Real.log (1 : ℝ)|
+          |Real.log ((3 * ‖w‖) / w.re)| + Real.pi)) *
+        Real.exp (-Real.pi * ‖w‖) := by
+  exact
+    le_trans
+      (Complex.binetSecondFormula_branchWall_logSpike_integral_le_realPart_expWeighted_Ioc
+        hw_re_pos hw_large)
+      (Complex.binetSecondFormula_branchWall_realPart_expWeighted_integral_le_expScale_Ioc
+        hw_re_pos)
+
+/-- The full moving branch-wall logarithmic numerator is bounded by the sum of
+the two fixed logarithmic windows. -/
+theorem Complex.binetSecondFormula_branchWall_fullLogNumerator_le_fixedWindowSum
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    {t : ℝ}
+    (ht_nonneg : 0 ≤ t)
+    (ht_le : t ≤ 2 * ‖w‖) :
+    max |Real.log (w.re / (3 * ‖w‖))|
+        |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi ≤
+      |Real.log (w.re / (3 * ‖w‖))| +
+        max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+        Real.pi := by
+  have hmoving :
+      |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| ≤
+        max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| :=
+    Complex.binetSecondFormula_branchWall_moving_ratio_abs_log_le_realPart_window
+      hw_re_pos ht_nonneg ht_le
+  have hmax :
+      max |Real.log (w.re / (3 * ‖w‖))|
+          |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| ≤
+        |Real.log (w.re / (3 * ‖w‖))| +
+          max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| := by
+    have hfixed_nonneg :
+        0 ≤ max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| :=
+      le_max_of_le_left (abs_nonneg (Real.log (1 : ℝ)))
+    have hleft :
+        |Real.log (w.re / (3 * ‖w‖))| ≤
+          |Real.log (w.re / (3 * ‖w‖))| +
+            max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| :=
+      le_add_of_nonneg_right hfixed_nonneg
+    have hright :
+        |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| ≤
+          |Real.log (w.re / (3 * ‖w‖))| +
+            max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| :=
+      le_trans hmoving
+        (le_add_of_nonneg_left (abs_nonneg (Real.log (w.re / (3 * ‖w‖)))))
+    exact
+      max_le hleft hright
+  exact add_le_add_right hmax Real.pi
+
+/-- Pointwise weighted form of the full branch-wall logarithmic numerator
+bound. -/
+theorem Complex.binetSecondFormula_branchWall_expWeighted_fullLogEnvelope_le_fixedWindowSum
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    {t : ℝ}
+    (ht_mem : t ∈ Set.Ioc (‖w‖ / 2) (2 * ‖w‖)) :
+    (2 *
+      (max |Real.log (w.re / (3 * ‖w‖))|
+        |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+      Real.exp ((2 : ℝ) * Real.pi * t) ≤
+    (2 *
+      (|Real.log (w.re / (3 * ‖w‖))| +
+        max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+        Real.pi)) /
+      Real.exp ((2 : ℝ) * Real.pi * t) := by
+  have ht_nonneg : 0 ≤ t := by
+    have hcut_nonneg : 0 ≤ ‖w‖ / 2 :=
+      div_nonneg (norm_nonneg w) Real.zero_le_two_real
+    exact le_trans hcut_nonneg (le_of_lt ht_mem.1)
+  have hnum :
+      max |Real.log (w.re / (3 * ‖w‖))|
+          |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi ≤
+        |Real.log (w.re / (3 * ‖w‖))| +
+          max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+          Real.pi :=
+    Complex.binetSecondFormula_branchWall_fullLogNumerator_le_fixedWindowSum
+      hw_re_pos ht_nonneg ht_mem.2
+  have htwo_num :
+      2 *
+        (max |Real.log (w.re / (3 * ‖w‖))|
+          |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi) ≤
+      2 *
+        (|Real.log (w.re / (3 * ‖w‖))| +
+          max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+          Real.pi) :=
+    mul_le_mul_of_nonneg_left hnum Real.zero_le_two_real
+  exact
+    div_le_div_of_nonneg_right
+      htwo_num
+      (le_of_lt (Real.exp_pos ((2 : ℝ) * Real.pi * t)))
+
+/-- Integrated weighted full-envelope comparison for the bounded branch-wall
+window. -/
+theorem Complex.binetSecondFormula_branchWall_expWeighted_fullLogEnvelope_integral_le_fixedWindowSum_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (2 *
+          (max |Real.log (w.re / (3 * ‖w‖))|
+            |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+          Real.exp ((2 : ℝ) * Real.pi * t) ≤
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (2 *
+          (|Real.log (w.re / (3 * ‖w‖))| +
+            max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+            Real.pi)) /
+          Real.exp ((2 : ℝ) * Real.pi * t) := by
+  let S : Set ℝ := Set.Ioc (‖w‖ / 2) (2 * ‖w‖)
+  let G : ℝ → ℝ := fun t : ℝ =>
+    (2 *
+      (max |Real.log (w.re / (3 * ‖w‖))|
+        |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+      Real.exp ((2 : ℝ) * Real.pi * t)
+  let H : ℝ → ℝ := fun t : ℝ =>
+    (2 *
+      (|Real.log (w.re / (3 * ‖w‖))| +
+        max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+        Real.pi)) /
+      Real.exp ((2 : ℝ) * Real.pi * t)
+  have hG_integrable : IntegrableOn G S := by
+    let Scc : Set ℝ := Set.Icc (‖w‖ / 2) (2 * ‖w‖)
+    let B : ℝ → ℝ := fun t : ℝ => max w.re |w.im - t|
+    let A : ℝ → ℝ := fun t : ℝ => (3 * ‖w‖) / B t
+    let Gcc : ℝ → ℝ := fun t : ℝ =>
+      (2 *
+        (max |Real.log (w.re / (3 * ‖w‖))| |Real.log (A t)| +
+          Real.pi)) /
+        Real.exp ((2 : ℝ) * Real.pi * t)
+    have hw_norm_pos : 0 < ‖w‖ :=
+      Complex.norm_pos_of_re_pos hw_re_pos
+    have hB_pos : ∀ t : ℝ, 0 < B t := by
+      intro t
+      exact
+        lt_of_lt_of_le
+          hw_re_pos
+          (Complex.binetSecondFormula_branchWall_distance_re_le w t)
+    have hA_pos : ∀ t : ℝ, 0 < A t := by
+      intro t
+      exact div_pos (mul_pos Real.zero_lt_three hw_norm_pos) (hB_pos t)
+    have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
+      (continuous_const.sub continuous_id).abs
+    have hB_cont : Continuous B :=
+      continuous_const.max hdist_cont
+    have hA_cont : Continuous A :=
+      continuous_const.div hB_cont (fun t => (hB_pos t).ne')
+    have hlog_contOn :
+        ContinuousOn (fun t : ℝ => Real.log (A t)) Scc :=
+      (hA_cont.continuousOn).log (fun t ht => (hA_pos t).ne')
+    have hnum_contOn :
+        ContinuousOn
+          (fun t : ℝ =>
+            2 *
+              (max |Real.log (w.re / (3 * ‖w‖))| |Real.log (A t)| +
+                Real.pi))
+          Scc :=
+      continuousOn_const.mul
+        ((continuousOn_const.max hlog_contOn.abs).add continuousOn_const)
+    have hlinear_cont : Continuous fun t : ℝ => (2 : ℝ) * Real.pi * t :=
+      (continuous_const.mul continuous_const).mul continuous_id
+    have hden_cont : Continuous fun t : ℝ =>
+        Real.exp ((2 : ℝ) * Real.pi * t) :=
+      Real.continuous_exp.comp hlinear_cont
+    have hden_ne : ∀ t : ℝ, t ∈ Scc →
+        Real.exp ((2 : ℝ) * Real.pi * t) ≠ 0 := by
+      intro t ht
+      exact (Real.exp_pos ((2 : ℝ) * Real.pi * t)).ne'
+    have hGcc_contOn : ContinuousOn Gcc Scc :=
+      hnum_contOn.div hden_cont.continuousOn hden_ne
+    have hGcc_integrable_Icc : IntegrableOn Gcc Scc :=
+      hGcc_contOn.integrableOn_Icc
+    exact hGcc_integrable_Icc.mono_set Ioc_subset_Icc_self
+  have hH_integrable : IntegrableOn H S := by
+    let Scc : Set ℝ := Set.Icc (‖w‖ / 2) (2 * ‖w‖)
+    let K : ℝ := 2 *
+      (|Real.log (w.re / (3 * ‖w‖))| +
+        max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+        Real.pi)
+    let Hcc : ℝ → ℝ := fun t : ℝ =>
+      K / Real.exp ((2 : ℝ) * Real.pi * t)
+    have hlinear_cont : Continuous fun t : ℝ => (2 : ℝ) * Real.pi * t :=
+      (continuous_const.mul continuous_const).mul continuous_id
+    have hden_cont : Continuous fun t : ℝ =>
+        Real.exp ((2 : ℝ) * Real.pi * t) :=
+      Real.continuous_exp.comp hlinear_cont
+    have hden_ne : ∀ t : ℝ, t ∈ Scc →
+        Real.exp ((2 : ℝ) * Real.pi * t) ≠ 0 := by
+      intro t ht
+      exact (Real.exp_pos ((2 : ℝ) * Real.pi * t)).ne'
+    have hHcc_contOn : ContinuousOn Hcc Scc :=
+      continuousOn_const.div hden_cont.continuousOn hden_ne
+    have hHcc_integrable_Icc : IntegrableOn Hcc Scc :=
+      hHcc_contOn.integrableOn_Icc
+    exact hHcc_integrable_Icc.mono_set Ioc_subset_Icc_self
+  have hpoint :
+      ∀ᵐ t ∂volume.restrict S, G t ≤ H t :=
+    (ae_restrict_mem measurableSet_Ioc).mono
+      (fun t ht =>
+        Complex.binetSecondFormula_branchWall_expWeighted_fullLogEnvelope_le_fixedWindowSum
+          hw_re_pos ht)
+  exact
+    setIntegral_mono_ae_restrict hG_integrable hH_integrable hpoint
+
+/-- The fixed-window-sum full branch-wall envelope has the expected
+`exp (-π‖w‖)` scale. -/
+theorem Complex.binetSecondFormula_branchWall_fixedWindowSum_expWeighted_integral_le_expScale_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        (2 *
+          (|Real.log (w.re / (3 * ‖w‖))| +
+            max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+            Real.pi)) /
+          Real.exp ((2 : ℝ) * Real.pi * t) ≤
+      (2 *
+        (|Real.log (w.re / (3 * ‖w‖))| +
+          max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+          Real.pi)) *
+        Real.exp (-Real.pi * ‖w‖) := by
+  let N : ℝ := ‖w‖
+  let K : ℝ :=
+    2 *
+      (|Real.log (w.re / (3 * ‖w‖))| +
+        max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+        Real.pi)
+  let F : ℝ → ℝ := fun t : ℝ =>
+    Real.exp (-((2 : ℝ) * Real.pi) * t)
+  have hK_nonneg : 0 ≤ K := by
+    have hfixed_nonneg :
+        0 ≤ max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| :=
+      le_max_of_le_left (abs_nonneg (Real.log (1 : ℝ)))
+    have hinside_nonneg :
+        0 ≤
+          |Real.log (w.re / (3 * ‖w‖))| +
+            max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+            Real.pi :=
+      add_nonneg
+        (add_nonneg (abs_nonneg (Real.log (w.re / (3 * ‖w‖)))) hfixed_nonneg)
+        Real.pi_nonneg
+    exact mul_nonneg Real.zero_le_two hinside_nonneg
+  have htail_integrable :
+      IntegrableOn F (Set.Ioi (N / 2)) := by
+    have hcoeff_pos : 0 < (2 : ℝ) * Real.pi :=
+      mul_pos two_pos Real.pi_pos
+    exact exp_neg_integrableOn_Ioi (N / 2) hcoeff_pos
+  have htail_nonneg :
+      0 ≤ᵐ[volume.restrict (Set.Ioi (N / 2))] F :=
+    Filter.Eventually.of_forall
+      (fun t => le_of_lt (Real.exp_pos (-((2 : ℝ) * Real.pi) * t)))
+  have hsubset :
+      Set.Ioc (N / 2) (2 * N) ≤ᵐ[volume] Set.Ioi (N / 2) :=
+    Filter.Eventually.of_forall (fun t ht => ht.1)
+  have hmono :
+      ∫ t : ℝ in Set.Ioc (N / 2) (2 * N), F t ≤
+        ∫ t : ℝ in Set.Ioi (N / 2), F t :=
+    setIntegral_mono_set htail_integrable htail_nonneg hsubset
+  have hscaled_mono :
+      K * (∫ t : ℝ in Set.Ioc (N / 2) (2 * N), F t) ≤
+        K * (∫ t : ℝ in Set.Ioi (N / 2), F t) :=
+    mul_le_mul_of_nonneg_left hmono hK_nonneg
+  have htail_bound :
+      ∫ t : ℝ in Set.Ioi (N / 2), F t ≤
+        Real.exp (-((2 : ℝ) * Real.pi) * (N / 2)) :=
+    Real.exp_neg_two_pi_tail_integral_le_exp (N / 2)
+  have hexponent :
+      -((2 : ℝ) * Real.pi) * (N / 2) = -Real.pi * ‖w‖ := by
+    calc
+      -((2 : ℝ) * Real.pi) * (N / 2) =
+          -(((2 : ℝ) * Real.pi) * (N / 2)) := by
+        exact neg_mul ((2 : ℝ) * Real.pi) (N / 2)
+      _ = -(Real.pi * ‖w‖) := by
+        have hinside :
+            ((2 : ℝ) * Real.pi) * (N / 2) =
+              Real.pi * ‖w‖ := by
+          calc
+            ((2 : ℝ) * Real.pi) * (N / 2) =
+                ((2 : ℝ) * Real.pi) * (‖w‖ / 2) := by
+              rfl
+            _ = (((2 : ℝ) * Real.pi) * ‖w‖) / 2 := by
+              exact mul_div_assoc ((2 : ℝ) * Real.pi) ‖w‖ 2
+            _ = ((Real.pi * ‖w‖) * 2) / 2 := by
+              exact
+                congrArg (fun x : ℝ => x / 2)
+                  (calc
+                    ((2 : ℝ) * Real.pi) * ‖w‖ =
+                        2 * (Real.pi * ‖w‖) := by
+                      exact mul_assoc 2 Real.pi ‖w‖
+                    _ = (Real.pi * ‖w‖) * 2 := by
+                      exact mul_comm 2 (Real.pi * ‖w‖))
+            _ = Real.pi * ‖w‖ := by
+              exact mul_div_cancel_right₀ (Real.pi * ‖w‖) two_ne_zero
+        exact congrArg Neg.neg hinside
+      _ = -Real.pi * ‖w‖ := by
+        exact (neg_mul Real.pi ‖w‖).symm
+  have htail_scale :
+      K * (∫ t : ℝ in Set.Ioi (N / 2), F t) ≤
+        K * Real.exp (-Real.pi * ‖w‖) := by
+    exact
+      mul_le_mul_of_nonneg_left
+        (Eq.subst
+          (motive := fun x : ℝ =>
+            ∫ t : ℝ in Set.Ioi (N / 2), F t ≤ Real.exp x)
+          hexponent
+          htail_bound)
+        hK_nonneg
+  have hintegrand_eq :
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+          (2 *
+            (|Real.log (w.re / (3 * ‖w‖))| +
+              max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+              Real.pi)) /
+            Real.exp ((2 : ℝ) * Real.pi * t) =
+        K * ∫ t : ℝ in Set.Ioc (N / 2) (2 * N), F t := by
+    calc
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+          (2 *
+            (|Real.log (w.re / (3 * ‖w‖))| +
+              max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+              Real.pi)) /
+            Real.exp ((2 : ℝ) * Real.pi * t) =
+          ∫ t : ℝ in Set.Ioc (N / 2) (2 * N), K * F t := by
+        exact
+          setIntegral_congr_fun measurableSet_Ioc
+            (fun t _ht =>
+              calc
+                (2 *
+                    (|Real.log (w.re / (3 * ‖w‖))| +
+                      max |Real.log (1 : ℝ)|
+                        |Real.log ((3 * ‖w‖) / w.re)| +
+                      Real.pi)) /
+                    Real.exp ((2 : ℝ) * Real.pi * t) =
+                    K * (Real.exp ((2 : ℝ) * Real.pi * t))⁻¹ := by
+                  rfl
+                _ = K * Real.exp (-((2 : ℝ) * Real.pi * t)) := by
+                  exact congrArg (fun x : ℝ => K * x)
+                    (Real.exp_neg ((2 : ℝ) * Real.pi * t)).symm
+                _ = K * F t := by
+                  exact congrArg (fun x : ℝ => K * Real.exp x)
+                    (neg_mul ((2 : ℝ) * Real.pi) t))
+      _ = K * ∫ t : ℝ in Set.Ioc (N / 2) (2 * N), F t := by
+        exact integral_mul_left K F
+  exact
+    Eq.subst
+      (motive := fun x : ℝ =>
+        x ≤
+          (2 *
+            (|Real.log (w.re / (3 * ‖w‖))| +
+              max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+              Real.pi)) *
+            Real.exp (-Real.pi * ‖w‖))
+      hintegrand_eq.symm
+      (le_trans hscaled_mono htail_scale)
 
 /-- Local-indentation pointwise domination of the principal Binet tail kernel
 by the branch-wall logarithmic spike on the bounded tail window. -/
@@ -1821,6 +3067,65 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_le_expWeighted_f
         exact le_trans hkernel hexp)
   exact
     setIntegral_mono_ae_restrict hP_integrable hG_integrable hpoint
+
+/-- The bounded branch-wall window of the principal Binet tail has the
+explicit exponential scale forced by the lower endpoint of the window.
+
+This is the low-level scalar theorem available before any contour-level
+paired-branch cancellation: it still records the fixed branch-wall logarithmic
+window depending on `w.re`. -/
+theorem Complex.binetSecondFormula_principalTailKernel_integral_le_expScale_boundedTailWindow_Ioc
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (hw_large : 2 ≤ ‖w‖) :
+    ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤
+      (2 *
+        (|Real.log (w.re / (3 * ‖w‖))| +
+          max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+          Real.pi)) *
+        Real.exp (-Real.pi * ‖w‖) := by
+  have hprincipal_to_moving :
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+          ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤
+        ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+          (2 *
+            (max |Real.log (w.re / (3 * ‖w‖))|
+              |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+            Real.exp ((2 : ℝ) * Real.pi * t) :=
+    Complex.binetSecondFormula_principalTailKernel_integral_le_expWeighted_fullLogEnvelope_boundedTailWindow_Ioc
+      hw_re_pos hw_large
+  have hmoving_to_fixed :
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+          (2 *
+            (max |Real.log (w.re / (3 * ‖w‖))|
+              |Real.log ((3 * ‖w‖) / max w.re |w.im - t|)| + Real.pi)) /
+            Real.exp ((2 : ℝ) * Real.pi * t) ≤
+        ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+          (2 *
+            (|Real.log (w.re / (3 * ‖w‖))| +
+              max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+              Real.pi)) /
+            Real.exp ((2 : ℝ) * Real.pi * t) :=
+    Complex.binetSecondFormula_branchWall_expWeighted_fullLogEnvelope_integral_le_fixedWindowSum_Ioc
+      hw_re_pos
+  have hfixed_to_scale :
+      ∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+          (2 *
+            (|Real.log (w.re / (3 * ‖w‖))| +
+              max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+              Real.pi)) /
+            Real.exp ((2 : ℝ) * Real.pi * t) ≤
+        (2 *
+          (|Real.log (w.re / (3 * ‖w‖))| +
+            max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)| +
+            Real.pi)) *
+          Real.exp (-Real.pi * ‖w‖) :=
+    Complex.binetSecondFormula_branchWall_fixedWindowSum_expWeighted_integral_le_expScale_Ioc
+      hw_re_pos
+  exact
+    le_trans hprincipal_to_moving
+      (le_trans hmoving_to_fixed hfixed_to_scale)
 
 /-- On the bounded part of the tail, the unnormalized denominator is bounded
 by `3 * ‖w‖`. -/

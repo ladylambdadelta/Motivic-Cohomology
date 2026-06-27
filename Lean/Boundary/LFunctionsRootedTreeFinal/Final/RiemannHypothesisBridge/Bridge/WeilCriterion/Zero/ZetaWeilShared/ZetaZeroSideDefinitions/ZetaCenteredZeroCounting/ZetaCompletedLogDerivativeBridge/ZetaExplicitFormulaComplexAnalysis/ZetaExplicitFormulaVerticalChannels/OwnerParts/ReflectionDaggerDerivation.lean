@@ -2,17 +2,10 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.AdmissibleFromMellin
 
 /-!
-# Derivation of reflection-dagger from Paley-Wiener theory
+# Conditional reflection-dagger transport
 
-The reflection-dagger property f(-c) = conj(f(c)) at natural prime logarithmic centers
-follows from:
-1. The explicit formula's Paley-Wiener/Mellin inversion structure
-2. The hermitian symmetry of the right and left contour integrals
-3. The functional equation of the completed zeta function
-
-The key insight: The explicit formula relates contour integrals (evaluated on ℂ)
-to time-domain values (evaluated on ℝ). The measure-theoretic structure forces
-conjugate symmetry at opposite points to ensure real-valued output.
+This file transports an explicitly supplied Hermitian symmetry hypothesis on
+the admissible test function to boundary values at natural prime centers.
 -/
 
 namespace Boundary
@@ -41,34 +34,45 @@ Admissible functions are obtained by Mellin inversion of the explicit formula's
 spectral transform, which is conjugate-symmetric by the functional equation.
 Therefore, test functions inherit conjugate symmetry. -/
 lemma paleyWienerConjugateSymmetry
-    (f : ZetaAdmissibleFunction) (c : ℝ) :
+    (f : ZetaAdmissibleFunction)
+    (hconj : ∀ c : ℝ,
+      f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c))
+    (c : ℝ) :
     f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c) := by
-  -- Direct application of the Mellin theory library
-  exact AdmissibleMellinTheory.admissibleFunction_conjugateSymmetric f c
+  exact AdmissibleMellinTheory.admissibleFunction_conjugateSymmetric f hconj c
 
 /-- Paley-Wiener lemma: The hermitian property of the spectral transform at opposite
 points under complex conjugation. When the right contour integral at z is inverted via
 Mellin/Fourier transform to give a time-domain value, the left contour integral at -conj(z)
 inverts to the conjugate of that value. -/
 lemma paleyWienerHermitianProperty
-    (f : ZetaAdmissibleFunction) (c : ℝ) :
+    (f : ZetaAdmissibleFunction)
+    (hconj : ∀ c : ℝ,
+      f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c))
+    (c : ℝ) :
     zetaCompletedTimeBoundaryValue f (-c) =
       star (zetaCompletedTimeBoundaryValue f c) := by
   calc zetaCompletedTimeBoundaryValue f (-c)
       = f.toZetaTestFunction (-c) := by exact admissibleTestFunction_paleyWienerReal f (-c)
-    _ = star (f.toZetaTestFunction c) := by exact paleyWienerConjugateSymmetry f c
+    _ = star (f.toZetaTestFunction c) := by
+        exact paleyWienerConjugateSymmetry f hconj c
     _ = star (zetaCompletedTimeBoundaryValue f c) := by
         exact congrArg star (admissibleTestFunction_paleyWienerReal f c).symm
 
 /-- At natural prime centers specifically, the Mellin inversion of the
 explicit formula's contour integral ensures this hermitian property. -/
-theorem zetaCompletedTimeBoundaryValue_primeNaturalCenter_reflectionDagger
-    (f : ZetaAdmissibleFunction) {n : ℕ} (hn : n ≠ 0) :
+theorem zetaCompletedTimeBoundaryValue_primeNaturalCenter_reflectionDagger_of_conj
+    (f : ZetaAdmissibleFunction)
+    (hconj : ∀ c : ℝ,
+      f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c))
+    {n : ℕ} (hn : n ≠ 0) :
     zetaCompletedTimeBoundaryValue f
       (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)) =
       star (zetaCompletedTimeBoundaryValue f
         (zetaCompletedExplicitFormulaPrimeNaturalCenter n)) := by
-  have hc := paleyWienerHermitianProperty f (zetaCompletedExplicitFormulaPrimeNaturalCenter n)
+  have hc :=
+    paleyWienerHermitianProperty
+      f hconj (zetaCompletedExplicitFormulaPrimeNaturalCenter n)
   exact hc
 
 end ZetaAdmissibleFunction

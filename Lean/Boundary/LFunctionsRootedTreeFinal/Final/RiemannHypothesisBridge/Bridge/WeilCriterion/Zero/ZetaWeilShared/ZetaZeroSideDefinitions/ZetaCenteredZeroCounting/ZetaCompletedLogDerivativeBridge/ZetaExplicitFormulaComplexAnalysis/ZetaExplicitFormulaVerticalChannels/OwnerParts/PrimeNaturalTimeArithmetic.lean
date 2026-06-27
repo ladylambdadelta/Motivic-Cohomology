@@ -1762,6 +1762,25 @@ identity at the natural logarithmic center.
 This lemma is deliberately only scalar assembly: the input is the exact
 Paley-Wiener/Hermitian time-boundary normalization needed to identify the
 Mellin one-sided samples with the symmetric natural-time summand. -/
+def zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian
+    (f : ZetaAdmissibleFunction) : Prop :=
+  ∀ n : ℕ, n ≠ 0 →
+    (-( (Λ n / Real.sqrt n) *
+      Complex.re
+        (zetaCompletedTimeBoundaryValue f
+            (zetaCompletedExplicitFormulaPrimeNaturalCenter n) +
+          star
+            (zetaCompletedTimeBoundaryValue f
+              (zetaCompletedExplicitFormulaPrimeNaturalCenter n)))) : ℂ) =
+      ((Λ n / Real.sqrt n : ℝ) : ℂ) *
+          ((2 * π : ℝ) •
+            zetaCompletedTimeBoundaryValue f
+              (zetaCompletedExplicitFormulaPrimeNaturalCenter n)) +
+        ((Λ n / Real.sqrt n : ℝ) : ℂ) *
+          ((2 * π : ℝ) •
+            zetaCompletedTimeBoundaryValue f
+              (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)))
+
 theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_twoFaceBoundarySample_of_ne_zero_of_scalarHermitian
     (f : ZetaAdmissibleFunction) {n : ℕ} (hn : n ≠ 0)
     (hscalar :
@@ -1973,6 +1992,23 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_twoFaceBoundarySa
   · exact
       zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_twoFaceBoundarySample_of_ne_zero_of_scalarHermitian
         f hn (hscalar n hn)
+
+/-- All-index scalar boundary normalization from the two-face natural-time
+normalization.
+
+The scalar condition is only a nonzero-index statement, so the all-index
+two-face hypothesis is consumed at each nonzero natural index. -/
+theorem zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian_of_timeSummand_eq_twoFaceBoundarySample
+    (f : ZetaAdmissibleFunction)
+    (htwoFace :
+      ∀ n : ℕ,
+        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
+          zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n) :
+    zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f := by
+  intro n hn
+  exact
+    zetaCompletedExplicitFormulaPrimeNatural_scalarHermitian_of_ne_zero_of_timeSummand_eq_twoFaceBoundarySample
+      f hn (htwoFace n)
 
 /-- A symmetric prime natural-time summand vanishes once its logarithmic center
 lies above a support upper bound for the completed boundary source. -/

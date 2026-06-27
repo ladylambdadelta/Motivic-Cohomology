@@ -199,6 +199,24 @@ theorem Complex.finiteAbelPlana_log_finiteHeightContourError_tendsto_zero
     Complex.finiteAbelPlana_log_finiteHeightContourError_tendsto_zero_owner
       hw N hdecInteriorPole hbridges
 
+/-- Stable wrapper for endpoint-restored finite-height contour-error
+cancellation. -/
+theorem Complex.finiteAbelPlana_log_finiteHeightEndpointRestoredContourError_tendsto_zero
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (N : ℕ)
+    (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
+      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)))
+    (hbridges : Complex.FiniteHeightPVBridgePackageAtEndpointRestored N w) :
+    Filter.Tendsto
+      (fun T : ℝ =>
+        Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T)
+      Filter.atTop
+      (𝓝 (0 : ℂ)) := by
+  exact
+    Complex.finiteAbelPlana_log_finiteHeightEndpointRestoredContourError_tendsto_zero_owner
+      hw N hdecInteriorPole hbridges
+
 /-- Finite-height principal-value rectangle cotangent formula. -/
 theorem Complex.finiteAbelPlana_log_finiteHeightPrincipalValueCotangentFormula
     {w : ℂ}

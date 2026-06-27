@@ -104,6 +104,696 @@ theorem Complex.binetSecondFormulaTailRemainder_norm_le_principalTailKernel_norm
     _ ≤ 2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), ‖K t‖ :=
       mul_le_mul_of_nonneg_left hnorm_integral zero_le_two
 
+/-- The lower Abel-Plana vertical logarithmic-jump tail is exactly the Binet
+tail remainder after the split at `‖w‖ / 2`.
+
+This is the tail-interval transport of the pointwise branch normalization
+`binetAbelPlana_logJump_integrand_eq_two_arctanKernel`.  It is the bridge from
+finite-height Abel-Plana vertical-boundary language to the infinite Binet tail
+object consumed by the wall-cancellation owner. -/
+theorem Complex.finiteAbelPlana_lowerVerticalTailIntegral_eq_binetTailRemainder
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+        Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t =
+      Complex.binetSecondFormulaTailRemainder w := by
+  let L : ℝ → ℂ := fun t : ℝ =>
+    Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t
+  let K : ℝ → ℂ := fun t : ℝ =>
+    Complex.binetSecondFormulaPrincipalTailKernel w t
+  have hcut_nonneg : 0 ≤ ‖w‖ / 2 :=
+    div_nonneg (norm_nonneg w) zero_le_two
+  have hpoint :
+      ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
+        L t = 2 * K t :=
+    (ae_restrict_mem measurableSet_Ioi).mono
+      (fun t ht =>
+        have ht_pos : 0 < t :=
+          lt_of_le_of_lt hcut_nonneg ht
+        calc
+          L t =
+              (-Complex.I) *
+                ((Complex.log (w + (t : ℂ) * Complex.I) -
+                    Complex.log (w - (t : ℂ) * Complex.I)) /
+                  (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) := by
+            exact Complex.finiteAbelPlana_log_lowerVerticalIntegrand_eq_binet w t
+          _ = 2 *
+              (Complex.arctan ((t : ℂ) / w) /
+                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) := by
+            exact
+              Complex.binetAbelPlana_logJump_integrand_eq_two_arctanKernel
+                (w := w) (t := t) hw_re_pos ht_pos
+          _ = 2 * K t := by
+            rfl)
+  have hintegral :
+      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), L t =
+        ∫ t : ℝ in Set.Ioi (‖w‖ / 2), 2 * K t :=
+    integral_congr_ae hpoint
+  have hscale :
+      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), 2 * K t =
+        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t :=
+    integral_mul_left
+      (μ := volume.restrict (Set.Ioi (‖w‖ / 2)))
+      (2 : ℂ)
+      K
+  have htail :
+      Complex.binetSecondFormulaTailRemainder w =
+        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t :=
+    Complex.binetSecondFormulaTailRemainder_eq_principalTailKernel_integral w
+  calc
+    ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+        Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t =
+        ∫ t : ℝ in Set.Ioi (‖w‖ / 2), L t := by
+      rfl
+    _ = ∫ t : ℝ in Set.Ioi (‖w‖ / 2), 2 * K t :=
+      hintegral
+    _ = 2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t :=
+      hscale
+    _ = Complex.binetSecondFormulaTailRemainder w :=
+      htail.symm
+
+/-- The lower Abel-Plana vertical full integral splits at the Binet tail
+cutoff into the bounded initial window and the Binet tail remainder.
+
+This is the exact split needed by the branch-wall cancellation proof: the
+finite-height vertical side converges to a full lower vertical integral, and
+that full integral contains the Binet tail remainder as its open tail beyond
+`‖w‖ / 2`. -/
+theorem Complex.finiteAbelPlana_lowerVerticalFullIntegral_eq_initialWindow_add_binetTailRemainder
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w =
+      (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+        Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) +
+        Complex.binetSecondFormulaTailRemainder w := by
+  let L : ℝ → ℂ := fun t : ℝ =>
+    Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t
+  let a : ℝ := ‖w‖ / 2
+  have ha_nonneg : 0 ≤ a :=
+    div_nonneg (norm_nonneg w) zero_le_two
+  have hL :
+      IntegrableOn L (Set.Ioi (0 : ℝ)) :=
+    Complex.finiteAbelPlana_log_lowerVerticalIntegrand_integrableOn_Ioi
+      hw_re_pos
+  have hwindow :
+      IntegrableOn L (Set.Ioc (0 : ℝ) a) :=
+    hL.mono_set
+      (fun t ht => ht.1)
+  have htail_integrable :
+      IntegrableOn L (Set.Ioi a) :=
+    hL.mono_set
+      (fun t ht => lt_of_le_of_lt ha_nonneg ht)
+  have hdisjoint :
+      Disjoint (Set.Ioc (0 : ℝ) a) (Set.Ioi a) :=
+    Set.disjoint_left.mpr
+      (fun t ht_window ht_tail =>
+        not_lt_of_ge ht_window.2 ht_tail)
+  have hunion :
+      Set.Ioc (0 : ℝ) a ∪ Set.Ioi a =
+        Set.Ioi (0 : ℝ) := by
+    ext t
+    constructor
+    · intro ht
+      match ht with
+      | Or.inl ht_window => exact ht_window.1
+      | Or.inr ht_tail => exact lt_of_le_of_lt ha_nonneg ht_tail
+    · intro ht
+      by_cases ht_cut : t ≤ a
+      · exact Or.inl ⟨ht, ht_cut⟩
+      · exact Or.inr (lt_of_not_ge ht_cut)
+  have hsplit :
+      ∫ t : ℝ in Set.Ioc (0 : ℝ) a ∪ Set.Ioi a, L t =
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) a, L t) +
+          ∫ t : ℝ in Set.Ioi a, L t :=
+    setIntegral_union hdisjoint measurableSet_Ioi hwindow htail_integrable
+  have htail :
+      ∫ t : ℝ in Set.Ioi a, L t =
+        Complex.binetSecondFormulaTailRemainder w := by
+    exact
+      Complex.finiteAbelPlana_lowerVerticalTailIntegral_eq_binetTailRemainder
+        hw_re_pos
+  calc
+    Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w =
+        ∫ t : ℝ in Set.Ioi (0 : ℝ), L t := by
+      exact Complex.finiteAbelPlana_log_lowerVerticalFullIntegral_unfold w
+    _ = ∫ t : ℝ in Set.Ioc (0 : ℝ) a ∪ Set.Ioi a, L t := by
+      exact congrArg (fun s : Set ℝ => ∫ t : ℝ in s, L t) hunion.symm
+    _ = (∫ t : ℝ in Set.Ioc (0 : ℝ) a, L t) +
+          ∫ t : ℝ in Set.Ioi a, L t :=
+      hsplit
+    _ = (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) +
+          Complex.binetSecondFormulaTailRemainder w := by
+      exact congrArg
+        (fun z : ℂ =>
+          (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) + z)
+        htail
+
+/-- Difference form of the lower-vertical split at the Binet tail cutoff.
+
+This is the algebraic form consumed by cancellation estimates: once the
+bounded initial window has been paired with the finite-height contour
+contribution, the remaining difference is exactly the Binet tail remainder. -/
+theorem Complex.binetSecondFormulaTailRemainder_eq_lowerVerticalFullIntegral_sub_initialWindow
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    Complex.binetSecondFormulaTailRemainder w =
+      Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) := by
+  let I : ℂ :=
+    ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+      Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t
+  let T : ℂ := Complex.binetSecondFormulaTailRemainder w
+  let F : ℂ := Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w
+  have hsplit : F = I + T :=
+    Complex.finiteAbelPlana_lowerVerticalFullIntegral_eq_initialWindow_add_binetTailRemainder
+      hw_re_pos
+  have htail_sub : T = (I + T) - I :=
+    (add_sub_cancel_left I T).symm
+  have hfull_sub : (I + T) - I = F - I :=
+    congrArg (fun z : ℂ => z - I) hsplit.symm
+  calc
+    Complex.binetSecondFormulaTailRemainder w = T := by
+      rfl
+    _ = (I + T) - I :=
+      htail_sub
+    _ = F - I :=
+      hfull_sub
+    _ =
+        Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w -
+          (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) := by
+      rfl
+
+/-- Norm form of the lower-vertical difference representation of the Binet
+tail remainder. -/
+theorem Complex.binetSecondFormulaTailRemainder_norm_eq_lowerVerticalFullIntegral_sub_initialWindow_norm
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ‖Complex.binetSecondFormulaTailRemainder w‖ =
+      ‖Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)‖ := by
+  exact congrArg norm
+    (Complex.binetSecondFormulaTailRemainder_eq_lowerVerticalFullIntegral_sub_initialWindow
+      hw_re_pos)
+
+/-- Finite-height lower vertical tails converge to the Binet tail remainder
+after subtracting the fixed initial window at the Binet cutoff.
+
+This is the finite-height version of the lower-vertical split: the moving upper
+height tends to the full lower vertical integral, while the initial window
+`(0, ‖w‖ / 2]` is kept fixed. -/
+theorem Complex.finiteAbelPlana_lowerVerticalUpTo_sub_initialWindow_tendsto_binetTailRemainder
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    Tendsto
+      (fun T : ℝ =>
+        Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T -
+          (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t))
+      atTop
+      (𝓝 (Complex.binetSecondFormulaTailRemainder w)) := by
+  let I : ℂ :=
+    ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+      Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t
+  have hfull :
+      Tendsto
+        (fun T : ℝ =>
+          Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T)
+        atTop
+        (𝓝 (Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w)) :=
+    Complex.finiteAbelPlana_log_lowerVerticalIntegralUpTo_tendsto_unsplitFull_owner
+      hw_re_pos
+  have hsub :
+      Tendsto
+        (fun T : ℝ =>
+          Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T - I)
+        atTop
+        (𝓝 (Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w - I)) :=
+    hfull.sub tendsto_const_nhds
+  have htail :
+      Complex.binetSecondFormulaTailRemainder w =
+        Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w - I :=
+    Complex.binetSecondFormulaTailRemainder_eq_lowerVerticalFullIntegral_sub_initialWindow
+      hw_re_pos
+  exact htail.symm ▸ hsub
+
+/-- A complex limit of an eventually norm-bounded finite-height family is
+bounded by the same real constant. -/
+theorem Complex.norm_le_of_eventually_norm_le_of_tendsto
+    {ι : Type*}
+    {l : Filter ι}
+    [Filter.NeBot l]
+    {u : ι → ℂ}
+    {z : ℂ}
+    {C : ℝ}
+    (hu : Tendsto u l (𝓝 z))
+    (hbound : ∀ᶠ i in l, ‖u i‖ ≤ C) :
+    ‖z‖ ≤ C := by
+  have hclosed : IsClosed {v : ℂ | ‖v‖ ≤ C} :=
+    isClosed_le continuous_norm continuous_const
+  exact hclosed.mem_of_tendsto hu hbound
+
+/-- Finite-height lower-tail estimates pass to the Binet tail remainder.
+
+This is the closure step needed after paired contour cancellation supplies an
+eventual finite-height estimate. -/
+theorem Complex.binetSecondFormulaTailRemainder_norm_le_of_eventually_lowerVerticalUpTo_sub_initialWindow_norm_le
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    {B : ℝ}
+    (hbound :
+      ∀ᶠ T : ℝ in atTop,
+        ‖Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T -
+          (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)‖ ≤ B) :
+    ‖Complex.binetSecondFormulaTailRemainder w‖ ≤ B := by
+  exact
+    Complex.norm_le_of_eventually_norm_le_of_tendsto
+      (Complex.finiteAbelPlana_lowerVerticalUpTo_sub_initialWindow_tendsto_binetTailRemainder
+        hw_re_pos)
+      hbound
+
+/-- Solving the finite-height Abel-Plana boundary equation for the lower
+vertical tail at the Binet cutoff.
+
+This is a pure algebraic identity.  The finite-height contour error appears
+with the sign forced by
+`finiteHeightContourError = boundaryNamedPiecesUpTo - residueContribution`;
+the remaining terms are the real segment, endpoint half contribution, upper
+vertical side, residue contribution, and the fixed initial lower window. -/
+theorem Complex.finiteAbelPlana_lowerVerticalUpTo_sub_initialWindow_eq_boundarySolved
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) =
+      ((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+          Complex.finiteAbelPlanaLogSummand w (x : ℂ)) +
+        Complex.finiteAbelPlanaLogSummandHalfEndpoints N w -
+        Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w -
+        Complex.finiteAbelPlanaLogFiniteHeightContourError N w T) -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) := by
+  let R : ℂ :=
+    ∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+      Complex.finiteAbelPlanaLogSummand w (x : ℂ)
+  let H : ℂ := Complex.finiteAbelPlanaLogSummandHalfEndpoints N w
+  let L : ℂ := Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T
+  let U : ℂ := Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T
+  let P : ℂ := Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w
+  let E : ℂ := Complex.finiteAbelPlanaLogFiniteHeightContourError N w T
+  let I : ℂ :=
+    ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+      Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t
+  have hboundary :
+      Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T =
+        R + H - L - U := by
+    exact Complex.finiteAbelPlana_log_boundaryNamedPiecesUpTo_unfold N w T
+  have herror :
+      E =
+        Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T - P :=
+    Complex.finiteAbelPlana_log_finiteHeightContourError_unfold' N w T
+  have herror_expanded :
+      E = R + H - L - U - P := by
+    calc
+      E = Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T - P :=
+        herror
+      _ = (R + H - L - U) - P := by
+        exact congrArg (fun z : ℂ => z - P) hboundary
+      _ = R + H - L - U - P := by
+        rfl
+  have hsolve :
+      L = R + H - U - P - E := by
+    let A : ℂ := R + H - U - P
+    have hreorder :
+        R + H - L - U - P = A - L := by
+      calc
+        R + H - L - U - P =
+            (R + H) - L - U - P := by
+          rfl
+        _ = (R + H) - U - L - P := by
+          exact congrArg (fun z : ℂ => z - P)
+            (sub_right_comm (R + H) L U)
+        _ = (R + H) - U - P - L := by
+          exact sub_right_comm ((R + H) - U) L P
+        _ = A - L := by
+          rfl
+    have hcancel :
+        A - (R + H - L - U - P) = L := by
+      calc
+        A - (R + H - L - U - P) = A - (A - L) := by
+          exact congrArg (fun z : ℂ => A - z) hreorder
+        _ = L := by
+          exact sub_sub_self A L
+    calc
+      L = A - (R + H - L - U - P) :=
+        hcancel.symm
+      _ = A - E := by
+        exact congrArg (fun z : ℂ => A - z) herror_expanded.symm
+      _ = R + H - U - P - E := by
+        rfl
+  calc
+    Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) =
+        L - I := by
+      rfl
+    _ = (R + H - U - P - E) - I := by
+      exact congrArg (fun z : ℂ => z - I) hsolve
+    _ =
+      ((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+          Complex.finiteAbelPlanaLogSummand w (x : ℂ)) +
+        Complex.finiteAbelPlanaLogSummandHalfEndpoints N w -
+        Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w -
+        Complex.finiteAbelPlanaLogFiniteHeightContourError N w T) -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) := by
+      rfl
+
+/-- Move a middle additive term to the right of one subtraction. -/
+theorem Complex.add_middle_sub_right
+    (a h b : ℂ) :
+    a + h - b = a - b + h := by
+  calc
+    a + h - b = (a + h) + -b := by
+      exact sub_eq_add_neg (a + h) b
+    _ = a + (h + -b) := by
+      exact add_assoc a h (-b)
+    _ = a + (-b + h) := by
+      exact congrArg (fun z : ℂ => a + z) (add_comm h (-b))
+    _ = (a + -b) + h := by
+      exact (add_assoc a (-b) h).symm
+    _ = a - b + h := by
+      exact congrArg (fun z : ℂ => z + h) (sub_eq_add_neg a b).symm
+
+/-- Move the finite endpoint term across the two static subtractions. -/
+theorem Complex.endpoint_middle_static_subtractions
+    (R H U P E : ℂ) :
+    R + H - U - P - E =
+      (R - U - P) + H - E := by
+  calc
+    R + H - U - P - E =
+        (R - U + H) - P - E := by
+      exact congrArg (fun z : ℂ => z - P - E)
+        (Complex.add_middle_sub_right R H U)
+    _ = ((R - U) - P + H) - E := by
+      exact congrArg (fun z : ℂ => z - E)
+        (Complex.add_middle_sub_right (R - U) H P)
+    _ = (R - U - P) + H - E := by
+      rfl
+
+/-- Absorb the endpoint term into the restored contour error. -/
+theorem Complex.static_endpoint_absorb_restored_error
+    (A H E : ℂ) :
+    A + H - E = A - (E - H) := by
+  calc
+    A + H - E = (A + H) + -E := by
+      exact sub_eq_add_neg (A + H) E
+    _ = A + (H + -E) := by
+      exact add_assoc A H (-E)
+    _ = A + (H - E) := by
+      exact congrArg (fun z : ℂ => A + z) (sub_eq_add_neg H E).symm
+    _ = A + (-(E - H)) := by
+      exact congrArg (fun z : ℂ => A + z) (neg_sub E H).symm
+    _ = A - (E - H) := by
+      exact (sub_eq_add_neg A (E - H)).symm
+
+/-- Restored-error form of the solved finite-height Abel-Plana boundary
+equation.
+
+After replacing the old contour error by
+`finiteHeightEndpointRestoredContourError = finiteHeightContourError -
+endpointIndentation`, the explicit half-endpoint term in the static part
+cancels. -/
+theorem Complex.finiteAbelPlana_lowerVerticalUpTo_sub_initialWindow_eq_boundarySolved_endpointRestored
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) =
+      ((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+          Complex.finiteAbelPlanaLogSummand w (x : ℂ)) -
+        Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w -
+        Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T) -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) := by
+  let R : ℂ :=
+    ∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+      Complex.finiteAbelPlanaLogSummand w (x : ℂ)
+  let H : ℂ := Complex.finiteAbelPlanaLogSummandHalfEndpoints N w
+  let U : ℂ := Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T
+  let P : ℂ := Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w
+  let E : ℂ := Complex.finiteAbelPlanaLogFiniteHeightContourError N w T
+  let Er : ℂ :=
+    Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T
+  let I : ℂ :=
+    ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+      Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t
+  have hbase :
+      Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T - I =
+        (R + H - U - P - E) - I :=
+    Complex.finiteAbelPlana_lowerVerticalUpTo_sub_initialWindow_eq_boundarySolved
+      N w T
+  have hendpoint :
+      Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w = H :=
+    Complex.finiteAbelPlana_log_endpointPVIndentationContribution_unfold N w
+  have hrestored :
+      Er = E - H := by
+    calc
+      Er =
+          E - Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w := by
+        rfl
+      _ = E - H := by
+        exact congrArg (fun z : ℂ => E - z) hendpoint
+  have hstatic :
+      R + H - U - P - E =
+        R - U - P - Er := by
+    calc
+      R + H - U - P - E =
+          (R - U - P) + H - E :=
+        Complex.endpoint_middle_static_subtractions R H U P E
+      _ = (R - U - P) - (E - H) :=
+        Complex.static_endpoint_absorb_restored_error (R - U - P) H E
+      _ = R - U - P - Er := by
+        exact congrArg (fun z : ℂ => R - U - P - z) hrestored.symm
+  calc
+    Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T - I =
+        (R + H - U - P - E) - I :=
+      hbase
+    _ = (R - U - P - Er) - I := by
+      exact congrArg (fun z : ℂ => z - I) hstatic
+    _ =
+      ((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+          Complex.finiteAbelPlanaLogSummand w (x : ℂ)) -
+        Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w -
+        Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T) -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) := by
+      rfl
+
+/-- Norm estimate obtained from the solved finite-height boundary equation:
+the lower vertical tail is bounded by the non-error solved boundary part plus
+the finite-height contour-error norm. -/
+theorem Complex.finiteAbelPlana_lowerVerticalUpTo_sub_initialWindow_norm_le_boundarySolvedStatic_add_contourError
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    ‖Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)‖ ≤
+      ‖((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+          Complex.finiteAbelPlanaLogSummand w (x : ℂ)) +
+        Complex.finiteAbelPlanaLogSummandHalfEndpoints N w -
+        Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)‖ +
+        ‖Complex.finiteAbelPlanaLogFiniteHeightContourError N w T‖ := by
+  let A : ℂ :=
+    (∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+      Complex.finiteAbelPlanaLogSummand w (x : ℂ)) +
+      Complex.finiteAbelPlanaLogSummandHalfEndpoints N w -
+      Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+      Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w
+  let E : ℂ := Complex.finiteAbelPlanaLogFiniteHeightContourError N w T
+  let I : ℂ :=
+    ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+      Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t
+  have hsolved :
+      Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T - I =
+        (A - E) - I :=
+    Complex.finiteAbelPlana_lowerVerticalUpTo_sub_initialWindow_eq_boundarySolved
+      N w T
+  have hreorder :
+      (A - E) - I = (A - I) - E := by
+    exact sub_right_comm A E I
+  have hnorm :
+      ‖(A - I) - E‖ ≤ ‖A - I‖ + ‖E‖ :=
+    norm_sub_le (A - I) E
+  have hsource :
+      ‖Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T - I‖ =
+        ‖(A - I) - E‖ := by
+    exact congrArg norm (Eq.trans hsolved hreorder)
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ ‖A - I‖ + ‖E‖)
+      hsource.symm
+      hnorm
+
+/-- Restored-error norm estimate obtained from the solved finite-height
+boundary equation. -/
+theorem Complex.finiteAbelPlana_lowerVerticalUpTo_sub_initialWindow_norm_le_boundarySolvedStatic_add_endpointRestoredContourError
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    ‖Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)‖ ≤
+      ‖((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+          Complex.finiteAbelPlanaLogSummand w (x : ℂ)) -
+        Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)‖ +
+        ‖Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T‖ := by
+  let A : ℂ :=
+    (∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+      Complex.finiteAbelPlanaLogSummand w (x : ℂ)) -
+      Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+      Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w
+  let E : ℂ :=
+    Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T
+  let I : ℂ :=
+    ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+      Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t
+  have hsolved :
+      Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T - I =
+        (A - E) - I :=
+    Complex.finiteAbelPlana_lowerVerticalUpTo_sub_initialWindow_eq_boundarySolved_endpointRestored
+      N w T
+  have hreorder :
+      (A - E) - I = (A - I) - E := by
+    exact sub_right_comm A E I
+  have hnorm :
+      ‖(A - I) - E‖ ≤ ‖A - I‖ + ‖E‖ :=
+    norm_sub_le (A - I) E
+  have hsource :
+      ‖Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T - I‖ =
+        ‖(A - I) - E‖ := by
+    exact congrArg norm (Eq.trans hsolved hreorder)
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ ‖A - I‖ + ‖E‖)
+      hsource.symm
+      hnorm
+
+/-- Restored-error solved finite-height equation with the endpoint term
+returned on both sides of the paired difference.
+
+The endpoint-restored static expression and endpoint-restored contour error
+must not be estimated separately at this layer: the half-endpoint term moves
+between them.  This equality records the canonical paired object whose norm is
+the finite-height lower-vertical difference. -/
+theorem Complex.finiteAbelPlana_lowerVerticalUpTo_sub_initialWindow_eq_endpointReturnedRestoredPair
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) =
+      ((((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+          Complex.finiteAbelPlanaLogSummand w (x : ℂ)) -
+        Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)) +
+        Complex.finiteAbelPlanaLogSummandHalfEndpoints N w) -
+        (Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T +
+          Complex.finiteAbelPlanaLogSummandHalfEndpoints N w) := by
+  let A : ℂ :=
+    (∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+      Complex.finiteAbelPlanaLogSummand w (x : ℂ)) -
+      Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+      Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w
+  let E : ℂ :=
+    Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T
+  let H : ℂ := Complex.finiteAbelPlanaLogSummandHalfEndpoints N w
+  let I : ℂ :=
+    ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+      Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t
+  have hsolved :
+      Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T - I =
+        (A - E) - I :=
+    Complex.finiteAbelPlana_lowerVerticalUpTo_sub_initialWindow_eq_boundarySolved_endpointRestored
+      N w T
+  have hreorder :
+      (A - E) - I = (A - I) - E :=
+    sub_right_comm A E I
+  have hpair :
+      ((A - I) + H) - (E + H) = (A - I) - E := by
+    let S : ℂ := A - I
+    calc
+      ((A - I) + H) - (E + H) = (S + H) - (E + H) := by
+        rfl
+      _ = (S + H) - E - H := by
+        exact sub_add_eq_sub_sub (S + H) E H
+      _ = S + H - H - E := by
+        exact sub_right_comm (S + H) E H
+      _ = S - E := by
+        exact congrArg (fun z : ℂ => z - E) (add_sub_cancel_right S H)
+      _ = (A - I) - E := by
+        rfl
+  calc
+    Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T - I =
+        (A - E) - I :=
+      hsolved
+    _ = (A - I) - E :=
+      hreorder
+    _ = ((A - I) + H) - (E + H) :=
+      hpair.symm
+    _ =
+      ((((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+          Complex.finiteAbelPlanaLogSummand w (x : ℂ)) -
+        Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)) +
+        Complex.finiteAbelPlanaLogSummandHalfEndpoints N w) -
+        (Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T +
+          Complex.finiteAbelPlanaLogSummandHalfEndpoints N w) := by
+      rfl
+
+/-- Norm form of the endpoint-returned restored-pair finite-height equation. -/
+theorem Complex.finiteAbelPlana_lowerVerticalUpTo_sub_initialWindow_norm_eq_endpointReturnedRestoredPair_norm
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    ‖Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)‖ =
+      ‖(((((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+          Complex.finiteAbelPlanaLogSummand w (x : ℂ)) -
+        Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)) +
+        Complex.finiteAbelPlanaLogSummandHalfEndpoints N w) -
+        (Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T +
+          Complex.finiteAbelPlanaLogSummandHalfEndpoints N w))‖ := by
+  exact congrArg norm
+    (Complex.finiteAbelPlana_lowerVerticalUpTo_sub_initialWindow_eq_endpointReturnedRestoredPair
+      N w T)
+
 /-- Fixed-`w` integrated tail control for the Binet tail remainder.
 
 This is the honest consequence of the existing principal-branch arctangent
@@ -830,6 +1520,82 @@ def Complex.BinetSecondFormulaContourTailUniformMajorant
         ‖K w t‖ ≤
           (C / ‖w‖) *
             (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+
+/-- A uniformly majorized contour-tail kernel has the corresponding integrated
+`C / ‖w‖` decay.
+
+This is the real-variable integration step in the contour-cancellation proof:
+the analytic contour theorem supplies the comparison to `K`, while the
+pointwise full-sector majorant supplies the decaying scalar tail. -/
+theorem Complex.binetSecondFormula_contourTailKernel_integral_decay_of_uniform_majorant
+    {K : Complex.BinetSecondFormulaContourDeformedTailKernel}
+    {R C : ℝ}
+    (hK_integrable :
+      ∀ w : ℂ,
+        0 < w.re →
+        R ≤ ‖w‖ →
+          IntegrableOn
+            (fun t : ℝ => K w t)
+            (Set.Ioi (‖w‖ / 2)))
+    (hmajorant : Complex.BinetSecondFormulaContourTailUniformMajorant K R C) :
+    ∀ w : ℂ,
+      0 < w.re →
+      R ≤ ‖w‖ →
+        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), ‖K w t‖ ≤
+          ((2 * C) / ‖w‖) *
+            (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+              t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  intro w hw_re_pos hRle
+  let M : ℝ → ℝ := fun t : ℝ =>
+    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  let G : ℝ → ℝ := fun t : ℝ => ‖K w t‖
+  let J : ℝ := ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t
+  have hhalf_nonneg : 0 ≤ ‖w‖ / 2 :=
+    div_nonneg (norm_nonneg w) zero_le_two
+  have hM_integrable :
+      IntegrableOn M (Set.Ioi (‖w‖ / 2)) :=
+    Real.binetSecondFormula_kernel_majorant_integrableOn.mono_set
+      (fun t ht => lt_of_le_of_lt hhalf_nonneg ht)
+  have hscaled_integrable :
+      IntegrableOn
+        (fun t : ℝ => (C / ‖w‖) * M t)
+        (Set.Ioi (‖w‖ / 2)) :=
+    hM_integrable.const_mul (C / ‖w‖)
+  have hG_integrable :
+      IntegrableOn G (Set.Ioi (‖w‖ / 2)) :=
+    (hK_integrable w hw_re_pos hRle).norm
+  have hpoint :
+      ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
+        G t ≤ (C / ‖w‖) * M t :=
+    hmajorant w hw_re_pos hRle
+  have hintegral :
+      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), G t ≤
+        ∫ t : ℝ in Set.Ioi (‖w‖ / 2), (C / ‖w‖) * M t :=
+    setIntegral_mono_ae_restrict
+      hG_integrable
+      hscaled_integrable
+      hpoint
+  have hscale :
+      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), (C / ‖w‖) * M t =
+        (C / ‖w‖) * J := by
+    exact MeasureTheory.integral_mul_left (C / ‖w‖) M
+  have htwice :
+      2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), G t ≤
+        2 * ((C / ‖w‖) * J) :=
+    mul_le_mul_of_nonneg_left
+      (le_trans hintegral (le_of_eq hscale))
+      zero_le_two
+  have hconstant :
+      2 * ((C / ‖w‖) * J) =
+        ((2 * C) / ‖w‖) * J := by
+    calc
+      2 * ((C / ‖w‖) * J) =
+          (2 * (C / ‖w‖)) * J := by
+        exact (mul_assoc (2 : ℝ) (C / ‖w‖) J).symm
+      _ = ((2 * C) / ‖w‖) * J := by
+        exact congrArg (fun x : ℝ => x * J)
+          (mul_div_assoc (2 : ℝ) C ‖w‖).symm
+  exact le_trans htwice (le_of_eq hconstant)
 
 /-- The branch-safe contour-deformation comparison for the Binet tail. -/
 theorem Complex.binetSecondFormula_tailRemainder_norm_le_contourTailMajorantKernel_integral :

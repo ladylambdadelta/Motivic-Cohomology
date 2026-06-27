@@ -82,13 +82,14 @@ theorem zetaCompletedExplicitFormulaCorrectionVerticalChannel_tendsto_correction
 
 This is the non-circular final-convergence entry point for callers that own a
 vertically regular contour family.  It delegates to the vertically regular
-prime transport theorem and does not use the arbitrary-contour prime extension
-leaf. -/
+prime transport theorem with the scalar-Hermitian natural-prime normalization,
+and does not use the arbitrary-contour prime extension leaf. -/
 theorem zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder_tendsto_zero_of_verticallyRegular_ownerChannelTransportCore
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
@@ -97,7 +98,7 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder_tends
       (𝓝 0) := by
   exact
     zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder_tendsto_zero_of_verticallyRegular_gammaBinet_owner
-      f F h hcoh
+      f F h hcoh hscalar
 
 /-- Owner analytic theorem: the archimedean vertical-channel transport remainder vanishes
 along the scheduled contour heights.  This is the Gamma/completion channel transport
@@ -363,7 +364,8 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContributi
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaPrimeVerticalChannel
@@ -371,7 +373,27 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContributi
       atTop
       (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)) :=
   zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_of_verticallyRegular_gammaBinet_owner
-    f F h hcoh
+    f F h hcoh hscalar
+
+/-- Final prime-channel convergence from the structural two-face natural-time
+normalization. -/
+theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_of_verticallyRegular_gammaBinet_ownerChannelTransport_of_timeSummand_eq_twoFace
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (htwoFace :
+      ∀ n : ℕ,
+        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
+          zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaPrimeVerticalChannel
+          f F.toContourFamily (h.height_schedule.height u))
+      atTop
+      (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)) :=
+  zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_of_verticallyRegular_gammaBinet_owner_of_timeSummand_eq_twoFace
+    f F h hcoh htwoFace
 
 /-- Final archimedean-channel convergence for a vertically regular contour
 family.  The remaining analytic input is the whole-line inverse-Gamma value
@@ -404,6 +426,7 @@ theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_z
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
     (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f)
     (hinverseGamma_value :
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel
@@ -437,12 +460,61 @@ theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_z
           (𝓝 0) :=
   And.intro
     (zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder_tendsto_zero_of_verticallyRegular_gammaBinet_owner
-      f F h hcoh)
+      f F h hcoh hscalar)
     (And.intro
       (zetaCompletedExplicitFormulaArchimedeanVerticalChannelTransportRemainder_tendsto_zero_of_verticallyRegular_gammaBinet_integral_eq
         f F h hcoh hinverseGamma_value)
       (zetaCompletedExplicitFormulaCorrectionVerticalChannelTransportRemainder_tendsto_zero_ownerChannelTransport
         f F.toContourFamily h hone))
+
+/-- Final transport-remainder package from the structural two-face natural-time
+normalization. -/
+theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_zero_of_verticallyRegular_gammaBinet_owner_of_timeSummand_eq_twoFace
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (htwoFace :
+      ∀ n : ℕ,
+        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
+          zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n)
+    (hinverseGamma_value :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel
+          f F.toContourFamily t) =
+        zetaCompletedExplicitFormulaArchimedeanContribution f +
+          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)
+    (hone :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            f F.toContourFamily (h.height_schedule.height u))
+        atTop
+        (𝓝 0)) :
+      Tendsto
+          (fun u : ℝ =>
+            zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
+              f F.toContourFamily (h.height_schedule.height u))
+          atTop
+          (𝓝 0) ∧
+        Tendsto
+          (fun u : ℝ =>
+            zetaCompletedExplicitFormulaArchimedeanVerticalChannelTransportRemainder
+              f F.toContourFamily (h.height_schedule.height u))
+          atTop
+          (𝓝 0) ∧
+        Tendsto
+          (fun u : ℝ =>
+            zetaCompletedExplicitFormulaCorrectionVerticalChannelTransportRemainder
+              f F.toContourFamily (h.height_schedule.height u))
+          atTop
+          (𝓝 0) := by
+  have hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f :=
+    zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian_of_timeSummand_eq_twoFaceBoundarySample
+      f htwoFace
+  exact
+    zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_zero_of_verticallyRegular_gammaBinet_owner
+      f F h hcoh hscalar hinverseGamma_value hone
 
 /-- Final transport-remainder package for a vertically regular contour, stated
 against the scheduled analytic leaves.  The inverse-Gamma whole-line value is
@@ -453,6 +525,7 @@ theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_z
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
     (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f)
     (hinverseGamma_scheduled :
       Tendsto
         (fun u : ℝ =>
@@ -500,7 +573,62 @@ theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_z
       f F h hcoh hinverseGamma_scheduled
   exact
     zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_zero_of_verticallyRegular_gammaBinet_owner
-      f F h hcoh hinverseGamma_value hone
+      f F h hcoh hscalar hinverseGamma_value hone
+
+/-- Scheduled-leaf final transport-remainder package from the structural
+two-face natural-time normalization. -/
+theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_zero_of_verticallyRegular_gammaBinet_scheduled_leaves_of_timeSummand_eq_twoFace
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (htwoFace :
+      ∀ n : ℕ,
+        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
+          zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n)
+    (hinverseGamma_scheduled :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝
+          (zetaCompletedExplicitFormulaArchimedeanContribution f +
+            zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)))
+    (hone :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            f F.toContourFamily (h.height_schedule.height u))
+        atTop
+        (𝓝 0)) :
+      Tendsto
+          (fun u : ℝ =>
+            zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
+              f F.toContourFamily (h.height_schedule.height u))
+          atTop
+          (𝓝 0) ∧
+        Tendsto
+          (fun u : ℝ =>
+            zetaCompletedExplicitFormulaArchimedeanVerticalChannelTransportRemainder
+              f F.toContourFamily (h.height_schedule.height u))
+          atTop
+          (𝓝 0) ∧
+        Tendsto
+          (fun u : ℝ =>
+            zetaCompletedExplicitFormulaCorrectionVerticalChannelTransportRemainder
+              f F.toContourFamily (h.height_schedule.height u))
+          atTop
+          (𝓝 0) := by
+  have hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f :=
+    zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian_of_timeSummand_eq_twoFaceBoundarySample
+      f htwoFace
+  exact
+    zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_zero_of_verticallyRegular_gammaBinet_scheduled_leaves
+      f F h hcoh hscalar hinverseGamma_scheduled hone
 
 /-- Final transport-remainder package consuming the true owner analytic leaves
 for the vertically regular left-prime and inverse-Gamma channels.  The remaining
@@ -510,6 +638,7 @@ theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_z
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
     (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f)
     (hone :
       Tendsto
         (fun u : ℝ =>
@@ -544,7 +673,50 @@ theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_z
     zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel_integral_eq_archimedean_add_correction_of_verticallyRegular_gammaBinet_ownerNormalization
       f F h hcoh
   zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_zero_of_verticallyRegular_gammaBinet_owner
-    f F h hcoh hinverseGamma_value hone
+    f F h hcoh hscalar hinverseGamma_value hone
+
+/-- Owner-leaf final transport-remainder package from the structural two-face
+natural-time normalization. -/
+theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_zero_of_verticallyRegular_gammaBinet_ownerLeaves_of_timeSummand_eq_twoFace
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (htwoFace :
+      ∀ n : ℕ,
+        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
+          zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n)
+    (hone :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            f F.toContourFamily (h.height_schedule.height u))
+        atTop
+        (𝓝 0)) :
+      Tendsto
+          (fun u : ℝ =>
+            zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
+              f F.toContourFamily (h.height_schedule.height u))
+          atTop
+          (𝓝 0) ∧
+        Tendsto
+          (fun u : ℝ =>
+            zetaCompletedExplicitFormulaArchimedeanVerticalChannelTransportRemainder
+              f F.toContourFamily (h.height_schedule.height u))
+          atTop
+          (𝓝 0) ∧
+        Tendsto
+          (fun u : ℝ =>
+            zetaCompletedExplicitFormulaCorrectionVerticalChannelTransportRemainder
+              f F.toContourFamily (h.height_schedule.height u))
+          atTop
+          (𝓝 0) := by
+  have hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f :=
+    zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian_of_timeSummand_eq_twoFaceBoundarySample
+      f htwoFace
+  exact
+    zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_zero_of_verticallyRegular_gammaBinet_ownerLeaves
+      f F h hcoh hscalar hone
 
 end ZetaAdmissibleFunction
 

@@ -1321,21 +1321,12 @@ theorem poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_from_functiona
     poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_ownerFunctionalEquationBand
       hbranch hzeroOne hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary
 
-/-- Ordinary finite-order growth on `0 ≤ Re s ≤ 1` from the completed
-functional equation and Gamma/Stirling control.
+/-- Compatibility wrapper for the `0 ≤ Re s ≤ 1` ordinary finite-order
+growth package.
 
-This is the noncircular analytic owner theorem for the reflected half-strip.
-The proof chain is:
-
-* use the completed functional equation for the pole-cleared zeta factor;
-* bound the Gamma/trigonometric multipliers on `0 ≤ Re s ≤ 1` by
-  Binet/Stirling finite-order envelopes;
-* use the right-edge Euler/Abel package and compact-height bounds to patch the
-  remaining bounded substrip.
-
-It is deliberately stated as ordinary finite order: the PL admissible
-double-exponential input is then obtained by the generic finite-order
-conversion, avoiding a circular appeal to strip PL. -/
+The reflected half-strip finite-order estimate is the genuine analytic input
+`hzeroOne`.  This theorem preserves the older functional-equation-shaped
+call surface while making no new proof of that input. -/
 theorem poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_from_functionalEquation
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hzeroOne : PoleClearedZeroOneStripOrdinaryFiniteOrderGrowth)
@@ -1396,6 +1387,517 @@ theorem poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_from_boundary_
     poleClearedRiemannZeta_zero_one_strip_diffContOnCl
     (poleClearedRiemannZeta_zero_one_strip_admissible_growth_from_functionalEquation
       hbranch hzeroOne hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary)
+    (match poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquation_growth_bound
+        hbranch with
+    | ⟨A, B, m, hA, hB, hleft⟩ =>
+        ⟨A, B, m, hA, hB,
+          fun z hz_re hz_im =>
+            hleft z hz_re hz_im (hpartialLeft z hz_re hz_im)⟩)
+    (match poleClearedRiemannZeta_boundaryLine_one_growth_bound_standard with
+    | ⟨A, B, m, hA, hB, hright⟩ =>
+        ⟨A, B, m, hA, hB,
+          fun z hz_re hz_im =>
+            hright z hz_re hz_im (hpartialOneTwo z hz_re hz_im)⟩)
+
+/-- Vertical-tail finite-order growth on the closed zero-one strip, proved
+directly from the completed functional equation rather than from admissible
+growth or a strip-PL theorem that consumes the finite-order conclusion. -/
+def PoleClearedZeroOneStripFunctionalEquationVerticalTailGrowth
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) : Prop :=
+  ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+    0 < A ∧
+    0 < B ∧
+    ∀ z : ℂ,
+      0 ≤ z.re →
+      z.re ≤ 1 →
+      1 ≤ ‖z.im‖ →
+      ‖poleClearedRiemannZeta z‖ ≤
+        A * Real.exp (B * (1 + ‖z‖) ^ m)
+
+/-- Noncircular reflected-value envelope on the self-reflected zero-one band.
+
+This is the genuine missing interior estimate in the zero-one strip functional
+equation route.  It must be obtained from a non-circular strip argument or a
+global pole-cleared finite-order construction, not by feeding
+`PoleClearedZeroOneStripOrdinaryFiniteOrderGrowth` back into itself. -/
+def PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) : Prop :=
+  ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+    0 < A ∧
+    0 < B ∧
+    ∀ z : ℂ,
+      0 ≤ z.re →
+      z.re ≤ 1 →
+      1 ≤ ‖z.im‖ →
+      ‖poleClearedRiemannZeta ((1 : ℂ) - z)‖ ≤
+        A * Real.exp (B * (1 + ‖z‖) ^ m)
+
+/-- Canonical reflected-value input for the zero-one functional-equation
+route, using the already-owned boundary and compact packages. -/
+def PoleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope : Prop :=
+  PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
+    boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap
+    poleClearedOneTwoStripCompactBoundaryBound_from_rightCriticalStrip_compact
+    (reflectedBoundaryAbelPartialMajorant_of_boundaryLineOneAbelPartialMajorant
+      boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap)
+    poleClearedRightCriticalStripCompactBoundaryBound_from_compact
+
+/-- Conditional exposure of the noncircular self-reflected vertical-tail
+envelope.
+
+The reflected-value estimate is a genuine analytic input for the zero-one
+functional-equation route.  It must be proved without first proving ordinary
+finite-order growth on the same zero-one strip, since that ordinary theorem
+consumes this reflected envelope through the completed functional equation. -/
+theorem poleClearedRiemannZeta_zero_one_strip_selfReflectedVerticalTailEnvelope_ownerEulerMaclaurinFunctionalEquationCore
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (hreflected :
+      PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
+        hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary) :
+    PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
+      hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary := by
+  exact hreflected
+
+/-- The self-reflected vertical-tail envelope follows from an already-owned
+ordinary finite-order theorem on the same zero-one strip.
+
+This is the exact conditional transport across `z ↦ 1 - z`; it is deliberately
+kept separate from the unconditional owner leaf below, whose proof must supply
+the zero-one finite-order input without using that same owner conclusion. -/
+theorem poleClearedRiemannZeta_zero_one_strip_selfReflectedVerticalTailEnvelope_of_zeroOneOrdinaryFiniteOrder
+    (hzeroOne : PoleClearedZeroOneStripOrdinaryFiniteOrderGrowth)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
+    PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
+      hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary := by
+  exact
+    poleClearedRiemannZeta_zero_one_strip_reflectedValue_verticalTail_growth_of_zeroOneOrdinaryFiniteOrder
+      hzeroOne
+
+/-- Product transport for the zero-one functional equation from a multiplier
+envelope and a non-circular reflected-value envelope. -/
+theorem poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_of_multiplier_and_selfReflectedEnvelope
+    (hmult :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          0 ≤ z.re →
+          z.re ≤ 1 →
+          1 ≤ ‖z.im‖ →
+          ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m))
+    (hreflected :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          0 ≤ z.re →
+          z.re ≤ 1 →
+          1 ≤ ‖z.im‖ →
+          ‖poleClearedRiemannZeta ((1 : ℂ) - z)‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 1 →
+        1 ≤ ‖z.im‖ →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  match hmult with
+  | ⟨AM, BM, mM, hAM_pos, hBM_pos, hM_bound⟩ =>
+      match hreflected with
+      | ⟨Af, Bf, mf, hAf_pos, hBf_pos, hf_bound⟩ =>
+          exact
+            ⟨AM * Af, 2 * (BM + Bf + 1), mM + mf,
+              mul_pos hAM_pos hAf_pos,
+              mul_pos zero_lt_two
+                (add_pos (add_pos hBM_pos hBf_pos) zero_lt_one),
+              fun z hz_re_nonneg hz_re_le_one hz_im_tail =>
+                let H : ℝ := 1 + ‖z‖
+                have hBM_nonneg : 0 ≤ BM :=
+                  le_of_lt hBM_pos
+                have hBf_nonneg : 0 ≤ Bf :=
+                  le_of_lt hBf_pos
+                have hAM_nonneg : 0 ≤ AM :=
+                  le_of_lt hAM_pos
+                have hAf_nonneg : 0 ≤ Af :=
+                  le_of_lt hAf_pos
+                have hM_enlarge :
+                    AM * Real.exp (BM * H ^ mM) ≤
+                      AM * Real.exp ((BM + Bf + 1) * H ^ (mM + mf)) :=
+                  exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+                    hAM_nonneg
+                    (le_refl AM)
+                    (by
+                      calc
+                        BM ≤ BM + Bf := le_add_of_nonneg_right hBf_nonneg
+                        _ ≤ BM + Bf + 1 := le_add_of_nonneg_right zero_le_one)
+                    hBM_nonneg
+                    (Nat.le_add_right mM mf)
+                have hmf_le : mf ≤ mM + mf := by
+                  exact Eq.subst
+                    (motive := fun d : ℕ => mf ≤ d)
+                    (Nat.add_comm mf mM)
+                    (Nat.le_add_right mf mM)
+                have hf_enlarge :
+                    Af * Real.exp (Bf * H ^ mf) ≤
+                      Af * Real.exp ((BM + Bf + 1) * H ^ (mM + mf)) :=
+                  exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+                    hAf_nonneg
+                    (le_refl Af)
+                    (by
+                      calc
+                        Bf ≤ BM + Bf := le_add_of_nonneg_left hBM_nonneg
+                        _ ≤ BM + Bf + 1 := le_add_of_nonneg_right zero_le_one)
+                    hBf_nonneg
+                    hmf_le
+                have hM_target :
+                    ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ ≤
+                      AM * Real.exp ((BM + Bf + 1) * H ^ (mM + mf)) :=
+                  (hM_bound z hz_re_nonneg hz_re_le_one hz_im_tail).trans hM_enlarge
+                have hf_target :
+                    ‖poleClearedRiemannZeta ((1 : ℂ) - z)‖ ≤
+                      Af * Real.exp ((BM + Bf + 1) * H ^ (mM + mf)) :=
+                  (hf_bound z hz_re_nonneg hz_re_le_one hz_im_tail).trans hf_enlarge
+                have hidentity :
+                    poleClearedRiemannZeta z =
+                      poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
+                        poleClearedRiemannZeta ((1 : ℂ) - z) :=
+                  poleClearedRiemannZeta_zero_one_strip_completedFunctionalEquation_identity_ownerSelfReflection
+                    z hz_re_nonneg hz_re_le_one hz_im_tail
+                have hidentity_norm :
+                    ‖poleClearedRiemannZeta z‖ =
+                      ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ *
+                        ‖poleClearedRiemannZeta ((1 : ℂ) - z)‖ := by
+                  have hraw :=
+                    congrArg norm hidentity
+                  exact hraw.trans
+                    (norm_mul
+                      (poleClearedRiemannZeta_completedFunctionalEquationMultiplier z)
+                      (poleClearedRiemannZeta ((1 : ℂ) - z)))
+                have hproduct :
+                    ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ *
+                        ‖poleClearedRiemannZeta ((1 : ℂ) - z)‖ ≤
+                      (AM * Real.exp ((BM + Bf + 1) * H ^ (mM + mf))) *
+                        (Af * Real.exp ((BM + Bf + 1) * H ^ (mM + mf))) :=
+                  mul_le_mul hM_target hf_target
+                    (norm_nonneg (poleClearedRiemannZeta ((1 : ℂ) - z)))
+                    (mul_nonneg hAM_nonneg
+                      (le_of_lt
+                        (Real.exp_pos ((BM + Bf + 1) * H ^ (mM + mf)))))
+                have hcollapse :
+                    (AM * Real.exp ((BM + Bf + 1) * H ^ (mM + mf))) *
+                        (Af * Real.exp ((BM + Bf + 1) * H ^ (mM + mf))) =
+                      AM * Af *
+                        Real.exp ((2 * (BM + Bf + 1)) * H ^ (mM + mf)) :=
+                  finiteOrderGrowthProductEnvelope_exp_collapse
+                    AM Af (BM + Bf + 1) (H ^ (mM + mf))
+                Eq.subst
+                  (motive := fun x : ℝ =>
+                    x ≤ AM * Af *
+                      Real.exp ((2 * (BM + Bf + 1)) * H ^ (mM + mf)))
+                  hidentity_norm.symm
+                  (hproduct.trans_eq hcollapse)⟩
+
+/-- High-tail zero-one strip finite-order theorem from the completed
+functional equation and the noncircular self-reflected envelope.
+
+This theorem avoids routing through the open-strip admissible-growth/PL layer:
+the high-tail estimate is the direct product of the Gamma/Stirling multiplier
+bound and the self-reflected zero-one strip envelope. -/
+theorem poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_ownerEulerMaclaurinFunctionalEquationCore
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hreflected :
+      PoleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 1 →
+        1 ≤ ‖z.im‖ →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact
+    poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_of_multiplier_and_selfReflectedEnvelope
+      (poleClearedRiemannZeta_zero_one_strip_completedFunctionalEquationMultiplier_growth_ownerGammaStirling
+        hbranch)
+      (poleClearedRiemannZeta_zero_one_strip_selfReflectedVerticalTailEnvelope_ownerEulerMaclaurinFunctionalEquationCore
+        boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap
+        poleClearedOneTwoStripCompactBoundaryBound_from_rightCriticalStrip_compact
+        (reflectedBoundaryAbelPartialMajorant_of_boundaryLineOneAbelPartialMajorant
+          boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap)
+        poleClearedRightCriticalStripCompactBoundaryBound_from_compact
+        hreflected)
+
+/-- Compact-height finite-order growth on the closed zero-one strip, placed
+above the noncircular owner so the owner can be assembled without referring
+to the later admissible-growth/PL wrappers. -/
+theorem poleClearedRiemannZeta_zero_one_strip_compactCore_growth_for_nonCircularOwner :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 1 →
+        ‖z.im‖ ≤ 1 →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  match poleClearedRiemannZeta_rightCriticalStrip_compact_norm_bound with
+  | ⟨C, hC_pos, hC_bound⟩ =>
+      exact
+        ⟨C, 1, 0, hC_pos, zero_lt_one,
+          fun z hz_zero hz_one hz_im =>
+            have hz_two : z.re ≤ 2 :=
+              le_trans hz_one one_le_two
+            have hz_mem : z ∈ completedRiemannZeta₀_rightCriticalStripCompactSet :=
+              ⟨hz_zero, hz_two, hz_im⟩
+            have hraw : ‖poleClearedRiemannZeta z‖ ≤ C :=
+              hC_bound z hz_mem
+            have hfactor_ge_one :
+                (1 : ℝ) ≤ Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)) := by
+              have hexponent_nonneg :
+                  0 ≤ (1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ) :=
+                mul_nonneg zero_le_one
+                  (pow_nonneg (add_nonneg zero_le_one (norm_nonneg z)) 0)
+              exact le_trans
+                (le_of_eq Real.exp_zero.symm)
+                (Real.exp_le_exp.mpr hexponent_nonneg)
+            have hC_le_target :
+                C ≤ C * Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)) := by
+              calc
+                C = C * 1 := by
+                  exact (mul_one C).symm
+                _ ≤ C * Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)) :=
+                  mul_le_mul_of_nonneg_left hfactor_ge_one (le_of_lt hC_pos)
+            le_trans hraw hC_le_target⟩
+
+/-- Compact core and vertical-tail patch to ordinary finite-order growth on
+the closed zero-one strip. -/
+theorem poleClearedRiemannZeta_zero_one_strip_growth_of_compactCore_and_verticalTail_for_nonCircularOwner
+    (hcompact :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          0 ≤ z.re →
+          z.re ≤ 1 →
+          ‖z.im‖ ≤ 1 →
+          ‖poleClearedRiemannZeta z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m))
+    (htail :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          0 ≤ z.re →
+          z.re ≤ 1 →
+          1 ≤ ‖z.im‖ →
+          ‖poleClearedRiemannZeta z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    PoleClearedZeroOneStripOrdinaryFiniteOrderGrowth := by
+  match hcompact with
+  | ⟨Ac, Bc, mc, hAc, hBc, hc⟩ =>
+      match htail with
+      | ⟨At, Bt, mt, hAt, hBt, ht⟩ =>
+          exact
+            ⟨Ac + At, Bc + Bt, mc + mt,
+              add_pos hAc hAt, add_pos hBc hBt,
+              fun z hz_zero hz_one =>
+                have hAc_nonneg : 0 ≤ Ac := le_of_lt hAc
+                have hAt_nonneg : 0 ≤ At := le_of_lt hAt
+                have hBc_nonneg : 0 ≤ Bc := le_of_lt hBc
+                have hBt_nonneg : 0 ≤ Bt := le_of_lt hBt
+                match le_total ‖z.im‖ 1 with
+                | Or.inl hcompact_im =>
+                    le_trans (hc z hz_zero hz_one hcompact_im)
+                      (exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+                        hAc_nonneg
+                        (le_add_of_nonneg_right hAt_nonneg)
+                        (le_add_of_nonneg_right hBt_nonneg)
+                        hBc_nonneg
+                        (Nat.le_add_right mc mt))
+                | Or.inr htail_im =>
+                    have hdegree : mt ≤ mc + mt := by
+                      exact Eq.subst
+                        (motive := fun d : ℕ => mt ≤ d)
+                        (Nat.add_comm mt mc)
+                        (Nat.le_add_right mt mc)
+                    le_trans (ht z hz_zero hz_one htail_im)
+                      (exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+                        hAt_nonneg
+                        (le_add_of_nonneg_left hAc_nonneg)
+                        (le_add_of_nonneg_left hBc_nonneg)
+                        hBt_nonneg
+                        hdegree)⟩
+
+/-- Independent zero-one strip finite-order theorem used only to reflect the
+right-hand value in the completed functional equation.
+
+The unresolved analytic content is isolated in the high-tail
+Euler-Maclaurin/functional-equation theorem above; this wrapper only patches
+that tail estimate with the compact-height local boundedness core. -/
+theorem poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_ownerEulerMaclaurinFunctionalEquationCore
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hreflected :
+      PoleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope) :
+    PoleClearedZeroOneStripOrdinaryFiniteOrderGrowth := by
+  exact
+    poleClearedRiemannZeta_zero_one_strip_growth_of_compactCore_and_verticalTail_for_nonCircularOwner
+      poleClearedRiemannZeta_zero_one_strip_compactCore_growth_for_nonCircularOwner
+      (poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_ownerEulerMaclaurinFunctionalEquationCore
+        hbranch hreflected)
+
+/-- Noncircular interior admissible growth on the zero-one strip.
+
+This is a consequence of the noncircular ordinary finite-order theorem above:
+polynomial-exponential finite order is stronger than the subcritical
+double-exponential admissible envelope required by the strip
+Phragmen-Lindelöf interface. -/
+theorem poleClearedRiemannZeta_zero_one_strip_admissible_growth_ownerEulerMaclaurinFunctionalEquationCore
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hreflected :
+      PoleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope) :
+    ∃ c : ℝ,
+      c < Real.pi / (1 - 0) ∧
+      ∃ D : ℝ,
+        poleClearedRiemannZeta =O[
+          Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+            𝓟 (Complex.re ⁻¹' Set.Ioo 0 1)]
+          fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
+  exact
+    strip_admissible_doubleExponential_growth_of_finiteOrder_growth
+      poleClearedRiemannZeta 0 1 zero_lt_one
+      (poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_ownerEulerMaclaurinFunctionalEquationCore
+        hbranch hreflected)
+
+/-- Owner analytic leaf: non-circular reflected-value envelope on the
+self-reflected zero-one strip. -/
+theorem poleClearedRiemannZeta_zero_one_strip_selfReflectedVerticalTailEnvelope_ownerFunctionalEquationNoncircular
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (hreflected :
+      PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
+        hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary) :
+    PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
+      hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary := by
+  exact
+    poleClearedRiemannZeta_zero_one_strip_selfReflectedVerticalTailEnvelope_ownerEulerMaclaurinFunctionalEquationCore
+      hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary hreflected
+
+/-- Owner analytic leaf: noncircular vertical-tail finite-order growth on
+`0 ≤ Re s ≤ 1` from the completed functional equation, Gamma/Stirling
+multiplier control, and the Abel/compact boundary packages. -/
+theorem poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_ownerFunctionalEquationNoncircularCore
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (hreflected :
+      PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
+        hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary) :
+    PoleClearedZeroOneStripFunctionalEquationVerticalTailGrowth
+      hbranch hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary := by
+  exact
+    poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_of_multiplier_and_selfReflectedEnvelope
+      (poleClearedRiemannZeta_zero_one_strip_completedFunctionalEquationMultiplier_growth_ownerGammaStirling
+        hbranch)
+      (poleClearedRiemannZeta_zero_one_strip_selfReflectedVerticalTailEnvelope_ownerFunctionalEquationNoncircular
+        hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary hreflected)
+
+/-- Noncircular ordinary finite-order owner on the closed zero-one strip.
+
+This is now the compact-core/vertical-tail assembly theorem.  The remaining
+analytic work is the noncircular vertical-tail functional-equation leaf above;
+this theorem no longer consumes admissible-growth or PL consequences. -/
+theorem poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_ownerFunctionalEquationNoncircular
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (hreflected :
+      PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
+        hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary) :
+    PoleClearedZeroOneStripOrdinaryFiniteOrderGrowth := by
+  exact
+    poleClearedRiemannZeta_zero_one_strip_growth_of_compactCore_and_verticalTail_for_nonCircularOwner
+      poleClearedRiemannZeta_zero_one_strip_compactCore_growth_for_nonCircularOwner
+      (poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_ownerFunctionalEquationNoncircularCore
+        hbranch hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary hreflected)
+
+/-- Noncircular admissible-growth envelope on the genuine open zero-one strip.
+
+This is now only the generic finite-order-to-admissible transport from the
+noncircular closed-strip functional-equation owner above. -/
+theorem poleClearedRiemannZeta_zero_one_strip_admissible_growth_ownerFunctionalEquationNoncircular
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (hreflected :
+      PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
+        hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary) :
+    ∃ c : ℝ,
+      c < Real.pi / (1 - 0) ∧
+      ∃ D : ℝ,
+        poleClearedRiemannZeta =O[
+          Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+            𝓟 (Complex.re ⁻¹' Set.Ioo 0 1)]
+          fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
+  exact
+    strip_admissible_doubleExponential_growth_of_finiteOrder_growth
+      poleClearedRiemannZeta 0 1 zero_lt_one
+      (poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_ownerFunctionalEquationNoncircular
+        hbranch hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary hreflected)
+
+/-- Strip-PL vertical-tail consequence on the reflected zero-one strip.
+
+This is retained as a compatibility consequence of the admissible-growth
+envelope and the two vertical boundary estimates.  It is not the noncircular
+owner used to prove the finite-order input. -/
+theorem poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_from_boundary_and_PL_nonCircular
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (hreflected :
+      PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
+        hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 1 →
+        1 ≤ ‖z.im‖ →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact strip_growth_bound_of_holomorphic_boundary_growth_and_finite_order
+    poleClearedRiemannZeta 0 1 zero_lt_one
+    poleClearedRiemannZeta_zero_one_strip_diffContOnCl
+    (poleClearedRiemannZeta_zero_one_strip_admissible_growth_ownerFunctionalEquationNoncircular
+      hbranch hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary hreflected)
     (match poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquation_growth_bound
         hbranch with
     | ⟨A, B, m, hA, hB, hleft⟩ =>
@@ -1507,6 +2009,52 @@ theorem poleClearedRiemannZeta_zero_one_strip_growth_of_compactCore_and_vertical
                         (le_add_of_nonneg_left hBc_nonneg)
                         hBt_nonneg
                         hdegree)⟩
+
+/-- Noncircular vertical-tail finite-order growth on the reflected zero-one
+strip.
+
+This compatibility theorem delegates to the direct functional-equation
+vertical-tail owner, not to the admissible-growth/PL route. -/
+theorem poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_ownerFunctionalEquationNoncircular
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (hreflected :
+      PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
+        hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 1 →
+        1 ≤ ‖z.im‖ →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact
+    poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_ownerFunctionalEquationNoncircularCore
+      hbranch hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary hreflected
+
+/-- Noncircular ordinary finite-order growth on the closed half-strip
+`0 ≤ Re s ≤ 1`.
+
+This compatibility name now points directly to the closed-strip
+functional-equation owner, avoiding the admissible-growth/PL/tail cycle. -/
+theorem poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_nonCircular
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (hreflected :
+      PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
+        hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary) :
+    PoleClearedZeroOneStripOrdinaryFiniteOrderGrowth := by
+  exact
+    poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_ownerFunctionalEquationNoncircular
+      hbranch hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary hreflected
 
 /-- Ordinary finite-order growth on the closed half-strip `0 ≤ Re s ≤ 1`.
 
@@ -1970,10 +2518,8 @@ theorem poleClearedRiemannZeta_globalFiniteOrder_growth_from_functionalEquation_
       poleClearedRiemannZeta_rightHalfPlane_finiteOrder_growth_from_EulerMaclaurin
 
 /-- Zeta-specific ordinary finite-order growth for the pole-cleared factor in
-the right critical strip.
-
-This is only the restriction of the global finite-order theorem for
-`(s - 1)ζ(s)` to the closed right critical strip. -/
+the right critical strip, assuming the right-critical admissible-growth
+package already supplied to the global finite-order wrapper. -/
 theorem poleClearedRiemannZeta_rightCriticalStrip_ordinaryFiniteOrder_growth_from_functionalEquation_and_EulerMaclaurin
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
@@ -2079,6 +2625,41 @@ theorem poleClearedRightCriticalStripAdmissibleGrowth_of_zeroOneOrdinaryFiniteOr
       (poleClearedRiemannZeta_rightCriticalStrip_ordinaryFiniteOrder_growth_of_zeroOne_and_oneTwo
         hzeroOne
         poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_from_EulerMaclaurin_continuation)
+
+/-- Owner package: ordinary finite-order growth on the reflected half-strip
+`0 ≤ Re s ≤ 1` for the pole-cleared zeta factor.
+
+The unresolved analytic content has been peeled into
+`poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_ownerFunctionalEquationNoncircular`.
+This theorem only supplies the already-owned Binet/Stirling and boundary
+packages, then patches the compact core with that vertical-tail estimate. -/
+theorem poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_owner
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hreflected :
+      PoleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope) :
+    PoleClearedZeroOneStripOrdinaryFiniteOrderGrowth := by
+  exact
+    poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_nonCircular
+      hbranch
+      boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap
+      poleClearedOneTwoStripCompactBoundaryBound_from_rightCriticalStrip_compact
+      (reflectedBoundaryAbelPartialMajorant_of_boundaryLineOneAbelPartialMajorant
+        boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap)
+      poleClearedRightCriticalStripCompactBoundaryBound_from_compact
+      hreflected
+
+/-- Owner package for admissible growth in the right critical strip, assembled
+from the reflected half-strip finite-order theorem and the already proved
+Euler-Maclaurin finite-order estimate on `1 ≤ Re s ≤ 2`. -/
+theorem poleClearedRightCriticalStripAdmissibleGrowth_owner
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hreflected :
+      PoleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope) :
+    PoleClearedRightCriticalStripAdmissibleGrowth := by
+  exact
+    poleClearedRightCriticalStripAdmissibleGrowth_of_zeroOneOrdinaryFiniteOrder
+      (poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_owner
+        hbranch hreflected)
 
 /-- Standard finite-order theorem for the pole-cleared Riemann zeta factor in the right
 critical strip.

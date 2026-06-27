@@ -286,6 +286,18 @@ theorem Complex.binetAbelPlanaFiniteLowerContourTail_core_unfold
             (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) :=
   rfl
 
+/-- The endpoint half contribution missing from the principal-value residue
+sum when compared with the full finite integer-residue sum.
+
+This definition is placed at the first contour-remainder use site.  The later
+residue block proves that it is exactly the half-weighted endpoint integer
+residue contribution. -/
+noncomputable def Complex.finiteAbelPlanaLogEndpointResidueRestoration
+    (N : ℕ)
+    (w : ℂ) : ℂ :=
+  (Complex.log w +
+    Complex.log (w + ((N + 1 : ℕ) : ℂ))) / 2
+
 /-- The honest finite Abel-Plana contour remainder after the lower boundary
 has been truncated to `(0,N]`, with the finite endpoint-restoration defect
 kept inside the contour remainder rather than discarded. -/
@@ -787,20 +799,49 @@ theorem Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution_unfold
         Complex.finiteAbelPlanaLogIntegerResidue w (N + 1) :=
   rfl
 
-/-- The endpoint half contribution missing from the principal-value residue
-sum when compared with the full finite integer-residue sum. -/
-noncomputable def Complex.finiteAbelPlanaLogEndpointResidueRestoration
-    (N : ℕ)
-    (w : ℂ) : ℂ :=
-  Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w
-
 /-- Unfolding of the endpoint residue restoration term. -/
 theorem Complex.finiteAbelPlanaLogEndpointResidueRestoration_unfold
     (N : ℕ)
     (w : ℂ) :
     Complex.finiteAbelPlanaLogEndpointResidueRestoration N w =
       Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w :=
-  rfl
+  by
+    have hleft :
+        Complex.finiteAbelPlanaLogIntegerResidue w 0 =
+          Complex.log w := by
+      calc
+        Complex.finiteAbelPlanaLogIntegerResidue w 0 =
+            Complex.finiteAbelPlanaLogSummand w (((0 : ℕ) : ℂ)) :=
+          Complex.finiteAbelPlanaLogIntegerResidue_unfold w 0
+        _ = Complex.log (w + (0 : ℂ)) := by
+          rfl
+        _ = Complex.log w := by
+          exact congrArg Complex.log (add_zero w)
+    have hright :
+        Complex.finiteAbelPlanaLogIntegerResidue w (N + 1) =
+          Complex.log (w + ((N + 1 : ℕ) : ℂ)) := by
+      calc
+        Complex.finiteAbelPlanaLogIntegerResidue w (N + 1) =
+            Complex.finiteAbelPlanaLogSummand w (((N + 1 : ℕ) : ℂ)) :=
+          Complex.finiteAbelPlanaLogIntegerResidue_unfold w (N + 1)
+        _ = Complex.log (w + ((N + 1 : ℕ) : ℂ)) := by
+          rfl
+    calc
+      Complex.finiteAbelPlanaLogEndpointResidueRestoration N w =
+          (Complex.log w +
+            Complex.log (w + ((N + 1 : ℕ) : ℂ))) / 2 := by
+        rfl
+      _ =
+          (Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+            Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) / 2 := by
+        exact congrArg
+          (fun z : ℂ => z / 2)
+          (congrArg₂ HAdd.hAdd hleft.symm hright.symm)
+      _ =
+          Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w := by
+        exact
+          (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution_unfold
+            N w).symm
 
 /-- Adding the two endpoint half-residue contributions restores the full
 endpoint residue contribution. -/

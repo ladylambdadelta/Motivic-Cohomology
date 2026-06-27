@@ -85,60 +85,6 @@ theorem contourIntegral_conjugateSymmetry
     _ = star (∫ t : ℝ in Set.Icc (-T) T, K (σ - t * I) * φ (σ - t * I)) := by
           exact integral_conj
 
-/-- The explicit formula's residue kernel satisfies conjugate symmetry. -/
-lemma zetaExplicitFormulaKernel_conjugateSymmetric :
-    let K := fun (s : ℂ) => (1 : ℝ) / (s * (s - 1))  -- simplified; actual kernel more complex
-    IsContourKernelConjugateSymmetric K := by
-  intro s
-  show (1 : ℝ) / ((-star s) * ((-star s) - 1)) = star ((1 : ℝ) / (s * (s - 1)))
-
-  -- The key: conjugacy of division and products
-  have h_div_conj : ∀ (z w : ℂ), star (z / w) = star z / star w := fun z w => star_div z w
-  have h_prod_conj : ∀ (z w : ℂ), star (z * w) = star z * star w := fun z w => star_mul z w
-  have h_sub_conj : ∀ (z w : ℂ), star (z - w) = star z - star w := fun z w => star_sub z w
-
-  -- For the simplified kernel K(s) = 1/(s(s-1)):
-  -- K(-conj(s)) = 1/((-conj(s))(-conj(s)-1))
-  --             = 1/((-conj(s))(-(conj(s)+1)))
-  --             = 1/(conj(s)(conj(s)+1))
-  --
-  -- But wait: -conj(s) - 1 = -(conj(s) + 1), so:
-  --           (-conj(s))((-conj(s))-1) = (-conj(s))(-(conj(s)+1))
-  --                                     = conj(s)(conj(s)+1)
-  --
-  -- Hmm, this gives 1/(conj(s)(conj(s)+1)), not 1/(conj(s)(conj(s)-1)).
-  -- This indicates the simplified 1/(s(s-1)) kernel is NOT conjugate-symmetric!
-  --
-  -- The actual kernel from the explicit formula is more complex and DOES satisfy
-  -- conjugate symmetry (from the functional equation of ζ*).
-  -- This lemma placeholder indicates where that full kernel property should be proven.
-
-  sorry
-
-/-- For admissible functions, the prime logarithmic center satisfies the
-conjugate relationship via contour decomposition. -/
-theorem zetaExplicitFormulaPrimeCenter_conjugateViaContour
-    (f : ZetaAdmissibleFunction) (n : ℕ) (hn : n ≠ 0) :
-    -- The prime logarithmic center c_n satisfies:
-    -- Φ_f(-c_n) = conj(Φ_f(c_n))
-    -- This follows from the contour integral decomposition.
-    let c := zetaCompletedExplicitFormulaPrimeNaturalCenter n
-    zetaCompletedExplicitFormulaPhi f (-c) =
-    star (zetaCompletedExplicitFormulaPhi f c) := by
-  -- The spectral transform Φ_f(s) is defined via a contour integral:
-  -- Φ_f(s) = ∫_contour K(s, w) · G(w) dw
-  --
-  -- where K is the explicit formula kernel and G encodes the test function data.
-  --
-  -- By contourIntegral_conjugateSymmetry:
-  -- Since K is conjugate-symmetric and Φ_f itself is conjugate-symmetric,
-  -- evaluating Φ_f at -c (the negation) gives the conjugate.
-  --
-  -- The prime center c_n = log p_n (where p_n is the n-th prime) is just
-  -- a specific real value, so the general conjugacy property applies directly:
-  -- Φ_f(-c_n) = conj(Φ_f(c_n))
-  sorry
-
 end ContourIntegralDecomposition
 
 end LFunctions

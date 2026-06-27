@@ -853,7 +853,8 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContributi
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaPrimeVerticalChannel
@@ -867,7 +868,7 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContributi
         zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel
           f F.toContourFamily t) = V :=
     zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_integral_eq_ownerReflectedCompletedValue
-      f F h hcoh
+      f F h hcoh hscalar
   have hcomponent :
       V -
           (-(zetaCompletedExplicitFormulaPhi f 0) +
@@ -1252,7 +1253,8 @@ theorem zetaCompletedExplicitFormulaPrimeScheduledLeftLogDerivativeIntegral_tend
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaPrimeScheduledLeftLogDerivativeIntegral
@@ -1295,7 +1297,7 @@ theorem zetaCompletedExplicitFormulaPrimeScheduledLeftLogDerivativeIntegral_tend
         atTop
         (𝓝 P) :=
     zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_of_verticallyRegular_reflectedCompletedValue_owner
-      f F h hcoh
+      f F h hcoh hscalar
   have hleft :
       Tendsto
         (fun u : ℝ =>
@@ -1438,6 +1440,7 @@ theorem zetaCompletedExplicitFormulaPrimeScheduledLeftLogDerivativeIntegral_tend
     (Fv : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f)
     (hF : Fv.toContourFamily = F) :
     Tendsto
       (fun u : ℝ =>
@@ -1458,7 +1461,7 @@ theorem zetaCompletedExplicitFormulaPrimeScheduledLeftLogDerivativeIntegral_tend
       Target Fv.toContourFamily :=
     fun hv_package =>
       zetaCompletedExplicitFormulaPrimeScheduledLeftLogDerivativeIntegral_tendsto_neg_complement_of_verticallyRegular_reflectedCompletedValue_owner
-        f Fv hv_package hcoh
+        f Fv hv_package hcoh hscalar
   have htransport :
       Target F :=
     Eq.subst
@@ -1467,17 +1470,19 @@ theorem zetaCompletedExplicitFormulaPrimeScheduledLeftLogDerivativeIntegral_tend
       hv
   exact htransport h
 
-/-- Vertically regular wrapper around the unconditional prime-channel owner
-theorem, proved through the reflected completed-left component.
+/-- Vertically regular wrapper around the prime-channel owner theorem, proved
+through the reflected completed-left component and the scalar-Hermitian
+natural-prime normalization.
 
 This wrapper deliberately avoids the overbroad general transport-remainder
 leaf: in the current API the honest reflected-complement value theorem is
-available for vertically regular contour families. -/
+available under the vertically regular and scalar-Hermitian hypotheses. -/
 theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_of_verticallyRegular_gammaBinet_owner
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaPrimeVerticalChannel
@@ -1486,15 +1491,40 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContributi
       (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)) := by
   exact
     zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_of_verticallyRegular_reflectedCompletedValue_owner
-      f F h hcoh
+      f F h hcoh hscalar
+
+/-- Vertically regular prime-channel convergence from the structural two-face
+natural-time normalization. -/
+theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_of_verticallyRegular_gammaBinet_owner_of_timeSummand_eq_twoFace
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (htwoFace :
+      ∀ n : ℕ,
+        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
+          zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaPrimeVerticalChannel
+          f F.toContourFamily (h.height_schedule.height u))
+      atTop
+      (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)) := by
+  have hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f :=
+    zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian_of_timeSummand_eq_twoFaceBoundarySample
+      f htwoFace
+  exact
+    zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_of_verticallyRegular_gammaBinet_owner
+      f F h hcoh hscalar
 
 /-- Vertically regular transport-remainder form of the prime channel estimate.
-This wrapper delegates to the unconditional vertically regular owner wrapper. -/
+This wrapper delegates to the scalar-Hermitian vertically regular owner wrapper. -/
 theorem zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder_tendsto_zero_of_verticallyRegular_gammaBinet_owner
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
@@ -1505,7 +1535,31 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder_tends
     zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder_tendsto_zero_of_primeChannel_tendsto_ownerPrimeLogDerivativeTransport
       f F.toContourFamily h
       (zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_of_verticallyRegular_gammaBinet_owner
-        f F h hcoh)
+        f F h hcoh hscalar)
+
+/-- Vertically regular prime-channel transport-remainder convergence from the
+structural two-face natural-time normalization. -/
+theorem zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder_tendsto_zero_of_verticallyRegular_gammaBinet_owner_of_timeSummand_eq_twoFace
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (htwoFace :
+      ∀ n : ℕ,
+        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
+          zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
+          f F.toContourFamily (h.height_schedule.height u))
+      atTop
+      (𝓝 0) := by
+  have hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f :=
+    zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian_of_timeSummand_eq_twoFaceBoundarySample
+      f htwoFace
+  exact
+    zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder_tendsto_zero_of_verticallyRegular_gammaBinet_owner
+      f F h hcoh hscalar
 
 end ZetaAdmissibleFunction
 

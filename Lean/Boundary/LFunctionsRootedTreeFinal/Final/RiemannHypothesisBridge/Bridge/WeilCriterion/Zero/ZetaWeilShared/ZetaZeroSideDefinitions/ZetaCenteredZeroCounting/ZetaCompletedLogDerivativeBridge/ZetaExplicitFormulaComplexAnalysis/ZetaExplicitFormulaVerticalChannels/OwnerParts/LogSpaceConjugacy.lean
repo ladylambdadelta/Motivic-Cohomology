@@ -104,54 +104,6 @@ lemma mellin_log_exp_cancel (t : ℝ) (s : ℂ) :
   norm_cast
   exact Real.log_exp t
 
-/-- Key substitution lemma: integral over positive reals relates to log-space integral.
-∫₀^∞ f(x) x^(s-1) dx = ∫_{-∞}^∞ f(exp(t)) exp(st) dt
-
-This is the bridge between Mellin inversion on ℝ₊ and Fourier inversion on ℝ.
-
-The proof uses the substitution x = exp(t), which gives:
-- dx = exp(t) dt (Jacobian)
-- x^(s-1) dx = exp(t)^(s-1) · exp(t) dt = exp(t)^s dt
--/
-lemma integral_Ioi_zero_eq_integral_exp_sub
-    (f : ℝ₊ → ℂ) (s : ℂ) (hf : IntegrableOn f (Set.Ioi 0)) :
-    (∫ x in Set.Ioi 0, f x * (x : ℂ) ^ (s - 1) : ℂ) =
-    (∫ t : ℝ, f ⟨Real.exp t, Real.exp_pos t⟩ * ((Real.exp t : ℂ) ^ s) : ℂ) := by
-  -- Define the substitution map: t ↦ exp(t)
-  let φ : ℝ → ℝ₊ := fun t => ⟨Real.exp t, Real.exp_pos t⟩
-
-  -- Key step: show that the composition formula with Jacobian holds
-  -- ∫_{x ∈ (0,∞)} f(x) x^(s-1) dx = ∫_{t ∈ ℝ} f(φ(t)) φ(t)^(s-1) · exp(t) dt
-  have h_comp_with_jac : ∫ x in Set.Ioi 0, f x * (x : ℂ) ^ (s - 1) =
-                         ∫ t : ℝ, f (φ t) * (φ t : ℂ) ^ (s - 1) * ((Real.exp t : ℂ)) := by
-    sorry  -- Measure-theoretic change-of-variables formula for x = exp(t)
-            -- Requires: integral_comp with exponential substitution and Jacobian exp(t)
-
-  -- Simplify the power using the extracted sublemma
-  have h_power_simp : ∀ t : ℝ, (φ t : ℂ) ^ (s - 1) * ((Real.exp t : ℂ)) = ((Real.exp t : ℂ) ^ s) := by
-    intro t
-    have h_phi_eq : (φ t : ℂ) = (Real.exp t : ℂ) := rfl
-    rw [h_phi_eq]
-    exact integral_exp_power_substitution_eq t s
-
-  -- Combine: substitute the composition, then simplify powers
-  calc ∫ x in Set.Ioi 0, f x * (x : ℂ) ^ (s - 1)
-      = ∫ t : ℝ, f (φ t) * (φ t : ℂ) ^ (s - 1) * ((Real.exp t : ℂ)) := h_comp_with_jac
-    _ = ∫ t : ℝ, f (φ t) * ((Real.exp t : ℂ) ^ s) := by
-        apply integral_congr_ae
-        exact Filter.eventually_of_forall fun t => by rw [h_power_simp t]
-    _ = ∫ t : ℝ, f ⟨Real.exp t, Real.exp_pos t⟩ * ((Real.exp t : ℂ) ^ s) := by
-        congr 1
-        ext t
-        rfl
-
-/-- Log-space form: if M is conjugate-symmetric, the log-space Fourier inversion inherits conjugacy. -/
-theorem isLogConjugateSymmetric_of_conjugateSymmetric_transform
-    (M : ℂ → ℂ) (σ : ℝ) (hM : Transform.IsConjugateSymmetric M) :
-    IsLogConjugateSymmetric (fun t : ℝ =>
-      (1 / (2 * π * I)) * ∫ s : ℝ, M (σ + s * I) * Complex.exp (-(σ + s * I) * (Real.exp t : ℂ)) * I) := by
-  sorry  -- Fourier inversion of conjugate-symmetric M preserves conjugacy on full ℝ
-
 /-- Helper: Real-valued functions are their own conjugate. -/
 lemma isLogConjugateSymmetric_of_real_valued
     (g : ℝ → ℂ) (hg : ∀ t : ℝ, (g t).im = 0) :
@@ -173,16 +125,6 @@ lemma conj_from_neg_eq
     (g : ℝ → ℂ) (hg_conj : IsLogConjugateSymmetric g) (t : ℝ) :
     g t = star (g (-t)) := hg_conj t
 
-/-- Integrable functions remain integrable under log-space lift when Jacobian is accounted for.
-The Jacobian of x = exp(t) is exp(t), which is bounded on compact sets.
--/
-lemma integrable_of_integrableOn_Ioi_logSpace
-    (f : ℝ₊ → ℂ) (hf : IntegrableOn f (Set.Ioi 0)) :
-    Integrable (fun t : ℝ => f ⟨Real.exp t, Real.exp_pos t⟩ * (Real.exp t : ℂ)) := by
-  -- The composition f ∘ exp(·) with Jacobian factor exp(t)
-  -- Integrability follows from change of variables formula
-  sorry  -- Requires integral_comp lemma for exponential substitution
-
 /-- Log-space conjugacy preserves integrability on positive reals. -/
 lemma integrableOn_conjugate_of_integrableOn_logSpace
     (g : ℝ → ℂ) (hg_conj : IsLogConjugateSymmetric g)
@@ -192,34 +134,11 @@ lemma integrableOn_conjugate_of_integrableOn_logSpace
   intro t _
   rw [star_eq_via_conjugacy g hg_conj t, conj_from_neg_eq g hg_conj t]
 
-/-- Decomposition of log-space integral via symmetry: conjugate-symmetric functions integrate to real values. -/
-lemma integral_logSpace_symmetric_decomp
-    (g : ℝ → ℂ) (hg_conj : IsLogConjugateSymmetric g) (hg : Integrable g) :
-    ∫ t : ℝ, g t = ∫ t : ℝ, Complex.re (g t) := by
-  -- Key: g(t) + star(g(t)) = 2·Re(g(t)) for any g
-  -- Since g(-t) = star(g(t)), the imaginary part cancels in the full integral
-  have h_as_real : ∫ t : ℝ, (g t : ℝ) = ∫ t : ℝ, Complex.re (g t) := by sorry
-  sorry  -- Reduce to proving imaginary integral is zero
-
 /-- Sublemma: Simplify exp(s * log(exp(t))) = exp(s * t) -/
 lemma mellin_exp_log_simplify (s : ℂ) (t : ℝ) :
     Complex.exp (s * (Real.log (Real.exp t) : ℂ)) = Complex.exp (s * t) := by
   congr 1
   exact mellin_log_exp_cancel t s
-
-/-- Mellin-Fourier correspondence in log coordinates.
-The Mellin transform M(s) = ∫₀^∞ f(x) x^(s-1) dx can be rewritten as
-M(s) = ∫_{-∞}^∞ f(exp(t)) exp(st) dt by the substitution x = exp(t), dx = exp(t) dt.
-This shows that Mellin inversion on ℝ₊ is equivalent to Laplace/Fourier inversion on ℝ.
--/
-lemma mellin_in_logSpace_is_bilateral_laplace
-    (f : ℝ₊ → ℂ) (s : ℂ) (hf : IntegrableOn f (Set.Ioi 0)) :
-    ∫ x in Set.Ioi 0, f x * (x : ℂ) ^ (s - 1) =
-    ∫ t : ℝ, f ⟨Real.exp t, Real.exp_pos t⟩ * Complex.exp (s * (Real.log (Real.exp t) : ℂ)) := by
-  congr 1
-  ext t
-  rw [mellin_exp_log_simplify s t]
-  sorry  -- Requires measure-theoretic change-of-variables formula for x = exp(t)
 
 /-- Sublemma: Exponentials are reciprocals under negation -/
 lemma exp_reciprocal_under_neg (t : ℝ) : Real.exp t * Real.exp (-t) = 1 := by

@@ -328,7 +328,9 @@ lemma mellinInv_criticalLine_decomposition
 /-- Conjugate-symmetric transforms have real-valued inversions on the critical line. -/
 lemma conjugateSymmetricTransform_inverts_to_realValues
     {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M)
-    (σ : ℝ) (x : ℝ) (hx : 0 < x) :
+    (σ : ℝ)
+    (hM_integrable : Integrable (fun y : ℝ => M (σ + 2 * π * y * I)))
+    (x : ℝ) (hx : 0 < x) :
     mellinInv σ M x = star (mellinInv σ M x) := by
   -- The Mellin inversion integral decomposes into conjugate pairs:
   -- mellinInv σ M x = (1/(2πi)) ∫_{σ-i∞}^{σ+i∞} M(s) x^(-s) ds
@@ -376,11 +378,9 @@ lemma conjugateSymmetricTransform_inverts_to_realValues
     rw [← h_neg]
     exact hM (σ - 2 * π * y * I)
 
-  -- Step 2: Apply Fourier inverse real-value property
-  -- Note: Integrability of g follows from M's regularity properties;
-  -- for now, assert it as a working hypothesis for the Fourier inverse to be well-defined
-  have hg_integrable : Integrable g := by sorry  -- Follows from M's decay at ∞
-  have h_fourier_real := fourierInv_conjugateSymmetric_is_real g (-Real.log x) hx hg_conj hg_integrable
+  -- Step 2: Apply Fourier inverse real-value property.
+  have h_fourier_real :=
+    fourierInv_conjugateSymmetric_is_real g (-Real.log x) hx hg_conj hM_integrable
 
   -- Step 3: The result x^(-σ) is real, so scalar mult preserves real-valuedness
   have h_scalar_real : x ^ (-(σ : ℂ)) = star (x ^ (-(σ : ℂ))) := by
@@ -400,11 +400,12 @@ lemma conjugateSymmetricTransform_inverts_to_realValues
 conjugate-symmetric time-domain functions. -/
 theorem mellinInversion_conjugateSymmetry
     {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M)
-    (σ : ℝ) :
+    (σ : ℝ)
+    (hM_integrable : Integrable (fun y : ℝ => M (σ + 2 * π * y * I))) :
     ∀ x : ℝ, 0 < x →
     (mellinInv σ M x = star (mellinInv σ M x)) := by
   intro x hx
-  exact conjugateSymmetricTransform_inverts_to_realValues hM σ x hx
+  exact conjugateSymmetricTransform_inverts_to_realValues hM σ hM_integrable x hx
 
 end MellinInversionConjugacy
 

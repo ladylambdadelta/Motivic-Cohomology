@@ -738,7 +738,8 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContributi
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaPrimeVerticalChannel f F.toContourFamily
@@ -747,7 +748,27 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContributi
       (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)) := by
   exact
     zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_of_verticallyRegular_gammaBinet_owner
-      f F h hcoh
+      f F h hcoh hscalar
+
+/-- Vertically regular concrete prime-channel analytic transport from the
+structural two-face natural-time normalization. -/
+theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_concrete_of_verticallyRegular_ownerChannelTransportAnalytic_of_timeSummand_eq_twoFace
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (htwoFace :
+      ∀ n : ℕ,
+        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
+          zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaPrimeVerticalChannel f F.toContourFamily
+          (h.height_schedule.height u))
+      atTop
+      (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)) :=
+  zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_of_verticallyRegular_gammaBinet_owner_of_timeSummand_eq_twoFace
+    f F h hcoh htwoFace
 
 /-- Vertically regular selected prime-channel analytic transport.
 
@@ -759,7 +780,8 @@ theorem explicitFormulaSelectedScheduledVerticalChannel_prime_tendsto_boundary_o
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f) :
     Tendsto
       (fun u : ℝ =>
         explicitFormulaSelectedScheduledVerticalChannel
@@ -777,7 +799,7 @@ theorem explicitFormulaSelectedScheduledVerticalChannel_prime_tendsto_boundary_o
         atTop
         (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)) :=
     zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_concrete_of_verticallyRegular_ownerChannelTransportAnalytic
-      f F h hcoh
+      f F h hcoh hscalar
   have hpointwise :
       (fun u : ℝ =>
         explicitFormulaSelectedScheduledVerticalChannel
@@ -813,6 +835,33 @@ theorem explicitFormulaSelectedScheduledVerticalChannel_prime_tendsto_boundary_o
             (𝓝 z))
         htarget.symm
         hconcrete)
+
+/-- Vertically regular selected prime-channel analytic transport from the
+structural two-face natural-time normalization. -/
+theorem explicitFormulaSelectedScheduledVerticalChannel_prime_tendsto_boundary_of_verticallyRegular_ownerChannelTransportAnalytic_of_timeSummand_eq_twoFace
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (htwoFace :
+      ∀ n : ℕ,
+        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
+          zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n) :
+    Tendsto
+      (fun u : ℝ =>
+        explicitFormulaSelectedScheduledVerticalChannel
+          f F.toContourFamily h u
+          ExplicitFormulaScheduledVerticalChannelProjection.prime)
+      atTop
+      (𝓝
+        (explicitFormulaSelectedVerticalBoundaryChannel
+          f ExplicitFormulaScheduledVerticalChannelProjection.prime)) := by
+  have hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f :=
+    zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian_of_timeSummand_eq_twoFaceBoundarySample
+      f htwoFace
+  exact
+    explicitFormulaSelectedScheduledVerticalChannel_prime_tendsto_boundary_of_verticallyRegular_ownerChannelTransportAnalytic
+      f F h hcoh hscalar
 
 /-- Selected archimedean-channel analytic transport: the scheduled selected
 archimedean channel converges to its selected boundary contribution. -/

@@ -2,12 +2,10 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ReflectionDaggerDerivation
 
 /-!
-# Reflection-dagger property for boundary values
+# Conditional reflection-dagger property for boundary values
 
-Proves that completed zeta boundary values satisfy the functional equation property
-at natural prime centers: ζ(-c) = conj(ζ(c)).
-
-This is derived from Paley-Wiener theory and the hermitian structure of the explicit formula.
+This file re-exports the local transport from a supplied Hermitian test-function
+symmetry to the boundary-value reflection property at natural prime centers.
 -/
 
 namespace Boundary
@@ -28,12 +26,16 @@ namespace ZetaAdmissibleFunction
 satisfy conjugate symmetry under negation. This follows from Paley-Wiener hermitian
 properties of the explicit formula's contour integrals and their Mellin inversions. -/
 theorem zetaCompletedTimeBoundaryValue_primeNaturalCenter_reflectionDagger
-    (f : ZetaAdmissibleFunction) {n : ℕ} (hn : n ≠ 0) :
+    (f : ZetaAdmissibleFunction)
+    (hconj : ∀ c : ℝ,
+      f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c))
+    {n : ℕ} (hn : n ≠ 0) :
     zetaCompletedTimeBoundaryValue f
       (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)) =
       star (zetaCompletedTimeBoundaryValue f
         (zetaCompletedExplicitFormulaPrimeNaturalCenter n)) :=
-  zetaCompletedTimeBoundaryValue_primeNaturalCenter_reflectionDagger f hn
+  zetaCompletedTimeBoundaryValue_primeNaturalCenter_reflectionDagger_of_conj
+    f hconj hn
 
 end ZetaAdmissibleFunction
 

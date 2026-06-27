@@ -1060,6 +1060,26 @@ theorem autocorrelationSpectralEvalFiberFiniteWindowTailControl.elim
             autocorrelationZeroTailRealAbs S f < ε := by
   exact hT
 
+/-- Constructor for the finite-window tail-control package from its two named fields. -/
+theorem autocorrelationSpectralEvalFiberFiniteWindowTailControl_intro
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction)
+    (ε : ℝ)
+    (T : Finset ℂ)
+    (hT :
+      ∀ ρ : ℂ, ρ ∈ T →
+        zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P)
+    (htail :
+      ∀ f : ZetaAdmissibleFunction,
+        f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+          (∀ ρ : ℂ, ρ ∈ T →
+            zetaSpectralEval (convolutionAutocorrelation f)
+              (zetaCenteredZero ρ) = 0) →
+            autocorrelationZeroTailRealAbs S f < ε) :
+    AutocorrelationSpectralEvalFiberFiniteWindowTailControl S P f₀ ε T := by
+  exact ⟨hT, htail⟩
+
 /-- The window-selection form of the Runge/tomographic tail theorem. -/
 theorem autocorrelationSpectralEvalFiber_exists_finiteWindowTailControl_of_ownerTailPackage
     (S : Finset ℂ)
@@ -1085,6 +1105,18 @@ theorem autocorrelationSpectralEvalFiber_exists_finiteWindowTailControl_of_owner
         autocorrelationSpectralEvalFiberFiniteWindowTailControl.elim
           S P f₀ ε T hT⟩
 
+/-- Finite-window tail-control form of the nonlinear Runge/tomography theorem.
+
+For every fixed finite autocorrelation spectral fiber and tolerance, there is
+a finite completed-zero annihilation window, disjoint from the fixed spectral
+constraints, whose annihilation forces the complementary zero-tail below the
+tolerance. -/
+def AutocorrelationSpectralEvalFiberFiniteWindowTailControlRunge : Prop :=
+  ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+    ∀ ε : ℝ, 0 < ε →
+      ∃ T : Finset ℂ,
+        AutocorrelationSpectralEvalFiberFiniteWindowTailControl S P f₀ ε T
+
 /-- Runge/tomographic zero-tail localization for all fixed finite autocorrelation
 spectral-evaluation fibers.
 
@@ -1099,6 +1131,280 @@ def AutocorrelationSpectralEvalFiberZeroTailSmallValuesRunge : Prop :=
       ∃ r : ℝ,
         r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
           r < ε
+
+/-- Closure/radical form of nonlinear Runge/tomography for finite
+autocorrelation spectral-evaluation fibers.
+
+This is the canonical analytic form: in each fixed finite autocorrelation
+spectral fiber, the zero-tail value set has `0` in its closure.  The concrete
+small-values statement is a topological corollary using nonnegativity of the
+zero-tail absolute value. -/
+def AutocorrelationSpectralEvalFiberZeroTailClosureRunge : Prop :=
+  ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+    (0 : ℝ) ∈ closure
+      (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀)
+
+/-- Quotient-level closure/radical form of nonlinear Runge/tomography for
+finite autocorrelation spectral-evaluation fibers.
+
+This is the canonical analytic form of the remaining Runge theorem: after
+passing to the zero-tail ordered-heart quotient of the positive autocorrelation
+cone, the named zero-tail value set has `0` in its closure. -/
+def AutocorrelationSpectralFiberQuotientZeroTailClosureRunge : Prop :=
+  ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+    (0 : ℝ) ∈ closure
+      (autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues
+        S P f₀)
+
+/-- Quotient-level arbitrarily-small-values form of nonlinear
+Runge/tomography for finite autocorrelation spectral-evaluation fibers. -/
+def AutocorrelationSpectralFiberQuotientZeroTailSmallValuesRunge : Prop :=
+  ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+    ∀ ε : ℝ, 0 < ε →
+      ∃ r : ℝ,
+        r ∈
+          autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues
+            S P f₀ ∧
+          r < ε
+
+/-- Common-polynomial-envelope finite-tail form of the Runge/tomography
+theorem.
+
+This is the analytic root of the finite-window tail-control theorem: after
+forced dagger-constrained zero contributions are separated, the remaining
+zero-side terms admit a common summable polynomial height envelope, and a
+finite completed-zero window cuts the complementary tail below any tolerance.
+The finite interpolation step above then realizes that window inside the fixed
+autocorrelation spectral fiber. -/
+def AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeFiniteTailRunge : Prop :=
+  ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+    ∀ ε : ℝ, 0 < ε →
+      ∃ T₀ : Finset ℂ, ∃ T : Finset ℂ, ∃ A : ℝ, ∃ k : ℕ,
+        T₀ ⊆ T ∧
+        (∀ ρ : ℂ, ρ ∈ T →
+          zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P) ∧
+        0 ≤ A ∧
+        Summable
+          (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+            A * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ))) ∧
+        (∀ f : ZetaAdmissibleFunction,
+          f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+            ∀ ρ : ℂ,
+              ZetaCompletedZero ρ →
+                ρ ∉ S →
+                  zetaCenteredZero ρ ∈ daggerClosedSpectralSampleFinset P →
+                    zetaZeroSideContribution ρ (convolutionAutocorrelation f) = 0) ∧
+        (∀ f : ZetaAdmissibleFunction,
+          f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+            (∀ ρ : ℂ, ρ ∈ T₀ →
+              zetaSpectralEval (convolutionAutocorrelation f)
+                (zetaCenteredZero ρ) = 0) →
+              ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T₀},
+                ‖zetaZeroSideContribution (ρ : ℂ)
+                    (convolutionAutocorrelation f)‖ ≤
+                  A * zetaCompletedZeroCenteredHeight
+                    (⟨(ρ : ℂ), ρ.2.1⟩ :
+                      {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) ∧
+        ∀ f : ZetaAdmissibleFunction,
+          f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+            (∀ ρ : ℂ, ρ ∈ T →
+              zetaSpectralEval (convolutionAutocorrelation f)
+                (zetaCenteredZero ρ) = 0) →
+              autocorrelationZeroTailRealAbs S f < ε
+
+/-- Base common-polynomial-envelope package before finite tail truncation.
+
+This owns the analytic common-envelope construction in a fixed finite
+autocorrelation spectral-evaluation fiber.  It deliberately does not select
+the final finite tail window: that is the separate summable-tail cutoff step
+below, where dagger-constrained zeros are handled by forced vanishing rather
+than by falsely excluding them from the completed-zero set. -/
+def AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBase : Prop :=
+  ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+    ∃ T₀ : Finset ℂ, ∃ A : ℝ, ∃ k : ℕ,
+      (∀ ρ : ℂ, ρ ∈ T₀ →
+        zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P) ∧
+      0 ≤ A ∧
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          A * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ))) ∧
+      (∀ f : ZetaAdmissibleFunction,
+        f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+          ∀ ρ : ℂ,
+            ZetaCompletedZero ρ →
+              ρ ∉ S →
+                zetaCenteredZero ρ ∈ daggerClosedSpectralSampleFinset P →
+                  zetaZeroSideContribution ρ (convolutionAutocorrelation f) = 0) ∧
+      ∀ f : ZetaAdmissibleFunction,
+        f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+          (∀ ρ : ℂ, ρ ∈ T₀ →
+            zetaSpectralEval (convolutionAutocorrelation f)
+              (zetaCenteredZero ρ) = 0) →
+            ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T₀},
+              ‖zetaZeroSideContribution (ρ : ℂ)
+                  (convolutionAutocorrelation f)‖ ≤
+                A * zetaCompletedZeroCenteredHeight
+                  (⟨(ρ : ℂ), ρ.2.1⟩ :
+                    {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))
+
+/-- Fixed-fiber data carried by the base common-polynomial-envelope theorem. -/
+def AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction)
+    (T₀ : Finset ℂ)
+    (A : ℝ)
+    (k : ℕ) : Prop :=
+  (∀ ρ : ℂ, ρ ∈ T₀ →
+    zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P) ∧
+  0 ≤ A ∧
+  Summable
+    (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+      A * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ))) ∧
+  (∀ f : ZetaAdmissibleFunction,
+    f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+      ∀ ρ : ℂ,
+        ZetaCompletedZero ρ →
+          ρ ∉ S →
+            zetaCenteredZero ρ ∈ daggerClosedSpectralSampleFinset P →
+              zetaZeroSideContribution ρ (convolutionAutocorrelation f) = 0) ∧
+  ∀ f : ZetaAdmissibleFunction,
+    f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+      (∀ ρ : ℂ, ρ ∈ T₀ →
+        zetaSpectralEval (convolutionAutocorrelation f)
+          (zetaCenteredZero ρ) = 0) →
+        ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T₀},
+          ‖zetaZeroSideContribution (ρ : ℂ)
+              (convolutionAutocorrelation f)‖ ≤
+            A * zetaCompletedZeroCenteredHeight
+              (⟨(ρ : ℂ), ρ.2.1⟩ :
+                {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))
+
+/-- The base theorem supplies fixed-fiber base-envelope data. -/
+theorem AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBase.exists_data
+    (hbase : AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBase)
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction) :
+    ∃ T₀ : Finset ℂ, ∃ A : ℝ, ∃ k : ℕ,
+      AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData
+        S P f₀ T₀ A k := by
+  match hbase S P f₀ with
+  | ⟨T₀, A, k, hT₀, hA, hsum, hforced, henv⟩ =>
+      exact ⟨T₀, A, k, hT₀, hA, hsum, hforced, henv⟩
+
+/-- Fixed-fiber base-envelope data assembles into the global base theorem. -/
+theorem AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBase.of_exists_data
+    (hdata :
+      ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        ∃ T₀ : Finset ℂ, ∃ A : ℝ, ∃ k : ℕ,
+          AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData
+            S P f₀ T₀ A k) :
+    AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBase := by
+  intro S P f₀
+  match hdata S P f₀ with
+  | ⟨T₀, A, k, hT₀, hA, hsum, hforced, henv⟩ =>
+      exact ⟨T₀, A, k, hT₀, hA, hsum, hforced, henv⟩
+
+/-- The global base theorem is equivalent to fixed-fiber base-envelope data. -/
+theorem AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBase.iff_exists_data :
+    AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBase ↔
+      ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        ∃ T₀ : Finset ℂ, ∃ A : ℝ, ∃ k : ℕ,
+          AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData
+            S P f₀ T₀ A k := by
+  exact
+    ⟨fun hbase S P f₀ =>
+        AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBase.exists_data
+          hbase S P f₀,
+      fun hdata =>
+        AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBase.of_exists_data
+          hdata⟩
+
+/-- Projection of the dagger-disjoint base window from fixed-fiber base data. -/
+theorem AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData.baseWindow_disjoint
+    {S P : Finset ℂ}
+    {f₀ : ZetaAdmissibleFunction}
+    {T₀ : Finset ℂ}
+    {A : ℝ}
+    {k : ℕ}
+    (hdata :
+      AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData
+        S P f₀ T₀ A k) :
+    ∀ ρ : ℂ, ρ ∈ T₀ →
+      zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P := by
+  exact hdata.1
+
+/-- Projection of the nonnegative envelope constant from fixed-fiber base data. -/
+theorem AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData.constant_nonnegative
+    {S P : Finset ℂ}
+    {f₀ : ZetaAdmissibleFunction}
+    {T₀ : Finset ℂ}
+    {A : ℝ}
+    {k : ℕ}
+    (hdata :
+      AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData
+        S P f₀ T₀ A k) :
+    0 ≤ A := by
+  exact hdata.2.1
+
+/-- Projection of the summable envelope from fixed-fiber base data. -/
+theorem AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData.envelope_summable
+    {S P : Finset ℂ}
+    {f₀ : ZetaAdmissibleFunction}
+    {T₀ : Finset ℂ}
+    {A : ℝ}
+    {k : ℕ}
+    (hdata :
+      AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData
+        S P f₀ T₀ A k) :
+    Summable
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        A * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ))) := by
+  exact hdata.2.2.1
+
+/-- Projection of forced dagger-constrained contribution vanishing from fixed-fiber
+base data. -/
+theorem AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData.forcedDagger_vanishes
+    {S P : Finset ℂ}
+    {f₀ : ZetaAdmissibleFunction}
+    {T₀ : Finset ℂ}
+    {A : ℝ}
+    {k : ℕ}
+    (hdata :
+      AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData
+        S P f₀ T₀ A k) :
+    ∀ f : ZetaAdmissibleFunction,
+      f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+        ∀ ρ : ℂ,
+          ZetaCompletedZero ρ →
+            ρ ∉ S →
+              zetaCenteredZero ρ ∈ daggerClosedSpectralSampleFinset P →
+                zetaZeroSideContribution ρ (convolutionAutocorrelation f) = 0 := by
+  exact hdata.2.2.2.1
+
+/-- Projection of the common envelope bound from fixed-fiber base data. -/
+theorem AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData.envelope_bound
+    {S P : Finset ℂ}
+    {f₀ : ZetaAdmissibleFunction}
+    {T₀ : Finset ℂ}
+    {A : ℝ}
+    {k : ℕ}
+    (hdata :
+      AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData
+        S P f₀ T₀ A k) :
+    ∀ f : ZetaAdmissibleFunction,
+      f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+        (∀ ρ : ℂ, ρ ∈ T₀ →
+          zetaSpectralEval (convolutionAutocorrelation f)
+            (zetaCenteredZero ρ) = 0) →
+          ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T₀},
+            ‖zetaZeroSideContribution (ρ : ℂ)
+                (convolutionAutocorrelation f)‖ ≤
+              A * zetaCompletedZeroCenteredHeight
+                (⟨(ρ : ℂ), ρ.2.1⟩ :
+                  {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) := by
+  exact hdata.2.2.2.2
 
 /-- The owner Runge proposition specialized to a fixed finite autocorrelation
 spectral-evaluation fiber. -/
@@ -1226,6 +1532,24 @@ theorem zetaZeroSideContribution_eq_zero_of_centeredZero_spectralEval_zero
         hρ
     _ = 0 := by
       exact mul_zero (-(zetaZeroMultiplicity ρ : ℂ))
+
+/-- Vanishing of the selected zero-window spectral samples kills the corresponding
+zero-side contributions. -/
+theorem zetaZeroSideContribution_eq_zero_of_window_spectralEval_zero
+    (S : Finset ℂ)
+    (T : Finset ℂ)
+    (f : ZetaAdmissibleFunction)
+    (hfT :
+      ∀ ρ : ℂ, ρ ∈ T →
+        zetaSpectralEval (convolutionAutocorrelation f)
+          (zetaCenteredZero ρ) = 0) :
+    ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+      (ρ : ℂ) ∈ T →
+        zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f) = 0 := by
+  intro ρ hρT
+  exact
+    zetaZeroSideContribution_eq_zero_of_centeredZero_spectralEval_zero
+      (convolutionAutocorrelation f) (ρ : ℂ) (hfT (ρ : ℂ) hρT)
 
 /-- The common polynomial envelope also bounds zeros in the base finite window after the
 enlarged window has been killed. -/
@@ -1429,6 +1753,343 @@ theorem zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_tsum_owner
           envelope ρ :=
     tsum_le_tsum hbound hnorm_summable henvelope_summable
   exact hnorm_tsum.trans hmajorant_tsum
+
+/-- The norm of a complementary completed-zero `tsum` is bounded by the
+non-dagger part of a summable polynomial envelope when dagger-constrained
+terms vanish.
+
+This is the corrected norm estimate for the forced-dagger tail selector: the
+dagger-constrained complement contributes zero by `hforcedZero`, so the only
+positive majorant mass charged to the tail is over zeros whose centered sample
+is outside the dagger-closed finite spectral constraint set. -/
+theorem zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_nonDagger_tsum
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (T : Finset ℂ)
+    (A : ℝ)
+    (k : ℕ)
+    (hA : 0 ≤ A)
+    (hsum :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          A * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ)))
+    (f : ZetaAdmissibleFunction)
+    (hforcedZero :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
+        zetaCenteredZero (ρ : ℂ) ∈ daggerClosedSpectralSampleFinset P →
+          zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f) = 0)
+    (hboundNonDagger :
+      ∀ ρ :
+        {ρ : ℂ //
+          ZetaCompletedZero ρ ∧
+            ρ ∉ S ∧
+            ρ ∉ T ∧
+            zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
+        ‖zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f)‖ ≤
+          A * zetaCompletedZeroCenteredHeight
+            (⟨(ρ : ℂ), ρ.2.1⟩ :
+              {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) :
+    ‖(∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
+        zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f))‖ ≤
+      ∑' ρ :
+        {ρ : ℂ //
+          ZetaCompletedZero ρ ∧
+            ρ ∉ S ∧
+            ρ ∉ T ∧
+            zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
+        A * zetaCompletedZeroCenteredHeight
+          (⟨(ρ : ℂ), ρ.2.1⟩ :
+            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) := by
+  let γ := {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T}
+  let δ :=
+    {ρ : ℂ //
+      ZetaCompletedZero ρ ∧
+        ρ ∉ S ∧
+        ρ ∉ T ∧
+        zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P}
+  let contribution : γ → ℂ :=
+    fun ρ => zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f)
+  let envelopeγ : γ → ℝ :=
+    fun ρ =>
+      A * zetaCompletedZeroCenteredHeight
+        (⟨(ρ : ℂ), ρ.2.1⟩ :
+          {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))
+  let envelopeδ : δ → ℝ :=
+    fun ρ =>
+      A * zetaCompletedZeroCenteredHeight
+        (⟨(ρ : ℂ), ρ.2.1⟩ :
+          {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))
+  let nonDagger : Set γ :=
+    fun ρ => zetaCenteredZero (ρ : ℂ) ∉ daggerClosedSpectralSampleFinset P
+  have henvelopeγ_summable : Summable envelopeγ :=
+    hsum.subtype
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        (ρ : ℂ) ∉ S ∧ (ρ : ℂ) ∉ T)
+  have hnorm_summable : Summable (fun ρ : γ => ‖contribution ρ‖) := by
+    refine Summable.of_norm_bounded envelopeγ henvelopeγ_summable ?_
+    intro ρ
+    match (inferInstance :
+        Decidable (zetaCenteredZero (ρ : ℂ) ∈ daggerClosedSpectralSampleFinset P)) with
+    | isTrue hρDagger =>
+        have hzero : contribution ρ = 0 :=
+          hforcedZero ρ hρDagger
+        have hnorm_zero : ‖contribution ρ‖ = 0 :=
+          congrArg norm hzero
+        have henv_nonneg : 0 ≤ envelopeγ ρ :=
+          zetaZeroMultiplicityTransformEnvelope_nonnegative hA k
+            (⟨(ρ : ℂ), ρ.2.1⟩ :
+              {ρ : ℂ // ZetaCompletedZero ρ})
+        calc
+          ‖‖contribution ρ‖‖ = ‖contribution ρ‖ := by
+            exact norm_norm (contribution ρ)
+          _ = 0 := hnorm_zero
+          _ ≤ envelopeγ ρ := henv_nonneg
+    | isFalse hρNonDagger =>
+        calc
+          ‖‖contribution ρ‖‖ = ‖contribution ρ‖ := by
+            exact norm_norm (contribution ρ)
+          _ ≤ envelopeγ ρ :=
+            hboundNonDagger
+              (⟨(ρ : ℂ), ρ.2.1, ρ.2.2.1, ρ.2.2.2, hρNonDagger⟩ : δ)
+  have hnorm_tsum :
+      ‖(∑' ρ : γ, contribution ρ)‖ ≤
+        ∑' ρ : γ, ‖contribution ρ‖ :=
+    norm_tsum_le_tsum_norm hnorm_summable
+  let nonDaggerEquiv : δ ≃ nonDagger where
+    toFun := fun ρ =>
+      ⟨⟨(ρ : ℂ), ρ.2.1, ρ.2.2.1, ρ.2.2.2.1⟩, ρ.2.2.2.2⟩
+    invFun := fun ρ =>
+      ⟨(ρ : γ), ρ.1.2.1, ρ.1.2.2.1, ρ.1.2.2.2, ρ.2⟩
+    left_inv := fun ρ => Subtype.ext rfl
+    right_inv := fun ρ => Subtype.ext rfl
+  have hsplit :
+      (∑' ρ : nonDagger, ‖contribution ρ‖) +
+          (∑' ρ : (nonDaggerᶜ : Set γ), ‖contribution ρ‖) =
+        ∑' ρ : γ, ‖contribution ρ‖ :=
+    tsum_subtype_add_tsum_subtype_compl hnorm_summable nonDagger
+  have hdagger_zero_fun :
+      (fun ρ : (nonDaggerᶜ : Set γ) => ‖contribution ρ‖) =
+        fun _ρ : (nonDaggerᶜ : Set γ) => 0 := by
+    funext ρ
+    have hρDagger :
+        zetaCenteredZero ((ρ : γ) : ℂ) ∈ daggerClosedSpectralSampleFinset P :=
+      match (inferInstance :
+          Decidable
+            (zetaCenteredZero ((ρ : γ) : ℂ) ∈
+              daggerClosedSpectralSampleFinset P)) with
+      | isTrue hρDagger =>
+          hρDagger
+      | isFalse hρNonDagger =>
+          False.elim (ρ.2 hρNonDagger)
+    have hzero : contribution (ρ : γ) = 0 :=
+      hforcedZero (ρ : γ) hρDagger
+    exact congrArg norm hzero
+  have hdagger_zero_tsum :
+      (∑' ρ : (nonDaggerᶜ : Set γ), ‖contribution ρ‖) = 0 :=
+    Eq.trans
+      (congrArg
+        (fun F : (nonDaggerᶜ : Set γ) → ℝ =>
+          ∑' ρ : (nonDaggerᶜ : Set γ), F ρ)
+        hdagger_zero_fun)
+      tsum_zero
+  have hnondagger_transport :
+      (∑' ρ : nonDagger, ‖contribution ρ‖) =
+        ∑' ρ : δ, ‖contribution (nonDaggerEquiv ρ : γ)‖ :=
+    ((nonDaggerEquiv).tsum_eq
+      (fun ρ : nonDagger => ‖contribution ρ‖)).symm
+  have hnondagger_bound :
+      (∑' ρ : δ, ‖contribution (nonDaggerEquiv ρ : γ)‖) ≤
+        ∑' ρ : δ, envelopeδ ρ := by
+    have henvelopeδ_summable : Summable envelopeδ :=
+      hsum.subtype
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          (ρ : ℂ) ∉ S ∧
+            (ρ : ℂ) ∉ T ∧
+            zetaCenteredZero (ρ : ℂ) ∉ daggerClosedSpectralSampleFinset P)
+    have hnormδ_summable :
+        Summable (fun ρ : δ => ‖contribution (nonDaggerEquiv ρ : γ)‖) :=
+      Summable.of_norm_bounded envelopeδ henvelopeδ_summable
+        (fun ρ =>
+          calc
+            ‖‖contribution (nonDaggerEquiv ρ : γ)‖‖ =
+                ‖contribution (nonDaggerEquiv ρ : γ)‖ := by
+              exact norm_norm (contribution (nonDaggerEquiv ρ : γ))
+            _ ≤ envelopeδ ρ := hboundNonDagger ρ)
+    exact
+      tsum_le_tsum
+        (fun ρ => hboundNonDagger ρ)
+        hnormδ_summable
+        henvelopeδ_summable
+  have hnorm_sum_le_nondagger :
+      (∑' ρ : γ, ‖contribution ρ‖) ≤
+        ∑' ρ : δ, envelopeδ ρ := by
+    have hsum_eq_nondagger :
+        (∑' ρ : γ, ‖contribution ρ‖) =
+          ∑' ρ : nonDagger, ‖contribution ρ‖ := by
+      exact
+        Eq.trans
+          hsplit.symm
+          (Eq.trans
+            (congrArg
+              (fun x : ℝ => (∑' ρ : nonDagger, ‖contribution ρ‖) + x)
+              hdagger_zero_tsum)
+            (add_zero (∑' ρ : nonDagger, ‖contribution ρ‖)))
+    exact
+      Eq.subst
+        (motive := fun x : ℝ => x ≤ ∑' ρ : δ, envelopeδ ρ)
+        hsum_eq_nondagger.symm
+        (Eq.subst
+          (motive := fun x : ℝ => x ≤ ∑' ρ : δ, envelopeδ ρ)
+          hnondagger_transport.symm
+          hnondagger_bound)
+  exact hnorm_tsum.trans hnorm_sum_le_nondagger
+
+/-- The zero-tail norm is bounded by the non-dagger complementary polynomial
+envelope once the finite window is killed and dagger-constrained complement
+terms vanish. -/
+theorem zetaZeroTail_norm_le_commonPolynomialEnvelope_nonDagger_complement_tsum
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (T : Finset ℂ)
+    (A : ℝ)
+    (k : ℕ)
+    (hA : 0 ≤ A)
+    (hsum :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          A * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ)))
+    (f : ZetaAdmissibleFunction)
+    (hzeroT :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+        (ρ : ℂ) ∈ T →
+          zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f) = 0)
+    (hforcedZero :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
+        zetaCenteredZero (ρ : ℂ) ∈ daggerClosedSpectralSampleFinset P →
+          zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f) = 0)
+    (hboundNonDagger :
+      ∀ ρ :
+        {ρ : ℂ //
+          ZetaCompletedZero ρ ∧
+            ρ ∉ S ∧
+            ρ ∉ T ∧
+            zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
+        ‖zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f)‖ ≤
+          A * zetaCompletedZeroCenteredHeight
+            (⟨(ρ : ℂ), ρ.2.1⟩ :
+              {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) :
+    ‖zetaZeroTail S (convolutionAutocorrelation f)‖ ≤
+      ∑' ρ :
+        {ρ : ℂ //
+          ZetaCompletedZero ρ ∧
+            ρ ∉ S ∧
+            ρ ∉ T ∧
+            zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
+        A * zetaCompletedZeroCenteredHeight
+          (⟨(ρ : ℂ), ρ.2.1⟩ :
+            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) := by
+  have htail_eq :
+      zetaZeroTail S (convolutionAutocorrelation f) =
+        ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
+          zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f) :=
+    let envelope :
+        {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} → ℝ :=
+      fun ρ =>
+        A * zetaCompletedZeroCenteredHeight
+          (⟨(ρ : ℂ), ρ.2.1⟩ :
+            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))
+    let contribution :
+        {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} → ℂ :=
+      fun ρ =>
+        zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f)
+    have henvelope_summable : Summable envelope :=
+      hsum.subtype
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          (ρ : ℂ) ∉ S)
+    have htail_contribution_summable : Summable contribution := by
+      exact
+        Summable.of_norm_bounded envelope henvelope_summable
+          (fun ρ =>
+            match (inferInstance : Decidable ((ρ : ℂ) ∈ T)) with
+            | isTrue hρT =>
+                have hcontribution_zero : contribution ρ = 0 :=
+                  hzeroT ρ hρT
+                have hnorm_zero : ‖contribution ρ‖ = 0 :=
+                  congrArg norm hcontribution_zero
+                have henvelope_nonneg : 0 ≤ envelope ρ :=
+                  zetaZeroMultiplicityTransformEnvelope_nonnegative hA k
+                    (⟨(ρ : ℂ), ρ.2.1⟩ :
+                      {ρ : ℂ // ZetaCompletedZero ρ})
+                calc
+                  ‖‖contribution ρ‖‖ = ‖contribution ρ‖ := by
+                    exact norm_norm (contribution ρ)
+                  _ = 0 := hnorm_zero
+                  _ ≤ envelope ρ := henvelope_nonneg
+            | isFalse hρT =>
+                match (inferInstance :
+                    Decidable
+                      (zetaCenteredZero (ρ : ℂ) ∈
+                        daggerClosedSpectralSampleFinset P)) with
+                | isTrue hρDagger =>
+                    have hcontribution_zero : contribution ρ = 0 :=
+                      hforcedZero
+                        (⟨(ρ : ℂ), ρ.2.1, ρ.2.2, hρT⟩ :
+                          {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T})
+                        hρDagger
+                    have hnorm_zero : ‖contribution ρ‖ = 0 :=
+                      congrArg norm hcontribution_zero
+                    have henvelope_nonneg : 0 ≤ envelope ρ :=
+                      zetaZeroMultiplicityTransformEnvelope_nonnegative hA k
+                        (⟨(ρ : ℂ), ρ.2.1⟩ :
+                          {ρ : ℂ // ZetaCompletedZero ρ})
+                    calc
+                      ‖‖contribution ρ‖‖ = ‖contribution ρ‖ := by
+                        exact norm_norm (contribution ρ)
+                      _ = 0 := hnorm_zero
+                      _ ≤ envelope ρ := henvelope_nonneg
+                | isFalse hρNonDagger =>
+                    calc
+                      ‖‖contribution ρ‖‖ = ‖contribution ρ‖ := by
+                        exact norm_norm (contribution ρ)
+                      _ ≤ envelope ρ :=
+                        hboundNonDagger
+                          (⟨(ρ : ℂ), ρ.2.1, ρ.2.2, hρT, hρNonDagger⟩ :
+                            {ρ : ℂ //
+                              ZetaCompletedZero ρ ∧
+                                ρ ∉ S ∧
+                                ρ ∉ T ∧
+                                zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P}))
+    zetaZeroTail_eq_complement_tsum_of_zero_on_window_ownerGap
+      S T (convolutionAutocorrelation f) htail_contribution_summable hzeroT
+  have hcomplement_bound :
+      ‖(∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
+          zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f))‖ ≤
+        ∑' ρ :
+          {ρ : ℂ //
+            ZetaCompletedZero ρ ∧
+              ρ ∉ S ∧
+              ρ ∉ T ∧
+              zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
+          A * zetaCompletedZeroCenteredHeight
+            (⟨(ρ : ℂ), ρ.2.1⟩ :
+              {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) :=
+    zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_nonDagger_tsum
+      S P T A k hA hsum f hforcedZero hboundNonDagger
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        ‖z‖ ≤
+          ∑' ρ :
+            {ρ : ℂ //
+              ZetaCompletedZero ρ ∧
+                ρ ∉ S ∧
+                ρ ∉ T ∧
+                zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
+            A * zetaCompletedZeroCenteredHeight
+              (⟨(ρ : ℂ), ρ.2.1⟩ :
+                {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)))
+      htail_eq.symm
+      hcomplement_bound
 
 /-- The remaining summable-tail cutoff for a common completed-zero polynomial envelope.
 
@@ -1669,6 +2330,599 @@ theorem exists_commonPolynomialEnvelope_completedZeroTailCutoff_supported_ownerG
           htail_transport.symm
           hUtail
       exact ⟨T, hT₀T, hsupport, htail⟩
+
+/-- A summable completed-zero polynomial envelope admits a finite cutoff
+supported only on non-dagger completed zeros.
+
+This is the finite-selection half of the forced-dagger tail argument.  Unlike
+`exists_commonPolynomialEnvelope_completedZeroTailCutoff_awayFromDagger_ownerGap`,
+it does not assume all completed zeros outside `S` are dagger-disjoint.  It
+selects a finite window from the non-dagger subfamily and makes only that
+non-dagger complementary envelope tail small; dagger-constrained zero terms are
+handled separately by the forced-vanishing hypothesis. -/
+theorem exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_supported
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (T₀ : Finset ℂ)
+    (hT₀ :
+      ∀ ρ : ℂ, ρ ∈ T₀ →
+        zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P)
+    (ε : ℝ)
+    (hε : 0 < ε)
+    (A : ℝ)
+    (k : ℕ)
+    (hsum :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          A * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ))) :
+    ∃ T : Finset ℂ,
+      T₀ ⊆ T ∧
+        (∀ ρ : ℂ, ρ ∈ T →
+          zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P) ∧
+        (∑' ρ :
+          {ρ : ℂ //
+            ZetaCompletedZero ρ ∧
+              ρ ∉ S ∧
+              ρ ∉ T ∧
+              zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
+          A * zetaCompletedZeroCenteredHeight
+            (⟨(ρ : ℂ), ρ.2.1⟩ :
+              {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) < ε := by
+  let β :=
+    {ρ : ℂ //
+      ZetaCompletedZero ρ ∧
+        ρ ∉ S ∧
+        zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P}
+  let envelopeβ : β → ℝ :=
+    fun ρ =>
+      A * zetaCompletedZeroCenteredHeight
+        (⟨(ρ : ℂ), ρ.2.1⟩ :
+          {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))
+  let base : Finset β :=
+    T₀.preimage
+      (fun ρ : β => (ρ : ℂ))
+      (Subtype.val_injective.injOn)
+  have htail_eventually :
+      ∀ᶠ U in (atTop : Filter (Finset β)),
+        (∑' ρ : {ρ : β // ρ ∉ U}, envelopeβ ρ) < ε :=
+    (tendsto_tsum_compl_atTop_zero envelopeβ)
+      (Iio ε)
+      (Iio_mem_nhds hε)
+  have hbase_eventually :
+      ∀ᶠ U in (atTop : Filter (Finset β)), base ⊆ U :=
+    eventually_ge_atTop base
+  match (hbase_eventually.and htail_eventually).exists with
+  | ⟨U, hUbase, hUtail⟩ =>
+      let T : Finset ℂ := T₀ ∪ U.image
+        (⟨(fun ρ : β => (ρ : ℂ)), Subtype.val_injective⟩ :
+          β ↪ ℂ)
+      have hT₀T : T₀ ⊆ T :=
+        Finset.subset_union_left
+      have hT :
+          ∀ ρ : ℂ, ρ ∈ T →
+            zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P := by
+        intro ρ hρT
+        match Finset.mem_union.mp hρT with
+        | Or.inl hρT₀ =>
+            exact hT₀ ρ hρT₀
+        | Or.inr hρU =>
+            match Finset.mem_image.mp hρU with
+            | ⟨ρZero, _hρZeroU, hρZero_eq⟩ =>
+                exact
+                  Eq.subst
+                    (motive := fun z : ℂ =>
+                      zetaCenteredZero z ∉ daggerClosedSpectralSampleFinset P)
+                    hρZero_eq
+                    ρZero.2.2.2
+      have htail_transport :
+          (∑' ρ :
+            {ρ : ℂ //
+              ZetaCompletedZero ρ ∧
+                ρ ∉ S ∧
+                ρ ∉ T ∧
+                zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
+            A * zetaCompletedZeroCenteredHeight
+              (⟨(ρ : ℂ), ρ.2.1⟩ :
+                {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) =
+            ∑' ρ : {ρ : β // ρ ∉ U}, envelopeβ ρ := by
+        let γ :=
+          {ρ : ℂ //
+            ZetaCompletedZero ρ ∧
+              ρ ∉ S ∧
+              ρ ∉ T ∧
+              zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P}
+        let δ := {ρ : β // ρ ∉ U}
+        let tailEquiv : γ ≃ δ where
+          toFun := fun ρ =>
+            ⟨⟨(ρ : ℂ), ρ.2.1, ρ.2.2.1, ρ.2.2.2.2⟩,
+              fun hρU =>
+                ρ.2.2.2.1
+                  (Finset.mem_union.mpr
+                    (Or.inr
+                      (Finset.mem_image.mpr
+                        ⟨⟨(ρ : ℂ), ρ.2.1, ρ.2.2.1, ρ.2.2.2.2⟩,
+                          hρU, rfl⟩)))⟩
+          invFun := fun ρ =>
+            ⟨(ρ : β),
+              ρ.1.2.1,
+              ρ.1.2.2.1,
+              fun hρT =>
+                match Finset.mem_union.mp hρT with
+                | Or.inl hρT₀ =>
+                    ρ.2
+                      (hUbase
+                        (Finset.mem_preimage.mpr hρT₀))
+                | Or.inr hρImage =>
+                    match Finset.mem_image.mp hρImage with
+                    | ⟨ρU, hρU, hρ_eq⟩ =>
+                        ρ.2
+                          (Eq.subst
+                            (motive := fun z : β => z ∈ U)
+                            (Subtype.ext hρ_eq).symm
+                            hρU),
+              ρ.1.2.2.2⟩
+          left_inv := fun ρ => Subtype.ext rfl
+          right_inv := fun ρ => Subtype.ext rfl
+        have hraw :
+            (∑' ρ : γ,
+              A * zetaCompletedZeroCenteredHeight
+                (⟨(ρ : ℂ), ρ.2.1⟩ :
+                  {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) =
+              ∑' ρ : δ,
+                A * zetaCompletedZeroCenteredHeight
+                  (⟨((tailEquiv.symm ρ : γ) : ℂ),
+                    (tailEquiv.symm ρ : γ).2.1⟩ :
+                    {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) :=
+          (tailEquiv.symm.tsum_eq
+            (fun ρ : γ =>
+              A * zetaCompletedZeroCenteredHeight
+                (⟨(ρ : ℂ), ρ.2.1⟩ :
+                  {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)))).symm
+        have hterm :
+            (fun ρ : δ =>
+              A * zetaCompletedZeroCenteredHeight
+                (⟨((tailEquiv.symm ρ : γ) : ℂ),
+                  (tailEquiv.symm ρ : γ).2.1⟩ :
+                  {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) =
+              fun ρ : δ => envelopeβ ρ :=
+          funext (fun _ρ => rfl)
+        Eq.trans hraw
+          (congrArg
+            (fun F : δ → ℝ => ∑' ρ : δ, F ρ)
+            hterm)
+      have htail :
+          (∑' ρ :
+            {ρ : ℂ //
+              ZetaCompletedZero ρ ∧
+                ρ ∉ S ∧
+                ρ ∉ T ∧
+                zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
+            A * zetaCompletedZeroCenteredHeight
+              (⟨(ρ : ℂ), ρ.2.1⟩ :
+                {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) < ε :=
+        Eq.subst
+          (motive := fun x : ℝ => x < ε)
+          htail_transport.symm
+          hUtail
+      exact ⟨T, hT₀T, hT, htail⟩
+
+/-- Correct forced-dagger finite-window selector from the non-dagger cutoff.
+
+This is the proof body for
+`autocorrelationSpectralEvalFiber_commonPolynomialEnvelope_forcedDaggerTailWindow_conditional`
+once that owner theorem is moved below the tail-excision helper layer. -/
+theorem autocorrelationSpectralEvalFiber_commonPolynomialEnvelope_forcedDaggerTailWindow_of_nonDaggerCutoff
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction)
+    (ε : ℝ)
+    (hε : 0 < ε)
+    (T₀ : Finset ℂ)
+    (hT₀ :
+      ∀ ρ : ℂ, ρ ∈ T₀ →
+        zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P)
+    (A : ℝ)
+    (k : ℕ)
+    (hA : 0 ≤ A)
+    (hsum :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          A * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ)))
+    (hforced :
+      ∀ f : ZetaAdmissibleFunction,
+        f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+          ∀ ρ : ℂ,
+            ZetaCompletedZero ρ →
+              ρ ∉ S →
+                zetaCenteredZero ρ ∈ daggerClosedSpectralSampleFinset P →
+                  zetaZeroSideContribution ρ (convolutionAutocorrelation f) = 0)
+    (henv :
+      ∀ f : ZetaAdmissibleFunction,
+        f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+          (∀ ρ : ℂ, ρ ∈ T₀ →
+            zetaSpectralEval (convolutionAutocorrelation f)
+              (zetaCenteredZero ρ) = 0) →
+            ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T₀},
+              ‖zetaZeroSideContribution (ρ : ℂ)
+                  (convolutionAutocorrelation f)‖ ≤
+                A * zetaCompletedZeroCenteredHeight
+                  (⟨(ρ : ℂ), ρ.2.1⟩ :
+                    {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) :
+    ∃ T : Finset ℂ,
+      T₀ ⊆ T ∧
+        (∀ ρ : ℂ, ρ ∈ T →
+          zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P) ∧
+        ∀ f : ZetaAdmissibleFunction,
+          f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+            (∀ ρ : ℂ, ρ ∈ T →
+              zetaSpectralEval (convolutionAutocorrelation f)
+                (zetaCenteredZero ρ) = 0) →
+              autocorrelationZeroTailRealAbs S f < ε := by
+  match
+      exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_supported
+        S P T₀ hT₀ ε hε A k hsum with
+  | ⟨T, hT₀T, hT, htail⟩ =>
+      exact
+        ⟨T, hT₀T, hT,
+          fun f hfFiber hfT =>
+            autocorrelationZeroTailRealAbs_lt_of_zetaZeroTail_norm_lt
+              S f ε
+              (lt_of_le_of_lt
+                (zetaZeroTail_norm_le_commonPolynomialEnvelope_nonDagger_complement_tsum
+                  S P T A k hA hsum f
+                  (fun ρ hρT =>
+                    zetaZeroSideContribution_eq_zero_of_centeredZero_spectralEval_zero
+                      (convolutionAutocorrelation f) (ρ : ℂ)
+                      (hfT (ρ : ℂ) hρT))
+                  (fun ρ hρDagger =>
+                    hforced f hfFiber (ρ : ℂ) ρ.2.1 ρ.2.2.1 hρDagger)
+                  (fun ρ =>
+                    henv f hfFiber
+                      (autocorrelationSpectralEvalFiber_baseWindowVanishes_of_enlargedWindowVanishes
+                        P T₀ T hT₀T f hfT)
+                      (⟨(ρ : ℂ), ρ.2.1, ρ.2.2.1,
+                        fun hρT₀ => ρ.2.2.2.1 (hT₀T hρT₀)⟩ :
+                        {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T₀})))
+                htail)⟩
+
+/-- Conditional summable-tail selector with forced dagger-constrained zeros. -/
+theorem autocorrelationSpectralEvalFiber_commonPolynomialEnvelope_forcedDaggerTailWindow_conditional
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction)
+    (ε : ℝ)
+    (hε : 0 < ε)
+    (T₀ : Finset ℂ)
+    (hT₀ :
+      ∀ ρ : ℂ, ρ ∈ T₀ →
+        zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P)
+    (A : ℝ)
+    (k : ℕ)
+    (hA : 0 ≤ A)
+    (hsum :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          A * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ)))
+    (hforced :
+      ∀ f : ZetaAdmissibleFunction,
+        f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+          ∀ ρ : ℂ,
+            ZetaCompletedZero ρ →
+              ρ ∉ S →
+                zetaCenteredZero ρ ∈ daggerClosedSpectralSampleFinset P →
+                  zetaZeroSideContribution ρ (convolutionAutocorrelation f) = 0)
+    (henv :
+      ∀ f : ZetaAdmissibleFunction,
+        f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+          (∀ ρ : ℂ, ρ ∈ T₀ →
+            zetaSpectralEval (convolutionAutocorrelation f)
+              (zetaCenteredZero ρ) = 0) →
+            ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T₀},
+              ‖zetaZeroSideContribution (ρ : ℂ)
+                  (convolutionAutocorrelation f)‖ ≤
+                A * zetaCompletedZeroCenteredHeight
+                  (⟨(ρ : ℂ), ρ.2.1⟩ :
+                    {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) :
+    ∃ T : Finset ℂ,
+      T₀ ⊆ T ∧
+        (∀ ρ : ℂ, ρ ∈ T →
+          zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P) ∧
+        ∀ f : ZetaAdmissibleFunction,
+          f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+            (∀ ρ : ℂ, ρ ∈ T →
+              zetaSpectralEval (convolutionAutocorrelation f)
+                (zetaCenteredZero ρ) = 0) →
+              autocorrelationZeroTailRealAbs S f < ε := by
+  exact
+    autocorrelationSpectralEvalFiber_commonPolynomialEnvelope_forcedDaggerTailWindow_of_nonDaggerCutoff
+      S P f₀ ε hε T₀ hT₀ A k hA hsum hforced henv
+
+/-- Finite-window tomography gives arbitrarily small attained zero-tail values.
+
+This is the descent step from the true reconstruction engine to the metric value-set
+form: once tomography supplies, for every tolerance, a finite zero window whose
+annihilation controls the remaining zero tail, finite interpolation realizes that
+annihilation window inside the fixed autocorrelation spectral fiber. -/
+theorem autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_small_values_of_finiteWindowTailControl
+    (hRunge : AutocorrelationSpectralEvalFiberFiniteWindowTailControlRunge)
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction) :
+    ∀ ε : ℝ, 0 < ε →
+      ∃ r : ℝ,
+        r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
+          r < ε := by
+  intro ε hε
+  match hRunge S P f₀ ε hε with
+  | ⟨T, hT⟩ =>
+      have hWindow :
+          (∀ ρ : ℂ, ρ ∈ T →
+            zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P) ∧
+            ∀ f : ZetaAdmissibleFunction,
+              f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+                (∀ ρ : ℂ, ρ ∈ T →
+                  zetaSpectralEval (convolutionAutocorrelation f)
+                    (zetaCenteredZero ρ) = 0) →
+                  autocorrelationZeroTailRealAbs S f < ε :=
+        autocorrelationSpectralEvalFiberFiniteWindowTailControl.elim
+          S P f₀ ε T hT
+      exact
+        autocorrelationSpectralEvalFiberZeroTailRealAbsValues_exists_lt_of_finiteWindow_tailControl
+          S P f₀ ε T hWindow.1 hWindow.2
+
+/-- Finite-window tomography gives the closure/radical form of the zero-tail value set.
+
+This is the topological endpoint of the finite-window reconstruction chain.  It keeps the
+only remaining analytic input at the correct owner level: proving the finite-window
+tail-control theorem itself. -/
+theorem autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_of_finiteWindowTailControl
+    (hRunge : AutocorrelationSpectralEvalFiberFiniteWindowTailControlRunge)
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction) :
+    (0 : ℝ) ∈ closure
+      (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) := by
+  exact
+    autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_of_has_arbitrarily_small_values
+      S P f₀
+      (autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_small_values_of_finiteWindowTailControl
+        hRunge S P f₀)
+
+/-- A common-polynomial finite-tail reconstruction package supplies finite-window
+tail control.
+
+This peels off the final projection from the analytic reconstruction theorem: its chosen
+window `T` is already dagger-disjoint from the fixed autocorrelation constraints, and its
+last field is exactly the tail-control predicate consumed by finite interpolation. -/
+theorem autocorrelationSpectralEvalFiber_finiteWindowTailControl_of_commonPolynomialFiniteTail
+    (hRunge : AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeFiniteTailRunge) :
+    AutocorrelationSpectralEvalFiberFiniteWindowTailControlRunge := by
+  intro S P f₀ ε hε
+  match hRunge S P f₀ ε hε with
+  | ⟨T₀, T, A, k, hT₀T, hT, hA, hsum, hforced, henv, htail⟩ =>
+      exact ⟨T, hT, htail⟩
+
+/-- A common-polynomial finite-tail reconstruction package gives the closure/radical
+form of the fixed-fiber zero-tail value set.
+
+The proof is deliberately only a composition of named owner steps: common-polynomial
+finite-tail reconstruction gives finite-window tail control; finite-window tail control
+gives small attained zero-tail values; small attained values give closure at `0`. -/
+theorem autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_of_commonPolynomialFiniteTail
+    (hRunge : AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeFiniteTailRunge)
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction) :
+    (0 : ℝ) ∈ closure
+      (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) := by
+  exact
+    autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_of_finiteWindowTailControl
+      (autocorrelationSpectralEvalFiber_finiteWindowTailControl_of_commonPolynomialFiniteTail
+        hRunge)
+      S P f₀
+
+/-- Base common-polynomial reconstruction data supplies the finite-tail reconstruction
+package.
+
+This is the honest summable-tail selection step: the base theorem gives a dagger-disjoint
+base window, forced vanishing of dagger-constrained completed zeros, and a common
+polynomial envelope on the complementary zero-side terms; the non-dagger cutoff theorem
+then selects the enlarged finite window whose annihilation forces the zero-tail below the
+requested tolerance. -/
+theorem autocorrelationSpectralEvalFiber_commonPolynomialFiniteTail_of_base
+    (hbase : AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBase) :
+    AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeFiniteTailRunge := by
+  intro S P f₀ ε hε
+  match
+      AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBase.exists_data
+        hbase S P f₀ with
+  | ⟨T₀, A, k, hdata⟩ =>
+      match
+          autocorrelationSpectralEvalFiber_commonPolynomialEnvelope_forcedDaggerTailWindow_conditional
+            S P f₀ ε hε T₀
+            (AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData.baseWindow_disjoint
+              hdata)
+            A k
+            (AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData.constant_nonnegative
+              hdata)
+            (AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData.envelope_summable
+              hdata)
+            (AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData.forcedDagger_vanishes
+              hdata)
+            (AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData.envelope_bound
+              hdata) with
+      | ⟨T, hT₀T, hT, htail⟩ =>
+          exact
+            ⟨T₀, T, A, k, hT₀T, hT,
+              AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData.constant_nonnegative
+                hdata,
+              AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData.envelope_summable
+                hdata,
+              AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData.forcedDagger_vanishes
+                hdata,
+              AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBaseData.envelope_bound
+                hdata,
+              htail⟩
+
+/-- Base common-polynomial reconstruction data gives the closure/radical form of the
+fixed-fiber zero-tail value set. -/
+theorem autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_of_commonPolynomialBase
+    (hbase : AutocorrelationSpectralEvalFiberCommonPolynomialEnvelopeBase)
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction) :
+    (0 : ℝ) ∈ closure
+      (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) := by
+  exact
+    autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_of_commonPolynomialFiniteTail
+      (autocorrelationSpectralEvalFiber_commonPolynomialFiniteTail_of_base hbase)
+      S P f₀
+
+/-- Owner finite-window tomographic tail-control reconstruction.
+
+This is the correct remaining analytic root: for each fixed finite autocorrelation
+spectral fiber and tolerance, tomography selects a finite dagger-disjoint completed-zero
+window whose annihilation forces the named zero tail below that tolerance.  It does not
+assert a uniform common polynomial envelope for every element of the unnormalised finite
+fiber. -/
+theorem autocorrelationSpectralEvalFiber_finiteWindowTailControl_exists_ownerTomographicReconstruction
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction)
+    (ε : ℝ)
+    (hε : 0 < ε) :
+    ∃ T : Finset ℂ,
+      AutocorrelationSpectralEvalFiberFiniteWindowTailControl S P f₀ ε T := by
+  sorry
+
+/-- Owner finite-window tomographic tail-control reconstruction.
+
+This is the global Runge form assembled from the fixed-parameter finite-window
+reconstruction theorem. -/
+theorem autocorrelationSpectralEvalFiber_finiteWindowTailControl_ownerTomographicReconstruction :
+    AutocorrelationSpectralEvalFiberFiniteWindowTailControlRunge := by
+  intro S P f₀ ε hε
+  exact
+    autocorrelationSpectralEvalFiber_finiteWindowTailControl_exists_ownerTomographicReconstruction
+      S P f₀ ε hε
+
+/-- Owner tomographic closure density in the fixed finite autocorrelation
+spectral-evaluation fiber.
+
+This is the analytic reconstruction root: the zero-tail value set of the fixed
+finite autocorrelation spectral fiber has `0` in its closure.  The small-value
+representative theorem below is the metric projection of this closure
+statement. -/
+theorem autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_ownerTomographicReconstruction
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction) :
+    (0 : ℝ) ∈ closure
+      (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) := by
+  exact
+    autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_of_finiteWindowTailControl
+      autocorrelationSpectralEvalFiber_finiteWindowTailControl_ownerTomographicReconstruction
+      S P f₀
+
+/-- Owner tomographic Runge reconstruction in the fixed finite autocorrelation
+spectral-evaluation fiber.
+
+This is the true reconstruction target: for every tolerance it constructs one
+fiber representative with small zero-tail value.  It does not assert a common
+polynomial envelope for every element of the unnormalised fiber, which would
+be false by scaling. -/
+theorem autocorrelationSpectralEvalFiber_tomographicRungeReconstruction_owner
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction) :
+    ∀ ε : ℝ, 0 < ε →
+      ∃ f : ZetaAdmissibleFunction,
+        f ∈ AutocorrelationSpectralEvalFiberOf P f₀ ∧
+          autocorrelationZeroTailRealAbs S f < ε := by
+  have hsmallValues :
+      ∀ ε : ℝ, 0 < ε →
+        ∃ r : ℝ,
+          r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
+            r < ε :=
+    autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_small_values_of_zero_mem_closure
+      S P f₀
+      (autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_ownerTomographicReconstruction
+        S P f₀)
+  exact
+    autocorrelationSpectralEvalFiber_zeroTailRealAbs_has_arbitrarily_small_values
+      S P f₀ hsmallValues
+
+/-- Small zero-tail values obtained from tomographic reconstruction of a
+small representative in the fixed finite autocorrelation spectral fiber. -/
+theorem autocorrelationSpectralEvalFiberZeroTailSmallValuesRunge_owner :
+    AutocorrelationSpectralEvalFiberZeroTailSmallValuesRunge := by
+  intro S P f₀
+  exact
+    autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_small_values_of_fiber
+      S P f₀
+      (autocorrelationSpectralEvalFiber_tomographicRungeReconstruction_owner
+        S P f₀)
+
+/-- Closure form of the fixed-fiber Runge theorem from small values. -/
+theorem autocorrelationSpectralEvalFiberZeroTailClosureRunge_owner :
+    AutocorrelationSpectralEvalFiberZeroTailClosureRunge := by
+  intro S P f₀
+  exact
+    autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_ownerTomographicReconstruction
+      S P f₀
+
+/-- Quotient-level closure form transported from the concrete fixed-fiber closure form. -/
+theorem autocorrelationSpectralFiberQuotientZeroTailClosureRunge_owner :
+    AutocorrelationSpectralFiberQuotientZeroTailClosureRunge := by
+  intro S P f₀
+  have hConcreteClosure :
+      (0 : ℝ) ∈
+        closure (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) :=
+    autocorrelationSpectralEvalFiberZeroTailClosureRunge_owner S P f₀
+  have hConcrete_eq_quotient :
+      autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ =
+        autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues
+          S P f₀ :=
+    Eq.trans
+      (autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_eq
+        S P f₀).symm
+      (autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_eq_quotient
+        S P f₀)
+  exact
+    Eq.subst
+      (motive := fun V : Set ℝ => (0 : ℝ) ∈ closure V)
+      hConcrete_eq_quotient
+      hConcreteClosure
+
+/-- Quotient-level small-values form transported from quotient closure. -/
+theorem autocorrelationSpectralFiberQuotientZeroTailSmallValuesRunge_owner :
+    AutocorrelationSpectralFiberQuotientZeroTailSmallValuesRunge := by
+  intro S P f₀ ε hε
+  match
+      (Metric.mem_closure_iff.mp
+        (autocorrelationSpectralFiberQuotientZeroTailClosureRunge_owner S P f₀))
+        ε hε with
+  | ⟨r, hrValues, hdist⟩ =>
+      have hrNonnegative :
+          0 ≤ r :=
+        autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues_nonnegative
+          S P f₀ hrValues
+      have hdist_zero_r_eq_r : dist 0 r = r := by
+        calc
+          dist 0 r = dist r 0 := by
+            exact dist_comm 0 r
+          _ = |r - 0| := by
+            exact Real.dist_eq r 0
+          _ = |r| := by
+            exact congrArg (fun x : ℝ => |x|) (sub_zero r)
+          _ = r := by
+            exact abs_of_nonneg hrNonnegative
+      exact
+        ⟨r, hrValues,
+          Eq.subst
+            (motive := fun x : ℝ => x < ε)
+            hdist_zero_r_eq_r
+            hdist⟩
 
 /-- A summable completed-zero polynomial envelope admits a dagger-disjoint finite
 cutoff once completed zeros outside `S` have been separated from the dagger-closed
@@ -2369,14 +3623,10 @@ theorem autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_
         hRunge S P f₀)
 
 variable
-  (hZeroTailSmallValuesOwnerRunge :
-    ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
-      ∀ ε : ℝ, 0 < ε →
-        ∃ r : ℝ,
-          r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
-            r < ε)
+  (hZeroTailClosureOwnerRunge :
+    AutocorrelationSpectralEvalFiberZeroTailClosureRunge)
 
-include hZeroTailSmallValuesOwnerRunge
+include hZeroTailClosureOwnerRunge
 
 /-- Nonlinear finite autocorrelation-cone density in the zero-tail quotient.
 
@@ -2395,9 +3645,7 @@ theorem autocorrelationConeSpectralFiber_positiveConeDensity_quotientZeroTail_me
   have hConcreteClosure :
       (0 : ℝ) ∈
         closure (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) :=
-    autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_of_has_arbitrarily_small_values
-      S P f₀
-      (hZeroTailSmallValuesOwnerRunge S P f₀)
+    hZeroTailClosureOwnerRunge S P f₀
   have hConcrete_eq_quotient :
       autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ =
         autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues
@@ -2437,7 +3685,7 @@ theorem seedSpectralEvalFiniteSample_surjective_autocorrelationConeSpectralFiber
           S P f₀) := by
   exact
     autocorrelationConeSpectralFiber_positiveConeDensity_quotientZeroTail_mem_closure_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀
 
 /-- Positive-cone/GNS density at the quotient-level zero-tail functional.
@@ -2455,7 +3703,7 @@ theorem autocorrelationConeSpectralFiber_completedOrderedHeart_positiveConeDensi
           S P f₀) := by
   exact
     seedSpectralEvalFiniteSample_surjective_autocorrelationConeSpectralFiber_positiveConeDensity_quotientZeroTail_mem_closure_radical
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       (fun T => seedSpectralEvalFiniteSample_surjective_ownerPaleyWiener T)
       S P f₀
 
@@ -2478,7 +3726,7 @@ theorem autocorrelationConeSpectralEvalFiberZeroTailOrderedHeartImage_positiveCo
       (autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues_eq_image
         S P f₀)
       (autocorrelationConeSpectralFiber_completedOrderedHeart_positiveConeDensity_quotientZeroTail_mem_closure_radical
-        hZeroTailSmallValuesOwnerRunge
+        hZeroTailClosureOwnerRunge
         S P f₀)
 
 /-- Positive-cone/GNS density recognition in the completed ordered-heart radical quotient.
@@ -2501,7 +3749,7 @@ theorem autocorrelationConeSpectralFiber_completedOrderedHeart_positiveConeDensi
       (autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_eq_quotient
         S P f₀).symm
       (autocorrelationConeSpectralFiber_completedOrderedHeart_positiveConeDensity_quotientZeroTail_mem_closure_radical
-        hZeroTailSmallValuesOwnerRunge
+        hZeroTailClosureOwnerRunge
         S P f₀)
 
 /-- Positive/autocorrelation cone density in the completed ordered-heart radical quotient.
@@ -2520,7 +3768,7 @@ theorem autocorrelationConeSpectralFiber_completedOrderedHeart_positiveConeDensi
       (autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_eq
         S P f₀)
       (autocorrelationConeSpectralFiber_completedOrderedHeart_positiveConeDensity_recognizes_zeroTail_mem_closure_radical
-        hZeroTailSmallValuesOwnerRunge
+        hZeroTailClosureOwnerRunge
         S P f₀)
 
 /-- Compatibility name for the positive/autocorrelation cone density theorem in the
@@ -2532,7 +3780,7 @@ theorem autocorrelationConeSpectralFiber_zeroTailFunctional_mem_closure_radical
     (0 : ℝ) ∈ closure (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) := by
   exact
     autocorrelationConeSpectralFiber_completedOrderedHeart_positiveConeDensity_zeroTail_mem_closure_radical
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀
 
 /-- Autocorrelation cone Runge closure/radical condition for a fixed finite spectral
@@ -2546,7 +3794,7 @@ theorem autocorrelationConeSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_clos
     (0 : ℝ) ∈ closure (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) := by
   exact
     autocorrelationConeSpectralFiber_zeroTailFunctional_mem_closure_radical
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀
 
 /-- Compatibility name for the autocorrelation-cone Runge closure/radical condition. -/
@@ -2557,7 +3805,7 @@ theorem autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_
     (0 : ℝ) ∈ closure (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) := by
   exact
     autocorrelationConeSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀
 
 /-- Runge closure/radical condition gives arbitrarily small values of the zero-tail value
@@ -2570,7 +3818,10 @@ theorem autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_s
       ∃ r : ℝ,
           r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
           r < ε := by
-  exact hZeroTailSmallValuesOwnerRunge S P f₀
+  exact
+    autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_small_values_of_zero_mem_closure
+      S P f₀
+      (hZeroTailClosureOwnerRunge S P f₀)
 
 /-- Autocorrelation closure/density gives radical tail control inside a fixed finite
 spectral-evaluation presentation fiber.
@@ -2589,7 +3840,7 @@ theorem exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_of_a
     autocorrelationSpectralEvalFiber_zeroTailRealAbs_has_arbitrarily_small_values
       S P f₀
       (autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_small_values_ownerRunge
-        hZeroTailSmallValuesOwnerRunge
+        hZeroTailClosureOwnerRunge
         S P f₀)
 
 /-- Autocorrelation closure/density gives radical tail control inside an already realized
@@ -2608,7 +3859,7 @@ theorem exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_of_f
           autocorrelationZeroTailRealAbs S f < ε := by
   exact
     exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_of_autocorrelationClosureDensity_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀
 
 /-- Compatibility wrapper for the previous Paley-range-shaped Runge localization theorem.
@@ -2628,7 +3879,7 @@ theorem exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_of_p
           autocorrelationZeroTailRealAbs S f < ε := by
   exact
     exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_of_autocorrelationClosureDensity_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀
 
 /-- Runge density/localization for the named zero-tail absolute-value set attained inside
@@ -2644,7 +3895,7 @@ theorem exists_autocorrelationSpectralEvalFiberZeroTailRealAbsValue_lt_of_autoco
           r < ε := by
   intro ε hε
   rcases exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_of_autocorrelationClosureDensity_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfFiber, hfTail⟩
   exact ⟨autocorrelationZeroTailRealAbs S f,
@@ -2668,7 +3919,7 @@ theorem exists_autocorrelationSpectralEvalFiberZeroTailRealAbsValue_lt_of_paleyR
           r < ε := by
   exact
     exists_autocorrelationSpectralEvalFiberZeroTailRealAbsValue_lt_of_autocorrelationClosureDensity_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀
 
 /-- Runge density/localization for the named zero-tail absolute-value set attained inside
@@ -2683,7 +3934,7 @@ theorem exists_autocorrelationSpectralEvalFiberZeroTailRealAbsValue_lt_ownerRung
           r < ε := by
   exact
     exists_autocorrelationSpectralEvalFiberZeroTailRealAbsValue_lt_of_autocorrelationClosureDensity_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀
 
 /-- Runge localization inside the pointwise finite autocorrelation spectral-evaluation
@@ -2698,7 +3949,7 @@ theorem exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_owne
           autocorrelationZeroTailRealAbs S f < ε := by
   intro ε hε
   rcases exists_autocorrelationSpectralEvalFiberZeroTailRealAbsValue_lt_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀ ε hε with
     ⟨r, hrValues, hrSmall⟩
   rcases
@@ -2725,7 +3976,7 @@ theorem exists_autocorrelation_spectralEval_eq_zeroTailRealAbs_small_ownerRunge
           autocorrelationZeroTailRealAbs S f < ε := by
   intro ε hε
   rcases exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_small_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfFiber, hfTail⟩
   exact ⟨f,
@@ -2746,7 +3997,7 @@ theorem exists_autocorrelation_spectralFiniteSample_eq_zeroTailRealAbs_small_own
           autocorrelationZeroTailRealAbs S f < ε := by
   intro ε hε
   rcases exists_autocorrelation_spectralEval_eq_zeroTailRealAbs_small_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfSample, hfTail⟩
   exact ⟨f,
@@ -2770,7 +4021,7 @@ theorem exists_mem_autocorrelationSampleFiberOf_zeroTailRealAbs_small_ownerRunge
           autocorrelationZeroTailRealAbs S f < ε := by
   intro ε hε
   rcases exists_autocorrelation_spectralFiniteSample_eq_zeroTailRealAbs_small_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfSample, hfTail⟩
   exact ⟨f,
@@ -2790,7 +4041,7 @@ theorem exists_mem_autocorrelationSampleFiberOf_zeroTail_small_ownerRunge
             (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
   intro ε hε
   rcases exists_mem_autocorrelationSampleFiberOf_zeroTailRealAbs_small_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfFiber, hfTail⟩
   exact ⟨f, hfFiber,
@@ -2811,12 +4062,12 @@ theorem exists_autocorrelation_spectralFiniteSample_preserved_zeroTail_small_own
             (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
   intro ε hε
   rcases exists_mem_autocorrelationSampleFiberOf_zeroTail_small_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfFiber, hfTail⟩
   exact ⟨f, hfFiber, hfTail⟩
 
-omit hZeroTailSmallValuesOwnerRunge
+omit hZeroTailClosureOwnerRunge
 
 /-- The canonical unit autocorrelation sample vector on a finite spectral sample set. -/
 def autocorrelationSpectralFiniteUnitTarget
@@ -2852,7 +4103,7 @@ theorem exists_mem_autocorrelationSampleFiber_unit
       f ∈ AutocorrelationSampleFiber P (autocorrelationSpectralFiniteUnitTarget P) := by
   exact exists_autocorrelation_spectralFiniteSample_eq_unitTarget P
 
-include hZeroTailSmallValuesOwnerRunge
+include hZeroTailClosureOwnerRunge
 
 /-- Runge localization with the canonical unit finite autocorrelation spectral samples. -/
 theorem exists_autocorrelation_spectralFiniteSample_unit_zeroTail_small_ownerRunge
@@ -2868,7 +4119,7 @@ theorem exists_autocorrelation_spectralFiniteSample_unit_zeroTail_small_ownerRun
     ⟨f₀, hf₀⟩
   intro ε hε
   rcases exists_mem_autocorrelationSampleFiberOf_zeroTail_small_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfSample, hfTail⟩
   exact ⟨f, hfSample.trans hf₀, hfTail⟩
@@ -2885,7 +4136,7 @@ theorem exists_autocorrelation_spectralEval_unit_zeroTail_small_ownerRunge
             (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
   intro ε hε
   rcases exists_autocorrelation_spectralFiniteSample_unit_zeroTail_small_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P ε hε with
     ⟨f, hfSample, hfTail⟩
   exact ⟨f, fun z hz => congrFun hfSample ⟨z, hz⟩, hfTail⟩
@@ -2909,7 +4160,7 @@ theorem exists_autocorrelation_spectralEval_preserved_zeroTail_small_ownerRunge
             (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
   intro ε hε
   rcases exists_autocorrelation_spectralFiniteSample_preserved_zeroTail_small_ownerRunge
-      hZeroTailSmallValuesOwnerRunge
+      hZeroTailClosureOwnerRunge
       S P f₀ ε hε with
     ⟨f, hfSample, hfTail⟩
   exact ⟨f, fun z hz => congrFun hfSample ⟨z, hz⟩, hfTail⟩

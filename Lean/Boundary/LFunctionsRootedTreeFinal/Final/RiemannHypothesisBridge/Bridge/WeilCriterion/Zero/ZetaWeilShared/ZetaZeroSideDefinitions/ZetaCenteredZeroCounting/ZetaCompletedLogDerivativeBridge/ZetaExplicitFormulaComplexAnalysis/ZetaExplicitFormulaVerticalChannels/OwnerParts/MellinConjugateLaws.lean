@@ -77,28 +77,12 @@ lemma mellin_conjugateSymmetric_property
 a function with conjugate symmetry in its values. -/
 lemma mellinInv_preserves_conjugateSymmetry
     {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M)
-    (σ : ℝ) (x : ℝ) (hx : 0 < x) :
+    (σ : ℝ)
+    (hM_integrable : Integrable (fun y : ℝ => M (σ + 2 * π * y * I)))
+    (x : ℝ) (hx : 0 < x) :
     mellinInv σ M x = star (mellinInv σ M x) :=
-  MellinInversionConjugacy.conjugateSymmetricTransform_inverts_to_realValues hM σ x hx
-
-/-- When inverting a conjugate-symmetric Mellin transform, the domain reflection
-property emerges: f(x) and f(1/x) relate via conjugacy.
-
-Key insight: For conjugate-symmetric M, the Mellin inversion at 1/x gives the
-conjugate of the inversion at x because the exponent -s in x^(-s) becomes
-x^s = x^(-(-s)), and the conjugate symmetry relates M(s) to M(-conj(s)).
--/
-lemma mellinInv_conjugateSymmetric_domain_reflection
-    {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M)
-    (σ : ℝ) (x : ℝ) (hx : 0 < x) :
-    let f := mellinInv σ M
-    f (1 / x) = star (f x) := by
-  -- The domain reflection property requires:
-  -- 1. Contour integral for f(1/x) at vertical line σ + it
-  -- 2. Substitution u = -t to pair conjugate points
-  -- 3. Application of conjugate symmetry M(-conj(s)) = conj(M(s))
-  -- 4. Integral calculus to show f(1/x) = star(f(x))
-  sorry  -- Requires Mellin contour substitution and conjugate pairing lemmas
+  MellinInversionConjugacy.conjugateSymmetricTransform_inverts_to_realValues
+    hM σ hM_integrable x hx
 
 /-- The completed Mellin transform (with exponential damping for decay)
 preserves conjugate symmetry. -/
@@ -125,18 +109,20 @@ conjugate-symmetric transform yields a compactly supported smooth function
 with the same compact support properties. -/
 theorem paleyWiener_mellinInv_conjugateSymmetric
     {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M)
-    (σ : ℝ) :
+    (σ : ℝ)
+    (hM_integrable : Integrable (fun y : ℝ => M (σ + 2 * π * y * I))) :
     let f := mellinInv σ M
     ∀ x : ℝ, 0 < x → (f x = star (f x)) := by
   intro x hx
-  exact mellinInv_preserves_conjugateSymmetry hM σ x hx
+  exact mellinInv_preserves_conjugateSymmetry hM σ hM_integrable x hx
 
 /-- Public API: Paley-Wiener Mellin inversion produces conjugate-symmetric results. -/
 theorem paleyWienerMellinInv_conjugateSymmetric
-    {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M) (σ : ℝ) :
+    {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M) (σ : ℝ)
+    (hM_integrable : Integrable (fun y : ℝ => M (σ + 2 * π * y * I))) :
     ∀ x : ℝ, 0 < x →
     mellinInv σ M x = star (mellinInv σ M x) :=
-  fun x hx => mellinInv_preserves_conjugateSymmetry hM σ x hx
+  fun x hx => mellinInv_preserves_conjugateSymmetry hM σ hM_integrable x hx
 
 end MellinConjugacy
 

@@ -1,19 +1,15 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ConjugateSymmetricTransforms
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.MellinConjugateLaws
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ExplicitFormulaSpectralSymmetry
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.MellinInversionConjugacy
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.AdmissibleConjugacyComposition
 import Boundary.LFunctions.ZetaTransformCalculus
 
 /-!
-# Admissible Functions from Mellin Inversion
+# Conditional admissible conjugacy from Mellin-side symmetry
 
-This library establishes the complete chain:
-  Conjugate-symmetric spectral transform → Mellin inversion → Conjugate-symmetric test function
-
-The key result: Admissible test functions, obtained by Mellin inversion of the
-explicit formula's spectral transform, inherit conjugate symmetry from the
-transform's conjugate-symmetric property.
+The lemmas in this file transport an explicitly supplied Hermitian symmetry
+hypothesis through the elementary admissible-function operations used by the
+prime boundary files.
 -/
 
 namespace Boundary
@@ -29,43 +25,38 @@ open scoped Topology
 
 namespace AdmissibleMellinTheory
 
-/-- Admissible functions are defined as smooth compactly supported functions
-obtained from the explicit formula's Mellin inversion. -/
-theorem admissibleFunction_from_mellin_spectralTransform
-    (f : ZetaAdmissibleFunction) :
-    ∃ (σ : ℝ) (M : ℂ → ℂ),
-      M = zetaCompletedExplicitFormulaPhi f ∧
-      Transform.IsConjugateSymmetric M ∧
-      (∀ t : ℝ, ∃ (ε : ℝ), 0 < ε ∧
-        (∀ s : ℂ, |s.im| < ε → f.toZetaTestFunction t = mellinInv σ M t)) := by
-  -- The admissible function is obtained by Mellin inversion of the spectral transform.
-  use 1/2  -- critical line, but any working σ is fine
-  use zetaCompletedExplicitFormulaPhi f
-  refine ⟨rfl, ?_, sorry⟩
-  exact ExplicitFormulaSymmetry.zetaExplicitFormulaSpectralTransform_conjugateSymmetric f
-
-/-- Admissible test functions satisfy conjugate symmetry at every point.
-This is the MAIN THEOREM that closes the cascade. -/
+/-- A supplied Hermitian time-side hypothesis gives conjugate symmetry. -/
 theorem admissibleFunction_conjugateSymmetric
-    (f : ZetaAdmissibleFunction) (c : ℝ) :
+    (f : ZetaAdmissibleFunction)
+    (hconj : ∀ c : ℝ,
+      f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c))
+    (c : ℝ) :
     f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c) :=
-  AdmissibleConjugacyComposition.admissible_conjugateSymmetric_composition f c
+  AdmissibleConjugacyComposition.admissible_conjugateSymmetric_composition
+    f hconj c
 
 /-- Alternative formulation: The boundary values at opposite logarithmic centers
 are conjugates. -/
 theorem admissibleFunction_boundary_conjugateSymmetry
-    (f : ZetaAdmissibleFunction) (c : ℝ) :
+    (f : ZetaAdmissibleFunction)
+    (hconj : ∀ c : ℝ,
+      f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c))
+    (c : ℝ) :
     zetaCompletedTimeBoundaryValue f (-c) =
     star (zetaCompletedTimeBoundaryValue f c) := by
-  exact admissibleFunction_conjugateSymmetric f c
+  exact admissibleFunction_conjugateSymmetric f hconj c
 
 /-- For natural prime logarithmic centers, admissible functions exhibit the
 reflection-dagger property. -/
 theorem admissibleFunction_primeCenter_reflectionDagger
-    (f : ZetaAdmissibleFunction) {n : ℕ} (hn : n ≠ 0) :
+    (f : ZetaAdmissibleFunction)
+    (hconj : ∀ c : ℝ,
+      f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c))
+    {n : ℕ} (hn : n ≠ 0) :
     f.toZetaTestFunction (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)) =
     star (f.toZetaTestFunction (zetaCompletedExplicitFormulaPrimeNaturalCenter n)) :=
-  admissibleFunction_conjugateSymmetric f (zetaCompletedExplicitFormulaPrimeNaturalCenter n)
+  admissibleFunction_conjugateSymmetric
+    f hconj (zetaCompletedExplicitFormulaPrimeNaturalCenter n)
 
 /-- The zero admissible function trivially satisfies conjugate symmetry. -/
 theorem zero_admissible_conjugateSymmetric :
@@ -77,10 +68,13 @@ theorem zero_admissible_conjugateSymmetric :
 
 /-- Conjugate symmetry is preserved by scalar multiplication (real scalars). -/
 theorem scalar_multiple_conjugateSymmetric
-    (f : ZetaAdmissibleFunction) (r : ℝ) (c : ℝ) :
+    (f : ZetaAdmissibleFunction)
+    (hconj : ∀ c : ℝ,
+      f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c))
+    (r : ℝ) (c : ℝ) :
     (r • f).toZetaTestFunction (-c) =
     star ((r • f).toZetaTestFunction c) := by
-  have hf := admissibleFunction_conjugateSymmetric f c
+  have hf := admissibleFunction_conjugateSymmetric f hconj c
   have h_scalar_at_neg : (r • f).toZetaTestFunction (-c) = (r : ℂ) * f.toZetaTestFunction (-c) := by
     exact rfl
   have h_scalar_at_c : (r • f).toZetaTestFunction c = (r : ℂ) * f.toZetaTestFunction c := by
@@ -95,11 +89,16 @@ theorem scalar_multiple_conjugateSymmetric
 
 /-- Conjugate symmetry is preserved by addition. -/
 theorem add_conjugateSymmetric
-    (f g : ZetaAdmissibleFunction) (c : ℝ) :
+    (f g : ZetaAdmissibleFunction)
+    (hfconj : ∀ c : ℝ,
+      f.toZetaTestFunction (-c) = star (f.toZetaTestFunction c))
+    (hgconj : ∀ c : ℝ,
+      g.toZetaTestFunction (-c) = star (g.toZetaTestFunction c))
+    (c : ℝ) :
     (f + g).toZetaTestFunction (-c) =
     star ((f + g).toZetaTestFunction c) := by
-  have hf := admissibleFunction_conjugateSymmetric f c
-  have hg := admissibleFunction_conjugateSymmetric g c
+  have hf := admissibleFunction_conjugateSymmetric f hfconj c
+  have hg := admissibleFunction_conjugateSymmetric g hgconj c
   calc
     (f + g).toZetaTestFunction (-c)
         = f.toZetaTestFunction (-c) + g.toZetaTestFunction (-c) := by rfl

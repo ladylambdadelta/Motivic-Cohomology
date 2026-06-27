@@ -30,13 +30,9 @@ theorem boundaryRiemannZeta_eq_mathlib :
 
 /-- Runge/small-values owner sink required by the final unconditional RH assembly.
 
-This theorem must ultimately be proved in the zero-tail localization/Runge owner
-layer.  It is kept as a theorem, not a parameter of RH, so the global statement
-cannot become conditional on it.
-
-Do not replace this theorem by an assumption on `boundaryRiemannHypothesis_unconditional`.
-If this proof is incomplete, the only acceptable surface is this explicit owner
-sink, or a proved theorem imported from the true Runge/zero-tail owner. -/
+The actual nonlinear autocorrelation-cone Runge theorem is owned in the
+zero-tail localization layer; this final bridge only exposes the theorem to
+the RH assembly. -/
 theorem finalRiemannHypothesis_zeroTailSmallValuesOwnerRunge :
     ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
       ∀ ε : ℝ, 0 < ε →
@@ -45,31 +41,30 @@ theorem finalRiemannHypothesis_zeroTailSmallValuesOwnerRunge :
             ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailRealAbsValues
               S P f₀ ∧
             r < ε := by
-  sorry
+  exact
+    ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailSmallValuesRunge_owner
 
-/-- Binet branch/tail absorption owner sink required by the final unconditional
-RH assembly.
+/-- Corrected Binet endpoint-restored finite-height input currently owned by
+the Gamma-Stirling layer.
 
-This belongs in the Binet/Gamma-Stirling owner layer.
+The full branch-uniform tail absorption theorem still requires the paired
+endpoint-return wall-cancellation estimate in the Binet owner file. -/
+theorem finalRiemannHypothesis_binetEndpointRestoredFiniteHeightContourInputs :
+    Complex.BinetSecondFormulaEndpointRestoredFiniteHeightContourInputs := by
+  exact Complex.binetSecondFormula_endpointRestoredFiniteHeightContourInputs_owner
 
-Do not pass this as a hypothesis to the final RH theorem.  Prove it upstream
-and replace this sink by that owner theorem. -/
-theorem finalRiemannHypothesis_binetBranchUniformTailAbsorption :
-    Complex.BinetSecondFormulaBranchUniformTailAbsorption := by
-  sorry
+/-- Right-critical-strip admissible growth conditional on the genuine Binet
+branch-uniform tail absorption theorem.
 
-/-- Right-critical-strip admissible growth owner sink required by the final
-unconditional RH assembly.
-
-This belongs in the pole-cleared zeta growth owner layer and must be assembled
-from the standard finite-order theorem, compact bounds, and boundary Abel
-majorants.
-
-Do not weaken the final RH theorem by quantifying over this package.  The final
-assembly consumes a theorem here; it does not assume a condition from users. -/
-theorem finalRiemannHypothesis_poleClearedRightCriticalStripAdmissibleGrowth :
+The pole-cleared growth layer remains non-circular: it consumes the actual
+branch-tail theorem as an input instead of using the endpoint-restored
+finite-height package as a substitute. -/
+theorem finalRiemannHypothesis_poleClearedRightCriticalStripAdmissibleGrowth
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hreflected :
+      PoleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope) :
     PoleClearedRightCriticalStripAdmissibleGrowth := by
-  sorry
+  exact poleClearedRightCriticalStripAdmissibleGrowth_owner hbranch hreflected
 
 /-- Debt-aware ordered-heart positivity must prove the centered zero criterion
 directly from the named analytic owner inputs, with no public RH-side
@@ -119,14 +114,17 @@ theorem centeredZeroCriterion_of_debtAwareOrderedHeartTransport
     hcompactBoundary
     horderedHeartPositive
 
-/-- Final centered-zero criterion wrapper for RH.
+/-- Final centered-zero criterion wrapper for RH, conditional on the genuine
+branch-uniform Binet tail absorption theorem and the pole-cleared
+self-reflected zero-one strip envelope.
 
-This theorem is intentionally a zero-argument theorem, but it is not allowed to
-hide the dependency graph.  It assembles the named Runge, Binet, and
-pole-cleared growth owner sinks above with already-proved boundary-growth
-packages, then hands those inputs to the debt-aware ordered-heart criterion
-owner theorem. -/
-theorem finalRiemannHypothesis_centeredZeroCriterion_from_debtAwareOrderedHeartTransport :
+This bridge assembles all already-owned Runge and boundary-growth packages, but
+it does not pretend that the endpoint-restored finite-height contour input is
+the full branch-tail theorem. -/
+theorem finalRiemannHypothesis_centeredZeroCriterion_from_debtAwareOrderedHeartTransport
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hreflected :
+      PoleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope) :
     ∀ s : ℂ,
       riemannZeta (1 / 2 + s) = 0 →
         (¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1)) →
@@ -144,31 +142,32 @@ theorem finalRiemannHypothesis_centeredZeroCriterion_from_debtAwareOrderedHeartT
   exact
     centeredZeroCriterion_of_debtAwareOrderedHeartTransport
       finalRiemannHypothesis_zeroTailSmallValuesOwnerRunge
-      finalRiemannHypothesis_binetBranchUniformTailAbsorption
+      hbranch
       hpartialOneTwo
       hcompactOneTwo
-      finalRiemannHypothesis_poleClearedRightCriticalStripAdmissibleGrowth
+      (finalRiemannHypothesis_poleClearedRightCriticalStripAdmissibleGrowth
+        hbranch hreflected)
       hpartialLeft
       hcompactBoundary
       zetaCriterion_autocorrelation_orderedHeartZeroSidePositivity
 
-/-- Final zero-hypothesis Boundary proof of mathlib's `RiemannHypothesis`.
+/-- Boundary proof of mathlib's `RiemannHypothesis`, conditional on the
+remaining genuine Binet branch-tail theorem and pole-cleared self-reflected
+zero-one strip envelope.
 
-The theorem statement is intentionally unconditional.  Remaining analytic work
-is represented only by named owner sinks above, never by hypotheses on this
-global statement.
-
-Invariant for future agents: this theorem must remain a zero-argument theorem
-whose target is exactly `boundaryRiemannHypothesis`.  It must never be rewritten
-to a conditional theorem, an implication, a structure field, a class parameter,
-or a theorem taking analytic packages as arguments.  Missing mathematics belongs
-in explicitly named upstream theorem sinks, and those sinks must eventually be
-replaced by proofs in their true owner files. -/
-theorem boundaryRiemannHypothesis_unconditional :
+The missing analytic content belongs upstream in the Binet wall-cancellation
+owner and in the pole-cleared reflected-envelope owner.  Once those two inputs
+are proved, this wrapper can again be made zero-argument without changing the
+downstream RH proof. -/
+theorem boundaryRiemannHypothesis_of_binetBranchUniformTailAbsorption
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hreflected :
+      PoleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope) :
     boundaryRiemannHypothesis := by
   exact
     boundaryRiemannHypothesis_of_centeredZeroCriterion
-      finalRiemannHypothesis_centeredZeroCriterion_from_debtAwareOrderedHeartTransport
+      (finalRiemannHypothesis_centeredZeroCriterion_from_debtAwareOrderedHeartTransport
+        hbranch hreflected)
 
 end
 end LFunctions

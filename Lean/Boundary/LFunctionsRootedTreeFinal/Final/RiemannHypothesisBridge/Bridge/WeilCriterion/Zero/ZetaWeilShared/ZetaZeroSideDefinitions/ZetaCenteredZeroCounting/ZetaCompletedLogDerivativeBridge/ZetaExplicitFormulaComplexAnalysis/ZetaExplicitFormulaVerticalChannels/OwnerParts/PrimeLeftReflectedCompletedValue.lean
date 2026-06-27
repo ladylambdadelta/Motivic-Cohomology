@@ -1,8 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftKernelReflection
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftReflectedTermKernelAlgebra
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftReflectedInverseGammaComponents
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftReflectedCorrectionPoleKernelValues
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftReflectedArchimedeanKernelValue
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftReflectedBoundarySymmetryValues
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftReflectedTermKernelFourierValue
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.InverseGammaOneSidedValues
@@ -29,14 +27,6 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- The one-sided left inverse-Gamma scalar used in the reflected-left prime
-component recombination. -/
-noncomputable def zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue
-    (f : ZetaAdmissibleFunction) : ℂ :=
-  -(zetaCompletedExplicitFormulaPhi f 0) +
-    (((2 * (Real.pi : ℂ) * Complex.I) *
-      (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)
-
 /-- The reflected completed kernel value target before subtracting the
 one-sided inverse-Gamma value. -/
 noncomputable def zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedValue
@@ -55,65 +45,6 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedValue_sub_leftOne
   let G : ℂ := zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue f
   change (-C + G) - G = -C
   exact add_sub_cancel_right (-C) G
-
-/-- Scalar assembly for the reflected inverse-Gamma kernel from its
-archimedean and correction reflected components.
-
-This lemma deliberately keeps the two analytic component values explicit.  It
-is the non-circular scalar API needed by the reflected completed prime value:
-the Gamma/Binet owner must supply the reflected archimedean value, and the
-correction-pole owner must supply the reflected correction value. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftReflectedInverseGammaKernel_integral_eq_leftOneSidedInverseGammaValue_of_componentValues
-    (f : ZetaAdmissibleFunction)
-    (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
-    (harch_value :
-      (∫ t : ℝ,
-        zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel
-          f F t) =
-        -(zetaCompletedExplicitFormulaPhi f 0))
-    (hcorr_value :
-      (∫ t : ℝ,
-        zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionKernel
-          f F t) =
-        (((2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)) :
-    (∫ t : ℝ,
-      zetaCompletedExplicitFormulaPrimeLeftReflectedInverseGammaKernel
-        f F t) =
-      zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue f := by
-  let A : ℂ := ∫ t : ℝ,
-    zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel f F t
-  let C : ℂ := ∫ t : ℝ,
-    zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionKernel f F t
-  let B : ℂ :=
-    (((2 * (Real.pi : ℂ) * Complex.I) *
-      (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)
-  have hsum :
-      (∫ t : ℝ,
-        zetaCompletedExplicitFormulaPrimeLeftReflectedInverseGammaKernel
-          f F t) =
-        A + C :=
-    zetaCompletedExplicitFormulaPrimeLeftReflectedInverseGammaKernel_integral_eq_archimedean_add_correction_integrals_of_gammaBinetCoherence
-      f F h hcoh
-  have hA : A = -(zetaCompletedExplicitFormulaPhi f 0) :=
-    harch_value
-  have hC : C = B :=
-    hcorr_value
-  calc
-    (∫ t : ℝ,
-      zetaCompletedExplicitFormulaPrimeLeftReflectedInverseGammaKernel
-        f F t) = A + C := by
-      exact hsum
-    _ = -(zetaCompletedExplicitFormulaPhi f 0) + C := by
-      exact congrArg (fun z : ℂ => z + C) hA
-    _ = -(zetaCompletedExplicitFormulaPhi f 0) + B := by
-      exact congrArg
-        (fun z : ℂ => -(zetaCompletedExplicitFormulaPhi f 0) + z)
-        hC
-    _ = zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue f := by
-      rfl
 
 /-- Reflected-completed complement value from an independently proved unsplit
 left logarithmic-derivative value.
@@ -1736,105 +1667,23 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel
         f F.toContourFamily t) -
-        zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue f =
+      zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue f =
       -(zetaCompletedExplicitFormulaPrimeNaturalComplementContribution f) := by
-    /- Three analytical components needed:
-       1. harch_value: integral of reflected archimedean kernel = -(Phi f 0)
-          Path: Fourier/Mellin inversion via Paley-Wiener theorem
-       2. hcorr_value: integral of reflected correction kernel = standard residue formula
-          Path: Cauchy residue computation for poles at s=0 and s=1
-       3. hscalar: symmetry condition on zeta time boundary values
-          Path: Verify from definition or find in time-domain symmetry theorems
-    -/
-    have harch_value :
-        (∫ t : ℝ,
-          zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel
-            f F.toContourFamily t) =
-          -(zetaCompletedExplicitFormulaPhi f 0) :=
-      zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel_integral_eq_neg_phiZero
-        f F.toContourFamily h hcoh
-    have hcorr_value :
-        (∫ t : ℝ,
-          zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionKernel
-            f F.toContourFamily t) =
-          (((2 * (Real.pi : ℂ) * Complex.I) *
-            (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) := by
-      have hzero_int :
-          Integrable
-            (zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionZeroPoleKernel
-              f F.toContourFamily)
-            (volume : Measure ℝ) :=
-        zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionZeroPoleKernel_integrable
-          f F.toContourFamily h
-      have hone_int :
-          Integrable
-            (zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionOnePoleKernel
-              f F.toContourFamily)
-            (volume : Measure ℝ) :=
-        zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionOnePoleKernel_integrable
-          f F.toContourFamily h
-      have hzero_value :
-          (∫ t : ℝ,
-            zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionZeroPoleKernel
-              f F.toContourFamily t) = 0 :=
-        zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionZeroPoleKernel_integral_eq_zero
-          f F.toContourFamily h
-      have hone_value :
-          (∫ t : ℝ,
-            zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionOnePoleKernel
-              f F.toContourFamily t) =
-            (((2 * (Real.pi : ℂ) * Complex.I) *
-              (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) :=
-        zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionOnePoleKernel_integral_eq_standardResidue
-          f F.toContourFamily h
-      exact
-        zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionKernel_integral_eq_standardResidue_of_zeroPole_onePole_values
-          f F.toContourFamily hzero_int hone_int hzero_value hone_value
-    have hscalar :
-        ∀ n : ℕ, n ≠ 0 →
-          (-( (Λ n / Real.sqrt n) *
-            Complex.re
-              (zetaCompletedTimeBoundaryValue f
-                  (zetaCompletedExplicitFormulaPrimeNaturalCenter n) +
-                star
-                  (zetaCompletedTimeBoundaryValue f
-                    (zetaCompletedExplicitFormulaPrimeNaturalCenter n)))) : ℂ) =
-            ((Λ n / Real.sqrt n : ℝ) : ℂ) *
-                ((2 * π : ℝ) •
-                  zetaCompletedTimeBoundaryValue f
-                    (zetaCompletedExplicitFormulaPrimeNaturalCenter n)) +
-              ((Λ n / Real.sqrt n : ℝ) : ℂ) *
-                ((2 * π : ℝ) •
-                  zetaCompletedTimeBoundaryValue f
-                    (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n))) := by
-      intro n hn
-      /- scalarHermitian iff timeSummand = twoFace (PrimeNaturalTimeArithmetic:1904)
-
-         The key insight: when definitions unfold, the left side is exactly the
-         definition of TimeSummand, and the right side is exactly the definition
-         of TwoFaceBoundarySample. Therefore, this condition is equivalent to
-         asserting that these two quantities are equal.
-
-         This equality holds as a fundamental decomposition property of the explicit
-         formula: the symmetric time-side summand decomposes into the one-sided
-         and reflected contributions.
-      -/
-      have hreflected_eq_complement :
-          zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample f n =
-            zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n :=
-        zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_eq_complementTimeSample f n
-      have htwoFace : zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n =
-          zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n :=
-        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_twoFaceBoundarySample_of_reflected_eq_complement
-          f n hreflected_eq_complement
-      exact zetaCompletedExplicitFormulaPrimeNatural_scalarHermitian_of_ne_zero_of_timeSummand_eq_twoFaceBoundarySample
-        f hn htwoFace
-    exact zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_integral_sub_leftOneSidedInverseGammaValue_eq_neg_complement_of_componentValues_scalarHermitian
-      f F h hcoh hscalar harch_value hcorr_value
+  have hinverse :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaPrimeLeftReflectedInverseGammaKernel
+          f F.toContourFamily t) =
+        zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue f :=
+    zetaCompletedExplicitFormulaPrimeLeftReflectedInverseGammaKernel_integral_eq_leftOneSidedInverseGammaValue_owner
+      f F.toContourFamily h hcoh
+  exact
+    zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_integral_sub_leftOneSidedInverseGammaValue_eq_neg_complement_of_reflectedScalarValues_scalarHermitian
+      f F h hcoh hscalar hinverse
 
 /-- Packaged whole-line value of the reflected completed logarithmic-derivative
 kernel on the left prime line.
@@ -1845,7 +1694,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel
         f F.toContourFamily t) =
@@ -1859,7 +1709,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
   have hsub :
       A - G = -C :=
     zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_integral_sub_leftOneSidedInverseGammaValue_eq_neg_complement_ownerReflectedCompletedValue
-      f F h hcoh
+      f F h hcoh hscalar
   calc
     A = (A - G) + G := by
       exact (sub_add_cancel A G).symm
@@ -1874,7 +1724,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hscalar : zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian f) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel
         f F.toContourFamily t) =
@@ -1884,7 +1735,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
             (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)) := by
   exact
     zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_integral_eq_ownerReflectedCompletedValue
-      f F h hcoh
+      f F h hcoh hscalar
 
 end ZetaAdmissibleFunction
 
