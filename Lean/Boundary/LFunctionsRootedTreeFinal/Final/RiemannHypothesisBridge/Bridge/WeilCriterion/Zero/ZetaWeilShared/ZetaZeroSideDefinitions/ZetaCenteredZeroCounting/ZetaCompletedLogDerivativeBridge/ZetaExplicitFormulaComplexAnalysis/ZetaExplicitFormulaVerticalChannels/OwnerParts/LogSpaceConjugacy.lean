@@ -27,7 +27,10 @@ namespace LogSpaceConjugacy
 
 -- Helper lemmas for change-of-variables
 
-/-- Helper: exp(t)^(s-1) * exp(t) = exp(t)^s via cpow_add -/
+/-- Sublemma: The exponential map from ℝ to ℝ₊ (substitution t ↦ exp(t)) -/
+def expSubstitutionMap : ℝ → ℝ₊ := fun t => ⟨Real.exp t, Real.exp_pos t⟩
+
+/-- Sublemma: exp(t)^(s-1) * exp(t) = exp(t)^s via cpow_add -/
 lemma cpow_mul_one_eq_cpow_add (t : ℝ) (s : ℂ) (ht : (t : ℂ) ≠ 0) :
     ((t : ℂ) ^ (s - 1)) * ((t : ℂ)) = (t : ℂ) ^ s := by
   calc ((t : ℂ) ^ (s - 1)) * ((t : ℂ))
