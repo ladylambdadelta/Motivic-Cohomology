@@ -127,18 +127,22 @@ lemma research_mellin_conjugacy_on_vertical_line
   have h_conj_sym : Transform.IsConjugateSymmetric M := hM
   exact (Transform.conjugateSymmetric_on_critical_line h_conj_sym σ t).symm
 
-/-- Helper: real part of star(z) + z equals 2·Re(z) -/
-private lemma star_add_re_eq (z : ℂ) : (star z + z).re = 2 * z.re :=
+/-- Sublemma: real part of star(z) + z equals 2·Re(z) -/
+lemma star_add_re_eq (z : ℂ) : (star z + z).re = 2 * z.re :=
   Eq.trans (congrArg (· + ·) (Complex.star_re z)) (mul_comm 2 z.re)
 
-/-- Helper: imaginary part of star(z) + z equals 0 -/
-private lemma star_add_im_eq (z : ℂ) : (star z + z).im = 0 :=
+/-- Sublemma: imaginary part of star(z) + z equals 0 -/
+lemma star_add_im_eq (z : ℂ) : (star z + z).im = 0 :=
   Eq.trans (congrArg (· + ·) (Complex.star_im z)) (show (-z.im + z.im : ℝ) = 0 from
     Eq.trans (add_comm (-z.im) z.im) (neg_add_self z.im))
 
+/-- Sublemma: 2 * z.re has zero imaginary part -/
+lemma two_mul_re_im_zero (z : ℂ) : (2 * z.re : ℂ).im = 0 :=
+  mul_im_of_real 2 z.re
+
 /-- Algebraic identity: star(z) + z = 2·Re(z) -/
 lemma star_add_self_eq_two_mul_re (z : ℂ) : star z + z = 2 * Complex.re z :=
-  Complex.ext (star_add_re_eq z) (Eq.trans (star_add_im_eq z) (show (2 * z.re : ℂ).im = 0 by exact mul_im_of_real 2 z.re))
+  Complex.ext (star_add_re_eq z) (Eq.trans (star_add_im_eq z) (two_mul_re_im_zero z))
 
 /-- Helper: Fourier inversion of conjugate-symmetric functions is real-valued.
 
