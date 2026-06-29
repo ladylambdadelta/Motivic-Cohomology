@@ -860,6 +860,21 @@ theorem fixedRightLine_fourierCauchy_multiplierIntegrand_inverseCubicDecay
                         -1 / (((c : ℂ) + t * Complex.I) - 1))
                       B D hB_pos hD_pos hB_bound hD_bound))))
 
+/-- A cofinal height schedule is eventually nonnegative. -/
+theorem cofinalHeight_eventually_nonnegative
+    (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
+    ∀ᶠ u in atTop, 0 ≤ height u := by
+  exact hcofinal.eventually_ge_atTop 0
+
+/-- Fixed-height inverse-cubic tails outside a symmetric interval have
+inverse-quadratic size. -/
+theorem real_inverseCubic_symmetricComplementIntegral_inverseQuadratic_of_nonnegative
+    (T : ℝ) (hT : 0 ≤ T) :
+    (∫ t in (Set.Icc (-T) T)ᶜ,
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      ≤ 4 * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+  sorry
+
 /-- The real inverse-cubic majorant has inverse-quadratic tails outside
 symmetric intervals. -/
 theorem real_inverseCubic_symmetricComplementIntegral_inverseQuadratic
@@ -870,7 +885,11 @@ theorem real_inverseCubic_symmetricComplementIntegral_inverseQuadratic
           (∫ t in (Set.Icc (-(height u)) (height u))ᶜ,
               (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
             ≤ A * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
-  sorry
+  refine ⟨4, by exact zero_lt_four, ?_⟩
+  exact (cofinalHeight_eventually_nonnegative height hcofinal).mono
+    (fun u hu =>
+      real_inverseCubic_symmetricComplementIntegral_inverseQuadratic_of_nonnegative
+        (height u) hu)
 
 /-- Norm domination by an inverse-cubic majorant controls the symmetric
 Bochner tail by the corresponding scalar majorant tail. -/
