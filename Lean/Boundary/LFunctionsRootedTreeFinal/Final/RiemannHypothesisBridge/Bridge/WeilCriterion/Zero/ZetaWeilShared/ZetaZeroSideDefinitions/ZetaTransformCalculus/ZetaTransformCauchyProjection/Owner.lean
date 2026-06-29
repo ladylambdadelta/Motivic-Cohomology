@@ -6068,7 +6068,17 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanPrefactor_eventually_l
     (a : ℝ) :
     ∀ᶠ T in atTop,
       Real.pi * T / (T - a) ≤ Real.pi + 1 := by
-  sorry
+  have hlimit :
+      Tendsto
+        (fun T : ℝ => Real.pi * T / (T - a))
+        atTop
+        (𝓝 Real.pi) :=
+    scalarFourierLaplacePlemelj_positiveUpperArcJordanPrefactor_tendsto_pi a
+  have hpi_lt : Real.pi < Real.pi + 1 :=
+    lt_add_of_pos_right Real.pi zero_lt_one
+  exact
+    (hlimit (Set.Iio_mem_nhds hpi_lt)).mono
+      (fun T hT => le_of_lt hT)
 
 /-- Real exponential factor in the positive away-zero compact interval is
 bounded by the endpoint exponential. -/
