@@ -217,23 +217,24 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernelIntegral_te
       (zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel_integrable_ownerBounds
         f F h)
 
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_integral_eq_zero_ownerTransport
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_integral_eq_projection_ownerTransport
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F t) =
-      0 := by
+      zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c := by
   exact
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_integral_eq_zero_ownerOnePoleAffine
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_integral_eq_projection_ownerOnePoleAffine
       f F h
 
-theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel_integral_eq_standardResidue_ownerTransport
+theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel_integral_eq_projectionResidue_ownerTransport
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel f F t) =
       ((2 * (Real.pi : ℂ) * Complex.I) *
-        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I := by
+        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+          zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c := by
   let K : ℝ → ℂ := fun u : ℝ =>
     ∫ t in Set.Icc
         (-(F.rectangle (h.height_schedule.height u)).T)
@@ -241,7 +242,8 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel_integral_e
       zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel f F t
   let B : ℂ :=
     ((2 * (Real.pi : ℂ) * Complex.I) *
-      (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I
+      (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+        zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c
   have hK_integral :
       Tendsto K atTop
         (𝓝 (∫ t : ℝ,
@@ -255,7 +257,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel_integral_e
             f F (h.height_schedule.height u))
         atTop
         (𝓝 B) :=
-    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_standardContourResidue_ownerLeftResidueValue
+    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_projectionResidue_ownerLeftResidueValue
       f F h
   have hK_residue :
       Tendsto K atTop (𝓝 B) := by

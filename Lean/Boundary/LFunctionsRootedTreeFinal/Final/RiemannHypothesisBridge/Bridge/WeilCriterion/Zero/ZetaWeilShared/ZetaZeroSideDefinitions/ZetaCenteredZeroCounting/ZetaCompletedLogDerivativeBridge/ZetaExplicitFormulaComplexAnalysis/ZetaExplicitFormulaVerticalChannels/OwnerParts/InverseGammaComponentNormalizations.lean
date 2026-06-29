@@ -361,6 +361,9 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleDifferenceAffineKernel_inte
   let B : ℂ :=
     ((2 * (Real.pi : ℂ) * Complex.I) *
       (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I
+  let P : ℂ :=
+    zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+      f F.toContourFamily.c
   have hright_int :
       Integrable
         (zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel
@@ -390,15 +393,15 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleDifferenceAffineKernel_inte
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel
           f F.toContourFamily t) =
-        0 :=
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_integral_eq_zero_ownerTransport
+        P :=
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_integral_eq_projection_ownerTransport
       f F.toContourFamily h
   have hleft_value :
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel
           f F.toContourFamily t) =
-        B :=
-    zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel_integral_eq_standardResidue_ownerTransport
+        B + P :=
+    zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel_integral_eq_projectionResidue_ownerTransport
       f F.toContourFamily h
   calc
     (∫ t : ℝ,
@@ -411,7 +414,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleDifferenceAffineKernel_inte
             zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel
               f F.toContourFamily t := hsplit
     _ =
-        0 -
+        P -
           ∫ t : ℝ,
             zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel
               f F.toContourFamily t := by
@@ -422,12 +425,22 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleDifferenceAffineKernel_inte
                 zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel
                   f F.toContourFamily t)
           hright_value
-    _ = 0 - B := by
+    _ = P - (B + P) := by
         exact congrArg
-          (fun z : ℂ => 0 - z)
+          (fun z : ℂ => P - z)
           hleft_value
     _ = -B := by
-        exact zero_sub B
+        calc
+          P - (B + P) = P + -(B + P) := by
+            exact sub_eq_add_neg P (B + P)
+          _ = P + (-B + -P) := by
+            exact congrArg (fun z : ℂ => P + z) (neg_add B P)
+          _ = -B + (P + -P) := by
+            exact add_left_comm P (-B) (-P)
+          _ = -B + 0 := by
+            exact congrArg (fun z : ℂ => -B + z) (add_right_neg P)
+          _ = -B := by
+            exact add_zero (-B)
     _ =
         -(((2 * (Real.pi : ℂ) * Complex.I) *
           (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) := by

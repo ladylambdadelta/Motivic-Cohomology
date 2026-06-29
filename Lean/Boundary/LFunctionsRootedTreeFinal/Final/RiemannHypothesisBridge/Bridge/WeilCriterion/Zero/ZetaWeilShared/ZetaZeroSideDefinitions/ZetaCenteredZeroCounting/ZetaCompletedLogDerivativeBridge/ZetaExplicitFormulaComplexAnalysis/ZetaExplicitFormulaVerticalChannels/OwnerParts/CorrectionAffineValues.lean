@@ -30,7 +30,8 @@ theorem zetaCompletedExplicitFormulaCorrectionRightAffineKernel_integral_eq_valu
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaCorrectionRightAffineKernel f F t) =
-      zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f := by
+      zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f +
+        zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c := by
   have hzero_int :
       Integrable
         (zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel f F)
@@ -70,8 +71,8 @@ theorem zetaCompletedExplicitFormulaCorrectionRightAffineKernel_integral_eq_valu
   have hone_value :
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F t) =
-        0 :=
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_integral_eq_zero_ownerTransport
+        zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c :=
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_integral_eq_projection_ownerTransport
       f F h
   calc
     (∫ t : ℝ,
@@ -98,27 +99,26 @@ theorem zetaCompletedExplicitFormulaCorrectionRightAffineKernel_integral_eq_valu
         hzero_value
     _ =
         zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f +
-          0 := by
+          zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c := by
       exact congrArg
         (fun z : ℂ =>
           zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f + z)
         hone_value
-    _ =
-        zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f := by
-      exact add_zero
-        (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)
 
 /-- Whole-line value of the total left elementary correction affine kernel. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftAffineKernel_integral_eq_standardResidue_ownerCorrectionAffineValues
+theorem zetaCompletedExplicitFormulaCorrectionLeftAffineKernel_integral_eq_projectionResidue_ownerCorrectionAffineValues
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaCorrectionLeftAffineKernel f F t) =
       ((2 * (Real.pi : ℂ) * Complex.I) *
-        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I := by
+        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+          zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c := by
   let B : ℂ :=
     ((2 * (Real.pi : ℂ) * Complex.I) *
       (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I
+  let P : ℂ :=
+    zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c
   have hzero_int :
       Integrable
         (zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F)
@@ -158,8 +158,8 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftAffineKernel_integral_eq_stand
   have hone_value :
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel f F t) =
-        B :=
-    zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel_integral_eq_standardResidue_ownerTransport
+        B + P :=
+    zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel_integral_eq_projectionResidue_ownerTransport
       f F h
   calc
     (∫ t : ℝ,
@@ -184,13 +184,14 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftAffineKernel_integral_eq_stand
             ∫ t : ℝ,
               zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel f F t)
         hzero_value
-    _ = 0 + B := by
+    _ = 0 + (B + P) := by
       exact congrArg (fun z : ℂ => 0 + z) hone_value
-    _ = B := by
-      exact zero_add B
+    _ = B + P := by
+      exact zero_add (B + P)
     _ =
         ((2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I := by
+          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+            zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c := by
       rfl
 
 end ZetaAdmissibleFunction

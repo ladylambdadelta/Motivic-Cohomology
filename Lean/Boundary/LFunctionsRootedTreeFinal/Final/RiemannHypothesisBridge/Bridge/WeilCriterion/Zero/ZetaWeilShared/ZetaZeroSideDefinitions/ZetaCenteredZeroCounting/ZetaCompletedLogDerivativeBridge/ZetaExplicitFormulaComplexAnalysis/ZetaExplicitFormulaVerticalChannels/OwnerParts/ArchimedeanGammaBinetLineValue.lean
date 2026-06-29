@@ -373,7 +373,9 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_integral_eq_neg_
     (hvalue :
       G -
           (((2 * (Real.pi : ℂ) * Complex.I) *
-            (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) =
+            (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+              zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+                f F.toContourFamily.c) =
         -(zetaCompletedExplicitFormulaPhi f 0)) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
@@ -383,9 +385,11 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_integral_eq_neg_
     zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_integral_eq_neg_phiZero_of_inverseGamma_and_correction_values
       f F h hcoh G
       (((2 * (Real.pi : ℂ) * Complex.I) *
-        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)
+        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+          zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+            f F.toContourFamily.c)
       hinverse_value
-      (zetaCompletedExplicitFormulaCorrectionLeftAffineKernel_integral_eq_standardResidue_ownerCorrectionAffineValues
+      (zetaCompletedExplicitFormulaCorrectionLeftAffineKernel_integral_eq_projectionResidue_ownerCorrectionAffineValues
         f F.toContourFamily h)
       hvalue
 theorem zetaCompletedExplicitFormulaArchimedeanRightAffineKernel_integral_eq_phiZero_ownerGammaBinetLineValue

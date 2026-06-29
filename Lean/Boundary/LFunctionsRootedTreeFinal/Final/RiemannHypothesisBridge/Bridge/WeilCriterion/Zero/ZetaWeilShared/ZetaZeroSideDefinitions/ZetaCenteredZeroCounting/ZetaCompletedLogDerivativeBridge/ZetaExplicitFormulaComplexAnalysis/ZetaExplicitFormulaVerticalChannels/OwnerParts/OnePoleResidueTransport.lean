@@ -503,38 +503,22 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendst
       hright
       hstandard
 
-/-- Left-face one-pole Cauchy limit for the `s = 1` correction pole, including the
-left boundary orientation.
-
-With the honest standard-contour normalization, the upstream finite Cauchy
-input is the raw standard boundary theorem for
-`zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral`.
-The old centered `Phi f 0` target belongs to the later correction-channel
-normalization and must not be supplied by this single-pole contour theorem.
--/
-theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_standardContourResidue_ownerChannelTransportAnalytic
+/-- Left-face one-pole Cauchy limit for the `s = 1` correction pole, including
+the left boundary orientation and the right Cauchy projection value. -/
+theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_projectionResidue_ownerChannelTransportAnalytic
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (hright :
-      Tendsto
-        (fun u : ℝ =>
-          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-            f F (h.height_schedule.height u))
-        atTop
-        (𝓝 0)) :
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
           f F (h.height_schedule.height u))
       atTop
       (𝓝 (((2 * (Real.pi : ℂ) * Complex.I) *
-        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)) := by
+        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+          zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) := by
   exact
-    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_of_positiveHeight_rawStandardCauchy
-      f F h hright
-      (fun T hT =>
-        zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_pos_height
-          f F h T hT)
+    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_projectionResidue_ownerLeftResidueValue
+      f F h
 
 /-- Quantitative projection-corrected left-face residue transport for the
 `s = 1` correction pole.
@@ -639,25 +623,19 @@ theorem zetaCompletedExplicitFormulaCorrectionRightPoleVerticalIntegral_tendsto_
       htarget
       hsum)
 
-/-- The left pole face transports with the standard-contour one-pole residue
-normalization. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral_tendsto_standardContourResidue_ownerChannelTransportAnalytic
+/-- The left pole face transports with the projection-corrected one-pole
+residue normalization. -/
+theorem zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral_tendsto_projectionResidue_ownerChannelTransportAnalytic
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (hright :
-      Tendsto
-        (fun u : ℝ =>
-          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-            f F (h.height_schedule.height u))
-        atTop
-        (𝓝 0)) :
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral
           f F (h.height_schedule.height u))
       atTop
       (𝓝 (((2 * (Real.pi : ℂ) * Complex.I) *
-        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)) := by
+        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+          zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) := by
   have hzero :
       Tendsto
         (fun u : ℝ =>
@@ -674,9 +652,10 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral_tendsto_s
             f F (h.height_schedule.height u))
         atTop
         (𝓝 (((2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)) :=
-    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_standardContourResidue_ownerChannelTransportAnalytic
-      f F h hright
+          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+            zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) :=
+    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_projectionResidue_ownerChannelTransportAnalytic
+      f F h
   have hsum :
       Tendsto
         (fun u : ℝ =>
@@ -687,7 +666,8 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral_tendsto_s
         atTop
         (𝓝
           (0 + (((2 * (Real.pi : ℂ) * Complex.I) *
-            (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I))) :=
+            (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+              zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c))) :=
     Tendsto.add hzero hone
   have hpointwise :
       (fun u : ℝ =>
@@ -703,16 +683,20 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral_tendsto_s
       f h.phi_control F (h.height_schedule.height u)
   have htarget :
       0 + (((2 * (Real.pi : ℂ) * Complex.I) *
-        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) =
+        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+          zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c) =
         ((2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I :=
-    zero_add (((2 * (Real.pi : ℂ) * Complex.I) *
-      (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)
+          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+            zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c :=
+    zero_add ((((2 * (Real.pi : ℂ) * Complex.I) *
+      (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) +
+        zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)
   exact Eq.subst
     (motive := fun φ : ℝ → ℂ =>
       Tendsto φ atTop
         (𝓝 (((2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)))
+          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+            zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)))
     hpointwise.symm
     (Eq.subst
       (motive := fun z : ℂ =>

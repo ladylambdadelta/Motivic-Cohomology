@@ -465,6 +465,96 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIn
       htarget
       hnorm)
 
+/-- Projection-subtracted norm form of the corrected tangent-boundary identity
+for the scheduled right `s = 1` face. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral_sub_projection_norm_le_tangentBoundaryProjectionDefect_add_horizontal
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) (P : ℂ) :
+    ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
+        f F h u - P‖
+      ≤
+        ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+            f F (h.height_schedule.height u) -
+          zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u) * Complex.I - P‖ +
+        ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
+          f F h u‖ := by
+  let R : ℂ :=
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
+      f F h u
+  let L : ℂ :=
+    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+      f F (h.height_schedule.height u)
+  let C : ℂ :=
+    zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+      f F (h.height_schedule.height u)
+  let H : ℂ :=
+    zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
+      f F h u
+  have hR_eq_vertical :
+      R =
+        zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+          f F (h.height_schedule.height u) := by
+    rfl
+  have hvertical :
+      zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+          f F (h.height_schedule.height u) =
+        L - C * Complex.I + H * Complex.I :=
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eq_left_sub_tangentBoundary_mul_I_add_horizontal_mul_I_ownerRightOnePoleBoundary
+      f F h u
+  have hR : R = (L - C * Complex.I) + H * Complex.I :=
+    Eq.trans hR_eq_vertical hvertical
+  have hsub :
+      R - P = (L - C * Complex.I - P) + H * Complex.I := by
+    calc
+      R - P = ((L - C * Complex.I) + H * Complex.I) - P := by
+        exact congrArg (fun z : ℂ => z - P) hR
+      _ = ((L - C * Complex.I) + H * Complex.I) + -P := by
+        exact sub_eq_add_neg ((L - C * Complex.I) + H * Complex.I) P
+      _ = (L - C * Complex.I + -P) + H * Complex.I := by
+        calc
+          ((L - C * Complex.I) + H * Complex.I) + -P =
+              (L - C * Complex.I) + (H * Complex.I + -P) := by
+            exact add_assoc (L - C * Complex.I) (H * Complex.I) (-P)
+          _ = (L - C * Complex.I) + (-P + H * Complex.I) := by
+            exact congrArg
+              (fun z : ℂ => (L - C * Complex.I) + z)
+              (add_comm (H * Complex.I) (-P))
+          _ = ((L - C * Complex.I) + -P) + H * Complex.I := by
+            exact (add_assoc (L - C * Complex.I) (-P) (H * Complex.I)).symm
+      _ = (L - C * Complex.I - P) + H * Complex.I := by
+        exact congrArg
+          (fun z : ℂ => z + H * Complex.I)
+          (sub_eq_add_neg (L - C * Complex.I) P).symm
+  have hnorm :
+      ‖(L - C * Complex.I - P) + H * Complex.I‖ ≤
+        ‖L - C * Complex.I - P‖ + ‖H * Complex.I‖ :=
+    norm_add_le (L - C * Complex.I - P) (H * Complex.I)
+  have hI_norm : ‖Complex.I‖ = (1 : ℝ) :=
+    Complex.norm_I
+  have hH_norm : ‖H * Complex.I‖ = ‖H‖ := by
+    calc
+      ‖H * Complex.I‖ = ‖H‖ * ‖Complex.I‖ := by
+        exact norm_mul H Complex.I
+      _ = ‖H‖ * 1 := by
+        exact congrArg (fun x : ℝ => ‖H‖ * x) hI_norm
+      _ = ‖H‖ := by
+        exact mul_one ‖H‖
+  have htarget :
+      ‖L - C * Complex.I - P‖ + ‖H * Complex.I‖ =
+        ‖L - C * Complex.I - P‖ + ‖H‖ :=
+    congrArg (fun x : ℝ => ‖L - C * Complex.I - P‖ + x) hH_norm
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        ‖z‖ ≤ ‖L - C * Complex.I - P‖ + ‖H‖)
+      hsub.symm
+      (Eq.subst
+        (motive := fun x : ℝ =>
+          ‖(L - C * Complex.I - P) + H * Complex.I‖ ≤ x)
+        htarget
+        hnorm)
+
 /-- Norm form of the finite-rectangle `s = 1` correction identity for the scheduled
 right face.  This is the exact Cauchy bookkeeping output: the right off-pole face is
 controlled by the opposite one-pole face, the one-pole horizontal remainder, and the

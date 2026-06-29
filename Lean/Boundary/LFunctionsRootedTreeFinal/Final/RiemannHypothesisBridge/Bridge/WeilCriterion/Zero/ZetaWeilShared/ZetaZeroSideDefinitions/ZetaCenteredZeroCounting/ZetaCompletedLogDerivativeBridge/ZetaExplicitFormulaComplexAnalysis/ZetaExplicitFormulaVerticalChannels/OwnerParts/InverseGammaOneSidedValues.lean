@@ -178,15 +178,20 @@ theorem zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel_integral_eq_arc
         f F.toContourFamily t) =
       -(zetaCompletedExplicitFormulaPhi f 0) +
         (((2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) := by
+          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+            zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+              f F.toContourFamily.c) := by
   let B : ℂ :=
     ((2 * (Real.pi : ℂ) * Complex.I) *
       (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I
+  let P : ℂ :=
+    zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+      f F.toContourFamily.c
   have hcorrection_value :
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaCorrectionLeftAffineKernel
-          f F.toContourFamily t) = B :=
-    zetaCompletedExplicitFormulaCorrectionLeftAffineKernel_integral_eq_standardResidue_ownerCorrectionAffineValues
+          f F.toContourFamily t) = B + P :=
+    zetaCompletedExplicitFormulaCorrectionLeftAffineKernel_integral_eq_projectionResidue_ownerCorrectionAffineValues
       f F.toContourFamily h
   have hzero_int :
       Integrable
@@ -276,14 +281,16 @@ theorem zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel_integral_eq_arc
                 f F.toContourFamily t)
         harch_value
     _ =
-        -(zetaCompletedExplicitFormulaPhi f 0) + B := by
+        -(zetaCompletedExplicitFormulaPhi f 0) + (B + P) := by
       exact congrArg
         (fun z : ℂ => -(zetaCompletedExplicitFormulaPhi f 0) + z)
         hcorrection_value
     _ =
         -(zetaCompletedExplicitFormulaPhi f 0) +
           (((2 * (Real.pi : ℂ) * Complex.I) *
-            (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) := by
+            (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+              zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+                f F.toContourFamily.c) := by
       exact Eq.refl _
 
 /-- Non-circular inverse-Gamma right one-sided assembly from upstream

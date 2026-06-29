@@ -128,7 +128,25 @@ theorem realLine_setIntegral_sub_value_eq_neg_compl_of_integral_value
     (hvalue : (∫ t : ℝ, φ t) = v)
     (s : Set ℝ) (hs : MeasurableSet s) :
     (∫ t in s, φ t) - v = -∫ t in sᶜ, φ t := by
-  sorry
+  let I : ℂ := ∫ t in s, φ t
+  let J : ℂ := ∫ t in sᶜ, φ t
+  have hsum : I + J = v :=
+    Eq.trans
+      (MeasureTheory.integral_add_compl (μ := volume) hs hφ_integrable)
+      hvalue
+  calc
+    I - v = I - (I + J) := by
+      exact congrArg (fun z : ℂ => I - z) hsum.symm
+    _ = I + -(I + J) := by
+      exact sub_eq_add_neg I (I + J)
+    _ = I + (-I + -J) := by
+      exact congrArg (fun z : ℂ => I + z) (neg_add I J)
+    _ = (I + -I) + -J := by
+      exact (add_assoc I (-I) (-J)).symm
+    _ = 0 + -J := by
+      exact congrArg (fun z : ℂ => z + -J) (add_right_neg I)
+    _ = -J := by
+      exact zero_add (-J)
 
 /-- The norm of the interval integral minus the whole-line value is bounded by
 the integral of the norm over the complementary tails. -/

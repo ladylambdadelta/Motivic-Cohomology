@@ -873,7 +873,184 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
           f F (h.height_schedule.height u))
       atTop
       (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) := by
-  sorry
+  let P : ℂ := zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c
+  have hstandard :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 B) :=
+    ((zetaCompletedExplicitFormulaCorrectionOnePole_eventually_standardBoundaryResidueValue_of_positiveHeight
+      f F h B hpositive).tendsto_iff.2 tendsto_const_nhds)
+  have htangent :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 B) :=
+    zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral_tendsto_of_standardBoundaryResidue
+      f F h B hstandard
+  have htangent_mul :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u) * Complex.I)
+        atTop
+        (𝓝 (B * Complex.I)) :=
+    htangent.mul tendsto_const_nhds
+  have hdefect_raw :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+              f F (h.height_schedule.height u) -
+            zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+              f F (h.height_schedule.height u) * Complex.I)
+        atTop
+        (𝓝 ((B * Complex.I + P) - B * Complex.I)) :=
+    hleft.sub htangent_mul
+  have hdefect_value : (B * Complex.I + P) - B * Complex.I = P := by
+    calc
+      (B * Complex.I + P) - B * Complex.I =
+          (B * Complex.I + P) + -(B * Complex.I) := by
+        exact sub_eq_add_neg (B * Complex.I + P) (B * Complex.I)
+      _ = P + (B * Complex.I + -(B * Complex.I)) := by
+        exact add_right_comm (B * Complex.I) P (-(B * Complex.I))
+      _ = P + 0 := by
+        exact congrArg (fun z : ℂ => P + z) (add_right_neg (B * Complex.I))
+      _ = P := by
+        exact add_zero P
+  have hdefect :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+              f F (h.height_schedule.height u) -
+            zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+              f F (h.height_schedule.height u) * Complex.I)
+        atTop
+        (𝓝 P) :=
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun u : ℝ =>
+            zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+                f F (h.height_schedule.height u) -
+              zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+                f F (h.height_schedule.height u) * Complex.I)
+          atTop
+          (𝓝 z))
+      hdefect_value
+      hdefect_raw
+  have hdefect_norm :
+      Tendsto
+        (fun u : ℝ =>
+          ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+              f F (h.height_schedule.height u) -
+            zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+              f F (h.height_schedule.height u) * Complex.I - P‖)
+        atTop
+        (𝓝 0) :=
+    tendsto_iff_norm_sub_tendsto_zero.1 hdefect
+  have hhorizontal_complex :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
+            f F h u)
+        atTop
+        (𝓝 0) :=
+    zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference_tendsto_zero
+      f F h
+  have hhorizontal :
+      Tendsto
+        (fun u : ℝ =>
+          ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
+            f F h u‖)
+        atTop
+        (𝓝 0) :=
+    hhorizontal_complex.norm
+  have hsum_zero :
+      Tendsto
+        (fun u : ℝ =>
+          ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+              f F (h.height_schedule.height u) -
+            zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+              f F (h.height_schedule.height u) * Complex.I - P‖ +
+          ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
+            f F h u‖)
+        atTop
+        (𝓝 (0 + 0)) :=
+    hdefect_norm.add hhorizontal
+  have hsum :
+      Tendsto
+        (fun u : ℝ =>
+          ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+              f F (h.height_schedule.height u) -
+            zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+              f F (h.height_schedule.height u) * Complex.I - P‖ +
+          ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
+            f F h u‖)
+        atTop
+        (𝓝 0) :=
+    Eq.subst
+      (motive := fun z : ℝ =>
+        Tendsto
+          (fun u : ℝ =>
+            ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+                f F (h.height_schedule.height u) -
+              zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+                f F (h.height_schedule.height u) * Complex.I - P‖ +
+            ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
+              f F h u‖)
+          atTop
+          (𝓝 z))
+      (zero_add (0 : ℝ))
+      hsum_zero
+  have hbound :
+      ∀ u : ℝ,
+        ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
+            f F h u - P‖
+          ≤
+          ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+              f F (h.height_schedule.height u) -
+            zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+              f F (h.height_schedule.height u) * Complex.I - P‖ +
+          ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
+            f F h u‖ := by
+    intro u
+    exact
+      zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral_sub_projection_norm_le_tangentBoundaryProjectionDefect_add_horizontal
+        f F h u P
+  have hnorm_zero :
+      Tendsto
+        (fun u : ℝ =>
+          ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
+              f F h u - P‖)
+        atTop
+        (𝓝 0) :=
+    squeeze_zero_norm' hbound hsum
+  have hsched :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
+            f F h u)
+        atTop
+        (𝓝 P) :=
+    tendsto_iff_norm_sub_tendsto_zero.2 hnorm_zero
+  have hfun :
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+          f F (h.height_schedule.height u)) =
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
+          f F h u) := by
+    funext u
+    rfl
+  exact
+    Eq.subst
+      (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 P))
+      hfun.symm
+      hsched
 
 /-- Eventual explicit-horizontal form of the isolated one-pole horizontal
 inverse-quadratic estimate. -/
