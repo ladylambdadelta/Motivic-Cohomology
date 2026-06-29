@@ -6847,11 +6847,115 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_uniform_bound
 
 /-- Nonnegative-radius, positive-frequency normalized half-window Hilbert-sine
 Dirichlet bound. -/
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_smallPrefix_scaled_eq
+    (A b : ℝ) (hA : 0 ≤ A) (hb : 0 < b) :
+    (∫ v in (0)..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v) =
+      ∫ w in (0)..(A / b),
+        (w / (1 + w ^ 2)) * Real.sin (b * w) := by
+  sorry
+
+theorem scalarFourierLaplacePlemelj_scaledSmallPrefix_abs_le_one
+    (R b : ℝ) (hR_nonneg : 0 ≤ R) (hR_le_one : R ≤ 1) :
+    |∫ w in (0)..R,
+      (w / (1 + w ^ 2)) * Real.sin (b * w)| ≤ 1 := by
+  let f : ℝ → ℝ :=
+    fun w : ℝ => (w / (1 + w ^ 2)) * Real.sin (b * w)
+  have hpoint : ∀ w ∈ Ι (0 : ℝ) R, ‖f w‖ ≤ (1 : ℝ) := by
+    intro w hw
+    have hw_nonneg : 0 ≤ w :=
+      (mem_uIcc.mp hw).1
+    have hw_le_R : w ≤ R :=
+      (mem_uIcc.mp hw).2
+    have hw_le_one : w ≤ 1 :=
+      hw_le_R.trans hR_le_one
+    have hden_pos : 0 < 1 + w ^ 2 :=
+      add_pos_of_pos_of_nonneg zero_lt_one (sq_nonneg w)
+    have hcoeff_nonneg : 0 ≤ w / (1 + w ^ 2) :=
+      div_nonneg hw_nonneg hden_pos.le
+    have hcoeff_le_one : w / (1 + w ^ 2) ≤ 1 := by
+      exact (div_le_one hden_pos).mpr
+        (hw_le_one.trans
+          (le_add_of_nonneg_right (sq_nonneg w)))
+    have hsin_abs : |Real.sin (b * w)| ≤ 1 :=
+      abs_le.mpr ⟨neg_one_le_sin (b * w), sin_le_one (b * w)⟩
+    have habs :
+        |f w| ≤ 1 := by
+      calc
+        |f w| =
+            |w / (1 + w ^ 2)| * |Real.sin (b * w)| := by
+            unfold f
+            exact abs_mul (w / (1 + w ^ 2)) (Real.sin (b * w))
+        _ =
+            (w / (1 + w ^ 2)) * |Real.sin (b * w)| := by
+            exact congrArg
+              (fun r : ℝ => r * |Real.sin (b * w)|)
+              (abs_of_nonneg hcoeff_nonneg)
+        _ ≤ (w / (1 + w ^ 2)) * 1 := by
+            exact mul_le_mul_of_nonneg_left hsin_abs hcoeff_nonneg
+        _ = w / (1 + w ^ 2) := by
+            exact mul_one (w / (1 + w ^ 2))
+        _ ≤ 1 := hcoeff_le_one
+    calc
+      ‖f w‖ = |f w| := by
+        exact Real.norm_eq_abs (f w)
+      _ ≤ 1 := habs
+  have hnorm :
+      ‖∫ w in (0)..R, f w‖ ≤ (1 : ℝ) * |R - 0| :=
+    intervalIntegral.norm_integral_le_of_norm_le_const hpoint
+  have hlength : |R - 0| ≤ 1 := by
+    calc
+      |R - 0| = |R| := by
+        exact congrArg abs (sub_zero R)
+      _ = R := by
+        exact abs_of_nonneg hR_nonneg
+      _ ≤ 1 := hR_le_one
+  have htarget :
+      ‖∫ w in (0)..R, f w‖ ≤ 1 := by
+    calc
+      ‖∫ w in (0)..R, f w‖ ≤ (1 : ℝ) * |R - 0| := hnorm
+      _ = |R - 0| := by
+        exact one_mul |R - 0|
+      _ ≤ 1 := hlength
+  calc
+    |∫ w in (0)..R,
+      (w / (1 + w ^ 2)) * Real.sin (b * w)|
+        = ‖∫ w in (0)..R, f w‖ := by
+          unfold f
+          exact (Real.norm_eq_abs
+            (∫ w in (0)..R,
+              (w / (1 + w ^ 2)) * Real.sin (b * w))).symm
+    _ ≤ 1 := htarget
+
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_smallPrefix_abs_le_one
     (A b : ℝ) (hA : 0 ≤ A) (hA_le_b : A ≤ b) (hb : 0 < b) :
     |∫ v in (0)..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 1 := by
-  sorry
+  have hb_nonneg : 0 ≤ b :=
+    hb.le
+  have hb_ne : b ≠ 0 :=
+    ne_of_gt hb
+  have hR_nonneg : 0 ≤ A / b :=
+    div_nonneg hA hb_nonneg
+  have hR_le_one : A / b ≤ 1 := by
+    exact (div_le_one hb).mpr hA_le_b
+  have hscale :
+      (∫ v in (0)..A,
+        (v / (b ^ 2 + v ^ 2)) * Real.sin v) =
+        ∫ w in (0)..(A / b),
+          (w / (1 + w ^ 2)) * Real.sin (b * w) :=
+    scalarFourierLaplacePlemelj_dampedSineIntegral_smallPrefix_scaled_eq
+      A b hA hb
+  calc
+    |∫ v in (0)..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v|
+        =
+        |∫ w in (0)..(A / b),
+          (w / (1 + w ^ 2)) * Real.sin (b * w)| := by
+          exact congrArg abs hscale
+    _ ≤ 1 :=
+        scalarFourierLaplacePlemelj_scaledSmallPrefix_abs_le_one
+          (A / b) b hR_nonneg hR_le_one
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_two_pi
     (A b : ℝ) (hA : 0 ≤ A) (hb : 0 < b) :
