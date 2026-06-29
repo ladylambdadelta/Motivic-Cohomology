@@ -526,31 +526,15 @@ theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpec
           exact congrArg (fun x : ℝ => x * Dpos) (mul_comm Cneg Cpos)
     exact hmul_bounds.trans (hright_shrink.trans (le_of_eq halgebra))
 
-/-- Real-axis Paley-Wiener rapid decay of an admissible source's Laplace
-transform. -/
-theorem zetaCompletedExplicitFormulaPhi_positive_realAxisRapidDecay_source
-    (f : ZetaAdmissibleFunction) :
-    ∃ C : ℝ, ∃ k : ℕ,
-      0 ≤ C ∧
-        ∀ x : ℝ,
-          0 ≤ x →
-          ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction'
-              (x : ℂ)‖ ≤
-            C * (1 + ‖x‖) ^ (-(k + 3 : ℤ)) := by
-  sorry
+/-- Positive prime-power spectral majorant supplied by the prime-channel
+transport owner.
 
-/-- Prime-power sampling transfers admissible real-axis rapid decay to
-rectangular prime-power height decay. -/
-theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay_from_realAxis
-    (f : ZetaAdmissibleFunction)
-    (hreal :
-      ∃ C : ℝ, ∃ k : ℕ,
-        0 ≤ C ∧
-          ∀ x : ℝ,
-            0 ≤ x →
-            ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction'
-                (x : ℂ)‖ ≤
-              C * (1 + ‖x‖) ^ (-(k + 3 : ℤ))) :
+This is the genuine upstream input for the Laplace/contour-side spectral sample:
+it is not a Paley-Wiener real-axis decay statement.  The centers
+`ZetaPrimePowerIndex.center ι = n log p` do not convert polynomial decay in the
+real variable into rectangular polynomial-height decay in `(p,n)`. -/
+theorem zetaCompletedExplicitFormulaPhi_primePower_positive_spectralMajorant_source
+    (f : ZetaAdmissibleFunction) :
     ∃ C : ℝ, ∃ k : ℕ,
       0 ≤ C ∧
         ∀ ι : ZetaPrimePowerIndex,
@@ -559,9 +543,8 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay_f
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
   sorry
 
-/-- Positive real-axis rapid decay of the completed spectral transform at prime-power
-centers. -/
-theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay
+/-- Positive spectral majorant of the completed transform at prime-power centers. -/
+theorem zetaCompletedExplicitFormulaPhi_primePower_positive_spectralMajorant
     (f : ZetaAdmissibleFunction) :
     ∃ C : ℝ, ∃ k : ℕ,
       0 ≤ C ∧
@@ -570,9 +553,7 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay
               (ZetaPrimePowerIndex.center ι)‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
   obtain ⟨C, k, hC, hbound⟩ :=
-    zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay_from_realAxis
-      f
-      (zetaCompletedExplicitFormulaPhi_positive_realAxisRapidDecay_source f)
+    zetaCompletedExplicitFormulaPhi_primePower_positive_spectralMajorant_source f
   refine ⟨C, k, hC, ?_⟩
   intro ι
   have hphi :
@@ -586,9 +567,9 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay
     hphi.symm
     (hbound ι)
 
-/-- Reflected negative real-axis rapid decay of the completed spectral transform at
+/-- Reflected negative spectral majorant of the completed transform at
 prime-power centers. -/
-theorem zetaCompletedExplicitFormulaPhi_primePower_negative_realAxisRapidDecay
+theorem zetaCompletedExplicitFormulaPhi_primePower_negative_spectralMajorant
     (f : ZetaAdmissibleFunction) :
     ∃ C : ℝ, ∃ k : ℕ,
       0 ≤ C ∧
@@ -598,7 +579,7 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_negative_realAxisRapidDecay
               (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
   match
-    zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay
+    zetaCompletedExplicitFormulaPhi_primePower_positive_spectralMajorant
       (zetaAdmissibleDagger f)
   with
   | ⟨C, k, hC_nonneg, hpos⟩ =>
@@ -632,13 +613,9 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_negative_realAxisRapidDecay
               hnorm.symm
               (hpos ι)⟩
 
-/-- Two-sided real-axis rapid decay of the completed spectral transform at prime-power
-centers, assembled from the two one-sided real-axis estimates.
-
-This is the Paley-Wiener rapid-decay input on the unbounded real axis: both the
-positive centers and their reflected negative centers admit a common polynomial-height
-majorant. -/
-theorem zetaCompletedExplicitFormulaPhi_primePower_twoSided_realAxisRapidDecay
+/-- Two-sided spectral majorant of the completed transform at prime-power centers,
+assembled from the two one-sided estimates. -/
+theorem zetaCompletedExplicitFormulaPhi_primePower_twoSided_spectralMajorant
     (f : ZetaAdmissibleFunction) :
     ∃ C : ℝ, ∃ k : ℕ,
       0 ≤ C ∧
@@ -651,9 +628,9 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_twoSided_realAxisRapidDecay
             (zetaCompletedExplicitFormulaPhi f
               (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι) := by
-  match zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay f with
+  match zetaCompletedExplicitFormulaPhi_primePower_positive_spectralMajorant f with
   | ⟨Cpos, kpos, hCpos_nonneg, hpos⟩ =>
-      match zetaCompletedExplicitFormulaPhi_primePower_negative_realAxisRapidDecay f with
+      match zetaCompletedExplicitFormulaPhi_primePower_negative_spectralMajorant f with
       | ⟨Cneg, kneg, hCneg_nonneg, hneg⟩ =>
           let C : ℝ := max Cpos Cneg
           let k : ℕ := min kpos kneg
@@ -713,7 +690,7 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_twoSided_realAxisRapidDecay
             exact (hneg ι).trans hscale
           exact ⟨C, k, hC_nonneg, hpos_common, hneg_common⟩
 
-/-- Positive real-axis one-sided spectral majorant at prime-power centers. -/
+/-- Positive one-sided spectral majorant at prime-power centers. -/
 theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisSpectralMajorant
     (f : ZetaAdmissibleFunction) :
     ∃ C : ℝ, ∃ k : ℕ,
@@ -722,12 +699,11 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisSpectralMajo
           ‖zetaCompletedExplicitFormulaPhi f
               (ZetaPrimePowerIndex.center ι)‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  match zetaCompletedExplicitFormulaPhi_primePower_twoSided_realAxisRapidDecay f with
+  match zetaCompletedExplicitFormulaPhi_primePower_twoSided_spectralMajorant f with
   | ⟨C, k, hC, hpositive, _hnegative⟩ =>
       exact ⟨C, k, hC, hpositive⟩
 
-/-- Reflected negative real-axis one-sided spectral majorant at prime-power
-centers. -/
+/-- Reflected negative one-sided spectral majorant at prime-power centers. -/
 theorem zetaCompletedExplicitFormulaPhi_primePower_negative_realAxisSpectralMajorant
     (f : ZetaAdmissibleFunction) :
     ∃ C : ℝ, ∃ k : ℕ,
@@ -737,16 +713,14 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_negative_realAxisSpectralMajo
             (zetaCompletedExplicitFormulaPhi f
               (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  match zetaCompletedExplicitFormulaPhi_primePower_twoSided_realAxisRapidDecay f with
+  match zetaCompletedExplicitFormulaPhi_primePower_twoSided_spectralMajorant f with
   | ⟨C, k, hC, _hpositive, hnegative⟩ =>
       exact ⟨C, k, hC, hnegative⟩
 
-/-- Real-axis prime-power spectral seed-pair summability majorant.
+/-- Prime-power spectral seed-pair summability majorant.
 
-This is the real-axis estimate for the spectral/Laplace prime sample.  It is
-not a consequence of the vertical-strip Paley-Wiener theorem, which controls decay in
-`z.im` on bounded real strips rather than polynomial decay of `Φ_f(log p^n)` on the
-unbounded positive real axis. -/
+This is the spectral/Laplace prime sample estimate after the prime-channel
+transport owner has supplied one-sided polynomial-height majorants. -/
 theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpectralMajorant
     (f : ZetaAdmissibleFunction) :
     ∃ C : ℝ, ∃ k : ℕ,
@@ -765,8 +739,8 @@ theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpec
             zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpectralMajorant_of_oneSided
               f Cpos Cneg kpos kneg hCpos hCneg hpos hneg
 
-/-- Real-axis spectral seed-pair majorant at prime-power centers, in the real norm shape
-needed by the paired seed estimate. -/
+/-- Spectral seed-pair majorant at prime-power centers, in the real norm shape needed
+by the paired seed estimate. -/
 theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpectralMajorant'
     (f : ZetaAdmissibleFunction) :
     ∃ C : ℝ, ∃ k : ℕ,
