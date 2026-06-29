@@ -6577,6 +6577,18 @@ theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_uniform_bound
           |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤ C := by
   sorry
 
+/-- Exact real decomposition of the uncompensated symmetric Cauchy Fourier
+window into its surviving even-cosine and odd-sine pieces. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_window_eq_evenCosine_sub_oddSine
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    (∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ))) =
+      ((scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x -
+        scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x : ℝ) : ℂ) := by
+  sorry
+
 /-- Assembly of the uncompensated complex Cauchy window norm from the bounded
 even-cosine and odd-sine real components. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_window_norm_bound_of_even_odd
@@ -6589,7 +6601,39 @@ theorem scalarFourierLaplacePlemelj_uncompensated_window_norm_bound_of_even_odd
       (-1 / ((a : ℂ) + t * Complex.I)) *
         Complex.exp
           (Complex.I * (t : ℂ) * (x : ℂ))‖ ≤ Ceven + Codd := by
-  sorry
+  let E : ℝ := scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x
+  let O : ℝ := scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x
+  have hdecomp :
+      (∫ t in Set.Icc (-T) T,
+        (-1 / ((a : ℂ) + t * Complex.I)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ))) =
+        ((E - O : ℝ) : ℂ) := by
+    exact
+      scalarFourierLaplacePlemelj_uncompensated_window_eq_evenCosine_sub_oddSine
+        a ha T x
+  have hnorm :
+      ‖((E - O : ℝ) : ℂ)‖ = |E - O| :=
+    RCLike.norm_ofReal (K := ℂ) (E - O)
+  have htri : |E - O| ≤ |E| + |O| :=
+    abs_sub_le E O
+  have heven' : |E| ≤ Ceven := by
+    unfold E
+    exact heven
+  have hodd' : |O| ≤ Codd := by
+    unfold O
+    exact hodd
+  calc
+    ‖∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ))‖ =
+        ‖((E - O : ℝ) : ℂ)‖ := by
+      exact congrArg norm hdecomp
+    _ = |E - O| := hnorm
+    _ ≤ |E| + |O| := htri
+    _ ≤ Ceven + Codd := by
+      exact add_le_add heven' hodd'
 
 /-- Dirichlet decomposition bound for the uncompensated scalar Cauchy Fourier
 window.
