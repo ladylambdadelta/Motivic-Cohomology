@@ -526,6 +526,30 @@ theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpec
           exact congrArg (fun x : ℝ => x * Dpos) (mul_comm Cneg Cpos)
     exact hmul_bounds.trans (hright_shrink.trans (le_of_eq halgebra))
 
+/-- Positive real-axis one-sided spectral majorant at prime-power centers. -/
+theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisSpectralMajorant
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 ≤ C ∧
+        ∀ ι : ZetaPrimePowerIndex,
+          ‖zetaCompletedExplicitFormulaPhi f
+              (ZetaPrimePowerIndex.center ι)‖ ≤
+            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  sorry
+
+/-- Reflected negative real-axis one-sided spectral majorant at prime-power
+centers. -/
+theorem zetaCompletedExplicitFormulaPhi_primePower_negative_realAxisSpectralMajorant
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 ≤ C ∧
+        ∀ ι : ZetaPrimePowerIndex,
+          ‖star
+            (zetaCompletedExplicitFormulaPhi f
+              (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
+            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  sorry
+
 /-- Real-axis prime-power spectral seed-pair summability majorant.
 
 This is the real-axis estimate for the spectral/Laplace prime sample.  It is
@@ -542,7 +566,13 @@ theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpec
                 (zetaCompletedExplicitFormulaPhi f
                 (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  sorry
+  match zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisSpectralMajorant f with
+  | ⟨Cpos, kpos, hCpos, hpos⟩ =>
+      match zetaCompletedExplicitFormulaPhi_primePower_negative_realAxisSpectralMajorant f with
+      | ⟨Cneg, kneg, hCneg, hneg⟩ =>
+          exact
+            zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpectralMajorant_of_oneSided
+              f Cpos Cneg kpos kneg hCpos hCneg hpos hneg
 
 /-- Real-axis spectral seed-pair majorant at prime-power centers, in the real norm shape
 needed by the paired seed estimate. -/
