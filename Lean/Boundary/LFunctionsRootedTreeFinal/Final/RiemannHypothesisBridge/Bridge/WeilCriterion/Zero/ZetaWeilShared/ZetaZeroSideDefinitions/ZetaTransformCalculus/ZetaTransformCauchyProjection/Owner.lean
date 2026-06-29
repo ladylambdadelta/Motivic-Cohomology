@@ -6620,7 +6620,29 @@ theorem scalarFourierLaplacePlemelj_uncompensated_realRemainder_intervalIntegrab
         ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
             (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ))
       volume (-T) T := by
-  sorry
+  have hden_cont : Continuous (fun t : ℝ => a ^ 2 + t ^ 2) :=
+    continuous_const.add (continuous_id.pow 2)
+  have hden_ne : ∀ t : ℝ, a ^ 2 + t ^ 2 ≠ 0 :=
+    scalarFourierLaplacePlemelj_zero_denominator_ne_zero a ha
+  have hleft_coeff :
+      Continuous (fun t : ℝ => -(a / (a ^ 2 + t ^ 2))) :=
+    (continuous_const.div hden_cont hden_ne).neg
+  have hright_coeff :
+      Continuous (fun t : ℝ => t / (a ^ 2 + t ^ 2)) :=
+    continuous_id.div hden_cont hden_ne
+  have htx : Continuous (fun t : ℝ => t * x) :=
+    continuous_id.mul continuous_const
+  have hcos : Continuous (fun t : ℝ => Real.cos (t * x)) :=
+    Real.continuous_cos.comp htx
+  have hsin : Continuous (fun t : ℝ => Real.sin (t * x)) :=
+    Real.continuous_sin.comp htx
+  have hreal :
+      Continuous
+        (fun t : ℝ =>
+          -(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+            (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)) :=
+    (hleft_coeff.mul hcos).sub (hright_coeff.mul hsin)
+  exact (Complex.continuous_ofReal.comp hreal).intervalIntegrable (-T) T
 
 /-- Interval integrability of the imaginary remainder in the uncompensated
 Cauchy Fourier decomposition. -/
@@ -6632,7 +6654,31 @@ theorem scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_intervalInt
             (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
           Complex.I))
       volume (-T) T := by
-  sorry
+  have hden_cont : Continuous (fun t : ℝ => a ^ 2 + t ^ 2) :=
+    continuous_const.add (continuous_id.pow 2)
+  have hden_ne : ∀ t : ℝ, a ^ 2 + t ^ 2 ≠ 0 :=
+    scalarFourierLaplacePlemelj_zero_denominator_ne_zero a ha
+  have hleft_coeff :
+      Continuous (fun t : ℝ => -(a / (a ^ 2 + t ^ 2))) :=
+    (continuous_const.div hden_cont hden_ne).neg
+  have hright_coeff :
+      Continuous (fun t : ℝ => t / (a ^ 2 + t ^ 2)) :=
+    continuous_id.div hden_cont hden_ne
+  have htx : Continuous (fun t : ℝ => t * x) :=
+    continuous_id.mul continuous_const
+  have hcos : Continuous (fun t : ℝ => Real.cos (t * x)) :=
+    Real.continuous_cos.comp htx
+  have hsin : Continuous (fun t : ℝ => Real.sin (t * x)) :=
+    Real.continuous_sin.comp htx
+  have hreal :
+      Continuous
+        (fun t : ℝ =>
+          -(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+            (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x)) :=
+    (hleft_coeff.mul hsin).add (hright_coeff.mul hcos)
+  exact
+    ((Complex.continuous_ofReal.comp hreal).mul continuous_const).intervalIntegrable
+      (-T) T
 
 /-- Additivity of the real and imaginary remainders in the uncompensated
 Cauchy Fourier decomposition on a finite symmetric window. -/
