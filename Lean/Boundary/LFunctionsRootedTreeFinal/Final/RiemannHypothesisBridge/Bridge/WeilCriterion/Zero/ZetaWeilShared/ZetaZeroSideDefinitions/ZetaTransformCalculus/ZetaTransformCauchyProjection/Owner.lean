@@ -632,6 +632,34 @@ theorem fixedRightLine_fourierCauchy_multiplierIntegrand_inverseCubicDecay
             ≤ C * (1 + ‖t‖) ^ (-(3 : ℤ)) := by
   sorry
 
+/-- The real inverse-cubic majorant has inverse-quadratic tails outside
+symmetric intervals. -/
+theorem real_inverseCubic_symmetricComplementIntegral_inverseQuadratic
+    (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
+    ∃ A : ℝ,
+      0 < A ∧
+        ∀ᶠ u in atTop,
+          (∫ t in (Set.Icc (-(height u)) (height u))ᶜ,
+              (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+            ≤ A * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
+  sorry
+
+/-- Norm domination by an inverse-cubic majorant controls the symmetric
+Bochner tail by the corresponding scalar majorant tail. -/
+theorem fixedRightLine_integrableFunction_symmetricTail_norm_le_majorantTail
+    (G : ℝ → ℂ) (C : ℝ) (hC : 0 < C)
+    (height : ℝ → ℝ)
+    (hG :
+      ∀ t : ℝ,
+        ‖G t‖ ≤ C * (1 + ‖t‖) ^ (-(3 : ℤ))) :
+    ∀ᶠ u in atTop,
+      ‖(∫ t in Set.Icc (-(height u)) (height u), G t) -
+          (∫ t : ℝ, G t)‖
+        ≤ C *
+          (∫ t in (Set.Icc (-(height u)) (height u))ᶜ,
+            (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+  sorry
+
 /-- Inverse-cubic pointwise decay gives an inverse-quadratic symmetric
 truncation tail along any cofinal height schedule. -/
 theorem fixedRightLine_integrableFunction_symmetricTail_inverseQuadratic_of_inverseCubicDecay
@@ -647,7 +675,24 @@ theorem fixedRightLine_integrableFunction_symmetricTail_inverseQuadratic_of_inve
           ‖(∫ t in Set.Icc (-(height u)) (height u), G t) -
               (∫ t : ℝ, G t)‖
             ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
-  sorry
+  match real_inverseCubic_symmetricComplementIntegral_inverseQuadratic height hcofinal with
+  | ⟨A, hA_pos, hA_eventual⟩ =>
+      refine ⟨C * A, mul_pos hC hA_pos, ?_⟩
+      exact
+        ((fixedRightLine_integrableFunction_symmetricTail_norm_le_majorantTail
+          G C hC height hG).and hA_eventual).mono
+          (fun u hu =>
+            calc
+              ‖(∫ t in Set.Icc (-(height u)) (height u), G t) -
+                  (∫ t : ℝ, G t)‖
+                  ≤ C *
+                    (∫ t in (Set.Icc (-(height u)) (height u))ᶜ,
+                      (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := hu.1
+              _ ≤ C * (A * (1 + ‖height u‖) ^ (-(2 : ℤ))) := by
+                    exact mul_le_mul_of_nonneg_left hu.2 (le_of_lt hC)
+              _ = C * A * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
+                    exact (mul_assoc C A
+                      ((1 + ‖height u‖) ^ (-(2 : ℤ)))).symm)
 
 /-- Generic inverse-quadratic truncation tail for the fixed right
 Fourier-Cauchy multiplier. -/
