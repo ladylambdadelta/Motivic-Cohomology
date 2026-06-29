@@ -2,6 +2,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.IteratedOscillatoryKernel.Owner
 import Mathlib.Analysis.Fourier.Inversion
 import Mathlib.Data.Real.Pi.Bounds
+import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 import Mathlib.Analysis.SpecialFunctions.JapaneseBracket
 import Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
@@ -7323,8 +7324,40 @@ theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_antitoneOn
     scalarFourierLaplacePlemelj_zero_denominator_pos b hb v
   exact
     (div_le_div_iff₀ hden_v_pos hden_u_pos).mpr
-      (scalarFourierLaplacePlemelj_highTailCauchyAmplitude_cross_mul_le
+    (scalarFourierLaplacePlemelj_highTailCauchyAmplitude_cross_mul_le
         b c u v hb hone_le_c hb_le_c hu hv huv)
+
+theorem scalarFourierLaplacePlemelj_sine_intervalIntegral_abs_le_two
+    (c A : ℝ) :
+    |∫ v in c..A, Real.sin v| ≤ 2 := by
+  have hsin_eq :
+      (∫ v in c..A, Real.sin v) = Real.cos c - Real.cos A :=
+    Real.integral_sin
+  have htriangle :
+      |Real.cos c - Real.cos A| ≤
+        |Real.cos c| + |Real.cos A| :=
+    abs_sub_le (Real.cos c) (Real.cos A)
+  have hcos_sum : |Real.cos c| + |Real.cos A| ≤ 1 + 1 :=
+    add_le_add (abs_cos_le_one c) (abs_cos_le_one A)
+  calc
+    |∫ v in c..A, Real.sin v| =
+        |Real.cos c - Real.cos A| := by
+        exact congrArg abs hsin_eq
+    _ ≤ |Real.cos c| + |Real.cos A| := htriangle
+    _ ≤ 1 + 1 := hcos_sum
+    _ = 2 := by
+        rfl
+
+theorem scalarFourierLaplacePlemelj_secondMeanValue_sine_tail_abs_le_two
+    (g : ℝ → ℝ) (A c : ℝ)
+    (hone_le_c : 1 ≤ c) (hcA : c ≤ A)
+    (hg_nonneg : ∀ v ∈ Set.Ici c, 0 ≤ g v)
+    (hg_le_one : ∀ v ∈ Set.Ici c, g v ≤ 1)
+    (hg_antitone : AntitoneOn g (Set.Ici c))
+    (hprimitive : ∀ x y : ℝ, c ≤ x → x ≤ y → y ≤ A →
+      |∫ v in x..y, Real.sin v| ≤ 2) :
+    |∫ v in c..A, g v * Real.sin v| ≤ 2 := by
+  sorry
 
 theorem scalarFourierLaplacePlemelj_dirichlet_sine_tail_abs_le_two
     (g : ℝ → ℝ) (A c : ℝ)
@@ -7333,7 +7366,11 @@ theorem scalarFourierLaplacePlemelj_dirichlet_sine_tail_abs_le_two
     (hg_le_one : ∀ v ∈ Set.Ici c, g v ≤ 1)
     (hg_antitone : AntitoneOn g (Set.Ici c)) :
     |∫ v in c..A, g v * Real.sin v| ≤ 2 := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_secondMeanValue_sine_tail_abs_le_two
+      g A c hone_le_c hcA hg_nonneg hg_le_one hg_antitone
+      (fun x y _hcx _hxy _hyA =>
+        scalarFourierLaplacePlemelj_sine_intervalIntegral_abs_le_two x y)
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
     (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
