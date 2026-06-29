@@ -6871,14 +6871,48 @@ theorem scalarFourierLaplacePlemelj_sineIntegralKernel_interval_abs_le_two_pi
   sorry
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_split_at_scale
-    (A b : ℝ) (hbA : b ≤ A) :
+    (A b : ℝ) (hb : 0 < b) (hbA : b ≤ A) :
     (∫ v in (0)..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v) =
       (∫ v in (0)..b,
         (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
         ∫ v in b..A,
           (v / (b ^ 2 + v ^ 2)) * Real.sin v := by
-  sorry
+  let f : ℝ → ℝ :=
+    fun v : ℝ => (v / (b ^ 2 + v ^ 2)) * Real.sin v
+  have hden_cont : Continuous (fun v : ℝ => b ^ 2 + v ^ 2) :=
+    continuous_const.add (continuous_id.pow 2)
+  have hden_ne : ∀ v : ℝ, b ^ 2 + v ^ 2 ≠ 0 := by
+    intro v
+    exact
+      scalarFourierLaplacePlemelj_zero_denominator_ne_zero b hb v
+  have hquot_cont : Continuous (fun v : ℝ => v / (b ^ 2 + v ^ 2)) :=
+    continuous_id.div hden_cont hden_ne
+  have hf_cont : Continuous f := by
+    unfold f
+    exact hquot_cont.mul Real.continuous_sin
+  have hleft : IntervalIntegrable f volume 0 b :=
+    hf_cont.intervalIntegrable 0 b
+  have hright : IntervalIntegrable f volume b A :=
+    hf_cont.intervalIntegrable b A
+  calc
+    (∫ v in (0)..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v)
+        = ∫ v in (0)..A, f v := by
+          unfold f
+          rfl
+    _ =
+        (∫ v in (0)..b, f v) + ∫ v in b..A, f v := by
+          exact
+            (intervalIntegral.integral_add_adjacent_intervals
+              hleft hright).symm
+    _ =
+        (∫ v in (0)..b,
+          (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
+          ∫ v in b..A,
+            (v / (b ^ 2 + v ^ 2)) * Real.sin v := by
+          unfold f
+          rfl
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_abs_le_one_add_two_pi
     (A b : ℝ) (hA : 0 ≤ A) (hb : 0 < b) :
@@ -6909,7 +6943,7 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_abs_le_one_add_two_pi
               ∫ v in b..A,
                 (v / (b ^ 2 + v ^ 2)) * Real.sin v :=
         scalarFourierLaplacePlemelj_dampedSineIntegral_split_at_scale
-          A b hbA
+          A b hb hbA
       have hsmall :
           |∫ v in (0)..b,
             (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 1 :=
