@@ -6577,6 +6577,67 @@ theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_uniform_bound
           |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤ C := by
   sorry
 
+/-- Multiplication of two complex numbers presented by real and imaginary
+coordinates. -/
+theorem scalarFourierLaplacePlemelj_realImag_mul
+    (A B C S : ℝ) :
+    (((A : ℂ) + ((B : ℝ) : ℂ) * Complex.I) *
+        ((C : ℂ) + ((S : ℝ) : ℂ) * Complex.I)) =
+      (((A * C - B * S : ℝ) : ℂ) +
+        (((A * S + B * C : ℝ) : ℂ) * Complex.I)) := by
+  calc
+    (((A : ℂ) + ((B : ℝ) : ℂ) * Complex.I) *
+        ((C : ℂ) + ((S : ℝ) : ℂ) * Complex.I))
+        =
+        Complex.mk A B * Complex.mk C S := by
+          exact congrArg₂ Mul.mul
+            (Complex.mk_eq_add_mul_I A B).symm
+            (Complex.mk_eq_add_mul_I C S).symm
+    _ = Complex.mk (A * C - B * S) (A * S + B * C) := by
+          rfl
+    _ =
+      (((A * C - B * S : ℝ) : ℂ) +
+        (((A * S + B * C : ℝ) : ℂ) * Complex.I)) := by
+          exact Complex.mk_eq_add_mul_I (A * C - B * S) (A * S + B * C)
+
+/-- Euler's identity for the real oscillatory factor in the Cauchy Fourier
+window. -/
+theorem scalarFourierLaplacePlemelj_exp_I_mul_real_eq_cos_add_sin
+    (t x : ℝ) :
+    Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) =
+      ((Real.cos (t * x) : ℝ) : ℂ) +
+        (((Real.sin (t * x) : ℝ) : ℂ) * Complex.I) := by
+  have harg :
+      Complex.I * (t : ℂ) * (x : ℂ) =
+        (((t * x : ℝ) : ℂ) * Complex.I) := by
+    calc
+      Complex.I * (t : ℂ) * (x : ℂ)
+          = Complex.I * ((t : ℂ) * (x : ℂ)) := by
+            exact mul_assoc Complex.I (t : ℂ) (x : ℂ)
+      _ = ((t : ℂ) * (x : ℂ)) * Complex.I := by
+            exact mul_comm Complex.I ((t : ℂ) * (x : ℂ))
+      _ = (((t * x : ℝ) : ℂ) * Complex.I) := by
+            exact congrArg
+              (fun z : ℂ => z * Complex.I)
+              (Complex.ofReal_mul t x).symm
+  calc
+    Complex.exp (Complex.I * (t : ℂ) * (x : ℂ))
+        =
+        Complex.exp (((t * x : ℝ) : ℂ) * Complex.I) := by
+          exact congrArg Complex.exp harg
+    _ =
+        Complex.cos ((t * x : ℝ) : ℂ) +
+          Complex.sin ((t * x : ℝ) : ℂ) * Complex.I := by
+          exact Complex.exp_mul_I ((t * x : ℝ) : ℂ)
+    _ =
+      ((Real.cos (t * x) : ℝ) : ℂ) +
+        (((Real.sin (t * x) : ℝ) : ℂ) * Complex.I) := by
+          exact congrArg₂ Add.add
+            (Complex.ofReal_cos (t * x)).symm
+            (congrArg
+              (fun z : ℂ => z * Complex.I)
+              (Complex.ofReal_sin (t * x)).symm)
+
 /-- Pointwise real/imaginary decomposition of the uncompensated Cauchy Fourier
 integrand. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_integrand_pointwise_decomposition
@@ -6588,7 +6649,66 @@ theorem scalarFourierLaplacePlemelj_uncompensated_integrand_pointwise_decomposit
         (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
             (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
           Complex.I)) := by
-  sorry
+  let A : ℝ := -(a / (a ^ 2 + t ^ 2))
+  let B : ℝ := t / (a ^ 2 + t ^ 2)
+  let C : ℝ := Real.cos (t * x)
+  let S : ℝ := Real.sin (t * x)
+  have hkernel :
+      (-1 / ((a : ℂ) + t * Complex.I)) =
+        ((A : ℝ) : ℂ) + (((B : ℝ) : ℂ) * Complex.I) := by
+    calc
+      (-1 / ((a : ℂ) + t * Complex.I))
+          =
+          ((-(a / (a ^ 2 + t ^ 2)) : ℝ) : ℂ) +
+            (((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ) * Complex.I) := by
+            exact scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
+              a ha t
+      _ = ((A : ℝ) : ℂ) + (((B : ℝ) : ℂ) * Complex.I) := by
+            rfl
+  have hexp :
+      Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) =
+        ((C : ℝ) : ℂ) + (((S : ℝ) : ℂ) * Complex.I) := by
+    calc
+      Complex.exp (Complex.I * (t : ℂ) * (x : ℂ))
+          =
+          ((Real.cos (t * x) : ℝ) : ℂ) +
+            (((Real.sin (t * x) : ℝ) : ℂ) * Complex.I) := by
+            exact scalarFourierLaplacePlemelj_exp_I_mul_real_eq_cos_add_sin
+              t x
+      _ = ((C : ℝ) : ℂ) + (((S : ℝ) : ℂ) * Complex.I) := by
+            rfl
+  have hproduct :
+      (((A : ℝ) : ℂ) + (((B : ℝ) : ℂ) * Complex.I)) *
+          (((C : ℝ) : ℂ) + (((S : ℝ) : ℂ) * Complex.I)) =
+        (((A * C - B * S : ℝ) : ℂ) +
+          (((A * S + B * C : ℝ) : ℂ) * Complex.I)) :=
+    scalarFourierLaplacePlemelj_realImag_mul A B C S
+  calc
+    (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp (Complex.I * (t : ℂ) * (x : ℂ))
+        =
+        (((A : ℝ) : ℂ) + (((B : ℝ) : ℂ) * Complex.I)) *
+          Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) := by
+          exact congrArg
+            (fun z : ℂ => z * Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)))
+            hkernel
+    _ =
+        (((A : ℝ) : ℂ) + (((B : ℝ) : ℂ) * Complex.I)) *
+          (((C : ℝ) : ℂ) + (((S : ℝ) : ℂ) * Complex.I)) := by
+          exact congrArg
+            (fun z : ℂ =>
+              (((A : ℝ) : ℂ) + (((B : ℝ) : ℂ) * Complex.I)) * z)
+            hexp
+    _ =
+        (((A * C - B * S : ℝ) : ℂ) +
+          (((A * S + B * C : ℝ) : ℂ) * Complex.I)) := hproduct
+    _ =
+      (((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+          (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ) +
+        (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+            (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+          Complex.I)) := by
+          rfl
 
 /-- Symmetric interval cancellation for an odd complex-valued function. -/
 theorem intervalIntegral_integral_eq_zero_of_forall_neg_eq_neg
