@@ -33,237 +33,15 @@ namespace LFunctions
 
 noncomputable section
 
+local notation "π" => Real.pi
+
 -- Helper lemmas for numeric and algebraic facts, avoiding automation
 
 private lemma three_pos : (0 : ℝ) < 3 :=
   zero_lt_three
 
-private lemma three_lt_exp_1_1 : (3 : ℝ) < Real.exp 1.1 := by
-  -- exp(1.1) > 3: use Mathlib approximation theorems
-  have h1 : (0 : ℝ) < 1.1 := by constructor
-  have h2 : Real.exp (1.1 : ℝ) > 1 := Real.exp_pos 1.1
-  -- Use certified approximation: exp(1.1) > 3.004
-  exact Real.exp_approx_three_lt_exp_one_one
-
-private lemma log_exp_one_half : Real.log (Real.exp (1.1 : ℝ)) = 1.1 :=
-  Real.log_exp 1.1
-
-private lemma one_le_three : (1 : ℝ) ≤ 3 := by
-  constructor
-
-private lemma one_div_three_pos : (0 : ℝ) < 1 / 3 := by
-  exact div_pos one_pos three_pos
-
-private lemma log_div_one_three : Real.log ((1 : ℝ) / 3) = -Real.log 3 := by
-  have h1_pos : (0 : ℝ) < 1 := one_pos
-  have h3_pos : (0 : ℝ) < 3 := three_pos
-  have h_log_div : Real.log ((1 : ℝ) / 3) = Real.log 1 - Real.log 3 :=
-    Real.log_div h1_pos h3_pos
-  have h_log_one : Real.log (1 : ℝ) = 0 := Real.log_one
-  calc Real.log ((1 : ℝ) / 3)
-      = Real.log 1 - Real.log 3 := h_log_div
-    _ = 0 - Real.log 3 := by exact congr_arg (· - Real.log 3) h_log_one
-    _ = -Real.log 3 := by exact zero_sub (Real.log 3)
-
-private lemma neg_neg_cancel (x : ℝ) : -(-x) = x :=
-  neg_neg x
-
-private lemma pi_bound_decimal : Real.pi < (314159266 : ℝ) / 100000000 := by
-  have h_pi_bound : Real.pi < 314159266 / 100000000 := Real.pi_lt_3141593
-  exact h_pi_bound
-
-private lemma field_simplify_one_third : ((1 : ℝ) / 3) * 3 = 1 := by
-  exact div_mul_cancel one_pos three_pos
-
-private lemma field_simplify_three : (3 : ℝ) / 1 = 3 := by
-  exact div_one 3
-
-private lemma three_div_three : (3 : ℝ) / 3 = 1 := by
-  have h_ne : (3 : ℝ) ≠ 0 := by intro h; have : (3 : ℝ) = 0 := h; decide
-  exact div_self h_ne
-
-private lemma abs_log_one : abs (Real.log (1 : ℝ)) = 0 := by
-  have : Real.log (1 : ℝ) = 0 := Real.log_one
-  calc abs (Real.log (1 : ℝ)) = abs 0 := by exact congr_arg abs this
-    _ = 0 := abs_zero
-
-private lemma max_zero_right_lemma (x : ℝ) : max 0 x = x := max_zero_right x
-
-private lemma one_point_one_plus_pi_bound : (1.1 : ℝ) + Real.pi ≤ 1.1 + 3.15 := by
-  have h_pi : Real.pi ≤ 3.15 := Complex.binetSecondFormula_pi_bounded_owner
-  exact add_le_add_left h_pi 1.1
-
-private lemma one_point_one_plus_three_point_one_five : (1.1 : ℝ) + 3.15 = 4.25 := by
-  have h1 : (1.1 : ℝ) = 11 / 10 := rfl
-  have h2 : (3.15 : ℝ) = 315 / 100 := rfl
-  have h3 : (4.25 : ℝ) = 425 / 100 := rfl
-  have h_eq1 : (11 : ℝ) / 10 = 110 / 100 := rfl
-  have h_add : (11 : ℝ) / 10 + 315 / 100 = 110 / 100 + 315 / 100 :=
-    congr_arg (· + 315 / 100) h_eq1
-  have h_add2 : (110 : ℝ) / 100 + 315 / 100 = (110 + 315) / 100 := add_div 110 315 100
-  have h_sum : (110 + 315 : ℝ) / 100 = 425 / 100 := rfl
-  calc (1.1 : ℝ) + 3.15
-    = 11 / 10 + 315 / 100 := by congr 1; exact h1.symm; exact h2.symm
-    _ = 110 / 100 + 315 / 100 := h_add
-    _ = (110 + 315) / 100 := h_add2
-    _ = 425 / 100 := h_sum
-    _ = 4.25 := h3.symm
-
--- Numeric fact: 425/100 ≤ 500/100, proven by casting Nat inequality
--- 425 < 500 via: 425 < 426 < ... < 500 using Nat.lt_succ_self
-private lemma four_point_two_five_le_five : (4.25 : ℝ) ≤ 5 :=
-  Nat.cast_le.mpr (Nat.le_of_lt (Nat.lt_trans
-    (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ
-      (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ
-        (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ
-          (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ
-            (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ
-              (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ
-                (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ
-                  (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ
-                    (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ
-                      (Nat.lt_of_succ_lt_succ (Nat.lt_of_succ_lt_succ (Nat.zero_lt_succ 424))))))))))))))))))))))))))
-    (Nat.zero_lt_succ 499)))
-
-private lemma max_self (x : ℝ) : max x x = x := max_self x
-
-private lemma abs_log_one_eq_zero : abs (Real.log (1 : ℝ)) = 0 := by
-  have : Real.log (1 : ℝ) = 0 := Real.log_one
-  calc abs (Real.log (1 : ℝ)) = abs 0 := by exact congr_arg abs this
-    _ = 0 := abs_zero
-
-private lemma max_with_zero_substitution (a b c : ℝ) (h_ab : abs (Real.log (1 : ℝ)) = 0) :
-    max a (max (abs (Real.log (1 : ℝ))) b) = max a (max 0 b) := by
-  have h_zero : abs (Real.log (1 : ℝ)) = 0 := h_ab
-  calc max a (max (abs (Real.log (1 : ℝ))) b) = max a (max 0 b) := by
-    exact congr_arg (max a) (congr_arg (fun x => max x b) h_zero)
-
-private lemma max_zero_left_absorption (a b : ℝ) :
-    max a (max 0 b) = max a b := by
-  have h_inner : max 0 b = b := max_zero_left b
-  exact congr_arg (max a) h_inner
-
-private lemma add_le_add_left_cong (x y z : ℝ) (h : x = y) :
-    x + z = y + z := by
-  exact congr_arg (· + z) h
-
-private lemma log_ratio_first_bound (w : ℂ) (hw_re_pos : 0 < w.re) (hw_norm : 2 ≤ ‖w‖) :
-    |Real.log (w.re / (3 * ‖w‖))| ≤ 1.1 := by
-  have hw_norm_pos : 0 < ‖w‖ := by obtain ⟨_, h2⟩ := hw_norm; exact h2
-  have hw_re_le_norm : w.re ≤ ‖w‖ := Complex.le_abs_re w
-  have h_three_pos : (0 : ℝ) < 3 := three_pos
-  have h_ratio_one : w.re / (3 * ‖w‖) > 0 := by
-    apply div_pos hw_re_pos
-    exact mul_pos h_three_pos hw_norm_pos
-  have h_ratio_le : w.re / (3 * ‖w‖) ≤ 1 / 3 := by
-    have h_three_w_pos : 0 < 3 * ‖w‖ := mul_pos h_three_pos hw_norm_pos
-    have h_div_mono : w.re / (3 * ‖w‖) ≤ ‖w‖ / (3 * ‖w‖) :=
-      div_le_div_of_le_left hw_re_le_norm h_three_w_pos (le_refl _)
-    have h_norm_div : ‖w‖ / (3 * ‖w‖) = 1 / 3 :=
-      div_mul_eq_div_mul_one_div_self ‖w‖ 3
-    calc w.re / (3 * ‖w‖) ≤ ‖w‖ / (3 * ‖w‖) := h_div_mono
-      _ = 1 / 3 := h_norm_div
-  have h_log_le_log_three : Real.log (w.re / (3 * ‖w‖)) ≤ Real.log (1 / 3) := by
-    exact Real.log_le_log_of_le h_ratio_one h_ratio_le
-  have h_log_one_third : Real.log (1 / 3) = -Real.log 3 := log_div_one_three
-  have h_log_le_neg_log_three : Real.log (w.re / (3 * ‖w‖)) ≤ -Real.log 3 := by
-    calc Real.log (w.re / (3 * ‖w‖)) ≤ Real.log (1 / 3) := h_log_le_log_three
-      _ = -Real.log 3 := h_log_one_third
-  have h_log_three_le : Real.log 3 ≤ 1.1 := Complex.binetSecondFormula_log_three_bounded_owner
-  have h_neg_log_three_ge : -Real.log 3 ≥ -1.1 :=
-    neg_le_neg h_log_three_le
-  have h_log_w_ge : Real.log (w.re / (3 * ‖w‖)) ≥ -1.1 :=
-    le_trans h_log_le_neg_log_three h_neg_log_three_ge
-  have h_ratio_lt_one : w.re / (3 * ‖w‖) < 1 :=
-    lt_of_le_of_lt h_ratio_le one_div_three_lt_one
-  have h_log_neg : Real.log (w.re / (3 * ‖w‖)) < 0 :=
-    Real.log_lt_zero_of_lt_one h_ratio_one h_ratio_lt_one
-  have h_abs : abs (Real.log (w.re / (3 * ‖w‖))) = -Real.log (w.re / (3 * ‖w‖)) :=
-    abs_of_neg h_log_neg
-  have h_neg_log_ge : -Real.log 3 ≥ -1.1 :=
-    neg_le_neg h_log_three_le
-  have h_log_w_le : Real.log (w.re / (3 * ‖w‖)) ≤ -1.1 :=
-    le_trans h_log_le_neg_log_three h_neg_log_ge
-  have h_abs_bound : -Real.log (w.re / (3 * ‖w‖)) ≤ 1.1 :=
-    neg_le_neg h_log_w_le
-  calc abs (Real.log (w.re / (3 * ‖w‖))) = -Real.log (w.re / (3 * ‖w‖)) := h_abs
-    _ ≤ 1.1 := h_abs_bound
-
-private lemma three_mul_div_cancel (x : ℝ) (hx : x ≠ 0) : (3 * x) / x = 3 := by
-  have h_cancel : x / x = 1 := div_self hx
-  have h_mul_div : (3 * x) / x = 3 * (x / x) := mul_div_assoc 3 x x
-  calc (3 * x) / x = 3 * (x / x) := h_mul_div
-    _ = 3 * 1 := congr_arg (· * 1) h_cancel
-    _ = 3 := mul_one 3
-
-private lemma norm_div_cancel (x y : ℝ) (hy : y ≠ 0) (hxy : x = y) : (x * y) / y = x := by
-  have h_mul_div : (x * y) / y = x * (y / y) := mul_div_assoc x y y
-  have h_cancel : y / y = 1 := div_self hy
-  calc (x * y) / y = x * (y / y) := h_mul_div
-    _ = x * 1 := congr_arg (x * ·) h_cancel
-    _ = x := mul_one x
-
--- Pure term-mode numeric proofs: zero automation
-private def three_pos : (0 : ℝ) < 3 :=
-  Nat.cast_lt.mpr (Nat.zero_lt_succ 2)
-
-private def two_pos : (0 : ℝ) < 2 :=
-  Nat.cast_lt.mpr (Nat.zero_lt_succ 1)
-
-private def one_pos : (0 : ℝ) < 1 :=
-  Nat.cast_lt.mpr (Nat.zero_lt_succ 0)
-
-private def one_lt_three : (1 : ℝ) < 3 :=
-  Nat.cast_lt.mpr (Nat.succ_lt_succ (Nat.zero_lt_succ 0))
-
-private def two_nonneg : (0 : ℝ) ≤ 2 :=
-  le_of_lt two_pos
-
-private def one_nonneg : (0 : ℝ) ≤ 1 :=
-  le_of_lt one_pos
-
--- 1.1 = 11/10: use division of cast naturals (both nonneg)
-private def one_point_one_nonneg : (0 : ℝ) ≤ 1.1 :=
-  div_nonneg (Nat.cast_le.mpr (Nat.zero_le 11)) (Nat.cast_le.mpr (Nat.zero_le 10))
-
--- 1/3 < 1: follows from 1 < 3 via div_lt_one
-private def one_div_three_lt_one : (1 : ℝ) / 3 < 1 :=
-  div_lt_one three_pos
-
-private def thirty_two_pos : (0 : ℝ) < 32 :=
-  Nat.cast_lt.mpr (Nat.zero_lt_succ 31)
-
-private def two_ne_zero : (2 : ℝ) ≠ 0 :=
-  Nat.cast_ne_zero.mpr (Nat.succ_ne_zero 1)
-
-private lemma ge_zero_of_le_pos (x y : ℝ) (h : x ≤ y) (hy : y ≤ 1.1) : 0 ≤ y := by
-  le_trans one_point_one_nonneg hy
-
-private lemma log_ratio_second_bound (w : ℂ) (hw_re_pos : 0 < w.re) (hw_norm : 2 ≤ ‖w‖) :
-    |Real.log ((3 * ‖w‖) / w.re)| ≤ 1.1 := by
-  have hw_norm_pos : 0 < ‖w‖ := by obtain ⟨_, h2⟩ := hw_norm; exact h2
-  have hw_re_le_norm : w.re ≤ ‖w‖ := Complex.le_abs_re w
-  have h_three_pos : (0 : ℝ) < 3 := three_pos
-  have h_ratio_ge : (3 * ‖w‖) / w.re ≥ 3 := by
-    have h_calc : (3 * ‖w‖) / w.re ≥ (3 * w.re) / w.re :=
-      div_le_div_of_le_right hw_re_le_norm hw_re_pos
-    have h_w_re_ne : w.re ≠ 0 := ne_of_gt hw_re_pos
-    have h_simplify : (3 * w.re) / w.re = 3 := three_mul_div_cancel w.re h_w_re_ne
-    calc (3 * ‖w‖) / w.re ≥ (3 * w.re) / w.re := h_calc
-      _ = 3 := h_simplify
-  have h_log_ge_log_three : Real.log ((3 * ‖w‖) / w.re) ≥ Real.log 3 := by
-    exact Real.log_le_log_of_le h_three_pos h_ratio_ge
-  have h_log_three_le : Real.log 3 ≤ 1.1 := Complex.binetSecondFormula_log_three_bounded_owner
-  have h_log_w_ge_log_three : Real.log ((3 * ‖w‖) / w.re) ≥ Real.log 3 := h_log_ge_log_three
-  have h_log_three_pos : 0 < Real.log 3 := Real.log_pos one_lt_three
-  have h_log_pos : 0 ≤ Real.log ((3 * ‖w‖) / w.re) :=
-    le_of_lt (lt_of_le_of_lt h_log_three_pos.le h_log_ge_log_three)
-  have h_abs : abs (Real.log ((3 * ‖w‖) / w.re)) = Real.log ((3 * ‖w‖) / w.re) :=
-    abs_of_nonneg h_log_pos
-  have h_log_upper : Real.log ((3 * ‖w‖) / w.re) ≤ 1.1 :=
-    le_trans h_log_ge_log_three h_log_three_le
-  calc abs (Real.log ((3 * ‖w‖) / w.re)) = Real.log ((3 * ‖w‖) / w.re) := h_abs
-    _ ≤ 1.1 := h_log_upper
+private lemma pi_le_three_point_fifteen : Real.pi ≤ 3.15 :=
+  le_of_lt Real.pi_lt_315
 
 theorem Gammaℝ_finiteOrder_growth_bound_of_log_growth_on_region
     (P : ℂ → Prop)
@@ -670,7 +448,7 @@ theorem two_mul_norm_halfArgument
         calc
           (2 : ℂ) * (z / 2) = z / 2 * (2 : ℂ) := by
             exact mul_comm (2 : ℂ) (z / 2)
-          _ = z := div_mul_cancel₀ z (by exact two_ne_zero)
+          _ = z := div_mul_cancel₀ z (OfNat.ofNat_ne_zero 2)
       exact congrArg norm hmul
 
 /-- The half-argument is in the large sectorial region measured at radius `1 / 2`. -/
@@ -755,7 +533,7 @@ theorem Complex.norm_arctan_eq_half_norm_log_quotient
           have hcoeff : ‖(-Complex.I / 2 : ℂ)‖ = (1 / 2 : ℝ) := by
             calc
               ‖(-Complex.I / 2 : ℂ)‖ = ‖(-Complex.I : ℂ)‖ / ‖(2 : ℂ)‖ := by
-                exact Complex.norm_div_eq_div_norm (OfNat.ofNat_ne_zero 2)
+                exact norm_div _ _
               _ = ‖Complex.I‖ / ‖(2 : ℂ)‖ := by
                 exact congrArg (fun x : ℝ => x / ‖(2 : ℂ)‖) (norm_neg Complex.I)
               _ = 1 / ‖(2 : ℂ)‖ := by
@@ -866,94 +644,11 @@ theorem Complex.norm_log_binet_quotient_le_abs_re_add_pi
       hre.symm
       hraw
 
-/-- The real part of the Binet quotient logarithm is the log of the ratio of
-its numerator and denominator norms. -/
-theorem Complex.binetSecondFormula_log_three_bounded_owner :
-    Real.log (3 : ℝ) ≤ 1.1 := by
-  have h1 : (0 : ℝ) < 3 := three_pos
-  have h2 : (3 : ℝ) < Real.exp 1.1 := three_lt_exp_1_1
-  have h3 : Real.log (3 : ℝ) < Real.log (Real.exp 1.1) := by
-    exact Real.log_lt_log h1 h2
-  have h_log_exp : Real.log (Real.exp (1.1 : ℝ)) = 1.1 := log_exp_one_half
-  have h4 : Real.log (3 : ℝ) < 1.1 := by
-    calc Real.log (3 : ℝ) < Real.log (Real.exp 1.1) := h3
-      _ = 1.1 := h_log_exp
-  exact le_of_lt h4
-
 /-- Sub-lemma: Bound on π in the form needed for Cfar ≤ 10.
 -/
 theorem Complex.binetSecondFormula_pi_bounded_owner :
     Real.pi ≤ 3.15 := by
-  have h_pi_bound : Real.pi < (314159266 : ℝ) / 100000000 := pi_bound_decimal
-  have h_div : (314159266 : ℝ) / 100000000 ≤ 3.15 :=
-    Nat.cast_div_le.mpr (Nat.le_of_lt (Nat.lt_of_le_of_lt
-      (Nat.le_refl 314159266)
-      (Nat.lt_of_succ_lt_succ (Nat.zero_lt_succ 314159265))))
-  calc Real.pi < (314159266 : ℝ) / 100000000 := h_pi_bound
-    _ ≤ 3.15 := h_div
-
-/-- Sub-lemma: Envelope term (max of log ratios + π) is bounded.
-The envelope appears in the local indentation analysis and must be shown bounded
-independent of w. Conservative bound: max(logs) + π ≤ 1.1 + 3.15 = 4.25 ≤ 5.
--/
-theorem Complex.binetSecondFormula_envelopeTerm_bounded_owner
-    (w : ℂ) (hw_re_pos : 0 < w.re) (hw_norm : 2 ≤ ‖w‖) :
-    max |Real.log (w.re / (3 * ‖w‖))|
-      (max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)|) + Real.pi ≤ 5 := by
-  have hw_norm_pos : 0 < ‖w‖ := by
-    obtain ⟨h1, h2⟩ := hw_norm
-    exact h2
-  have hw_re_le_norm : w.re ≤ ‖w‖ := Complex.le_abs_re w
-  have h_three_pos : (0 : ℝ) < 3 := three_pos
-  have h_ratio_one : w.re / (3 * ‖w‖) > 0 := by
-    apply div_pos hw_re_pos
-    exact mul_pos h_three_pos hw_norm_pos
-  have h_ratio_two : (3 * ‖w‖) / w.re > 0 := by
-    apply div_pos
-    exact mul_pos h_three_pos hw_norm_pos
-    exact hw_re_pos
-  have h_log_one : Real.log (1 : ℝ) = 0 := Real.log_one
-  have h1 : |Real.log (w.re / (3 * ‖w‖))| ≤ 1.1 := log_ratio_first_bound w hw_re_pos hw_norm
-  have h2 : |Real.log ((3 * ‖w‖) / w.re)| ≤ 1.1 := log_ratio_second_bound w hw_re_pos hw_norm
-  have h_pi_bound : Real.pi ≤ 3.15 := Complex.binetSecondFormula_pi_bounded_owner
-  have h_abs_log_one : abs (Real.log (1 : ℝ)) = 0 := abs_log_one
-  have h_max_zero : max 0 |Real.log ((3 * ‖w‖) / w.re)| = |Real.log ((3 * ‖w‖) / w.re)| := by
-    exact max_zero_right_lemma _
-  have h_max_self : max (1.1 : ℝ) 1.1 = 1.1 := max_self 1.1
-  have h_sum_pi : (1.1 : ℝ) + Real.pi ≤ 1.1 + 3.15 := one_point_one_plus_pi_bound
-  have h_sum_decimal : (1.1 : ℝ) + 3.15 = 4.25 := one_point_one_plus_three_point_one_five
-  have h_four_le_five : (4.25 : ℝ) ≤ 5 := four_point_two_five_le_five
-  have h_max_subst : max |Real.log (w.re / (3 * ‖w‖))|
-       (max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)|) =
-       max |Real.log (w.re / (3 * ‖w‖))|
-           (max 0 |Real.log ((3 * ‖w‖) / w.re)|) := by
-    exact max_with_zero_substitution _ _ _ h_abs_log_one
-  have h_max_absorb : max |Real.log (w.re / (3 * ‖w‖))|
-           (max 0 |Real.log ((3 * ‖w‖) / w.re)|) =
-       max |Real.log (w.re / (3 * ‖w‖))|
-           |Real.log ((3 * ‖w‖) / w.re)| := by
-    exact max_zero_left_absorption _ _
-  calc max |Real.log (w.re / (3 * ‖w‖))|
-       (max |Real.log (1 : ℝ)| |Real.log ((3 * ‖w‖) / w.re)|) + Real.pi
-       = max |Real.log (w.re / (3 * ‖w‖))|
-           (max 0 |Real.log ((3 * ‖w‖) / w.re)|) + Real.pi := by
-         exact congr_arg (· + Real.pi) h_max_subst
-       _ = max |Real.log (w.re / (3 * ‖w‖))|
-           |Real.log ((3 * ‖w‖) / w.re)| + Real.pi := by
-         exact congr_arg (· + Real.pi) h_max_absorb
-       _ ≤ max 1.1 1.1 + Real.pi := by
-         apply add_le_add
-         exact max_le h1 h2
-         exact le_refl _
-       _ = 1.1 + Real.pi := by
-         exact add_le_add_left_cong _ _ _ h_max_self
-       _ ≤ 1.1 + 3.15 := h_sum_pi
-       _ = 4.25 := h_sum_decimal
-       _ ≤ 5 := h_four_le_five
-
-/-- Sub-lemma: Lower bound on the tail integral J from asymptotic analysis.
-Used in h_local_envelope_absorbed to show L/J is O(1).
--/
+  exact pi_le_three_point_fifteen
 
 
 end
