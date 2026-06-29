@@ -6062,6 +6062,28 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
       (fun _ : ℝ => (-2 * (Real.pi : ℂ)))
   exact hvalue ▸ hbase
 
+/-- Compact-support scalar-window estimate on the time support of the kernel.
+
+This is the local finite-window bound owned by the compact-support Cauchy
+projection layer.  The scalar Cauchy windows are only required uniformly on
+the compact set where the time kernel can be nonzero. -/
+theorem fixedRightLine_scalarCauchyWindow_tsupport_norm_bound_eventually
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            x ∈ tsupport K →
+              ‖(∫ t in Set.Icc (-T) T,
+                (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
+              ≤ C := by
+  sorry
+
 /-- Compact-support paired-window estimate for the fixed-right-line scalar
 Cauchy kernel.
 
@@ -6083,7 +6105,65 @@ theorem fixedRightLine_scalarCauchyWindow_compactSupport_paired_norm_bound_event
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
               ≤ C * ‖K x‖ := by
-  sorry
+  match
+    fixedRightLine_scalarCauchyWindow_tsupport_norm_bound_eventually
+      K hK_cont hK_compact hK_smooth c hc
+  with
+  | ⟨C, hC_nonneg, hC_eventual⟩ =>
+      exact
+        ⟨C, hC_nonneg,
+          hC_eventual.mono
+            (fun T hT =>
+              Eventually.of_forall
+                (fun x : ℝ =>
+                  if hx_support : x ∈ tsupport K then
+                    let W : ℂ :=
+                      ∫ t in Set.Icc (-T) T,
+                        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                          Complex.exp
+                            (Complex.I * (t : ℂ) * (x : ℂ)) *
+                          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))
+                    have hW : ‖W‖ ≤ C :=
+                      hT x hx_support
+                    have hmul : ‖K x‖ * ‖W‖ ≤ ‖K x‖ * C :=
+                      mul_le_mul_of_nonneg_left hW (norm_nonneg (K x))
+                    calc
+                      ‖K x * W‖ = ‖K x‖ * ‖W‖ := by
+                        exact norm_mul (K x) W
+                      _ ≤ ‖K x‖ * C := hmul
+                      _ = C * ‖K x‖ := by
+                        exact mul_comm ‖K x‖ C
+                  else
+                    let W : ℂ :=
+                      ∫ t in Set.Icc (-T) T,
+                        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                          Complex.exp
+                            (Complex.I * (t : ℂ) * (x : ℂ)) *
+                          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))
+                    have hK_zero : K x = 0 :=
+                      image_eq_zero_of_nmem_tsupport hx_support
+                    have hleft : ‖K x * W‖ = 0 := by
+                      calc
+                        ‖K x * W‖ = ‖(0 : ℂ) * W‖ := by
+                          exact congrArg (fun z : ℂ => ‖z * W‖) hK_zero
+                        _ = ‖(0 : ℂ)‖ := by
+                          exact congrArg norm (zero_mul W)
+                        _ = 0 := norm_zero
+                    have hright : C * ‖K x‖ = 0 := by
+                      calc
+                        C * ‖K x‖ = C * ‖(0 : ℂ)‖ := by
+                          exact congrArg (fun z : ℂ => C * ‖z‖) hK_zero
+                        _ = C * 0 := by
+                          exact congrArg (fun r : ℝ => C * r) norm_zero
+                        _ = 0 := by
+                          exact mul_zero C
+                    Eq.subst
+                      (motive := fun y : ℝ => ‖K x * W‖ ≤ y)
+                      hright.symm
+                      (Eq.subst
+                        (motive := fun y : ℝ => y ≤ 0)
+                        hleft.symm
+                        (le_refl 0))))⟩
 
 /-- Uniform compact-support domination for the paired scalar Cauchy windows. -/
 theorem fixedRightLine_scalarCauchyWindow_compactSupport_dominated
