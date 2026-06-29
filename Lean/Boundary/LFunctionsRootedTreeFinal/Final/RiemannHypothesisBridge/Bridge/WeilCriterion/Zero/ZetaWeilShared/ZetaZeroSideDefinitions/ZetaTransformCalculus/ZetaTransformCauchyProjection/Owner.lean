@@ -2999,6 +2999,55 @@ theorem scalarFourierLaplacePlemelj_pointwise_positive
     (scalarFourierLaplacePlemelj_positive_window_tendsto_laplaceJump
       a ha x hx)
 
+/-- Negative-time finite-window contour limit before multiplying by the
+constant `exp (a x)`. -/
+theorem scalarFourierLaplacePlemelj_negative_window_tendsto_zero_without_exp
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / ((a : ℂ) + t * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)))
+      atTop
+      (𝓝 0) := by
+  sorry
+
+/-- Multiplication by `exp (a x)` preserves the negative-time zero limit. -/
+theorem scalarFourierLaplacePlemelj_negative_window_tendsto_zero_mul_exp
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
+    Tendsto
+      (fun T : ℝ =>
+        (∫ t in Set.Icc (-T) T,
+          (-1 / ((a : ℂ) + t * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ))) *
+          Complex.exp ((a : ℂ) * (x : ℂ)))
+      atTop
+      (𝓝 0) := by
+  have htarget :
+      (0 : ℂ) * Complex.exp ((a : ℂ) * (x : ℂ)) = 0 :=
+    zero_mul (Complex.exp ((a : ℂ) * (x : ℂ)))
+  exact Eq.subst
+    (motive := fun z : ℂ =>
+      Tendsto
+        (fun T : ℝ =>
+          (∫ t in Set.Icc (-T) T,
+            (-1 / ((a : ℂ) + t * Complex.I)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ))) *
+            Complex.exp ((a : ℂ) * (x : ℂ)))
+        atTop
+        (𝓝 z))
+    htarget
+    ((scalarFourierLaplacePlemelj_negative_window_tendsto_zero_without_exp
+      a ha x hx).mul
+      (tendsto_const_nhds :
+        Tendsto
+          (fun _T : ℝ => Complex.exp ((a : ℂ) * (x : ℂ)))
+          atTop
+          (𝓝 (Complex.exp ((a : ℂ) * (x : ℂ))))))
+
 /-- Negative-time scalar Plemelj window after the Laplace denominator has been
 closed on the pole-free side. -/
 theorem scalarFourierLaplacePlemelj_negative_window_tendsto_zero
@@ -3012,7 +3061,15 @@ theorem scalarFourierLaplacePlemelj_negative_window_tendsto_zero
             Complex.exp ((a : ℂ) * (x : ℂ)))
       atTop
       (𝓝 0) := by
-  sorry
+  exact Eq.subst
+    (motive := fun u : ℝ → ℂ =>
+      Tendsto u atTop (𝓝 0))
+    (funext
+      (fun T : ℝ =>
+        scalarFourierLaplacePlemelj_positive_window_mul_exp_eq_window_with_exp
+          a x T))
+    (scalarFourierLaplacePlemelj_negative_window_tendsto_zero_mul_exp
+      a ha x hx)
 
 /-- Negative-time normalized Fourier-Laplace Plemelj value. -/
 theorem scalarFourierLaplacePlemelj_pointwise_negative
@@ -3088,6 +3145,18 @@ theorem scalarFourierLaplacePlemelj_pointwise_openHalfLine
       htarget.symm
       (scalarFourierLaplacePlemelj_pointwise_negative a ha x hxneg)
 
+/-- Uniform finite-window bound for the normalized scalar Cauchy kernel after
+the compensating exponential has been included. -/
+theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    ‖(∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ))) *
+        Complex.exp ((a : ℂ) * (x : ℂ))‖
+      ≤ 2 * (Real.pi + 1) := by
+  sorry
+
 /-- Uniform finite-window bound for the normalized Fourier-Laplace Plemelj
 kernel. -/
 theorem scalarFourierLaplacePlemelj_uniform_bound
@@ -3098,7 +3167,12 @@ theorem scalarFourierLaplacePlemelj_uniform_bound
           (Complex.I * (t : ℂ) * (x : ℂ)) *
         Complex.exp ((a : ℂ) * (x : ℂ)))‖
       ≤ 2 * (Real.pi + 1) := by
-  sorry
+  exact Eq.subst
+    (motive := fun z : ℂ => ‖z‖ ≤ 2 * (Real.pi + 1))
+    (scalarFourierLaplacePlemelj_positive_window_mul_exp_eq_window_with_exp
+      a x T)
+    (scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound
+      a ha T x)
 
 /-- Normalized scalar Fourier-Laplace Plemelj package.
 
