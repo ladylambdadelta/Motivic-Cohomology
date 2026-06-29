@@ -4,7 +4,6 @@ import Mathlib.Algebra.BigOperators.Group.Finset
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Nat.Prime.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Mathlib.Analysis.SpecialFunctions.Log.Monotone
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.Order.Filter.AtTopBot
@@ -1614,13 +1613,22 @@ theorem real_log_natCast_le_two_sqrt (p : ℕ) :
         (2 : ℝ) * Real.sqrt (p : ℝ) := by
     have htwo_ne_zero : (2 : ℝ) ≠ 0 := two_ne_zero
     have hhalf_mul_two : (1 / 2 : ℝ) * 2 = 1 := by
-      rw [one_div]
-      exact inv_mul_cancel₀ htwo_ne_zero
+      exact Eq.trans
+        (congrArg (fun x : ℝ => x * 2) (one_div 2))
+        (inv_mul_cancel₀ htwo_ne_zero)
     have hhalf_inv : (1 / 2 : ℝ)⁻¹ = 2 :=
       inv_eq_of_mul_eq_one_right hhalf_mul_two
-    rw [Real.sqrt_eq_rpow, div_eq_mul_inv]
-    exact (congrArg ((p : ℝ) ^ (1 / 2 : ℝ) * ·) hhalf_inv).trans
-      (mul_comm ((p : ℝ) ^ (1 / 2 : ℝ)) 2)
+    calc
+      (p : ℝ) ^ (1 / 2 : ℝ) / (1 / 2 : ℝ) =
+          (p : ℝ) ^ (1 / 2 : ℝ) * (1 / 2 : ℝ)⁻¹ := by
+        exact div_eq_mul_inv ((p : ℝ) ^ (1 / 2 : ℝ)) (1 / 2 : ℝ)
+      _ = (p : ℝ) ^ (1 / 2 : ℝ) * 2 := by
+        exact congrArg (fun x : ℝ => (p : ℝ) ^ (1 / 2 : ℝ) * x) hhalf_inv
+      _ = 2 * (p : ℝ) ^ (1 / 2 : ℝ) := by
+        exact mul_comm ((p : ℝ) ^ (1 / 2 : ℝ)) 2
+      _ = (2 : ℝ) * Real.sqrt (p : ℝ) := by
+        exact congrArg (fun x : ℝ => (2 : ℝ) * x)
+          (Real.sqrt_eq_rpow (p : ℝ)).symm
   exact hlog.trans (le_of_eq hhalf)
 
 /-- The square-root denominator increases when a genuine prime is raised to a positive power. -/
