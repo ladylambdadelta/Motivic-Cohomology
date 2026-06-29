@@ -651,7 +651,23 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel_integral_eq_n
       zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
         f F.toContourFamily t) =
       -(zetaCompletedExplicitFormulaPhi f 0) := by
-  sorry
+  have hleft_right :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+          f F.toContourFamily t) =
+      - (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
+          f F.toContourFamily t) :=
+    zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel_integral_eq_neg_RightBinetMainKernel_integral
+      f F.toContourFamily
+  have hright :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
+          f F.toContourFamily t) =
+        zetaCompletedExplicitFormulaPhi f 0 :=
+    zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_integral_eq_phiZero_ownerInversion
+      f F h hcoh
+  exact Eq.trans hleft_right (congrArg Neg.neg hright)
 
 /-- Genuine analytic leaf (sharp form): the finite-height shifted-left
 Binet-remainder contour windows vanish in the height limit.
@@ -773,11 +789,28 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetFullTransform_integral_
         zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
           f F.toContourFamily t =
       zetaCompletedExplicitFormulaPhi f 0 := by
-  rw [zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_integral_eq_phiZero_ownerInversion
-        f F h hcoh,
+  let M : ℂ :=
+    ∫ t : ℝ,
+      zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
+        f F.toContourFamily t
+  let R : ℂ :=
+    ∫ t : ℝ,
+      zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
+        f F.toContourFamily t
+  have hmain : M = zetaCompletedExplicitFormulaPhi f 0 :=
+    zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_integral_eq_phiZero_ownerInversion
+      f F h hcoh
+  have hremainder : R = 0 :=
     zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_integral_eq_zero_ownerInversion
-        f F h hcoh,
-    add_zero]
+      f F h hcoh
+  calc
+    M + R = zetaCompletedExplicitFormulaPhi f 0 + R := by
+      exact congrArg (fun z : ℂ => z + R) hmain
+    _ = zetaCompletedExplicitFormulaPhi f 0 + 0 := by
+      exact congrArg (fun z : ℂ => zetaCompletedExplicitFormulaPhi f 0 + z)
+        hremainder
+    _ = zetaCompletedExplicitFormulaPhi f 0 := by
+      exact add_zero (zetaCompletedExplicitFormulaPhi f 0)
 
 /-- Whole-line value of the shifted-left coupled main-plus-remainder Binet
 transform, assembled from the two left analytic leaves. -/
@@ -793,11 +826,29 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetFullTransform_integral_e
         zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
           f F.toContourFamily t =
       -(zetaCompletedExplicitFormulaPhi f 0) := by
-  rw [zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel_integral_eq_neg_phiZero_ownerInversion
-        f F h hcoh,
+  let M : ℂ :=
+    ∫ t : ℝ,
+      zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+        f F.toContourFamily t
+  let R : ℂ :=
+    ∫ t : ℝ,
+      zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+        f F.toContourFamily t
+  have hmain : M = -(zetaCompletedExplicitFormulaPhi f 0) :=
+    zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel_integral_eq_neg_phiZero_ownerInversion
+      f F h hcoh
+  have hremainder : R = 0 :=
     zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_integral_eq_zero_ownerInversion
-        f F h hcoh,
-    add_zero]
+      f F h hcoh
+  calc
+    M + R = -(zetaCompletedExplicitFormulaPhi f 0) + R := by
+      exact congrArg (fun z : ℂ => z + R) hmain
+    _ = -(zetaCompletedExplicitFormulaPhi f 0) + 0 := by
+      exact congrArg
+        (fun z : ℂ => -(zetaCompletedExplicitFormulaPhi f 0) + z)
+        hremainder
+    _ = -(zetaCompletedExplicitFormulaPhi f 0) := by
+      exact add_zero (-(zetaCompletedExplicitFormulaPhi f 0))
 
 /-- Owner scheduled right/left coupled Gamma/Binet full-transform contour values,
 reassembled from the whole-line analytic leaves through scheduled-window
