@@ -7373,6 +7373,18 @@ theorem scalarFourierLaplacePlemelj_sine_intervalIntegral_abs_le_two
     _ = 2 := by
         rfl
 
+theorem scalarFourierLaplacePlemelj_secondMeanValue_sine_tail_bonnet
+    (g : ℝ → ℝ) (A c : ℝ)
+    (hone_le_c : 1 ≤ c) (hcA : c ≤ A)
+    (hg_nonneg : ∀ v ∈ Set.Ici c, 0 ≤ g v)
+    (hg_le_one : ∀ v ∈ Set.Ici c, g v ≤ 1)
+    (hg_antitone : AntitoneOn g (Set.Ici c)) :
+    ∃ ξ : ℝ, c ≤ ξ ∧ ξ ≤ A ∧
+      (∫ v in c..A, g v * Real.sin v) =
+        g A * (∫ v in c..A, Real.sin v) +
+          (g c - g A) * (∫ v in c..ξ, Real.sin v) := by
+  sorry
+
 theorem scalarFourierLaplacePlemelj_secondMeanValue_sine_tail_abs_le_two
     (g : ℝ → ℝ) (A c : ℝ)
     (hone_le_c : 1 ≤ c) (hcA : c ≤ A)
@@ -7382,7 +7394,87 @@ theorem scalarFourierLaplacePlemelj_secondMeanValue_sine_tail_abs_le_two
     (hprimitive : ∀ x y : ℝ, c ≤ x → x ≤ y → y ≤ A →
       |∫ v in x..y, Real.sin v| ≤ 2) :
     |∫ v in c..A, g v * Real.sin v| ≤ 2 := by
-  sorry
+  obtain ⟨ξ, hcξ, hξA, hbonnet⟩ :=
+    scalarFourierLaplacePlemelj_secondMeanValue_sine_tail_bonnet
+      g A c hone_le_c hcA hg_nonneg hg_le_one hg_antitone
+  have hA_mem : A ∈ Set.Ici c :=
+    hcA
+  have hc_mem : c ∈ Set.Ici c :=
+    le_refl c
+  have hgA_nonneg : 0 ≤ g A :=
+    hg_nonneg A hA_mem
+  have hgA_le_gc : g A ≤ g c :=
+    hg_antitone hc_mem hA_mem hcA
+  have hdiff_nonneg : 0 ≤ g c - g A :=
+    sub_nonneg.mpr hgA_le_gc
+  have hcoeff_sum :
+      g A + (g c - g A) = g c := by
+    calc
+      g A + (g c - g A) = (g c - g A) + g A := by
+        exact add_comm (g A) (g c - g A)
+      _ = g c := by
+        exact sub_add_cancel (g c) (g A)
+  have hgc_le_one : g c ≤ 1 :=
+    hg_le_one c hc_mem
+  have hfull :
+      |∫ v in c..A, Real.sin v| ≤ 2 :=
+    hprimitive c A (le_refl c) hcA (le_refl A)
+  have hinitial :
+      |∫ v in c..ξ, Real.sin v| ≤ 2 :=
+    hprimitive c ξ (le_refl c) hcξ hξA
+  have hweighted :
+      |g A * (∫ v in c..A, Real.sin v) +
+          (g c - g A) * (∫ v in c..ξ, Real.sin v)| ≤
+        2 := by
+    calc
+      |g A * (∫ v in c..A, Real.sin v) +
+          (g c - g A) * (∫ v in c..ξ, Real.sin v)|
+          ≤
+          |g A * (∫ v in c..A, Real.sin v)| +
+            |(g c - g A) * (∫ v in c..ξ, Real.sin v)| := by
+            exact abs_add
+              (g A * (∫ v in c..A, Real.sin v))
+              ((g c - g A) * (∫ v in c..ξ, Real.sin v))
+      _ =
+          g A * |∫ v in c..A, Real.sin v| +
+            (g c - g A) * |∫ v in c..ξ, Real.sin v| := by
+            exact congrArg₂ HAdd.hAdd
+              (calc
+                |g A * (∫ v in c..A, Real.sin v)| =
+                    |g A| * |∫ v in c..A, Real.sin v| := by
+                    exact abs_mul (g A) (∫ v in c..A, Real.sin v)
+                _ = g A * |∫ v in c..A, Real.sin v| := by
+                    exact congrArg
+                      (fun r : ℝ => r * |∫ v in c..A, Real.sin v|)
+                      (abs_of_nonneg hgA_nonneg))
+              (calc
+                |(g c - g A) * (∫ v in c..ξ, Real.sin v)| =
+                    |g c - g A| * |∫ v in c..ξ, Real.sin v| := by
+                    exact abs_mul (g c - g A) (∫ v in c..ξ, Real.sin v)
+                _ =
+                    (g c - g A) * |∫ v in c..ξ, Real.sin v| := by
+                    exact congrArg
+                      (fun r : ℝ => r * |∫ v in c..ξ, Real.sin v|)
+                      (abs_of_nonneg hdiff_nonneg))
+      _ ≤ g A * 2 + (g c - g A) * 2 := by
+            exact add_le_add
+              (mul_le_mul_of_nonneg_left hfull hgA_nonneg)
+              (mul_le_mul_of_nonneg_left hinitial hdiff_nonneg)
+      _ = (g A + (g c - g A)) * 2 := by
+            exact (add_mul (g A) (g c - g A) 2).symm
+      _ = g c * 2 := by
+            exact congrArg (fun r : ℝ => r * 2) hcoeff_sum
+      _ ≤ 1 * 2 := by
+            exact mul_le_mul_of_nonneg_right hgc_le_one zero_le_two
+      _ = 2 := by
+            exact one_mul 2
+  calc
+    |∫ v in c..A, g v * Real.sin v|
+        =
+        |g A * (∫ v in c..A, Real.sin v) +
+          (g c - g A) * (∫ v in c..ξ, Real.sin v)| := by
+          exact congrArg abs hbonnet
+    _ ≤ 2 := hweighted
 
 theorem scalarFourierLaplacePlemelj_dirichlet_sine_tail_abs_le_two
     (g : ℝ → ℝ) (A c : ℝ)
