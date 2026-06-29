@@ -233,7 +233,9 @@ instance : Module ℝ ZetaAdmissibleFunction where
 
 /-- Forget the admissible structure and retain the underlying test function. -/
 def toZetaTestFunction' (f : ZetaAdmissibleFunction) : ZetaTestFunction :=
-  ⟨f.toZetaTestFunction, f.toZetaTestFunction.continuous⟩
+  ⟨f.toZetaTestFunction,
+    f.toZetaTestFunction.continuous,
+    f.toZetaTestFunction.hasCompactSupport⟩
 
 theorem toZetaTestFunction'_apply (f : ZetaAdmissibleFunction) (x : ℝ) :
     f.toZetaTestFunction' x = f x := by

@@ -443,20 +443,20 @@ This is the primitive transform-calculus statement: the symmetric truncations
 of the fixed-line Cauchy multiplier applied to the Fourier transform of the
 time-side kernel converge to the one-sided projection value. -/
 theorem zetaLaplaceTransform_rightOnePole_fixedLineCauchyProjection_eventual_inverseQuadratic_to_value
-    (φ : LFunctions.ZetaTestFunction) (c : ℝ) (hc : 1 < c)
+    (f : LFunctions.ZetaAdmissibleFunction) (c : ℝ) (hc : 1 < c)
     (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
     ∃ MR : ℝ,
       0 < MR ∧
         ∀ᶠ u in atTop,
           ‖(∫ t in Set.Icc (-(height u)) (height u),
               (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-                zetaLaplaceTransform φ
+                zetaLaplaceTransform f.toZetaTestFunction'
                   (((c : ℂ) + t * Complex.I) - 1 / 2)) -
-            zetaLaplaceTransform_rightOnePoleCauchyProjectionValue φ c‖
+            zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c‖
             ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
   exact
     zetaLaplaceTransform_fixedLine_rightOnePoleCauchyProjection_eventual_inverseQuadratic_to_value
-      φ c hc height hcofinal
+      f c hc height hcofinal
 
 /-- Generic Cauchy/Laplace projection estimate on a fixed right vertical line.
 
@@ -467,20 +467,20 @@ time kernel, while `(c - 1 + it)⁻¹` is the Cauchy/Laplace multiplier attached
 to a one-sided exponential.  The symmetric window integral converges to the
 corresponding one-sided projection with inverse-quadratic tail. -/
 theorem zetaLaplaceTransform_rightOnePoleCauchyProjection_eventual_inverseQuadratic_to_value
-    (φ : LFunctions.ZetaTestFunction) (c : ℝ) (hc : 1 < c)
+    (f : LFunctions.ZetaAdmissibleFunction) (c : ℝ) (hc : 1 < c)
     (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
     ∃ MR : ℝ,
       0 < MR ∧
         ∀ᶠ u in atTop,
           ‖(∫ t in Set.Icc (-(height u)) (height u),
               (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-                zetaLaplaceTransform φ
+                zetaLaplaceTransform f.toZetaTestFunction'
                   (((c : ℂ) + t * Complex.I) - 1 / 2)) -
-            zetaLaplaceTransform_rightOnePoleCauchyProjectionValue φ c‖
+            zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c‖
             ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
   exact
     zetaLaplaceTransform_rightOnePole_fixedLineCauchyProjection_eventual_inverseQuadratic_to_value
-      φ c hc height hcofinal
+      f c hc height hcofinal
 
 end LaplaceCauchyProjection
 

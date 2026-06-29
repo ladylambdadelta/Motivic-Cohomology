@@ -43,7 +43,7 @@ theorem zetaCompletedExplicitFormula_rightOnePoleCauchyLaplaceProjection_eventua
             ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
   exact
     Boundary.zetaLaplaceTransform_rightOnePoleCauchyProjection_eventual_inverseQuadratic_to_value
-      f.toZetaTestFunction' c hc height hcofinal
+      f c hc height hcofinal
 
 /-- The scheduled right-face off-pole `s = 1` correction integral, isolated as
 the object controlled by the contour-cancellation argument. -/

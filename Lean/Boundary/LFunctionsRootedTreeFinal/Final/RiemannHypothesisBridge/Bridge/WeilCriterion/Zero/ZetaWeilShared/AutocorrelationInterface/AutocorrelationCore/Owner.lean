@@ -49,7 +49,12 @@ theorem dagger_toZetaTestFunction'_eq (f : ZetaAdmissibleFunction) :
       ⟨fun x => star (f (-x)), by
         have hreflect : Continuous fun x : ℝ => f (-x) :=
           f.toZetaTestFunction.continuous.comp continuous_neg
-        exact continuous_star.comp hreflect⟩ := by
+        exact continuous_star.comp hreflect,
+        by
+          exact
+            (f.toZetaTestFunction.hasCompactSupport.comp_isClosedEmbedding
+              (Homeomorph.neg ℝ).isClosedEmbedding).comp_left
+              (star_zero ℂ)⟩ := by
   ext x
   rfl
 
@@ -59,6 +64,8 @@ def autocorrelationTestFunction (f : ZetaAdmissibleFunction) : ZetaTestFunction 
   continuous := by
     have hf : Continuous fun x : ℝ => f x := f.toZetaTestFunction.continuous
     exact hf.mul (continuous_star.comp hf)
+  hasCompactSupport := by
+    exact HasCompactSupport.mul_right f.toZetaTestFunction.hasCompactSupport
 
 /-- Products with conjugates preserve admissible smoothness. -/
 theorem contDiff_autocorrelation (f : ZetaAdmissibleFunction) :
