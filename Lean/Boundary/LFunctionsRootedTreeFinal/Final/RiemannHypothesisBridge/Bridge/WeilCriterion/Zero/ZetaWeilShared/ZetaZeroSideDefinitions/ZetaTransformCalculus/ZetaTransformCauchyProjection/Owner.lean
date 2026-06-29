@@ -6654,6 +6654,306 @@ theorem scalarFourierLaplacePlemelj_compactInterval_positive_norm_bound_eventual
               a ha R δ Cnear Caway hδ hCnear_nonneg hCaway_nonneg
               hnear haway
 
+/-- Reciprocal factor in the negative away-zero Jordan majorant is bounded by
+the away-from-zero threshold. -/
+theorem scalarFourierLaplacePlemelj_negative_awayZero_reciprocal_le
+    (T x δ : ℝ) (hT : 0 < T) (hδ : 0 < δ) (hxδ : x ≤ -δ) :
+    (T * (-x))⁻¹ ≤ (T * δ)⁻¹ := by
+  have hδ_negx : δ ≤ -x := by
+    calc
+      δ = -(-δ) := by
+        exact (neg_neg δ).symm
+      _ ≤ -x := by
+        exact neg_le_neg hxδ
+  have hTδ_pos : 0 < T * δ :=
+    mul_pos hT hδ
+  have hTδ_le_Tnegx : T * δ ≤ T * (-x) :=
+    mul_le_mul_of_nonneg_left hδ_negx hT.le
+  exact inv_anti₀ hTδ_pos hTδ_le_Tnegx
+
+/-- Product assembly for the negative lower-arc Jordan majorant away from
+zero. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_awayZero_mulExp_bound_eventually_of_factors
+    (a : ℝ) (ha : 0 < a) (R δ B : ℝ) (hδ : 0 < δ)
+    (hB_nonneg : 0 ≤ B)
+    (hpref :
+      ∀ᶠ T in atTop,
+        Real.pi * T / (T - a) ≤ B) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            x ≤ -δ →
+            ‖x‖ ≤ R →
+              scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T *
+                ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ C := by
+  let C : ℝ := B * δ⁻¹ * Real.exp (a * R)
+  have hδ_inv_nonneg : 0 ≤ δ⁻¹ :=
+    inv_nonneg_of_nonneg hδ.le
+  have hexp_nonneg : 0 ≤ Real.exp (a * R) :=
+    (Real.exp_pos (a * R)).le
+  have hC_nonneg : 0 ≤ C := by
+    unfold C
+    exact mul_nonneg (mul_nonneg hB_nonneg hδ_inv_nonneg) hexp_nonneg
+  exact
+    ⟨C, hC_nonneg,
+      (hpref.and (eventually_gt_atTop (max a 1))).mono
+        (fun T hTpair =>
+          fun x hxδ hxR =>
+            let Pref : ℝ := Real.pi * T / (T - a)
+            let Rec : ℝ := (T * (-x))⁻¹
+            let E : ℝ := ‖Complex.exp ((a : ℂ) * (x : ℂ))‖
+            have hpref_le : Pref ≤ B := hTpair.1
+            have hmax : max a 1 < T := hTpair.2
+            have haT : a < T := (le_max_left a 1).trans_lt hmax
+            have h_one_lt_T : 1 < T := (le_max_right a 1).trans_lt hmax
+            have hT_pos : 0 < T := zero_lt_one.trans h_one_lt_T
+            have hden_pos : 0 < T - a := sub_pos.mpr haT
+            have hpref_nonneg : 0 ≤ Pref := by
+              unfold Pref
+              exact div_nonneg
+                (mul_nonneg Real.pi_nonneg hT_pos.le)
+                hden_pos.le
+            have hrec_le_Tδ :
+                Rec ≤ (T * δ)⁻¹ := by
+              unfold Rec
+              exact
+                scalarFourierLaplacePlemelj_negative_awayZero_reciprocal_le
+                  T x δ hT_pos hδ hxδ
+            have hδ_le_Tδ : δ ≤ T * δ := by
+              calc
+                δ = 1 * δ := by
+                  exact (one_mul δ).symm
+                _ ≤ T * δ := by
+                  exact mul_le_mul_of_nonneg_right h_one_lt_T.le hδ.le
+            have hTδ_inv_le : (T * δ)⁻¹ ≤ δ⁻¹ :=
+              inv_anti₀ hδ hδ_le_Tδ
+            have hrec_le : Rec ≤ δ⁻¹ :=
+              hrec_le_Tδ.trans hTδ_inv_le
+            have hδ_negx_nonneg : 0 ≤ -x := by
+              have hδ_le_negx : δ ≤ -x := by
+                calc
+                  δ = -(-δ) := by
+                    exact (neg_neg δ).symm
+                  _ ≤ -x := by
+                    exact neg_le_neg hxδ
+              exact hδ.le.trans hδ_le_negx
+            have hrec_nonneg : 0 ≤ Rec := by
+              unfold Rec
+              exact inv_nonneg_of_nonneg
+                (mul_nonneg hT_pos.le hδ_negx_nonneg)
+            have hE_le : E ≤ Real.exp (a * R) := by
+              unfold E
+              exact
+                scalarFourierLaplacePlemelj_positive_exp_norm_le_intervalEndpoint
+                  a ha R x hxR
+            have hE_nonneg : 0 ≤ E := by
+              unfold E
+              exact norm_nonneg _
+            have h_pref_rec :
+                Pref * Rec ≤ B * δ⁻¹ :=
+              mul_le_mul hpref_le hrec_le hrec_nonneg hB_nonneg
+            have h_product :
+                (Pref * Rec) * E ≤ (B * δ⁻¹) * Real.exp (a * R) :=
+              mul_le_mul h_pref_rec hE_le hE_nonneg
+                (mul_nonneg hB_nonneg hδ_inv_nonneg)
+            calc
+              scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T *
+                  ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ =
+                  (Pref * Rec) * E := by
+                rfl
+              _ ≤ (B * δ⁻¹) * Real.exp (a * R) := h_product
+              _ = C := by
+                rfl)⟩
+
+theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_awayZero_mulExp_bound_eventually
+    (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            x ≤ -δ →
+            ‖x‖ ≤ R →
+              scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T *
+                ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ C := by
+  let B : ℝ := Real.pi + 1
+  have hB_nonneg : 0 ≤ B := by
+    unfold B
+    exact add_nonneg Real.pi_nonneg zero_le_one
+  exact
+    scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_awayZero_mulExp_bound_eventually_of_factors
+      a ha R δ B hδ hB_nonneg
+      (scalarFourierLaplacePlemelj_positiveUpperArcJordanPrefactor_eventually_le
+        a)
+
+/-- Negative lower-arc away-from-zero estimate from its Jordan majorant. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArc_awayZero_mulExp_norm_bound_eventually_of_jordan
+    (a : ℝ) (ha : 0 < a) (R δ Cj : ℝ) (hδ : 0 < δ)
+    (hCj_nonneg : 0 ≤ Cj)
+    (hjordan :
+      ∀ᶠ T in atTop,
+        ∀ x : ℝ,
+          x ≤ -δ →
+          ‖x‖ ≤ R →
+            scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T *
+              ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ Cj) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            x ≤ -δ →
+            ‖x‖ ≤ R →
+              ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T *
+                Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ C := by
+  exact
+    ⟨Cj, hCj_nonneg,
+      (hjordan.and (eventually_gt_atTop a)).mono
+        (fun T hTpair =>
+          fun x hxδ hxR =>
+            have hxneg : x < 0 := by
+              have hnegδ_neg : -δ < 0 := neg_lt_zero.mpr hδ
+              exact hxδ.trans_lt hnegδ_neg
+            have harc :
+                ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖ ≤
+                  scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T :=
+              (scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanDensity_integral
+                a ha x hxneg T hTpair.2).trans
+                (scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_le_majorant
+                  a ha x hxneg T hTpair.2)
+            have hexp_nonneg :
+                0 ≤ ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ :=
+              norm_nonneg _
+            calc
+              ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T *
+                  Complex.exp ((a : ℂ) * (x : ℂ))‖ =
+                  ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖ *
+                    ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ := by
+                exact norm_mul
+                  (scalarFourierLaplacePlemelj_negativeLowerArc a x T)
+                  (Complex.exp ((a : ℂ) * (x : ℂ)))
+              _ ≤
+                  scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T *
+                    ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ := by
+                exact mul_le_mul_of_nonneg_right harc hexp_nonneg
+              _ ≤ Cj := hTpair.1 x hxδ hxR)⟩
+
+theorem scalarFourierLaplacePlemelj_negativeLowerArc_awayZero_mulExp_norm_bound_eventually
+    (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            x ≤ -δ →
+            ‖x‖ ≤ R →
+              ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T *
+                Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ C := by
+  match
+    scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_awayZero_mulExp_bound_eventually
+      a ha R δ hδ
+  with
+  | ⟨Cj, hCj_nonneg, hjordan⟩ =>
+      exact
+        scalarFourierLaplacePlemelj_negativeLowerArc_awayZero_mulExp_norm_bound_eventually_of_jordan
+          a ha R δ Cj hδ hCj_nonneg hjordan
+
+/-- Radius-qualified finite lower-half-plane pole-free identity for the
+negative-time scalar window. -/
+theorem scalarFourierLaplacePlemelj_negative_window_add_lowerArc_eq_zero_of_radius
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ) (hT : 0 < T) :
+      (∫ t in Set.Icc (-T) T,
+        (-1 / ((a : ℂ) + t * Complex.I)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ))) +
+          scalarFourierLaplacePlemelj_negativeLowerArc a x T =
+        0 := by
+  have hclosed :
+      scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 :=
+    scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_of_poleOutside
+      a ha x hx T hT
+  exact
+    (scalarFourierLaplacePlemelj_negativeClosedContour_eq_window_add_lowerArc
+      a x T).symm.trans hclosed
+
+/-- Exact radius-qualified negative finite-window formula after moving the
+compensating exponential inside the window. -/
+theorem scalarFourierLaplacePlemelj_negative_window_with_exp_eq_neg_lowerArc_mul_exp_of_radius
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ) (hT : 0 < T) :
+      (∫ t in Set.Icc (-T) T,
+        (-1 / ((a : ℂ) + t * Complex.I)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ)) *
+          Complex.exp ((a : ℂ) * (x : ℂ))) =
+      -(scalarFourierLaplacePlemelj_negativeLowerArc a x T *
+          Complex.exp ((a : ℂ) * (x : ℂ))) := by
+  let W : ℂ :=
+    ∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ))
+  let A : ℂ := scalarFourierLaplacePlemelj_negativeLowerArc a x T
+  let E : ℂ := Complex.exp ((a : ℂ) * (x : ℂ))
+  have hadd : W + A = 0 :=
+    scalarFourierLaplacePlemelj_negative_window_add_lowerArc_eq_zero_of_radius
+      a ha x hx T hT
+  have hmul : W * E + A * E = 0 := by
+    calc
+      W * E + A * E = (W + A) * E := by
+        exact (add_mul W A E).symm
+      _ = 0 * E := by
+        exact congrArg (fun z : ℂ => z * E) hadd
+      _ = 0 := by
+        exact zero_mul E
+  have hsub : W * E = -(A * E) := by
+    calc
+      W * E = (W * E + A * E) - A * E := by
+        exact (add_sub_cancel_right (W * E) (A * E)).symm
+      _ = 0 - A * E := by
+        exact congrArg (fun z : ℂ => z - A * E) hmul
+      _ = -(A * E) := by
+        exact zero_sub (A * E)
+  have hwindow :
+      W * E =
+        ∫ t in Set.Icc (-T) T,
+          (-1 / ((a : ℂ) + t * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp ((a : ℂ) * (x : ℂ)) :=
+    scalarFourierLaplacePlemelj_positive_window_mul_exp_eq_window_with_exp
+      a x T
+  exact hwindow.symm.trans hsub
+
+/-- Radius-qualified negative finite-window norm estimate from the compensated
+lower-arc norm. -/
+theorem scalarFourierLaplacePlemelj_negative_window_with_exp_norm_le_lowerArc_of_radius
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ) (hT : 0 < T) :
+      ‖(∫ t in Set.Icc (-T) T,
+        (-1 / ((a : ℂ) + t * Complex.I)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ)) *
+          Complex.exp ((a : ℂ) * (x : ℂ)))‖
+      ≤ ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T *
+          Complex.exp ((a : ℂ) * (x : ℂ))‖ := by
+  let A : ℂ := scalarFourierLaplacePlemelj_negativeLowerArc a x T
+  let E : ℂ := Complex.exp ((a : ℂ) * (x : ℂ))
+  let Wexp : ℂ :=
+    ∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ)) *
+        Complex.exp ((a : ℂ) * (x : ℂ))
+  have heq :
+      Wexp = -(A * E) :=
+    scalarFourierLaplacePlemelj_negative_window_with_exp_eq_neg_lowerArc_mul_exp_of_radius
+      a ha x hx T hT
+  calc
+    ‖Wexp‖ = ‖-(A * E)‖ := by
+      exact congrArg norm heq
+    _ = ‖A * E‖ := by
+      exact norm_neg (A * E)
+
 /-- Negative-time away-from-zero compact-interval estimate for the normalized
 scalar Fourier-Laplace Plemelj kernel. -/
 theorem scalarFourierLaplacePlemelj_compactInterval_negative_awayZero_norm_bound_eventually
@@ -6670,7 +6970,29 @@ theorem scalarFourierLaplacePlemelj_compactInterval_negative_awayZero_norm_bound
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
               ≤ C := by
-  sorry
+  match
+    scalarFourierLaplacePlemelj_negativeLowerArc_awayZero_mulExp_norm_bound_eventually
+      a ha R δ hδ
+  with
+  | ⟨Carc, hCarc_nonneg, harc⟩ =>
+      exact
+        ⟨Carc, hCarc_nonneg,
+          (harc.and (eventually_gt_atTop (0 : ℝ))).mono
+            (fun T hTpair x hxδ hxR =>
+              have hxneg : x < 0 := by
+                have hnegδ_neg : -δ < 0 := neg_lt_zero.mpr hδ
+                exact hxδ.trans_lt hnegδ_neg
+              have hwindow :
+                  ‖(∫ t in Set.Icc (-T) T,
+                    (-1 / ((a : ℂ) + t * Complex.I)) *
+                      Complex.exp
+                        (Complex.I * (t : ℂ) * (x : ℂ)) *
+                      Complex.exp ((a : ℂ) * (x : ℂ)))‖
+                  ≤ ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T *
+                      Complex.exp ((a : ℂ) * (x : ℂ))‖ :=
+                scalarFourierLaplacePlemelj_negative_window_with_exp_norm_le_lowerArc_of_radius
+                  a ha x hxneg T hTpair.2
+              hwindow.trans (hTpair.1 x hxδ hxR)⟩
 
 /-- Negative-time near-zero compact-interval estimate for the normalized
 scalar Fourier-Laplace Plemelj kernel. -/
