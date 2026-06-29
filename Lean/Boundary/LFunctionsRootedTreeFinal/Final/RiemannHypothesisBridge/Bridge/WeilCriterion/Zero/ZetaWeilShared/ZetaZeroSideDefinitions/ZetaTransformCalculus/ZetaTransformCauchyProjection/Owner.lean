@@ -3125,7 +3125,29 @@ theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_cauchyIntegral
 theorem scalarFourierLaplacePlemelj_neg_one_div_I_mul_eq_I_div
     (D : ℂ) :
     (-1 : ℂ) / (Complex.I * D) = Complex.I / D := by
-  sorry
+  calc
+    (-1 : ℂ) / (Complex.I * D) =
+        (-1 : ℂ) * (Complex.I * D)⁻¹ := by
+      rfl
+    _ = (-1 : ℂ) * (D⁻¹ * Complex.I⁻¹) := by
+      exact congrArg (fun W : ℂ => (-1 : ℂ) * W)
+        (mul_inv_rev Complex.I D)
+    _ = (-1 : ℂ) * (D⁻¹ * (-Complex.I)) := by
+      exact congrArg
+        (fun W : ℂ => (-1 : ℂ) * (D⁻¹ * W))
+        Complex.inv_I
+    _ = ((-1 : ℂ) * D⁻¹) * (-Complex.I) := by
+      exact mul_assoc (-1 : ℂ) D⁻¹ (-Complex.I)
+    _ = (-(D⁻¹)) * (-Complex.I) := by
+      exact congrArg
+        (fun W : ℂ => W * (-Complex.I))
+        (neg_one_mul D⁻¹)
+    _ = D⁻¹ * Complex.I := by
+      exact neg_mul_neg D⁻¹ Complex.I
+    _ = Complex.I * D⁻¹ := by
+      exact mul_comm D⁻¹ Complex.I
+    _ = Complex.I / D := by
+      rfl
 
 /-- Moving the exponential factor into the numerator of the normalized Cauchy
 kernel. -/
