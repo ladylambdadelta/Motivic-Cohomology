@@ -5051,6 +5051,47 @@ noncomputable def scalarFourierLaplacePlemelj_negativeKernelAnalyticNumerator
     (x : ℝ) (z : ℂ) : ℂ :=
   Complex.I * Complex.exp (Complex.I * z * (x : ℂ))
 
+/-- Closed lower half-disk used by the negative-time scalar contour. -/
+def scalarFourierLaplacePlemelj_lowerHalfDisk
+    (T : ℝ) : Set ℂ :=
+  {z : ℂ | ‖z‖ ≤ T ∧ Complex.im z ≤ 0}
+
+/-- The upper pole is not in any closed lower half-disk. -/
+theorem scalarFourierLaplacePlemelj_upperPole_not_mem_lowerHalfDisk
+    (a : ℝ) (ha : 0 < a) (T : ℝ) :
+    scalarFourierLaplacePlemelj_upperPole a ∉
+      scalarFourierLaplacePlemelj_lowerHalfDisk T := by
+  intro hpole
+  have him_le :
+      Complex.im (scalarFourierLaplacePlemelj_upperPole a) ≤ 0 :=
+    hpole.2
+  have him_eq :
+      Complex.im (scalarFourierLaplacePlemelj_upperPole a) = a := by
+    calc
+      Complex.im (scalarFourierLaplacePlemelj_upperPole a) =
+          Complex.im ((a : ℂ) * Complex.I) := by
+        exact congrArg Complex.im
+          (scalarFourierLaplacePlemelj_upperPole_eq a)
+      _ = (a : ℂ).re * Complex.I.im + (a : ℂ).im * Complex.I.re := by
+        exact Complex.mul_im (a : ℂ) Complex.I
+      _ = a * 1 + 0 * 0 := by
+        exact congrArg₂ HAdd.hAdd
+          (congrArg₂ HMul.hMul
+            (Complex.ofReal_re a)
+            Complex.I_im)
+          (congrArg₂ HMul.hMul
+            (Complex.ofReal_im a)
+            Complex.I_re)
+      _ = a * 1 + 0 := by
+        exact congrArg
+          (fun r : ℝ => a * 1 + r)
+          (zero_mul (0 : ℝ))
+      _ = a * 1 := by
+        exact add_zero (a * 1)
+      _ = a := by
+        exact mul_one a
+  exact (not_le_of_gt ha) (him_eq ▸ him_le)
+
 /-- The negative lower-half-plane kernel has zero enclosed residue sum. -/
 theorem scalarFourierLaplacePlemelj_negativeKernel_lowerHalfPlaneResidueSum_eq_zero
     (a x : ℝ) :
@@ -5072,6 +5113,28 @@ theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_negativeKernelLower
         a x T := by
   rfl
 
+/-- The negative-time scalar kernel is complex differentiable on the closed
+lower half-disk because its only pole is the upper pole. -/
+theorem scalarFourierLaplacePlemelj_negativeKernel_differentiableOn_lowerHalfDisk
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (T : ℝ) :
+    DifferentiableOn ℂ
+      (scalarFourierLaplacePlemelj_negativeKernel a x)
+      (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
+  sorry
+
+/-- Cauchy-Goursat for the negative-time scalar kernel on the lower half-disk
+boundary. -/
+theorem scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyGoursat
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ)
+    (_hdiff :
+      DifferentiableOn ℂ
+        (scalarFourierLaplacePlemelj_negativeKernel a x)
+        (scalarFourierLaplacePlemelj_lowerHalfDisk T)) :
+    scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral
+        a x T = 0 := by
+  sorry
+
 /-- Half-disk Cauchy theorem for the negative-time lower contour: the upper pole
 is outside the lower half-disk, so the boundary integral is zero. -/
 theorem scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyIntegralFormula
@@ -5082,7 +5145,11 @@ theorem scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyIntegralFo
           (-(a : ℂ)) * Complex.I) :
     scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral
         a x T = 0 := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyGoursat
+      a ha x hx T
+      (scalarFourierLaplacePlemelj_negativeKernel_differentiableOn_lowerHalfDisk
+        a ha x T)
 
 /-- Cauchy's residue theorem for the negative-time scalar kernel boundary
 integral over the finite lower semicircle. -/
