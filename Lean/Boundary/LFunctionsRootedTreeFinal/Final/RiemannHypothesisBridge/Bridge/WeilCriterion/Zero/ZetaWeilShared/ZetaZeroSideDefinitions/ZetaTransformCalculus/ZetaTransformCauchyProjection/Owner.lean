@@ -3350,7 +3350,51 @@ theorem scalarFourierLaplacePlemelj_zero_arctan_bound
     (a : ℝ) (ha : 0 < a) (T : ℝ) :
     ‖((-(2 : ℝ) * Real.arctan (T / a) : ℝ) : ℂ)‖
       ≤ 2 * (Real.pi + 1) := by
-  sorry
+  let y : ℝ := T / a
+  let u : ℝ := Real.arctan y
+  have hhalf_lt_pi : Real.pi / 2 < Real.pi :=
+    half_lt_self Real.pi_pos
+  have hupper : u ≤ Real.pi := by
+    exact le_of_lt
+      ((Real.arctan_lt_pi_div_two y).trans hhalf_lt_pi)
+  have hneg_pi_lt_neg_half : -Real.pi < -(Real.pi / 2) :=
+    neg_lt_neg hhalf_lt_pi
+  have hlower : -Real.pi ≤ u := by
+    exact le_of_lt
+      (hneg_pi_lt_neg_half.trans
+        (Real.neg_pi_div_two_lt_arctan y))
+  have habs : |u| ≤ Real.pi :=
+    abs_le.mpr ⟨hlower, hupper⟩
+  have hnorm :
+      ‖((-(2 : ℝ) * Real.arctan (T / a) : ℝ) : ℂ)‖ =
+        |(-(2 : ℝ) * u)| := by
+    unfold u
+    unfold y
+    exact RCLike.norm_ofReal (K := ℂ) (-(2 : ℝ) * Real.arctan (T / a))
+  have habs_neg :
+      |(-(2 : ℝ) * u)| = |(2 : ℝ) * u| := by
+    have hneg_mul : (-(2 : ℝ) * u) = -((2 : ℝ) * u) :=
+      neg_mul (2 : ℝ) u
+    exact (congrArg abs hneg_mul).trans (abs_neg ((2 : ℝ) * u))
+  have habs_mul :
+      |(2 : ℝ) * u| = (2 : ℝ) * |u| := by
+    calc
+      |(2 : ℝ) * u| = |(2 : ℝ)| * |u| := by
+        exact abs_mul (2 : ℝ) u
+      _ = (2 : ℝ) * |u| := by
+        exact congrArg (fun r : ℝ => r * |u|)
+          (abs_of_nonneg zero_le_two)
+  have htwo_abs_le : (2 : ℝ) * |u| ≤ 2 * Real.pi :=
+    mul_le_mul_of_nonneg_left habs zero_le_two
+  have hpi_le_pi_add_one : Real.pi ≤ Real.pi + 1 :=
+    le_add_of_nonneg_right zero_le_one
+  have htwo_pi_le : 2 * Real.pi ≤ 2 * (Real.pi + 1) :=
+    mul_le_mul_of_nonneg_left hpi_le_pi_add_one zero_le_two
+  exact
+    (le_of_eq hnorm).trans
+      ((le_of_eq habs_neg).trans
+        ((le_of_eq habs_mul).trans
+          (htwo_abs_le.trans htwo_pi_le)))
 
 /-- Zero-time uniform finite-window bound for the normalized scalar Cauchy
 kernel. -/
