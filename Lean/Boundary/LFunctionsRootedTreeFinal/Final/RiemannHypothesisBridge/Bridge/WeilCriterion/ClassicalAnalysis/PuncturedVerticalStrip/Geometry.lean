@@ -235,7 +235,7 @@ theorem complex_segment_re_eq
   have hsegment :
       [z -[ℝ] w] =
         (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1 :=
-    segment_eq_image z w
+    segment_eq_image (𝕜 := ℝ) z w
   have hp_image :
       p ∈ (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1 :=
     Eq.subst (motive := fun s : Set ℂ => p ∈ s) hsegment hp
@@ -254,7 +254,7 @@ theorem complex_segment_im_eq
   have hsegment :
       [z -[ℝ] w] =
         (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1 :=
-    segment_eq_image z w
+    segment_eq_image (𝕜 := ℝ) z w
   have hp_image :
       p ∈ (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1 :=
     Eq.subst (motive := fun s : Set ℂ => p ∈ s) hsegment hp
@@ -274,7 +274,7 @@ theorem complex_segment_coordinates
   have hsegment :
       [z -[ℝ] w] =
         (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1 :=
-    segment_eq_image z w
+    segment_eq_image (𝕜 := ℝ) z w
   have hp_image :
       p ∈ (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1 :=
     Eq.subst (motive := fun s : Set ℂ => p ∈ s) hsegment hp

@@ -459,28 +459,6 @@ noncomputable def zetaCompletedExplicitFormulaPrimePowerSpectralSampleContributi
   ∑' ι : ZetaPrimePowerIndex,
     zetaCompletedExplicitFormulaPrimePowerSpectralSampleCoordinate ι f
 
-/-- Positive real-axis spectral majorant at prime-power centers. -/
-theorem zetaCompletedExplicitFormulaPhi_primePowerCenter_realAxisSpectralMajorant
-    (f : ZetaAdmissibleFunction) :
-    ∃ C : ℝ, ∃ k : ℕ,
-      0 ≤ C ∧
-        ∀ ι : ZetaPrimePowerIndex,
-          ‖zetaCompletedExplicitFormulaPhi f (ZetaPrimePowerIndex.center ι)‖ ≤
-            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  sorry
-
-/-- Negative real-axis spectral majorant at reflected prime-power centers. -/
-theorem zetaCompletedExplicitFormulaPhi_primePowerNegativeCenter_realAxisSpectralMajorant
-    (f : ZetaAdmissibleFunction) :
-    ∃ C : ℝ, ∃ k : ℕ,
-      0 ≤ C ∧
-        ∀ ι : ZetaPrimePowerIndex,
-          ‖star
-            (zetaCompletedExplicitFormulaPhi f
-              (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
-            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  sorry
-
 /-- Seed-pair real-axis spectral majorant assembled from the two one-sided
 prime-power-center spectral majorants. -/
 theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpectralMajorant_of_oneSided
@@ -564,15 +542,7 @@ theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpec
                 (zetaCompletedExplicitFormulaPhi f
                 (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  obtain ⟨Cpos, kpos, hCpos, hpos⟩ :=
-    zetaCompletedExplicitFormulaPhi_primePowerCenter_realAxisSpectralMajorant
-      f
-  obtain ⟨Cneg, kneg, hCneg, hneg⟩ :=
-    zetaCompletedExplicitFormulaPhi_primePowerNegativeCenter_realAxisSpectralMajorant
-      f
-  exact
-    zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpectralMajorant_of_oneSided
-      f Cpos Cneg kpos kneg hCpos hCneg hpos hneg
+  sorry
 
 /-- Real-axis spectral seed-pair majorant at prime-power centers, in the real norm shape
 needed by the paired seed estimate. -/
