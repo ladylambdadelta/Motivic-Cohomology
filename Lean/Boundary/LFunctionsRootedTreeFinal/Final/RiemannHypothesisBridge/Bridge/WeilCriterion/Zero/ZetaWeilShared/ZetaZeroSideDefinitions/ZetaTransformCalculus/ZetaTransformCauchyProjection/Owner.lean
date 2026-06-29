@@ -6862,7 +6862,87 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_eq_dampedSin
       (u / (1 + u ^ 2)) * Real.sin (y * u)) =
       ∫ v in (0)..(y * R),
         (v / (y ^ 2 + v ^ 2)) * Real.sin v := by
-  sorry
+  let G : ℝ → ℝ :=
+    fun v : ℝ => (v / (y ^ 2 + v ^ 2)) * Real.sin v
+  have hpoint :
+      ∀ u : ℝ,
+        (u / (1 + u ^ 2)) * Real.sin (y * u) =
+          y * G (u * y) := by
+    intro u
+    have hcoeff :
+        y * ((u * y) / (y ^ 2 + (u * y) ^ 2)) =
+          u / (1 + u ^ 2) :=
+      scalarFourierLaplacePlemelj_scaledHilbertSineKernel_coefficient_identity
+        y hy u
+    calc
+      (u / (1 + u ^ 2)) * Real.sin (y * u)
+          =
+          (y * ((u * y) / (y ^ 2 + (u * y) ^ 2))) *
+            Real.sin (y * u) := by
+            exact congrArg
+              (fun r : ℝ => r * Real.sin (y * u))
+              hcoeff.symm
+      _ =
+          y *
+            (((u * y) / (y ^ 2 + (u * y) ^ 2)) *
+              Real.sin (u * y)) := by
+            have hphase : Real.sin (y * u) = Real.sin (u * y) :=
+              congrArg Real.sin (mul_comm y u)
+            calc
+              (y * ((u * y) / (y ^ 2 + (u * y) ^ 2))) *
+                  Real.sin (y * u)
+                  =
+                  (y * ((u * y) / (y ^ 2 + (u * y) ^ 2))) *
+                    Real.sin (u * y) := by
+                    exact congrArg
+                      (fun s : ℝ =>
+                        (y * ((u * y) / (y ^ 2 + (u * y) ^ 2))) * s)
+                      hphase
+              _ =
+                  y *
+                    (((u * y) / (y ^ 2 + (u * y) ^ 2)) *
+                      Real.sin (u * y)) := by
+                    exact mul_assoc y
+                      ((u * y) / (y ^ 2 + (u * y) ^ 2))
+                      (Real.sin (u * y))
+      _ = y * G (u * y) := by
+            unfold G
+            rfl
+  have hconst :
+      (∫ u in (0)..R,
+        (u / (1 + u ^ 2)) * Real.sin (y * u)) =
+        y * ∫ u in (0)..R, G (u * y) := by
+    calc
+      (∫ u in (0)..R,
+        (u / (1 + u ^ 2)) * Real.sin (y * u))
+          = ∫ u in (0)..R, y * G (u * y) := by
+            exact intervalIntegral.integral_congr
+              (Filter.Eventually.of_forall hpoint)
+      _ = y * ∫ u in (0)..R, G (u * y) := by
+            exact intervalIntegral.integral_const_mul
+              (a := 0) (b := R) (μ := volume)
+              y
+              (fun u : ℝ => G (u * y))
+  have hsubst :
+      y * ∫ u in (0)..R, G (u * y) =
+        ∫ v in (0 * y)..(R * y), G v :=
+    intervalIntegral.smul_integral_comp_mul_right
+      (f := G) (a := 0) (b := R) y
+  calc
+    (∫ u in (0)..R,
+      (u / (1 + u ^ 2)) * Real.sin (y * u))
+        = y * ∫ u in (0)..R, G (u * y) := hconst
+    _ = ∫ v in (0 * y)..(R * y), G v := hsubst
+    _ = ∫ v in (0)..(y * R), G v := by
+          exact congrArg₂
+            (fun l r : ℝ => ∫ v in l..r, G v)
+            (zero_mul y)
+            (mul_comm R y)
+    _ =
+        ∫ v in (0)..(y * R),
+          (v / (y ^ 2 + v ^ 2)) * Real.sin v := by
+          unfold G
+          rfl
 
 theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_nonneg_radius_pos_frequency
     (R y : ℝ) (hR : 0 ≤ R) (hy : 0 < y) :
