@@ -25,7 +25,18 @@ lemma fourierKernel_conjugacy (ξ : ℝ) (t : ℝ) :
     Complex.exp (2 * π * I * ((-ξ : ℝ) : ℂ) * t) =
     star (Complex.exp (-(2 * π * I * (ξ : ℝ) : ℂ) * t)) := by
   have h_neg : (2 * π * I * ((-ξ : ℝ) : ℂ) * t : ℂ) =
-               -(2 * π * I * (ξ : ℝ) : ℂ) * t := by ring
+               -(2 * π * I * (ξ : ℝ) : ℂ) * t := by
+    have hcast_neg : (((-ξ : ℝ) : ℂ)) = -((ξ : ℝ) : ℂ) :=
+      map_neg (algebraMap ℝ ℂ) ξ
+    calc
+      (2 * π * I * ((-ξ : ℝ) : ℂ) * t : ℂ) =
+          2 * π * I * (-((ξ : ℝ) : ℂ)) * t := by
+        exact congrArg (fun z : ℂ => 2 * π * I * z * (t : ℂ)) hcast_neg
+      _ = (2 * π * I * -((ξ : ℝ) : ℂ)) * t := rfl
+      _ = (-(2 * π * I * ((ξ : ℝ) : ℂ))) * t := by
+        exact congrArg (fun z : ℂ => z * (t : ℂ))
+          (mul_neg (2 * π * I) ((ξ : ℝ) : ℂ))
+      _ = -(2 * π * I * (ξ : ℝ) : ℂ) * t := rfl
   rw [h_neg]
   exact (Complex.exp_conj _).symm
 

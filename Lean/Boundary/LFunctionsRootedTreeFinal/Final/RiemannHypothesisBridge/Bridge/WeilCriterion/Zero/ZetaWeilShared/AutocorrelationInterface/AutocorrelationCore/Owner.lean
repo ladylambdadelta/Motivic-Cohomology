@@ -289,8 +289,11 @@ theorem convolutionAutocorrelationKernel_zero
       ∫ u : ℝ, f u * star (f u)
   congr 1
   funext u
-  have hleft : u + 0 / 2 = u := by ring
-  have hright : u - 0 / 2 = u := by ring
+  have hzero_div : (0 : ℝ) / 2 = 0 := zero_div 2
+  have hleft : u + 0 / 2 = u :=
+    (congrArg (fun x : ℝ => u + x) hzero_div).trans (add_zero u)
+  have hright : u - 0 / 2 = u :=
+    (congrArg (fun x : ℝ => u - x) hzero_div).trans (sub_zero u)
   calc
     f (u + 0 / 2) * star (f (u - 0 / 2)) =
         f u * star (f (u - 0 / 2)) := by

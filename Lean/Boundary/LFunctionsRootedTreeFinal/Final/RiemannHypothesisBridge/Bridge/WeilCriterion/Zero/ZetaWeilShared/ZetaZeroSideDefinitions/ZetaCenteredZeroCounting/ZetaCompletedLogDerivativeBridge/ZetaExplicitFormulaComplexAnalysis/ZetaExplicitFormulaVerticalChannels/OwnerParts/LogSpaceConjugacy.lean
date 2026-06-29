@@ -36,7 +36,9 @@ lemma cpow_mul_one_eq_cpow_add (t : ℝ) (s : ℂ) (ht : (t : ℂ) ≠ 0) :
   calc ((t : ℂ) ^ (s - 1)) * ((t : ℂ))
       = ((t : ℂ) ^ (s - 1)) * ((t : ℂ) ^ 1) := by exact congr_arg (fun x => ((t : ℂ) ^ (s - 1)) * x) (cpow_one t).symm
     _ = ((t : ℂ) ^ (s - 1 + 1)) := by apply cpow_add; exact ht
-    _ = ((t : ℂ) ^ s) := by have : (s - 1 + 1 : ℂ) = s := by ring; exact congr_arg (fun x => (t : ℂ) ^ x) this
+    _ = ((t : ℂ) ^ s) := by
+      have hsub_add : (s - 1 + 1 : ℂ) = s := sub_add_cancel s 1
+      exact congr_arg (fun x => (t : ℂ) ^ x) hsub_add
 
 /-- Helper: Real.log(Real.exp(t)) = t for all t -/
 lemma log_exp_eq_self (t : ℝ) : Real.log (Real.exp t) = t :=
