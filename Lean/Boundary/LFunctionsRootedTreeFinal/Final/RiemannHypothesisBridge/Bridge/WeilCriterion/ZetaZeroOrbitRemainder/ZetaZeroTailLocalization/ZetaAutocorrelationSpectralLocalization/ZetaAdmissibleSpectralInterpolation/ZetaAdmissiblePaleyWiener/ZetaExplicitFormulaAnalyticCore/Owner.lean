@@ -882,6 +882,120 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_boxSum_eq_r
         (complex_add_star_eq_two_re
           (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)))
 
+/-- Source contour-tomography anti-self-conjugacy for the oriented face total.
+
+This is the residue-ledger cancellation at the infinite oriented-face level, before
+transporting conjugation to the opposite face. -/
+theorem zetaCompletedPrimePowerAutocorrelation_oriented_tsum_star_eq_neg_residueLedger_source
+    (f : ZetaAdmissibleFunction) :
+    star
+      (∑' ι : ZetaPrimePowerIndex,
+        zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) =
+      -∑' ι : ZetaPrimePowerIndex,
+        zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f := by
+  sorry
+
+/-- Source contour-tomography cancellation for the opposite oriented face.
+
+The opposite face has the negative total orientation of the oriented face after the
+completed contour ledger is transported to prime-power coordinates. -/
+theorem zetaCompletedPrimePowerAutocorrelation_opposite_hasSum_neg_oriented_tsum_contourTomography_source
+    (f : ZetaAdmissibleFunction) :
+    HasSum
+      (fun ι : ZetaPrimePowerIndex =>
+        zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f)
+      (-(∑' ι : ZetaPrimePowerIndex,
+        zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)) := by
+  let u : ZetaPrimePowerIndex → ℂ :=
+    fun ι : ZetaPrimePowerIndex =>
+      zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f
+  let v : ZetaPrimePowerIndex → ℂ :=
+    fun ι : ZetaPrimePowerIndex =>
+      zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f
+  let z : ℂ := ∑' ι : ZetaPrimePowerIndex, u ι
+  have hu_summable : Summable u := by
+    unfold u
+    exact zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_summable f
+  have hu : HasSum u z := by
+    unfold z
+    exact hu_summable.hasSum
+  have hstar : HasSum (fun ι : ZetaPrimePowerIndex => star (u ι)) (star z) :=
+    hu.star
+  have hanti : star z = -z := by
+    unfold z
+    unfold u
+    exact
+      zetaCompletedPrimePowerAutocorrelation_oriented_tsum_star_eq_neg_residueLedger_source
+        f
+  have hstar_neg : HasSum (fun ι : ZetaPrimePowerIndex => star (u ι)) (-z) :=
+    Eq.subst
+      (motive := fun w : ℂ =>
+        HasSum (fun ι : ZetaPrimePowerIndex => star (u ι)) w)
+      hanti
+      hstar
+  have hpoint :
+      (fun ι : ZetaPrimePowerIndex => star (u ι)) = v := by
+    funext ι
+    unfold u
+    unfold v
+    exact
+      zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_star_eq_opposite
+        ι f
+  exact Eq.subst
+    (motive := fun a : ZetaPrimePowerIndex → ℂ => HasSum a (-z))
+    hpoint
+    hstar_neg
+
+/-- Source contour-tomography cancellation for the infinite paired oriented faces.
+
+This is the residue-ledger statement after the finite rectangular faces have been
+transported to the prime-power window language, but before finite box exhaustion is
+applied. -/
+theorem zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_hasSum_zero_contourTomography_source
+    (f : ZetaAdmissibleFunction) :
+    HasSum
+      (fun ι : ZetaPrimePowerIndex =>
+        zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f +
+          zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f)
+      0 := by
+  let u : ZetaPrimePowerIndex → ℂ :=
+    fun ι : ZetaPrimePowerIndex =>
+      zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f
+  let v : ZetaPrimePowerIndex → ℂ :=
+    fun ι : ZetaPrimePowerIndex =>
+      zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f
+  let z : ℂ := ∑' ι : ZetaPrimePowerIndex, u ι
+  have hu_summable : Summable u := by
+    unfold u
+    exact zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_summable f
+  have hu : HasSum u z := by
+    unfold z
+    exact hu_summable.hasSum
+  have hv : HasSum v (-z) := by
+    unfold v
+    unfold z
+    exact
+      zetaCompletedPrimePowerAutocorrelation_opposite_hasSum_neg_oriented_tsum_contourTomography_source
+        f
+  have hpair : HasSum (fun ι : ZetaPrimePowerIndex => u ι + v ι) (z + -z) :=
+    hu.add hv
+  have hzero : z + -z = 0 :=
+    add_neg_cancel z
+  have htarget :
+      (fun ι : ZetaPrimePowerIndex => u ι + v ι) =
+        fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f +
+            zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f := by
+    funext ι
+    rfl
+  exact Eq.subst
+    (motive := fun a : ZetaPrimePowerIndex → ℂ => HasSum a 0)
+    htarget
+    (Eq.subst
+      (motive := fun w : ℂ => HasSum (fun ι : ZetaPrimePowerIndex => u ι + v ι) w)
+      hzero
+      hpair)
+
 /-- Source contour-tomography estimate for the paired oriented rectangular
 faces.
 
@@ -896,7 +1010,13 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_boxSum_tend
             zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f)
       Filter.atTop
       (𝓝 0) := by
-  sorry
+  exact
+    ZetaPrimePowerIndex.tendsto_sum_box_zero_of_hasSum_complex
+      (fun ι : ZetaPrimePowerIndex =>
+        zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f +
+          zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f)
+      (zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_hasSum_zero_contourTomography_source
+        f)
 
 /-- Source contour-tomography estimate for the rectangular real-shadow windows.
 
@@ -955,95 +1075,9 @@ theorem zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_tsum_star_
         zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) =
       -∑' ι : ZetaPrimePowerIndex,
         zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f := by
-  let u : ZetaPrimePowerIndex → ℂ :=
-    fun ι : ZetaPrimePowerIndex =>
-      zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f
-  let z : ℂ :=
-    ∑' ι : ZetaPrimePowerIndex, u ι
-  have hsummable : Summable u := by
-    unfold u
-    exact
-      zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_summable
-        f
-  have hbox :
-      Filter.Tendsto
-        (fun N : ℕ =>
-          ∑ ι in ZetaPrimePowerIndex.box N, u ι)
-        Filter.atTop
-        (𝓝 z) := by
-    unfold z
-    exact hsummable.hasSum.comp ZetaPrimePowerIndex.box_tendsto_atTop
-  have hboxRe :
-      Filter.Tendsto
-        (fun N : ℕ =>
-          Complex.re (∑ ι in ZetaPrimePowerIndex.box N, u ι))
-        Filter.atTop
-        (𝓝 (Complex.re z)) :=
-    (Complex.continuous_re.tendsto z).comp hbox
-  have htwoRe :
-      Filter.Tendsto
-        (fun N : ℕ =>
-          ((2 : ℝ) *
-            Complex.re (∑ ι in ZetaPrimePowerIndex.box N, u ι) : ℂ))
-        Filter.atTop
-        (𝓝 ((2 : ℝ) * Complex.re z : ℂ)) := by
-    have hmul :
-        Filter.Tendsto
-          (fun N : ℕ =>
-            (2 : ℝ) *
-              Complex.re (∑ ι in ZetaPrimePowerIndex.box N, u ι))
-          Filter.atTop
-          (𝓝 ((2 : ℝ) * Complex.re z)) :=
-      Filter.Tendsto.const_mul (2 : ℝ) hboxRe
-    exact (Complex.continuous_ofReal.tendsto
-      ((2 : ℝ) * Complex.re z)).comp hmul
-  have hrealShadow_fun :
-      (fun N : ℕ =>
-        ∑ ι in ZetaPrimePowerIndex.box N,
-          ((2 : ℝ) *
-            Complex.re
-              (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℂ)) =
-      (fun N : ℕ =>
-        ((2 : ℝ) *
-          Complex.re (∑ ι in ZetaPrimePowerIndex.box N, u ι) : ℂ)) := by
-    funext N
-    unfold u
-    exact
-      zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_eq_two_re_boxSum
-        N f
-  have hsource :
-      Filter.Tendsto
-        (fun N : ℕ =>
-          ((2 : ℝ) *
-            Complex.re (∑ ι in ZetaPrimePowerIndex.box N, u ι) : ℂ))
-        Filter.atTop
-        (𝓝 0) := by
-    exact Eq.subst
-      (motive := fun v : ℕ → ℂ =>
-        Filter.Tendsto v Filter.atTop (𝓝 0))
-      hrealShadow_fun
-      (zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_tendsto_zero_contourTomography_source
-        f)
-  have hlim_eq :
-      ((2 : ℝ) * Complex.re z : ℂ) = 0 :=
-    tendsto_nhds_unique htwoRe hsource
-  have hreal_two_zero :
-      (2 : ℝ) * Complex.re z = 0 := by
-    calc
-      (2 : ℝ) * Complex.re z =
-          Complex.re (((2 : ℝ) * Complex.re z : ℝ) : ℂ) := by
-            exact (Complex.ofReal_re ((2 : ℝ) * Complex.re z)).symm
-      _ = Complex.re (0 : ℂ) := by
-            exact congrArg Complex.re hlim_eq
-      _ = 0 := by
-            exact Complex.zero_re
-  have hre : Complex.re z = 0 :=
-    (mul_eq_zero.mp hreal_two_zero).resolve_left two_ne_zero
-  have hanti : star z = -z :=
-    complex_star_eq_neg_of_re_eq_zero z hre
-  unfold z at hanti
-  unfold u at hanti
-  exact hanti
+  exact
+    zetaCompletedPrimePowerAutocorrelation_oriented_tsum_star_eq_neg_residueLedger_source
+      f
 
 /-- The paired autocorrelation spectral-sample total is the negative of the
 oriented cross total plus its conjugate. -/

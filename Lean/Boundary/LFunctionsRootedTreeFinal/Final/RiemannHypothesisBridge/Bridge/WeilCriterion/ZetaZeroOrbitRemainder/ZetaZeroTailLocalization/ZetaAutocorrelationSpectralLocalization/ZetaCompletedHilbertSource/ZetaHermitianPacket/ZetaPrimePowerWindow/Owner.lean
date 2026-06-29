@@ -974,6 +974,26 @@ theorem tendsto_sum_box_tsum_of_summable
       (nhds (∑' ι : ZetaPrimePowerIndex, a ι)) := by
   exact hsum.hasSum.comp box_tendsto_atTop
 
+/-- Rectangular raw prime-power boxes transport an existing complex `HasSum`. -/
+theorem tendsto_sum_box_of_hasSum_complex
+    (a : ZetaPrimePowerIndex → ℂ) (x : ℂ)
+    (hsum : HasSum a x) :
+    Filter.Tendsto
+      (fun N : ℕ => ∑ ι in box N, a ι)
+      Filter.atTop
+      (nhds x) := by
+  exact hsum.comp box_tendsto_atTop
+
+/-- Rectangular raw prime-power boxes tend to zero when the complex family has sum zero. -/
+theorem tendsto_sum_box_zero_of_hasSum_complex
+    (a : ZetaPrimePowerIndex → ℂ)
+    (hsum : HasSum a 0) :
+    Filter.Tendsto
+      (fun N : ℕ => ∑ ι in box N, a ι)
+      Filter.atTop
+      (nhds 0) := by
+  exact tendsto_sum_box_of_hasSum_complex a 0 hsum
+
 /-- Summable families that vanish on nongenuine prime-power indices are exhausted by genuine
 prime-power windows. -/
 theorem tendsto_sum_window_tsum_of_summable
