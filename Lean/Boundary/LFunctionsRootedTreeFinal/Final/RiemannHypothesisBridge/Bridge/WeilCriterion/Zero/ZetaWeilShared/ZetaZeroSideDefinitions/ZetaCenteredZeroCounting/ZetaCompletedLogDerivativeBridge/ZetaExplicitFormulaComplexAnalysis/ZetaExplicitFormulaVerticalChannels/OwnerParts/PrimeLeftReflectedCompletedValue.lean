@@ -1569,13 +1569,13 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionZeroPoleKernel
           f F.toContourFamily t) =
-        0)
+        (((2 * (Real.pi : ℂ) * Complex.I) *
+          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I))
     (hone_value :
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionOnePoleKernel
           f F.toContourFamily t) =
-        (((2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)) :
+        0) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel
         f F.toContourFamily t) -
@@ -1626,13 +1626,13 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionZeroPoleKernel
           f F.toContourFamily t) =
-        0)
+        (((2 * (Real.pi : ℂ) * Complex.I) *
+          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I))
     (hone_value :
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionOnePoleKernel
           f F.toContourFamily t) =
-        (((2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)) :
+        0) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel
         f F.toContourFamily t) -
@@ -1674,7 +1674,15 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
         f F.toContourFamily t) -
       zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue f =
       -(zetaCompletedExplicitFormulaPrimeNaturalComplementContribution f) := by
-  sorry
+  exact
+    zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_integral_sub_leftOneSidedInverseGammaValue_eq_neg_complement_of_reflectedPoleValues_scalarHermitian
+      f F h hcoh hscalar
+      (zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel_integral_eq_neg_phi_zero_ownerComponents
+        f F.toContourFamily h hcoh)
+      (zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionZeroPoleKernel_integral_eq_standardResidue_ownerComponents
+        f F.toContourFamily h)
+      (zetaCompletedExplicitFormulaPrimeLeftReflectedCorrectionOnePoleKernel_integral_eq_zero_ownerComponents
+        f F.toContourFamily h)
 
 /-- Packaged whole-line value of the reflected completed logarithmic-derivative
 kernel on the left prime line.
