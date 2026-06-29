@@ -6853,7 +6853,86 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_smallPrefix_scaled_eq
       (v / (b ^ 2 + v ^ 2)) * Real.sin v) =
       ∫ w in (0)..(A / b),
         (w / (1 + w ^ 2)) * Real.sin (b * w) := by
-  sorry
+  let F : ℝ → ℝ :=
+    fun v : ℝ => (v / (b ^ 2 + v ^ 2)) * Real.sin v
+  have hb_ne : b ≠ 0 :=
+    ne_of_gt hb
+  have hend : (A / b) * b = A :=
+    div_mul_cancel₀ A hb_ne
+  have hpoint :
+      ∀ w : ℝ,
+        b * F (w * b) =
+          (w / (1 + w ^ 2)) * Real.sin (b * w) := by
+    intro w
+    have hcoeff :
+        b * ((w * b) / (b ^ 2 + (w * b) ^ 2)) =
+          w / (1 + w ^ 2) :=
+      scalarFourierLaplacePlemelj_scaledHilbertSineKernel_coefficient_identity
+        b hb w
+    have hphase : Real.sin (w * b) = Real.sin (b * w) :=
+      congrArg Real.sin (mul_comm w b)
+    calc
+      b * F (w * b)
+          =
+          b *
+            (((w * b) / (b ^ 2 + (w * b) ^ 2)) *
+              Real.sin (w * b)) := by
+            unfold F
+            rfl
+      _ =
+          (b * ((w * b) / (b ^ 2 + (w * b) ^ 2))) *
+            Real.sin (w * b) := by
+            exact mul_assoc b
+              ((w * b) / (b ^ 2 + (w * b) ^ 2))
+              (Real.sin (w * b))
+      _ =
+          (w / (1 + w ^ 2)) * Real.sin (w * b) := by
+            exact congrArg
+              (fun r : ℝ => r * Real.sin (w * b))
+              hcoeff
+      _ =
+          (w / (1 + w ^ 2)) * Real.sin (b * w) := by
+            exact congrArg
+              (fun s : ℝ => (w / (1 + w ^ 2)) * s)
+              hphase
+  have hsubst :
+      b * ∫ w in (0)..(A / b), F (w * b) =
+        ∫ v in (0 * b)..((A / b) * b), F v :=
+    intervalIntegral.smul_integral_comp_mul_right
+      (f := F) (a := 0) (b := A / b) b
+  have hconst :
+      b * ∫ w in (0)..(A / b), F (w * b) =
+        ∫ w in (0)..(A / b),
+          (w / (1 + w ^ 2)) * Real.sin (b * w) := by
+    calc
+      b * ∫ w in (0)..(A / b), F (w * b)
+          =
+          ∫ w in (0)..(A / b), b * F (w * b) := by
+            exact (intervalIntegral.integral_const_mul
+              (a := 0) (b := A / b) (μ := volume)
+              b
+              (fun w : ℝ => F (w * b))).symm
+      _ =
+          ∫ w in (0)..(A / b),
+            (w / (1 + w ^ 2)) * Real.sin (b * w) := by
+            exact intervalIntegral.integral_congr
+              (Filter.Eventually.of_forall hpoint)
+  calc
+    (∫ v in (0)..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v)
+        = ∫ v in (0)..A, F v := by
+          unfold F
+          rfl
+    _ = ∫ v in (0 * b)..((A / b) * b), F v := by
+          exact congrArg₂
+            (fun l r : ℝ => ∫ v in l..r, F v)
+            (zero_mul b).symm
+            hend.symm
+    _ = b * ∫ w in (0)..(A / b), F (w * b) := by
+          exact hsubst.symm
+    _ =
+        ∫ w in (0)..(A / b),
+          (w / (1 + w ^ 2)) * Real.sin (b * w) := hconst
 
 theorem scalarFourierLaplacePlemelj_scaledSmallPrefix_abs_le_one
     (R b : ℝ) (hR_nonneg : 0 ≤ R) (hR_le_one : R ≤ 1) :
