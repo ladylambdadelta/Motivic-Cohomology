@@ -6545,6 +6545,25 @@ theorem scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound
         scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound_eventually_of_arc
           a ha R δ Carc hδ hCarc_nonneg harc
 
+/-- Uniform punctured-neighborhood Cauchy-window estimate near the Plemelj
+jump.  This is the shared near-zero Dirichlet estimate used by both signs. -/
+theorem scalarFourierLaplacePlemelj_compactInterval_punctured_nearZero_norm_bound_eventually
+    (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            x ≠ 0 →
+            ‖x‖ < δ →
+            ‖x‖ ≤ R →
+              ‖(∫ t in Set.Icc (-T) T,
+                (-1 / ((a : ℂ) + t * Complex.I)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp ((a : ℂ) * (x : ℂ)))‖
+              ≤ C := by
+  sorry
+
 /-- Positive-time near-zero compact-interval estimate for the normalized
 scalar Fourier-Laplace Plemelj kernel. -/
 theorem scalarFourierLaplacePlemelj_compactInterval_positive_nearZero_norm_bound_eventually
@@ -6562,7 +6581,20 @@ theorem scalarFourierLaplacePlemelj_compactInterval_positive_nearZero_norm_bound
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
               ≤ C := by
-  sorry
+  match
+    scalarFourierLaplacePlemelj_compactInterval_punctured_nearZero_norm_bound_eventually
+      a ha R δ hδ
+  with
+  | ⟨C, hC_nonneg, hnear⟩ =>
+      exact
+        ⟨C, hC_nonneg,
+          hnear.mono
+            (fun T hT x hxpos hxδ hxR =>
+              have hnorm : ‖x‖ = x := by
+                exact (Real.norm_eq_abs x).trans (abs_of_pos hxpos)
+              have hnorm_lt : ‖x‖ < δ :=
+                hnorm.trans_lt hxδ
+              hT x (ne_of_gt hxpos) hnorm_lt hxR)⟩
 
 /-- Assembly of the positive compact-interval estimate from its near-zero and
 away-from-zero pieces. -/
@@ -7011,7 +7043,23 @@ theorem scalarFourierLaplacePlemelj_compactInterval_negative_nearZero_norm_bound
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
               ≤ C := by
-  sorry
+  match
+    scalarFourierLaplacePlemelj_compactInterval_punctured_nearZero_norm_bound_eventually
+      a ha R δ hδ
+  with
+  | ⟨C, hC_nonneg, hnear⟩ =>
+      exact
+        ⟨C, hC_nonneg,
+          hnear.mono
+            (fun T hT x hxneg hδx hxR =>
+              have hx_ne : x ≠ 0 := ne_of_lt hxneg
+              have h_abs_lt : ‖x‖ < δ := by
+                calc
+                  ‖x‖ = -x := by
+                    exact (Real.norm_eq_abs x).trans (abs_of_neg hxneg)
+                  _ < δ := by
+                    exact neg_lt.mp hδx
+              hT x hx_ne h_abs_lt hxR)⟩
 
 /-- Assembly of the negative compact-interval estimate from its near-zero and
 away-from-zero pieces. -/
