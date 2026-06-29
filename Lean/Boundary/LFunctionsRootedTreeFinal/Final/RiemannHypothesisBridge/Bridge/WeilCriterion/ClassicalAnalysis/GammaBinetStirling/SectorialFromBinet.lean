@@ -1,8 +1,10 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.Binet
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetAbelPlanaCore
 import Mathlib.Analysis.Complex.Basic
 import Mathlib.MeasureTheory.Function.SpecialFunctions.Basic
 import Mathlib.MeasureTheory.Integral.SetIntegral
 import Mathlib.Order.Interval.Set.Disjoint
+import Mathlib.Topology.Order.Lattice
 
 /-!
 # Sectorial estimates from Binet
@@ -17,6 +19,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped Topology
+open scoped ENNReal
 open MeasureTheory
 open Set
 
@@ -216,7 +219,14 @@ theorem Real.exp_neg_two_pi_tail_integral_le_exp
       _ = k⁻¹ * Real.exp (-(k * a)) := by
         exact congrArg (fun x : ℝ => k⁻¹ * x) htail_exact
       _ = k⁻¹ * Real.exp (-((2 : ℝ) * Real.pi) * a) := by
-        rfl
+        have hneg :
+            -(k * a) = -((2 : ℝ) * Real.pi) * a := by
+          calc
+            -(k * a) = -k * a := by
+              exact (neg_mul k a).symm
+            _ = -((2 : ℝ) * Real.pi) * a := by
+              rfl
+        exact congrArg (fun x : ℝ => k⁻¹ * Real.exp x) hneg
   have hone_le_k : (1 : ℝ) ≤ k := by
     have hone_le_two : (1 : ℝ) ≤ 2 := one_le_two
     have hone_le_pi : (1 : ℝ) ≤ Real.pi :=
@@ -1030,8 +1040,35 @@ theorem Complex.binetSecondFormula_branchWall_moving_ratio_bounds
     Complex.binetSecondFormula_branchWall_distance_pos hw_re_pos t
   have hdist_le :
       max w.re |w.im - t| ≤ 3 * ‖w‖ :=
-    Complex.binetSecondFormula_arctan_tail_denominator_max_branchWall_distance_le
-      (w := w) (t := t) ht_nonneg ht_le
+    have hden_le :
+        max w.re |w.im - t| ≤ ‖w - (t : ℂ) * Complex.I‖ :=
+      Complex.binetSecondFormula_arctan_tail_denominator_max_branchWall_distance_le
+        hw_re_pos t
+    have htI_norm : ‖(t : ℂ) * Complex.I‖ = t := by
+      calc
+        ‖(t : ℂ) * Complex.I‖ = |t| := Complex.norm_real_mul_I t
+        _ = t := abs_of_nonneg ht_nonneg
+    have hden_three :
+        ‖w - (t : ℂ) * Complex.I‖ ≤ 3 * ‖w‖ := by
+      calc
+        ‖w - (t : ℂ) * Complex.I‖ ≤
+            ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
+          calc
+            ‖w - (t : ℂ) * Complex.I‖ =
+                ‖w + -((t : ℂ) * Complex.I)‖ := by
+              exact congrArg norm (sub_eq_add_neg w ((t : ℂ) * Complex.I))
+            _ ≤ ‖w‖ + ‖-((t : ℂ) * Complex.I)‖ := by
+              exact norm_add_le _ _
+            _ = ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
+              exact congrArg
+                (fun x : ℝ => ‖w‖ + x)
+                (norm_neg ((t : ℂ) * Complex.I))
+        _ = ‖w‖ + t := by
+          exact congrArg (fun x : ℝ => ‖w‖ + x) htI_norm
+        _ ≤ ‖w‖ + 2 * ‖w‖ := add_le_add_left ht_le _
+        _ = 3 * ‖w‖ := by
+          exact Real.add_two_mul_eq_three_mul ‖w‖
+    le_trans hden_le hden_three
   have hlower :
       (1 : ℝ) ≤ (3 * ‖w‖) / max w.re |w.im - t| := by
     exact
@@ -1196,7 +1233,7 @@ theorem Complex.binetSecondFormula_branchWall_logSpike_integrableOn_boundedTailW
   have hD_cont : Continuous D := by
     have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
       (continuous_const.sub continuous_id).abs
-    exact continuous_const.max hdist_cont
+    exact continuous_const.sup hdist_cont
   have hA_cont : Continuous A := by
     exact continuous_const.div hD_cont (fun t => (hD_pos t).ne')
   have hlog_contOn : ContinuousOn (fun t : ℝ => Real.log (A t)) S :=
@@ -1266,7 +1303,7 @@ theorem Complex.binetSecondFormula_branchWall_unweightedLogSpike_integrableOn_bo
   have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
     (continuous_const.sub continuous_id).abs
   have hD_cont : Continuous D :=
-    continuous_const.max hdist_cont
+    continuous_const.sup hdist_cont
   have hA_cont : Continuous A :=
     continuous_const.div hD_cont (fun t => (hD_pos t).ne')
   have hlog_contOn : ContinuousOn (fun t : ℝ => Real.log (A t)) Scc :=
@@ -1581,11 +1618,11 @@ theorem Complex.binetSecondFormula_branchWall_expWeighted_moving_le_cutoffExp
         (Real.log ((3 * ‖w‖) / max w.re |w.im - t|)))
       Real.pi_nonneg
   have hK_nonneg : 0 ≤ K :=
-    mul_nonneg Real.zero_le_two hL_nonneg
+    mul_nonneg Real.zero_le_two_real hL_nonneg
   have ht_lower : ‖w‖ / 2 ≤ t :=
     le_of_lt ht_mem.1
   have hcoeff_nonneg : 0 ≤ (2 : ℝ) * Real.pi :=
-    mul_nonneg Real.zero_le_two Real.pi_nonneg
+    mul_nonneg Real.zero_le_two_real Real.pi_nonneg
   have hmul_le :
       ((2 : ℝ) * Real.pi) * (‖w‖ / 2) ≤
         ((2 : ℝ) * Real.pi) * t :=
@@ -1595,7 +1632,7 @@ theorem Complex.binetSecondFormula_branchWall_expWeighted_moving_le_cutoffExp
     calc
       ((2 : ℝ) * Real.pi) * (‖w‖ / 2) =
           (((2 : ℝ) * Real.pi) * ‖w‖) / 2 := by
-        exact mul_div_assoc ((2 : ℝ) * Real.pi) ‖w‖ 2
+        exact (mul_div_assoc ((2 : ℝ) * Real.pi) ‖w‖ 2).symm
       _ = ((Real.pi * ‖w‖) * 2) / 2 := by
         exact
           congrArg (fun x : ℝ => x / 2)
@@ -1621,7 +1658,7 @@ theorem Complex.binetSecondFormula_branchWall_expWeighted_moving_le_cutoffExp
     exact
       Eq.subst
         (motive := fun x : ℝ => -(((2 : ℝ) * Real.pi) * t) ≤ x)
-        (neg_mul Real.pi ‖w‖)
+        (neg_mul Real.pi ‖w‖).symm
         hneg
   have hexp_le :
       Real.exp (-(((2 : ℝ) * Real.pi) * t)) ≤
@@ -1694,7 +1731,7 @@ theorem Complex.binetSecondFormula_branchWall_expWeighted_integral_le_cutoffExp_
     have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
       (continuous_const.sub continuous_id).abs
     have hB_cont : Continuous B :=
-      continuous_const.max hdist_cont
+      continuous_const.sup hdist_cont
     have hA_cont : Continuous A :=
       continuous_const.div hB_cont (fun t => (hB_pos t).ne')
     have hlog_contOn :
@@ -1735,7 +1772,7 @@ theorem Complex.binetSecondFormula_branchWall_expWeighted_integral_le_cutoffExp_
     have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
       (continuous_const.sub continuous_id).abs
     have hB_cont : Continuous B :=
-      continuous_const.max hdist_cont
+      continuous_const.sup hdist_cont
     have hA_cont : Continuous A :=
       continuous_const.div hB_cont (fun t => (hB_pos t).ne')
     have hlog_contOn :
@@ -1805,7 +1842,7 @@ theorem Complex.binetSecondFormula_branchWall_logSpike_integral_le_expWeighted_b
     have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
       (continuous_const.sub continuous_id).abs
     have hB_cont : Continuous B :=
-      continuous_const.max hdist_cont
+      continuous_const.sup hdist_cont
     have hA_cont : Continuous A :=
       continuous_const.div hB_cont (fun t => (hB_pos t).ne')
     have hlog_contOn :
@@ -1971,7 +2008,7 @@ theorem Complex.binetSecondFormula_branchWall_expWeighted_integral_le_realPart_w
     have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
       (continuous_const.sub continuous_id).abs
     have hB_cont : Continuous B :=
-      continuous_const.max hdist_cont
+      continuous_const.sup hdist_cont
     have hA_cont : Continuous A :=
       continuous_const.div hB_cont (fun t => (hB_pos t).ne')
     have hlog_contOn :
@@ -2074,7 +2111,7 @@ theorem Complex.binetSecondFormula_branchWall_realPart_expWeighted_integral_le_e
       add_nonneg
         (le_max_of_le_left (abs_nonneg (Real.log (1 : ℝ))))
         Real.pi_nonneg
-    exact mul_nonneg Real.zero_le_two hinside_nonneg
+    exact mul_nonneg Real.zero_le_two_real hinside_nonneg
   have htail_integrable :
       IntegrableOn F (Set.Ioi (N / 2)) := by
     have hcoeff_pos : 0 < (2 : ℝ) * Real.pi :=
@@ -2115,7 +2152,7 @@ theorem Complex.binetSecondFormula_branchWall_realPart_expWeighted_integral_le_e
                 ((2 : ℝ) * Real.pi) * (‖w‖ / 2) := by
               rfl
             _ = (((2 : ℝ) * Real.pi) * ‖w‖) / 2 := by
-              exact mul_div_assoc ((2 : ℝ) * Real.pi) ‖w‖ 2
+              exact (mul_div_assoc ((2 : ℝ) * Real.pi) ‖w‖ 2).symm
             _ = ((Real.pi * ‖w‖) * 2) / 2 := by
               exact
                 congrArg (fun x : ℝ => x / 2)
@@ -2171,7 +2208,7 @@ theorem Complex.binetSecondFormula_branchWall_realPart_expWeighted_integral_le_e
                     (Real.exp_neg ((2 : ℝ) * Real.pi * t)).symm
                 _ = K * F t := by
                   exact congrArg (fun x : ℝ => K * Real.exp x)
-                    (neg_mul ((2 : ℝ) * Real.pi) t))
+                    (neg_mul ((2 : ℝ) * Real.pi) t).symm)
       _ = K * ∫ t : ℝ in Set.Ioc (N / 2) (2 * N), F t := by
         exact integral_mul_left K F
   exact
@@ -2339,7 +2376,7 @@ theorem Complex.binetSecondFormula_branchWall_expWeighted_fullLogEnvelope_integr
     have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
       (continuous_const.sub continuous_id).abs
     have hB_cont : Continuous B :=
-      continuous_const.max hdist_cont
+      continuous_const.sup hdist_cont
     have hA_cont : Continuous A :=
       continuous_const.div hB_cont (fun t => (hB_pos t).ne')
     have hlog_contOn :
@@ -2353,7 +2390,7 @@ theorem Complex.binetSecondFormula_branchWall_expWeighted_fullLogEnvelope_integr
                 Real.pi))
           Scc :=
       continuousOn_const.mul
-        ((continuousOn_const.max hlog_contOn.abs).add continuousOn_const)
+        ((continuousOn_const.sup hlog_contOn.abs).add continuousOn_const)
     have hlinear_cont : Continuous fun t : ℝ => (2 : ℝ) * Real.pi * t :=
       (continuous_const.mul continuous_const).mul continuous_id
     have hden_cont : Continuous fun t : ℝ =>
@@ -2435,7 +2472,7 @@ theorem Complex.binetSecondFormula_branchWall_fixedWindowSum_expWeighted_integra
       add_nonneg
         (add_nonneg (abs_nonneg (Real.log (w.re / (3 * ‖w‖)))) hfixed_nonneg)
         Real.pi_nonneg
-    exact mul_nonneg Real.zero_le_two hinside_nonneg
+    exact mul_nonneg Real.zero_le_two_real hinside_nonneg
   have htail_integrable :
       IntegrableOn F (Set.Ioi (N / 2)) := by
     have hcoeff_pos : 0 < (2 : ℝ) * Real.pi :=
@@ -2475,7 +2512,7 @@ theorem Complex.binetSecondFormula_branchWall_fixedWindowSum_expWeighted_integra
                 ((2 : ℝ) * Real.pi) * (‖w‖ / 2) := by
               rfl
             _ = (((2 : ℝ) * Real.pi) * ‖w‖) / 2 := by
-              exact mul_div_assoc ((2 : ℝ) * Real.pi) ‖w‖ 2
+              exact (mul_div_assoc ((2 : ℝ) * Real.pi) ‖w‖ 2).symm
             _ = ((Real.pi * ‖w‖) * 2) / 2 := by
               exact
                 congrArg (fun x : ℝ => x / 2)
@@ -2534,7 +2571,7 @@ theorem Complex.binetSecondFormula_branchWall_fixedWindowSum_expWeighted_integra
                     (Real.exp_neg ((2 : ℝ) * Real.pi * t)).symm
                 _ = K * F t := by
                   exact congrArg (fun x : ℝ => K * Real.exp x)
-                    (neg_mul ((2 : ℝ) * Real.pi) t))
+                    (neg_mul ((2 : ℝ) * Real.pi) t).symm)
       _ = K * ∫ t : ℝ in Set.Ioc (N / 2) (2 * N), F t := by
         exact integral_mul_left K F
   exact
@@ -2920,7 +2957,7 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_le_branchWall_lo
         (max |Real.log (1 : ℝ)|
           |Real.log ((3 * ‖w‖) / w.re)|) + Real.pi) /
       (Real.exp (Real.pi * ‖w‖) - 1)
-  have hmeasure : volume S < ∞ :=
+  have hmeasure : volume S < (∞ : ENNReal) :=
     measure_Ioc_lt_top
   have hF_bound : ∀ t : ℝ, t ∈ S → ‖F t‖ ≤ C := by
     intro t ht
@@ -2976,8 +3013,12 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_le_expWeighted_f
       Real.exp ((2 : ℝ) * Real.pi * t)
   have hP_integrable :
       IntegrableOn P S :=
-    (Complex.binetSecondFormula_arctanKernel_integrableOn_tail_interval
-      (w := w) hw_re_pos).norm.mono_set Ioc_subset_Ioi_self
+    have hP_integrable_Ioi :
+        IntegrableOn P (Set.Ioi (‖w‖ / 2)) := by
+      exact
+        (Complex.binetSecondFormula_arctanKernel_integrableOn_tail_interval_owner
+          (w := w) hw_re_pos).norm
+    hP_integrable_Ioi.mono_set Ioc_subset_Ioi_self
   have hG_integrable : IntegrableOn G S := by
     let Scc : Set ℝ := Set.Icc (‖w‖ / 2) (2 * ‖w‖)
     let B : ℝ → ℝ := fun t : ℝ => max w.re |w.im - t|
@@ -2998,7 +3039,7 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_le_expWeighted_f
     have hdist_cont : Continuous fun t : ℝ => |w.im - t| :=
       (continuous_const.sub continuous_id).abs
     have hB_cont : Continuous B :=
-      continuous_const.max hdist_cont
+      continuous_const.sup hdist_cont
     have hA_cont : Continuous A :=
       continuous_const.div hB_cont (fun t => (hB_pos t).ne')
     have hlog_contOn :
@@ -3010,7 +3051,7 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_le_expWeighted_f
             max |Real.log (w.re / (3 * ‖w‖))|
               |Real.log (A t)| + Real.pi)
           Scc :=
-      (continuousOn_const.max hlog_contOn.abs).add continuousOn_const
+      (continuousOn_const.sup hlog_contOn.abs).add continuousOn_const
     have hnum_contOn :
         ContinuousOn
           (fun t : ℝ =>
