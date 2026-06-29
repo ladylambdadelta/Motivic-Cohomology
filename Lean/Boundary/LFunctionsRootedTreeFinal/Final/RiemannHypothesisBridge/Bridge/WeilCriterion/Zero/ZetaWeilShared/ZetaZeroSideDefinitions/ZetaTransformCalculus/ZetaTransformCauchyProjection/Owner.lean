@@ -5514,6 +5514,25 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_setIntegral_eq_int
         (f := fun t : ℝ => F (t : ℂ))
         hle).symm
 
+/-- Transport a complex lower-half-disk primitive derivative at a real interior
+point to the right real derivative along the diameter. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightDerivWithinAt_point_of_complexPrimitive
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T)
+    (t : ℝ) (_ht : t ∈ Set.Ioo (-T) T)
+    (_ht_lower :
+      (t : ℂ) ∈ scalarFourierLaplacePlemelj_lowerHalfDisk T)
+    (_hderiv :
+      HasDerivWithinAt G (F (t : ℂ))
+        (scalarFourierLaplacePlemelj_lowerHalfDisk T) (t : ℂ)) :
+    HasDerivWithinAt
+      (fun x : ℝ => G (x : ℂ))
+      (F (t : ℂ))
+      (Set.Ioi t)
+      t := by
+  sorry
+
 /-- Pointwise right-derivative transport from lower half-disk primitive data to
 the real diameter. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightDerivWithinAt_point
@@ -5526,7 +5545,15 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightDerivWithi
       (F (t : ℂ))
       (Set.Ioi t)
       t := by
-  sorry
+  have ht_closed : t ∈ Set.Icc (-T) T :=
+    Set.mem_Icc_of_Ioo _ht
+  have ht_lower :
+      (t : ℂ) ∈ scalarFourierLaplacePlemelj_lowerHalfDisk T :=
+    scalarFourierLaplacePlemelj_realSegment_mapsTo_lowerHalfDisk
+      T _hT ht_closed
+  exact
+    scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightDerivWithinAt_point_of_complexPrimitive
+      F G T _hT _hprimitive t _ht ht_lower (_hprimitive.2 (t : ℂ) ht_lower)
 
 /-- Restricting lower half-disk primitive data to the real diameter gives the
 right-derivative on the open interval needed by the fundamental theorem of
