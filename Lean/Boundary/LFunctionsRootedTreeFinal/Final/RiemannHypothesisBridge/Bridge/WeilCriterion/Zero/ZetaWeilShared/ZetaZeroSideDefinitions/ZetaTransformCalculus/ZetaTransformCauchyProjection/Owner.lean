@@ -5536,7 +5536,8 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_primitiveFunction_continuousOn
     (_hprimitive :
       scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
     ContinuousOn G (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
-  sorry
+  intro z hz
+  exact (_hprimitive.2 z hz).continuousWithinAt
 
 /-- The real diameter maps into the lower half-disk. -/
 theorem scalarFourierLaplacePlemelj_realSegment_mapsTo_lowerHalfDisk
