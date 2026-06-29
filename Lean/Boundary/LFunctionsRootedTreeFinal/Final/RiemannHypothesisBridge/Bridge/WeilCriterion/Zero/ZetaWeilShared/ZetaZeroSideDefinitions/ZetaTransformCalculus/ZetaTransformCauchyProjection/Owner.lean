@@ -6545,6 +6545,52 @@ theorem scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound
         scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound_eventually_of_arc
           a ha R δ Carc hδ hCarc_nonneg harc
 
+/-- Even-cosine real part of the uncompensated Cauchy Fourier window. -/
+noncomputable def scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow
+    (a T x : ℝ) : ℝ :=
+  ∫ t in Set.Icc (-T) T,
+    (-(a / (a ^ 2 + t ^ 2))) * Real.cos (t * x)
+
+/-- Odd-sine real contribution of the uncompensated Cauchy Fourier window. -/
+noncomputable def scalarFourierLaplacePlemelj_uncompensated_oddSineWindow
+    (a T x : ℝ) : ℝ :=
+  ∫ t in Set.Icc (-T) T,
+    (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)
+
+/-- Uniform Dirichlet bound for the even-cosine part of the uncompensated
+Cauchy Fourier window. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_uniform_bound
+    (a : ℝ) (ha : 0 < a) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ T x : ℝ,
+          |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x| ≤ C := by
+  sorry
+
+/-- Uniform Dirichlet bound for the odd-sine part of the uncompensated Cauchy
+Fourier window. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_uniform_bound
+    (a : ℝ) (ha : 0 < a) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ T x : ℝ,
+          |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤ C := by
+  sorry
+
+/-- Assembly of the uncompensated complex Cauchy window norm from the bounded
+even-cosine and odd-sine real components. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_window_norm_bound_of_even_odd
+    (a : ℝ) (ha : 0 < a) (T x Ceven Codd : ℝ)
+    (heven :
+      |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x| ≤ Ceven)
+    (hodd :
+      |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤ Codd) :
+    ‖∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ))‖ ≤ Ceven + Codd := by
+  sorry
+
 /-- Dirichlet decomposition bound for the uncompensated scalar Cauchy Fourier
 window.
 
@@ -6562,7 +6608,21 @@ theorem scalarFourierLaplacePlemelj_uncompensated_window_dirichletDecomposition_
               Complex.exp
                 (Complex.I * (t : ℂ) * (x : ℂ))‖
           ≤ C := by
-  sorry
+  match scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_uniform_bound
+    a ha with
+  | ⟨Ceven, hCeven_nonneg, heven⟩ =>
+      match scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_uniform_bound
+        a ha with
+      | ⟨Codd, hCodd_nonneg, hodd⟩ =>
+          let C : ℝ := Ceven + Codd
+          have hC_nonneg : 0 ≤ C := by
+            unfold C
+            exact add_nonneg hCeven_nonneg hCodd_nonneg
+          exact
+            ⟨C, hC_nonneg,
+              fun T x =>
+                scalarFourierLaplacePlemelj_uncompensated_window_norm_bound_of_even_odd
+                  a ha T x Ceven Codd (heven T x) (hodd T x)⟩
 
 /-- Global uniform bound for the uncompensated scalar Cauchy Fourier window. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_window_uniform_norm_bound
