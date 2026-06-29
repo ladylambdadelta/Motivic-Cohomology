@@ -22,6 +22,7 @@ noncomputable section
 open Complex
 open LSeries ArithmeticFunction
 open scoped ArithmeticFunction
+open scoped Real
 
 namespace ZetaAdmissibleFunction
 
@@ -45,7 +46,7 @@ def zetaPrimePowerGenuineEquivPrimesNat :
         cases raw with
         | mk p n =>
             have hn_ne : n ≠ 0 :=
-              Nat.ne_zero_of_lt hraw.2
+              Nat.ne_of_gt hraw.2
             have hn : n - 1 + 1 = n :=
               Nat.sub_one_add_one hn_ne
             apply Subtype.ext
@@ -71,7 +72,7 @@ theorem zetaPrimePowerGenuineEquivPrimesNat_toNat
           unfold zetaPrimePowerIndexToNat
           unfold zetaPrimePowerGenuineEquivPrimesNat
           have hn_ne : n ≠ 0 :=
-            Nat.ne_zero_of_lt hraw.2
+            Nat.ne_of_gt hraw.2
           have hn : n - 1 + 1 = n :=
             Nat.sub_one_add_one hn_ne
           exact congrArg (fun m : ℕ => p ^ m) hn.symm
@@ -132,14 +133,18 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalCast_complex_ne_zero
 /-- The complex half-power of a natural index is the real square root. -/
 theorem zetaCompletedExplicitFormulaPrimeNatural_cpow_half_eq_sqrt
     (n : ℕ) :
-    (n : ℂ) ^ (1 / 2 : ℂ) =
+    (n : ℂ) ^ ((1 / 2 : ℝ) : ℂ) =
       (Real.sqrt n : ℂ) := by
   have hcpow :
-      (n : ℂ) ^ (1 / 2 : ℂ) =
-        (((n : ℝ) ^ (1 / 2 : ℝ)) : ℂ) :=
-    (Complex.ofReal_cpow (Nat.cast_nonneg n) (1 / 2 : ℝ)).symm
+      (n : ℂ) ^ ((1 / 2 : ℝ) : ℂ) =
+        (Real.rpow (n : ℝ) (1 / 2 : ℝ) : ℂ) :=
+    have hraw :
+        (Real.rpow (n : ℝ) (1 / 2 : ℝ) : ℂ) =
+          (n : ℂ) ^ ((1 / 2 : ℝ) : ℂ) :=
+      Complex.ofReal_cpow (Nat.cast_nonneg n) (1 / 2 : ℝ)
+    hraw.symm
   have hsqrt :
-      (((n : ℝ) ^ (1 / 2 : ℝ)) : ℂ) =
+      (Real.rpow (n : ℝ) (1 / 2 : ℝ) : ℂ) =
         (Real.sqrt n : ℂ) :=
     congrArg (fun x : ℝ => (x : ℂ))
       (Real.sqrt_eq_rpow (n : ℝ)).symm
@@ -149,10 +154,10 @@ theorem zetaCompletedExplicitFormulaPrimeNatural_cpow_half_eq_sqrt
 square root. -/
 theorem zetaCompletedExplicitFormulaPrimeNatural_cpow_neg_half_eq_inv_sqrt
     (n : ℕ) :
-    (n : ℂ) ^ (-(1 / 2 : ℂ)) =
+    (n : ℂ) ^ (-((1 / 2 : ℝ) : ℂ)) =
       ((Real.sqrt n : ℂ))⁻¹ := by
   exact Eq.trans
-    (Complex.cpow_neg (n : ℂ) (1 / 2 : ℂ))
+    (Complex.cpow_neg (n : ℂ) ((1 / 2 : ℝ) : ℂ))
     (congrArg Inv.inv
       (zetaCompletedExplicitFormulaPrimeNatural_cpow_half_eq_sqrt n))
 
@@ -161,7 +166,7 @@ complex von Mangoldt value and the inverse square-root character. -/
 theorem zetaCompletedExplicitFormulaPrimeNaturalWeight_complex_eq
     (n : ℕ) :
     ((Λ n / Real.sqrt n : ℝ) : ℂ) =
-      ((↗Λ) n : ℂ) * ((Real.sqrt n : ℂ))⁻¹ := by
+      (Λ n : ℂ) * ((Real.sqrt n : ℂ))⁻¹ := by
   calc
     ((Λ n / Real.sqrt n : ℝ) : ℂ) =
         ((Λ n * (Real.sqrt n)⁻¹ : ℝ) : ℂ) := by
@@ -175,7 +180,7 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalWeight_complex_eq
       exact congrArg (fun z : ℂ => ((Λ n : ℂ)) * z)
         (Complex.ofReal_inv (Real.sqrt n))
     _ =
-        ((↗Λ) n : ℂ) * ((Real.sqrt n : ℂ))⁻¹ := by
+        (Λ n : ℂ) * ((Real.sqrt n : ℂ))⁻¹ := by
       rfl
 
 /-- The completed natural-number von Mangoldt weight, with the zero term
@@ -591,7 +596,7 @@ theorem exists_zetaCompletedExplicitFormula_timeBoundarySupportUpperBound
         (motive := fun S : Set ℝ => x ∈ S)
         (zetaCompletedExplicitFormula_timeBoundarySupport_eq f)
         hx
-  exact hB x hx_source
+  exact hB hx_source
 
 /-- Compact support gives a lower bound for the completed boundary-value
 support used by reflected natural-number prime samples. -/
@@ -609,7 +614,7 @@ theorem exists_zetaCompletedExplicitFormula_timeBoundarySupportLowerBound
         (motive := fun S : Set ℝ => x ∈ S)
         (zetaCompletedExplicitFormula_timeBoundarySupport_eq f)
         hx
-  exact hA x hx_source
+  exact hA hx_source
 
 /-- The completed boundary value vanishes above any upper bound for its
 time-domain support. -/
@@ -751,8 +756,14 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample_support_finit
   exact
     Set.Finite.subset
       (by
-        simpa only [Finset.coe_Iic] using
-          (Finset.Iic M).finite_toSet)
+        have hfinset :
+            ((↑(Finset.Iic M) : Set ℕ)).Finite :=
+          (Finset.Iic M).finite_toSet
+        exact
+          Eq.subst
+            (motive := fun S : Set ℕ => S.Finite)
+            (Finset.coe_Iic M)
+            hfinset)
       hsubset
 
 /-- The one-sided natural-time sample series is summable; in fact it has
@@ -873,8 +884,14 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample_supp
   exact
     Set.Finite.subset
       (by
-        simpa only [Finset.coe_Iic] using
-          (Finset.Iic M).finite_toSet)
+        have hfinset :
+            ((↑(Finset.Iic M) : Set ℕ)).Finite :=
+          (Finset.Iic M).finite_toSet
+        exact
+          Eq.subst
+            (motive := fun S : Set ℕ => S.Finite)
+            (Finset.coe_Iic M)
+            hfinset)
       hsubset
 
 /-- The reflected natural boundary sample series is summable; in fact it has
@@ -913,8 +930,8 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample_summable
       Summable
         (fun n : ℕ =>
           zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
-            zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample
-              f n) :=
+            (zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample
+              f n)) :=
     Summable.add hone hreflected
   exact
     Eq.subst
@@ -997,44 +1014,47 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundaryContribution_eq_o
       f
   have htwoFace :
       (∑' n : ℕ,
-        zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n) =
-        ∑' n : ℕ,
+        (zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample f n)) =
+        (∑' n : ℕ,
+          (
           zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
-            zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample
-              f n :=
+            (zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample
+              f n))) :=
     tsum_congr
       (fun n : ℕ =>
         zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample_eq
           f n)
   have hadd :
       (∑' n : ℕ,
+        (
           zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
-            zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample
-              f n) =
+            (zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample
+              f n))) =
         (∑' n : ℕ,
-          zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n) +
-          ∑' n : ℕ,
-            zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample
-              f n :=
+          (zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n)) +
+          (∑' n : ℕ,
+            (zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample
+              f n)) :=
     tsum_add hone hreflected
   calc
     zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundaryContribution f =
         ∑' n : ℕ,
-          zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample
-            f n := by
+          (zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample
+            f n) := by
       rfl
     _ =
-        ∑' n : ℕ,
+        (∑' n : ℕ,
+          (
           zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n +
-            zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample
-              f n := by
+            (zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample
+              f n))) := by
       exact htwoFace
     _ =
         (∑' n : ℕ,
-          zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n) +
-          ∑' n : ℕ,
-            zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample
-              f n := by
+          (zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n)) +
+          (∑' n : ℕ,
+            (zetaCompletedExplicitFormulaPrimeNaturalReflectedTimeBoundarySample
+              f n)) := by
       exact hadd
     _ =
         zetaCompletedExplicitFormulaPrimeNaturalOneSidedContribution f +
@@ -1049,7 +1069,7 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundaryContribution_eq_o
 /-- The natural center at a genuine prime-power coordinate agrees with the
 prime-power window center. -/
 theorem zetaCompletedExplicitFormulaPrimeNaturalCenter_pow_eq_primePowerCenter
-    {p k : ℕ} (hp : Nat.Prime p) :
+    {p k : ℕ} (_hp : Nat.Prime p) :
     zetaCompletedExplicitFormulaPrimeNaturalCenter (p ^ k) =
       zetaPrimePacketCenter p k := by
   unfold zetaCompletedExplicitFormulaPrimeNaturalCenter
@@ -1057,7 +1077,7 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalCenter_pow_eq_primePowerCenter
   have hcast : ((p ^ k : ℕ) : ℝ) = (p : ℝ) ^ k :=
     Nat.cast_pow p k
   calc
-    Real.log (p ^ k) = Real.log ((p : ℝ) ^ k) := by
+    Real.log ((p ^ k : ℕ) : ℝ) = Real.log ((p : ℝ) ^ k) := by
       exact congrArg Real.log hcast
     _ = (k : ℝ) * Real.log p := by
       exact Real.log_pow (p : ℝ) k
@@ -1071,22 +1091,26 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalWeight_pow_eq_primePowerWeight
     zetaCompletedExplicitFormulaPrimeNaturalWeight (p ^ k) =
       ZetaPrimePowerIndex.weight ⟨p, k⟩ := by
   have hk_ne : k ≠ 0 := by
-    exact Nat.ne_zero_of_lt hk
+    exact Nat.ne_of_gt hk
   have hp_ne : p ≠ 0 :=
     hp.ne_zero
   have hpow_ne : p ^ k ≠ 0 :=
     pow_ne_zero k hp_ne
+  have hcast : ((p ^ k : ℕ) : ℝ) = (p : ℝ) ^ k :=
+    Nat.cast_pow p k
   unfold ZetaPrimePowerIndex.weight
   calc
     zetaCompletedExplicitFormulaPrimeNaturalWeight (p ^ k) =
-        Λ (p ^ k) / Real.sqrt (p ^ k) :=
+        Λ (p ^ k) / Real.sqrt ((p ^ k : ℕ) : ℝ) :=
       zetaCompletedExplicitFormulaPrimeNaturalWeight_of_ne_zero hpow_ne
-    _ = Λ p / Real.sqrt (p ^ k) := by
-      exact congrArg (fun x : ℝ => x / Real.sqrt (p ^ k))
+    _ = Λ p / Real.sqrt ((p ^ k : ℕ) : ℝ) := by
+      exact congrArg (fun x : ℝ => x / Real.sqrt ((p ^ k : ℕ) : ℝ))
         (ArithmeticFunction.vonMangoldt_apply_pow hk_ne)
-    _ = Real.log p / Real.sqrt (p ^ k) := by
-      exact congrArg (fun x : ℝ => x / Real.sqrt (p ^ k))
+    _ = Real.log p / Real.sqrt ((p ^ k : ℕ) : ℝ) := by
+      exact congrArg (fun x : ℝ => x / Real.sqrt ((p ^ k : ℕ) : ℝ))
         (ArithmeticFunction.vonMangoldt_apply_prime hp)
+    _ = Real.log p / Real.sqrt ((p : ℝ) ^ k) := by
+      exact congrArg (fun x : ℝ => Real.log p / Real.sqrt x) hcast
     _ = (if _hp : Nat.Prime p then
           if _hk : 1 ≤ k then
             Real.log p / Real.sqrt (p ^ k)
@@ -1132,16 +1156,154 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_of_ne_zero
               (zetaCompletedTimeBoundaryValue f
                 (zetaCompletedExplicitFormulaPrimeNaturalCenter n)))) := by
   unfold zetaCompletedExplicitFormulaPrimeNaturalTimeSummand
-  exact congrArg
-    (fun w : ℝ =>
-      -(w *
-        Complex.re
-          (zetaCompletedTimeBoundaryValue f
-              (zetaCompletedExplicitFormulaPrimeNaturalCenter n) +
-            star
+  have hweight :
+      ((zetaCompletedExplicitFormulaPrimeNaturalWeight n : ℝ) : ℂ) =
+        (Λ n : ℂ) * ((Real.sqrt n : ℂ))⁻¹ :=
+    Eq.trans
+      (congrArg (fun w : ℝ => (w : ℂ))
+        (zetaCompletedExplicitFormulaPrimeNaturalWeight_of_ne_zero hn))
+      (zetaCompletedExplicitFormulaPrimeNaturalWeight_complex_eq n)
+  exact
+    congrArg Neg.neg
+      (congrArg
+        (fun w : ℂ =>
+          w *
+            ((Complex.re
               (zetaCompletedTimeBoundaryValue f
-                (zetaCompletedExplicitFormulaPrimeNaturalCenter n)))))
-    (zetaCompletedExplicitFormulaPrimeNaturalWeight_of_ne_zero hn)
+                  (zetaCompletedExplicitFormulaPrimeNaturalCenter n) +
+                star
+                  (zetaCompletedTimeBoundaryValue f
+                    (zetaCompletedExplicitFormulaPrimeNaturalCenter n))) : ℝ) : ℂ))
+        hweight)
+
+/-- A symmetric prime natural-time summand vanishes once its logarithmic center
+lies above a support upper bound for the completed boundary source. -/
+theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_zero_of_supportUpperBound_lt_log
+    (f : ZetaAdmissibleFunction) {B : ℝ} {n : ℕ}
+    (hB : ∀ x ∈ tsupport f.toZetaTestFunction', x ≤ B)
+    (hn : B < Real.log n) :
+    zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n = 0 := by
+  have hcenter_log :
+      zetaCompletedExplicitFormulaPrimeNaturalCenter n =
+        Real.log n :=
+    zetaCompletedExplicitFormulaPrimeNaturalCenter_eq_log n
+  have hcenter_zero :
+      zetaCompletedTimeBoundaryValue f
+          (zetaCompletedExplicitFormulaPrimeNaturalCenter n) = 0 := by
+    exact
+      zetaCompletedTimeBoundaryValue_eq_zero_of_supportUpperBound_lt
+        f hB
+        (Eq.subst
+          (motive := fun a : ℝ => B < a)
+          hcenter_log.symm
+          hn)
+  unfold zetaCompletedExplicitFormulaPrimeNaturalTimeSummand
+  calc
+    (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n *
+      Complex.re
+        (zetaCompletedTimeBoundaryValue f
+            (zetaCompletedExplicitFormulaPrimeNaturalCenter n) +
+          star
+            (zetaCompletedTimeBoundaryValue f
+              (zetaCompletedExplicitFormulaPrimeNaturalCenter n)))) : ℂ) =
+        (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n *
+          Complex.re ((0 : ℂ) + star (0 : ℂ))) : ℂ) := by
+      exact congrArg
+        (fun z : ℂ =>
+          (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n *
+            Complex.re (z + star z)) : ℂ))
+        hcenter_zero
+    _ =
+        (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n *
+          Complex.re ((0 : ℂ) + (0 : ℂ))) : ℂ) := by
+      exact congrArg
+        (fun z : ℂ =>
+          (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n *
+            Complex.re ((0 : ℂ) + z)) : ℂ))
+        (star_zero ℂ)
+    _ =
+        (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n *
+          Complex.re (0 : ℂ)) : ℂ) := by
+      exact congrArg
+        (fun z : ℂ =>
+          (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n *
+            Complex.re z) : ℂ))
+        (zero_add (0 : ℂ))
+    _ =
+        (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n * 0) : ℂ) := by
+      exact congrArg
+        (fun r : ℝ =>
+          (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n * r) : ℂ))
+        (Complex.zero_re)
+    _ = 0 := by
+      have hmul :
+          ((zetaCompletedExplicitFormulaPrimeNaturalWeight n : ℝ) : ℂ) *
+              (0 : ℂ) =
+            0 :=
+        mul_zero ((zetaCompletedExplicitFormulaPrimeNaturalWeight n : ℝ) : ℂ)
+      exact Eq.trans (congrArg Neg.neg hmul) (neg_zero : -(0 : ℂ) = 0)
+
+/-- The symmetric prime natural-time summand vanishes for all sufficiently
+large natural indices, explicitly bounded by the exponential ceiling of a
+compact support bound. -/
+theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_zero_of_supportCeil_lt
+    (f : ZetaAdmissibleFunction) {B : ℝ} {n : ℕ}
+    (hB : ∀ x ∈ tsupport f.toZetaTestFunction', x ≤ B)
+    (hn : Nat.ceil (Real.exp B) < n) :
+    zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n = 0 := by
+  exact
+    zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_zero_of_supportUpperBound_lt_log
+      f hB
+      (zetaCompletedExplicitFormulaPrimeNaturalSupportUpper_lt_log_of_ceil_lt
+        hn)
+
+/-- The symmetric natural-time summands have finite support, because the
+admissible source is compactly supported and the centers are `log n`. -/
+theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_support_finite
+    (f : ZetaAdmissibleFunction) :
+    (Function.support
+      (fun n : ℕ =>
+        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n)).Finite := by
+  obtain ⟨B, hB⟩ :=
+    exists_zetaCompletedExplicitFormula_timeBoundarySupportUpperBound f
+  let M : ℕ := Nat.ceil (Real.exp B)
+  have hsubset :
+      Function.support
+        (fun n : ℕ =>
+          zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n) ⊆
+        Set.Iic M := by
+    intro n hn
+    by_contra hnot_le
+    have hlt : M < n :=
+      Nat.lt_of_not_ge hnot_le
+    have hzero :
+        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n = 0 :=
+      zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_zero_of_supportCeil_lt
+        f hB hlt
+    exact hn hzero
+  exact
+    Set.Finite.subset
+      (by
+        have hfinset :
+            ((↑(Finset.Iic M) : Set ℕ)).Finite :=
+          (Finset.Iic M).finite_toSet
+        exact
+          Eq.subst
+            (motive := fun S : Set ℕ => S.Finite)
+            (Finset.coe_Iic M)
+            hfinset)
+      hsubset
+
+/-- The symmetric natural-time summand series is summable; in fact it has
+finite support. -/
+theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_summable
+    (f : ZetaAdmissibleFunction) :
+    Summable
+      (fun n : ℕ =>
+        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n) := by
+  exact
+    summable_of_finite_support
+      (zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_support_finite f)
 
 /-- The symmetric natural-number von Mangoldt contribution.  This is the
 time-side prime distribution after right/left recombination, before reindexing
@@ -1379,15 +1541,16 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalComplementContribution_eq_tsum_o
     (f : ZetaAdmissibleFunction)
     (htsum_sub :
       (∑' n : ℕ,
-        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n -
-          zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n) =
+        (
+        (zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n) -
+          (zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n))) =
         (∑' n : ℕ,
-          zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n) -
-          ∑' n : ℕ,
-            zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n) :
+          (zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n)) -
+          (∑' n : ℕ,
+            (zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n))) :
     zetaCompletedExplicitFormulaPrimeNaturalComplementContribution f =
-      ∑' n : ℕ,
-        zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n := by
+      (∑' n : ℕ,
+        zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n) := by
   calc
     zetaCompletedExplicitFormulaPrimeNaturalComplementContribution f =
         zetaCompletedExplicitFormulaPrimeNaturalSymmetricContribution f -
@@ -1395,7 +1558,7 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalComplementContribution_eq_tsum_o
       rfl
     _ =
         (∑' n : ℕ,
-          zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n) -
+          (zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n)) -
           zetaCompletedExplicitFormulaPrimeNaturalOneSidedContribution f := by
       exact congrArg
         (fun z : ℂ =>
@@ -1404,21 +1567,22 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalComplementContribution_eq_tsum_o
     _ =
         (∑' n : ℕ,
           zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n) -
-          ∑' n : ℕ,
-            zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n := by
+          (∑' n : ℕ,
+            zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n) := by
       exact congrArg
         (fun z : ℂ =>
           (∑' n : ℕ,
-            zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n) - z)
+            (zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n)) - z)
         (zetaCompletedExplicitFormulaPrimeNaturalOneSidedContribution_eq_tsum f)
     _ =
-        ∑' n : ℕ,
-          zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n -
-            zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n := by
+        (∑' n : ℕ,
+          (
+          (zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n) -
+            (zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n))) := by
       exact htsum_sub.symm
     _ =
-        ∑' n : ℕ,
-          zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n := by
+        (∑' n : ℕ,
+          zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n) := by
       exact tsum_congr
         (fun n : ℕ =>
           (zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample_eq
@@ -1430,12 +1594,13 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample_tsum_eq_con
     (f : ZetaAdmissibleFunction)
     (htsum_sub :
       (∑' n : ℕ,
-        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n -
-          zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n) =
+        (
+        (zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n) -
+          (zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n))) =
         (∑' n : ℕ,
-          zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n) -
-          ∑' n : ℕ,
-            zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n) :
+          (zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n)) -
+          (∑' n : ℕ,
+            (zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n))) :
     (∑' n : ℕ,
       zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample f n) =
       zetaCompletedExplicitFormulaPrimeNaturalComplementContribution f := by
@@ -1655,15 +1820,17 @@ theorem zetaCompletedExplicitFormulaPrimePowerTimeSummand_eq_zero_of_not_isGenui
                 star (zetaCompletedTimeBoundaryValue f (ZetaPrimePowerIndex.center ι)))) : ℂ))
         hweight
     _ = 0 := by
-      let R : ℝ :=
-        Complex.re
-          (zetaCompletedTimeBoundaryValue f (ZetaPrimePowerIndex.center ι) +
-            star (zetaCompletedTimeBoundaryValue f (ZetaPrimePowerIndex.center ι)))
-      have hmul : 0 * R = 0 :=
-        zero_mul R
-      have hneg : -(0 * R) = 0 :=
-        Eq.trans (congrArg Neg.neg hmul) (neg_zero : -(0 : ℝ) = 0)
-      exact congrArg (fun x : ℝ => (x : ℂ)) hneg
+      have hmul :
+          (0 : ℂ) *
+              ((Complex.re
+                (zetaCompletedTimeBoundaryValue f (ZetaPrimePowerIndex.center ι) +
+                  star (zetaCompletedTimeBoundaryValue f (ZetaPrimePowerIndex.center ι))) : ℝ) : ℂ) =
+            0 :=
+        zero_mul
+          (((Complex.re
+            (zetaCompletedTimeBoundaryValue f (ZetaPrimePowerIndex.center ι) +
+              star (zetaCompletedTimeBoundaryValue f (ZetaPrimePowerIndex.center ι))) : ℝ) : ℂ))
+      exact Eq.trans (congrArg Neg.neg hmul) (neg_zero : -(0 : ℂ) = 0)
 
 /-- The natural time-side summand vanishes away from prime powers. -/
 theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_zero_of_not_isPrimePow
@@ -1699,18 +1866,23 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_zero_of_not_isPri
                     (zetaCompletedExplicitFormulaPrimeNaturalCenter n)))) : ℂ))
         hweight
     _ = 0 := by
-      let R : ℝ :=
-        Complex.re
-          (zetaCompletedTimeBoundaryValue f
-              (zetaCompletedExplicitFormulaPrimeNaturalCenter n) +
-            star
-              (zetaCompletedTimeBoundaryValue f
-                (zetaCompletedExplicitFormulaPrimeNaturalCenter n)))
-      have hmul : 0 * R = 0 :=
-        zero_mul R
-      have hneg : -(0 * R) = 0 :=
-        Eq.trans (congrArg Neg.neg hmul) (neg_zero : -(0 : ℝ) = 0)
-      exact congrArg (fun x : ℝ => (x : ℂ)) hneg
+      have hmul :
+          (0 : ℂ) *
+              ((Complex.re
+                (zetaCompletedTimeBoundaryValue f
+                    (zetaCompletedExplicitFormulaPrimeNaturalCenter n) +
+                  star
+                    (zetaCompletedTimeBoundaryValue f
+                      (zetaCompletedExplicitFormulaPrimeNaturalCenter n))) : ℝ) : ℂ) =
+            0 :=
+        zero_mul
+          (((Complex.re
+            (zetaCompletedTimeBoundaryValue f
+                (zetaCompletedExplicitFormulaPrimeNaturalCenter n) +
+              star
+                (zetaCompletedTimeBoundaryValue f
+                  (zetaCompletedExplicitFormulaPrimeNaturalCenter n))) : ℝ) : ℂ))
+      exact Eq.trans (congrArg Neg.neg hmul) (neg_zero : -(0 : ℂ) = 0)
 
 /-- The natural von Mangoldt time-side summand vanishes at zero. -/
 theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_zero
@@ -1743,18 +1915,23 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_zero
                     (zetaCompletedExplicitFormulaPrimeNaturalCenter 0)))) : ℂ))
         zetaCompletedExplicitFormulaPrimeNaturalWeight_zero
     _ = 0 := by
-      let R : ℝ :=
-        Complex.re
-          (zetaCompletedTimeBoundaryValue f
-              (zetaCompletedExplicitFormulaPrimeNaturalCenter 0) +
-            star
-              (zetaCompletedTimeBoundaryValue f
-                (zetaCompletedExplicitFormulaPrimeNaturalCenter 0)))
-      have hmul : 0 * R = 0 :=
-        zero_mul R
-      have hneg : -(0 * R) = 0 :=
-        Eq.trans (congrArg Neg.neg hmul) (neg_zero : -(0 : ℝ) = 0)
-      exact congrArg (fun x : ℝ => (x : ℂ)) hneg
+      have hmul :
+          (0 : ℂ) *
+              ((Complex.re
+                (zetaCompletedTimeBoundaryValue f
+                    (zetaCompletedExplicitFormulaPrimeNaturalCenter 0) +
+                  star
+                    (zetaCompletedTimeBoundaryValue f
+                      (zetaCompletedExplicitFormulaPrimeNaturalCenter 0))) : ℝ) : ℂ) =
+            0 :=
+        zero_mul
+          (((Complex.re
+            (zetaCompletedTimeBoundaryValue f
+                (zetaCompletedExplicitFormulaPrimeNaturalCenter 0) +
+              star
+                (zetaCompletedTimeBoundaryValue f
+                  (zetaCompletedExplicitFormulaPrimeNaturalCenter 0))) : ℝ) : ℂ))
+      exact Eq.trans (congrArg Neg.neg hmul) (neg_zero : -(0 : ℂ) = 0)
 
 /-- Nonzero two-face normalization from the exact scalar Hermitian boundary
 identity at the natural logarithmic center.
@@ -2010,130 +2187,6 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalScalarHermitian_of_timeSummand_e
     zetaCompletedExplicitFormulaPrimeNatural_scalarHermitian_of_ne_zero_of_timeSummand_eq_twoFaceBoundarySample
       f hn (htwoFace n)
 
-/-- A symmetric prime natural-time summand vanishes once its logarithmic center
-lies above a support upper bound for the completed boundary source. -/
-theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_zero_of_supportUpperBound_lt_log
-    (f : ZetaAdmissibleFunction) {B : ℝ} {n : ℕ}
-    (hB : ∀ x ∈ tsupport f.toZetaTestFunction', x ≤ B)
-    (hn : B < Real.log n) :
-    zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n = 0 := by
-  have hcenter_log :
-      zetaCompletedExplicitFormulaPrimeNaturalCenter n =
-        Real.log n :=
-    zetaCompletedExplicitFormulaPrimeNaturalCenter_eq_log n
-  have hcenter_zero :
-      zetaCompletedTimeBoundaryValue f
-          (zetaCompletedExplicitFormulaPrimeNaturalCenter n) = 0 := by
-    exact
-      zetaCompletedTimeBoundaryValue_eq_zero_of_supportUpperBound_lt
-        f hB
-        (Eq.subst
-          (motive := fun a : ℝ => B < a)
-          hcenter_log.symm
-          hn)
-  unfold zetaCompletedExplicitFormulaPrimeNaturalTimeSummand
-  calc
-    (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n *
-      Complex.re
-        (zetaCompletedTimeBoundaryValue f
-            (zetaCompletedExplicitFormulaPrimeNaturalCenter n) +
-          star
-            (zetaCompletedTimeBoundaryValue f
-              (zetaCompletedExplicitFormulaPrimeNaturalCenter n)))) : ℂ) =
-        (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n *
-          Complex.re ((0 : ℂ) + star (0 : ℂ))) : ℂ) := by
-      exact congrArg
-        (fun z : ℂ =>
-          (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n *
-            Complex.re (z + star z)) : ℂ))
-        hcenter_zero
-    _ =
-        (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n *
-          Complex.re ((0 : ℂ) + (0 : ℂ))) : ℂ) := by
-      exact congrArg
-        (fun z : ℂ =>
-          (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n *
-            Complex.re ((0 : ℂ) + z)) : ℂ))
-        (star_zero : star (0 : ℂ) = 0)
-    _ =
-        (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n *
-          Complex.re (0 : ℂ)) : ℂ) := by
-      exact congrArg
-        (fun z : ℂ =>
-          (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n *
-            Complex.re z) : ℂ))
-        (zero_add (0 : ℂ))
-    _ =
-        (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n * 0) : ℂ) := by
-      exact congrArg
-        (fun r : ℝ =>
-          (-(zetaCompletedExplicitFormulaPrimeNaturalWeight n * r) : ℂ))
-        (Complex.zero_re)
-    _ = 0 := by
-      have hmul :
-          zetaCompletedExplicitFormulaPrimeNaturalWeight n * 0 = 0 :=
-        mul_zero (zetaCompletedExplicitFormulaPrimeNaturalWeight n)
-      have hneg :
-          -(zetaCompletedExplicitFormulaPrimeNaturalWeight n * 0) = 0 :=
-        Eq.trans (congrArg Neg.neg hmul) (neg_zero : -(0 : ℝ) = 0)
-      exact congrArg (fun r : ℝ => (r : ℂ)) hneg
-
-/-- The symmetric prime natural-time summand vanishes for all sufficiently
-large natural indices, explicitly bounded by the exponential ceiling of a
-compact support bound. -/
-theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_zero_of_supportCeil_lt
-    (f : ZetaAdmissibleFunction) {B : ℝ} {n : ℕ}
-    (hB : ∀ x ∈ tsupport f.toZetaTestFunction', x ≤ B)
-    (hn : Nat.ceil (Real.exp B) < n) :
-    zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n = 0 := by
-  exact
-    zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_zero_of_supportUpperBound_lt_log
-      f hB
-      (zetaCompletedExplicitFormulaPrimeNaturalSupportUpper_lt_log_of_ceil_lt
-        hn)
-
-/-- The symmetric natural-time summands have finite support, because the
-admissible source is compactly supported and the centers are `log n`. -/
-theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_support_finite
-    (f : ZetaAdmissibleFunction) :
-    (Function.support
-      (fun n : ℕ =>
-        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n)).Finite := by
-  obtain ⟨B, hB⟩ :=
-    exists_zetaCompletedExplicitFormula_timeBoundarySupportUpperBound f
-  let M : ℕ := Nat.ceil (Real.exp B)
-  have hsubset :
-      Function.support
-        (fun n : ℕ =>
-          zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n) ⊆
-        Set.Iic M := by
-    intro n hn
-    by_contra hnot_le
-    have hlt : M < n :=
-      Nat.lt_of_not_ge hnot_le
-    have hzero :
-        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n = 0 :=
-      zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_eq_zero_of_supportCeil_lt
-        f hB hlt
-    exact hn hzero
-  exact
-    Set.Finite.subset
-      (by
-        simpa only [Finset.coe_Iic] using
-          (Finset.Iic M).finite_toSet)
-      hsubset
-
-/-- The symmetric natural-time summand series is summable; in fact it has
-finite support. -/
-theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_summable
-    (f : ZetaAdmissibleFunction) :
-    Summable
-      (fun n : ℕ =>
-        zetaCompletedExplicitFormulaPrimeNaturalTimeSummand f n) := by
-  exact
-    summable_of_finite_support
-      (zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_support_finite f)
-
 /-- The zeroth complementary natural prime sample vanishes. -/
 theorem zetaCompletedExplicitFormulaPrimeNaturalComplementTimeSample_zero
     (f : ZetaAdmissibleFunction) :
@@ -2202,10 +2255,17 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTimeSummand_pow_eq_primePowerTim
         Complex.re (primePowerSample + star primePowerSample) :=
     congrArg Complex.re
       (congrArg₂ (fun a b : ℂ => a + b) hsample hsampleConj)
+  have hweightC :
+      ((zetaCompletedExplicitFormulaPrimeNaturalWeight (p ^ k) : ℝ) : ℂ) =
+        ((ZetaPrimePowerIndex.weight ⟨p, k⟩ : ℝ) : ℂ) :=
+    congrArg (fun r : ℝ => (r : ℂ)) hweight
+  have hrealC :
+      ((Complex.re (naturalSample + star naturalSample) : ℝ) : ℂ) =
+        ((Complex.re (primePowerSample + star primePowerSample) : ℝ) : ℂ) :=
+    congrArg (fun r : ℝ => (r : ℂ)) hreal
   exact
-    congrArg (fun x : ℝ => (x : ℂ))
-      (congrArg Neg.neg
-        (congrArg₂ (fun a b : ℝ => a * b) hweight hreal))
+    congrArg Neg.neg
+      (congrArg₂ (fun a b : ℂ => a * b) hweightC hrealC)
 
 /-- For a genuine raw prime-power coordinate, the natural summand at the
 represented natural number agrees with the raw coordinate summand. -/

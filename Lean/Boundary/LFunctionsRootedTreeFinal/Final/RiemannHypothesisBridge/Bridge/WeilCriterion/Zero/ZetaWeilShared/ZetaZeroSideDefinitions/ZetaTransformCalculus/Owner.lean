@@ -8,6 +8,7 @@ import Mathlib.MeasureTheory.Integral.SetIntegral
 import Mathlib.MeasureTheory.Function.LocallyIntegrable
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCalculusBase.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCalculusZeta.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCauchyProjection.Owner
 
 /-!
 # Boundary zeta transform calculus
@@ -436,27 +437,6 @@ end FourierInterval
 
 section LaplaceCauchyProjection
 
-/-- The right one-pole Cauchy/Laplace projection value attached to a compactly
-supported logarithmic test function.
-
-The normalization is owned here because it is a transform-calculus object: it
-is the time-side one-sided projection produced by the multiplier
-`(c - 1 + it)⁻¹` on the fixed right vertical Laplace line. -/
-noncomputable def zetaLaplaceTransform_rightOnePoleCauchyProjectionValue
-    (φ : LFunctions.ZetaTestFunction) (c : ℝ) : ℂ :=
-  ∫ x in Set.Iic (0 : ℝ),
-    (-2 * (Real.pi : ℂ)) *
-      φ x *
-        Complex.exp ((1 / 2 : ℂ) * (x : ℂ))
-
-/-- The time-side kernel whose Fourier transform is the fixed right vertical
-Laplace slice after the `s = 1` Cauchy multiplier is separated. -/
-noncomputable def zetaLaplaceTransform_rightOnePoleProjectionKernel
-    (φ : LFunctions.ZetaTestFunction) : ℝ → ℂ :=
-  fun x : ℝ =>
-    φ x *
-      Complex.exp ((1 / 2 : ℂ) * (x : ℂ))
-
 /-- Fourier-Cauchy projection estimate for the time-side kernel.
 
 This is the primitive transform-calculus statement: the symmetric truncations
@@ -474,7 +454,9 @@ theorem zetaLaplaceTransform_rightOnePole_fixedLineCauchyProjection_eventual_inv
                   (((c : ℂ) + t * Complex.I) - 1 / 2)) -
             zetaLaplaceTransform_rightOnePoleCauchyProjectionValue φ c‖
             ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
-  sorry
+  exact
+    zetaLaplaceTransform_fixedLine_rightOnePoleCauchyProjection_eventual_inverseQuadratic_to_value
+      φ c hc height hcofinal
 
 /-- Generic Cauchy/Laplace projection estimate on a fixed right vertical line.
 
