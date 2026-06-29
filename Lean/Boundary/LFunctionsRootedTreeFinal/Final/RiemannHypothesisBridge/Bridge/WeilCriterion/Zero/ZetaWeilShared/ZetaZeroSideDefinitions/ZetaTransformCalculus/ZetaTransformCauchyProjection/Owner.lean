@@ -6062,6 +6062,23 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
       (fun _ : ℝ => (-2 * (Real.pi : ℂ)))
   exact hvalue ▸ hbase
 
+/-- Compact-interval estimate for the normalized scalar Fourier-Laplace
+Plemelj kernel. -/
+theorem scalarFourierLaplacePlemelj_compactInterval_norm_bound_eventually
+    (a : ℝ) (ha : 0 < a) (R : ℝ) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            ‖x‖ ≤ R →
+              ‖(∫ t in Set.Icc (-T) T,
+                (-1 / ((a : ℂ) + t * Complex.I)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp ((a : ℂ) * (x : ℂ)))‖
+              ≤ C := by
+  sorry
+
 /-- Compact-interval scalar-window estimate for the fixed-right-line Cauchy
 kernel.
 
@@ -6081,7 +6098,21 @@ theorem fixedRightLine_scalarCauchyWindow_compactInterval_norm_bound_eventually
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
               ≤ C := by
-  sorry
+  have ha : 0 < c - 1 :=
+    sub_pos.mpr hc
+  match scalarFourierLaplacePlemelj_compactInterval_norm_bound_eventually
+    (c - 1) ha R with
+  | ⟨C, hC_nonneg, hC_eventual⟩ =>
+      exact
+        ⟨C, hC_nonneg,
+          hC_eventual.mono
+            (fun T hT =>
+              fun x hx =>
+                Eq.subst
+                  (motive := fun z : ℂ => ‖z‖ ≤ C)
+                  (fixedRightLine_scalarCauchyWindow_eq_normalizedLaplaceWindow
+                    c x T).symm
+                  (hT x hx))⟩
 
 /-- Compact-support scalar-window estimate on the time support of the kernel.
 
