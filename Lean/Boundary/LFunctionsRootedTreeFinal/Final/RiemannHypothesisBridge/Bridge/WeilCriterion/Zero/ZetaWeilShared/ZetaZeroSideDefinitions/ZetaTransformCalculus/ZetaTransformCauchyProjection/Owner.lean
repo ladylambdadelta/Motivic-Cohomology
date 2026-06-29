@@ -5582,7 +5582,52 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightLocalDeriv
       (F (t : ℂ))
       (Set.Ioi t ∩ Set.Icc (-T) T)
       t := by
-  sorry
+  let s : Set ℝ := Set.Ioi t ∩ Set.Icc (-T) T
+  let ofRealLine : ℝ → ℂ := fun x : ℝ => (x : ℂ)
+  have hinner :
+      HasDerivWithinAt ofRealLine (1 : ℂ) s t := by
+    exact Complex.ofRealCLM.hasDerivAt.hasDerivWithinAt
+  have hmaps :
+      Set.MapsTo ofRealLine s
+        (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
+    intro x hx
+    exact
+      scalarFourierLaplacePlemelj_realSegment_mapsTo_lowerHalfDisk
+        T _hT hx.2
+  have houter :
+      HasFDerivWithinAt G
+        ((F (t : ℂ)) • (1 : ℂ →L[ℝ] ℂ))
+        (scalarFourierLaplacePlemelj_lowerHalfDisk T)
+        (ofRealLine t) := by
+    exact _hderiv.complexToReal_fderiv
+  have hcomp :
+      HasDerivWithinAt
+        (G ∘ ofRealLine)
+        (((F (t : ℂ)) • (1 : ℂ →L[ℝ] ℂ)) (1 : ℂ))
+        s
+        t := by
+    exact houter.comp_hasDerivWithinAt t hinner hmaps
+  have hvalue :
+      (((F (t : ℂ)) • (1 : ℂ →L[ℝ] ℂ)) (1 : ℂ)) =
+        F (t : ℂ) := by
+    calc
+      (((F (t : ℂ)) • (1 : ℂ →L[ℝ] ℂ)) (1 : ℂ)) =
+          (F (t : ℂ)) * ((1 : ℂ →L[ℝ] ℂ) (1 : ℂ)) := by
+        rfl
+      _ = (F (t : ℂ)) * (1 : ℂ) := by
+        rfl
+      _ = F (t : ℂ) := by
+        exact mul_one (F (t : ℂ))
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        HasDerivWithinAt
+          (G ∘ ofRealLine)
+          z
+          s
+          t)
+      hvalue
+      hcomp
 
 /-- Transport a complex lower-half-disk primitive derivative at a real interior
 point to the right real derivative along the diameter. -/
