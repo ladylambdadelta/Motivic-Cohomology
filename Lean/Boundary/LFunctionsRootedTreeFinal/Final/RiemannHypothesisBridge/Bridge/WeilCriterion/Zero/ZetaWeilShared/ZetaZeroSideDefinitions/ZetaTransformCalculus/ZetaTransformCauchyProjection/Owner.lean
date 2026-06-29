@@ -6847,12 +6847,47 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_uniform_bound
 
 /-- Nonnegative-radius, positive-frequency normalized half-window Hilbert-sine
 Dirichlet bound. -/
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_abs_le_pi_div_two
+    (A b : ℝ) (hA : 0 ≤ A) (hb : 0 < b) :
+    |∫ v in (0)..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
+      Real.pi / 2 := by
+  sorry
+
+/-- Positive-frequency change of variables `v = y*u` for the normalized
+Hilbert-sine kernel. -/
+theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_eq_dampedSineIntegral
+    (R y : ℝ) (hy : 0 < y) :
+    (∫ u in (0)..R,
+      (u / (1 + u ^ 2)) * Real.sin (y * u)) =
+      ∫ v in (0)..(y * R),
+        (v / (y ^ 2 + v ^ 2)) * Real.sin v := by
+  sorry
+
 theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_nonneg_radius_pos_frequency
     (R y : ℝ) (hR : 0 ≤ R) (hy : 0 < y) :
     |∫ u in (0)..R,
       (u / (1 + u ^ 2)) * Real.sin (y * u)| ≤
       Real.pi / 2 := by
-  sorry
+  have hA_nonneg : 0 ≤ y * R :=
+    mul_nonneg hy.le hR
+  have hscale :
+      (∫ u in (0)..R,
+        (u / (1 + u ^ 2)) * Real.sin (y * u)) =
+        ∫ v in (0)..(y * R),
+          (v / (y ^ 2 + v ^ 2)) * Real.sin v :=
+    scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_eq_dampedSineIntegral
+      R y hy
+  calc
+    |∫ u in (0)..R,
+      (u / (1 + u ^ 2)) * Real.sin (y * u)|
+        =
+        |∫ v in (0)..(y * R),
+          (v / (y ^ 2 + v ^ 2)) * Real.sin v| := by
+          exact congrArg abs hscale
+    _ ≤ Real.pi / 2 :=
+        scalarFourierLaplacePlemelj_dampedSineIntegral_abs_le_pi_div_two
+          (y * R) y hA_nonneg hy
 
 /-- The normalized Hilbert-sine kernel is even in the integration variable. -/
 theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_integrand_even
