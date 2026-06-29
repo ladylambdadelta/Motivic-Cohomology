@@ -158,20 +158,22 @@ theorem Complex.Gamma_openRightHalfPlane_logBranch_normalized_ownerGap :
         Complex.exp (logGammaRHP z) = Complex.Gamma z) ∧
       (∀ x : ℝ, 0 < x →
         logGammaRHP (x : ℂ) = (Real.log (Real.Gamma x) : ℂ)) := by
-  refine ⟨fun z : ℂ => Complex.log (Complex.Gamma z), ?_, ?_⟩
-  · intro z hz_re_pos
-    exact
-      Complex.exp_log
-        (Complex.Gamma_openRightHalfPlane_nonvanishing hz_re_pos)
-  · intro x hx_pos
-    have hGamma_pos : 0 < Real.Gamma x :=
-      Real.Gamma_pos_of_pos hx_pos
-    calc
-      Complex.log (Complex.Gamma (x : ℂ)) =
-          Complex.log ((Real.Gamma x : ℝ) : ℂ) := by
-        exact congrArg Complex.log (Complex.Gamma_ofReal x)
-      _ = (Real.log (Real.Gamma x) : ℂ) := by
-        exact (Complex.ofReal_log (le_of_lt hGamma_pos)).symm
+  exact
+    Exists.intro
+      (fun z : ℂ => Complex.log (Complex.Gamma z))
+      (And.intro
+        (fun z hz_re_pos =>
+          Complex.exp_log
+            (Complex.Gamma_openRightHalfPlane_nonvanishing hz_re_pos))
+        (fun x hx_pos =>
+          have hGamma_pos : 0 < Real.Gamma x :=
+            Real.Gamma_pos_of_pos hx_pos
+          calc
+            Complex.log (Complex.Gamma (x : ℂ)) =
+                Complex.log ((Real.Gamma x : ℝ) : ℂ) := by
+              exact congrArg Complex.log (Complex.Gamma_ofReal x)
+            _ = (Real.log (Real.Gamma x) : ℂ) := by
+              exact (Complex.ofReal_log (le_of_lt hGamma_pos)).symm))
 
 /-- The canonical principal logarithm of `Γ` lies in the principal strip once
 Gamma is known to avoid the negative real axis. -/
@@ -182,22 +184,23 @@ theorem Complex.Gamma_openRightHalfPlane_principalLog_im_mem_principalStrip_of_n
     ∀ z : ℂ, 0 < z.re →
       (Complex.log (Complex.Gamma z)).im ∈ Set.Ioo (-Real.pi) Real.pi := by
   intro z hz_re_pos
-  constructor
-  · exact Complex.neg_pi_lt_log_im (Complex.Gamma z)
-  · have hle :
+  exact And.intro
+    (Complex.neg_pi_lt_log_im (Complex.Gamma z))
+    (by
+      have hle :
         (Complex.log (Complex.Gamma z)).im ≤ Real.pi :=
-      Complex.log_im_le_pi (Complex.Gamma z)
-    have hne :
+        Complex.log_im_le_pi (Complex.Gamma z)
+      have hne :
         (Complex.log (Complex.Gamma z)).im ≠ Real.pi := by
-      intro him_eq
-      have harg_eq :
+        intro him_eq
+        have harg_eq :
           (Complex.Gamma z).arg = Real.pi :=
-        Eq.trans (Complex.log_im (Complex.Gamma z)).symm him_eq
-      have hnegative :
+          Eq.trans (Complex.log_im (Complex.Gamma z)).symm him_eq
+        have hnegative :
           (Complex.Gamma z).re < 0 ∧ (Complex.Gamma z).im = 0 :=
-        Complex.arg_eq_pi_iff.mp harg_eq
-      exact hno_negative z hz_re_pos hnegative
-    exact lt_of_le_of_ne hle hne
+          Complex.arg_eq_pi_iff.mp harg_eq
+        exact hno_negative z hz_re_pos hnegative
+      exact lt_of_le_of_ne hle hne)
 
 /-- Binet's logarithm branch exponentiates to Gamma once the finite Abel-Plana
 summand formula has been restored at the point. -/
@@ -1629,6 +1632,20 @@ theorem Complex.binetSecondFormula_finiteAbelPlana_decomposition_openRightHalfPl
           y hy_re_pos)
   exact ⟨hpoint, hnear⟩
 
+/-- Owner gap: Binet-branch coherence for the Binet second formula on the
+right half-plane, assembled after the finite Abel-Plana decompositions have
+been proved. -/
+theorem Complex.binetSecondFormula_branchCoherence_ownerGap :
+    Complex.BinetSecondFormulaBranchCoherence :=
+  Complex.BinetSecondFormulaBranchCoherence.of_owner_components
+    (fun z hz_re_pos =>
+      Complex.exp_binetLogGammaBranch_eq_Gamma_of_finiteAbelPlana
+        hz_re_pos
+        (Complex.binetSecondFormula_finiteAbelPlana_decomposition_pointwise_openRightHalfPlane_ownerGap
+          z hz_re_pos))
+    Complex.binetSecondFormula_finiteAbelPlana_decomposition_posReal_ownerGap
+    Complex.binetSecondFormula_finiteAbelPlana_decomposition_openRightHalfPlane_ownerGap
+
 /-- Binet-branch coherence for the Binet second formula, assembled from the
 owner-level exponential branch and finite-Abel-Plana components. -/
 theorem Complex.BinetSecondFormulaBranchUniformTailAbsorption.of_tail_ownerCoherence
@@ -1932,70 +1949,6 @@ def Complex.BinetSecondFormulaDecayingTailIntegralExpLower : Prop :=
         c * ‖w‖ * Real.exp (-Real.pi * ‖w‖) ≤
           Complex.binetSecondFormulaDecayingTailIntegral w
 
-/-- Real-variable exponential lower bound for the Binet scalar tail beginning
-at a cutoff `a ≥ 1`.
-
-This is the one-dimensional owner primitive behind the complex
-`‖w‖ / 2`-cutoff lower bound. -/
-def Real.BinetSecondFormulaKernelMajorantTailExpLower : Prop :=
-  ∃ c : ℝ,
-    0 < c ∧
-    ∀ a : ℝ,
-      1 ≤ a →
-        c * a * Real.exp (-((2 : ℝ) * Real.pi) * a) ≤
-          ∫ t : ℝ in Set.Ioi a,
-            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
-
-/-- Unit-interval lower bound for the Binet scalar kernel.
-
-This is the local positivity estimate on the first unit interval of the tail:
-for `a ≥ 1`, the interval contribution already has exponential size
-`exp (-π a)`. -/
-def Real.BinetSecondFormulaKernelMajorantUnitIntervalExpLower : Prop :=
-  ∃ c : ℝ,
-    0 < c ∧
-    ∀ a : ℝ,
-      1 ≤ a →
-        c * a * Real.exp (-((2 : ℝ) * Real.pi) * a) ≤
-          ∫ t : ℝ in Set.Ioc a (a + 1),
-            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
-
-/-- Monotonicity from the first unit interval into the full Binet scalar tail. -/
-def Real.BinetSecondFormulaKernelMajorantUnitIntervalLeTail : Prop :=
-  ∀ a : ℝ,
-    1 ≤ a →
-      ∫ t : ℝ in Set.Ioc a (a + 1),
-          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
-        ∫ t : ℝ in Set.Ioi a,
-          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
-
-/-- Owner real-variable leaf: sector-local exponential upper bound for the
-explicit logarithmic window. -/
-theorem Real.binetSecondFormula_kernel_majorant_unitInterval_le_tail_owner :
-    Real.BinetSecondFormulaKernelMajorantUnitIntervalLeTail := by
-  intro a ha
-  let M : ℝ → ℝ :=
-    fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
-  have hM_integrable_tail :
-      IntegrableOn M (Set.Ioi a) :=
-    Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty.mono_set
-      (fun t ht => lt_of_le_of_lt ha ht)
-  have hM_nonneg_tail :
-      0 ≤ᵐ[volume.restrict (Set.Ioi a)] M :=
-    (ae_restrict_mem measurableSet_Ioi).mono
-      (fun t ht =>
-        Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi t
-          (lt_of_le_of_lt ha ht))
-  have hunit_subset_tail :
-      Set.Ioc a (a + 1) ≤ᵐ[volume] Set.Ioi a :=
-    Filter.Eventually.of_forall
-      (fun t ht => ht.1)
-  exact
-    setIntegral_mono_set
-      hM_integrable_tail
-      hM_nonneg_tail
-      hunit_subset_tail
-
 /-- Full tail lower bound from the unit-interval lower bound and interval-tail
 monotonicity. -/
 theorem Real.binetSecondFormula_kernel_majorant_tail_expLower_of_unitInterval
@@ -2163,12 +2116,12 @@ theorem Complex.binetSecondFormula_boundedWindow_decay_of_weightedFullLogEnvelop
               hweighted_estimate w hw_re_pos hw_norm_two
             le_trans htwice hweighted_w⟩
 
-/-- Constructor from the sharp bounded-window branch-wall estimate to the
+/-- Assembly from the sharp bounded-window branch-wall estimate to the
 legacy full principal-tail cancellation predicate.
 
 The far part of the split tail is already owned by
 `binetSecondFormula_principalTailKernel_integral_far_scaled_decay`.  Thus the
-only analytic input to this constructor is the bounded window
+only analytic input to this assembly is the bounded window
 `Ioc (‖w‖ / 2) (2‖w‖)`, with the moving branch-wall exponential weight kept
 before any fixed `w.re`-window replacement. -/
 theorem Complex.binetSecondFormula_branchWallPrincipalTailCancellation_of_boundedWindow_decay

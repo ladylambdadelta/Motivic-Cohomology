@@ -34,6 +34,48 @@ namespace LFunctions
 
 noncomputable section
 
+open scoped Topology
+open scoped ENNReal
+open MeasureTheory
+open Set
+
+/-- Real-variable exponential lower bound for the Binet scalar tail beginning
+at a cutoff `a ≥ 1`.
+
+This is the one-dimensional owner primitive behind the complex
+`‖w‖ / 2`-cutoff lower bound. -/
+def Real.BinetSecondFormulaKernelMajorantTailExpLower : Prop :=
+  ∃ c : ℝ,
+    0 < c ∧
+    ∀ a : ℝ,
+      1 ≤ a →
+        c * a * Real.exp (-((2 : ℝ) * Real.pi) * a) ≤
+          ∫ t : ℝ in Set.Ioi a,
+            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+
+/-- Unit-interval lower bound for the Binet scalar kernel.
+
+This is the local positivity estimate on the first unit interval of the tail:
+for `a ≥ 1`, the interval contribution already has exponential size
+`exp (-π a)`. -/
+def Real.BinetSecondFormulaKernelMajorantUnitIntervalExpLower : Prop :=
+  ∃ c : ℝ,
+    0 < c ∧
+    ∀ a : ℝ,
+      1 ≤ a →
+        c * a * Real.exp (-((2 : ℝ) * Real.pi) * a) ≤
+          ∫ t : ℝ in Set.Ioc a (a + 1),
+            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+
+/-- Monotonicity from the first unit interval into the full Binet scalar tail. -/
+def Real.BinetSecondFormulaKernelMajorantUnitIntervalLeTail : Prop :=
+  ∀ a : ℝ,
+    1 ≤ a →
+      ∫ t : ℝ in Set.Ioc a (a + 1),
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+        ∫ t : ℝ in Set.Ioi a,
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+
 theorem Real.exp_neg_pi_tail_integral_le_exp
     (a : ℝ) :
     ∫ t : ℝ in Set.Ioi a, Real.exp (-Real.pi * t) ≤
@@ -173,7 +215,7 @@ theorem Real.binetSecondFormula_kernel_majorant_unitInterval_expLower_owner :
                 L ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
           intro t ht
           have ht_ge_one : (1 : ℝ) ≤ t :=
-            le_trans ha ht.1
+            le_trans ha (le_of_lt ht.1)
           have ht_le_a_one : t ≤ a + 1 :=
             ht.2
           let D : ℝ := Real.exp ((2 : ℝ) * Real.pi * t) - 1
@@ -227,7 +269,8 @@ theorem Real.binetSecondFormula_kernel_majorant_unitInterval_expLower_owner :
               (le_trans ha_over_E_le hlinear)
         have hL_integrable :
             IntegrableOn (fun _t : ℝ => L) (Set.Ioc a (a + 1)) :=
-          integrableOn_const
+          integrableOn_const.mpr
+            (Or.inr measure_Ioc_lt_top)
         have hK_integrable :
             IntegrableOn
               (fun t : ℝ =>
@@ -264,8 +307,12 @@ theorem Real.binetSecondFormula_kernel_majorant_unitInterval_expLower_owner :
                 exact ENNReal.toReal_ofReal zero_le_one
           calc
             ∫ t : ℝ in Set.Ioc a (a + 1), L =
-                L * (volume (Set.Ioc a (a + 1))).toReal := by
-              exact integral_const L
+                (volume (Set.Ioc a (a + 1))).toReal • L := by
+              exact setIntegral_const L
+            _ = (volume (Set.Ioc a (a + 1))).toReal * L := by
+              rfl
+            _ = L * (volume (Set.Ioc a (a + 1))).toReal := by
+              exact mul_comm (volume (Set.Ioc a (a + 1))).toReal L
             _ = L * 1 := by
               exact congrArg (fun x : ℝ => L * x) hvolume_one
             _ = L := mul_one L
@@ -294,8 +341,9 @@ theorem Real.binetSecondFormula_kernel_majorant_unitInterval_expLower_owner :
                         (Real.exp (-((2 : ℝ) * Real.pi)) *
                           Real.exp (-((2 : ℝ) * Real.pi) * a)) := by
                       exact (mul_assoc a
-                        (Real.exp (-((2 : ℝ) * Real.pi))
-                        (Real.exp (-((2 : ℝ) * Real.pi) * a))).symm
+                        (Real.exp (-((2 : ℝ) * Real.pi)))
+                        (Real.exp (-((2 : ℝ) * Real.pi) * a))
+                        )
             _ = a * Real.exp
                   (-((2 : ℝ) * Real.pi) +
                     (-((2 : ℝ) * Real.pi) * a)) := by
@@ -317,22 +365,42 @@ theorem Real.binetSecondFormula_kernel_majorant_unitInterval_expLower_owner :
                     _ = -((2 : ℝ) * Real.pi) * (a + 1) := by
                       exact congrArg (fun x : ℝ => -((2 : ℝ) * Real.pi) * x)
                         (add_comm 1 a))
-        Eq.subst
-          (motive := fun x : ℝ =>
-            x ≤
-              ∫ t : ℝ in Set.Ioc a (a + 1),
-                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-          hscale
-          (Eq.subst
-            (motive := fun x : ℝ =>
-              x ≤
-                ∫ t : ℝ in Set.Ioc a (a + 1),
-                  t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+        calc
+          c * a * Real.exp (-((2 : ℝ) * Real.pi) * a) = L := hscale
+          _ =
+              ∫ t : ℝ in Set.Ioc a (a + 1), L :=
             hconst_integral.symm
-            hintegral_lower)⟩
+          _ ≤
+              ∫ t : ℝ in Set.Ioc a (a + 1),
+                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+            hintegral_lower⟩
 
 /-- Owner real-variable leaf: the first unit interval is bounded by the full
 Binet scalar tail. -/
+theorem Real.binetSecondFormula_kernel_majorant_unitInterval_le_tail_owner :
+    Real.BinetSecondFormulaKernelMajorantUnitIntervalLeTail := by
+  intro a ha
+  let M : ℝ → ℝ :=
+    fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  have hM_integrable_tail :
+      IntegrableOn M (Set.Ioi a) :=
+    Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty.mono_set
+      (fun t ht => lt_of_le_of_lt ha ht)
+  have hM_nonneg_tail :
+      0 ≤ᵐ[volume.restrict (Set.Ioi a)] M :=
+    (ae_restrict_mem measurableSet_Ioi).mono
+      (fun t ht =>
+        Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi t
+          (lt_trans zero_lt_one (lt_of_le_of_lt ha ht)))
+  have hunit_subset_tail :
+      Set.Ioc a (a + 1) ≤ᵐ[volume] Set.Ioi a :=
+    Filter.Eventually.of_forall
+      (fun t ht => ht.1)
+  exact
+    setIntegral_mono_set
+      hM_integrable_tail
+      hM_nonneg_tail
+      hunit_subset_tail
 
 
 end
