@@ -1,12 +1,13 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleResidueTailEstimate
 
 /-!
-# Left one-pole standard residue value
+# Left one-pole projection-corrected residue value
 
-This file owns the scheduled left-face residue value for the isolated `s = 1`
-correction pole.  Its proof is a limit wrapper over the quantitative
-inverse-quadratic residue-tail owner theorem, not over any downstream right
-off-pole decay consumer.
+This file owns the scheduled left-face value for the isolated `s = 1`
+correction pole after accounting for the right Cauchy/Laplace projection.
+Its proof is a limit wrapper over the quantitative inverse-quadratic
+residue-tail owner theorem, not over any downstream right off-pole decay
+consumer.
 -/
 
 namespace Boundary
@@ -23,14 +24,14 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- Owner analytic leaf: direct left-face standard residue value for the
-`s = 1` correction pole.
+/-- Owner analytic leaf: direct left-face projection-corrected residue value
+for the `s = 1` correction pole.
 
 The intended proof is the left one-pole contour shift with the right off-pole
 face kept out of the argument: apply the local Cauchy residue theorem at
 `s = 1`, use horizontal decay for the standard boundary, and pass to the
 scheduled left vertical face. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_standardContourResidue_ownerLeftResidueValue
+theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_projectionResidue_ownerLeftResidueValue
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     Tendsto
@@ -39,12 +40,14 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendst
           f F (h.height_schedule.height u))
       atTop
       (𝓝 (((2 * (Real.pi : ℂ) * Complex.I) *
-        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I)) := by
+        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+        zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) := by
   let A : ℂ :=
     ((2 * (Real.pi : ℂ) * Complex.I) *
-      (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I
+      (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+      zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c
   match
-    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_ownerResidueTail
+    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_to_projectionResidue_ownerResidueTail
       f F h with
   | ⟨ML, _hMLpos, hbound⟩ =>
       have hmajorant :

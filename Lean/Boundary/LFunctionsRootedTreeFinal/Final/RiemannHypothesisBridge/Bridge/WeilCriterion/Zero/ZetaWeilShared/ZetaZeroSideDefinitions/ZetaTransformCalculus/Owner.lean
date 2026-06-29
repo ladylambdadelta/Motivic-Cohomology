@@ -434,5 +434,44 @@ theorem boundary_fourierCoeffOn_of_hasDerivAt_Ioo {a b : ℝ} (hab : a < b) {f f
 
 end FourierInterval
 
+section LaplaceCauchyProjection
+
+/-- The right one-pole Cauchy/Laplace projection value attached to a compactly
+supported logarithmic test function.
+
+The normalization is owned here because it is a transform-calculus object: it
+is the time-side one-sided projection produced by the multiplier
+`(c - 1 + it)⁻¹` on the fixed right vertical Laplace line. -/
+noncomputable def zetaLaplaceTransform_rightOnePoleCauchyProjectionValue
+    (φ : LFunctions.ZetaTestFunction) (c : ℝ) : ℂ :=
+  ∫ x in Set.Iic (0 : ℝ),
+    (-2 * (Real.pi : ℂ)) *
+      φ x *
+        Complex.exp ((1 / 2 : ℂ) * (x : ℂ))
+
+/-- Generic Cauchy/Laplace projection estimate on a fixed right vertical line.
+
+This is the transform-calculus owner theorem behind the one-pole right
+off-pole estimates.  For a compactly supported logarithmic test function, the
+Laplace slice on `c + it` is a Fourier transform of an exponentially twisted
+time kernel, while `(c - 1 + it)⁻¹` is the Cauchy/Laplace multiplier attached
+to a one-sided exponential.  The symmetric window integral converges to the
+corresponding one-sided projection with inverse-quadratic tail. -/
+theorem zetaLaplaceTransform_rightOnePoleCauchyProjection_eventual_inverseQuadratic_to_value
+    (φ : LFunctions.ZetaTestFunction) (c : ℝ) (hc : 1 < c)
+    (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
+    ∃ MR : ℝ,
+      0 < MR ∧
+        ∀ᶠ u in atTop,
+          ‖(∫ t in Set.Icc (-(height u)) (height u),
+              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                zetaLaplaceTransform φ
+                  (((c : ℂ) + t * Complex.I) - 1 / 2)) -
+            zetaLaplaceTransform_rightOnePoleCauchyProjectionValue φ c‖
+            ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
+  sorry
+
+end LaplaceCauchyProjection
+
 end
 end Boundary

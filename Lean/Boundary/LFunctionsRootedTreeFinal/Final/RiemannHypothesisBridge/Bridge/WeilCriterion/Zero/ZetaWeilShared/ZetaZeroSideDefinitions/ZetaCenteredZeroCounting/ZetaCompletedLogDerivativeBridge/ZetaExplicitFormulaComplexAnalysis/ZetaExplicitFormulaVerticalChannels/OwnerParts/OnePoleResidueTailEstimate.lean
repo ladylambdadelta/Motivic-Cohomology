@@ -32,20 +32,22 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- Compatibility bridge: inverse-quadratic decay for the off-pole right
-`s = 1` correction face, independent of the left residue-tail theorem. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eventual_inverseQuadratic_direct_ownerResidueTail
+/-- Compatibility bridge: inverse-quadratic convergence of the off-pole right
+`s = 1` correction face to its Cauchy/Laplace projection value, independent of
+the left residue-tail theorem. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eventual_inverseQuadratic_to_projection_direct_ownerResidueTail
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     ∃ MR : ℝ,
       0 < MR ∧
         ∀ᶠ u in atTop,
           ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-              f F (h.height_schedule.height u)‖
+              f F (h.height_schedule.height u) -
+            zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c‖
             ≤ MR *
               (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   match
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral_eventual_inverseQuadratic_ownerOscillatory
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral_eventual_inverseQuadratic_to_value_ownerOscillatory
       f F h with
   | ⟨MR, hMRpos, hMR⟩ =>
       exact
@@ -54,7 +56,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_event
             (fun u hu =>
               Eq.subst
                 (motive := fun z : ℂ =>
-                  ‖z‖ ≤
+                  ‖z - zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c‖ ≤
                     MR *
                       (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^
                         (-(2 : ℤ)))
@@ -202,16 +204,16 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryInt
   exact ⟨MB, hMBpos, hbound⟩
 
 /-- Non-circular rate assembly for the left `s = 1` residue face from the
-direct right-face tail, tangent-boundary residue rate, and horizontal edge
-rate. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_of_right_tangent_horizontal
+direct right-face projection tail, tangent-boundary residue rate, and
+horizontal edge rate. -/
+theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_of_rightProjection_tangent_horizontal
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (B : ℂ) (MR MB MH : ℝ)
+    (B P : ℂ) (MR MB MH : ℝ)
     (hright :
       ∀ᶠ u in atTop,
         ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-            f F (h.height_schedule.height u)‖
+            f F (h.height_schedule.height u) - P‖
           ≤ MR *
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)))
     (htangent :
@@ -228,7 +230,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventu
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ))) :
     ∀ᶠ u in atTop,
       ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
-          f F (h.height_schedule.height u) - B * Complex.I‖
+          f F (h.height_schedule.height u) - (B * Complex.I + P)‖
         ≤ (MR + (MB + MH)) *
           (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   exact (hright.and (htangent.and hhorizontal)).mono
@@ -249,21 +251,42 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventu
         zetaCompletedExplicitFormulaCorrectionOnePoleScheduledTangentRectangleBoundaryIntegral_eq_verticalTangent_add_horizontal_ownerRightOnePoleBoundary
           f F h u
       have hleft_error :
-          L - B * Complex.I =
-            R + (C - B) * Complex.I - H * Complex.I :=
-        explicitFormula_leftResidueError_eq_right_add_tangentError_mul_I_sub_horizontal_mul_I
-          R L C H B hC
+          L - (B * Complex.I + P) =
+            (R - P) + (C - B) * Complex.I - H * Complex.I := by
+        have hbase :
+            L - B * Complex.I =
+              R + (C - B) * Complex.I - H * Complex.I :=
+          explicitFormula_leftResidueError_eq_right_add_tangentError_mul_I_sub_horizontal_mul_I
+            R L C H B hC
+        calc
+          L - (B * Complex.I + P) =
+              (L - B * Complex.I) - P := by
+            exact sub_add_eq_sub_sub L (B * Complex.I) P
+          _ = (R + (C - B) * Complex.I - H * Complex.I) - P := by
+            exact congrArg (fun z : ℂ => z - P) hbase
+          _ = (R - P) + (C - B) * Complex.I - H * Complex.I := by
+            exact
+              sub_right_comm (R + (C - B) * Complex.I) (H * Complex.I) P |>.trans
+                (congrArg (fun z : ℂ => z - H * Complex.I)
+                  (show R + (C - B) * Complex.I - P =
+                    (R - P) + (C - B) * Complex.I by
+                    calc
+                      R + (C - B) * Complex.I - P =
+                          R - P + (C - B) * Complex.I := by
+                        exact add_sub_right_comm R ((C - B) * Complex.I) P
+                      _ = (R - P) + (C - B) * Complex.I := by
+                        rfl))
       have hsplit :
-          ‖R + (C - B) * Complex.I - H * Complex.I‖
-            ≤ (‖R‖ + ‖(C - B) * Complex.I‖) + ‖H * Complex.I‖ := by
+          ‖(R - P) + (C - B) * Complex.I - H * Complex.I‖
+            ≤ (‖R - P‖ + ‖(C - B) * Complex.I‖) + ‖H * Complex.I‖ := by
         have hsub :
-            ‖R + (C - B) * Complex.I - H * Complex.I‖
-              ≤ ‖R + (C - B) * Complex.I‖ + ‖H * Complex.I‖ :=
-          norm_sub_le (R + (C - B) * Complex.I) (H * Complex.I)
+            ‖(R - P) + (C - B) * Complex.I - H * Complex.I‖
+              ≤ ‖(R - P) + (C - B) * Complex.I‖ + ‖H * Complex.I‖ :=
+          norm_sub_le ((R - P) + (C - B) * Complex.I) (H * Complex.I)
         have hadd :
-            ‖R + (C - B) * Complex.I‖
-              ≤ ‖R‖ + ‖(C - B) * Complex.I‖ :=
-          norm_add_le R ((C - B) * Complex.I)
+            ‖(R - P) + (C - B) * Complex.I‖
+              ≤ ‖R - P‖ + ‖(C - B) * Complex.I‖ :=
+          norm_add_le (R - P) ((C - B) * Complex.I)
         exact le_trans hsub (add_le_add_right hadd ‖H * Complex.I‖)
       have hI_norm : ‖Complex.I‖ = (1 : ℝ) :=
         Complex.norm_I
@@ -286,7 +309,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventu
           _ = ‖H‖ := by
             exact mul_one ‖H‖
       have hcomponent :
-          (‖R‖ + ‖(C - B) * Complex.I‖) + ‖H * Complex.I‖
+          (‖R - P‖ + ‖(C - B) * Complex.I‖) + ‖H * Complex.I‖
             ≤ (MR * q + MB * q) + MH * q := by
         have htangent_bound :
             ‖(C - B) * Complex.I‖ ≤ MB * q :=
@@ -330,7 +353,7 @@ cancellation stack.  Its proof chain is the direct right off-pole tail, the
 finite one-pole Cauchy residue identity, the positive-height standard residue
 value, and the horizontal edge inverse-quadratic estimates.  It must not use
 any theorem whose proof already depends on this left-face residue tail. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_ownerResidueTail
+theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_to_projectionResidue_ownerResidueTail
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     ∃ ML : ℝ,
@@ -338,15 +361,18 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventu
         ∀ᶠ u in atTop,
           ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
               f F (h.height_schedule.height u) -
-            ((2 * (Real.pi : ℂ) * Complex.I) *
-              (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I‖
+            (((2 * (Real.pi : ℂ) * Complex.I) *
+              (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+              zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)‖
             ≤ ML *
               (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   let B : ℂ :=
     (2 * (Real.pi : ℂ) * Complex.I) *
       (-zetaCompletedExplicitFormulaPhi f (1 / 2))
+  let P : ℂ :=
+    zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c
   match
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eventual_inverseQuadratic_direct_ownerResidueTail
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eventual_inverseQuadratic_to_projection_direct_ownerResidueTail
       f F h with
   | ⟨MR, hMRpos, hright⟩ =>
       match
@@ -360,8 +386,8 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventu
               exact
                 ⟨MR + (MB + MH),
                   add_pos hMRpos (add_pos hMBpos hMHpos),
-                  zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_of_right_tangent_horizontal
-                    f F h B MR MB MH hright htangent hhorizontal⟩
+                  zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_of_rightProjection_tangent_horizontal
+                    f F h B P MR MB MH hright htangent hhorizontal⟩
 
 end ZetaAdmissibleFunction
 

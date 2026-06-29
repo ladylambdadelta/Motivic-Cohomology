@@ -536,13 +536,14 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendst
         zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_pos_height
           f F h T hT)
 
-/-- Quantitative left-face residue transport for the `s = 1` correction pole.
+/-- Quantitative projection-corrected left-face residue transport for the
+`s = 1` correction pole.
 
 This is the direct residue-tail estimate needed by the right off-pole Cauchy
 decay theorem.  It is deliberately stated at the left one-pole owner level:
 downstream files must consume this theorem rather than thread a hypothesis
 through the contour-cancellation stack. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_of_standardResidue
+theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_of_projectionResidue
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     ∃ ML : ℝ,
@@ -550,12 +551,13 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventu
         ∀ᶠ u in atTop,
           ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
               f F (h.height_schedule.height u) -
-            ((2 * (Real.pi : ℂ) * Complex.I) *
-              (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I‖
+            (((2 * (Real.pi : ℂ) * Complex.I) *
+              (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+              zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)‖
             ≤ ML *
       (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   exact
-    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_ownerResidueTail
+    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_to_projectionResidue_ownerResidueTail
       f F h
 
 /-- The right pole face transports to the pole at `s = 0`, evaluated at the centered
