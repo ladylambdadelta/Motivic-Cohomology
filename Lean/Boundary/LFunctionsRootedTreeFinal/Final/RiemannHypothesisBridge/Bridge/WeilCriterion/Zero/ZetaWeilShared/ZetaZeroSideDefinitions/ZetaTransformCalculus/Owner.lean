@@ -449,6 +449,33 @@ noncomputable def zetaLaplaceTransform_rightOnePoleCauchyProjectionValue
       φ x *
         Complex.exp ((1 / 2 : ℂ) * (x : ℂ))
 
+/-- The time-side kernel whose Fourier transform is the fixed right vertical
+Laplace slice after the `s = 1` Cauchy multiplier is separated. -/
+noncomputable def zetaLaplaceTransform_rightOnePoleProjectionKernel
+    (φ : LFunctions.ZetaTestFunction) : ℝ → ℂ :=
+  fun x : ℝ =>
+    φ x *
+      Complex.exp ((1 / 2 : ℂ) * (x : ℂ))
+
+/-- Fourier-Cauchy projection estimate for the time-side kernel.
+
+This is the primitive transform-calculus statement: the symmetric truncations
+of the fixed-line Cauchy multiplier applied to the Fourier transform of the
+time-side kernel converge to the one-sided projection value. -/
+theorem zetaLaplaceTransform_rightOnePole_fixedLineCauchyProjection_eventual_inverseQuadratic_to_value
+    (φ : LFunctions.ZetaTestFunction) (c : ℝ) (hc : 1 < c)
+    (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
+    ∃ MR : ℝ,
+      0 < MR ∧
+        ∀ᶠ u in atTop,
+          ‖(∫ t in Set.Icc (-(height u)) (height u),
+              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                zetaLaplaceTransform φ
+                  (((c : ℂ) + t * Complex.I) - 1 / 2)) -
+            zetaLaplaceTransform_rightOnePoleCauchyProjectionValue φ c‖
+            ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
+  sorry
+
 /-- Generic Cauchy/Laplace projection estimate on a fixed right vertical line.
 
 This is the transform-calculus owner theorem behind the one-pole right
@@ -469,7 +496,9 @@ theorem zetaLaplaceTransform_rightOnePoleCauchyProjection_eventual_inverseQuadra
                   (((c : ℂ) + t * Complex.I) - 1 / 2)) -
             zetaLaplaceTransform_rightOnePoleCauchyProjectionValue φ c‖
             ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
-  sorry
+  exact
+    zetaLaplaceTransform_rightOnePole_fixedLineCauchyProjection_eventual_inverseQuadratic_to_value
+      φ c hc height hcofinal
 
 end LaplaceCauchyProjection
 
