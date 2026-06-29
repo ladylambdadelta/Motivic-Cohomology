@@ -2999,7 +2999,8 @@ right Binet-main integrand into the `π` term, fixed-vertical Gamma main term,
 and elementary correction term. -/
 theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_expandedIntegral_eq_componentIntegrals
     (f : ZetaAdmissibleFunction)
-    (F : ExplicitFormulaContourFamily) :
+    (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     (∫ t : ℝ,
       (-(zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm +
           (1 / 2 : ℂ) *
@@ -3018,13 +3019,169 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_expandedInte
             Complex.GammaLogDerivativeFixedVerticalMain
               (F.c / 2) (t / 2)) *
             zetaCompletedExplicitFormulaPhi f
-              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) -
+              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) +
         ∫ t : ℝ,
           explicitFormulaCorrectionLogDerivative
             (zetaCompletedExplicitFormulaRightAffineLine F t) *
             zetaCompletedExplicitFormulaPhi f
-              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t) := by
-  sorry
+              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) := by
+  let Pfun : ℝ → ℂ := fun t : ℝ =>
+    zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm *
+      zetaCompletedExplicitFormulaPhi f
+        (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)
+  let Gfun : ℝ → ℂ := fun t : ℝ =>
+    ((1 / 2 : ℂ) *
+      Complex.GammaLogDerivativeFixedVerticalMain
+        (F.c / 2) (t / 2)) *
+      zetaCompletedExplicitFormulaPhi f
+        (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)
+  let Cfun : ℝ → ℂ := fun t : ℝ =>
+    explicitFormulaCorrectionLogDerivative
+      (zetaCompletedExplicitFormulaRightAffineLine F t) *
+      zetaCompletedExplicitFormulaPhi f
+        (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)
+  have hP : Integrable Pfun (volume : Measure ℝ) := by
+    unfold Pfun
+    exact
+      (zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm_rightKernel_majorantPackage
+        f F h).integrable
+  have hG : Integrable Gfun (volume : Measure ℝ) := by
+    unfold Gfun
+    exact
+      (zetaCompletedExplicitFormulaGammaLogDerivativeFixedVerticalMain_rightKernel_majorantPackage
+        f F h).integrable
+  have hC : Integrable Cfun (volume : Measure ℝ) := by
+    unfold Cfun
+    exact
+      (zetaCompletedExplicitFormulaCorrectionLogDerivative_rightKernel_majorantPackage
+        f F h).integrable
+  have hPG : Integrable (fun t : ℝ => Pfun t + Gfun t) (volume : Measure ℝ) :=
+    hP.add hG
+  have hpoint :
+      (fun t : ℝ =>
+        (-(zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm +
+            (1 / 2 : ℂ) *
+              Complex.GammaLogDerivativeFixedVerticalMain
+                (F.c / 2) (t / 2)) -
+          explicitFormulaCorrectionLogDerivative
+            (zetaCompletedExplicitFormulaRightAffineLine F t)) *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) =
+      (fun t : ℝ => -(Pfun t + Gfun t) - Cfun t) := by
+    funext t
+    let P : ℂ := zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm
+    let G : ℂ :=
+      (1 / 2 : ℂ) *
+        Complex.GammaLogDerivativeFixedVerticalMain
+          (F.c / 2) (t / 2)
+    let C : ℂ :=
+      explicitFormulaCorrectionLogDerivative
+        (zetaCompletedExplicitFormulaRightAffineLine F t)
+    let Φ : ℂ :=
+      zetaCompletedExplicitFormulaPhi f
+        (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)
+    calc
+      (-(zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm +
+          (1 / 2 : ℂ) *
+            Complex.GammaLogDerivativeFixedVerticalMain
+              (F.c / 2) (t / 2)) -
+        explicitFormulaCorrectionLogDerivative
+          (zetaCompletedExplicitFormulaRightAffineLine F t)) *
+        zetaCompletedExplicitFormulaPhi f
+          (zetaCompletedExplicitFormulaRightCenteredAffineLine F t) =
+          (-(P + G) - C) * Φ := by
+        rfl
+      _ = (-(P + G)) * Φ - C * Φ := by
+        exact sub_mul (-(P + G)) C Φ
+      _ = -((P + G) * Φ) - C * Φ := by
+        exact congrArg (fun z : ℂ => z - C * Φ) (neg_mul (P + G) Φ)
+      _ = -(P * Φ + G * Φ) - C * Φ := by
+        exact congrArg (fun z : ℂ => -z - C * Φ) (add_mul P G Φ)
+      _ = -(Pfun t + Gfun t) - Cfun t := by
+        rfl
+  have hcongr :
+      (∫ t : ℝ,
+        (-(zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm +
+            (1 / 2 : ℂ) *
+              Complex.GammaLogDerivativeFixedVerticalMain
+                (F.c / 2) (t / 2)) -
+          explicitFormulaCorrectionLogDerivative
+            (zetaCompletedExplicitFormulaRightAffineLine F t)) *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) =
+      ∫ t : ℝ, -(Pfun t + Gfun t) - Cfun t := by
+    exact congrArg
+      (fun φ : ℝ → ℂ => ∫ t : ℝ, φ t)
+      hpoint
+  have hsplit :
+      (∫ t : ℝ, -(Pfun t + Gfun t) - Cfun t) =
+        (∫ t : ℝ, -(Pfun t + Gfun t)) -
+          ∫ t : ℝ, Cfun t := by
+    exact integral_sub hPG.neg hC
+  have hneg :
+      (∫ t : ℝ, -(Pfun t + Gfun t)) =
+        -(∫ t : ℝ, Pfun t + Gfun t) := by
+    exact integral_neg hPG
+  have hadd :
+      (∫ t : ℝ, Pfun t + Gfun t) =
+        (∫ t : ℝ, Pfun t) + ∫ t : ℝ, Gfun t := by
+    exact integral_add hP hG
+  calc
+    (∫ t : ℝ,
+      (-(zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm +
+          (1 / 2 : ℂ) *
+            Complex.GammaLogDerivativeFixedVerticalMain
+              (F.c / 2) (t / 2)) -
+        explicitFormulaCorrectionLogDerivative
+          (zetaCompletedExplicitFormulaRightAffineLine F t)) *
+        zetaCompletedExplicitFormulaPhi f
+          (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) =
+        ∫ t : ℝ, -(Pfun t + Gfun t) - Cfun t := by
+      exact hcongr
+    _ = (∫ t : ℝ, -(Pfun t + Gfun t)) -
+          ∫ t : ℝ, Cfun t := by
+      exact hsplit
+    _ = -(∫ t : ℝ, Pfun t + Gfun t) -
+          ∫ t : ℝ, Cfun t := by
+      exact congrArg
+        (fun z : ℂ => z - ∫ t : ℝ, Cfun t)
+        hneg
+    _ = -((∫ t : ℝ, Pfun t) + ∫ t : ℝ, Gfun t) -
+          ∫ t : ℝ, Cfun t := by
+      exact congrArg
+        (fun z : ℂ => -z - ∫ t : ℝ, Cfun t)
+        hadd
+    _ = -(((∫ t : ℝ, Pfun t) + ∫ t : ℝ, Gfun t) +
+          ∫ t : ℝ, Cfun t) := by
+      calc
+        -((∫ t : ℝ, Pfun t) + ∫ t : ℝ, Gfun t) -
+            ∫ t : ℝ, Cfun t =
+            -((∫ t : ℝ, Pfun t) + ∫ t : ℝ, Gfun t) +
+              -(∫ t : ℝ, Cfun t) := by
+          exact sub_eq_add_neg
+            (-((∫ t : ℝ, Pfun t) + ∫ t : ℝ, Gfun t))
+            (∫ t : ℝ, Cfun t)
+        _ = -(((∫ t : ℝ, Pfun t) + ∫ t : ℝ, Gfun t) +
+              ∫ t : ℝ, Cfun t) := by
+          exact (neg_add
+            ((∫ t : ℝ, Pfun t) + ∫ t : ℝ, Gfun t)
+            (∫ t : ℝ, Cfun t)).symm
+    _ = - ((∫ t : ℝ,
+        zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) +
+        ∫ t : ℝ,
+          ((1 / 2 : ℂ) *
+            Complex.GammaLogDerivativeFixedVerticalMain
+              (F.c / 2) (t / 2)) *
+            zetaCompletedExplicitFormulaPhi f
+              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) +
+        ∫ t : ℝ,
+          explicitFormulaCorrectionLogDerivative
+            (zetaCompletedExplicitFormulaRightAffineLine F t) *
+            zetaCompletedExplicitFormulaPhi f
+              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) := by
+      rfl
 
 /-- Component-value peel for the raw right Binet-main integral.
 
@@ -3042,12 +3199,12 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_componentInt
           Complex.GammaLogDerivativeFixedVerticalMain
             (F.c / 2) (t / 2)) *
           zetaCompletedExplicitFormulaPhi f
-            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) -
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) +
       ∫ t : ℝ,
         explicitFormulaCorrectionLogDerivative
           (zetaCompletedExplicitFormulaRightAffineLine F t) *
           zetaCompletedExplicitFormulaPhi f
-            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t) =
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) =
       zetaCompletedExplicitFormulaPhi f 0 := by
   sorry
 
@@ -3059,7 +3216,8 @@ owner theorem in `ArchimedeanGammaBinetInversion` is only definitional transport
 from this expanded integral. -/
 theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_expandedIntegral_eq_phiZero_ownerTransport
     (f : ZetaAdmissibleFunction)
-    (F : ExplicitFormulaContourFamily) :
+    (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     (∫ t : ℝ,
       (-(zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm +
           (1 / 2 : ℂ) *
@@ -3084,19 +3242,19 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_expandedInte
           zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm *
             zetaCompletedExplicitFormulaPhi f
               (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) +
-          ∫ t : ℝ,
-            ((1 / 2 : ℂ) *
-              Complex.GammaLogDerivativeFixedVerticalMain
-                (F.c / 2) (t / 2)) *
-              zetaCompletedExplicitFormulaPhi f
-                (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) -
+        ∫ t : ℝ,
+          ((1 / 2 : ℂ) *
+            Complex.GammaLogDerivativeFixedVerticalMain
+              (F.c / 2) (t / 2)) *
+            zetaCompletedExplicitFormulaPhi f
+                (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) +
           ∫ t : ℝ,
             explicitFormulaCorrectionLogDerivative
               (zetaCompletedExplicitFormulaRightAffineLine F t) *
               zetaCompletedExplicitFormulaPhi f
-                (zetaCompletedExplicitFormulaRightCenteredAffineLine F t) :=
+                (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) :=
     zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_expandedIntegral_eq_componentIntegrals
-      f F
+      f F h
   have hcomponents :
       - ((∫ t : ℝ,
         zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm *
@@ -3107,12 +3265,12 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_expandedInte
             Complex.GammaLogDerivativeFixedVerticalMain
               (F.c / 2) (t / 2)) *
             zetaCompletedExplicitFormulaPhi f
-              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) -
+              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) +
         ∫ t : ℝ,
           explicitFormulaCorrectionLogDerivative
             (zetaCompletedExplicitFormulaRightAffineLine F t) *
             zetaCompletedExplicitFormulaPhi f
-              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t) =
+              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) =
         zetaCompletedExplicitFormulaPhi f 0 :=
     zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_componentIntegrals_eq_phiZero
       f F

@@ -717,6 +717,178 @@ theorem zetaCompletedExplicitFormulaCorrectionLogDerivative_leftAffineLine_linea
           (1 + ‖t‖) :=
       real_nonneg_le_mul_one_add_norm hconst_nonneg t
 
+/-- The constant `π` part of the right Binet main factor has linear growth. -/
+theorem zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm_linear_bound
+    (t : ℝ) :
+    ‖zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm‖ ≤
+      ‖zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm‖ *
+        (1 + ‖t‖) :=
+  real_nonneg_le_mul_one_add_norm
+    (norm_nonneg zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm)
+    t
+
+/-- The fixed-vertical Gamma-main part of the right Binet main factor has
+linear growth. -/
+theorem zetaCompletedExplicitFormulaGammaLogDerivativeFixedVerticalMain_right_linear_bound
+    (F : ExplicitFormulaContourFamily) :
+    ∀ t : ℝ,
+      ‖(1 / 2 : ℂ) *
+          Complex.GammaLogDerivativeFixedVerticalMain
+            (F.c / 2) (t / 2)‖ ≤
+        (‖(1 / 2 : ℂ)‖ *
+          ((|Real.log (F.c / 2)| + (F.c / 2 + 1) + Real.pi) +
+            1 / (F.c / 2))) *
+          (1 + ‖t‖) := by
+  intro t
+  let G : ℂ :=
+    (1 / 2 : ℂ) *
+      Complex.GammaLogDerivativeFixedVerticalMain (F.c / 2) (t / 2)
+  let M : ℝ :=
+    (|Real.log (F.c / 2)| + (F.c / 2 + 1) + Real.pi) +
+      1 / (F.c / 2)
+  have hσ : 0 < F.c / 2 :=
+    div_pos F.c_pos zero_lt_two
+  have hM_nonneg : 0 ≤ M :=
+    Complex.GammaLogDerivativeFixedVerticalMainLinearConstant_nonneg hσ
+  have hhalf_nonneg : 0 ≤ ‖(1 / 2 : ℂ)‖ :=
+    norm_nonneg (1 / 2 : ℂ)
+  have hG_raw :
+      ‖G‖ ≤ ‖(1 / 2 : ℂ)‖ * (M * (1 + ‖t / 2‖)) := by
+    have hmain :
+        ‖Complex.GammaLogDerivativeFixedVerticalMain
+            (F.c / 2) (t / 2)‖ ≤
+          M * (1 + ‖t / 2‖) :=
+      Complex.GammaLogDerivativeFixedVerticalMain_polynomial_bound
+        hσ (t / 2)
+    calc
+      ‖G‖ =
+          ‖(1 / 2 : ℂ)‖ *
+            ‖Complex.GammaLogDerivativeFixedVerticalMain
+              (F.c / 2) (t / 2)‖ := by
+        exact norm_mul (1 / 2 : ℂ)
+          (Complex.GammaLogDerivativeFixedVerticalMain
+            (F.c / 2) (t / 2))
+      _ ≤ ‖(1 / 2 : ℂ)‖ * (M * (1 + ‖t / 2‖)) :=
+        mul_le_mul_of_nonneg_left hmain hhalf_nonneg
+  have hweight :
+      M * (1 + ‖t / 2‖) ≤ M * (1 + ‖t‖) :=
+    mul_le_mul_of_nonneg_left
+      (real_one_add_norm_div_two_le_one_add_norm t)
+      hM_nonneg
+  calc
+    ‖(1 / 2 : ℂ) *
+        Complex.GammaLogDerivativeFixedVerticalMain
+          (F.c / 2) (t / 2)‖ = ‖G‖ := by
+      rfl
+    _ ≤ ‖(1 / 2 : ℂ)‖ * (M * (1 + ‖t / 2‖)) :=
+      hG_raw
+    _ ≤ ‖(1 / 2 : ℂ)‖ * (M * (1 + ‖t‖)) :=
+      mul_le_mul_of_nonneg_left hweight hhalf_nonneg
+    _ = (‖(1 / 2 : ℂ)‖ * M) * (1 + ‖t‖) := by
+      exact (mul_assoc ‖(1 / 2 : ℂ)‖ M (1 + ‖t‖)).symm
+
+/-- The right `π` component of the Binet main kernel has the standard affine
+integrable majorant package. -/
+theorem zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm_rightKernel_majorantPackage
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    ExplicitFormulaAffineKernelMajorantPackage
+      (fun t : ℝ =>
+        zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) := by
+  let A : ℝ → ℂ := fun _ : ℝ =>
+    zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm
+  let B : ℝ := ‖zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm‖
+  have hB_nonneg : 0 ≤ B :=
+    norm_nonneg zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm
+  have hA_meas : AEStronglyMeasurable A (volume : Measure ℝ) :=
+    aestronglyMeasurable_const
+  have hA_bound : ∀ t : ℝ, ‖A t‖ ≤ B * (1 + ‖t‖) := by
+    intro t
+    exact zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm_linear_bound t
+  exact
+    zetaCompletedExplicitFormulaRightCenteredAffineProduct_majorantPackage_of_linear_factor_bound
+      f F h A B hB_nonneg hA_meas hA_bound
+
+/-- The right fixed-vertical Gamma-main component of the Binet main kernel has
+the standard affine integrable majorant package. -/
+theorem zetaCompletedExplicitFormulaGammaLogDerivativeFixedVerticalMain_rightKernel_majorantPackage
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    ExplicitFormulaAffineKernelMajorantPackage
+      (fun t : ℝ =>
+        ((1 / 2 : ℂ) *
+          Complex.GammaLogDerivativeFixedVerticalMain
+            (F.c / 2) (t / 2)) *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) := by
+  let A : ℝ → ℂ := fun t : ℝ =>
+    (1 / 2 : ℂ) *
+      Complex.GammaLogDerivativeFixedVerticalMain
+        (F.c / 2) (t / 2)
+  let B : ℝ :=
+    ‖(1 / 2 : ℂ)‖ *
+      ((|Real.log (F.c / 2)| + (F.c / 2 + 1) + Real.pi) +
+        1 / (F.c / 2))
+  have hσ : 0 < F.c / 2 :=
+    div_pos F.c_pos zero_lt_two
+  have hM_nonneg :
+      0 ≤
+        (|Real.log (F.c / 2)| + (F.c / 2 + 1) + Real.pi) +
+          1 / (F.c / 2) :=
+    Complex.GammaLogDerivativeFixedVerticalMainLinearConstant_nonneg hσ
+  have hB_nonneg : 0 ≤ B :=
+    mul_nonneg (norm_nonneg (1 / 2 : ℂ)) hM_nonneg
+  have hscale : Measurable (fun t : ℝ => t / 2) :=
+    measurable_id.div_const 2
+  have hgamma :
+      AEStronglyMeasurable
+        (fun t : ℝ =>
+          Complex.GammaLogDerivativeFixedVerticalMain (F.c / 2) (t / 2))
+        (volume : Measure ℝ) :=
+    (Complex.GammaLogDerivativeFixedVerticalMain_aestronglyMeasurable
+      (F.c / 2)).comp_measurable hscale
+  have hA_meas : AEStronglyMeasurable A (volume : Measure ℝ) :=
+    hgamma.const_mul (1 / 2 : ℂ)
+  have hA_bound : ∀ t : ℝ, ‖A t‖ ≤ B * (1 + ‖t‖) := by
+    intro t
+    exact
+      zetaCompletedExplicitFormulaGammaLogDerivativeFixedVerticalMain_right_linear_bound
+        F t
+  exact
+    zetaCompletedExplicitFormulaRightCenteredAffineProduct_majorantPackage_of_linear_factor_bound
+      f F h A B hB_nonneg hA_meas hA_bound
+
+/-- The right elementary correction component of the Binet main kernel has the
+standard affine integrable majorant package. -/
+theorem zetaCompletedExplicitFormulaCorrectionLogDerivative_rightKernel_majorantPackage
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    ExplicitFormulaAffineKernelMajorantPackage
+      (fun t : ℝ =>
+        explicitFormulaCorrectionLogDerivative
+          (zetaCompletedExplicitFormulaRightAffineLine F t) *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) := by
+  let A : ℝ → ℂ := fun t : ℝ =>
+    explicitFormulaCorrectionLogDerivative
+      (zetaCompletedExplicitFormulaRightAffineLine F t)
+  let B : ℝ := (1 : ℝ) / F.c + (1 : ℝ) / (F.c - 1)
+  have hB_nonneg : 0 ≤ B :=
+    add_nonneg
+      (div_nonneg zero_le_one F.c_pos.le)
+      (div_nonneg zero_le_one (sub_pos.mpr F.c_gt_one).le)
+  have hA_meas : AEStronglyMeasurable A (volume : Measure ℝ) :=
+    zetaCompletedExplicitFormulaCorrectionLogDerivative_rightAffineLine_aestronglyMeasurable
+      F
+  have hA_bound : ∀ t : ℝ, ‖A t‖ ≤ B * (1 + ‖t‖) :=
+    zetaCompletedExplicitFormulaCorrectionLogDerivative_rightAffineLine_linear_bound
+      F
+  exact
+    zetaCompletedExplicitFormulaRightCenteredAffineProduct_majorantPackage_of_linear_factor_bound
+      f F h A B hB_nonneg hA_meas hA_bound
+
 /-- The right Binet main factor has linear growth on the scheduled right
 affine half-line. -/
 theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainFactor_linear_bound
