@@ -2804,6 +2804,65 @@ theorem fixedRightLine_scalarProjection_Ioi_integral_eq_Ici_integral
         (-2 * (Real.pi : ℂ)) * K x := by
   exact (integral_Ici_eq_integral_Ioi : _).symm
 
+/-- Normalized scalar Fourier-Laplace Plemelj package.
+
+For `a > 0`, the symmetric Fourier windows of
+`-exp(a x)/(a + i t)` converge to the open half-line multiplier and obey the
+uniform scalar bound needed for dominated convergence. -/
+theorem scalarFourierLaplacePlemelj_openHalfLine_and_uniform_bound
+    (a : ℝ) (ha : 0 < a) :
+    (∀ x : ℝ,
+      Tendsto
+        (fun T : ℝ =>
+          ∫ t in Set.Icc (-T) T,
+            (-1 / ((a : ℂ) + t * Complex.I)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp ((a : ℂ) * (x : ℂ)))
+        atTop
+        (𝓝
+          (Set.indicator (Set.Ioi (0 : ℝ))
+            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x))) ∧
+    (∀ T x : ℝ,
+      ‖(∫ t in Set.Icc (-T) T,
+        (-1 / ((a : ℂ) + t * Complex.I)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ)) *
+          Complex.exp ((a : ℂ) * (x : ℂ)))‖
+        ≤ 2 * (Real.pi + 1)) := by
+  sorry
+
+/-- The fixed-right-line scalar Cauchy window is the normalized
+Fourier-Laplace Plemelj window with `a = c - 1`. -/
+theorem fixedRightLine_scalarCauchyWindow_eq_normalizedLaplaceWindow
+    (c : ℝ) (x T : ℝ) :
+    (∫ t in Set.Icc (-T) T,
+      (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ)) *
+        Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) =
+    ∫ t in Set.Icc (-T) T,
+      (-1 / (((c - 1 : ℝ) : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ)) *
+        Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+  exact intervalIntegral.integral_congr
+    (Filter.Eventually.of_forall
+      (fun t : ℝ =>
+        congrArg
+          (fun z : ℂ =>
+            (-1 / z) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+          (calc
+            ((c : ℂ) + t * Complex.I) - 1 =
+                ((c : ℂ) - 1) + t * Complex.I := by
+              exact sub_add_eq_add_sub (c : ℂ) (t * Complex.I) 1
+            _ = (((c - 1 : ℝ) : ℂ) + t * Complex.I) := by
+              exact congrArg (fun z : ℂ => z + t * Complex.I)
+                (Complex.ofReal_sub c 1).symm)))
+
 /-- Scalar fixed-right-line Cauchy/Plemelj package.
 
 This is the one-dimensional analytic owner theorem behind the fixed-right-line
@@ -2831,7 +2890,43 @@ theorem fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_and_uniform_bound
             (Complex.I * (t : ℂ) * (x : ℂ)) *
           Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
         ≤ 2 * (Real.pi + 1)) := by
-  sorry
+  have ha : 0 < c - 1 :=
+    sub_pos.mpr hc
+  have hbase :=
+    scalarFourierLaplacePlemelj_openHalfLine_and_uniform_bound
+      (c - 1) ha
+  constructor
+  · intro x
+    have hfun :
+        (fun T : ℝ =>
+          ∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) =
+        (fun T : ℝ =>
+          ∫ t in Set.Icc (-T) T,
+            (-1 / (((c - 1 : ℝ) : ℂ) + t * Complex.I)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) := by
+      funext T
+      exact fixedRightLine_scalarCauchyWindow_eq_normalizedLaplaceWindow c x T
+    exact Eq.subst
+      (motive := fun u : ℝ → ℂ =>
+        Tendsto u atTop
+          (𝓝
+            (Set.indicator (Set.Ioi (0 : ℝ))
+              (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)))
+      hfun.symm
+      (hbase.1 x)
+  · intro T x
+    have hwindow :=
+      fixedRightLine_scalarCauchyWindow_eq_normalizedLaplaceWindow c x T
+    exact Eq.subst
+      (motive := fun z : ℂ => ‖z‖ ≤ 2 * (Real.pi + 1))
+      hwindow.symm
+      (hbase.2 T x)
 
 /-- Scalar fixed-right-line Plemelj theorem for finite symmetric Cauchy
 windows, including the open half-line limit and the uniform scalar bound
