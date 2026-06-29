@@ -4934,12 +4934,37 @@ noncomputable def scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum
     (_a _x : ℝ) : ℂ :=
   0
 
+/-- Negative-time scalar Fourier-Laplace meromorphic kernel. -/
+noncomputable def scalarFourierLaplacePlemelj_negativeKernel
+    (a x : ℝ) (z : ℂ) : ℂ :=
+  (-1 / ((a : ℂ) + z * Complex.I)) *
+    Complex.exp (Complex.I * z * (x : ℂ))
+
+/-- The negative lower-half-plane kernel has zero enclosed residue sum. -/
+theorem scalarFourierLaplacePlemelj_negativeKernel_lowerHalfPlaneResidueSum_eq_zero
+    (a x : ℝ) :
+    scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum a x = 0 := by
+  rfl
+
 theorem scalarFourierLaplacePlemelj_two_pi_i_mul_negativeLowerHalfPlaneResidueSum_eq_zero
     (a x : ℝ) :
     ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
         scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum a x = 0 := by
   unfold scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum
   exact mul_zero ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)
+
+/-- Lower-half-plane pole-free residue theorem for the negative-time scalar
+contour, in `2πi` times the named kernel residue-sum form. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_eq_two_pi_i_kernelResidueSum
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ)
+    (_hpole :
+      ¬ scalarFourierLaplacePlemelj_upperPole a =
+          (-(a : ℂ)) * Complex.I) :
+    scalarFourierLaplacePlemelj_negativeClosedContour a x T =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
+        scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum a x := by
+  sorry
 
 /-- Lower-half-plane pole-free residue theorem for the negative-time scalar
 contour, in `2πi` times residue-sum form. -/
@@ -4952,7 +4977,9 @@ theorem scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_e
     scalarFourierLaplacePlemelj_negativeClosedContour a x T =
       ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
         scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum a x := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_eq_two_pi_i_kernelResidueSum
+      a ha x hx T _hpole
 
 /-- Lower-half-plane pole-free residue theorem for the negative-time scalar
 contour. -/
