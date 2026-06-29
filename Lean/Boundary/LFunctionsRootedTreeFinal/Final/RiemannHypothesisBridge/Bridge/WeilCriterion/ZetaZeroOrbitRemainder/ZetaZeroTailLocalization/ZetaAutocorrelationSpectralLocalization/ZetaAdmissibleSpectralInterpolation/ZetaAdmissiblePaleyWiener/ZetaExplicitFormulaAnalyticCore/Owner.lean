@@ -1078,6 +1078,18 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_eq_two_re_
           (fun ι : ZetaPrimePowerIndex =>
             zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)).symm
 
+/-- Scalar real-part finite-window cancellation at the residue-ledger source layer. -/
+theorem zetaCompletedPrimePowerAutocorrelation_oriented_boxSum_re_tendsto_zero_residueLedger_core
+    (f : ZetaAdmissibleFunction) :
+    Filter.Tendsto
+      (fun N : ℕ =>
+        Complex.re
+          (∑ ι in ZetaPrimePowerIndex.box N,
+            zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f))
+      Filter.atTop
+      (𝓝 0) := by
+  sorry
+
 /-- Scalar source residue-ledger cancellation for the finite oriented real-shadow windows. -/
 theorem zetaCompletedPrimePowerAutocorrelation_oriented_realShadowWindow_tendsto_zero_residueLedger_core
     (f : ZetaAdmissibleFunction) :
@@ -1089,7 +1101,79 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_realShadowWindow_tendsto
               (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℂ))
       Filter.atTop
       (𝓝 0) := by
-  sorry
+  have hreal :
+      Filter.Tendsto
+        (fun N : ℕ =>
+          Complex.re
+            (∑ ι in ZetaPrimePowerIndex.box N,
+              zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f))
+        Filter.atTop
+        (𝓝 0) :=
+    zetaCompletedPrimePowerAutocorrelation_oriented_boxSum_re_tendsto_zero_residueLedger_core
+      f
+  have htwo :
+      Filter.Tendsto
+        (fun N : ℕ =>
+          (2 : ℝ) *
+            Complex.re
+              (∑ ι in ZetaPrimePowerIndex.box N,
+                zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f))
+        Filter.atTop
+        (𝓝 ((2 : ℝ) * 0)) :=
+    Filter.Tendsto.const_mul (2 : ℝ) hreal
+  have hzero : ((2 : ℝ) * 0) = 0 :=
+    mul_zero (2 : ℝ)
+  have htwo_zero :
+      Filter.Tendsto
+        (fun N : ℕ =>
+          (2 : ℝ) *
+            Complex.re
+              (∑ ι in ZetaPrimePowerIndex.box N,
+                zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f))
+        Filter.atTop
+        (𝓝 0) :=
+    Eq.subst
+      (motive := fun y : ℝ =>
+        Filter.Tendsto
+          (fun N : ℕ =>
+            (2 : ℝ) *
+              Complex.re
+                (∑ ι in ZetaPrimePowerIndex.box N,
+                  zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f))
+          Filter.atTop
+          (𝓝 y))
+      hzero
+      htwo
+  have hofReal :
+      Filter.Tendsto
+        (fun N : ℕ =>
+          (((2 : ℝ) *
+            Complex.re
+              (∑ ι in ZetaPrimePowerIndex.box N,
+                zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℝ) : ℂ))
+        Filter.atTop
+        (𝓝 (0 : ℂ)) := by
+    exact (Complex.continuous_ofReal.tendsto (0 : ℝ)).comp htwo_zero
+  have hpoint :
+      (fun N : ℕ =>
+        (((2 : ℝ) *
+          Complex.re
+            (∑ ι in ZetaPrimePowerIndex.box N,
+              zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℝ) : ℂ)) =
+      (fun N : ℕ =>
+        ∑ ι in ZetaPrimePowerIndex.box N,
+          ((2 : ℝ) *
+            Complex.re
+              (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℂ)) := by
+    funext N
+    exact
+      (zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_eq_two_re_boxSum_source
+        N f).symm
+  exact Eq.subst
+    (motive := fun u : ℕ → ℂ =>
+      Filter.Tendsto u Filter.atTop (𝓝 0))
+    hpoint
+    hofReal
 
 /-- Source contour-ledger cancellation for the finite sum of the two oriented
 prime-power faces. -/
@@ -1165,156 +1249,9 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_boxSum_re_tendsto_zero_r
             zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f))
       Filter.atTop
       (𝓝 0) := by
-  have hshadow :
-      Filter.Tendsto
-        (fun N : ℕ =>
-          ∑ ι in ZetaPrimePowerIndex.box N,
-            ((2 : ℝ) *
-              Complex.re
-                (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℂ))
-        Filter.atTop
-        (𝓝 0) :=
-    zetaCompletedPrimePowerAutocorrelation_oriented_realShadowWindow_tendsto_zero_residueLedger_source
+  exact
+    zetaCompletedPrimePowerAutocorrelation_oriented_boxSum_re_tendsto_zero_residueLedger_core
       f
-  have hre_shadow :
-      Filter.Tendsto
-        (fun N : ℕ =>
-          Complex.re
-            (∑ ι in ZetaPrimePowerIndex.box N,
-              ((2 : ℝ) *
-                Complex.re
-                  (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℂ)))
-        Filter.atTop
-        (𝓝 0) := by
-    exact (Complex.continuous_re.tendsto (0 : ℂ)).comp hshadow
-  have htwo_re :
-      Filter.Tendsto
-        (fun N : ℕ =>
-          (2 : ℝ) *
-            Complex.re
-              (∑ ι in ZetaPrimePowerIndex.box N,
-                zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f))
-        Filter.atTop
-        (𝓝 0) := by
-    have hpoint :
-        (fun N : ℕ =>
-          Complex.re
-            (∑ ι in ZetaPrimePowerIndex.box N,
-              ((2 : ℝ) *
-                Complex.re
-                  (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℂ))) =
-        (fun N : ℕ =>
-          (2 : ℝ) *
-            Complex.re
-              (∑ ι in ZetaPrimePowerIndex.box N,
-                zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)) := by
-      funext N
-      calc
-        Complex.re
-            (∑ ι in ZetaPrimePowerIndex.box N,
-              ((2 : ℝ) *
-                Complex.re
-                  (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℂ)) =
-            Complex.re
-              (((2 : ℝ) *
-                Complex.re
-                  (∑ ι in ZetaPrimePowerIndex.box N,
-                    zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℝ) : ℂ) := by
-          exact congrArg Complex.re
-            (zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_eq_two_re_boxSum_source
-              N f)
-        _ =
-            (2 : ℝ) *
-              Complex.re
-                (∑ ι in ZetaPrimePowerIndex.box N,
-                  zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) := by
-          exact Complex.ofReal_re
-            ((2 : ℝ) *
-              Complex.re
-                (∑ ι in ZetaPrimePowerIndex.box N,
-                  zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f))
-    exact Eq.subst
-      (motive := fun v : ℕ → ℝ =>
-        Filter.Tendsto v Filter.atTop (𝓝 0))
-      hpoint
-      hre_shadow
-  have hhalf :
-      Filter.Tendsto
-        (fun N : ℕ =>
-          ((2 : ℝ)⁻¹) *
-            ((2 : ℝ) *
-              Complex.re
-                (∑ ι in ZetaPrimePowerIndex.box N,
-                  zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)))
-        Filter.atTop
-        (𝓝 (((2 : ℝ)⁻¹) * 0)) :=
-    Filter.Tendsto.const_mul ((2 : ℝ)⁻¹) htwo_re
-  have hpoint_half :
-      (fun N : ℕ =>
-        ((2 : ℝ)⁻¹) *
-          ((2 : ℝ) *
-            Complex.re
-              (∑ ι in ZetaPrimePowerIndex.box N,
-                zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f))) =
-      (fun N : ℕ =>
-        Complex.re
-          (∑ ι in ZetaPrimePowerIndex.box N,
-            zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)) := by
-    funext N
-    calc
-      ((2 : ℝ)⁻¹) *
-          ((2 : ℝ) *
-            Complex.re
-              (∑ ι in ZetaPrimePowerIndex.box N,
-                zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)) =
-          (((2 : ℝ)⁻¹) * (2 : ℝ)) *
-            Complex.re
-              (∑ ι in ZetaPrimePowerIndex.box N,
-                zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) := by
-        exact mul_assoc ((2 : ℝ)⁻¹) (2 : ℝ)
-          (Complex.re
-            (∑ ι in ZetaPrimePowerIndex.box N,
-              zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f))
-      _ =
-          1 *
-            Complex.re
-              (∑ ι in ZetaPrimePowerIndex.box N,
-                zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) := by
-        exact congrArg
-          (fun r : ℝ =>
-            r *
-              Complex.re
-                (∑ ι in ZetaPrimePowerIndex.box N,
-                  zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f))
-          (inv_mul_cancel₀ two_ne_zero)
-      _ =
-          Complex.re
-            (∑ ι in ZetaPrimePowerIndex.box N,
-              zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) := by
-        exact one_mul
-          (Complex.re
-            (∑ ι in ZetaPrimePowerIndex.box N,
-              zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f))
-  have hlim :
-      (((2 : ℝ)⁻¹) * 0) = 0 :=
-    mul_zero ((2 : ℝ)⁻¹)
-  exact Eq.subst
-    (motive := fun v : ℕ → ℝ =>
-      Filter.Tendsto v Filter.atTop (𝓝 0))
-    hpoint_half
-    (Eq.subst
-      (motive := fun y : ℝ =>
-        Filter.Tendsto
-          (fun N : ℕ =>
-            ((2 : ℝ)⁻¹) *
-              ((2 : ℝ) *
-                Complex.re
-                  (∑ ι in ZetaPrimePowerIndex.box N,
-                    zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)))
-          Filter.atTop
-          (𝓝 y))
-      hlim
-      hhalf)
 
 /-- Source residue-ledger real-shadow cancellation for the oriented face total.
 
