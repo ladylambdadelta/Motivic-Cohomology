@@ -2893,9 +2893,10 @@ theorem scalarFourierLaplacePlemelj_pointwise_positive
     (scalarFourierLaplacePlemelj_positive_window_tendsto_laplaceJump
       a ha x hx)
 
-/-- Nonpositive-time normalized Fourier-Laplace Plemelj value. -/
-theorem scalarFourierLaplacePlemelj_pointwise_nonpositive
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∉ Set.Ioi (0 : ℝ)) :
+/-- Negative-time scalar Plemelj window after the Laplace denominator has been
+closed on the pole-free side. -/
+theorem scalarFourierLaplacePlemelj_negative_window_tendsto_zero
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
     Tendsto
       (fun T : ℝ =>
         ∫ t in Set.Icc (-T) T,
@@ -2907,12 +2908,29 @@ theorem scalarFourierLaplacePlemelj_pointwise_nonpositive
       (𝓝 0) := by
   sorry
 
-/-- Pointwise normalized Fourier-Laplace Plemelj value.
+/-- Negative-time normalized Fourier-Laplace Plemelj value. -/
+theorem scalarFourierLaplacePlemelj_pointwise_negative
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / ((a : ℂ) + t * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp ((a : ℂ) * (x : ℂ)))
+      atTop
+      (𝓝 0) := by
+  exact
+    scalarFourierLaplacePlemelj_negative_window_tendsto_zero
+      a ha x hx
+
+/-- Off-endpoint pointwise normalized Fourier-Laplace Plemelj value.
 
 For `a > 0`, the symmetric Fourier windows of
-`-exp(a x)/(a + i t)` converge to the open half-line multiplier. -/
+`-exp(a x)/(a + i t)` converge to the open half-line multiplier away from
+the jump at `x = 0`. -/
 theorem scalarFourierLaplacePlemelj_pointwise_openHalfLine
-    (a : ℝ) (ha : 0 < a) (x : ℝ) :
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx0 : x ≠ 0) :
     Tendsto
       (fun T : ℝ =>
         ∫ t in Set.Icc (-T) T,
@@ -2944,10 +2962,12 @@ theorem scalarFourierLaplacePlemelj_pointwise_openHalfLine
       htarget.symm
       (scalarFourierLaplacePlemelj_pointwise_positive a ha x hx)
   · have htarget :
-        Set.indicator (Set.Ioi (0 : ℝ))
+      Set.indicator (Set.Ioi (0 : ℝ))
           (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x =
             0 :=
       Set.indicator_of_not_mem hx _
+    have hxneg : x < 0 :=
+      lt_of_le_of_ne (not_lt.mp hx) hx0
     exact Eq.subst
       (motive := fun y : ℂ =>
         Tendsto
@@ -2960,7 +2980,7 @@ theorem scalarFourierLaplacePlemelj_pointwise_openHalfLine
           atTop
           (𝓝 y))
       htarget.symm
-      (scalarFourierLaplacePlemelj_pointwise_nonpositive a ha x hx)
+      (scalarFourierLaplacePlemelj_pointwise_negative a ha x hxneg)
 
 /-- Uniform finite-window bound for the normalized Fourier-Laplace Plemelj
 kernel. -/
@@ -2981,7 +3001,7 @@ For `a > 0`, the symmetric Fourier windows of
 uniform scalar bound needed for dominated convergence. -/
 theorem scalarFourierLaplacePlemelj_openHalfLine_and_uniform_bound
     (a : ℝ) (ha : 0 < a) :
-    (∀ x : ℝ,
+    (∀ x : ℝ, x ≠ 0 →
       Tendsto
         (fun T : ℝ =>
           ∫ t in Set.Icc (-T) T,
@@ -3001,8 +3021,8 @@ theorem scalarFourierLaplacePlemelj_openHalfLine_and_uniform_bound
           Complex.exp ((a : ℂ) * (x : ℂ)))‖
         ≤ 2 * (Real.pi + 1)) := by
   exact
-    ⟨fun x =>
-      scalarFourierLaplacePlemelj_pointwise_openHalfLine a ha x,
+    ⟨fun x hx0 =>
+      scalarFourierLaplacePlemelj_pointwise_openHalfLine a ha x hx0,
      fun T x =>
       scalarFourierLaplacePlemelj_uniform_bound a ha T x⟩
 
@@ -3045,7 +3065,7 @@ open-half-line multiplier and are uniformly bounded by the scalar Plemelj
 constant. -/
 theorem fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_and_uniform_bound
     (c : ℝ) (hc : 1 < c) :
-    (∀ x : ℝ,
+    (∀ x : ℝ, x ≠ 0 →
       Tendsto
         (fun T : ℝ =>
           ∫ t in Set.Icc (-T) T,
@@ -3071,6 +3091,7 @@ theorem fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_and_uniform_bound
       (c - 1) ha
   constructor
   · intro x
+    intro hx0
     have hfun :
         (fun T : ℝ =>
           ∫ t in Set.Icc (-T) T,
@@ -3093,7 +3114,7 @@ theorem fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_and_uniform_bound
             (Set.indicator (Set.Ioi (0 : ℝ))
               (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)))
       hfun.symm
-      (hbase.1 x)
+      (hbase.1 x hx0)
   · intro T x
     have hwindow :=
       fixedRightLine_scalarCauchyWindow_eq_normalizedLaplaceWindow c x T
@@ -3106,7 +3127,7 @@ theorem fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_and_uniform_bound
 windows, including the open half-line limit and the uniform scalar bound
 needed for dominated convergence. -/
 theorem fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_with_uniform_bound
-    (c : ℝ) (hc : 1 < c) (x : ℝ) :
+    (c : ℝ) (hc : 1 < c) (x : ℝ) (hx0 : x ≠ 0) :
     Tendsto
       (fun T : ℝ =>
         ∫ t in Set.Icc (-T) T,
@@ -3120,12 +3141,12 @@ theorem fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_with_uniform_boun
           (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) := by
   exact
     (fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_and_uniform_bound
-      c hc).1 x
+      c hc).1 x hx0
 
 /-- Scalar fixed-right-line Plemelj theorem for finite symmetric Cauchy
 windows, expressed as the open half-line multiplier. -/
 theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_openHalfLine
-    (c : ℝ) (hc : 1 < c) (x : ℝ) :
+    (c : ℝ) (hc : 1 < c) (x : ℝ) (hx0 : x ≠ 0) :
     Tendsto
       (fun T : ℝ =>
         ∫ t in Set.Icc (-T) T,
@@ -3138,7 +3159,7 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_openHalfLine
         (Set.indicator (Set.Ioi (0 : ℝ))
           (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) :=
   fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_with_uniform_bound
-    c hc x
+    c hc x hx0
 
 /-- Uniform scalar bound component of the fixed-right-line Plemelj theorem. -/
 theorem fixedRightLine_scalarCauchyWindow_uniform_norm_bound_from_plemelj
@@ -3179,6 +3200,7 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_positive
           (Set.indicator (Set.Ioi (0 : ℝ))
             (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) :=
     fixedRightLine_scalarCauchyWindow_pointwise_tendsto_openHalfLine c hc x
+      (ne_of_gt hx)
   have hvalue :
       Set.indicator (Set.Ioi (0 : ℝ))
         (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x =
@@ -3213,6 +3235,7 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
           (Set.indicator (Set.Ioi (0 : ℝ))
             (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) :=
     fixedRightLine_scalarCauchyWindow_pointwise_tendsto_openHalfLine c hc x
+      (ne_of_lt hx)
   have hnot : x ∉ Set.Ioi (0 : ℝ) :=
     fun hx_pos : 0 < x =>
       (not_lt_of_ge (le_of_lt hx)) hx_pos
