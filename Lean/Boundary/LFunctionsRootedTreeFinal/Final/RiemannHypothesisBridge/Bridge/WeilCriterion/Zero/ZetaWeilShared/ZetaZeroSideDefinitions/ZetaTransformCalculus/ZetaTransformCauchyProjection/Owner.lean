@@ -3146,6 +3146,40 @@ theorem scalarFourierLaplacePlemelj_upperPole_im_pos
       (scalarFourierLaplacePlemelj_upperPole_im a).symm
       ha
 
+/-- Primitive data for the punctured Cauchy kernel on the upper half-disk. -/
+def scalarFourierLaplacePlemelj_hasPrimitiveOnPuncturedUpperHalfDisk
+    (F G : ℂ → ℂ) (T : ℝ) (p : ℂ) : Prop :=
+  ∀ z ∈ scalarFourierLaplacePlemelj_upperHalfDisk T, z ≠ p →
+    HasDerivWithinAt G (F z / (z - p))
+      (scalarFourierLaplacePlemelj_upperHalfDisk T \ {p}) z
+
+/-- On the punctured upper half-disk, the Cauchy kernel has a primitive. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_puncturedKernel_hasPrimitive
+    (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ)
+    (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p)
+    (_hdiff : DifferentiableOn ℂ F
+      (scalarFourierLaplacePlemelj_upperHalfDisk T)) :
+    ∃ G : ℂ → ℂ,
+      scalarFourierLaplacePlemelj_hasPrimitiveOnPuncturedUpperHalfDisk
+        F G T p := by
+  sorry
+
+/-- The punctured primitive boundary calculation plus the small indentation
+around the pole reconstructs the Cauchy integral formula. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_cauchyIntegralFormula_of_puncturedPrimitive
+    (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ)
+    (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p)
+    (_hdiff : DifferentiableOn ℂ F
+      (scalarFourierLaplacePlemelj_upperHalfDisk T))
+    (_hprimitive :
+      ∃ G : ℂ → ℂ,
+        scalarFourierLaplacePlemelj_hasPrimitiveOnPuncturedUpperHalfDisk
+          F G T p) :
+    scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+        (fun z : ℂ => F z / (z - p)) T =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * F p := by
+  sorry
+
 /-- Cauchy's integral formula for a generic upper half-disk boundary integral
 with one enclosed pole. -/
 theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_cauchyIntegralFormula
@@ -3156,7 +3190,11 @@ theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_cauchyIntegral
     scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
         (fun z : ℂ => F z / (z - p)) T =
       ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * F p := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_cauchyIntegralFormula_of_puncturedPrimitive
+      F T _hT p _hp _hp_upper _hdiff
+      (scalarFourierLaplacePlemelj_upperHalfDisk_puncturedKernel_hasPrimitive
+        F T _hT p _hp _hp_upper _hdiff)
 
 /-- Scalar complex algebra behind the normalized Cauchy denominator:
 `-1 / (I * D) = I / D`. -/
