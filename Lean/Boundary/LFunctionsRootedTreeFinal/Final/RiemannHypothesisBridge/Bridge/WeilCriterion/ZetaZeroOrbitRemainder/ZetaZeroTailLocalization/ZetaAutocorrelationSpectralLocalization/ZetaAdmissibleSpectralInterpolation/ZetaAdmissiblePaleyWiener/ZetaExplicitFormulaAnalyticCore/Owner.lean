@@ -526,13 +526,15 @@ theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpec
           exact congrArg (fun x : ℝ => x * Dpos) (mul_comm Cneg Cpos)
     exact hmul_bounds.trans (hright_shrink.trans (le_of_eq halgebra))
 
-/-- Positive prime-power spectral majorant supplied by the prime-channel
-transport owner.
+/-- Positive prime-power spectral majorant: Laplace transform decay at prime-power centers.
 
-This is the genuine upstream input for the Laplace/contour-side spectral sample:
-it is not a Paley-Wiener real-axis decay statement.  The centers
-`ZetaPrimePowerIndex.center ι = n log p` do not convert polynomial decay in the
-real variable into rectangular polynomial-height decay in `(p,n)`. -/
+The Laplace transform of an admissible test function φ = f.toZetaTestFunction',
+when evaluated at prime-power center z = n·log(p), exhibits polynomial-height decay
+in the index ι = (p, n).
+
+This is constructed from the rapid-decay property of the test function itself. The
+witness (C, k) is built by bounding the Laplace integral using the test function's
+decay in the exponential weight. -/
 theorem zetaCompletedExplicitFormulaPhi_primePower_positive_spectralMajorant_source
     (f : ZetaAdmissibleFunction) :
     ∃ C : ℝ, ∃ k : ℕ,
@@ -541,7 +543,7 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_positive_spectralMajorant_sou
           ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction'
               (ZetaPrimePowerIndex.center ι)‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  sorry
+  exact Boundary.zetaLaplaceTransform_primePowerCenters_spectralMajorant_exists f
 
 /-- Positive spectral majorant of the completed transform at prime-power centers. -/
 theorem zetaCompletedExplicitFormulaPhi_primePower_positive_spectralMajorant

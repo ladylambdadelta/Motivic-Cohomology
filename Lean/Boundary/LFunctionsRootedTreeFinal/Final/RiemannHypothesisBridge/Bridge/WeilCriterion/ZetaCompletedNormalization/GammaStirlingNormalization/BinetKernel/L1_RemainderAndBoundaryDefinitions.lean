@@ -33,15 +33,11 @@ This file is a sequential owner sublayer split out of
 -/
 
 namespace Boundary
-
-namespace Boundary
 namespace LFunctions
 
 noncomputable section
 
-namespace LFunctions
-
-noncomputable section
+open Filter
 
 theorem Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
     {w : ℂ}
@@ -409,7 +405,7 @@ theorem Complex.binetSecondFormula_finiteHeightRealSegmentConstantFaces_of_point
   exact
     ⟨2, zero_lt_two, le_refl (2 : ℝ),
       fun w hw_re_pos _hRle N =>
-        eventually_of_forall
+        Filter.Eventually.of_forall
           (fun T => hpoint w hw_re_pos N T)⟩
 
 /-- Endpoint-restored boundary target from real-segment constant-face
@@ -568,14 +564,26 @@ theorem Complex.finiteAbelPlanaLogEndpointPVIndentationContribution_at_zero_one_
           Complex.finiteAbelPlana_log_endpointPVIndentationContribution_eq_halfEndpoints
             0 (1 : ℂ)
       _ = (Complex.log (1 : ℂ) + Complex.log ((1 : ℂ) + (1 : ℂ))) / (2 : ℂ) := by
-        rfl
+        have hone_nat_cast : (((0 + 1 : ℕ) : ℂ)) = (1 : ℂ) :=
+          Nat.cast_one
+        have hhalf_def :
+            Complex.finiteAbelPlanaLogSummandHalfEndpoints 0 (1 : ℂ) =
+              (Complex.log (1 : ℂ) +
+                Complex.log ((1 : ℂ) + (((0 + 1 : ℕ) : ℂ)))) / (2 : ℂ) :=
+          rfl
+        exact
+          Eq.trans hhalf_def
+            (congrArg
+              (fun z : ℂ =>
+                (Complex.log (1 : ℂ) + Complex.log ((1 : ℂ) + z)) / (2 : ℂ))
+              hone_nat_cast)
       _ = (0 + Complex.log ((1 : ℂ) + (1 : ℂ))) / (2 : ℂ) := by
         exact congrArg (fun z : ℂ => (z + Complex.log ((1 : ℂ) + (1 : ℂ))) / (2 : ℂ)) hlog_one
       _ = Complex.log ((1 : ℂ) + (1 : ℂ)) / (2 : ℂ) := by
         exact congrArg (fun z : ℂ => z / (2 : ℂ)) (zero_add (Complex.log ((1 : ℂ) + (1 : ℂ))))
       _ = Complex.log (2 : ℂ) / (2 : ℂ) := by
         have hone_add_one : (1 : ℂ) + (1 : ℂ) = 2 := by
-          rfl
+          exact one_add_one_eq_two
         exact congrArg (fun z : ℂ => Complex.log z / (2 : ℂ)) hone_add_one
   intro hendpoint_zero
   exact hlog_two_div_two_ne_zero (Eq.trans hendpoint_eq.symm hendpoint_zero)
@@ -599,7 +607,7 @@ theorem Complex.finiteAbelPlanaLogEndpointPVIndentationContribution_at_zero_ofRe
   have hx_one_nonneg : 0 ≤ x + 1 :=
     le_of_lt hx_one_pos
   have hx_one_gt_one : 1 < x + 1 :=
-    lt_add_of_pos_right x zero_lt_one
+    lt_add_of_pos_left 1 hx_pos
   have hlog_x_nonneg : 0 ≤ Real.log x :=
     Real.log_nonneg hx
   have hlog_x_one_pos : 0 < Real.log (x + 1) :=
@@ -631,7 +639,19 @@ theorem Complex.finiteAbelPlanaLogEndpointPVIndentationContribution_at_zero_ofRe
           Complex.finiteAbelPlana_log_endpointPVIndentationContribution_eq_halfEndpoints
             0 (x : ℂ)
       _ = (Complex.log (x : ℂ) + Complex.log ((x : ℂ) + (1 : ℂ))) / (2 : ℂ) := by
-        rfl
+        have hone_nat_cast : (((0 + 1 : ℕ) : ℂ)) = (1 : ℂ) :=
+          Nat.cast_one
+        have hhalf_def :
+            Complex.finiteAbelPlanaLogSummandHalfEndpoints 0 (x : ℂ) =
+              (Complex.log (x : ℂ) +
+                Complex.log ((x : ℂ) + (((0 + 1 : ℕ) : ℂ)))) / (2 : ℂ) :=
+          rfl
+        exact
+          Eq.trans hhalf_def
+            (congrArg
+              (fun z : ℂ =>
+                (Complex.log (x : ℂ) + Complex.log ((x : ℂ) + z)) / (2 : ℂ))
+              hone_nat_cast)
       _ = ((Real.log x : ℂ) + Complex.log ((x : ℂ) + (1 : ℂ))) / (2 : ℂ) := by
         exact congrArg
           (fun z : ℂ => (z + Complex.log ((x : ℂ) + (1 : ℂ))) / (2 : ℂ))
@@ -764,7 +784,7 @@ theorem Complex.not_boundaryTarget_and_realSegmentConstantFaces
         hzero_bound (x : ℂ) hx_complex_re_pos hRle_norm 0
       have hzero :
           Complex.finiteAbelPlanaLogEndpointPVIndentationContribution 0 (x : ℂ) = 0 :=
-        (eventually_const.mp hzero_eventual)
+        (Filter.eventually_const.mp hzero_eventual)
       exact
         Complex.finiteAbelPlanaLogEndpointPVIndentationContribution_at_zero_ofReal_ge_one_ne_zero
           hx_ge_one hzero
@@ -802,6 +822,7 @@ algebra: the boundary target keeps the endpoint indentation, and the contour
 error is the endpoint-restored contour error with that indentation subtracted. -/
 def Complex.BinetSecondFormulaEndpointRestoredFiniteHeightContourInputs : Prop :=
   Complex.BinetSecondFormulaFiniteHeightBoundaryTargetEndpointRestored ∧
+    Complex.BinetSecondFormulaEndpointReturnedRestoredPairDecay
 
 end
 end LFunctions
