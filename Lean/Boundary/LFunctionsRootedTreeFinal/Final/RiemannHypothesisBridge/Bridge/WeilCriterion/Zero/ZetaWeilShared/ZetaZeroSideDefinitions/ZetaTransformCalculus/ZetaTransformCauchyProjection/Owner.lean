@@ -2748,6 +2748,65 @@ theorem fixedRightLine_scalarCauchyWindow_compactSupport_dominated
                 ≤ G x := by
   sorry
 
+/-- Joint continuity of the finite scalar fixed-right-line Cauchy-window
+integrand in the space and frequency variables. -/
+theorem fixedRightLine_scalarCauchyWindow_integrand_joint_continuous
+    (c : ℝ) (hc : 1 < c) :
+    Continuous
+      (fun p : ℝ × ℝ =>
+        (-1 / (((c : ℂ) + p.2 * Complex.I) - 1)) *
+          Complex.exp
+            (Complex.I * (p.2 : ℂ) * (p.1 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (p.1 : ℂ))) := by
+  have hden :
+      Continuous
+        (fun p : ℝ × ℝ =>
+          (((c : ℂ) + p.2 * Complex.I) - 1)) :=
+    (continuous_const.add
+      ((Complex.continuous_ofReal.comp continuous_snd).mul continuous_const)).sub
+      continuous_const
+  have hden_ne :
+      ∀ p : ℝ × ℝ,
+        (((c : ℂ) + p.2 * Complex.I) - 1) ≠ 0 :=
+    fun p : ℝ × ℝ =>
+      fixedRightLine_cauchyDenominator_ne_zero c p.2 hc
+  have hscalar :
+      Continuous
+        (fun p : ℝ × ℝ =>
+          -1 / (((c : ℂ) + p.2 * Complex.I) - 1)) :=
+    continuous_const.div hden hden_ne
+  have hphase :
+      Continuous
+        (fun p : ℝ × ℝ =>
+          Complex.I * (p.2 : ℂ) * (p.1 : ℂ)) :=
+    (continuous_const.mul
+      (Complex.continuous_ofReal.comp continuous_snd)).mul
+        (Complex.continuous_ofReal.comp continuous_fst)
+  have hweight :
+      Continuous
+        (fun p : ℝ × ℝ =>
+          ((c - 1 : ℝ) : ℂ) * (p.1 : ℂ)) :=
+    continuous_const.mul
+      (Complex.continuous_ofReal.comp continuous_fst)
+  exact
+    (hscalar.mul (Complex.continuous_exp.comp hphase)).mul
+      (Complex.continuous_exp.comp hweight)
+
+/-- Continuity of each finite scalar Cauchy window before pairing with the
+compact-support kernel. -/
+theorem fixedRightLine_scalarCauchyWindow_continuous
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    Continuous
+      (fun x : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) :=
+  continuous_parametric_integral_of_continuous
+    (fixedRightLine_scalarCauchyWindow_integrand_joint_continuous c hc)
+    isCompact_Icc
+
 /-- Continuity in the time variable of each finite scalar Cauchy window paired
 against the smooth compact-support kernel. -/
 theorem fixedRightLine_scalarCauchyWindow_paired_continuous
@@ -2762,7 +2821,8 @@ theorem fixedRightLine_scalarCauchyWindow_paired_continuous
               Complex.exp
                 (Complex.I * (t : ℂ) * (x : ℂ)) *
               Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) := by
-  sorry
+  exact hK_cont.mul
+    (fixedRightLine_scalarCauchyWindow_continuous c hc T)
 
 /-- A.e.-strong measurability of the paired scalar Cauchy window kernels. -/
 theorem fixedRightLine_scalarCauchyWindow_paired_aestronglyMeasurable_eventually
