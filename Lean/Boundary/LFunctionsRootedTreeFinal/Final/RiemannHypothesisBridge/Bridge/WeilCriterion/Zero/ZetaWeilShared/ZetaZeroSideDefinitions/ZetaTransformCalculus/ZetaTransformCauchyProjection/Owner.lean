@@ -6899,13 +6899,59 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_di
 
 /-- Scaling reduction from the width-`a` Hilbert-Cauchy sine kernel to the
 normalized kernel `u / (1 + u^2)`. -/
+theorem scalarFourierLaplacePlemelj_scaledHilbertSineKernel_coefficient_identity
+    (a : ℝ) (ha : 0 < a) (u : ℝ) :
+    a * ((u * a) / (a ^ 2 + (u * a) ^ 2)) =
+      u / (1 + u ^ 2) := by
+  sorry
+
+theorem scalarFourierLaplacePlemelj_scaledHilbertSineKernel_phase_identity
+    (a x u : ℝ) :
+    Real.sin ((u * a) * x) = Real.sin ((a * x) * u) := by
+  have harg : (u * a) * x = (a * x) * u := by
+    calc
+      (u * a) * x = u * (a * x) := by
+        exact mul_assoc u a x
+      _ = (a * x) * u := by
+        exact mul_comm u (a * x)
+  exact congrArg Real.sin harg
+
 theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_scaled_integrand_identity
     (a : ℝ) (ha : 0 < a) (x u : ℝ) :
     a *
       (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
         Real.sin ((u * a) * x)) =
       (u / (1 + u ^ 2)) * Real.sin ((a * x) * u) := by
-  sorry
+  have hcoeff :
+      a * ((u * a) / (a ^ 2 + (u * a) ^ 2)) =
+        u / (1 + u ^ 2) :=
+    scalarFourierLaplacePlemelj_scaledHilbertSineKernel_coefficient_identity
+      a ha u
+  have hphase :
+      Real.sin ((u * a) * x) = Real.sin ((a * x) * u) :=
+    scalarFourierLaplacePlemelj_scaledHilbertSineKernel_phase_identity
+      a x u
+  calc
+    a *
+      (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
+        Real.sin ((u * a) * x))
+        =
+        (a * ((u * a) / (a ^ 2 + (u * a) ^ 2))) *
+          Real.sin ((u * a) * x) := by
+          exact mul_assoc a
+            ((u * a) / (a ^ 2 + (u * a) ^ 2))
+            (Real.sin ((u * a) * x))
+    _ =
+        (u / (1 + u ^ 2)) *
+          Real.sin ((u * a) * x) := by
+          exact congrArg
+            (fun r : ℝ => r * Real.sin ((u * a) * x))
+            hcoeff
+    _ =
+        (u / (1 + u ^ 2)) * Real.sin ((a * x) * u) := by
+          exact congrArg
+            (fun s : ℝ => (u / (1 + u ^ 2)) * s)
+            hphase
 
 /-- Change-of-variables form of the half-window Hilbert-Cauchy sine kernel
 under `t = a*u`, before applying the pointwise algebra identity. -/
