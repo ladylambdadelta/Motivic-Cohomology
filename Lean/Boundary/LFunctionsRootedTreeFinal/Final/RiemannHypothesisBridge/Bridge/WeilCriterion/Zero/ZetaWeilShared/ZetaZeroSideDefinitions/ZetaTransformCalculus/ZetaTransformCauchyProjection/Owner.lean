@@ -3383,6 +3383,144 @@ theorem scalarFourierLaplacePlemelj_semicircleExponent_re
       exact scalarFourierLaplacePlemelj_semicircleExponent_scalar_rearrange
         x T θ
 
+/-- The denominator arc factor has radius norm. -/
+theorem scalarFourierLaplacePlemelj_semicirclePoint_mul_I_norm_eq_radius
+    (T : ℝ) (hT : 0 < T) (θ : ℝ) :
+    ‖((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I‖ = T := by
+  have harg :
+      Complex.I * (θ : ℂ) = (θ : ℂ) * Complex.I :=
+    mul_comm Complex.I (θ : ℂ)
+  have hexp_norm :
+      ‖Complex.exp (Complex.I * (θ : ℂ))‖ = 1 :=
+    (congrArg
+      (fun z : ℂ => ‖Complex.exp z‖)
+      harg).trans
+      (Complex.norm_exp_ofReal_mul_I θ)
+  have hTnorm :
+      ‖(T : ℂ)‖ = T :=
+    (RCLike.norm_ofReal (K := ℂ) T).trans
+      (abs_of_pos hT)
+  calc
+    ‖((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I‖ =
+        ‖(T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ *
+          ‖Complex.I‖ := by
+      exact norm_mul
+        ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+        Complex.I
+    _ =
+        (‖(T : ℂ)‖ *
+          ‖Complex.exp (Complex.I * (θ : ℂ))‖) *
+          ‖Complex.I‖ := by
+      exact congrArg
+        (fun r : ℝ => r * ‖Complex.I‖)
+        (norm_mul (T : ℂ) (Complex.exp (Complex.I * (θ : ℂ))))
+    _ =
+        (T * ‖Complex.exp (Complex.I * (θ : ℂ))‖) *
+          ‖Complex.I‖ := by
+      exact congrArg
+        (fun r : ℝ =>
+          (r * ‖Complex.exp (Complex.I * (θ : ℂ))‖) *
+            ‖Complex.I‖)
+        hTnorm
+    _ = (T * 1) * ‖Complex.I‖ := by
+      exact congrArg
+        (fun r : ℝ => (T * r) * ‖Complex.I‖)
+        hexp_norm
+    _ = T * ‖Complex.I‖ := by
+      exact congrArg
+        (fun r : ℝ => r * ‖Complex.I‖)
+        (mul_one T)
+    _ = T * 1 := by
+      exact congrArg
+        (fun r : ℝ => T * r)
+        Complex.norm_I
+    _ = T := by
+      exact mul_one T
+
+/-- Reverse-triangle lower bound for the scalar Cauchy denominator on a
+semicircle of radius larger than `a`. -/
+theorem scalarFourierLaplacePlemelj_semicircleDenominator_norm_ge_radius_sub
+    (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) (θ : ℝ) :
+    T - a ≤
+      ‖(a : ℂ) +
+        ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I‖ := by
+  let zI : ℂ :=
+    ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I
+  have hTpos : 0 < T :=
+    ha.trans hT
+  have hzI_norm : ‖zI‖ = T := by
+    exact scalarFourierLaplacePlemelj_semicirclePoint_mul_I_norm_eq_radius
+      T hTpos θ
+  have hneg_norm : ‖(-(a : ℂ))‖ = a := by
+    calc
+      ‖(-(a : ℂ))‖ = ‖(a : ℂ)‖ := by
+        exact norm_neg (a : ℂ)
+      _ = |a| := by
+        exact RCLike.norm_ofReal (K := ℂ) a
+      _ = a := by
+        exact abs_of_pos ha
+  have hdenom :
+      zI - (-(a : ℂ)) =
+        (a : ℂ) +
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I := by
+    calc
+      zI - (-(a : ℂ)) = zI + -(-(a : ℂ)) := by
+        exact sub_eq_add_neg zI (-(a : ℂ))
+      _ = zI + (a : ℂ) := by
+        exact congrArg
+          (fun w : ℂ => zI + w)
+          (neg_neg (a : ℂ))
+      _ = (a : ℂ) + zI := by
+        exact add_comm zI (a : ℂ)
+      _ =
+          (a : ℂ) +
+            ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+              Complex.I := by
+        exact rfl
+  calc
+    T - a = ‖zI‖ - ‖(-(a : ℂ))‖ := by
+      exact congrArg₂ HSub.hSub hzI_norm.symm hneg_norm.symm
+    _ ≤ ‖zI - (-(a : ℂ))‖ := by
+      exact norm_sub_norm_le zI (-(a : ℂ))
+    _ =
+        ‖(a : ℂ) +
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+            Complex.I‖ := by
+      exact congrArg norm hdenom
+
+/-- Inverse form of the scalar Cauchy denominator lower bound on a semicircle. -/
+theorem scalarFourierLaplacePlemelj_semicircleDenominator_inv_norm_le
+    (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) (θ : ℝ) :
+    ‖(-1 /
+      ((a : ℂ) +
+        ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I))‖ ≤
+      (T - a)⁻¹ := by
+  let den : ℂ :=
+    (a : ℂ) +
+      ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I
+  have hsub_pos : 0 < T - a :=
+    sub_pos.mpr hT
+  have hden_ge : T - a ≤ ‖den‖ :=
+    scalarFourierLaplacePlemelj_semicircleDenominator_norm_ge_radius_sub
+      a ha T hT θ
+  have hnorm :
+      ‖(-1 : ℂ) / den‖ = ‖den‖⁻¹ := by
+    calc
+      ‖(-1 : ℂ) / den‖ = ‖(-1 : ℂ)‖ / ‖den‖ := by
+        exact norm_div (-1 : ℂ) den
+      _ = ‖(1 : ℂ)‖ / ‖den‖ := by
+        exact congrArg
+          (fun r : ℝ => r / ‖den‖)
+          (norm_neg (1 : ℂ))
+      _ = 1 / ‖den‖ := by
+        exact congrArg
+          (fun r : ℝ => r / ‖den‖)
+          norm_one
+      _ = ‖den‖⁻¹ := by
+        exact one_div ‖den‖
+  exact hnorm.trans_le
+    (inv_anti₀ hsub_pos hden_ge)
+
 /-- Denominator part of the positive upper-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_denominator_norm_inv_le
     (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) (θ : ℝ) :
@@ -3390,7 +3528,9 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArc_denominator_norm_inv_le
       ((a : ℂ) +
         ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I))‖ ≤
       (T - a)⁻¹ := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_semicircleDenominator_inv_norm_le
+      a ha T hT θ
 
 /-- Exponential damping part of the positive upper-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_exponential_norm_eq_damping
@@ -3996,7 +4136,9 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_denominator_norm_inv_le
       ((a : ℂ) +
         ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I))‖ ≤
       (T - a)⁻¹ := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_semicircleDenominator_inv_norm_le
+      a ha T hT θ
 
 /-- Exponential damping part of the negative lower-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_exponential_norm_eq_damping
