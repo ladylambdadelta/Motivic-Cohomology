@@ -2804,6 +2804,35 @@ theorem fixedRightLine_scalarProjection_Ioi_integral_eq_Ici_integral
         (-2 * (Real.pi : ℂ)) * K x := by
   exact (integral_Ici_eq_integral_Ioi : _).symm
 
+/-- Scalar fixed-right-line Cauchy/Plemelj package.
+
+This is the one-dimensional analytic owner theorem behind the fixed-right-line
+Cauchy projection: finite symmetric Cauchy windows converge pointwise to the
+open-half-line multiplier and are uniformly bounded by the scalar Plemelj
+constant. -/
+theorem fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_and_uniform_bound
+    (c : ℝ) (hc : 1 < c) :
+    (∀ x : ℝ,
+      Tendsto
+        (fun T : ℝ =>
+          ∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+        atTop
+        (𝓝
+          (Set.indicator (Set.Ioi (0 : ℝ))
+            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x))) ∧
+    (∀ T x : ℝ,
+      ‖(∫ t in Set.Icc (-T) T,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
+        ≤ 2 * (Real.pi + 1)) := by
+  sorry
+
 /-- Scalar fixed-right-line Plemelj theorem for finite symmetric Cauchy
 windows, including the open half-line limit and the uniform scalar bound
 needed for dominated convergence. -/
@@ -2820,7 +2849,9 @@ theorem fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_with_uniform_boun
       (𝓝
         (Set.indicator (Set.Ioi (0 : ℝ))
           (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) := by
-  sorry
+  exact
+    (fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_and_uniform_bound
+      c hc).1 x
 
 /-- Scalar fixed-right-line Plemelj theorem for finite symmetric Cauchy
 windows, expressed as the open half-line multiplier. -/
@@ -2849,7 +2880,9 @@ theorem fixedRightLine_scalarCauchyWindow_uniform_norm_bound_from_plemelj
           (Complex.I * (t : ℂ) * (x : ℂ)) *
         Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
       ≤ 2 * (Real.pi + 1) := by
-  sorry
+  exact
+    (fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_and_uniform_bound
+      c hc).2 T x
 
 /-- Pointwise positive-time Bromwich/Plemelj value for the fixed-right-line
 finite scalar Cauchy windows. -/
