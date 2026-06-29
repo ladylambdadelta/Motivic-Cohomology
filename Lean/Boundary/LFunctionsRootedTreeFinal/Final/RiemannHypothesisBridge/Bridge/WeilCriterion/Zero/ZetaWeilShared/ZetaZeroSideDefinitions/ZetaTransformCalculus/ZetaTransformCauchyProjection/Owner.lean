@@ -2304,6 +2304,247 @@ theorem fixedRightLine_scalarWindowIntegral_eq_reversedIterated
                           fixedRightLine_scalarWindow_constMul_integrand_reassoc
                             K c t x))))
 
+/-- Swapped-coordinate product integrability for the finite-window scalar
+Cauchy kernel. -/
+theorem fixedRightLine_scalarWindow_swappedProductIntegrable
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    IntegrableOn
+      (fun q : ℝ × ℝ =>
+        (-1 / (((c : ℂ) + q.2 * Complex.I) - 1)) *
+          K q.1 *
+          Complex.exp
+            (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ)))
+      (Set.univ ×ˢ Set.Icc (-T) T) := by
+  let F : ℝ × ℝ → ℂ :=
+    fun p : ℝ × ℝ =>
+      (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+        K p.2 *
+        Complex.exp
+          (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+        Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ))
+  let G : ℝ × ℝ → ℂ :=
+    fun q : ℝ × ℝ =>
+      (-1 / (((c : ℂ) + q.2 * Complex.I) - 1)) *
+        K q.1 *
+        Complex.exp
+          (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
+        Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ))
+  have hF_set :
+      IntegrableOn F (Set.Icc (-T) T ×ˢ Set.univ) :=
+    fixedRightLine_fourierCauchy_symmetricWindow_productIntegrable
+      K hK_cont hK_compact hK_smooth c hc T
+  have hF_product :
+      Integrable F
+        ((volume.restrict (Set.Icc (-T) T)).prod
+          (volume.restrict Set.univ)) :=
+    Eq.mp
+      (congrArg
+        (fun μ : MeasureTheory.Measure (ℝ × ℝ) => Integrable F μ)
+        (MeasureTheory.Measure.prod_restrict
+          (μ := volume) (ν := volume)
+          (s := Set.Icc (-T) T) (t := Set.univ)).symm)
+      hF_set
+  have hG_product :
+      Integrable G
+        ((volume.restrict Set.univ).prod
+          (volume.restrict (Set.Icc (-T) T))) :=
+    hF_product.swap
+  exact
+    Eq.mp
+      (congrArg
+        (fun μ : MeasureTheory.Measure (ℝ × ℝ) => Integrable G μ)
+        (MeasureTheory.Measure.prod_restrict
+          (μ := volume) (ν := volume)
+          (s := Set.univ) (t := Set.Icc (-T) T)))
+      hG_product
+
+/-- Reversed Fubini form of the scalar-window product integral. -/
+theorem fixedRightLine_scalarWindow_reversedIterated_eq_swappedProductIntegral
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    (∫ x : ℝ,
+        ∫ t in Set.Icc (-T) T,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            K x *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) =
+      ∫ q in Set.univ ×ˢ Set.Icc (-T) T,
+        (-1 / (((c : ℂ) + q.2 * Complex.I) - 1)) *
+          K q.1 *
+          Complex.exp
+            (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ)) := by
+  exact
+    (setIntegral_prod
+      (fun q : ℝ × ℝ =>
+        (-1 / (((c : ℂ) + q.2 * Complex.I) - 1)) *
+          K q.1 *
+          Complex.exp
+            (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ)))
+      (fixedRightLine_scalarWindow_swappedProductIntegrable
+        K hK_cont hK_compact hK_smooth c hc T)).symm
+
+/-- Swapping coordinates sends the reversed product integral to the standard
+finite-window product integral. -/
+theorem fixedRightLine_scalarWindow_swappedProductIntegral_eq_productIntegral_measureSwap
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    (∫ q,
+        ((-1 / (((c : ℂ) + q.2 * Complex.I) - 1)) *
+          K q.1 *
+          Complex.exp
+            (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ)))
+        ∂((volume.restrict Set.univ).prod
+          (volume.restrict (Set.Icc (-T) T)))) =
+      ∫ p,
+        ((-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+          K p.2 *
+          Complex.exp
+            (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)))
+        ∂((volume.restrict (Set.Icc (-T) T)).prod
+          (volume.restrict Set.univ)) := by
+  exact
+    integral_prod_swap
+      (fun p : ℝ × ℝ =>
+        (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+          K p.2 *
+          Complex.exp
+            (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)))
+
+/-- Set-integral normalization for the swapped finite-window product integral. -/
+theorem fixedRightLine_scalarWindow_swappedProduct_setIntegral_eq_restrictedProductIntegral
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    (∫ q in Set.univ ×ˢ Set.Icc (-T) T,
+        (-1 / (((c : ℂ) + q.2 * Complex.I) - 1)) *
+          K q.1 *
+          Complex.exp
+            (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ))) =
+      ∫ q,
+        ((-1 / (((c : ℂ) + q.2 * Complex.I) - 1)) *
+          K q.1 *
+          Complex.exp
+            (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ)))
+        ∂((volume.restrict Set.univ).prod
+          (volume.restrict (Set.Icc (-T) T))) := by
+  exact
+    (congrArg
+      (fun μ : MeasureTheory.Measure (ℝ × ℝ) =>
+        ∫ q,
+          ((-1 / (((c : ℂ) + q.2 * Complex.I) - 1)) *
+            K q.1 *
+            Complex.exp
+              (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ))) ∂μ)
+      (MeasureTheory.Measure.prod_restrict
+        (μ := volume) (ν := volume)
+        (s := Set.univ) (t := Set.Icc (-T) T))).symm
+
+/-- Set-integral normalization for the standard finite-window product integral. -/
+theorem fixedRightLine_scalarWindow_product_setIntegral_eq_restrictedProductIntegral
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    (∫ p in Set.Icc (-T) T ×ˢ Set.univ,
+        (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+          K p.2 *
+          Complex.exp
+            (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ))) =
+      ∫ p,
+        ((-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+          K p.2 *
+          Complex.exp
+            (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)))
+        ∂((volume.restrict (Set.Icc (-T) T)).prod
+          (volume.restrict Set.univ)) := by
+  exact
+    (congrArg
+      (fun μ : MeasureTheory.Measure (ℝ × ℝ) =>
+        ∫ p,
+          ((-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+            K p.2 *
+            Complex.exp
+              (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ))) ∂μ)
+      (MeasureTheory.Measure.prod_restrict
+        (μ := volume) (ν := volume)
+        (s := Set.Icc (-T) T) (t := Set.univ))).symm
+
+/-- Swapping coordinates sends the reversed product integral to the standard
+finite-window product integral. -/
+theorem fixedRightLine_scalarWindow_swappedProductIntegral_eq_productIntegral
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    (∫ q in Set.univ ×ˢ Set.Icc (-T) T,
+        (-1 / (((c : ℂ) + q.2 * Complex.I) - 1)) *
+          K q.1 *
+          Complex.exp
+            (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ))) =
+      ∫ p in Set.Icc (-T) T ×ˢ Set.univ,
+        (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+          K p.2 *
+          Complex.exp
+            (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
+  calc
+    (∫ q in Set.univ ×ˢ Set.Icc (-T) T,
+        (-1 / (((c : ℂ) + q.2 * Complex.I) - 1)) *
+          K q.1 *
+          Complex.exp
+            (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ)))
+        =
+        ∫ q,
+          ((-1 / (((c : ℂ) + q.2 * Complex.I) - 1)) *
+            K q.1 *
+            Complex.exp
+              (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ)))
+          ∂((volume.restrict Set.univ).prod
+            (volume.restrict (Set.Icc (-T) T))) := by
+          exact
+            fixedRightLine_scalarWindow_swappedProduct_setIntegral_eq_restrictedProductIntegral
+              K hK_cont hK_compact hK_smooth c hc T
+    _ =
+        ∫ p,
+          ((-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+            K p.2 *
+            Complex.exp
+              (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)))
+          ∂((volume.restrict (Set.Icc (-T) T)).prod
+            (volume.restrict Set.univ)) := by
+          exact
+            fixedRightLine_scalarWindow_swappedProductIntegral_eq_productIntegral_measureSwap
+              K hK_cont hK_compact hK_smooth c hc T
+    _ =
+        ∫ p in Set.Icc (-T) T ×ˢ Set.univ,
+          (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+            K p.2 *
+            Complex.exp
+              (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
+          exact
+            (fixedRightLine_scalarWindow_product_setIntegral_eq_restrictedProductIntegral
+              K hK_cont hK_compact hK_smooth c hc T).symm
+
 /-- Reversed Fubini form of the scalar-window product integral. -/
 theorem fixedRightLine_scalarWindow_reversedIterated_eq_productIntegral
     (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
@@ -2322,7 +2563,34 @@ theorem fixedRightLine_scalarWindow_reversedIterated_eq_productIntegral
           Complex.exp
             (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
           Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
-  sorry
+  calc
+    (∫ x : ℝ,
+        ∫ t in Set.Icc (-T) T,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            K x *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+        =
+        ∫ q in Set.univ ×ˢ Set.Icc (-T) T,
+          (-1 / (((c : ℂ) + q.2 * Complex.I) - 1)) *
+            K q.1 *
+            Complex.exp
+              (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ)) := by
+          exact
+            fixedRightLine_scalarWindow_reversedIterated_eq_swappedProductIntegral
+              K hK_cont hK_compact hK_smooth c hc T
+    _ =
+        ∫ p in Set.Icc (-T) T ×ˢ Set.univ,
+          (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+            K p.2 *
+            Complex.exp
+              (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
+          exact
+            fixedRightLine_scalarWindow_swappedProductIntegral_eq_productIntegral
+              K hK_cont hK_compact hK_smooth c hc T
 
 /-- The scalar-window integral is the same finite-window product integral. -/
 theorem fixedRightLine_scalarWindowIntegral_eq_productIntegral
