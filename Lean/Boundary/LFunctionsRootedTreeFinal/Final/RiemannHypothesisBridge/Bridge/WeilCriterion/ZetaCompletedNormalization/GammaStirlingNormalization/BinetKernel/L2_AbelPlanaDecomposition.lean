@@ -3,10 +3,8 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.J_ContourKernelAccounting
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.H_TailRemainderEstimates
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.K_BranchCoherence
-import Mathlib
 
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.L1_RemainderAndBoundaryDefinitions
-import Mathlib
 
 import Mathlib.Analysis.Complex.PhragmenLindelof
 import Mathlib.Data.Complex.Exponential
@@ -1770,46 +1768,6 @@ theorem Complex.binetSecondFormula_tailRemainder_sectorBound_of_localIndentation
                         (C + C / ‖w‖) * J := by
                       exact (add_mul C (C / ‖w‖) J).symm
                 le_trans htail_pre (le_trans hsum_le (le_of_eq hconst))⟩
-
-/-- Sector-local exponential upper bound for the branch-window indentation
-envelope.
-
-This is the real-variable logarithmic estimate: once `w.re` is bounded below
-by a fixed sector fraction of `‖w‖`, the logarithmic branch-window factor has
-only polynomial/logarithmic size and is absorbed by the exponential factor
-coming from the Binet denominator. -/
-def Complex.BinetSecondFormulaBranchLocalIndentationSectorEnvelopeExpBound : Prop :=
-  ∀ δ : ℝ,
-    0 < δ →
-      ∃ C : ℝ,
-        0 < C ∧
-        ∀ w : ℂ,
-          δ * ‖w‖ ≤ w.re →
-          2 ≤ ‖w‖ →
-            Complex.binetSecondFormulaBranchLocalIndentationEnvelope w ≤
-              C * ‖w‖ * Real.exp (-Real.pi * ‖w‖)
-
-/-- Sector-local logarithmic-window exponential bound before substituting the
-named indentation envelope.
-
-This is the scalar inequality for the explicit local branch-window expression:
-the sector condition controls the two logarithms, while the denominator
-`exp (π ‖w‖) - 1` supplies the exponential decay. -/
-def Complex.BinetSecondFormulaBranchLocalIndentationLogWindowExpBound : Prop :=
-  ∀ δ : ℝ,
-    0 < δ →
-      ∃ C : ℝ,
-        0 < C ∧
-        ∀ w : ℂ,
-          δ * ‖w‖ ≤ w.re →
-          2 ≤ ‖w‖ →
-            2 *
-                (((max |Real.log (w.re / (3 * ‖w‖))|
-                    (max |Real.log (1 : ℝ)|
-                      |Real.log ((3 * ‖w‖) / w.re)|) + Real.pi) /
-                  (Real.exp (Real.pi * ‖w‖) - 1)) *
-                  (volume (Set.Ioc (‖w‖ / 2) (2 * ‖w‖))).toReal) ≤
-              C * ‖w‖ * Real.exp (-Real.pi * ‖w‖)
 
 /-- Complex cutoff form of the Binet scalar tail lower bound from the
 one-dimensional real-variable tail estimate. -/

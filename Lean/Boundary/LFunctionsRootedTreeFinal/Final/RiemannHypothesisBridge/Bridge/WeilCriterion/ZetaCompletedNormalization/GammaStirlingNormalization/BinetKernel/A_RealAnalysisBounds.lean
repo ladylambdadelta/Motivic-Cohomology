@@ -1,5 +1,3 @@
-import Mathlib
-
 import Mathlib.Analysis.Complex.PhragmenLindelof
 import Mathlib.Data.Complex.Exponential
 import Mathlib.Analysis.RCLike.Basic
