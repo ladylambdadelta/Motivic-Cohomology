@@ -12,7 +12,7 @@ zeta-specific naming wrapper.
 
 namespace Boundary
 
-open scoped Filter FourierTransform Topology
+open scoped ENNReal Filter FourierTransform Topology
 open Filter Real Complex Set MeasureTheory
 
 noncomputable section
@@ -54,13 +54,13 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_hasCompactSupport
 function. -/
 theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_contDiff_admissible
     (f : LFunctions.ZetaAdmissibleFunction) :
-    ContDiff ℝ ⊤
+    ContDiff ℝ ∞
       (zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction') := by
   have hexp :
-      ContDiff ℝ ⊤
+      ContDiff ℝ ∞
         (fun x : ℝ => Complex.exp ((1 / 2 : ℂ) * (x : ℂ))) := by
     have harg :
-        ContDiff ℝ ⊤ (fun x : ℝ => (1 / 2 : ℂ) * (x : ℂ)) := by
+        ContDiff ℝ ∞ (fun x : ℝ => (1 / 2 : ℂ) * (x : ℂ)) := by
       exact contDiff_const.mul Complex.ofRealCLM.contDiff
     exact Complex.contDiff_exp.comp
       harg
@@ -376,7 +376,7 @@ theorem fixedRightLine_cauchyExponentialKernel_integral_eventuallyEq_oneSidedWei
       (∫ t : ℝ,
         (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
           (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
-            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))))) =ᵐ[volume]
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))) =ᵐ[volume]
       (fun x : ℝ =>
         Set.indicator (Set.Iic (0 : ℝ))
           (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x) := by
@@ -614,11 +614,56 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue
           zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue_fourierKernel
             φ c hc
 
+/-- Quadratic decay of the Fourier transform of the exponentially weighted
+smooth compactly supported kernel on the fixed right line. -/
+theorem fixedRightLine_weightedKernel_fourierIntegral_inverseQuadraticDecay
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ ∞ K)
+    (c : ℝ) (hc : 1 < c) :
+    ∃ B : ℝ,
+      0 < B ∧
+        ∀ t : ℝ,
+          ‖(∫ x : ℝ,
+              K x *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
+            ≤ B * (1 + ‖t‖) ^ (-(2 : ℤ)) := by
+  sorry
+
+/-- The fixed right Cauchy multiplier contributes one inverse power on the
+vertical frequency variable. -/
+theorem fixedRightLine_cauchyMultiplier_norm_inverseLinearBound
+    (c : ℝ) (hc : 1 < c) :
+    ∃ D : ℝ,
+      0 < D ∧
+        ∀ t : ℝ,
+          ‖(-1 / (((c : ℂ) + t * Complex.I) - 1))‖
+            ≤ D * (1 + ‖t‖) ^ (-(1 : ℤ)) := by
+  sorry
+
+/-- Multiplying inverse-linear and inverse-quadratic bounds gives the
+inverse-cubic multiplier-integrand bound. -/
+theorem fixedRightLine_cauchyMultiplier_times_fourierIntegral_inverseCubicBound
+    (F : ℝ → ℂ) (M : ℝ → ℂ)
+    (B D : ℝ) (hB : 0 < B) (hD : 0 < D)
+    (hF :
+      ∀ t : ℝ,
+        ‖F t‖ ≤ B * (1 + ‖t‖) ^ (-(2 : ℤ)))
+    (hM :
+      ∀ t : ℝ,
+        ‖M t‖ ≤ D * (1 + ‖t‖) ^ (-(1 : ℤ))) :
+    ∃ C : ℝ,
+      0 < C ∧
+        ∀ t : ℝ,
+          ‖M t * F t‖ ≤ C * (1 + ‖t‖) ^ (-(3 : ℤ)) := by
+  sorry
+
 /-- The fixed-line Fourier-Cauchy multiplier integrand has cubic decay for a
 smooth compactly supported time kernel. -/
 theorem fixedRightLine_fourierCauchy_multiplierIntegrand_inverseCubicDecay
     (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
-    (hK_smooth : ContDiff ℝ ⊤ K)
+    (hK_smooth : ContDiff ℝ ∞ K)
     (c : ℝ) (hc : 1 < c) :
     ∃ C : ℝ,
       0 < C ∧
@@ -630,7 +675,24 @@ theorem fixedRightLine_fourierCauchy_multiplierIntegrand_inverseCubicDecay
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
             ≤ C * (1 + ‖t‖) ^ (-(3 : ℤ)) := by
-  sorry
+  match
+    fixedRightLine_weightedKernel_fourierIntegral_inverseQuadraticDecay
+      K hK_cont hK_compact hK_smooth c hc
+  with
+  | ⟨B, hB_pos, hB_bound⟩ =>
+      match fixedRightLine_cauchyMultiplier_norm_inverseLinearBound c hc with
+      | ⟨D, hD_pos, hD_bound⟩ =>
+          exact
+            fixedRightLine_cauchyMultiplier_times_fourierIntegral_inverseCubicBound
+              (fun t : ℝ =>
+                ∫ x : ℝ,
+                  K x *
+                    Complex.exp
+                      (Complex.I * (t : ℂ) * (x : ℂ)) *
+                    Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+              (fun t : ℝ =>
+                -1 / (((c : ℂ) + t * Complex.I) - 1))
+              B D hB_pos hD_pos hB_bound hD_bound
 
 /-- The real inverse-cubic majorant has inverse-quadratic tails outside
 symmetric intervals. -/
@@ -698,7 +760,7 @@ theorem fixedRightLine_integrableFunction_symmetricTail_inverseQuadratic_of_inve
 Fourier-Cauchy multiplier. -/
 theorem fixedRightLine_fourierCauchy_truncationTail_inverseQuadratic
     (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
-    (hK_smooth : ContDiff ℝ ⊤ K)
+    (hK_smooth : ContDiff ℝ ∞ K)
     (c : ℝ) (hc : 1 < c)
     (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
     ∃ MR : ℝ,
