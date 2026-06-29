@@ -30,6 +30,11 @@ theorem zetaZeroOrbitRemainderRe_eq
 variable
   (hZeroTailSmallValuesOwnerRunge :
     ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+      (∀ ρ : ℂ,
+        ZetaCompletedZero ρ →
+          ρ ∉ S →
+            zetaCenteredZero ρ ∉
+              ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset P) →
       ∀ ε : ℝ, 0 < ε →
         ∃ r : ℝ,
           r ∈
@@ -46,6 +51,13 @@ theorem exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe
     (δ : ℝ)
     (hδ : 0 < δ)
     (f₀ : ZetaAdmissibleFunction)
+    (hSeparated :
+      ∀ η : ℂ,
+        ZetaCompletedZero η →
+          η ∉ zetaZeroOrbitFinset ρ →
+            zetaCenteredZero η ∉
+              ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
+                (zetaZeroOrbitSpectralSampleFinset ρ))
     (hmargin :
       zetaZeroOrbitContributionRe ρ
           (ZetaAdmissibleFunction.convolutionAutocorrelation f₀) ≤ -δ) :
@@ -56,7 +68,7 @@ theorem exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe
           |zetaZeroOrbitRemainderRe ρ
               (ZetaAdmissibleFunction.convolutionAutocorrelation f)| < ε := by
   exact exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe_owner
-    hZeroTailSmallValuesOwnerRunge ρ δ hδ f₀ hmargin
+    hZeroTailSmallValuesOwnerRunge ρ δ hδ f₀ hSeparated hmargin
 
 /-- Tail localization preserves a fixed finite-orbit negative margin while making the
 orbit remainder arbitrarily small. -/
@@ -64,6 +76,13 @@ theorem exists_zeroOrbit_autocorrelation_remainder_small_preserving_margin
     (ρ : ℂ)
     (δ : ℝ)
     (hδ : 0 < δ)
+    (hSeparated :
+      ∀ η : ℂ,
+        ZetaCompletedZero η →
+          η ∉ zetaZeroOrbitFinset ρ →
+            zetaCenteredZero η ∉
+              ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
+                (zetaZeroOrbitSpectralSampleFinset ρ))
     (hmargin :
       ∀ ε : ℝ, 0 < ε →
         ∃ f : ZetaAdmissibleFunction,
@@ -78,12 +97,19 @@ theorem exists_zeroOrbit_autocorrelation_remainder_small_preserving_margin
   match hmargin 1 zero_lt_one with
   | ⟨f₀, hf₀⟩ =>
     exact exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe
-      hZeroTailSmallValuesOwnerRunge ρ δ hδ f₀ hf₀
+      hZeroTailSmallValuesOwnerRunge ρ δ hδ f₀ hSeparated hf₀
 
 /-- Combining a fixed finite-orbit margin with margin-preserving tail localization gives
 the uniform separator family. -/
 theorem exists_uniform_zeroOrbit_autocorrelation_separator_of_margin_family
     (ρ : ℂ)
+    (hSeparated :
+      ∀ η : ℂ,
+        ZetaCompletedZero η →
+          η ∉ zetaZeroOrbitFinset ρ →
+            zetaCenteredZero η ∉
+              ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
+                (zetaZeroOrbitSpectralSampleFinset ρ))
     (hmargin :
       ∃ δ : ℝ, 0 < δ ∧
         ∀ ε : ℝ, 0 < ε →
@@ -101,14 +127,21 @@ theorem exists_uniform_zeroOrbit_autocorrelation_separator_of_margin_family
   | ⟨δ, hδ, hfamily⟩ =>
     exact ⟨δ, hδ,
       exists_zeroOrbit_autocorrelation_remainder_small_preserving_margin
-        hZeroTailSmallValuesOwnerRunge ρ δ hδ hfamily⟩
+        hZeroTailSmallValuesOwnerRunge ρ δ hδ hSeparated hfamily⟩
 
 /-- Uniform off-critical zero-orbit separation by admissible autocorrelation probes. -/
 theorem exists_uniform_zeroOrbit_autocorrelation_separator
     (ρ : ℂ)
     (hρ : ZetaCompletedZero ρ)
     (hρre : ρ.re ≠ 0)
-    (horbit : ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ → ZetaCompletedZero η) :
+    (horbit : ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ → ZetaCompletedZero η)
+    (hSeparated :
+      ∀ η : ℂ,
+        ZetaCompletedZero η →
+          η ∉ zetaZeroOrbitFinset ρ →
+            zetaCenteredZero η ∉
+              ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
+                (zetaZeroOrbitSpectralSampleFinset ρ)) :
     ∃ δ : ℝ, 0 < δ ∧
       ∀ ε : ℝ, 0 < ε →
         ∃ f : ZetaAdmissibleFunction,
@@ -117,7 +150,7 @@ theorem exists_uniform_zeroOrbit_autocorrelation_separator
             |zetaZeroOrbitRemainderRe ρ
                 (ZetaAdmissibleFunction.convolutionAutocorrelation f)| < ε := by
   exact exists_uniform_zeroOrbit_autocorrelation_separator_of_margin_family
-    hZeroTailSmallValuesOwnerRunge ρ
+    hZeroTailSmallValuesOwnerRunge ρ hSeparated
     (exists_zeroOrbit_autocorrelation_negative_margin_family
       ρ hρ hρre horbit)
 

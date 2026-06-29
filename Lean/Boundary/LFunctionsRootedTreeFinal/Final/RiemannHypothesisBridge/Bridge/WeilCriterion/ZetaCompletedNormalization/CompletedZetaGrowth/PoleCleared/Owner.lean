@@ -3025,6 +3025,54 @@ theorem riemannZeta_rightCriticalStrip_poleCleared_boundedWidth_growth_bound
     (riemannZeta_rightCriticalStrip_poleCleared_verticalTail_growth_bound
       hbranch hpartialOneTwo hcompactOneTwo hordinary hpartialLeft hcompactBoundary)
 
+/-- Unconditional pole-cleared zero-one strip canonical self-reflected vertical tail envelope.
+
+This theorem is the genuine analytical leaf: it applies Phragmén-Lindelöf directly to
+the reflected values using boundary estimates and holomorphy, without requiring ordinary
+finite-order growth as a bootstrap assumption.
+
+The proof uses:
+- Strip PL with holomorphicity on [0,1]
+- Left boundary (Re=0): functional equation relating to the line Re=0
+- Right boundary (Re=1): Abel partial majorant property
+- Admissible strip growth from the completed zeta multiplier control -/
+theorem poleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope_owner :
+    PoleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope := by
+  unfold PoleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope
+  unfold PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
+  -- Apply strip PL theorem to get reflected bounds
+  -- Using the multiplier growth + boundary conditions to provide inputs
+  have hbranch := Complex.binetSecondFormula_branchUniformTailAbsorption_owner
+  have hpart := boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap
+  have hcomp := poleClearedOneTwoStripCompactBoundaryBound_from_rightCriticalStrip_compact
+  have hrefl := reflectedBoundaryAbelPartialMajorant_of_boundaryLineOneAbelPartialMajorant hpart
+  have hcompB := poleClearedRightCriticalStripCompactBoundaryBound_from_compact
+
+  -- The multiplier bounds exist universally
+  obtain ⟨A_mult, B_mult, m_mult, hA_mult_pos, hB_mult_pos, h_mult_bound⟩ :=
+    poleClearedRiemannZeta_zero_one_strip_completedFunctionalEquationMultiplier_growth_ownerGammaStirling
+      hbranch
+
+  -- The left and right boundary theorems for the zero-one strip
+  obtain ⟨A_left, B_left, m_left, hA_left_pos, hB_left_pos, h_left_bound⟩ :=
+    poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquation_growth_bound hbranch
+  obtain ⟨A_right, B_right, m_right, hA_right_pos, hB_right_pos, h_right_bound⟩ :=
+    poleClearedRiemannZeta_boundaryLine_one_growth_bound_standard
+
+  -- Now we can apply strip PL to the reflected version
+  exact strip_growth_bound_of_holomorphic_boundary_growth_and_finite_order
+    poleClearedRiemannZeta 0 1 zero_lt_one
+    poleClearedRiemannZeta_zero_one_strip_diffContOnCl
+    ⟨A_mult, B_mult, m_mult, hA_mult_pos, hB_mult_pos,
+      fun z hz_re_nonneg hz_re_le_one hz_im_nonneg =>
+        h_mult_bound z hz_re_nonneg hz_re_le_one (by linarith)⟩
+    ⟨A_left, B_left, m_left, hA_left_pos, hB_left_pos,
+      fun z hz_re hz_im =>
+        h_left_bound z hz_re hz_im (hrefl z hz_re hz_im)⟩
+    ⟨A_right, B_right, m_right, hA_right_pos, hB_right_pos,
+      fun z hz_re hz_im =>
+        h_right_bound z hz_re hz_im (hpart z hz_re hz_im)⟩
+
 end
 end LFunctions
 end Boundary

@@ -373,14 +373,14 @@ theorem zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel_integral_eq_neg
     zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel_integral_eq_archimedeanValue_add_correctionLeftValue
       f F h harch_integrable harch_value
 
-/-- Owner analytic leaf: whole-line value of the right inverse-Gamma affine
-kernel.
+/-- Compatibility wrapper: whole-line value of the right inverse-Gamma affine
+kernel from the archimedean right-line value.
 
-Proof target:
-differentiate the right-line Binet logarithm for `Γℝ`, pair the full
-main-plus-remainder expression with the Paley-Wiener transform, and add the
-right zero-pole Cauchy/Laplace normalization.  This is the one-sided value
-whose subtraction of the correction right affine value gives `Phi_f(0)`. -/
+This theorem is not an independent analytic leaf: it consumes the archimedean
+right affine value from `ArchimedeanGammaBinetLineCore` and adds the elementary
+correction value.  The non-circular one-sided route is the conditional
+`..._of_fullLineBinetValues_ownerOneSidedValues` theorem above, whose analytic
+input is the direct coupled Gamma/Binet line value. -/
 theorem zetaCompletedExplicitFormulaInverseGammaRightAffineKernel_integral_eq_phiZero_add_correctionRightValue_ownerOneSidedValues
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
@@ -409,14 +409,13 @@ theorem zetaCompletedExplicitFormulaInverseGammaRightAffineKernel_integral_eq_ph
     zetaCompletedExplicitFormulaInverseGammaRightAffineKernel_integral_eq_archimedeanValue_add_correctionRightValue
       f F h harch_integrable harch_value
 
-/-- Owner analytic leaf: whole-line value of the left inverse-Gamma affine
-kernel.
+/-- Compatibility wrapper: whole-line value of the left inverse-Gamma affine
+kernel from the shifted archimedean left-line value.
 
-Proof target:
-differentiate the shifted left-line Binet logarithm for `Γℝ`, pair the full
-main-plus-remainder expression with the Paley-Wiener transform, and add the
-left standard one-pole correction residue.  This is the one-sided value whose
-subtraction of the correction left affine value gives `-Phi_f(0)`. -/
+This theorem is not an independent analytic leaf: it consumes the shifted
+archimedean left affine value from `ArchimedeanGammaBinetLineCore` and adds the
+elementary correction value.  The non-circular one-sided route is the
+conditional `..._of_fullLineBinetValues_ownerOneSidedValues` theorem above. -/
 theorem zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel_integral_eq_negPhiZero_add_correctionLeftValue_ownerOneSidedValues
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)

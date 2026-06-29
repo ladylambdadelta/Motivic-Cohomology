@@ -2445,6 +2445,40 @@ theorem matrixComparison_iff_completedPrimeTwoFaceGNSMatrixCoefficient_re_eq_zer
           (zetaPrimeTwoFaceGNSMatrixCoefficient_re_eq_zero_of_completedLowerWeightNormalization
             f).symm
 
+/-- Completed autocorrelation prime two-face boundary cancellation.
+
+This is the upstream scalar sink for diagonal-debt removal: the completed spectral
+two-face/GNS matrix coefficient has zero real scalar on autocorrelation probes. -/
+theorem completedPrimeTwoFaceGNSMatrixCoefficient_re_eq_zero_boundaryCancellation
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) = 0 := by
+  exact
+    zetaCompletedPrimeTwoFaceGNSMatrixCoefficient_re_eq_zero_of_spectralSampleBoundaryCancellation
+      f
+
+/-- Boundary cancellation gives the completed/raw two-face real-coefficient comparison. -/
+theorem completedPrimeTwoFaceGNSMatrixCoefficient_re_eq_finite_boundaryCancellation
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) =
+      Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
+  calc
+    Complex.re (zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) = 0 := by
+      exact completedPrimeTwoFaceGNSMatrixCoefficient_re_eq_zero_boundaryCancellation f
+    _ = Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
+      exact
+        (zetaPrimeTwoFaceGNSMatrixCoefficient_re_eq_zero_of_completedLowerWeightNormalization
+          f).symm
+
+/-- The completed diagonal prime-debt real scalar vanishes by upstream two-face boundary
+cancellation. -/
+theorem zetaCompletedPrimeDefectKernelDiagonalDebt_re_eq_zero_boundaryCancellation
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) = 0 := by
+  exact
+    zetaCompletedPrimeDefectKernelDiagonalDebt_re_eq_zero_of_twoFace_re_eq
+      f
+      (completedPrimeTwoFaceGNSMatrixCoefficient_re_eq_finite_boundaryCancellation f)
+
 /-- Under the current finite-display lower-weight normalization, the completed
 off-diagonal/positive-channel comparison is equivalent to vanishing of the completed two-face
 real coefficient. -/

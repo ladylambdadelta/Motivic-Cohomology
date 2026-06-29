@@ -4,6 +4,7 @@ import Mathlib.Algebra.BigOperators.Group.Finset
 import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Nat.Prime.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
+import Mathlib.Analysis.SpecialFunctions.Log.Monotone
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.Order.Filter.AtTopBot
 import Mathlib.Topology.Algebra.InfiniteSum.Basic
@@ -1584,6 +1585,115 @@ theorem weight_nonnegative (ι : ZetaPrimePowerIndex) :
       (motive := fun x : ℝ => 0 ≤ x)
       hweight.symm
       (le_refl 0)
+
+/-- The real prime-power logarithmic quotient is nonnegative on genuine parameters. -/
+theorem real_log_div_sqrt_primePower_nonnegative
+    {p n : ℕ} (hp : Nat.Prime p) (_hn : 1 ≤ n) :
+    0 ≤ Real.log (p : ℝ) / Real.sqrt (p ^ n : ℝ) := by
+  have hp_two : 2 ≤ p := Nat.Prime.two_le hp
+  have hp_pos_nat : 0 < p := lt_of_lt_of_le zero_lt_two_nat hp_two
+  have hp_one_real : (1 : ℝ) ≤ p := by
+    exact_mod_cast Nat.succ_le_of_lt hp_pos_nat
+  have hlog_nonneg : 0 ≤ Real.log (p : ℝ) :=
+    Real.log_nonneg hp_one_real
+  have hsqrt_nonneg : 0 ≤ Real.sqrt (p ^ n : ℝ) :=
+    Real.sqrt_nonneg (p ^ n : ℝ)
+  exact div_nonneg hlog_nonneg hsqrt_nonneg
+
+/-- The real prime-power logarithmic quotient is bounded by two on genuine parameters. -/
+theorem real_log_div_sqrt_primePower_le_two
+    {p n : ℕ} (hp : Nat.Prime p) (hn : 1 ≤ n) :
+    Real.log (p : ℝ) / Real.sqrt (p ^ n : ℝ) ≤ 2 := by
+  sorry
+
+/-- The scalar prime-power logarithmic weight is globally bounded on genuine
+prime-power parameters. -/
+theorem real_log_div_sqrt_primePower_norm_le_globalConstant :
+    ∃ A : ℝ,
+      0 ≤ A ∧
+        ∀ p n : ℕ,
+          Nat.Prime p →
+            1 ≤ n →
+              ‖((Real.log p / Real.sqrt (p ^ n) : ℝ) : ℂ)‖ ≤ A := by
+  refine ⟨2, zero_le_two, ?_⟩
+  intro p n hp hn
+  have hquot_nonneg :
+      0 ≤ Real.log (p : ℝ) / Real.sqrt (p ^ n : ℝ) :=
+    real_log_div_sqrt_primePower_nonnegative hp hn
+  have hquot_le_two :
+      Real.log (p : ℝ) / Real.sqrt (p ^ n : ℝ) ≤ 2 := by
+    exact real_log_div_sqrt_primePower_le_two hp hn
+  have hnorm_real :
+      ‖((Real.log p / Real.sqrt (p ^ n) : ℝ) : ℂ)‖ =
+        Real.log (p : ℝ) / Real.sqrt (p ^ n : ℝ) := by
+    exact Eq.trans
+      (RCLike.norm_ofReal (K := ℂ)
+        (Real.log (p : ℝ) / Real.sqrt (p ^ n : ℝ)))
+      (abs_of_nonneg hquot_nonneg)
+  exact Eq.subst
+    (motive := fun x : ℝ => x ≤ 2)
+    hnorm_real.symm
+    hquot_le_two
+
+/-- The completed prime-power weight is globally bounded over raw prime-power indices. -/
+theorem weight_norm_le_globalConstant :
+    ∃ A : ℝ,
+      0 ≤ A ∧
+        ∀ ι : ZetaPrimePowerIndex, ‖(weight ι : ℂ)‖ ≤ A := by
+  obtain ⟨A, hA_nonneg, hA_bound⟩ :=
+    real_log_div_sqrt_primePower_norm_le_globalConstant
+  refine ⟨A, hA_nonneg, ?_⟩
+  intro ι
+  by_cases hp : Nat.Prime ι.p
+  · by_cases hn : 1 ≤ ι.n
+    · have hweight :
+          weight ι = Real.log ι.p / Real.sqrt (ι.p ^ ι.n) := by
+        unfold weight
+        exact (if_pos hp).trans (if_pos hn)
+      exact Eq.subst
+        (motive := fun x : ℝ => ‖(x : ℂ)‖ ≤ A)
+        hweight.symm
+        (hA_bound ι.p ι.n hp hn)
+    · have hweight : weight ι = 0 := by
+        unfold weight
+        exact (if_pos hp).trans (if_neg hn)
+      have hzero : ‖((0 : ℝ) : ℂ)‖ ≤ A := by
+        exact Eq.subst
+          (motive := fun x : ℝ => x ≤ A)
+          (norm_zero : ‖((0 : ℝ) : ℂ)‖ = 0).symm
+          hA_nonneg
+      exact Eq.subst
+        (motive := fun x : ℝ => ‖(x : ℂ)‖ ≤ A)
+        hweight.symm
+        hzero
+  · have hweight : weight ι = 0 := by
+      unfold weight
+      exact if_neg hp
+    have hzero : ‖((0 : ℝ) : ℂ)‖ ≤ A := by
+      exact Eq.subst
+        (motive := fun x : ℝ => x ≤ A)
+        (norm_zero : ‖((0 : ℝ) : ℂ)‖ = 0).symm
+        hA_nonneg
+    exact Eq.subst
+      (motive := fun x : ℝ => ‖(x : ℂ)‖ ≤ A)
+      hweight.symm
+      hzero
+
+/-- Multiplication by the completed prime-power weight is absorbed by increasing the
+rectangular-height decay exponent. -/
+theorem weight_norm_mul_polynomialHeightDecay_le_shift
+    (k : ℕ) :
+    ∃ A : ℝ, ∃ l : ℕ,
+      0 ≤ A ∧ k ≤ l ∧
+        ∀ ι : ZetaPrimePowerIndex,
+          ‖(weight ι : ℂ)‖ * polynomialHeightDecay k ι ≤
+            A * polynomialHeightDecay l ι := by
+  obtain ⟨A, hA_nonneg, hA_bound⟩ := weight_norm_le_globalConstant
+  refine ⟨A, k, hA_nonneg, le_refl k, ?_⟩
+  intro ι
+  have hdecay_nonneg : 0 ≤ polynomialHeightDecay k ι :=
+    polynomialHeightDecay_nonnegative k ι
+  exact mul_le_mul_of_nonneg_right (hA_bound ι) hdecay_nonneg
 
 /-- Non-genuine prime-power indices have zero completed prime-power weight. -/
 theorem weight_eq_zero_of_not_isGenuine

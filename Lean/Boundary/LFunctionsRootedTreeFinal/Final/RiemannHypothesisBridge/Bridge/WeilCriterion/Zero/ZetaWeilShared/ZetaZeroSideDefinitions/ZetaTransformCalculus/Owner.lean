@@ -130,13 +130,144 @@ theorem boundary_mellin_inversion (σ : ℝ) (f : ℝ → E) {x : ℝ} (hx : 0 <
 
 /-- Pointwise exponential algebra behind the vertical-line Laplace/Fourier
 identification. -/
+theorem zetaLaplaceTransform_verticalLine_imaginary_phase
+    (y t : ℝ) :
+    (2 * (π : ℂ) * (y : ℂ) * Complex.I) * (t : ℂ) =
+      (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I) := by
+  have hreal :
+      ((-2 * π * t * (-y) : ℝ) : ℂ) =
+        2 * (π : ℂ) * (y : ℂ) * (t : ℂ) := by
+    calc
+      ((-2 * π * t * (-y) : ℝ) : ℂ)
+          = (((-2 * π * t : ℝ) * (-y : ℝ) : ℝ) : ℂ) := by
+              rfl
+      _ = ((-2 * π * t : ℝ) : ℂ) * ((-y : ℝ) : ℂ) := by
+            exact Complex.ofReal_mul (-2 * π * t) (-y)
+      _ = (((-2 * π : ℝ) * t : ℝ) : ℂ) * ((-y : ℝ) : ℂ) := by
+            rfl
+      _ = (((-2 * π : ℝ) * t : ℝ) : ℂ) * (-(y : ℂ)) := by
+            exact congrArg (fun x : ℂ => (((-2 * π : ℝ) * t : ℝ) : ℂ) * x)
+              (Complex.ofReal_neg y)
+      _ = ((((-2 : ℝ) * π : ℝ) : ℂ) * (t : ℂ)) * (-(y : ℂ)) := by
+            exact congrArg (fun x : ℂ => x * (-(y : ℂ)))
+              (Complex.ofReal_mul ((-2 : ℝ) * π) t)
+      _ = (((-2 : ℝ) : ℂ) * (π : ℂ) * (t : ℂ)) * (-(y : ℂ)) := by
+            exact congrArg (fun x : ℂ => (x * (t : ℂ)) * (-(y : ℂ)))
+              (Complex.ofReal_mul (-2) π)
+      _ = ((-(2 : ℂ)) * (π : ℂ) * (t : ℂ)) * (-(y : ℂ)) := by
+            exact congrArg (fun x : ℂ => (x * (π : ℂ) * (t : ℂ)) * (-(y : ℂ)))
+              (Complex.ofReal_neg 2)
+      _ = (-((2 : ℂ) * (π : ℂ)) * (t : ℂ)) * (-(y : ℂ)) := by
+            exact congrArg (fun x : ℂ => (x * (t : ℂ)) * (-(y : ℂ)))
+              (neg_mul (2 : ℂ) (π : ℂ))
+      _ = (-(2 * (π : ℂ) * (t : ℂ))) * (-(y : ℂ)) := by
+            exact congrArg (fun x : ℂ => x * (-(y : ℂ)))
+              (neg_mul (2 * (π : ℂ)) (t : ℂ))
+      _ = ((2 : ℂ) * (π : ℂ) * (t : ℂ)) * (y : ℂ) := by
+            exact neg_mul_neg ((2 : ℂ) * (π : ℂ) * (t : ℂ)) (y : ℂ)
+      _ = ((2 : ℂ) * (π : ℂ)) * ((t : ℂ) * (y : ℂ)) := by
+            exact mul_assoc ((2 : ℂ) * (π : ℂ)) (t : ℂ) (y : ℂ)
+      _ = ((2 : ℂ) * (π : ℂ)) * ((y : ℂ) * (t : ℂ)) := by
+            exact congrArg (fun x : ℂ => ((2 : ℂ) * (π : ℂ)) * x)
+              (mul_comm (t : ℂ) (y : ℂ))
+      _ = 2 * (π : ℂ) * (y : ℂ) * (t : ℂ) := by
+            exact (mul_assoc ((2 : ℂ) * (π : ℂ)) (y : ℂ) (t : ℂ)).symm
+  calc
+    (2 * (π : ℂ) * (y : ℂ) * Complex.I) * (t : ℂ)
+        = (2 * (π : ℂ) * (y : ℂ)) * (Complex.I * (t : ℂ)) := by
+            exact mul_assoc (2 * (π : ℂ) * (y : ℂ)) Complex.I (t : ℂ)
+    _ = (2 * (π : ℂ) * (y : ℂ)) * ((t : ℂ) * Complex.I) := by
+          exact congrArg (fun x : ℂ => (2 * (π : ℂ) * (y : ℂ)) * x)
+            (mul_comm Complex.I (t : ℂ))
+    _ = (2 * (π : ℂ) * (y : ℂ) * (t : ℂ)) * Complex.I := by
+          exact (mul_assoc (2 * (π : ℂ) * (y : ℂ)) (t : ℂ) Complex.I).symm
+    _ = ((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I := by
+          exact congrArg (fun x : ℂ => x * Complex.I) hreal.symm
+
+theorem zetaLaplaceTransform_verticalLine_phase_split
+    (σ y t : ℝ) :
+    (σ + 2 * π * y * Complex.I) * (t : ℂ) =
+      (σ : ℂ) * (t : ℂ) + (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I) := by
+  calc
+    (σ + 2 * π * y * Complex.I) * (t : ℂ)
+        = (σ : ℂ) * (t : ℂ) + (2 * (π : ℂ) * (y : ℂ) * Complex.I) * (t : ℂ) := by
+            exact add_mul (σ : ℂ) (2 * (π : ℂ) * (y : ℂ) * Complex.I) (t : ℂ)
+    _ = (σ : ℂ) * (t : ℂ) + (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I) := by
+          exact congrArg (fun x : ℂ => (σ : ℂ) * (t : ℂ) + x)
+            (zetaLaplaceTransform_verticalLine_imaginary_phase y t)
+
+theorem zetaLaplaceTransform_verticalLine_exp_split
+    (σ y t : ℝ) :
+    Complex.exp ((σ + 2 * π * y * Complex.I) * (t : ℂ)) =
+      Complex.exp ((σ : ℂ) * (t : ℂ)) *
+        Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I) := by
+  calc
+    Complex.exp ((σ + 2 * π * y * Complex.I) * (t : ℂ))
+        =
+        Complex.exp
+          ((σ : ℂ) * (t : ℂ) + (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I)) := by
+            exact congrArg Complex.exp
+              (zetaLaplaceTransform_verticalLine_phase_split σ y t)
+    _ =
+        Complex.exp ((σ : ℂ) * (t : ℂ)) *
+          Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I) := by
+            exact Complex.exp_add ((σ : ℂ) * (t : ℂ))
+              (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I)
+
+theorem zetaLaplaceTransform_verticalLine_product_rotate
+    (φ : LFunctions.ZetaTestFunction) (σ y t : ℝ) :
+    φ t *
+        (Complex.exp ((σ : ℂ) * (t : ℂ)) *
+          Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I)) =
+      Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I) *
+        (Complex.exp ((σ : ℂ) * (t : ℂ)) * φ t) := by
+  calc
+    φ t *
+        (Complex.exp ((σ : ℂ) * (t : ℂ)) *
+          Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I))
+        =
+        (φ t * Complex.exp ((σ : ℂ) * (t : ℂ))) *
+          Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I) := by
+            exact (mul_assoc (φ t) (Complex.exp ((σ : ℂ) * (t : ℂ)))
+              (Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I))
+              ).symm
+    _ =
+        (Complex.exp ((σ : ℂ) * (t : ℂ)) * φ t) *
+          Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I) := by
+            exact congrArg
+              (fun x : ℂ => x *
+                Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I))
+              (mul_comm (φ t) (Complex.exp ((σ : ℂ) * (t : ℂ))))
+    _ =
+        Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I) *
+          (Complex.exp ((σ : ℂ) * (t : ℂ)) * φ t) := by
+            exact mul_comm
+              (Complex.exp ((σ : ℂ) * (t : ℂ)) * φ t)
+              (Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I))
+
 theorem zetaLaplaceTransform_verticalLine_fourierIntegrand_eq
     (φ : LFunctions.ZetaTestFunction) (σ y t : ℝ) :
     φ t * Complex.exp ((σ + 2 * π * y * Complex.I) * (t : ℂ)) =
       Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I) •
         (Complex.exp ((σ : ℂ) * (t : ℂ)) * φ t) := by
-  rw [smul_eq_mul]
-  simp [Complex.exp_add, mul_add, add_mul, mul_assoc, mul_comm, mul_left_comm]
+  calc
+    φ t * Complex.exp ((σ + 2 * π * y * Complex.I) * (t : ℂ))
+        =
+        φ t *
+          (Complex.exp ((σ : ℂ) * (t : ℂ)) *
+            Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I)) := by
+            exact congrArg (fun x : ℂ => φ t * x)
+              (zetaLaplaceTransform_verticalLine_exp_split σ y t)
+    _ =
+        Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I) *
+          (Complex.exp ((σ : ℂ) * (t : ℂ)) * φ t) := by
+            exact zetaLaplaceTransform_verticalLine_product_rotate φ σ y t
+    _ =
+        Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I) •
+          (Complex.exp ((σ : ℂ) * (t : ℂ)) * φ t) := by
+            exact (Algebra.id.smul_eq_mul
+              (Complex.exp (((-2 * π * t * (-y) : ℝ) : ℂ) * Complex.I))
+              (Complex.exp ((σ : ℂ) * (t : ℂ)) * φ t)).symm
 
 /-- The vertical Laplace slice on `σ + 2π y i` is the real Fourier transform
 of the exponentially twisted time kernel, evaluated at `-y`.
@@ -183,6 +314,21 @@ theorem boundary_fourier_inversion
     𝓕⁻ (𝓕 f) v = f v := by
   exact MeasureTheory.Integrable.fourier_inversion hf hFf hfv
 
+/-- Integrability of the inverse Fourier transform gives integrability of the
+Fourier transform by the real negation isometry. -/
+theorem integrable_fourierIntegral_of_integrable_fourierIntegralInv
+    (hFf : Integrable (𝓕⁻ f)) :
+    Integrable (𝓕 f) := by
+  let A : V ≃ₗᵢ[ℝ] V := LinearIsometryEquiv.neg ℝ
+  have hfun : (𝓕⁻ f) = (𝓕 f) ∘ A := by
+    funext w
+    exact fourierIntegralInv_eq_fourierIntegral_neg f w
+  have hcomp : Integrable ((𝓕 f) ∘ A) := by
+    exact hfun ▸ hFf
+  exact
+    (A.measurePreserving.integrable_comp_emb A.toHomeomorph.measurableEmbedding).1
+      hcomp
+
 /-- Boundary name for inverse-Fourier inversion in the convention used by the
 explicit formula transform calculus. -/
 theorem boundary_fourier_inversion_inv
@@ -191,7 +337,11 @@ theorem boundary_fourier_inversion_inv
     (hFf : Integrable (𝓕⁻ f))
     (hfv : ContinuousAt f v) :
     𝓕 (𝓕⁻ f) v = f v := by
-  exact MeasureTheory.Integrable.fourier_inversion_inv hf hFf hfv
+  have hFourier : Integrable (𝓕 f) :=
+    integrable_fourierIntegral_of_integrable_fourierIntegralInv
+      (f := f) hFf
+  exact MeasureTheory.Integrable.fourier_inversion_inv
+    (f := f) hf hFourier hfv
 
 /-- Real-line specialization of `boundary_fourier_inversion`.
 

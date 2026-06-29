@@ -100,6 +100,43 @@ noncomputable def zetaCompletedPrimeTwoFaceGNSMatrixCoefficient
   -zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
     (ZetaAdmissibleFunction.convolutionAutocorrelation f)
 
+/-- Completed autocorrelation prime-power spectral-sample cancellation.
+
+This is the spectral-sample sink beneath the completed two-face/GNS matrix cancellation:
+the completed prime-power spectral sample has zero real scalar on autocorrelation probes. -/
+theorem zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution_convolutionAutocorrelation_re_eq_zero_boundaryCancellation
+    (f : ZetaAdmissibleFunction) :
+    Complex.re
+      (zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f)) = 0 := by
+  unfold zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
+  exact
+    zetaCompletedPrimePowerSpectralSampleCoordinateTsum_convolutionAutocorrelation_re_eq_zero_boundaryCancellation
+      f
+
+/-- The completed two-face/GNS matrix coefficient has zero real scalar once the
+autocorrelation prime-power spectral sample cancels. -/
+theorem zetaCompletedPrimeTwoFaceGNSMatrixCoefficient_re_eq_zero_of_spectralSampleBoundaryCancellation
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) = 0 := by
+  let S : ℂ :=
+    zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+  have hS : Complex.re S = 0 := by
+    unfold S
+    exact
+      zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution_convolutionAutocorrelation_re_eq_zero_boundaryCancellation
+        f
+  unfold zetaCompletedPrimeTwoFaceGNSMatrixCoefficient
+  change Complex.re (-S) = 0
+  calc
+    Complex.re (-S) = -Complex.re S := by
+      exact Complex.neg_re S
+    _ = -0 := by
+      exact congrArg Neg.neg hS
+    _ = 0 := by
+      exact neg_zero
+
 /-- The completed prime two-face boundary coefficient over the owner prime-power index type.
 
 The GNS matrix coefficient is the positive symmetrized cross term in the defect-square

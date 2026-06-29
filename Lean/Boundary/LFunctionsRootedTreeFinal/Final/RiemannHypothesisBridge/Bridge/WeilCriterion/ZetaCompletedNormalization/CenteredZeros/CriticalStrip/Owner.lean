@@ -1,4 +1,5 @@
 import Mathlib.NumberTheory.LSeries.Dirichlet
+import Mathlib.NumberTheory.LSeries.Nonvanishing
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.CenteredZeros.Owner
 
 /-!
@@ -179,6 +180,150 @@ theorem centeredCompletedRiemannZeta_zero_re_mem_centeredCriticalStrip
       hre
       hstrip.2
   exact centered_re_mem_centeredCriticalStrip_of_uncentered_re_mem_criticalStrip
+    hleft
+    hright
+
+/-- Completed zeta has no zeros on or to the right of the line `Re s = 1`. -/
+theorem completedRiemannZeta_ne_zero_of_one_le_re
+    (s : ℂ)
+    (hsre : 1 ≤ s.re) :
+    completedRiemannZeta s ≠ 0 := by
+  intro hs
+  have hs0 : s ≠ 0 := by
+    intro hs_zero
+    have hre_zero : s.re = 0 := by
+      exact congrArg Complex.re hs_zero
+    have hone_le_zero : (1 : ℝ) ≤ 0 :=
+      Eq.subst
+        (motive := fun x : ℝ => 1 ≤ x)
+        hre_zero
+        hsre
+    exact (not_le_of_gt zero_lt_one) hone_le_zero
+  have hζ_eq :
+      riemannZeta s = completedRiemannZeta s / Complex.Gammaℝ s :=
+    riemannZeta_def_of_ne_zero hs0
+  have hζ_zero : riemannZeta s = 0 := by
+    calc
+      riemannZeta s = completedRiemannZeta s / Complex.Gammaℝ s := hζ_eq
+      _ = 0 / Complex.Gammaℝ s := by
+        exact congrArg (fun x : ℂ => x / Complex.Gammaℝ s) hs
+      _ = 0 := by
+        exact zero_div (Complex.Gammaℝ s)
+  exact riemannZeta_ne_zero_of_one_le_re hsre hζ_zero
+
+/-- Completed zeta has no zeros on or to the left of the line `Re s = 0`. -/
+theorem completedRiemannZeta_ne_zero_of_re_le_zero
+    (s : ℂ)
+    (hsre : s.re ≤ 0) :
+    completedRiemannZeta s ≠ 0 := by
+  intro hs
+  have hright_re :
+      1 ≤ ((1 : ℂ) - s).re := by
+    have hre :
+        ((1 : ℂ) - s).re = 1 - s.re := by
+      exact Complex.sub_re (1 : ℂ) s
+    have hle : 1 ≤ 1 - s.re := by
+      have hneg : 0 ≤ -s.re :=
+        neg_nonneg.2 hsre
+      have hadd : 1 + 0 ≤ 1 + -s.re :=
+        add_le_add_left hneg 1
+      have hsub : (1 : ℝ) - s.re = 1 + -s.re :=
+        sub_eq_add_neg (1 : ℝ) s.re
+      calc
+        (1 : ℝ) = 1 + 0 := (add_zero (1 : ℝ)).symm
+        _ ≤ 1 + -s.re := hadd
+        _ = 1 - s.re := hsub.symm
+    exact Eq.subst
+      (motive := fun x : ℝ => 1 ≤ x)
+      hre.symm
+      hle
+  have hright_ne :
+      completedRiemannZeta ((1 : ℂ) - s) ≠ 0 :=
+    completedRiemannZeta_ne_zero_of_one_le_re ((1 : ℂ) - s) hright_re
+  have hsymm :
+      completedRiemannZeta ((1 : ℂ) - s) =
+        completedRiemannZeta s :=
+    completedRiemannZeta_one_sub s
+  exact hright_ne (hsymm.trans hs)
+
+/-- Completed-zeta zeros lie in the open critical strip. -/
+theorem completedRiemannZeta_zero_re_mem_open_criticalStrip
+    (s : ℂ)
+    (hs : completedRiemannZeta s = 0) :
+    0 < s.re ∧ s.re < (1 : ℝ) := by
+  have hnot_left : ¬ s.re ≤ 0 := by
+    intro hsre
+    exact completedRiemannZeta_ne_zero_of_re_le_zero s hsre hs
+  have hnot_right : ¬ (1 : ℝ) ≤ s.re := by
+    intro hsre
+    exact completedRiemannZeta_ne_zero_of_one_le_re s hsre hs
+  exact ⟨lt_of_not_ge hnot_left, lt_of_not_ge hnot_right⟩
+
+/-- If the uncentered coordinate lies in the open strip `(0,1)`, the centered
+coordinate lies in the open strip `(-1/2,1/2)`. -/
+theorem centered_re_mem_open_centeredCriticalStrip_of_uncentered_re_mem_open_criticalStrip
+    {x : ℝ}
+    (hleft : 0 < (1 / 2 : ℝ) + x)
+    (hright : (1 / 2 : ℝ) + x < 1) :
+    -(1 / 2 : ℝ) < x ∧ x < (1 / 2 : ℝ) := by
+  have hleft' :
+      -(1 / 2 : ℝ) < x := by
+    have hcomm : 0 < x + (1 / 2 : ℝ) :=
+      Eq.subst
+        (motive := fun y : ℝ => 0 < y)
+        (add_comm (1 / 2 : ℝ) x)
+        hleft
+    exact (neg_lt_iff_pos_add).2 hcomm
+  have hright' :
+      x < (1 / 2 : ℝ) := by
+    have hcomm : x + (1 / 2 : ℝ) < 1 :=
+      Eq.subst
+        (motive := fun y : ℝ => y < 1)
+        (add_comm (1 / 2 : ℝ) x)
+        hright
+    have hsub : x < (1 : ℝ) - (1 / 2 : ℝ) :=
+      (lt_sub_iff_add_lt).2 hcomm
+    have hhalf : (1 : ℝ) - (1 / 2 : ℝ) = (1 / 2 : ℝ) :=
+      sub_half (1 : ℝ)
+    exact Eq.subst
+      (motive := fun y : ℝ => x < y)
+      hhalf
+      hsub
+  exact ⟨hleft', hright'⟩
+
+/-- Centered completed-zeta zeros lie in the open centered critical strip.
+
+This strict form excludes the boundary lines `Re s = 0` and `Re s = 1`, using
+the unconditional nonvanishing of zeta on the line `Re s = 1`. -/
+theorem centeredCompletedRiemannZeta_zero_re_mem_open_centeredCriticalStrip
+    (s : ℂ)
+    (hs : centeredCompletedRiemannZeta s = 0) :
+    -(1 / 2 : ℝ) < s.re ∧ s.re < (1 / 2 : ℝ) := by
+  have huncentered_zero :
+      completedRiemannZeta ((1 / 2 : ℂ) + s) = 0 := by
+    exact hs
+  have hstrip :
+      0 < ((1 / 2 : ℂ) + s).re ∧
+        ((1 / 2 : ℂ) + s).re < (1 : ℝ) :=
+    completedRiemannZeta_zero_re_mem_open_criticalStrip
+      ((1 / 2 : ℂ) + s)
+      huncentered_zero
+  have hre :
+      ((1 / 2 : ℂ) + s).re = (1 / 2 : ℝ) + s.re :=
+    centeredCompletedRiemannZeta_uncenter_re s
+  have hleft :
+      0 < (1 / 2 : ℝ) + s.re :=
+    Eq.subst
+      (motive := fun x : ℝ => 0 < x)
+      hre
+      hstrip.1
+  have hright :
+      (1 / 2 : ℝ) + s.re < 1 :=
+    Eq.subst
+      (motive := fun x : ℝ => x < (1 : ℝ))
+      hre
+      hstrip.2
+  exact centered_re_mem_open_centeredCriticalStrip_of_uncentered_re_mem_open_criticalStrip
     hleft
     hright
 

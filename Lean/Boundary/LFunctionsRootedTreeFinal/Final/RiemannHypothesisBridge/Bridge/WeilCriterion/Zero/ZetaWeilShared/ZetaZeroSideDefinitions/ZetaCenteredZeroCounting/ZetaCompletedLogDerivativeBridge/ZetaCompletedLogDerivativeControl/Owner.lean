@@ -25,7 +25,7 @@ private lemma im_half_plus_t_i (t : ℝ) : ((1 / 2 : ℂ) + t * Complex.I).im = 
       _ = t := by simp
   calc ((1 / 2 : ℂ) + t * Complex.I).im
       = (1 / 2 : ℂ).im + (t * Complex.I).im := Complex.add_im _ _
-    _ = 0 + t := by rw [h1, h2]
+    _ = 0 + t := by exact congr_arg₂ (· + ·) h1 h2
     _ = t := zero_add t
 
 /-- The inverse-Gamma correction in the completed logarithmic derivative split. -/

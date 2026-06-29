@@ -118,6 +118,11 @@ theorem zeroOrbitSpectralSample_eq_on_orbit_of_eq_on_sampleFinset
 variable
   (hZeroTailSmallValuesOwnerRunge :
     ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+      (∀ ρ : ℂ,
+        ZetaCompletedZero ρ →
+          ρ ∉ S →
+            zetaCenteredZero ρ ∉
+              ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset P) →
       ∀ ε : ℝ, 0 < ε →
         ∃ r : ℝ,
           r ∈
@@ -135,7 +140,13 @@ positive tolerance. -/
 theorem exists_autocorrelation_zeroTail_small_preserving_spectralSampleFinset_owner
     (S : Finset ℂ)
     (P : Finset ℂ)
-    (f₀ : ZetaAdmissibleFunction) :
+    (f₀ : ZetaAdmissibleFunction)
+    (hSeparated :
+      ∀ ρ : ℂ,
+        ZetaCompletedZero ρ →
+          ρ ∉ S →
+            zetaCenteredZero ρ ∉
+              ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset P) :
     ∀ ε : ℝ, 0 < ε →
       ∃ f : ZetaAdmissibleFunction,
         (∀ z : ℂ, z ∈ P →
@@ -149,13 +160,20 @@ theorem exists_autocorrelation_zeroTail_small_preserving_spectralSampleFinset_ow
   exact
     ZetaAdmissibleFunction.exists_autocorrelation_spectralEval_preserved_zeroTail_small_ownerRunge
       hZeroTailSmallValuesOwnerRunge
-      S P f₀
+      S P f₀ hSeparated
 
 /-- Finite zero-set localization preserves each zero spectral sample while making the
 complementary zero-side tail arbitrarily small. -/
 theorem exists_autocorrelation_zeroTail_small_preserving_finiteSpectralSamples_owner
     (S : Finset ℂ)
-    (f₀ : ZetaAdmissibleFunction) :
+    (f₀ : ZetaAdmissibleFunction)
+    (hSeparated :
+      ∀ ρ : ℂ,
+        ZetaCompletedZero ρ →
+          ρ ∉ S →
+            zetaCenteredZero ρ ∉
+              ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
+                (zetaZeroTailSpectralSampleFinset S)) :
     ∀ ε : ℝ, 0 < ε →
       ∃ f : ZetaAdmissibleFunction,
         (∀ η : ℂ, η ∈ S →
@@ -170,7 +188,7 @@ theorem exists_autocorrelation_zeroTail_small_preserving_finiteSpectralSamples_o
   match
     exists_autocorrelation_zeroTail_small_preserving_spectralSampleFinset_owner
       hZeroTailSmallValuesOwnerRunge
-      S (zetaZeroTailSpectralSampleFinset S) f₀ ε hε with
+      S (zetaZeroTailSpectralSampleFinset S) f₀ hSeparated ε hε with
   | ⟨f, hsample, htail⟩ =>
     exact ⟨f,
       zeroTailSpectralSample_eq_on_zeroSet_of_eq_on_sampleFinset
@@ -195,7 +213,14 @@ include hZeroTailSmallValuesOwnerRunge
 making the complementary orbit tail arbitrarily small. -/
 theorem exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitSpectralSamples_owner
     (ρ : ℂ)
-    (f₀ : ZetaAdmissibleFunction) :
+    (f₀ : ZetaAdmissibleFunction)
+    (hSeparated :
+      ∀ η : ℂ,
+        ZetaCompletedZero η →
+          η ∉ zetaZeroOrbitFinset ρ →
+            zetaCenteredZero η ∉
+              ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
+                (zetaZeroOrbitSpectralSampleFinset ρ)) :
     ∀ ε : ℝ, 0 < ε →
       ∃ f : ZetaAdmissibleFunction,
         (∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ →
@@ -209,7 +234,8 @@ theorem exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitSpectralSamp
   match
     exists_autocorrelation_zeroTail_small_preserving_spectralSampleFinset_owner
       hZeroTailSmallValuesOwnerRunge
-      (zetaZeroOrbitFinset ρ) (zetaZeroOrbitSpectralSampleFinset ρ) f₀ ε hε with
+      (zetaZeroOrbitFinset ρ) (zetaZeroOrbitSpectralSampleFinset ρ) f₀
+      hSeparated ε hε with
   | ⟨f, hsample, htail⟩ =>
     have hsample_orbit :
         ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ →
@@ -236,7 +262,14 @@ theorem exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitSpectralSamp
 making the complementary orbit tail arbitrarily small. -/
 theorem exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitContribution_owner
     (ρ : ℂ)
-    (f₀ : ZetaAdmissibleFunction) :
+    (f₀ : ZetaAdmissibleFunction)
+    (hSeparated :
+      ∀ η : ℂ,
+        ZetaCompletedZero η →
+          η ∉ zetaZeroOrbitFinset ρ →
+            zetaCenteredZero η ∉
+              ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
+                (zetaZeroOrbitSpectralSampleFinset ρ)) :
     ∀ ε : ℝ, 0 < ε →
       ∃ f : ZetaAdmissibleFunction,
         zetaZeroOrbitContributionRe ρ
@@ -249,7 +282,7 @@ theorem exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitContribution
   match
     exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitSpectralSamples_owner
       hZeroTailSmallValuesOwnerRunge
-      ρ f₀ ε hε with
+      ρ f₀ hSeparated ε hε with
   | ⟨f, hsample, htail⟩ =>
     have hcontribution :
         zetaZeroOrbitContributionRe ρ
@@ -298,6 +331,13 @@ theorem exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe_owner
     (δ : ℝ)
     (_hδ : 0 < δ)
     (f₀ : ZetaAdmissibleFunction)
+    (hSeparated :
+      ∀ η : ℂ,
+        ZetaCompletedZero η →
+          η ∉ zetaZeroOrbitFinset ρ →
+            zetaCenteredZero η ∉
+              ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
+                (zetaZeroOrbitSpectralSampleFinset ρ))
     (hmargin :
       zetaZeroOrbitContributionRe ρ
           (ZetaAdmissibleFunction.convolutionAutocorrelation f₀) ≤ -δ) :
@@ -311,7 +351,7 @@ theorem exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe_owner
   match
     exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitContribution_owner
       hZeroTailSmallValuesOwnerRunge
-      ρ f₀ ε hε with
+      ρ f₀ hSeparated ε hε with
   | ⟨f, hcontribution, htail⟩ =>
     have hmargin_f :
         zetaZeroOrbitContributionRe ρ

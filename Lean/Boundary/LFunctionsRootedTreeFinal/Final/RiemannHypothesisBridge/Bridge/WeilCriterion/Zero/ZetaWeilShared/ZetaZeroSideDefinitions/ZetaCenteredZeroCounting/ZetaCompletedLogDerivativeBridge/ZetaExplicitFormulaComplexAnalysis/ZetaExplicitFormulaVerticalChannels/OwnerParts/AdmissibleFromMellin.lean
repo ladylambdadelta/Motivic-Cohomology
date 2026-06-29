@@ -82,10 +82,10 @@ theorem scalar_multiple_conjugateSymmetric
   calc
     (r • f).toZetaTestFunction (-c)
         = (r : ℂ) * f.toZetaTestFunction (-c) := h_scalar_at_neg
-      _ = (r : ℂ) * star (f.toZetaTestFunction c) := by rw [hf]
+      _ = (r : ℂ) * star (f.toZetaTestFunction c) := by exact congr_arg (fun x => (r : ℂ) * x) hf
       _ = star ((r : ℂ) * f.toZetaTestFunction c) := by
           exact (star_mul_of_real r (f.toZetaTestFunction c)).symm
-      _ = star ((r • f).toZetaTestFunction c) := by rw [← h_scalar_at_c]
+      _ = star ((r • f).toZetaTestFunction c) := by exact congr_arg star h_scalar_at_c.symm
 
 /-- Conjugate symmetry is preserved by addition. -/
 theorem add_conjugateSymmetric

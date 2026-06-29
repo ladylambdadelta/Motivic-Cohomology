@@ -37,7 +37,7 @@ lemma fourier_kernel_unit_norm (x : ℝ) (ξ : ℝ) (hx : 0 < x) :
     exact Complex.mul_I_re _
   calc ‖Complex.exp (-I * x * ξ)‖
       = Complex.exp ((-I * x * ξ : ℂ).re) := Complex.norm_exp _
-    _ = Complex.exp 0 := by rw [h_arg]
+    _ = Complex.exp 0 := by exact congr_arg Complex.exp h_arg
     _ = 1 := rfl
 
 /-- RESEARCH LEMMA: Fourier integrand integrability on negative reals.
@@ -204,8 +204,8 @@ lemma fourierInv_conjugateSymmetric_is_real
         have h2 : star (x : ℂ) = (x : ℂ) := Complex.conj_ofReal x
         have h3 : star (ξ : ℂ) = (ξ : ℂ) := Complex.conj_ofReal ξ
         calc star ((-I : ℂ) * x * ξ)
-            = star (-I) * star (x : ℂ) * star (ξ : ℂ) := by rw [star_mul, star_mul]
-          _ = I * x * ξ := by rw [h1, h2, h3]
+            = star (-I) * star (x : ℂ) * star (ξ : ℂ) := by exact (star_mul ((-I : ℂ) * x) ξ).trans (congr_arg (fun y => star ((-I : ℂ) * x) * y) (star_mul (-I) x).symm)
+          _ = I * x * ξ := by exact congr₃ (fun a b c => a * b * c) h1 h2 h3
       rw [h_arg, ← h_conj]
       exact h_exp_conj _))
     (star_mul _ _).symm

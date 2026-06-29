@@ -177,6 +177,360 @@ theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_of_schedu
       htarget
       hdiff)
 
+/-- Scheduled right-minus-left archimedean affine window convergence from the
+archimedean vertical-channel convergence.
+
+This theorem is only affine-normal-form transport.  The analytic content is the
+input convergence of `zetaCompletedExplicitFormulaArchimedeanVerticalChannel`;
+the conclusion names the actual right and shifted-left affine kernels. -/
+theorem zetaCompletedExplicitFormulaArchimedeanDifferenceAffineKernel_scheduledWindow_tendsto_of_verticalChannel
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hchannel :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaArchimedeanVerticalChannel
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f))) :
+    Tendsto
+      (fun u : ℝ =>
+        (∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t) -
+          ∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
+      atTop
+      (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f)) := by
+  have hfun :
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaArchimedeanVerticalChannel
+          f F (h.height_schedule.height u)) =
+      (fun u : ℝ =>
+        (∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t) -
+          ∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t) := by
+    funext u
+    exact
+      zetaCompletedExplicitFormulaScheduledArchimedeanVerticalChannel_eq_affineKernelIntegrals
+        f F h u
+  exact
+    Eq.subst
+      (motive := fun φ : ℝ → ℂ =>
+        Tendsto φ atTop
+          (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f)))
+      hfun
+      hchannel
+
+/-- Paired one-sided scheduled affine values imply the scheduled
+right-minus-left archimedean affine-window value.
+
+This is the normalization check for the paired owner target: the two one-sided
+limits `Φ_f(0)` and `-Φ_f(0)` recombine to the public archimedean contribution
+`2 * Φ_f(0)`. -/
+theorem zetaCompletedExplicitFormulaArchimedeanAffineWindowDifference_tendsto_of_scheduledPair
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hscheduled :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0)) ∧
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
+        atTop
+        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0)))) :
+    Tendsto
+      (fun u : ℝ =>
+        (∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t) -
+          ∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
+      atTop
+      (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f)) := by
+  let Phi0 : ℂ := zetaCompletedExplicitFormulaPhi f 0
+  let Wright : ℝ → ℂ := fun u : ℝ =>
+    ∫ t in Set.Icc
+        (-(F.rectangle (h.height_schedule.height u)).T)
+        (F.rectangle (h.height_schedule.height u)).T,
+      zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t
+  let Wleft : ℝ → ℂ := fun u : ℝ =>
+    ∫ t in Set.Icc
+        (-(F.rectangle (h.height_schedule.height u)).T)
+        (F.rectangle (h.height_schedule.height u)).T,
+      zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t
+  have hdiff :
+      Tendsto (fun u : ℝ => Wright u - Wleft u) atTop (𝓝 (Phi0 - -Phi0)) :=
+    hscheduled.1.sub hscheduled.2
+  have htarget :
+      Phi0 - -Phi0 = zetaCompletedExplicitFormulaArchimedeanContribution f := by
+    calc
+      Phi0 - -Phi0 = Phi0 + -(-Phi0) := by
+        exact sub_eq_add_neg Phi0 (-Phi0)
+      _ = Phi0 + Phi0 := by
+        exact congrArg (fun z : ℂ => Phi0 + z) (neg_neg Phi0)
+      _ = (2 : ℂ) * Phi0 := by
+        exact (two_mul Phi0).symm
+      _ = zetaCompletedExplicitFormulaArchimedeanContribution f := by
+        exact (zetaCompletedExplicitFormulaArchimedeanContribution_eq f).symm
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun u : ℝ =>
+            (∫ t in Set.Icc
+                (-(F.rectangle (h.height_schedule.height u)).T)
+                (F.rectangle (h.height_schedule.height u)).T,
+              zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t) -
+              ∫ t in Set.Icc
+                (-(F.rectangle (h.height_schedule.height u)).T)
+                (F.rectangle (h.height_schedule.height u)).T,
+                zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
+          atTop
+          (𝓝 z))
+      htarget
+      hdiff
+
+/-- Left scheduled affine value from the right scheduled affine value and the
+right-minus-left scheduled affine-window value.
+
+This is a non-symmetric algebraic reduction.  It does not use reflection or
+line-core values: once the right affine window has limit `Φ_f(0)` and the
+right-minus-left window has the public archimedean contribution `2 * Φ_f(0)`,
+the shifted-left affine window has limit `-Φ_f(0)`. -/
+theorem zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_scheduledWindow_tendsto_neg_phiZero_of_right_and_difference
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0)))
+    (hdifference :
+      Tendsto
+        (fun u : ℝ =>
+          (∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t) -
+            ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+              zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f))) :
+    Tendsto
+      (fun u : ℝ =>
+        ∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
+      atTop
+      (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
+  let Phi0 : ℂ := zetaCompletedExplicitFormulaPhi f 0
+  let Wright : ℝ → ℂ := fun u : ℝ =>
+    ∫ t in Set.Icc
+        (-(F.rectangle (h.height_schedule.height u)).T)
+        (F.rectangle (h.height_schedule.height u)).T,
+      zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t
+  let Wleft : ℝ → ℂ := fun u : ℝ =>
+    ∫ t in Set.Icc
+        (-(F.rectangle (h.height_schedule.height u)).T)
+        (F.rectangle (h.height_schedule.height u)).T,
+      zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t
+  have hraw :
+      Tendsto
+        (fun u : ℝ => Wright u - (Wright u - Wleft u))
+        atTop
+        (𝓝 (Phi0 - zetaCompletedExplicitFormulaArchimedeanContribution f)) :=
+    hright.sub hdifference
+  have hfun :
+      (fun u : ℝ => Wright u - (Wright u - Wleft u)) =
+      (fun u : ℝ => Wleft u) := by
+    funext u
+    let R : ℂ := Wright u
+    let L : ℂ := Wleft u
+    calc
+      R - (R - L) = R + -(R - L) := by
+        exact sub_eq_add_neg R (R - L)
+      _ = R + (-(R + -L)) := by
+        exact congrArg (fun z : ℂ => R + -z) (sub_eq_add_neg R L)
+      _ = R + (-R + -(-L)) := by
+        exact congrArg (fun z : ℂ => R + z) (neg_add R (-L))
+      _ = R + (-R + L) := by
+        exact congrArg (fun z : ℂ => R + (-R + z)) (neg_neg L)
+      _ = (R + -R) + L := by
+        exact (add_assoc R (-R) L).symm
+      _ = 0 + L := by
+        exact congrArg (fun z : ℂ => z + L) (add_neg_cancel R)
+      _ = L := by
+        exact zero_add L
+  have htarget :
+      Phi0 - zetaCompletedExplicitFormulaArchimedeanContribution f =
+        -Phi0 := by
+    calc
+      Phi0 - zetaCompletedExplicitFormulaArchimedeanContribution f =
+          Phi0 - ((2 : ℂ) * Phi0) := by
+        exact congrArg
+          (fun z : ℂ => Phi0 - z)
+          (zetaCompletedExplicitFormulaArchimedeanContribution_eq f)
+      _ = Phi0 + -((2 : ℂ) * Phi0) := by
+        exact sub_eq_add_neg Phi0 ((2 : ℂ) * Phi0)
+      _ = Phi0 + -(Phi0 + Phi0) := by
+        exact congrArg (fun z : ℂ => Phi0 + -z) (two_mul Phi0)
+      _ = Phi0 + (-Phi0 + -Phi0) := by
+        exact congrArg (fun z : ℂ => Phi0 + z) (neg_add Phi0 Phi0)
+      _ = (Phi0 + -Phi0) + -Phi0 := by
+        exact (add_assoc Phi0 (-Phi0) (-Phi0)).symm
+      _ = 0 + -Phi0 := by
+        exact congrArg (fun z : ℂ => z + -Phi0) (add_neg_cancel Phi0)
+      _ = -Phi0 := by
+        exact zero_add (-Phi0)
+  exact
+    Eq.subst
+      (motive := fun φ : ℝ → ℂ =>
+        Tendsto φ atTop (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))))
+      hfun
+      (Eq.subst
+        (motive := fun z : ℂ =>
+          Tendsto
+            (fun u : ℝ => Wright u - (Wright u - Wleft u))
+            atTop
+            (𝓝 z))
+        htarget
+        hraw)
+
+/-- Paired scheduled affine values from a right scheduled affine value and the
+right-minus-left scheduled affine-window value.
+
+This reduces the paired owner theorem to one genuinely one-sided contour value
+plus the already owned difference-channel transport. -/
+theorem zetaCompletedExplicitFormulaArchimedeanAffineKernel_scheduledPair_of_right_and_difference
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0)))
+    (hdifference :
+      Tendsto
+        (fun u : ℝ =>
+          (∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t) -
+            ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+              zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f))) :
+    Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0)) ∧
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
+        atTop
+        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
+  exact
+    ⟨hright,
+      zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_scheduledWindow_tendsto_neg_phiZero_of_right_and_difference
+        f F h hright hdifference⟩
+
+/-- Paired scheduled affine values from a right scheduled affine value and the
+archimedean vertical-channel value. -/
+theorem zetaCompletedExplicitFormulaArchimedeanAffineKernel_scheduledPair_of_right_and_verticalChannel
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0)))
+    (hchannel :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaArchimedeanVerticalChannel
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f))) :
+    Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0)) ∧
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
+        atTop
+        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
+  have hdifference :
+      Tendsto
+        (fun u : ℝ =>
+          (∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t) -
+            ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+              zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f)) :=
+    zetaCompletedExplicitFormulaArchimedeanDifferenceAffineKernel_scheduledWindow_tendsto_of_verticalChannel
+      f F h hchannel
+  exact
+    zetaCompletedExplicitFormulaArchimedeanAffineKernel_scheduledPair_of_right_and_difference
+      f F h hright hdifference
+
 /-- Algebraic extraction of the scheduled inverse-Gamma completion limit from
 the archimedean vertical-channel limit and the scheduled correction limit.
 
@@ -376,6 +730,119 @@ theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimede
   exact
     zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_of_scheduledInverseGammaCompletion_and_scheduledCorrection
       f F.toContourFamily h hestimates.1 hestimates.2
+
+/-- Vertically regular scheduled right-minus-left archimedean affine window
+convergence in named affine-kernel normal form.
+
+This is the affine-window projection of
+`zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimedeanContribution_of_verticallyRegular_gammaBinet_integral_eq`.
+It is still a right-minus-left theorem, but the conclusion is now expressed as
+the two named finite-height affine windows that the paired owner theorem must
+evaluate separately. -/
+theorem zetaCompletedExplicitFormulaArchimedeanAffineWindowDifference_tendsto_archimedeanContribution_of_verticallyRegular_gammaBinet_integral_eq
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hvalue :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel
+          f F.toContourFamily t) =
+        zetaCompletedExplicitFormulaArchimedeanContribution f +
+          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f) :
+    Tendsto
+      (fun u : ℝ =>
+        (∫ t in Set.Icc
+            (-(F.toContourFamily.rectangle (h.height_schedule.height u)).T)
+            (F.toContourFamily.rectangle (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaArchimedeanRightAffineKernel
+            f F.toContourFamily t) -
+          ∫ t in Set.Icc
+            (-(F.toContourFamily.rectangle (h.height_schedule.height u)).T)
+            (F.toContourFamily.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
+              f F.toContourFamily t)
+      atTop
+      (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f)) := by
+  have hchannel :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaArchimedeanVerticalChannel
+            f F.toContourFamily (h.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f)) :=
+    zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimedeanContribution_of_verticallyRegular_gammaBinet_integral_eq
+      f F h hcoh hvalue
+  exact
+    zetaCompletedExplicitFormulaArchimedeanDifferenceAffineKernel_scheduledWindow_tendsto_of_verticalChannel
+      f F.toContourFamily h hchannel
+
+/-- Vertically regular paired scheduled affine values from the right scheduled
+affine value and the inverse-Gamma difference normalization.
+
+The inverse-Gamma normalization is used only to obtain the right-minus-left
+archimedean affine-window convergence through the vertical-channel theorem.
+The remaining one-sided analytic input is the right affine scheduled contour
+value. -/
+theorem zetaCompletedExplicitFormulaArchimedeanAffineKernel_scheduledPair_of_right_and_verticallyRegular_gammaBinet_integral_eq
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightAffineKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0)))
+    (hvalue :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel
+          f F.toContourFamily t) =
+        zetaCompletedExplicitFormulaArchimedeanContribution f +
+          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f) :
+    Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightAffineKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0)) ∧
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
+  have hdifference :
+      Tendsto
+        (fun u : ℝ =>
+          (∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightAffineKernel
+              f F.toContourFamily t) -
+            ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle (h.height_schedule.height u)).T,
+              zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
+                f F.toContourFamily t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f)) :=
+    zetaCompletedExplicitFormulaArchimedeanAffineWindowDifference_tendsto_archimedeanContribution_of_verticallyRegular_gammaBinet_integral_eq
+      f F h hcoh hvalue
+  exact
+    zetaCompletedExplicitFormulaArchimedeanAffineKernel_scheduledPair_of_right_and_difference
+      f F.toContourFamily h hright hdifference
 
 /-- Owner transport-remainder form of the archimedean Gamma/completion vertical
 channel estimate.  The analytic content is the channel convergence theorem

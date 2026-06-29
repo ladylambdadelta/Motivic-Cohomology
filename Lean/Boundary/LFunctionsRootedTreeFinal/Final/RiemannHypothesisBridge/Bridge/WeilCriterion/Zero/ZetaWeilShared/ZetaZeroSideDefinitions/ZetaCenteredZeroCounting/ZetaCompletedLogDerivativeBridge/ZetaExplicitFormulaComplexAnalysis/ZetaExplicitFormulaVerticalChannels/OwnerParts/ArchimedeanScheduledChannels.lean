@@ -190,6 +190,141 @@ theorem zetaCompletedExplicitFormulaScheduledInverseGammaCompletionVerticalChann
   zetaCompletedExplicitFormulaScheduledInverseGammaCompletionVerticalChannel_eq_affineLineIntegrals
     f F h u
 
+/-- The finite-height archimedean vertical channel in named affine-kernel
+normal form. -/
+theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_eq_affineKernelIntegrals
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (T : ℝ) :
+    zetaCompletedExplicitFormulaArchimedeanVerticalChannel f F T =
+      (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+        zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t) -
+        ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+          zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t := by
+  have hright :
+      (fun t : ℝ =>
+        explicitFormulaArchimedeanLogDerivative
+            (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1 / 2)) =
+      (fun t : ℝ =>
+        zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t) := by
+    funext t
+    have hpath :
+        zetaCompletedExplicitFormulaRightPath (F.rectangle T) t =
+          zetaCompletedExplicitFormulaRightAffineLine F t :=
+      zetaCompletedExplicitFormulaPrime_rightPath_eq_affineLine F T t
+    have hshift :
+        zetaCompletedExplicitFormulaRightPath (F.rectangle T) t -
+            (1 / 2 : ℂ) =
+          zetaCompletedExplicitFormulaRightCenteredAffineLine F t :=
+      zetaCompletedExplicitFormulaPrime_shiftedRightPath_eq_affineLine F T t
+    calc
+      explicitFormulaArchimedeanLogDerivative
+            (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1 / 2) =
+          explicitFormulaArchimedeanLogDerivative
+              (zetaCompletedExplicitFormulaRightAffineLine F t) *
+            zetaCompletedExplicitFormulaPhi f
+              (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t -
+                1 / 2) := by
+        exact congrArg
+          (fun z : ℂ =>
+            explicitFormulaArchimedeanLogDerivative z *
+              zetaCompletedExplicitFormulaPhi f
+                (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t -
+                  1 / 2))
+          hpath
+      _ =
+          explicitFormulaArchimedeanLogDerivative
+              (zetaCompletedExplicitFormulaRightAffineLine F t) *
+            zetaCompletedExplicitFormulaPhi f
+              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t) := by
+        exact congrArg
+          (fun z : ℂ =>
+            explicitFormulaArchimedeanLogDerivative
+                (zetaCompletedExplicitFormulaRightAffineLine F t) *
+              zetaCompletedExplicitFormulaPhi f z)
+          hshift
+      _ = zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t := by
+        exact Eq.refl _
+  have hleft :
+      (fun t : ℝ =>
+        explicitFormulaArchimedeanLogDerivative
+            (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t) *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1 / 2)) =
+      (fun t : ℝ =>
+        zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t) := by
+    funext t
+    have hpath :
+        zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t =
+          zetaCompletedExplicitFormulaLeftAffineLine F t :=
+      zetaCompletedExplicitFormulaPrime_leftPath_eq_affineLine F T t
+    have hshift :
+        zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t -
+            (1 / 2 : ℂ) =
+          zetaCompletedExplicitFormulaLeftCenteredAffineLine F t :=
+      zetaCompletedExplicitFormulaPrime_shiftedLeftPath_eq_affineLine F T t
+    calc
+      explicitFormulaArchimedeanLogDerivative
+            (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t) *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1 / 2) =
+          explicitFormulaArchimedeanLogDerivative
+              (zetaCompletedExplicitFormulaLeftAffineLine F t) *
+            zetaCompletedExplicitFormulaPhi f
+              (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t -
+                1 / 2) := by
+        exact congrArg
+          (fun z : ℂ =>
+            explicitFormulaArchimedeanLogDerivative z *
+              zetaCompletedExplicitFormulaPhi f
+                (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t -
+                  1 / 2))
+          hpath
+      _ =
+          explicitFormulaArchimedeanLogDerivative
+              (zetaCompletedExplicitFormulaLeftAffineLine F t) *
+            zetaCompletedExplicitFormulaPhi f
+              (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t) := by
+        exact congrArg
+          (fun z : ℂ =>
+            explicitFormulaArchimedeanLogDerivative
+                (zetaCompletedExplicitFormulaLeftAffineLine F t) *
+              zetaCompletedExplicitFormulaPhi f z)
+          hshift
+      _ = zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t := by
+        exact Eq.refl _
+  exact congrArg₂ HSub.hSub
+    (congrArg
+      (fun φ : ℝ → ℂ =>
+        ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T, φ t)
+      hright)
+    (congrArg
+      (fun φ : ℝ → ℂ =>
+        ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T, φ t)
+      hleft)
+
+/-- The scheduled archimedean vertical channel in named affine-kernel normal
+form. -/
+theorem zetaCompletedExplicitFormulaScheduledArchimedeanVerticalChannel_eq_affineKernelIntegrals
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    zetaCompletedExplicitFormulaArchimedeanVerticalChannel
+        f F (h.height_schedule.height u) =
+      (∫ t in Set.Icc
+          (-(F.rectangle (h.height_schedule.height u)).T)
+          (F.rectangle (h.height_schedule.height u)).T,
+        zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t) -
+        ∫ t in Set.Icc
+          (-(F.rectangle (h.height_schedule.height u)).T)
+          (F.rectangle (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t := by
+  exact
+    zetaCompletedExplicitFormulaArchimedeanVerticalChannel_eq_affineKernelIntegrals
+      f F (h.height_schedule.height u)
+
 /-- The scheduled archimedean vertical channel is the scheduled inverse-Gamma
 completion channel minus the scheduled correction channel. -/
 theorem zetaCompletedExplicitFormulaScheduledArchimedean_eq_inverseGammaCompletion_sub_correction

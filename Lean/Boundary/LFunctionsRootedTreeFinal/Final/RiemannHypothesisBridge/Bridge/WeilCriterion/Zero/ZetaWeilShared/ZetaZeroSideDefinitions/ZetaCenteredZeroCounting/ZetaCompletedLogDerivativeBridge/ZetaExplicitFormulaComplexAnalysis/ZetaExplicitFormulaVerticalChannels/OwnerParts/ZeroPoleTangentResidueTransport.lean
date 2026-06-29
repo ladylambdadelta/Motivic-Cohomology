@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.RightOnePoleTangentCancellation
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleTangentBoundaryAlgebra
 
 namespace Boundary
 namespace LFunctions
@@ -19,10 +19,16 @@ Cauchy convention to the scheduled left zero-pole face. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_of_standardBoundaryResidue_and_orientationDefect
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (A : ℂ)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 A))
     (B : ℂ)
-    (hcancel :
-      ((1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0) +
-        B * Complex.I = 0)
+    (hcancel : A + B * Complex.I = 0)
     (hstandard :
       ∀ᶠ u in atTop,
         zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
@@ -41,10 +47,10 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIn
       atTop
       (𝓝 0) := by
   exact
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_of_tangentBoundaryDefect
-      f F h
-      (zetaCompletedExplicitFormulaCorrectionZeroPoleTangentBoundaryDefect_tendsto_zero_of_standardBoundaryResidue_and_orientationDefect
-        f F h B hcancel hstandard horientation)
+    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_of_standardBoundaryResidue_and_orientationDefect_ownerZeroPoleAlgebra
+      f F h A B hright hcancel hstandard horientation
+      (zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_tendsto_zero_ownerZeroPoleHorizontal
+        f F h)
 
 /-- Eventual constant-value transport for the corrected standard rectangle
 Cauchy boundary convention at positive scheduled heights. -/
@@ -70,8 +76,16 @@ the cancellation identity must therefore be stated for that raw value. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_of_positiveHeight_rawStandardLocalResidue
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (A : ℂ)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 A))
     (hcancel :
-      ((1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0) +
+      A +
         ((2 * (Real.pi : ℂ) * Complex.I) *
           (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))) * Complex.I = 0)
     (hpositive :
@@ -89,7 +103,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIn
       (𝓝 0) := by
   exact
     zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_of_standardBoundaryResidue_and_orientationDefect
-      f F h
+      f F h A hright
       ((2 * (Real.pi : ℂ) * Complex.I) *
         (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))))
       hcancel

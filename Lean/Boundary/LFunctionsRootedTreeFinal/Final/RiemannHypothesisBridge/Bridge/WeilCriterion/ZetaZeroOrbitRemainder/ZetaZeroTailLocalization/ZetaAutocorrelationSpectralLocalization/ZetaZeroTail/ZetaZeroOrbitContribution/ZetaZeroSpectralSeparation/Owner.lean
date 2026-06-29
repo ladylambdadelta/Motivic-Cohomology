@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroSideContribution.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.CenteredZeros.CriticalStrip.Owner
 
 /-!
 # Finite spectral separation on zero orbits
@@ -249,6 +250,126 @@ theorem exists_zeroOrbit_autocorrelation_finiteSpectralSeparator_owner
           ρ hρ hρre horbit
           (ZetaAdmissibleFunction.convolutionAutocorrelation f)
           hsample⟩
+
+/-- The real coordinate of `1/2 : ℂ` is `1/2 : ℝ`. -/
+private theorem complex_half_re : (1 / 2 : ℂ).re = (1 / 2 : ℝ) := by
+  have hhalf_complex : (1 / 2 : ℂ) = ((1 / 2 : ℝ) : ℂ) :=
+    Eq.symm (Complex.ofReal_div (1 : ℝ) (2 : ℝ))
+  have hhalf_coe_re : (((1 / 2 : ℝ) : ℂ).re) = (1 / 2 : ℝ) :=
+    Complex.ofReal_re (1 / 2 : ℝ)
+  exact Eq.trans (congrArg Complex.re hhalf_complex) hhalf_coe_re
+
+/-- The real coordinate of a centered zero coordinate. -/
+private theorem zetaCenteredZero_re (η : ℂ) :
+    (zetaCenteredZero η).re = η.re - (1 / 2 : ℝ) := by
+  have h1 : (zetaCenteredZero η).re = η.re - (1 / 2 : ℂ).re :=
+    Complex.sub_re η (1 / 2 : ℂ)
+  exact Eq.subst
+    (motive := fun x : ℝ => (zetaCenteredZero η).re = η.re - x)
+    complex_half_re
+    h1
+
+/-- Strict centered critical-strip bound for a completed zero. -/
+theorem zetaCompletedZero_re_mem_open_centeredCriticalStrip
+    (ρ : ℂ) (hρ : ZetaCompletedZero ρ) :
+    -(1 / 2 : ℝ) < ρ.re ∧ ρ.re < (1 / 2 : ℝ) := by
+  have hzero : centeredCompletedRiemannZeta ρ = 0 :=
+    (centeredCompletedRiemannZetaFunction_eq ρ).symm.trans
+      (zetaCompletedZero_zero_of_prop hρ)
+  exact centeredCompletedRiemannZeta_zero_re_mem_open_centeredCriticalStrip ρ hzero
+
+/-- The dagger-reflection real-part identity collapses to `1/2 < b` once the
+reflected coordinate is bounded above by `1/2`. -/
+private theorem half_lt_of_dagger_eq
+    (a b : ℝ)
+    (heq : -(a - (1 / 2 : ℝ)) = b - (1 / 2 : ℝ))
+    (ha : a < (1 / 2 : ℝ)) :
+    (1 / 2 : ℝ) < b := by
+  have hneg : -(a - (1 / 2 : ℝ)) = (1 / 2 : ℝ) - a :=
+    neg_sub a (1 / 2 : ℝ)
+  have heq2 : (1 / 2 : ℝ) - a = b - (1 / 2 : ℝ) :=
+    hneg.symm.trans heq
+  have hb : b = ((1 / 2 : ℝ) - a) + (1 / 2 : ℝ) :=
+    sub_eq_iff_eq_add.mp heq2.symm
+  have hpos : 0 < (1 / 2 : ℝ) - a :=
+    sub_pos.mpr ha
+  have hstep : (0 : ℝ) + (1 / 2 : ℝ) < ((1 / 2 : ℝ) - a) + (1 / 2 : ℝ) :=
+    add_lt_add_right hpos (1 / 2 : ℝ)
+  have hstep' : (1 / 2 : ℝ) < ((1 / 2 : ℝ) - a) + (1 / 2 : ℝ) :=
+    Eq.subst
+      (motive := fun x : ℝ => x < ((1 / 2 : ℝ) - a) + (1 / 2 : ℝ))
+      (zero_add (1 / 2 : ℝ))
+      hstep
+  exact Eq.subst (motive := fun x : ℝ => (1 / 2 : ℝ) < x) hb.symm hstep'
+
+/-- Finite spectral orbit separation: any completed zero outside the centered
+two-point orbit of `ρ` has a centered coordinate that avoids the dagger-closed
+finite spectral sample set of the orbit.
+
+This is the genuine separation step.  The two non-orbit dagger faces force the
+candidate zero to sit at uncentered real part in `(1,2)`, outside the critical
+strip, contradicting strict critical-strip confinement of completed zeros. -/
+theorem zetaCenteredZero_not_mem_daggerClosed_orbitSpectralSample_of_completedZero
+    (ρ : ℂ) (hρ : ZetaCompletedZero ρ)
+    (η : ℂ) (hη : ZetaCompletedZero η)
+    (hηorbit : η ∉ zetaZeroOrbitFinset ρ) :
+    zetaCenteredZero η ∉
+      ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
+        (zetaZeroOrbitSpectralSampleFinset ρ) := by
+  intro hmem
+  have hηstrip := zetaCompletedZero_re_mem_open_centeredCriticalStrip η hη
+  have hρstrip := zetaCompletedZero_re_mem_open_centeredCriticalStrip ρ hρ
+  unfold ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset at hmem
+  rcases Finset.mem_union.mp hmem with hsamp | hrefl
+  · -- Direct sample face: forces `η ∈ orbit`.
+    unfold zetaZeroOrbitSpectralSampleFinset at hsamp
+    rcases Finset.mem_image.mp hsamp with ⟨θ, hθorbit, hθeq⟩
+    have hsub : θ - (1 / 2 : ℂ) = η - (1 / 2 : ℂ) := hθeq
+    have hθη : θ = η := sub_left_inj.mp hsub
+    exact hηorbit
+      (Eq.subst (motive := fun x : ℂ => x ∈ zetaZeroOrbitFinset ρ) hθη hθorbit)
+  · -- Dagger-reflected face: forces an out-of-strip real part.
+    unfold ZetaAdmissibleFunction.daggerReflectedSpectralSampleFinset at hrefl
+    rcases Finset.mem_image.mp hrefl with ⟨w, hwsamp, hweq⟩
+    unfold zetaZeroOrbitSpectralSampleFinset at hwsamp
+    rcases Finset.mem_image.mp hwsamp with ⟨θ, hθorbit, hθw⟩
+    rw [← hθw] at hweq
+    have hweq' : -star (zetaCenteredZero θ) = zetaCenteredZero η := hweq
+    have hre :
+        (-star (zetaCenteredZero θ)).re = (zetaCenteredZero η).re :=
+      congrArg Complex.re hweq'
+    have hL :
+        (-star (zetaCenteredZero θ)).re = -(θ.re - (1 / 2 : ℝ)) := by
+      calc
+        (-star (zetaCenteredZero θ)).re
+            = -((star (zetaCenteredZero θ)).re) :=
+          Complex.neg_re (star (zetaCenteredZero θ))
+        _ = -((zetaCenteredZero θ).re) :=
+          congrArg Neg.neg (Complex.conj_re (zetaCenteredZero θ))
+        _ = -(θ.re - (1 / 2 : ℝ)) :=
+          congrArg Neg.neg (zetaCenteredZero_re θ)
+    have heqre : -(θ.re - (1 / 2 : ℝ)) = η.re - (1 / 2 : ℝ) := by
+      calc
+        -(θ.re - (1 / 2 : ℝ)) = (-star (zetaCenteredZero θ)).re := hL.symm
+        _ = (zetaCenteredZero η).re := hre
+        _ = η.re - (1 / 2 : ℝ) := zetaCenteredZero_re η
+    have hθlt : θ.re < (1 / 2 : ℝ) := by
+      rcases (zetaZeroOrbitFinset_mem_iff ρ θ).mp hθorbit with hθρ | hθnρ
+      · exact Eq.subst
+          (motive := fun x : ℂ => x.re < (1 / 2 : ℝ)) hθρ.symm hρstrip.2
+      · have hθre : θ.re = -ρ.re := by
+          calc
+            θ.re = (-ρ).re := congrArg Complex.re hθnρ
+            _ = -ρ.re := Complex.neg_re ρ
+        have hneg : -ρ.re < (1 / 2 : ℝ) := by
+          have hlt : -ρ.re < -(-(1 / 2 : ℝ)) := neg_lt_neg hρstrip.1
+          exact Eq.subst
+            (motive := fun x : ℝ => -ρ.re < x) (neg_neg (1 / 2 : ℝ)) hlt
+        exact Eq.subst
+          (motive := fun x : ℝ => x < (1 / 2 : ℝ)) hθre.symm hneg
+    have hfinal : (1 / 2 : ℝ) < η.re :=
+      half_lt_of_dagger_eq θ.re η.re heqre hθlt
+    exact (lt_asymm hfinal) hηstrip.2
 
 end
 

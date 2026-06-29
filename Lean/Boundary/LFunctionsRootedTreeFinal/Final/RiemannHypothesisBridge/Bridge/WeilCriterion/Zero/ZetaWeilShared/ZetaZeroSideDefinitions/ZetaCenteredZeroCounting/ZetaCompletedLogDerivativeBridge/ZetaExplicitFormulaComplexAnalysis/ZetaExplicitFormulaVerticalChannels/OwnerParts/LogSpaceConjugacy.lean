@@ -34,9 +34,9 @@ def expSubstitutionMap : ℝ → ℝ₊ := fun t => ⟨Real.exp t, Real.exp_pos 
 lemma cpow_mul_one_eq_cpow_add (t : ℝ) (s : ℂ) (ht : (t : ℂ) ≠ 0) :
     ((t : ℂ) ^ (s - 1)) * ((t : ℂ)) = (t : ℂ) ^ s := by
   calc ((t : ℂ) ^ (s - 1)) * ((t : ℂ))
-      = ((t : ℂ) ^ (s - 1)) * ((t : ℂ) ^ 1) := by rw [cpow_one]
+      = ((t : ℂ) ^ (s - 1)) * ((t : ℂ) ^ 1) := by exact congr_arg (fun x => ((t : ℂ) ^ (s - 1)) * x) (cpow_one t).symm
     _ = ((t : ℂ) ^ (s - 1 + 1)) := by apply cpow_add; exact ht
-    _ = ((t : ℂ) ^ s) := by ring
+    _ = ((t : ℂ) ^ s) := by have : (s - 1 + 1 : ℂ) = s := by ring; exact congr_arg (fun x => (t : ℂ) ^ x) this
 
 /-- Helper: Real.log(Real.exp(t)) = t for all t -/
 lemma log_exp_eq_self (t : ℝ) : Real.log (Real.exp t) = t :=
@@ -143,8 +143,8 @@ lemma mellin_exp_log_simplify (s : ℂ) (t : ℝ) :
 /-- Sublemma: Exponentials are reciprocals under negation -/
 lemma exp_reciprocal_under_neg (t : ℝ) : Real.exp t * Real.exp (-t) = 1 := by
   calc Real.exp t * Real.exp (-t)
-      = Real.exp (t + (-t)) := by rw [Real.exp_add]
-    _ = Real.exp 0 := by rw [add_neg_self]
+      = Real.exp (t + (-t)) := by exact (Real.exp_add t (-t)).symm
+    _ = Real.exp 0 := by exact congr_arg Real.exp (add_neg_self t)
     _ = 1 := Real.exp_zero
 
 /-- Conjugacy is preserved through log-space lift and projection.

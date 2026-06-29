@@ -1431,7 +1431,95 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetFullTransf
             f F t)
       atTop
       (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
-  sorry
+  have htotal :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel f F t)
+        atTop
+        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) :=
+    zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanScheduled_tendsto_neg_phi_zero_ownerComponentsCore
+      f F h hcoh
+  have hdecomp :
+      (fun u : ℝ =>
+        (∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetMainKernel
+            f F t) +
+        ∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetRemainderKernel
+            f F t)) =
+      (fun u : ℝ =>
+        ∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel f F t) := by
+    funext u
+    have hmain :
+        Integrable
+          (zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetMainKernel
+            f F)
+          (volume.restrict
+            (Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T)) :=
+      zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetMainKernel_integrable_restrict_Icc_ownerGammaBinetReflectedContour
+        f F h u
+    have hremainder :
+        Integrable
+          (zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetRemainderKernel
+            f F)
+          (volume.restrict
+            (Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T)) :=
+      zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetRemainderKernel_integrable_restrict_Icc_ownerGammaBinetReflectedContour
+        f F h u
+    have hpoint :
+        zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel f F =ᵐ[
+          volume.restrict
+            (Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T)]
+          fun t : ℝ =>
+            zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetMainKernel
+              f F t +
+            zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetRemainderKernel
+              f F t :=
+      Filter.Eventually.of_forall
+        (fun t =>
+          zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel_eq_binetMain_add_remainder
+            f F hcoh t)
+    calc
+      (∫ t in Set.Icc
+          (-(F.rectangle (h.height_schedule.height u)).T)
+          (F.rectangle (h.height_schedule.height u)).T,
+        zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetMainKernel
+          f F t) +
+        ∫ t in Set.Icc
+          (-(F.rectangle (h.height_schedule.height u)).T)
+          (F.rectangle (h.height_schedule.height u)).T,
+        zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetRemainderKernel
+          f F t =
+          ∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+            (zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetMainKernel
+              f F t +
+              zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetRemainderKernel
+              f F t) := by
+        exact (integral_add hmain hremainder).symm
+      _ = ∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel f F t := by
+        exact integral_congr_ae hpoint
+  exact hdecomp ▸ htotal
 
 /-- Measurability of the reflected Gamma/Binet main scalar factor. -/
 theorem zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetMainFactor_aestronglyMeasurable

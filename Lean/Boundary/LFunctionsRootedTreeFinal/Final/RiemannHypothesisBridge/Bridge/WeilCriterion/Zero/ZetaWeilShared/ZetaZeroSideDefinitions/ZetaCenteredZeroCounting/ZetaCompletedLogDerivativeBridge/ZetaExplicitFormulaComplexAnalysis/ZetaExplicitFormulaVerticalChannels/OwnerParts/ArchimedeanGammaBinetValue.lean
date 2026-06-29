@@ -1,16 +1,16 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ArchimedeanGammaBinetLineValue
 
 /-!
-# Archimedean Gamma/Binet value
+# Archimedean Gamma/Binet scheduled-value compatibility
 
-This file owns the genuine Gamma/Binet scheduled value theorem for the
+This file contains downstream compatibility wrappers for the scheduled
 archimedean right-minus-left affine kernel.  It is intentionally separate from
 inverse-Gamma recombination: inverse-Gamma difference values contain both the
 archimedean component and the elementary correction component.
 
-The two individual line values live in
-`ArchimedeanGammaBinetLineValue.lean`; this file only assembles the
-right-minus-left normalization.
+Through `ArchimedeanGammaBinetLineValue`, the wrappers below consume the
+Gamma/Binet line-core values.  They are compatibility transport and must not be
+used as upstream evidence for those line-core values.
 -/
 
 namespace Boundary
@@ -397,7 +397,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanDifferenceAffineKernel_scheduledW
     hpoint.symm
     hsub_target
 
-/-- Owner analytic leaf: scheduled-window value theorem for the archimedean
+/-- Compatibility scheduled-window value theorem for the archimedean
 right-minus-left affine kernel.
 
 Proof target:
@@ -411,8 +411,9 @@ Proof target:
 4. Track the right-minus-left sign and identify the resulting boundary term
    with `zetaCompletedExplicitFormulaArchimedeanContribution f`.
 
-This theorem must not be proved from the inverse-Gamma component normalization,
-because that normalization consumes the archimedean component value. -/
+This theorem must not be used as the upstream analytic leaf for paired affine
+line values: through `ArchimedeanGammaBinetLineValue` it is downstream of
+`ArchimedeanGammaBinetLineCore`. -/
 theorem zetaCompletedExplicitFormulaArchimedeanDifferenceAffineKernel_scheduledWindow_tendsto_archimedeanContribution_ownerGammaBinetValue
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)

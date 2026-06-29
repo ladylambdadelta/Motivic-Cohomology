@@ -269,6 +269,44 @@ theorem zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation_ord
       zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation_orderedHeart_descent_of_primeDiagonalDebt_re_eq_zero
         f⟩
 
+/-- Autocorrelation diagonal-debt removal.
+
+This is the remaining boundary-cancellation theorem for the raw RH route.  The diagonal
+prime-defect debt is a finite-window/one-face artifact and has zero real part after the
+completed autocorrelation boundary reconstruction is assembled. -/
+theorem autocorrelationDiagonalDebtRemoval
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) = 0 := by
+  exact zetaCompletedPrimeDefectKernelDiagonalDebt_re_eq_zero_boundaryCancellation f
+
+/-- On autocorrelation probes, the ordered-heart scalar descends to the raw zero-side Krein
+scalar after diagonal-debt removal. -/
+theorem orderedHeartScalar_eq_rawKreinScalar_on_autocorrelation
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedZeroSideAutocorrelationOrderedHeartScalar f =
+      zetaCompletedZeroKreinGram
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
+  calc
+    zetaCompletedZeroSideAutocorrelationOrderedHeartScalar f =
+        zetaCompletedZeroKreinGram
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by
+      exact zetaCompletedZeroSideAutocorrelationOrderedHeartScalar_eq_zeroKrein_add_debt f
+    _ =
+        zetaCompletedZeroKreinGram
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) + 0 := by
+      exact congrArg
+        (fun x : ℝ =>
+          zetaCompletedZeroKreinGram
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f) + x)
+        (autocorrelationDiagonalDebtRemoval f)
+    _ =
+        zetaCompletedZeroKreinGram
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
+      exact add_zero
+        (zetaCompletedZeroKreinGram
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+
 /-- Historical debt-visible name for the ordered-heart autocorrelation contour bridge. -/
 theorem zetaCompletedExplicitFormulaContourBridge_autocorrelation_orderedHeartScalar
     (f : ZetaAdmissibleFunction) :

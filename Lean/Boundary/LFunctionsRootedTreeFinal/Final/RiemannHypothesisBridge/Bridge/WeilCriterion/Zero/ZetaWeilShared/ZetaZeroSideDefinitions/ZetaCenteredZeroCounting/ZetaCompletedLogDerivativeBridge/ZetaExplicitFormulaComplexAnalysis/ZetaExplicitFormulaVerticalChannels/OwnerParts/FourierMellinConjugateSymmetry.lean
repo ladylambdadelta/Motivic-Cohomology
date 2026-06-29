@@ -71,7 +71,7 @@ lemma fourierTransform_conjugate_symmetry
     have h_arg : (2 * π * I * ((-ξ : ℝ) : ℂ) * t : ℂ) = -(2 * π * I * (ξ : ℝ) : ℂ) * t := by
       have h1 : ((-ξ : ℝ) : ℂ) = -(ξ : ℂ) := research_ofReal_preserves_neg ξ
       calc (2 * π * I * ((-ξ : ℝ) : ℂ) * t : ℂ)
-          = 2 * π * I * (-(ξ : ℂ)) * t := by rw [h1]
+          = 2 * π * I * (-(ξ : ℂ)) * t := by exact congr_arg (fun x => 2 * π * I * x * t) h1
         _ = -(2 * π * I * (ξ : ℂ) * t) := research_mult_neg_assoc (ξ : ℂ) t
         _ = -(2 * π * I * (ξ : ℝ) : ℂ) * t := (research_neg_ofReal_mult (ξ : ℂ) t).symm
     rw [h_arg]

@@ -3,8 +3,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 /-!
 # Archimedean Binet kernel integral values
 
-Compatibility import for the Binet component-value leaves.  The declarations
-now live in `ArchimedeanGammaBinetLineCore`, with the Gamma/Binet kernel
-definitions they use, so this file does not import back into its owner.
+Compatibility import for the coupled Binet transform value leaves.  The
+declarations now live in `ArchimedeanGammaBinetLineCore`, with the Gamma/Binet
+kernel definitions they use, so this file does not import back into its owner.
 -/
-

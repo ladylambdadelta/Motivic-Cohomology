@@ -299,6 +299,11 @@ for the same autocorrelation probe. -/
 theorem exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation_of_offCriticalCenteredZero
     (hZeroTailSmallValuesOwnerRunge :
       ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        (∀ ρ : ℂ,
+          ZetaCompletedZero ρ →
+            ρ ∉ S →
+              zetaCenteredZero ρ ∉
+                ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset P) →
         ∀ ε : ℝ, 0 < ε →
           ∃ r : ℝ,
             r ∈
@@ -318,7 +323,10 @@ theorem exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation_of_of
   exact exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation
     z.point
     (exists_uniform_zeroOrbit_autocorrelation_separator
-      hZeroTailSmallValuesOwnerRunge z.point hcompleted z.offCritical horbit)
+      hZeroTailSmallValuesOwnerRunge z.point hcompleted z.offCritical horbit
+      (fun η hη hηorbit =>
+        zetaCenteredZero_not_mem_daggerClosed_orbitSpectralSample_of_completedZero
+          z.point hcompleted η hη hηorbit))
 
 /-- Off-critical zero separation after isolating the finite zero orbit.
 
@@ -327,6 +335,11 @@ must be made small by the separating admissible autocorrelation probe. -/
 theorem exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalCenteredZero
     (hZeroTailSmallValuesOwnerRunge :
       ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        (∀ ρ : ℂ,
+          ZetaCompletedZero ρ →
+            ρ ∉ S →
+              zetaCenteredZero ρ ∉
+                ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset P) →
         ∀ ε : ℝ, 0 < ε →
           ∃ r : ℝ,
             r ∈
@@ -456,6 +469,11 @@ zero produces an admissible autocorrelation seed whose zero-side quadratic form 
 theorem exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
     (hZeroTailSmallValuesOwnerRunge :
       ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        (∀ ρ : ℂ,
+          ZetaCompletedZero ρ →
+            ρ ∉ S →
+              zetaCenteredZero ρ ∉
+                ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset P) →
         ∀ ε : ℝ, 0 < ε →
           ∃ r : ℝ,
             r ∈
@@ -499,6 +517,11 @@ This theorem is now only the Weil-form transport of the zero-side separation the
 theorem exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
     (hZeroTailSmallValuesOwnerRunge :
       ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        (∀ ρ : ℂ,
+          ZetaCompletedZero ρ →
+            ρ ∉ S →
+              zetaCenteredZero ρ ∉
+                ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset P) →
         ∀ ε : ℝ, 0 < ε →
           ∃ r : ℝ,
             r ∈
@@ -533,6 +556,11 @@ theorem exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
 theorem exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZero
     (hZeroTailSmallValuesOwnerRunge :
       ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        (∀ ρ : ℂ,
+          ZetaCompletedZero ρ →
+            ρ ∉ S →
+              zetaCenteredZero ρ ∉
+                ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset P) →
         ∀ ε : ℝ, 0 < ε →
           ∃ r : ℝ,
             r ∈
@@ -564,6 +592,11 @@ theorem exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZer
 theorem not_offCritical_centeredZero_of_zetaWeilQuadraticPositivity
     (hZeroTailSmallValuesOwnerRunge :
       ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        (∀ ρ : ℂ,
+          ZetaCompletedZero ρ →
+            ρ ∉ S →
+              zetaCenteredZero ρ ∉
+                ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset P) →
         ∀ ε : ℝ, 0 < ε →
           ∃ r : ℝ,
             r ∈
@@ -616,6 +649,11 @@ critical line. -/
 theorem centeredZeroCriterion_of_zetaWeilQuadraticPositivity
     (hZeroTailSmallValuesOwnerRunge :
       ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        (∀ ρ : ℂ,
+          ZetaCompletedZero ρ →
+            ρ ∉ S →
+              zetaCenteredZero ρ ∉
+                ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset P) →
         ∀ ε : ℝ, 0 < ε →
           ∃ r : ℝ,
             r ∈
@@ -648,6 +686,11 @@ theorem centeredZeroCriterion_of_zetaWeilQuadraticPositivity
 theorem boundaryRiemannHypothesis_of_zetaWeilQuadraticPositivity
     (hZeroTailSmallValuesOwnerRunge :
       ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        (∀ ρ : ℂ,
+          ZetaCompletedZero ρ →
+            ρ ∉ S →
+              zetaCenteredZero ρ ∉
+                ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset P) →
         ∀ ε : ℝ, 0 < ε →
           ∃ r : ℝ,
             r ∈
@@ -669,78 +712,6 @@ theorem boundaryRiemannHypothesis_of_zetaWeilQuadraticPositivity
       hpartialOneTwo hcompactOneTwo
       hfinite
       hpartialLeft hcompactBoundary h)
-
-/-- Debt-aware ordered-heart positivity gives the centered zero criterion.
-
-This is the direct route via the ordered-heart zero-side scalar, which already includes
-the diagonal debt in its definition. The ordered-heart scalar is nonnegative by construction
-(via the GNS route), preventing any off-critical zeros from existing.
-
-Proof: if an off-critical zero existed, we could construct an admissible function whose
-zero-orbit contribution plus remainder is negative. Since the ordered-heart scalar (which
-includes this contribution plus the debt) must be nonnegative, the debt must absorb the
-negativity. But this leads to a contradiction via the positivity of the ordered-heart form. -/
-theorem centeredZeroCriterion_of_debtAwareOrderedHeartZeroSidePositivity
-    (hZeroTailSmallValuesOwnerRunge :
-      ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
-        ∀ ε : ℝ, 0 < ε →
-          ∃ r : ℝ,
-            r ∈
-              ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailRealAbsValues
-                S P f₀ ∧
-              r < ε)
-    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
-    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
-    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
-    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
-    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
-    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
-    (horderedHeartPositive : ZetaAutocorrelationOrderedHeartZeroSidePositivity) :
-    ∀ s : ℂ,
-      riemannZeta (1 / 2 + s) = 0 →
-        (¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1)) →
-          (1 / 2 + s) ≠ 1 →
-            s.re = 0 := by
-  intro s hz htriv hpole
-  by_contra h_off_crit
-  push_neg at h_off_crit
-  let z : OffCriticalCenteredZetaZero := ⟨s, hz, htriv, hpole, h_off_crit⟩
-  have hcompleted : ZetaCompletedZero z.point := hz
-  have horbit : ∀ η : ℂ, η ∈ zetaZeroOrbitFinset z.point → ZetaCompletedZero η :=
-    fun _ _ => hz
-  obtain ⟨f, h_neg⟩ :=
-    exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalCenteredZero
-      hZeroTailSmallValuesOwnerRunge z hcompleted horbit
-  have h_ordered_pos : 0 ≤ zetaCompletedZeroSideAutocorrelationOrderedHeartScalar f :=
-    horderedHeartPositive f
-  have h_krein_decomp : zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-    zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
-    zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) :=
-    zetaCompletedZeroKreinGram_eq_zeroOrbitContribution_add_remainder
-      z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-  have h_ordered_eq : zetaCompletedZeroSideAutocorrelationOrderedHeartScalar f =
-    zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
-    zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
-    Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by
-    calc zetaCompletedZeroSideAutocorrelationOrderedHeartScalar f
-      = zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
-        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := rfl
-      _ = (zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
-        zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f)) +
-        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by
-        exact congrArg (fun x => x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f)) h_krein_decomp
-      _ = zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
-        zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
-        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by ring
-  have h_contradiction : False := by
-    have h_sum : zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
-      zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := h_neg
-    have h_nonneg : 0 ≤ zetaZeroOrbitContributionRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
-      zetaZeroOrbitRemainderRe z.point (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
-      Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by
-      exact Eq.subst (motive := fun x => 0 ≤ x) h_ordered_eq.symm h_ordered_pos
-    exact absurd h_nonneg (not_le.mpr h_sum)
-  exact h_contradiction
 
 end
 

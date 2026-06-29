@@ -1,0 +1,26 @@
+import Mathlib
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.L1_RemainderAndBoundaryDefinitions
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.L2_AbelPlanaDecomposition
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.L3_TailAccountingAndCancellation
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.L4_StirlingFactorization
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.L5_MainTheoremAssembly
+
+/-! # Branch-Uniform Tail Absorption - Refactored
+
+Main theorem: Complex.binetSecondFormulaBranchUniformTailAbsorption_owner
+
+Decomposition:
+- L1: Prop definitions & remainder/boundary defs
+- L2: Abel Plana decomposition theorems
+- L3: Tail accounting & wall cancellation
+- L4: Stirling factorization
+- L5: Main theorem assembly + owner lemmas
+-/
+
+namespace Boundary
+namespace LFunctions
+
+export L5_MainTheoremAssembly (Complex.binetSecondFormulaBranchUniformTailAbsorption_owner)
+
+end LFunctions
+end Boundary
