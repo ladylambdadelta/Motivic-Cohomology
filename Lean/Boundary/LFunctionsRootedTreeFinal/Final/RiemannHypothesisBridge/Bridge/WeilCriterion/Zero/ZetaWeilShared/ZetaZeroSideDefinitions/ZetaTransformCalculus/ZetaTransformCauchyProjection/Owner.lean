@@ -724,6 +724,24 @@ theorem fixedRightLine_cauchyMultiplier_norm_inverseLinearBound
             ≤ D * (1 + ‖t‖) ^ (-(1 : ℤ)) := by
   sorry
 
+/-- Japanese-bracket z-powers multiply additively in the exponents used by the
+Cauchy multiplier and Fourier-kernel decay estimates. -/
+theorem one_add_norm_zpow_negOne_mul_negTwo_eq_negThree
+    (t : ℝ) :
+    (1 + ‖t‖) ^ (-(1 : ℤ)) *
+        (1 + ‖t‖) ^ (-(2 : ℤ)) =
+      (1 + ‖t‖) ^ (-(3 : ℤ)) := by
+  have hpos : 0 < 1 + ‖t‖ := by
+    exact lt_of_lt_of_le zero_lt_one (le_add_of_nonneg_right (norm_nonneg t))
+  have hne : (1 + ‖t‖) ≠ 0 := ne_of_gt hpos
+  calc
+    (1 + ‖t‖) ^ (-(1 : ℤ)) *
+        (1 + ‖t‖) ^ (-(2 : ℤ))
+        = (1 + ‖t‖) ^ ((-(1 : ℤ)) + (-(2 : ℤ))) := by
+          exact (zpow_add₀ hne (-(1 : ℤ)) (-(2 : ℤ))).symm
+    _ = (1 + ‖t‖) ^ (-(3 : ℤ)) := by
+          exact rfl
+
 /-- Multiplying inverse-linear and inverse-quadratic bounds gives the
 inverse-cubic multiplier-integrand bound. -/
 theorem fixedRightLine_cauchyMultiplier_times_fourierIntegral_inverseCubicBound
@@ -739,7 +757,69 @@ theorem fixedRightLine_cauchyMultiplier_times_fourierIntegral_inverseCubicBound
       0 < C ∧
         ∀ t : ℝ,
           ‖M t * F t‖ ≤ C * (1 + ‖t‖) ^ (-(3 : ℤ)) := by
-  sorry
+  refine ⟨D * B, mul_pos hD hB, ?_⟩
+  intro t
+  have hM_nonneg : 0 ≤ ‖M t‖ := norm_nonneg (M t)
+  have hF_nonneg : 0 ≤ ‖F t‖ := norm_nonneg (F t)
+  have hbracket_nonneg_one : 0 ≤ (1 + ‖t‖) ^ (-(1 : ℤ)) := by
+    exact zpow_nonneg
+      (le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg t)))
+      (-(1 : ℤ))
+  have hbracket_nonneg_two : 0 ≤ (1 + ‖t‖) ^ (-(2 : ℤ)) := by
+    exact zpow_nonneg
+      (le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg t)))
+      (-(2 : ℤ))
+  have hM_bound_nonneg : 0 ≤ D * (1 + ‖t‖) ^ (-(1 : ℤ)) :=
+    mul_nonneg (le_of_lt hD) hbracket_nonneg_one
+  have hF_bound_nonneg : 0 ≤ B * (1 + ‖t‖) ^ (-(2 : ℤ)) :=
+    mul_nonneg (le_of_lt hB) hbracket_nonneg_two
+  calc
+    ‖M t * F t‖ = ‖M t‖ * ‖F t‖ := by
+      exact norm_mul (M t) (F t)
+    _ ≤
+        (D * (1 + ‖t‖) ^ (-(1 : ℤ))) *
+          (B * (1 + ‖t‖) ^ (-(2 : ℤ))) := by
+          exact mul_le_mul (hM t) (hF t) hF_nonneg hM_bound_nonneg
+    _ =
+        (D * B) *
+          ((1 + ‖t‖) ^ (-(1 : ℤ)) *
+            (1 + ‖t‖) ^ (-(2 : ℤ))) := by
+          calc
+            (D * (1 + ‖t‖) ^ (-(1 : ℤ))) *
+                (B * (1 + ‖t‖) ^ (-(2 : ℤ)))
+                = ((D * (1 + ‖t‖) ^ (-(1 : ℤ))) * B) *
+                    (1 + ‖t‖) ^ (-(2 : ℤ)) := by
+                    exact (mul_assoc
+                      (D * (1 + ‖t‖) ^ (-(1 : ℤ)))
+                      B
+                      ((1 + ‖t‖) ^ (-(2 : ℤ)))).symm
+            _ = (D * ((1 + ‖t‖) ^ (-(1 : ℤ)) * B)) *
+                    (1 + ‖t‖) ^ (-(2 : ℤ)) := by
+                    exact congrArg
+                      (fun z : ℝ => z * (1 + ‖t‖) ^ (-(2 : ℤ)))
+                      (mul_assoc D
+                        ((1 + ‖t‖) ^ (-(1 : ℤ)))
+                        B)
+            _ = (D * (B * (1 + ‖t‖) ^ (-(1 : ℤ)))) *
+                    (1 + ‖t‖) ^ (-(2 : ℤ)) := by
+                    exact congrArg
+                      (fun z : ℝ => (D * z) * (1 + ‖t‖) ^ (-(2 : ℤ)))
+                      (mul_comm ((1 + ‖t‖) ^ (-(1 : ℤ))) B)
+            _ = ((D * B) * (1 + ‖t‖) ^ (-(1 : ℤ))) *
+                    (1 + ‖t‖) ^ (-(2 : ℤ)) := by
+                    exact congrArg
+                      (fun z : ℝ => z * (1 + ‖t‖) ^ (-(2 : ℤ)))
+                      ((mul_assoc D B ((1 + ‖t‖) ^ (-(1 : ℤ)))).symm)
+            _ = (D * B) *
+                  ((1 + ‖t‖) ^ (-(1 : ℤ)) *
+                    (1 + ‖t‖) ^ (-(2 : ℤ))) := by
+                    exact mul_assoc (D * B)
+                      ((1 + ‖t‖) ^ (-(1 : ℤ)))
+                      ((1 + ‖t‖) ^ (-(2 : ℤ)))
+    _ = (D * B) * (1 + ‖t‖) ^ (-(3 : ℤ)) := by
+          exact congrArg
+            (fun z : ℝ => (D * B) * z)
+            (one_add_norm_zpow_negOne_mul_negTwo_eq_negThree t)
 
 /-- The fixed-line Fourier-Cauchy multiplier integrand has cubic decay for a
 smooth compactly supported time kernel. -/
@@ -757,24 +837,28 @@ theorem fixedRightLine_fourierCauchy_multiplierIntegrand_inverseCubicDecay
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
             ≤ C * (1 + ‖t‖) ^ (-(3 : ℤ)) := by
-  match
-    fixedRightLine_weightedKernel_fourierIntegral_inverseQuadraticDecay
-      K hK_cont hK_compact hK_smooth c hc
-  with
-  | ⟨B, hB_pos, hB_bound⟩ =>
-      match fixedRightLine_cauchyMultiplier_norm_inverseLinearBound c hc with
-      | ⟨D, hD_pos, hD_bound⟩ =>
-          exact
-            fixedRightLine_cauchyMultiplier_times_fourierIntegral_inverseCubicBound
-              (fun t : ℝ =>
-                ∫ x : ℝ,
-                  K x *
-                    Complex.exp
-                      (Complex.I * (t : ℂ) * (x : ℂ)) *
-                    Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
-              (fun t : ℝ =>
-                -1 / (((c : ℂ) + t * Complex.I) - 1))
-              B D hB_pos hD_pos hB_bound hD_bound
+  exact
+    Exists.elim
+      (fixedRightLine_weightedKernel_fourierIntegral_inverseQuadraticDecay
+        K hK_cont hK_compact hK_smooth c hc)
+      (fun B hB =>
+        And.elim hB
+          (fun hB_pos hB_bound =>
+            Exists.elim
+              (fixedRightLine_cauchyMultiplier_norm_inverseLinearBound c hc)
+              (fun D hD =>
+                And.elim hD
+                  (fun hD_pos hD_bound =>
+                    fixedRightLine_cauchyMultiplier_times_fourierIntegral_inverseCubicBound
+                      (fun t : ℝ =>
+                        ∫ x : ℝ,
+                          K x *
+                            Complex.exp
+                              (Complex.I * (t : ℂ) * (x : ℂ)) *
+                            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+                      (fun t : ℝ =>
+                        -1 / (((c : ℂ) + t * Complex.I) - 1))
+                      B D hB_pos hD_pos hB_bound hD_bound))))
 
 /-- The real inverse-cubic majorant has inverse-quadratic tails outside
 symmetric intervals. -/
@@ -842,7 +926,7 @@ theorem fixedRightLine_integrableFunction_symmetricTail_inverseQuadratic_of_inve
 Fourier-Cauchy multiplier. -/
 theorem fixedRightLine_fourierCauchy_truncationTail_inverseQuadratic
     (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
-    (hK_smooth : ContDiff ℝ ∞ K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
     (c : ℝ) (hc : 1 < c)
     (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
     ∃ MR : ℝ,
