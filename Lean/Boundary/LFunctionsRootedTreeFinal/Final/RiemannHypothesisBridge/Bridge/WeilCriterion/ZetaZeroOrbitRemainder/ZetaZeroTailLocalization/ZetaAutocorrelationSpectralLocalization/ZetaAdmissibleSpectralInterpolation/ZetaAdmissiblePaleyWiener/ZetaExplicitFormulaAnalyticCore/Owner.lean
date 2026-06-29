@@ -459,9 +459,13 @@ noncomputable def zetaCompletedExplicitFormulaPrimePowerSpectralSampleContributi
   ∑' ι : ZetaPrimePowerIndex,
     zetaCompletedExplicitFormulaPrimePowerSpectralSampleCoordinate ι f
 
-/-- Vertical-strip rapid decay at the two prime-power spectral centers with a
-nonnegative real constant. -/
-theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_verticalStripRapidDecay_nonnegativeConstant
+/-- Real-axis prime-power spectral seed-pair summability majorant.
+
+This is the real-axis estimate for the spectral/Laplace prime sample.  It is
+not a consequence of the vertical-strip Paley-Wiener theorem, which controls decay in
+`z.im` on bounded real strips rather than polynomial decay of `Φ_f(log p^n)` on the
+unbounded positive real axis. -/
+theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpectralMajorant
     (f : ZetaAdmissibleFunction) :
     ∃ C : ℝ, ∃ k : ℕ,
       0 ≤ C ∧
@@ -473,9 +477,9 @@ theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_verticalStri
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
   sorry
 
-/-- Vertical-strip rapid decay at the two prime-power spectral centers, in the real norm
-shape needed by the paired seed estimate. -/
-theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_verticalStripRapidDecay
+/-- Real-axis spectral seed-pair majorant at prime-power centers, in the real norm shape
+needed by the paired seed estimate. -/
+theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpectralMajorant'
     (f : ZetaAdmissibleFunction) :
     ∃ C : ℝ, ∃ k : ℕ,
       ∀ ι : ZetaPrimePowerIndex,
@@ -485,7 +489,7 @@ theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_verticalStri
                 (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
           C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
   obtain ⟨C, k, _hC, hbound⟩ :=
-    zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_verticalStripRapidDecay_nonnegativeConstant
+    zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpectralMajorant
       f
   exact ⟨C, k, hbound⟩
 
@@ -557,7 +561,7 @@ theorem zetaCompletedExplicitFormulaPhi_weightedPrimePowerSeedPair_realNorm_le_p
   exact
     zetaCompletedExplicitFormulaPhi_weightedPrimePowerSeedPair_realNorm_from_seedPairDecay
       f
-      (zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_verticalStripRapidDecay_nonnegativeConstant
+      (zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpectralMajorant
         f)
 
 /-- Paley-Wiener prime-power seed-pair estimate for the weighted oriented cross coordinate. -/
@@ -728,8 +732,12 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_boxSum_eq_r
         (complex_add_star_eq_two_re
           (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)))
 
-/-- The completed contour-tail real shadow of the oriented prime-power face vanishes. -/
-theorem zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_tendsto_zero_boundaryCancellation
+/-- The completed contour-tail real shadow of the oriented prime-power face vanishes.
+
+This is the contour-tomography estimate: the analytic core owns the finite oriented
+cross-coordinate algebra, while the vanishing limit must be supplied by the downstream
+contour/residue ledger normalization. -/
+theorem zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_tendsto_zero_contourTomography
     (f : ZetaAdmissibleFunction) :
     Filter.Tendsto
       (fun N : ℕ =>
@@ -740,6 +748,20 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_tendsto_ze
       Filter.atTop
       (𝓝 0) := by
   sorry
+
+/-- Public analytic-core wrapper for the contour-tomography real-shadow cancellation. -/
+theorem zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_tendsto_zero_boundaryCancellation
+    (f : ZetaAdmissibleFunction) :
+    Filter.Tendsto
+      (fun N : ℕ =>
+        ∑ ι in ZetaPrimePowerIndex.box N,
+          ((2 : ℝ) *
+            Complex.re
+              (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℂ))
+      Filter.atTop
+      (𝓝 0) :=
+  zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_tendsto_zero_contourTomography
+    f
 
 /-- Rectangular windows of the two opposite oriented faces cancel in the completed boundary
 limit. -/

@@ -226,31 +226,6 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tend
       f F h (1 / (1 / 2 : ℂ) * zetaCompletedExplicitFormulaPhi f 0)
       hleft hhorizontal hboundary
 
-/-- Right-face zero-pole vertical-inversion limit for the `s = 0`
-correction pole, in its contour-side normalization. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tendsto_value_ownerChannelTransportAnalytic
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    Tendsto
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
-          f F (h.height_schedule.height u))
-      atTop
-      (𝓝 (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)) := by
-  have hinversion :
-      Tendsto
-        (fun u : ℝ =>
-          zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion
-            f F h u)
-        atTop
-        (𝓝 (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)) := by
-    exact
-      zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_value
-        f F h
-  exact
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tendsto_of_scheduledVerticalInversion
-      f F h hinversion
-
 end ZetaAdmissibleFunction
 
 end

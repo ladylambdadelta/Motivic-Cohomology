@@ -30,26 +30,16 @@ namespace ZetaAdmissibleFunction
 
 /-- The right `s = 1` correction affine kernel has zero whole-line value.
 
-The analytic input is the scheduled residue-free Cauchy value owned in
-`OnePoleResidueFreeCauchyValue`; this theorem only transports that scheduled
-value to the whole-line affine integral by integrability and exhaustion. -/
+This is the independent Cauchy/Laplace analytic leaf for the one-pole branch.
+It must be proved directly from the right off-pole affine kernel and contour
+shift, not from the downstream residue-free scheduled value. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_integral_eq_zero_ownerOnePoleAffine
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F t) =
       0 := by
-  exact
-    explicitFormulaScheduledRectangleWindowIntegral_eq_of_tendsto_value
-      F
-      h.height_schedule.height
-      (zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F)
-      0
-      h.height_schedule.cofinal
-      (zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_integrable_ownerBounds
-        f F h)
-      (zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_scheduledWindow_tendsto_zero_ownerResidueFreeCauchy
-        f F h)
+  sorry
 
 end ZetaAdmissibleFunction
 

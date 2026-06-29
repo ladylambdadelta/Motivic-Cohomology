@@ -18,11 +18,19 @@ namespace ZetaAdmissibleFunction
 /-- Helper: Imaginary part of (1/2 + t*I) is t. -/
 private lemma im_half_plus_t_i (t : ℝ) : ((1 / 2 : ℂ) + t * Complex.I).im = t := by
   have h1 : (1 / 2 : ℂ).im = 0 := by
-    norm_num
+    calc
+      (1 / 2 : ℂ).im = (1 : ℂ).im / (2 : ℕ) := by
+        exact Complex.div_natCast_im (1 : ℂ) 2
+      _ = 0 / (2 : ℝ) := by
+        exact congrArg (fun x : ℝ => x / (2 : ℝ)) Complex.one_im
+      _ = 0 := by
+        exact zero_div (2 : ℝ)
   have h2 : (t * Complex.I).im = t := by
-    calc (t * Complex.I).im = t * Complex.I.im + 0 * Complex.I.re := Complex.mul_im _ _
-      _ = t * 1 + 0 := by simp
-      _ = t := by simp
+    calc
+      (t * Complex.I).im = (t : ℂ).re := by
+        exact Complex.mul_I_im (t : ℂ)
+      _ = t := by
+        exact Complex.ofReal_re t
   calc ((1 / 2 : ℂ) + t * Complex.I).im
       = (1 / 2 : ℂ).im + (t * Complex.I).im := Complex.add_im _ _
     _ = 0 + t := by exact congr_arg₂ (· + ·) h1 h2
@@ -162,7 +170,7 @@ theorem Gammaℝ_piFactor_hasDerivAt
     have hdiv : HasDerivAt (fun s : ℂ => -s / 2) ((-1 : ℂ) / 2) z :=
       hneg.div_const (2 : ℂ)
     have hderiv : ((-1 : ℂ) / 2) = -(1 / 2 : ℂ) := by
-      exact neg_div' (2 : ℂ) (1 : ℂ)
+      exact (neg_div' (2 : ℂ) (1 : ℂ)).symm
     exact
       Eq.subst
         (motive := fun d : ℂ => HasDerivAt (fun s : ℂ => -s / 2) d z)
@@ -340,12 +348,23 @@ theorem Gammaℝ_piFactor_logDeriv_eq
         Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ)) := by
   let p : ℂ := (Real.pi : ℂ) ^ (-z / 2)
   let q : ℂ := Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ))
-  have hp : p ≠ 0 :=
-    Complex.cpow_ne_zero
-      (Complex.ofReal_ne_zero.mpr Real.pi_ne_zero)
-      (-z / 2)
+  have hp : p ≠ 0 := by
+    intro hp_zero
+    have hbase : (Real.pi : ℂ) ≠ 0 :=
+      Complex.ofReal_ne_zero.mpr Real.pi_ne_zero
+    have hbase_zero : (Real.pi : ℂ) = 0 :=
+      (Complex.cpow_eq_zero_iff (Real.pi : ℂ) (-z / 2)).mp hp_zero |>.1
+    exact hbase hbase_zero
   calc
-    (p * q) / p = (p * q) * p⁻¹ := by
+    ((Real.pi : ℂ) ^ (-z / 2) *
+        Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ))) /
+      ((Real.pi : ℂ) ^ (-z / 2)) =
+        (p * q) / p := by
+      exact congrArg
+        (fun x : ℂ => x / ((Real.pi : ℂ) ^ (-z / 2)))
+        (mul_assoc ((Real.pi : ℂ) ^ (-z / 2))
+          (Complex.log (Real.pi : ℂ)) (-(1 / 2 : ℂ)))
+    _ = (p * q) * p⁻¹ := by
       exact div_eq_mul_inv (p * q) p
     _ = q * p * p⁻¹ := by
       exact congrArg (fun x : ℂ => x * p⁻¹) (mul_comm p q)
@@ -369,10 +388,13 @@ theorem Gammaℝ_logDeriv_eq_pi_add_halfGamma_logDeriv
   let p' : ℂ := p * Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ))
   let g : ℂ := Complex.Gamma (z / 2)
   let g' : ℂ := deriv Complex.Gamma (z / 2) * (1 / 2 : ℂ)
-  have hp : p ≠ 0 :=
-    Complex.cpow_ne_zero
-      (Complex.ofReal_ne_zero.mpr Real.pi_ne_zero)
-      (-z / 2)
+  have hp : p ≠ 0 := by
+    intro hp_zero
+    have hbase : (Real.pi : ℂ) ≠ 0 :=
+      Complex.ofReal_ne_zero.mpr Real.pi_ne_zero
+    have hbase_zero : (Real.pi : ℂ) = 0 :=
+      (Complex.cpow_eq_zero_iff (Real.pi : ℂ) (-z / 2)).mp hp_zero |>.1
+    exact hbase hbase_zero
   have hΓ_def :
       Complex.Gammaℝ z = p * g := by
     exact Complex.Gammaℝ_def z

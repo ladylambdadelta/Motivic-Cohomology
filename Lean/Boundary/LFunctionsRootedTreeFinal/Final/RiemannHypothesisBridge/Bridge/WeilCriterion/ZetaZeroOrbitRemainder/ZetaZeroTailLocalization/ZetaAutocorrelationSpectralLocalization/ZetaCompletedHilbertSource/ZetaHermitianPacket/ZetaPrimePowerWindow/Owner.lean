@@ -5,6 +5,7 @@ import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Nat.Prime.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.Monotone
+import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.Order.Filter.AtTopBot
 import Mathlib.Topology.Algebra.InfiniteSum.Basic
@@ -1600,11 +1601,71 @@ theorem real_log_div_sqrt_primePower_nonnegative
     Real.sqrt_nonneg (p ^ n : ℝ)
   exact div_nonneg hlog_nonneg hsqrt_nonneg
 
+/-- The elementary logarithmic estimate at exponent `1 / 2`, in square-root form. -/
+theorem real_log_natCast_le_two_sqrt (p : ℕ) :
+    Real.log (p : ℝ) ≤ (2 : ℝ) * Real.sqrt (p : ℝ) := by
+  have hhalf_pos : 0 < (1 / 2 : ℝ) :=
+    div_pos zero_lt_one zero_lt_two
+  have hlog :
+      Real.log (p : ℝ) ≤ (p : ℝ) ^ (1 / 2 : ℝ) / (1 / 2 : ℝ) :=
+    Real.log_natCast_le_rpow_div p hhalf_pos
+  have hhalf :
+      (p : ℝ) ^ (1 / 2 : ℝ) / (1 / 2 : ℝ) =
+        (2 : ℝ) * Real.sqrt (p : ℝ) := by
+    have htwo_ne_zero : (2 : ℝ) ≠ 0 := two_ne_zero
+    have hhalf_mul_two : (1 / 2 : ℝ) * 2 = 1 := by
+      rw [one_div]
+      exact inv_mul_cancel₀ htwo_ne_zero
+    have hhalf_inv : (1 / 2 : ℝ)⁻¹ = 2 :=
+      inv_eq_of_mul_eq_one_right hhalf_mul_two
+    rw [Real.sqrt_eq_rpow, div_eq_mul_inv]
+    exact (congrArg ((p : ℝ) ^ (1 / 2 : ℝ) * ·) hhalf_inv).trans
+      (mul_comm ((p : ℝ) ^ (1 / 2 : ℝ)) 2)
+  exact hlog.trans (le_of_eq hhalf)
+
+/-- The square-root denominator increases when a genuine prime is raised to a positive power. -/
+theorem real_sqrt_natCast_le_sqrt_primePower
+    {p n : ℕ} (hp : Nat.Prime p) (hn : 1 ≤ n) :
+    Real.sqrt (p : ℝ) ≤ Real.sqrt (p ^ n : ℝ) := by
+  have hp_two : 2 ≤ p := Nat.Prime.two_le hp
+  have hp_pos_nat : 0 < p := lt_of_lt_of_le zero_lt_two_nat hp_two
+  have hp_one_real : (1 : ℝ) ≤ p := by
+    exact_mod_cast Nat.succ_le_of_lt hp_pos_nat
+  have hn_pos : 0 < n := hn
+  have hp_le_pow : (p : ℝ) ≤ (p : ℝ) ^ n :=
+    le_self_pow₀ hp_one_real hn_pos.ne'
+  have hp_pow_cast : ((p : ℝ) ^ n) = (p ^ n : ℝ) := by
+    exact_mod_cast (rfl : p ^ n = p ^ n)
+  exact (Real.sqrt_le_sqrt hp_le_pow).trans_eq (congrArg Real.sqrt hp_pow_cast)
+
+/-- The doubled square-root numerator is bounded by the prime-power denominator version. -/
+theorem real_two_mul_sqrt_natCast_le_two_mul_sqrt_primePower
+    {p n : ℕ} (hp : Nat.Prime p) (hn : 1 ≤ n) :
+    (2 : ℝ) * Real.sqrt (p : ℝ) ≤ (2 : ℝ) * Real.sqrt (p ^ n : ℝ) := by
+  exact mul_le_mul_of_nonneg_left
+    (real_sqrt_natCast_le_sqrt_primePower hp hn)
+    zero_le_two
+
+/-- The logarithm is bounded by twice the prime-power square-root denominator. -/
+theorem real_log_natCast_le_two_mul_sqrt_primePower
+    {p n : ℕ} (hp : Nat.Prime p) (hn : 1 ≤ n) :
+    Real.log (p : ℝ) ≤ (2 : ℝ) * Real.sqrt (p ^ n : ℝ) := by
+  exact (real_log_natCast_le_two_sqrt p).trans
+    (real_two_mul_sqrt_natCast_le_two_mul_sqrt_primePower hp hn)
+
 /-- The real prime-power logarithmic quotient is bounded by two on genuine parameters. -/
 theorem real_log_div_sqrt_primePower_le_two
     {p n : ℕ} (hp : Nat.Prime p) (hn : 1 ≤ n) :
     Real.log (p : ℝ) / Real.sqrt (p ^ n : ℝ) ≤ 2 := by
-  sorry
+  have hp_two : 2 ≤ p := Nat.Prime.two_le hp
+  have hp_pos_nat : 0 < p := lt_of_lt_of_le zero_lt_two_nat hp_two
+  have hp_pow_pos_nat : 0 < p ^ n := pow_pos hp_pos_nat n
+  have hp_pow_pos_real : 0 < (p ^ n : ℝ) := by
+    exact_mod_cast hp_pow_pos_nat
+  have hsqrt_pos : 0 < Real.sqrt (p ^ n : ℝ) :=
+    Real.sqrt_pos.mpr hp_pow_pos_real
+  exact (div_le_iff₀ hsqrt_pos).mpr
+    (real_log_natCast_le_two_mul_sqrt_primePower hp hn)
 
 /-- The scalar prime-power logarithmic weight is globally bounded on genuine
 prime-power parameters. -/

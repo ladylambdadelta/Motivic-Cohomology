@@ -164,11 +164,10 @@ critical line Re(s) = 1/2.
 
 This final wrapper is intentionally thin and has no extra hypotheses.  The current analytic
 frontier is the pair of explicit owner declarations
-`ZetaAdmissibleFunction.zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_verticalStripRapidDecay`,
-`ZetaPrimePowerIndex.weight_norm_le_globalConstant`,
+`ZetaAdmissibleFunction.zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpectralMajorant`,
 and
-`ZetaAdmissibleFunction.zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_tendsto_zero_boundaryCancellation`;
-they provide the prime-power summability majorant and the completed two-face contour-shadow
+`ZetaAdmissibleFunction.zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_tendsto_zero_contourTomography`;
+they provide the prime-power seed-pair majorant and the completed two-face contour-shadow
 cancellation used to remove the diagonal debt.  The proof cone also uses the named analytic
 owner theorems:
 1. `autocorrelationSpectralEvalFiberSeparatedCommonPolynomialEnvelopeBase_owner` - Runge theorem
