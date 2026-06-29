@@ -7131,12 +7131,42 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_crossing_abs_le_two_
       (2 : ℝ) * Real.pi := by
   sorry
 
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
+    (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
+    (hb_le_c : b ≤ c) (hcA : c ≤ A) :
+    |∫ v in c..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 2 := by
+  sorry
+
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_pi
-    (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c) (hcA : c ≤ A) :
+    (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
+    (hb_le_c : b ≤ c) (hcA : c ≤ A) :
     |∫ v in c..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
       (2 : ℝ) * Real.pi := by
-  sorry
+  have htwo_le_two_pi :
+      (2 : ℝ) ≤ (2 : ℝ) * Real.pi := by
+    have hone_le_pi_half : (1 : ℝ) ≤ Real.pi / 2 :=
+      Real.one_le_pi_div_two
+    have htwo_pos : (0 : ℝ) < 2 :=
+      two_pos
+    have htwo_le_pi : (2 : ℝ) ≤ Real.pi := by
+      have hone_mul_two_le_pi : (1 : ℝ) * 2 ≤ Real.pi :=
+        (le_div_iff₀ htwo_pos).mp hone_le_pi_half
+      calc
+        (2 : ℝ) = (1 : ℝ) * 2 := by
+          exact (one_mul 2).symm
+        _ ≤ Real.pi := hone_mul_two_le_pi
+    have hpi_le_two_pi : Real.pi ≤ (2 : ℝ) * Real.pi := by
+      calc
+        Real.pi = (1 : ℝ) * Real.pi := by
+          exact (one_mul Real.pi).symm
+        _ ≤ (2 : ℝ) * Real.pi := by
+          exact mul_le_mul_of_nonneg_right one_le_two Real.pi_pos.le
+    exact htwo_le_pi.trans hpi_le_two_pi
+  exact
+    (scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
+      A b c hb hone_le_c hb_le_c hcA).trans htwo_le_two_pi
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_two_pi
     (A b : ℝ) (hb : 0 < b) (hbA : b ≤ A) :
@@ -7173,7 +7203,7 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_two_pi
       | Or.inr hone_lt_b =>
           exact
             scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_pi
-              A b b hb (le_of_lt hone_lt_b) hbA
+              A b b hb (le_of_lt hone_lt_b) (le_refl b) hbA
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_split_at_scale
     (A b : ℝ) (hb : 0 < b) (hbA : b ≤ A) :
