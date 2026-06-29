@@ -1118,6 +1118,75 @@ theorem cofinalHeight_eventually_nonnegative
     ∀ᶠ u in atTop, 0 ≤ height u := by
   exact hcofinal.eventually_ge_atTop 0
 
+/-- On a nonnegative tail, the inverse-cubic norm weight is the translated
+real-power weight. -/
+theorem real_inverseCubic_rightTail_value_eq_shifted_rpow
+    (T t : ℝ) (hT : 0 ≤ T) (ht : t ∈ Set.Ici T) :
+    (1 + ‖t‖) ^ (-(3 : ℤ)) = (t + 1) ^ (-(3 : ℝ)) := by
+  have ht_nonneg : 0 ≤ t :=
+    le_trans hT ht
+  have hnorm : ‖t‖ = t :=
+    Real.norm_of_nonneg ht_nonneg
+  calc
+    (1 + ‖t‖) ^ (-(3 : ℤ))
+        = (1 + t) ^ (-(3 : ℤ)) := by
+          exact congrArg (fun x : ℝ => x ^ (-(3 : ℤ)))
+            (congrArg (fun x : ℝ => 1 + x) hnorm)
+    _ = (1 + t) ^ (-(3 : ℝ)) := by
+          exact (Real.rpow_intCast (1 + t) (-(3 : ℤ))).symm
+    _ = (t + 1) ^ (-(3 : ℝ)) := by
+          exact congrArg (fun x : ℝ => x ^ (-(3 : ℝ))) (add_comm 1 t)
+
+/-- Lebesgue measure on the real line is preserved by right translation. -/
+theorem real_volume_preserving_addRight (a : ℝ) :
+    MeasurePreserving (fun x : ℝ => x + a) volume volume := by
+  exact
+    { measurable := measurable_add_const a
+      map_eq := map_add_right_eq_self volume a }
+
+/-- Set-integral change of variables for translating a right ray by one. -/
+theorem real_setIntegral_Ici_addRight_one
+    (T : ℝ) (f : ℝ → ℝ) :
+    (∫ t in Set.Ici T, f (t + 1))
+      =
+    (∫ u in Set.Ici (T + 1), f u) := by
+  have hpres :
+      MeasurePreserving (fun x : ℝ => x + 1) volume volume :=
+    real_volume_preserving_addRight 1
+  have hemb :
+      MeasurableEmbedding (fun x : ℝ => x + 1) :=
+    (Homeomorph.addRight (1 : ℝ)).isClosedEmbedding.measurableEmbedding
+  have himage :
+      (fun x : ℝ => x + 1) '' Set.Ici T = Set.Ici (T + 1) :=
+    image_add_const_Ici
+  have hmap :
+      (∫ u in (fun x : ℝ => x + 1) '' Set.Ici T, f u)
+        =
+      (∫ t in Set.Ici T, f (t + 1)) :=
+    hpres.setIntegral_image_emb hemb f (Set.Ici T)
+  exact
+    Eq.trans hmap.symm
+      (congrArg (fun s : Set ℝ => ∫ u in s, f u) himage)
+
+/-- Removing the endpoint from the translated right ray does not change the
+Lebesgue integral. -/
+theorem real_setIntegral_Ici_shifted_eq_Ioi
+    (T : ℝ) (f : ℝ → ℝ) :
+    (∫ u in Set.Ici (T + 1), f u)
+      =
+    (∫ u in Set.Ioi (1 + T), f u) := by
+  have hendpoint :
+      (∫ u in Set.Ici (T + 1), f u)
+        =
+      (∫ u in Set.Ioi (T + 1), f u) :=
+    integral_Ici_eq_integral_Ioi
+  have hadd :
+      T + 1 = 1 + T :=
+    add_comm T 1
+  exact
+    Eq.trans hendpoint
+      (congrArg (fun a : ℝ => ∫ u in Set.Ioi a, f u) hadd)
+
 /-- On a nonnegative right tail, the inverse-cubic norm majorant is the
 translated open-tail power integral. -/
 theorem real_inverseCubic_rightTail_integral_eq_shifted_rpow_Ioi
@@ -1127,7 +1196,37 @@ theorem real_inverseCubic_rightTail_integral_eq_shifted_rpow_Ioi
       =
     (∫ u in Set.Ioi (1 + T),
         u ^ (-(3 : ℝ)) : ℝ) := by
-  sorry
+  let shiftedWeight : ℝ → ℝ :=
+    fun u : ℝ => u ^ (-(3 : ℝ))
+  have hpoint :
+      EqOn
+        (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        (fun t : ℝ => shiftedWeight (t + 1))
+        (Set.Ici T) :=
+    fun t ht =>
+      real_inverseCubic_rightTail_value_eq_shifted_rpow T t hT ht
+  have hclosed :
+      (∫ t in Set.Ici T,
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        =
+      (∫ t in Set.Ici T,
+          shiftedWeight (t + 1)) :=
+    setIntegral_congr_fun measurableSet_Ici hpoint
+  have htranslated :
+      (∫ t in Set.Ici T,
+          shiftedWeight (t + 1))
+        =
+      (∫ u in Set.Ici (T + 1),
+          shiftedWeight u) :=
+    real_setIntegral_Ici_addRight_one T shiftedWeight
+  have hopen :
+      (∫ u in Set.Ici (T + 1),
+          shiftedWeight u)
+        =
+      (∫ u in Set.Ioi (1 + T),
+          shiftedWeight u) :=
+    real_setIntegral_Ici_shifted_eq_Ioi T shiftedWeight
+  exact Eq.trans hclosed (Eq.trans htranslated hopen)
 
 /-- Numeric comparison needed for the inverse-cubic improper integral. -/
 theorem negThree_lt_negOne_real :
@@ -1685,7 +1784,8 @@ theorem real_inverseCubic_symmetricComplementIntegral_inverseQuadratic
 /-- Norm domination by an inverse-cubic majorant controls the symmetric
 Bochner tail by the corresponding scalar majorant tail. -/
 theorem fixedRightLine_integrableFunction_symmetricTail_norm_le_majorantTail
-    (G : ℝ → ℂ) (C : ℝ) (hC : 0 < C)
+    (G : ℝ → ℂ) (hG_aesm : AEStronglyMeasurable G volume)
+    (C : ℝ) (hC : 0 < C)
     (height : ℝ → ℝ)
     (hG :
       ∀ t : ℝ,
@@ -1696,12 +1796,90 @@ theorem fixedRightLine_integrableFunction_symmetricTail_norm_le_majorantTail
         ≤ C *
           (∫ t in (Set.Icc (-(height u)) (height u))ᶜ,
             (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
-  sorry
+  have hMajorantIntegrable :
+      Integrable
+        (fun t : ℝ => C * ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ))
+        volume :=
+    real_inverseCubic_integrable.const_mul C
+  have hG_integrable : Integrable G volume :=
+    hMajorantIntegrable.mono' hG_aesm
+      (Eventually.of_forall hG)
+  exact Filter.Eventually.of_forall
+    (fun u : ℝ =>
+      let s : Set ℝ := Set.Icc (-(height u)) (height u)
+      have hs : MeasurableSet s :=
+        measurableSet_Icc
+      have hcompl :
+          ∫ t in sᶜ, G t = ∫ t : ℝ, G t - ∫ t in s, G t :=
+        setIntegral_compl hs hG_integrable
+      have hdiff :
+          (∫ t in s, G t) - (∫ t : ℝ, G t)
+            =
+          -(∫ t in sᶜ, G t) := by
+        calc
+          (∫ t in s, G t) - (∫ t : ℝ, G t)
+              =
+            -((∫ t : ℝ, G t) - (∫ t in s, G t)) := by
+              exact (neg_sub (∫ t : ℝ, G t) (∫ t in s, G t)).symm
+          _ = -(∫ t in sᶜ, G t) := by
+              exact congrArg Neg.neg hcompl.symm
+      have hnormComplement :
+          ‖(∫ t in s, G t) - (∫ t : ℝ, G t)‖
+            =
+          ‖∫ t in sᶜ, G t‖ := by
+        calc
+          ‖(∫ t in s, G t) - (∫ t : ℝ, G t)‖
+              = ‖-(∫ t in sᶜ, G t)‖ := by
+                exact congrArg norm hdiff
+          _ = ‖∫ t in sᶜ, G t‖ := by
+                exact norm_neg (∫ t in sᶜ, G t)
+      have hNormIntegral :
+          ‖∫ t in sᶜ, G t‖
+            ≤
+          ∫ t in sᶜ, ‖G t‖ :=
+        norm_integral_le_integral_norm
+          (μ := volume.restrict sᶜ) G
+      have hMajorantOn :
+          ∫ t in sᶜ, ‖G t‖
+            ≤
+          ∫ t in sᶜ,
+            C * ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) :=
+        setIntegral_mono_on
+          hG_integrable.norm.integrableOn
+          hMajorantIntegrable.integrableOn
+          hs.compl
+          (fun t _ht => hG t)
+      have hConstOut :
+          (∫ t in sᶜ,
+            C * ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ))
+            =
+          C *
+            (∫ t in sᶜ,
+              ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)) :=
+        integral_mul_left (μ := volume.restrict sᶜ) C
+          (fun t : ℝ => ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ))
+      calc
+        ‖(∫ t in Set.Icc (-(height u)) (height u), G t) -
+            (∫ t : ℝ, G t)‖
+            = ‖(∫ t in s, G t) - (∫ t : ℝ, G t)‖ := by
+              exact rfl
+        _ = ‖∫ t in sᶜ, G t‖ := by
+              exact hnormComplement
+        _ ≤ ∫ t in sᶜ, ‖G t‖ := by
+              exact hNormIntegral
+        _ ≤
+            ∫ t in sᶜ,
+              C * ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+              exact hMajorantOn
+        _ = C *
+            (∫ t in sᶜ,
+              ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)) := by
+              exact hConstOut)
 
 /-- Inverse-cubic pointwise decay gives an inverse-quadratic symmetric
 truncation tail along any cofinal height schedule. -/
 theorem fixedRightLine_integrableFunction_symmetricTail_inverseQuadratic_of_inverseCubicDecay
-    (G : ℝ → ℂ)
+    (G : ℝ → ℂ) (hG_aesm : AEStronglyMeasurable G volume)
     (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop)
     (C : ℝ) (hC : 0 < C)
     (hG :
@@ -1718,7 +1896,7 @@ theorem fixedRightLine_integrableFunction_symmetricTail_inverseQuadratic_of_inve
       refine ⟨C * A, mul_pos hC hA_pos, ?_⟩
       exact
         ((fixedRightLine_integrableFunction_symmetricTail_norm_le_majorantTail
-          G C hC height hG).and hA_eventual).mono
+          G hG_aesm C hC height hG).and hA_eventual).mono
           (fun u hu =>
             calc
               ‖(∫ t in Set.Icc (-(height u)) (height u), G t) -
@@ -1731,6 +1909,69 @@ theorem fixedRightLine_integrableFunction_symmetricTail_inverseQuadratic_of_inve
               _ = C * A * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
                     exact (mul_assoc C A
                       ((1 + ‖height u‖) ^ (-(2 : ℤ)))).symm)
+
+/-- The fixed right-line Fourier-Cauchy multiplier integrand is strongly
+measurable in the frequency variable. -/
+theorem fixedRightLine_fourierCauchy_multiplierIntegrand_aestronglyMeasurable
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) :
+    AEStronglyMeasurable
+      (fun t : ℝ =>
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+      volume := by
+  have hK_pair :
+      Continuous (fun p : ℝ × ℝ => K p.2) :=
+    hK_cont.comp continuous_snd
+  have hphase :
+      Continuous
+        (fun p : ℝ × ℝ =>
+          Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) :=
+    (continuous_const.mul
+      (Complex.continuous_ofReal.comp continuous_fst)).mul
+        (Complex.continuous_ofReal.comp continuous_snd)
+  have hweight :
+      Continuous
+        (fun p : ℝ × ℝ =>
+          (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ))) :=
+    continuous_const.mul
+      (Complex.continuous_ofReal.comp continuous_snd)
+  have hjoint :
+      Continuous
+        (fun p : ℝ × ℝ =>
+          K p.2 *
+            Complex.exp
+              (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ))) :=
+    (hK_pair.mul (Complex.continuous_exp.comp hphase)).mul
+      (Complex.continuous_exp.comp hweight)
+  have hinner :
+      AEStronglyMeasurable
+        (fun t : ℝ =>
+          ∫ x : ℝ,
+            K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+        volume :=
+    (hjoint.stronglyMeasurable.integral_prod_right').aestronglyMeasurable
+  have hden :
+      Measurable
+        (fun t : ℝ => (((c : ℂ) + t * Complex.I) - 1)) :=
+    ((measurable_const.add
+      ((Complex.continuous_ofReal.measurable).mul measurable_const)).sub
+      measurable_const)
+  have hmultiplier :
+      AEStronglyMeasurable
+        (fun t : ℝ => -1 / (((c : ℂ) + t * Complex.I) - 1))
+        volume :=
+    ((measurable_const.div hden).aestronglyMeasurable)
+  exact hmultiplier.mul hinner
 
 /-- Generic inverse-quadratic truncation tail for the fixed right
 Fourier-Cauchy multiplier. -/
@@ -1771,6 +2012,8 @@ theorem fixedRightLine_fourierCauchy_truncationTail_inverseQuadratic
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+          (fixedRightLine_fourierCauchy_multiplierIntegrand_aestronglyMeasurable
+            K hK_cont hK_compact hK_smooth c hc)
           height hcofinal C hC_pos hC_bound
 
 /-- Inverse-quadratic truncation control for the fixed right Cauchy multiplier
