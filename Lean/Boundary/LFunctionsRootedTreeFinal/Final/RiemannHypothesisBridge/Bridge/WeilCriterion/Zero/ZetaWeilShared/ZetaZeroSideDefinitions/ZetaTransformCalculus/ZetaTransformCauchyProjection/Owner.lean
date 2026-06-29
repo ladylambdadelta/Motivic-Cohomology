@@ -2891,6 +2891,21 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
       (fun _ : ℝ => (-2 * (Real.pi : ℂ)))
   exact hvalue ▸ hbase
 
+/-- Uniform scalar bound for the finite fixed-right-line Cauchy windows. -/
+theorem fixedRightLine_scalarCauchyWindow_uniform_norm_bound
+    (c : ℝ) (hc : 1 < c) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            ‖(∫ t in Set.Icc (-T) T,
+              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
+              ≤ C := by
+  sorry
+
 /-- Uniform compact-support domination for the paired scalar Cauchy windows. -/
 theorem fixedRightLine_scalarCauchyWindow_compactSupport_dominated
     (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
@@ -2908,7 +2923,47 @@ theorem fixedRightLine_scalarCauchyWindow_compactSupport_dominated
                       (Complex.I * (t : ℂ) * (x : ℂ)) *
                     Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
                 ≤ G x := by
-  sorry
+  match fixedRightLine_scalarCauchyWindow_uniform_norm_bound c hc with
+  | ⟨C, hC_nonneg, hC_eventual⟩ =>
+      let G : ℝ → ℝ := fun x : ℝ => C * ‖K x‖
+      have hK_integrable : Integrable K volume :=
+        hK_cont.integrable_of_hasCompactSupport hK_compact
+      have hG_integrable : Integrable G volume :=
+        hK_integrable.norm.const_mul C
+      have hG_nonnegative : 0 ≤ᵐ[volume] G :=
+        Eventually.of_forall
+          (fun x : ℝ =>
+            mul_nonneg hC_nonneg (norm_nonneg (K x)))
+      refine ⟨G, hG_integrable, hG_nonnegative, ?_⟩
+      exact hC_eventual.mono
+        (fun T hT =>
+          Eventually.of_forall
+            (fun x : ℝ =>
+              calc
+                ‖K x *
+                  (∫ t in Set.Icc (-T) T,
+                    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                      Complex.exp
+                        (Complex.I * (t : ℂ) * (x : ℂ)) *
+                      Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
+                    =
+                    ‖K x‖ *
+                      ‖(∫ t in Set.Icc (-T) T,
+                        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                          Complex.exp
+                            (Complex.I * (t : ℂ) * (x : ℂ)) *
+                          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖ := by
+                      exact norm_mul (K x)
+                        (∫ t in Set.Icc (-T) T,
+                          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                            Complex.exp
+                              (Complex.I * (t : ℂ) * (x : ℂ)) *
+                            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+                _ ≤ ‖K x‖ * C := by
+                      exact mul_le_mul_of_nonneg_left (hT x)
+                        (norm_nonneg (K x))
+                _ = G x := by
+                      exact (mul_comm ‖K x‖ C).trans rfl))
 
 /-- Joint continuity of the finite scalar fixed-right-line Cauchy-window
 integrand in the space and frequency variables. -/
