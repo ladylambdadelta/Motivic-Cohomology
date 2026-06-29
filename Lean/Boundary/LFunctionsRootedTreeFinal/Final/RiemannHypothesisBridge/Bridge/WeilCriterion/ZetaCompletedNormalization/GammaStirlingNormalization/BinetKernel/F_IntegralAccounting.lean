@@ -1,5 +1,4 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.D_PointwiseMajorants
-import Mathlib
 
 import Mathlib.Analysis.Complex.PhragmenLindelof
 import Mathlib.Data.Complex.Exponential

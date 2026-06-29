@@ -3132,7 +3132,20 @@ kernel. -/
 theorem scalarFourierLaplacePlemelj_I_div_mul_exp_eq_I_mul_exp_div
     (D E : ℂ) :
     (Complex.I / D) * E = (Complex.I * E) / D := by
-  sorry
+  calc
+    (Complex.I / D) * E =
+        (Complex.I * D⁻¹) * E := by
+      rfl
+    _ = Complex.I * (D⁻¹ * E) := by
+      exact mul_assoc Complex.I D⁻¹ E
+    _ = Complex.I * (E * D⁻¹) := by
+      exact congrArg
+        (fun W : ℂ => Complex.I * W)
+        (mul_comm D⁻¹ E)
+    _ = (Complex.I * E) * D⁻¹ := by
+      exact (mul_assoc Complex.I E D⁻¹).symm
+    _ = (Complex.I * E) / D := by
+      rfl
 
 /-- The positive scalar kernel is the upper-pole Cauchy kernel with analytic
 numerator `scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator`. -/
