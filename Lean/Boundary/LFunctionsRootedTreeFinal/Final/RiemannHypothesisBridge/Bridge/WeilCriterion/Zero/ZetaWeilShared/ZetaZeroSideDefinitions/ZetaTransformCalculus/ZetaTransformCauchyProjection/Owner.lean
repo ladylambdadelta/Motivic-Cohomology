@@ -2881,6 +2881,15 @@ theorem scalarFourierLaplacePlemelj_positive_window_add_upperArc_eq_residueValue
       (scalarFourierLaplacePlemelj_positiveClosedContour_eq_window_add_upperArc
         a x T).symm.trans hT)
 
+/-- Jordan norm estimate for the positive upper semicircle correction. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_tendsto_zero_jordanEstimate
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    Tendsto
+      (fun T : ℝ => ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T‖)
+      atTop
+      (𝓝 0) := by
+  sorry
+
 /-- The upper semicircle correction term vanishes for positive time. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_tendsto_zero
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
@@ -2888,7 +2897,9 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArc_tendsto_zero
       (fun T : ℝ => scalarFourierLaplacePlemelj_positiveUpperArc a x T)
       atTop
       (𝓝 0) := by
-  sorry
+  exact tendsto_zero_iff_norm_tendsto_zero.mpr
+    (scalarFourierLaplacePlemelj_positiveUpperArc_norm_tendsto_zero_jordanEstimate
+      a ha x hx)
 
 /-- Positive-time finite-window contour limit before multiplying by the
 compensating `exp (a x)` factor. -/
@@ -3191,6 +3202,15 @@ theorem scalarFourierLaplacePlemelj_negative_window_add_lowerArc_eq_zero
       (scalarFourierLaplacePlemelj_negativeClosedContour_eq_window_add_lowerArc
         a x T).symm.trans hT)
 
+/-- Jordan norm estimate for the negative lower semicircle correction. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_tendsto_zero_jordanEstimate
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
+    Tendsto
+      (fun T : ℝ => ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖)
+      atTop
+      (𝓝 0) := by
+  sorry
+
 /-- The lower semicircle correction term vanishes for negative time. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_tendsto_zero
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
@@ -3198,7 +3218,9 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_tendsto_zero
       (fun T : ℝ => scalarFourierLaplacePlemelj_negativeLowerArc a x T)
       atTop
       (𝓝 0) := by
-  sorry
+  exact tendsto_zero_iff_norm_tendsto_zero.mpr
+    (scalarFourierLaplacePlemelj_negativeLowerArc_norm_tendsto_zero_jordanEstimate
+      a ha x hx)
 
 /-- Negative-time finite-window contour limit before multiplying by the
 constant `exp (a x)`. -/
