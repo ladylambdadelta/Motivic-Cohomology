@@ -147,12 +147,6 @@ def Complex.BinetSecondFormulaBranchUniformTailAbsorption : Prop :=
                 t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))) ∧
   Complex.BinetSecondFormulaBranchCoherence
 
-/-- The standard scalar Binet decaying-tail integral beginning at `‖w‖ / 2`. -/
-noncomputable def Complex.binetSecondFormulaDecayingTailIntegral
-    (w : ℂ) : ℝ :=
-  ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
-
 /-- The branch-wall local-indentation envelope appearing in the full-sector
 Binet contour estimate. -/
 noncomputable def Complex.binetSecondFormulaBranchLocalIndentationEnvelope

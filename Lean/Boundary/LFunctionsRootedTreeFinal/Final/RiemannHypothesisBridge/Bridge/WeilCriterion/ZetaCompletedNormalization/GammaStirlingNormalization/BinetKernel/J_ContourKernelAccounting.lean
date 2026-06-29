@@ -87,61 +87,6 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_uniform_majorant 
       Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
   exact Complex.binetSecondFormula_contourDeformed_tail_kernel_exists
 
-/-- Contour-deformed Binet tail kernel package for the full right half-plane.
-
-This theorem is now only a bundling wrapper around the explicit owner-level
-contour-deformed kernel predicates. -/
-theorem Complex.binetSecondFormula_contourTailMajorantKernel_integral_decomposition_ownerGap :
-    ∀ w : ℂ,
-      0 < w.re →
-      2 ≤ ‖w‖ →
-        ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-            ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
-          (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-              ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖) +
-            (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-              |((1 : ℝ) / ‖w‖) *
-                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))|) := by
-  exact fun w hw_re_pos hw_norm =>
-    let A : ℝ → ℝ := fun t : ℝ =>
-      ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖
-    let B : ℝ → ℝ := fun t : ℝ =>
-      |((1 : ℝ) / ‖w‖) *
-        (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))|
-    let hprincipal_integrable :
-        IntegrableOn A (Set.Ioi (‖w‖ / 2)) :=
-      Complex.binetSecondFormula_principalTailKernel_norm_integrableOn_tail
-        (w := w) hw_re_pos
-    let hdecaying_integrable :
-        IntegrableOn B (Set.Ioi (‖w‖ / 2)) :=
-      Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integrableOn_tail
-        (w := w) hw_norm
-    let hpoint :
-        ∀ t : ℝ,
-          t ∈ Set.Ioi (‖w‖ / 2) →
-            ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
-              A t + B t :=
-      fun t _ht =>
-        Complex.binetSecondFormula_contourTailMajorantKernel_norm_eq_principal_add_decaying
-          w t
-    calc
-      ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-          ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
-          ∫ t : ℝ in Set.Ioi (‖w‖ / 2), A t + B t := by
-        exact setIntegral_congr_fun measurableSet_Ioi hpoint
-      _ =
-          (∫ t : ℝ in Set.Ioi (‖w‖ / 2), A t) +
-            (∫ t : ℝ in Set.Ioi (‖w‖ / 2), B t) := by
-        exact integral_add hprincipal_integrable hdecaying_integrable
-
-/-- Integral accounting for the unfolded contour-tail majorant kernel.
-
-After the pointwise unfolding, the kernel integral is the sum of the raw
-principal-tail contribution and the explicit decaying summand.  This theorem
-is the bookkeeping layer that combines those two estimates and produces the
-constant `C + 2`. -/
-
-
 end
 end LFunctions
 end Boundary

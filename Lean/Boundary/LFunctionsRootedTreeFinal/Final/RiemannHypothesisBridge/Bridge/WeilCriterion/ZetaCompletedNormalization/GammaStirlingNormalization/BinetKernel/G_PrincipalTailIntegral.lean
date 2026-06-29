@@ -37,34 +37,6 @@ namespace LFunctions
 
 noncomputable section
 
-theorem Complex.binetSecondFormula_contourTailMajorantKernel_norm_eq_principal_add_decaying
-    (w : ℂ)
-    (t : ℝ) :
-    ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
-      ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ +
-        |((1 : ℝ) / ‖w‖) *
-          (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| := by
-  let A : ℝ := ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖
-  let B : ℝ :=
-    |((1 : ℝ) / ‖w‖) *
-      (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))|
-  have hAB_nonneg : 0 ≤ A + B :=
-    add_nonneg (norm_nonneg _) (abs_nonneg _)
-  have hkernel :
-      Complex.binetSecondFormulaContourTailMajorantKernel w t =
-        ((A + B : ℝ) : ℂ) := by
-    rfl
-  calc
-    ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
-        ‖((A + B : ℝ) : ℂ)‖ := by
-      exact congrArg norm hkernel
-    _ = |A + B| := Complex.norm_real (A + B)
-    _ = A + B := abs_of_nonneg hAB_nonneg
-    _ =
-        ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ +
-          |((1 : ℝ) / ‖w‖) *
-            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| := rfl
-
 /-- On the Binet split-tail range the explicit decaying summand has no sign
 change, so its absolute value integrates as the constant multiple
 `1 / ‖w‖` of the scalar tail kernel. -/

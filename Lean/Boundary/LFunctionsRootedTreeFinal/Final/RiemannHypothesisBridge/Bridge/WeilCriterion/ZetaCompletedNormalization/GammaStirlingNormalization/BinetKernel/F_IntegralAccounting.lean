@@ -57,7 +57,7 @@ theorem Complex.binetSecondFormula_decayingTailKernel_integrableOn_tail
     hM_integrable.const_mul ((1 : ℝ) / ‖w‖)
   have hbase :
       Integrable
-        (fun t : ℝ => (((1 : ℝ) / ‖w‖) * M t : ℂ))
+        (fun t : ℝ => ((((1 : ℝ) / ‖w‖) * M t : ℝ) : ℂ))
         (volume.restrict S) :=
     Complex.ofRealCLM.integrable_comp hscaled_integrable
   exact
@@ -120,65 +120,6 @@ theorem Complex.binetSecondFormula_branchUniform_tail_absorption_of_contourTailM
     (Complex.binetSecondFormula_tailRemainder_norm_le_of_contourTailMajorantKernel_integral_decay
       hdecay)
 
-/-- Assemble the full branch-tail package once the real decaying-tail
-comparison and Binet-branch coherence have both been proved. -/
-theorem Complex.binetSecondFormula_decayingTailKernel_integral_decay :
-    ∀ w : ℂ,
-      0 < w.re →
-      2 ≤ ‖w‖ →
-        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-            ‖Complex.binetSecondFormulaDecayingTailKernel w t‖ ≤
-          ((2 : ℝ) / ‖w‖) *
-            (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-              t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-  intro w _hw_re_pos hw_norm
-  have hpoint :
-      ∀ t : ℝ,
-        t ∈ Set.Ioi (‖w‖ / 2) →
-          ‖Complex.binetSecondFormulaDecayingTailKernel w t‖ =
-            |((1 : ℝ) / ‖w‖) *
-              (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| := by
-    intro t ht
-    let m : ℝ :=
-      ((1 : ℝ) / ‖w‖) *
-        (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-    have hkernel_cast :
-        Complex.binetSecondFormulaDecayingTailKernel w t = (m : ℂ) := by
-      rfl
-    calc
-      ‖Complex.binetSecondFormulaDecayingTailKernel w t‖ =
-          ‖(m : ℂ)‖ := by
-        exact congrArg norm hkernel_cast
-      _ = |m| := RCLike.norm_ofReal (K := ℂ) m
-      _ =
-          |((1 : ℝ) / ‖w‖) *
-            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| := rfl
-  have hintegral_eq :
-      ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-          ‖Complex.binetSecondFormulaDecayingTailKernel w t‖ =
-        ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-          |((1 : ℝ) / ‖w‖) *
-            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| := by
-    exact setIntegral_congr_fun measurableSet_Ioi hpoint
-  have hsummand :
-      2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-          |((1 : ℝ) / ‖w‖) *
-            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| ≤
-        ((2 : ℝ) / ‖w‖) *
-          (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
-    Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integral_le
-      w hw_norm
-  exact
-    Eq.subst
-      (motive := fun x : ℝ =>
-        2 * x ≤
-          ((2 : ℝ) / ‖w‖) *
-            (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-              t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))
-      hintegral_eq.symm
-      hsummand
-
 /-- The principal-tail norm is integrable on the split-tail range.
 
 This is only the norm-integrability consequence of the existing principal-tail
@@ -223,6 +164,255 @@ theorem Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_int
         (Set.Ioi (‖w‖ / 2)) :=
     htail_integrable.const_mul ((1 : ℝ) / ‖w‖)
   exact hscaled_integrable.abs
+
+/-- Integral identity for the explicit decaying summand in the contour-tail
+majorant. -/
+theorem Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integral_eq
+    (w : ℂ)
+    (hw_norm : 2 ≤ ‖w‖) :
+    ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+        |((1 : ℝ) / ‖w‖) *
+          (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| =
+      ((1 : ℝ) / ‖w‖) *
+        (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  have hhalf_ge_one : (1 : ℝ) ≤ ‖w‖ / 2 :=
+    (le_div_iff₀ two_pos).mpr
+      (Eq.subst
+        (motive := fun x : ℝ => x ≤ ‖w‖)
+        (one_mul (2 : ℝ)).symm
+        hw_norm)
+  have hcoeff_nonneg : 0 ≤ (1 : ℝ) / ‖w‖ :=
+    div_nonneg zero_le_one (norm_nonneg w)
+  have hpoint :
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (‖w‖ / 2) →
+          |((1 : ℝ) / ‖w‖) *
+            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| =
+            ((1 : ℝ) / ‖w‖) *
+              (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+    fun t ht =>
+      let ht_pos : 0 < t :=
+        lt_of_le_of_lt
+          (le_trans zero_le_one hhalf_ge_one)
+          ht
+      let htail_nonneg :
+          0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+        le_of_lt (Real.binetSecondFormula_kernel_majorant_pos ht_pos)
+      let hprod_nonneg :
+          0 ≤
+            ((1 : ℝ) / ‖w‖) *
+              (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+        mul_nonneg hcoeff_nonneg htail_nonneg
+      abs_of_nonneg hprod_nonneg
+  calc
+    ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+        |((1 : ℝ) / ‖w‖) *
+          (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| =
+        ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          ((1 : ℝ) / ‖w‖) *
+            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+      exact setIntegral_congr_fun measurableSet_Ioi hpoint
+    _ =
+        ((1 : ℝ) / ‖w‖) *
+          (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+      exact MeasureTheory.integral_smul
+        ((1 : ℝ) / ‖w‖)
+        (fun t : ℝ =>
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+
+/-- Multiplying the decaying-summand integral identity by the contour symmetry
+factor gives exactly the constant `2 / ‖w‖`. -/
+theorem Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integral_le
+    (w : ℂ)
+    (hw_norm : 2 ≤ ‖w‖) :
+    2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+        |((1 : ℝ) / ‖w‖) *
+          (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| ≤
+      ((2 : ℝ) / ‖w‖) *
+        (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  let J : ℝ :=
+    ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  have hdecay_eq :
+      ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          |((1 : ℝ) / ‖w‖) *
+            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| =
+        ((1 : ℝ) / ‖w‖) * J :=
+    Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integral_eq
+      w hw_norm
+  have hconst :
+      2 * (((1 : ℝ) / ‖w‖) * J) = ((2 : ℝ) / ‖w‖) * J := by
+    calc
+      2 * (((1 : ℝ) / ‖w‖) * J) =
+          (2 * ((1 : ℝ) / ‖w‖)) * J := by
+        exact (mul_assoc (2 : ℝ) ((1 : ℝ) / ‖w‖) J).symm
+      _ = ((2 * (1 : ℝ)) / ‖w‖) * J := by
+        exact congrArg (fun x : ℝ => x * J)
+          (mul_div_assoc (2 : ℝ) (1 : ℝ) ‖w‖).symm
+      _ = ((2 : ℝ) / ‖w‖) * J := by
+        exact congrArg (fun x : ℝ => (x / ‖w‖) * J) (mul_one (2 : ℝ))
+  have htarget_eq :
+      2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          |((1 : ℝ) / ‖w‖) *
+            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| =
+        ((2 : ℝ) / ‖w‖) * J := by
+    exact Eq.trans (congrArg (fun x : ℝ => 2 * x) hdecay_eq) hconst
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      x ≤ ((2 : ℝ) / ‖w‖) * J)
+    htarget_eq.symm
+    (le_refl (((2 : ℝ) / ‖w‖) * J))
+
+/-- Elementary integral normalization for the decaying summand included in the
+contour-tail majorant kernel. -/
+theorem Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integral_le_ownerGap :
+    ∀ w : ℂ,
+      0 < w.re →
+      2 ≤ ‖w‖ →
+        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+            |((1 : ℝ) / ‖w‖) *
+              (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| ≤
+          ((2 : ℝ) / ‖w‖) *
+            (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+              t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  exact fun w _hw_re_pos hw_norm =>
+    Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integral_le
+      w hw_norm
+
+/-- Integral decay for the genuine scalar decaying tail kernel. -/
+theorem Complex.binetSecondFormula_decayingTailKernel_integral_decay :
+    ∀ w : ℂ,
+      0 < w.re →
+      2 ≤ ‖w‖ →
+        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+            ‖Complex.binetSecondFormulaDecayingTailKernel w t‖ ≤
+          ((2 : ℝ) / ‖w‖) *
+            (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+              t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  intro w _hw_re_pos hw_norm
+  have hpoint :
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (‖w‖ / 2) →
+          ‖Complex.binetSecondFormulaDecayingTailKernel w t‖ =
+            |((1 : ℝ) / ‖w‖) *
+              (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| := by
+    intro t _ht
+    let m : ℝ :=
+      ((1 : ℝ) / ‖w‖) *
+        (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+    have hkernel_cast :
+        Complex.binetSecondFormulaDecayingTailKernel w t = (m : ℂ) := by
+      rfl
+    calc
+      ‖Complex.binetSecondFormulaDecayingTailKernel w t‖ =
+          ‖(m : ℂ)‖ := by
+        exact congrArg norm hkernel_cast
+      _ = |m| := RCLike.norm_ofReal (K := ℂ) m
+      _ =
+          |((1 : ℝ) / ‖w‖) *
+            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| := rfl
+  have hintegral_eq :
+      ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          ‖Complex.binetSecondFormulaDecayingTailKernel w t‖ =
+        ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          |((1 : ℝ) / ‖w‖) *
+            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| := by
+    exact setIntegral_congr_fun measurableSet_Ioi hpoint
+  have hsummand :
+      2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          |((1 : ℝ) / ‖w‖) *
+            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| ≤
+        ((2 : ℝ) / ‖w‖) *
+          (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+    Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integral_le
+      w hw_norm
+  exact
+    Eq.subst
+      (motive := fun x : ℝ =>
+        2 * x ≤
+          ((2 : ℝ) / ‖w‖) *
+            (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+              t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))
+      hintegral_eq.symm
+      hsummand
+
+/-- Pointwise unfolding of the contour-tail majorant kernel norm. -/
+theorem Complex.binetSecondFormula_contourTailMajorantKernel_norm_eq_principal_add_decaying
+    (w : ℂ)
+    (t : ℝ) :
+    ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
+      ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ +
+        |((1 : ℝ) / ‖w‖) *
+          (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| := by
+  let A : ℝ := ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖
+  let B : ℝ :=
+    |((1 : ℝ) / ‖w‖) *
+      (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))|
+  have hAB_nonneg : 0 ≤ A + B :=
+    add_nonneg (norm_nonneg _) (abs_nonneg _)
+  have hkernel :
+      Complex.binetSecondFormulaContourTailMajorantKernel w t =
+        ((A + B : ℝ) : ℂ) := by
+    rfl
+  calc
+    ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
+        ‖((A + B : ℝ) : ℂ)‖ := by
+      exact congrArg norm hkernel
+    _ = |A + B| := Complex.norm_real (A + B)
+    _ = A + B := abs_of_nonneg hAB_nonneg
+    _ =
+        ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ +
+          |((1 : ℝ) / ‖w‖) *
+            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| := rfl
+
+/-- Contour-deformed Binet tail kernel integral decomposition for the full
+right half-plane. -/
+theorem Complex.binetSecondFormula_contourTailMajorantKernel_integral_decomposition_ownerGap :
+    ∀ w : ℂ,
+      0 < w.re →
+      2 ≤ ‖w‖ →
+        ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+            ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
+          (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+              ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖) +
+            (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+              |((1 : ℝ) / ‖w‖) *
+                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))|) := by
+  exact fun w hw_re_pos hw_norm =>
+    let A : ℝ → ℝ := fun t : ℝ =>
+      ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖
+    let B : ℝ → ℝ := fun t : ℝ =>
+      |((1 : ℝ) / ‖w‖) *
+        (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))|
+    let hprincipal_integrable :
+        IntegrableOn A (Set.Ioi (‖w‖ / 2)) :=
+      Complex.binetSecondFormula_principalTailKernel_norm_integrableOn_tail
+        (w := w) hw_re_pos
+    let hdecaying_integrable :
+        IntegrableOn B (Set.Ioi (‖w‖ / 2)) :=
+      Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integrableOn_tail
+        (w := w) hw_norm
+    let hpoint :
+        ∀ t : ℝ,
+          t ∈ Set.Ioi (‖w‖ / 2) →
+            ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
+              A t + B t :=
+      fun t _ht =>
+        Complex.binetSecondFormula_contourTailMajorantKernel_norm_eq_principal_add_decaying
+          w t
+    calc
+      ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
+          ∫ t : ℝ in Set.Ioi (‖w‖ / 2), A t + B t := by
+        exact setIntegral_congr_fun measurableSet_Ioi hpoint
+      _ =
+          (∫ t : ℝ in Set.Ioi (‖w‖ / 2), A t) +
+            (∫ t : ℝ in Set.Ioi (‖w‖ / 2), B t) := by
+        exact integral_add hprincipal_integrable hdecaying_integrable
 
 /-- Set-integral decomposition for the unfolded contour-tail majorant.
 
@@ -356,13 +546,44 @@ theorem Complex.binetSecondFormula_contourTailMajorantKernel_integral_decay_of_p
         hprincipal
         Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integral_le_ownerGap⟩
 
-/-- Correct principal-tail norm estimate after removing the false endpoint
-absorption.
+/-- The standard scalar Binet decaying-tail integral beginning at `‖w‖ / 2`. -/
+noncomputable def Complex.binetSecondFormulaDecayingTailIntegral
+    (w : ℂ) : ℝ :=
+  ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
 
-The raw principal-tail norm does not satisfy a full-sector pure
-`C / ‖w‖` bound: on the bounded branch-wall window it retains the explicit
-local-indentation logarithmic envelope.  The far tail has the desired scaled
-decay. -/
+/-- Exponential lower bound for the standard Binet decaying-tail integral. -/
+def Complex.BinetSecondFormulaDecayingTailIntegralExpLower : Prop :=
+  ∃ c : ℝ,
+    0 < c ∧
+    ∀ w : ℂ,
+      2 ≤ ‖w‖ →
+        c * ‖w‖ * Real.exp (-Real.pi * ‖w‖) ≤
+          Complex.binetSecondFormulaDecayingTailIntegral w
+
+/-- Full tail lower bound from the unit-interval lower bound and interval-tail
+monotonicity. -/
+theorem Real.binetSecondFormula_kernel_majorant_tail_expLower_of_unitInterval
+    (hunit : Real.BinetSecondFormulaKernelMajorantUnitIntervalExpLower)
+    (hle : Real.BinetSecondFormulaKernelMajorantUnitIntervalLeTail) :
+    Real.BinetSecondFormulaKernelMajorantTailExpLower := by
+  match hunit with
+  | ⟨c, hc_pos, hunit_lower⟩ =>
+      exact
+        ⟨c, hc_pos,
+          fun a ha =>
+            le_trans
+              (hunit_lower a ha)
+              (hle a ha)⟩
+
+/-- Owner real-variable leaf: exponential lower bound for the Binet scalar tail. -/
+theorem Real.binetSecondFormula_kernel_majorant_tail_expLower_owner :
+    Real.BinetSecondFormulaKernelMajorantTailExpLower := by
+  exact
+    Real.binetSecondFormula_kernel_majorant_tail_expLower_of_unitInterval
+      Real.binetSecondFormula_kernel_majorant_unitInterval_expLower_owner
+      Real.binetSecondFormula_kernel_majorant_unitInterval_le_tail_owner
+
 theorem Complex.binetSecondFormula_decayingTailIntegral_expLower_of_realTailLower
     (hlower : Real.BinetSecondFormulaKernelMajorantTailExpLower) :
     Complex.BinetSecondFormulaDecayingTailIntegralExpLower := by
@@ -391,7 +612,7 @@ theorem Complex.binetSecondFormula_decayingTailIntegral_expLower_of_realTailLowe
                     calc
                       ((2 : ℝ) * Real.pi) * (‖w‖ / 2) =
                           (((2 : ℝ) * Real.pi) * ‖w‖) / 2 := by
-                        exact mul_div_assoc ((2 : ℝ) * Real.pi) ‖w‖ 2
+                        exact (mul_div_assoc ((2 : ℝ) * Real.pi) ‖w‖ 2).symm
                       _ = ((Real.pi * ‖w‖) * 2) / 2 := by
                         exact
                           congrArg (fun x : ℝ => x / 2)
@@ -415,22 +636,21 @@ theorem Complex.binetSecondFormula_decayingTailIntegral_expLower_of_realTailLowe
                     (c * ‖w‖ / 2) * Real.exp (-Real.pi * ‖w‖) := by
                   exact
                     congrArg (fun x : ℝ => x * Real.exp (-Real.pi * ‖w‖))
-                      (div_mul_eq_mul_div c ‖w‖ 2)
+                      (div_mul_eq_mul_div c 2 ‖w‖)
                 _ = c * (‖w‖ / 2) * Real.exp (-Real.pi * ‖w‖) := by
                   exact
                     congrArg (fun x : ℝ => x * Real.exp (-Real.pi * ‖w‖))
-                      (mul_div_assoc c ‖w‖ 2).symm
-            Eq.subst
-              (motive := fun x : ℝ =>
-                (c / 2) * ‖w‖ * Real.exp (-Real.pi * ‖w‖) ≤
-                  Complex.binetSecondFormulaDecayingTailIntegral w)
-              hcoeff.symm
-              (Eq.subst
+                      (mul_div_assoc c ‖w‖ 2)
+            have htail_at_half :
+                c * (‖w‖ / 2) * Real.exp (-Real.pi * ‖w‖) ≤
+                  Complex.binetSecondFormulaDecayingTailIntegral w :=
+              Eq.subst
                 (motive := fun x : ℝ =>
                   c * (‖w‖ / 2) * Real.exp x ≤
                     Complex.binetSecondFormulaDecayingTailIntegral w)
                 hexponent
-                (htail_lower (‖w‖ / 2) hhalf_ge_one))⟩
+                (htail_lower (‖w‖ / 2) hhalf_ge_one)
+            le_trans (le_of_eq hcoeff) htail_at_half⟩
 
 /-- Owner real-variable leaf: exponential lower bound for the Binet decaying
 tail integral. -/
@@ -439,39 +659,6 @@ theorem Complex.binetSecondFormula_decayingTailIntegral_expLower_owner :
   exact
     Complex.binetSecondFormula_decayingTailIntegral_expLower_of_realTailLower
       Real.binetSecondFormula_kernel_majorant_tail_expLower_owner
-
-/-- Sector-window comparison from the exponential upper/lower scalar estimates. -/
-theorem Complex.binetSecondFormula_boundarySolvedStatic_inputs_of_boundaryTarget_and_contourTailMajorantKernel_integral_decay
-    (hboundary :
-      Complex.BinetSecondFormulaFiniteHeightBoundaryTarget)
-    {C : ℝ}
-    (hC_pos : 0 < C)
-    (hdecay :
-      ∀ w : ℂ,
-        0 < w.re →
-        2 ≤ ‖w‖ →
-          2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-              ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ ≤
-            (C / ‖w‖) *
-              Complex.binetSecondFormulaDecayingTailIntegral w) :
-    Complex.BinetSecondFormulaFiniteHeightBoundaryTarget ∧
-      Complex.BinetSecondFormulaBoundarySolvedStaticDecayEstimate := by
-  have htail :
-      Complex.BinetSecondFormulaBranchWallContourCancellationTailAbsorption :=
-    Complex.binetSecondFormula_branchUniform_tail_absorption_of_contourTailMajorantKernel_integral_decay
-      hC_pos hdecay
-  exact
-    Complex.binetSecondFormula_boundarySolvedStatic_inputs_of_boundaryTarget_and_tailAbsorption
-      hboundary htail
-
-/-- Owner obstruction for the historical endpoint-free static Abel-Plana input
-pair.
-
-The old target asked for an endpoint-free finite-height boundary target.  The
-proved constant-face reconstruction is endpoint-restored, and the endpoint
-indentation is nonzero on the real half-line; hence this exact pair is not a
-valid owner target. -/
-
 
 end
 end LFunctions
