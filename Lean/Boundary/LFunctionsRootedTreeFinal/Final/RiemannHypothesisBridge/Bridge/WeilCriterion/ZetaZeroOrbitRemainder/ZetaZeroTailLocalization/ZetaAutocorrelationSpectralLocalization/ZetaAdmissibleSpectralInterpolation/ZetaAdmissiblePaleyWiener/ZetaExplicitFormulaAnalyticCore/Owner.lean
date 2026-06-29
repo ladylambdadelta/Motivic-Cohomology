@@ -1078,6 +1078,19 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_eq_two_re_
           (fun ι : ZetaPrimePowerIndex =>
             zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)).symm
 
+/-- Scalar source residue-ledger cancellation for the finite oriented real-shadow windows. -/
+theorem zetaCompletedPrimePowerAutocorrelation_oriented_realShadowWindow_tendsto_zero_residueLedger_core
+    (f : ZetaAdmissibleFunction) :
+    Filter.Tendsto
+      (fun N : ℕ =>
+        ∑ ι in ZetaPrimePowerIndex.box N,
+          ((2 : ℝ) *
+            Complex.re
+              (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℂ))
+      Filter.atTop
+      (𝓝 0) := by
+  sorry
+
 /-- Source contour-ledger cancellation for the finite sum of the two oriented
 prime-power faces. -/
 theorem zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_boxSum_tendsto_zero_residueLedger_source
@@ -1089,7 +1102,25 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_boxSum_tend
             zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f)
       Filter.atTop
       (𝓝 0) := by
-  sorry
+  have hshadow :
+      Filter.Tendsto
+        (fun N : ℕ =>
+          ∑ ι in ZetaPrimePowerIndex.box N,
+            ((2 : ℝ) *
+              Complex.re
+                (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℂ))
+        Filter.atTop
+        (𝓝 0) :=
+    zetaCompletedPrimePowerAutocorrelation_oriented_realShadowWindow_tendsto_zero_residueLedger_core
+      f
+  exact Eq.subst
+    (motive := fun u : ℕ → ℂ =>
+      Filter.Tendsto u Filter.atTop (𝓝 0))
+    (funext
+      (fun N =>
+        zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_boxSum_eq_realShadow
+          N f))
+    hshadow
 
 /-- Source residue-ledger cancellation for the finite oriented real-shadow windows. -/
 theorem zetaCompletedPrimePowerAutocorrelation_oriented_realShadowWindow_tendsto_zero_residueLedger_source
