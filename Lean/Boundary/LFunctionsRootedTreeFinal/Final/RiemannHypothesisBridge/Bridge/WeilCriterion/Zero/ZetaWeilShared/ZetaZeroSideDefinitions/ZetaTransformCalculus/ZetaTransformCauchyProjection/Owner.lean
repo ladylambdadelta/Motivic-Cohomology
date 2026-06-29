@@ -3703,6 +3703,43 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcIntegrand_norm_le_jordanDens
       (scalarFourierLaplacePlemelj_positiveUpperArc_velocity_norm_eq_radius
         a ha T hT θ)
 
+/-- The positive upper-arc Jordan density is interval-integrable. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_intervalIntegrable
+    (a x T : ℝ) :
+    IntervalIntegrable
+      (fun θ : ℝ =>
+        scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ)
+      MeasureTheory.volume
+      (0 : ℝ)
+      Real.pi := by
+  have harg :
+      Continuous
+        (fun θ : ℝ => -(T * x * Real.sin θ)) := by
+    exact (continuous_const.mul Real.continuous_sin).neg
+  have hexp :
+      Continuous
+        (fun θ : ℝ => Real.exp (-(T * x * Real.sin θ))) := by
+    exact Real.continuous_exp.comp harg
+  have hdensity :
+      Continuous
+        (fun θ : ℝ =>
+          scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ) := by
+    exact continuous_const.mul hexp
+  exact hdensity.intervalIntegrable (0 : ℝ) Real.pi
+
+/-- The positive upper-arc Jordan density is nonnegative when the radius is
+larger than the pole height. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_nonneg
+    (a : ℝ) (ha : 0 < a) (x T θ : ℝ) (hT : a < T) :
+    0 ≤ scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ := by
+  have hTpos : 0 < T :=
+    ha.trans hT
+  have hdenpos : 0 < T - a :=
+    sub_pos.mpr hT
+  have hpref_nonneg : 0 ≤ T / (T - a) :=
+    div_nonneg hTpos.le hdenpos.le
+  exact mul_nonneg hpref_nonneg (Real.exp_pos _).le
+
 /-- The positive Jordan density interval integral factors into the constant
 prefactor times the scalar sine-damping integral. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_eq_prefactor_mul
@@ -3943,7 +3980,47 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_le_jordanDensity_integ
     ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T‖ ≤
       ∫ θ in (0 : ℝ)..Real.pi,
         scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ := by
-  sorry
+  have hdensity_int :
+      IntervalIntegrable
+        (fun θ : ℝ =>
+          scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ)
+        MeasureTheory.volume
+        (0 : ℝ)
+        Real.pi :=
+    scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_intervalIntegrable
+      a x T
+  have hnorm_abs :
+      ‖∫ θ in (0 : ℝ)..Real.pi,
+          scalarFourierLaplacePlemelj_positiveUpperArcIntegrand a x T θ‖ ≤
+        |∫ θ in (0 : ℝ)..Real.pi,
+          scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ| := by
+    exact intervalIntegral.norm_integral_le_of_norm_le
+      (Eventually.of_forall
+        (fun θ _hθ =>
+          scalarFourierLaplacePlemelj_positiveUpperArcIntegrand_norm_le_jordanDensity
+            a ha x hx T hT θ))
+      hdensity_int
+  have hnonneg_integral :
+      0 ≤ ∫ θ in (0 : ℝ)..Real.pi,
+          scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ := by
+    exact intervalIntegral.integral_nonneg
+      Real.pi_nonneg
+      (fun θ _hθ =>
+        scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_nonneg
+          a ha x T θ hT)
+  calc
+    ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T‖ =
+        ‖∫ θ in (0 : ℝ)..Real.pi,
+          scalarFourierLaplacePlemelj_positiveUpperArcIntegrand a x T θ‖ := by
+      exact congrArg norm
+        (scalarFourierLaplacePlemelj_positiveUpperArc_eq_integral_integrand
+          a x T)
+    _ ≤ |∫ θ in (0 : ℝ)..Real.pi,
+          scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ| := by
+      exact hnorm_abs
+    _ = ∫ θ in (0 : ℝ)..Real.pi,
+          scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ := by
+      exact abs_of_nonneg hnonneg_integral
 
 /-- The positive upper arc is eventually bounded by the Jordan majorant. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_eventually_le_jordanMajorant
@@ -4560,6 +4637,43 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArcIntegrand_norm_le_jordanDens
       (scalarFourierLaplacePlemelj_negativeLowerArc_velocity_norm_eq_radius
         a ha T hT θ)
 
+/-- The negative lower-arc Jordan density is interval-integrable. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_intervalIntegrable
+    (a x T : ℝ) :
+    IntervalIntegrable
+      (fun θ : ℝ =>
+        scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ)
+      MeasureTheory.volume
+      (-Real.pi)
+      (0 : ℝ) := by
+  have harg :
+      Continuous
+        (fun θ : ℝ => -(T * x * Real.sin θ)) := by
+    exact (continuous_const.mul Real.continuous_sin).neg
+  have hexp :
+      Continuous
+        (fun θ : ℝ => Real.exp (-(T * x * Real.sin θ))) := by
+    exact Real.continuous_exp.comp harg
+  have hdensity :
+      Continuous
+        (fun θ : ℝ =>
+          scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ) := by
+    exact continuous_const.mul hexp
+  exact hdensity.intervalIntegrable (-Real.pi) (0 : ℝ)
+
+/-- The negative lower-arc Jordan density is nonnegative when the radius is
+larger than the pole height. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_nonneg
+    (a : ℝ) (ha : 0 < a) (x T θ : ℝ) (hT : a < T) :
+    0 ≤ scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ := by
+  have hTpos : 0 < T :=
+    ha.trans hT
+  have hdenpos : 0 < T - a :=
+    sub_pos.mpr hT
+  have hpref_nonneg : 0 ≤ T / (T - a) :=
+    div_nonneg hTpos.le hdenpos.le
+  exact mul_nonneg hpref_nonneg (Real.exp_pos _).le
+
 /-- The negative Jordan density interval integral factors into the constant
 prefactor times the scalar lower-arc sine-damping integral. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_eq_prefactor_mul
@@ -4717,7 +4831,49 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanDensity_integ
     ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖ ≤
       ∫ θ in (-Real.pi)..(0 : ℝ),
         scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ := by
-  sorry
+  have hdensity_int :
+      IntervalIntegrable
+        (fun θ : ℝ =>
+          scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ)
+        MeasureTheory.volume
+        (-Real.pi)
+        (0 : ℝ) :=
+    scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_intervalIntegrable
+      a x T
+  have hnorm_abs :
+      ‖∫ θ in (-Real.pi)..(0 : ℝ),
+          scalarFourierLaplacePlemelj_negativeLowerArcIntegrand a x T θ‖ ≤
+        |∫ θ in (-Real.pi)..(0 : ℝ),
+          scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ| := by
+    exact intervalIntegral.norm_integral_le_of_norm_le
+      (Eventually.of_forall
+        (fun θ _hθ =>
+          scalarFourierLaplacePlemelj_negativeLowerArcIntegrand_norm_le_jordanDensity
+            a ha x hx T hT θ))
+      hdensity_int
+  have hneg_pi_le_zero : -Real.pi ≤ (0 : ℝ) :=
+    neg_nonpos.mpr Real.pi_nonneg
+  have hnonneg_integral :
+      0 ≤ ∫ θ in (-Real.pi)..(0 : ℝ),
+          scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ := by
+    exact intervalIntegral.integral_nonneg
+      hneg_pi_le_zero
+      (fun θ _hθ =>
+        scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_nonneg
+          a ha x T θ hT)
+  calc
+    ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖ =
+        ‖∫ θ in (-Real.pi)..(0 : ℝ),
+          scalarFourierLaplacePlemelj_negativeLowerArcIntegrand a x T θ‖ := by
+      exact congrArg norm
+        (scalarFourierLaplacePlemelj_negativeLowerArc_eq_integral_integrand
+          a x T)
+    _ ≤ |∫ θ in (-Real.pi)..(0 : ℝ),
+          scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ| := by
+      exact hnorm_abs
+    _ = ∫ θ in (-Real.pi)..(0 : ℝ),
+          scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ := by
+      exact abs_of_nonneg hnonneg_integral
 
 /-- The negative lower arc is eventually bounded by the Jordan majorant. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_eventually_le_jordanMajorant
