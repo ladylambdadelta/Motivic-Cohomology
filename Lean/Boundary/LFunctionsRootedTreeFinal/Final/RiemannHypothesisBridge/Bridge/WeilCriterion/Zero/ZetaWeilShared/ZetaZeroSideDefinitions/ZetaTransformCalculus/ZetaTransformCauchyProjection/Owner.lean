@@ -5485,8 +5485,9 @@ theorem scalarFourierLaplacePlemelj_negativeKernel_differentiableOn_lowerHalfDis
 /-- Primitive data for a function on the lower half-disk. -/
 def scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk
     (F G : ℂ → ℂ) (T : ℝ) : Prop :=
-  ∀ z ∈ scalarFourierLaplacePlemelj_lowerHalfDisk T,
-    HasDerivWithinAt G (F z) (scalarFourierLaplacePlemelj_lowerHalfDisk T) z
+  ContinuousOn F (scalarFourierLaplacePlemelj_lowerHalfDisk T) ∧
+    ∀ z ∈ scalarFourierLaplacePlemelj_lowerHalfDisk T,
+      HasDerivWithinAt G (F z) (scalarFourierLaplacePlemelj_lowerHalfDisk T) z
 
 /-- Holomorphicity on the lower half-disk supplies primitive data on that
 simply connected contour domain. -/
@@ -5528,6 +5529,24 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightDerivWithi
         t := by
   sorry
 
+/-- Primitive data makes the primitive function continuous on the lower
+half-disk. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_primitiveFunction_continuousOn
+    (F G : ℂ → ℂ) (T : ℝ)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
+    ContinuousOn G (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
+  sorry
+
+/-- The real diameter maps into the lower half-disk. -/
+theorem scalarFourierLaplacePlemelj_realSegment_mapsTo_lowerHalfDisk
+    (T : ℝ) (_hT : 0 ≤ T) :
+    Set.MapsTo
+      (fun x : ℝ => (x : ℂ))
+      (Set.Icc (-T) T)
+      (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
+  sorry
+
 /-- Primitive data on the lower half-disk makes the real-diameter primitive
 continuous on the closed diameter. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegmentPrimitive_continuousOn
@@ -5535,7 +5554,22 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegmentPrimitive_continuou
     (_hprimitive :
       scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
     ContinuousOn (fun x : ℝ => G (x : ℂ)) (Set.Icc (-T) T) := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_lowerHalfDisk_primitiveFunction_continuousOn
+      F G T _hprimitive).comp
+      Complex.continuous_ofReal.continuousOn
+      (scalarFourierLaplacePlemelj_realSegment_mapsTo_lowerHalfDisk T _hT)
+
+/-- The real-diameter integrand is continuous on the closed diameter. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegmentIntegrand_continuousOn
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
+    ContinuousOn (fun x : ℝ => F (x : ℂ)) (Set.Icc (-T) T) := by
+  exact
+    _hprimitive.1.comp
+      Complex.continuous_ofReal.continuousOn
+      (scalarFourierLaplacePlemelj_realSegment_mapsTo_lowerHalfDisk T _hT)
 
 /-- The real-diameter integrand is interval-integrable on the diameter. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_intervalIntegrable
@@ -5543,7 +5577,12 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_intervalIntegrable
     (_hprimitive :
       scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
     IntervalIntegrable (fun x : ℝ => F (x : ℂ)) MeasureTheory.volume (-T) T := by
-  sorry
+  have hle : -T ≤ T := by
+    exact neg_le_self _hT
+  exact
+    ContinuousOn.intervalIntegrable_of_Icc hle
+      (scalarFourierLaplacePlemelj_lowerHalfDisk_realSegmentIntegrand_continuousOn
+        F G T _hT _hprimitive)
 
 /-- The interval integral over the real diameter evaluates to the primitive
 endpoint difference. -/
