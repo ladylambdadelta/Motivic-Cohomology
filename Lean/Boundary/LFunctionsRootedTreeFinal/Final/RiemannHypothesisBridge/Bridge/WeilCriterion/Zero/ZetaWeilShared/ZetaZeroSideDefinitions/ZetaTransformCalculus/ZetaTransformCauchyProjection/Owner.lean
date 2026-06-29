@@ -7199,7 +7199,76 @@ theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_cross_mul_difference
     (b u v : ℝ) :
     u * (b ^ 2 + v ^ 2) - v * (b ^ 2 + u ^ 2) =
       (v - u) * (u * v - b ^ 2) := by
-  sorry
+  have hleft_expand :
+      u * (b ^ 2 + v ^ 2) - v * (b ^ 2 + u ^ 2) =
+        (u * b ^ 2 - v * b ^ 2) +
+          (u * v ^ 2 - v * u ^ 2) := by
+    calc
+      u * (b ^ 2 + v ^ 2) - v * (b ^ 2 + u ^ 2)
+          =
+          (u * b ^ 2 + u * v ^ 2) -
+            (v * b ^ 2 + v * u ^ 2) := by
+            exact congrArg₂ Sub.sub
+              (mul_add u (b ^ 2) (v ^ 2))
+              (mul_add v (b ^ 2) (u ^ 2))
+      _ =
+          (u * b ^ 2 - v * b ^ 2) +
+            (u * v ^ 2 - v * u ^ 2) := by
+            exact add_sub_add_comm
+              (u * b ^ 2) (u * v ^ 2)
+              (v * b ^ 2) (v * u ^ 2)
+  have hright_expand :
+      (v - u) * (u * v - b ^ 2) =
+        (u * b ^ 2 - v * b ^ 2) +
+          (u * v ^ 2 - v * u ^ 2) := by
+    calc
+      (v - u) * (u * v - b ^ 2)
+          = (v - u) * (u * v) - (v - u) * b ^ 2 := by
+            exact mul_sub (v - u) (u * v) (b ^ 2)
+      _ =
+          (v * (u * v) - u * (u * v)) -
+            (v * b ^ 2 - u * b ^ 2) := by
+            exact congrArg₂ Sub.sub
+              (sub_mul v u (u * v))
+              (sub_mul v u (b ^ 2))
+      _ =
+          (v * (u * v) - u * (u * v)) +
+            (u * b ^ 2 - v * b ^ 2) := by
+            exact sub_sub_eq_add_sub
+              (v * (u * v) - u * (u * v))
+              (v * b ^ 2)
+              (u * b ^ 2)
+      _ =
+          (u * b ^ 2 - v * b ^ 2) +
+            (v * (u * v) - u * (u * v)) := by
+            exact add_comm
+              (v * (u * v) - u * (u * v))
+              (u * b ^ 2 - v * b ^ 2)
+      _ =
+          (u * b ^ 2 - v * b ^ 2) +
+            (u * v ^ 2 - v * u ^ 2) := by
+            have hvuv : v * (u * v) = u * v ^ 2 := by
+              calc
+                v * (u * v) = (v * u) * v := by
+                  exact mul_assoc v u v
+                _ = (u * v) * v := by
+                  exact congrArg (fun r : ℝ => r * v) (mul_comm v u)
+                _ = u * (v * v) := by
+                  exact (mul_assoc u v v).symm
+                _ = u * v ^ 2 := by
+                  exact congrArg (fun r : ℝ => u * r) (pow_two v).symm
+            have huuv : u * (u * v) = v * u ^ 2 := by
+              calc
+                u * (u * v) = (u * u) * v := by
+                  exact mul_assoc u u v
+                _ = u ^ 2 * v := by
+                  exact congrArg (fun r : ℝ => r * v) (pow_two u).symm
+                _ = v * u ^ 2 := by
+                  exact mul_comm (u ^ 2) v
+            exact congrArg
+              (fun r : ℝ => (u * b ^ 2 - v * b ^ 2) + r)
+              (congrArg₂ Sub.sub hvuv huuv)
+  exact hleft_expand.trans hright_expand.symm
 
 theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_bsq_le_mul
     (b c u v : ℝ) (hb : 0 < b) (_hone_le_c : 1 ≤ c)
