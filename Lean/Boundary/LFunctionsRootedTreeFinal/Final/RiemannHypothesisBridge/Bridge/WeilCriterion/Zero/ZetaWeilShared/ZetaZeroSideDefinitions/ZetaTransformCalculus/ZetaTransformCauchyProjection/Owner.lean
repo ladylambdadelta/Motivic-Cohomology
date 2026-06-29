@@ -7623,7 +7623,119 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_parts_identity_
           ∫ v in c..A,
             scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
               Real.cos v := by
-  sorry
+  let g : ℝ → ℝ := fun v : ℝ => v / (b ^ 2 + v ^ 2)
+  let D : ℝ → ℝ :=
+    fun v : ℝ => scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v
+  let h : ℝ → ℝ := fun v : ℝ => -Real.cos v
+  have hg_deriv :
+      ∀ v : ℝ, v ∈ [[c, A]] → HasDerivAt g (D v) v := by
+    intro v _hv
+    unfold g
+    unfold D
+    exact scalarFourierLaplacePlemelj_highTailCauchyAmplitude_hasDerivAt b v hb
+  have hh_deriv :
+      ∀ v : ℝ, v ∈ [[c, A]] → HasDerivAt h (Real.sin v) v := by
+    intro v _hv
+    unfold h
+    have hcos : HasDerivAt (fun x : ℝ => Real.cos x) (-Real.sin v) v :=
+      Real.hasDerivAt_cos v
+    have hneg : HasDerivAt (fun x : ℝ => -Real.cos x) (-(-Real.sin v)) v :=
+      hcos.neg
+    have hneg_eq : -(-Real.sin v) = Real.sin v :=
+      neg_neg (Real.sin v)
+    exact Eq.subst
+      (motive := fun d : ℝ =>
+        HasDerivAt (fun x : ℝ => -Real.cos x) d v)
+      hneg_eq
+      hneg
+  have hD_int :
+      IntervalIntegrable D volume c A := by
+    unfold D
+    exact
+      (scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative_continuous
+        b hb).intervalIntegrable c A
+  have hsin_int :
+      IntervalIntegrable (fun v : ℝ => Real.sin v) volume c A :=
+    continuous_sin.intervalIntegrable c A
+  have hparts :
+      (∫ v in c..A, g v * Real.sin v) =
+        g A * h A - g c * h c - ∫ v in c..A, D v * h v :=
+    intervalIntegral.integral_mul_deriv_eq_deriv_mul
+      hg_deriv hh_deriv hD_int hsin_int
+  have htarget :
+      (∫ v in c..A, g v * Real.sin v) =
+        -(A / (b ^ 2 + A ^ 2)) * Real.cos A +
+          (c / (b ^ 2 + c ^ 2)) * Real.cos c +
+            ∫ v in c..A, D v * Real.cos v := by
+    calc
+      (∫ v in c..A, g v * Real.sin v) =
+          g A * h A - g c * h c - ∫ v in c..A, D v * h v := hparts
+      _ =
+          g A * (-Real.cos A) - g c * (-Real.cos c) -
+            ∫ v in c..A, D v * (-Real.cos v) := by
+            unfold h
+      _ =
+          -(g A) * Real.cos A + g c * Real.cos c +
+            ∫ v in c..A, D v * Real.cos v := by
+            have hleft : g A * (-Real.cos A) = -(g A) * Real.cos A := by
+              exact mul_neg (g A) (Real.cos A)
+            have hmid : g c * (-Real.cos c) = -(g c * Real.cos c) := by
+              exact mul_neg (g c) (Real.cos c)
+            have hint :
+                (∫ v in c..A, D v * (-Real.cos v)) =
+                  -(∫ v in c..A, D v * Real.cos v) := by
+              have hpoint :
+                  (fun v : ℝ => D v * (-Real.cos v)) =
+                    fun v : ℝ => -(D v * Real.cos v) := by
+                exact funext
+                  (fun v =>
+                    mul_neg (D v) (Real.cos v))
+              exact Eq.trans
+                (congrArg
+                  (fun F : ℝ → ℝ => ∫ v in c..A, F v)
+                  hpoint)
+                (intervalIntegral.integral_neg
+                  (fun v : ℝ => D v * Real.cos v))
+            calc
+              g A * (-Real.cos A) - g c * (-Real.cos c) -
+                  ∫ v in c..A, D v * (-Real.cos v) =
+                  -(g A) * Real.cos A - (-(g c * Real.cos c)) -
+                    (-(∫ v in c..A, D v * Real.cos v)) := by
+                    exact congrArg₂ Sub.sub
+                      (congrArg₂ Sub.sub hleft hmid)
+                      hint
+              _ = -(g A) * Real.cos A + g c * Real.cos c +
+                    ∫ v in c..A, D v * Real.cos v := by
+                    calc
+                      -(g A) * Real.cos A - (-(g c * Real.cos c)) -
+                          (-(∫ v in c..A, D v * Real.cos v)) =
+                          (-(g A) * Real.cos A + g c * Real.cos c) -
+                            (-(∫ v in c..A, D v * Real.cos v)) := by
+                            exact congrArg
+                              (fun x : ℝ =>
+                                x - (-(∫ v in c..A, D v * Real.cos v)))
+                              (sub_neg_eq_add (-(g A) * Real.cos A)
+                                (g c * Real.cos c))
+                      _ = (-(g A) * Real.cos A + g c * Real.cos c) +
+                            ∫ v in c..A, D v * Real.cos v := by
+                            exact sub_neg_eq_add
+                              (-(g A) * Real.cos A + g c * Real.cos c)
+                              (∫ v in c..A, D v * Real.cos v)
+                      _ = -(g A) * Real.cos A + g c * Real.cos c +
+                            ∫ v in c..A, D v * Real.cos v := by
+                            exact add_assoc
+                              (-(g A) * Real.cos A)
+                              (g c * Real.cos c)
+                              (∫ v in c..A, D v * Real.cos v)
+      _ =
+          -(A / (b ^ 2 + A ^ 2)) * Real.cos A +
+          (c / (b ^ 2 + c ^ 2)) * Real.cos c +
+            ∫ v in c..A,
+              scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+                Real.cos v := by
+            unfold g
+            unfold D
+  exact htarget
 
 /-- Total-variation bound for the derivative term in the damped Cauchy-amplitude
 sine-tail integration-by-parts formula. -/
