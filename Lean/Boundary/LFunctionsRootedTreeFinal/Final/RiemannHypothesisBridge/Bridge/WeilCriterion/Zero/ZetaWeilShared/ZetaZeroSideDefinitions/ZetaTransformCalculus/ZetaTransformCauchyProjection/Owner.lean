@@ -6590,6 +6590,163 @@ theorem scalarFourierLaplacePlemelj_uncompensated_integrand_pointwise_decomposit
           Complex.I)) := by
   sorry
 
+/-- Symmetric interval cancellation for an odd complex-valued function. -/
+theorem intervalIntegral_integral_eq_zero_of_forall_neg_eq_neg
+    (f : ℝ → ℂ) (T : ℝ) (hodd : ∀ t : ℝ, f (-t) = -f t) :
+    ∫ t in (-T)..T, f t = 0 := by
+  have hcomp :
+      (∫ t in (-T)..T, f (-t)) = ∫ t in (-T)..T, f t := by
+    calc
+      (∫ t in (-T)..T, f (-t))
+          = ∫ t in (-T)..(-(-T)), f t := by
+            exact intervalIntegral.integral_comp_neg (f := f) (a := -T) (b := T)
+      _ = ∫ t in (-T)..T, f t := by
+            exact congrArg
+              (fun v : ℝ => ∫ t in (-T)..v, f t)
+              (neg_neg T)
+  have hneg :
+      (∫ t in (-T)..T, f (-t)) = -∫ t in (-T)..T, f t := by
+    calc
+      (∫ t in (-T)..T, f (-t))
+          = ∫ t in (-T)..T, -f t := by
+            exact intervalIntegral.integral_congr
+              (Filter.Eventually.of_forall hodd)
+      _ = -∫ t in (-T)..T, f t := by
+            exact intervalIntegral.integral_neg
+  have hself_neg : (∫ t in (-T)..T, f t) = -∫ t in (-T)..T, f t :=
+    hcomp.symm.trans hneg
+  have htwo_zero : (2 : ℂ) * (∫ t in (-T)..T, f t) = 0 := by
+    have hsum_zero :
+        (∫ t in (-T)..T, f t) + (∫ t in (-T)..T, f t) = 0 := by
+      calc
+        (∫ t in (-T)..T, f t) + (∫ t in (-T)..T, f t)
+            =
+            -(∫ t in (-T)..T, f t) + (∫ t in (-T)..T, f t) := by
+              exact congrArg
+                (fun z : ℂ => z + (∫ t in (-T)..T, f t))
+                hself_neg
+        _ = 0 := by
+            exact neg_add_cancel (∫ t in (-T)..T, f t)
+    exact (two_mul (∫ t in (-T)..T, f t)).trans hsum_zero
+  exact (mul_eq_zero.mp htwo_zero).resolve_left two_ne_zero
+
+/-- Pointwise oddness of the imaginary remainder in the uncompensated Cauchy
+Fourier decomposition. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_pointwise_odd
+    (a : ℝ) (ha : 0 < a) (x t : ℝ) :
+    (((-(a / (a ^ 2 + (-t) ^ 2)) * Real.sin ((-t) * x) +
+        ((-t) / (a ^ 2 + (-t) ^ 2)) * Real.cos ((-t) * x) : ℝ) : ℂ) *
+      Complex.I) =
+      -((((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+          (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+        Complex.I) := by
+  let D : ℝ := a ^ 2 + t ^ 2
+  let A : ℝ := -(a / D)
+  let B : ℝ := t / D
+  let S : ℝ := Real.sin (t * x)
+  let C : ℝ := Real.cos (t * x)
+  have hden : a ^ 2 + (-t) ^ 2 = D := by
+    calc
+      a ^ 2 + (-t) ^ 2 = a ^ 2 + t ^ 2 := by
+        exact congrArg (fun u : ℝ => a ^ 2 + u) (neg_sq t)
+      _ = D := by
+        rfl
+  have hleft_coeff :
+      -(a / (a ^ 2 + (-t) ^ 2)) = A := by
+    calc
+      -(a / (a ^ 2 + (-t) ^ 2)) = -(a / D) := by
+        exact congrArg (fun d : ℝ => -(a / d)) hden
+      _ = A := by
+        rfl
+  have hright_coeff :
+      (-t) / (a ^ 2 + (-t) ^ 2) = -B := by
+    calc
+      (-t) / (a ^ 2 + (-t) ^ 2) = (-t) / D := by
+        exact congrArg (fun d : ℝ => (-t) / d) hden
+      _ = -(t / D) := by
+        exact neg_div t D
+      _ = -B := by
+        rfl
+  have hsin :
+      Real.sin ((-t) * x) = -S := by
+    calc
+      Real.sin ((-t) * x) = Real.sin (-(t * x)) := by
+        exact congrArg Real.sin (neg_mul t x)
+      _ = -Real.sin (t * x) := by
+        exact Real.sin_neg (t * x)
+      _ = -S := by
+        rfl
+  have hcos :
+      Real.cos ((-t) * x) = C := by
+    calc
+      Real.cos ((-t) * x) = Real.cos (-(t * x)) := by
+        exact congrArg Real.cos (neg_mul t x)
+      _ = Real.cos (t * x) := by
+        exact Real.cos_neg (t * x)
+      _ = C := by
+        rfl
+  have hreal_left :
+      (-(a / (a ^ 2 + (-t) ^ 2)) * Real.sin ((-t) * x) +
+          ((-t) / (a ^ 2 + (-t) ^ 2)) * Real.cos ((-t) * x) : ℝ) =
+        A * (-S) + (-B) * C := by
+    exact congrArg₂ Add.add
+      (congrArg₂ Mul.mul hleft_coeff hsin)
+      (congrArg₂ Mul.mul hright_coeff hcos)
+  have hreal_neg :
+      A * (-S) + (-B) * C = -(A * S + B * C) := by
+    calc
+      A * (-S) + (-B) * C = -(A * S) + (-B) * C := by
+        exact congrArg (fun y : ℝ => y + (-B) * C) (mul_neg A S)
+      _ = -(A * S) + -(B * C) := by
+        exact congrArg (fun y : ℝ => -(A * S) + y) (neg_mul B C)
+      _ = -(A * S + B * C) := by
+        exact (neg_add (A * S) (B * C)).symm
+  have hreal_right :
+      (-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+          (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) =
+        A * S + B * C := by
+    rfl
+  have hreal :
+      (-(a / (a ^ 2 + (-t) ^ 2)) * Real.sin ((-t) * x) +
+          ((-t) / (a ^ 2 + (-t) ^ 2)) * Real.cos ((-t) * x) : ℝ) =
+        -(-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+            (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x)) := by
+    calc
+      (-(a / (a ^ 2 + (-t) ^ 2)) * Real.sin ((-t) * x) +
+          ((-t) / (a ^ 2 + (-t) ^ 2)) * Real.cos ((-t) * x) : ℝ)
+          = A * (-S) + (-B) * C := hreal_left
+      _ = -(A * S + B * C) := hreal_neg
+      _ =
+          -(-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+              (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x)) := by
+            exact congrArg Neg.neg hreal_right.symm
+  calc
+    (((-(a / (a ^ 2 + (-t) ^ 2)) * Real.sin ((-t) * x) +
+        ((-t) / (a ^ 2 + (-t) ^ 2)) * Real.cos ((-t) * x) : ℝ) : ℂ) *
+      Complex.I)
+        =
+        (((-(-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+            (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x)) : ℝ) : ℂ) *
+          Complex.I) := by
+          exact congrArg (fun y : ℝ => ((y : ℂ) * Complex.I)) hreal
+    _ =
+        (-((( -(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+            (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ))) *
+          Complex.I := by
+          exact congrArg
+            (fun z : ℂ => z * Complex.I)
+            (Complex.ofReal_neg
+              (-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+                (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x)))
+    _ =
+        -((((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+            (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+          Complex.I) := by
+          exact neg_mul
+            (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+              (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ))
+            Complex.I
+
 /-- The imaginary remainder in the symmetric uncompensated Cauchy Fourier
 window cancels by oddness. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_integral_eq_zero
@@ -6598,7 +6755,110 @@ theorem scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_integral_eq
       (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
           (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
         Complex.I) = 0 := by
-  sorry
+  let f : ℝ → ℂ :=
+    fun t : ℝ =>
+      (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+          (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+        Complex.I)
+  have hodd : ∀ t : ℝ, f (-t) = -f t := by
+    intro t
+    unfold f
+    exact
+      scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_pointwise_odd
+        a ha x t
+  exact intervalIntegral_integral_eq_zero_of_forall_neg_eq_neg f T hodd
+
+/-- Interval integrability of the even-cosine scalar component of the
+uncompensated real remainder. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_evenCosine_component_intervalIntegrable
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    IntervalIntegrable
+      (fun t : ℝ =>
+        ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ))
+      volume (-T) T := by
+  have hden_cont : Continuous (fun t : ℝ => a ^ 2 + t ^ 2) :=
+    continuous_const.add (continuous_id.pow 2)
+  have hden_ne : ∀ t : ℝ, a ^ 2 + t ^ 2 ≠ 0 :=
+    scalarFourierLaplacePlemelj_zero_denominator_ne_zero a ha
+  have hcoeff :
+      Continuous (fun t : ℝ => -(a / (a ^ 2 + t ^ 2))) :=
+    (continuous_const.div hden_cont hden_ne).neg
+  have htx : Continuous (fun t : ℝ => t * x) :=
+    continuous_id.mul continuous_const
+  have hcos : Continuous (fun t : ℝ => Real.cos (t * x)) :=
+    Real.continuous_cos.comp htx
+  have hreal :
+      Continuous
+        (fun t : ℝ => -(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x)) :=
+    hcoeff.mul hcos
+  exact (Complex.continuous_ofReal.comp hreal).intervalIntegrable (-T) T
+
+/-- Interval integrability of the odd-sine scalar component of the
+uncompensated real remainder. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_oddSine_component_intervalIntegrable
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    IntervalIntegrable
+      (fun t : ℝ =>
+        (((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ))
+      volume (-T) T := by
+  have hden_cont : Continuous (fun t : ℝ => a ^ 2 + t ^ 2) :=
+    continuous_const.add (continuous_id.pow 2)
+  have hden_ne : ∀ t : ℝ, a ^ 2 + t ^ 2 ≠ 0 :=
+    scalarFourierLaplacePlemelj_zero_denominator_ne_zero a ha
+  have hcoeff :
+      Continuous (fun t : ℝ => t / (a ^ 2 + t ^ 2)) :=
+    continuous_id.div hden_cont hden_ne
+  have htx : Continuous (fun t : ℝ => t * x) :=
+    continuous_id.mul continuous_const
+  have hsin : Continuous (fun t : ℝ => Real.sin (t * x)) :=
+    Real.continuous_sin.comp htx
+  have hreal :
+      Continuous
+        (fun t : ℝ => (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)) :=
+    hcoeff.mul hsin
+  exact (Complex.continuous_ofReal.comp hreal).intervalIntegrable (-T) T
+
+/-- The even-cosine component commutes with the real-to-complex integral. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_evenCosine_component_integral_ofReal
+    (a T x : ℝ) :
+    (∫ t in Set.Icc (-T) T,
+      ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ)) =
+      ((scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x : ℝ) : ℂ) := by
+  calc
+    (∫ t in Set.Icc (-T) T,
+      ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ))
+        =
+        ∫ t in (-T)..T,
+          ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) := by
+          rfl
+    _ =
+        ((∫ t in (-T)..T,
+          (-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ)) : ℂ) := by
+          exact intervalIntegral.integral_ofReal
+    _ =
+        ((scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x : ℝ) : ℂ) := by
+          rfl
+
+/-- The odd-sine component commutes with the real-to-complex integral. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_oddSine_component_integral_ofReal
+    (a T x : ℝ) :
+    (∫ t in Set.Icc (-T) T,
+      (((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ)) =
+      ((scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x : ℝ) : ℂ) := by
+  calc
+    (∫ t in Set.Icc (-T) T,
+      (((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ))
+        =
+        ∫ t in (-T)..T,
+          (((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ) := by
+          rfl
+    _ =
+        ((∫ t in (-T)..T,
+          ((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ)) : ℂ) := by
+          exact intervalIntegral.integral_ofReal
+    _ =
+        ((scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x : ℝ) : ℂ) := by
+          rfl
 
 /-- The real remainder in the symmetric uncompensated Cauchy Fourier window is
 the even-cosine part minus the odd-sine part. -/
@@ -6609,7 +6869,45 @@ theorem scalarFourierLaplacePlemelj_uncompensated_realRemainder_integral_eq_even
           (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ) =
       ((scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x -
         scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x : ℝ) : ℂ) := by
-  sorry
+  calc
+    (∫ t in Set.Icc (-T) T,
+      ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+          (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ))
+        =
+        ∫ t in Set.Icc (-T) T,
+          ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) -
+            (((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ) := by
+          exact intervalIntegral.integral_congr
+            (Filter.Eventually.of_forall
+              (fun t : ℝ =>
+                Complex.ofReal_sub
+                  (-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x))
+                  ((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x))))
+    _ =
+        (∫ t in Set.Icc (-T) T,
+          ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ)) -
+          ∫ t in Set.Icc (-T) T,
+            (((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ) := by
+          exact intervalIntegral.integral_sub
+            (scalarFourierLaplacePlemelj_uncompensated_evenCosine_component_intervalIntegrable
+              a ha T x)
+            (scalarFourierLaplacePlemelj_uncompensated_oddSine_component_intervalIntegrable
+              a ha T x)
+    _ =
+        ((scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x : ℝ) : ℂ) -
+          ((scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x : ℝ) : ℂ) := by
+          exact congrArg₂ Sub.sub
+            (scalarFourierLaplacePlemelj_uncompensated_evenCosine_component_integral_ofReal
+              a T x)
+            (scalarFourierLaplacePlemelj_uncompensated_oddSine_component_integral_ofReal
+              a T x)
+    _ =
+        ((scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x -
+          scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x : ℝ) : ℂ) := by
+          exact
+            (Complex.ofReal_sub
+              (scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x)
+              (scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x)).symm
 
 /-- Interval integrability of the real remainder in the uncompensated Cauchy
 Fourier decomposition. -/
