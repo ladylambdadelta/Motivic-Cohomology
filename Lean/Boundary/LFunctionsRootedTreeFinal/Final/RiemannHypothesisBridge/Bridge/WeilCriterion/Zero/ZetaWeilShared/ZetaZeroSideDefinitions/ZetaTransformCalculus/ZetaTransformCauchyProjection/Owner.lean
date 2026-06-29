@@ -2926,9 +2926,9 @@ theorem scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution_eq
         Complex.exp (-(a : ℂ) * (x : ℂ)) := by
   exact rfl
 
-/-- Source residue theorem for the positive-time upper semicircle contour:
+/-- Upper-half-plane residue theorem for the positive-time scalar contour:
 the closed contour is the residue contribution of the enclosed upper pole. -/
-theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_upperPoleResidueContribution_source
+theorem scalarFourierLaplacePlemelj_upperHalfPlaneResidueTheorem_closedContour_eq_upperPoleResidue
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
     (T : ℝ)
     (_hpole : ‖scalarFourierLaplacePlemelj_upperPole a‖ < T) :
@@ -2945,7 +2945,7 @@ theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_residueValue_owner
       (-2 * (Real.pi : ℂ)) *
         Complex.exp (-(a : ℂ) * (x : ℂ)) := by
   exact
-    (scalarFourierLaplacePlemelj_positiveClosedContour_eq_upperPoleResidueContribution_source
+    (scalarFourierLaplacePlemelj_upperHalfPlaneResidueTheorem_closedContour_eq_upperPoleResidue
       a ha x hx T _hpole).trans
       (scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution_eq
         a ha x hx)
@@ -4774,9 +4774,9 @@ theorem scalarFourierLaplacePlemelj_upperPole_not_mem_lowerSemicircleInterior
     (mul_eq_zero.mp htwo_zero).resolve_left two_ne_zero
   exact (ne_of_gt ha) ha_zero
 
-/-- Owner pole-free residue theorem for the negative-time lower semicircle
+/-- Lower-half-plane pole-free residue theorem for the negative-time scalar
 contour. -/
-theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_residueTheorem_source
+theorem scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_eq_zero
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
     (T : ℝ)
     (_hpole :
@@ -4793,7 +4793,7 @@ theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_owner
           (-(a : ℂ)) * Complex.I) :
     scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 := by
   exact
-    scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_residueTheorem_source
+    scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_eq_zero
       a ha x hx T _hpole
 
 /-- Pole-free lower-half-plane contour integral for the negative-time scalar kernel. -/
@@ -7373,7 +7373,9 @@ theorem scalarFourierLaplacePlemelj_sine_intervalIntegral_abs_le_two
     _ = 2 := by
         rfl
 
-theorem scalarFourierLaplacePlemelj_secondMeanValue_sine_tail_bonnet
+/-- Bonnet second mean value theorem for a monotone amplitude against the sine
+primitive. -/
+theorem scalarFourierLaplacePlemelj_bonnetSecondMeanValue_sinePrimitive_source
     (g : ℝ → ℝ) (A c : ℝ)
     (hone_le_c : 1 ≤ c) (hcA : c ≤ A)
     (hg_nonneg : ∀ v ∈ Set.Ici c, 0 ≤ g v)
@@ -7395,7 +7397,7 @@ theorem scalarFourierLaplacePlemelj_secondMeanValue_sine_tail_abs_le_two
       |∫ v in x..y, Real.sin v| ≤ 2) :
     |∫ v in c..A, g v * Real.sin v| ≤ 2 := by
   obtain ⟨ξ, hcξ, hξA, hbonnet⟩ :=
-    scalarFourierLaplacePlemelj_secondMeanValue_sine_tail_bonnet
+    scalarFourierLaplacePlemelj_bonnetSecondMeanValue_sinePrimitive_source
       g A c hone_le_c hcA hg_nonneg hg_le_one hg_antitone
   have hA_mem : A ∈ Set.Ici c :=
     hcA
