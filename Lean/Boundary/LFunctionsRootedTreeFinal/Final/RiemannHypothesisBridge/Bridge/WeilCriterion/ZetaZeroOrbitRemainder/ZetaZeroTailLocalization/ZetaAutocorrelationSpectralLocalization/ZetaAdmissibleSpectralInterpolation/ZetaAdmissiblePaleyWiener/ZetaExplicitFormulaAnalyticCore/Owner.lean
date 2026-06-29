@@ -882,6 +882,22 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_boxSum_eq_r
         (complex_add_star_eq_two_re
           (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)))
 
+/-- Source contour-tomography estimate for the paired oriented rectangular
+faces.
+
+This is the residue-ledger cancellation before rewriting the two faces as a
+real shadow of one oriented face. -/
+theorem zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_boxSum_tendsto_zero_contourTomography_source
+    (f : ZetaAdmissibleFunction) :
+    Filter.Tendsto
+      (fun N : ℕ =>
+        ∑ ι in ZetaPrimePowerIndex.box N,
+          zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f +
+            zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f)
+      Filter.atTop
+      (𝓝 0) := by
+  sorry
+
 /-- Source contour-tomography estimate for the rectangular real-shadow windows.
 
 This is the direct completed vertical-face cancellation statement: the finite
@@ -896,7 +912,35 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_tendsto_ze
               (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℂ))
       Filter.atTop
       (𝓝 0) := by
-  sorry
+  have hfaces :
+      Filter.Tendsto
+        (fun N : ℕ =>
+          ∑ ι in ZetaPrimePowerIndex.box N,
+            zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f +
+              zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f)
+        Filter.atTop
+        (𝓝 0) :=
+    zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_boxSum_tendsto_zero_contourTomography_source
+      f
+  have hpoint :
+      (fun N : ℕ =>
+        ∑ ι in ZetaPrimePowerIndex.box N,
+          zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f +
+            zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f) =
+      (fun N : ℕ =>
+        ∑ ι in ZetaPrimePowerIndex.box N,
+          ((2 : ℝ) *
+            Complex.re
+              (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) : ℂ)) := by
+    funext N
+    exact
+      zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_boxSum_eq_realShadow
+        N f
+  exact Eq.subst
+    (motive := fun v : ℕ → ℂ =>
+      Filter.Tendsto v Filter.atTop (𝓝 0))
+    hpoint
+    hfaces
 
 /-- Upstream contour-tomography cancellation for the completed oriented
 prime-power cross total.
