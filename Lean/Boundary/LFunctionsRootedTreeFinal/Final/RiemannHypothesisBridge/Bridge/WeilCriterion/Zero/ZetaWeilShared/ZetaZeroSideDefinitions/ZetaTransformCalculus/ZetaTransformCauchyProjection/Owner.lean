@@ -5514,6 +5514,35 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_setIntegral_eq_int
         (f := fun t : ℝ => F (t : ℂ))
         hle).symm
 
+/-- The real diameter maps into the lower half-disk. -/
+theorem scalarFourierLaplacePlemelj_realSegment_mapsTo_lowerHalfDisk
+    (T : ℝ) (_hT : 0 ≤ T) :
+    Set.MapsTo
+      (fun x : ℝ => (x : ℂ))
+      (Set.Icc (-T) T)
+      (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
+  intro x hx
+  have hnorm : ‖(x : ℂ)‖ ≤ T := by
+    calc
+      ‖(x : ℂ)‖ = ‖x‖ := by
+        exact Complex.norm_real x
+      _ = |x| := by
+        exact Real.norm_eq_abs x
+      _ ≤ T := by
+        exact abs_le.mpr hx
+  have him : Complex.im (x : ℂ) ≤ 0 := by
+    exact le_of_eq (Complex.ofReal_im x)
+  exact ⟨hnorm, him⟩
+
+/-- Around an interior diameter point, the closed diameter interval is a
+neighborhood inside the right ray. -/
+theorem scalarFourierLaplacePlemelj_realSegment_Icc_mem_nhdsWithin_Ioi
+    (T t : ℝ) (_ht : t ∈ Set.Ioo (-T) T) :
+    Set.Icc (-T) T ∈ 𝓝[Set.Ioi t] t := by
+  exact
+    Icc_mem_nhdsWithin_Ioi
+      ⟨le_of_lt _ht.1, _ht.2⟩
+
 /-- Transport a complex lower-half-disk primitive derivative at a real interior
 point to the right real derivative along the diameter. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightDerivWithinAt_point_of_complexPrimitive
@@ -5582,26 +5611,6 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_primitiveFunction_continuousOn
     ContinuousOn G (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
   intro z hz
   exact (_hprimitive.2 z hz).continuousWithinAt
-
-/-- The real diameter maps into the lower half-disk. -/
-theorem scalarFourierLaplacePlemelj_realSegment_mapsTo_lowerHalfDisk
-    (T : ℝ) (_hT : 0 ≤ T) :
-    Set.MapsTo
-      (fun x : ℝ => (x : ℂ))
-      (Set.Icc (-T) T)
-      (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
-  intro x hx
-  have hnorm : ‖(x : ℂ)‖ ≤ T := by
-    calc
-      ‖(x : ℂ)‖ = ‖x‖ := by
-        exact Complex.norm_real x
-      _ = |x| := by
-        exact Real.norm_eq_abs x
-      _ ≤ T := by
-        exact abs_le.mpr hx
-  have him : Complex.im (x : ℂ) ≤ 0 := by
-    exact le_of_eq (Complex.ofReal_im x)
-  exact ⟨hnorm, him⟩
 
 /-- Primitive data on the lower half-disk makes the real-diameter primitive
 continuous on the closed diameter. -/
