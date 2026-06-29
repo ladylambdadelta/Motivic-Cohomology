@@ -6062,8 +6062,41 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
       (fun _ : ℝ => (-2 * (Real.pi : ℂ)))
   exact hvalue ▸ hbase
 
-/-- Positive-time compact-interval estimate for the normalized scalar
-Fourier-Laplace Plemelj kernel. -/
+/-- The positive upper-arc Jordan majorant remains bounded after multiplication
+by the compensating exponential on compact intervals away from zero. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_awayZero_mulExp_bound_eventually
+    (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            δ ≤ x →
+            ‖x‖ ≤ R →
+              scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T *
+                ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ C := by
+  sorry
+
+/-- Positive upper-arc away-from-zero estimate from its Jordan majorant. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArc_awayZero_mulExp_norm_bound_eventually_of_jordan
+    (a : ℝ) (ha : 0 < a) (R δ Cj : ℝ) (hδ : 0 < δ)
+    (hCj_nonneg : 0 ≤ Cj)
+    (hjordan :
+      ∀ᶠ T in atTop,
+        ∀ x : ℝ,
+          δ ≤ x →
+          ‖x‖ ≤ R →
+            scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T *
+              ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ Cj) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            δ ≤ x →
+            ‖x‖ ≤ R →
+              ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T *
+                Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ C := by
+  sorry
+
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_awayZero_mulExp_norm_bound_eventually
     (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
     ∃ C : ℝ,
@@ -6074,7 +6107,14 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArc_awayZero_mulExp_norm_bound_
             ‖x‖ ≤ R →
               ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T *
                 Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ C := by
-  sorry
+  match
+    scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_awayZero_mulExp_bound_eventually
+      a ha R δ hδ
+  with
+  | ⟨Cj, hCj_nonneg, hjordan⟩ =>
+      exact
+        scalarFourierLaplacePlemelj_positiveUpperArc_awayZero_mulExp_norm_bound_eventually_of_jordan
+          a ha R δ Cj hδ hCj_nonneg hjordan
 
 /-- Positive away-from-zero window bound from the upper-arc bound and the
 positive residue identity. -/
