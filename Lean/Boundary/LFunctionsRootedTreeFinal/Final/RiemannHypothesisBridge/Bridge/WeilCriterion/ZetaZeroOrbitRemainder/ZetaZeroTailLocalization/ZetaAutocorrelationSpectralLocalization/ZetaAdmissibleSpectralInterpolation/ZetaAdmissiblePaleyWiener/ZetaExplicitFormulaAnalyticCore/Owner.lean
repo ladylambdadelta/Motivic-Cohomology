@@ -526,10 +526,31 @@ theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpec
           exact congrArg (fun x : ℝ => x * Dpos) (mul_comm Cneg Cpos)
     exact hmul_bounds.trans (hright_shrink.trans (le_of_eq halgebra))
 
-/-- Paley-Wiener rapid decay of an admissible source's Laplace transform at
-positive prime-power centers. -/
-theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay_source
+/-- Real-axis Paley-Wiener rapid decay of an admissible source's Laplace
+transform. -/
+theorem zetaCompletedExplicitFormulaPhi_positive_realAxisRapidDecay_source
     (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 ≤ C ∧
+        ∀ x : ℝ,
+          0 ≤ x →
+          ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction'
+              (x : ℂ)‖ ≤
+            C * (1 + ‖x‖) ^ (-(k + 3 : ℤ)) := by
+  sorry
+
+/-- Prime-power sampling transfers admissible real-axis rapid decay to
+rectangular prime-power height decay. -/
+theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay_from_realAxis
+    (f : ZetaAdmissibleFunction)
+    (hreal :
+      ∃ C : ℝ, ∃ k : ℕ,
+        0 ≤ C ∧
+          ∀ x : ℝ,
+            0 ≤ x →
+            ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction'
+                (x : ℂ)‖ ≤
+              C * (1 + ‖x‖) ^ (-(k + 3 : ℤ))) :
     ∃ C : ℝ, ∃ k : ℕ,
       0 ≤ C ∧
         ∀ ι : ZetaPrimePowerIndex,
@@ -549,8 +570,9 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay
               (ZetaPrimePowerIndex.center ι)‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
   obtain ⟨C, k, hC, hbound⟩ :=
-    zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay_source
+    zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay_from_realAxis
       f
+      (zetaCompletedExplicitFormulaPhi_positive_realAxisRapidDecay_source f)
   refine ⟨C, k, hC, ?_⟩
   intro ι
   have hphi :
