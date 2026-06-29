@@ -671,6 +671,23 @@ theorem polynomialHeightDecay_pos
     (one_add_nat_norm_pos ι.height)
     (-(k + 3 : ℤ))
 
+/-- Rectangular-height decay is bounded by one. -/
+theorem polynomialHeightDecay_le_one
+    (k : ℕ) (ι : ZetaPrimePowerIndex) :
+    polynomialHeightDecay k ι ≤ 1 := by
+  let X : ℝ := 1 + ‖((ι.height : ℕ) : ℝ)‖
+  have hX_one : 1 ≤ X := by
+    exact le_add_of_nonneg_right (norm_nonneg ((ι.height : ℕ) : ℝ))
+  have hexp : (-(k + 3 : ℤ)) ≤ 0 := by
+    exact neg_nonpos.mpr (Int.ofNat_nonneg (k + 3))
+  unfold polynomialHeightDecay
+  change X ^ (-(k + 3 : ℤ)) ≤ 1
+  calc
+    X ^ (-(k + 3 : ℤ)) ≤ X ^ (0 : ℤ) := by
+      exact zpow_le_zpow_right₀ hX_one hexp
+    _ = 1 := by
+      exact zpow_zero X
+
 /-- Increasing the requested polynomial decay exponent only decreases the
 rectangular-height decay majorant. -/
 theorem polynomialHeightDecay_le_of_le

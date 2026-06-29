@@ -459,6 +459,95 @@ noncomputable def zetaCompletedExplicitFormulaPrimePowerSpectralSampleContributi
   ∑' ι : ZetaPrimePowerIndex,
     zetaCompletedExplicitFormulaPrimePowerSpectralSampleCoordinate ι f
 
+/-- Positive real-axis spectral majorant at prime-power centers. -/
+theorem zetaCompletedExplicitFormulaPhi_primePowerCenter_realAxisSpectralMajorant
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 ≤ C ∧
+        ∀ ι : ZetaPrimePowerIndex,
+          ‖zetaCompletedExplicitFormulaPhi f (ZetaPrimePowerIndex.center ι)‖ ≤
+            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  sorry
+
+/-- Negative real-axis spectral majorant at reflected prime-power centers. -/
+theorem zetaCompletedExplicitFormulaPhi_primePowerNegativeCenter_realAxisSpectralMajorant
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 ≤ C ∧
+        ∀ ι : ZetaPrimePowerIndex,
+          ‖star
+            (zetaCompletedExplicitFormulaPhi f
+              (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
+            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  sorry
+
+/-- Seed-pair real-axis spectral majorant assembled from the two one-sided
+prime-power-center spectral majorants. -/
+theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpectralMajorant_of_oneSided
+    (f : ZetaAdmissibleFunction)
+    (Cpos Cneg : ℝ) (kpos kneg : ℕ)
+    (hCpos : 0 ≤ Cpos) (hCneg : 0 ≤ Cneg)
+    (hpos :
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖zetaCompletedExplicitFormulaPhi f (ZetaPrimePowerIndex.center ι)‖ ≤
+          Cpos * ZetaPrimePowerIndex.polynomialHeightDecay kpos ι)
+    (hneg :
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖star
+          (zetaCompletedExplicitFormulaPhi f
+            (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
+          Cneg * ZetaPrimePowerIndex.polynomialHeightDecay kneg ι) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 ≤ C ∧
+        ∀ ι : ZetaPrimePowerIndex,
+          ‖zetaCompletedExplicitFormulaPhi f (ZetaPrimePowerIndex.center ι)‖ *
+              ‖star
+                (zetaCompletedExplicitFormulaPhi f
+                  (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
+            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  refine ⟨Cpos * Cneg, kpos, ?_, ?_⟩
+  · exact mul_nonneg hCpos hCneg
+  · intro ι
+    let A : ℝ :=
+      ‖zetaCompletedExplicitFormulaPhi f (ZetaPrimePowerIndex.center ι)‖
+    let B : ℝ :=
+      ‖star
+        (zetaCompletedExplicitFormulaPhi f
+          (-(ZetaPrimePowerIndex.center ι : ℂ)))‖
+    let Dpos : ℝ := ZetaPrimePowerIndex.polynomialHeightDecay kpos ι
+    let Dneg : ℝ := ZetaPrimePowerIndex.polynomialHeightDecay kneg ι
+    have hA_nonneg : 0 ≤ A := norm_nonneg _
+    have hB_nonneg : 0 ≤ B := norm_nonneg _
+    have hDpos_nonneg : 0 ≤ Dpos :=
+      ZetaPrimePowerIndex.polynomialHeightDecay_nonnegative kpos ι
+    have hDneg_le_one : Dneg ≤ 1 :=
+      ZetaPrimePowerIndex.polynomialHeightDecay_le_one kneg ι
+    have hpos_ι : A ≤ Cpos * Dpos := hpos ι
+    have hneg_ι : B ≤ Cneg * Dneg := hneg ι
+    have hCposDpos_nonneg : 0 ≤ Cpos * Dpos :=
+      mul_nonneg hCpos hDpos_nonneg
+    have hmul_bounds : A * B ≤ (Cpos * Dpos) * (Cneg * Dneg) :=
+      mul_le_mul hpos_ι hneg_ι hB_nonneg hCposDpos_nonneg
+    have hDneg_nonneg : 0 ≤ Dneg :=
+      ZetaPrimePowerIndex.polynomialHeightDecay_nonnegative kneg ι
+    have hCnegDneg_le_Cneg : Cneg * Dneg ≤ Cneg * 1 :=
+      mul_le_mul_of_nonneg_left hDneg_le_one hCneg
+    have hright_shrink :
+        (Cpos * Dpos) * (Cneg * Dneg) ≤ (Cpos * Dpos) * (Cneg * 1) :=
+      mul_le_mul_of_nonneg_left hCnegDneg_le_Cneg hCposDpos_nonneg
+    have halgebra :
+        (Cpos * Dpos) * (Cneg * 1) = (Cpos * Cneg) * Dpos := by
+      calc
+        (Cpos * Dpos) * (Cneg * 1) = (Cpos * Dpos) * Cneg := by
+          exact congrArg (fun x : ℝ => (Cpos * Dpos) * x) (mul_one Cneg)
+        _ = Cneg * (Cpos * Dpos) := by
+          exact mul_comm (Cpos * Dpos) Cneg
+        _ = (Cneg * Cpos) * Dpos := by
+          exact mul_assoc Cneg Cpos Dpos
+        _ = (Cpos * Cneg) * Dpos := by
+          exact congrArg (fun x : ℝ => x * Dpos) (mul_comm Cneg Cpos)
+    exact hmul_bounds.trans (hright_shrink.trans (le_of_eq halgebra))
+
 /-- Real-axis prime-power spectral seed-pair summability majorant.
 
 This is the real-axis estimate for the spectral/Laplace prime sample.  It is
@@ -473,9 +562,17 @@ theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpec
           ‖zetaCompletedExplicitFormulaPhi f (ZetaPrimePowerIndex.center ι)‖ *
               ‖star
                 (zetaCompletedExplicitFormulaPhi f
-                  (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
+                (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  sorry
+  obtain ⟨Cpos, kpos, hCpos, hpos⟩ :=
+    zetaCompletedExplicitFormulaPhi_primePowerCenter_realAxisSpectralMajorant
+      f
+  obtain ⟨Cneg, kneg, hCneg, hneg⟩ :=
+    zetaCompletedExplicitFormulaPhi_primePowerNegativeCenter_realAxisSpectralMajorant
+      f
+  exact
+    zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpectralMajorant_of_oneSided
+      f Cpos Cneg kpos kneg hCpos hCneg hpos hneg
 
 /-- Real-axis spectral seed-pair majorant at prime-power centers, in the real norm shape
 needed by the paired seed estimate. -/
