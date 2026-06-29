@@ -6845,13 +6845,120 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_uniform_bound
       scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_pi
         a ha T x⟩
 
+/-- Positive-frequency normalized half-window Hilbert-sine Dirichlet bound. -/
+theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_pos_frequency
+    (R y : ℝ) (hy : 0 < y) :
+    |∫ u in (0)..R,
+      (u / (1 + u ^ 2)) * Real.sin (y * u)| ≤
+      Real.pi / 2 := by
+  sorry
+
+/-- Changing the sign of the frequency negates the normalized half-window
+Hilbert-sine integral. -/
+theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_neg_frequency
+    (R y : ℝ) :
+    (∫ u in (0)..R,
+      (u / (1 + u ^ 2)) * Real.sin ((-y) * u)) =
+      -∫ u in (0)..R,
+        (u / (1 + u ^ 2)) * Real.sin (y * u) := by
+  let F : ℝ → ℝ :=
+    fun u : ℝ => (u / (1 + u ^ 2)) * Real.sin (y * u)
+  have hpoint :
+      ∀ u : ℝ,
+        (u / (1 + u ^ 2)) * Real.sin ((-y) * u) = -F u := by
+    intro u
+    have harg : (-y) * u = -(y * u) :=
+      neg_mul y u
+    have hsin : Real.sin ((-y) * u) = -Real.sin (y * u) :=
+      (congrArg Real.sin harg).trans (Real.sin_neg (y * u))
+    calc
+      (u / (1 + u ^ 2)) * Real.sin ((-y) * u)
+          = (u / (1 + u ^ 2)) * (-Real.sin (y * u)) := by
+            exact congrArg
+              (fun s : ℝ => (u / (1 + u ^ 2)) * s)
+              hsin
+      _ = -((u / (1 + u ^ 2)) * Real.sin (y * u)) := by
+            exact mul_neg (u / (1 + u ^ 2)) (Real.sin (y * u))
+      _ = -F u := by
+            unfold F
+            rfl
+  calc
+    (∫ u in (0)..R,
+      (u / (1 + u ^ 2)) * Real.sin ((-y) * u))
+        = ∫ u in (0)..R, -F u := by
+          exact intervalIntegral.integral_congr
+            (Filter.Eventually.of_forall hpoint)
+    _ = -∫ u in (0)..R, F u := by
+          exact intervalIntegral.integral_neg
+    _ =
+        -∫ u in (0)..R,
+          (u / (1 + u ^ 2)) * Real.sin (y * u) := by
+          unfold F
+          rfl
+
 /-- Nonzero-frequency normalized half-window Hilbert-sine Dirichlet bound. -/
 theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_ne_zero
     (R y : ℝ) (hy : y ≠ 0) :
     |∫ u in (0)..R,
       (u / (1 + u ^ 2)) * Real.sin (y * u)| ≤
       Real.pi / 2 := by
-  sorry
+  match lt_or_gt_of_ne hy with
+  | Or.inl hy_neg =>
+      let yp : ℝ := -y
+      have hyp_pos : 0 < yp := by
+        unfold yp
+        exact neg_pos.mpr hy_neg
+      have hneg :
+          (∫ u in (0)..R,
+            (u / (1 + u ^ 2)) * Real.sin (y * u)) =
+            -∫ u in (0)..R,
+              (u / (1 + u ^ 2)) * Real.sin (yp * u) := by
+        have hy_eq : y = -yp := by
+          unfold yp
+          exact (neg_neg y).symm
+        calc
+          (∫ u in (0)..R,
+            (u / (1 + u ^ 2)) * Real.sin (y * u))
+              =
+              ∫ u in (0)..R,
+                (u / (1 + u ^ 2)) * Real.sin ((-yp) * u) := by
+                exact intervalIntegral.integral_congr
+                  (Filter.Eventually.of_forall
+                    (fun u : ℝ => by
+                      exact congrArg
+                        (fun z : ℝ =>
+                          (u / (1 + u ^ 2)) * Real.sin (z * u))
+                        hy_eq))
+          _ =
+              -∫ u in (0)..R,
+                (u / (1 + u ^ 2)) * Real.sin (yp * u) := by
+                exact
+                  scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_neg_frequency
+                    R yp
+      have hpos :
+          |∫ u in (0)..R,
+            (u / (1 + u ^ 2)) * Real.sin (yp * u)| ≤
+            Real.pi / 2 :=
+        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_pos_frequency
+          R yp hyp_pos
+      calc
+        |∫ u in (0)..R,
+          (u / (1 + u ^ 2)) * Real.sin (y * u)|
+            =
+            |-∫ u in (0)..R,
+              (u / (1 + u ^ 2)) * Real.sin (yp * u)| := by
+              exact congrArg abs hneg
+        _ =
+            |∫ u in (0)..R,
+              (u / (1 + u ^ 2)) * Real.sin (yp * u)| := by
+              exact abs_neg
+                (∫ u in (0)..R,
+                  (u / (1 + u ^ 2)) * Real.sin (yp * u))
+        _ ≤ Real.pi / 2 := hpos
+  | Or.inr hy_pos =>
+      exact
+        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_pos_frequency
+          R y hy_pos
 
 theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two
     (R y : ℝ) :
