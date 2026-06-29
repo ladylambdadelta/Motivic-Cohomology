@@ -715,6 +715,222 @@ theorem fixedRightLine_weightedKernel_fourierIntegral_inverseQuadraticDecay
             ≤ B * (1 + ‖t‖) ^ (-(2 : ℤ)) := by
   sorry
 
+/-- Imaginary part of the shifted fixed-line Cauchy denominator. -/
+theorem fixedRightLine_cauchyDenominator_im
+    (c t : ℝ) :
+    ((((c : ℂ) + t * Complex.I) - 1).im) = t := by
+  calc
+    ((((c : ℂ) + t * Complex.I) - 1).im)
+        = (((c : ℂ) + t * Complex.I).im) - (1 : ℂ).im := by
+          exact Complex.sub_im ((c : ℂ) + t * Complex.I) 1
+    _ = ((c : ℂ).im + (t * Complex.I).im) - (1 : ℂ).im := by
+          exact congrArg
+            (fun x : ℝ => x - (1 : ℂ).im)
+            (Complex.add_im (c : ℂ) (t * Complex.I))
+    _ = ((c : ℂ).im + t) - (1 : ℂ).im := by
+          exact congrArg
+            (fun x : ℝ => ((c : ℂ).im + x) - (1 : ℂ).im)
+            (Complex.mul_I_im (t : ℂ))
+    _ = (0 + t) - (1 : ℂ).im := by
+          exact congrArg
+            (fun x : ℝ => (x + t) - (1 : ℂ).im)
+            (Complex.ofReal_im c)
+    _ = (0 + t) - 0 := by
+          exact congrArg
+            (fun x : ℝ => (0 + t) - x)
+            Complex.one_im
+    _ = 0 + t := by
+          exact sub_zero (0 + t)
+    _ = t := by
+          exact zero_add t
+
+/-- The fixed-line Cauchy denominator norm dominates the vertical frequency. -/
+theorem fixedRightLine_abs_frequency_le_cauchyDenominator_norm
+    (c t : ℝ) :
+    ‖t‖ ≤ ‖(((c : ℂ) + t * Complex.I) - 1)‖ := by
+  have hIm :
+      ((((c : ℂ) + t * Complex.I) - 1).im) = t :=
+    fixedRightLine_cauchyDenominator_im c t
+  have hAbsIm :
+      |((((c : ℂ) + t * Complex.I) - 1).im)| ≤
+        Complex.abs (((c : ℂ) + t * Complex.I) - 1) :=
+    Complex.abs_im_le_abs (((c : ℂ) + t * Complex.I) - 1)
+  have hNormEqAbs :
+      ‖(((c : ℂ) + t * Complex.I) - 1)‖ =
+        Complex.abs (((c : ℂ) + t * Complex.I) - 1) :=
+    Complex.norm_eq_abs (((c : ℂ) + t * Complex.I) - 1)
+  calc
+    ‖t‖
+        = |t| := by
+          exact Real.norm_eq_abs t
+    _ = |((((c : ℂ) + t * Complex.I) - 1).im)| := by
+          exact congrArg abs hIm.symm
+    _ ≤ Complex.abs (((c : ℂ) + t * Complex.I) - 1) := by
+          exact hAbsIm
+    _ = ‖(((c : ℂ) + t * Complex.I) - 1)‖ := by
+          exact hNormEqAbs.symm
+
+/-- Real part of the shifted fixed-line Cauchy denominator. -/
+theorem fixedRightLine_cauchyDenominator_re
+    (c t : ℝ) :
+    ((((c : ℂ) + t * Complex.I) - 1).re) = c - 1 := by
+  calc
+    ((((c : ℂ) + t * Complex.I) - 1).re)
+        = (((c : ℂ) + t * Complex.I).re) - (1 : ℂ).re := by
+          exact Complex.sub_re ((c : ℂ) + t * Complex.I) 1
+    _ = ((c : ℂ).re + (t * Complex.I).re) - (1 : ℂ).re := by
+          exact congrArg
+            (fun x : ℝ => x - (1 : ℂ).re)
+            (Complex.add_re (c : ℂ) (t * Complex.I))
+    _ = ((c : ℂ).re + -((t : ℂ).im)) - (1 : ℂ).re := by
+          exact congrArg
+            (fun x : ℝ => ((c : ℂ).re + x) - (1 : ℂ).re)
+            (Complex.mul_I_re (t : ℂ))
+    _ = ((c : ℂ).re + -0) - (1 : ℂ).re := by
+          exact congrArg
+            (fun x : ℝ => ((c : ℂ).re + -x) - (1 : ℂ).re)
+            (Complex.ofReal_im t)
+    _ = ((c : ℂ).re + 0) - (1 : ℂ).re := by
+          exact congrArg
+            (fun x : ℝ => ((c : ℂ).re + x) - (1 : ℂ).re)
+            (neg_zero : -(0 : ℝ) = 0)
+    _ = (c + 0) - (1 : ℂ).re := by
+          exact congrArg
+            (fun x : ℝ => (x + 0) - (1 : ℂ).re)
+            (Complex.ofReal_re c)
+    _ = (c + 0) - 1 := by
+          exact congrArg
+            (fun x : ℝ => (c + 0) - x)
+            Complex.one_re
+    _ = c - 1 := by
+          exact congrArg (fun x : ℝ => x - 1) (add_zero c)
+
+/-- The fixed-line Cauchy denominator norm dominates the horizontal distance
+from the pole. -/
+theorem fixedRightLine_rate_le_cauchyDenominator_norm
+    (c t : ℝ) (hc : 1 < c) :
+    c - 1 ≤ ‖(((c : ℂ) + t * Complex.I) - 1)‖ := by
+  have hRe :
+      ((((c : ℂ) + t * Complex.I) - 1).re) = c - 1 :=
+    fixedRightLine_cauchyDenominator_re c t
+  have hAbsRe :
+      |((((c : ℂ) + t * Complex.I) - 1).re)| ≤
+        Complex.abs (((c : ℂ) + t * Complex.I) - 1) :=
+    Complex.abs_re_le_abs (((c : ℂ) + t * Complex.I) - 1)
+  have hNormEqAbs :
+      ‖(((c : ℂ) + t * Complex.I) - 1)‖ =
+        Complex.abs (((c : ℂ) + t * Complex.I) - 1) :=
+    Complex.norm_eq_abs (((c : ℂ) + t * Complex.I) - 1)
+  have hRateNonnegative :
+      0 ≤ c - 1 :=
+    (sub_pos.mpr hc).le
+  calc
+    c - 1
+        = |c - 1| := by
+          exact (abs_of_nonneg hRateNonnegative).symm
+    _ = |((((c : ℂ) + t * Complex.I) - 1).re)| := by
+          exact congrArg abs hRe.symm
+    _ ≤ Complex.abs (((c : ℂ) + t * Complex.I) - 1) := by
+          exact hAbsRe
+    _ = ‖(((c : ℂ) + t * Complex.I) - 1)‖ := by
+          exact hNormEqAbs.symm
+
+/-- The fixed-line Cauchy denominator is nonzero on the right of the pole. -/
+theorem fixedRightLine_cauchyDenominator_ne_zero
+    (c t : ℝ) (hc : 1 < c) :
+    (((c : ℂ) + t * Complex.I) - 1) ≠ 0 := by
+  have hRealPart :
+      ((((c : ℂ) + t * Complex.I) - 1).re) = c - 1 := by
+    exact fixedRightLine_cauchyDenominator_re c t
+  have hPositive :
+      0 < c - 1 :=
+    sub_pos.mpr hc
+  exact
+    fun hZero =>
+      (ne_of_gt hPositive)
+        (Eq.trans hRealPart (congrArg Complex.re hZero))
+
+/-- The reciprocal of the fixed-line Cauchy denominator is bounded after
+multiplication by the Japanese bracket. -/
+theorem fixedRightLine_cauchyMultiplier_bracketed_bound
+    (c : ℝ) (hc : 1 < c) (t : ℝ) :
+    ‖(-1 / (((c : ℂ) + t * Complex.I) - 1))‖ * (1 + ‖t‖)
+      ≤ 1 + (c - 1)⁻¹ := by
+  have hDenomNe :
+      (((c : ℂ) + t * Complex.I) - 1) ≠ 0 :=
+    fixedRightLine_cauchyDenominator_ne_zero c t hc
+  have hFreq :
+      ‖t‖ ≤ ‖(((c : ℂ) + t * Complex.I) - 1)‖ :=
+    fixedRightLine_abs_frequency_le_cauchyDenominator_norm c t
+  have hRatePos :
+      0 < c - 1 :=
+    sub_pos.mpr hc
+  have hRateNorm :
+      c - 1 ≤ ‖(((c : ℂ) + t * Complex.I) - 1)‖ := by
+    exact fixedRightLine_rate_le_cauchyDenominator_norm c t hc
+  have hDenomPos :
+      0 < ‖(((c : ℂ) + t * Complex.I) - 1)‖ :=
+    norm_pos_iff.mpr hDenomNe
+  calc
+    ‖(-1 / (((c : ℂ) + t * Complex.I) - 1))‖ * (1 + ‖t‖)
+        =
+        ‖(((c : ℂ) + t * Complex.I) - 1)‖⁻¹ * (1 + ‖t‖) := by
+          have hNormNegOne :
+              ‖(-1 : ℂ)‖ = 1 := by
+            calc
+              ‖(-1 : ℂ)‖ = ‖(1 : ℂ)‖ := by
+                exact norm_neg (1 : ℂ)
+              _ = 1 := by
+                exact norm_one
+          calc
+            ‖(-1 / (((c : ℂ) + t * Complex.I) - 1))‖ * (1 + ‖t‖)
+                =
+                (‖(-1 : ℂ)‖ / ‖(((c : ℂ) + t * Complex.I) - 1)‖) *
+                  (1 + ‖t‖) := by
+                  exact congrArg
+                    (fun x : ℝ => x * (1 + ‖t‖))
+                    (norm_div (-1 : ℂ) (((c : ℂ) + t * Complex.I) - 1))
+            _ =
+                (1 / ‖(((c : ℂ) + t * Complex.I) - 1)‖) *
+                  (1 + ‖t‖) := by
+                  exact congrArg
+                    (fun x : ℝ =>
+                      (x / ‖(((c : ℂ) + t * Complex.I) - 1)‖) *
+                        (1 + ‖t‖))
+                    hNormNegOne
+            _ =
+                ‖(((c : ℂ) + t * Complex.I) - 1)‖⁻¹ * (1 + ‖t‖) := by
+                  exact congrArg
+                    (fun x : ℝ => x * (1 + ‖t‖))
+                    (one_div ‖(((c : ℂ) + t * Complex.I) - 1)‖)
+    _ =
+        ‖(((c : ℂ) + t * Complex.I) - 1)‖⁻¹ +
+          ‖(((c : ℂ) + t * Complex.I) - 1)‖⁻¹ * ‖t‖ := by
+          calc
+            ‖(((c : ℂ) + t * Complex.I) - 1)‖⁻¹ * (1 + ‖t‖)
+                =
+                ‖(((c : ℂ) + t * Complex.I) - 1)‖⁻¹ * 1 +
+                  ‖(((c : ℂ) + t * Complex.I) - 1)‖⁻¹ * ‖t‖ := by
+                  exact mul_add
+                    ‖(((c : ℂ) + t * Complex.I) - 1)‖⁻¹
+                    1
+                    ‖t‖
+            _ =
+                ‖(((c : ℂ) + t * Complex.I) - 1)‖⁻¹ +
+                  ‖(((c : ℂ) + t * Complex.I) - 1)‖⁻¹ * ‖t‖ := by
+                  exact congrArg
+                    (fun x : ℝ =>
+                      x +
+                        ‖(((c : ℂ) + t * Complex.I) - 1)‖⁻¹ * ‖t‖)
+                    (mul_one ‖(((c : ℂ) + t * Complex.I) - 1)‖⁻¹)
+    _ ≤
+        (c - 1)⁻¹ + 1 := by
+          exact add_le_add
+            (inv_le_inv_of_le hRatePos hRateNorm)
+            (inv_mul_le_one₀ hFreq hDenomPos.le)
+    _ = 1 + (c - 1)⁻¹ := by
+          exact add_comm ((c - 1)⁻¹) 1
+
 /-- The fixed right Cauchy multiplier contributes one inverse power on the
 vertical frequency variable. -/
 theorem fixedRightLine_cauchyMultiplier_norm_inverseLinearBound
@@ -724,7 +940,45 @@ theorem fixedRightLine_cauchyMultiplier_norm_inverseLinearBound
         ∀ t : ℝ,
           ‖(-1 / (((c : ℂ) + t * Complex.I) - 1))‖
             ≤ D * (1 + ‖t‖) ^ (-(1 : ℤ)) := by
-  sorry
+  have hRatePos :
+      0 < c - 1 :=
+    sub_pos.mpr hc
+  have hDpos :
+      0 < 1 + (c - 1)⁻¹ :=
+    add_pos zero_lt_one (inv_pos.mpr hRatePos)
+  exact
+    ⟨1 + (c - 1)⁻¹,
+      And.intro
+        hDpos
+        (fun t : ℝ =>
+          have hBracketPos :
+              0 < 1 + ‖t‖ :=
+            lt_of_lt_of_le zero_lt_one
+              (le_add_of_nonneg_right (norm_nonneg t))
+          have hBracketed :
+              ‖(-1 / (((c : ℂ) + t * Complex.I) - 1))‖ *
+                  (1 + ‖t‖)
+                ≤ 1 + (c - 1)⁻¹ :=
+            fixedRightLine_cauchyMultiplier_bracketed_bound c hc t
+          calc
+            ‖(-1 / (((c : ℂ) + t * Complex.I) - 1))‖
+                ≤ (1 + (c - 1)⁻¹) / (1 + ‖t‖) := by
+                  exact (le_div_iff₀ hBracketPos).mpr hBracketed
+            _ =
+                (1 + (c - 1)⁻¹) * (1 + ‖t‖) ^ (-(1 : ℤ)) := by
+                  calc
+                    (1 + (c - 1)⁻¹) / (1 + ‖t‖)
+                        =
+                        (1 + (c - 1)⁻¹) * (1 + ‖t‖)⁻¹ := by
+                          exact div_eq_mul_inv
+                            (1 + (c - 1)⁻¹)
+                            (1 + ‖t‖)
+                    _ =
+                        (1 + (c - 1)⁻¹) *
+                          (1 + ‖t‖) ^ (-(1 : ℤ)) := by
+                          exact congrArg
+                            (fun x : ℝ => (1 + (c - 1)⁻¹) * x)
+                            (zpow_neg_one (1 + ‖t‖)).symm)⟩
 
 /-- Japanese-bracket z-powers multiply additively in the exponents used by the
 Cauchy multiplier and Fourier-kernel decay estimates. -/
