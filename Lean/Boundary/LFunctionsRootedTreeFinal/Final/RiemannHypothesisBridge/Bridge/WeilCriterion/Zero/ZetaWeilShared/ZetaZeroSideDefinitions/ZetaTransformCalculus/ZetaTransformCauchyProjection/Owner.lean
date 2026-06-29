@@ -6847,11 +6847,11 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_uniform_bound
 
 /-- Nonnegative-radius, positive-frequency normalized half-window Hilbert-sine
 Dirichlet bound. -/
-theorem scalarFourierLaplacePlemelj_dampedSineIntegral_abs_le_pi_div_two
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_abs_le_pi
     (A b : ℝ) (hA : 0 ≤ A) (hb : 0 < b) :
     |∫ v in (0)..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
-      Real.pi / 2 := by
+      Real.pi := by
   sorry
 
 /-- Positive-frequency change of variables `v = y*u` for the normalized
@@ -6944,11 +6944,11 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_eq_dampedSin
           unfold G
           rfl
 
-theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_nonneg_radius_pos_frequency
+theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_of_nonneg_radius_pos_frequency
     (R y : ℝ) (hR : 0 ≤ R) (hy : 0 < y) :
     |∫ u in (0)..R,
       (u / (1 + u ^ 2)) * Real.sin (y * u)| ≤
-      Real.pi / 2 := by
+      Real.pi := by
   have hA_nonneg : 0 ≤ y * R :=
     mul_nonneg hy.le hR
   have hscale :
@@ -6965,8 +6965,8 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_di
         |∫ v in (0)..(y * R),
           (v / (y ^ 2 + v ^ 2)) * Real.sin v| := by
           exact congrArg abs hscale
-    _ ≤ Real.pi / 2 :=
-        scalarFourierLaplacePlemelj_dampedSineIntegral_abs_le_pi_div_two
+    _ ≤ Real.pi :=
+        scalarFourierLaplacePlemelj_dampedSineIntegral_abs_le_pi
           (y * R) y hA_nonneg hy
 
 /-- The normalized Hilbert-sine kernel is even in the integration variable. -/
@@ -7002,15 +7002,15 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_integrand_ev
           exact neg_mul_neg (u / (1 + u ^ 2)) (Real.sin (y * u))
 
 /-- Positive-frequency normalized half-window Hilbert-sine Dirichlet bound. -/
-theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_pos_frequency
+theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_of_pos_frequency
     (R y : ℝ) (hy : 0 < y) :
     |∫ u in (0)..R,
       (u / (1 + u ^ 2)) * Real.sin (y * u)| ≤
-      Real.pi / 2 := by
+      Real.pi := by
   match le_or_gt 0 R with
   | Or.inl hR =>
       exact
-        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_nonneg_radius_pos_frequency
+        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_of_nonneg_radius_pos_frequency
           R y hR hy
   | Or.inr hR_neg =>
       let S : ℝ := -R
@@ -7053,10 +7053,10 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_di
           _ = -∫ u in (0)..S, F u := by
                 exact congrArg Neg.neg heven
       have hS_bound :
-          |∫ u in (0)..S, F u| ≤ Real.pi / 2 := by
+          |∫ u in (0)..S, F u| ≤ Real.pi := by
         unfold F
         exact
-          scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_nonneg_radius_pos_frequency
+          scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_of_nonneg_radius_pos_frequency
             S y hS_nonneg hy
       calc
         |∫ u in (0)..R,
@@ -7068,7 +7068,7 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_di
               exact congrArg abs hR_to_S
         _ = |∫ u in (0)..S, F u| := by
               exact abs_neg (∫ u in (0)..S, F u)
-        _ ≤ Real.pi / 2 := hS_bound
+        _ ≤ Real.pi := hS_bound
 
 /-- Changing the sign of the frequency negates the normalized half-window
 Hilbert-sine integral. -/
@@ -7114,11 +7114,11 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_neg_frequenc
           rfl
 
 /-- Nonzero-frequency normalized half-window Hilbert-sine Dirichlet bound. -/
-theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_ne_zero
+theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_of_ne_zero
     (R y : ℝ) (hy : y ≠ 0) :
     |∫ u in (0)..R,
       (u / (1 + u ^ 2)) * Real.sin (y * u)| ≤
-      Real.pi / 2 := by
+      Real.pi := by
   match lt_or_gt_of_ne hy with
   | Or.inl hy_neg =>
       let yp : ℝ := -y
@@ -7155,8 +7155,8 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_di
       have hpos :
           |∫ u in (0)..R,
             (u / (1 + u ^ 2)) * Real.sin (yp * u)| ≤
-            Real.pi / 2 :=
-        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_pos_frequency
+            Real.pi :=
+        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_of_pos_frequency
           R yp hyp_pos
       calc
         |∫ u in (0)..R,
@@ -7171,17 +7171,17 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_di
               exact abs_neg
                 (∫ u in (0)..R,
                   (u / (1 + u ^ 2)) * Real.sin (yp * u))
-        _ ≤ Real.pi / 2 := hpos
+        _ ≤ Real.pi := hpos
   | Or.inr hy_pos =>
       exact
-        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_pos_frequency
+        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_of_pos_frequency
           R y hy_pos
 
-theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two
+theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi
     (R y : ℝ) :
     |∫ u in (0)..R,
       (u / (1 + u ^ 2)) * Real.sin (y * u)| ≤
-      Real.pi / 2 := by
+      Real.pi := by
   match eq_or_ne y 0 with
   | Or.inl hy =>
       have hzero :
@@ -7208,17 +7208,15 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_di
                       exact mul_zero (u / (1 + u ^ 2))))
           _ = 0 := by
                 exact intervalIntegral.integral_zero
-      have htarget : |(0 : ℝ)| ≤ Real.pi / 2 := by
-        have hpi_half_nonneg : 0 ≤ Real.pi / 2 :=
-          div_nonneg Real.pi_pos.le zero_le_two
-        exact (abs_zero : |(0 : ℝ)| = 0).le.trans hpi_half_nonneg
+      have htarget : |(0 : ℝ)| ≤ Real.pi := by
+        exact (abs_zero : |(0 : ℝ)| = 0).le.trans Real.pi_pos.le
       exact Eq.subst
-        (motive := fun z : ℝ => |z| ≤ Real.pi / 2)
+        (motive := fun z : ℝ => |z| ≤ Real.pi)
         hzero.symm
         htarget
   | Or.inr hy =>
       exact
-        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_ne_zero
+        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_of_ne_zero
           R y hy
 
 /-- Scaling reduction from the width-`a` Hilbert-Cauchy sine kernel to the
@@ -7419,11 +7417,11 @@ theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_eq_normalized
               (Filter.Eventually.of_forall hpoint)
   exact hscale.trans hintegral
 
-theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_abs_le_pi_div_two
+theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_abs_le_pi
     (a : ℝ) (ha : 0 < a) (T x : ℝ) :
     |∫ t in (0)..T,
       (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| ≤
-      Real.pi / 2 := by
+      Real.pi := by
   have hscale :
       (∫ t in (0)..T,
         (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)) =
@@ -7438,8 +7436,8 @@ theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_abs_le_pi_div_two
         |∫ u in (0)..(T / a),
           (u / (1 + u ^ 2)) * Real.sin ((a * x) * u)| := by
           exact congrArg abs hscale
-    _ ≤ Real.pi / 2 :=
-        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two
+    _ ≤ Real.pi :=
+        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi
           (T / a) (a * x)
 
 
@@ -7545,11 +7543,11 @@ theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_symmetric_eq_two_hal
           rfl
 
 /-- Finite-window Dirichlet bound for the odd Hilbert-Cauchy sine kernel. -/
-theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_abs_le_pi
+theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_abs_le_two_pi
     (a : ℝ) (ha : 0 < a) (T x : ℝ) :
     |∫ t in Set.Icc (-T) T,
       (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| ≤
-      Real.pi := by
+      (2 : ℝ) * Real.pi := by
   have hsym :
       (∫ t in Set.Icc (-T) T,
         (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)) =
@@ -7561,8 +7559,8 @@ theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_abs_le_pi
   have hhalf :
       |∫ t in (0)..T,
         (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| ≤
-        Real.pi / 2 :=
-    scalarFourierLaplacePlemelj_halfHilbertSineKernel_abs_le_pi_div_two
+        Real.pi :=
+    scalarFourierLaplacePlemelj_halfHilbertSineKernel_abs_le_pi
       a ha T x
   have htwo_nonneg : (0 : ℝ) ≤ 2 :=
     zero_le_two
@@ -7598,10 +7596,8 @@ theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_abs_le_pi
       (2 : ℝ) *
         |∫ t in (0)..T,
           (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| ≤
-        2 * (Real.pi / 2) :=
+        2 * Real.pi :=
     mul_le_mul_of_nonneg_left hhalf htwo_nonneg
-  have htwo_half : (2 : ℝ) * (Real.pi / 2) = Real.pi :=
-    two_mul_div_two Real.pi
   calc
     |∫ t in Set.Icc (-T) T,
       (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)|
@@ -7614,27 +7610,26 @@ theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_abs_le_pi
         (2 : ℝ) *
           |∫ t in (0)..T,
             (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| := htwo_abs
-    _ ≤ 2 * (Real.pi / 2) := hscaled
-    _ = Real.pi := htwo_half
+    _ ≤ 2 * Real.pi := hscaled
 
 /-- Dirichlet bound for the odd-sine Cauchy component after the standard
 scale reduction. -/
-theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_scaled_abs_le_pi
+theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_scaled_abs_le_two_pi
     (a : ℝ) (ha : 0 < a) (T x : ℝ) :
     |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤
-      Real.pi := by
+      (2 : ℝ) * Real.pi := by
   exact
-    scalarFourierLaplacePlemelj_finiteHilbertSineKernel_abs_le_pi
+    scalarFourierLaplacePlemelj_finiteHilbertSineKernel_abs_le_two_pi
       a ha T x
 
 /-- Fixed-constant Dirichlet bound for the odd-sine component of the
 uncompensated Cauchy kernel. -/
-theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_abs_le_pi
+theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_abs_le_two_pi
     (a : ℝ) (ha : 0 < a) (T x : ℝ) :
     |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤
-      Real.pi := by
+      (2 : ℝ) * Real.pi := by
   exact
-    scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_scaled_abs_le_pi
+    scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_scaled_abs_le_two_pi
       a ha T x
 
 /-- Uniform Dirichlet bound for the odd-sine part of the uncompensated Cauchy
@@ -7645,9 +7640,9 @@ theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_uniform_bound
       0 ≤ C ∧
         ∀ T x : ℝ,
           |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤ C := by
-  exact ⟨Real.pi, Real.pi_pos.le,
+  exact ⟨(2 : ℝ) * Real.pi, mul_nonneg zero_le_two Real.pi_pos.le,
     fun T x =>
-      scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_abs_le_pi
+      scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_abs_le_two_pi
         a ha T x⟩
 
 /-- Multiplication of two complex numbers presented by real and imaginary
