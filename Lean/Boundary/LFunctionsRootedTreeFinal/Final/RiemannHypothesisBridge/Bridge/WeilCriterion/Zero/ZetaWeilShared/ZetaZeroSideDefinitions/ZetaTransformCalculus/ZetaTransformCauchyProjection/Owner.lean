@@ -7373,32 +7373,20 @@ theorem scalarFourierLaplacePlemelj_sine_intervalIntegral_abs_le_two
     _ = 2 := by
         rfl
 
-/-- Bonnet second mean value theorem for a monotone amplitude against the sine
-primitive. -/
-theorem scalarFourierLaplacePlemelj_bonnetSecondMeanValue_sinePrimitive_source
-    (g : ℝ → ℝ) (A c : ℝ)
-    (hone_le_c : 1 ≤ c) (hcA : c ≤ A)
-    (hg_nonneg : ∀ v ∈ Set.Ici c, 0 ≤ g v)
-    (hg_le_one : ∀ v ∈ Set.Ici c, g v ≤ 1)
-    (hg_antitone : AntitoneOn g (Set.Ici c)) :
-    ∃ ξ : ℝ, c ≤ ξ ∧ ξ ≤ A ∧
-      (∫ v in c..A, g v * Real.sin v) =
-        g A * (∫ v in c..A, Real.sin v) +
-          (g c - g A) * (∫ v in c..ξ, Real.sin v) := by
-  sorry
-
-theorem scalarFourierLaplacePlemelj_secondMeanValue_sine_tail_abs_le_two
-    (g : ℝ → ℝ) (A c : ℝ)
-    (hone_le_c : 1 ≤ c) (hcA : c ≤ A)
+theorem scalarFourierLaplacePlemelj_dirichletAbel_sine_tail_abs_le_two_of_bonnet_identity
+    (g : ℝ → ℝ) (A c ξ : ℝ)
+    (hcA : c ≤ A)
+    (hcξ : c ≤ ξ) (hξA : ξ ≤ A)
     (hg_nonneg : ∀ v ∈ Set.Ici c, 0 ≤ g v)
     (hg_le_one : ∀ v ∈ Set.Ici c, g v ≤ 1)
     (hg_antitone : AntitoneOn g (Set.Ici c))
     (hprimitive : ∀ x y : ℝ, c ≤ x → x ≤ y → y ≤ A →
-      |∫ v in x..y, Real.sin v| ≤ 2) :
+      |∫ v in x..y, Real.sin v| ≤ 2)
+    (hbonnet :
+      (∫ v in c..A, g v * Real.sin v) =
+        g A * (∫ v in c..A, Real.sin v) +
+          (g c - g A) * (∫ v in c..ξ, Real.sin v)) :
     |∫ v in c..A, g v * Real.sin v| ≤ 2 := by
-  obtain ⟨ξ, hcξ, hξA, hbonnet⟩ :=
-    scalarFourierLaplacePlemelj_bonnetSecondMeanValue_sinePrimitive_source
-      g A c hone_le_c hcA hg_nonneg hg_le_one hg_antitone
   have hA_mem : A ∈ Set.Ici c :=
     hcA
   have hc_mem : c ∈ Set.Ici c :=
@@ -7478,18 +7466,18 @@ theorem scalarFourierLaplacePlemelj_secondMeanValue_sine_tail_abs_le_two
           exact congrArg abs hbonnet
     _ ≤ 2 := hweighted
 
-theorem scalarFourierLaplacePlemelj_dirichlet_sine_tail_abs_le_two
-    (g : ℝ → ℝ) (A c : ℝ)
-    (hone_le_c : 1 ≤ c) (hcA : c ≤ A)
-    (hg_nonneg : ∀ v ∈ Set.Ici c, 0 ≤ g v)
-    (hg_le_one : ∀ v ∈ Set.Ici c, g v ≤ 1)
-    (hg_antitone : AntitoneOn g (Set.Ici c)) :
-    |∫ v in c..A, g v * Real.sin v| ≤ 2 := by
-  exact
-    scalarFourierLaplacePlemelj_secondMeanValue_sine_tail_abs_le_two
-      g A c hone_le_c hcA hg_nonneg hg_le_one hg_antitone
-      (fun x y _hcx _hxy _hyA =>
-        scalarFourierLaplacePlemelj_sine_intervalIntegral_abs_le_two x y)
+/-- Damped Cauchy-amplitude sine tail bound from integration by parts and
+total variation.
+
+This is the exact scalar tail estimate needed by the Plemelj projection.  Its
+proof is the finite-interval integration-by-parts calculation for
+`v / (b ^ 2 + v ^ 2)` against `sin`. -/
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_partsVariation_source
+    (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
+    (hb_le_c : b ≤ c) (hcA : c ≤ A) :
+    |∫ v in c..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 2 := by
+  sorry
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
     (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
@@ -7497,16 +7485,8 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
     |∫ v in c..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 2 := by
   exact
-    scalarFourierLaplacePlemelj_dirichlet_sine_tail_abs_le_two
-      (fun v : ℝ => v / (b ^ 2 + v ^ 2)) A c hone_le_c hcA
-      (fun v hv =>
-        scalarFourierLaplacePlemelj_highTailCauchyAmplitude_nonnegative
-          b c v hb hb_le_c hv)
-      (fun v hv =>
-        scalarFourierLaplacePlemelj_highTailCauchyAmplitude_le_one
-          b c v hb hone_le_c hv)
-      (scalarFourierLaplacePlemelj_highTailCauchyAmplitude_antitoneOn
-        b c hb hone_le_c hb_le_c)
+    scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_partsVariation_source
+      A b c hb hone_le_c hb_le_c hcA
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_split_at_one
     (A b : ℝ) (hb : 0 < b) (hb_le_one : b ≤ 1)
