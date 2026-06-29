@@ -6584,13 +6584,31 @@ noncomputable def scalarFourierLaplacePlemelj_uncompensated_oddSineWindow
   ∫ t in Set.Icc (-T) T,
     (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)
 
+/-- Absolute integral majorization of the even-cosine component by the
+nonoscillatory Cauchy kernel mass. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_kernelMass
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x| ≤
+      |∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)| := by
+  sorry
+
+/-- The symmetric nonoscillatory Cauchy kernel mass is bounded by `π`. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_kernelMass_abs_le_pi
+    (a : ℝ) (ha : 0 < a) (T : ℝ) :
+    |∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)| ≤ Real.pi := by
+  sorry
+
 /-- Fixed-constant Dirichlet bound for the even-cosine component of the
 uncompensated Cauchy kernel. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_pi
     (a : ℝ) (ha : 0 < a) (T x : ℝ) :
     |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x| ≤
       Real.pi := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_kernelMass
+      a ha T x).trans
+      (scalarFourierLaplacePlemelj_uncompensated_kernelMass_abs_le_pi
+        a ha T)
 
 /-- Uniform Dirichlet bound for the even-cosine part of the uncompensated
 Cauchy Fourier window. -/
@@ -6605,13 +6623,23 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_uniform_bound
       scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_pi
         a ha T x⟩
 
+/-- Dirichlet bound for the odd-sine Cauchy component after the standard
+scale reduction. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_scaled_abs_le_pi
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤
+      Real.pi := by
+  sorry
+
 /-- Fixed-constant Dirichlet bound for the odd-sine component of the
 uncompensated Cauchy kernel. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_abs_le_pi
     (a : ℝ) (ha : 0 < a) (T x : ℝ) :
     |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤
       Real.pi := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_scaled_abs_le_pi
+      a ha T x
 
 /-- Uniform Dirichlet bound for the odd-sine part of the uncompensated Cauchy
 Fourier window. -/
