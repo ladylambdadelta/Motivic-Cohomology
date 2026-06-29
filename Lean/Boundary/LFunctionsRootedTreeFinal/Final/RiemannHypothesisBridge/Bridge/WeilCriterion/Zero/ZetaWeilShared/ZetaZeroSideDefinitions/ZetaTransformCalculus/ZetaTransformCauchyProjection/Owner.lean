@@ -2924,6 +2924,17 @@ noncomputable def scalarFourierLaplacePlemelj_positiveKernel
   (-1 / ((a : ℂ) + z * Complex.I)) *
     Complex.exp (Complex.I * z * (x : ℂ))
 
+/-- Boundary integral of the positive-time scalar kernel over the finite upper
+semicircle contour, written directly in terms of the named meromorphic kernel. -/
+noncomputable def scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBoundaryIntegral
+    (a x T : ℝ) : ℂ :=
+  (∫ t in Set.Icc (-T) T,
+    scalarFourierLaplacePlemelj_positiveKernel a x (t : ℂ)) +
+    ∫ θ in (0 : ℝ)..Real.pi,
+      let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+      scalarFourierLaplacePlemelj_positiveKernel a x z *
+        (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
 /-- Point residue coefficient of the positive-time normalized scalar kernel at
 the upper pole, before multiplication by `2πi`. -/
 noncomputable def scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient
@@ -3046,6 +3057,46 @@ theorem scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution_eq
         Complex.exp (-(a : ℂ) * (x : ℂ)) := by
   exact rfl
 
+/-- The positive closed contour is the named kernel boundary integral. -/
+theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_positiveKernelUpperSemicircleBoundaryIntegral
+    (a x T : ℝ) :
+    scalarFourierLaplacePlemelj_positiveClosedContour a x T =
+      scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBoundaryIntegral
+        a x T := by
+  rfl
+
+/-- Cauchy's residue theorem for the positive-time scalar kernel boundary
+integral over the finite upper semicircle. -/
+theorem scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBoundaryIntegral_cauchyResidue
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (T : ℝ)
+    (_hpole : ‖scalarFourierLaplacePlemelj_upperPole a‖ < T) :
+    scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBoundaryIntegral
+        a x T =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
+        scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient a x := by
+  sorry
+
+/-- Cauchy's residue theorem for the positive-time scalar Fourier-Laplace
+kernel on the finite upper semicircle.
+
+This is the genuine complex-analysis source: the real segment plus the
+parametrized upper semicircle is the integral of
+`scalarFourierLaplacePlemelj_positiveKernel a x`, and the only enclosed pole is
+`scalarFourierLaplacePlemelj_upperPole a`. -/
+theorem scalarFourierLaplacePlemelj_positiveKernel_upperSemicircle_cauchyResidue
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (T : ℝ)
+    (_hpole : ‖scalarFourierLaplacePlemelj_upperPole a‖ < T) :
+    scalarFourierLaplacePlemelj_positiveClosedContour a x T =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
+        scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient a x := by
+  exact
+    (scalarFourierLaplacePlemelj_positiveClosedContour_eq_positiveKernelUpperSemicircleBoundaryIntegral
+      a x T).trans
+      (scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBoundaryIntegral_cauchyResidue
+        a ha x hx T _hpole)
+
 /-- Upper-half-plane residue theorem for the positive-time scalar contour,
 using the local residue of the named meromorphic kernel. -/
 theorem scalarFourierLaplacePlemelj_upperHalfPlaneResidueTheorem_closedContour_eq_two_pi_i_kernelResidue
@@ -3057,7 +3108,13 @@ theorem scalarFourierLaplacePlemelj_upperHalfPlaneResidueTheorem_closedContour_e
         (Complex.I *
           Complex.exp
             (Complex.I * scalarFourierLaplacePlemelj_upperPole a * (x : ℂ))) := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_positiveKernel_upperSemicircle_cauchyResidue
+      a ha x hx T _hpole).trans
+      (congrArg
+        (fun R : ℂ => ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * R)
+        (scalarFourierLaplacePlemelj_positiveKernel_upperPole_residueCoefficient
+          a x))
 
 /-- Upper-half-plane residue theorem for the positive-time scalar contour:
 the closed contour is `2πi` times the explicit upper-pole residue coefficient. -/
@@ -4940,6 +4997,17 @@ noncomputable def scalarFourierLaplacePlemelj_negativeKernel
   (-1 / ((a : ℂ) + z * Complex.I)) *
     Complex.exp (Complex.I * z * (x : ℂ))
 
+/-- Boundary integral of the negative-time scalar kernel over the finite lower
+semicircle contour, written directly in terms of the named meromorphic kernel. -/
+noncomputable def scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral
+    (a x T : ℝ) : ℂ :=
+  (∫ t in Set.Icc (-T) T,
+    scalarFourierLaplacePlemelj_negativeKernel a x (t : ℂ)) +
+    ∫ θ in (0 : ℝ)..(-Real.pi),
+      let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+      scalarFourierLaplacePlemelj_negativeKernel a x z *
+        (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
 /-- The negative lower-half-plane kernel has zero enclosed residue sum. -/
 theorem scalarFourierLaplacePlemelj_negativeKernel_lowerHalfPlaneResidueSum_eq_zero
     (a x : ℝ) :
@@ -4953,6 +5021,48 @@ theorem scalarFourierLaplacePlemelj_two_pi_i_mul_negativeLowerHalfPlaneResidueSu
   unfold scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum
   exact mul_zero ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)
 
+/-- The negative closed contour is the named kernel boundary integral. -/
+theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_negativeKernelLowerSemicircleBoundaryIntegral
+    (a x T : ℝ) :
+    scalarFourierLaplacePlemelj_negativeClosedContour a x T =
+      scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral
+        a x T := by
+  rfl
+
+/-- Cauchy's residue theorem for the negative-time scalar kernel boundary
+integral over the finite lower semicircle. -/
+theorem scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral_cauchyResidue
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ)
+    (_hpole :
+      ¬ scalarFourierLaplacePlemelj_upperPole a =
+          (-(a : ℂ)) * Complex.I) :
+    scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral
+        a x T =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
+        scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum a x := by
+  sorry
+
+/-- Cauchy's residue theorem for the negative-time scalar Fourier-Laplace
+kernel on the finite lower semicircle.
+
+The upper pole is outside this contour, so the enclosed residue sum is the
+named zero residue sum. -/
+theorem scalarFourierLaplacePlemelj_negativeKernel_lowerSemicircle_cauchyResidue
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ)
+    (_hpole :
+      ¬ scalarFourierLaplacePlemelj_upperPole a =
+          (-(a : ℂ)) * Complex.I) :
+    scalarFourierLaplacePlemelj_negativeClosedContour a x T =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
+        scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum a x := by
+  exact
+    (scalarFourierLaplacePlemelj_negativeClosedContour_eq_negativeKernelLowerSemicircleBoundaryIntegral
+      a x T).trans
+      (scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral_cauchyResidue
+        a ha x hx T _hpole)
+
 /-- Lower-half-plane pole-free residue theorem for the negative-time scalar
 contour, in `2πi` times the named kernel residue-sum form. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_eq_two_pi_i_kernelResidueSum
@@ -4964,7 +5074,9 @@ theorem scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_e
     scalarFourierLaplacePlemelj_negativeClosedContour a x T =
       ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
         scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum a x := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_negativeKernel_lowerSemicircle_cauchyResidue
+      a ha x hx T _hpole
 
 /-- Lower-half-plane pole-free residue theorem for the negative-time scalar
 contour, in `2πi` times residue-sum form. -/
