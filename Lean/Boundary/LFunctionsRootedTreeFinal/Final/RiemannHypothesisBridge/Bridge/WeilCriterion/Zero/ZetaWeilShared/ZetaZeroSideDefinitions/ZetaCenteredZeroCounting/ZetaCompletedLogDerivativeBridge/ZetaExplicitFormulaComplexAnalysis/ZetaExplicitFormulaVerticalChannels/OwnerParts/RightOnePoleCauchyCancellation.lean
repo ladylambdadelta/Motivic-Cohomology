@@ -846,6 +846,35 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
         ((zetaCompletedExplicitFormulaCorrectionOnePole_eventually_standardBoundaryResidueValue_of_positiveHeight
           f F h B hpositive).tendsto_iff.2 tendsto_const_nhds))
 
+/-- Positive-height projection-boundary residue transport for the right
+one-pole value.  This is the nonzero projection form of the Cauchy transport:
+the left face tends to the standard residue plus the projection, while the
+finite standard boundary remains the standard residue. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_projection_of_positiveHeight_projectionBoundaryResidueValue
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (B : ℂ)
+    (hleft :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 (B * Complex.I +
+          zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)))
+    (hpositive :
+      ∀ T : ℝ,
+        0 < T →
+          zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral
+            f F T = B) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+          f F (h.height_schedule.height u))
+      atTop
+      (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) := by
+  sorry
+
 /-- Eventual explicit-horizontal form of the isolated one-pole horizontal
 inverse-quadratic estimate. -/
 theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference_eventually_norm_le_explicit_add_inverseQuadratic

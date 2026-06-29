@@ -5,10 +5,10 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 /-!
 # Residue-free right one-pole Cauchy value
 
-This file transports the non-circular left standard residue value and finite
+This file transports the non-circular left projection-residue value and finite
 raw Cauchy theorem to the scheduled residue-free right `s = 1` correction
-value.  Quantitative off-pole and residue-tail estimates live downstream and
-must not be used here.
+projection value.  Quantitative off-pole and residue-tail estimates live
+downstream and must not be used here.
 -/
 
 namespace Boundary
@@ -25,14 +25,10 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- The scheduled right `s = 1` affine one-pole kernel has residue-free value
-zero, assembled from the direct left standard residue value and the finite
-positive-height raw Cauchy theorem.
-
-The remaining analytic leaf in this branch is the left standard residue value
-in `OnePoleLeftStandardResidueValue`; this theorem is only the non-circular
-right-face transport. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_scheduledWindow_tendsto_zero_ownerResidueFreeCauchy
+/-- The scheduled right `s = 1` affine one-pole kernel has the Cauchy
+projection value assembled from the direct left projection-residue value and
+the finite positive-height raw Cauchy theorem. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_scheduledWindow_tendsto_projection_ownerResidueFreeCauchy
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     Tendsto
@@ -42,7 +38,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_scheduled
             (F.rectangle (h.height_schedule.height u)).T,
           zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F t)
       atTop
-      (𝓝 0) := by
+      (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) := by
   let B : ℂ :=
     (2 * (Real.pi : ℂ) * Complex.I) *
       (-zetaCompletedExplicitFormulaPhi f (1 / 2))
@@ -52,17 +48,14 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_scheduled
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F (h.height_schedule.height u))
         atTop
-        (𝓝 0) := by
-    have hcancel : B * Complex.I - B * Complex.I = 0 :=
-      sub_self (B * Complex.I)
-    exact
-      zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_zero_of_positiveHeight_standardBoundaryResidueValue
-        f F h (B * Complex.I) B hcancel
-        (zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_standardContourResidue_ownerLeftResidueValue
-          f F h)
-        (fun T hT =>
-          zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_pos_height
-            f F h T hT)
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) :=
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_projection_of_positiveHeight_projectionBoundaryResidueValue
+      f F h B
+      (zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_projectionResidue_ownerLeftResidueValue
+        f F h)
+      (fun T hT =>
+        zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_pos_height
+          f F h T hT)
   have hfun :
       (fun u : ℝ =>
         ∫ t in Set.Icc
@@ -78,7 +71,9 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_scheduled
         f F (h.height_schedule.height u)).symm
   exact
     Eq.subst
-      (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
+      (motive := fun φ : ℝ → ℂ =>
+        Tendsto φ atTop
+          (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)))
       hfun.symm
       hvertical
 
