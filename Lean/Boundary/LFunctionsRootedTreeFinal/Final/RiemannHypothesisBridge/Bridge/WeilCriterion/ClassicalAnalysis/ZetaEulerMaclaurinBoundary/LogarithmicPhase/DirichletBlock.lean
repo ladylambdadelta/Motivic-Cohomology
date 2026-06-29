@@ -18,6 +18,9 @@ namespace Boundary
 namespace LFunctions
 
 noncomputable section
+
+open scoped ComplexConjugate Topology
+
 /-- Numeric normalization used by the logarithmic phase block constants. -/
 theorem Real.four_mul_four_eq_sixteen_for_logarithmicPhase :
     (4 * 4 : ℝ) = 16 := by
@@ -508,21 +511,14 @@ theorem Real.logarithmicPhase_target_le_twenty_mul
     calc
       (1 : ℝ) ≤ 1 + 19 :=
         le_add_of_nonneg_right hnineteen_nonneg
-      _ = 20 := by
-        have hnat : (1 + 19 : ℕ) = 20 :=
-          rfl
-        exact Eq.trans
-          (Nat.cast_add 1 19).symm
-          (Eq.trans
-            (congrArg (fun n : ℕ => (n : ℝ)) hnat)
-            Nat.cast_ofNat)
+      _ = 20 := rfl
   have hmul :
       1 * x ≤ 20 * x :=
     mul_le_mul_of_nonneg_right hone_le_twenty hx
   exact
     Eq.subst
       (motive := fun left : ℝ => left ≤ 20 * x)
-      (one_mul x).symm
+      (one_mul x)
       hmul
 
 /-- A nonnegative target is bounded by eighty copies of itself. -/
@@ -536,21 +532,14 @@ theorem Real.logarithmicPhase_target_le_eighty_mul
     calc
       (1 : ℝ) ≤ 1 + 79 :=
         le_add_of_nonneg_right hseventy_nine_nonneg
-      _ = 80 := by
-        have hnat : (1 + 79 : ℕ) = 80 :=
-          rfl
-        exact Eq.trans
-          (Nat.cast_add 1 79).symm
-          (Eq.trans
-            (congrArg (fun n : ℕ => (n : ℝ)) hnat)
-            Nat.cast_ofNat)
+      _ = 80 := rfl
   have hmul :
       1 * x ≤ 80 * x :=
     mul_le_mul_of_nonneg_right hone_le_eighty hx
   exact
     Eq.subst
       (motive := fun left : ℝ => left ≤ 80 * x)
-      (one_mul x).symm
+      (one_mul x)
       hmul
 
 /-- The logarithmic endpoint-plus-square-root target is nonnegative. -/
@@ -642,6 +631,26 @@ theorem Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div
     exact congrArg (fun r : ℝ => -r / x) hnorm.symm
   exact Eq.trans hderiv hright
 
+/-- Parenthesized form of the nonnegative-branch derivative identity. -/
+theorem Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div_parenthesized
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {x : ℝ}
+    (hx_pos : 0 < x) :
+    deriv
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
+      -(‖t‖ / x) := by
+  have hderiv :
+      deriv
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
+        -‖t‖ / x :=
+    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div
+      t ht_nonneg hx_pos
+  have hright :
+      -‖t‖ / x = -(‖t‖ / x) :=
+    neg_div ‖t‖ x
+  exact Eq.trans hderiv hright
+
 /-- The negated derivative in the nonnegative branch is the positive
 reciprocal profile `‖t‖ / x`. -/
 theorem Complex.logarithmicPhaseRealPhase_neg_deriv_eq_norm_div
@@ -664,6 +673,7 @@ theorem Complex.logarithmicPhaseRealPhase_neg_deriv_eq_norm_div
         -(-‖t‖ / x) := by
       exact congrArg Neg.neg hderiv
     _ = ‖t‖ / x := by
+      show -(-(‖t‖ / x)) = ‖t‖ / x
       exact neg_neg (‖t‖ / x)
 
 /-- Lower endpoint bound for the positive reciprocal derivative profile on an
@@ -856,8 +866,8 @@ theorem Complex.logarithmicPhaseRealPhase_deriv_continuousOn_integer_block
           ne_of_gt (lt_of_lt_of_le ha_pos hx.1)))
   exact hmodel_cont.congr
     (fun x hx =>
-      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_eq
-        t (lt_of_lt_of_le ha_pos hx.1)).symm)
+      Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_eq
+        t (lt_of_lt_of_le ha_pos hx.1))
 
 /-- The first derivative of the real logarithmic phase is differentiable on
 the interior of every positive integer block. -/
@@ -876,17 +886,17 @@ theorem Complex.logarithmicPhaseRealPhase_deriv_differentiableOn_interior_intege
         (fun x : ℝ => -t / x)
         (interior (Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ))) := by
     exact
-      (differentiableOn_const.div differentiableOn_id
+      ((differentiableOn_const (c := -t)).div differentiableOn_id
         (fun x hx =>
           ne_of_gt
             (lt_of_lt_of_le ha_pos
               ((interior_subset hx).1))))
   exact hmodel_diff.congr
     (fun x hx =>
-      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_eq
+      Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_eq
         t
         (lt_of_lt_of_le ha_pos
-          ((interior_subset hx).1))).symm)
+          ((interior_subset hx).1)))
 
 /-- In the nonnegative-curvature branch, the logarithmic phase derivative grows
 at least at the curvature-lower-bound rate across the block. -/
@@ -1583,7 +1593,7 @@ theorem Complex.logarithmicPhaseRealPhase_exp_neg_parameter_eq_conj
     Complex.exp
         (Complex.I *
           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase (-t) n : ℂ)) =
-      Complex.conj
+      conj
         (Complex.exp
           (Complex.I *
             (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))) := by
@@ -1596,7 +1606,7 @@ theorem Complex.logarithmicPhaseRealPhase_exp_neg_parameter_eq_conj
   have harg :
       Complex.I *
           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase (-t) n : ℂ) =
-        Complex.conj (Complex.I * (θ : ℂ)) := by
+        conj (Complex.I * (θ : ℂ)) := by
     calc
       Complex.I *
           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase (-t) n : ℂ) =
@@ -1608,17 +1618,17 @@ theorem Complex.logarithmicPhaseRealPhase_exp_neg_parameter_eq_conj
         exact mul_neg Complex.I (θ : ℂ)
       _ = (-Complex.I) * (θ : ℂ) := by
         exact (neg_mul Complex.I (θ : ℂ)).symm
-      _ = Complex.conj Complex.I * Complex.conj (θ : ℂ) := by
-        exact congrArg (fun z : ℂ => z * (θ : ℂ)) Complex.conj_I.symm
-      _ = Complex.conj (Complex.I * (θ : ℂ)) := by
-        exact (map_mul Complex.conj (Complex.I) (θ : ℂ)).symm
+      _ = conj Complex.I * conj (θ : ℂ) := by
+        exact congrArg (fun z : ℂ => z * (θ : ℂ)) conj_I.symm
+      _ = conj (Complex.I * (θ : ℂ)) := by
+        exact (map_mul conj (Complex.I) (θ : ℂ)).symm
   calc
     Complex.exp
         (Complex.I *
           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase (-t) n : ℂ)) =
-        Complex.exp (Complex.conj (Complex.I * (θ : ℂ))) := by
+        Complex.exp (conj (Complex.I * (θ : ℂ))) := by
       exact congrArg Complex.exp harg
-    _ = Complex.conj
+    _ = conj
         (Complex.exp (Complex.I * (θ : ℂ))) :=
       Complex.exp_conj (Complex.I * (θ : ℂ))
 
@@ -1640,7 +1650,7 @@ theorem Complex.logarithmicPhaseRealPhase_block_norm_neg_parameter_eq
         Complex.exp
           (Complex.I *
             (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase (-t) n : ℂ))) =
-        Complex.conj
+        conj
           (∑ n ∈ Finset.Icc a b,
             Complex.exp
               (Complex.I *
@@ -1651,7 +1661,7 @@ theorem Complex.logarithmicPhaseRealPhase_block_norm_neg_parameter_eq
           (Complex.I *
             (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase (-t) n : ℂ))) =
           ∑ n ∈ Finset.Icc a b,
-            Complex.conj
+            conj
               (Complex.exp
                 (Complex.I *
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))) := by
@@ -1659,7 +1669,7 @@ theorem Complex.logarithmicPhaseRealPhase_block_norm_neg_parameter_eq
           (fun n hn =>
             Complex.logarithmicPhaseRealPhase_exp_neg_parameter_eq_conj t n)
       _ =
-          Complex.conj
+          conj
             (∑ n ∈ Finset.Icc a b,
               Complex.exp
                 (Complex.I *
@@ -1699,7 +1709,7 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_eq
         deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x := by
   let φ : ℝ → ℝ :=
     Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
-  have hh_nonneg : (0 : ℝ) ≤ (h : ℝ) :=
+  have hh_nonneg : (0 : ℝ) ≤ ((h : ℕ) : ℝ) :=
     Nat.cast_nonneg h
   have hx_shift_pos : 0 < x + h :=
     lt_of_lt_of_le hx (le_add_of_nonneg_right hh_nonneg)
@@ -1835,14 +1845,14 @@ theorem Real.add_nat_mem_parent_Icc_of_mem_shifted_Icc
     (hh : h ≤ b - a)
     (hx : x ∈ Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ)) :
     x + h ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) := by
-  have hh_nonneg : (0 : ℝ) ≤ (h : ℝ) :=
+  have hh_nonneg : (0 : ℝ) ≤ ((h : ℕ) : ℝ) :=
     Nat.cast_nonneg h
   have hleft : (a : ℝ) ≤ x + h :=
     le_trans hx.1 (le_add_of_nonneg_right hh_nonneg)
   have hright :
       x + h ≤ ((b + 1 : ℕ) : ℝ) :=
     le_trans
-      (add_le_add_right hx.2 (h : ℝ))
+      (add_le_add_right hx.2 ((h : ℕ) : ℝ))
       (Nat.cast_shifted_endpoint_add_le_parent_endpoint hh)
   exact And.intro hleft hright
 
@@ -1872,13 +1882,13 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_of_growt
     (‖t‖ *
         ((((b + 1 : ℕ) : ℝ) *
           (((b + 1 : ℕ) : ℝ)))⁻¹) *
-        (h : ℝ) ≤
+        ((h : ℕ) : ℝ) ≤
       deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x := by
   have ha_pos : (0 : ℝ) < (a : ℝ) :=
     Nat.cast_pos.mpr (Nat.lt_of_succ_le ha)
   have hx_pos : 0 < x :=
     lt_of_lt_of_le ha_pos hx.1
-  have hh_nonneg : (0 : ℝ) ≤ (h : ℝ) :=
+  have hh_nonneg : (0 : ℝ) ≤ ((h : ℕ) : ℝ) :=
     Nat.cast_nonneg h
   have hx_le_shift : x ≤ x + h :=
     le_add_of_nonneg_right hh_nonneg
@@ -1893,10 +1903,10 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_of_growt
           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x :=
     hderiv_growth x (x + h) hx hx_shift hx_le_shift
   have hdiff :
-      (x + h) - x = (h : ℝ) := by
+      (x + h) - x = ((h : ℕ) : ℝ) := by
     calc
       (x + h) - x = h :=
-        add_sub_cancel_left x (h : ℝ)
+        add_sub_cancel_left x ((h : ℕ) : ℝ)
   have hderiv_eq :
       deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x =
         deriv
@@ -1948,7 +1958,7 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_of_growt
     (‖t‖ *
         ((((b + 1 : ℕ) : ℝ) *
           (((b + 1 : ℕ) : ℝ)))⁻¹) *
-        (h : ℝ) ≤
+        ((h : ℕ) : ℝ) ≤
       deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n := by
   have hn_parent :
       (n : ℝ) ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) :=
@@ -1985,7 +1995,7 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_on_shift
     (‖t‖ *
         ((((b + 1 : ℕ) : ℝ) *
           (((b + 1 : ℕ) : ℝ)))⁻¹) *
-        (h : ℝ) ≤
+        ((h : ℕ) : ℝ) ≤
       deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x := by
   have hx_parent :
       x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) :=
@@ -2022,13 +2032,13 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_lower_on_
     (‖t‖ *
         ((((b + 1 : ℕ) : ℝ) *
           (((b + 1 : ℕ) : ℝ)))⁻¹) *
-        (h : ℝ) ≤
+        ((h : ℕ) : ℝ) ≤
       ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x‖ := by
   have hlower :
       (‖t‖ *
           ((((b + 1 : ℕ) : ℝ) *
             (((b + 1 : ℕ) : ℝ)))⁻¹) *
-          (h : ℝ) ≤
+          ((h : ℕ) : ℝ) ≤
         deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x) :=
     Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_on_shifted_Icc
       t ha hh hx hderiv_growth
@@ -2048,7 +2058,7 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_lowerParameter_pos
       ‖t‖ *
         ((((b + 1 : ℕ) : ℝ) *
           (((b + 1 : ℕ) : ℝ)))⁻¹) *
-        (h : ℝ) := by
+        ((h : ℕ) : ℝ) := by
   have ht_pos : 0 < ‖t‖ :=
     lt_of_lt_of_le zero_lt_one ht
   have hB_pos : 0 < (((b + 1 : ℕ) : ℝ)) :=
@@ -2063,7 +2073,7 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_lowerParameter_pos
         ((((b + 1 : ℕ) : ℝ) *
           (((b + 1 : ℕ) : ℝ)))⁻¹) :=
     inv_pos.mpr hBB_pos
-  have hh_pos : 0 < (h : ℝ) :=
+  have hh_pos : 0 < ((h : ℕ) : ℝ) :=
     Nat.cast_pos.mpr (Nat.lt_of_succ_le hpos)
   exact
     mul_pos
@@ -2171,24 +2181,24 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelation_bound_of_growth_and
         (‖t‖ *
           ((((b + 1 : ℕ) : ℝ) *
             (((b + 1 : ℕ) : ℝ)))⁻¹) *
-          (h : ℝ))) :
+          ((h : ℕ) : ℝ))) :
     ‖Complex.logarithmicPhaseRealPhase_shiftedCorrelation t h a b‖ ≤
       4 *
           ((‖t‖ *
               ((((b + 1 : ℕ) : ℝ) *
                 (((b + 1 : ℕ) : ℝ)))⁻¹) *
-              (h : ℝ))⁻¹ +
+              ((h : ℕ) : ℝ))⁻¹ +
             1) +
         4 * Real.pi *
           (‖t‖ *
               ((((b + 1 : ℕ) : ℝ) *
                 (((b + 1 : ℕ) : ℝ)))⁻¹) *
-              (h : ℝ))⁻¹ := by
+              ((h : ℕ) : ℝ))⁻¹ := by
   let lam : ℝ :=
     ‖t‖ *
         ((((b + 1 : ℕ) : ℝ) *
           (((b + 1 : ℕ) : ℝ)))⁻¹) *
-      (h : ℝ)
+      ((h : ℕ) : ℝ)
   have hlam_pos : 0 < lam :=
     Complex.logarithmicPhaseRealPhase_shiftedDifference_lowerParameter_pos
       t ht hpos
@@ -2333,7 +2343,7 @@ theorem Complex.logarithmicPhaseRealPhase_nonempty_derivPacket_scaled_span_lt_on
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     {a b : ℕ}
-    {m p q : ℕ}
+    {p q : ℕ}
     {k : ℤ}
     (hp_mem :
       p ∈ Complex.realPhase_secondDerivative_vdc_derivPacket
@@ -2574,7 +2584,7 @@ theorem Complex.logarithmicPhaseRealPhase_activeDerivPacket_nonempty
         (Complex.mem_realPhase_secondDerivative_vdc_derivPacket_iff_index_eq
           φ).mpr
           (And.intro hn_block hn_index)
-      exact Finset.Nonempty.intro n hn_packet
+      exact ⟨n, hn_packet⟩
 
 /-- Uniform reciprocal-curvature-scale packet-sum bound over active
 logarithmic derivative packets. -/
@@ -2661,9 +2671,9 @@ theorem Complex.logarithmicPhaseRealPhase_packet_majorants_assemble
           ∑ m ∈ packets,
             ‖Complex.realPhase_secondDerivative_vdc_packetSum φ a b m‖ :=
       norm_sum_le
+        packets
         (fun m : ℤ =>
           Complex.realPhase_secondDerivative_vdc_packetSum φ a b m)
-        packets
     have hpoint :
         (∑ m ∈ packets,
           ‖Complex.realPhase_secondDerivative_vdc_packetSum φ a b m‖) ≤
@@ -2742,7 +2752,7 @@ theorem Complex.realPhase_secondDerivative_vdc_deriv_sub_half_le_index_cast
         deriv φ n - (1 / 2 : ℝ) := by
     have hhalf_sub_one :
         (1 / 2 : ℝ) - 1 = -(1 / 2 : ℝ) :=
-      (eq_sub_iff_add_eq.mpr (add_halves (1 : ℝ))).symm
+      half_sub (1 : ℝ)
     calc
       deriv φ n + (1 / 2 : ℝ) - 1 =
           deriv φ n + ((1 / 2 : ℝ) - 1) :=
@@ -2789,7 +2799,15 @@ theorem Complex.logarithmicPhaseRealPhase_activeDerivPacket_index_upper
           t ht_nonneg ha hn_Icc
       have hderiv_upper :
           deriv φ n ≤ -(‖t‖ / (((b + 1 : ℕ) : ℝ))) := by
-        exact neg_le_neg_iff.mp hneg_lower
+        have hneg :
+            -(-deriv φ n) ≤ -(‖t‖ / (((b + 1 : ℕ) : ℝ))) :=
+          neg_le_neg hneg_lower
+        exact
+          Eq.subst
+            (motive := fun left : ℝ =>
+              left ≤ -(‖t‖ / (((b + 1 : ℕ) : ℝ))))
+            (neg_neg (deriv φ n))
+            hneg
       have hindex_le :
           ((Complex.realPhase_secondDerivative_vdc_derivPacketIndex φ n : ℤ) : ℝ) ≤
             deriv φ n + (1 / 2 : ℝ) :=
@@ -2865,7 +2883,8 @@ theorem Int.neg_cast_pos_of_lt_zero
     (hm : m < 0) :
     0 < -(m : ℝ) := by
   have hcast_neg : (m : ℝ) < 0 :=
-    Int.cast_lt.mpr hm
+    show (m : ℝ) < ((0 : ℤ) : ℝ)
+    exact Int.cast_lt.mpr hm
   exact neg_pos.mpr hcast_neg
 
 /-- For nonzero logarithmic frequency and negative packet index, the
@@ -2880,7 +2899,7 @@ theorem Complex.logarithmicPhaseRealPhase_stationaryPoint_pos
     lt_of_lt_of_le zero_lt_one ht
   have hden_pos : 0 < -(m : ℝ) :=
     Int.neg_cast_pos_of_lt_zero hm
-  unfold Complex.logarithmicPhaseRealPhase_stationaryPoint
+  show 0 < ‖t‖ / (-(m : ℝ))
   exact div_pos ht_pos hden_pos
 
 /-- The stationary point solves the reciprocal derivative equation. -/
@@ -2944,8 +2963,7 @@ theorem Complex.logarithmicPhaseRealPhase_deriv_stationaryPoint_eq
     Int.neg_cast_pos_of_lt_zero hm
   have hrecip :
       ‖t‖ / x = -(m : ℝ) := by
-    unfold x
-    unfold Complex.logarithmicPhaseRealPhase_stationaryPoint
+    show ‖t‖ / (‖t‖ / (-(m : ℝ))) = -(m : ℝ)
     exact
       Real.logarithmicPhase_stationaryPoint_reciprocal_identity
         hT_pos hden_pos
@@ -2956,7 +2974,10 @@ theorem Complex.logarithmicPhaseRealPhase_deriv_stationaryPoint_eq
         exact congrArg Neg.neg hrecip
       _ = (m : ℝ) :=
         neg_neg (m : ℝ)
-  exact Eq.trans hderiv hneg
+  have hneg_div :
+      -‖t‖ / x = -(‖t‖ / x) :=
+    neg_div ‖t‖ x
+  exact Eq.trans hderiv (Eq.trans hneg_div hneg)
 
 /-- Active logarithmic derivative-packet frequencies whose stationary point
 lies in the ambient real interval. -/
@@ -3024,7 +3045,7 @@ theorem Complex.logarithmicPhaseRealPhase_activeDerivPackets_eq_stationary_union
         a b =
       Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b ∪
         Complex.logarithmicPhaseRealPhase_endpointActiveDerivPackets t a b := by
-  exact Finset.ext.mpr
+  exact Finset.ext
     (fun m =>
       Iff.intro
         (fun hm =>
@@ -3306,7 +3327,7 @@ theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_upwardClosed
         zero_sub (1 / 2 : ℝ)
   have hderiv_n :
       deriv φ n = -(‖t‖ / (n : ℝ)) :=
-    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div
+    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div_parenthesized
       t ht_nonneg hn_pos
   have hneg_bound_n :
       -(1 / 2 : ℝ) ≤ -(‖t‖ / (n : ℝ)) :=
@@ -3351,7 +3372,7 @@ theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_upwardClosed
     le_trans hscale_kn hscale_n
   have hderiv_k :
       deriv φ k = -(‖t‖ / (k : ℝ)) :=
-    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div
+    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div_parenthesized
       t ht_nonneg hk_pos
   have hlower_k_raw :
       -(1 / 2 : ℝ) ≤ -(‖t‖ / (k : ℝ)) := by
@@ -3462,7 +3483,7 @@ theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_nonempty_eq_min_Icc
     Complex.realPhase_secondDerivative_vdc_derivPacket_mem_block φ hc_mem
   have hc_bounds : a ≤ c ∧ c ≤ b :=
     Finset.mem_Icc.mp hc_block
-  exact Finset.ext.mpr
+  exact Finset.ext
     (fun n =>
       Iff.intro
         (fun hn =>
@@ -3576,7 +3597,7 @@ theorem Finset.exists_eq_Ico_of_subset_Icc_downwardClosed
             not_lt_of_ge hn_bounds.1 hn_bounds.2)
       exact Exists.intro a
         (And.intro le_rfl
-          (And.intro (Nat.le_trans (Nat.zero_le a) (Nat.le_succ b))
+          (And.intro (Nat.le_trans hab (Nat.le_succ b))
             (Eq.trans hS_empty hIco_empty.symm)))
   | Or.inr hS_nonempty =>
       let m : ℕ := S.max' hS_nonempty
@@ -3592,7 +3613,7 @@ theorem Finset.exists_eq_Ico_of_subset_Icc_downwardClosed
       have hc_right : c ≤ b + 1 :=
         Nat.succ_le_succ hm_bounds.2
       have hS_eq : S = Finset.Ico a c :=
-        Finset.ext.mpr
+        Finset.ext
           (fun n =>
             Iff.intro
               (fun hn =>
@@ -3644,7 +3665,7 @@ theorem Finset.exists_eq_Icc_of_subset_Icc_upwardClosed
               Nat.lt_of_succ_le hn_bounds.1
             not_le_of_gt hb_lt_n hn_bounds.2)
       exact Exists.intro (b + 1)
-        (And.intro (Nat.le_trans (Nat.zero_le a) (Nat.le_succ b))
+        (And.intro (Nat.le_trans hab (Nat.le_succ b))
           (And.intro le_rfl
             (Eq.trans hS_empty hIcc_empty.symm)))
   | Or.inr hS_nonempty =>
@@ -3658,7 +3679,7 @@ theorem Finset.exists_eq_Icc_of_subset_Icc_upwardClosed
       have hc_right : c ≤ b + 1 :=
         Nat.le_trans hc_bounds.2 (Nat.le_succ b)
       have hS_eq : S = Finset.Icc c b :=
-        Finset.ext.mpr
+        Finset.ext
           (fun n =>
             Iff.intro
               (fun hn =>
@@ -3729,11 +3750,11 @@ theorem Complex.logarithmicPhaseRealPhase_derivPacketIndex_mono
           hmul)
   have hderiv_k :
       deriv φ k = -(‖t‖ / (k : ℝ)) :=
-    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div
+    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div_parenthesized
       t ht_nonneg hk_pos
   have hderiv_n :
       deriv φ n = -(‖t‖ / (n : ℝ)) :=
-    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div
+    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div_parenthesized
       t ht_nonneg hn_pos
   have hderiv_le :
       deriv φ k ≤ deriv φ n := by
@@ -3816,7 +3837,7 @@ theorem Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets_index_d
   have hsp_j_le_m :
       Complex.logarithmicPhaseRealPhase_stationaryPoint t j ≤
         Complex.logarithmicPhaseRealPhase_stationaryPoint t m := by
-    unfold Complex.logarithmicPhaseRealPhase_stationaryPoint
+    show ‖t‖ / (-(j : ℝ)) ≤ ‖t‖ / (-(m : ℝ))
     exact hscale
   have hsp_j_left :
       Complex.logarithmicPhaseRealPhase_stationaryPoint t j < (a : ℝ) :=
@@ -3908,7 +3929,7 @@ theorem Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets_ind
   have hsp_m_le_j :
       Complex.logarithmicPhaseRealPhase_stationaryPoint t m ≤
         Complex.logarithmicPhaseRealPhase_stationaryPoint t j := by
-    unfold Complex.logarithmicPhaseRealPhase_stationaryPoint
+    show ‖t‖ / (-(m : ℝ)) ≤ ‖t‖ / (-(j : ℝ))
     exact hscale
   have hsp_j_right :
       ((b + 1 : ℕ) : ℝ) <
@@ -4122,7 +4143,7 @@ theorem Finset.exists_eq_Ico_of_subset_Icc_intervalConvex
           (And.intro le_rfl
             (And.intro le_rfl
               (And.intro
-                (Nat.le_trans (Nat.zero_le a) (Nat.le_succ b))
+                (Nat.le_trans hab (Nat.le_succ b))
                 (Eq.trans hS_empty hIco_empty.symm)))))
   | Or.inr hS_nonempty =>
       let c : ℕ := S.min' hS_nonempty
@@ -4147,7 +4168,7 @@ theorem Finset.exists_eq_Ico_of_subset_Icc_intervalConvex
       have hd_right : d ≤ b + 1 :=
         Nat.succ_le_succ hr_bounds.2
       have hS_eq : S = Finset.Ico c d :=
-        Finset.ext.mpr
+        Finset.ext
           (fun n =>
             Iff.intro
               (fun hn =>
@@ -4181,7 +4202,7 @@ theorem Finset.Icc_eq_Ico_succ_right
     {c b : ℕ}
     (hcb : c ≤ b) :
     Finset.Icc c b = Finset.Ico c (b + 1) := by
-  exact Finset.ext.mpr
+  exact Finset.ext
     (fun n =>
       Iff.intro
         (fun hn =>
@@ -4203,7 +4224,7 @@ theorem Finset.Ico_eq_Icc_pred_right
     {c d : ℕ}
     (hcd : c < d) :
     Finset.Ico c d = Finset.Icc c (d - 1) := by
-  exact Finset.ext.mpr
+  exact Finset.ext
     (fun n =>
       Iff.intro
         (fun hn =>
@@ -4375,21 +4396,14 @@ theorem Real.logarithmicPhase_target_le_three_mul
     calc
       (1 : ℝ) ≤ 1 + 2 :=
         le_add_of_nonneg_right htwo_nonneg
-      _ = 3 := by
-        have hnat : (1 + 2 : ℕ) = 3 :=
-          rfl
-        exact Eq.trans
-          (Nat.cast_add 1 2).symm
-          (Eq.trans
-            (congrArg (fun n : ℕ => (n : ℝ)) hnat)
-            Nat.cast_ofNat)
+      _ = 3 := rfl
   have hmul :
       1 * E ≤ 3 * E :=
     mul_le_mul_of_nonneg_right hone_le_three hE
   exact
     Eq.subst
       (motive := fun left : ℝ => left ≤ 3 * E)
-      (one_mul E).symm
+      (one_mul E)
       hmul
 
 /-- The local long condition implies the square-root long condition. -/
@@ -4610,13 +4624,22 @@ theorem Complex.logarithmicPhaseRealPhase_Ico_bProcess_le_threeTarget
         0 ≤ 80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
       mul_nonneg (Nat.cast_nonneg 80)
         (Real.logarithmicPhase_endpoint_sqrt_target_nonneg t ht b)
+    have hzero_bound :
+        ‖(0 : ℂ)‖ ≤
+          80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+      Eq.subst
+        (motive := fun left : ℝ =>
+          left ≤
+            80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+        (norm_zero : ‖(0 : ℂ)‖ = 0)
+        htarget_nonneg
     exact
       Eq.subst
         (motive := fun z : ℂ =>
           ‖z‖ ≤
             80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
         hsum_zero.symm
-        htarget_nonneg
+        hzero_bound
   · have hcd_strict : c < d :=
       lt_of_le_of_ne hcd hempty
     let r : ℕ := d - 1
@@ -4632,7 +4655,7 @@ theorem Complex.logarithmicPhaseRealPhase_Ico_bProcess_le_threeTarget
       have hsucc_le : r + 1 ≤ b + 1 :=
         Eq.subst
           (motive := fun left : ℕ => left ≤ b + 1)
-          hd_pred_succ
+          hd_pred_succ.symm
           hd_right
       exact Nat.succ_le_succ_iff.mp hsucc_le
     have hlocal :
@@ -4906,12 +4929,12 @@ theorem Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_index_int
   have hpoint_mj :
       Complex.logarithmicPhaseRealPhase_stationaryPoint t m ≤
         Complex.logarithmicPhaseRealPhase_stationaryPoint t j := by
-    unfold Complex.logarithmicPhaseRealPhase_stationaryPoint
+    show ‖t‖ / (-(m : ℝ)) ≤ ‖t‖ / (-(j : ℝ))
     exact hscale_mj
   have hpoint_jl :
       Complex.logarithmicPhaseRealPhase_stationaryPoint t j ≤
         Complex.logarithmicPhaseRealPhase_stationaryPoint t l := by
-    unfold Complex.logarithmicPhaseRealPhase_stationaryPoint
+    show ‖t‖ / (-(j : ℝ)) ≤ ‖t‖ / (-(l : ℝ))
     exact hscale_jl
   have hpoint_j :
       Complex.logarithmicPhaseRealPhase_stationaryPoint t j ∈
@@ -5397,12 +5420,21 @@ theorem Complex.logarithmicPhaseRealPhase_endpointRightZeroTerminalInterval_le_l
         0 ≤ 80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
       mul_nonneg (Nat.cast_nonneg 80)
         (Real.logarithmicPhase_endpoint_sqrt_target_nonneg t ht b)
+    have hzero_bound :
+        ‖(0 : ℂ)‖ ≤
+          80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+      Eq.subst
+        (motive := fun left : ℝ =>
+          left ≤
+            80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+        (norm_zero : ‖(0 : ℂ)‖ = 0)
+        htarget_nonneg
     exact
       Eq.subst
         (motive := fun z : ℂ =>
           ‖z‖ ≤ 80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
         hsum_zero.symm
-        htarget_nonneg
+        hzero_bound
   · have hc_le_b : c ≤ b :=
       Nat.le_of_lt_succ
         (lt_of_le_of_ne hc_right hc_empty)
@@ -5519,12 +5551,21 @@ theorem Complex.logarithmicPhaseRealPhase_endpointLeftInitialInterval_le_longTar
         0 ≤ 80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
       mul_nonneg (Nat.cast_nonneg 80)
         (Real.logarithmicPhase_endpoint_sqrt_target_nonneg t ht b)
+    have hzero_bound :
+        ‖(0 : ℂ)‖ ≤
+          80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+      Eq.subst
+        (motive := fun left : ℝ =>
+          left ≤
+            80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+        (norm_zero : ‖(0 : ℂ)‖ = 0)
+        htarget_nonneg
     exact
       Eq.subst
         (motive := fun z : ℂ =>
           ‖z‖ ≤ 80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
         hsum_zero.symm
-        htarget_nonneg
+        hzero_bound
   · have ha_lt_c : a < c :=
       lt_of_le_of_ne hc_left (Ne.symm hc_empty)
     exact
@@ -5645,12 +5686,21 @@ theorem Complex.logarithmicPhaseRealPhase_endpointFarRightTerminalInterval_le_lo
         0 ≤ 80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
       mul_nonneg (Nat.cast_nonneg 80)
         (Real.logarithmicPhase_endpoint_sqrt_target_nonneg t ht b)
+    have hzero_bound :
+        ‖(0 : ℂ)‖ ≤
+          80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+      Eq.subst
+        (motive := fun left : ℝ =>
+          left ≤
+            80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+        (norm_zero : ‖(0 : ℂ)‖ = 0)
+        htarget_nonneg
     exact
       Eq.subst
         (motive := fun z : ℂ =>
           ‖z‖ ≤ 80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
         hsum_zero.symm
-        htarget_nonneg
+        hzero_bound
   · have hc_le_b : c ≤ b :=
       Nat.le_of_lt_succ
         (lt_of_le_of_ne hc_right hc_empty)
@@ -6074,7 +6124,7 @@ theorem Complex.logarithmicPhaseRealPhase_endpointActive_eq_three_tails
       Complex.logarithmicPhaseRealPhase_endpointRightActiveDerivPackets t a b ∪
         (Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b ∪
           Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b) := by
-  exact Finset.ext.mpr
+  exact Finset.ext
     (fun m =>
       Iff.intro
         (fun hm =>
@@ -6519,7 +6569,7 @@ theorem Complex.logarithmicPhaseRealPhase_endpointRightActive_index_eq_zero
       t hm
   let scale : ℝ := ‖t‖ / (((b + 1 : ℕ) : ℝ))
   have hscale_nonneg : 0 ≤ scale := by
-    unfold scale
+    show 0 ≤ ‖t‖ / (((b + 1 : ℕ) : ℝ))
     have hnorm_nonneg : 0 ≤ ‖t‖ :=
       norm_nonneg t
     have hden_nonneg : 0 ≤ (((b + 1 : ℕ) : ℝ)) :=
@@ -6537,10 +6587,11 @@ theorem Complex.logarithmicPhaseRealPhase_endpointRightActive_index_eq_zero
       (add_le_of_nonpos_left (neg_nonpos.mpr hscale_nonneg))
   have hhalf_lt_one : (1 / 2 : ℝ) < 1 :=
     one_half_lt_one
-  have hm_cast_lt_one : (m : ℝ) < 1 :=
-    lt_of_le_of_lt hupper_half hhalf_lt_one
-  have hm_lt_one : m < 1 :=
-    Int.cast_lt.mp hm_cast_lt_one
+    have hm_cast_lt_one : (m : ℝ) < 1 :=
+      lt_of_le_of_lt hupper_half hhalf_lt_one
+    have hm_lt_one : m < 1 :=
+      Int.cast_lt.mp
+        (show (m : ℝ) < ((1 : ℤ) : ℝ) from hm_cast_lt_one)
   have hm_le_zero : m ≤ 0 :=
     Int.lt_add_one_iff.mp hm_lt_one
   exact le_antisymm hm_le_zero hm_nonneg
@@ -6569,7 +6620,7 @@ theorem Complex.logarithmicPhaseRealPhase_endpointRightPacket_sum_norm_le_zero_p
   by_cases hzero : (0 : ℤ) ∈ S
   · have hS_singleton :
         S = ({(0 : ℤ)} : Finset ℤ) :=
-      Finset.ext.mpr
+      Finset.ext
         (fun m =>
           Iff.intro
             (fun hm =>
@@ -6599,7 +6650,7 @@ theorem Complex.logarithmicPhaseRealPhase_endpointRightPacket_sum_norm_le_zero_p
         (le_refl ‖F 0‖)
   · have hS_empty :
         S = (∅ : Finset ℤ) :=
-      Finset.ext.mpr
+      Finset.ext
         (fun m =>
           Iff.intro
             (fun hm =>
@@ -6620,7 +6671,10 @@ theorem Complex.logarithmicPhaseRealPhase_endpointRightPacket_sum_norm_le_zero_p
         (congrArg (fun U : Finset ℤ => ∑ m ∈ U, F m) hS_empty)
         (Finset.sum_empty)
     have hzero_norm : ‖(0 : ℂ)‖ ≤ ‖F 0‖ :=
-      norm_nonneg (F 0)
+      Eq.subst
+        (motive := fun left : ℝ => left ≤ ‖F 0‖)
+        (norm_zero : ‖(0 : ℂ)‖ = 0)
+        (norm_nonneg (F 0))
     exact
       Eq.subst
         (motive := fun z : ℂ => ‖z‖ ≤ ‖F 0‖)
@@ -6660,7 +6714,7 @@ theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_sample_endpointScale_l
         zero_sub (1 / 2 : ℝ)
   have hderiv :
       deriv φ n = -(‖t‖ / (n : ℝ)) :=
-    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div
+    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div_parenthesized
       t ht_nonneg (Nat.cast_pos.mpr hn_pos)
   have hneg :
       -(1 / 2 : ℝ) ≤ -(‖t‖ / (n : ℝ)) :=
@@ -6976,7 +7030,7 @@ theorem Complex.logarithmicPhaseRealPhase_endpointLeftActive_index_lt_leftEndpoi
   have hT_pos : 0 < ‖t‖ :=
     lt_of_lt_of_le zero_lt_one ht
   have ha_pos : 0 < (a : ℝ) :=
-    lt_of_lt_of_le
+    lt_trans
       (Complex.logarithmicPhaseRealPhase_stationaryPoint_pos t ht hm_neg)
       hsp_left
   have hdiv_lt :
@@ -6987,7 +7041,11 @@ theorem Complex.logarithmicPhaseRealPhase_endpointLeftActive_index_lt_leftEndpoi
     (div_lt_iff₀ hden_pos).mp hdiv_lt
   have hdiv_left :
       ‖t‖ / (a : ℝ) < -(m : ℝ) :=
-    (div_lt_iff₀ ha_pos).mpr hT_lt
+    (div_lt_iff₀ ha_pos).mpr
+      (Eq.subst
+        (motive := fun right : ℝ => ‖t‖ < right)
+        (mul_comm (a : ℝ) (-(m : ℝ)))
+        hT_lt)
   have hneg :
       - (-(m : ℝ)) < -(‖t‖ / (a : ℝ)) :=
     neg_lt_neg hdiv_left
@@ -7037,7 +7095,7 @@ theorem Complex.logarithmicPhaseRealPhase_endpointLeftPacket_sample_scale_lower
     lt_trans hupper_packet hcenter_lt
   have hderiv :
       deriv φ n = -(‖t‖ / (n : ℝ)) :=
-    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div
+    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div_parenthesized
       t ht_nonneg (Nat.cast_pos.mpr hn_pos)
   have hneg_lt :
       -(‖t‖ / (n : ℝ)) < -(‖t‖ / (a : ℝ)) + (1 / 2 : ℝ) :=
@@ -7140,7 +7198,11 @@ theorem Complex.logarithmicPhaseRealPhase_endpointFarRightActive_rightEndpoint_l
     (lt_div_iff₀ hden_pos).mp hB_lt
   have hneg_lt :
       -(m : ℝ) < ‖t‖ / (((b + 1 : ℕ) : ℝ)) :=
-    (lt_div_iff₀ hB_pos).mpr hprod_lt
+    (lt_div_iff₀ hB_pos).mpr
+      (Eq.subst
+        (motive := fun left : ℝ => left < ‖t‖)
+        (mul_comm (((b + 1 : ℕ) : ℝ)) (-(m : ℝ)))
+        hprod_lt)
   have hneg :
       -(‖t‖ / (((b + 1 : ℕ) : ℝ))) < -(-(m : ℝ)) :=
     neg_lt_neg hneg_lt
@@ -7192,7 +7254,7 @@ theorem Complex.logarithmicPhaseRealPhase_endpointFarRightPacket_sample_scale_up
     lt_of_lt_of_le hcenter_lt hlower_packet
   have hderiv :
       deriv φ n = -(‖t‖ / (n : ℝ)) :=
-    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div
+    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div_parenthesized
       t ht_nonneg (Nat.cast_pos.mpr hn_pos)
   have hlt_neg :
       -(‖t‖ / (((b + 1 : ℕ) : ℝ))) - (1 / 2 : ℝ) <
@@ -7306,9 +7368,9 @@ theorem Complex.logarithmicPhaseRealPhase_packetSet_sum_bound_of_majorants
         ∑ m ∈ packets,
           ‖Complex.realPhase_secondDerivative_vdc_packetSum φ a b m‖ :=
     norm_sum_le
+      packets
       (fun m : ℤ =>
         Complex.realPhase_secondDerivative_vdc_packetSum φ a b m)
-      packets
   have hpoint :
       (∑ m ∈ packets,
         ‖Complex.realPhase_secondDerivative_vdc_packetSum φ a b m‖) ≤
@@ -7671,9 +7733,9 @@ theorem Complex.logarithmicPhaseRealPhase_endpointPacket_norm_le_three_tail_norm
       (fun m hm_right hm_rest =>
         match Finset.mem_union.mp hm_rest with
         | Or.inl hm_left =>
-            (Finset.disjoint_left.mp hright_left) m hm_right hm_left
+            (Finset.disjoint_left.mp hright_left) hm_right hm_left
         | Or.inr hm_far =>
-            (Finset.disjoint_left.mp hright_far) m hm_right hm_far)
+            (Finset.disjoint_left.mp hright_far) hm_right hm_far)
   have hsum_endpoint :
       (∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointActiveDerivPackets t a b,
         packet m) =

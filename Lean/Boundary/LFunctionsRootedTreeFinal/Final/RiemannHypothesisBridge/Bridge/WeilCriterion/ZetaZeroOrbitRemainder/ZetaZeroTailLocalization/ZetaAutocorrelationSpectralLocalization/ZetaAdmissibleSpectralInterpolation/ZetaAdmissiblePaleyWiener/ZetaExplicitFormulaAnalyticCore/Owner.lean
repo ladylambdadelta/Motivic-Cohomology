@@ -806,6 +806,31 @@ theorem complex_re_eq_zero_of_star_eq_neg
     (two_mul (Complex.re z)).symm.trans hadd
   exact (mul_eq_zero.mp hmul).resolve_left two_ne_zero
 
+/-- A complex number with zero real part is the negative of its conjugate. -/
+theorem complex_star_eq_neg_of_re_eq_zero
+    (z : ℂ) (hz : Complex.re z = 0) :
+    star z = -z := by
+  apply Complex.ext
+  · calc
+      Complex.re (star z) = Complex.re z := by
+        exact Eq.trans
+          (congrArg Complex.re (Complex.star_def z))
+          (Complex.conj_re z)
+      _ = 0 := hz
+      _ = -0 := by
+        exact (neg_zero : -(0 : ℝ) = 0).symm
+      _ = -Complex.re z := by
+        exact congrArg Neg.neg hz.symm
+      _ = Complex.re (-z) := by
+        exact (Complex.neg_re z).symm
+  · calc
+      Complex.im (star z) = -Complex.im z := by
+        exact Eq.trans
+          (congrArg Complex.im (Complex.star_def z))
+          (Complex.conj_im z)
+      _ = Complex.im (-z) := by
+        exact (Complex.neg_im z).symm
+
 /-- A complex number plus its conjugate is twice its real part. -/
 theorem complex_add_star_eq_two_re
     (z : ℂ) :
