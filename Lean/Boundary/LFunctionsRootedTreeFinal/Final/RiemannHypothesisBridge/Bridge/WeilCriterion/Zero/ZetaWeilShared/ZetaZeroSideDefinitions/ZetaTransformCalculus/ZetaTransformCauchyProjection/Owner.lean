@@ -5154,7 +5154,29 @@ theorem scalarFourierLaplacePlemelj_negativeKernel_exponentialNumerator_differen
     DifferentiableOn ℂ
       (fun z : ℂ => Complex.exp (Complex.I * z * (x : ℂ)))
       (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
-  sorry
+  let L : ℂ → ℂ := fun z : ℂ => Complex.I * z * (x : ℂ)
+  have hL : Differentiable ℂ L := by
+    exact
+      (differentiable_id.const_mul Complex.I).mul_const
+        (x : ℂ)
+  have hExp :
+      Differentiable ℂ (NormedSpace.exp ℂ : ℂ → ℂ) := by
+    exact
+      fun z : ℂ =>
+        (NormedSpace.hasFDerivAt_exp (𝕂 := ℂ) (𝔸 := ℂ)).differentiableAt
+  have hComp :
+      DifferentiableOn ℂ
+        ((NormedSpace.exp ℂ : ℂ → ℂ) ∘ L)
+        (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
+    exact hExp.comp_differentiableOn hL.differentiableOn
+  exact
+    Eq.subst
+      (motive := fun E : ℂ → ℂ =>
+        DifferentiableOn ℂ
+          (E ∘ L)
+          (scalarFourierLaplacePlemelj_lowerHalfDisk T))
+      Complex.exp_eq_exp_ℂ.symm
+      hComp
 
 /-- The negative lower-half-plane kernel has zero enclosed residue sum. -/
 theorem scalarFourierLaplacePlemelj_negativeKernel_lowerHalfPlaneResidueSum_eq_zero
