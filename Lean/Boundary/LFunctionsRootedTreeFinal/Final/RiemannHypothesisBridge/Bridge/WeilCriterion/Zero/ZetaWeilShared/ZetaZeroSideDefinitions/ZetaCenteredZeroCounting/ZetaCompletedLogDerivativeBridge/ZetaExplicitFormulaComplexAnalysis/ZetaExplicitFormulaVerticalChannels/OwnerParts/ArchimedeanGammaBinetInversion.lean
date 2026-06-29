@@ -34,6 +34,20 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- Whole-line right Binet-remainder inverse-Mellin vanishing, in the form
+needed to extract the Binet-main value from the coupled Gamma/Binet line-core
+identity. -/
+theorem zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_integral_eq_zero_sourceMellinInversion
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+    (∫ t : ℝ,
+      zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
+        f F.toContourFamily t) =
+      0 := by
+  sorry
+
 /-- Whole-line right Binet-main inverse-Mellin value. -/
 theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_wholeLine_eq_phiZero_ownerMellinInversion
     (f : ZetaAdmissibleFunction)
@@ -44,7 +58,33 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_wholeLine_eq
       zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
         f F.toContourFamily t) =
       zetaCompletedExplicitFormulaPhi f 0 := by
-  sorry
+  let M : ℂ :=
+    ∫ t : ℝ,
+      zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
+        f F.toContourFamily t
+  let R : ℂ :=
+    ∫ t : ℝ,
+      zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
+        f F.toContourFamily t
+  have hfull :
+      M + R = zetaCompletedExplicitFormulaPhi f 0 := by
+    unfold M
+    unfold R
+    exact
+      zetaCompletedExplicitFormulaArchimedeanRightBinetFullTransform_integral_eq_phiZero_ownerGammaBinetLineCore
+        f F h hcoh
+  have hremainder : R = 0 := by
+    unfold R
+    exact
+      zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_integral_eq_zero_sourceMellinInversion
+        f F h hcoh
+  have hM_eq_sum : M = M + R := by
+    calc
+      M = M + 0 := by
+        exact (add_zero M).symm
+      _ = M + R := by
+        exact congrArg (fun z : ℂ => M + z) hremainder.symm
+  exact hM_eq_sum.trans hfull
 
 /-- The centered scheduled right Binet-main inverse-Mellin window error tends
 to zero after whole-line exhaustion and the whole-line Mellin value. -/
@@ -918,28 +958,9 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetFullTransform_integral_
         zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
           f F.toContourFamily t =
       zetaCompletedExplicitFormulaPhi f 0 := by
-  let M : ℂ :=
-    ∫ t : ℝ,
-      zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
-        f F.toContourFamily t
-  let R : ℂ :=
-    ∫ t : ℝ,
-      zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
-        f F.toContourFamily t
-  have hmain : M = zetaCompletedExplicitFormulaPhi f 0 :=
-    zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_integral_eq_phiZero_ownerInversion
+  exact
+    zetaCompletedExplicitFormulaArchimedeanRightBinetFullTransform_integral_eq_phiZero_ownerGammaBinetLineCore
       f F h hcoh
-  have hremainder : R = 0 :=
-    zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_integral_eq_zero_ownerInversion
-      f F h hcoh
-  calc
-    M + R = zetaCompletedExplicitFormulaPhi f 0 + R := by
-      exact congrArg (fun z : ℂ => z + R) hmain
-    _ = zetaCompletedExplicitFormulaPhi f 0 + 0 := by
-      exact congrArg (fun z : ℂ => zetaCompletedExplicitFormulaPhi f 0 + z)
-        hremainder
-    _ = zetaCompletedExplicitFormulaPhi f 0 := by
-      exact add_zero (zetaCompletedExplicitFormulaPhi f 0)
 
 /-- Whole-line value of the shifted-left coupled main-plus-remainder Binet
 transform, assembled from the two left analytic leaves. -/
