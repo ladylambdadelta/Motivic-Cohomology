@@ -7,7 +7,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 
 This file owns the measure-theoretic tail estimate for the right one-pole
 affine kernel.  The analytic input is high-order Paley-Wiener decay of the
-affine kernel plus a zero whole-line value; the output is the scheduled
+affine kernel plus its projection whole-line value; the output is the scheduled
 inverse-quadratic bound needed by the residue-tail layer.
 -/
 
@@ -25,27 +25,28 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- Owner analytic tail leaf: if the right one-pole affine kernel has zero
-whole-line value, then its rectangle-window truncations decay
-inverse-quadratically.
+/-- Owner analytic tail leaf: if the right one-pole affine kernel has
+projection whole-line value, then its rectangle-window truncations converge to
+that value inverse-quadratically.
 
 The proof should use the `N = 4` (or stronger) affine kernel majorant, express
 the window integral as the negative complement of the whole-line integral, and
 bound the two tails by integrating `(1 + ‖t‖)^{-4}` outside the window. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernelInterval_eventual_inverseQuadratic_of_integral_zero_ownerOnePoleTail
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernelInterval_eventual_inverseQuadratic_of_integral_projection_ownerOnePoleTail
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (hzero :
+    (hvalue :
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F t) =
-        0) :
+        zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c) :
     ∃ MR : ℝ,
       0 < MR ∧
         ∀ᶠ u in atTop,
-          ‖∫ t in Set.Icc
+          ‖(∫ t in Set.Icc
               (-(F.rectangle (h.height_schedule.height u)).T)
               (F.rectangle (h.height_schedule.height u)).T,
-              zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F t‖
+              zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F t) -
+              zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c‖
             ≤ MR *
               (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   let φ : ℝ → ℂ :=
@@ -76,8 +77,10 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernelInterval_e
       zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_norm_le_majorant
         f F h 4 t
   match
-    realLine_intervalIntegral_eventually_inverseQuadratic_of_integral_zero_norm_le_zpow_four
-      φ hφ_integrable hzero A hA_nonneg hmajorant with
+    realLine_intervalIntegral_eventually_inverseQuadratic_of_integral_value_norm_le_zpow_four
+      φ hφ_integrable
+      (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)
+      hvalue A hA_nonneg hmajorant with
   | ⟨M, hMpos, hM⟩ =>
       exact
         ⟨M, hMpos,
@@ -93,17 +96,19 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_event
       ∃ MR : ℝ,
         0 < MR ∧
           ∀ᶠ u in atTop,
-            ‖∫ t in Set.Icc
+            ‖(∫ t in Set.Icc
                 (-(F.rectangle (h.height_schedule.height u)).T)
                 (F.rectangle (h.height_schedule.height u)).T,
-                zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F t‖
+                zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F t) -
+                zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c‖
               ≤ MR *
                 (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ))) :
     ∃ MR : ℝ,
       0 < MR ∧
         ∀ᶠ u in atTop,
           ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-              f F (h.height_schedule.height u)‖
+              f F (h.height_schedule.height u) -
+              zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c‖
             ≤ MR *
               (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   match hinterval with
@@ -118,36 +123,41 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_event
                     MR *
                       (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^
                         (-(2 : ℤ)))
-                (zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eq_affineKernelIntegral_ownerOnePoleVerticalTransport
-                  f F (h.height_schedule.height u)).symm
+                (congrArg
+                  (fun z : ℂ =>
+                    z -
+                      zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)
+                  (zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eq_affineKernelIntegral_ownerOnePoleVerticalTransport
+                    f F (h.height_schedule.height u))).symm
                 hu)⟩
 
 /-- Owner quantitative tail theorem for scheduled truncations of the right
-`s = 1` correction affine kernel, assuming the whole-line value is zero.
+`s = 1` correction affine kernel, assuming the whole-line projection value.
 
 This is a measure/decay consequence of the affine-kernel rapid decay bounds,
 the rectangle-window transport, and the zero whole-line value. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eventual_inverseQuadratic_of_affineIntegral_zero_ownerOnePoleTail
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eventual_inverseQuadratic_of_affineIntegral_projection_ownerOnePoleTail
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (hzero :
+    (hvalue :
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F t) =
-        0) :
+        zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c) :
     ∃ MR : ℝ,
       0 < MR ∧
         ∀ᶠ u in atTop,
           ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-              f F (h.height_schedule.height u)‖
+              f F (h.height_schedule.height u) -
+              zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c‖
             ≤ MR *
               (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   exact
     zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eventual_inverseQuadratic_of_affineKernelInterval_ownerOnePoleTail
       f F h
-      (zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernelInterval_eventual_inverseQuadratic_of_integral_zero_ownerOnePoleTail
-        f F h hzero)
+      (zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernelInterval_eventual_inverseQuadratic_of_integral_projection_ownerOnePoleTail
+        f F h hvalue)
 
-/-- Public tail consequence of the right one-pole affine zero value. -/
+/-- Public tail consequence of the right one-pole affine projection value. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eventual_inverseQuadratic_ownerOnePoleTail
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
@@ -155,13 +165,14 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_event
       0 < MR ∧
         ∀ᶠ u in atTop,
           ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-              f F (h.height_schedule.height u)‖
+              f F (h.height_schedule.height u) -
+              zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c‖
             ≤ MR *
               (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   exact
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eventual_inverseQuadratic_of_affineIntegral_zero_ownerOnePoleTail
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eventual_inverseQuadratic_of_affineIntegral_projection_ownerOnePoleTail
       f F h
-      (zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_integral_eq_zero_ownerOnePoleAffine
+      (zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel_integral_eq_projection_ownerOnePoleAffine
         f F h)
 
 end ZetaAdmissibleFunction

@@ -278,6 +278,26 @@ theorem realLine_intervalIntegral_eventually_inverseQuadratic_of_integral_zero_n
             hinterval.trans (hT.trans hMq))
       exact ⟨M, hMpos, hfinal⟩
 
+/-- Neutral analytic tail principle around an arbitrary whole-line value.
+
+This is the same complement-tail estimate as the zero-integral theorem, with
+the interval integral compared to the recorded whole-line value. -/
+theorem realLine_intervalIntegral_eventually_inverseQuadratic_of_integral_value_norm_le_zpow_four
+    (φ : ℝ → ℂ)
+    (hφ_integrable : Integrable φ (volume : Measure ℝ))
+    (v : ℂ)
+    (hvalue : (∫ t : ℝ, φ t) = v)
+    (A : ℝ) (hA_nonneg : 0 ≤ A)
+    (hmajorant :
+      ∀ t : ℝ,
+        ‖φ t‖ ≤ A * (1 + ‖t‖) ^ (-(4 : ℤ))) :
+    ∃ M : ℝ,
+      0 < M ∧
+        ∀ᶠ T in atTop,
+          ‖(∫ t in Set.Icc (-T) T, φ t) - v‖
+            ≤ M * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+  sorry
+
 end
 end LFunctions
 end Boundary
