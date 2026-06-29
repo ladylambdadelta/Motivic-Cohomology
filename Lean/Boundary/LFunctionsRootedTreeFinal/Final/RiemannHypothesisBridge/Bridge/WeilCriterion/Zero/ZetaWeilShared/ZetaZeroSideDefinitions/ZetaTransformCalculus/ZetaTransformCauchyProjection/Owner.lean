@@ -1,6 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCalculusBase.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.IteratedOscillatoryKernel.Owner
 import Mathlib.Analysis.Fourier.Inversion
+import Mathlib.Data.Real.Pi.Bounds
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 import Mathlib.Analysis.SpecialFunctions.JapaneseBracket
 import Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
@@ -7158,20 +7159,57 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_low_abs_le_one
               (v / (b ^ 2 + v ^ 2)) * Real.sin v)).symm
     _ ≤ 1 := htarget
 
-theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_crossing_abs_le_two_pi
-    (A b : ℝ) (hb : 0 < b) (hbA : b ≤ A)
-    (hb_le_one : b ≤ 1) (hone_le_A : 1 ≤ A) :
-    |∫ v in (b)..A,
-      (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
-      (2 : ℝ) * Real.pi := by
-  sorry
-
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
     (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
     (hb_le_c : b ≤ c) (hcA : c ≤ A) :
     |∫ v in c..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 2 := by
   sorry
+
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_split_at_one
+    (A b : ℝ) (hb : 0 < b) (hb_le_one : b ≤ 1)
+    (hone_le_A : 1 ≤ A) :
+    (∫ v in b..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v) =
+      (∫ v in b..1,
+        (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
+        ∫ v in (1 : ℝ)..A,
+          (v / (b ^ 2 + v ^ 2)) * Real.sin v := by
+  let f : ℝ → ℝ :=
+    fun v : ℝ => (v / (b ^ 2 + v ^ 2)) * Real.sin v
+  have hden_cont : Continuous (fun v : ℝ => b ^ 2 + v ^ 2) :=
+    continuous_const.add (continuous_id.pow 2)
+  have hden_ne : ∀ v : ℝ, b ^ 2 + v ^ 2 ≠ 0 := by
+    intro v
+    exact
+      scalarFourierLaplacePlemelj_zero_denominator_ne_zero b hb v
+  have hquot_cont : Continuous (fun v : ℝ => v / (b ^ 2 + v ^ 2)) :=
+    continuous_id.div hden_cont hden_ne
+  have hf_cont : Continuous f := by
+    unfold f
+    exact hquot_cont.mul Real.continuous_sin
+  have hleft : IntervalIntegrable f volume b 1 :=
+    hf_cont.intervalIntegrable b 1
+  have hright : IntervalIntegrable f volume (1 : ℝ) A :=
+    hf_cont.intervalIntegrable 1 A
+  calc
+    (∫ v in b..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v)
+        = ∫ v in b..A, f v := by
+          unfold f
+          rfl
+    _ =
+        (∫ v in b..1, f v) + ∫ v in (1 : ℝ)..A, f v := by
+          exact
+            (intervalIntegral.integral_add_adjacent_intervals
+              hleft hright).symm
+    _ =
+        (∫ v in b..1,
+          (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
+          ∫ v in (1 : ℝ)..A,
+            (v / (b ^ 2 + v ^ 2)) * Real.sin v := by
+          unfold f
+          rfl
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_pi
     (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
@@ -7183,6 +7221,78 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_pi
     (scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
       A b c hb hone_le_c hb_le_c hcA).trans
         scalarFourierLaplacePlemelj_two_le_two_pi
+
+theorem scalarFourierLaplacePlemelj_three_le_two_pi :
+    (3 : ℝ) ≤ (2 : ℝ) * Real.pi := by
+  have hpi_le_two_pi : Real.pi ≤ (2 : ℝ) * Real.pi := by
+    calc
+      Real.pi = (1 : ℝ) * Real.pi := by
+        exact (one_mul Real.pi).symm
+      _ ≤ (2 : ℝ) * Real.pi := by
+        exact mul_le_mul_of_nonneg_right one_le_two Real.pi_pos.le
+  exact Real.pi_gt_three.le.trans hpi_le_two_pi
+
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_crossing_abs_le_two_pi
+    (A b : ℝ) (hb : 0 < b) (_hbA : b ≤ A)
+    (hb_le_one : b ≤ 1) (hone_le_A : 1 ≤ A) :
+    |∫ v in (b)..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
+      (2 : ℝ) * Real.pi := by
+  have hsplit :
+      (∫ v in b..A,
+        (v / (b ^ 2 + v ^ 2)) * Real.sin v) =
+        (∫ v in b..1,
+          (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
+          ∫ v in (1 : ℝ)..A,
+            (v / (b ^ 2 + v ^ 2)) * Real.sin v :=
+    scalarFourierLaplacePlemelj_dampedSineIntegral_tail_split_at_one
+      A b hb hb_le_one hone_le_A
+  have hlow :
+      |∫ v in b..1,
+        (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 1 :=
+    scalarFourierLaplacePlemelj_dampedSineIntegral_tail_low_abs_le_one
+      1 b hb hb_le_one (le_refl 1)
+  have hhigh :
+      |∫ v in (1 : ℝ)..A,
+        (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 2 :=
+    scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
+      A b 1 hb (le_refl 1) hb_le_one hone_le_A
+  have hsum :
+      |(∫ v in b..1,
+        (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
+        ∫ v in (1 : ℝ)..A,
+          (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 3 := by
+    calc
+      |(∫ v in b..1,
+        (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
+        ∫ v in (1 : ℝ)..A,
+          (v / (b ^ 2 + v ^ 2)) * Real.sin v|
+          ≤
+          |∫ v in b..1,
+            (v / (b ^ 2 + v ^ 2)) * Real.sin v| +
+            |∫ v in (1 : ℝ)..A,
+              (v / (b ^ 2 + v ^ 2)) * Real.sin v| := by
+            exact abs_add
+              (∫ v in b..1,
+                (v / (b ^ 2 + v ^ 2)) * Real.sin v)
+              (∫ v in (1 : ℝ)..A,
+                (v / (b ^ 2 + v ^ 2)) * Real.sin v)
+      _ ≤ 1 + 2 := by
+            exact add_le_add hlow hhigh
+      _ = 3 := by
+            rfl
+  calc
+    |∫ v in (b)..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v|
+        =
+        |(∫ v in b..1,
+          (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
+          ∫ v in (1 : ℝ)..A,
+            (v / (b ^ 2 + v ^ 2)) * Real.sin v| := by
+          exact congrArg abs hsplit
+    _ ≤ 3 := hsum
+    _ ≤ (2 : ℝ) * Real.pi :=
+        scalarFourierLaplacePlemelj_three_le_two_pi
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_two_pi
     (A b : ℝ) (hb : 0 < b) (hbA : b ≤ A) :
