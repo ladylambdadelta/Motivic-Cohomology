@@ -25,7 +25,7 @@ section FixedLineCauchyProjection
 supported logarithmic test function. -/
 noncomputable def zetaLaplaceTransform_rightOnePoleCauchyProjectionValue
     (φ : LFunctions.ZetaTestFunction) (_c : ℝ) : ℂ :=
-  ∫ x in Set.Iic (0 : ℝ),
+  ∫ x in Set.Ici (0 : ℝ),
     (-2 * (Real.pi : ℂ)) *
       φ x *
         Complex.exp ((1 / 2 : ℂ) * (x : ℂ))
@@ -303,14 +303,14 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_verticalSlice_eq_fouri
             φ c t x))
 
 /-- Standard full-line Fourier transform of the decaying exponential kernel on
-the negative half-line. -/
-theorem fixedPositiveRate_fourierTransform_negativeHalfLineExponential
+the positive half-line. -/
+theorem fixedPositiveRate_fourierTransform_positiveHalfLineExponential
     (a : ℝ) (ha : 0 < a) (x : ℝ) :
     (∫ t : ℝ,
         (-1 / ((a : ℂ) + t * Complex.I)) *
           (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
             Complex.exp ((a : ℂ) * (x : ℂ)))) =
-      Set.indicator (Set.Iio (0 : ℝ))
+      Set.indicator (Set.Ioi (0 : ℝ))
         (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
   sorry
 
@@ -329,9 +329,9 @@ theorem fixedRightLine_cauchyDenominator_eq_positiveRate
             (fun z : ℂ => z + t * Complex.I)
             (Complex.ofReal_sub c 1).symm
 
-/-- Scalar Cauchy kernel value on the strictly negative time half-line. -/
-theorem fixedRightLine_cauchyExponentialKernel_integral_eq_negTwoPi_of_neg
-    (c : ℝ) (hc : 1 < c) (x : ℝ) (hx : x < 0) :
+/-- Scalar Cauchy kernel value on the strictly positive time half-line. -/
+theorem fixedRightLine_cauchyExponentialKernel_integral_eq_negTwoPi_of_pos
+    (c : ℝ) (hc : 1 < c) (x : ℝ) (hx : 0 < x) :
     (∫ t : ℝ,
         (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
           (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
@@ -358,17 +358,17 @@ theorem fixedRightLine_cauchyExponentialKernel_integral_eq_negTwoPi_of_neg
                         Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
                   (fixedRightLine_cauchyDenominator_eq_positiveRate c t)))
     _ =
-        Set.indicator (Set.Iio (0 : ℝ))
+        Set.indicator (Set.Ioi (0 : ℝ))
           (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
-          exact fixedPositiveRate_fourierTransform_negativeHalfLineExponential
+          exact fixedPositiveRate_fourierTransform_positiveHalfLineExponential
             (c - 1) hrate_pos x
     _ = -2 * (Real.pi : ℂ) := by
           exact indicator_of_mem hx
             (fun _ : ℝ => (-2 * (Real.pi : ℂ)))
 
-/-- Scalar Cauchy kernel value on the positive time half-line. -/
-theorem fixedRightLine_cauchyExponentialKernel_integral_eq_zero_of_pos
-    (c : ℝ) (hc : 1 < c) (x : ℝ) (hx : 0 < x) :
+/-- Scalar Cauchy kernel value on the strictly negative time half-line. -/
+theorem fixedRightLine_cauchyExponentialKernel_integral_eq_zero_of_neg
+    (c : ℝ) (hc : 1 < c) (x : ℝ) (hx : x < 0) :
     (∫ t : ℝ,
         (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
           (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
@@ -395,12 +395,12 @@ theorem fixedRightLine_cauchyExponentialKernel_integral_eq_zero_of_pos
                         Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
                   (fixedRightLine_cauchyDenominator_eq_positiveRate c t)))
     _ =
-        Set.indicator (Set.Iio (0 : ℝ))
+        Set.indicator (Set.Ioi (0 : ℝ))
           (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
-          exact fixedPositiveRate_fourierTransform_negativeHalfLineExponential
+          exact fixedPositiveRate_fourierTransform_positiveHalfLineExponential
             (c - 1) hrate_pos x
     _ = 0 := by
-          exact indicator_of_not_mem (not_mem_Iio.mpr (le_of_lt hx))
+          exact indicator_of_not_mem (not_mem_Ioi.mpr (le_of_lt hx))
             (fun _ : ℝ => (-2 * (Real.pi : ℂ)))
 
 /-- Scalar Cauchy kernel value on the fixed right line, away from the boundary
@@ -416,40 +416,40 @@ theorem fixedRightLine_cauchyExponentialKernel_integral_ae_eq_oneSidedWeight
         (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
           (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
             Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
-        Set.indicator (Set.Iic (0 : ℝ))
+        Set.indicator (Set.Ici (0 : ℝ))
           (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
   intro hx_ne
   if hx_neg : x < 0 then
-    calc
-      (∫ t : ℝ,
-          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-            (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
-              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
-          = -2 * (Real.pi : ℂ) := by
-            exact fixedRightLine_cauchyExponentialKernel_integral_eq_negTwoPi_of_neg
-              c hc x hx_neg
-      _ =
-          Set.indicator (Set.Iic (0 : ℝ))
-            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
-            exact (indicator_of_mem (le_of_lt hx_neg)
-              (fun _ : ℝ => (-2 * (Real.pi : ℂ)))).symm
-  else
-    have hx_nonneg : 0 ≤ x := le_of_not_gt hx_neg
-    have hx_pos : 0 < x := lt_of_le_of_ne hx_nonneg
-      (fun hzero : 0 = x => hx_ne hzero.symm)
-    have hx_not_mem : x ∉ Set.Iic (0 : ℝ) := not_mem_Iic.mpr hx_pos
+    have hx_not_mem : x ∉ Set.Ici (0 : ℝ) := not_mem_Ici.mpr hx_neg
     calc
       (∫ t : ℝ,
           (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
             (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
               Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
           = 0 := by
-            exact fixedRightLine_cauchyExponentialKernel_integral_eq_zero_of_pos
-              c hc x hx_pos
+            exact fixedRightLine_cauchyExponentialKernel_integral_eq_zero_of_neg
+              c hc x hx_neg
       _ =
-          Set.indicator (Set.Iic (0 : ℝ))
+          Set.indicator (Set.Ici (0 : ℝ))
             (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
             exact (indicator_of_not_mem hx_not_mem
+              (fun _ : ℝ => (-2 * (Real.pi : ℂ)))).symm
+  else
+    have hx_nonneg : 0 ≤ x := le_of_not_gt hx_neg
+    have hx_pos : 0 < x := lt_of_le_of_ne hx_nonneg
+      (fun hzero : 0 = x => hx_ne hzero.symm)
+    calc
+      (∫ t : ℝ,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+          = -2 * (Real.pi : ℂ) := by
+            exact fixedRightLine_cauchyExponentialKernel_integral_eq_negTwoPi_of_pos
+              c hc x hx_pos
+      _ =
+          Set.indicator (Set.Ici (0 : ℝ))
+            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
+            exact (indicator_of_mem hx_nonneg
               (fun _ : ℝ => (-2 * (Real.pi : ℂ)))).symm
 
 /-- The scalar Cauchy kernel agrees almost everywhere with the one-sided
@@ -462,7 +462,7 @@ theorem fixedRightLine_cauchyExponentialKernel_integral_eventuallyEq_oneSidedWei
           (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
             Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))) =ᵐ[volume]
       (fun x : ℝ =>
-        Set.indicator (Set.Iic (0 : ℝ))
+        Set.indicator (Set.Ici (0 : ℝ))
           (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x) := by
   have hzero : volume ({0} : Set ℝ) = 0 :=
     measure_singleton (0 : ℝ)
@@ -507,7 +507,7 @@ theorem fixedRightLine_fourierCauchy_fullLine_fubini_to_scalarKernel
               Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
       ∫ x : ℝ,
         K x *
-          Set.indicator (Set.Iic (0 : ℝ))
+          Set.indicator (Set.Ici (0 : ℝ))
             (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
   calc
     (∫ t : ℝ,
@@ -529,7 +529,7 @@ theorem fixedRightLine_fourierCauchy_fullLine_fubini_to_scalarKernel
     _ =
         ∫ x : ℝ,
           K x *
-            Set.indicator (Set.Iic (0 : ℝ))
+            Set.indicator (Set.Ici (0 : ℝ))
               (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
           exact integral_congr_ae
             ((fixedRightLine_cauchyExponentialKernel_integral_eventuallyEq_oneSidedWeight
@@ -545,26 +545,26 @@ theorem fixedRightLine_fourierCauchy_scalarKernelIntegral_eq_oneSidedProjection
     (K : ℝ → ℂ) :
     (∫ x : ℝ,
         K x *
-          Set.indicator (Set.Iic (0 : ℝ))
+          Set.indicator (Set.Ici (0 : ℝ))
             (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x) =
-      ∫ x in Set.Iic (0 : ℝ),
+      ∫ x in Set.Ici (0 : ℝ),
         (-2 * (Real.pi : ℂ)) * K x := by
   calc
     (∫ x : ℝ,
         K x *
-          Set.indicator (Set.Iic (0 : ℝ))
+          Set.indicator (Set.Ici (0 : ℝ))
             (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)
         =
         ∫ x : ℝ,
-          Set.indicator (Set.Iic (0 : ℝ))
+          Set.indicator (Set.Ici (0 : ℝ))
             (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x := by
           exact integral_congr_ae
             (Eventually.of_forall
               (fun x : ℝ =>
-                if hx : x ∈ Set.Iic (0 : ℝ) then
+                if hx : x ∈ Set.Ici (0 : ℝ) then
                   calc
                     K x *
-                        Set.indicator (Set.Iic (0 : ℝ))
+                        Set.indicator (Set.Ici (0 : ℝ))
                           (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x
                         = K x * (-2 * (Real.pi : ℂ)) := by
                           exact congrArg
@@ -574,14 +574,14 @@ theorem fixedRightLine_fourierCauchy_scalarKernelIntegral_eq_oneSidedProjection
                     _ = (-2 * (Real.pi : ℂ)) * K x := by
                           exact mul_comm (K x) (-2 * (Real.pi : ℂ))
                     _ =
-                        Set.indicator (Set.Iic (0 : ℝ))
+                        Set.indicator (Set.Ici (0 : ℝ))
                           (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x := by
                           exact (indicator_of_mem hx
                             (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y)).symm
                 else
                   calc
                     K x *
-                        Set.indicator (Set.Iic (0 : ℝ))
+                        Set.indicator (Set.Ici (0 : ℝ))
                           (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x
                         = K x * 0 := by
                           exact congrArg
@@ -591,14 +591,14 @@ theorem fixedRightLine_fourierCauchy_scalarKernelIntegral_eq_oneSidedProjection
                     _ = 0 := by
                           exact mul_zero (K x)
                     _ =
-                        Set.indicator (Set.Iic (0 : ℝ))
+                        Set.indicator (Set.Ici (0 : ℝ))
                           (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x := by
                           exact (indicator_of_not_mem hx
                             (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y)).symm))
     _ =
-        ∫ x in Set.Iic (0 : ℝ),
+        ∫ x in Set.Ici (0 : ℝ),
           (-2 * (Real.pi : ℂ)) * K x := by
-          exact integral_indicator measurableSet_Iic
+          exact integral_indicator measurableSet_Ici
 
 /-- Generic one-sided Fourier-Cauchy inversion for a compactly supported
 time-side kernel on the fixed right line. -/
@@ -612,7 +612,7 @@ theorem fixedRightLine_fourierCauchy_fullLine_oneSidedProjection
               Complex.exp
                 (Complex.I * (t : ℂ) * (x : ℂ)) *
               Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
-      ∫ x in Set.Iic (0 : ℝ),
+      ∫ x in Set.Ici (0 : ℝ),
         (-2 * (Real.pi : ℂ)) * K x := by
   exact
     (fixedRightLine_fourierCauchy_fullLine_fubini_to_scalarKernel
@@ -641,7 +641,7 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue_fo
                 (Complex.I * (t : ℂ) * (x : ℂ)) *
               Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
         =
-        ∫ x in Set.Iic (0 : ℝ),
+        ∫ x in Set.Ici (0 : ℝ),
           (-2 * (Real.pi : ℂ)) *
             zetaLaplaceTransform_rightOnePoleProjectionKernel φ x :=
           fixedRightLine_fourierCauchy_fullLine_oneSidedProjection
@@ -653,7 +653,7 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue_fo
           unfold zetaLaplaceTransform_rightOnePoleCauchyProjectionValue
           unfold zetaLaplaceTransform_rightOnePoleProjectionKernel
           exact
-            setIntegral_congr_fun measurableSet_Iic
+            setIntegral_congr_fun measurableSet_Ici
               (fun x _hx =>
                 (mul_assoc
                   (-2 * (Real.pi : ℂ))
@@ -2113,7 +2113,7 @@ projection.
 This is the analytic owner sink: after the vertical-line Laplace slice is
 rewritten as the Fourier transform of
 `zetaLaplaceTransform_rightOnePoleProjectionKernel`, the Cauchy multiplier
-`((c - 1) + it)⁻¹` projects onto the negative time half-line with an
+`((c - 1) + it)⁻¹` projects onto the positive time half-line with an
 inverse-quadratic symmetric truncation tail. -/
 theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fixedLineCauchyMultiplier_estimate
     (f : LFunctions.ZetaAdmissibleFunction) (c : ℝ) (hc : 1 < c)
