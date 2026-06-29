@@ -108,7 +108,7 @@ theorem Real.binetEnvelope_reciprocal_exp_sub_one_le_two_div_exp
   exact
     Eq.subst
       (motive := fun z : ℝ => z ≤ 2 / Real.exp u)
-      (one_div (Real.exp u - 1)).symm
+      (one_div (Real.exp u - 1))
       hquotient
 
 /-- Positivity of the shifted exponential denominator. -/
@@ -143,7 +143,7 @@ theorem Real.binetEnvelope_fraction_bound
 theorem Real.binetEnvelope_scale_identity
     (A N u : ℝ) :
     2 * ((A * (2 / Real.exp u)) * (2 * N)) =
-      ((2 : ℝ) * 4) * A * N * Real.exp (-u) := by
+      ((2 : ℝ) * (2 * 2)) * A * N * Real.exp (-u) := by
   let E : ℝ := Real.exp u
   calc
     2 * ((A * (2 / Real.exp u)) * (2 * N)) =
@@ -151,7 +151,7 @@ theorem Real.binetEnvelope_scale_identity
       rfl
     _ = 2 * (((A * 2) * E⁻¹) * (2 * N)) := by
       exact congrArg (fun z : ℝ => 2 * (z * (2 * N)))
-        (mul_assoc A 2 E⁻¹)
+        (mul_assoc A 2 E⁻¹).symm
     _ = 2 * (((2 * A) * E⁻¹) * (2 * N)) := by
       exact congrArg
         (fun z : ℝ => 2 * ((z * E⁻¹) * (2 * N)))
@@ -159,34 +159,45 @@ theorem Real.binetEnvelope_scale_identity
     _ = (2 * ((2 * A) * E⁻¹)) * (2 * N) := by
       exact (mul_assoc 2 (((2 * A) * E⁻¹)) (2 * N)).symm
     _ = ((2 * ((2 * A) * E⁻¹)) * 2) * N := by
-      exact mul_assoc (2 * ((2 * A) * E⁻¹)) 2 N
+      exact (mul_assoc (2 * ((2 * A) * E⁻¹)) 2 N).symm
+    _ = (2 * (((2 * A) * E⁻¹) * 2)) * N := by
+      exact congrArg (fun z : ℝ => z * N)
+        (mul_assoc 2 (((2 * A) * E⁻¹)) 2)
+    _ = (2 * (2 * ((2 * A) * E⁻¹))) * N := by
+      exact congrArg (fun z : ℝ => (2 * z) * N)
+        (mul_comm (((2 * A) * E⁻¹)) 2)
     _ = ((2 * 2) * ((2 * A) * E⁻¹)) * N := by
       exact congrArg (fun z : ℝ => z * N)
-        ((mul_assoc 2 2 (((2 * A) * E⁻¹))).symm)
-    _ = (4 * ((2 * A) * E⁻¹)) * N := by
-      rfl
-    _ = ((4 * (2 * A)) * E⁻¹) * N := by
+        (mul_assoc 2 2 (((2 * A) * E⁻¹))).symm
+    _ = (((2 * 2) * (2 * A)) * E⁻¹) * N := by
       exact congrArg (fun z : ℝ => z * N)
-        (mul_assoc 4 (2 * A) E⁻¹)
-    _ = (((2 * 4) * A) * E⁻¹) * N := by
-      rfl
-    _ = ((2 * 4) * A * N) * E⁻¹ := by
+        (mul_assoc (2 * 2) (2 * A) E⁻¹).symm
+    _ = (((2 * (2 * 2)) * A) * E⁻¹) * N := by
+      exact congrArg (fun z : ℝ => (z * E⁻¹) * N)
+        (calc
+          (2 * 2) * (2 * A) =
+              ((2 * 2) * 2) * A := by
+            exact (mul_assoc (2 * 2) 2 A).symm
+          _ = (2 * (2 * 2)) * A := by
+            exact congrArg (fun z : ℝ => z * A)
+              (mul_assoc 2 2 2))
+    _ = ((2 * (2 * 2)) * A * N) * E⁻¹ := by
       calc
-        (((2 * 4) * A) * E⁻¹) * N =
-            N * (((2 * 4) * A) * E⁻¹) := by
-          exact mul_comm ((((2 : ℝ) * 4) * A) * E⁻¹) N
-        _ = (N * ((2 * 4) * A)) * E⁻¹ := by
-          exact mul_assoc N ((2 * 4) * A) E⁻¹
-        _ = (((2 * 4) * A) * N) * E⁻¹ := by
+        (((2 * (2 * 2)) * A) * E⁻¹) * N =
+            N * (((2 * (2 * 2)) * A) * E⁻¹) := by
+          exact mul_comm ((((2 : ℝ) * (2 * 2)) * A) * E⁻¹) N
+        _ = (N * ((2 * (2 * 2)) * A)) * E⁻¹ := by
+          exact (mul_assoc N ((2 * (2 * 2)) * A) E⁻¹).symm
+        _ = (((2 * (2 * 2)) * A) * N) * E⁻¹ := by
           exact congrArg (fun z : ℝ => z * E⁻¹)
-            (mul_comm N ((2 * 4) * A))
-        _ = ((2 * 4) * A * N) * E⁻¹ := by
+            (mul_comm N ((2 * (2 * 2)) * A))
+        _ = ((2 * (2 * 2)) * A * N) * E⁻¹ := by
           rfl
-    _ = ((2 : ℝ) * 4) * A * N * (Real.exp u)⁻¹ := by
+    _ = ((2 : ℝ) * (2 * 2)) * A * N * (Real.exp u)⁻¹ := by
       rfl
-    _ = ((2 : ℝ) * 4) * A * N * Real.exp (-u) := by
+    _ = ((2 : ℝ) * (2 * 2)) * A * N * Real.exp (-u) := by
       exact congrArg
-        (fun z : ℝ => ((2 : ℝ) * 4) * A * N * z)
+        (fun z : ℝ => ((2 : ℝ) * (2 * 2)) * A * N * z)
         (Real.exp_neg u).symm
 
 /-- Product estimate combining the bounded logarithmic fraction and local
@@ -198,7 +209,7 @@ theorem Real.binetEnvelope_product_bound
     (hV_nonneg : 0 ≤ V)
     (hA_nonneg : 0 ≤ A) :
     2 * ((M / (Real.exp u - 1)) * V) ≤
-      ((2 : ℝ) * 4) * A * N * Real.exp (-u) := by
+      ((2 : ℝ) * (2 * 2)) * A * N * Real.exp (-u) := by
   have hprod :
       (M / (Real.exp u - 1)) * V ≤
         (A * (2 / Real.exp u)) * (2 * N) :=
@@ -212,7 +223,7 @@ theorem Real.binetEnvelope_product_bound
           (le_of_lt (Real.exp_pos u))))
   have hscale :
       2 * ((A * (2 / Real.exp u)) * (2 * N)) =
-        ((2 : ℝ) * 4) * A * N * Real.exp (-u) := by
+        ((2 : ℝ) * (2 * 2)) * A * N * Real.exp (-u) := by
     exact Real.binetEnvelope_scale_identity A N u
   exact le_trans
     (mul_le_mul_of_nonneg_left hprod zero_le_two)
@@ -384,6 +395,13 @@ theorem Complex.binetEnvelope_log_window_le
     div_pos hδ Real.zero_lt_three
   have hthree_div_δ_ge_one : (1 : ℝ) ≤ 3 / δ := by
     exact le_trans hy_lower hy_upper
+  have hlog_one_for_x : |Real.log (1 : ℝ)| ≤ Lδ :=
+    le_trans
+      (le_of_eq (congrArg abs Real.log_one))
+      (le_trans (le_of_eq (abs_zero : |(0 : ℝ)| = 0)) hLδ_nonneg)
+  have hx_endpoint_bound :
+      max |Real.log (δ / 3)| |Real.log (1 : ℝ)| ≤ Lδ :=
+    max_le (le_max_left _ _) hlog_one_for_x
   have hx_log_bound :
       |Real.log x| ≤ Lδ :=
     le_trans
@@ -392,16 +410,19 @@ theorem Complex.binetEnvelope_log_window_le
         (le_trans hx_lower hx_upper)
         hx_lower
         hx_upper)
-      (le_max_left _ _)
+      hx_endpoint_bound
   have hy_log_bound :
       |Real.log y| ≤ Lδ :=
+    have hy_endpoint_bound :
+        max |Real.log (1 : ℝ)| |Real.log (3 / δ)| ≤ Lδ :=
+      max_le hlog_one_for_x (le_max_right _ _)
     le_trans
       (Real.abs_log_le_max_abs_log_of_bounds
         zero_lt_one
         hthree_div_δ_ge_one
         hy_lower
         hy_upper)
-      (le_max_right _ _)
+      hy_endpoint_bound
   have hlog_one : |Real.log (1 : ℝ)| ≤ Lδ :=
     le_trans
       (le_of_eq (congrArg abs Real.log_one))
@@ -420,18 +441,18 @@ theorem Complex.binetSecondFormula_branchLocalIndentation_logWindowExpBound_owne
   intro δ hδ
   let Lδ : ℝ :=
     max |Real.log (δ / 3)| |Real.log (3 / δ)|
-  let K : ℝ := (2 : ℝ) * 4
+  let K : ℝ := (2 : ℝ) * (2 * 2)
   let C : ℝ := K * (Lδ + Real.pi + 1)
   have hLδ_nonneg : 0 ≤ Lδ :=
     le_max_of_le_left (abs_nonneg (Real.log (δ / 3)))
+  have height_pos : 0 < K :=
+    mul_pos two_pos (mul_pos two_pos two_pos)
   have hC_pos : 0 < C := by
     have hinside_pos : 0 < Lδ + Real.pi + 1 := by
       exact
         add_pos_of_nonneg_of_pos
           (add_nonneg hLδ_nonneg Real.pi_nonneg)
           zero_lt_one
-    have height_pos : 0 < K :=
-      mul_pos two_pos four_pos
     exact mul_pos height_pos hinside_pos
   exact
     ⟨C, hC_pos,
@@ -506,11 +527,31 @@ theorem Complex.binetSecondFormula_branchLocalIndentation_logWindowExpBound_owne
                   (le_of_lt height_pos)
               _ = C := rfl
           have hscale_nonneg :
-              0 ≤ ‖w‖ * Real.exp (-Real.pi * ‖w‖) :=
+              0 ≤ ‖w‖ * Real.exp (-(Real.pi * ‖w‖)) :=
             mul_nonneg (norm_nonneg w)
-              (le_of_lt (Real.exp_pos (-Real.pi * ‖w‖)))
-          exact
+              (le_of_lt (Real.exp_pos (-(Real.pi * ‖w‖))))
+          have hmul :
+              K * (Lδ + Real.pi) * (‖w‖ * Real.exp (-(Real.pi * ‖w‖))) ≤
+                C * (‖w‖ * Real.exp (-(Real.pi * ‖w‖))) :=
             mul_le_mul_of_nonneg_right hcoef hscale_nonneg
+          have hexp :
+              Real.exp (-(Real.pi * ‖w‖)) =
+                Real.exp (-Real.pi * ‖w‖) :=
+            congrArg Real.exp (neg_mul Real.pi ‖w‖).symm
+          exact
+            le_trans
+              (le_of_eq
+                (mul_assoc (K * (Lδ + Real.pi)) ‖w‖
+                  (Real.exp (-(Real.pi * ‖w‖)))))
+              (le_trans hmul
+                (le_of_eq
+                  (calc
+                    C * (‖w‖ * Real.exp (-(Real.pi * ‖w‖))) =
+                        C * ‖w‖ * Real.exp (-(Real.pi * ‖w‖)) := by
+                      exact (mul_assoc C ‖w‖
+                        (Real.exp (-(Real.pi * ‖w‖)))).symm
+                    _ = C * ‖w‖ * Real.exp (-Real.pi * ‖w‖) := by
+                      exact congrArg (fun z : ℝ => C * ‖w‖ * z) hexp)))
         le_trans
           (Eq.subst
             (motive := fun z : ℝ =>
