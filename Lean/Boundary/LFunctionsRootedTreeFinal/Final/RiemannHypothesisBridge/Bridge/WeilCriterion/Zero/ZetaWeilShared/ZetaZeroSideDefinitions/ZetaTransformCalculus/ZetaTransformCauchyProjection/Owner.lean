@@ -3153,6 +3153,65 @@ noncomputable def scalarFourierLaplacePlemelj_upperHalfDiskSimplePoleResidueCont
     (F : ℂ → ℂ) (p : ℂ) : ℂ :=
   ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * F p
 
+/-- Regular part of the Cauchy kernel after subtracting its value at the pole.
+At the pole this is defined as `0`; the removable-value theorem below owns the
+analytic extension needed for the upper half-disk cancellation. -/
+noncomputable def scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart
+    (F : ℂ → ℂ) (p : ℂ) : ℂ → ℂ :=
+  fun z : ℂ => if z = p then 0 else (F z - F p) / (z - p)
+
+/-- The regular part of the simple-pole Cauchy kernel has zero boundary
+integral on the upper half-disk.  This is the removable-singularity branch of
+the residue proof: after subtracting `F p`, the numerator vanishes at `p`, so
+the quotient extends holomorphically through the pole and has a primitive on
+the star-convex upper half-disk. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_boundaryIntegral_eq_zero
+    (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ)
+    (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p)
+    (_hdiff : DifferentiableOn ℂ F
+      (scalarFourierLaplacePlemelj_upperHalfDisk T)) :
+    scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+        (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p) T = 0 := by
+  sorry
+
+/-- The raw scalar simple-pole kernel has winding number one around a pole in
+the upper half-disk boundary contour. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_simplePoleKernel_boundaryIntegral_eq_two_pi_i
+    (T : ℝ) (_hT : 0 < T) (p : ℂ)
+    (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p) :
+    scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+        (fun z : ℂ => (z - p)⁻¹) T =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) := by
+  sorry
+
+/-- Boundary integral decomposition of a Cauchy kernel into its regular
+removable part and its scalar winding part. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_cauchyKernel_boundaryIntegral_decompose
+    (F : ℂ → ℂ) (T : ℝ) (p : ℂ) :
+    scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+        (fun z : ℂ => F z / (z - p)) T =
+      scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+        (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p) T +
+        F p *
+          scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+            (fun z : ℂ => (z - p)⁻¹) T := by
+  sorry
+
+/-- Multiplying the scalar winding value by the residue coefficient gives the
+named simple-pole residue contribution. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_regular_zero_add_winding_eq_residue
+    (F : ℂ → ℂ) (p : ℂ) :
+    0 + F p * ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) =
+      scalarFourierLaplacePlemelj_upperHalfDiskSimplePoleResidueContribution
+        F p := by
+  unfold scalarFourierLaplacePlemelj_upperHalfDiskSimplePoleResidueContribution
+  calc
+    0 + F p * ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) =
+        F p * ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) := by
+      exact zero_add (F p * ((2 : ℂ) * (Real.pi : ℂ) * Complex.I))
+    _ = ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * F p := by
+      exact mul_comm (F p) ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)
+
 /-- Cauchy-Goursat on the upper half-disk punctured at the enclosed pole
 reduces the boundary integral to the local simple-pole residue contribution. -/
 theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_eq_simplePoleResidueContribution
@@ -3164,7 +3223,18 @@ theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_eq_simplePoleR
         (fun z : ℂ => F z / (z - p)) T =
       scalarFourierLaplacePlemelj_upperHalfDiskSimplePoleResidueContribution
         F p := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_upperHalfDisk_cauchyKernel_boundaryIntegral_decompose
+      F T p).trans
+      ((congrArg₂ HAdd.hAdd
+        (scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_boundaryIntegral_eq_zero
+          F T _hT p _hp _hp_upper _hdiff)
+        (congrArg
+          (fun W : ℂ => F p * W)
+          (scalarFourierLaplacePlemelj_upperHalfDisk_simplePoleKernel_boundaryIntegral_eq_two_pi_i
+            T _hT p _hp _hp_upper))).trans
+        (scalarFourierLaplacePlemelj_upperHalfDisk_regular_zero_add_winding_eq_residue
+          F p))
 
 /-- The named upper simple-pole residue contribution unfolds to `2πi F p`. -/
 theorem scalarFourierLaplacePlemelj_upperHalfDiskSimplePoleResidueContribution_eq

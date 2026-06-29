@@ -35,20 +35,64 @@ namespace LFunctions
 
 noncomputable section
 
-theorem Complex.binetSecondFormula_localIndentationEnvelope_absorbedByTail_owner :
-    ∀ w : ℂ,
-      0 < w.re →
-      2 ≤ ‖w‖ →
-        Complex.binetSecondFormulaBranchLocalIndentationEnvelope w ≤
-          (10 / ‖w‖) *
-            (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-              t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-  intro w hw_re_pos hw_norm_two
-  -- This is proven in L5_MainTheoremAssembly as h_local_envelope_absorbed
-  exact Boundary.LFunctions.BinetKernelNormalizationStructure.h_local_envelope_absorbed
-    w hw_re_pos hw_norm_two
+theorem Complex.binetSecondFormula_branchLocalIndentation_sectorAbsorption_owner :
+    Complex.BinetSecondFormulaBranchLocalIndentationSectorAbsorption :=
+  fun δ hδ =>
+    match
+      Complex.binetSecondFormula_branchLocalIndentation_sectorEnvelopeExpBound_owner
+        δ hδ with
+    | ⟨Cup, hCup_pos, hupper⟩ =>
+        match Complex.binetSecondFormula_decayingTailIntegral_expLower_owner with
+        | ⟨clow, hclow_pos, hlower⟩ =>
+            let C : ℝ := Cup / clow
+            have hC_pos : 0 < C :=
+              div_pos hCup_pos hclow_pos
+            have hC_nonneg : 0 ≤ C :=
+              le_of_lt hC_pos
+            ⟨C, hC_pos,
+              fun w hw_sector hw_norm_two =>
+                have htail_lower : clow * ‖w‖ *
+                    Real.exp (-Real.pi * ‖w‖) ≤
+                    Complex.binetSecondFormulaDecayingTailIntegral w :=
+                  hlower w hw_norm_two
+                have hscaled_tail :
+                    C * (clow * ‖w‖ *
+                        Real.exp (-Real.pi * ‖w‖)) ≤
+                      C * Complex.binetSecondFormulaDecayingTailIntegral w :=
+                  mul_le_mul_of_nonneg_left htail_lower hC_nonneg
+                have hscale_identity :
+                    Cup * ‖w‖ * Real.exp (-Real.pi * ‖w‖) =
+                      C * (clow * ‖w‖ *
+                        Real.exp (-Real.pi * ‖w‖)) := by
+                  calc
+                    Cup * ‖w‖ * Real.exp (-Real.pi * ‖w‖) =
+                        ((Cup / clow) * clow) * ‖w‖ *
+                          Real.exp (-Real.pi * ‖w‖) := by
+                      exact
+                        congrArg
+                          (fun y : ℝ =>
+                            y * ‖w‖ * Real.exp (-Real.pi * ‖w‖))
+                          (div_mul_cancel₀ Cup (ne_of_gt hclow_pos)).symm
+                    _ = C * (clow * ‖w‖) *
+                        Real.exp (-Real.pi * ‖w‖) := by
+                      exact
+                        congrArg
+                          (fun y : ℝ => y * Real.exp (-Real.pi * ‖w‖))
+                          (mul_assoc C clow ‖w‖)
+                    _ = C * (clow * ‖w‖ *
+                        Real.exp (-Real.pi * ‖w‖)) := by
+                      exact
+                        mul_assoc C (clow * ‖w‖)
+                          (Real.exp (-Real.pi * ‖w‖))
+                le_trans
+                  (hupper w hw_sector hw_norm_two)
+                  (Eq.subst
+                    (motive := fun y : ℝ =>
+                      y ≤ C * Complex.binetSecondFormulaDecayingTailIntegral w)
+                    hscale_identity.symm
+                    hscaled_tail)⟩
 
-/-- Verification that Cfar ≤ 10 from explicit log evaluation.
+/- Verification that Cfar ≤ 10 from explicit log evaluation.
 Cfar comes from theorem binetSecondFormulaPrincipalTailKernel_norm_le_far_scaled_majorant,
 where Cfar = max(|log(1/3)|, |log(3)|) + π.
 
