@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCalculusBase.Owner
 import Mathlib.Analysis.Fourier.Inversion
+import Mathlib.Analysis.SpecialFunctions.JapaneseBracket
 import Mathlib.MeasureTheory.Integral.SetIntegral
 
 /-!
@@ -892,10 +893,144 @@ theorem compl_symmetricIcc_subset_leftTail_union_rightTail
       exact hx ⟨le_of_lt hneg_left, le_of_not_ge hxT⟩
     exact Or.inr hT_le_x
 
+/-- Pointwise nonnegativity of the scalar inverse-cubic majorant. -/
+theorem real_inverseCubic_pointwise_nonnegative
+    (t : ℝ) :
+    0 ≤ ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+  exact zpow_nonneg (add_nonneg zero_le_one (norm_nonneg t)) (-(3 : ℤ))
+
+/-- The scalar inverse-cubic majorant is nonnegative almost everywhere on any
+tail union. -/
+theorem real_inverseCubic_tailUnion_ae_nonnegative
+    (T : ℝ) :
+    0 ≤ᵐ[volume.restrict (Set.Iic (-T) ∪ Set.Ici T)]
+      (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+  exact Eventually.of_forall
+    (fun t : ℝ => real_inverseCubic_pointwise_nonnegative t)
+
+/-- The scalar inverse-cubic majorant is globally integrable. -/
+theorem real_inverseCubic_integrable :
+    Integrable
+      (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+  have hDimension :
+      ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 := by
+    exact congrArg
+      (fun n : ℕ => (n : ℝ))
+      (Module.finrank_self ℝ)
+  have hDimensionBound :
+      ((Module.finrank ℝ ℝ : ℕ) : ℝ) < 3 := by
+    calc
+      ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 := by
+        exact hDimension
+      _ < 3 := by
+        exact one_lt_three
+  have hRpow :
+      Integrable
+        (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℝ)) : ℝ) :=
+    integrable_one_add_norm (E := ℝ) (μ := volume) hDimensionBound
+  exact hRpow.congr
+    (Eventually.of_forall
+      (fun t : ℝ =>
+        Real.rpow_intCast (1 + ‖t‖) (-(3 : ℤ))))
+
+/-- Integrability of the scalar inverse-cubic majorant on a closed right
+half-line tail. -/
+theorem real_inverseCubic_integrableOn_rightTail
+    (T : ℝ) :
+    IntegrableOn
+      (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      (Set.Ici T) := by
+  exact real_inverseCubic_integrable.integrableOn
+
+/-- Integrability of the scalar inverse-cubic majorant on a closed left
+half-line tail. -/
+theorem real_inverseCubic_integrableOn_leftTail
+    (T : ℝ) :
+    IntegrableOn
+      (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      (Set.Iic (-T)) := by
+  exact real_inverseCubic_integrable.integrableOn
+
+/-- Integrability of the scalar inverse-cubic majorant on the union of the two
+outer closed half-line tails. -/
+theorem real_inverseCubic_integrableOn_leftTail_union_rightTail
+    (T : ℝ) :
+    IntegrableOn
+      (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      (Set.Iic (-T) ∪ Set.Ici T) := by
+  exact
+    (real_inverseCubic_integrableOn_leftTail T).union
+      (real_inverseCubic_integrableOn_rightTail T)
+
+/-- For a nonnegative radius, the intersection of the two closed outer tails is
+subsingleton. -/
+theorem leftTail_rightTail_inter_subsingleton_of_nonnegative
+    (T : ℝ) (hT : 0 ≤ T) :
+    (Set.Iic (-T) ∩ Set.Ici T).Subsingleton := by
+  have hNegT_le_T : -T ≤ T :=
+    le_trans (neg_nonpos.mpr hT) hT
+  exact (Set.subsingleton_Icc_of_ge hNegT_le_T).mono
+    (fun x hx => ⟨hx.right, hx.left⟩)
+
+/-- The two closed tails are a.e.-disjoint with respect to Lebesgue measure
+when the center radius is nonnegative. -/
+theorem leftTail_rightTail_aedisjoint_of_nonnegative
+    (T : ℝ) (hT : 0 ≤ T) :
+    AEDisjoint volume (Set.Iic (-T)) (Set.Ici T) := by
+  exact
+    (leftTail_rightTail_inter_subsingleton_of_nonnegative T hT).measure_zero
+      volume
+
+/-- The scalar inverse-cubic integral over the two-tail union is bounded by the
+sum of the two closed-tail integrals. -/
+theorem real_inverseCubic_tailUnionIntegral_le_left_plus_right
+    (T : ℝ) (hT : 0 ≤ T) :
+    (∫ t in Set.Iic (-T) ∪ Set.Ici T,
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      ≤
+        (∫ t in Set.Iic (-T),
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) +
+        (∫ t in Set.Ici T,
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+  have hIntegrableUnion :
+      IntegrableOn
+        (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        (Set.Iic (-T) ∪ Set.Ici T) :=
+    real_inverseCubic_integrableOn_leftTail_union_rightTail T
+  have hIntegrableLeft :
+      IntegrableOn
+        (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        (Set.Iic (-T)) :=
+    hIntegrableUnion.left_of_union
+  have hIntegrableRight :
+      IntegrableOn
+        (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        (Set.Ici T) :=
+    hIntegrableUnion.right_of_union
+  calc
+    (∫ t in Set.Iic (-T) ∪ Set.Ici T,
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        =
+        (∫ t in Set.Iic (-T),
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) +
+        (∫ t in Set.Ici T,
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+          exact integral_union_ae
+            (leftTail_rightTail_aedisjoint_of_nonnegative T hT)
+            measurableSet_Ici.nullMeasurableSet
+            hIntegrableLeft
+            hIntegrableRight
+    _ ≤
+        (∫ t in Set.Iic (-T),
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) +
+        (∫ t in Set.Ici T,
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+          exact le_rfl
+
 /-- The symmetric complement inverse-cubic integral is bounded by the sum of
 the two half-line tail integrals. -/
 theorem real_inverseCubic_symmetricComplementIntegral_le_left_plus_right
-    (T : ℝ) :
+    (T : ℝ) (hT : 0 ≤ T) :
     (∫ t in (Set.Icc (-T) T)ᶜ,
         (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
       ≤
@@ -903,7 +1038,31 @@ theorem real_inverseCubic_symmetricComplementIntegral_le_left_plus_right
           (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) +
         (∫ t in Set.Ici T,
           (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
-  sorry
+  have hUnionIntegrable :
+      IntegrableOn
+        (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        (Set.Iic (-T) ∪ Set.Ici T) :=
+    real_inverseCubic_integrableOn_leftTail_union_rightTail T
+  have hNonnegative :
+      0 ≤ᵐ[volume.restrict (Set.Iic (-T) ∪ Set.Ici T)]
+        (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) :=
+    real_inverseCubic_tailUnion_ae_nonnegative T
+  have hSubset :
+      (Set.Icc (-T) T)ᶜ ≤ᵐ[volume] Set.Iic (-T) ∪ Set.Ici T :=
+    (compl_symmetricIcc_subset_leftTail_union_rightTail T).eventuallyLE
+  calc
+    (∫ t in (Set.Icc (-T) T)ᶜ,
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        ≤
+        (∫ t in Set.Iic (-T) ∪ Set.Ici T,
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+          exact setIntegral_mono_set hUnionIntegrable hNonnegative hSubset
+    _ ≤
+        (∫ t in Set.Iic (-T),
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) +
+        (∫ t in Set.Ici T,
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+          exact real_inverseCubic_tailUnionIntegral_le_left_plus_right T hT
 
 /-- Fixed-height inverse-cubic tails outside a symmetric interval have
 inverse-quadratic size. -/
@@ -930,7 +1089,7 @@ theorem real_inverseCubic_symmetricComplementIntegral_inverseQuadratic_of_nonneg
             (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) +
           (∫ t in Set.Ici T,
             (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
-          exact real_inverseCubic_symmetricComplementIntegral_le_left_plus_right T
+          exact real_inverseCubic_symmetricComplementIntegral_le_left_plus_right T hT
     _ ≤
         2 * (1 + ‖T‖) ^ (-(2 : ℤ)) +
           2 * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
