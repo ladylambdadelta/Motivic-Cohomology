@@ -3120,6 +3120,20 @@ theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_cauchyIntegral
       ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * F p := by
   sorry
 
+/-- Scalar complex algebra behind the normalized Cauchy denominator:
+`-1 / (I * D) = I / D`. -/
+theorem scalarFourierLaplacePlemelj_neg_one_div_I_mul_eq_I_div
+    (D : ℂ) :
+    (-1 : ℂ) / (Complex.I * D) = Complex.I / D := by
+  sorry
+
+/-- Moving the exponential factor into the numerator of the normalized Cauchy
+kernel. -/
+theorem scalarFourierLaplacePlemelj_I_div_mul_exp_eq_I_mul_exp_div
+    (D E : ℂ) :
+    (Complex.I / D) * E = (Complex.I * E) / D := by
+  sorry
+
 /-- The positive scalar kernel is the upper-pole Cauchy kernel with analytic
 numerator `scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator`. -/
 theorem scalarFourierLaplacePlemelj_positiveKernel_eq_analyticNumerator_div_upperPole
@@ -3127,7 +3141,25 @@ theorem scalarFourierLaplacePlemelj_positiveKernel_eq_analyticNumerator_div_uppe
     scalarFourierLaplacePlemelj_positiveKernel a x z =
       scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator x z /
         (z - scalarFourierLaplacePlemelj_upperPole a) := by
-  sorry
+  let D : ℂ := z - scalarFourierLaplacePlemelj_upperPole a
+  let E : ℂ := Complex.exp (Complex.I * z * (x : ℂ))
+  unfold scalarFourierLaplacePlemelj_positiveKernel
+  unfold scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator
+  change (-1 / ((a : ℂ) + z * Complex.I)) * E =
+    (Complex.I * E) / D
+  have hden :
+      (a : ℂ) + z * Complex.I = Complex.I * D :=
+    scalarFourierLaplacePlemelj_positiveKernel_denominator_factor_upperPole
+      a z
+  exact
+    Eq.subst
+      (motive := fun W : ℂ =>
+        (-1 / W) * E = (Complex.I * E) / D)
+      hden.symm
+      ((congrArg (fun Q : ℂ => Q * E)
+        (scalarFourierLaplacePlemelj_neg_one_div_I_mul_eq_I_div D)).trans
+        (scalarFourierLaplacePlemelj_I_div_mul_exp_eq_I_mul_exp_div
+          D E))
 
 /-- The positive analytic numerator is complex differentiable on the closed
 upper half-disk. -/
