@@ -2935,6 +2935,21 @@ noncomputable def scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBound
       scalarFourierLaplacePlemelj_positiveKernel a x z *
         (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
 
+/-- Generic boundary integral over the finite upper half-disk contour: diameter
+from `-T` to `T`, then the upper semicircle returning from `T` to `-T`. -/
+noncomputable def scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+    (F : ℂ → ℂ) (T : ℝ) : ℂ :=
+  (∫ t in Set.Icc (-T) T, F (t : ℂ)) +
+    ∫ θ in (0 : ℝ)..Real.pi,
+      let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+      F z *
+        (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
+/-- Closed upper half-disk used by the positive-time scalar contour. -/
+def scalarFourierLaplacePlemelj_upperHalfDisk
+    (T : ℝ) : Set ℂ :=
+  {z : ℂ | ‖z‖ ≤ T ∧ 0 ≤ Complex.im z}
+
 /-- Analytic numerator of the positive-time scalar Cauchy kernel after factoring
 the simple upper-pole denominator. -/
 noncomputable def scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator
@@ -3071,6 +3086,16 @@ theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_positiveKernelUpper
         a x T := by
   rfl
 
+/-- The positive upper semicircle boundary integral is the generic upper
+half-disk boundary integral specialized to the positive scalar kernel. -/
+theorem scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBoundaryIntegral_eq_upperHalfDiskBoundaryIntegral
+    (a x T : ℝ) :
+    scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBoundaryIntegral
+        a x T =
+      scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+        (scalarFourierLaplacePlemelj_positiveKernel a x) T := by
+  rfl
+
 /-- The positive upper-pole residue coefficient is the analytic numerator
 evaluated at the upper pole. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient_eq_analyticNumerator
@@ -3083,6 +3108,64 @@ theorem scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient_eq_analy
     scalarFourierLaplacePlemelj_positiveKernel_upperPole_residueCoefficient
       a x
 
+/-- Cauchy's integral formula for a generic upper half-disk boundary integral
+with one enclosed pole. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_cauchyIntegralFormula
+    (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ)
+    (_hp : ‖p‖ < T)
+    (_hdiff : DifferentiableOn ℂ F
+      (scalarFourierLaplacePlemelj_upperHalfDisk T)) :
+    scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+        (fun z : ℂ => F z / (z - p)) T =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * F p := by
+  sorry
+
+/-- The positive scalar kernel is the upper-pole Cauchy kernel with analytic
+numerator `scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator`. -/
+theorem scalarFourierLaplacePlemelj_positiveKernel_eq_analyticNumerator_div_upperPole
+    (a x : ℝ) (z : ℂ) :
+    scalarFourierLaplacePlemelj_positiveKernel a x z =
+      scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator x z /
+        (z - scalarFourierLaplacePlemelj_upperPole a) := by
+  sorry
+
+/-- The positive analytic numerator is complex differentiable on the closed
+upper half-disk. -/
+theorem scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator_differentiableOn_upperHalfDisk
+    (x : ℝ) (T : ℝ) :
+    DifferentiableOn ℂ
+      (scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator x)
+      (scalarFourierLaplacePlemelj_upperHalfDisk T) := by
+  unfold scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator
+  let L : ℂ → ℂ := fun z : ℂ => Complex.I * z * (x : ℂ)
+  have hL : Differentiable ℂ L := by
+    exact
+      (differentiable_id.const_mul Complex.I).mul_const
+        (x : ℂ)
+  have hExp :
+      Differentiable ℂ (NormedSpace.exp ℂ : ℂ → ℂ) := by
+    exact
+      fun z : ℂ =>
+        (NormedSpace.hasFDerivAt_exp (𝕂 := ℂ) (𝔸 := ℂ)).differentiableAt
+  have hComp :
+      DifferentiableOn ℂ
+        ((NormedSpace.exp ℂ : ℂ → ℂ) ∘ L)
+        (scalarFourierLaplacePlemelj_upperHalfDisk T) := by
+    exact hExp.comp_differentiableOn hL.differentiableOn
+  have hComplexExp :
+      DifferentiableOn ℂ
+        (Complex.exp ∘ L)
+        (scalarFourierLaplacePlemelj_upperHalfDisk T) := by
+    exact
+      Eq.subst
+        (motive := fun E : ℂ → ℂ =>
+          DifferentiableOn ℂ
+            (E ∘ L)
+            (scalarFourierLaplacePlemelj_upperHalfDisk T))
+        Complex.exp_eq_exp_ℂ.symm
+        hComp
+  exact hComplexExp.const_mul Complex.I
+
 /-- Half-disk Cauchy integral formula for the positive-time analytic numerator
 and the upper-pole denominator. -/
 theorem scalarFourierLaplacePlemelj_positiveKernelUpperHalfDisk_cauchyIntegralFormula
@@ -3094,7 +3177,35 @@ theorem scalarFourierLaplacePlemelj_positiveKernelUpperHalfDisk_cauchyIntegralFo
       ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
         scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator
           x (scalarFourierLaplacePlemelj_upperPole a) := by
-  sorry
+  have hT : 0 < T :=
+    lt_of_le_of_lt (norm_nonneg (scalarFourierLaplacePlemelj_upperPole a))
+      _hpole
+  have hboundary :
+      scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBoundaryIntegral
+          a x T =
+        scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+          (fun z : ℂ =>
+            scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator x z /
+              (z - scalarFourierLaplacePlemelj_upperPole a)) T := by
+    exact
+      (scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBoundaryIntegral_eq_upperHalfDiskBoundaryIntegral
+        a x T).trans
+        (congrArg
+          (fun G : ℂ → ℂ =>
+            scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral G T)
+          (funext
+            (fun z : ℂ =>
+              scalarFourierLaplacePlemelj_positiveKernel_eq_analyticNumerator_div_upperPole
+                a x z)))
+  exact
+    hboundary.trans
+      (scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_cauchyIntegralFormula
+        (scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator x)
+        T hT
+        (scalarFourierLaplacePlemelj_upperPole a)
+        _hpole
+        (scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator_differentiableOn_upperHalfDisk
+          x T))
 
 /-- Cauchy's residue theorem for the positive-time scalar kernel boundary
 integral over the finite upper semicircle. -/
