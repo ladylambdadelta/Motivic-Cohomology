@@ -6847,27 +6847,17 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_uniform_bound
 
 /-- Nonnegative-radius, positive-frequency normalized half-window Hilbert-sine
 Dirichlet bound. -/
-theorem scalarFourierLaplacePlemelj_sineIntegralKernel_abs_le_pi
-    (A : ℝ) (hA : 0 ≤ A) :
-    |∫ v in (0)..A, Real.sin v / v| ≤ Real.pi := by
-  sorry
-
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_smallPrefix_abs_le_one
     (A b : ℝ) (hA : 0 ≤ A) (hA_le_b : A ≤ b) (hb : 0 < b) :
     |∫ v in (0)..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 1 := by
   sorry
 
-theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_sineIntegralKernel
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_two_pi
     (A b : ℝ) (hA : 0 ≤ A) (hb : 0 < b) :
     |∫ v in (b)..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
-      |∫ v in (b)..A, Real.sin v / v| := by
-  sorry
-
-theorem scalarFourierLaplacePlemelj_sineIntegralKernel_interval_abs_le_two_pi
-    (a A : ℝ) (ha : 0 ≤ a) (hA : 0 ≤ A) :
-    |∫ v in a..A, Real.sin v / v| ≤ (2 : ℝ) * Real.pi := by
+      (2 : ℝ) * Real.pi := by
   sorry
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_split_at_scale
@@ -6933,8 +6923,6 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_abs_le_one_add_two_pi
   | Or.inr hb_lt_A =>
       have hbA : b ≤ A :=
         le_of_lt hb_lt_A
-      have hb_nonneg : 0 ≤ b :=
-        hb.le
       have hsplit :
           (∫ v in (0)..A,
             (v / (b ^ 2 + v ^ 2)) * Real.sin v) =
@@ -6949,19 +6937,12 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_abs_le_one_add_two_pi
             (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 1 :=
         scalarFourierLaplacePlemelj_dampedSineIntegral_smallPrefix_abs_le_one
           b b hb.le (le_refl b) hb
-      have htail_cmp :
-          |∫ v in (b)..A,
-            (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
-            |∫ v in (b)..A, Real.sin v / v| :=
-        scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_sineIntegralKernel
-          A b hA hb
       have htail :
           |∫ v in (b)..A,
             (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
             (2 : ℝ) * Real.pi :=
-        htail_cmp.trans
-          (scalarFourierLaplacePlemelj_sineIntegralKernel_interval_abs_le_two_pi
-            b A hb_nonneg hA)
+        scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_two_pi
+          A b hA hb
       have hsum :
           |(∫ v in (0)..b,
             (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
