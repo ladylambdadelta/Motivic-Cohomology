@@ -3535,6 +3535,32 @@ theorem scalarFourierLaplacePlemelj_jordanDensity_eq_inv_mul_exp_mul_radius
     _ = ((T - a)⁻¹ * E) * T := by
       exact mul_comm T ((T - a)⁻¹ * E)
 
+/-- Algebraic normal form for the Jordan density integral majorant. -/
+theorem scalarFourierLaplacePlemelj_jordanPrefactor_mul_pi_inv_eq_majorant
+    (a T Y : ℝ) :
+    (T / (T - a)) * (Real.pi * Y⁻¹) =
+      (Real.pi * T / (T - a)) * Y⁻¹ := by
+  calc
+    (T / (T - a)) * (Real.pi * Y⁻¹) =
+        (T * (T - a)⁻¹) * (Real.pi * Y⁻¹) := by
+      exact congrArg
+        (fun r : ℝ => r * (Real.pi * Y⁻¹))
+        (div_eq_mul_inv T (T - a))
+    _ = ((T * (T - a)⁻¹) * Real.pi) * Y⁻¹ := by
+      exact mul_assoc (T * (T - a)⁻¹) Real.pi Y⁻¹
+    _ = (Real.pi * (T * (T - a)⁻¹)) * Y⁻¹ := by
+      exact congrArg
+        (fun r : ℝ => r * Y⁻¹)
+        (mul_comm (T * (T - a)⁻¹) Real.pi)
+    _ = ((Real.pi * T) * (T - a)⁻¹) * Y⁻¹ := by
+      exact congrArg
+        (fun r : ℝ => r * Y⁻¹)
+        (mul_assoc Real.pi T (T - a)⁻¹)
+    _ = (Real.pi * T / (T - a)) * Y⁻¹ := by
+      exact congrArg
+        (fun r : ℝ => r * Y⁻¹)
+        (div_eq_mul_inv (Real.pi * T) (T - a)).symm
+
 /-- Denominator part of the positive upper-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_denominator_norm_inv_le
     (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) (θ : ℝ) :
@@ -3677,6 +3703,61 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcIntegrand_norm_le_jordanDens
       (scalarFourierLaplacePlemelj_positiveUpperArc_velocity_norm_eq_radius
         a ha T hT θ)
 
+/-- The positive Jordan density interval integral factors into the constant
+prefactor times the scalar sine-damping integral. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_eq_prefactor_mul
+    (a : ℝ) (T x : ℝ) :
+    ∫ θ in (0 : ℝ)..Real.pi,
+        scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ =
+      (T / (T - a)) *
+        ∫ θ in (0 : ℝ)..Real.pi,
+          Real.exp (-(T * x * Real.sin θ)) := by
+  sorry
+
+/-- Jordan's sine estimate for the positive upper-arc damping integral. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArc_sineDampingIntegral_le
+    (T x : ℝ) (hTx : 0 < T * x) :
+    ∫ θ in (0 : ℝ)..Real.pi,
+        Real.exp (-(T * x * Real.sin θ)) ≤
+      Real.pi * (T * x)⁻¹ := by
+  sorry
+
+/-- Multiplication by the positive Jordan prefactor transports the scalar
+sine-damping estimate to the full density. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_le_majorant_of_sine
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (T : ℝ) (hT : a < T)
+    (hsine :
+      ∫ θ in (0 : ℝ)..Real.pi,
+          Real.exp (-(T * x * Real.sin θ)) ≤
+        Real.pi * (T * x)⁻¹) :
+    ∫ θ in (0 : ℝ)..Real.pi,
+        scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ ≤
+      scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T := by
+  have hTpos : 0 < T :=
+    ha.trans hT
+  have hdenpos : 0 < T - a :=
+    sub_pos.mpr hT
+  have hpref_nonneg : 0 ≤ T / (T - a) :=
+    div_nonneg hTpos.le hdenpos.le
+  calc
+    ∫ θ in (0 : ℝ)..Real.pi,
+        scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ =
+        (T / (T - a)) *
+          ∫ θ in (0 : ℝ)..Real.pi,
+            Real.exp (-(T * x * Real.sin θ)) := by
+      exact
+        scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_eq_prefactor_mul
+          a T x
+    _ ≤ (T / (T - a)) * (Real.pi * (T * x)⁻¹) := by
+      exact mul_le_mul_of_nonneg_left hsine hpref_nonneg
+    _ = (Real.pi * T / (T - a)) * (T * x)⁻¹ := by
+      exact
+        scalarFourierLaplacePlemelj_jordanPrefactor_mul_pi_inv_eq_majorant
+          a T (T * x)
+    _ = scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T := by
+      exact rfl
+
 /-- Integral form of Jordan's sine estimate for the positive upper arc. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_le_majorant
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
@@ -3684,7 +3765,17 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_le_ma
     ∫ θ in (0 : ℝ)..Real.pi,
         scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ ≤
       scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T := by
-  sorry
+  have hTpos : 0 < T :=
+    ha.trans hT
+  have hxpos : 0 < x :=
+    Set.mem_Ioi.mp hx
+  have hTx : 0 < T * x :=
+    mul_pos hTpos hxpos
+  exact
+    scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_le_majorant_of_sine
+      a ha x hx T hT
+      (scalarFourierLaplacePlemelj_positiveUpperArc_sineDampingIntegral_le
+        T x hTx)
 
 /-- Interval-integral norm domination for the positive upper arc by the Jordan
 density. -/
@@ -4311,6 +4402,61 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArcIntegrand_norm_le_jordanDens
       (scalarFourierLaplacePlemelj_negativeLowerArc_velocity_norm_eq_radius
         a ha T hT θ)
 
+/-- The negative Jordan density interval integral factors into the constant
+prefactor times the scalar lower-arc sine-damping integral. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_eq_prefactor_mul
+    (a : ℝ) (T x : ℝ) :
+    ∫ θ in (-Real.pi)..(0 : ℝ),
+        scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ =
+      (T / (T - a)) *
+        ∫ θ in (-Real.pi)..(0 : ℝ),
+          Real.exp (-(T * x * Real.sin θ)) := by
+  sorry
+
+/-- Jordan's sine estimate for the negative lower-arc damping integral. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArc_sineDampingIntegral_le
+    (T x : ℝ) (hTnegx : 0 < T * (-x)) :
+    ∫ θ in (-Real.pi)..(0 : ℝ),
+        Real.exp (-(T * x * Real.sin θ)) ≤
+      Real.pi * (T * (-x))⁻¹ := by
+  sorry
+
+/-- Multiplication by the positive Jordan prefactor transports the scalar
+lower-arc sine-damping estimate to the full density. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_le_majorant_of_sine
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ) (hT : a < T)
+    (hsine :
+      ∫ θ in (-Real.pi)..(0 : ℝ),
+          Real.exp (-(T * x * Real.sin θ)) ≤
+        Real.pi * (T * (-x))⁻¹) :
+    ∫ θ in (-Real.pi)..(0 : ℝ),
+        scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ ≤
+      scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T := by
+  have hTpos : 0 < T :=
+    ha.trans hT
+  have hdenpos : 0 < T - a :=
+    sub_pos.mpr hT
+  have hpref_nonneg : 0 ≤ T / (T - a) :=
+    div_nonneg hTpos.le hdenpos.le
+  calc
+    ∫ θ in (-Real.pi)..(0 : ℝ),
+        scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ =
+        (T / (T - a)) *
+          ∫ θ in (-Real.pi)..(0 : ℝ),
+            Real.exp (-(T * x * Real.sin θ)) := by
+      exact
+        scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_eq_prefactor_mul
+          a T x
+    _ ≤ (T / (T - a)) * (Real.pi * (T * (-x))⁻¹) := by
+      exact mul_le_mul_of_nonneg_left hsine hpref_nonneg
+    _ = (Real.pi * T / (T - a)) * (T * (-x))⁻¹ := by
+      exact
+        scalarFourierLaplacePlemelj_jordanPrefactor_mul_pi_inv_eq_majorant
+          a T (T * (-x))
+    _ = scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T := by
+      exact rfl
+
 /-- Integral form of Jordan's sine estimate for the negative lower arc. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_le_majorant
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
@@ -4318,7 +4464,17 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_le_ma
     ∫ θ in (-Real.pi)..(0 : ℝ),
         scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ ≤
       scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T := by
-  sorry
+  have hTpos : 0 < T :=
+    ha.trans hT
+  have hnegx : 0 < -x :=
+    neg_pos.mpr hx
+  have hTnegx : 0 < T * (-x) :=
+    mul_pos hTpos hnegx
+  exact
+    scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_le_majorant_of_sine
+      a ha x hx T hT
+      (scalarFourierLaplacePlemelj_negativeLowerArc_sineDampingIntegral_le
+        T x hTnegx)
 
 /-- Interval-integral norm domination for the negative lower arc by the Jordan
 density. -/
