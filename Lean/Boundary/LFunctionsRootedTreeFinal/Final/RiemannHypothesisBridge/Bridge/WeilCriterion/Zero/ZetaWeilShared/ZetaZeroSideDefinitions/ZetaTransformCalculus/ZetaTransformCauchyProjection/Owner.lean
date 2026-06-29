@@ -12,7 +12,7 @@ zeta-specific naming wrapper.
 
 namespace Boundary
 
-open scoped Filter FourierTransform
+open scoped Filter FourierTransform Topology
 open Filter Real Complex Set MeasureTheory
 
 noncomputable section
@@ -54,13 +54,13 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_hasCompactSupport
 function. -/
 theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_contDiff_admissible
     (f : LFunctions.ZetaAdmissibleFunction) :
-    ContDiff ℝ ∞
+    ContDiff ℝ ⊤
       (zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction') := by
   have hexp :
-      ContDiff ℝ ∞
+      ContDiff ℝ ⊤
         (fun x : ℝ => Complex.exp ((1 / 2 : ℂ) * (x : ℂ))) := by
     have harg :
-        ContDiff ℝ ∞ (fun x : ℝ => (1 / 2 : ℂ) * (x : ℂ)) := by
+        ContDiff ℝ ⊤ (fun x : ℝ => (1 / 2 : ℂ) * (x : ℂ)) := by
       exact contDiff_const.mul Complex.ofRealCLM.contDiff
     exact Complex.contDiff_exp.comp
       harg
@@ -299,9 +299,9 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_verticalSlice_eq_fouri
           zetaLaplaceTransform_rightOnePoleProjectionKernel_verticalSlice_integrand_eq
             φ c t x))
 
-/-- Scalar Cauchy kernel value on the nonpositive time half-line. -/
-theorem fixedRightLine_cauchyExponentialKernel_integral_eq_negTwoPi_of_nonpos
-    (c : ℝ) (hc : 1 < c) (x : ℝ) (hx : x ≤ 0) :
+/-- Scalar Cauchy kernel value on the strictly negative time half-line. -/
+theorem fixedRightLine_cauchyExponentialKernel_integral_eq_negTwoPi_of_neg
+    (c : ℝ) (hc : 1 < c) (x : ℝ) (hx : x < 0) :
     (∫ t : ℝ,
         (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
           (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
@@ -319,31 +319,41 @@ theorem fixedRightLine_cauchyExponentialKernel_integral_eq_zero_of_pos
       0 := by
   sorry
 
-/-- Scalar Cauchy kernel value on the fixed right line. -/
-theorem fixedRightLine_cauchyExponentialKernel_integral_eq_oneSidedWeight
+/-- Scalar Cauchy kernel value on the fixed right line, away from the boundary
+point `x = 0`.
+
+The pointwise boundary value at `x = 0` is the usual half-value, but the
+full-line projection only needs this identity almost everywhere in the outer
+time variable. -/
+theorem fixedRightLine_cauchyExponentialKernel_integral_ae_eq_oneSidedWeight
     (c : ℝ) (hc : 1 < c) (x : ℝ) :
-    (∫ t : ℝ,
+    (x ≠ 0) →
+      (∫ t : ℝ,
         (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
           (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
             Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
-      Set.indicator (Set.Iic (0 : ℝ))
-        (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
-  if hx : x ∈ Set.Iic (0 : ℝ) then
+        Set.indicator (Set.Iic (0 : ℝ))
+          (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
+  intro hx_ne
+  if hx_neg : x < 0 then
     calc
       (∫ t : ℝ,
           (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
             (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
               Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
           = -2 * (Real.pi : ℂ) := by
-            exact fixedRightLine_cauchyExponentialKernel_integral_eq_negTwoPi_of_nonpos
-              c hc x hx
+            exact fixedRightLine_cauchyExponentialKernel_integral_eq_negTwoPi_of_neg
+              c hc x hx_neg
       _ =
           Set.indicator (Set.Iic (0 : ℝ))
             (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
-            exact (indicator_of_mem hx
+            exact (indicator_of_mem (le_of_lt hx_neg)
               (fun _ : ℝ => (-2 * (Real.pi : ℂ)))).symm
   else
-    have hx_pos : 0 < x := lt_of_not_ge hx
+    have hx_nonneg : 0 ≤ x := le_of_not_gt hx_neg
+    have hx_pos : 0 < x := lt_of_le_of_ne hx_nonneg
+      (fun hzero : 0 = x => hx_ne hzero.symm)
+    have hx_not_mem : x ∉ Set.Iic (0 : ℝ) := not_mem_Iic.mpr hx_pos
     calc
       (∫ t : ℝ,
           (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
@@ -355,8 +365,30 @@ theorem fixedRightLine_cauchyExponentialKernel_integral_eq_oneSidedWeight
       _ =
           Set.indicator (Set.Iic (0 : ℝ))
             (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
-            exact (indicator_of_not_mem hx
+            exact (indicator_of_not_mem hx_not_mem
               (fun _ : ℝ => (-2 * (Real.pi : ℂ)))).symm
+
+/-- The scalar Cauchy kernel agrees almost everywhere with the one-sided
+projection weight. -/
+theorem fixedRightLine_cauchyExponentialKernel_integral_eventuallyEq_oneSidedWeight
+    (c : ℝ) (hc : 1 < c) :
+    (fun x : ℝ =>
+      (∫ t : ℝ,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))))) =ᵐ[volume]
+      (fun x : ℝ =>
+        Set.indicator (Set.Iic (0 : ℝ))
+          (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x) := by
+  have hzero : volume ({0} : Set ℝ) = 0 :=
+    measure_singleton (0 : ℝ)
+  have hcompl : ({0} : Set ℝ)ᶜ ∈ ae volume :=
+    compl_mem_ae_iff.mpr hzero
+  exact hcompl.mono
+    (fun x hx =>
+      fixedRightLine_cauchyExponentialKernel_integral_ae_eq_oneSidedWeight
+        c hc x
+        (fun hxeq : x = 0 => hx hxeq))
 
 /-- Fubini interchange for the fixed-line Fourier-Cauchy full-line integral. -/
 theorem fixedRightLine_fourierCauchy_fullLine_fubini_interchange
@@ -416,12 +448,12 @@ theorem fixedRightLine_fourierCauchy_fullLine_fubini_to_scalarKernel
             Set.indicator (Set.Iic (0 : ℝ))
               (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
           exact integral_congr_ae
-            (Eventually.of_forall
-              (fun x : ℝ =>
+            ((fixedRightLine_cauchyExponentialKernel_integral_eventuallyEq_oneSidedWeight
+                c hc).mono
+              (fun x hx =>
                 congrArg
                   (fun z : ℂ => K x * z)
-                  (fixedRightLine_cauchyExponentialKernel_integral_eq_oneSidedWeight
-                    c hc x)))
+                  hx))
 
 /-- The scalar Cauchy kernel indicator integral is the one-sided projection
 integral. -/
@@ -586,7 +618,7 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue
 smooth compactly supported time kernel. -/
 theorem fixedRightLine_fourierCauchy_multiplierIntegrand_inverseCubicDecay
     (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
-    (hK_smooth : ContDiff ℝ ∞ K)
+    (hK_smooth : ContDiff ℝ ⊤ K)
     (c : ℝ) (hc : 1 < c) :
     ∃ C : ℝ,
       0 < C ∧
@@ -621,7 +653,7 @@ theorem fixedRightLine_integrableFunction_symmetricTail_inverseQuadratic_of_inve
 Fourier-Cauchy multiplier. -/
 theorem fixedRightLine_fourierCauchy_truncationTail_inverseQuadratic
     (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
-    (hK_smooth : ContDiff ℝ ∞ K)
+    (hK_smooth : ContDiff ℝ ⊤ K)
     (c : ℝ) (hc : 1 < c)
     (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
     ∃ MR : ℝ,
