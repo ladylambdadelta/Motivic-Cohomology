@@ -5450,6 +5450,32 @@ theorem scalarFourierLaplacePlemelj_negativeKernel_differentiableOn_lowerHalfDis
       (scalarFourierLaplacePlemelj_negativeKernel_exponentialNumerator_differentiableOn_lowerHalfDisk
         x T)
 
+/-- Primitive data for a function on the lower half-disk. -/
+def scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk
+    (F G : ℂ → ℂ) (T : ℝ) : Prop :=
+  ∀ z ∈ scalarFourierLaplacePlemelj_lowerHalfDisk T,
+    HasDerivWithinAt G (F z) (scalarFourierLaplacePlemelj_lowerHalfDisk T) z
+
+/-- Holomorphicity on the lower half-disk supplies primitive data on that
+simply connected contour domain. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_hasPrimitive_of_differentiableOn
+    (F : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
+    (_hdiff : DifferentiableOn ℂ F
+      (scalarFourierLaplacePlemelj_lowerHalfDisk T)) :
+    ∃ G : ℂ → ℂ,
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T := by
+  sorry
+
+/-- The boundary integral of a derivative around the lower half-disk contour is
+zero. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_hasPrimitive
+    (F : ℂ → ℂ) (T : ℝ)
+    (_hprimitive :
+      ∃ G : ℂ → ℂ,
+        scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
+    scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral F T = 0 := by
+  sorry
+
 /-- Cauchy-Goursat for a generic complex-differentiable function on the lower
 half-disk boundary. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_differentiableOn
@@ -5457,7 +5483,11 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_dif
     (_hdiff : DifferentiableOn ℂ F
       (scalarFourierLaplacePlemelj_lowerHalfDisk T)) :
     scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral F T = 0 := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_hasPrimitive
+      F T
+      (scalarFourierLaplacePlemelj_lowerHalfDisk_hasPrimitive_of_differentiableOn
+        F T _hT _hdiff)
 
 /-- Cauchy-Goursat for the negative-time scalar kernel on the lower half-disk
 boundary. -/
