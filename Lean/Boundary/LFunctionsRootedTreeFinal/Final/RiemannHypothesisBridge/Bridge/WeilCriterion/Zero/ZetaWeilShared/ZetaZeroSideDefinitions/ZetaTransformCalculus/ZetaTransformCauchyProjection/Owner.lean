@@ -1,6 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCalculusBase.Owner
 import Mathlib.Analysis.Fourier.Inversion
 import Mathlib.Analysis.SpecialFunctions.JapaneseBracket
+import Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
 import Mathlib.MeasureTheory.Integral.SetIntegral
 
 /-!
@@ -863,13 +864,185 @@ theorem cofinalHeight_eventually_nonnegative
     ∀ᶠ u in atTop, 0 ≤ height u := by
   exact hcofinal.eventually_ge_atTop 0
 
+/-- On a nonnegative right tail, the inverse-cubic norm majorant is the
+translated open-tail power integral. -/
+theorem real_inverseCubic_rightTail_integral_eq_shifted_rpow_Ioi
+    (T : ℝ) (hT : 0 ≤ T) :
+    (∫ t in Set.Ici T,
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      =
+    (∫ u in Set.Ioi (1 + T),
+        u ^ (-(3 : ℝ)) : ℝ) := by
+  sorry
+
+/-- Numeric comparison needed for the inverse-cubic improper integral. -/
+theorem negThree_lt_negOne_real :
+    (-(3 : ℝ)) < -1 := by
+  exact neg_lt_neg one_lt_three
+
+/-- The antiderivative boundary value appearing in
+`integral_Ioi_rpow_of_lt` for exponent `-3` is the expected half
+inverse-square value. -/
+theorem real_negThree_rpow_tail_antiderivative_value_eq_half_rpow_negTwo
+    (c : ℝ) :
+    -(c ^ (-(3 : ℝ) + 1)) / (-(3 : ℝ) + 1)
+      =
+    (1 / 2 : ℝ) * c ^ (-(2 : ℝ)) := by
+  sorry
+
+/-- Specialization of the standard improper-integral computation to the
+translated inverse-cubic power tail. -/
+theorem real_shifted_rpow_Ioi_negThree_integral_eq_half_rpow_negTwo
+    (T : ℝ) (hT : 0 ≤ T) :
+    (∫ u in Set.Ioi (1 + T),
+        u ^ (-(3 : ℝ)) : ℝ)
+      =
+    (1 / 2 : ℝ) * (1 + T) ^ (-(2 : ℝ)) := by
+  have hPositiveLower :
+      0 < 1 + T :=
+    lt_of_lt_of_le zero_lt_one (le_add_of_nonneg_right hT)
+  have hIntegral :
+      (∫ u in Set.Ioi (1 + T),
+          u ^ (-(3 : ℝ)) : ℝ)
+        =
+      -((1 + T) ^ (-(3 : ℝ) + 1)) / (-(3 : ℝ) + 1) :=
+    integral_Ioi_rpow_of_lt (a := -(3 : ℝ)) (c := 1 + T)
+      negThree_lt_negOne_real
+      hPositiveLower
+  calc
+    (∫ u in Set.Ioi (1 + T),
+        u ^ (-(3 : ℝ)) : ℝ)
+        =
+        -((1 + T) ^ (-(3 : ℝ) + 1)) / (-(3 : ℝ) + 1) := by
+          exact hIntegral
+    _ =
+        (1 / 2 : ℝ) * (1 + T) ^ (-(2 : ℝ)) := by
+          exact real_negThree_rpow_tail_antiderivative_value_eq_half_rpow_negTwo
+            (1 + T)
+
+/-- On a nonnegative center, the shifted real-power boundary value is the same
+as the integer-power norm boundary value used downstream. -/
+theorem real_shifted_rpow_negTwo_eq_inverseQuadratic_boundary
+    (T : ℝ) (hT : 0 ≤ T) :
+    (1 + T) ^ (-(2 : ℝ))
+      =
+    (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+  calc
+    (1 + T) ^ (-(2 : ℝ))
+        =
+        (1 + ‖T‖) ^ (-(2 : ℝ)) := by
+          exact congrArg
+            (fun x : ℝ => (1 + x) ^ (-(2 : ℝ)))
+            (Real.norm_of_nonneg hT).symm
+    _ =
+        (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+          exact Real.rpow_intCast (1 + ‖T‖) (-(2 : ℤ))
+
+/-- The translated open inverse-cubic power tail has the sharp inverse-square
+boundary value. -/
+theorem real_shifted_rpow_Ioi_negThree_integral_eq_half_inverseQuadratic
+    (T : ℝ) (hT : 0 ≤ T) :
+    (∫ u in Set.Ioi (1 + T),
+        u ^ (-(3 : ℝ)) : ℝ)
+      =
+    (1 / 2 : ℝ) * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+  calc
+    (∫ u in Set.Ioi (1 + T),
+        u ^ (-(3 : ℝ)) : ℝ)
+        =
+        (1 / 2 : ℝ) * (1 + T) ^ (-(2 : ℝ)) := by
+          exact real_shifted_rpow_Ioi_negThree_integral_eq_half_rpow_negTwo
+            T hT
+    _ =
+        (1 / 2 : ℝ) * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+          exact congrArg
+            (fun x : ℝ => (1 / 2 : ℝ) * x)
+            (real_shifted_rpow_negTwo_eq_inverseQuadratic_boundary T hT)
+
+/-- The left closed inverse-cubic norm tail is the corresponding right closed
+tail by the reflection symmetry of Lebesgue measure and the norm. -/
+theorem real_inverseCubic_leftTail_integral_eq_rightTail
+    (T : ℝ) :
+    (∫ t in Set.Iic (-T),
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      =
+    (∫ t in Set.Ici T,
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+  sorry
+
+/-- Sharp right half-line inverse-cubic tail evaluation up to the harmless
+closed-endpoint convention. -/
+theorem real_inverseCubic_rightTail_integral_half_inverseQuadratic
+    (T : ℝ) (hT : 0 ≤ T) :
+    (∫ t in Set.Ici T,
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      ≤ (1 / 2 : ℝ) * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+  calc
+    (∫ t in Set.Ici T,
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        =
+        (∫ u in Set.Ioi (1 + T),
+          u ^ (-(3 : ℝ)) : ℝ) := by
+          exact real_inverseCubic_rightTail_integral_eq_shifted_rpow_Ioi T hT
+    _ =
+        (1 / 2 : ℝ) * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+          exact real_shifted_rpow_Ioi_negThree_integral_eq_half_inverseQuadratic
+            T hT
+    _ ≤
+        (1 / 2 : ℝ) * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+          exact le_rfl
+
+/-- Sharp left half-line inverse-cubic tail evaluation up to the harmless
+closed-endpoint convention. -/
+theorem real_inverseCubic_leftTail_integral_half_inverseQuadratic
+    (T : ℝ) (hT : 0 ≤ T) :
+    (∫ t in Set.Iic (-T),
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      ≤ (1 / 2 : ℝ) * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+  calc
+    (∫ t in Set.Iic (-T),
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        =
+        (∫ t in Set.Ici T,
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+          exact real_inverseCubic_leftTail_integral_eq_rightTail T
+    _ ≤
+        (1 / 2 : ℝ) * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+          exact real_inverseCubic_rightTail_integral_half_inverseQuadratic T hT
+
+/-- The coefficient `1 / 2` is bounded by `2`. -/
+theorem one_half_le_two_real :
+    (1 / 2 : ℝ) ≤ 2 := by
+  have hhalf_le_one :
+      (1 / 2 : ℝ) ≤ 1 :=
+    one_div_le_one zero_le_one one_le_two
+  exact le_trans hhalf_le_one one_le_two
+
+/-- The inverse-quadratic boundary term is nonnegative. -/
+theorem real_inverseQuadratic_boundary_nonnegative
+    (T : ℝ) :
+    0 ≤ ((1 + ‖T‖) ^ (-(2 : ℤ)) : ℝ) := by
+  exact zpow_nonneg (add_nonneg zero_le_one (norm_nonneg T)) (-(2 : ℤ))
+
+/-- The sharp half-coefficient inverse-quadratic bound implies the looser
+coefficient used downstream. -/
+theorem real_inverseCubic_halfBound_le_twoBound
+    (T : ℝ) :
+    (1 / 2 : ℝ) * (1 + ‖T‖) ^ (-(2 : ℤ))
+      ≤ 2 * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+  exact mul_le_mul_of_nonneg_right
+    one_half_le_two_real
+    (real_inverseQuadratic_boundary_nonnegative T)
+
 /-- Right half-line inverse-cubic tail bound. -/
 theorem real_inverseCubic_rightTail_integral_inverseQuadratic
     (T : ℝ) (hT : 0 ≤ T) :
     (∫ t in Set.Ici T,
         (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
       ≤ 2 * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
-  sorry
+  exact le_trans
+    (real_inverseCubic_rightTail_integral_half_inverseQuadratic T hT)
+    (real_inverseCubic_halfBound_le_twoBound T)
 
 /-- Left half-line inverse-cubic tail bound. -/
 theorem real_inverseCubic_leftTail_integral_inverseQuadratic
@@ -877,7 +1050,9 @@ theorem real_inverseCubic_leftTail_integral_inverseQuadratic
     (∫ t in Set.Iic (-T),
         (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
       ≤ 2 * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
-  sorry
+  exact le_trans
+    (real_inverseCubic_leftTail_integral_half_inverseQuadratic T hT)
+    (real_inverseCubic_halfBound_le_twoBound T)
 
 /-- The complement of a symmetric interval is contained in the union of the two
 outer half-lines. -/
