@@ -857,6 +857,155 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_boxSum_eq_r
         (complex_add_star_eq_two_re
           (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)))
 
+/-- Upstream contour-tomography cancellation for the completed oriented
+prime-power cross total.
+
+This is the analytic input owned by the completed vertical-face residue ledger:
+the two oriented faces pair with opposite orientation, so the completed oriented
+cross total is anti-self-conjugate. -/
+theorem zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_tsum_star_eq_neg_contourTomography_source
+    (f : ZetaAdmissibleFunction) :
+    star
+      (∑' ι : ZetaPrimePowerIndex,
+        zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) =
+      -∑' ι : ZetaPrimePowerIndex,
+        zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f := by
+  sorry
+
+/-- The paired autocorrelation spectral-sample total is the negative of the
+oriented cross total plus its conjugate. -/
+theorem zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate_tsum_eq_neg_oriented_add_star
+    (f : ZetaAdmissibleFunction) :
+    (∑' ι : ZetaPrimePowerIndex,
+        zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate ι f) =
+      -((∑' ι : ZetaPrimePowerIndex,
+          zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) +
+        star
+          (∑' ι : ZetaPrimePowerIndex,
+            zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)) := by
+  let u : ZetaPrimePowerIndex → ℂ :=
+    fun ι : ZetaPrimePowerIndex =>
+      zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f
+  let paired : ZetaPrimePowerIndex → ℂ :=
+    fun ι : ZetaPrimePowerIndex =>
+      zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate ι f
+  let symm : ZetaPrimePowerIndex → ℂ :=
+    fun ι : ZetaPrimePowerIndex => u ι + star (u ι)
+  have hu : Summable u := by
+    unfold u
+    exact zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_summable f
+  have hstar :
+      (∑' ι : ZetaPrimePowerIndex, star (u ι)) =
+        star (∑' ι : ZetaPrimePowerIndex, u ι) :=
+    hu.tsum_star.symm
+  have hsymm_tsum :
+      (∑' ι : ZetaPrimePowerIndex, symm ι) =
+        (∑' ι : ZetaPrimePowerIndex, u ι) +
+          star (∑' ι : ZetaPrimePowerIndex, u ι) := by
+    have hsum_add :
+        (∑' ι : ZetaPrimePowerIndex, symm ι) =
+          (∑' ι : ZetaPrimePowerIndex, u ι) +
+            (∑' ι : ZetaPrimePowerIndex, star (u ι)) := by
+      unfold symm
+      exact (hu.tsum_add hu.star).symm
+    exact hsum_add.trans
+      (congrArg
+        (fun z : ℂ => (∑' ι : ZetaPrimePowerIndex, u ι) + z)
+        hstar)
+  have hpaired_eq_neg_symm :
+      paired = fun ι : ZetaPrimePowerIndex => -symm ι := by
+    funext ι
+    unfold paired
+    unfold symm
+    unfold u
+    exact
+      zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate_eq_neg_symmetrizedCross
+        ι f
+  have hpaired_tsum :
+      (∑' ι : ZetaPrimePowerIndex, paired ι) =
+        ∑' ι : ZetaPrimePowerIndex, -symm ι := by
+    exact congrArg
+      (fun v : ZetaPrimePowerIndex → ℂ =>
+        ∑' ι : ZetaPrimePowerIndex, v ι)
+      hpaired_eq_neg_symm
+  have hsymm_summable : Summable symm :=
+    hu.add hu.star
+  have hneg_tsum :
+      (∑' ι : ZetaPrimePowerIndex, -symm ι) =
+        -(∑' ι : ZetaPrimePowerIndex, symm ι) :=
+    hsymm_summable.tsum_neg
+  calc
+    (∑' ι : ZetaPrimePowerIndex, paired ι)
+        = ∑' ι : ZetaPrimePowerIndex, -symm ι := hpaired_tsum
+    _ = -(∑' ι : ZetaPrimePowerIndex, symm ι) := hneg_tsum
+    _ =
+        -((∑' ι : ZetaPrimePowerIndex, u ι) +
+          star (∑' ι : ZetaPrimePowerIndex, u ι)) := by
+          exact congrArg Neg.neg hsymm_tsum
+
+/-- The paired autocorrelation spectral-sample total vanishes from the
+anti-self-conjugacy of the oriented cross total. -/
+theorem zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate_tsum_eq_zero_of_oriented_tsum_star_eq_neg
+    (f : ZetaAdmissibleFunction)
+    (horiented :
+      star
+        (∑' ι : ZetaPrimePowerIndex,
+          zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) =
+        -∑' ι : ZetaPrimePowerIndex,
+          zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) :
+    (∑' ι : ZetaPrimePowerIndex,
+        zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate ι f) =
+      0 := by
+  let z : ℂ :=
+    ∑' ι : ZetaPrimePowerIndex,
+      zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f
+  have hpaired :
+      (∑' ι : ZetaPrimePowerIndex,
+          zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate ι f) =
+        -(z + star z) := by
+    unfold z
+    exact
+      zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate_tsum_eq_neg_oriented_add_star
+        f
+  have hsum_zero : z + star z = 0 := by
+    calc
+      z + star z = z + -z := by
+        exact congrArg (fun w : ℂ => z + w) horiented
+      _ = 0 := by
+        exact add_neg_cancel z
+  calc
+    (∑' ι : ZetaPrimePowerIndex,
+        zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate ι f)
+        = -(z + star z) := hpaired
+    _ = -0 := by
+        exact congrArg Neg.neg hsum_zero
+    _ = 0 := by
+        exact neg_zero
+
+/-- The autocorrelation spectral-sample total is the paired seed-transform
+total. -/
+theorem zetaCompletedPrimePowerSpectralSampleCoordinate_tsum_convolutionAutocorrelation_eq_paired_tsum
+    (f : ZetaAdmissibleFunction) :
+    (∑' ι : ZetaPrimePowerIndex,
+        zetaCompletedExplicitFormulaPrimePowerSpectralSampleCoordinate ι
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) =
+      ∑' ι : ZetaPrimePowerIndex,
+        zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate ι f := by
+  have hpoint :
+      (fun ι : ZetaPrimePowerIndex =>
+        zetaCompletedExplicitFormulaPrimePowerSpectralSampleCoordinate ι
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) =
+      (fun ι : ZetaPrimePowerIndex =>
+        zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate ι f) := by
+    funext ι
+    exact
+      zetaCompletedExplicitFormulaPrimePowerSpectralSampleCoordinate_convolutionAutocorrelation_eq_paired
+        ι f
+  exact congrArg
+    (fun v : ZetaPrimePowerIndex → ℂ =>
+      ∑' ι : ZetaPrimePowerIndex, v ι)
+    hpoint
+
 /-- Completed autocorrelation prime-power symmetrized cross-coordinate cancellation.
 
 This is the owner contour-tomography form of the vertical-face pairing: the
@@ -865,7 +1014,26 @@ theorem zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution_convolu
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
       (ZetaAdmissibleFunction.convolutionAutocorrelation f) = 0 := by
-  sorry
+  calc
+    zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+        =
+        ∑' ι : ZetaPrimePowerIndex,
+          zetaCompletedExplicitFormulaPrimePowerSpectralSampleCoordinate ι
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
+          exact rfl
+    _ =
+        ∑' ι : ZetaPrimePowerIndex,
+          zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate ι f := by
+          exact
+            zetaCompletedPrimePowerSpectralSampleCoordinate_tsum_convolutionAutocorrelation_eq_paired_tsum
+              f
+    _ = 0 := by
+          exact
+            zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate_tsum_eq_zero_of_oriented_tsum_star_eq_neg
+              f
+              (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_tsum_star_eq_neg_contourTomography_source
+                f)
 
 /-- Summability of the autocorrelation prime-power spectral sample follows from
 the oriented cross-coordinate majorant and the paired-coordinate normal form. -/
@@ -1063,55 +1231,9 @@ theorem zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_tsum_star_
         zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) =
       -∑' ι : ZetaPrimePowerIndex,
         zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f := by
-  let u : ZetaPrimePowerIndex → ℂ :=
-    fun ι : ZetaPrimePowerIndex =>
-      zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f
-  let z : ℂ := ∑' ι : ZetaPrimePowerIndex, u ι
-  have hu : Summable u := by
-    unfold u
-    exact zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_summable f
-  have hstar :
-      HasSum (fun ι : ZetaPrimePowerIndex => star (u ι)) (star z) := by
-    unfold z
-    exact hu.hasSum.star
-  have hadd :
-      HasSum
-        (fun ι : ZetaPrimePowerIndex => u ι + star (u ι))
-        (z + star z) := by
-    unfold z
-    exact hu.hasSum.add hstar
-  have hsym :
-      HasSum
-        (fun ι : ZetaPrimePowerIndex =>
-          zetaCompletedPrimePowerAutocorrelationSymmetrizedCrossCoordinate ι f)
-        0 :=
-    zetaCompletedPrimePowerAutocorrelationSymmetrizedCrossCoordinate_hasSum_zero_contourTomography
+  exact
+    zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_tsum_star_eq_neg_contourTomography_source
       f
-  have hpoint :
-      (fun ι : ZetaPrimePowerIndex => u ι + star (u ι)) =
-      (fun ι : ZetaPrimePowerIndex =>
-        zetaCompletedPrimePowerAutocorrelationSymmetrizedCrossCoordinate ι f) := by
-    funext ι
-    unfold u
-    rfl
-  have hsum_zero : z + star z = 0 :=
-    tendsto_nhds_unique
-      (Eq.subst
-        (motive := fun v : ZetaPrimePowerIndex → ℂ =>
-          HasSum v (z + star z))
-        hpoint
-        hadd)
-      hsym
-  have hstar_add : star z + z = 0 := by
-    calc
-      star z + z = z + star z := by
-        exact add_comm (star z) z
-      _ = 0 := hsum_zero
-  have hstar_eq : star z = -z :=
-    eq_neg_iff_add_eq_zero.mpr hstar_add
-  unfold z at hstar_eq
-  unfold u at hstar_eq
-  exact hstar_eq
 
 /-- Rectangular real-shadow windows are twice the real part of the rectangular
 oriented-cross window. -/
