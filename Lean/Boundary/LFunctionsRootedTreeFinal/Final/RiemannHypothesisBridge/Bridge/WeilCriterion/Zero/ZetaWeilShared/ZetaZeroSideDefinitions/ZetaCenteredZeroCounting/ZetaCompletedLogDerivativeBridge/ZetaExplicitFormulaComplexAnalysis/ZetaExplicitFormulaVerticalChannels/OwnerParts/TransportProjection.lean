@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ArchimedeanTransport
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLogDerivativeTransport
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part01
 
 namespace Boundary
 namespace LFunctions
@@ -348,13 +349,6 @@ noncomputable def explicitFormulaScheduledRectangleContourIntegral
     (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) : ℂ :=
   zetaCompletedExplicitFormulaContourIntegral f
     (F.rectangle (h.height_schedule.height u))
-
-/-- The scheduled finite completed-zero residue sum at the package height. -/
-noncomputable def explicitFormulaScheduledRectangleResidueSum
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) : ℂ :=
-  explicitFormulaCompletedZeroHeightWindowResidueSum f
-    (h.height_schedule.height u)
 
 /-- The finite rectangle residue equality along the selected schedule. -/
 theorem explicitFormulaScheduledRectangleContourIntegral_eq_residueSum

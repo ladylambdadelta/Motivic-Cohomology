@@ -1627,7 +1627,7 @@ theorem exists_rawHeightPolynomialBound_of_finsetSupport
   · have hu_zero : u ι = 0 :=
       hsupport ι hι
     have hnorm_zero : ‖u ι‖ = 0 :=
-      by simpa using congrArg norm hu_zero
+      (congrArg norm hu_zero).trans (norm_zero (α := ℝ))
     have hright_nonnegative : 0 ≤ C * d ι :=
       mul_nonneg (le_of_lt hC_positive) (le_of_lt hd_positive)
     calc

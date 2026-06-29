@@ -68,8 +68,15 @@ theorem completedRiemannZeta₀_rightCriticalStripCompactSet_isBounded :
         hz.2.2
     have hsum : |z.re| + |z.im| ≤ 2 + 1 :=
       add_le_add hz_re_abs_le_two him
-    exact le_trans hcomplex (hsum.trans_eq (by norm_num : (2 : ℝ) + 1 = 3))
-  exact le_trans hz_abs_le_three (by norm_num : (3 : ℝ) ≤ 4)
+    exact le_trans hcomplex (hsum.trans_eq (show (2 : ℝ) + 1 = 3 from rfl))
+  have hthree_le_four : (3 : ℝ) ≤ 4 := by
+    have hthree_le_three_add_one : (3 : ℝ) ≤ 3 + 1 :=
+      le_add_of_nonneg_right (show (0 : ℝ) ≤ 1 from zero_le_one)
+    exact Eq.subst
+      (motive := fun x : ℝ => (3 : ℝ) ≤ x)
+      (show (3 : ℝ) + 1 = 4 from rfl)
+      hthree_le_three_add_one
+  exact le_trans hz_abs_le_three hthree_le_four
 
 /-- The right-critical-strip rectangle is compact. -/
 theorem completedRiemannZeta₀_rightCriticalStripCompactSet_isCompact :

@@ -232,7 +232,14 @@ theorem complex_segment_re_eq
     ∃ t : ℝ,
       t ∈ Set.Icc (0 : ℝ) 1 ∧
         p.re = (1 - t) * z.re + t * w.re := by
-  rcases (by simpa [segment_eq_image] using hp : p ∈ (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1) with
+  have hsegment :
+      [z -[ℝ] w] =
+        (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1 :=
+    segment_eq_image z w
+  have hp_image :
+      p ∈ (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1 :=
+    Eq.subst (motive := fun s : Set ℂ => p ∈ s) hsegment hp
+  rcases hp_image with
     ⟨t, ht, rfl⟩
   refine ⟨t, ht, ?_⟩
   exact complex_lineMap_re z w t
@@ -244,7 +251,14 @@ theorem complex_segment_im_eq
     ∃ t : ℝ,
       t ∈ Set.Icc (0 : ℝ) 1 ∧
         p.im = (1 - t) * z.im + t * w.im := by
-  rcases (by simpa [segment_eq_image] using hp : p ∈ (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1) with
+  have hsegment :
+      [z -[ℝ] w] =
+        (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1 :=
+    segment_eq_image z w
+  have hp_image :
+      p ∈ (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1 :=
+    Eq.subst (motive := fun s : Set ℂ => p ∈ s) hsegment hp
+  rcases hp_image with
     ⟨t, ht, rfl⟩
   refine ⟨t, ht, ?_⟩
   exact complex_lineMap_im z w t
@@ -257,7 +271,14 @@ theorem complex_segment_coordinates
       t ∈ Set.Icc (0 : ℝ) 1 ∧
         p.re = (1 - t) * z.re + t * w.re ∧
         p.im = (1 - t) * z.im + t * w.im := by
-  rcases (by simpa [segment_eq_image] using hp : p ∈ (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1) with
+  have hsegment :
+      [z -[ℝ] w] =
+        (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1 :=
+    segment_eq_image z w
+  have hp_image :
+      p ∈ (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1 :=
+    Eq.subst (motive := fun s : Set ℂ => p ∈ s) hsegment hp
+  rcases hp_image with
     ⟨t, ht, rfl⟩
   refine ⟨t, ht, ?_, ?_⟩
   · exact complex_lineMap_re z w t

@@ -3068,8 +3068,8 @@ theorem poleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope_owner 
     poleClearedRiemannZeta 0 1 zero_lt_one
     poleClearedRiemannZeta_zero_one_strip_diffContOnCl
     ⟨A_mult, B_mult, m_mult, hA_mult_pos, hB_mult_pos,
-      fun z hz_re_nonneg hz_re_le_one hz_im_nonneg =>
-        h_mult_bound z hz_re_nonneg hz_re_le_one (by linarith)⟩
+      fun z hz_re_nonneg hz_re_le_one hz_im_tail =>
+        h_mult_bound z hz_re_nonneg hz_re_le_one hz_im_tail⟩
     ⟨A_left, B_left, m_left, hA_left_pos, hB_left_pos,
       fun z hz_re hz_im =>
         h_left_bound z hz_re hz_im (hrefl z hz_re hz_im)⟩

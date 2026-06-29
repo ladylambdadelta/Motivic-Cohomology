@@ -165,7 +165,8 @@ theorem centeredCriticalHeightBox_abs_im_le_abs_height
       (z - (1 / 2 : ℂ)).im = z.im - (1 / 2 : ℂ).im := by
         exact Complex.sub_im z (1 / 2 : ℂ)
       _ = z.im - 0 := by
-        exact congrArg (fun x : ℝ => z.im - x) (by norm_num : (1 / 2 : ℂ).im = 0)
+        exact congrArg (fun x : ℝ => z.im - x)
+          (show (1 / 2 : ℂ).im = 0 from Complex.ofReal_im (1 / 2 : ℝ))
       _ = z.im := by
         exact sub_zero (z.im)
   have him_norm_le_abs_height :

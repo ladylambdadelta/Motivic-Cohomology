@@ -71,7 +71,7 @@ theorem weightedLaplaceKernel_uniform_bound_on_closedBall_exists
 
 /-- The bump constant used in the support bounds is strictly positive. -/
 theorem weightedLaplaceKernel_positive_bump (C : ℝ) : 0 < max C 0 + 1 := by
-  have h1 : (0 : ℝ) < 1 := by norm_num
+  have h1 : (0 : ℝ) < 1 := zero_lt_one
   exact add_pos_of_nonneg_of_pos (le_max_right C 0) h1
 
 /-- The support bound is increased from `C` to the bump constant by a single monotonicity step. -/
@@ -79,7 +79,7 @@ theorem weightedLaplaceKernel_bound_le_bump (C : ℝ) {x : ℝ} (hx : x ≤ C) :
     x ≤ max C 0 + 1 := by
   have hCmax : C ≤ max C 0 := le_max_left C 0
   have hle' : max C 0 ≤ max C 0 + 1 := by
-    exact le_add_of_nonneg_right (show (0 : ℝ) ≤ 1 by norm_num)
+    exact le_add_of_nonneg_right (show (0 : ℝ) ≤ 1 from zero_le_one)
   exact le_trans hx (le_trans hCmax hle')
 
 /-- The weighted Laplace derivative kernel is uniformly bounded on a fixed closed ball with a positive constant. -/

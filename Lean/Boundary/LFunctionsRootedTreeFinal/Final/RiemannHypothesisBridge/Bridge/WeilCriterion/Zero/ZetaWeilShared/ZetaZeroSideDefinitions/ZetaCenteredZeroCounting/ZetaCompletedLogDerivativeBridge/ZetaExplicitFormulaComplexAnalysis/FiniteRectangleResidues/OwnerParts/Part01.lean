@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.HorizontalDecay.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroKreinGram.Owner
 
 /-!
 # Explicit-formula finite rectangle residues
@@ -120,6 +121,14 @@ noncomputable def explicitFormulaFamilyContourZeroSideWindowError
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
   zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) -
     explicitFormulaCompletedZeroHeightWindowZeroSideSum f T
+
+/-- The scheduled finite-rectangle residue equality error: contour integral minus the finite
+residue sum obtained from the residue theorem at the scheduled height. -/
+noncomputable def explicitFormulaScheduledRectangleResidueSum
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) : ℂ :=
+  explicitFormulaCompletedZeroHeightWindowResidueSum f
+    (h.height_schedule.height u)
 
 /-- The scheduled finite-rectangle residue equality error: contour integral minus the finite
 residue sum obtained from the residue theorem at the scheduled height. -/

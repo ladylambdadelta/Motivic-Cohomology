@@ -157,7 +157,12 @@ theorem zetaWeilFormCompleted_autocorrelation_eq_zeroSide
 /-- The completed zero-side Krein form decomposes as the sum of a specific zero's orbit
 contribution and the remainder (all other zeros). -/
 theorem zetaCompletedZeroKreinGram_eq_zeroOrbitContribution_add_remainder
-    (ρ : ℂ) (φ : ZetaAdmissibleFunction) :
+    (ρ : ℂ) (φ : ZetaAdmissibleFunction)
+    (hρ : ZetaCompletedZero ρ)
+    (hsum :
+      Summable
+        (fun ξ : {ξ : ℂ // ZetaCompletedZero ξ} =>
+          zetaZeroSideContribution (ξ : ℂ) φ)) :
     zetaCompletedZeroKreinGram φ =
       zetaZeroOrbitContributionRe ρ φ + zetaZeroOrbitRemainderRe ρ φ := by
   show zetaCompletedZeroSideRe φ =
@@ -170,6 +175,21 @@ theorem zetaCompletedZeroKreinGram_eq_zeroOrbitContribution_add_remainder
   have h_remainder_eq : zetaZeroOrbitRemainder ρ φ =
     zetaZeroTail (zetaZeroOrbitFinset ρ) φ :=
     zetaZeroOrbitRemainder_eq_tail ρ φ
+  have horbit_zero :
+      ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ → ZetaCompletedZero η := by
+    intro η hη
+    exact
+      match (zetaZeroOrbitFinset_mem_iff ρ η).1 hη with
+      | Or.inl hηρ =>
+          Eq.subst
+            (motive := fun ζ : ℂ => ZetaCompletedZero ζ)
+            hηρ.symm
+            hρ
+      | Or.inr hηneg =>
+          Eq.subst
+            (motive := fun ζ : ℂ => ZetaCompletedZero ζ)
+            hηneg.symm
+            (zetaCompletedZero_neg hρ)
   calc Complex.re (zetaCompletedZeroSideComplex φ)
     = Complex.re (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         zetaZeroSideContribution (ρ : ℂ) φ) := rfl
@@ -182,8 +202,90 @@ theorem zetaCompletedZeroKreinGram_eq_zeroOrbitContribution_add_remainder
         (∑ η in zetaZeroOrbitFinset ρ, zetaZeroSideContribution η φ) +
         (∑' ξ : {ξ : ℂ // ZetaCompletedZero ξ ∧ ξ ∉ zetaZeroOrbitFinset ρ},
           zetaZeroSideContribution (ξ : ℂ) φ) :=
-        Finset.tsum_subtype_add_tsum_subtype_compl (fun x : ℂ => zetaZeroSideContribution x φ)
-          (fun x => x ∈ zetaZeroOrbitFinset ρ)
+        let S : Finset ℂ := zetaZeroOrbitFinset ρ
+        let F : {ξ : ℂ // ZetaCompletedZero ξ} → ℂ :=
+          fun ξ => zetaZeroSideContribution (ξ : ℂ) φ
+        let orbitEmbedding :
+            {η : ℂ // η ∈ S} ↪ {ξ : ℂ // ZetaCompletedZero ξ} := {
+          toFun := fun η => ⟨η, horbit_zero η η.2⟩
+          inj' := by
+            intro η θ hηθ
+            exact Subtype.ext
+              (congrArg
+                (fun ζ : {ξ : ℂ // ZetaCompletedZero ξ} => (ζ : ℂ))
+                hηθ) }
+        let Szero : Finset {ξ : ℂ // ZetaCompletedZero ξ} :=
+          S.attach.map orbitEmbedding
+        have hsplit :
+            (∑ ξ in Szero, F ξ) +
+                (∑' ξ : ↑(Szero : Set {ξ : ℂ // ZetaCompletedZero ξ})ᶜ, F ξ) =
+              (∑' ξ : {ξ : ℂ // ZetaCompletedZero ξ}, F ξ) :=
+          sum_add_tsum_compl hsum
+        have hfinite :
+            (∑ ξ in Szero, F ξ) =
+              ∑ η in S, zetaZeroSideContribution η φ :=
+          have hmap :
+              (∑ ξ in Szero, F ξ) =
+                ∑ η in S.attach, F (orbitEmbedding η) :=
+            Finset.sum_map S.attach orbitEmbedding F
+          hmap.trans
+            (Finset.sum_attach S (fun η : ℂ => zetaZeroSideContribution η φ))
+        let tailEquiv :
+            ↑(Szero : Set {ξ : ℂ // ZetaCompletedZero ξ})ᶜ ≃
+              {ξ : ℂ // ZetaCompletedZero ξ ∧ ξ ∉ S} := {
+          toFun := fun ξ =>
+            ⟨(ξ.1 : ℂ),
+              ⟨ξ.1.2,
+                fun hmem =>
+                  ξ.2
+                    (Finset.mem_coe.mpr
+                      (Finset.mem_map.mpr
+                        ⟨⟨(ξ.1 : ℂ), hmem⟩,
+                          (Finset.mem_attach S
+                            ⟨(ξ.1 : ℂ), hmem⟩),
+                          Subtype.ext rfl⟩))⟩⟩
+          invFun := fun ξ =>
+            ⟨⟨ξ, ξ.2.1⟩,
+              fun hmem =>
+                ξ.2.2
+                  (match Finset.mem_map.mp (Finset.mem_coe.mp hmem) with
+                  | ⟨η, _hη, hηξ⟩ =>
+                      have hval : (η : ℂ) = (ξ : ℂ) :=
+                        congrArg
+                          (fun ζ : {ξ : ℂ // ZetaCompletedZero ξ} => (ζ : ℂ))
+                          hηξ
+                      Eq.subst
+                        (motive := fun z : ℂ => z ∈ S)
+                        hval
+                        η.2)⟩
+          left_inv := by
+            intro ξ
+            exact Subtype.ext (Subtype.ext rfl)
+          right_inv := by
+            intro ξ
+            exact Subtype.ext rfl }
+        have htail :
+            (∑' ξ : ↑(Szero : Set {ξ : ℂ // ZetaCompletedZero ξ})ᶜ, F ξ) =
+              (∑' ξ : {ξ : ℂ // ZetaCompletedZero ξ ∧ ξ ∉ S},
+                zetaZeroSideContribution (ξ : ℂ) φ) :=
+          Eq.trans
+            ((tailEquiv.symm.tsum_eq
+              (fun ξ : ↑(Szero : Set {ξ : ℂ // ZetaCompletedZero ξ})ᶜ =>
+                F ξ)).symm)
+            (tsum_congr
+              (fun ξ : {ξ : ℂ // ZetaCompletedZero ξ ∧ ξ ∉ S} => rfl))
+        hsplit.symm.trans
+          (Eq.trans
+            (congrArg
+              (fun x : ℂ =>
+                x +
+                  (∑' ξ : ↑(Szero : Set {ξ : ℂ // ZetaCompletedZero ξ})ᶜ,
+                    F ξ))
+              hfinite)
+            (congrArg
+              (fun x : ℂ =>
+                (∑ η in S, zetaZeroSideContribution η φ) + x)
+              htail))
       exact congrArg (fun x : ℂ => Complex.re x) h_decomp
     _ = (Complex.re (∑ η in zetaZeroOrbitFinset ρ,
           zetaZeroSideContribution η φ)) +
