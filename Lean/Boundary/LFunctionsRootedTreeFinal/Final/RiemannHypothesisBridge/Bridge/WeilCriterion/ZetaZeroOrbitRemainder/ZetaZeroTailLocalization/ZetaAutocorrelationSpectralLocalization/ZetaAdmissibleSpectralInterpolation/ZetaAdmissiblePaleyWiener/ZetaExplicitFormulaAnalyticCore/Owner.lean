@@ -1078,13 +1078,28 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_boxRealShadow_eq_two_re_
           (fun ι : ZetaPrimePowerIndex =>
             zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)).symm
 
+/-- Infinite oriented-face anti-self-conjugacy at the residue-ledger core. -/
+theorem zetaCompletedPrimePowerAutocorrelation_oriented_tsum_star_eq_neg_residueLedger_core
+    (f : ZetaAdmissibleFunction) :
+    star
+      (∑' ι : ZetaPrimePowerIndex,
+        zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) =
+      -∑' ι : ZetaPrimePowerIndex,
+        zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f := by
+  sorry
+
 /-- Infinite oriented-face real-part cancellation at the residue-ledger core. -/
 theorem zetaCompletedPrimePowerAutocorrelation_oriented_tsum_re_eq_zero_residueLedger_core
     (f : ZetaAdmissibleFunction) :
     Complex.re
       (∑' ι : ZetaPrimePowerIndex,
         zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) = 0 := by
-  sorry
+  exact
+    complex_re_eq_zero_of_star_eq_neg
+      (∑' ι : ZetaPrimePowerIndex,
+        zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)
+      (zetaCompletedPrimePowerAutocorrelation_oriented_tsum_star_eq_neg_residueLedger_core
+        f)
 
 /-- Scalar real-part finite-window cancellation at the residue-ledger source layer. -/
 theorem zetaCompletedPrimePowerAutocorrelation_oriented_boxSum_re_tendsto_zero_residueLedger_core
@@ -1337,11 +1352,8 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_tsum_star_eq_neg_residue
       -∑' ι : ZetaPrimePowerIndex,
         zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f := by
   exact
-    complex_star_eq_neg_of_re_eq_zero
-      (∑' ι : ZetaPrimePowerIndex,
-        zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)
-      (zetaCompletedPrimePowerAutocorrelation_oriented_tsum_re_eq_zero_residueLedger_source
-        f)
+    zetaCompletedPrimePowerAutocorrelation_oriented_tsum_star_eq_neg_residueLedger_core
+      f
 
 /-- Source contour-tomography cancellation for the opposite oriented face.
 
