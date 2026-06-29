@@ -5501,7 +5501,7 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_hasPrimitive_of_differentiable
 /-- The real diameter part of the lower half-disk boundary integral is the
 primitive endpoint difference. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegmentIntegral_eq_primitiveEndpointSub
-    (F G : ℂ → ℂ) (T : ℝ)
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
     (_hprimitive :
       scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
     (∫ t in Set.Icc (-T) T, F (t : ℂ)) =
@@ -5511,7 +5511,7 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegmentIntegral_eq_primiti
 /-- The lower semicircle part of the boundary integral is the returning
 primitive endpoint difference. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfDisk_lowerArcIntegral_eq_primitiveEndpointSub
-    (F G : ℂ → ℂ) (T : ℝ)
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
     (_hprimitive :
       scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
     (∫ θ in (0 : ℝ)..(-Real.pi),
@@ -5569,7 +5569,7 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_primitiveEndpointSub_add_retur
 /-- The boundary integral of a derivative around the lower half-disk contour is
 zero. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_hasPrimitive
-    (F : ℂ → ℂ) (T : ℝ)
+    (F : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
     (_hprimitive :
       ∃ G : ℂ → ℂ,
         scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
@@ -5581,9 +5581,9 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_has
       Eq.trans
         (congrArg₂ HAdd.hAdd
           (scalarFourierLaplacePlemelj_lowerHalfDisk_realSegmentIntegral_eq_primitiveEndpointSub
-            F G T hG)
+            F G T _hT hG)
           (scalarFourierLaplacePlemelj_lowerHalfDisk_lowerArcIntegral_eq_primitiveEndpointSub
-            F G T hG))
+            F G T _hT hG))
         (scalarFourierLaplacePlemelj_lowerHalfDisk_primitiveEndpointSub_add_return_eq_zero
           G T)
 
@@ -5596,7 +5596,7 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_dif
     scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral F T = 0 := by
   exact
     scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_hasPrimitive
-      F T
+      F T _hT
       (scalarFourierLaplacePlemelj_lowerHalfDisk_hasPrimitive_of_differentiableOn
         F T _hT _hdiff)
 
