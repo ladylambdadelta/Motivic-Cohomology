@@ -6064,6 +6064,55 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
 
 /-- Positive-time compact-interval estimate for the normalized scalar
 Fourier-Laplace Plemelj kernel. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArc_awayZero_mulExp_norm_bound_eventually
+    (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            δ ≤ x →
+            ‖x‖ ≤ R →
+              ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T *
+                Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ C := by
+  sorry
+
+/-- Positive away-from-zero window bound from the upper-arc bound and the
+positive residue identity. -/
+theorem scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound_eventually_of_arc
+    (a : ℝ) (ha : 0 < a) (R δ Carc : ℝ) (hδ : 0 < δ)
+    (hCarc_nonneg : 0 ≤ Carc)
+    (harc :
+      ∀ᶠ T in atTop,
+        ∀ x : ℝ,
+          δ ≤ x →
+          ‖x‖ ≤ R →
+            ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T *
+              Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ Carc) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            δ ≤ x →
+            ‖x‖ ≤ R →
+              ‖(∫ t in Set.Icc (-T) T,
+                (-1 / ((a : ℂ) + t * Complex.I)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp ((a : ℂ) * (x : ℂ)))‖
+              ≤ C := by
+  let Cresidue : ℝ := ‖(-2 * (Real.pi : ℂ))‖
+  let C : ℝ := Cresidue + Carc
+  have hCresidue_nonneg : 0 ≤ Cresidue := by
+    unfold Cresidue
+    exact norm_nonneg _
+  have hC_nonneg : 0 ≤ C := by
+    unfold C
+    exact add_nonneg hCresidue_nonneg hCarc_nonneg
+  have hresidue_norm :
+      ‖(-2 * (Real.pi : ℂ))‖ = Cresidue := by
+    rfl
+  sorry
+
 theorem scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound_eventually
     (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
     ∃ C : ℝ,
@@ -6078,7 +6127,12 @@ theorem scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
               ≤ C := by
-  sorry
+  match scalarFourierLaplacePlemelj_positiveUpperArc_awayZero_mulExp_norm_bound_eventually
+    a ha R δ hδ with
+  | ⟨Carc, hCarc_nonneg, harc⟩ =>
+      exact
+        scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound_eventually_of_arc
+          a ha R δ Carc hδ hCarc_nonneg harc
 
 /-- Positive-time near-zero compact-interval estimate for the normalized
 scalar Fourier-Laplace Plemelj kernel. -/
