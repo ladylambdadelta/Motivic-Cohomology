@@ -6903,7 +6903,45 @@ theorem scalarFourierLaplacePlemelj_scaledHilbertSineKernel_coefficient_identity
     (a : ℝ) (ha : 0 < a) (u : ℝ) :
     a * ((u * a) / (a ^ 2 + (u * a) ^ 2)) =
       u / (1 + u ^ 2) := by
-  sorry
+  have ha_ne : a ≠ 0 :=
+    ne_of_gt ha
+  have ha_sq_ne : a ^ 2 ≠ 0 := by
+    exact pow_ne_zero 2 ha_ne
+  have hnum : a * (u * a) = u * a ^ 2 := by
+    calc
+      a * (u * a) = (a * u) * a := by
+        exact (mul_assoc a u a).symm
+      _ = (u * a) * a := by
+        exact congrArg (fun r : ℝ => r * a) (mul_comm a u)
+      _ = u * (a * a) := by
+        exact mul_assoc u a a
+      _ = u * a ^ 2 := by
+        exact congrArg (fun r : ℝ => u * r) (sq a).symm
+  have huasq : (u * a) ^ 2 = u ^ 2 * a ^ 2 := by
+    exact mul_pow u a 2
+  have hden : a ^ 2 + (u * a) ^ 2 = (1 + u ^ 2) * a ^ 2 := by
+    calc
+      a ^ 2 + (u * a) ^ 2
+          = a ^ 2 + u ^ 2 * a ^ 2 := by
+            exact congrArg (fun r : ℝ => a ^ 2 + r) huasq
+      _ = 1 * a ^ 2 + u ^ 2 * a ^ 2 := by
+            exact congrArg
+              (fun r : ℝ => r + u ^ 2 * a ^ 2)
+              (one_mul (a ^ 2)).symm
+      _ = (1 + u ^ 2) * a ^ 2 := by
+            exact (add_mul 1 (u ^ 2) (a ^ 2)).symm
+  calc
+    a * ((u * a) / (a ^ 2 + (u * a) ^ 2))
+        = (a * (u * a)) / (a ^ 2 + (u * a) ^ 2) := by
+          exact mul_div_assoc' a (u * a) (a ^ 2 + (u * a) ^ 2)
+    _ = (u * a ^ 2) / (a ^ 2 + (u * a) ^ 2) := by
+          exact congrArg
+            (fun r : ℝ => r / (a ^ 2 + (u * a) ^ 2))
+            hnum
+    _ = (u * a ^ 2) / ((1 + u ^ 2) * a ^ 2) := by
+          exact congrArg (fun r : ℝ => (u * a ^ 2) / r) hden
+    _ = u / (1 + u ^ 2) := by
+          exact mul_div_mul_right u (1 + u ^ 2) ha_sq_ne
 
 theorem scalarFourierLaplacePlemelj_scaledHilbertSineKernel_phase_identity
     (a x u : ℝ) :
