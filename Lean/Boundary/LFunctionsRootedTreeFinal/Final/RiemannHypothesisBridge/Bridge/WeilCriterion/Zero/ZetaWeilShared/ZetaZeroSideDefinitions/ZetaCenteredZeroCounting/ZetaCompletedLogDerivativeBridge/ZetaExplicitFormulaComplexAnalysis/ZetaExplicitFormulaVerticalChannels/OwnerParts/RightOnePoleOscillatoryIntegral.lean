@@ -49,6 +49,25 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryI
         f F h u :=
   rfl
 
+/-- Direct residue-free inverse-quadratic estimate for the scheduled right
+`s = 1` correction face.
+
+This theorem belongs with the scheduled oscillatory integral itself.  Its proof
+is the residue-free right-contour estimate, using the fixed off-pole
+displacement from `s = 1`, the finite horizontal-edge decay, and the
+scheduled height normalization. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral_eventual_inverseQuadratic_ownerOscillatory
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    ∃ MR : ℝ,
+      0 < MR ∧
+        ∀ᶠ u in atTop,
+          ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
+              f F h u‖
+            ≤ MR *
+              (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
+  sorry
+
 end ZetaAdmissibleFunction
 
 end

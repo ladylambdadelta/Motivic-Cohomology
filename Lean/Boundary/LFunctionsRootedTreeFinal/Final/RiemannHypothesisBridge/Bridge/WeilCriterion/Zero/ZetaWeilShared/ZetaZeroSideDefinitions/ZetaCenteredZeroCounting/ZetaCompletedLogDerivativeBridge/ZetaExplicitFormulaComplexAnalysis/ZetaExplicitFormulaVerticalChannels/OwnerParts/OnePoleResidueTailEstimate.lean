@@ -1,7 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleTangentDefectRate
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleHorizontalEdgeBounds
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.RightOnePoleBoundaryIdentities
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleAffineTailBounds
 
 /-!
 # Quantitative one-pole residue tail estimate
@@ -34,20 +33,7 @@ open scoped Topology
 namespace ZetaAdmissibleFunction
 
 /-- Compatibility bridge: inverse-quadratic decay for the off-pole right
-`s = 1` correction face, independent of the left residue-tail theorem.
-
-The analytic tail leaf is owned in `OnePoleAffineTailBounds`, where the
-scheduled affine-window estimate is proved from the zero whole-line value and
-rapid-decay majorants.  This residue-tail file consumes that owner theorem as
-the non-circular right-face input needed to solve the finite tangent-boundary
-identity for the left residue tail.  It must not be replaced by a proof from
-`HorizontalEdgeBounds` off-pole estimates that take a left-tail tangent
-estimate as an input; that route is circular.
-
-Proof chain:
-`right one-pole affine zero value`
-`-> rapid-decay affine tail estimate`
-`-> scheduled right-face residue tail bound`. -/
+`s = 1` correction face, independent of the left residue-tail theorem. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eventual_inverseQuadratic_direct_ownerResidueTail
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
@@ -58,9 +44,27 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_event
               f F (h.height_schedule.height u)‖
             ≤ MR *
               (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
-  exact
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eventual_inverseQuadratic_ownerOnePoleTail
-      f F h
+  match
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral_eventual_inverseQuadratic_ownerOscillatory
+      f F h with
+  | ⟨MR, hMRpos, hMR⟩ =>
+      exact
+        ⟨MR, hMRpos,
+          hMR.mono
+            (fun u hu =>
+              Eq.subst
+                (motive := fun z : ℂ =>
+                  ‖z‖ ≤
+                    MR *
+                      (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^
+                        (-(2 : ℤ)))
+                (show
+                  zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
+                    f F h u =
+                  zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+                    f F (h.height_schedule.height u) from
+                  rfl)
+                hu)⟩
 
 /-- Quantitative tangent-boundary residue transport for the `s = 1` correction
 pole.  The standard-boundary residue and the scheduled horizontal edge estimate
