@@ -7471,6 +7471,148 @@ noncomputable def scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative
     (b v : ℝ) : ℝ :=
   (b ^ 2 - v ^ 2) / (b ^ 2 + v ^ 2) ^ 2
 
+theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_derivative_numerator
+    (b v : ℝ) :
+    1 * (b ^ 2 + v ^ 2) - v * (2 * v) = b ^ 2 - v ^ 2 := by
+  have hv_mul_two_mul : v * (2 * v) = 2 * v ^ 2 := by
+    calc
+      v * (2 * v) = (v * 2) * v := by
+        exact (mul_assoc v 2 v).symm
+      _ = (2 * v) * v := by
+        exact congrArg (fun x : ℝ => x * v) (mul_comm v 2)
+      _ = 2 * (v * v) := by
+        exact mul_assoc 2 v v
+      _ = 2 * v ^ 2 := by
+        exact congrArg (fun x : ℝ => 2 * x) (pow_two v).symm
+  calc
+    1 * (b ^ 2 + v ^ 2) - v * (2 * v) =
+        b ^ 2 + v ^ 2 - v * (2 * v) := by
+      exact congrArg (fun x : ℝ => x - v * (2 * v))
+        (one_mul (b ^ 2 + v ^ 2))
+    _ = b ^ 2 + v ^ 2 - 2 * v ^ 2 := by
+      exact congrArg (fun x : ℝ => b ^ 2 + v ^ 2 - x) hv_mul_two_mul
+    _ = b ^ 2 + (v ^ 2 - 2 * v ^ 2) := by
+      exact (sub_eq_add_neg (b ^ 2 + v ^ 2) (2 * v ^ 2)).trans
+        (congrArg (fun x : ℝ => b ^ 2 + x)
+          (sub_eq_add_neg (v ^ 2) (2 * v ^ 2)).symm)
+    _ = b ^ 2 + -(v ^ 2) := by
+      have htwo : 2 * v ^ 2 = v ^ 2 + v ^ 2 := by
+        exact two_mul (v ^ 2)
+      have hsub : v ^ 2 - 2 * v ^ 2 = -(v ^ 2) := by
+        calc
+          v ^ 2 - 2 * v ^ 2 = v ^ 2 - (v ^ 2 + v ^ 2) := by
+            exact congrArg (fun x : ℝ => v ^ 2 - x) htwo
+          _ = -(v ^ 2) := by
+            exact sub_add_cancel (v ^ 2) (v ^ 2) ▸ sub_self (v ^ 2)
+      exact congrArg (fun x : ℝ => b ^ 2 + x) hsub
+    _ = b ^ 2 - v ^ 2 := by
+      exact (sub_eq_add_neg (b ^ 2) (v ^ 2)).symm
+
+/-- Pointwise derivative of the high-tail Cauchy amplitude. -/
+theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_hasDerivAt
+    (b v : ℝ) (hb : 0 < b) :
+    HasDerivAt
+      (fun x : ℝ => x / (b ^ 2 + x ^ 2))
+      (scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v)
+      v := by
+  have hden_ne : b ^ 2 + v ^ 2 ≠ 0 :=
+    ne_of_gt (scalarFourierLaplacePlemelj_zero_denominator_pos b hb v)
+  have hnum : HasDerivAt (fun x : ℝ => x) 1 v :=
+    hasDerivAt_id v
+  have hden : HasDerivAt (fun x : ℝ => b ^ 2 + x ^ 2) (2 * v) v := by
+    have hconst : HasDerivAt (fun _x : ℝ => b ^ 2) 0 v :=
+      hasDerivAt_const v (b ^ 2)
+    have hsquare : HasDerivAt (fun x : ℝ => x ^ 2) (2 * v) v := by
+      exact hasDerivAt_pow 2 v
+    exact hconst.add hsquare
+  have hquot :
+      HasDerivAt
+        (fun x : ℝ => x / (b ^ 2 + x ^ 2))
+        ((1 * (b ^ 2 + v ^ 2) - v * (2 * v)) /
+          (b ^ 2 + v ^ 2) ^ 2)
+        v :=
+    hnum.div hden hden_ne
+  have hderiv_eq :
+      ((1 * (b ^ 2 + v ^ 2) - v * (2 * v)) /
+          (b ^ 2 + v ^ 2) ^ 2) =
+        scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v := by
+    unfold scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative
+    exact congrArg
+      (fun x : ℝ => x / (b ^ 2 + v ^ 2) ^ 2)
+      (scalarFourierLaplacePlemelj_highTailCauchyAmplitude_derivative_numerator
+        b v)
+  exact Eq.subst
+    (motive := fun d : ℝ =>
+      HasDerivAt
+        (fun x : ℝ => x / (b ^ 2 + x ^ 2))
+        d
+        v)
+    hderiv_eq
+    hquot
+
+/-- Continuity of the explicit high-tail Cauchy-amplitude derivative. -/
+theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative_continuous
+    (b : ℝ) (hb : 0 < b) :
+    Continuous
+      (fun v : ℝ =>
+        scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v) := by
+  have hnum_cont :
+      Continuous (fun v : ℝ => b ^ 2 - v ^ 2) :=
+    continuous_const.sub (continuous_id.pow 2)
+  have hden_cont :
+      Continuous (fun v : ℝ => (b ^ 2 + v ^ 2) ^ 2) :=
+    (continuous_const.add (continuous_id.pow 2)).pow 2
+  have hden_ne :
+      ∀ v : ℝ, (b ^ 2 + v ^ 2) ^ 2 ≠ 0 := by
+    intro v
+    exact ne_of_gt
+      (sq_pos_of_pos
+        (scalarFourierLaplacePlemelj_zero_denominator_pos b hb v))
+  unfold scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative
+  exact hnum_cont.div hden_cont hden_ne
+
+/-- Endpoint drop of the high-tail Cauchy amplitude from its explicit
+derivative. -/
+theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_negDerivative_integral_eq_drop
+    (A b c : ℝ) (hb : 0 < b) (hcA : c ≤ A) :
+    (∫ v in c..A,
+      -scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v) =
+      c / (b ^ 2 + c ^ 2) - A / (b ^ 2 + A ^ 2) := by
+  have hderiv :
+      ∀ v : ℝ, v ∈ [[c, A]] →
+        HasDerivAt
+          (fun x : ℝ => x / (b ^ 2 + x ^ 2))
+          (scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v)
+          v := by
+    intro v _hv
+    exact scalarFourierLaplacePlemelj_highTailCauchyAmplitude_hasDerivAt b v hb
+  have hint :
+      IntervalIntegrable
+        (fun v : ℝ => scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v)
+        volume c A := by
+    exact
+      (scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative_continuous
+        b hb).intervalIntegrable c A
+  have hftc :
+      (∫ v in c..A,
+        scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v) =
+        A / (b ^ 2 + A ^ 2) - c / (b ^ 2 + c ^ 2) :=
+    intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv hint
+  calc
+    (∫ v in c..A,
+      -scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v) =
+        -(∫ v in c..A,
+          scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v) := by
+      exact intervalIntegral.integral_neg
+        (fun v : ℝ =>
+          scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v)
+    _ = -(A / (b ^ 2 + A ^ 2) - c / (b ^ 2 + c ^ 2)) := by
+      exact congrArg Neg.neg hftc
+    _ = c / (b ^ 2 + c ^ 2) - A / (b ^ 2 + A ^ 2) := by
+      exact neg_sub
+        (A / (b ^ 2 + A ^ 2))
+        (c / (b ^ 2 + c ^ 2))
+
 /-- Integration-by-parts identity for the damped Cauchy-amplitude sine tail. -/
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_parts_identity_source
     (A b c : ℝ) (hb : 0 < b) (hcA : c ≤ A) :
@@ -7492,7 +7634,78 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_derivativeVaria
       scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
         Real.cos v| ≤
       c / (b ^ 2 + c ^ 2) - A / (b ^ 2 + A ^ 2) := by
-  sorry
+  let g : ℝ → ℝ := fun v : ℝ => v / (b ^ 2 + v ^ 2)
+  let D : ℝ → ℝ :=
+    fun v : ℝ => scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v
+  have hD_nonpos :
+      ∀ v : ℝ, v ∈ Set.Icc c A → D v ≤ 0 := by
+    intro v hv
+    have hcv : c ≤ v := hv.1
+    have hb_le_v : b ≤ v := hb_le_c.trans hcv
+    have hb_nonneg : 0 ≤ b := le_of_lt hb
+    have hv_nonneg : 0 ≤ v := hb_nonneg.trans hb_le_v
+    have hsq_le : b ^ 2 ≤ v ^ 2 := by
+      exact sq_le_sq.mpr (abs_le_abs.mpr hb_le_v)
+    have hnum_nonpos : b ^ 2 - v ^ 2 ≤ 0 :=
+      sub_nonpos.mpr hsq_le
+    have hden_nonneg : 0 ≤ (b ^ 2 + v ^ 2) ^ 2 :=
+      sq_nonneg (b ^ 2 + v ^ 2)
+    have hden_pos : 0 < (b ^ 2 + v ^ 2) ^ 2 := by
+      have hbase_pos : 0 < b ^ 2 + v ^ 2 :=
+        scalarFourierLaplacePlemelj_zero_denominator_pos b hb v
+      exact sq_pos_of_pos hbase_pos
+    unfold D
+    unfold scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative
+    exact div_nonpos_of_nonpos_of_nonneg hnum_nonpos hden_nonneg
+  have hD_abs_eq_neg :
+      ∀ v : ℝ, v ∈ Set.Icc c A → |D v| = -D v := by
+    intro v hv
+    exact abs_of_nonpos (hD_nonpos v hv)
+  have hpoint :
+      ∀ v : ℝ, v ∈ Set.Icc c A →
+        ‖D v * Real.cos v‖ ≤ -D v := by
+    intro v hv
+    have hDabs : |D v| = -D v :=
+      hD_abs_eq_neg v hv
+    have hDneg_nonneg : 0 ≤ -D v :=
+      neg_nonneg.mpr (hD_nonpos v hv)
+    calc
+      ‖D v * Real.cos v‖ = |D v * Real.cos v| := by
+        exact Real.norm_eq_abs (D v * Real.cos v)
+      _ = |D v| * |Real.cos v| := by
+        exact abs_mul (D v) (Real.cos v)
+      _ = (-D v) * |Real.cos v| := by
+        exact congrArg (fun r : ℝ => r * |Real.cos v|) hDabs
+      _ ≤ (-D v) * 1 := by
+        exact mul_le_mul_of_nonneg_left (abs_cos_le_one v) hDneg_nonneg
+      _ = -D v := by
+        exact mul_one (-D v)
+  have hnorm :
+      |∫ v in c..A, D v * Real.cos v| ≤
+        ∫ v in c..A, -D v := by
+    have hnorm' :
+        ‖∫ v in c..A, D v * Real.cos v‖ ≤
+          ∫ v in c..A, -D v :=
+      intervalIntegral.norm_integral_le_of_norm_le
+        (fun v hv => hpoint v hv)
+    exact hnorm'
+  have hanti :
+      AntitoneOn g (Set.Ici c) :=
+    scalarFourierLaplacePlemelj_highTailCauchyAmplitude_antitoneOn
+      b c hb hone_le_c hb_le_c
+  have hdrop :
+      ∫ v in c..A, -D v = g c - g A := by
+    unfold D
+    unfold g
+    exact
+      scalarFourierLaplacePlemelj_highTailCauchyAmplitude_negDerivative_integral_eq_drop
+        A b c hb hcA
+  have htarget :
+      |∫ v in c..A, D v * Real.cos v| ≤ g c - g A :=
+    hnorm.trans (le_of_eq hdrop)
+  unfold D at htarget
+  unfold g at htarget
+  exact htarget
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_of_partsVariation
     (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
