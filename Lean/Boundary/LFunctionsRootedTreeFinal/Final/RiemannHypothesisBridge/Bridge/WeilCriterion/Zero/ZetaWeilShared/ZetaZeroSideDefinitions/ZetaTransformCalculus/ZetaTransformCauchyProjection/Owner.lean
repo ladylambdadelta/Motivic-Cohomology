@@ -5545,7 +5545,18 @@ theorem scalarFourierLaplacePlemelj_realSegment_mapsTo_lowerHalfDisk
       (fun x : ℝ => (x : ℂ))
       (Set.Icc (-T) T)
       (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
-  sorry
+  intro x hx
+  have hnorm : ‖(x : ℂ)‖ ≤ T := by
+    calc
+      ‖(x : ℂ)‖ = ‖x‖ := by
+        exact Complex.norm_real x
+      _ = |x| := by
+        exact Real.norm_eq_abs x
+      _ ≤ T := by
+        exact abs_le.mpr hx
+  have him : Complex.im (x : ℂ) ≤ 0 := by
+    exact le_of_eq (Complex.ofReal_im x)
+  exact ⟨hnorm, him⟩
 
 /-- Primitive data on the lower half-disk makes the real-diameter primitive
 continuous on the closed diameter. -/
