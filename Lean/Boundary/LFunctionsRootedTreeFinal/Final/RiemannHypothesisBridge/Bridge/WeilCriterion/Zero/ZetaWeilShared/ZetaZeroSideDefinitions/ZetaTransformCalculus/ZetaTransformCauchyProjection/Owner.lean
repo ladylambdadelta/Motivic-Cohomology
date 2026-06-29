@@ -6845,13 +6845,201 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_uniform_bound
       scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_pi
         a ha T x⟩
 
+/-- Finite-window Dirichlet bound for the odd Hilbert-Cauchy sine kernel.
+
+This is the real-variable owner statement behind the odd-sine part of the
+uncompensated Cauchy window: the oscillation, not absolute domination, gives a
+radius-uniform bound. -/
+theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_abs_le_pi_div_two
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    |∫ t in (0)..T,
+      (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| ≤
+      Real.pi / 2 := by
+  sorry
+
+/-- Symmetric finite windows of the Hilbert-Cauchy sine kernel reduce to twice
+the positive half-window because the kernel is even. -/
+theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_symmetric_eq_two_half
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    (∫ t in Set.Icc (-T) T,
+      (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)) =
+      (2 : ℝ) *
+        ∫ t in (0)..T,
+          (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) := by
+  let f : ℝ → ℝ :=
+    fun t : ℝ => (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)
+  have hden_cont : Continuous (fun t : ℝ => a ^ 2 + t ^ 2) :=
+    continuous_const.add (continuous_id.pow 2)
+  have hden_ne : ∀ t : ℝ, a ^ 2 + t ^ 2 ≠ 0 :=
+    scalarFourierLaplacePlemelj_zero_denominator_ne_zero a ha
+  have hquot_cont : Continuous (fun t : ℝ => t / (a ^ 2 + t ^ 2)) :=
+    continuous_id.div hden_cont hden_ne
+  have htx_cont : Continuous (fun t : ℝ => t * x) :=
+    continuous_id.mul continuous_const
+  have hsin_cont : Continuous (fun t : ℝ => Real.sin (t * x)) :=
+    Real.continuous_sin.comp htx_cont
+  have hf_cont : Continuous f := by
+    unfold f
+    exact hquot_cont.mul hsin_cont
+  have hf_left : IntervalIntegrable f volume (-T) 0 :=
+    hf_cont.intervalIntegrable (-T) 0
+  have hf_right : IntervalIntegrable f volume 0 T :=
+    hf_cont.intervalIntegrable 0 T
+  have heven : ∀ t : ℝ, f (-t) = f t := by
+    intro t
+    unfold f
+    have hden :
+        a ^ 2 + (-t) ^ 2 = a ^ 2 + t ^ 2 := by
+      exact congrArg (fun u : ℝ => a ^ 2 + u) (neg_sq t)
+    have harg : (-t) * x = -(t * x) :=
+      neg_mul t x
+    have hsin : Real.sin ((-t) * x) = -Real.sin (t * x) := by
+      exact (congrArg Real.sin harg).trans (Real.sin_neg (t * x))
+    have hdiv :
+        (-t) / (a ^ 2 + (-t) ^ 2) =
+          -(t / (a ^ 2 + t ^ 2)) := by
+      calc
+        (-t) / (a ^ 2 + (-t) ^ 2)
+            = (-t) / (a ^ 2 + t ^ 2) := by
+              exact congrArg (fun d : ℝ => (-t) / d) hden
+        _ = -(t / (a ^ 2 + t ^ 2)) := by
+              exact neg_div t (a ^ 2 + t ^ 2)
+    calc
+      ((-t) / (a ^ 2 + (-t) ^ 2)) * Real.sin ((-t) * x)
+          =
+          (-(t / (a ^ 2 + t ^ 2))) * Real.sin ((-t) * x) := by
+            exact congrArg
+              (fun r : ℝ => r * Real.sin ((-t) * x))
+              hdiv
+      _ =
+          (-(t / (a ^ 2 + t ^ 2))) * (-Real.sin (t * x)) := by
+            exact congrArg
+              (fun r : ℝ => (-(t / (a ^ 2 + t ^ 2))) * r)
+              hsin
+      _ =
+          (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) := by
+            exact neg_mul_neg (t / (a ^ 2 + t ^ 2)) (Real.sin (t * x))
+  have hleft_eq_right :
+      (∫ t in (-T)..0, f t) = ∫ t in (0)..T, f t := by
+    have hcomp :
+        (∫ t in (0)..T, f (-t)) = ∫ t in (-T)..0, f t := by
+      exact
+        intervalIntegral.integral_comp_neg
+          (f := f) (a := 0) (b := T)
+    have hcomp_even :
+        (∫ t in (0)..T, f (-t)) = ∫ t in (0)..T, f t := by
+      exact
+        intervalIntegral.integral_congr
+          (Filter.Eventually.of_forall heven)
+    exact hcomp.symm.trans hcomp_even
+  have hsplit :
+      (∫ t in (-T)..T, f t) =
+        (∫ t in (-T)..0, f t) + ∫ t in (0)..T, f t := by
+    exact
+      (intervalIntegral.integral_add_adjacent_intervals
+        hf_left hf_right).symm
+  calc
+    (∫ t in Set.Icc (-T) T,
+      (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x))
+        = ∫ t in (-T)..T, f t := by
+          unfold f
+          rfl
+    _ = (∫ t in (-T)..0, f t) + ∫ t in (0)..T, f t := hsplit
+    _ = (∫ t in (0)..T, f t) + ∫ t in (0)..T, f t := by
+          exact congrArg
+            (fun y : ℝ => y + ∫ t in (0)..T, f t)
+            hleft_eq_right
+    _ = (2 : ℝ) * ∫ t in (0)..T, f t := by
+          exact (two_mul (∫ t in (0)..T, f t)).symm
+    _ =
+        (2 : ℝ) *
+          ∫ t in (0)..T,
+            (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) := by
+          unfold f
+          rfl
+
+/-- Finite-window Dirichlet bound for the odd Hilbert-Cauchy sine kernel. -/
+theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_abs_le_pi
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    |∫ t in Set.Icc (-T) T,
+      (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| ≤
+      Real.pi := by
+  have hsym :
+      (∫ t in Set.Icc (-T) T,
+        (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)) =
+        (2 : ℝ) *
+          ∫ t in (0)..T,
+            (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) :=
+    scalarFourierLaplacePlemelj_finiteHilbertSineKernel_symmetric_eq_two_half
+      a ha T x
+  have hhalf :
+      |∫ t in (0)..T,
+        (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| ≤
+        Real.pi / 2 :=
+    scalarFourierLaplacePlemelj_halfHilbertSineKernel_abs_le_pi_div_two
+      a ha T x
+  have htwo_nonneg : (0 : ℝ) ≤ 2 :=
+    zero_le_two
+  have htwo_abs :
+      |(2 : ℝ) *
+        ∫ t in (0)..T,
+          (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| =
+        (2 : ℝ) *
+          |∫ t in (0)..T,
+            (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| := by
+    calc
+      |(2 : ℝ) *
+        ∫ t in (0)..T,
+          (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)|
+          =
+          |(2 : ℝ)| *
+            |∫ t in (0)..T,
+              (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| := by
+            exact abs_mul (2 : ℝ)
+              (∫ t in (0)..T,
+                (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x))
+      _ =
+          (2 : ℝ) *
+            |∫ t in (0)..T,
+              (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| := by
+            exact congrArg
+              (fun r : ℝ =>
+                r *
+                  |∫ t in (0)..T,
+                    (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)|)
+              (abs_of_nonneg htwo_nonneg)
+  have hscaled :
+      (2 : ℝ) *
+        |∫ t in (0)..T,
+          (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| ≤
+        2 * (Real.pi / 2) :=
+    mul_le_mul_of_nonneg_left hhalf htwo_nonneg
+  have htwo_half : (2 : ℝ) * (Real.pi / 2) = Real.pi :=
+    two_mul_div_two Real.pi
+  calc
+    |∫ t in Set.Icc (-T) T,
+      (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)|
+        =
+        |(2 : ℝ) *
+          ∫ t in (0)..T,
+            (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| := by
+          exact congrArg abs hsym
+    _ =
+        (2 : ℝ) *
+          |∫ t in (0)..T,
+            (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| := htwo_abs
+    _ ≤ 2 * (Real.pi / 2) := hscaled
+    _ = Real.pi := htwo_half
+
 /-- Dirichlet bound for the odd-sine Cauchy component after the standard
 scale reduction. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_scaled_abs_le_pi
     (a : ℝ) (ha : 0 < a) (T x : ℝ) :
     |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤
       Real.pi := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_finiteHilbertSineKernel_abs_le_pi
+      a ha T x
 
 /-- Fixed-constant Dirichlet bound for the odd-sine component of the
 uncompensated Cauchy kernel. -/
