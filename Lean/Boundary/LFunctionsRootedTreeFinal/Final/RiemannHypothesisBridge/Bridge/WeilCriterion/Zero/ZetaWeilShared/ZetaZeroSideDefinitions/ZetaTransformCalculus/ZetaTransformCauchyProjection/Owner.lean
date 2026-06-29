@@ -6064,6 +6064,102 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
 
 /-- Positive-time compact-interval estimate for the normalized scalar
 Fourier-Laplace Plemelj kernel. -/
+theorem scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound_eventually
+    (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            δ ≤ x →
+            ‖x‖ ≤ R →
+              ‖(∫ t in Set.Icc (-T) T,
+                (-1 / ((a : ℂ) + t * Complex.I)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp ((a : ℂ) * (x : ℂ)))‖
+              ≤ C := by
+  sorry
+
+/-- Positive-time near-zero compact-interval estimate for the normalized
+scalar Fourier-Laplace Plemelj kernel. -/
+theorem scalarFourierLaplacePlemelj_compactInterval_positive_nearZero_norm_bound_eventually
+    (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            0 < x →
+            x < δ →
+            ‖x‖ ≤ R →
+              ‖(∫ t in Set.Icc (-T) T,
+                (-1 / ((a : ℂ) + t * Complex.I)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp ((a : ℂ) * (x : ℂ)))‖
+              ≤ C := by
+  sorry
+
+/-- Assembly of the positive compact-interval estimate from its near-zero and
+away-from-zero pieces. -/
+theorem scalarFourierLaplacePlemelj_compactInterval_positive_norm_bound_eventually_of_split
+    (a : ℝ) (ha : 0 < a) (R δ Cnear Caway : ℝ) (hδ : 0 < δ)
+    (hCnear_nonneg : 0 ≤ Cnear) (hCaway_nonneg : 0 ≤ Caway)
+    (hnear :
+      ∀ᶠ T in atTop,
+        ∀ x : ℝ,
+          0 < x →
+          x < δ →
+          ‖x‖ ≤ R →
+            ‖(∫ t in Set.Icc (-T) T,
+              (-1 / ((a : ℂ) + t * Complex.I)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp ((a : ℂ) * (x : ℂ)))‖
+            ≤ Cnear)
+    (haway :
+      ∀ᶠ T in atTop,
+        ∀ x : ℝ,
+          δ ≤ x →
+          ‖x‖ ≤ R →
+            ‖(∫ t in Set.Icc (-T) T,
+              (-1 / ((a : ℂ) + t * Complex.I)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp ((a : ℂ) * (x : ℂ)))‖
+            ≤ Caway) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            0 < x →
+            ‖x‖ ≤ R →
+              ‖(∫ t in Set.Icc (-T) T,
+                (-1 / ((a : ℂ) + t * Complex.I)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp ((a : ℂ) * (x : ℂ)))‖
+              ≤ C := by
+  let C : ℝ := max Cnear Caway
+  have hC_nonneg : 0 ≤ C := by
+    unfold C
+    exact hCnear_nonneg.trans (le_max_left Cnear Caway)
+  have hnear_le : Cnear ≤ C := by
+    unfold C
+    exact le_max_left Cnear Caway
+  have haway_le : Caway ≤ C := by
+    unfold C
+    exact le_max_right Cnear Caway
+  exact
+    ⟨C, hC_nonneg,
+      hnear.and haway |>.mono
+        (fun T hsplit =>
+          fun x hxpos hxR =>
+            match lt_or_ge x δ with
+            | Or.inl hx_lt_delta =>
+                (hsplit.1 x hxpos hx_lt_delta hxR).trans hnear_le
+            | Or.inr hx_ge_delta =>
+                (hsplit.2 x hx_ge_delta hxR).trans haway_le)⟩
+
 theorem scalarFourierLaplacePlemelj_compactInterval_positive_norm_bound_eventually
     (a : ℝ) (ha : 0 < a) (R : ℝ) :
     ∃ C : ℝ,
@@ -6078,7 +6174,118 @@ theorem scalarFourierLaplacePlemelj_compactInterval_positive_norm_bound_eventual
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
               ≤ C := by
+  let δ : ℝ := 1
+  have hδ : 0 < δ := by
+    unfold δ
+    exact zero_lt_one
+  match scalarFourierLaplacePlemelj_compactInterval_positive_nearZero_norm_bound_eventually
+    a ha R δ hδ with
+  | ⟨Cnear, hCnear_nonneg, hnear⟩ =>
+      match scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound_eventually
+        a ha R δ hδ with
+      | ⟨Caway, hCaway_nonneg, haway⟩ =>
+          exact
+            scalarFourierLaplacePlemelj_compactInterval_positive_norm_bound_eventually_of_split
+              a ha R δ Cnear Caway hδ hCnear_nonneg hCaway_nonneg
+              hnear haway
+
+/-- Negative-time away-from-zero compact-interval estimate for the normalized
+scalar Fourier-Laplace Plemelj kernel. -/
+theorem scalarFourierLaplacePlemelj_compactInterval_negative_awayZero_norm_bound_eventually
+    (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            x ≤ -δ →
+            ‖x‖ ≤ R →
+              ‖(∫ t in Set.Icc (-T) T,
+                (-1 / ((a : ℂ) + t * Complex.I)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp ((a : ℂ) * (x : ℂ)))‖
+              ≤ C := by
   sorry
+
+/-- Negative-time near-zero compact-interval estimate for the normalized
+scalar Fourier-Laplace Plemelj kernel. -/
+theorem scalarFourierLaplacePlemelj_compactInterval_negative_nearZero_norm_bound_eventually
+    (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            x < 0 →
+            -δ < x →
+            ‖x‖ ≤ R →
+              ‖(∫ t in Set.Icc (-T) T,
+                (-1 / ((a : ℂ) + t * Complex.I)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp ((a : ℂ) * (x : ℂ)))‖
+              ≤ C := by
+  sorry
+
+/-- Assembly of the negative compact-interval estimate from its near-zero and
+away-from-zero pieces. -/
+theorem scalarFourierLaplacePlemelj_compactInterval_negative_norm_bound_eventually_of_split
+    (a : ℝ) (ha : 0 < a) (R δ Cnear Caway : ℝ) (hδ : 0 < δ)
+    (hCnear_nonneg : 0 ≤ Cnear) (hCaway_nonneg : 0 ≤ Caway)
+    (hnear :
+      ∀ᶠ T in atTop,
+        ∀ x : ℝ,
+          x < 0 →
+          -δ < x →
+          ‖x‖ ≤ R →
+            ‖(∫ t in Set.Icc (-T) T,
+              (-1 / ((a : ℂ) + t * Complex.I)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp ((a : ℂ) * (x : ℂ)))‖
+            ≤ Cnear)
+    (haway :
+      ∀ᶠ T in atTop,
+        ∀ x : ℝ,
+          x ≤ -δ →
+          ‖x‖ ≤ R →
+            ‖(∫ t in Set.Icc (-T) T,
+              (-1 / ((a : ℂ) + t * Complex.I)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp ((a : ℂ) * (x : ℂ)))‖
+            ≤ Caway) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            x < 0 →
+            ‖x‖ ≤ R →
+              ‖(∫ t in Set.Icc (-T) T,
+                (-1 / ((a : ℂ) + t * Complex.I)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp ((a : ℂ) * (x : ℂ)))‖
+              ≤ C := by
+  let C : ℝ := max Cnear Caway
+  have hC_nonneg : 0 ≤ C := by
+    unfold C
+    exact hCnear_nonneg.trans (le_max_left Cnear Caway)
+  have hnear_le : Cnear ≤ C := by
+    unfold C
+    exact le_max_left Cnear Caway
+  have haway_le : Caway ≤ C := by
+    unfold C
+    exact le_max_right Cnear Caway
+  exact
+    ⟨C, hC_nonneg,
+      hnear.and haway |>.mono
+        (fun T hsplit =>
+          fun x hxneg hxR =>
+            match lt_or_ge (-δ) x with
+            | Or.inl hx_near =>
+                (hsplit.1 x hxneg hx_near hxR).trans hnear_le
+            | Or.inr hx_not_near =>
+                (hsplit.2 x hx_not_near hxR).trans haway_le)⟩
 
 /-- Negative-time compact-interval estimate for the normalized scalar
 Fourier-Laplace Plemelj kernel. -/
@@ -6096,7 +6303,20 @@ theorem scalarFourierLaplacePlemelj_compactInterval_negative_norm_bound_eventual
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
               ≤ C := by
-  sorry
+  let δ : ℝ := 1
+  have hδ : 0 < δ := by
+    unfold δ
+    exact zero_lt_one
+  match scalarFourierLaplacePlemelj_compactInterval_negative_nearZero_norm_bound_eventually
+    a ha R δ hδ with
+  | ⟨Cnear, hCnear_nonneg, hnear⟩ =>
+      match scalarFourierLaplacePlemelj_compactInterval_negative_awayZero_norm_bound_eventually
+        a ha R δ hδ with
+      | ⟨Caway, hCaway_nonneg, haway⟩ =>
+          exact
+            scalarFourierLaplacePlemelj_compactInterval_negative_norm_bound_eventually_of_split
+              a ha R δ Cnear Caway hδ hCnear_nonneg hCaway_nonneg
+              hnear haway
 
 /-- Zero-time compact-interval estimate for the normalized scalar
 Fourier-Laplace Plemelj kernel. -/
