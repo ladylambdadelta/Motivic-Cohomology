@@ -17,6 +17,25 @@ noncomputable section
 
 open scoped Topology
 
+/-- The left vertical logarithmic path lies in the principal slit plane in
+the open right half-plane. -/
+theorem Complex.finiteAbelPlana_log_leftVerticalPath_mem_slitPlane
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (y : ℝ) :
+    w + Complex.I * (y : ℂ) ∈ Complex.slitPlane := by
+  have hpath :
+      w + Complex.I * (y : ℂ) =
+        w + (y : ℂ) * Complex.I := by
+    exact congrArg (fun z : ℂ => w + z)
+      (mul_comm Complex.I (y : ℂ))
+  have hre : 0 < (w + Complex.I * (y : ℂ)).re := by
+    have hre_aligned :
+        (w + (y : ℂ) * Complex.I).re = w.re :=
+      Complex.add_real_mul_I_re w y
+    exact hpath ▸ (hre_aligned.symm ▸ hw)
+  exact Complex.mem_slitPlane_iff.mpr (Or.inl hre)
+
 /-- Multiplication distributes over a lower-half-plane cotangent split. -/
 theorem Complex.mul_eq_mul_add_mul_sub
     (a b c : ℂ) :
@@ -826,7 +845,7 @@ theorem Complex.hasDerivAt_finiteAbelPlanaLogComplexPrimitive_line
           (fun z : ℂ => w + (z * v + a))
           ((1 : ℂ) * v)
           (t : ℂ) :=
-      (((hasDerivAt_id (t : ℂ)).mul_const v).const_add a).const_add w
+      (((hasDerivAt_id (t : ℂ)).mul_const v).add_const a).const_add w
     exact (one_mul v) ▸ hcomplex.comp_ofReal
   have hlog :
       HasDerivAt
@@ -853,7 +872,7 @@ theorem Complex.hasDerivAt_finiteAbelPlanaLogComplexPrimitive_line
       g t * (v / g t) = g t * (v * (g t)⁻¹) := by
         exact congrArg (fun z : ℂ => g t * z) (div_eq_mul_inv v (g t))
       _ = (g t * v) * (g t)⁻¹ := by
-        exact mul_assoc (g t) v (g t)⁻¹
+        exact (mul_assoc (g t) v (g t)⁻¹).symm
       _ = (v * g t) * (g t)⁻¹ := by
         exact congrArg (fun z : ℂ => z * (g t)⁻¹) (mul_comm (g t) v)
       _ = v * (g t * (g t)⁻¹) := by
@@ -952,7 +971,7 @@ theorem Complex.finiteAbelPlana_log_topHorizontalPrimitive_integral
         (fun x : ℝ =>
           Complex.finiteAbelPlanaLogSummand w
             ((x : ℂ) + (T : ℂ) * Complex.I))
-        volume
+        MeasureTheory.volume
         (0 : ℝ)
         (M : ℝ) :=
     hcont.intervalIntegrable
@@ -1086,7 +1105,7 @@ theorem Complex.finiteAbelPlana_log_leftVerticalConstantPrimitive_integral
         (fun y : ℝ =>
           Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
             ((Real.pi : ℂ) * Complex.I))
-        volume a b :=
+        MeasureTheory.volume a b :=
     hcont.intervalIntegrable
   have hFTC :
       ∫ y : ℝ in a..b,
@@ -1213,7 +1232,7 @@ theorem Complex.finiteAbelPlana_log_bottomHorizontalPrimitive_integral
         (fun x : ℝ =>
           Complex.finiteAbelPlanaLogSummand w
             ((x : ℂ) - (T : ℂ) * Complex.I))
-        volume
+        MeasureTheory.volume
         (0 : ℝ)
         (M : ℝ) :=
     hcont.intervalIntegrable
@@ -1447,7 +1466,7 @@ theorem Complex.finiteAbelPlana_log_lowerHorizontalSide_eq_constant_add_bottomEd
             Complex.finiteAbelPlanaLogSummand w
               ((x : ℂ) - (T : ℂ) * Complex.I))
           (Set.uIcc (0 : ℝ) ((N + 1 : ℕ) : ℝ)) := by
-      change ContinuousOn
+      show ContinuousOn
         (fun x : ℝ => Complex.log (w + ((x : ℂ) - (T : ℂ) * Complex.I)))
         (Set.uIcc (0 : ℝ) ((N + 1 : ℕ) : ℝ))
       exact
@@ -1479,7 +1498,7 @@ theorem Complex.finiteAbelPlana_log_lowerHorizontalSide_eq_constant_add_bottomEd
             Complex.finiteAbelPlanaLogSummand w
               ((x : ℂ) - (T : ℂ) * Complex.I))
           (Set.uIcc (0 : ℝ) ((N + 1 : ℕ) : ℝ)) := by
-      change ContinuousOn
+      show ContinuousOn
         (fun x : ℝ => Complex.log (w + ((x : ℂ) - (T : ℂ) * Complex.I)))
         (Set.uIcc (0 : ℝ) ((N + 1 : ℕ) : ℝ))
       exact
@@ -1569,7 +1588,7 @@ theorem Complex.finiteAbelPlana_log_upperHorizontalSide_eq_constant_add_topEdge
             Complex.finiteAbelPlanaLogSummand w
               ((x : ℂ) + (T : ℂ) * Complex.I))
           (Set.uIcc (0 : ℝ) ((N + 1 : ℕ) : ℝ)) := by
-      change ContinuousOn
+      show ContinuousOn
         (fun x : ℝ => Complex.log (w + ((x : ℂ) + (T : ℂ) * Complex.I)))
         (Set.uIcc (0 : ℝ) ((N + 1 : ℕ) : ℝ))
       exact
@@ -1601,7 +1620,7 @@ theorem Complex.finiteAbelPlana_log_upperHorizontalSide_eq_constant_add_topEdge
             Complex.finiteAbelPlanaLogSummand w
               ((x : ℂ) + (T : ℂ) * Complex.I))
           (Set.uIcc (0 : ℝ) ((N + 1 : ℕ) : ℝ)) := by
-      change ContinuousOn
+      show ContinuousOn
         (fun x : ℝ => Complex.log (w + ((x : ℂ) + (T : ℂ) * Complex.I)))
         (Set.uIcc (0 : ℝ) ((N + 1 : ℕ) : ℝ))
       exact
@@ -2162,23 +2181,40 @@ theorem Complex.finiteAbelPlana_log_upperNamedBoundaryFace_unfold
       -Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T := by
   exact Eq.refl (Complex.finiteAbelPlanaLogUpperNamedBoundaryFace N w T)
 
-/-- The left vertical logarithmic path lies in the principal slit plane in
-the open right half-plane. -/
-theorem Complex.finiteAbelPlana_log_leftVerticalPath_mem_slitPlane
+/-- A natural right-shifted vertical logarithmic path lies in the principal
+slit plane in the open right half-plane. -/
+theorem Complex.finiteAbelPlana_log_natVerticalPath_mem_slitPlane
+    (M : ℕ)
     {w : ℂ}
     (hw : 0 < w.re)
     (y : ℝ) :
-    w + Complex.I * (y : ℂ) ∈ Complex.slitPlane := by
-  have hpath :
-      w + Complex.I * (y : ℂ) =
-        w + (y : ℂ) * Complex.I := by
-    exact congrArg (fun z : ℂ => w + z)
-      (mul_comm Complex.I (y : ℂ))
-  have hre : 0 < (w + Complex.I * (y : ℂ)).re := by
+    w + (M : ℂ) + Complex.I * (y : ℂ) ∈ Complex.slitPlane := by
+  have hM_nonneg : 0 ≤ (((M : ℕ) : ℝ)) := Nat.cast_nonneg M
+  have hre :
+      0 < (w + (M : ℂ) + Complex.I * (y : ℂ)).re := by
+    have hpath :
+        w + (M : ℂ) + Complex.I * (y : ℂ) =
+          (w + (M : ℂ)) + (y : ℂ) * Complex.I := by
+      exact congrArg (fun z : ℂ => w + (M : ℂ) + z)
+        (mul_comm Complex.I (y : ℂ))
     have hre_aligned :
-        (w + (y : ℂ) * Complex.I).re = w.re :=
-      Complex.add_real_mul_I_re w y
-    exact hpath ▸ (hre_aligned.symm ▸ hw)
+        ((w + (M : ℂ)) + (y : ℂ) * Complex.I).re =
+          (w + (M : ℂ)).re :=
+      Complex.add_real_mul_I_re (w + (M : ℂ)) y
+    have hre_shift :
+        (w + (M : ℂ)).re =
+          w.re + (((M : ℕ) : ℝ)) := by
+      calc
+        (w + (M : ℂ)).re =
+            w.re + ((M : ℂ)).re :=
+          Complex.add_re w (M : ℂ)
+        _ = w.re + (((M : ℕ) : ℝ)) := by
+          exact congrArg (fun r : ℝ => w.re + r)
+            (Complex.ofReal_re (((M : ℕ) : ℝ)))
+    exact
+      hpath ▸
+        (hre_aligned.symm ▸
+          (hre_shift.symm ▸ add_pos_of_pos_of_nonneg hw hM_nonneg))
   exact Complex.mem_slitPlane_iff.mpr (Or.inl hre)
 
 /-- The right endpoint vertical logarithmic path lies in the principal slit
@@ -2188,34 +2224,8 @@ theorem Complex.finiteAbelPlana_log_rightVerticalPath_mem_slitPlane
     {w : ℂ}
     (hw : 0 < w.re)
     (y : ℝ) :
-    w + ((N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ) ∈ Complex.slitPlane := by
-  have hN_nonneg : 0 ≤ (((N + 1 : ℕ) : ℝ)) := Nat.cast_nonneg (N + 1)
-  have hre :
-      0 < (w + ((N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ)).re := by
-    have hpath :
-        w + ((N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ) =
-          (w + ((N + 1 : ℕ) : ℂ)) + (y : ℂ) * Complex.I := by
-      exact congrArg (fun z : ℂ => w + ((N + 1 : ℕ) : ℂ) + z)
-        (mul_comm Complex.I (y : ℂ))
-    have hre_aligned :
-        ((w + ((N + 1 : ℕ) : ℂ)) + (y : ℂ) * Complex.I).re =
-          (w + ((N + 1 : ℕ) : ℂ)).re :=
-      Complex.add_real_mul_I_re (w + ((N + 1 : ℕ) : ℂ)) y
-    have hre_shift :
-        (w + ((N + 1 : ℕ) : ℂ)).re =
-          w.re + (((N + 1 : ℕ) : ℝ)) := by
-      calc
-        (w + ((N + 1 : ℕ) : ℂ)).re =
-            w.re + (((N + 1 : ℕ) : ℂ)).re :=
-          Complex.add_re w (((N + 1 : ℕ) : ℂ))
-        _ = w.re + (((N + 1 : ℕ) : ℝ)) := by
-          exact congrArg (fun r : ℝ => w.re + r)
-            (Complex.ofReal_re (((N + 1 : ℕ) : ℝ)))
-    exact
-      hpath ▸
-        (hre_aligned.symm ▸
-          (hre_shift.symm ▸ add_pos_of_pos_of_nonneg hw hN_nonneg))
-  exact Complex.mem_slitPlane_iff.mpr (Or.inl hre)
+    w + ((N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ) ∈ Complex.slitPlane :=
+  Complex.finiteAbelPlana_log_natVerticalPath_mem_slitPlane (N + 1) hw y
 
 /-- Continuity of the left vertical logarithmic summand path in the open
 right half-plane. -/
@@ -2225,7 +2235,7 @@ theorem Complex.continuous_finiteAbelPlana_log_leftVerticalSummand
     Continuous
       (fun y : ℝ =>
         Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ))) := by
-  change Continuous (fun y : ℝ => Complex.log (w + Complex.I * (y : ℂ)))
+  show Continuous (fun y : ℝ => Complex.log (w + Complex.I * (y : ℂ)))
   exact
     (continuous_const.add (continuous_const.mul Complex.continuous_ofReal)).clog
       (fun y => Complex.finiteAbelPlana_log_leftVerticalPath_mem_slitPlane hw y)
@@ -2240,7 +2250,7 @@ theorem Complex.continuous_finiteAbelPlana_log_rightVerticalSummand
       (fun y : ℝ =>
         Complex.finiteAbelPlanaLogSummand w
           (((N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ))) := by
-  change Continuous
+  show Continuous
     (fun y : ℝ =>
       Complex.log (w + (((N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ))))
   have hnormalized :
@@ -2297,9 +2307,13 @@ theorem Complex.finiteAbelPlana_log_rightVerticalConstantPrimitive_integral
           w + ((M : ℂ) + Complex.I * (y : ℂ)) =
             w + (((N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ)) := by
         exact Eq.refl _
+      have hslit_assoc :
+          w + ((M : ℂ) + Complex.I * (y : ℂ)) ∈ Complex.slitPlane := by
+        exact
+          (add_assoc w (M : ℂ) (Complex.I * (y : ℂ))).symm ▸
+            Complex.finiteAbelPlana_log_natVerticalPath_mem_slitPlane M hw y
       exact hy_arg ▸
-        (hpath ▸
-          Complex.finiteAbelPlana_log_rightVerticalPath_mem_slitPlane N hw y)
+        hslit_assoc
     have hline :
         HasDerivAt
           (fun s : ℝ =>
@@ -2367,7 +2381,7 @@ theorem Complex.finiteAbelPlana_log_rightVerticalConstantPrimitive_integral
         (fun y : ℝ =>
           Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) *
             ((Real.pi : ℂ) * Complex.I))
-        volume a b :=
+        MeasureTheory.volume a b :=
     hcont.intervalIntegrable
   have hFTC :
       ∫ y : ℝ in a..b,
@@ -2453,7 +2467,7 @@ theorem Complex.finiteAbelPlana_integral_mul_neg_pi_I_eq_neg_integral_mul_pi_I
       Set.EqOn
         (fun y : ℝ => f y * (-(Real.pi : ℂ) * Complex.I))
         (fun y : ℝ => -(f y * ((Real.pi : ℂ) * Complex.I)))
-        [[a, b]] := by
+        (Set.uIcc a b) := by
     intro y _hy
     exact Complex.finiteAbelPlana_mul_neg_pi_I_eq_neg_mul_pi_I (f y)
   calc
@@ -2711,7 +2725,7 @@ theorem Complex.finiteAbelPlana_leftConstantPacket_normalized_of_primitives
         exact congrArg
           (fun z : ℂ => -((upperRight - upperLeft) * z))
           hneg_factor
-      _ = -(-(upperRight - upperLeft) * p) := by
+      _ = -(-((upperRight - upperLeft) * p)) := by
         exact congrArg Neg.neg (mul_neg (upperRight - upperLeft) p)
       _ = (upperRight - upperLeft) * p := by
         exact neg_neg ((upperRight - upperLeft) * p)
@@ -2741,8 +2755,8 @@ theorem Complex.finiteAbelPlana_leftConstantPacket_normalized_of_primitives
             (Complex.I * (Real.pi : ℂ)) * (leftReal - lowerLeft) -
               (Complex.I * (Real.pi : ℂ)) * (upperLeft - leftReal) := by
           exact congrArg₂ Sub.sub
-            (mul_assoc Complex.I (Real.pi : ℂ) (leftReal - lowerLeft))
-            (mul_assoc Complex.I (Real.pi : ℂ) (upperLeft - leftReal))
+            (mul_assoc Complex.I (Real.pi : ℂ) (leftReal - lowerLeft)).symm
+            (mul_assoc Complex.I (Real.pi : ℂ) (upperLeft - leftReal)).symm
         _ =
             p * (leftReal - lowerLeft) -
               p * (upperLeft - leftReal) := by
@@ -2798,8 +2812,8 @@ theorem Complex.finiteAbelPlana_leftConstantPacket_normalized_of_primitives
           (upperLeft - leftReal + (lowerLeft - leftReal)) =
         ((upperRight - upperLeft) + (upperLeft - leftReal)) +
           (lowerLeft - leftReal) := by
-        exact add_assoc (upperRight - upperLeft) (upperLeft - leftReal)
-          (lowerLeft - leftReal)
+        exact (add_assoc (upperRight - upperLeft) (upperLeft - leftReal)
+          (lowerLeft - leftReal)).symm
       _ =
         (upperRight - leftReal) + (lowerLeft - leftReal) := by
         exact congrArg
@@ -2807,7 +2821,7 @@ theorem Complex.finiteAbelPlana_leftConstantPacket_normalized_of_primitives
           (sub_add_sub_cancel upperRight upperLeft leftReal)
       _ =
         (upperRight + lowerLeft) - (leftReal + leftReal) := by
-        exact add_sub_add_comm upperRight leftReal lowerLeft leftReal
+        exact (add_sub_add_comm upperRight lowerLeft leftReal leftReal).symm
       _ =
         upperRight + lowerLeft - (leftReal + leftReal) := by
         rfl
@@ -2885,8 +2899,8 @@ theorem Complex.finiteAbelPlana_rightConstantPacket_normalized_of_primitives
           (Complex.I * (Real.pi : ℂ)) * (rightReal - lowerRight) -
             (Complex.I * (Real.pi : ℂ)) * (upperRight - rightReal) := by
         exact congrArg₂ Sub.sub
-          (mul_assoc Complex.I (Real.pi : ℂ) (rightReal - lowerRight))
-          (mul_assoc Complex.I (Real.pi : ℂ) (upperRight - rightReal))
+          (mul_assoc Complex.I (Real.pi : ℂ) (rightReal - lowerRight)).symm
+          (mul_assoc Complex.I (Real.pi : ℂ) (upperRight - rightReal)).symm
       _ =
           p * (rightReal - lowerRight) -
             p * (upperRight - rightReal) := by
@@ -2915,8 +2929,8 @@ theorem Complex.finiteAbelPlana_rightConstantPacket_normalized_of_primitives
       _ =
         ((lowerRight - lowerLeft) + (rightReal - lowerRight)) +
           -(upperRight - rightReal) := by
-        exact add_assoc (lowerRight - lowerLeft) (rightReal - lowerRight)
-          (-(upperRight - rightReal))
+        exact (add_assoc (lowerRight - lowerLeft) (rightReal - lowerRight)
+          (-(upperRight - rightReal))).symm
       _ =
         (rightReal - lowerLeft) + -(upperRight - rightReal) := by
         have hcancel :
@@ -2941,7 +2955,7 @@ theorem Complex.finiteAbelPlana_rightConstantPacket_normalized_of_primitives
           hneg
       _ =
         (rightReal + rightReal) - (lowerLeft + upperRight) := by
-        exact add_sub_add_comm rightReal lowerLeft rightReal upperRight
+        exact (add_sub_add_comm rightReal rightReal lowerLeft upperRight).symm
       _ =
         rightReal + rightReal - lowerLeft - upperRight := by
         exact (sub_sub (rightReal + rightReal) lowerLeft upperRight).symm
@@ -3007,9 +3021,10 @@ theorem Complex.finiteAbelPlana_constantFace_halfPackets_cancel
       _ =
           ((upperRight + lowerLeft) + (rightReal + rightReal)) -
             ((leftReal + leftReal) + (lowerLeft + upperRight)) := by
-        exact add_sub_add_comm
-          (upperRight + lowerLeft) (leftReal + leftReal)
-          (rightReal + rightReal) (lowerLeft + upperRight)
+        exact
+          (add_sub_add_comm
+            (upperRight + lowerLeft) (rightReal + rightReal)
+            (leftReal + leftReal) (lowerLeft + upperRight)).symm
       _ =
           ((rightReal + rightReal) + (upperRight + lowerLeft)) -
             ((leftReal + leftReal) + (lowerLeft + upperRight)) := by
@@ -3038,7 +3053,7 @@ theorem Complex.finiteAbelPlana_constantFace_halfPackets_cancel
           hcancel
       _ =
           (rightReal - leftReal) + (rightReal - leftReal) := by
-        exact (add_sub_add_comm rightReal leftReal rightReal leftReal).symm
+        exact add_sub_add_comm rightReal rightReal leftReal leftReal
       _ = Y + Y := by
         rfl
   calc
@@ -3099,10 +3114,26 @@ theorem Complex.finiteAbelPlana_rightVertical_lowerCorner_arg
         (Complex.finiteAbelPlana_leftVertical_lowerCorner_arg T)
     _ = ((M : ℝ) : ℂ) + ((0 : ℂ) - (T : ℂ) * Complex.I) := by
       rfl
-    _ = ((M : ℝ) : ℂ) - (T : ℂ) * Complex.I := by
+    _ = ((M : ℝ) : ℂ) + (-((T : ℂ) * Complex.I)) := by
       exact congrArg
-        (fun z : ℂ => z - (T : ℂ) * Complex.I)
-        (add_zero (((M : ℝ) : ℂ)))
+        (fun z : ℂ => ((M : ℝ) : ℂ) + z)
+        (zero_sub ((T : ℂ) * Complex.I))
+    _ = ((M : ℝ) : ℂ) + (-(T : ℂ) * Complex.I) := by
+      exact congrArg
+        (fun z : ℂ => ((M : ℝ) : ℂ) + z)
+        (neg_mul (T : ℂ) Complex.I).symm
+    _ = ((M : ℝ) : ℂ) - (T : ℂ) * Complex.I := by
+      have hsub :
+          ((M : ℝ) : ℂ) - (T : ℂ) * Complex.I =
+            ((M : ℝ) : ℂ) + (-((T : ℂ) * Complex.I)) :=
+        sub_eq_add_neg ((M : ℝ) : ℂ) ((T : ℂ) * Complex.I)
+      have hneg :
+          ((M : ℝ) : ℂ) + (-((T : ℂ) * Complex.I)) =
+            ((M : ℝ) : ℂ) + (-(T : ℂ) * Complex.I) := by
+        exact congrArg
+          (fun z : ℂ => ((M : ℝ) : ℂ) + z)
+          (neg_mul (T : ℂ) Complex.I).symm
+      exact (Eq.trans hsub hneg).symm
 
 /-- Right vertical upper endpoint equals the upper-right rectangle corner. -/
 theorem Complex.finiteAbelPlana_rightVertical_upperCorner_arg
@@ -3325,9 +3356,27 @@ theorem Complex.finiteAbelPlana_log_leftVerticalSidePV_eq_constant_add_remainder
     Complex.finiteAbelPlanaLogFiniteHeightLeftSidePV w T ε =
       Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSidePV w T ε +
         Complex.finiteAbelPlanaLogLeftVerticalCotangentRemainderSidePV w T ε := by
-  unfold Complex.finiteAbelPlanaLogFiniteHeightLeftSidePV
-    Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSidePV
-    Complex.finiteAbelPlanaLogLeftVerticalCotangentRemainderSidePV
+  show
+      ((∫ y : ℝ in (-T)..(-ε),
+        Complex.finiteAbelPlanaLogRectangleIntegrand w
+          (Complex.I * (y : ℂ))) +
+      ∫ y : ℝ in ε..T,
+        Complex.finiteAbelPlanaLogRectangleIntegrand w
+          (Complex.I * (y : ℂ))) =
+        ((∫ y : ℝ in (-T)..(-ε),
+          Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+            ((Real.pi : ℂ) * Complex.I)) +
+        ∫ y : ℝ in ε..T,
+          Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+            (-(Real.pi : ℂ) * Complex.I)) +
+          ((∫ y : ℝ in (-T)..(-ε),
+            Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+              (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (y : ℂ)) -
+                (Real.pi : ℂ) * Complex.I)) +
+          ∫ y : ℝ in ε..T,
+            Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+              (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (y : ℂ)) +
+                (Real.pi : ℂ) * Complex.I))
   have hneg_order : -T ≤ -ε :=
     neg_le_neg hεT.le
   have hneg_eps : -ε < 0 :=
@@ -3478,9 +3527,29 @@ theorem Complex.finiteAbelPlana_log_rightVerticalSidePV_eq_constant_add_remainde
     Complex.finiteAbelPlanaLogFiniteHeightRightSidePV N w T ε =
       Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSidePV N w T ε +
         Complex.finiteAbelPlanaLogRightVerticalCotangentRemainderSidePV N w T ε := by
-  unfold Complex.finiteAbelPlanaLogFiniteHeightRightSidePV
-    Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSidePV
-    Complex.finiteAbelPlanaLogRightVerticalCotangentRemainderSidePV
+  show
+      (let M : ℕ := N + 1
+      (∫ y : ℝ in (-T)..(-ε),
+        Complex.finiteAbelPlanaLogRectangleIntegrand w
+          ((M : ℂ) + Complex.I * (y : ℂ))) +
+      ∫ y : ℝ in ε..T,
+        Complex.finiteAbelPlanaLogRectangleIntegrand w
+          ((M : ℂ) + Complex.I * (y : ℂ))) =
+        (let M : ℕ := N + 1
+        ((∫ y : ℝ in (-T)..(-ε),
+          Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) *
+            ((Real.pi : ℂ) * Complex.I)) +
+        ∫ y : ℝ in ε..T,
+          Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) *
+            (-(Real.pi : ℂ) * Complex.I)) +
+          ((∫ y : ℝ in (-T)..(-ε),
+            Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) *
+              (Complex.finiteAbelPlanaCotangentKernel ((M : ℂ) + Complex.I * (y : ℂ)) -
+                (Real.pi : ℂ) * Complex.I)) +
+          ∫ y : ℝ in ε..T,
+            Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (y : ℂ)) *
+              (Complex.finiteAbelPlanaCotangentKernel ((M : ℂ) + Complex.I * (y : ℂ)) +
+                (Real.pi : ℂ) * Complex.I)))
   have hneg_order : -T ≤ -ε :=
     neg_le_neg hεT.le
   have hneg_eps : -ε < 0 :=
