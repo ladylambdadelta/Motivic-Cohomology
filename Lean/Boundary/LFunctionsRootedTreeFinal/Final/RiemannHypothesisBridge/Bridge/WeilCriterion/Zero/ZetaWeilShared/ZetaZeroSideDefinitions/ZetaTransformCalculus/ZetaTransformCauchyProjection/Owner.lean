@@ -2827,6 +2827,36 @@ noncomputable def scalarFourierLaplacePlemelj_positiveUpperArc
       Complex.exp (Complex.I * z * (x : ℂ)) *
       (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
 
+/-- Closed upper-half-plane scalar contour integral for the positive-time
+Fourier-Laplace denominator. -/
+noncomputable def scalarFourierLaplacePlemelj_positiveClosedContour
+    (a x T : ℝ) : ℂ :=
+  (∫ t in Set.Icc (-T) T,
+    (-1 / ((a : ℂ) + t * Complex.I)) *
+      Complex.exp
+        (Complex.I * (t : ℂ) * (x : ℂ))) +
+    scalarFourierLaplacePlemelj_positiveUpperArc a x T
+
+/-- The positive closed contour unfolds to its real segment plus upper arc. -/
+theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_window_add_upperArc
+    (a x T : ℝ) :
+    scalarFourierLaplacePlemelj_positiveClosedContour a x T =
+      (∫ t in Set.Icc (-T) T,
+        (-1 / ((a : ℂ) + t * Complex.I)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ))) +
+          scalarFourierLaplacePlemelj_positiveUpperArc a x T := by
+  rfl
+
+/-- Upper-half-plane residue theorem for the positive-time scalar closed contour. -/
+theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_residueValue_residueTheorem
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    ∀ᶠ T in atTop,
+      scalarFourierLaplacePlemelj_positiveClosedContour a x T =
+        (-2 * (Real.pi : ℂ)) *
+          Complex.exp (-(a : ℂ) * (x : ℂ)) := by
+  sorry
+
 /-- Finite upper-half-plane residue identity for the positive-time scalar
 Fourier-Laplace contour. -/
 theorem scalarFourierLaplacePlemelj_positive_window_add_upperArc_eq_residueValue
@@ -2839,7 +2869,17 @@ theorem scalarFourierLaplacePlemelj_positive_window_add_upperArc_eq_residueValue
           scalarFourierLaplacePlemelj_positiveUpperArc a x T =
         (-2 * (Real.pi : ℂ)) *
           Complex.exp (-(a : ℂ) * (x : ℂ)) := by
-  sorry
+  have hclosed :
+      ∀ᶠ T in atTop,
+        scalarFourierLaplacePlemelj_positiveClosedContour a x T =
+          (-2 * (Real.pi : ℂ)) *
+            Complex.exp (-(a : ℂ) * (x : ℂ)) :=
+    scalarFourierLaplacePlemelj_positiveClosedContour_eq_residueValue_residueTheorem
+      a ha x hx
+  exact hclosed.mono
+    (fun T hT =>
+      (scalarFourierLaplacePlemelj_positiveClosedContour_eq_window_add_upperArc
+        a x T).symm.trans hT)
 
 /-- The upper semicircle correction term vanishes for positive time. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_tendsto_zero
@@ -3101,6 +3141,35 @@ noncomputable def scalarFourierLaplacePlemelj_negativeLowerArc
       Complex.exp (Complex.I * z * (x : ℂ)) *
       (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
 
+/-- Closed lower-half-plane scalar contour integral for the negative-time
+Fourier-Laplace denominator. -/
+noncomputable def scalarFourierLaplacePlemelj_negativeClosedContour
+    (a x T : ℝ) : ℂ :=
+  (∫ t in Set.Icc (-T) T,
+    (-1 / ((a : ℂ) + t * Complex.I)) *
+      Complex.exp
+        (Complex.I * (t : ℂ) * (x : ℂ))) +
+    scalarFourierLaplacePlemelj_negativeLowerArc a x T
+
+/-- The negative closed contour unfolds to its real segment plus lower arc. -/
+theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_window_add_lowerArc
+    (a x T : ℝ) :
+    scalarFourierLaplacePlemelj_negativeClosedContour a x T =
+      (∫ t in Set.Icc (-T) T,
+        (-1 / ((a : ℂ) + t * Complex.I)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ))) +
+          scalarFourierLaplacePlemelj_negativeLowerArc a x T := by
+  rfl
+
+/-- Lower-half-plane pole-free residue theorem for the negative-time scalar closed
+contour. -/
+theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_residueTheorem
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
+    ∀ᶠ T in atTop,
+      scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 := by
+  sorry
+
 /-- Finite lower-half-plane pole-free contour identity for the negative-time
 scalar Fourier-Laplace contour. -/
 theorem scalarFourierLaplacePlemelj_negative_window_add_lowerArc_eq_zero
@@ -3112,7 +3181,15 @@ theorem scalarFourierLaplacePlemelj_negative_window_add_lowerArc_eq_zero
             (Complex.I * (t : ℂ) * (x : ℂ))) +
           scalarFourierLaplacePlemelj_negativeLowerArc a x T =
         0 := by
-  sorry
+  have hclosed :
+      ∀ᶠ T in atTop,
+        scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 :=
+    scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_residueTheorem
+      a ha x hx
+  exact hclosed.mono
+    (fun T hT =>
+      (scalarFourierLaplacePlemelj_negativeClosedContour_eq_window_add_lowerArc
+        a x T).symm.trans hT)
 
 /-- The lower semicircle correction term vanishes for negative time. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_tendsto_zero
