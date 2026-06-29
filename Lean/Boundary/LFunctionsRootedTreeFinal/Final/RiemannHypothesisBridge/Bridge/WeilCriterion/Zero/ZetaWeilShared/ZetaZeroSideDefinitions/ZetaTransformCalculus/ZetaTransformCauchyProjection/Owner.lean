@@ -6268,7 +6268,36 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArc_awayZero_mulExp_norm_bound_
             ‖x‖ ≤ R →
               ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T *
                 Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ C := by
-  sorry
+  exact
+    ⟨Cj, hCj_nonneg,
+      (hjordan.and (eventually_gt_atTop a)).mono
+        (fun T hTpair =>
+          fun x hδx hxR =>
+            have hxpos : x ∈ Set.Ioi (0 : ℝ) :=
+              hδ.trans_le hδx
+            have harc :
+                ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T‖ ≤
+                  scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T :=
+              (scalarFourierLaplacePlemelj_positiveUpperArc_norm_le_jordanDensity_integral
+                a ha x hxpos T hTpair.2).trans
+                (scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_le_majorant
+                  a ha x hxpos T hTpair.2)
+            have hexp_nonneg :
+                0 ≤ ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ :=
+              norm_nonneg _
+            calc
+              ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T *
+                  Complex.exp ((a : ℂ) * (x : ℂ))‖ =
+                  ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T‖ *
+                    ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ := by
+                exact norm_mul
+                  (scalarFourierLaplacePlemelj_positiveUpperArc a x T)
+                  (Complex.exp ((a : ℂ) * (x : ℂ)))
+              _ ≤
+                  scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T *
+                    ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ := by
+                exact mul_le_mul_of_nonneg_right harc hexp_nonneg
+              _ ≤ Cj := hTpair.1 x hδx hxR)⟩
 
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_awayZero_mulExp_norm_bound_eventually
     (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
