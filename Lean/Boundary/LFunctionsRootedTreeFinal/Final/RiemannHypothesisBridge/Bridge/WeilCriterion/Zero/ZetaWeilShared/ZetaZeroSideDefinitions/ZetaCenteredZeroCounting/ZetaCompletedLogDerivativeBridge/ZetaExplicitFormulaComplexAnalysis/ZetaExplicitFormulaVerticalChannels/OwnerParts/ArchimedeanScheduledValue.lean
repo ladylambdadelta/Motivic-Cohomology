@@ -198,7 +198,9 @@ theorem zetaCompletedExplicitFormulaArchimedeanDifferenceAffineKernel_scheduledW
             f F.toContourFamily t)
       atTop
       (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f)) := by
-  sorry
+  exact
+    zetaCompletedExplicitFormulaArchimedeanDifferenceAffineKernel_scheduledWindow_tendsto_archimedeanContribution_ownerGammaBinetValue
+      f F h hcoh
 
 end ZetaAdmissibleFunction
 
