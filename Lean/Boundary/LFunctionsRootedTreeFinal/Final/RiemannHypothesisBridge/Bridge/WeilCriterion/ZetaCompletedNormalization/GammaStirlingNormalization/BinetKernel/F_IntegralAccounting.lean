@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.B_ExponentialDecay
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.D_PointwiseMajorants
 import Mathlib
 
 import Mathlib.Analysis.Complex.PhragmenLindelof
@@ -34,6 +34,8 @@ namespace LFunctions
 
 noncomputable section
 
+open MeasureTheory
+
 theorem Complex.binetSecondFormula_decayingTailKernel_integrableOn_tail
     (w : ℂ) :
     IntegrableOn
@@ -62,61 +64,6 @@ theorem Complex.binetSecondFormula_decayingTailKernel_integrableOn_tail
     hbase.congr
       (Filter.Eventually.of_forall
         (fun _t => Eq.refl _))
-
-/-- The decaying Binet tail kernel has the uniform full-sector `1 / ‖w‖`
-pointwise bound. -/
-theorem Complex.binetSecondFormula_decayingTailKernel_uniform_majorant :
-    Complex.BinetSecondFormulaContourTailUniformMajorant
-      Complex.binetSecondFormulaDecayingTailKernel 2 1 := by
-  exact fun w _hw_re_pos _hw_norm =>
-    (ae_restrict_mem measurableSet_Ioi).mono
-      (fun t ht => by
-        have ht_pos : 0 < t :=
-          lt_of_le_of_lt
-            (div_nonneg (norm_nonneg w) zero_le_two)
-            ht
-        have hmajorant_nonneg :
-            0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
-          le_of_lt
-            (Real.binetSecondFormula_kernel_majorant_pos ht_pos)
-        have hcoeff_nonneg : 0 ≤ (1 : ℝ) / ‖w‖ :=
-          div_nonneg zero_le_one (norm_nonneg w)
-        have hkernel_nonneg :
-            0 ≤
-              ((1 : ℝ) / ‖w‖) *
-                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
-          mul_nonneg hcoeff_nonneg hmajorant_nonneg
-        have hnorm_eq :
-            ‖Complex.binetSecondFormulaDecayingTailKernel w t‖ =
-              ((1 : ℝ) / ‖w‖) *
-                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-          let m : ℝ :=
-            ((1 : ℝ) / ‖w‖) *
-              (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-          have hkernel_cast :
-              Complex.binetSecondFormulaDecayingTailKernel w t = (m : ℂ) := by
-            rfl
-          have hm_nonneg : 0 ≤ m :=
-            hkernel_nonneg
-          calc
-            ‖Complex.binetSecondFormulaDecayingTailKernel w t‖ =
-                ‖(m : ℂ)‖ := by
-              exact congrArg norm hkernel_cast
-            _ = |m| := RCLike.norm_ofReal (K := ℂ) m
-            _ = m := abs_of_nonneg hm_nonneg
-            _ =
-                ((1 : ℝ) / ‖w‖) *
-                  (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := rfl
-        exact
-          Eq.subst
-            (motive := fun x : ℝ =>
-              x ≤
-                ((1 : ℝ) / ‖w‖) *
-                  (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))
-            hnorm_eq.symm
-            (le_refl
-              (((1 : ℝ) / ‖w‖) *
-                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))))
 
 /-- Historical wrapper name for the genuine decaying tail kernel majorant. -/
 theorem Complex.binetSecondFormula_branchUniform_tail_absorption_of_decayingTailKernel_bound

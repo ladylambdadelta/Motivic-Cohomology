@@ -132,23 +132,6 @@ theorem Complex.binetSecondFormula_logGamma_with_split_remainder_bound_closedRig
             ⟨hlog w hw_re_pos hw_norm,
               Complex.binetSecondFormula_remainder_split_bound_openRightHalfPlane hw_re_pos⟩⟩
 
-/-- The decaying Binet tail kernel that carries the genuine `1 / ‖w‖`
-pointwise majorant. -/
-noncomputable def Complex.binetSecondFormulaDecayingTailKernel
-    (w : ℂ)
-    (t : ℝ) : ℂ :=
-  (((1 : ℝ) / ‖w‖) *
-    (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) : ℝ)
-
-/-- The decaying Binet tail kernel is integrable on the split tail.
-
-This is the integrability half of the contour-kernel route; the pointwise
-majorant theorem below supplies the corresponding `C / ‖w‖` bound. -/
-theorem Complex.binetSecondFormula_contourTailMajorantKernel_uniform_majorant :
-    Complex.BinetSecondFormulaContourTailUniformMajorant
-      Complex.binetSecondFormulaDecayingTailKernel 2 1 := by
-  exact Complex.binetSecondFormula_decayingTailKernel_uniform_majorant
-
 /-- Existence of a branch-safe contour-deformed Binet tail kernel with
 uniform full-sector majorization. -/
 def Complex.BinetSecondFormulaBranchUniformTailAbsorption : Prop :=

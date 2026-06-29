@@ -35,6 +35,8 @@ namespace LFunctions
 
 noncomputable section
 
+open MeasureTheory
+
 theorem Complex.binetSecondFormula_arctan_kernel_norm_le_openRightHalfPlane
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
@@ -45,7 +47,7 @@ theorem Complex.binetSecondFormula_arctan_kernel_norm_le_openRightHalfPlane
               (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
             2 * (t / ‖w‖) /
               (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
-  fun t ht hsmall =>
+  fun _t ht hsmall =>
     Complex.binetSecondFormula_kernel_norm_le_of_small_argument
       (w := w) hw_re_pos ht hsmall
 
@@ -65,6 +67,76 @@ theorem Complex.binetSecondFormula_arctan_kernel_norm_le_closedRightHalfPlane
             2 * (t / ‖w‖) /
               (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
   exact Complex.binetSecondFormula_arctan_kernel_norm_le_openRightHalfPlane hw_re_pos
+
+/-- The decaying Binet tail kernel that carries the genuine `1 / ‖w‖`
+pointwise majorant. -/
+noncomputable def Complex.binetSecondFormulaDecayingTailKernel
+    (w : ℂ)
+    (t : ℝ) : ℂ :=
+  (((1 : ℝ) / ‖w‖) *
+    (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) : ℝ)
+
+/-- The decaying Binet tail kernel has the uniform full-sector `1 / ‖w‖`
+pointwise bound. -/
+theorem Complex.binetSecondFormula_decayingTailKernel_uniform_majorant :
+    Complex.BinetSecondFormulaContourTailUniformMajorant
+      Complex.binetSecondFormulaDecayingTailKernel 2 1 := by
+  exact fun w _hw_re_pos _hw_norm =>
+    (ae_restrict_mem measurableSet_Ioi).mono
+      (fun t ht =>
+        let ht_pos : 0 < t :=
+          lt_of_le_of_lt
+            (div_nonneg (norm_nonneg w) zero_le_two)
+            ht
+        let hmajorant_nonneg :
+            0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+          le_of_lt
+            (Real.binetSecondFormula_kernel_majorant_pos ht_pos)
+        let hcoeff_nonneg : 0 ≤ (1 : ℝ) / ‖w‖ :=
+          div_nonneg zero_le_one (norm_nonneg w)
+        let hkernel_nonneg :
+            0 ≤
+              ((1 : ℝ) / ‖w‖) *
+                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+          mul_nonneg hcoeff_nonneg hmajorant_nonneg
+        let m : ℝ :=
+          ((1 : ℝ) / ‖w‖) *
+            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+        let hkernel_cast :
+            Complex.binetSecondFormulaDecayingTailKernel w t = (m : ℂ) :=
+          Eq.refl _
+        let hm_nonneg : 0 ≤ m :=
+          hkernel_nonneg
+        let hnorm_eq :
+            ‖Complex.binetSecondFormulaDecayingTailKernel w t‖ =
+              ((1 : ℝ) / ‖w‖) *
+                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+          calc
+            ‖Complex.binetSecondFormulaDecayingTailKernel w t‖ =
+                ‖(m : ℂ)‖ :=
+              congrArg norm hkernel_cast
+            _ = |m| := RCLike.norm_ofReal (K := ℂ) m
+            _ = m := abs_of_nonneg hm_nonneg
+            _ =
+                ((1 : ℝ) / ‖w‖) *
+                  (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+              Eq.refl _
+        Eq.subst
+          (motive := fun x : ℝ =>
+            x ≤
+              ((1 : ℝ) / ‖w‖) *
+                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))
+          hnorm_eq.symm
+          (le_refl
+            (((1 : ℝ) / ‖w‖) *
+              (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))))
+
+/-- The decaying Binet tail kernel is the contour-tail majorant used by later
+integral-accounting layers. -/
+theorem Complex.binetSecondFormula_contourTailMajorantKernel_uniform_majorant :
+    Complex.BinetSecondFormulaContourTailUniformMajorant
+      Complex.binetSecondFormulaDecayingTailKernel 2 1 := by
+  exact Complex.binetSecondFormula_decayingTailKernel_uniform_majorant
 
 /-- Exponential tail integral bound for the scaled decay `exp (-π t)`.
 
@@ -88,13 +160,6 @@ theorem Complex.binetSecondFormula_arctan_tail_contourDeformed_kernel_fullSector
       fun w _hw hRle =>
         Complex.binetSecondFormula_decayingTailKernel_uniform_majorant
           w _hw hRle⟩
-
-/-- Exact branch-coherence hypotheses required by the Binet owner theorem for
-the Binet logarithm branch of `Gamma`.
-
-This lives at the Binet-kernel owner level because normalized Stirling consumes
-these hypotheses before the sectorial log-norm layer is imported. -/
-
 
 end
 end LFunctions
