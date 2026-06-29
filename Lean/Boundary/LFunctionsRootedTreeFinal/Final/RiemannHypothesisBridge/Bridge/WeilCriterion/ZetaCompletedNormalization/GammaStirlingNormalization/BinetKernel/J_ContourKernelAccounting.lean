@@ -39,11 +39,10 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_exists :
     ∃ K : ℂ → ℝ → ℂ, ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧
       0 < C ∧
-      Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
-  exact
-    ⟨Complex.binetSecondFormulaDecayingTailKernel, 2, 1,
-      two_pos, zero_lt_one,
-      Complex.binetSecondFormula_contourTailMajorantKernel_uniform_majorant⟩
+      Complex.BinetSecondFormulaContourTailUniformMajorant K R C :=
+  ⟨Complex.binetSecondFormulaDecayingTailKernel, 2, 1,
+    two_pos, zero_lt_one,
+    Complex.binetSecondFormula_contourTailMajorantKernel_uniform_majorant⟩
 
 /-- Positivity of the radius supplied by the contour-deformed tail kernel
 existence theorem. -/
@@ -74,8 +73,8 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_principal_compari
     ∃ K : Complex.BinetSecondFormulaContourDeformedTailKernel, ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧
       0 < C ∧
-      Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
-  exact Complex.binetSecondFormula_contourDeformed_tail_kernel_exists
+      Complex.BinetSecondFormulaContourTailUniformMajorant K R C :=
+  Complex.binetSecondFormula_contourDeformed_tail_kernel_exists
 
 /-- Uniform pointwise majorant supplied by the contour-deformed kernel
 existence theorem. -/
@@ -83,8 +82,8 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_uniform_majorant 
     ∃ K : Complex.BinetSecondFormulaContourDeformedTailKernel, ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧
       0 < C ∧
-      Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
-  exact Complex.binetSecondFormula_contourDeformed_tail_kernel_exists
+      Complex.BinetSecondFormulaContourTailUniformMajorant K R C :=
+  Complex.binetSecondFormula_contourDeformed_tail_kernel_exists
 
 end
 end LFunctions

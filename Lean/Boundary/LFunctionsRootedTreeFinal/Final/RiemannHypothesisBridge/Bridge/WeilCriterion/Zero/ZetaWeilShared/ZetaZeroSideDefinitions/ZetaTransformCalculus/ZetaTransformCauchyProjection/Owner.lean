@@ -3160,6 +3160,164 @@ noncomputable def scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart
     (F : ℂ → ℂ) (p : ℂ) : ℂ → ℂ :=
   fun z : ℂ => if z = p then 0 else (F z - F p) / (z - p)
 
+/-- Away from the pole, the Cauchy kernel splits into the removable regular
+part plus the scalar pole kernel. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_cauchyKernel_pointwise_decompose
+    (F : ℂ → ℂ) (p z : ℂ) (hz : z ≠ p) :
+    F z / (z - p) =
+      scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p z +
+        F p * (z - p)⁻¹ := by
+  unfold scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart
+  have hif :
+      (if z = p then 0 else (F z - F p) / (z - p)) =
+        (F z - F p) / (z - p) := by
+    exact if_neg hz
+  calc
+    F z / (z - p) =
+        (F z) * (z - p)⁻¹ := by
+      rfl
+    _ = ((F z - F p) + F p) * (z - p)⁻¹ := by
+      exact congrArg
+        (fun w : ℂ => w * (z - p)⁻¹)
+        (sub_add_cancel (F z) (F p)).symm
+    _ = (F z - F p) * (z - p)⁻¹ + F p * (z - p)⁻¹ := by
+      exact add_mul (F z - F p) (F p) (z - p)⁻¹
+    _ = (F z - F p) / (z - p) + F p * (z - p)⁻¹ := by
+      rfl
+    _ =
+        (if z = p then 0 else (F z - F p) / (z - p)) +
+          F p * (z - p)⁻¹ := by
+      exact congrArg
+        (fun w : ℂ => w + F p * (z - p)⁻¹)
+        hif.symm
+
+/-- A point in the open upper half-plane cannot lie on the real diameter of
+the upper half-disk contour. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_realDiameter_ne_pole
+    (p : ℂ) (_hp_upper : 0 < Complex.im p) (t : ℝ) :
+    (t : ℂ) ≠ p := by
+  intro ht
+  have him_eq_zero : Complex.im p = 0 := by
+    exact
+      Eq.trans
+        (congrArg Complex.im ht.symm)
+        (Complex.ofReal_im t)
+  have hzero_lt_zero : (0 : ℝ) < 0 := by
+    exact
+      Eq.subst
+        (motive := fun r : ℝ => 0 < r)
+        him_eq_zero
+        _hp_upper
+  exact (lt_irrefl (0 : ℝ)) hzero_lt_zero
+
+/-- The upper semicircle parametrization has norm equal to the contour radius. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_arcPoint_norm_eq_radius
+    (T : ℝ) (_hT : 0 < T) (θ : ℝ) :
+    ‖(T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ = T := by
+  have harg :
+      Complex.I * (θ : ℂ) = (θ : ℂ) * Complex.I :=
+    mul_comm Complex.I (θ : ℂ)
+  have hexp_norm :
+      ‖Complex.exp (Complex.I * (θ : ℂ))‖ = 1 :=
+    (congrArg
+      (fun z : ℂ => ‖Complex.exp z‖)
+      harg).trans
+      (Complex.norm_exp_ofReal_mul_I θ)
+  have hTnorm :
+      ‖(T : ℂ)‖ = T :=
+    (RCLike.norm_ofReal (K := ℂ) T).trans
+      (abs_of_pos _hT)
+  calc
+    ‖(T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ =
+        ‖(T : ℂ)‖ * ‖Complex.exp (Complex.I * (θ : ℂ))‖ := by
+      exact norm_mul (T : ℂ) (Complex.exp (Complex.I * (θ : ℂ)))
+    _ = T * ‖Complex.exp (Complex.I * (θ : ℂ))‖ := by
+      exact congrArg
+        (fun r : ℝ => r * ‖Complex.exp (Complex.I * (θ : ℂ))‖)
+        hTnorm
+    _ = T * 1 := by
+      exact congrArg (fun r : ℝ => T * r) hexp_norm
+    _ = T := by
+      exact mul_one T
+
+/-- A point strictly inside the radius-`T` disk cannot lie on the radius-`T`
+upper semicircle. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_arcPoint_ne_pole
+    (T : ℝ) (_hT : 0 < T) (p : ℂ) (_hp : ‖p‖ < T) (θ : ℝ) :
+    (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) ≠ p := by
+  intro hp_eq
+  have hpoint_norm :
+      ‖(T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ = T :=
+    scalarFourierLaplacePlemelj_upperHalfDisk_arcPoint_norm_eq_radius
+      T _hT θ
+  have hp_norm_eq_T : ‖p‖ = T := by
+    exact (congrArg norm hp_eq.symm).trans hpoint_norm
+  have hT_le_normp : T ≤ ‖p‖ := by
+    exact Eq.subst
+      (motive := fun r : ℝ => T ≤ r)
+      hp_norm_eq_T.symm
+      (le_refl T)
+  exact (not_lt_of_ge hT_le_normp) _hp
+
+/-- Pointwise Cauchy-kernel decomposition on the real diameter of the upper
+half-disk contour. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_realDiameter_cauchyKernel_decompose
+    (F : ℂ → ℂ) (p : ℂ) (_hp_upper : 0 < Complex.im p) (t : ℝ) :
+    F (t : ℂ) / ((t : ℂ) - p) =
+      scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p (t : ℂ) +
+        F p * (((t : ℂ) - p)⁻¹) := by
+  exact
+    scalarFourierLaplacePlemelj_upperHalfDisk_cauchyKernel_pointwise_decompose
+      F p (t : ℂ)
+      (scalarFourierLaplacePlemelj_upperHalfDisk_realDiameter_ne_pole
+        p _hp_upper t)
+
+/-- Pointwise Cauchy-kernel decomposition on the real diameter, expressed as
+the exact integrand split used by the diameter integral. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_realDiameter_integrand_decompose
+    (F : ℂ → ℂ) (p : ℂ) (_hp_upper : 0 < Complex.im p) (t : ℝ) :
+    (fun z : ℂ => F z / (z - p)) (t : ℂ) =
+      scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p (t : ℂ) +
+        (fun z : ℂ => F p * (z - p)⁻¹) (t : ℂ) := by
+  exact
+    scalarFourierLaplacePlemelj_upperHalfDisk_realDiameter_cauchyKernel_decompose
+      F p _hp_upper t
+
+/-- Pointwise Cauchy-kernel decomposition on the upper semicircle of the upper
+half-disk contour. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_arc_cauchyKernel_decompose
+    (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ) (_hp : ‖p‖ < T)
+    (θ : ℝ) :
+    F ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) /
+        (((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - p) =
+      scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) +
+        F p *
+          ((((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - p)⁻¹) := by
+  exact
+    scalarFourierLaplacePlemelj_upperHalfDisk_cauchyKernel_pointwise_decompose
+      F p ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+      (scalarFourierLaplacePlemelj_upperHalfDisk_arcPoint_ne_pole
+        T _hT p _hp θ)
+
+/-- Pointwise Cauchy-kernel decomposition on the upper semicircle after
+multiplication by the circular velocity. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_arc_integrand_decompose
+    (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ) (_hp : ‖p‖ < T)
+    (θ : ℝ) :
+    let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+    let v : ℂ := Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+    (F z / (z - p)) * v =
+      (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p z) * v +
+        (F p * (z - p)⁻¹) * v := by
+  intro z
+  intro v
+  exact
+    congrArg
+      (fun w : ℂ => w * v)
+      (scalarFourierLaplacePlemelj_upperHalfDisk_arc_cauchyKernel_decompose
+        F T _hT p _hp θ)
+
 /-- The regular part of the simple-pole Cauchy kernel has zero boundary
 integral on the upper half-disk.  This is the removable-singularity branch of
 the residue proof: after subtracting `F p`, the numerator vanishes at `p`, so
