@@ -26,7 +26,7 @@ theorem explicitFormula_orientationDefect_horizontal_algebra
         exact congrArg (fun x : ℂ => A + (x + H)) (neg_add_cancel H)
       _ = A + H := by
         exact congrArg (fun x : ℂ => A + x) (zero_add H)
-  exact eq_sub_of_add_eq' hsum
+  exact (eq_sub_of_add_eq' hsum).symm
 
 /-- Additive form of the horizontal orientation-defect algebra. -/
 theorem explicitFormula_orientationDefect_horizontal_add_algebra
@@ -37,7 +37,7 @@ theorem explicitFormula_orientationDefect_horizontal_add_algebra
     explicitFormula_orientationDefect_horizontal_algebra A H
   calc
     A + H = (A - H) + ((A + H) - (A - H)) := by
-      exact (add_sub_cancel'_right (A - H) (A + H)).symm
+      exact (add_sub_cancel (A - H) (A + H)).symm
     _ = (A - H) + (H + H) := by
       exact congrArg (fun z : ℂ => (A - H) + z) hsub
 
@@ -54,7 +54,9 @@ theorem explicitFormula_standardBoundary_horizontal_algebra
     _ = R + (B - U) - L := by
       exact congrArg (fun x : ℂ => R + x - L) (sub_eq_add_neg B U).symm
     _ = R + (B - U + -L) := by
-      exact sub_eq_add_neg (R + (B - U)) L
+      exact Eq.trans
+        (sub_eq_add_neg (R + (B - U)) L)
+        (add_assoc R (B - U) (-L))
     _ = R + (-L + (B - U)) := by
       exact congrArg (fun x : ℂ => R + x) (add_comm (B - U) (-L))
     _ = R + -L + (B - U) := by
@@ -130,18 +132,18 @@ theorem explicitFormula_primeLeftBoundary_of_completedLeftBoundary
           -(Complex.I * (C * Complex.I)) := by
         exact mul_neg Complex.I (C * Complex.I)
       _ = -((Complex.I * C) * Complex.I) := by
-        exact congrArg Neg.neg (mul_assoc Complex.I C Complex.I)
+        exact congrArg Neg.neg (mul_assoc Complex.I C Complex.I).symm
       _ = -((C * Complex.I) * Complex.I) := by
         exact congrArg (fun z : ℂ => -(z * Complex.I))
           (mul_comm Complex.I C)
       _ = -(C * (Complex.I * Complex.I)) := by
-        exact congrArg Neg.neg (mul_assoc C Complex.I Complex.I).symm
+        exact congrArg Neg.neg (mul_assoc C Complex.I Complex.I)
       _ = -(C * (-(1 : ℂ))) := by
         exact congrArg (fun z : ℂ => -(C * z)) hI_sq
       _ = -(-(C * (1 : ℂ))) := by
         exact congrArg Neg.neg (mul_neg C (1 : ℂ))
       _ = -(-C) := by
-        exact congrArg (fun z : ℂ => -z) (mul_one C)
+        exact congrArg (fun z : ℂ => -(-z)) (mul_one C)
       _ = C := by
         exact neg_neg C
   have hmul_boundary :
@@ -199,13 +201,13 @@ theorem explicitFormula_rotate_rightTangent_add_horizontal
       exact mul_add Complex.I (R * Complex.I) H
     _ = (Complex.I * R) * Complex.I + Complex.I * H := by
       exact congrArg (fun z : ℂ => z + Complex.I * H)
-        (mul_assoc Complex.I R Complex.I)
+        (mul_assoc Complex.I R Complex.I).symm
     _ = (R * Complex.I) * Complex.I + Complex.I * H := by
       exact congrArg (fun z : ℂ => z * Complex.I + Complex.I * H)
         (mul_comm Complex.I R)
     _ = R * (Complex.I * Complex.I) + Complex.I * H := by
       exact congrArg (fun z : ℂ => z + Complex.I * H)
-        (mul_assoc R Complex.I Complex.I).symm
+        (mul_assoc R Complex.I Complex.I)
     _ = R * (-(1 : ℂ)) + Complex.I * H := by
       exact congrArg (fun z : ℂ => R * z + Complex.I * H) hI_sq
     _ = -(R * (1 : ℂ)) + Complex.I * H := by
@@ -313,7 +315,11 @@ theorem explicitFormula_tangentDefect_sub_residue_algebra
     _ = (L + -(T * Complex.I)) + (-A + B * Complex.I) := by
       exact congrArg
         (fun z : ℂ => (L + -(T * Complex.I)) + z)
-        (neg_sub A (B * Complex.I))
+        (Eq.trans
+          (neg_sub A (B * Complex.I))
+          (Eq.trans
+            (sub_eq_add_neg (B * Complex.I) A)
+            (add_comm (B * Complex.I) (-A))))
     _ = L + (-(T * Complex.I) + (-A + B * Complex.I)) := by
       exact add_assoc L (-(T * Complex.I)) (-A + B * Complex.I)
     _ = L + (-A + (-(T * Complex.I) + B * Complex.I)) := by
@@ -327,7 +333,11 @@ theorem explicitFormula_tangentDefect_sub_residue_algebra
         (sub_eq_add_neg L A).symm
     _ = (L - A) + -(T * Complex.I - B * Complex.I) := by
       exact congrArg (fun z : ℂ => (L - A) + z)
-        (neg_sub (T * Complex.I) (B * Complex.I)).symm
+        (Eq.trans
+          (add_comm (-(T * Complex.I)) (B * Complex.I))
+          (Eq.trans
+            (sub_eq_add_neg (B * Complex.I) (T * Complex.I)).symm
+            (neg_sub (T * Complex.I) (B * Complex.I)).symm))
     _ = (L - A) - (T * Complex.I - B * Complex.I) := by
       exact (sub_eq_add_neg (L - A) (T * Complex.I - B * Complex.I)).symm
     _ = (L - A) - (T - B) * Complex.I := by
@@ -355,7 +365,7 @@ theorem explicitFormula_leftResidueError_eq_right_add_tangentError_mul_I_sub_hor
     L - B * Complex.I = R + (C - B) * Complex.I - H * Complex.I := by
   have hI_sq : Complex.I * Complex.I = -(1 : ℂ) :=
     Complex.I_mul_I
-  calc
+  exact (calc
     R + (C - B) * Complex.I - H * Complex.I =
         R + ((R * Complex.I - L * Complex.I + H) - B) * Complex.I -
           H * Complex.I := by
@@ -445,7 +455,9 @@ theorem explicitFormula_leftResidueError_eq_right_add_tangentError_mul_I_sub_hor
           H * Complex.I := by
       exact congrArg
         (fun z : ℂ => R + z - H * Complex.I)
-        (sub_eq_add_neg (-R + (L + H * Complex.I)) (B * Complex.I))
+        (Eq.trans
+          (sub_eq_add_neg (-R + (L + H * Complex.I)) (B * Complex.I))
+          (add_assoc (-R) (L + H * Complex.I) (-(B * Complex.I))))
     _ =
         R +
           (-R + (L + (H * Complex.I + -(B * Complex.I)))) -
@@ -485,14 +497,26 @@ theorem explicitFormula_leftResidueError_eq_right_add_tangentError_mul_I_sub_hor
       exact congrArg
         (fun z : ℂ => z + ((L - B * Complex.I) + H * Complex.I) -
           H * Complex.I)
-        (add_right_neg R)
+        (add_neg_cancel R)
     _ =
         ((L - B * Complex.I) + H * Complex.I) - H * Complex.I := by
       exact congrArg
         (fun z : ℂ => z - H * Complex.I)
         (zero_add ((L - B * Complex.I) + H * Complex.I))
     _ = L - B * Complex.I := by
-      exact add_sub_cancel (L - B * Complex.I) (H * Complex.I)
+      calc
+        ((L - B * Complex.I) + H * Complex.I) - H * Complex.I =
+            ((L - B * Complex.I) + H * Complex.I) + -(H * Complex.I) := by
+          exact sub_eq_add_neg
+            ((L - B * Complex.I) + H * Complex.I)
+            (H * Complex.I)
+        _ = (L - B * Complex.I) + (H * Complex.I + -(H * Complex.I)) := by
+          exact add_assoc (L - B * Complex.I) (H * Complex.I) (-(H * Complex.I))
+        _ = (L - B * Complex.I) + 0 := by
+          exact congrArg (fun z : ℂ => (L - B * Complex.I) + z)
+            (add_neg_cancel (H * Complex.I))
+        _ = L - B * Complex.I := by
+          exact add_zero (L - B * Complex.I)).symm
 
 end ZetaAdmissibleFunction
 
