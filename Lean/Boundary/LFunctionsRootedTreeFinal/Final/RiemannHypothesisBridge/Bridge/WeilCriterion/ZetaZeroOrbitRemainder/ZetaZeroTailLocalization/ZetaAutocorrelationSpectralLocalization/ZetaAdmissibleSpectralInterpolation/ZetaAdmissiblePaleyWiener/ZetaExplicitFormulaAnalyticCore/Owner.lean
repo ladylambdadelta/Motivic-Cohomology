@@ -671,8 +671,9 @@ theorem complex_re_eq_zero_of_star_eq_neg
       Complex.re (star z) = Complex.re (-z) :=
     congrArg Complex.re hz
   have hstar : Complex.re (star z) = Complex.re z := by
-    rw [Complex.star_def]
-    exact Complex.conj_re z
+    exact Eq.trans
+      (congrArg Complex.re (Complex.star_def z))
+      (Complex.conj_re z)
   have hneg : Complex.re (-z) = -Complex.re z :=
     Complex.neg_re z
   have hz_neg : Complex.re z = -Complex.re z :=
@@ -692,9 +693,10 @@ theorem complex_add_star_eq_two_re
       Complex.re (z + star z) = Complex.re z + Complex.re (star z) := by
         exact Complex.add_re z (star z)
       _ = Complex.re z + Complex.re z := by
-        exact congrArg (fun x : ℝ => Complex.re z + x) (by
-          rw [Complex.star_def]
-          exact Complex.conj_re z)
+        exact congrArg (fun x : ℝ => Complex.re z + x)
+          (Eq.trans
+            (congrArg Complex.re (Complex.star_def z))
+            (Complex.conj_re z))
       _ = (2 : ℝ) * Complex.re z := by
         exact (two_mul (Complex.re z)).symm
       _ = Complex.re (((2 : ℝ) * Complex.re z : ℝ) : ℂ) := by
@@ -703,9 +705,10 @@ theorem complex_add_star_eq_two_re
       Complex.im (z + star z) = Complex.im z + Complex.im (star z) := by
         exact Complex.add_im z (star z)
       _ = Complex.im z + -Complex.im z := by
-        exact congrArg (fun x : ℝ => Complex.im z + x) (by
-          rw [Complex.star_def]
-          exact Complex.conj_im z)
+        exact congrArg (fun x : ℝ => Complex.im z + x)
+          (Eq.trans
+            (congrArg Complex.im (Complex.star_def z))
+            (Complex.conj_im z))
       _ = 0 := by
         exact add_neg_cancel (Complex.im z)
       _ = Complex.im (((2 : ℝ) * Complex.re z : ℝ) : ℂ) := by

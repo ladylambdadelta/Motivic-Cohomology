@@ -814,7 +814,9 @@ theorem Complex.finiteAbelPlanaLogEndpointResidueRestoration_unfold
             Complex.finiteAbelPlanaLogSummand w (((0 : ℕ) : ℂ)) :=
           Complex.finiteAbelPlanaLogIntegerResidue_unfold w 0
         _ = Complex.log (w + (0 : ℂ)) := by
-          rfl
+          change Complex.log (w + (((0 : ℕ) : ℂ))) =
+            Complex.log (w + (0 : ℂ))
+          exact congrArg (fun z : ℂ => Complex.log (w + z)) (Nat.cast_zero)
         _ = Complex.log w := by
           exact congrArg Complex.log (add_zero w)
     have hright :

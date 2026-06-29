@@ -650,8 +650,9 @@ theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_of_schedu
     zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_of_scheduledInverseGammaCompletion_and_scheduledCorrection
       f F h hinverse hcorrection
 
-/-- Owner analytic leaf: the scheduled Gamma/completion vertical channel
-converges to the completed archimedean contribution. -/
+/-- Owner transport theorem: the scheduled Gamma/completion vertical channel
+converges to the completed archimedean contribution after consuming the named
+inverse-Gamma completion estimate and correction-channel estimate. -/
 theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimedeanContribution_ownerArchimedeanTransport
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)

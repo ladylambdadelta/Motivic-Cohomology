@@ -23,13 +23,13 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- Owner analytic leaf: scheduled off-pole Cauchy/Laplace value of the left
+/-- Compatibility wrapper: scheduled off-pole Cauchy/Laplace value of the left
 `s = 0` correction affine kernel.
 
-Proof target:
-the finite/scheduled contour on the left affine line avoids the isolated pole
-at `s = 0`, and the Paley-Wiener decay of `Phi_f` kills the horizontal
-transport terms. -/
+The finite/scheduled contour estimate is owned upstream in
+`ZeroPoleLeftOffPoleAffineValue`, which in turn consumes the named Cauchy
+value leaf.  This file retains the historical decay-layer name for downstream
+left-face consumers. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_zero_ownerLeftOffPoleDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :

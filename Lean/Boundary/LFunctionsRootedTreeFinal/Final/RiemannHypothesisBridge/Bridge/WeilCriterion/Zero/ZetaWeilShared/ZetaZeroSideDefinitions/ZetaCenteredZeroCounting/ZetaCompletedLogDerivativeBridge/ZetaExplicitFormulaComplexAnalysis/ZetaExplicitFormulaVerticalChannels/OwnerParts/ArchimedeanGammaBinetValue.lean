@@ -400,20 +400,12 @@ theorem zetaCompletedExplicitFormulaArchimedeanDifferenceAffineKernel_scheduledW
 /-- Compatibility scheduled-window value theorem for the archimedean
 right-minus-left affine kernel.
 
-Proof target:
-
-1. Prove the paired right/left Gamma/Binet vertical-line decompositions for
-   `archLogDeriv`.
-2. Use `Complex.gammaBinetPrincipalLogCoherence` only for branch coherence in
-   that special-function decomposition.
-3. Control the Binet remainder by the existing Paley-Wiener vertical decay of
-   `Phi_f`.
-4. Track the right-minus-left sign and identify the resulting boundary term
-   with `zetaCompletedExplicitFormulaArchimedeanContribution f`.
-
-This theorem must not be used as the upstream analytic leaf for paired affine
-line values: through `ArchimedeanGammaBinetLineValue` it is downstream of
-`ArchimedeanGammaBinetLineCore`. -/
+The analytic Gamma/Binet line values are owned upstream by the paired
+right/left affine-line theorems in this file and ultimately by the inversion
+leaves.  This theorem only subtracts those two scheduled values and identifies
+the right-minus-left boundary term with
+`zetaCompletedExplicitFormulaArchimedeanContribution f`; it must not be used
+as an upstream source for the paired affine-line values. -/
 theorem zetaCompletedExplicitFormulaArchimedeanDifferenceAffineKernel_scheduledWindow_tendsto_archimedeanContribution_ownerGammaBinetValue
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)

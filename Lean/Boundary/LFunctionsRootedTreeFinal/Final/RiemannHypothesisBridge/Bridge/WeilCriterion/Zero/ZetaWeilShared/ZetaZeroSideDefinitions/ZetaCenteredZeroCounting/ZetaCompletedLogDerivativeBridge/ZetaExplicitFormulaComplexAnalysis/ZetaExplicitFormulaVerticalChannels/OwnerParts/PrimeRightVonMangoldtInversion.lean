@@ -699,14 +699,13 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_integral_eq_
         f F)
       (zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample_zero f).symm
 
-/-- Owner analytic leaf: the positive natural-index Mellin inversion for a
+/-- Compatibility wrapper: the positive natural-index Mellin inversion for a
 right von Mangoldt Dirichlet monomial.
 
-This is the only prime-right analytic inversion still exposed here.  It says
-that the whole vertical-line integral of a positive `n`th Dirichlet term is the
-corresponding one-sided time sample.  Analytically, this is the
-Paley-Wiener/Fourier evaluation of the shifted exponential character on the
-right affine line. -/
+The analytic Paley-Wiener/Fourier sampling theorem is owned upstream in
+`PaleyWienerFourierInversion` / `PaleyWienerProjectSampling`; this theorem
+only transports that monomial value across the right von Mangoldt term-kernel
+normal form. -/
 theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_integral_eq_primeNaturalOneSidedTimeSample_pos_ownerMellin
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {n : ℕ} (hn : n ≠ 0) :

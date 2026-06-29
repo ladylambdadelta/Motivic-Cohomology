@@ -26,6 +26,46 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- Direct right-face local residue value for the isolated `s = 0` correction
+pole, stated before the left off-pole Cauchy value consumes it. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tendsto_localRawResidue_ownerLeftOffPoleCauchy
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+          f F (h.height_schedule.height u))
+      atTop
+      (𝓝 (-(((2 * (Real.pi : ℂ) * Complex.I) *
+        (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))) * Complex.I))) := by
+  have hvalue :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)) :=
+    zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tendsto_value_ownerChannelTransportAnalytic
+      f F h
+  have hvalue_eq :
+      zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f =
+        -(((2 * (Real.pi : ℂ) * Complex.I) *
+          (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))) * Complex.I) := by
+    exact
+      zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue_eq
+        f
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun u : ℝ =>
+            zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+              f F (h.height_schedule.height u))
+          atTop
+          (𝓝 z))
+      hvalue_eq
+      hvalue
+
 /-- Scheduled raw standard Cauchy residue in the local tangent-residue
 normalization. -/
 theorem zetaCompletedExplicitFormulaCorrectionZeroPole_eventually_standardBoundaryLocalTangentResidueValue_ownerLeftOffPoleCauchy
@@ -110,18 +150,85 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentOrientationDefect_t
       hpoint.symm
       hsum_zero
 
-/-- Whole-line Cauchy/Laplace value for the left `s = 0` off-pole affine kernel.
+/-- Scheduled Cauchy/Laplace value for the left `s = 0` off-pole affine kernel.
 
-This is the smaller analytic leaf under the scheduled left off-pole theorem.
-The pole lies off this left vertical line, so the contour-shift proof should
-show that the whole-line affine kernel has zero integral. -/
+The pole lies off this left vertical line, so the scheduled affine windows
+vanish by the off-pole Cauchy/Laplace estimate. -/
+theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_zero_ownerLeftOffPoleCauchy
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    Tendsto
+      (fun u : ℝ =>
+        ∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F t)
+      atTop
+      (𝓝 0) := by
+  let B : ℂ :=
+    (2 * (Real.pi : ℂ) * Complex.I) *
+      (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))
+  have hosc :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral
+            f F h u)
+        atTop
+        (𝓝 0) := by
+    have hcancel : -(B * Complex.I) + B * Complex.I = 0 :=
+      neg_add_cancel (B * Complex.I)
+    exact
+      zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_of_standardBoundaryResidue_and_orientationDefect_ownerZeroPoleAlgebra
+        f F h (-(B * Complex.I)) B
+        (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tendsto_localRawResidue_ownerLeftOffPoleCauchy
+          f F h)
+        hcancel
+        (h.height_schedule.eventually_height_pos.mono
+          (fun u hu =>
+            zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_pos_height
+              f F h.phi_control (T := h.height_schedule.height u) hu))
+        (zetaCompletedExplicitFormulaCorrectionZeroPoleTangentOrientationDefect_tendsto_zero_ownerLeftOffPoleCauchy
+          f F h)
+        (zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_tendsto_zero_ownerZeroPoleHorizontal
+          f F h)
+  have hfun :
+      (fun u : ℝ =>
+        ∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F t) =
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral
+          f F h u) := by
+    funext u
+    exact
+      (zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_eq_affineKernelIntegral_ownerLeftOffPoleTransport
+        f F h u).symm
+  exact
+    Eq.subst
+      (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
+      hfun.symm
+      hosc
+
+/-- Whole-line Cauchy/Laplace value for the left `s = 0` off-pole affine kernel,
+transported from scheduled-window off-pole Cauchy decay. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_ownerLeftOffPoleCauchy
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F t) =
       0 := by
-  sorry
+  exact
+    explicitFormulaScheduledRectangleWindowIntegral_eq_of_tendsto_value
+      F
+      h.height_schedule.height
+      (zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F)
+      0
+      h.height_schedule.cofinal
+      (zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integrable_ownerBounds
+        f F h)
+      (zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_zero_ownerLeftOffPoleCauchy
+        f F h)
 
 /-- Owner Cauchy/Laplace value: the scheduled left zero-pole off-pole oscillatory
 integral tends to zero.
@@ -143,19 +250,12 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIn
         (-(F.rectangle (h.height_schedule.height u)).T)
         (F.rectangle (h.height_schedule.height u)).T,
       zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F t
-  have hK_integral :
-      Tendsto K atTop
-        (𝓝 (∫ t : ℝ,
-          zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F t)) :=
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernelIntegral_tendsto_integral_ownerLeftOffPoleTransport
-      f F h
   have hK_zero :
-      Tendsto K atTop (𝓝 0) :=
-    Eq.subst
-      (motive := fun z : ℂ => Tendsto K atTop (𝓝 z))
-      (zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_ownerLeftOffPoleCauchy
-        f F h)
-      hK_integral
+      Tendsto K atTop (𝓝 0) := by
+    unfold K
+    exact
+      zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_zero_ownerLeftOffPoleCauchy
+        f F h
   have hpoint :
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral

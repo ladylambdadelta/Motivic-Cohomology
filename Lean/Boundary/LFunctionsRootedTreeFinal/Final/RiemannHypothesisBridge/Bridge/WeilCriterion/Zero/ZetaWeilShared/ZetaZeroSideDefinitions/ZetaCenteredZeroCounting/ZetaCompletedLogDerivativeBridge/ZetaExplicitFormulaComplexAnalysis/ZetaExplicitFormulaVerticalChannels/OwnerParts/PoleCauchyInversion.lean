@@ -26,7 +26,7 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- Owner analytic leaf: scheduled Cauchy/Laplace inversion for the isolated
+/-- Compatibility wrapper: scheduled Cauchy/Laplace inversion for the isolated
 right `s = 0` pole kernel.
 
 This theorem is now a pure scheduled-window transport wrapper.  The genuine
@@ -50,7 +50,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInve
     zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_value_ownerLaplaceProjection
       f F h
 
-/-- Owner analytic leaf: whole-line Cauchy/Laplace value for the isolated
+/-- Compatibility wrapper: whole-line Cauchy/Laplace value for the isolated
 right `s = 0` pole affine kernel.
 
 This name is retained for downstream files, but the proof is now only a

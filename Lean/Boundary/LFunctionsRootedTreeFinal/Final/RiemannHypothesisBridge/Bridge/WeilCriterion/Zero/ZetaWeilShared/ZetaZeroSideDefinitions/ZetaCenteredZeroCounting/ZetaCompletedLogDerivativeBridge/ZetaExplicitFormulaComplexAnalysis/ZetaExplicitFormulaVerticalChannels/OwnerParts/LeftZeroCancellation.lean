@@ -317,11 +317,13 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPole_scheduledRectangleCau
           (zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_norm_le_explicit_add_of_inverseQuadratic
             f F h B hhorizontal)
 
-/-- Left-face off-pole Cauchy limit for the `s = 0` pole contribution.
+/-- Compatibility wrapper for the left-face off-pole Cauchy limit for the
+`s = 0` pole contribution.
 
-This is a genuine analytic decay theorem for the left face, which does not
-contain the `s = 0` pole.  It must be proved from an off-pole contour/tail
-estimate, not by cancelling against a centered right-zero value. -/
+The genuine analytic decay theorem is owned in `ZeroPoleLeftOffPoleDecay`.
+This channel-transport name is retained for downstream callers and must remain
+a thin wrapper over that off-pole owner theorem, not a proof by cancellation
+against a centered right-zero value. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_tendsto_zero_ownerChannelTransportAnalytic
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :

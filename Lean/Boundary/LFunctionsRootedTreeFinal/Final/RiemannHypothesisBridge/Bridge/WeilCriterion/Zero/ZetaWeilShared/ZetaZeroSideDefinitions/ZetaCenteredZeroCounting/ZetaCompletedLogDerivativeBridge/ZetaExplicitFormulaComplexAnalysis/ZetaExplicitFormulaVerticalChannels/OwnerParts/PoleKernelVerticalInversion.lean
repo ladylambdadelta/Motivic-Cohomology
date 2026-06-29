@@ -225,7 +225,19 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValu
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f =
       zetaCompletedExplicitFormulaCorrectionZeroPoleLocalVerticalResidueValue f := by
-  rfl
+  calc
+    zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f =
+        -(((2 * (Real.pi : ℂ) * Complex.I) *
+          (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))) * Complex.I) := by
+      exact zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue_eq f
+    _ =
+        -(zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue f *
+          Complex.I) := by
+      exact congrArg
+        (fun z : ℂ => -(z * Complex.I))
+        (zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue_eq f).symm
+    _ = zetaCompletedExplicitFormulaCorrectionZeroPoleLocalVerticalResidueValue f := by
+      exact (zetaCompletedExplicitFormulaCorrectionZeroPoleLocalVerticalResidueValue_eq f).symm
 
 /-- The named right vertical inversion value cancels the local tangent residue
 after multiplication by the vertical tangent factor `I`. -/

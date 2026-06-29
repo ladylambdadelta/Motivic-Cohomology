@@ -433,11 +433,11 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleDifferenceAffineKernel_inte
           (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) := by
         rfl
 
-/-- Owner analytic leaf: whole-line value of the elementary correction
+/-- Owner assembly theorem: whole-line value of the elementary correction
 right-minus-left affine kernel.
 
 This is the value half of the correction component normalization.  Its proof
-should combine
+combines
 `zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral_eq_value_ownerCauchyInversion`,
 the left/right `s = 1` pole residue normalization, and the explicit
 standard-contour correction definition. -/
@@ -538,13 +538,12 @@ theorem zetaCompletedExplicitFormulaCorrectionDifferenceAffineKernel_integral_eq
         exact (zetaCompletedExplicitFormulaCorrectionStandardContourContribution_eq f).symm
   exact Eq.trans hsplit hsum
 
-/-- Owner analytic leaf: whole-line value of the elementary correction part of
+/-- Owner assembly theorem: whole-line value of the elementary correction part of
 the right-minus-left inverse-Gamma difference kernel, bundled with the
 integrability needed for additive recombination.
 
-The proof is the pole-correction Cauchy normalization for the elementary
-rational terms in the completed logarithmic derivative.  It should assemble
-the already separated `s = 0` and `s = 1` pole-face residue values, then
+The proof assembles the already separated `s = 0` and `s = 1` pole-face
+residue values, then
 identify their difference with
 `zetaCompletedExplicitFormulaCorrectionStandardContourContribution`.  It is
 not an analytic remainder estimate and must not depend on the downstream

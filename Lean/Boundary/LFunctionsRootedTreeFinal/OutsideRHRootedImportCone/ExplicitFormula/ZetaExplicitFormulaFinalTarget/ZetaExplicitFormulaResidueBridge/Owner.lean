@@ -20,21 +20,22 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- The completed residue boundary sum attached to an admissible probe. -/
-noncomputable def zetaCompletedResidueBoundarySum (f : ZetaAdmissibleFunction) : ℝ :=
-  zetaCompletedZeroKreinGram f
-
 /-- The complex completed residue boundary sum attached to an admissible probe. -/
 noncomputable def zetaCompletedResidueBoundarySumComplex
     (f : ZetaAdmissibleFunction) : ℂ :=
   zetaCompletedZeroSideComplex f
+
+/-- The completed residue boundary sum attached to an admissible probe. -/
+noncomputable def zetaCompletedResidueBoundarySum (f : ZetaAdmissibleFunction) : ℝ :=
+  Complex.re (zetaCompletedResidueBoundarySumComplex f)
 
 /-- The zero-side Krein form is the completed residue boundary sum. -/
 theorem zetaCompletedZeroKreinGram_eq_residueBoundarySum
     (f : ZetaAdmissibleFunction) :
     zetaCompletedZeroKreinGram f =
       zetaCompletedResidueBoundarySum f := by
-  rfl
+  exact (zetaCompletedZeroKreinGram_eq_zeroSide f).trans
+    (zetaCompletedZeroSideRe_eq_complex_re f)
 
 /-- The real completed residue boundary scalar is the real part of the complex residue
 boundary sum. -/

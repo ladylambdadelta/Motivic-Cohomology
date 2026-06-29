@@ -712,18 +712,19 @@ theorem zetaCompletedExplicitFormula_weightedDirectVerticalMellinIntegral_eq_tim
       (fun z : ℂ => ((Λ n / Real.sqrt n : ℝ) : ℂ) * z)
       hdirect
 
-/-- Core analytic Paley-Wiener sampling theorem for one positive natural
-frequency.
+/-- Project-convention Paley-Wiener sampling theorem for one positive natural
+frequency, assembled from the normalized inverse-Mellin sample and the
+right-line character normalization.
 
-Proof target:
+The analytic inverse-Mellin/Fourier content is owned by
+`zetaCompletedExplicitFormulaDirectVerticalMellinInv_twoPi_smul_eq_twoPi_smul_timeSample_ownerSamplingCore`.
+This theorem performs the remaining project-coordinate transport:
 
-1. Start from `zetaCompletedExplicitFormulaDirectVerticalMellinInv_eq_fourierIntegralInv`.
+1. Start from the raw direct-Mellin integral normalization.
 2. Perform the explicit change of variables `t = 2 * pi * y`.
 3. Track the `1 / (2 * pi)` Mellin prefactor against the raw project `dt`
    integral.
 4. Use the character identity for `(n : C) ^ (-(F.c + I*t))`, with `n ≠ 0`.
-5. Identify the inverse Fourier value with the completed time-boundary sample
-   at `Real.log n`.
 
 If this derivation produces an extra scalar, this theorem and its consumers
 must be corrected rather than hiding the scalar in the arithmetic layer. -/

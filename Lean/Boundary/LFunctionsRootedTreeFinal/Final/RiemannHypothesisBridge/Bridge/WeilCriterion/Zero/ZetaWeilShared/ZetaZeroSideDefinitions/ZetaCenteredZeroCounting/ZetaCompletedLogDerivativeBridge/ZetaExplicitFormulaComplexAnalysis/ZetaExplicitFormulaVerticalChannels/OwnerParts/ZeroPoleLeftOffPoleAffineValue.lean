@@ -63,14 +63,13 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduled
       hfun
       hoscillatory
 
-/-- Owner analytic leaf: scheduled off-pole Cauchy/Laplace value of the left
+/-- Compatibility wrapper: scheduled off-pole Cauchy/Laplace value of the left
 `s = 0` correction affine kernel.
 
-Proof target:
-off-pole Cauchy/Laplace estimate on the left affine line, plus the rapid decay
-of `Phi_f`.  This theorem is upstream of scheduled rectangle exhaustion and
-must not be proved from `ZeroPoleLeftOffPoleDecay` or left-zero cancellation
-consumers. -/
+The analytic leaf is
+`zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_ownerLeftOffPoleCauchy`.
+This theorem only transports that scheduled oscillatory value to the named
+affine-kernel window formulation used by exhaustion wrappers. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_zero_ownerLeftOffPoleAffineValue
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :

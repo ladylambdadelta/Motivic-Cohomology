@@ -1786,8 +1786,12 @@ theorem poleClearedRiemannZeta_zero_one_strip_admissible_growth_ownerEulerMaclau
       (poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_ownerEulerMaclaurinFunctionalEquationCore
         hbranch hreflected)
 
-/-- Owner analytic leaf: non-circular reflected-value envelope on the
-self-reflected zero-one strip. -/
+/-- Compatibility exposure of the non-circular reflected-value envelope on the
+self-reflected zero-one strip.
+
+The genuine analytic input is the `hreflected` hypothesis.  This theorem keeps
+the functional-equation owner API stable without pretending to construct that
+reflected envelope from the later zero-one strip growth conclusion. -/
 theorem poleClearedRiemannZeta_zero_one_strip_selfReflectedVerticalTailEnvelope_ownerFunctionalEquationNoncircular
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -1802,9 +1806,9 @@ theorem poleClearedRiemannZeta_zero_one_strip_selfReflectedVerticalTailEnvelope_
     poleClearedRiemannZeta_zero_one_strip_selfReflectedVerticalTailEnvelope_ownerEulerMaclaurinFunctionalEquationCore
       hpartialOneTwo hcompactOneTwo hpartialLeft hcompactBoundary hreflected
 
-/-- Owner analytic leaf: noncircular vertical-tail finite-order growth on
+/-- Owner transport theorem: noncircular vertical-tail finite-order growth on
 `0 ≤ Re s ≤ 1` from the completed functional equation, Gamma/Stirling
-multiplier control, and the Abel/compact boundary packages. -/
+multiplier control, and the independently supplied reflected-value envelope. -/
 theorem poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_ownerFunctionalEquationNoncircularCore
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)

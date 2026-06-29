@@ -33,21 +33,20 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- Owner analytic leaf: direct inverse-quadratic decay for the off-pole right
+/-- Compatibility bridge: inverse-quadratic decay for the off-pole right
 `s = 1` correction face, independent of the left residue-tail theorem.
 
-This is the non-circular oscillatory/Cauchy input needed to solve the finite
-tangent-boundary identity for the left residue tail.  It must not be proved
-from `HorizontalEdgeBounds` off-pole estimates that take a left-tail tangent
-estimate as an input; that route is circular.  The proof has to come directly
-from the right off-pole Cauchy cancellation owner theorem: a residue-free
-right-face rectangle identity, controlled top and bottom edges, and scheduled
-height cofinality.
+The analytic tail leaf is owned in `OnePoleAffineTailBounds`, where the
+scheduled affine-window estimate is proved from the zero whole-line value and
+rapid-decay majorants.  This residue-tail file consumes that owner theorem as
+the non-circular right-face input needed to solve the finite tangent-boundary
+identity for the left residue tail.  It must not be replaced by a proof from
+`HorizontalEdgeBounds` off-pole estimates that take a left-tail tangent
+estimate as an input; that route is circular.
 
 Proof chain:
-`right one-pole off-pole Cauchy rectangle`
-`-> cancellation of the right vertical face against horizontal edges`
-`-> inverse-quadratic horizontal-edge bounds`
+`right one-pole affine zero value`
+`-> rapid-decay affine tail estimate`
 `-> scheduled right-face residue tail bound`. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eventual_inverseQuadratic_direct_ownerResidueTail
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)

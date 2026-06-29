@@ -1,5 +1,4 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Owner
-import Boundary.LFunctionsRootedTreeFinal.OutsideRHRootedImportCone.Final.ZetaCriterion.Owner
 
 /-!
 # Boundary bridge to mathlib's Riemann hypothesis statement

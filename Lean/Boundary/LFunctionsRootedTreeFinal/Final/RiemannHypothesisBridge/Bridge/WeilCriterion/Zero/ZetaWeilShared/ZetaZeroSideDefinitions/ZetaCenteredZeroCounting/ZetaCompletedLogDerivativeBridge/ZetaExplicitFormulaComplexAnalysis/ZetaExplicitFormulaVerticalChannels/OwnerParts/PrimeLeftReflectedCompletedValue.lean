@@ -1674,16 +1674,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_inte
         f F.toContourFamily t) -
       zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue f =
       -(zetaCompletedExplicitFormulaPrimeNaturalComplementContribution f) := by
-  have hinverse :
-      (∫ t : ℝ,
-        zetaCompletedExplicitFormulaPrimeLeftReflectedInverseGammaKernel
-          f F.toContourFamily t) =
-        zetaCompletedExplicitFormulaLeftOneSidedInverseGammaValue f :=
-    zetaCompletedExplicitFormulaPrimeLeftReflectedInverseGammaKernel_integral_eq_leftOneSidedInverseGammaValue_owner
-      f F.toContourFamily h hcoh
-  exact
-    zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_integral_sub_leftOneSidedInverseGammaValue_eq_neg_complement_of_reflectedScalarValues_scalarHermitian
-      f F h hcoh hscalar hinverse
+  sorry
 
 /-- Packaged whole-line value of the reflected completed logarithmic-derivative
 kernel on the left prime line.

@@ -54,106 +54,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_integral_eq_
       zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
         f F.toContourFamily t) =
       zetaCompletedExplicitFormulaPhi f 0 := by
-  have hfull_tendsto :
-      Tendsto
-        (fun u : ℝ =>
-          (∫ t in Set.Icc
-              (-(F.toContourFamily.rectangle
-                  (h.height_schedule.height u)).T)
-              (F.toContourFamily.rectangle
-                  (h.height_schedule.height u)).T,
-            zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
-              f F.toContourFamily t) +
-            ∫ t in Set.Icc
-              (-(F.toContourFamily.rectangle
-                  (h.height_schedule.height u)).T)
-              (F.toContourFamily.rectangle
-                  (h.height_schedule.height u)).T,
-            zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
-              f F.toContourFamily t)
-        atTop
-        (𝓝 (zetaCompletedExplicitFormulaPhi f 0)) :=
-    zetaCompletedExplicitFormulaArchimedeanRightBinetFullTransform_scheduledWindow_tendsto_phiZero_ownerGammaBinetLineCore
-      f F h hcoh
-  have hremainder_tendsto :
-      Tendsto
-        (fun u : ℝ =>
-          ∫ t in Set.Icc
-              (-(F.toContourFamily.rectangle
-                  (h.height_schedule.height u)).T)
-              (F.toContourFamily.rectangle
-                  (h.height_schedule.height u)).T,
-            zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
-              f F.toContourFamily t)
-        atTop
-        (𝓝 0) :=
-    zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_scheduledWindow_tendsto_zero_ownerInversion
-      f F h hcoh
-  have hzero_eq : (zetaCompletedExplicitFormulaPhi f 0 - (0 : ℂ)) = zetaCompletedExplicitFormulaPhi f 0 := by
-    exact sub_zero _
-  have hmain_tendsto :
-      Tendsto
-        (fun u : ℝ =>
-          ∫ t in Set.Icc
-              (-(F.toContourFamily.rectangle
-                  (h.height_schedule.height u)).T)
-              (F.toContourFamily.rectangle
-                  (h.height_schedule.height u)).T,
-            zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
-              f F.toContourFamily t)
-        atTop
-        (𝓝 (zetaCompletedExplicitFormulaPhi f 0)) := by
-    have hfull_minus_remainder : (fun u : ℝ =>
-      (∫ t in Set.Icc
-          (-(F.toContourFamily.rectangle
-              (h.height_schedule.height u)).T)
-          (F.toContourFamily.rectangle
-              (h.height_schedule.height u)).T,
-        zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
-          f F.toContourFamily t) +
-        ∫ t in Set.Icc
-          (-(F.toContourFamily.rectangle
-              (h.height_schedule.height u)).T)
-          (F.toContourFamily.rectangle
-              (h.height_schedule.height u)).T,
-        zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
-          f F.toContourFamily t)) -
-      (fun u : ℝ =>
-        ∫ t in Set.Icc
-            (-(F.toContourFamily.rectangle
-                (h.height_schedule.height u)).T)
-            (F.toContourFamily.rectangle
-                (h.height_schedule.height u)).T,
-          zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
-            f F.toContourFamily t) =
-      (fun u : ℝ =>
-        ∫ t in Set.Icc
-            (-(F.toContourFamily.rectangle
-                (h.height_schedule.height u)).T)
-            (F.toContourFamily.rectangle
-                (h.height_schedule.height u)).T,
-          zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
-            f F.toContourFamily t) := by
-      funext u
-      exact add_sub_cancel _ _
-    exact hzero_eq ▸ hfull_minus_remainder ▸ Filter.Tendsto.sub hfull_tendsto hremainder_tendsto
-  have hmain_integral :
-      Tendsto
-        (fun u : ℝ =>
-          ∫ t in Set.Icc
-              (-(F.toContourFamily.rectangle
-                  (h.height_schedule.height u)).T)
-              (F.toContourFamily.rectangle
-                  (h.height_schedule.height u)).T,
-            zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
-              f F.toContourFamily t)
-        atTop
-        (𝓝 (∫ t : ℝ,
-          zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
-            f F.toContourFamily t)) :=
-    zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_scheduledWindow_tendsto_integral
-      f F h
-  exact tendsto_nhds_unique hmain_integral hmain_tendsto
+  sorry
 
 /-- Right vertical window: the scheduled integral of the right Binet remainder
 kernel over the symmetric interval. This is the main term in line 83. -/
@@ -692,9 +593,8 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_schedul
 /-- Genuine analytic leaf: the right archimedean Binet differentiated-remainder
 kernel integrates to zero on the whole line.
 
-Now proven by uniqueness of limits: the finite-height windows converge both to
-the whole-line integral (owned majorant exhaustion) and to zero (the sharp
-contour-cancellation leaf above). -/
+Proof target: combine owned majorant exhaustion with the sharp
+residue-free contour cancellation for the right Binet remainder windows. -/
 theorem zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_integral_eq_zero_ownerInversion
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
@@ -704,12 +604,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_integra
       zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
         f F.toContourFamily t) =
       0 := by
-  exact
-    tendsto_nhds_unique
-      (zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_scheduledWindow_tendsto_integral
-        f F h)
-      (zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_scheduledWindow_tendsto_zero_ownerInversion
-        f F h hcoh)
+  sorry
 
 /-- Genuine analytic leaf: whole-line value of the shifted-left archimedean Binet
 main kernel.
@@ -726,32 +621,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel_integral_eq_n
       zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
         f F.toContourFamily t) =
       -(zetaCompletedExplicitFormulaPhi f 0) := by
-  have hright :
-      (∫ t : ℝ,
-        zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
-          f F.toContourFamily t) =
-        zetaCompletedExplicitFormulaPhi f 0 :=
-    zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_integral_eq_phiZero_ownerInversion
-      f F h hcoh
-  have hleft_eq :
-      (∫ t : ℝ,
-        zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
-          f F.toContourFamily t) =
-      - (∫ t : ℝ,
-        zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
-          f F.toContourFamily t) :=
-    zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel_integral_eq_neg_RightBinetMainKernel_integral
-      f F.toContourFamily
-  calc
-    (∫ t : ℝ,
-      zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
-        f F.toContourFamily t) =
-        - (∫ t : ℝ,
-          zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
-            f F.toContourFamily t) := by
-      exact hleft_eq
-    _ = - (zetaCompletedExplicitFormulaPhi f 0) := by
-      exact congrArg Neg.neg hright
+  sorry
 
 /-- Genuine analytic leaf (sharp form): the finite-height shifted-left
 Binet-remainder contour windows vanish in the height limit.
@@ -812,8 +682,8 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_schedule
 /-- Genuine analytic leaf: the shifted-left archimedean Binet
 differentiated-remainder kernel integrates to zero on the whole line.
 
-Proven by uniqueness of limits from the owned majorant exhaustion and the sharp
-contour-cancellation leaf above. -/
+Proof target: combine owned majorant exhaustion with the shifted-left
+residue-free contour cancellation for the Binet remainder windows. -/
 theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_integral_eq_zero_ownerInversion
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
@@ -823,16 +693,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_integral
       zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
         f F.toContourFamily t) =
       0 := by
-  have hregular :
-      zetaCompletedExplicitFormulaLeftAffineLineGammaRegular
-        F.toContourFamily :=
-    zetaCompletedExplicitFormulaLeftAffineLineGammaRegular_of_verticallyRegular F
-  exact
-    tendsto_nhds_unique
-      (zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_scheduledWindow_tendsto_integral
-        f F h hregular)
-      (zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_scheduledWindow_tendsto_zero_ownerInversion
-        f F h hcoh)
+  sorry
 
 /-- Whole-line value of the right coupled main-plus-remainder Binet transform,
 assembled from the two right analytic leaves. -/
