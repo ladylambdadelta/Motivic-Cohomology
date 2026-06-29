@@ -6062,6 +6062,27 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
       (fun _ : ℝ => (-2 * (Real.pi : ℂ)))
   exact hvalue ▸ hbase
 
+/-- Compact-interval scalar-window estimate for the fixed-right-line Cauchy
+kernel.
+
+This is the analytic core of compact-support domination: on every bounded
+time interval, the finite scalar Cauchy windows are eventually uniformly
+bounded in the truncation radius. -/
+theorem fixedRightLine_scalarCauchyWindow_compactInterval_norm_bound_eventually
+    (R c : ℝ) (hc : 1 < c) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            ‖x‖ ≤ R →
+              ‖(∫ t in Set.Icc (-T) T,
+                (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
+              ≤ C := by
+  sorry
+
 /-- Compact-support scalar-window estimate on the time support of the kernel.
 
 This is the local finite-window bound owned by the compact-support Cauchy
@@ -6082,7 +6103,19 @@ theorem fixedRightLine_scalarCauchyWindow_tsupport_norm_bound_eventually
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
               ≤ C := by
-  sorry
+  have hbounded : Bornology.IsBounded (tsupport K) :=
+    hK_compact.isBounded
+  match hbounded.exists_norm_le with
+  | ⟨R, hR⟩ =>
+      match fixedRightLine_scalarCauchyWindow_compactInterval_norm_bound_eventually
+        R c hc with
+      | ⟨C, hC_nonneg, hC_eventual⟩ =>
+          exact
+            ⟨C, hC_nonneg,
+              hC_eventual.mono
+                (fun T hT =>
+                  fun x hx =>
+                    hT x (hR x hx))⟩
 
 /-- Compact-support paired-window estimate for the fixed-right-line scalar
 Cauchy kernel.
