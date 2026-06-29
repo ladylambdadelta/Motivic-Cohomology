@@ -3115,14 +3115,15 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_tendsto_zero
 /-- Pointwise Jordan domination of the positive upper-arc integrand. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArcIntegrand_norm_le_jordanDensity
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
-    (T θ : ℝ) :
+    (T : ℝ) (hT : a < T) (θ : ℝ) :
     ‖scalarFourierLaplacePlemelj_positiveUpperArcIntegrand a x T θ‖ ≤
       scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ := by
   sorry
 
 /-- Integral form of Jordan's sine estimate for the positive upper arc. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_le_majorant
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) (T : ℝ) :
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (T : ℝ) (hT : a < T) :
     ∫ θ in (0 : ℝ)..Real.pi,
         scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ ≤
       scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T := by
@@ -3131,22 +3132,26 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_le_ma
 /-- Interval-integral norm domination for the positive upper arc by the Jordan
 density. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_le_jordanDensity_integral
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) (T : ℝ) :
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (T : ℝ) (hT : a < T) :
     ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T‖ ≤
       ∫ θ in (0 : ℝ)..Real.pi,
         scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ := by
   sorry
 
-/-- The positive upper arc is bounded by the Jordan majorant. -/
-theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_le_jordanMajorant
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) (T : ℝ) :
-    ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T‖ ≤
-      scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T := by
+/-- The positive upper arc is eventually bounded by the Jordan majorant. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_eventually_le_jordanMajorant
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    ∀ᶠ T in atTop,
+      ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T‖ ≤
+        scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T := by
   exact
-    (scalarFourierLaplacePlemelj_positiveUpperArc_norm_le_jordanDensity_integral
-      a ha x hx T).trans
-      (scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_le_majorant
-        a ha x hx T)
+    (eventually_gt_atTop a).mono
+      (fun T hT =>
+        (scalarFourierLaplacePlemelj_positiveUpperArc_norm_le_jordanDensity_integral
+          a ha x hx T hT).trans
+          (scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_le_majorant
+            a ha x hx T hT))
 
 /-- Jordan norm estimate for the positive upper semicircle correction. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_tendsto_zero_jordanEstimate
@@ -3155,11 +3160,12 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_tendsto_zero_jordanEst
       (fun T : ℝ => ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T‖)
       atTop
       (𝓝 0) := by
-  exact squeeze_zero
-    (fun T : ℝ => norm_nonneg (scalarFourierLaplacePlemelj_positiveUpperArc a x T))
-    (fun T : ℝ =>
-      scalarFourierLaplacePlemelj_positiveUpperArc_norm_le_jordanMajorant
-        a ha x hx T)
+  exact squeeze_zero'
+    (Eventually.of_forall
+      (fun T : ℝ =>
+        norm_nonneg (scalarFourierLaplacePlemelj_positiveUpperArc a x T)))
+    (scalarFourierLaplacePlemelj_positiveUpperArc_norm_eventually_le_jordanMajorant
+      a ha x hx)
     (scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_tendsto_zero
       a ha x hx)
 
@@ -3633,14 +3639,15 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_tendsto_zero
 /-- Pointwise Jordan domination of the negative lower-arc integrand. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArcIntegrand_norm_le_jordanDensity
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
-    (T θ : ℝ) :
+    (T : ℝ) (hT : a < T) (θ : ℝ) :
     ‖scalarFourierLaplacePlemelj_negativeLowerArcIntegrand a x T θ‖ ≤
       scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ := by
   sorry
 
 /-- Integral form of Jordan's sine estimate for the negative lower arc. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_le_majorant
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) (T : ℝ) :
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ) (hT : a < T) :
     ∫ θ in (0 : ℝ)..(-Real.pi),
         scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ ≤
       scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T := by
@@ -3649,22 +3656,26 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_le_ma
 /-- Interval-integral norm domination for the negative lower arc by the Jordan
 density. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanDensity_integral
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) (T : ℝ) :
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ) (hT : a < T) :
     ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖ ≤
       ∫ θ in (0 : ℝ)..(-Real.pi),
         scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ := by
   sorry
 
-/-- The negative lower arc is bounded by the Jordan majorant. -/
-theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanMajorant
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) (T : ℝ) :
-    ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖ ≤
-      scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T := by
+/-- The negative lower arc is eventually bounded by the Jordan majorant. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_eventually_le_jordanMajorant
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
+    ∀ᶠ T in atTop,
+      ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖ ≤
+        scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T := by
   exact
-    (scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanDensity_integral
-      a ha x hx T).trans
-      (scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_le_majorant
-        a ha x hx T)
+    (eventually_gt_atTop a).mono
+      (fun T hT =>
+        (scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanDensity_integral
+          a ha x hx T hT).trans
+          (scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_le_majorant
+            a ha x hx T hT))
 
 /-- Jordan norm estimate for the negative lower semicircle correction. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_tendsto_zero_jordanEstimate
@@ -3673,11 +3684,12 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_tendsto_zero_jordanEst
       (fun T : ℝ => ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖)
       atTop
       (𝓝 0) := by
-  exact squeeze_zero
-    (fun T : ℝ => norm_nonneg (scalarFourierLaplacePlemelj_negativeLowerArc a x T))
-    (fun T : ℝ =>
-      scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanMajorant
-        a ha x hx T)
+  exact squeeze_zero'
+    (Eventually.of_forall
+      (fun T : ℝ =>
+        norm_nonneg (scalarFourierLaplacePlemelj_negativeLowerArc a x T)))
+    (scalarFourierLaplacePlemelj_negativeLowerArc_norm_eventually_le_jordanMajorant
+      a ha x hx)
     (scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_tendsto_zero
       a ha x hx)
 
