@@ -153,14 +153,23 @@ theorem realLineFourthOrderWeight_le_rpow_on_Ioi_of_one_le
 
 /-- The exponent in the fourth-power tail primitive normalizes to `-3`. -/
 theorem realLine_neg_four_add_one_eq_neg_three :
-    (-(4 : ℝ)) + 1 = -(3 : ℝ) := by
-  change ((-(4 : ℤ) : ℝ) + ((1 : ℤ) : ℝ)) = -(3 : ℝ)
+    (-(4 : ℝ)) + 1 = -(3 : ℝ) :=
   calc
-    ((-(4 : ℤ) : ℝ) + ((1 : ℤ) : ℝ)) = ((-(4 : ℤ) + 1 : ℤ) : ℝ) := by
-      exact (Int.cast_add (R := ℝ) (-(4 : ℤ)) 1).symm
-    _ = ((-(3 : ℤ) : ℤ) : ℝ) := by
-      exact congrArg (fun z : ℤ => (z : ℝ)) (show (-(4 : ℤ) + 1) = -(3 : ℤ) from Eq.refl _)
-    _ = -(3 : ℝ) := Int.cast_neg (R := ℝ) 3
+    (-(4 : ℝ)) + 1 = (-(3 : ℝ) + -(1 : ℝ)) + 1 := by
+      exact congrArg (fun x : ℝ => x + 1) (by
+        calc
+          (-(4 : ℝ)) = -((3 : ℝ) + (1 : ℝ)) := by
+            exact congrArg Neg.neg
+              (Eq.trans
+                (Eq.trans
+                  (show (4 : ℝ) = ((3 + 1 : ℕ) : ℝ) from Eq.refl _)
+                  (Nat.cast_add (R := ℝ) 3 1))
+                (congrArg₂
+                  (fun x y : ℝ => x + y)
+                  (Nat.cast_ofNat (R := ℝ) (n := 3))
+                  Nat.cast_one))
+          _ = -(3 : ℝ) + -(1 : ℝ) := neg_add 3 1)
+    _ = -(3 : ℝ) := neg_add_cancel_right (-(3 : ℝ)) (1 : ℝ)
 
 /-- Dividing a negated scalar by `-3` is multiplication by `1 / 3`. -/
 theorem realLine_neg_div_neg_three_eq_one_div_three_mul
