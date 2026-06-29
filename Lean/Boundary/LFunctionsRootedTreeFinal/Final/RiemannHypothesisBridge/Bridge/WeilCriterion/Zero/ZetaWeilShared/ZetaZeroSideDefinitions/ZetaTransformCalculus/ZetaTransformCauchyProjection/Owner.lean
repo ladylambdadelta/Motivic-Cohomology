@@ -2976,6 +2976,28 @@ theorem scalarFourierLaplacePlemelj_positive_window_add_upperArc_eq_residueValue
       (scalarFourierLaplacePlemelj_positiveClosedContour_eq_window_add_upperArc
         a x T).symm.trans hT)
 
+/-- Positive upper-arc Jordan majorant. -/
+noncomputable def scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant
+    (a x T : ℝ) : ℝ :=
+  (Real.pi * T / (T - a)) * ((T * x)⁻¹)
+
+/-- The positive upper-arc Jordan majorant tends to zero. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_tendsto_zero
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    Tendsto
+      (fun T : ℝ =>
+        scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T)
+      atTop
+      (𝓝 0) := by
+  sorry
+
+/-- The positive upper arc is bounded by the Jordan majorant. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_le_jordanMajorant
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) (T : ℝ) :
+    ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T‖ ≤
+      scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T := by
+  sorry
+
 /-- Jordan norm estimate for the positive upper semicircle correction. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_tendsto_zero_jordanEstimate
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
@@ -2983,7 +3005,13 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_tendsto_zero_jordanEst
       (fun T : ℝ => ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T‖)
       atTop
       (𝓝 0) := by
-  sorry
+  exact squeeze_zero
+    (fun T : ℝ => norm_nonneg (scalarFourierLaplacePlemelj_positiveUpperArc a x T))
+    (fun T : ℝ =>
+      scalarFourierLaplacePlemelj_positiveUpperArc_norm_le_jordanMajorant
+        a ha x hx T)
+    (scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_tendsto_zero
+      a ha x hx)
 
 /-- The upper semicircle correction term vanishes for positive time. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_tendsto_zero
@@ -3388,6 +3416,28 @@ theorem scalarFourierLaplacePlemelj_negative_window_add_lowerArc_eq_zero
       (scalarFourierLaplacePlemelj_negativeClosedContour_eq_window_add_lowerArc
         a x T).symm.trans hT)
 
+/-- Negative lower-arc Jordan majorant. -/
+noncomputable def scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant
+    (a x T : ℝ) : ℝ :=
+  (Real.pi * T / (T - a)) * ((T * (-x))⁻¹)
+
+/-- The negative lower-arc Jordan majorant tends to zero. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_tendsto_zero
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
+    Tendsto
+      (fun T : ℝ =>
+        scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T)
+      atTop
+      (𝓝 0) := by
+  sorry
+
+/-- The negative lower arc is bounded by the Jordan majorant. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanMajorant
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) (T : ℝ) :
+    ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖ ≤
+      scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T := by
+  sorry
+
 /-- Jordan norm estimate for the negative lower semicircle correction. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_tendsto_zero_jordanEstimate
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
@@ -3395,7 +3445,13 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_tendsto_zero_jordanEst
       (fun T : ℝ => ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖)
       atTop
       (𝓝 0) := by
-  sorry
+  exact squeeze_zero
+    (fun T : ℝ => norm_nonneg (scalarFourierLaplacePlemelj_negativeLowerArc a x T))
+    (fun T : ℝ =>
+      scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanMajorant
+        a ha x hx T)
+    (scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_tendsto_zero
+      a ha x hx)
 
 /-- The lower semicircle correction term vanishes for negative time. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_tendsto_zero
