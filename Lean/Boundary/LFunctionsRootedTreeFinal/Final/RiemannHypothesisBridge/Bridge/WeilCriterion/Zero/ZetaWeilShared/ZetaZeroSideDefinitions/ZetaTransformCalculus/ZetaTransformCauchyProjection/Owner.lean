@@ -2827,6 +2827,27 @@ noncomputable def scalarFourierLaplacePlemelj_positiveUpperArc
       Complex.exp (Complex.I * z * (x : ℂ)) *
       (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
 
+/-- Integrand of the positive upper semicircle correction. -/
+noncomputable def scalarFourierLaplacePlemelj_positiveUpperArcIntegrand
+    (a x T θ : ℝ) : ℂ :=
+  let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+  (-1 / ((a : ℂ) + z * Complex.I)) *
+    Complex.exp (Complex.I * z * (x : ℂ)) *
+    (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
+/-- The positive upper arc is the interval integral of its named integrand. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArc_eq_integral_integrand
+    (a x T : ℝ) :
+    scalarFourierLaplacePlemelj_positiveUpperArc a x T =
+      ∫ θ in (0 : ℝ)..Real.pi,
+        scalarFourierLaplacePlemelj_positiveUpperArcIntegrand a x T θ := by
+  rfl
+
+/-- Real Jordan density for the positive upper semicircle estimate. -/
+noncomputable def scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity
+    (a x T θ : ℝ) : ℝ :=
+  (T / (T - a)) * Real.exp (-(T * x * Real.sin θ))
+
 /-- Closed upper-half-plane scalar contour integral for the positive-time
 Fourier-Laplace denominator. -/
 noncomputable def scalarFourierLaplacePlemelj_positiveClosedContour
@@ -3091,12 +3112,41 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_tendsto_zero
       (scalarFourierLaplacePlemelj_positiveUpperArcJordanReciprocal_tendsto_zero
         x hx)
 
+/-- Pointwise Jordan domination of the positive upper-arc integrand. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArcIntegrand_norm_le_jordanDensity
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (T θ : ℝ) :
+    ‖scalarFourierLaplacePlemelj_positiveUpperArcIntegrand a x T θ‖ ≤
+      scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ := by
+  sorry
+
+/-- Integral form of Jordan's sine estimate for the positive upper arc. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_le_majorant
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) (T : ℝ) :
+    ∫ θ in (0 : ℝ)..Real.pi,
+        scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ ≤
+      scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T := by
+  sorry
+
+/-- Interval-integral norm domination for the positive upper arc by the Jordan
+density. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_le_jordanDensity_integral
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) (T : ℝ) :
+    ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T‖ ≤
+      ∫ θ in (0 : ℝ)..Real.pi,
+        scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ := by
+  sorry
+
 /-- The positive upper arc is bounded by the Jordan majorant. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_le_jordanMajorant
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) (T : ℝ) :
     ‖scalarFourierLaplacePlemelj_positiveUpperArc a x T‖ ≤
       scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_positiveUpperArc_norm_le_jordanDensity_integral
+      a ha x hx T).trans
+      (scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_le_majorant
+        a ha x hx T)
 
 /-- Jordan norm estimate for the positive upper semicircle correction. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_tendsto_zero_jordanEstimate
@@ -3375,6 +3425,27 @@ noncomputable def scalarFourierLaplacePlemelj_negativeLowerArc
       Complex.exp (Complex.I * z * (x : ℂ)) *
       (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
 
+/-- Integrand of the negative lower semicircle correction. -/
+noncomputable def scalarFourierLaplacePlemelj_negativeLowerArcIntegrand
+    (a x T θ : ℝ) : ℂ :=
+  let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+  (-1 / ((a : ℂ) + z * Complex.I)) *
+    Complex.exp (Complex.I * z * (x : ℂ)) *
+    (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
+/-- The negative lower arc is the interval integral of its named integrand. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArc_eq_integral_integrand
+    (a x T : ℝ) :
+    scalarFourierLaplacePlemelj_negativeLowerArc a x T =
+      ∫ θ in (0 : ℝ)..(-Real.pi),
+        scalarFourierLaplacePlemelj_negativeLowerArcIntegrand a x T θ := by
+  rfl
+
+/-- Real Jordan density for the negative lower semicircle estimate. -/
+noncomputable def scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity
+    (a x T θ : ℝ) : ℝ :=
+  (T / (T - a)) * Real.exp (T * x * Real.sin θ)
+
 /-- Closed lower-half-plane scalar contour integral for the negative-time
 Fourier-Laplace denominator. -/
 noncomputable def scalarFourierLaplacePlemelj_negativeClosedContour
@@ -3559,12 +3630,41 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_tendsto_zero
       (scalarFourierLaplacePlemelj_negativeLowerArcJordanReciprocal_tendsto_zero
         x hx)
 
+/-- Pointwise Jordan domination of the negative lower-arc integrand. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArcIntegrand_norm_le_jordanDensity
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T θ : ℝ) :
+    ‖scalarFourierLaplacePlemelj_negativeLowerArcIntegrand a x T θ‖ ≤
+      scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ := by
+  sorry
+
+/-- Integral form of Jordan's sine estimate for the negative lower arc. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_le_majorant
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) (T : ℝ) :
+    ∫ θ in (0 : ℝ)..(-Real.pi),
+        scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ ≤
+      scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T := by
+  sorry
+
+/-- Interval-integral norm domination for the negative lower arc by the Jordan
+density. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanDensity_integral
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) (T : ℝ) :
+    ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖ ≤
+      ∫ θ in (0 : ℝ)..(-Real.pi),
+        scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ := by
+  sorry
+
 /-- The negative lower arc is bounded by the Jordan majorant. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanMajorant
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) (T : ℝ) :
     ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖ ≤
       scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanDensity_integral
+      a ha x hx T).trans
+      (scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_le_majorant
+        a ha x hx T)
 
 /-- Jordan norm estimate for the negative lower semicircle correction. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_tendsto_zero_jordanEstimate
