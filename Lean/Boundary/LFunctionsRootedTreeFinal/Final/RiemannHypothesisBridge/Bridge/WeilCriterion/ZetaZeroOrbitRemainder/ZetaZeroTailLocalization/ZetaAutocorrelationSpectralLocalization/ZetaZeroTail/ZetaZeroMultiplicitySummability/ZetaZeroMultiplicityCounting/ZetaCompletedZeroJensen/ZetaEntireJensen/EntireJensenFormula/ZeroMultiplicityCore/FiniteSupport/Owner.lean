@@ -61,10 +61,10 @@ theorem entireFunction_closedDiskZeros_discreteTopology
     (hnontrivial : ∃ z : ℂ, F z ≠ 0)
     (R : ℝ) :
     DiscreteTopology {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} := by
-  refine (discreteTopology_subtype_iff).2 ?_
-  intro x hx
-  match hx with
-  | ⟨_hxnorm, hxzero⟩ =>
+  exact
+    (discreteTopology_subtype_iff).2
+      (fun x hx =>
+      have _hxzero : F x = 0 := hx.2
       have hne : ∀ᶠ w in 𝓝[≠] x, F w ≠ 0 := by
         match (hF x).eventually_eq_zero_or_eventually_ne_zero with
         | Or.inl hzero =>
@@ -79,11 +79,10 @@ theorem entireFunction_closedDiskZeros_discreteTopology
         | Or.inr hne => exact hne
       have hScompl :
           ({z : ℂ | ‖z‖ ≤ R ∧ F z = 0}ᶜ) ∈ 𝓝[≠] x := by
-        refine Filter.mem_of_superset hne ?_
-        intro w hw
-        intro hsw
-        exact hw hsw.2
-      exact (Filter.disjoint_principal_right.2 hScompl).eq_bot
+        exact
+          Filter.mem_of_superset hne
+            (fun w hw hsw => hw hsw.2)
+      (Filter.disjoint_principal_right.2 hScompl).eq_bot)
 
 /-- A nontrivial entire function has only finitely many zeros in each closed
 disk. -/
@@ -336,26 +335,27 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProduct_expli
             Real.log (ρ / ‖(z : ℂ)‖)
         else
           0
-  refine Finset.sum_congr rfl ?_
-  intro z _hz
-  change
-    (if hz0 : (z : ℂ) = 0 then
-      0
-    else if ‖(z : ℂ)‖ < ρ then
-      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
-        Real.log (ρ / ‖(z : ℂ)‖)
-    else
-      0) =
-    (if (z : ℂ) = 0 then
-      0
-    else if ‖(z : ℂ)‖ < ρ then
-      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
-        Real.log (ρ / ‖(z : ℂ)‖)
-    else
-      0)
-  match (inferInstance : Decidable ((z : ℂ) = 0)) with
-  | isTrue hz0 => exact Eq.trans (dif_pos hz0) (if_pos hz0).symm
-  | isFalse hz0 => exact Eq.trans (dif_neg hz0) (if_neg hz0).symm
+  exact
+    Finset.sum_congr rfl
+      (fun z _hz => by
+        change
+          (if hz0 : (z : ℂ) = 0 then
+            0
+          else if ‖(z : ℂ)‖ < ρ then
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              Real.log (ρ / ‖(z : ℂ)‖)
+          else
+            0) =
+          (if (z : ℂ) = 0 then
+            0
+          else if ‖(z : ℂ)‖ < ρ then
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              Real.log (ρ / ‖(z : ℂ)‖)
+          else
+            0)
+        match (inferInstance : Decidable ((z : ℂ) = 0)) with
+        | isTrue hz0 => exact Eq.trans (dif_pos hz0) (if_pos hz0).symm
+        | isFalse hz0 => exact Eq.trans (dif_neg hz0) (if_neg hz0).symm)
 
 /-- If a finite zero divisor contains the support of the Jensen radial-gap
 summand, the infinite radial-gap sum is the corresponding finite product

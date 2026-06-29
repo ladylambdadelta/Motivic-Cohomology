@@ -21,6 +21,7 @@ theorem entireFunctionOriginZeroMultiplicityClosedDiskSummable
     (R : ℝ)
     [Decidable (F 0 = 0)]
     [∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0)]
+    [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ R)]
     [DecidableEq (EntireFunctionZero F)] :
     Summable
       (fun z : EntireFunctionZero F =>
