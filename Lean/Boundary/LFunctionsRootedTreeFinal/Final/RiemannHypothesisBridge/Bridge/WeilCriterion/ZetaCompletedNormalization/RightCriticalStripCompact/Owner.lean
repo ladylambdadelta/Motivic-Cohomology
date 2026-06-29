@@ -68,13 +68,13 @@ theorem completedRiemannZeta₀_rightCriticalStripCompactSet_isBounded :
         hz.2.2
     have hsum : |z.re| + |z.im| ≤ 2 + 1 :=
       add_le_add hz_re_abs_le_two him
-    exact le_trans hcomplex (hsum.trans_eq (show (2 : ℝ) + 1 = 3 from rfl))
+    exact le_trans hcomplex (hsum.trans_eq (two_add_one_eq_three : (2 : ℝ) + 1 = 3))
   have hthree_le_four : (3 : ℝ) ≤ 4 := by
     have hthree_le_three_add_one : (3 : ℝ) ≤ 3 + 1 :=
       le_add_of_nonneg_right (show (0 : ℝ) ≤ 1 from zero_le_one)
     exact Eq.subst
       (motive := fun x : ℝ => (3 : ℝ) ≤ x)
-      (show (3 : ℝ) + 1 = 4 from rfl)
+      (three_add_one_eq_four : (3 : ℝ) + 1 = 4)
       hthree_le_three_add_one
   exact le_trans hz_abs_le_three hthree_le_four
 
