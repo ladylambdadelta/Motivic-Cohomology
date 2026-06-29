@@ -3919,12 +3919,48 @@ theorem scalarFourierLaplacePlemelj_upperSineDamping_integrand_le_linearExp
   exact Real.exp_le_exp.mpr harg
 
 /-- Elementary exponential integral bound on the upper half interval. -/
+theorem scalarFourierLaplacePlemelj_upperLinearExp_integral_eq_scaled_one_sub_exp
+    (c : ℝ) (hc : 0 < c) :
+    ∫ θ in (0 : ℝ)..(Real.pi / 2),
+        Real.exp (-(((2 * c) / Real.pi) * θ)) =
+      ((Real.pi / 2) * c⁻¹) * (1 - Real.exp (-c)) := by
+  sorry
+
+/-- The finite exponential loss factor is bounded by one. -/
+theorem scalarFourierLaplacePlemelj_one_sub_exp_neg_le_one
+    (c : ℝ) :
+    1 - Real.exp (-c) ≤ 1 := by
+  exact sub_le_self 1 (Real.exp_pos (-c)).le
+
+/-- The scale factor in the elementary exponential integral is nonnegative. -/
+theorem scalarFourierLaplacePlemelj_upperLinearExp_scale_nonneg
+    (c : ℝ) (hc : 0 < c) :
+    0 ≤ (Real.pi / 2) * c⁻¹ := by
+  have hhalf_nonneg : 0 ≤ Real.pi / 2 :=
+    half_nonneg Real.pi_nonneg
+  have hinv_nonneg : 0 ≤ c⁻¹ :=
+    inv_nonneg.mpr hc.le
+  exact mul_nonneg hhalf_nonneg hinv_nonneg
+
+/-- Elementary exponential integral bound on the upper half interval. -/
 theorem scalarFourierLaplacePlemelj_upperLinearExp_integral_le
     (c : ℝ) (hc : 0 < c) :
     ∫ θ in (0 : ℝ)..(Real.pi / 2),
         Real.exp (-(((2 * c) / Real.pi) * θ)) ≤
       (Real.pi / 2) * c⁻¹ := by
-  sorry
+  calc
+    ∫ θ in (0 : ℝ)..(Real.pi / 2),
+        Real.exp (-(((2 * c) / Real.pi) * θ)) =
+        ((Real.pi / 2) * c⁻¹) * (1 - Real.exp (-c)) := by
+      exact
+        scalarFourierLaplacePlemelj_upperLinearExp_integral_eq_scaled_one_sub_exp
+          c hc
+    _ ≤ ((Real.pi / 2) * c⁻¹) * 1 := by
+      exact mul_le_mul_of_nonneg_left
+        (scalarFourierLaplacePlemelj_one_sub_exp_neg_le_one c)
+        (scalarFourierLaplacePlemelj_upperLinearExp_scale_nonneg c hc)
+    _ = (Real.pi / 2) * c⁻¹ := by
+      exact mul_one ((Real.pi / 2) * c⁻¹)
 
 /-- Pointwise Jordan's inequality integrates to comparison with the elementary
 linear exponential on the upper half interval. -/
