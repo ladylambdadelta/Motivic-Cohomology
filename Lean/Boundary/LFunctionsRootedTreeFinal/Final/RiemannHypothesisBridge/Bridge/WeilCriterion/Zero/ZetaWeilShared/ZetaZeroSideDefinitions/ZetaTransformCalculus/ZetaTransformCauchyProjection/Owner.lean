@@ -299,6 +299,26 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_verticalSlice_eq_fouri
           zetaLaplaceTransform_rightOnePoleProjectionKernel_verticalSlice_integrand_eq
             φ c t x))
 
+/-- Scalar Cauchy kernel value on the nonpositive time half-line. -/
+theorem fixedRightLine_cauchyExponentialKernel_integral_eq_negTwoPi_of_nonpos
+    (c : ℝ) (hc : 1 < c) (x : ℝ) (hx : x ≤ 0) :
+    (∫ t : ℝ,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
+      -2 * (Real.pi : ℂ) := by
+  sorry
+
+/-- Scalar Cauchy kernel value on the positive time half-line. -/
+theorem fixedRightLine_cauchyExponentialKernel_integral_eq_zero_of_pos
+    (c : ℝ) (hc : 1 < c) (x : ℝ) (hx : 0 < x) :
+    (∫ t : ℝ,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
+      0 := by
+  sorry
+
 /-- Scalar Cauchy kernel value on the fixed right line. -/
 theorem fixedRightLine_cauchyExponentialKernel_integral_eq_oneSidedWeight
     (c : ℝ) (hc : 1 < c) (x : ℝ) :
@@ -308,6 +328,53 @@ theorem fixedRightLine_cauchyExponentialKernel_integral_eq_oneSidedWeight
             Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
       Set.indicator (Set.Iic (0 : ℝ))
         (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
+  if hx : x ∈ Set.Iic (0 : ℝ) then
+    calc
+      (∫ t : ℝ,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+          = -2 * (Real.pi : ℂ) := by
+            exact fixedRightLine_cauchyExponentialKernel_integral_eq_negTwoPi_of_nonpos
+              c hc x hx
+      _ =
+          Set.indicator (Set.Iic (0 : ℝ))
+            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
+            exact (indicator_of_mem hx
+              (fun _ : ℝ => (-2 * (Real.pi : ℂ)))).symm
+  else
+    have hx_pos : 0 < x := lt_of_not_ge hx
+    calc
+      (∫ t : ℝ,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+          = 0 := by
+            exact fixedRightLine_cauchyExponentialKernel_integral_eq_zero_of_pos
+              c hc x hx_pos
+      _ =
+          Set.indicator (Set.Iic (0 : ℝ))
+            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
+            exact (indicator_of_not_mem hx
+              (fun _ : ℝ => (-2 * (Real.pi : ℂ)))).symm
+
+/-- Fubini interchange for the fixed-line Fourier-Cauchy full-line integral. -/
+theorem fixedRightLine_fourierCauchy_fullLine_fubini_interchange
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (c : ℝ) (hc : 1 < c) :
+    (∫ t : ℝ,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
+      ∫ x : ℝ,
+        K x *
+          (∫ t : ℝ,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) := by
   sorry
 
 /-- Fubini reduction of the fixed-line Fourier-Cauchy full-line integral to the
@@ -326,7 +393,35 @@ theorem fixedRightLine_fourierCauchy_fullLine_fubini_to_scalarKernel
         K x *
           Set.indicator (Set.Iic (0 : ℝ))
             (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
-  sorry
+  calc
+    (∫ t : ℝ,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+        =
+        ∫ x : ℝ,
+          K x *
+            (∫ t : ℝ,
+              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) := by
+          exact fixedRightLine_fourierCauchy_fullLine_fubini_interchange
+            K hK_cont hK_compact c hc
+    _ =
+        ∫ x : ℝ,
+          K x *
+            Set.indicator (Set.Iic (0 : ℝ))
+              (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
+          exact integral_congr_ae
+            (Eventually.of_forall
+              (fun x : ℝ =>
+                congrArg
+                  (fun z : ℂ => K x * z)
+                  (fixedRightLine_cauchyExponentialKernel_integral_eq_oneSidedWeight
+                    c hc x)))
 
 /-- The scalar Cauchy kernel indicator integral is the one-sided projection
 integral. -/
@@ -487,6 +582,41 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue
           zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue_fourierKernel
             φ c hc
 
+/-- The fixed-line Fourier-Cauchy multiplier integrand has cubic decay for a
+smooth compactly supported time kernel. -/
+theorem fixedRightLine_fourierCauchy_multiplierIntegrand_inverseCubicDecay
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ ∞ K)
+    (c : ℝ) (hc : 1 < c) :
+    ∃ C : ℝ,
+      0 < C ∧
+        ∀ t : ℝ,
+          ‖(-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (∫ x : ℝ,
+                K x *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
+            ≤ C * (1 + ‖t‖) ^ (-(3 : ℤ)) := by
+  sorry
+
+/-- Inverse-cubic pointwise decay gives an inverse-quadratic symmetric
+truncation tail along any cofinal height schedule. -/
+theorem fixedRightLine_integrableFunction_symmetricTail_inverseQuadratic_of_inverseCubicDecay
+    (G : ℝ → ℂ)
+    (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop)
+    (C : ℝ) (hC : 0 < C)
+    (hG :
+      ∀ t : ℝ,
+        ‖G t‖ ≤ C * (1 + ‖t‖) ^ (-(3 : ℤ))) :
+    ∃ MR : ℝ,
+      0 < MR ∧
+        ∀ᶠ u in atTop,
+          ‖(∫ t in Set.Icc (-(height u)) (height u), G t) -
+              (∫ t : ℝ, G t)‖
+            ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
+  sorry
+
 /-- Generic inverse-quadratic truncation tail for the fixed right
 Fourier-Cauchy multiplier. -/
 theorem fixedRightLine_fourierCauchy_truncationTail_inverseQuadratic
@@ -512,7 +642,21 @@ theorem fixedRightLine_fourierCauchy_truncationTail_inverseQuadratic
                       (Complex.I * (t : ℂ) * (x : ℂ)) *
                     Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))‖
             ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
-  sorry
+  match
+    fixedRightLine_fourierCauchy_multiplierIntegrand_inverseCubicDecay
+      K hK_cont hK_compact hK_smooth c hc
+  with
+  | ⟨C, hC_pos, hC_bound⟩ =>
+      exact
+        fixedRightLine_integrableFunction_symmetricTail_inverseQuadratic_of_inverseCubicDecay
+          (fun t : ℝ =>
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (∫ x : ℝ,
+                K x *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+          height hcofinal C hC_pos hC_bound
 
 /-- Inverse-quadratic truncation control for the fixed right Cauchy multiplier
 after its full-line Cauchy value has been identified. -/
