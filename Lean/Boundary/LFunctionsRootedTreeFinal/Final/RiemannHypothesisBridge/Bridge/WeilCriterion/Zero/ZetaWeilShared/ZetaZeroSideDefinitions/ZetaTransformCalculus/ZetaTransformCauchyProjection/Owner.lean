@@ -6159,7 +6159,75 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_awayZero_mulE
             ‖x‖ ≤ R →
               scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T *
                 ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ C := by
-  sorry
+  let C : ℝ := B * δ⁻¹ * Real.exp (a * R)
+  have hδ_inv_nonneg : 0 ≤ δ⁻¹ :=
+    inv_nonneg_of_nonneg hδ.le
+  have hexp_nonneg : 0 ≤ Real.exp (a * R) :=
+    (Real.exp_pos (a * R)).le
+  have hC_nonneg : 0 ≤ C := by
+    unfold C
+    exact mul_nonneg (mul_nonneg hB_nonneg hδ_inv_nonneg) hexp_nonneg
+  refine ⟨C, hC_nonneg, ?_⟩
+  exact
+    (hpref.and (eventually_gt_atTop (max a 1))).mono
+      (fun T hTpair =>
+        fun x hδx hxR =>
+          let Pref : ℝ := Real.pi * T / (T - a)
+          let Rec : ℝ := (T * x)⁻¹
+          let E : ℝ := ‖Complex.exp ((a : ℂ) * (x : ℂ))‖
+          have hpref_le : Pref ≤ B := hTpair.1
+          have hmax : max a 1 < T := hTpair.2
+          have haT : a < T := (le_max_left a 1).trans_lt hmax
+          have h_one_lt_T : 1 < T := (le_max_right a 1).trans_lt hmax
+          have hT_pos : 0 < T := zero_lt_one.trans h_one_lt_T
+          have hden_pos : 0 < T - a := sub_pos.mpr haT
+          have hpref_nonneg : 0 ≤ Pref := by
+            unfold Pref
+            exact div_nonneg
+              (mul_nonneg Real.pi_nonneg hT_pos.le)
+              hden_pos.le
+          have hrec_le_Tδ :
+              Rec ≤ (T * δ)⁻¹ := by
+            unfold Rec
+            exact
+              scalarFourierLaplacePlemelj_positive_awayZero_reciprocal_le
+                T x δ hT_pos hδ hδx
+          have hδ_le_Tδ : δ ≤ T * δ := by
+            calc
+              δ = 1 * δ := by
+                exact (one_mul δ).symm
+              _ ≤ T * δ := by
+                exact mul_le_mul_of_nonneg_right h_one_lt_T.le hδ.le
+          have hTδ_inv_le : (T * δ)⁻¹ ≤ δ⁻¹ :=
+            inv_anti₀ hδ hδ_le_Tδ
+          have hrec_le : Rec ≤ δ⁻¹ :=
+            hrec_le_Tδ.trans hTδ_inv_le
+          have hrec_nonneg : 0 ≤ Rec := by
+            unfold Rec
+            exact inv_nonneg_of_nonneg (mul_nonneg hT_pos.le (hδ.le.trans hδx))
+          have hE_le : E ≤ Real.exp (a * R) := by
+            unfold E
+            exact
+              scalarFourierLaplacePlemelj_positive_exp_norm_le_intervalEndpoint
+                a ha R x hxR
+          have hE_nonneg : 0 ≤ E := by
+            unfold E
+            exact norm_nonneg _
+          have h_pref_rec :
+              Pref * Rec ≤ B * δ⁻¹ :=
+            mul_le_mul hpref_le hrec_le hrec_nonneg hB_nonneg
+          have h_product :
+              (Pref * Rec) * E ≤ (B * δ⁻¹) * Real.exp (a * R) :=
+            mul_le_mul h_pref_rec hE_le hE_nonneg
+              (mul_nonneg hB_nonneg hδ_inv_nonneg)
+          calc
+            scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T *
+                ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ =
+                (Pref * Rec) * E := by
+              rfl
+            _ ≤ (B * δ⁻¹) * Real.exp (a * R) := h_product
+            _ = C := by
+              rfl)
 
 theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_awayZero_mulExp_bound_eventually
     (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
