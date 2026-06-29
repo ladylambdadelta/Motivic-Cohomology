@@ -842,29 +842,68 @@ theorem fixedRightLine_fourierCauchy_multiplierIntegrand_inverseCubicDecay
       (fixedRightLine_weightedKernel_fourierIntegral_inverseQuadraticDecay
         K hK_cont hK_compact hK_smooth c hc)
       (fun B hB =>
-        And.elim hB
-          (fun hB_pos hB_bound =>
-            Exists.elim
-              (fixedRightLine_cauchyMultiplier_norm_inverseLinearBound c hc)
-              (fun D hD =>
-                And.elim hD
-                  (fun hD_pos hD_bound =>
-                    fixedRightLine_cauchyMultiplier_times_fourierIntegral_inverseCubicBound
-                      (fun t : ℝ =>
-                        ∫ x : ℝ,
-                          K x *
-                            Complex.exp
-                              (Complex.I * (t : ℂ) * (x : ℂ)) *
-                            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
-                      (fun t : ℝ =>
-                        -1 / (((c : ℂ) + t * Complex.I) - 1))
-                      B D hB_pos hD_pos hB_bound hD_bound))))
+        Exists.elim
+          (fixedRightLine_cauchyMultiplier_norm_inverseLinearBound c hc)
+          (fun D hD =>
+            fixedRightLine_cauchyMultiplier_times_fourierIntegral_inverseCubicBound
+              (fun t : ℝ =>
+                ∫ x : ℝ,
+                  K x *
+                    Complex.exp
+                      (Complex.I * (t : ℂ) * (x : ℂ)) *
+                    Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+              (fun t : ℝ =>
+                -1 / (((c : ℂ) + t * Complex.I) - 1))
+              B D hB.left hD.left hB.right hD.right))
 
 /-- A cofinal height schedule is eventually nonnegative. -/
 theorem cofinalHeight_eventually_nonnegative
     (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
     ∀ᶠ u in atTop, 0 ≤ height u := by
   exact hcofinal.eventually_ge_atTop 0
+
+/-- Right half-line inverse-cubic tail bound. -/
+theorem real_inverseCubic_rightTail_integral_inverseQuadratic
+    (T : ℝ) (hT : 0 ≤ T) :
+    (∫ t in Set.Ici T,
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      ≤ 2 * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+  sorry
+
+/-- Left half-line inverse-cubic tail bound. -/
+theorem real_inverseCubic_leftTail_integral_inverseQuadratic
+    (T : ℝ) (hT : 0 ≤ T) :
+    (∫ t in Set.Iic (-T),
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      ≤ 2 * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+  sorry
+
+/-- The complement of a symmetric interval is contained in the union of the two
+outer half-lines. -/
+theorem compl_symmetricIcc_subset_leftTail_union_rightTail
+    (T : ℝ) :
+    (Set.Icc (-T) T)ᶜ ⊆ Set.Iic (-T) ∪ Set.Ici T := by
+  intro x hx
+  by_cases hleft : x ≤ -T
+  · exact Or.inl hleft
+  · have hneg_left : -T < x := lt_of_not_ge hleft
+    have hT_le_x : T ≤ x := by
+      by_contra hxT
+      exact hx ⟨le_of_lt hneg_left, le_of_not_ge hxT⟩
+    exact Or.inr hT_le_x
+
+/-- The symmetric complement inverse-cubic integral is bounded by the sum of
+the two half-line tail integrals. -/
+theorem real_inverseCubic_symmetricComplementIntegral_le_left_plus_right
+    (T : ℝ) :
+    (∫ t in (Set.Icc (-T) T)ᶜ,
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      ≤
+        (∫ t in Set.Iic (-T),
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) +
+        (∫ t in Set.Ici T,
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+  sorry
 
 /-- Fixed-height inverse-cubic tails outside a symmetric interval have
 inverse-quadratic size. -/
@@ -873,7 +912,38 @@ theorem real_inverseCubic_symmetricComplementIntegral_inverseQuadratic_of_nonneg
     (∫ t in (Set.Icc (-T) T)ᶜ,
         (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
       ≤ 4 * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
-  sorry
+  have hleft :
+      (∫ t in Set.Iic (-T),
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        ≤ 2 * (1 + ‖T‖) ^ (-(2 : ℤ)) :=
+    real_inverseCubic_leftTail_integral_inverseQuadratic T hT
+  have hright :
+      (∫ t in Set.Ici T,
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        ≤ 2 * (1 + ‖T‖) ^ (-(2 : ℤ)) :=
+    real_inverseCubic_rightTail_integral_inverseQuadratic T hT
+  calc
+    (∫ t in (Set.Icc (-T) T)ᶜ,
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        ≤
+          (∫ t in Set.Iic (-T),
+            (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) +
+          (∫ t in Set.Ici T,
+            (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+          exact real_inverseCubic_symmetricComplementIntegral_le_left_plus_right T
+    _ ≤
+        2 * (1 + ‖T‖) ^ (-(2 : ℤ)) +
+          2 * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+          exact add_le_add hleft hright
+    _ = 4 * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+          calc
+            2 * (1 + ‖T‖) ^ (-(2 : ℤ)) +
+                2 * (1 + ‖T‖) ^ (-(2 : ℤ))
+                =
+                (2 + 2) * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+                  exact (add_mul 2 2 ((1 + ‖T‖) ^ (-(2 : ℤ)))).symm
+            _ = 4 * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
+                  exact rfl
 
 /-- The real inverse-cubic majorant has inverse-quadratic tails outside
 symmetric intervals. -/
