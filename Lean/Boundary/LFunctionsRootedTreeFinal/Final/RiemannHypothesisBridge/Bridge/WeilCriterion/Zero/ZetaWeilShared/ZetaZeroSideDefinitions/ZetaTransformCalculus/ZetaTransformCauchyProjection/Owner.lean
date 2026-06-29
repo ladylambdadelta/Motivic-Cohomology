@@ -5498,6 +5498,74 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_hasPrimitive_of_differentiable
       scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T := by
   sorry
 
+/-- The real diameter part of the lower half-disk boundary integral is the
+primitive endpoint difference. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegmentIntegral_eq_primitiveEndpointSub
+    (F G : ℂ → ℂ) (T : ℝ)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
+    (∫ t in Set.Icc (-T) T, F (t : ℂ)) =
+      G (T : ℂ) - G ((-T : ℝ) : ℂ) := by
+  sorry
+
+/-- The lower semicircle part of the boundary integral is the returning
+primitive endpoint difference. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_lowerArcIntegral_eq_primitiveEndpointSub
+    (F G : ℂ → ℂ) (T : ℝ)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
+    (∫ θ in (0 : ℝ)..(-Real.pi),
+      let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+      F z *
+        (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
+      G ((-T : ℝ) : ℂ) - G (T : ℂ) := by
+  sorry
+
+/-- Adding the two primitive endpoint differences around the lower half-disk
+boundary gives zero. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_primitiveEndpointSub_add_return_eq_zero
+    (G : ℂ → ℂ) (T : ℝ) :
+    (G (T : ℂ) - G ((-T : ℝ) : ℂ)) +
+        (G ((-T : ℝ) : ℂ) - G (T : ℂ)) =
+      0 := by
+  calc
+    (G (T : ℂ) - G ((-T : ℝ) : ℂ)) +
+        (G ((-T : ℝ) : ℂ) - G (T : ℂ)) =
+      (G (T : ℂ) + -G ((-T : ℝ) : ℂ)) +
+        (G ((-T : ℝ) : ℂ) + -G (T : ℂ)) := by
+        exact congrArg₂ HAdd.hAdd
+          (sub_eq_add_neg (G (T : ℂ)) (G ((-T : ℝ) : ℂ)))
+          (sub_eq_add_neg (G ((-T : ℝ) : ℂ)) (G (T : ℂ)))
+    _ =
+      G (T : ℂ) +
+        (-G ((-T : ℝ) : ℂ) +
+          (G ((-T : ℝ) : ℂ) + -G (T : ℂ))) := by
+        exact add_assoc
+          (G (T : ℂ))
+          (-G ((-T : ℝ) : ℂ))
+          (G ((-T : ℝ) : ℂ) + -G (T : ℂ))
+    _ =
+      G (T : ℂ) +
+        ((-G ((-T : ℝ) : ℂ) + G ((-T : ℝ) : ℂ)) +
+          -G (T : ℂ)) := by
+        exact congrArg
+          (fun z : ℂ => G (T : ℂ) + z)
+          (add_assoc
+            (-G ((-T : ℝ) : ℂ))
+            (G ((-T : ℝ) : ℂ))
+            (-G (T : ℂ))).symm
+    _ =
+      G (T : ℂ) + (0 + -G (T : ℂ)) := by
+        exact congrArg
+          (fun z : ℂ => G (T : ℂ) + (z + -G (T : ℂ)))
+          (neg_add_cancel (G ((-T : ℝ) : ℂ)))
+    _ = G (T : ℂ) + -G (T : ℂ) := by
+        exact congrArg
+          (fun z : ℂ => G (T : ℂ) + z)
+          (zero_add (-G (T : ℂ)))
+    _ = 0 := by
+        exact add_neg_cancel (G (T : ℂ))
+
 /-- The boundary integral of a derivative around the lower half-disk contour is
 zero. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_hasPrimitive
@@ -5506,7 +5574,18 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_has
       ∃ G : ℂ → ℂ,
         scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
     scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral F T = 0 := by
-  sorry
+  match _hprimitive with
+  | ⟨G, hG⟩ =>
+    unfold scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral
+    exact
+      Eq.trans
+        (congrArg₂ HAdd.hAdd
+          (scalarFourierLaplacePlemelj_lowerHalfDisk_realSegmentIntegral_eq_primitiveEndpointSub
+            F G T hG)
+          (scalarFourierLaplacePlemelj_lowerHalfDisk_lowerArcIntegral_eq_primitiveEndpointSub
+            F G T hG))
+        (scalarFourierLaplacePlemelj_lowerHalfDisk_primitiveEndpointSub_add_return_eq_zero
+          G T)
 
 /-- Cauchy-Goursat for a generic complex-differentiable function on the lower
 half-disk boundary. -/
