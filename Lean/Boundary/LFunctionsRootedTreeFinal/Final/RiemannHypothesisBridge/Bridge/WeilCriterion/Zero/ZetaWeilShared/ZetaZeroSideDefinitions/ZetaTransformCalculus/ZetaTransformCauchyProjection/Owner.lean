@@ -1983,6 +1983,57 @@ theorem fixedRightLine_fourierCauchy_symmetricWindow_productIntegrable
       (Set.Icc (-T) T ×ˢ Set.univ) := by
   sorry
 
+/-- Standard Fubini form of the finite-window product Cauchy integral. -/
+theorem fixedRightLine_fourierCauchy_symmetricWindow_productIntegral_eq_iterated
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    (∫ p in Set.Icc (-T) T ×ˢ Set.univ,
+        (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+          K p.2 *
+          Complex.exp
+            (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ))) =
+      ∫ t in Set.Icc (-T) T,
+        ∫ x : ℝ,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            K x *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+  exact
+    setIntegral_prod
+      (fun p : ℝ × ℝ =>
+        (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+          K p.2 *
+          Complex.exp
+            (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)))
+      (fixedRightLine_fourierCauchy_symmetricWindow_productIntegrable
+        K hK_cont hK_compact hK_smooth c hc T)
+
+/-- The finite-window iterated product integral pulls the Cauchy scalar outside
+the inner time-side integral. -/
+theorem fixedRightLine_fourierCauchy_symmetricWindow_iterated_eq_outerScalarIntegral
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    (∫ t in Set.Icc (-T) T,
+        ∫ x : ℝ,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            K x *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) =
+      ∫ t in Set.Icc (-T) T,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) := by
+  sorry
+
 /-- The finite-window fixed-right-line Cauchy integral is the corresponding
 product integral. -/
 theorem fixedRightLine_fourierCauchy_symmetricWindow_eq_productIntegral
@@ -1996,6 +2047,75 @@ theorem fixedRightLine_fourierCauchy_symmetricWindow_eq_productIntegral
               Complex.exp
                 (Complex.I * (t : ℂ) * (x : ℂ)) *
               Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
+      ∫ p in Set.Icc (-T) T ×ˢ Set.univ,
+        (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+          K p.2 *
+          Complex.exp
+            (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
+  calc
+    (∫ t in Set.Icc (-T) T,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+        =
+        ∫ t in Set.Icc (-T) T,
+          ∫ x : ℝ,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+          exact
+            (fixedRightLine_fourierCauchy_symmetricWindow_iterated_eq_outerScalarIntegral
+              K hK_cont hK_compact hK_smooth c hc T).symm
+    _ =
+        ∫ p in Set.Icc (-T) T ×ˢ Set.univ,
+          (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+            K p.2 *
+            Complex.exp
+              (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
+          exact
+            (fixedRightLine_fourierCauchy_symmetricWindow_productIntegral_eq_iterated
+              K hK_cont hK_compact hK_smooth c hc T).symm
+
+/-- The scalar-window expression is the reversed iterated product integral. -/
+theorem fixedRightLine_scalarWindowIntegral_eq_reversedIterated
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    (∫ x : ℝ,
+        K x *
+          (∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
+      ∫ x : ℝ,
+        ∫ t in Set.Icc (-T) T,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            K x *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+  sorry
+
+/-- Reversed Fubini form of the scalar-window product integral. -/
+theorem fixedRightLine_scalarWindow_reversedIterated_eq_productIntegral
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    (∫ x : ℝ,
+        ∫ t in Set.Icc (-T) T,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            K x *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) =
       ∫ p in Set.Icc (-T) T ×ˢ Set.univ,
         (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
           K p.2 *
@@ -2022,7 +2142,35 @@ theorem fixedRightLine_scalarWindowIntegral_eq_productIntegral
           Complex.exp
             (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
           Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
-  sorry
+  calc
+    (∫ x : ℝ,
+        K x *
+          (∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+        =
+        ∫ x : ℝ,
+          ∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+          exact
+            fixedRightLine_scalarWindowIntegral_eq_reversedIterated
+              K hK_cont hK_compact hK_smooth c hc T
+    _ =
+        ∫ p in Set.Icc (-T) T ×ˢ Set.univ,
+          (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+            K p.2 *
+            Complex.exp
+              (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
+          exact
+            fixedRightLine_scalarWindow_reversedIterated_eq_productIntegral
+              K hK_cont hK_compact hK_smooth c hc T
 
 /-- Finite-window Fubini form of the fixed-right-line Cauchy kernel. -/
 theorem fixedRightLine_fourierCauchy_symmetricWindow_eq_scalarWindowIntegral
