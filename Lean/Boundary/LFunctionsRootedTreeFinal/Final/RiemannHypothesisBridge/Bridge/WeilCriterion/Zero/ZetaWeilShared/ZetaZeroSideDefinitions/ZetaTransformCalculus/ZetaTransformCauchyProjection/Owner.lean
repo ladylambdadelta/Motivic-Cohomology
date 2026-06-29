@@ -1,6 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCalculusBase.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.IteratedOscillatoryKernel.Owner
 import Mathlib.Analysis.Fourier.Inversion
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 import Mathlib.Analysis.SpecialFunctions.JapaneseBracket
 import Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
 import Mathlib.MeasureTheory.Integral.SetIntegral
@@ -7040,7 +7041,87 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_low_abs_le_one
     (A b : ℝ) (hb : 0 < b) (hbA : b ≤ A) (hA_le_one : A ≤ 1) :
     |∫ v in (b)..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 1 := by
-  sorry
+  let f : ℝ → ℝ :=
+    fun v : ℝ => (v / (b ^ 2 + v ^ 2)) * Real.sin v
+  have hpoint : ∀ v ∈ Ι b A, ‖f v‖ ≤ (1 : ℝ) := by
+    intro v hv
+    have hb_le_v : b ≤ v :=
+      (mem_uIcc.mp hv).1
+    have hv_le_A : v ≤ A :=
+      (mem_uIcc.mp hv).2
+    have hv_nonneg : 0 ≤ v :=
+      hb.le.trans hb_le_v
+    have hden_pos : 0 < b ^ 2 + v ^ 2 :=
+      scalarFourierLaplacePlemelj_zero_denominator_pos b hb v
+    have hcoeff_nonneg : 0 ≤ v / (b ^ 2 + v ^ 2) :=
+      div_nonneg hv_nonneg hden_pos.le
+    have hsin_abs_le_v : |Real.sin v| ≤ v := by
+      calc
+        |Real.sin v| ≤ |v| := Real.abs_sin_le_abs v
+        _ = v := by
+          exact abs_of_nonneg hv_nonneg
+    have hv_sq_le_den : v ^ 2 ≤ b ^ 2 + v ^ 2 :=
+      le_add_of_nonneg_left (sq_nonneg b)
+    have hcoeff_v_le_one :
+        (v / (b ^ 2 + v ^ 2)) * v ≤ 1 := by
+      calc
+        (v / (b ^ 2 + v ^ 2)) * v =
+            (v * v) / (b ^ 2 + v ^ 2) := by
+            exact div_mul_eq_mul_div v v (b ^ 2 + v ^ 2)
+        _ = v ^ 2 / (b ^ 2 + v ^ 2) := by
+            exact congrArg
+              (fun r : ℝ => r / (b ^ 2 + v ^ 2))
+              (pow_two v).symm
+        _ ≤ 1 := by
+            exact (div_le_one hden_pos).mpr hv_sq_le_den
+    have habs :
+        |f v| ≤ 1 := by
+      calc
+        |f v| =
+            |v / (b ^ 2 + v ^ 2)| * |Real.sin v| := by
+            unfold f
+            exact abs_mul (v / (b ^ 2 + v ^ 2)) (Real.sin v)
+        _ =
+            (v / (b ^ 2 + v ^ 2)) * |Real.sin v| := by
+            exact congrArg
+              (fun r : ℝ => r * |Real.sin v|)
+              (abs_of_nonneg hcoeff_nonneg)
+        _ ≤ (v / (b ^ 2 + v ^ 2)) * v := by
+            exact mul_le_mul_of_nonneg_left hsin_abs_le_v hcoeff_nonneg
+        _ ≤ 1 := hcoeff_v_le_one
+    calc
+      ‖f v‖ = |f v| := by
+        exact Real.norm_eq_abs (f v)
+      _ ≤ 1 := habs
+  have hnorm :
+      ‖∫ v in b..A, f v‖ ≤ (1 : ℝ) * |A - b| :=
+    intervalIntegral.norm_integral_le_of_norm_le_const hpoint
+  have hlength : |A - b| ≤ 1 := by
+    have hdiff_nonneg : 0 ≤ A - b :=
+      sub_nonneg.mpr hbA
+    have hdiff_le_A : A - b ≤ A :=
+      sub_le_self A hb.le
+    calc
+      |A - b| = A - b := by
+        exact abs_of_nonneg hdiff_nonneg
+      _ ≤ A := hdiff_le_A
+      _ ≤ 1 := hA_le_one
+  have htarget :
+      ‖∫ v in b..A, f v‖ ≤ 1 := by
+    calc
+      ‖∫ v in b..A, f v‖ ≤ (1 : ℝ) * |A - b| := hnorm
+      _ = |A - b| := by
+        exact one_mul |A - b|
+      _ ≤ 1 := hlength
+  calc
+    |∫ v in (b)..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v|
+        = ‖∫ v in b..A, f v‖ := by
+          unfold f
+          exact (Real.norm_eq_abs
+            (∫ v in b..A,
+              (v / (b ^ 2 + v ^ 2)) * Real.sin v)).symm
+    _ ≤ 1 := htarget
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_crossing_abs_le_two_pi
     (A b : ℝ) (hb : 0 < b) (hbA : b ≤ A)
