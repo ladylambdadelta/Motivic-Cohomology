@@ -6845,13 +6845,115 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_uniform_bound
       scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_pi
         a ha T x⟩
 
+/-- Nonnegative-radius, positive-frequency normalized half-window Hilbert-sine
+Dirichlet bound. -/
+theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_nonneg_radius_pos_frequency
+    (R y : ℝ) (hR : 0 ≤ R) (hy : 0 < y) :
+    |∫ u in (0)..R,
+      (u / (1 + u ^ 2)) * Real.sin (y * u)| ≤
+      Real.pi / 2 := by
+  sorry
+
+/-- The normalized Hilbert-sine kernel is even in the integration variable. -/
+theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_integrand_even
+    (y u : ℝ) :
+    ((-u) / (1 + (-u) ^ 2)) * Real.sin (y * (-u)) =
+      (u / (1 + u ^ 2)) * Real.sin (y * u) := by
+  have hden : 1 + (-u) ^ 2 = 1 + u ^ 2 := by
+    exact congrArg (fun r : ℝ => 1 + r) (neg_sq u)
+  have harg : y * (-u) = -(y * u) :=
+    mul_neg y u
+  have hsin : Real.sin (y * (-u)) = -Real.sin (y * u) :=
+    (congrArg Real.sin harg).trans (Real.sin_neg (y * u))
+  have hquot :
+      (-u) / (1 + (-u) ^ 2) = -(u / (1 + u ^ 2)) := by
+    calc
+      (-u) / (1 + (-u) ^ 2)
+          = (-u) / (1 + u ^ 2) := by
+            exact congrArg (fun d : ℝ => (-u) / d) hden
+      _ = -(u / (1 + u ^ 2)) := by
+            exact neg_div u (1 + u ^ 2)
+  calc
+    ((-u) / (1 + (-u) ^ 2)) * Real.sin (y * (-u))
+        = (-(u / (1 + u ^ 2))) * Real.sin (y * (-u)) := by
+          exact congrArg
+            (fun r : ℝ => r * Real.sin (y * (-u)))
+            hquot
+    _ = (-(u / (1 + u ^ 2))) * (-Real.sin (y * u)) := by
+          exact congrArg
+            (fun s : ℝ => (-(u / (1 + u ^ 2))) * s)
+            hsin
+    _ = (u / (1 + u ^ 2)) * Real.sin (y * u) := by
+          exact neg_mul_neg (u / (1 + u ^ 2)) (Real.sin (y * u))
+
 /-- Positive-frequency normalized half-window Hilbert-sine Dirichlet bound. -/
 theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_pos_frequency
     (R y : ℝ) (hy : 0 < y) :
     |∫ u in (0)..R,
       (u / (1 + u ^ 2)) * Real.sin (y * u)| ≤
       Real.pi / 2 := by
-  sorry
+  match le_or_gt 0 R with
+  | Or.inl hR =>
+      exact
+        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_nonneg_radius_pos_frequency
+          R y hR hy
+  | Or.inr hR_neg =>
+      let S : ℝ := -R
+      let F : ℝ → ℝ :=
+        fun u : ℝ => (u / (1 + u ^ 2)) * Real.sin (y * u)
+      have hS_nonneg : 0 ≤ S := by
+        unfold S
+        exact neg_nonneg.mpr (le_of_lt hR_neg)
+      have hcomp :
+          (∫ u in (0)..S, F (-u)) = ∫ u in R..0, F u := by
+        have hR_eq : R = -S := by
+          unfold S
+          exact (neg_neg R).symm
+        calc
+          (∫ u in (0)..S, F (-u))
+              = ∫ u in (-S)..0, F u := by
+                exact intervalIntegral.integral_comp_neg
+                  (f := F) (a := 0) (b := S)
+          _ = ∫ u in R..0, F u := by
+                exact congrArg
+                  (fun l : ℝ => ∫ u in l..0, F u)
+                  hR_eq.symm
+      have heven :
+          (∫ u in (0)..S, F (-u)) = ∫ u in (0)..S, F u := by
+        exact intervalIntegral.integral_congr
+          (Filter.Eventually.of_forall
+            (fun u : ℝ => by
+              unfold F
+              exact
+                scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_integrand_even
+                  y u))
+      have hR_to_S :
+          (∫ u in (0)..R, F u) = -∫ u in (0)..S, F u := by
+        calc
+          (∫ u in (0)..R, F u)
+              = -∫ u in R..0, F u := by
+                exact intervalIntegral.integral_symm R 0
+          _ = -∫ u in (0)..S, F (-u) := by
+                exact congrArg Neg.neg hcomp.symm
+          _ = -∫ u in (0)..S, F u := by
+                exact congrArg Neg.neg heven
+      have hS_bound :
+          |∫ u in (0)..S, F u| ≤ Real.pi / 2 := by
+        unfold F
+        exact
+          scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_nonneg_radius_pos_frequency
+            S y hS_nonneg hy
+      calc
+        |∫ u in (0)..R,
+          (u / (1 + u ^ 2)) * Real.sin (y * u)|
+            = |∫ u in (0)..R, F u| := by
+              unfold F
+              rfl
+        _ = |-∫ u in (0)..S, F u| := by
+              exact congrArg abs hR_to_S
+        _ = |∫ u in (0)..S, F u| := by
+              exact abs_neg (∫ u in (0)..S, F u)
+        _ ≤ Real.pi / 2 := hS_bound
 
 /-- Changing the sign of the frequency negates the normalized half-window
 Hilbert-sine integral. -/
