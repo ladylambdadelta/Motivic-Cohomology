@@ -6062,6 +6062,128 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
       (fun _ : ℝ => (-2 * (Real.pi : ℂ)))
   exact hvalue ▸ hbase
 
+/-- Positive-time compact-interval estimate for the normalized scalar
+Fourier-Laplace Plemelj kernel. -/
+theorem scalarFourierLaplacePlemelj_compactInterval_positive_norm_bound_eventually
+    (a : ℝ) (ha : 0 < a) (R : ℝ) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            0 < x →
+            ‖x‖ ≤ R →
+              ‖(∫ t in Set.Icc (-T) T,
+                (-1 / ((a : ℂ) + t * Complex.I)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp ((a : ℂ) * (x : ℂ)))‖
+              ≤ C := by
+  sorry
+
+/-- Negative-time compact-interval estimate for the normalized scalar
+Fourier-Laplace Plemelj kernel. -/
+theorem scalarFourierLaplacePlemelj_compactInterval_negative_norm_bound_eventually
+    (a : ℝ) (ha : 0 < a) (R : ℝ) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            x < 0 →
+            ‖x‖ ≤ R →
+              ‖(∫ t in Set.Icc (-T) T,
+                (-1 / ((a : ℂ) + t * Complex.I)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp ((a : ℂ) * (x : ℂ)))‖
+              ≤ C := by
+  sorry
+
+/-- Zero-time compact-interval estimate for the normalized scalar
+Fourier-Laplace Plemelj kernel. -/
+theorem scalarFourierLaplacePlemelj_compactInterval_zero_norm_bound
+    (a : ℝ) (ha : 0 < a) (R T x : ℝ) (hx_zero : x = 0) :
+    ‖(∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ)) *
+        Complex.exp ((a : ℂ) * (x : ℂ)))‖
+      ≤ 2 * (Real.pi + 1) := by
+  exact
+    scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_zero
+      a ha T x hx_zero
+
+/-- The maximum of the two one-sided compact-interval constants and the
+zero-time constant is a common compact-interval Plemelj constant. -/
+theorem scalarFourierLaplacePlemelj_compactInterval_commonConstant_bound
+    (a : ℝ) (ha : 0 < a) (R Cpos Cneg : ℝ)
+    (hCpos_nonneg : 0 ≤ Cpos) (hCneg_nonneg : 0 ≤ Cneg)
+    (hpos :
+      ∀ᶠ T in atTop,
+        ∀ x : ℝ,
+          0 < x →
+          ‖x‖ ≤ R →
+            ‖(∫ t in Set.Icc (-T) T,
+              (-1 / ((a : ℂ) + t * Complex.I)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp ((a : ℂ) * (x : ℂ)))‖
+            ≤ Cpos)
+    (hneg :
+      ∀ᶠ T in atTop,
+        ∀ x : ℝ,
+          x < 0 →
+          ‖x‖ ≤ R →
+            ‖(∫ t in Set.Icc (-T) T,
+              (-1 / ((a : ℂ) + t * Complex.I)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp ((a : ℂ) * (x : ℂ)))‖
+            ≤ Cneg) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            ‖x‖ ≤ R →
+              ‖(∫ t in Set.Icc (-T) T,
+                (-1 / ((a : ℂ) + t * Complex.I)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp ((a : ℂ) * (x : ℂ)))‖
+              ≤ C := by
+  let Czero : ℝ := 2 * (Real.pi + 1)
+  let C : ℝ := max (max Cpos Cneg) Czero
+  have hCzero_nonneg : 0 ≤ Czero := by
+    unfold Czero
+    exact mul_nonneg zero_le_two
+      (add_nonneg Real.pi_nonneg zero_le_one)
+  have hC_nonneg : 0 ≤ C := by
+    unfold C
+    exact le_max_of_le_right hCzero_nonneg
+  have hCpos_le : Cpos ≤ C := by
+    unfold C
+    exact (le_max_left Cpos Cneg).trans (le_max_left (max Cpos Cneg) Czero)
+  have hCneg_le : Cneg ≤ C := by
+    unfold C
+    exact (le_max_right Cpos Cneg).trans (le_max_left (max Cpos Cneg) Czero)
+  have hCzero_le : Czero ≤ C := by
+    unfold C
+    exact le_max_right (max Cpos Cneg) Czero
+  exact
+    ⟨C, hC_nonneg,
+      hpos.and hneg |>.mono
+        (fun T hboth =>
+          fun x hxR =>
+            match lt_trichotomy x 0 with
+            | Or.inl hxneg =>
+                (hboth.2 x hxneg hxR).trans hCneg_le
+            | Or.inr hnonneg =>
+                match hnonneg with
+                | Or.inl hxzero =>
+                    (scalarFourierLaplacePlemelj_compactInterval_zero_norm_bound
+                      a ha R T x hxzero).trans hCzero_le
+                | Or.inr hxpos =>
+                    (hboth.1 x hxpos hxR).trans hCpos_le)⟩
+
 /-- Compact-interval estimate for the normalized scalar Fourier-Laplace
 Plemelj kernel. -/
 theorem scalarFourierLaplacePlemelj_compactInterval_norm_bound_eventually
@@ -6077,7 +6199,15 @@ theorem scalarFourierLaplacePlemelj_compactInterval_norm_bound_eventually
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
               ≤ C := by
-  sorry
+  match scalarFourierLaplacePlemelj_compactInterval_positive_norm_bound_eventually
+    a ha R with
+  | ⟨Cpos, hCpos_nonneg, hpos⟩ =>
+      match scalarFourierLaplacePlemelj_compactInterval_negative_norm_bound_eventually
+        a ha R with
+      | ⟨Cneg, hCneg_nonneg, hneg⟩ =>
+          exact
+            scalarFourierLaplacePlemelj_compactInterval_commonConstant_bound
+              a ha R Cpos Cneg hCpos_nonneg hCneg_nonneg hpos hneg
 
 /-- Compact-interval scalar-window estimate for the fixed-right-line Cauchy
 kernel.
