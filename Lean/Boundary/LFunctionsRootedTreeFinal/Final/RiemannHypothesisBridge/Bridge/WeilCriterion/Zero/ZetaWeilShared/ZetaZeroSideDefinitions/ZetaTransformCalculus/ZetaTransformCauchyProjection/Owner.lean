@@ -2889,13 +2889,27 @@ theorem scalarFourierLaplacePlemelj_upperPole_mem_upperSemicircleInterior_of_rad
   exact hpole_norm.trans_lt hT
 
 /-- Residue of the positive-time normalized scalar kernel at the upper pole. -/
-theorem scalarFourierLaplacePlemelj_positiveUpperPole_residue
+noncomputable def scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution
+    (a x : ℝ) : ℂ :=
+  (-2 * (Real.pi : ℂ)) *
+    Complex.exp (-(a : ℂ) * (x : ℂ))
+
+/-- Evaluation of the positive-time normalized scalar residue at the upper pole. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution_eq
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
-    (-2 * (Real.pi : ℂ)) *
-        Complex.exp (-(a : ℂ) * (x : ℂ)) =
+    scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution a x =
       (-2 * (Real.pi : ℂ)) *
         Complex.exp (-(a : ℂ) * (x : ℂ)) := by
   exact rfl
+
+/-- Upper semicircle contour integral equals the abstract upper-pole residue contribution. -/
+theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_upperPoleResidueContribution
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (T : ℝ)
+    (_hpole : ‖scalarFourierLaplacePlemelj_upperPole a‖ < T) :
+    scalarFourierLaplacePlemelj_positiveClosedContour a x T =
+      scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution a x := by
+  sorry
 
 /-- Upper semicircle contour integral equals the residue contribution once the pole
 is inside the contour. -/
@@ -2906,7 +2920,11 @@ theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_residue_of_upperPol
     scalarFourierLaplacePlemelj_positiveClosedContour a x T =
       (-2 * (Real.pi : ℂ)) *
         Complex.exp (-(a : ℂ) * (x : ℂ)) := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_positiveClosedContour_eq_upperPoleResidueContribution
+      a ha x hx T _hpole).trans
+      (scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution_eq
+        a ha x hx)
 
 /-- Radius-qualified upper-half-plane residue theorem for the positive-time scalar
 closed contour. -/
