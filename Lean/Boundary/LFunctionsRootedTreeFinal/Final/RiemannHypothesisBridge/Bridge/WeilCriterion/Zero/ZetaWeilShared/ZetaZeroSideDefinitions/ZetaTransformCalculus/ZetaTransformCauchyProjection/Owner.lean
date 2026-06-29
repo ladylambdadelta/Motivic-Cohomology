@@ -5820,6 +5820,68 @@ theorem scalarFourierLaplacePlemelj_lowerArcParam_hasDerivAt
       hvalue
       hraw
 
+/-- The lower arc point has radius bounded by the contour radius. -/
+theorem scalarFourierLaplacePlemelj_lowerArcParam_norm_le_radius
+    (T : ℝ) (_hT : 0 ≤ T) (θ : ℝ) :
+    ‖scalarFourierLaplacePlemelj_lowerArcParam T θ‖ ≤ T := by
+  unfold scalarFourierLaplacePlemelj_lowerArcParam
+  have hexp_arg :
+      Complex.I * (θ : ℂ) = (θ : ℂ) * Complex.I :=
+    mul_comm Complex.I (θ : ℂ)
+  have hexp_norm :
+      ‖Complex.exp (Complex.I * (θ : ℂ))‖ = 1 := by
+    exact
+      (congrArg
+        (fun z : ℂ => ‖Complex.exp z‖)
+        hexp_arg).trans
+        (Complex.norm_exp_ofReal_mul_I θ)
+  have hTnorm :
+      ‖(T : ℂ)‖ = T := by
+    exact (RCLike.norm_ofReal (K := ℂ) T).trans
+      (abs_of_nonneg _hT)
+  have hnorm :
+      ‖(T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ = T := by
+    calc
+      ‖(T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ =
+          ‖(T : ℂ)‖ * ‖Complex.exp (Complex.I * (θ : ℂ))‖ := by
+        exact norm_mul (T : ℂ)
+          (Complex.exp (Complex.I * (θ : ℂ)))
+      _ = T * ‖Complex.exp (Complex.I * (θ : ℂ))‖ := by
+        exact congrArg
+          (fun r : ℝ => r * ‖Complex.exp (Complex.I * (θ : ℂ))‖)
+          hTnorm
+      _ = T * 1 := by
+        exact congrArg
+          (fun r : ℝ => T * r)
+          hexp_norm
+      _ = T := by
+        exact mul_one T
+  exact le_of_eq hnorm
+
+/-- The sine factor on the lower returning angular interval is nonpositive. -/
+theorem scalarFourierLaplacePlemelj_lowerArc_sin_nonpos
+    (θ : ℝ) (_hθ : θ ∈ Set.uIcc (0 : ℝ) (-Real.pi)) :
+    Real.sin θ ≤ 0 := by
+  have hneg_pi_le : -Real.pi ≤ θ :=
+    (mem_uIcc.mp _hθ).1
+  have hle_zero : θ ≤ (0 : ℝ) :=
+    (mem_uIcc.mp _hθ).2
+  exact Real.sin_nonpos_of_nonnpos_of_neg_pi_le hle_zero hneg_pi_le
+
+/-- The lower arc point has nonpositive imaginary coordinate. -/
+theorem scalarFourierLaplacePlemelj_lowerArcParam_im_nonpos
+    (T : ℝ) (_hT : 0 ≤ T) (θ : ℝ)
+    (_hθ : θ ∈ Set.uIcc (0 : ℝ) (-Real.pi)) :
+    (scalarFourierLaplacePlemelj_lowerArcParam T θ).im ≤ 0 := by
+  unfold scalarFourierLaplacePlemelj_lowerArcParam
+  exact
+    Eq.subst
+      (motive := fun r : ℝ => r ≤ 0)
+      (scalarFourierLaplacePlemelj_semicirclePoint_im T θ)
+      (mul_nonpos_of_nonneg_of_nonpos
+        _hT
+        (scalarFourierLaplacePlemelj_lowerArc_sin_nonpos θ _hθ))
+
 /-- The lower semicircle parametrization maps its angular interval into the
 lower half-disk. -/
 theorem scalarFourierLaplacePlemelj_lowerArcParam_mapsTo_lowerHalfDisk
@@ -5828,7 +5890,11 @@ theorem scalarFourierLaplacePlemelj_lowerArcParam_mapsTo_lowerHalfDisk
       (scalarFourierLaplacePlemelj_lowerArcParam T)
       (Set.uIcc (0 : ℝ) (-Real.pi))
       (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
-  sorry
+  intro θ hθ
+  exact
+    And.intro
+      (scalarFourierLaplacePlemelj_lowerArcParam_norm_le_radius T _hT θ)
+      (scalarFourierLaplacePlemelj_lowerArcParam_im_nonpos T _hT θ hθ)
 
 /-- Along the lower arc, the primitive is continuous on the angular interval. -/
 theorem scalarFourierLaplacePlemelj_lowerArcPrimitive_continuousOn
@@ -5860,7 +5926,93 @@ theorem scalarFourierLaplacePlemelj_lowerArcPrimitive_hasRightDerivWithinAt
           (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
         (Set.Ioi θ)
         θ := by
-  sorry
+  intro θ hθ
+  let s : Set ℝ := Set.Ioi θ ∩ Set.Ioo (-Real.pi) (0 : ℝ)
+  have hθ_uIcc : θ ∈ Set.uIcc (0 : ℝ) (-Real.pi) :=
+    mem_uIcc.mpr ⟨le_of_lt hθ.1, le_of_lt hθ.2⟩
+  have hθ_lower :
+      scalarFourierLaplacePlemelj_lowerArcParam T θ ∈
+        scalarFourierLaplacePlemelj_lowerHalfDisk T :=
+    scalarFourierLaplacePlemelj_lowerArcParam_mapsTo_lowerHalfDisk
+      T _hT hθ_uIcc
+  have hinner :
+      HasDerivWithinAt
+        (scalarFourierLaplacePlemelj_lowerArcParam T)
+        (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+        s
+        θ := by
+    exact
+      (scalarFourierLaplacePlemelj_lowerArcParam_hasDerivAt T θ).hasDerivWithinAt
+  have hmaps :
+      Set.MapsTo
+        (scalarFourierLaplacePlemelj_lowerArcParam T)
+        s
+        (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
+    intro u hu
+    have hu_uIcc : u ∈ Set.uIcc (0 : ℝ) (-Real.pi) :=
+      mem_uIcc.mpr ⟨le_of_lt hu.2.1, le_of_lt hu.2.2⟩
+    exact
+      scalarFourierLaplacePlemelj_lowerArcParam_mapsTo_lowerHalfDisk
+        T _hT hu_uIcc
+  have houter :
+      HasFDerivWithinAt G
+        ((F (scalarFourierLaplacePlemelj_lowerArcParam T θ)) •
+          (1 : ℂ →L[ℝ] ℂ))
+        (scalarFourierLaplacePlemelj_lowerHalfDisk T)
+        (scalarFourierLaplacePlemelj_lowerArcParam T θ) := by
+    exact (_hprimitive.2
+      (scalarFourierLaplacePlemelj_lowerArcParam T θ)
+      hθ_lower).complexToReal_fderiv
+  have hcomp :
+      HasDerivWithinAt
+        (G ∘ scalarFourierLaplacePlemelj_lowerArcParam T)
+        (((F (scalarFourierLaplacePlemelj_lowerArcParam T θ)) •
+          (1 : ℂ →L[ℝ] ℂ))
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+        s
+        θ := by
+    exact houter.comp_hasDerivWithinAt θ hinner hmaps
+  have hvalue :
+      (((F (scalarFourierLaplacePlemelj_lowerArcParam T θ)) •
+          (1 : ℂ →L[ℝ] ℂ))
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
+        F (scalarFourierLaplacePlemelj_lowerArcParam T θ) *
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
+    calc
+      (((F (scalarFourierLaplacePlemelj_lowerArcParam T θ)) •
+          (1 : ℂ →L[ℝ] ℂ))
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
+          F (scalarFourierLaplacePlemelj_lowerArcParam T θ) *
+            ((1 : ℂ →L[ℝ] ℂ)
+              (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) := by
+        rfl
+      _ =
+          F (scalarFourierLaplacePlemelj_lowerArcParam T θ) *
+            (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
+        rfl
+  have hlocal :
+      HasDerivWithinAt
+        (fun u : ℝ => G (scalarFourierLaplacePlemelj_lowerArcParam T u))
+        (F (scalarFourierLaplacePlemelj_lowerArcParam T θ) *
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+        s
+        θ := by
+    exact
+      Eq.subst
+        (motive := fun v : ℂ =>
+          HasDerivWithinAt
+            (G ∘ scalarFourierLaplacePlemelj_lowerArcParam T)
+            v
+            s
+            θ)
+        hvalue
+        hcomp
+  have hIoo_mem :
+      Set.Ioo (-Real.pi) (0 : ℝ) ∈ 𝓝[Set.Ioi θ] θ :=
+    Ioo_mem_nhdsWithin_Ioi ⟨le_of_lt hθ.1, hθ.2⟩
+  exact
+    hlocal.mono_of_mem_nhdsWithin
+      (inter_mem self_mem_nhdsWithin hIoo_mem)
 
 /-- The lower arc integrand is interval-integrable over the returning arc. -/
 theorem scalarFourierLaplacePlemelj_lowerArc_intervalIntegrable
