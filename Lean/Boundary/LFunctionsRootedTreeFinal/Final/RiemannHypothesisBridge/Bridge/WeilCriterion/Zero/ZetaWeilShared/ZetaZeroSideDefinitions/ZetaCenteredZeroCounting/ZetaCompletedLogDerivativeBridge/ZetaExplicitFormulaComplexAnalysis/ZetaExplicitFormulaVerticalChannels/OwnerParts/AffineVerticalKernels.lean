@@ -1184,9 +1184,19 @@ theorem zetaCompletedExplicitFormulaLeftCenteredAffineLine_eq_neg_rightCenteredA
     zetaCompletedExplicitFormulaLeftCenteredAffineLine F t =
         ((1 : ℂ) - (F.c : ℂ) - (1 / 2 : ℂ)) + t * Complex.I := hleft_def
     _ = ((1 / 2 : ℂ) - (F.c : ℂ)) + t * Complex.I := by
+      have hone_sub_half : (1 : ℂ) - (1 / 2 : ℂ) = (1 / 2 : ℂ) := by
+        exact eq_sub_of_add_eq (add_halves (1 : ℂ)).symm
+      have hreal_part :
+          (1 : ℂ) - (F.c : ℂ) - (1 / 2 : ℂ) =
+            (1 / 2 : ℂ) - (F.c : ℂ) := by
+        calc
+          (1 : ℂ) - (F.c : ℂ) - (1 / 2 : ℂ) =
+              (1 : ℂ) - (1 / 2 : ℂ) - (F.c : ℂ) := by
+            exact sub_right_comm (1 : ℂ) (F.c : ℂ) (1 / 2 : ℂ)
+          _ = (1 / 2 : ℂ) - (F.c : ℂ) := by
+            exact congrArg (fun z : ℂ => z - (F.c : ℂ)) hone_sub_half
       exact congrArg₂ HAdd.hAdd
-        (show (1 : ℂ) - (F.c : ℂ) - (1 / 2 : ℂ) = (1 / 2 : ℂ) - (F.c : ℂ) by
-          exact sub_sub_eq_sub_of_eq_add (show (1 / 2 : ℂ) + (F.c : ℂ) = (1 : ℂ) by norm_num))
+        hreal_part
         rfl
     _ = -(((F.c : ℂ) - (1 / 2 : ℂ)) - t * Complex.I) := by
       exact show ((1 / 2 : ℂ) - (F.c : ℂ)) + t * Complex.I =
