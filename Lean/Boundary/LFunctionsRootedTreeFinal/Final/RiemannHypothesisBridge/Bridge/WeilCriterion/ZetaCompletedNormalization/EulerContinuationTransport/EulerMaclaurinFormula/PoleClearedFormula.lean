@@ -265,17 +265,17 @@ theorem eulerMaclaurin_poleClearedRiemannZeta_formula_with_bernoulliIntegralRema
         eulerMaclaurinPoleClearedZetaEndpointTerm z +
         eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z := by
   exact match hz_dec with
-  | Or.inl hz_ne_one =>
+  | Decidable.isTrue hz_ne_one =>
       have hraw :
           riemannZeta z =
             eulerMaclaurinZetaFinitePart z +
               eulerMaclaurinZetaMainTerm z +
               eulerMaclaurinZetaEndpointTerm z +
               eulerMaclaurinZetaBernoulliIntegralRemainder z :=
-        eulerMaclaurin_riemannZeta_formula_with_bernoulliIntegralRemainder_standard
+      eulerMaclaurin_riemannZeta_formula_with_bernoulliIntegralRemainder_standard
           z hz_one hz_two hz_ne_one
       eulerMaclaurin_poleCleared_formula_of_raw_formula hz_ne_one hraw
-  | Or.inr hz_not_ne_one =>
+  | Decidable.isFalse hz_not_ne_one =>
       have hz_eq_one : z = 1 :=
         of_not_not hz_not_ne_one
       Eq.subst
