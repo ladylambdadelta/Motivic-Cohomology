@@ -6592,11 +6592,58 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_kernel
       |∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)| := by
   sorry
 
+/-- Exact arctangent primitive for the positive Cauchy kernel mass. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_kernelMass_eq_two_arctan
+    (a : ℝ) (ha : 0 < a) (T : ℝ) :
+    (∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)) =
+      (2 : ℝ) * Real.arctan (T / a) := by
+  sorry
+
+/-- Elementary arctangent bound for the positive Cauchy kernel primitive. -/
+theorem scalarFourierLaplacePlemelj_two_mul_arctan_abs_le_pi
+    (y : ℝ) :
+    |(2 : ℝ) * Real.arctan y| ≤ Real.pi := by
+  let u : ℝ := Real.arctan y
+  have hupper_half : u < Real.pi / 2 := by
+    unfold u
+    exact Real.arctan_lt_pi_div_two y
+  have hlower_half : -(Real.pi / 2) < u := by
+    unfold u
+    exact Real.neg_pi_div_two_lt_arctan y
+  have htwo_pos : (0 : ℝ) < 2 :=
+    two_pos
+  have hmul_upper :
+      (2 : ℝ) * u < 2 * (Real.pi / 2) :=
+    mul_lt_mul_of_pos_left hupper_half htwo_pos
+  have hmul_lower :
+      2 * (-(Real.pi / 2)) < (2 : ℝ) * u :=
+    mul_lt_mul_of_pos_left hlower_half htwo_pos
+  have htwo_half : (2 : ℝ) * (Real.pi / 2) = Real.pi :=
+    two_mul_div_two Real.pi
+  have htwo_neg_half : (2 : ℝ) * (-(Real.pi / 2)) = -Real.pi := by
+    calc
+      (2 : ℝ) * (-(Real.pi / 2)) = -((2 : ℝ) * (Real.pi / 2)) := by
+        exact mul_neg (2 : ℝ) (Real.pi / 2)
+      _ = -Real.pi := by
+        exact congrArg Neg.neg htwo_half
+  have hupper : (2 : ℝ) * u ≤ Real.pi :=
+    le_of_lt (hmul_upper.trans_eq htwo_half)
+  have hlower : -Real.pi ≤ (2 : ℝ) * u :=
+    le_of_lt (htwo_neg_half.symm.trans_lt hmul_lower)
+  exact abs_le.mpr ⟨hlower, hupper⟩
+
 /-- The symmetric nonoscillatory Cauchy kernel mass is bounded by `π`. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_kernelMass_abs_le_pi
     (a : ℝ) (ha : 0 < a) (T : ℝ) :
     |∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)| ≤ Real.pi := by
-  sorry
+  calc
+    |∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)|
+        = |(2 : ℝ) * Real.arctan (T / a)| := by
+          exact congrArg abs
+            (scalarFourierLaplacePlemelj_uncompensated_kernelMass_eq_two_arctan
+              a ha T)
+    _ ≤ Real.pi :=
+          scalarFourierLaplacePlemelj_two_mul_arctan_abs_le_pi (T / a)
 
 /-- Fixed-constant Dirichlet bound for the even-cosine component of the
 uncompensated Cauchy kernel. -/
