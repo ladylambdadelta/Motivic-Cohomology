@@ -2012,6 +2012,63 @@ theorem fixedRightLine_fourierCauchy_symmetricWindow_productIntegral_eq_iterated
       (fixedRightLine_fourierCauchy_symmetricWindow_productIntegrable
         K hK_cont hK_compact hK_smooth c hc T)
 
+/-- Pointwise reassociation for pulling the fixed Cauchy scalar outside the
+inner time-side integral. -/
+theorem fixedRightLine_outerScalar_integrand_reassoc
+    (K : ℝ → ℂ) (c t x : ℝ) :
+    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+        (K x *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) =
+      (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+        K x *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ)) *
+        Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+  calc
+    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+        (K x *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+        =
+        ((-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (K x *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)))) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+          exact mul_assoc
+            (-1 / (((c : ℂ) + t * Complex.I) - 1))
+            (K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)))
+            (Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+    _ =
+        (((-1 / (((c : ℂ) + t * Complex.I) - 1)) * K x) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ))) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+          exact congrArg
+            (fun z : ℂ =>
+              z *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+            (mul_assoc
+              (-1 / (((c : ℂ) + t * Complex.I) - 1))
+              (K x)
+              (Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ))))
+    _ =
+        ((-1 / (((c : ℂ) + t * Complex.I) - 1)) * K x) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+          exact (mul_assoc
+            ((-1 / (((c : ℂ) + t * Complex.I) - 1)) * K x)
+            (Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)))
+            (Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))).symm
+
 /-- The finite-window iterated product integral pulls the Cauchy scalar outside
 the inner time-side integral. -/
 theorem fixedRightLine_fourierCauchy_symmetricWindow_iterated_eq_outerScalarIntegral
@@ -2029,10 +2086,48 @@ theorem fixedRightLine_fourierCauchy_symmetricWindow_iterated_eq_outerScalarInte
         (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
           (∫ x : ℝ,
             K x *
-              Complex.exp
-                (Complex.I * (t : ℂ) * (x : ℂ)) *
-              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) := by
-  sorry
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) := by
+  exact
+    integral_congr_ae
+      (Eventually.of_forall
+        (fun t : ℝ =>
+          calc
+            (∫ x : ℝ,
+              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                K x *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+                =
+                ∫ x : ℝ,
+                  (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                    (K x *
+                      Complex.exp
+                        (Complex.I * (t : ℂ) * (x : ℂ)) *
+                      Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) := by
+                  exact
+                    integral_congr_ae
+                      (Eventually.of_forall
+                        (fun x : ℝ =>
+                          (fixedRightLine_outerScalar_integrand_reassoc
+                            K c t x).symm))
+            _ =
+                (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                  (∫ x : ℝ,
+                    K x *
+                      Complex.exp
+                        (Complex.I * (t : ℂ) * (x : ℂ)) *
+                      Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) := by
+                  exact
+                    integral_mul_left
+                      (-1 / (((c : ℂ) + t * Complex.I) - 1))
+                      (fun x : ℝ =>
+                        K x *
+                          Complex.exp
+                            (Complex.I * (t : ℂ) * (x : ℂ)) *
+                          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))))
 
 /-- The finite-window fixed-right-line Cauchy integral is the corresponding
 product integral. -/
