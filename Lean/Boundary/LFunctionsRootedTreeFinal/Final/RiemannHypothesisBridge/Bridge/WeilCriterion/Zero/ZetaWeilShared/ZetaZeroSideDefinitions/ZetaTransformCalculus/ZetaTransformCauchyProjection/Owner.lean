@@ -318,185 +318,6 @@ theorem fixedRightLine_cauchyDenominator_eq_positiveRate
             (fun z : ℂ => z + t * Complex.I)
             (Complex.ofReal_sub c 1).symm
 
-/-- Smooth product-level Cauchy projection on the fixed right line.
-
-This is the ordinary-integral owner statement: smooth compact support supplies
-the decay needed to interpret the Cauchy multiplier as a genuine full-line
-integral before taking the one-sided boundary projection. -/
-theorem fixedRightLine_fourierCauchy_fullLine_smooth_oneSidedProjection
-    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
-    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
-    (c : ℝ) (hc : 1 < c) :
-    (∫ t : ℝ,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-          (∫ x : ℝ,
-            K x *
-              Complex.exp
-                (Complex.I * (t : ℂ) * (x : ℂ)) *
-              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
-      ∫ x in Set.Ici (0 : ℝ),
-        (-2 * (Real.pi : ℂ)) * K x := by
-  sorry
-
-/-- The scalar Cauchy kernel indicator integral is the one-sided projection
-integral. -/
-theorem fixedRightLine_fourierCauchy_scalarKernelIntegral_eq_oneSidedProjection
-    (K : ℝ → ℂ) :
-    (∫ x : ℝ,
-        K x *
-          Set.indicator (Set.Ici (0 : ℝ))
-            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x) =
-      ∫ x in Set.Ici (0 : ℝ),
-        (-2 * (Real.pi : ℂ)) * K x := by
-  calc
-    (∫ x : ℝ,
-        K x *
-          Set.indicator (Set.Ici (0 : ℝ))
-            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)
-        =
-        ∫ x : ℝ,
-          Set.indicator (Set.Ici (0 : ℝ))
-            (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x := by
-          exact integral_congr_ae
-            (Eventually.of_forall
-              (fun x : ℝ =>
-                if hx : x ∈ Set.Ici (0 : ℝ) then
-                  calc
-                    K x *
-                        Set.indicator (Set.Ici (0 : ℝ))
-                          (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x
-                        = K x * (-2 * (Real.pi : ℂ)) := by
-                          exact congrArg
-                            (fun z : ℂ => K x * z)
-                            (indicator_of_mem hx
-                              (fun _ : ℝ => (-2 * (Real.pi : ℂ))))
-                    _ = (-2 * (Real.pi : ℂ)) * K x := by
-                          exact mul_comm (K x) (-2 * (Real.pi : ℂ))
-                    _ =
-                        Set.indicator (Set.Ici (0 : ℝ))
-                          (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x := by
-                          exact (indicator_of_mem hx
-                            (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y)).symm
-                else
-                  calc
-                    K x *
-                        Set.indicator (Set.Ici (0 : ℝ))
-                          (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x
-                        = K x * 0 := by
-                          exact congrArg
-                            (fun z : ℂ => K x * z)
-                            (indicator_of_not_mem hx
-                              (fun _ : ℝ => (-2 * (Real.pi : ℂ))))
-                    _ = 0 := by
-                          exact mul_zero (K x)
-                    _ =
-                        Set.indicator (Set.Ici (0 : ℝ))
-                          (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x := by
-                          exact (indicator_of_not_mem hx
-                            (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y)).symm))
-    _ =
-        ∫ x in Set.Ici (0 : ℝ),
-          (-2 * (Real.pi : ℂ)) * K x := by
-          exact integral_indicator measurableSet_Ici
-
-/-- Generic one-sided Fourier-Cauchy inversion for a smooth compactly supported
-time-side kernel on the fixed right line. -/
-theorem fixedRightLine_fourierCauchy_fullLine_oneSidedProjection
-    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
-    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
-    (c : ℝ) (hc : 1 < c) :
-    (∫ t : ℝ,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-          (∫ x : ℝ,
-            K x *
-              Complex.exp
-                (Complex.I * (t : ℂ) * (x : ℂ)) *
-              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
-      ∫ x in Set.Ici (0 : ℝ),
-        (-2 * (Real.pi : ℂ)) * K x := by
-  exact
-    fixedRightLine_fourierCauchy_fullLine_smooth_oneSidedProjection
-      K hK_cont hK_compact hK_smooth c hc
-
-/-- Full-line Cauchy inversion after the vertical slice has already been
-rewritten as the Fourier transform of the right projection kernel. -/
-theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue_fourierKernel
-    (f : LFunctions.ZetaAdmissibleFunction) (c : ℝ) (hc : 1 < c) :
-    (∫ t : ℝ,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-          (∫ x : ℝ,
-            zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction' x *
-              Complex.exp
-                (Complex.I * (t : ℂ) * (x : ℂ)) *
-              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
-      zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c := by
-  calc
-    (∫ t : ℝ,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-          (∫ x : ℝ,
-            zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction' x *
-              Complex.exp
-                (Complex.I * (t : ℂ) * (x : ℂ)) *
-              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
-        =
-        ∫ x in Set.Ici (0 : ℝ),
-          (-2 * (Real.pi : ℂ)) *
-            zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction' x :=
-          fixedRightLine_fourierCauchy_fullLine_oneSidedProjection
-            (zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction')
-            (zetaLaplaceTransform_rightOnePoleProjectionKernel_continuous f.toZetaTestFunction')
-            (zetaLaplaceTransform_rightOnePoleProjectionKernel_hasCompactSupport f.toZetaTestFunction')
-            (zetaLaplaceTransform_rightOnePoleProjectionKernel_contDiff_admissible f)
-            c hc
-    _ = zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c := by
-          unfold zetaLaplaceTransform_rightOnePoleCauchyProjectionValue
-          unfold zetaLaplaceTransform_rightOnePoleProjectionKernel
-          exact
-            setIntegral_congr_fun measurableSet_Ici
-              (fun x _hx =>
-                (mul_assoc
-                  (-2 * (Real.pi : ℂ))
-                  (f.toZetaTestFunction' x)
-                  (Complex.exp ((1 / 2 : ℂ) * (x : ℂ)))).symm)
-
-/-- One-sided Cauchy inversion for the right projection kernel on the fixed
-line.
-
-This is the genuine analytic core: the full-line Fourier-Cauchy multiplier
-integral recovers the positive-time half-line projection value. -/
-theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue
-    (f : LFunctions.ZetaAdmissibleFunction) (c : ℝ) (hc : 1 < c) :
-    (∫ t : ℝ,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-          zetaLaplaceTransform f.toZetaTestFunction'
-            (((c : ℂ) + t * Complex.I) - 1 / 2)) =
-      zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c := by
-  calc
-    (∫ t : ℝ,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-          zetaLaplaceTransform f.toZetaTestFunction'
-            (((c : ℂ) + t * Complex.I) - 1 / 2))
-        =
-        ∫ t : ℝ,
-          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-            (∫ x : ℝ,
-              zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction' x *
-                Complex.exp
-                  (Complex.I * (t : ℂ) * (x : ℂ)) *
-                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) := by
-          exact
-            integral_congr_ae
-              (Eventually.of_forall
-                (fun t : ℝ =>
-                  congrArg
-                    (fun z : ℂ =>
-                      (-1 / (((c : ℂ) + t * Complex.I) - 1)) * z)
-                    (zetaLaplaceTransform_rightOnePoleProjectionKernel_verticalSlice_eq_fourier
-                      f.toZetaTestFunction' c t)))
-    _ = zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c :=
-          zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue_fourierKernel
-            f c hc
-
 /-- Quadratic decay of the Fourier transform of the exponentially weighted
 smooth compactly supported kernel on the fixed right line. -/
 noncomputable def fixedRightLine_weightedKernel_admissibleFunction
@@ -1080,6 +901,29 @@ theorem cofinalHeight_eventually_nonnegative
     (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
     ∀ᶠ u in atTop, 0 ≤ height u := by
   exact hcofinal.eventually_ge_atTop 0
+
+/-- A cofinal height schedule sends the Japanese bracket to infinity. -/
+theorem cofinalHeight_one_add_norm_tendsto_atTop
+    (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
+    Tendsto (fun u : ℝ => (1 + ‖height u‖ : ℝ)) atTop atTop :=
+  tendsto_atTop.2
+    (fun A : ℝ =>
+      (hcofinal.eventually_ge_atTop A).mono
+        (fun u hu =>
+          le_trans hu
+            (le_trans
+              (Real.le_norm_self (height u))
+              (le_add_of_nonneg_left zero_le_one))))
+
+/-- Inverse-square decay along a cofinal height schedule tends to zero. -/
+theorem cofinalHeight_one_add_norm_inverseQuadratic_tendsto_zero
+    (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
+    Tendsto
+      (fun u : ℝ => (1 + ‖height u‖) ^ (-(2 : ℤ)) : ℝ)
+      atTop
+      (𝓝 0) :=
+  (tendsto_zpow_atTop_zero (show (-(2 : ℤ)) < 0 by exact Int.negSucc_lt_zero 1)).comp
+    (cofinalHeight_one_add_norm_tendsto_atTop height hcofinal)
 
 /-- On a nonnegative tail, the inverse-cubic norm weight is the translated
 real-power weight. -/
@@ -1873,6 +1717,50 @@ theorem fixedRightLine_integrableFunction_symmetricTail_inverseQuadratic_of_inve
                     exact (mul_assoc C A
                       ((1 + ‖height u‖) ^ (-(2 : ℤ)))).symm)
 
+/-- Inverse-quadratic symmetric tail control identifies the full-line integral
+as the limit of symmetric truncations. -/
+theorem fixedRightLine_integrableFunction_symmetricTruncation_tendsto_fullLine_of_inverseQuadraticTail
+    (G : ℝ → ℂ) (height : ℝ → ℝ)
+    (hcofinal : Tendsto height atTop atTop)
+    (htail :
+      ∃ MR : ℝ,
+        0 < MR ∧
+          ∀ᶠ u in atTop,
+            ‖(∫ t in Set.Icc (-(height u)) (height u), G t) -
+                (∫ t : ℝ, G t)‖
+              ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ))) :
+    Tendsto
+      (fun u : ℝ =>
+        ∫ t in Set.Icc (-(height u)) (height u), G t)
+      atTop
+      (𝓝 (∫ t : ℝ, G t)) := by
+  match htail with
+  | ⟨MR, hMR_pos, hMR_eventual⟩ =>
+      have hMR_nonneg : 0 ≤ MR :=
+        le_of_lt hMR_pos
+      have hdecay :
+          Tendsto
+            (fun u : ℝ =>
+              MR * (1 + ‖height u‖) ^ (-(2 : ℤ)))
+            atTop
+            (𝓝 (MR * 0)) :=
+        tendsto_const_nhds.mul
+          (cofinalHeight_one_add_norm_inverseQuadratic_tendsto_zero
+            height hcofinal)
+      have hzero :
+          MR * (0 : ℝ) = 0 :=
+        mul_zero MR
+      have hmajorant :
+          Tendsto
+            (fun u : ℝ =>
+              MR * (1 + ‖height u‖) ^ (-(2 : ℤ)))
+            atTop
+            (𝓝 0) :=
+        hzero ▸ hdecay
+      exact
+        tendsto_iff_norm_sub_tendsto_zero.2
+          (squeeze_zero_norm' hMR_eventual hmajorant)
+
 /-- The fixed right-line Fourier-Cauchy multiplier integrand is strongly
 measurable in the frequency variable. -/
 theorem fixedRightLine_fourierCauchy_multiplierIntegrand_aestronglyMeasurable
@@ -1978,6 +1866,890 @@ theorem fixedRightLine_fourierCauchy_truncationTail_inverseQuadratic
           (fixedRightLine_fourierCauchy_multiplierIntegrand_aestronglyMeasurable
             K hK_cont hK_compact hK_smooth c hc)
           height hcofinal C hC_pos hC_bound
+
+/-- Symmetric truncations of the smooth fixed-line Fourier-Cauchy multiplier
+converge to the full-line ordinary integral. -/
+theorem fixedRightLine_fourierCauchy_symmetricTruncation_tendsto_fullLine
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (∫ x : ℝ,
+              K x *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+      atTop
+      (𝓝
+        (∫ t : ℝ,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (∫ x : ℝ,
+              K x *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))) := by
+  exact
+    fixedRightLine_integrableFunction_symmetricTruncation_tendsto_fullLine_of_inverseQuadraticTail
+      (fun t : ℝ =>
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+      (fun T : ℝ => T)
+      tendsto_id
+      (fixedRightLine_fourierCauchy_truncationTail_inverseQuadratic
+        K hK_cont hK_compact hK_smooth c hc
+        (fun T : ℝ => T)
+        tendsto_id)
+
+/-- The scalar Cauchy kernel indicator integral is the one-sided projection
+integral. -/
+theorem fixedRightLine_fourierCauchy_scalarKernelIntegral_eq_oneSidedProjection
+    (K : ℝ → ℂ) :
+    (∫ x : ℝ,
+        K x *
+          Set.indicator (Set.Ici (0 : ℝ))
+            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x) =
+      ∫ x in Set.Ici (0 : ℝ),
+        (-2 * (Real.pi : ℂ)) * K x := by
+  calc
+    (∫ x : ℝ,
+        K x *
+          Set.indicator (Set.Ici (0 : ℝ))
+            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)
+        =
+        ∫ x : ℝ,
+          Set.indicator (Set.Ici (0 : ℝ))
+            (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x := by
+          exact integral_congr_ae
+            (Eventually.of_forall
+              (fun x : ℝ =>
+                if hx : x ∈ Set.Ici (0 : ℝ) then
+                  calc
+                    K x *
+                        Set.indicator (Set.Ici (0 : ℝ))
+                          (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x
+                        = K x * (-2 * (Real.pi : ℂ)) := by
+                          exact congrArg
+                            (fun z : ℂ => K x * z)
+                            (indicator_of_mem hx
+                              (fun _ : ℝ => (-2 * (Real.pi : ℂ))))
+                    _ = (-2 * (Real.pi : ℂ)) * K x := by
+                          exact mul_comm (K x) (-2 * (Real.pi : ℂ))
+                    _ =
+                        Set.indicator (Set.Ici (0 : ℝ))
+                          (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x := by
+                          exact (indicator_of_mem hx
+                            (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y)).symm
+                else
+                  calc
+                    K x *
+                        Set.indicator (Set.Ici (0 : ℝ))
+                          (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x
+                        = K x * 0 := by
+                          exact congrArg
+                            (fun z : ℂ => K x * z)
+                            (indicator_of_not_mem hx
+                              (fun _ : ℝ => (-2 * (Real.pi : ℂ))))
+                    _ = 0 := by
+                          exact mul_zero (K x)
+                    _ =
+                        Set.indicator (Set.Ici (0 : ℝ))
+                          (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x := by
+                          exact (indicator_of_not_mem hx
+                            (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y)).symm))
+    _ =
+        ∫ x in Set.Ici (0 : ℝ),
+          (-2 * (Real.pi : ℂ)) * K x := by
+          exact integral_indicator measurableSet_Ici
+
+/-- Product integrability for the finite-window fixed-right-line Cauchy kernel. -/
+theorem fixedRightLine_fourierCauchy_symmetricWindow_productIntegrable
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    IntegrableOn
+      (fun p : ℝ × ℝ =>
+        (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+          K p.2 *
+          Complex.exp
+            (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)))
+      (Set.Icc (-T) T ×ˢ Set.univ) := by
+  sorry
+
+/-- The finite-window fixed-right-line Cauchy integral is the corresponding
+product integral. -/
+theorem fixedRightLine_fourierCauchy_symmetricWindow_eq_productIntegral
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    (∫ t in Set.Icc (-T) T,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
+      ∫ p in Set.Icc (-T) T ×ˢ Set.univ,
+        (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+          K p.2 *
+          Complex.exp
+            (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
+  sorry
+
+/-- The scalar-window integral is the same finite-window product integral. -/
+theorem fixedRightLine_scalarWindowIntegral_eq_productIntegral
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    (∫ x : ℝ,
+        K x *
+          (∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
+      ∫ p in Set.Icc (-T) T ×ˢ Set.univ,
+        (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+          K p.2 *
+          Complex.exp
+            (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
+  sorry
+
+/-- Finite-window Fubini form of the fixed-right-line Cauchy kernel. -/
+theorem fixedRightLine_fourierCauchy_symmetricWindow_eq_scalarWindowIntegral
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    (∫ t in Set.Icc (-T) T,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
+      ∫ x : ℝ,
+        K x *
+          (∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) := by
+  calc
+    (∫ t in Set.Icc (-T) T,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+        =
+        ∫ p in Set.Icc (-T) T ×ˢ Set.univ,
+          (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+            K p.2 *
+            Complex.exp
+              (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
+          exact
+            fixedRightLine_fourierCauchy_symmetricWindow_eq_productIntegral
+              K hK_cont hK_compact hK_smooth c hc T
+    _ =
+        ∫ x : ℝ,
+          K x *
+            (∫ t in Set.Icc (-T) T,
+              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) := by
+          exact
+            (fixedRightLine_scalarWindowIntegral_eq_productIntegral
+              K hK_cont hK_compact hK_smooth c hc T).symm
+
+/-- The one-sided scalar projection is unchanged if the endpoint is removed,
+because the endpoint has zero Lebesgue mass. -/
+theorem fixedRightLine_scalarProjection_Ioi_integral_eq_Ici_integral
+    (K : ℝ → ℂ) :
+    (∫ x in Set.Ioi (0 : ℝ),
+        (-2 * (Real.pi : ℂ)) * K x) =
+      ∫ x in Set.Ici (0 : ℝ),
+        (-2 * (Real.pi : ℂ)) * K x := by
+  exact (integral_Ici_eq_integral_Ioi : _).symm
+
+/-- Pointwise positive-time Bromwich/Plemelj value for the fixed-right-line
+finite scalar Cauchy windows. -/
+theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_positive
+    (c : ℝ) (hc : 1 < c) (x : ℝ) (hx : 0 < x) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+      atTop
+      (𝓝 (-2 * (Real.pi : ℂ))) := by
+  sorry
+
+/-- Pointwise negative-time Bromwich/Plemelj value for the fixed-right-line
+finite scalar Cauchy windows. -/
+theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
+    (c : ℝ) (hc : 1 < c) (x : ℝ) (hx : x < 0) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+      atTop
+      (𝓝 0) := by
+  sorry
+
+/-- Uniform compact-support domination for the paired scalar Cauchy windows. -/
+theorem fixedRightLine_scalarCauchyWindow_compactSupport_dominated
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) :
+    ∃ G : ℝ → ℝ,
+      Integrable G ∧
+        0 ≤ᵐ[volume] G ∧
+          ∀ᶠ T in atTop,
+            ∀ᵐ x ∂volume,
+              ‖K x *
+                (∫ t in Set.Icc (-T) T,
+                  (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                    Complex.exp
+                      (Complex.I * (t : ℂ) * (x : ℂ)) *
+                    Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
+                ≤ G x := by
+  sorry
+
+/-- Continuity in the time variable of each finite scalar Cauchy window paired
+against the smooth compact-support kernel. -/
+theorem fixedRightLine_scalarCauchyWindow_paired_continuous
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) (T : ℝ) :
+    Continuous
+      (fun x : ℝ =>
+        K x *
+          (∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) := by
+  sorry
+
+/-- A.e.-strong measurability of the paired scalar Cauchy window kernels. -/
+theorem fixedRightLine_scalarCauchyWindow_paired_aestronglyMeasurable_eventually
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) :
+    ∀ᶠ T in atTop,
+      AEStronglyMeasurable
+        (fun x : ℝ =>
+          K x *
+            (∫ t in Set.Icc (-T) T,
+              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+        volume := by
+  exact
+    Eventually.of_forall
+      (fun T : ℝ =>
+        (fixedRightLine_scalarCauchyWindow_paired_continuous
+          K hK_cont hK_compact hK_smooth c hc T).aestronglyMeasurable)
+
+/-- Positive-time paired scalar Cauchy window limit after multiplication by
+the compact-support kernel. -/
+theorem fixedRightLine_scalarCauchyWindow_paired_pointwise_tendsto_positive
+    (K : ℝ → ℂ) (c : ℝ) (hc : 1 < c) (x : ℝ) (hx : 0 < x) :
+    Tendsto
+      (fun T : ℝ =>
+        K x *
+          (∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+      atTop
+      (𝓝
+        (Set.indicator (Set.Ioi (0 : ℝ))
+          (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x)) := by
+  have hscalar :
+      Tendsto
+        (fun T : ℝ =>
+          ∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+        atTop
+        (𝓝 (-2 * (Real.pi : ℂ))) :=
+    fixedRightLine_scalarCauchyWindow_pointwise_tendsto_positive
+      c hc x hx
+  have hmul :
+      Tendsto
+        (fun T : ℝ =>
+          K x *
+            (∫ t in Set.Icc (-T) T,
+              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+        atTop
+        (𝓝 (K x * (-2 * (Real.pi : ℂ)))) :=
+    tendsto_const_nhds.mul hscalar
+  have hcomm :
+      K x * (-2 * (Real.pi : ℂ)) =
+        (-2 * (Real.pi : ℂ)) * K x :=
+    mul_comm (K x) (-2 * (Real.pi : ℂ))
+  have hindicator :
+      Set.indicator (Set.Ioi (0 : ℝ))
+          (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x =
+        (-2 * (Real.pi : ℂ)) * K x :=
+    indicator_of_mem hx
+      (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y)
+  have htarget :
+      K x * (-2 * (Real.pi : ℂ)) =
+        Set.indicator (Set.Ioi (0 : ℝ))
+          (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x :=
+    hcomm.trans hindicator.symm
+  exact htarget ▸ hmul
+
+/-- Negative-time paired scalar Cauchy window limit after multiplication by
+the compact-support kernel. -/
+theorem fixedRightLine_scalarCauchyWindow_paired_pointwise_tendsto_negative
+    (K : ℝ → ℂ) (c : ℝ) (hc : 1 < c) (x : ℝ) (hx : x < 0) :
+    Tendsto
+      (fun T : ℝ =>
+        K x *
+          (∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+      atTop
+      (𝓝
+        (Set.indicator (Set.Ioi (0 : ℝ))
+          (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x)) := by
+  have hscalar :
+      Tendsto
+        (fun T : ℝ =>
+          ∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+        atTop
+        (𝓝 0) :=
+    fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
+      c hc x hx
+  have hmul :
+      Tendsto
+        (fun T : ℝ =>
+          K x *
+            (∫ t in Set.Icc (-T) T,
+              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+        atTop
+        (𝓝 (K x * 0)) :=
+    tendsto_const_nhds.mul hscalar
+  have hzero :
+      K x * (0 : ℂ) = 0 :=
+    mul_zero (K x)
+  have hnotMem :
+      x ∉ Set.Ioi (0 : ℝ) :=
+    fun hxpos => not_lt_of_gt hx hxpos
+  have hindicator :
+      Set.indicator (Set.Ioi (0 : ℝ))
+          (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x =
+        0 :=
+    indicator_of_not_mem hnotMem
+      (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y)
+  have htarget :
+      K x * (0 : ℂ) =
+        Set.indicator (Set.Ioi (0 : ℝ))
+          (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x :=
+    hzero.trans hindicator.symm
+  exact htarget ▸ hmul
+
+/-- A.e. paired scalar Cauchy window limit against the open positive half-line. -/
+theorem fixedRightLine_scalarCauchyWindow_ae_tendsto_openHalfLineKernel
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) :
+    ∀ᵐ x ∂volume,
+      Tendsto
+        (fun T : ℝ =>
+          K x *
+            (∫ t in Set.Icc (-T) T,
+              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+        atTop
+        (𝓝
+          (Set.indicator (Set.Ioi (0 : ℝ))
+            (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x)) := by
+  have hnotEndpoint :
+      ∀ᵐ x ∂volume, x ∉ ({0} : Set ℝ) :=
+    (Set.countable_singleton (0 : ℝ)).ae_not_mem volume
+  exact
+    hnotEndpoint.mono
+      (fun x hxNotEndpoint =>
+        match lt_or_gt_of_ne
+          (fun hxEq : x = 0 =>
+            hxNotEndpoint (Set.mem_singleton_iff.mpr hxEq)) with
+        | Or.inl hxneg =>
+            fixedRightLine_scalarCauchyWindow_paired_pointwise_tendsto_negative
+              K c hc x hxneg
+        | Or.inr hxpos =>
+            fixedRightLine_scalarCauchyWindow_paired_pointwise_tendsto_positive
+              K c hc x hxpos)
+
+/-- Paired symmetric-window scalar Cauchy kernel convergence against a smooth
+compact support kernel, with the open positive half-line as boundary value. -/
+theorem fixedRightLine_scalarCauchyWindow_paired_tendsto_openHalfLineIntegral
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ x : ℝ,
+          K x *
+            (∫ t in Set.Icc (-T) T,
+              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+      atTop
+      (𝓝
+        (∫ x in Set.Ioi (0 : ℝ),
+          (-2 * (Real.pi : ℂ)) * K x)) := by
+  match
+    fixedRightLine_scalarCauchyWindow_compactSupport_dominated
+      K hK_cont hK_compact hK_smooth c hc
+  with
+  | ⟨G, hG_int, hG_nonneg, hG_bound⟩ =>
+      have hmeas :
+          ∀ᶠ T in atTop,
+            AEStronglyMeasurable
+              (fun x : ℝ =>
+                K x *
+                  (∫ t in Set.Icc (-T) T,
+                    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                      Complex.exp
+                        (Complex.I * (t : ℂ) * (x : ℂ)) *
+                      Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+              volume :=
+        fixedRightLine_scalarCauchyWindow_paired_aestronglyMeasurable_eventually
+          K hK_cont hK_compact hK_smooth c hc
+      have hae :
+          ∀ᵐ x ∂volume,
+            Tendsto
+              (fun T : ℝ =>
+                K x *
+                  (∫ t in Set.Icc (-T) T,
+                    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                      Complex.exp
+                        (Complex.I * (t : ℂ) * (x : ℂ)) *
+                      Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+              atTop
+              (𝓝
+                (Set.indicator (Set.Ioi (0 : ℝ))
+                  (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x)) :=
+        fixedRightLine_scalarCauchyWindow_ae_tendsto_openHalfLineKernel
+          K hK_cont hK_compact hK_smooth c hc
+      have htarget :
+          (∫ x : ℝ,
+            Set.indicator (Set.Ioi (0 : ℝ))
+              (fun y : ℝ => (-2 * (Real.pi : ℂ)) * K y) x) =
+            ∫ x in Set.Ioi (0 : ℝ),
+              (-2 * (Real.pi : ℂ)) * K x := by
+        exact integral_indicator measurableSet_Ioi
+      exact
+        htarget ▸
+          tendsto_integral_filter_of_dominated_convergence
+            G hmeas hG_bound hG_int hae
+
+/-- Paired symmetric-window scalar Cauchy kernel convergence against a smooth
+compact support kernel. -/
+theorem fixedRightLine_scalarCauchyWindow_paired_tendsto_indicatorIntegral
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ x : ℝ,
+          K x *
+            (∫ t in Set.Icc (-T) T,
+              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+      atTop
+      (𝓝
+        (∫ x : ℝ,
+          K x *
+            Set.indicator (Set.Ici (0 : ℝ))
+              (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) := by
+  have hopen :
+      Tendsto
+        (fun T : ℝ =>
+          ∫ x : ℝ,
+            K x *
+              (∫ t in Set.Icc (-T) T,
+                (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+        atTop
+        (𝓝
+          (∫ x in Set.Ioi (0 : ℝ),
+            (-2 * (Real.pi : ℂ)) * K x)) :=
+    fixedRightLine_scalarCauchyWindow_paired_tendsto_openHalfLineIntegral
+      K hK_cont hK_compact hK_smooth c hc
+  have hclosed :
+      (∫ x in Set.Ioi (0 : ℝ),
+          (-2 * (Real.pi : ℂ)) * K x) =
+        ∫ x in Set.Ici (0 : ℝ),
+          (-2 * (Real.pi : ℂ)) * K x :=
+    fixedRightLine_scalarProjection_Ioi_integral_eq_Ici_integral K
+  have hindicator :
+      (∫ x in Set.Ici (0 : ℝ),
+          (-2 * (Real.pi : ℂ)) * K x) =
+        (∫ x : ℝ,
+          K x *
+            Set.indicator (Set.Ici (0 : ℝ))
+              (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x) :=
+    (fixedRightLine_fourierCauchy_scalarKernelIntegral_eq_oneSidedProjection
+      K).symm
+  exact hindicator ▸ hclosed ▸ hopen
+
+/-- Paired symmetric-window Cauchy kernel convergence against a smooth compact
+support kernel on the fixed right line. -/
+theorem fixedRightLine_fourierCauchy_symmetricTruncation_tendsto_scalarKernelIntegral
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (∫ x : ℝ,
+              K x *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+      atTop
+      (𝓝
+        (∫ x : ℝ,
+          K x *
+            Set.indicator (Set.Ici (0 : ℝ))
+              (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) := by
+  have hscalar :
+      Tendsto
+        (fun T : ℝ =>
+          ∫ x : ℝ,
+            K x *
+              (∫ t in Set.Icc (-T) T,
+                (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+        atTop
+        (𝓝
+          (∫ x : ℝ,
+            K x *
+              Set.indicator (Set.Ici (0 : ℝ))
+                (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) :=
+    fixedRightLine_scalarCauchyWindow_paired_tendsto_indicatorIntegral
+      K hK_cont hK_compact hK_smooth c hc
+  have hfunctions :
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (∫ x : ℝ,
+              K x *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
+      (fun T : ℝ =>
+        ∫ x : ℝ,
+          K x *
+            (∫ t in Set.Icc (-T) T,
+              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) :=
+    funext
+      (fun T : ℝ =>
+        fixedRightLine_fourierCauchy_symmetricWindow_eq_scalarWindowIntegral
+          K hK_cont hK_compact hK_smooth c hc T)
+  exact hfunctions.symm ▸ hscalar
+
+/-- Full-line Fourier-Cauchy inversion before collapsing the scalar Cauchy
+kernel to the one-sided projection integral. -/
+theorem fixedRightLine_fourierCauchy_fullLine_smooth_scalarKernelIntegral
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) :
+    (∫ t : ℝ,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
+      ∫ x : ℝ,
+        K x *
+          Set.indicator (Set.Ici (0 : ℝ))
+            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
+  have hfull :
+      Tendsto
+        (fun T : ℝ =>
+          ∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (∫ x : ℝ,
+                K x *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+        atTop
+        (𝓝
+          (∫ t : ℝ,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (∫ x : ℝ,
+                K x *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))) :=
+    fixedRightLine_fourierCauchy_symmetricTruncation_tendsto_fullLine
+      K hK_cont hK_compact hK_smooth c hc
+  have hscalar :
+      Tendsto
+        (fun T : ℝ =>
+          ∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (∫ x : ℝ,
+                K x *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+        atTop
+        (𝓝
+          (∫ x : ℝ,
+            K x *
+              Set.indicator (Set.Ici (0 : ℝ))
+                (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) :=
+    fixedRightLine_fourierCauchy_symmetricTruncation_tendsto_scalarKernelIntegral
+      K hK_cont hK_compact hK_smooth c hc
+  exact tendsto_nhds_unique hfull hscalar
+
+/-- Smooth product-level Cauchy projection on the fixed right line.
+
+This is the ordinary-integral owner statement: smooth compact support supplies
+the decay needed to interpret the Cauchy multiplier as a genuine full-line
+integral before taking the one-sided boundary projection. -/
+theorem fixedRightLine_fourierCauchy_fullLine_smooth_oneSidedProjection
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) :
+    (∫ t : ℝ,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
+      ∫ x in Set.Ici (0 : ℝ),
+        (-2 * (Real.pi : ℂ)) * K x := by
+  calc
+    (∫ t : ℝ,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+        =
+        ∫ x : ℝ,
+          K x *
+            Set.indicator (Set.Ici (0 : ℝ))
+              (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x := by
+          exact
+            fixedRightLine_fourierCauchy_fullLine_smooth_scalarKernelIntegral
+              K hK_cont hK_compact hK_smooth c hc
+    _ =
+        ∫ x in Set.Ici (0 : ℝ),
+          (-2 * (Real.pi : ℂ)) * K x := by
+          exact
+            fixedRightLine_fourierCauchy_scalarKernelIntegral_eq_oneSidedProjection
+              K
+
+/-- Symmetric truncations of the smooth fixed-line Fourier-Cauchy multiplier
+converge to the positive-time one-sided projection. -/
+theorem fixedRightLine_fourierCauchy_symmetricTruncation_tendsto_oneSidedProjection
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (∫ x : ℝ,
+              K x *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+      atTop
+      (𝓝
+        (∫ x in Set.Ici (0 : ℝ),
+          (-2 * (Real.pi : ℂ)) * K x)) := by
+  have hfull :
+      Tendsto
+        (fun T : ℝ =>
+          ∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (∫ x : ℝ,
+                K x *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+        atTop
+        (𝓝
+          (∫ t : ℝ,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (∫ x : ℝ,
+                K x *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))) :=
+    fixedRightLine_fourierCauchy_symmetricTruncation_tendsto_fullLine
+      K hK_cont hK_compact hK_smooth c hc
+  have hvalue :
+      (∫ t : ℝ,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (∫ x : ℝ,
+              K x *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
+        ∫ x in Set.Ici (0 : ℝ),
+          (-2 * (Real.pi : ℂ)) * K x :=
+    fixedRightLine_fourierCauchy_fullLine_smooth_oneSidedProjection
+      K hK_cont hK_compact hK_smooth c hc
+  exact hvalue ▸ hfull
+
+/-- Generic one-sided Fourier-Cauchy inversion for a smooth compactly supported
+time-side kernel on the fixed right line. -/
+theorem fixedRightLine_fourierCauchy_fullLine_oneSidedProjection
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) :
+    (∫ t : ℝ,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            K x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
+      ∫ x in Set.Ici (0 : ℝ),
+        (-2 * (Real.pi : ℂ)) * K x := by
+  exact
+    fixedRightLine_fourierCauchy_fullLine_smooth_oneSidedProjection
+      K hK_cont hK_compact hK_smooth c hc
+
+/-- Full-line Cauchy inversion after the vertical slice has already been
+rewritten as the Fourier transform of the right projection kernel. -/
+theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue_fourierKernel
+    (f : LFunctions.ZetaAdmissibleFunction) (c : ℝ) (hc : 1 < c) :
+    (∫ t : ℝ,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction' x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) =
+      zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c := by
+  calc
+    (∫ t : ℝ,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (∫ x : ℝ,
+            zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction' x *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
+        =
+        ∫ x in Set.Ici (0 : ℝ),
+          (-2 * (Real.pi : ℂ)) *
+            zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction' x :=
+          fixedRightLine_fourierCauchy_fullLine_oneSidedProjection
+            (zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction')
+            (zetaLaplaceTransform_rightOnePoleProjectionKernel_continuous f.toZetaTestFunction')
+            (zetaLaplaceTransform_rightOnePoleProjectionKernel_hasCompactSupport f.toZetaTestFunction')
+            (zetaLaplaceTransform_rightOnePoleProjectionKernel_contDiff_admissible f)
+            c hc
+    _ = zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c := by
+          unfold zetaLaplaceTransform_rightOnePoleCauchyProjectionValue
+          unfold zetaLaplaceTransform_rightOnePoleProjectionKernel
+          exact
+            setIntegral_congr_fun measurableSet_Ici
+              (fun x _hx =>
+                (mul_assoc
+                  (-2 * (Real.pi : ℂ))
+                  (f.toZetaTestFunction' x)
+                  (Complex.exp ((1 / 2 : ℂ) * (x : ℂ)))).symm)
+
+/-- One-sided Cauchy inversion for the right projection kernel on the fixed
+line.
+
+This is the genuine analytic core: the full-line Fourier-Cauchy multiplier
+integral recovers the positive-time half-line projection value. -/
+theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue
+    (f : LFunctions.ZetaAdmissibleFunction) (c : ℝ) (hc : 1 < c) :
+    (∫ t : ℝ,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          zetaLaplaceTransform f.toZetaTestFunction'
+            (((c : ℂ) + t * Complex.I) - 1 / 2)) =
+      zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c := by
+  calc
+    (∫ t : ℝ,
+        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          zetaLaplaceTransform f.toZetaTestFunction'
+            (((c : ℂ) + t * Complex.I) - 1 / 2))
+        =
+        ∫ t : ℝ,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (∫ x : ℝ,
+              zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction' x *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) := by
+          exact
+            integral_congr_ae
+              (Eventually.of_forall
+                (fun t : ℝ =>
+                  congrArg
+                    (fun z : ℂ =>
+                      (-1 / (((c : ℂ) + t * Complex.I) - 1)) * z)
+                    (zetaLaplaceTransform_rightOnePoleProjectionKernel_verticalSlice_eq_fourier
+                      f.toZetaTestFunction' c t)))
+    _ = zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c :=
+          zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue_fourierKernel
+            f c hc
 
 /-- Inverse-quadratic truncation control for the fixed right Cauchy multiplier
 after its full-line Cauchy value has been identified. -/
