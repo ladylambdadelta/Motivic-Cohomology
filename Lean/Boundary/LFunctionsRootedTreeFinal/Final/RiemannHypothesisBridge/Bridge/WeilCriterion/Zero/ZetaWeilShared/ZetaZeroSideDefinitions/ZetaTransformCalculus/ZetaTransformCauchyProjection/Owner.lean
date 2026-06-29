@@ -6597,7 +6597,68 @@ theorem scalarFourierLaplacePlemelj_uncompensated_kernelMass_eq_two_arctan
     (a : ℝ) (ha : 0 < a) (T : ℝ) :
     (∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)) =
       (2 : ℝ) * Real.arctan (T / a) := by
-  sorry
+  let P : ℝ → ℝ := fun t : ℝ => a / (a ^ 2 + t ^ 2)
+  let A : ℝ := (2 : ℝ) * Real.arctan (T / a)
+  have hneg_complex :
+      (∫ t in Set.Icc (-T) T, ((-P t : ℝ) : ℂ)) =
+        ((-A : ℝ) : ℂ) := by
+    calc
+      (∫ t in Set.Icc (-T) T, ((-P t : ℝ) : ℂ))
+          =
+          ∫ t in Set.Icc (-T) T,
+            ((-(a / (a ^ 2 + t ^ 2)) : ℝ) : ℂ) := by
+            exact intervalIntegral.integral_congr
+              (Filter.Eventually.of_forall
+                (fun t : ℝ => by
+                  unfold P
+                  rfl))
+      _ =
+          (-(2 : ℝ) * Real.arctan (T / a) : ℂ) := by
+            exact
+              scalarFourierLaplacePlemelj_zero_real_kernel_integral_eq_arctan
+                a ha T
+      _ = ((-A : ℝ) : ℂ) := by
+            unfold A
+            exact congrArg (fun r : ℝ => (r : ℂ))
+              (neg_mul (2 : ℝ) (Real.arctan (T / a))).symm
+  have hneg_real :
+      (∫ t in Set.Icc (-T) T, (-P t : ℝ)) = -A := by
+    have hofReal :
+        (∫ t in Set.Icc (-T) T, ((-P t : ℝ) : ℂ)) =
+          (((∫ t in Set.Icc (-T) T, (-P t : ℝ)) : ℝ) : ℂ) := by
+      calc
+        (∫ t in Set.Icc (-T) T, ((-P t : ℝ) : ℂ))
+            =
+            ∫ t in (-T)..T, ((-P t : ℝ) : ℂ) := by
+              rfl
+        _ =
+            (((∫ t in (-T)..T, (-P t : ℝ)) : ℝ) : ℂ) := by
+              exact intervalIntegral.integral_ofReal
+        _ =
+            (((∫ t in Set.Icc (-T) T, (-P t : ℝ)) : ℝ) : ℂ) := by
+              rfl
+    exact Complex.ofReal_injective (hofReal.symm.trans hneg_complex)
+  have hneg_relation :
+      (∫ t in Set.Icc (-T) T, (-P t : ℝ)) =
+        -(∫ t in Set.Icc (-T) T, P t) := by
+    calc
+      (∫ t in Set.Icc (-T) T, (-P t : ℝ))
+          =
+          ∫ t in (-T)..T, (-P t : ℝ) := by
+            rfl
+      _ =
+          -(∫ t in (-T)..T, P t) := by
+            exact intervalIntegral.integral_neg
+      _ =
+          -(∫ t in Set.Icc (-T) T, P t) := by
+            rfl
+  have hneg_target :
+      -(∫ t in Set.Icc (-T) T, P t) = -A :=
+    hneg_relation.symm.trans hneg_real
+  have htarget :
+      (∫ t in Set.Icc (-T) T, P t) = A :=
+    neg_injective hneg_target
+  exact htarget
 
 /-- Elementary arctangent bound for the positive Cauchy kernel primitive. -/
 theorem scalarFourierLaplacePlemelj_two_mul_arctan_abs_le_pi
