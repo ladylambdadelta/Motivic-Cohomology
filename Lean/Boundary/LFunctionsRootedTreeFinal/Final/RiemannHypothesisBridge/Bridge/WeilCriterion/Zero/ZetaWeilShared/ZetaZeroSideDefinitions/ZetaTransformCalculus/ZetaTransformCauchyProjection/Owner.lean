@@ -2804,6 +2804,176 @@ theorem fixedRightLine_scalarProjection_Ioi_integral_eq_Ici_integral
         (-2 * (Real.pi : ℂ)) * K x := by
   exact (integral_Ici_eq_integral_Ioi : _).symm
 
+/-- Positive-time scalar Plemelj window after the Laplace denominator has been
+evaluated by the one-sided exponential transform. -/
+theorem scalarFourierLaplacePlemelj_positive_window_tendsto_laplaceJump
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / ((a : ℂ) + t * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp ((a : ℂ) * (x : ℂ)))
+      atTop
+      (𝓝
+        ((-2 * (Real.pi : ℂ)) *
+          Complex.exp (-(a : ℂ) * (x : ℂ)) *
+          Complex.exp ((a : ℂ) * (x : ℂ)))) := by
+  sorry
+
+/-- The positive-time Laplace jump collapses after multiplying by the compensating
+`exp (a x)` factor. -/
+theorem scalarFourierLaplacePlemelj_positive_laplaceJump_mul_eq_constant
+    (a : ℝ) (x : ℝ) :
+    ((-2 * (Real.pi : ℂ)) *
+        Complex.exp (-(a : ℂ) * (x : ℂ)) *
+        Complex.exp ((a : ℂ) * (x : ℂ))) =
+      (-2 * (Real.pi : ℂ)) := by
+  have hsum :
+      (-(a : ℂ) * (x : ℂ)) + ((a : ℂ) * (x : ℂ)) = 0 :=
+    neg_add_cancel ((a : ℂ) * (x : ℂ))
+  have hexp :
+      Complex.exp (-(a : ℂ) * (x : ℂ)) *
+          Complex.exp ((a : ℂ) * (x : ℂ)) =
+        1 := by
+    calc
+      Complex.exp (-(a : ℂ) * (x : ℂ)) *
+          Complex.exp ((a : ℂ) * (x : ℂ))
+          = Complex.exp
+              ((-(a : ℂ) * (x : ℂ)) + ((a : ℂ) * (x : ℂ))) := by
+            exact (Complex.exp_add (-(a : ℂ) * (x : ℂ))
+              ((a : ℂ) * (x : ℂ))).symm
+      _ = Complex.exp 0 := by
+            exact congrArg Complex.exp hsum
+      _ = 1 := by
+            exact Complex.exp_zero
+  calc
+    ((-2 * (Real.pi : ℂ)) *
+        Complex.exp (-(a : ℂ) * (x : ℂ)) *
+        Complex.exp ((a : ℂ) * (x : ℂ)))
+        =
+        (-2 * (Real.pi : ℂ)) *
+          (Complex.exp (-(a : ℂ) * (x : ℂ)) *
+            Complex.exp ((a : ℂ) * (x : ℂ))) := by
+          exact mul_assoc (-2 * (Real.pi : ℂ))
+            (Complex.exp (-(a : ℂ) * (x : ℂ)))
+            (Complex.exp ((a : ℂ) * (x : ℂ)))
+    _ = (-2 * (Real.pi : ℂ)) * 1 := by
+          exact congrArg
+            (fun z : ℂ => (-2 * (Real.pi : ℂ)) * z)
+            hexp
+    _ = (-2 * (Real.pi : ℂ)) := by
+          exact mul_one (-2 * (Real.pi : ℂ))
+
+/-- Positive-time normalized Fourier-Laplace Plemelj value. -/
+theorem scalarFourierLaplacePlemelj_pointwise_positive
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / ((a : ℂ) + t * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp ((a : ℂ) * (x : ℂ)))
+      atTop
+      (𝓝 (-2 * (Real.pi : ℂ))) := by
+  exact Eq.subst
+    (motive := fun y : ℂ =>
+      Tendsto
+        (fun T : ℝ =>
+          ∫ t in Set.Icc (-T) T,
+            (-1 / ((a : ℂ) + t * Complex.I)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp ((a : ℂ) * (x : ℂ)))
+        atTop
+        (𝓝 y))
+    (scalarFourierLaplacePlemelj_positive_laplaceJump_mul_eq_constant a x)
+    (scalarFourierLaplacePlemelj_positive_window_tendsto_laplaceJump
+      a ha x hx)
+
+/-- Nonpositive-time normalized Fourier-Laplace Plemelj value. -/
+theorem scalarFourierLaplacePlemelj_pointwise_nonpositive
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∉ Set.Ioi (0 : ℝ)) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / ((a : ℂ) + t * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp ((a : ℂ) * (x : ℂ)))
+      atTop
+      (𝓝 0) := by
+  sorry
+
+/-- Pointwise normalized Fourier-Laplace Plemelj value.
+
+For `a > 0`, the symmetric Fourier windows of
+`-exp(a x)/(a + i t)` converge to the open half-line multiplier. -/
+theorem scalarFourierLaplacePlemelj_pointwise_openHalfLine
+    (a : ℝ) (ha : 0 < a) (x : ℝ) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / ((a : ℂ) + t * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp ((a : ℂ) * (x : ℂ)))
+      atTop
+      (𝓝
+        (Set.indicator (Set.Ioi (0 : ℝ))
+          (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) := by
+  by_cases hx : x ∈ Set.Ioi (0 : ℝ)
+  · have htarget :
+        Set.indicator (Set.Ioi (0 : ℝ))
+          (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x =
+            (-2 * (Real.pi : ℂ)) :=
+      Set.indicator_of_mem hx _
+    exact Eq.subst
+      (motive := fun y : ℂ =>
+        Tendsto
+          (fun T : ℝ =>
+            ∫ t in Set.Icc (-T) T,
+              (-1 / ((a : ℂ) + t * Complex.I)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp ((a : ℂ) * (x : ℂ)))
+          atTop
+          (𝓝 y))
+      htarget.symm
+      (scalarFourierLaplacePlemelj_pointwise_positive a ha x hx)
+  · have htarget :
+        Set.indicator (Set.Ioi (0 : ℝ))
+          (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x =
+            0 :=
+      Set.indicator_of_not_mem hx _
+    exact Eq.subst
+      (motive := fun y : ℂ =>
+        Tendsto
+          (fun T : ℝ =>
+            ∫ t in Set.Icc (-T) T,
+              (-1 / ((a : ℂ) + t * Complex.I)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp ((a : ℂ) * (x : ℂ)))
+          atTop
+          (𝓝 y))
+      htarget.symm
+      (scalarFourierLaplacePlemelj_pointwise_nonpositive a ha x hx)
+
+/-- Uniform finite-window bound for the normalized Fourier-Laplace Plemelj
+kernel. -/
+theorem scalarFourierLaplacePlemelj_uniform_bound
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    ‖(∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ)) *
+        Complex.exp ((a : ℂ) * (x : ℂ)))‖
+      ≤ 2 * (Real.pi + 1) := by
+  sorry
+
 /-- Normalized scalar Fourier-Laplace Plemelj package.
 
 For `a > 0`, the symmetric Fourier windows of
@@ -2830,7 +3000,11 @@ theorem scalarFourierLaplacePlemelj_openHalfLine_and_uniform_bound
             (Complex.I * (t : ℂ) * (x : ℂ)) *
           Complex.exp ((a : ℂ) * (x : ℂ)))‖
         ≤ 2 * (Real.pi + 1)) := by
-  sorry
+  exact
+    ⟨fun x =>
+      scalarFourierLaplacePlemelj_pointwise_openHalfLine a ha x,
+     fun T x =>
+      scalarFourierLaplacePlemelj_uniform_bound a ha T x⟩
 
 /-- The fixed-right-line scalar Cauchy window is the normalized
 Fourier-Laplace Plemelj window with `a = c - 1`. -/

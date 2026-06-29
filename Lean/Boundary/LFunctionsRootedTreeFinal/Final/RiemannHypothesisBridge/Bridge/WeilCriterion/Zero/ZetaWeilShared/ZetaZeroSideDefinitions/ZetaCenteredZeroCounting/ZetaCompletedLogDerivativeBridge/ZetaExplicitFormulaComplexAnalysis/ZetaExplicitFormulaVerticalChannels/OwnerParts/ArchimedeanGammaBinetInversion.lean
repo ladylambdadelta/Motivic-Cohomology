@@ -3,18 +3,14 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 /-!
 # Archimedean Gamma/Binet whole-line inversion leaves
 
-This file isolates the genuine analytic content of the archimedean term of the
-explicit formula: the four whole-line integral values of the named Gamma/Binet
-main and differentiated-remainder kernels.
+This file isolates the archimedean inverse-Mellin work in the explicit formula:
+the whole-line integral values of the named Gamma/Binet main and
+differentiated-remainder kernels, together with the scheduled-window transports
+that consume those values.
 
-These four identities are the *irreducible analytic leaves* of the
-`ArchimedeanGammaBinetLineCore` subtree.  Every owner/source value theorem in
-that file is, transitively, a consumer of the scheduled coupled contour value
-`...scheduledPair_ownerGammaBinetContour`; that value cannot be originated from
-within the line-core file (the dependency graph there is circular around it).
-The non-circular origin is exactly the four whole-line identities below, which
-encode the inverse-Mellin evaluation of the `Gammaℝ` logarithmic-derivative main
-term against the test function and the vanishing of the Binet remainder integral.
+The non-circular origin of the line-core values is the whole-line
+inverse-Mellin evaluation of the `Gammaℝ` logarithmic-derivative main term
+against the test function and the vanishing of the Binet remainder integral.
 
 The combinator `...scheduledPair_ownerInversion` reassembles the scheduled
 coupled contour value (the exact statement of the line-core leaf) from these four
@@ -38,8 +34,20 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- Genuine analytic leaf: the centered scheduled right Binet-main inverse-Mellin
-window error tends to zero. -/
+/-- Whole-line right Binet-main inverse-Mellin value. -/
+theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_wholeLine_eq_phiZero_ownerMellinInversion
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+    (∫ t : ℝ,
+      zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
+        f F.toContourFamily t) =
+      zetaCompletedExplicitFormulaPhi f 0 := by
+  sorry
+
+/-- The centered scheduled right Binet-main inverse-Mellin window error tends
+to zero after whole-line exhaustion and the whole-line Mellin value. -/
 theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_centeredScheduledWindowError_tendsto_zero_ownerInversion
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
@@ -57,7 +65,46 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_centeredSche
         zetaCompletedExplicitFormulaPhi f 0)
       atTop
       (𝓝 0) := by
-  sorry
+  let W : ℝ → ℂ := fun u : ℝ =>
+    ∫ t in Set.Icc
+        (-(F.toContourFamily.rectangle
+            (h.height_schedule.height u)).T)
+        (F.toContourFamily.rectangle
+            (h.height_schedule.height u)).T,
+      zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
+        f F.toContourFamily t
+  have hwindow :
+      Tendsto W atTop
+        (𝓝 (∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
+            f F.toContourFamily t)) := by
+    unfold W
+    exact
+      zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_scheduledWindow_tendsto_integral
+        f F h
+  have hvalue :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
+          f F.toContourFamily t) =
+        zetaCompletedExplicitFormulaPhi f 0 :=
+    zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_wholeLine_eq_phiZero_ownerMellinInversion
+      f F h hcoh
+  have hwindow_phi :
+      Tendsto W atTop (𝓝 (zetaCompletedExplicitFormulaPhi f 0)) :=
+    hvalue ▸ hwindow
+  have hsub :
+      Tendsto
+        (fun u : ℝ => W u - zetaCompletedExplicitFormulaPhi f 0)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0 -
+          zetaCompletedExplicitFormulaPhi f 0)) :=
+    hwindow_phi.sub tendsto_const_nhds
+  have hzero :
+      zetaCompletedExplicitFormulaPhi f 0 -
+        zetaCompletedExplicitFormulaPhi f 0 =
+      (0 : ℂ) :=
+    sub_self (zetaCompletedExplicitFormulaPhi f 0)
+  exact hzero ▸ hsub
 
 /-- Genuine analytic leaf: scheduled right archimedean Binet-main windows tend
 to the inverse-Mellin value.
@@ -134,37 +181,9 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_integral_eq_
       zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
         f F.toContourFamily t) =
       zetaCompletedExplicitFormulaPhi f 0 := by
-  have hlimit :
-      Tendsto
-        (fun u : ℝ =>
-          ∫ t in Set.Icc
-              (-(F.toContourFamily.rectangle
-                  (h.height_schedule.height u)).T)
-              (F.toContourFamily.rectangle
-                  (h.height_schedule.height u)).T,
-            zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
-              f F.toContourFamily t)
-        atTop
-        (𝓝 (∫ t : ℝ,
-          zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
-            f F.toContourFamily t)) :=
-    zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_scheduledWindow_tendsto_integral
-      f F h
-  have hvalue :
-      Tendsto
-        (fun u : ℝ =>
-          ∫ t in Set.Icc
-              (-(F.toContourFamily.rectangle
-                  (h.height_schedule.height u)).T)
-              (F.toContourFamily.rectangle
-                  (h.height_schedule.height u)).T,
-            zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
-              f F.toContourFamily t)
-        atTop
-        (𝓝 (zetaCompletedExplicitFormulaPhi f 0)) :=
-    zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_scheduledWindow_tendsto_phiZero_ownerInversion
+  exact
+    zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_wholeLine_eq_phiZero_ownerMellinInversion
       f F h hcoh
-  exact tendsto_nhds_unique hlimit hvalue
 
 /-- Right vertical window: the scheduled integral of the right Binet remainder
 kernel over the symmetric interval. This is the main term in line 83. -/

@@ -165,10 +165,10 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
           ‖boundary‖ ≤ 4 * (lam⁻¹ + 1) ∧
           ‖variation‖ ≤ 4 * Real.pi * lam⁻¹)
       hma.symm
-      (Complex.realPhase_monotoneIncrement_singleton_prefix_abel_terms_bounded
+        (Complex.realPhase_monotoneIncrement_singleton_prefix_abel_terms_bounded
         φ a hlam_pos)
   · have hm_bounds : a ≤ m ∧ m ≤ b :=
-      Finset.mem_Icc.mp hm
+        Finset.mem_Icc.mp hm
     have ham : a < m :=
       lt_of_le_of_ne hm_bounds.1 (Ne.symm hma)
     exact
@@ -205,7 +205,7 @@ theorem Complex.realPhase_monotoneIncrement_partialSummation_prefix_bound
     Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
       φ ha hab_lt hm hlam_pos hinc_mono hred_mono hsep hden with
   | ⟨boundary, variation, hS, hboundary, hvariation⟩ =>
-      exact
+        exact
         Complex.realPhase_monotoneIncrement_prefix_abel_norm_assembly
           hS hboundary hvariation
 
@@ -574,7 +574,7 @@ theorem Complex.realPhase_secondDerivative_vdc_singleton_integer_block_bound
   have hone_le_sqrt : (1 : ℝ) ≤ Real.sqrt (1 + T) :=
     (Real.one_le_sqrt).mpr hone_le_arg
   have hIcc :
-      Finset.Icc a a = ({a} : Finset ℕ) :=
+        Finset.Icc a a = ({a} : Finset ℕ) :=
     Finset.Icc_self a
   have hcard_nat : (Finset.Icc a a).card = 1 := by
     have hcard_eq_singleton_card :
@@ -582,7 +582,7 @@ theorem Complex.realPhase_secondDerivative_vdc_singleton_integer_block_bound
       congrArg Finset.card hIcc
     have hsingleton_card :
         ({a} : Finset ℕ).card = 1 :=
-      Finset.card_singleton a
+        Finset.card_singleton a
     exact Eq.trans hcard_eq_singleton_card hsingleton_card
   have hcard_real :
       ((Finset.Icc a a).card : ℝ) = 1 := by
@@ -886,7 +886,11 @@ theorem Complex.realPhase_secondDerivative_vdc_deriv_norm_separation
       have hneg_eq :
           deriv φ x - deriv φ y = -(deriv φ y - deriv φ x) := by
         exact (neg_sub (deriv φ y) (deriv φ x)).symm
-      exact
+      have hbackward_neg :
+          (T *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              (y - x) ≤ -(deriv φ y - deriv φ x)) :=
         Eq.subst
           (motive := fun r : ℝ =>
             (T *
@@ -894,7 +898,9 @@ theorem Complex.realPhase_secondDerivative_vdc_deriv_norm_separation
                   (((b + 1 : ℕ) : ℝ)))⁻¹) *
                 (y - x) ≤ r))
           hneg_eq
-          (le_trans hbackward (neg_le_abs (deriv φ y - deriv φ x)))
+          hbackward
+      exact
+        le_trans hbackward_neg (neg_le_abs (deriv φ y - deriv φ x))
 
 /-- In the long branch, the real block length is positive. -/
 theorem Real.secondDerivativeVdc_long_length_pos
@@ -918,15 +924,15 @@ theorem Nat.le_succ_of_cast_sub_pos
     a ≤ b + 1 := by
   match Nat.lt_or_ge a (b + 2) with
   | Or.inl hlt =>
-      exact Nat.lt_succ_iff.mp hlt
+        exact Nat.lt_succ_iff.mp hlt
   | Or.inr hge =>
-      have hsucc_le_a : b + 1 ≤ a :=
+        have hsucc_le_a : b + 1 ≤ a :=
         le_trans (Nat.le_succ (b + 1)) hge
-      have hcast_le : (((b + 1 : ℕ) : ℝ)) ≤ (a : ℝ) :=
+        have hcast_le : (((b + 1 : ℕ) : ℝ)) ≤ (a : ℝ) :=
         Nat.cast_le.mpr hsucc_le_a
-      have hsub_nonpos : (((b + 1 : ℕ) : ℝ) - (a : ℝ)) ≤ 0 :=
+        have hsub_nonpos : (((b + 1 : ℕ) : ℝ) - (a : ℝ)) ≤ 0 :=
         sub_nonpos.mpr hcast_le
-      exact False.elim (not_lt_of_ge hsub_nonpos hpos)
+        exact False.elim (not_lt_of_ge hsub_nonpos hpos)
 
 /-- In the long branch, the natural interval endpoint order is nonempty at
 the successor-right endpoint. -/
@@ -1012,7 +1018,7 @@ theorem Complex.realPhase_secondDerivative_vdc_derivPacket_min_mem
     {a b : ℕ}
     {m : ℤ}
     (hp :
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty) :
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty) :
     (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).min' hp ∈
       Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m :=
   Finset.min'_mem
@@ -1025,7 +1031,7 @@ theorem Complex.realPhase_secondDerivative_vdc_derivPacket_max_mem
     {a b : ℕ}
     {m : ℤ}
     (hp :
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty) :
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty) :
     (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).max' hp ∈
       Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m :=
   Finset.max'_mem
@@ -1038,7 +1044,7 @@ theorem Complex.realPhase_secondDerivative_vdc_derivPacket_min_le_of_mem
     {a b n : ℕ}
     {m : ℤ}
     (hp :
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty)
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty)
     (hn : n ∈ Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m) :
     (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).min' hp ≤ n :=
   Finset.min'_le
@@ -1051,7 +1057,7 @@ theorem Complex.realPhase_secondDerivative_vdc_derivPacket_le_max_of_mem
     {a b n : ℕ}
     {m : ℤ}
     (hp :
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty)
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty)
     (hn : n ∈ Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m) :
     n ≤ (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).max' hp :=
   Finset.le_max'
@@ -1064,17 +1070,17 @@ theorem Complex.realPhase_secondDerivative_vdc_derivPacket_subset_min_max
     {a b : ℕ}
     {m : ℤ}
     (hp :
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty) :
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty) :
     Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m ⊆
-      Finset.Icc
+        Finset.Icc
         ((Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).min' hp)
         ((Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).max' hp) := by
   intro n hn
   exact Finset.mem_Icc.mpr
     (And.intro
-      (Complex.realPhase_secondDerivative_vdc_derivPacket_min_le_of_mem
+        (Complex.realPhase_secondDerivative_vdc_derivPacket_min_le_of_mem
         φ hp hn)
-      (Complex.realPhase_secondDerivative_vdc_derivPacket_le_max_of_mem
+        (Complex.realPhase_secondDerivative_vdc_derivPacket_le_max_of_mem
         φ hp hn))
 
 /-- Cardinality of a nonempty derivative packet is bounded by its endpoint
@@ -1084,17 +1090,17 @@ theorem Complex.realPhase_secondDerivative_vdc_derivPacket_card_le_endpoint_nat
     {a b : ℕ}
     {m : ℤ}
     (hp :
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty) :
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty) :
     (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).card ≤
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).max' hp + 1 -
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).max' hp + 1 -
         (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).min' hp := by
   have hcard_subset :
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).card ≤
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).card ≤
         (Finset.Icc
           ((Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).min' hp)
           ((Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).max' hp)).card :=
     Finset.card_le_card
-      (Complex.realPhase_secondDerivative_vdc_derivPacket_subset_min_max
+        (Complex.realPhase_secondDerivative_vdc_derivPacket_subset_min_max
         φ hp)
   have hcard_Icc :
       (Finset.Icc
@@ -1115,12 +1121,12 @@ theorem Complex.realPhase_secondDerivative_vdc_derivPacket_card_le_endpoint_span
     {a b : ℕ}
     {m : ℤ}
     (hp :
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty) :
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty) :
     ((Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).card : ℝ) ≤
       (((Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).max' hp + 1 : ℕ) : ℝ) -
         (((Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).min' hp : ℕ) : ℝ) := by
   have hnat :
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).card ≤
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).card ≤
         (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).max' hp + 1 -
           (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).min' hp :=
     Complex.realPhase_secondDerivative_vdc_derivPacket_card_le_endpoint_nat
@@ -1131,10 +1137,10 @@ theorem Complex.realPhase_secondDerivative_vdc_derivPacket_card_le_endpoint_span
           (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).min' hp : ℕ) : ℝ) :=
     Nat.cast_le.mpr hnat
   have hmin_le_max_succ :
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).min' hp ≤
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).min' hp ≤
         (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).max' hp + 1 :=
     Nat.le_trans
-      (Complex.realPhase_secondDerivative_vdc_derivPacket_min_le_of_mem
+        (Complex.realPhase_secondDerivative_vdc_derivPacket_min_le_of_mem
         φ hp
         (Complex.realPhase_secondDerivative_vdc_derivPacket_max_mem
           φ hp))
@@ -1287,7 +1293,7 @@ theorem Complex.realPhase_secondDerivative_vdc_mem_own_derivPacket
   have hmem_m :
       n ∈ Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m :=
     (Complex.mem_realPhase_secondDerivative_vdc_derivPacket_iff φ).mpr
-      (And.intro hn
+        (And.intro hn
         (And.intro
           (Eq.subst
             (motive := fun y : ℝ =>
@@ -1398,19 +1404,19 @@ theorem Complex.realPhase_secondDerivative_vdc_derivPacket_disjoint
     {m₁ m₂ : ℤ}
     (hm : m₁ ≠ m₂) :
     Disjoint
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m₁)
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m₂) := by
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m₁)
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m₂) := by
   exact Finset.disjoint_left.mpr
     (fun n hn₁ hn₂ =>
-      have hidx₁ :
+        have hidx₁ :
           Complex.realPhase_secondDerivative_vdc_derivPacketIndex φ n = m₁ :=
         ((Complex.mem_realPhase_secondDerivative_vdc_derivPacket_iff_index_eq
           φ).mp hn₁).2
-      have hidx₂ :
+        have hidx₂ :
           Complex.realPhase_secondDerivative_vdc_derivPacketIndex φ n = m₂ :=
         ((Complex.mem_realPhase_secondDerivative_vdc_derivPacket_iff_index_eq
           φ).mp hn₂).2
-      have hm_eq : m₁ = m₂ :=
+        have hm_eq : m₁ = m₂ :=
         hidx₁.symm.trans hidx₂
       hm hm_eq)
 
@@ -1480,7 +1486,7 @@ theorem Complex.mem_realPhase_secondDerivative_vdc_activePacketUnion_iff
         ∃ m : ℤ,
           m ∈ Complex.realPhase_secondDerivative_vdc_activeDerivPackets φ a b ∧
             n ∈ Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m :=
-      Finset.mem_biUnion.mp hn
+        Finset.mem_biUnion.mp hn
     match hexists with
     | Exists.intro m hmhn =>
         exact
@@ -1500,7 +1506,7 @@ theorem Complex.realPhase_secondDerivative_vdc_activePacketUnion_eq_block
     (φ : ℝ → ℝ)
     (a b : ℕ) :
     Complex.realPhase_secondDerivative_vdc_activePacketUnion φ a b =
-      Finset.Icc a b :=
+        Finset.Icc a b :=
   Finset.ext
     (fun n =>
       Complex.mem_realPhase_secondDerivative_vdc_activePacketUnion_iff φ)
@@ -1532,7 +1538,7 @@ theorem Complex.realPhase_secondDerivative_vdc_block_sum_eq_activePacketUnion_su
     congrArg
       (fun s : Finset ℕ =>
         ∑ n ∈ s, Complex.exp (Complex.I * (φ n : ℂ)))
-      (Complex.realPhase_secondDerivative_vdc_activePacketUnion_eq_block
+        (Complex.realPhase_secondDerivative_vdc_activePacketUnion_eq_block
         φ a b).symm
 
 /-- The finite exponential sum over one derivative-frequency packet. -/
@@ -1553,7 +1559,7 @@ theorem Complex.realPhase_secondDerivative_vdc_activePacketUnion_sum_eq_packetSu
       Complex.realPhase_secondDerivative_vdc_packetSum φ a b m := by
   exact
     Finset.sum_biUnion
-      (Complex.realPhase_secondDerivative_vdc_activeDerivPackets_pairwiseDisjoint
+        (Complex.realPhase_secondDerivative_vdc_activeDerivPackets_pairwiseDisjoint
         φ a b)
 
 /-- The total active-packet sum is exactly the original integer-block sum. -/
@@ -1607,7 +1613,7 @@ theorem Complex.realPhase_secondDerivative_vdc_packetSum_norm_le_card
     exact le_of_eq (Complex.realPhase_exp_I_norm φ n)
   exact
     Complex.finite_sum_norm_le_card_of_norm_le_one
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m)
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m)
       (fun n : ℕ => Complex.exp (Complex.I * (φ n : ℂ)))
       hunit
 
@@ -1625,7 +1631,7 @@ theorem Complex.realPhase_secondDerivative_vdc_packetSum_bound_of_card_le_target
       (((b + 1 : ℕ) : ℝ) / T + Real.sqrt (1 + T)) := by
   exact
     le_trans
-      (Complex.realPhase_secondDerivative_vdc_packetSum_norm_le_card φ a b m)
+        (Complex.realPhase_secondDerivative_vdc_packetSum_norm_le_card φ a b m)
       hcard
 
 /-- Shifted phase difference used in Weyl differencing for an abstract real
@@ -1643,7 +1649,7 @@ def Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
     (h a b : ℕ) : ℂ :=
   ∑ n ∈ Finset.Icc a (b - h),
     Complex.exp
-      (Complex.I *
+        (Complex.I *
         (Complex.realPhase_secondDerivative_vdc_shiftedDifference φ h n : ℂ))
 
 /-- The shifted-difference phase has unit-modulus exponential terms. -/
@@ -1651,11 +1657,11 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedDifference_exp_norm
     (φ : ℝ → ℝ)
     (h n : ℕ) :
     ‖Complex.exp
-      (Complex.I *
+        (Complex.I *
         (Complex.realPhase_secondDerivative_vdc_shiftedDifference φ h n : ℂ))‖ = 1 := by
   exact
     Complex.realPhase_exp_I_norm
-      (Complex.realPhase_secondDerivative_vdc_shiftedDifference φ h) n
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference φ h) n
 
 /-- Unit coefficient attached to an abstract real phase. -/
 def Complex.realPhase_secondDerivative_vdc_coefficient
@@ -1690,8 +1696,6 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficientBlock_eq_original_sum
     Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b =
       ∑ n ∈ Finset.Icc a b,
         Complex.exp (Complex.I * (φ n : ℂ)) := by
-  unfold Complex.realPhase_secondDerivative_vdc_coefficientBlock
-  unfold Complex.realPhase_secondDerivative_vdc_coefficient
   exact Eq.refl
     (∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ)))
@@ -1719,13 +1723,13 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficient_normSq
     (φ : ℝ → ℝ)
     (n : ℕ) :
     Complex.normSq
-      (Complex.realPhase_secondDerivative_vdc_coefficient φ n) = 1 := by
+        (Complex.realPhase_secondDerivative_vdc_coefficient φ n) = 1 := by
   have hnorm_sq :
       ‖Complex.realPhase_secondDerivative_vdc_coefficient φ n‖ ^ 2 =
         Complex.normSq
           (Complex.realPhase_secondDerivative_vdc_coefficient φ n) :=
     Complex.norm_sq_eq_normSq
-      (Complex.realPhase_secondDerivative_vdc_coefficient φ n)
+        (Complex.realPhase_secondDerivative_vdc_coefficient φ n)
   have hnorm :
       ‖Complex.realPhase_secondDerivative_vdc_coefficient φ n‖ = 1 :=
     Complex.realPhase_secondDerivative_vdc_coefficient_norm φ n
@@ -1748,18 +1752,17 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficientBlock_norm_le_blockLen
     (a b : ℕ) :
     ‖Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b‖ ≤
       ((Finset.Icc a b).card : ℝ) := by
-  unfold Complex.realPhase_secondDerivative_vdc_coefficientBlock
   have hunit :
       ∀ n : ℕ,
         n ∈ Finset.Icc a b →
           ‖Complex.realPhase_secondDerivative_vdc_coefficient φ n‖ ≤ 1 := by
     intro n hn
     exact le_of_eq
-      (Complex.realPhase_secondDerivative_vdc_coefficient_norm φ n)
+        (Complex.realPhase_secondDerivative_vdc_coefficient_norm φ n)
   exact
     Complex.finite_sum_norm_le_card_of_norm_le_one
       (Finset.Icc a b)
-      (Complex.realPhase_secondDerivative_vdc_coefficient φ)
+        (Complex.realPhase_secondDerivative_vdc_coefficient φ)
       hunit
 
 /-- Coefficient blocks are trivially bounded by the real endpoint length. -/
@@ -1780,7 +1783,6 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficient_conj
     (n : ℕ) :
     star (Complex.realPhase_secondDerivative_vdc_coefficient φ n) =
       Complex.exp (Complex.I * (-(φ n) : ℂ)) := by
-  unfold Complex.realPhase_secondDerivative_vdc_coefficient
   have hstar_exp :
       star (Complex.exp (Complex.I * (φ n : ℂ))) =
         Complex.exp (star (Complex.I * (φ n : ℂ))) :=
@@ -1819,7 +1821,7 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedDifference_exp_eq_coeff_mu
       Complex.realPhase_secondDerivative_vdc_coefficient φ (n + h) *
         star (Complex.realPhase_secondDerivative_vdc_coefficient φ n) := by
   have hphase_sub :
-      (Complex.realPhase_secondDerivative_vdc_shiftedDifference φ h n : ℂ) =
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference φ h n : ℂ) =
         (φ ((n + h : ℕ) : ℝ) : ℂ) + (-(φ n) : ℂ) := by
     have hnat_add :
         (((n + h : ℕ) : ℝ)) = (n : ℝ) + h :=
@@ -1827,7 +1829,9 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedDifference_exp_eq_coeff_mu
     have hphase_shift :
         φ ((n : ℝ) + h) = φ ((n + h : ℕ) : ℝ) :=
       congrArg φ hnat_add.symm
-    unfold Complex.realPhase_secondDerivative_vdc_shiftedDifference
+    show
+        ((φ ((n : ℝ) + h) - φ n : ℝ) : ℂ) =
+          (φ ((n + h : ℕ) : ℝ) : ℂ) + (-(φ n) : ℂ)
     calc
       ((φ ((n : ℝ) + h) - φ n : ℝ) : ℂ) =
           (φ ((n : ℝ) + h) : ℂ) - (φ n : ℂ) := by
@@ -1838,8 +1842,8 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedDifference_exp_eq_coeff_mu
         exact congrArg
           (fun y : ℝ => (y : ℂ) + -(φ n : ℂ))
           hphase_shift
-    _ = (φ ((n + h : ℕ) : ℝ) : ℂ) + (-(φ n) : ℂ) := by
-      rfl
+      _ = (φ ((n + h : ℕ) : ℝ) : ℂ) + (-(φ n) : ℂ) := by
+        exact Eq.refl ((φ ((n + h : ℕ) : ℝ) : ℂ) + (-(φ n) : ℂ))
   have harg :
       Complex.I *
           (Complex.realPhase_secondDerivative_vdc_shiftedDifference φ h n : ℂ) =
@@ -1862,7 +1866,7 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedDifference_exp_eq_coeff_mu
           Complex.exp (Complex.I * (-(φ n) : ℂ)) := by
     exact Eq.trans
       (congrArg Complex.exp harg)
-      (Complex.exp_add
+        (Complex.exp_add
         (Complex.I * (φ ((n + h : ℕ) : ℝ) : ℂ))
         (Complex.I * (-(φ n) : ℂ)))
   have hcoeff_shift :
@@ -1904,8 +1908,14 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelation_eq_coefficient
     (h a b : ℕ) :
     Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ h a b =
       Complex.realPhase_secondDerivative_vdc_coefficientShiftedCorrelation φ h a b := by
-  unfold Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
-  unfold Complex.realPhase_secondDerivative_vdc_coefficientShiftedCorrelation
+  show
+      (∑ n ∈ Finset.Icc a (b - h),
+        Complex.exp
+          (Complex.I *
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference φ h n : ℂ))) =
+        ∑ n ∈ Finset.Icc a (b - h),
+          Complex.realPhase_secondDerivative_vdc_coefficient φ (n + h) *
+            star (Complex.realPhase_secondDerivative_vdc_coefficient φ n)
   exact Finset.sum_congr (Eq.refl (Finset.Icc a (b - h)))
     (fun n hn =>
       Complex.realPhase_secondDerivative_vdc_shiftedDifference_exp_eq_coeff_mul_conj
@@ -1927,7 +1937,6 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelation_norm_le_card
     (h a b : ℕ) :
     ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ h a b‖ ≤
       ((Finset.Icc a (b - h)).card : ℝ) := by
-  unfold Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
   have hunit :
       ∀ n : ℕ,
         n ∈ Finset.Icc a (b - h) →
@@ -1937,7 +1946,7 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelation_norm_le_card
             1 := by
     intro n hn
     exact le_of_eq
-      (Complex.realPhase_secondDerivative_vdc_shiftedDifference_exp_norm
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference_exp_norm
         φ h n)
   exact
     Complex.finite_sum_norm_le_card_of_norm_le_one
@@ -1964,7 +1973,7 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficientShiftedCorrelation_nor
       (motive := fun r : ℝ =>
         r ≤ ((Finset.Icc a (b - h)).card : ℝ))
       hnorm_eq
-      (Complex.realPhase_secondDerivative_vdc_shiftedCorrelation_norm_le_card
+        (Complex.realPhase_secondDerivative_vdc_shiftedCorrelation_norm_le_card
         φ h a b)
 
 /-- First-derivative estimate for an abstract shifted-correlation block, with
@@ -1999,10 +2008,9 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelation_bound_of_first
         (Complex.realPhase_secondDerivative_vdc_shiftedDifference φ h) a (b - h) lam) :
     ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ h a b‖ ≤
       4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ := by
-  unfold Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
   exact
     Complex.realPhase_firstDerivative_integer_block_bound
-      (Complex.realPhase_secondDerivative_vdc_shiftedDifference φ h)
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference φ h)
       ha habh hlam_pos hderiv_antitone hderiv_lower
       hinc_mono hred_mono hsep
 
@@ -2115,7 +2123,6 @@ def Real.secondDerivativeVdc_blockLength
 theorem Real.secondDerivativeVdc_blockLength_nonneg
     (a b : ℕ) :
     0 ≤ Real.secondDerivativeVdc_blockLength a b := by
-  unfold Real.secondDerivativeVdc_blockLength
   exact Nat.cast_nonneg (Finset.Icc a b).card
 
 /-- The block-length definition agrees with the endpoint length when the
@@ -2125,7 +2132,6 @@ theorem Real.secondDerivativeVdc_blockLength_eq_endpoint_length
     (hab : a ≤ b + 1) :
     Real.secondDerivativeVdc_blockLength a b =
       (((b + 1 : ℕ) : ℝ) - (a : ℝ)) := by
-  unfold Real.secondDerivativeVdc_blockLength
   exact Real.secondDerivativeVdc_card_Icc_eq_endpoint_length hab
 
 /-- The diagonal term in the coefficient-block autocorrelation is exactly the
@@ -2137,7 +2143,6 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficient_diagonal_sum_eq_block
       Complex.normSq
         (Complex.realPhase_secondDerivative_vdc_coefficient φ n)) =
       Real.secondDerivativeVdc_blockLength a b := by
-  unfold Real.secondDerivativeVdc_blockLength
   have hunit_sum :
       (∑ n ∈ Finset.Icc a b,
         Complex.normSq
@@ -2166,7 +2171,6 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficientBlock_norm_le_real_blo
     (a b : ℕ) :
     ‖Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b‖ ≤
       Real.secondDerivativeVdc_blockLength a b := by
-  unfold Real.secondDerivativeVdc_blockLength
   exact
     Complex.realPhase_secondDerivative_vdc_coefficientBlock_norm_le_blockLength
       φ a b
@@ -2196,7 +2200,6 @@ theorem Real.secondDerivativeVdc_weylEnvelopeMajorant_nonneg
     (a b H : ℕ)
     (envelope : ℝ) :
     0 ≤ Real.secondDerivativeVdc_weylEnvelopeMajorant a b H envelope := by
-  unfold Real.secondDerivativeVdc_weylEnvelopeMajorant
   exact Real.sqrt_nonneg
     (((Real.secondDerivativeVdc_blockLength a b) + (H : ℝ)) *
       (((Real.secondDerivativeVdc_blockLength a b) +
@@ -2250,7 +2253,6 @@ theorem Real.secondDerivativeVdc_weylEnvelopeMajorant_mono
     (henv : envelope ≤ envelope') :
     Real.secondDerivativeVdc_weylEnvelopeMajorant a b H envelope ≤
       Real.secondDerivativeVdc_weylEnvelopeMajorant a b H envelope' := by
-  unfold Real.secondDerivativeVdc_weylEnvelopeMajorant
   have hinner :
       ((Real.secondDerivativeVdc_blockLength a b) + 2 * envelope) *
           ((H : ℝ)⁻¹) ≤
@@ -2283,7 +2285,6 @@ theorem Real.secondDerivativeVdc_weylEnvelopeMajorant_le_of_radicand_le_sq
             ((H : ℝ)⁻¹)) ≤
         M ^ 2) :
     Real.secondDerivativeVdc_weylEnvelopeMajorant a b H envelope ≤ M := by
-  unfold Real.secondDerivativeVdc_weylEnvelopeMajorant
   have hsqrt_le :
       Real.sqrt
           (((Real.secondDerivativeVdc_blockLength a b) + (H : ℝ)) *
@@ -2328,7 +2329,6 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficientExtended_of_mem
     (hn : (a : ℤ) ≤ n ∧ n ≤ (b : ℤ)) :
     Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b n =
       Complex.realPhase_secondDerivative_vdc_coefficient φ n.toNat := by
-  unfold Complex.realPhase_secondDerivative_vdc_coefficientExtended
   exact if_pos hn
 
 /-- The zero-extended coefficient vanishes outside the original block. -/
@@ -2338,7 +2338,6 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficientExtended_of_not_mem
     {n : ℤ}
     (hn : ¬ ((a : ℤ) ≤ n ∧ n ≤ (b : ℤ))) :
     Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b n = 0 := by
-  unfold Complex.realPhase_secondDerivative_vdc_coefficientExtended
   exact if_neg hn
 
 /-- Nat-indexed form of the zero-extension agreement on the original block. -/
@@ -2429,7 +2428,8 @@ theorem Complex.realPhase_secondDerivative_vdc_weylHitBase_mem_translateBase
     (hh : h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H) :
     ((n : ℤ) - (h : ℤ)) ∈
       Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H := by
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateBase
+  show ((n : ℤ) - (h : ℤ)) ∈
+    Finset.Icc ((a : ℤ) - (H : ℤ)) (b : ℤ)
   have hn_bounds : a ≤ n ∧ n ≤ b :=
     Finset.mem_Icc.mp hn
   have hh_bounds : 1 ≤ h ∧ h ≤ H :=
@@ -2461,7 +2461,7 @@ theorem Complex.realPhase_secondDerivative_vdc_weylHitBase_injective
     {H n : ℕ} :
     Set.InjOn
       (fun h : ℕ => (n : ℤ) - (h : ℤ))
-      (Complex.realPhase_secondDerivative_vdc_shiftRange H : Set ℕ) := by
+        (Complex.realPhase_secondDerivative_vdc_shiftRange H : Set ℕ) := by
   intro h₁ hh₁ h₂ hh₂ heq
   have hcast : (h₁ : ℤ) = (h₂ : ℤ) :=
     (Int.sub_left_inj (n : ℤ)).mp heq
@@ -2471,9 +2471,11 @@ theorem Complex.realPhase_secondDerivative_vdc_weylHitBase_injective
 theorem Complex.realPhase_secondDerivative_vdc_weylHitBases_card_eq
     (a b H n : ℕ) :
     (Complex.realPhase_secondDerivative_vdc_weylHitBases a b H n).card = H := by
-  unfold Complex.realPhase_secondDerivative_vdc_weylHitBases
+  show
+      ((Complex.realPhase_secondDerivative_vdc_shiftRange H).image
+        (fun h : ℕ => (n : ℤ) - (h : ℤ))).card = H
   have hshift_card :
-      (Complex.realPhase_secondDerivative_vdc_shiftRange H).card = H := by
+        (Complex.realPhase_secondDerivative_vdc_shiftRange H).card = H := by
     have hcard :
         (Complex.realPhase_secondDerivative_vdc_shiftRange H).card = H + 1 - 1 :=
       Nat.card_Icc 1 H
@@ -2483,7 +2485,7 @@ theorem Complex.realPhase_secondDerivative_vdc_weylHitBases_card_eq
         (fun h : ℕ => (n : ℤ) - (h : ℤ))).card =
         (Complex.realPhase_secondDerivative_vdc_shiftRange H).card :=
     Finset.card_image_of_injOn
-      (Complex.realPhase_secondDerivative_vdc_weylHitBase_injective
+        (Complex.realPhase_secondDerivative_vdc_weylHitBase_injective
         (H := H) (n := n))
   exact Eq.trans himage hshift_card
 
@@ -2516,7 +2518,7 @@ theorem Complex.realPhase_secondDerivative_vdc_weylHitBases_sum_eq
       ((Complex.realPhase_secondDerivative_vdc_weylHitBases a b H n).card : ℂ) =
         (H : ℂ) :=
     congrArg (fun k : ℕ => (k : ℂ))
-      (Complex.realPhase_secondDerivative_vdc_weylHitBases_card_eq a b H n)
+        (Complex.realPhase_secondDerivative_vdc_weylHitBases_card_eq a b H n)
   exact
     Eq.trans hconst
       (Eq.trans
@@ -2538,57 +2540,63 @@ theorem Complex.realPhase_secondDerivative_vdc_fixedShift_translate_to_indexInte
       Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (m + (h : ℤ))) =
       ∑ n ∈ Finset.Icc (((a : ℤ) - (H : ℤ)) + (h : ℤ)) ((b : ℤ) + (h : ℤ)),
         Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b n := by
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateBase
-  apply Finset.sum_bij (fun m _ => m + (h : ℤ))
-  · intro m hm
-    have hmbounds :
-        (a : ℤ) - (H : ℤ) ≤ m ∧ m ≤ (b : ℤ) :=
-      Finset.mem_Icc.mp hm
-    exact Finset.mem_Icc.mpr
-      (And.intro
-        (add_le_add_right hmbounds.1 (h : ℤ))
-        (add_le_add_right hmbounds.2 (h : ℤ)))
-  · intro m₁ hm₁ m₂ hm₂ heq
-    exact add_right_cancel heq
-  · intro n hn
-    have hnbounds :
-        ((a : ℤ) - (H : ℤ)) + (h : ℤ) ≤ n ∧
-          n ≤ (b : ℤ) + (h : ℤ) :=
-      Finset.mem_Icc.mp hn
-    refine ⟨n - (h : ℤ), ?_, ?_⟩
-    · have hlower_shift :
-          ((a : ℤ) - (H : ℤ)) + (h : ℤ) - (h : ℤ) ≤
-            n - (h : ℤ) :=
-        sub_le_sub_right hnbounds.1 (h : ℤ)
-      have hlower_cancel :
-          ((a : ℤ) - (H : ℤ)) + (h : ℤ) - (h : ℤ) =
-            (a : ℤ) - (H : ℤ) :=
-        add_sub_cancel_right ((a : ℤ) - (H : ℤ)) (h : ℤ)
-      have hlower :
-          (a : ℤ) - (H : ℤ) ≤ n - (h : ℤ) :=
-        Eq.subst
-          (motive := fun z : ℤ => z ≤ n - (h : ℤ))
-          hlower_cancel
-          hlower_shift
-      have hupper_shift :
-          n - (h : ℤ) ≤ ((b : ℤ) + (h : ℤ)) - (h : ℤ) :=
-        sub_le_sub_right hnbounds.2 (h : ℤ)
-      have hupper_cancel :
-          ((b : ℤ) + (h : ℤ)) - (h : ℤ) = (b : ℤ) :=
-        add_sub_cancel_right (b : ℤ) (h : ℤ)
-      have hupper :
-          n - (h : ℤ) ≤ (b : ℤ) :=
-        Eq.subst
-          (motive := fun z : ℤ => n - (h : ℤ) ≤ z)
-          hupper_cancel
-          hupper_shift
-      exact Finset.mem_Icc.mpr (And.intro hlower hupper)
-    · exact sub_add_cancel n (h : ℤ)
-  · intro m hm
-    exact congrArg
-      (fun z : ℤ =>
-        Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b z)
-      (Eq.refl (m + (h : ℤ)))
+  show
+      (∑ m ∈ Finset.Icc ((a : ℤ) - (H : ℤ)) (b : ℤ),
+        Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (m + (h : ℤ))) =
+        ∑ n ∈ Finset.Icc (((a : ℤ) - (H : ℤ)) + (h : ℤ)) ((b : ℤ) + (h : ℤ)),
+          Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b n
+  exact
+    Finset.sum_bij
+      (fun m _ => m + (h : ℤ))
+      (fun m hm =>
+        have hmbounds :
+            (a : ℤ) - (H : ℤ) ≤ m ∧ m ≤ (b : ℤ) :=
+          Finset.mem_Icc.mp hm
+        Finset.mem_Icc.mpr
+          (And.intro
+            (add_le_add_right hmbounds.1 (h : ℤ))
+            (add_le_add_right hmbounds.2 (h : ℤ))))
+      (fun m₁ _hm₁ m₂ _hm₂ heq => add_right_cancel heq)
+      (fun n hn =>
+        have hnbounds :
+            ((a : ℤ) - (H : ℤ)) + (h : ℤ) ≤ n ∧
+              n ≤ (b : ℤ) + (h : ℤ) :=
+          Finset.mem_Icc.mp hn
+        ⟨n - (h : ℤ),
+          (by
+              have hlower_shift :
+                  ((a : ℤ) - (H : ℤ)) + (h : ℤ) - (h : ℤ) ≤
+                    n - (h : ℤ) :=
+                sub_le_sub_right hnbounds.1 (h : ℤ)
+              have hlower_cancel :
+                  ((a : ℤ) - (H : ℤ)) + (h : ℤ) - (h : ℤ) =
+                    (a : ℤ) - (H : ℤ) :=
+                add_sub_cancel_right ((a : ℤ) - (H : ℤ)) (h : ℤ)
+              have hlower :
+                  (a : ℤ) - (H : ℤ) ≤ n - (h : ℤ) :=
+                Eq.subst
+                  (motive := fun z : ℤ => z ≤ n - (h : ℤ))
+                  hlower_cancel
+                  hlower_shift
+              have hupper_shift :
+                  n - (h : ℤ) ≤ ((b : ℤ) + (h : ℤ)) - (h : ℤ) :=
+                sub_le_sub_right hnbounds.2 (h : ℤ)
+              have hupper_cancel :
+                  ((b : ℤ) + (h : ℤ)) - (h : ℤ) = (b : ℤ) :=
+                add_sub_cancel_right (b : ℤ) (h : ℤ)
+              have hupper :
+                  n - (h : ℤ) ≤ (b : ℤ) :=
+                Eq.subst
+                  (motive := fun z : ℤ => n - (h : ℤ) ≤ z)
+                  hupper_cancel
+                  hupper_shift
+              exact Finset.mem_Icc.mpr (And.intro hlower hupper)),
+          sub_add_cancel n (h : ℤ)⟩)
+      (fun m _hm =>
+        congrArg
+          (fun z : ℤ =>
+            Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b z)
+          (Eq.refl (m + (h : ℤ))))
 
 /-- The natural block, embedded in the integers, is contained in the
 translated index interval for any valid Weyl shift. -/
@@ -2598,7 +2606,7 @@ theorem Complex.realPhase_secondDerivative_vdc_natBlock_subset_fixedShift_indexI
     (hH_block : H ≤ (Finset.Icc a b).card)
     (hh : h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H) :
     (Finset.Icc a b).image (fun n : ℕ => (n : ℤ)) ⊆
-      Finset.Icc (((a : ℤ) - (H : ℤ)) + (h : ℤ)) ((b : ℤ) + (h : ℤ)) := by
+        Finset.Icc (((a : ℤ) - (H : ℤ)) + (h : ℤ)) ((b : ℤ) + (h : ℤ)) := by
   intro n hn
   match Finset.mem_image.mp hn with
   | ⟨k, hk, hkn⟩ =>
@@ -2641,11 +2649,11 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficientExtended_eq_zero_of_no
     have hn_nonneg : 0 ≤ n :=
       le_trans (Int.natCast_nonneg a) hbounds.1
     have htoNat_mem : n.toNat ∈ Finset.Icc a b := by
-      have hleft : a ≤ n.toNat :=
+        have hleft : a ≤ n.toNat :=
         Int.toNat_le_toNat hbounds.1
-      have hright : n.toNat ≤ b :=
+        have hright : n.toNat ≤ b :=
         Int.toNat_le.mpr hbounds.2
-      exact Finset.mem_Icc.mpr (And.intro hleft hright)
+        exact Finset.mem_Icc.mpr (And.intro hleft hright)
     have hcast_toNat : (n.toNat : ℤ) = n :=
       Int.toNat_of_nonneg hn_nonneg
     exact hn
@@ -2704,7 +2712,6 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficientExtended_indexInterval
       (fun n hn =>
         Complex.realPhase_secondDerivative_vdc_coefficientExtended_natCast_of_mem
           φ hn)
-  unfold Complex.realPhase_secondDerivative_vdc_coefficientBlock
   exact Eq.trans htrim (Eq.trans himage hnat)
 
 /-- For one fixed positive shift, summing the translated zero-extended
@@ -2736,58 +2743,66 @@ theorem Complex.realPhase_secondDerivative_vdc_fixedShift_translate_normSq_to_in
       ∑ n ∈ Finset.Icc (((a : ℤ) - (H : ℤ)) + (h : ℤ)) ((b : ℤ) + (h : ℤ)),
         Complex.normSq
           (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b n) := by
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateBase
-  apply Finset.sum_bij (fun m _ => m + (h : ℤ))
-  · intro m hm
-    have hmbounds :
-        (a : ℤ) - (H : ℤ) ≤ m ∧ m ≤ (b : ℤ) :=
-      Finset.mem_Icc.mp hm
-    exact Finset.mem_Icc.mpr
-      (And.intro
-        (add_le_add_right hmbounds.1 (h : ℤ))
-        (add_le_add_right hmbounds.2 (h : ℤ)))
-  · intro m₁ hm₁ m₂ hm₂ heq
-    exact add_right_cancel heq
-  · intro n hn
-    have hnbounds :
-        ((a : ℤ) - (H : ℤ)) + (h : ℤ) ≤ n ∧
-          n ≤ (b : ℤ) + (h : ℤ) :=
-      Finset.mem_Icc.mp hn
-    refine ⟨n - (h : ℤ), ?_, ?_⟩
-    · have hlower_shift :
-          ((a : ℤ) - (H : ℤ)) + (h : ℤ) - (h : ℤ) ≤
-            n - (h : ℤ) :=
-        sub_le_sub_right hnbounds.1 (h : ℤ)
-      have hlower_cancel :
-          ((a : ℤ) - (H : ℤ)) + (h : ℤ) - (h : ℤ) =
-            (a : ℤ) - (H : ℤ) :=
-        add_sub_cancel_right ((a : ℤ) - (H : ℤ)) (h : ℤ)
-      have hlower :
-          (a : ℤ) - (H : ℤ) ≤ n - (h : ℤ) :=
-        Eq.subst
-          (motive := fun z : ℤ => z ≤ n - (h : ℤ))
-          hlower_cancel
-          hlower_shift
-      have hupper_shift :
-          n - (h : ℤ) ≤ ((b : ℤ) + (h : ℤ)) - (h : ℤ) :=
-        sub_le_sub_right hnbounds.2 (h : ℤ)
-      have hupper_cancel :
-          ((b : ℤ) + (h : ℤ)) - (h : ℤ) = (b : ℤ) :=
-        add_sub_cancel_right (b : ℤ) (h : ℤ)
-      have hupper :
-          n - (h : ℤ) ≤ (b : ℤ) :=
-        Eq.subst
-          (motive := fun z : ℤ => n - (h : ℤ) ≤ z)
-          hupper_cancel
-          hupper_shift
-      exact Finset.mem_Icc.mpr (And.intro hlower hupper)
-    · exact sub_add_cancel n (h : ℤ)
-  · intro m hm
-    exact congrArg
-      (fun z : ℤ =>
+  show
+      (∑ m ∈ Finset.Icc ((a : ℤ) - (H : ℤ)) (b : ℤ),
         Complex.normSq
-          (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b z))
-      (Eq.refl (m + (h : ℤ)))
+          (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (m + (h : ℤ)))) =
+        ∑ n ∈ Finset.Icc (((a : ℤ) - (H : ℤ)) + (h : ℤ)) ((b : ℤ) + (h : ℤ)),
+          Complex.normSq
+            (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b n)
+  exact
+    Finset.sum_bij
+      (fun m _ => m + (h : ℤ))
+      (fun m hm =>
+        have hmbounds :
+            (a : ℤ) - (H : ℤ) ≤ m ∧ m ≤ (b : ℤ) :=
+          Finset.mem_Icc.mp hm
+        Finset.mem_Icc.mpr
+          (And.intro
+            (add_le_add_right hmbounds.1 (h : ℤ))
+            (add_le_add_right hmbounds.2 (h : ℤ))))
+      (fun m₁ _hm₁ m₂ _hm₂ heq => add_right_cancel heq)
+      (fun n hn =>
+        have hnbounds :
+            ((a : ℤ) - (H : ℤ)) + (h : ℤ) ≤ n ∧
+              n ≤ (b : ℤ) + (h : ℤ) :=
+          Finset.mem_Icc.mp hn
+        ⟨n - (h : ℤ),
+          (by
+              have hlower_shift :
+                  ((a : ℤ) - (H : ℤ)) + (h : ℤ) - (h : ℤ) ≤
+                    n - (h : ℤ) :=
+                sub_le_sub_right hnbounds.1 (h : ℤ)
+              have hlower_cancel :
+                  ((a : ℤ) - (H : ℤ)) + (h : ℤ) - (h : ℤ) =
+                    (a : ℤ) - (H : ℤ) :=
+                add_sub_cancel_right ((a : ℤ) - (H : ℤ)) (h : ℤ)
+              have hlower :
+                  (a : ℤ) - (H : ℤ) ≤ n - (h : ℤ) :=
+                Eq.subst
+                  (motive := fun z : ℤ => z ≤ n - (h : ℤ))
+                  hlower_cancel
+                  hlower_shift
+              have hupper_shift :
+                  n - (h : ℤ) ≤ ((b : ℤ) + (h : ℤ)) - (h : ℤ) :=
+                sub_le_sub_right hnbounds.2 (h : ℤ)
+              have hupper_cancel :
+                  ((b : ℤ) + (h : ℤ)) - (h : ℤ) = (b : ℤ) :=
+                add_sub_cancel_right (b : ℤ) (h : ℤ)
+              have hupper :
+                  n - (h : ℤ) ≤ (b : ℤ) :=
+                Eq.subst
+                  (motive := fun z : ℤ => n - (h : ℤ) ≤ z)
+                  hupper_cancel
+                  hupper_shift
+              exact Finset.mem_Icc.mpr (And.intro hlower hupper)),
+          sub_add_cancel n (h : ℤ)⟩)
+      (fun m _hm =>
+        congrArg
+          (fun z : ℤ =>
+            Complex.normSq
+              (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b z))
+          (Eq.refl (m + (h : ℤ))))
 
 /-- The zero-extended norm-square coefficient vanishes outside the original
 integer block. -/
@@ -2908,7 +2923,13 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslate_sum_partition
     fun h hh =>
       Complex.realPhase_secondDerivative_vdc_weylTranslate_fixedShift_sum_eq_block
         φ hH hH_block hh
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateSum
+  show
+    (∑ m ∈ Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H,
+      ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+        Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (m + (h : ℤ))) =
+      ∑ n ∈ Finset.Icc a b,
+        ∑ m ∈ Complex.realPhase_secondDerivative_vdc_weylHitBases a b H n,
+          Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (n : ℤ)
   have hswap :
       (∑ m ∈ Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H,
         ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
@@ -2943,14 +2964,14 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslate_sum_partition
           (Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b))
     have hcard :
         ((Complex.realPhase_secondDerivative_vdc_shiftRange H).card : ℂ) =
-          (H : ℂ) :=
+          (H : ℂ) := by
       have hshift_card :
           (Complex.realPhase_secondDerivative_vdc_shiftRange H).card = H := by
         have hcard_nat :
             (Complex.realPhase_secondDerivative_vdc_shiftRange H).card = H + 1 - 1 :=
           Nat.card_Icc 1 H
         exact Eq.trans hcard_nat (Nat.succ_sub_one H)
-      congrArg (fun n : ℕ => (n : ℂ)) hshift_card
+      exact congrArg (fun n : ℕ => (n : ℂ)) hshift_card
     exact Eq.trans hconst_sum
       (congrArg
         (fun z : ℂ =>
@@ -2967,7 +2988,7 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslate_sum_partition
             Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (n : ℤ)) =
           ∑ n ∈ Finset.Icc a b,
             (H : ℂ) * Complex.realPhase_secondDerivative_vdc_coefficient φ n :=
-      Finset.sum_congr
+        Finset.sum_congr
         (Eq.refl (Finset.Icc a b))
         (fun n hn =>
           Complex.realPhase_secondDerivative_vdc_weylHitBases_sum_eq
@@ -2981,7 +3002,13 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslate_sum_partition
       (Finset.mul_sum (Finset.Icc a b)
         (fun n : ℕ => Complex.realPhase_secondDerivative_vdc_coefficient φ n)
         (H : ℂ)).symm
-    unfold Complex.realPhase_secondDerivative_vdc_coefficientBlock
+    show
+      (∑ n ∈ Finset.Icc a b,
+        ∑ m ∈ Complex.realPhase_secondDerivative_vdc_weylHitBases a b H n,
+          Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (n : ℤ)) =
+        (H : ℂ) *
+          ∑ n ∈ Finset.Icc a b,
+            Complex.realPhase_secondDerivative_vdc_coefficient φ n
     exact Eq.trans hinner hfactor
   exact Eq.trans hswap
     (Eq.trans hconst
@@ -2998,9 +3025,9 @@ theorem Nat.realPhase_secondDerivative_vdc_nonempty_of_shiftLength_le_card
     lt_of_lt_of_le (Nat.lt_of_succ_le hH) hH_block
   match Finset.card_pos.mp hcard_pos with
   | ⟨n, hn⟩ =>
-      have hbounds : a ≤ n ∧ n ≤ b :=
+        have hbounds : a ≤ n ∧ n ≤ b :=
         Finset.mem_Icc.mp hn
-      exact le_trans hbounds.1 hbounds.2
+        exact le_trans hbounds.1 hbounds.2
 
 /-- Integer endpoint arithmetic for the translate-base interval. -/
 theorem Int.realPhase_secondDerivative_vdc_translateBase_length_eq
@@ -3070,7 +3097,9 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslateBase_card_nat_eq
   have hab : a ≤ b :=
     Nat.realPhase_secondDerivative_vdc_nonempty_of_shiftLength_le_card
       hH hH_block
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateBase
+  show
+    (Finset.Icc ((a : ℤ) - (H : ℤ)) (b : ℤ)).card =
+      (Finset.Icc a b).card + H
   have hleft :
       (((Finset.Icc ((a : ℤ) - (H : ℤ)) (b : ℤ)).card : ℕ) : ℤ) =
         (b : ℤ) + 1 - ((a : ℤ) - (H : ℤ)) :=
@@ -3093,9 +3122,11 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslateBase_card_eq_block_a
     (hH_block : H ≤ (Finset.Icc a b).card) :
     ((Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H).card : ℝ) =
       Real.secondDerivativeVdc_blockLength a b + (H : ℝ) := by
-  unfold Real.secondDerivativeVdc_blockLength
+  show
+    ((Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H).card : ℝ) =
+      ((Finset.Icc a b).card : ℝ) + (H : ℝ)
   have hnat :
-      (Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H).card =
+        (Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H).card =
         (Finset.Icc a b).card + H :=
     Complex.realPhase_secondDerivative_vdc_weylTranslateBase_card_nat_eq
       hH hH_block
@@ -3156,7 +3187,12 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslate_sum_eq_H_mul_block
     (Finset.mul_sum (Finset.Icc a b)
       (fun n : ℕ => Complex.realPhase_secondDerivative_vdc_coefficient φ n)
       (H : ℂ)).symm
-  unfold Complex.realPhase_secondDerivative_vdc_coefficientBlock
+  show
+    (∑ m ∈ Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H,
+      Complex.realPhase_secondDerivative_vdc_weylTranslateSum φ a b H m) =
+      (H : ℂ) *
+        ∑ n ∈ Finset.Icc a b,
+          Complex.realPhase_secondDerivative_vdc_coefficient φ n
   exact Eq.trans hpartition
     (Eq.trans hinner hfactor)
 
@@ -3407,7 +3443,7 @@ theorem Complex.finset_normSq_sum_over_outer_eq_re_double_correlation
           (fun h : ℕ => u m h))
   exact
     Eq.trans hfixed
-      (Complex.finset_sum_re_double_sum_eq_re_double_correlation
+        (Complex.finset_sum_re_double_sum_eq_re_double_correlation
         outer shifts u)
 
 /-- The diagonal of the finite Gram double sum is the sum of pointwise
@@ -3488,7 +3524,7 @@ theorem Finset.sum_filter_eq_self_singleton_nat
       s.filter (fun j : ℕ => j = i) = {i} := by
     have hraw :
         s.filter (fun j : ℕ => j = i) = if i ∈ s then {i} else ∅ :=
-      Finset.filter_eq' s i
+        Finset.filter_eq' s i
     have hif :
         (if i ∈ s then {i} else ∅) = ({i} : Finset ℕ) :=
       if_pos hi
@@ -3610,7 +3646,7 @@ theorem Finset.sum_lower_eq_sum_upper_of_symm_nat
         ∑ j ∈ s,
           ∑ i ∈ s.filter (fun i : ℕ => j < i), F i j := by
     exact
-      Finset.sum_comm'
+        Finset.sum_comm'
         (s := s)
         (t := fun i : ℕ => s.filter (fun j : ℕ => j < i))
         (t' := s)
@@ -3627,14 +3663,14 @@ theorem Finset.sum_lower_eq_sum_upper_of_symm_nat
               And.intro
                 (Finset.mem_filter.mp hji.1).1
                 (Finset.mem_filter.mpr
-                  (And.intro hji.2 (Finset.mem_filter.mp hji.1).2)))))
+                  (And.intro hji.2 (Finset.mem_filter.mp hji.1).2))))
   have hsymm_sum :
       (∑ j ∈ s,
           ∑ i ∈ s.filter (fun i : ℕ => j < i), F i j) =
         ∑ j ∈ s,
           ∑ i ∈ s.filter (fun i : ℕ => j < i), F j i := by
     exact
-      Finset.sum_congr
+        Finset.sum_congr
         (Eq.refl s)
         (fun j hj =>
           Finset.sum_congr
@@ -3685,7 +3721,7 @@ theorem Finset.sum_lower_add_sum_upper_eq_two_mul_upper_of_symm_nat
         ∑ i ∈ s,
           ∑ j ∈ s.filter (fun j : ℕ => i < j), 2 * F i j := by
     exact
-      Finset.sum_congr
+        Finset.sum_congr
         (Eq.refl s)
         (fun i hi =>
           Eq.trans
@@ -3745,18 +3781,18 @@ theorem Finset.sum_sum_eq_diagonal_add_ordered_of_symm_nat
       fun i : ℕ => ∑ j ∈ s.filter (fun j : ℕ => j < i), F i j
     let upper : ℕ → ℝ :=
       fun i : ℕ => ∑ j ∈ s.filter (fun j : ℕ => i < j), F i j
-      have habc :
-          (∑ i ∈ s, ((F i i + lower i) + upper i)) =
-            (∑ i ∈ s, (F i i + lower i)) + (∑ i ∈ s, upper i) :=
+    have habc :
+        (∑ i ∈ s, ((F i i + lower i) + upper i)) =
+          (∑ i ∈ s, (F i i + lower i)) + (∑ i ∈ s, upper i) :=
         Finset.sum_add_distrib
-      have hab :
-          (∑ i ∈ s, (F i i + lower i)) =
-            (∑ i ∈ s, F i i) + (∑ i ∈ s, lower i) :=
+    have hab :
+        (∑ i ∈ s, (F i i + lower i)) =
+          (∑ i ∈ s, F i i) + (∑ i ∈ s, lower i) :=
         Finset.sum_add_distrib
-      have hcollected :
-          (∑ i ∈ s, ((F i i + lower i) + upper i)) =
-            ((∑ i ∈ s, F i i) + (∑ i ∈ s, lower i)) +
-              (∑ i ∈ s, upper i) :=
+    have hcollected :
+        (∑ i ∈ s, ((F i i + lower i) + upper i)) =
+          ((∑ i ∈ s, F i i) + (∑ i ∈ s, lower i)) +
+            (∑ i ∈ s, upper i) :=
       Eq.trans habc
         (congrArg
           (fun left : ℝ => left + (∑ i ∈ s, upper i))
@@ -3804,15 +3840,15 @@ theorem Complex.finset_gram_double_re_eq_diagonal_add_ordered_pairReal
             2 * (∑ m ∈ outer, u m h₂ * star (u m h₁)).re) := by
   let F : ℕ → ℕ → ℝ :=
     fun h₁ h₂ => (∑ m ∈ outer, u m h₂ * star (u m h₁)).re
-    have hsymm :
-        ∀ h₁ : ℕ,
-          h₁ ∈ shifts →
-            ∀ h₂ : ℕ,
-              h₂ ∈ shifts →
-                F h₁ h₂ = F h₂ h₁ := by
-      intro h₁ hh₁ h₂ hh₂
-      exact
-        Complex.finset_gram_pair_reverse_re_eq outer u h₂ h₁
+  have hsymm :
+      ∀ h₁ : ℕ,
+        h₁ ∈ shifts →
+          ∀ h₂ : ℕ,
+            h₂ ∈ shifts →
+              F h₁ h₂ = F h₂ h₁ := by
+    intro h₁ hh₁ h₂ hh₂
+    exact
+      Complex.finset_gram_pair_reverse_re_eq outer u h₂ h₁
   have hsplit :
       (∑ h₁ ∈ shifts, ∑ h₂ ∈ shifts, F h₁ h₂) =
         (∑ h ∈ shifts, F h h) +
@@ -3851,9 +3887,9 @@ theorem Complex.finset_normSq_sum_over_outer_eq_diagonal_add_ordered_pairReal
             2 * (∑ m ∈ outer, u m h₂ * star (u m h₁)).re) := by
   exact
     Eq.trans
-      (Complex.finset_normSq_sum_over_outer_eq_re_double_correlation
+        (Complex.finset_normSq_sum_over_outer_eq_re_double_correlation
         outer shifts u)
-      (Complex.finset_gram_double_re_eq_diagonal_add_ordered_pairReal
+        (Complex.finset_gram_double_re_eq_diagonal_add_ordered_pairReal
         outer shifts u)
 
 /-- Finite Hilbert-space square expansion over complex-valued functions.
@@ -3894,9 +3930,15 @@ theorem Complex.finset_normSq_sum_over_outer_le_diagonal_add_ordered_offDiagonal
         ∑ h₁ ∈ shifts,
           ∑ h₂ ∈ shifts.filter (fun h₂ : ℕ => h₁ < h₂),
             2 * ‖corr h₂ h₁‖ := by
-    unfold pairReal
+    show
+      (∑ h₁ ∈ shifts,
+        ∑ h₂ ∈ shifts.filter (fun h₂ : ℕ => h₁ < h₂),
+          2 * (corr h₂ h₁).re) ≤
+        ∑ h₁ ∈ shifts,
+          ∑ h₂ ∈ shifts.filter (fun h₂ : ℕ => h₁ < h₂),
+            2 * ‖corr h₂ h₁‖
     exact
-      Finset.sum_le_sum
+        Finset.sum_le_sum
         (fun h₁ hh₁ =>
           Finset.sum_le_sum
             (fun h₂ hh₂ =>
@@ -3977,13 +4019,28 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslate_energy_le_expanded_
         (Complex.realPhase_secondDerivative_vdc_weylTranslateSum φ a b H m)) ≤
       Complex.realPhase_secondDerivative_vdc_weylTranslateDiagonalExpansion φ a b H +
         Complex.realPhase_secondDerivative_vdc_weylTranslateOffDiagonalExpansion φ a b H := by
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateSum
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateDiagonalExpansion
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateOffDiagonalExpansion
+  show
+    (∑ m ∈ Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H,
+      Complex.normSq
+        (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+          Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (m + (h : ℤ)))) ≤
+      (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+        ∑ m ∈ Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H,
+          Complex.normSq
+            (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (m + (h : ℤ)))) +
+        ∑ h₁ ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+          ∑ h₂ ∈ (Complex.realPhase_secondDerivative_vdc_shiftRange H).filter
+              (fun h₂ : ℕ => h₁ < h₂),
+            2 *
+              ‖∑ m ∈ Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H,
+                Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (m + (h₂ : ℤ)) *
+                  star
+                    (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b
+                      (m + (h₁ : ℤ)))‖
   exact
     Complex.finset_normSq_sum_over_outer_le_diagonal_add_ordered_offDiagonal
-      (Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H)
-      (Complex.realPhase_secondDerivative_vdc_shiftRange H)
+        (Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H)
+        (Complex.realPhase_secondDerivative_vdc_shiftRange H)
       (fun m h =>
         Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b
           (m + (h : ℤ)))
@@ -3995,10 +4052,14 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslateDiagonalExpansion_eq
     {a b H : ℕ}
     (hH : 1 ≤ H)
     (hH_block : H ≤ (Finset.Icc a b).card) :
-    Complex.realPhase_secondDerivative_vdc_weylTranslateDiagonalExpansion φ a b H =
+      Complex.realPhase_secondDerivative_vdc_weylTranslateDiagonalExpansion φ a b H =
       Complex.realPhase_secondDerivative_vdc_weylTranslateDiagonalMass φ a b H := by
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateDiagonalExpansion
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateDiagonalMass
+  show
+    (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+      ∑ m ∈ Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H,
+        Complex.normSq
+          (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (m + (h : ℤ)))) =
+      (H : ℝ) * Real.secondDerivativeVdc_blockLength a b
   have hpoint :
       (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
         ∑ m ∈ Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H,
@@ -4051,76 +4112,88 @@ theorem Complex.realPhase_secondDerivative_vdc_pairCorrelation_translate_to_inde
             (n + ((h₂ - h₁ : ℕ) : ℤ)) *
           star
             (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b n) := by
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateBase
-  apply Finset.sum_bij (fun m _ => m + (h₁ : ℤ))
-  · intro m hm
-    have hmbounds :
-        (a : ℤ) - (H : ℤ) ≤ m ∧ m ≤ (b : ℤ) :=
-      Finset.mem_Icc.mp hm
-    exact Finset.mem_Icc.mpr
-      (And.intro
-        (add_le_add_right hmbounds.1 (h₁ : ℤ))
-        (add_le_add_right hmbounds.2 (h₁ : ℤ)))
-  · intro m₁ hm₁ m₂ hm₂ heq
-    exact add_right_cancel heq
-  · intro n hn
-    have hnbounds :
-        ((a : ℤ) - (H : ℤ)) + (h₁ : ℤ) ≤ n ∧
-          n ≤ (b : ℤ) + (h₁ : ℤ) :=
-      Finset.mem_Icc.mp hn
-    refine ⟨n - (h₁ : ℤ), ?_, ?_⟩
-    · have hlower_shift :
-          ((a : ℤ) - (H : ℤ)) + (h₁ : ℤ) - (h₁ : ℤ) ≤
-            n - (h₁ : ℤ) :=
-        sub_le_sub_right hnbounds.1 (h₁ : ℤ)
-      have hlower_cancel :
-          ((a : ℤ) - (H : ℤ)) + (h₁ : ℤ) - (h₁ : ℤ) =
-            (a : ℤ) - (H : ℤ) :=
-        add_sub_cancel_right ((a : ℤ) - (H : ℤ)) (h₁ : ℤ)
-      have hlower :
-          (a : ℤ) - (H : ℤ) ≤ n - (h₁ : ℤ) :=
-        Eq.subst
-          (motive := fun z : ℤ => z ≤ n - (h₁ : ℤ))
-          hlower_cancel
-          hlower_shift
-      have hupper_shift :
-          n - (h₁ : ℤ) ≤ ((b : ℤ) + (h₁ : ℤ)) - (h₁ : ℤ) :=
-        sub_le_sub_right hnbounds.2 (h₁ : ℤ)
-      have hupper_cancel :
-          ((b : ℤ) + (h₁ : ℤ)) - (h₁ : ℤ) = (b : ℤ) :=
-        add_sub_cancel_right (b : ℤ) (h₁ : ℤ)
-      have hupper :
-          n - (h₁ : ℤ) ≤ (b : ℤ) :=
-        Eq.subst
-          (motive := fun z : ℤ => n - (h₁ : ℤ) ≤ z)
-          hupper_cancel
-          hupper_shift
-      exact Finset.mem_Icc.mpr (And.intro hlower hupper)
-    · exact sub_add_cancel n (h₁ : ℤ)
-  · intro m hm
-    have hnat :
-        h₂ = h₁ + (h₂ - h₁) :=
-      (Nat.add_sub_of_le (le_of_lt hlt)).symm
-    have hint :
-        (h₂ : ℤ) = (h₁ : ℤ) + ((h₂ - h₁ : ℕ) : ℤ) := by
-      exact congrArg (fun n : ℕ => (n : ℤ)) hnat
-    have hindex :
-        m + (h₂ : ℤ) =
-          (m + (h₁ : ℤ)) + ((h₂ - h₁ : ℕ) : ℤ) := by
-      calc
-        m + (h₂ : ℤ) =
-            m + ((h₁ : ℤ) + ((h₂ - h₁ : ℕ) : ℤ)) :=
-          congrArg (fun z : ℤ => m + z) hint
-        _ =
-            (m + (h₁ : ℤ)) + ((h₂ - h₁ : ℕ) : ℤ) :=
-          (add_assoc m (h₁ : ℤ) ((h₂ - h₁ : ℕ) : ℤ)).symm
-    exact congrArg
-      (fun z : ℤ =>
-        Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b z *
+  show
+    (∑ m ∈ Finset.Icc ((a : ℤ) - (H : ℤ)) (b : ℤ),
+      Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (m + (h₂ : ℤ)) *
+        star
+          (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b
+            (m + (h₁ : ℤ)))) =
+      ∑ n ∈ Finset.Icc (((a : ℤ) - (H : ℤ)) + (h₁ : ℤ)) ((b : ℤ) + (h₁ : ℤ)),
+        Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b
+            (n + ((h₂ - h₁ : ℕ) : ℤ)) *
           star
-            (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b
-              (m + (h₁ : ℤ))))
-      hindex
+            (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b n)
+  exact
+    Finset.sum_bij
+      (fun m _ => m + (h₁ : ℤ))
+      (fun m hm =>
+        have hmbounds :
+            (a : ℤ) - (H : ℤ) ≤ m ∧ m ≤ (b : ℤ) :=
+          Finset.mem_Icc.mp hm
+        Finset.mem_Icc.mpr
+          (And.intro
+            (add_le_add_right hmbounds.1 (h₁ : ℤ))
+            (add_le_add_right hmbounds.2 (h₁ : ℤ))))
+      (fun m₁ _hm₁ m₂ _hm₂ heq => add_right_cancel heq)
+      (fun n hn =>
+        have hnbounds :
+            ((a : ℤ) - (H : ℤ)) + (h₁ : ℤ) ≤ n ∧
+              n ≤ (b : ℤ) + (h₁ : ℤ) :=
+          Finset.mem_Icc.mp hn
+        ⟨n - (h₁ : ℤ),
+          (by
+            have hlower_shift :
+                ((a : ℤ) - (H : ℤ)) + (h₁ : ℤ) - (h₁ : ℤ) ≤
+                  n - (h₁ : ℤ) :=
+              sub_le_sub_right hnbounds.1 (h₁ : ℤ)
+            have hlower_cancel :
+                ((a : ℤ) - (H : ℤ)) + (h₁ : ℤ) - (h₁ : ℤ) =
+                  (a : ℤ) - (H : ℤ) :=
+              add_sub_cancel_right ((a : ℤ) - (H : ℤ)) (h₁ : ℤ)
+            have hlower :
+                (a : ℤ) - (H : ℤ) ≤ n - (h₁ : ℤ) :=
+              Eq.subst
+                (motive := fun z : ℤ => z ≤ n - (h₁ : ℤ))
+                hlower_cancel
+                hlower_shift
+            have hupper_shift :
+                n - (h₁ : ℤ) ≤ ((b : ℤ) + (h₁ : ℤ)) - (h₁ : ℤ) :=
+              sub_le_sub_right hnbounds.2 (h₁ : ℤ)
+            have hupper_cancel :
+                ((b : ℤ) + (h₁ : ℤ)) - (h₁ : ℤ) = (b : ℤ) :=
+              add_sub_cancel_right (b : ℤ) (h₁ : ℤ)
+            have hupper :
+                n - (h₁ : ℤ) ≤ (b : ℤ) :=
+              Eq.subst
+                (motive := fun z : ℤ => n - (h₁ : ℤ) ≤ z)
+                hupper_cancel
+                hupper_shift
+            exact Finset.mem_Icc.mpr (And.intro hlower hupper)),
+          sub_add_cancel n (h₁ : ℤ)⟩)
+      (fun m _hm =>
+        have hnat :
+            h₂ = h₁ + (h₂ - h₁) :=
+          (Nat.add_sub_of_le (le_of_lt hlt)).symm
+        have hint :
+            (h₂ : ℤ) = (h₁ : ℤ) + ((h₂ - h₁ : ℕ) : ℤ) := by
+          exact congrArg (fun n : ℕ => (n : ℤ)) hnat
+        have hindex :
+            m + (h₂ : ℤ) =
+              (m + (h₁ : ℤ)) + ((h₂ - h₁ : ℕ) : ℤ) := by
+          calc
+            m + (h₂ : ℤ) =
+                m + ((h₁ : ℤ) + ((h₂ - h₁ : ℕ) : ℤ)) :=
+              congrArg (fun z : ℤ => m + z) hint
+            _ =
+                (m + (h₁ : ℤ)) + ((h₂ - h₁ : ℕ) : ℤ) :=
+              (add_assoc m (h₁ : ℤ) ((h₂ - h₁ : ℕ) : ℤ)).symm
+        congrArg
+          (fun z : ℤ =>
+            Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b z *
+              star
+                (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b
+                  (m + (h₁ : ℤ))))
+          hindex)
 
 /-- Outside the natural shifted-correlation range, at least one of the two
 zero-extended coefficients in a fixed pair correlation vanishes. -/
@@ -4208,38 +4281,38 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedBlock_subset_pairIndexInte
     (hh₂ : h₂ ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H)
     (hlt : h₁ < h₂) :
     (Finset.Icc a (b - (h₂ - h₁))).image (fun n : ℕ => (n : ℤ)) ⊆
-      Finset.Icc (((a : ℤ) - (H : ℤ)) + (h₁ : ℤ)) ((b : ℤ) + (h₁ : ℤ)) := by
+        Finset.Icc (((a : ℤ) - (H : ℤ)) + (h₁ : ℤ)) ((b : ℤ) + (h₁ : ℤ)) := by
   intro n hn
   match Finset.mem_image.mp hn with
   | ⟨r, hr, hrn⟩ =>
-      have hr_bounds : a ≤ r ∧ r ≤ b - (h₂ - h₁) :=
+        have hr_bounds : a ≤ r ∧ r ≤ b - (h₂ - h₁) :=
         Finset.mem_Icc.mp hr
-      have hh₁_bounds : 1 ≤ h₁ ∧ h₁ ≤ H :=
+        have hh₁_bounds : 1 ≤ h₁ ∧ h₁ ≤ H :=
         Finset.mem_Icc.mp hh₁
-      have hlower₀ :
+        have hlower₀ :
           (a : ℤ) - (H : ℤ) ≤ (a : ℤ) - (h₁ : ℤ) :=
         sub_le_sub_left (Int.ofNat_le.mpr hh₁_bounds.2) (a : ℤ)
-      have hlower₁ :
+        have hlower₁ :
           (a : ℤ) - (h₁ : ℤ) ≤ (r : ℤ) - (h₁ : ℤ) :=
         sub_le_sub_right (Int.ofNat_le.mpr hr_bounds.1) (h₁ : ℤ)
-      have hlower_main :
+        have hlower_main :
           (a : ℤ) - (H : ℤ) ≤ (r : ℤ) - (h₁ : ℤ) :=
         le_trans hlower₀ hlower₁
-      have hlower :
+        have hlower :
           ((a : ℤ) - (H : ℤ)) + (h₁ : ℤ) ≤ (r : ℤ) :=
         Int.add_le_iff_le_sub.mpr hlower_main
-      have hupper₀ :
+        have hupper₀ :
           r ≤ b :=
         le_trans hr_bounds.2 (Nat.sub_le b (h₂ - h₁))
-      have hupper :
+        have hupper :
           (r : ℤ) ≤ (b : ℤ) + (h₁ : ℤ) :=
         le_trans (Int.ofNat_le.mpr hupper₀)
           (le_add_of_nonneg_right (Int.natCast_nonneg h₁))
-      exact Eq.subst
-        (motive := fun z : ℤ =>
-          z ∈ Finset.Icc (((a : ℤ) - (H : ℤ)) + (h₁ : ℤ)) ((b : ℤ) + (h₁ : ℤ)))
-        hrn
-        (Finset.mem_Icc.mpr (And.intro hlower hupper))
+        exact Eq.subst
+          (motive := fun z : ℤ =>
+            z ∈ Finset.Icc (((a : ℤ) - (H : ℤ)) + (h₁ : ℤ)) ((b : ℤ) + (h₁ : ℤ)))
+          hrn
+          (Finset.mem_Icc.mpr (And.intro hlower hupper))
 
 /-- An ordered Weyl-shift difference fits in the integer block gap whenever
 the averaging length fits in the block cardinality. -/
@@ -4303,12 +4376,12 @@ theorem Nat.realPhase_secondDerivative_vdc_ordered_shift_difference_le_block_gap
     Eq.subst
       (motive := fun n : ℕ => n ≤ b + 1 - a - 1)
       hleft
-      hsub
+        hsub
   exact
     Eq.subst
       (motive := fun n : ℕ => h₂ - h₁ ≤ n)
       hright
-      hsub_left
+        hsub_left
 
 /-- The translated pair-correlation index interval trims to the ordinary
 coefficient-side shifted correlation for the difference `h₂-h₁`. -/
@@ -4334,7 +4407,7 @@ theorem Complex.realPhase_secondDerivative_vdc_pairCorrelation_indexInterval_sum
     (Finset.Icc a (b - k)).image (fun n : ℕ => (n : ℤ))
   have hsubset : shiftedImage ⊆ large :=
     Complex.realPhase_secondDerivative_vdc_shiftedBlock_subset_pairIndexInterval
-      hh₁ hh₂ hlt
+        hh₁ hh₂ hlt
   have htrim :
       (∑ n ∈ large,
         Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (n + (k : ℤ)) *
@@ -4369,7 +4442,14 @@ theorem Complex.realPhase_secondDerivative_vdc_pairCorrelation_indexInterval_sum
           star
             (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (n : ℤ))) =
         Complex.realPhase_secondDerivative_vdc_coefficientShiftedCorrelation φ k a b := by
-    unfold Complex.realPhase_secondDerivative_vdc_coefficientShiftedCorrelation
+    show
+      (∑ n ∈ Finset.Icc a (b - k),
+        Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b ((n : ℤ) + (k : ℤ)) *
+          star
+            (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (n : ℤ))) =
+        ∑ n ∈ Finset.Icc a (b - k),
+          Complex.realPhase_secondDerivative_vdc_coefficient φ (n + k) *
+            star (Complex.realPhase_secondDerivative_vdc_coefficient φ n)
     exact Finset.sum_congr
       (Eq.refl (Finset.Icc a (b - k)))
       (fun n hn => by
@@ -4486,10 +4566,25 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslateOffDiagonalExpansion
           2 *
             ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
               φ (h₂ - h₁) a b‖ := by
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateOffDiagonalExpansion
+  show
+    (∑ h₁ ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+      ∑ h₂ ∈ (Complex.realPhase_secondDerivative_vdc_shiftRange H).filter
+          (fun h₂ : ℕ => h₁ < h₂),
+        2 *
+          ‖∑ m ∈ Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H,
+            Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b (m + (h₂ : ℤ)) *
+              star
+                (Complex.realPhase_secondDerivative_vdc_coefficientExtended φ a b
+                  (m + (h₁ : ℤ)))‖) ≤
+      ∑ h₁ ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+        ∑ h₂ ∈ (Complex.realPhase_secondDerivative_vdc_shiftRange H).filter
+            (fun h₂ : ℕ => h₁ < h₂),
+          2 *
+            ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
+              φ (h₂ - h₁) a b‖
   exact Finset.sum_le_sum
     (fun h₁ hh₁ =>
-      Finset.sum_le_sum
+        Finset.sum_le_sum
         (fun h₂ hh₂_filter => by
           have hh₂ : h₂ ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H :=
             (Finset.mem_filter.mp hh₂_filter).1
@@ -4519,7 +4614,7 @@ def Complex.realPhase_secondDerivative_vdc_weylPairStartRange
 theorem Complex.realPhase_secondDerivative_vdc_weylPairStartRange_card_eq
     (H k : ℕ) :
     (Complex.realPhase_secondDerivative_vdc_weylPairStartRange H k).card = H - k := by
-  unfold Complex.realPhase_secondDerivative_vdc_weylPairStartRange
+  show (Finset.Icc 1 (H - k)).card = H - k
   have hcard :
       (Finset.Icc 1 (H - k)).card = (H - k) + 1 - 1 :=
     Nat.card_Icc 1 (H - k)
@@ -4544,7 +4639,7 @@ theorem Complex.realPhase_secondDerivative_vdc_weylPairStartRange_sum_const
       ((Complex.realPhase_secondDerivative_vdc_weylPairStartRange H k).card : ℝ) =
         ((H - k : ℕ) : ℝ) :=
     congrArg (fun n : ℕ => (n : ℝ))
-      (Complex.realPhase_secondDerivative_vdc_weylPairStartRange_card_eq H k)
+        (Complex.realPhase_secondDerivative_vdc_weylPairStartRange_card_eq H k)
   exact Eq.trans hconst (congrArg (fun r : ℝ => r * M) hcard)
 
 /-- The positive difference of an ordered Weyl shift pair is again in the
@@ -4571,7 +4666,7 @@ theorem Complex.realPhase_secondDerivative_vdc_weylPairStart_mem_startRange
     (hh₂ : h₂ ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H)
     (hlt : h₁ < h₂) :
     h₁ ∈ Complex.realPhase_secondDerivative_vdc_weylPairStartRange H (h₂ - h₁) := by
-  unfold Complex.realPhase_secondDerivative_vdc_weylPairStartRange
+  show h₁ ∈ Finset.Icc 1 (H - (h₂ - h₁))
   have hh₁_bounds : 1 ≤ h₁ ∧ h₁ ≤ H :=
     Finset.mem_Icc.mp hh₁
   have hh₂_bounds : 1 ≤ h₂ ∧ h₂ ≤ H :=
@@ -4582,7 +4677,7 @@ theorem Complex.realPhase_secondDerivative_vdc_weylPairStart_mem_startRange
     Eq.subst
       (motive := fun n : ℕ => n ≤ H)
       hsum_eq.symm
-      hh₂_bounds.2
+        hh₂_bounds.2
   have hstart_le : h₁ ≤ H - (h₂ - h₁) :=
     Nat.le_sub_of_add_le hsum_le
   exact Finset.mem_Icc.mpr (And.intro hh₁_bounds.1 hstart_le)
@@ -4594,11 +4689,12 @@ theorem Complex.realPhase_secondDerivative_vdc_weylPairStart_add_difference_mem
     (hk : k ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H)
     (hh₁ : h₁ ∈ Complex.realPhase_secondDerivative_vdc_weylPairStartRange H k) :
     h₁ + k ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H := by
-  unfold Complex.realPhase_secondDerivative_vdc_weylPairStartRange at hh₁
+  have hh₁_explicit : h₁ ∈ Finset.Icc 1 (H - k) :=
+    hh₁
   have hk_bounds : 1 ≤ k ∧ k ≤ H :=
     Finset.mem_Icc.mp hk
   have hh₁_bounds : 1 ≤ h₁ ∧ h₁ ≤ H - k :=
-    Finset.mem_Icc.mp hh₁
+    Finset.mem_Icc.mp hh₁_explicit
   have hleft : 1 ≤ h₁ + k :=
     le_trans hh₁_bounds.1 (Nat.le_add_right h₁ k)
   have hright : h₁ + k ≤ H := by
@@ -4677,82 +4773,86 @@ theorem Complex.realPhase_secondDerivative_vdc_weylPairNorms_reindex_by_differen
           2 *
             ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
               φ p.1 a b‖ := by
-    apply Finset.sum_bij'
-      (fun p _ => Sigma.mk (p.2 - p.1) p.1)
-      (fun p _ => Sigma.mk p.2 (p.2 + p.1))
-    · intro p hp
-      have hp_mem : p.1 ∈ shifts ∧ p.2 ∈ upperStarts p.1 :=
-        Finset.mem_sigma.mp hp
-      have hh₁ : p.1 ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H :=
-        hp_mem.1
-      have hp2_filter : p.2 ∈ shifts.filter (fun h₂ : ℕ => p.1 < h₂) :=
-        hp_mem.2
-      have hh₂ : p.2 ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H :=
-        (Finset.mem_filter.mp hp2_filter).1
-      have hlt : p.1 < p.2 :=
-        (Finset.mem_filter.mp hp2_filter).2
-      exact Finset.mem_sigma.mpr
-        (And.intro
-          (Complex.realPhase_secondDerivative_vdc_weylPairDifference_mem_shiftRange
-            hh₁ hh₂ hlt)
-          (Complex.realPhase_secondDerivative_vdc_weylPairStart_mem_startRange
-            hh₁ hh₂ hlt))
-    · intro p hp
-      have hp_mem : p.1 ∈ shifts ∧ p.2 ∈ starts p.1 :=
-        Finset.mem_sigma.mp hp
-      have hk : p.1 ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H :=
-        hp_mem.1
-      have hstart :
-          p.2 ∈ Complex.realPhase_secondDerivative_vdc_weylPairStartRange H p.1 :=
-        hp_mem.2
-      have hstart_bounds : 1 ≤ p.2 ∧ p.2 ≤ H - p.1 := by
-        exact Finset.mem_Icc.mp hstart
-      have hstart_le_H : p.2 ≤ H :=
-        le_trans hstart_bounds.2 (Nat.sub_le H p.1)
-      have hstart_shift :
-          p.2 ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H :=
-        Finset.mem_Icc.mpr (And.intro hstart_bounds.1 hstart_le_H)
-      have hsum_mem :
-          p.2 + p.1 ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H :=
-        Complex.realPhase_secondDerivative_vdc_weylPairStart_add_difference_mem
-        hk hstart
-      have hlt :
-          p.2 < p.2 + p.1 :=
-        Complex.realPhase_secondDerivative_vdc_weylPairStart_lt_add_difference
-          hk hstart
-      exact Finset.mem_sigma.mpr
-        (And.intro hstart_shift
-          (Finset.mem_filter.mpr (And.intro hsum_mem hlt)))
-    · intro p hp
-      have hp_mem : p.1 ∈ shifts ∧ p.2 ∈ upperStarts p.1 :=
-        Finset.mem_sigma.mp hp
-      have hp2_filter : p.2 ∈ shifts.filter (fun h₂ : ℕ => p.1 < h₂) :=
-        hp_mem.2
-      have hlt : p.1 < p.2 :=
-        (Finset.mem_filter.mp hp2_filter).2
-      have hfirst :
-          p.1 + (p.2 - p.1) = p.2 :=
-        Nat.add_sub_of_le (le_of_lt hlt)
-      exact Sigma.ext rfl (heq_of_eq hfirst)
-    · intro p hp
-      have hp_mem : p.1 ∈ shifts ∧ p.2 ∈ starts p.1 :=
-        Finset.mem_sigma.mp hp
-      have hk : p.1 ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H :=
-        hp_mem.1
-      have hstart :
-          p.2 ∈ Complex.realPhase_secondDerivative_vdc_weylPairStartRange H p.1 :=
-        hp_mem.2
-      have hk_pos : 1 ≤ p.1 :=
-        (Finset.mem_Icc.mp hk).1
-      have hsub :
-          p.2 + p.1 - p.2 = p.1 :=
-        Nat.add_sub_cancel_left p.2 p.1
-      exact Sigma.ext hsub (heq_of_eq rfl)
-    · intro p hp
-      exact Eq.refl
-        (2 *
-          ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
-            φ (p.2 - p.1) a b‖)
+    exact Finset.sum_bij'
+      (α := ℝ)
+      (fun p _ => (Sigma.mk (p.2 - p.1) p.1 : Sigma fun _ : ℕ => ℕ))
+      (fun p _ => (Sigma.mk p.2 (p.2 + p.1) : Sigma fun _ : ℕ => ℕ))
+      (by
+        intro p hp
+        have hp_mem : p.1 ∈ shifts ∧ p.2 ∈ upperStarts p.1 :=
+          Finset.mem_sigma.mp hp
+        have hh₁ : p.1 ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H :=
+          hp_mem.1
+        have hp2_filter : p.2 ∈ shifts.filter (fun h₂ : ℕ => p.1 < h₂) :=
+          hp_mem.2
+        have hh₂ : p.2 ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H :=
+          (Finset.mem_filter.mp hp2_filter).1
+        have hlt : p.1 < p.2 :=
+          (Finset.mem_filter.mp hp2_filter).2
+        exact Finset.mem_sigma.mpr
+          (And.intro
+            (Complex.realPhase_secondDerivative_vdc_weylPairDifference_mem_shiftRange
+              hh₁ hh₂ hlt)
+            (Complex.realPhase_secondDerivative_vdc_weylPairStart_mem_startRange
+              hh₁ hh₂ hlt)))
+      (by
+        intro p hp
+        have hp_mem : p.1 ∈ shifts ∧ p.2 ∈ starts p.1 :=
+          Finset.mem_sigma.mp hp
+        have hk : p.1 ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H :=
+          hp_mem.1
+        have hstart :
+            p.2 ∈ Complex.realPhase_secondDerivative_vdc_weylPairStartRange H p.1 :=
+          hp_mem.2
+        have hstart_bounds : 1 ≤ p.2 ∧ p.2 ≤ H - p.1 := by
+          exact Finset.mem_Icc.mp hstart
+        have hstart_le_H : p.2 ≤ H :=
+          le_trans hstart_bounds.2 (Nat.sub_le H p.1)
+        have hstart_shift :
+            p.2 ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H :=
+          Finset.mem_Icc.mpr (And.intro hstart_bounds.1 hstart_le_H)
+        have hsum_mem :
+            p.2 + p.1 ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H :=
+          Complex.realPhase_secondDerivative_vdc_weylPairStart_add_difference_mem
+            hk hstart
+        have hlt :
+            p.2 < p.2 + p.1 :=
+          Complex.realPhase_secondDerivative_vdc_weylPairStart_lt_add_difference
+            hk hstart
+        exact Finset.mem_sigma.mpr
+          (And.intro hstart_shift
+            (Finset.mem_filter.mpr (And.intro hsum_mem hlt))))
+      (by
+        intro p hp
+        have hp_mem : p.1 ∈ shifts ∧ p.2 ∈ upperStarts p.1 :=
+          Finset.mem_sigma.mp hp
+        have hp2_filter : p.2 ∈ shifts.filter (fun h₂ : ℕ => p.1 < h₂) :=
+          hp_mem.2
+        have hlt : p.1 < p.2 :=
+          (Finset.mem_filter.mp hp2_filter).2
+        have hfirst :
+            p.1 + (p.2 - p.1) = p.2 :=
+          Nat.add_sub_of_le (le_of_lt hlt)
+        exact Sigma.ext rfl (heq_of_eq hfirst))
+      (by
+        intro p hp
+        have hp_mem : p.1 ∈ shifts ∧ p.2 ∈ starts p.1 :=
+          Finset.mem_sigma.mp hp
+        have hk : p.1 ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H :=
+          hp_mem.1
+        have hstart :
+            p.2 ∈ Complex.realPhase_secondDerivative_vdc_weylPairStartRange H p.1 :=
+          hp_mem.2
+        have hsub :
+            p.2 + p.1 - p.2 = p.1 :=
+          Nat.add_sub_cancel_left p.2 p.1
+        exact Sigma.ext hsub (heq_of_eq rfl))
+      (by
+        intro p hp
+        exact Eq.refl
+          (2 *
+            ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
+              φ (p.2 - p.1) a b‖))
   exact Eq.trans hleft_sigma
     (Eq.trans hsigma hright_sigma.symm)
 
@@ -4803,69 +4903,68 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslate_pairNorms_le_weight
           (2 *
             ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
               φ k a b‖))
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
   have hfactor :
       (∑ k ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
         ((H - k : ℕ) : ℝ) *
           (2 *
             ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
               φ k a b‖)) =
-        2 *
+        2 * (
           ∑ k ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
             ((H - k : ℕ) : ℝ) *
               ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
-                φ k a b‖ := by
+                φ k a b‖) := by
     have hpoint :
         (∑ k ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
           ((H - k : ℕ) : ℝ) *
             (2 *
               ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
                 φ k a b‖)) =
-          ∑ k ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+          (∑ k ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
             2 *
               (((H - k : ℕ) : ℝ) *
                 ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
-                  φ k a b‖) :=
-      Finset.sum_congr
+                  φ k a b‖)) :=
+        Finset.sum_congr
         (Eq.refl (Complex.realPhase_secondDerivative_vdc_shiftRange H))
-        (fun k hk => by
-          calc
-            ((H - k : ℕ) : ℝ) *
-                (2 *
-                  ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
-                    φ k a b‖) =
-                (((H - k : ℕ) : ℝ) * 2) *
-                  ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
-                    φ k a b‖ :=
-              (mul_assoc ((H - k : ℕ) : ℝ) 2
-                ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
-                  φ k a b‖).symm
-            _ =
-                (2 * ((H - k : ℕ) : ℝ)) *
-                  ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
-                    φ k a b‖ :=
-              congrArg
+        (fun k hk =>
+          Eq.trans
+            ((mul_assoc
+              (((H - k : ℕ) : ℝ))
+              (2 : ℝ)
+              (‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
+                φ k a b‖)).symm)
+            (Eq.trans
+              (congrArg
                 (fun r : ℝ =>
                   r *
                     ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
                       φ k a b‖)
-                (mul_comm ((H - k : ℕ) : ℝ) 2)
-            _ =
-                2 *
-                  (((H - k : ℕ) : ℝ) *
-                    ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
-                      φ k a b‖) :=
-              mul_assoc 2 ((H - k : ℕ) : ℝ)
-                ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
-                  φ k a b‖)
-      exact Eq.trans hpoint
-        (Finset.mul_sum
-          (Complex.realPhase_secondDerivative_vdc_shiftRange H)
-          (fun k : ℕ =>
-            ((H - k : ℕ) : ℝ) *
+                (mul_comm ((H - k : ℕ) : ℝ) 2))
+              (mul_assoc
+                (2 : ℝ)
+                ((H - k : ℕ) : ℝ)
+                (‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
+                  φ k a b‖))))
+    have hmul_sum :
+        (∑ k ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+          2 *
+            (((H - k : ℕ) : ℝ) *
               ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
-                φ k a b‖)
-          2).symm
+                φ k a b‖)) =
+          2 * (
+            ∑ k ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+              ((H - k : ℕ) : ℝ) *
+                ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
+                  φ k a b‖) :=
+      (Finset.mul_sum
+        (Complex.realPhase_secondDerivative_vdc_shiftRange H)
+        (fun k : ℕ =>
+          ((H - k : ℕ) : ℝ) *
+            ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
+              φ k a b‖)
+        2).symm
+    exact Eq.trans hpoint hmul_sum
   exact le_of_eq (Eq.trans hreindex (Eq.trans hinner hfactor))
 
 /-- Grouping the expanded ordered off-diagonal terms by their positive shift
@@ -4903,8 +5002,13 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMa
     Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass φ a b H ≤
       (H : ℝ) *
         Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope φ a b H := by
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
-  unfold Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope
+  show
+    (∑ k ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+      ((H - k : ℕ) : ℝ) *
+        ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ k a b‖) ≤
+      (H : ℝ) *
+        ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+          ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ h a b‖
   have hpoint :
       ∀ k : ℕ,
         k ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H →
@@ -4935,7 +5039,7 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMa
           ∑ k ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
             ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ k a b‖ :=
     (Finset.mul_sum
-      (Complex.realPhase_secondDerivative_vdc_shiftRange H)
+        (Complex.realPhase_secondDerivative_vdc_shiftRange H)
       (fun k : ℕ =>
         ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ k a b‖)
       (H : ℝ)).symm
@@ -5010,7 +5114,15 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslate_diagonal_add_weight
           ((H : ℝ) *
             Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope φ a b H) :=
     mul_le_mul_of_nonneg_left hmass zero_le_two
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateOffDiagonalMajorant
+  show
+    Complex.realPhase_secondDerivative_vdc_weylTranslateDiagonalMass φ a b H +
+        2 *
+          Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+            φ a b H ≤
+      Complex.realPhase_secondDerivative_vdc_weylTranslateDiagonalMass φ a b H +
+        (H : ℝ) *
+          (2 *
+            Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope φ a b H)
   have hmul_assoc :
       2 *
           ((H : ℝ) *
@@ -5074,8 +5186,17 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslate_diagonal_add_offDia
           2 *
             Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope
               φ a b H) := by
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateDiagonalMass
-  unfold Complex.realPhase_secondDerivative_vdc_weylTranslateOffDiagonalMajorant
+  show
+    (H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+        (H : ℝ) *
+          (2 *
+            Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope
+              φ a b H) =
+      (H : ℝ) *
+        (Real.secondDerivativeVdc_blockLength a b +
+          2 *
+            Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope
+              φ a b H)
   exact (mul_add (H : ℝ)
     (Real.secondDerivativeVdc_blockLength a b)
     (2 *
@@ -5107,7 +5228,7 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslate_normSq_sum_le
       φ hH hH_block
   exact le_trans henergy
     (le_of_eq
-      (Complex.realPhase_secondDerivative_vdc_weylTranslate_diagonal_add_offDiagonal_eq
+        (Complex.realPhase_secondDerivative_vdc_weylTranslate_diagonal_add_offDiagonal_eq
         φ a b H))
 
 /-- The averaged translate identity, converted to a real `normSq` identity. -/
@@ -5137,7 +5258,7 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslate_total_normSq_eq
             (Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b) :=
     Complex.normSq_mul
       (H : ℂ)
-      (Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b)
+        (Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b)
   have hnorm_H :
       Complex.normSq (H : ℂ) = (H : ℝ) * (H : ℝ) :=
     Complex.normSq_natCast H
@@ -5165,7 +5286,7 @@ theorem Complex.realPhase_secondDerivative_vdc_weylTranslate_total_normSq_le
             (Complex.realPhase_secondDerivative_vdc_weylTranslateSum φ a b H m)) := by
   exact
     Complex.finset_normSq_sum_le_card_mul_sum_normSq
-      (Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H)
+        (Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H)
       (fun m : ℤ =>
         Complex.realPhase_secondDerivative_vdc_weylTranslateSum φ a b H m)
 
@@ -5363,7 +5484,7 @@ theorem Complex.realPhase_secondDerivative_vdc_weylAverage_division
   exact
     Real.secondDerivativeVdc_weylAverage_division_arithmetic
       hH
-      (Complex.realPhase_secondDerivative_vdc_weylAverage_predivision
+        (Complex.realPhase_secondDerivative_vdc_weylAverage_predivision
         φ hH hH_block)
 
 /-- `normSq` expansion of the coefficient-block autocorrelation estimate.
@@ -5472,7 +5593,15 @@ theorem Complex.realPhase_secondDerivative_vdc_norm_le_weylEnvelope_of_sq
     ‖Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b‖ ≤
       Real.secondDerivativeVdc_weylEnvelopeMajorant a b H
         (Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope φ a b H) := by
-  unfold Real.secondDerivativeVdc_weylEnvelopeMajorant
+  show
+    ‖Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b‖ ≤
+      Real.sqrt
+        ((Real.secondDerivativeVdc_blockLength a b + (H : ℝ)) *
+          ((Real.secondDerivativeVdc_blockLength a b +
+              2 *
+                Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope
+                  φ a b H) *
+            ((H : ℝ)⁻¹)))
   exact Real.le_sqrt_of_sq_le hsq
 
 /-- Finite Weyl differencing for one coefficient block.
@@ -5577,7 +5706,7 @@ theorem Nat.realPhase_secondDerivative_vdc_lower_le_sub_shift
     Nat.realPhase_secondDerivative_vdc_shift_le_block_gap hH hh
   have hh_pos : 0 < h :=
     Nat.lt_of_succ_le
-      (Complex.realPhase_secondDerivative_vdc_shiftRange_pos hh)
+        (Complex.realPhase_secondDerivative_vdc_shiftRange_pos hh)
   have hgap_pos : 0 < b - a :=
     lt_of_lt_of_le hh_pos hh_gap
   have hab : a ≤ b :=
@@ -5596,7 +5725,7 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftRange_card_le
     (H : ℕ) :
     (Complex.realPhase_secondDerivative_vdc_shiftRange H).card ≤ H := by
   have hcard :
-      (Complex.realPhase_secondDerivative_vdc_shiftRange H).card = H + 1 - 1 :=
+        (Complex.realPhase_secondDerivative_vdc_shiftRange H).card = H + 1 - 1 :=
     Nat.card_Icc 1 H
   have hsucc_sub_one : H + 1 - 1 = H :=
     Nat.succ_sub_one H
@@ -5612,7 +5741,7 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftRange_card_eq
     (H : ℕ) :
     (Complex.realPhase_secondDerivative_vdc_shiftRange H).card = H := by
   have hcard :
-      (Complex.realPhase_secondDerivative_vdc_shiftRange H).card = H + 1 - 1 :=
+        (Complex.realPhase_secondDerivative_vdc_shiftRange H).card = H + 1 - 1 :=
     Nat.card_Icc 1 H
   have hsucc_sub_one : H + 1 - 1 = H :=
     Nat.succ_sub_one H
@@ -5648,7 +5777,7 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftRange_sum_const
         (Complex.realPhase_secondDerivative_vdc_shiftRange H).card M)
   exact Eq.trans hconst
     (congrArg (fun r : ℝ => r * M)
-      (Complex.realPhase_secondDerivative_vdc_shiftRange_card_real_eq H))
+        (Complex.realPhase_secondDerivative_vdc_shiftRange_card_real_eq H))
 
 /-- The shifted-correlation envelope is nonnegative. -/
 theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope_nonneg
@@ -5656,7 +5785,10 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope_nonneg
     (a b H : ℕ) :
     0 ≤
       Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope φ a b H := by
-  unfold Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope
+  show
+    0 ≤
+      ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+        ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ h a b‖
   exact Finset.sum_nonneg
     (fun h hh =>
       norm_nonneg
@@ -5670,7 +5802,11 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope_le_car
     Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope φ a b H ≤
       ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
         ((Finset.Icc a (b - h)).card : ℝ) := by
-  unfold Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope
+  show
+    (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+      ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ h a b‖) ≤
+      ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+        ((Finset.Icc a (b - h)).card : ℝ)
   exact Finset.sum_le_sum
     (fun h hh =>
       Complex.realPhase_secondDerivative_vdc_shiftedCorrelation_norm_le_card
@@ -5733,7 +5869,9 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope_le_shi
           ((Finset.Icc a (b - h)).card : ℝ) ≤
             Real.secondDerivativeVdc_blockLength a b := by
     intro h hh
-    unfold Real.secondDerivativeVdc_blockLength
+    show
+      ((Finset.Icc a (b - h)).card : ℝ) ≤
+        ((Finset.Icc a b).card : ℝ)
     exact Real.card_Icc_sub_right_le_card_Icc a b h
   have hsum_bound :
       (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
@@ -5756,7 +5894,7 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope_le_shi
           Real.secondDerivativeVdc_blockLength a b ≤
         (H : ℝ) * Real.secondDerivativeVdc_blockLength a b :=
     mul_le_mul_of_nonneg_right
-      (Complex.realPhase_secondDerivative_vdc_shiftRange_card_real_le H)
+        (Complex.realPhase_secondDerivative_vdc_shiftRange_card_real_le H)
       (Real.secondDerivativeVdc_blockLength_nonneg a b)
   exact
     le_trans hcard_sum
@@ -5784,7 +5922,9 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficientShiftedCorrelationEnve
           ((Finset.Icc a (b - h)).card : ℝ) ≤
             Real.secondDerivativeVdc_blockLength a b := by
     intro h hh
-    unfold Real.secondDerivativeVdc_blockLength
+    show
+      ((Finset.Icc a (b - h)).card : ℝ) ≤
+        ((Finset.Icc a b).card : ℝ)
     exact Real.card_Icc_sub_right_le_card_Icc a b h
   have hsum_bound :
       (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
@@ -5807,7 +5947,7 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficientShiftedCorrelationEnve
           Real.secondDerivativeVdc_blockLength a b ≤
         (H : ℝ) * Real.secondDerivativeVdc_blockLength a b :=
     mul_le_mul_of_nonneg_right
-      (Complex.realPhase_secondDerivative_vdc_shiftRange_card_real_le H)
+        (Complex.realPhase_secondDerivative_vdc_shiftRange_card_real_le H)
       (Real.secondDerivativeVdc_blockLength_nonneg a b)
   exact
     le_trans hcard_sum
@@ -5835,7 +5975,7 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficientShiftedCorrelationEnve
       (fun h hh => hbound h hh)
   exact le_trans hsum_bound
     (le_of_eq
-      (Complex.realPhase_secondDerivative_vdc_shiftRange_sum_const H M))
+        (Complex.realPhase_secondDerivative_vdc_shiftRange_sum_const H M))
 
 /-- A pointwise shifted-correlation bound controls the finite shifted envelope. -/
 theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope_le_of_forall
@@ -5849,7 +5989,10 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope_le_of_
           ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ h a b‖ ≤ M) :
     Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope φ a b H ≤
       ((Complex.realPhase_secondDerivative_vdc_shiftRange H).card : ℝ) * M := by
-  unfold Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope
+  show
+    (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+      ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ h a b‖) ≤
+      ((Complex.realPhase_secondDerivative_vdc_shiftRange H).card : ℝ) * M
   have hsum_bound :
       (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
         ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ h a b‖) ≤
@@ -5887,7 +6030,7 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope_le_H_m
       ((Complex.realPhase_secondDerivative_vdc_shiftRange H).card : ℝ) * M ≤
         (H : ℝ) * M :=
     mul_le_mul_of_nonneg_right
-      (Complex.realPhase_secondDerivative_vdc_shiftRange_card_real_le H)
+        (Complex.realPhase_secondDerivative_vdc_shiftRange_card_real_le H)
       hM
   exact le_trans henvelope hcard
 
@@ -5903,7 +6046,10 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope_le_exa
           ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ h a b‖ ≤ M) :
     Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope φ a b H ≤
       (H : ℝ) * M := by
-  unfold Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope
+  show
+    (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+      ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ h a b‖) ≤
+      (H : ℝ) * M
   have hsum_bound :
       (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
         ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ h a b‖) ≤
@@ -5912,7 +6058,7 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope_le_exa
       (fun h hh => hbound h hh)
   exact le_trans hsum_bound
     (le_of_eq
-      (Complex.realPhase_secondDerivative_vdc_shiftRange_sum_const H M))
+        (Complex.realPhase_secondDerivative_vdc_shiftRange_sum_const H M))
 
 /-- Curvature-scale first-derivative majorant for one shifted correlation. -/
 def Real.secondDerivativeVdc_shiftedCorrelationMajorant
@@ -6036,7 +6182,11 @@ theorem Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope_le_cur
     Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope φ a b H ≤
       ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
         Real.secondDerivativeVdc_shiftedCorrelationMajorant T b h := by
-  unfold Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope
+  show
+    (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+      ‖Complex.realPhase_secondDerivative_vdc_shiftedCorrelation φ h a b‖) ≤
+      ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+        Real.secondDerivativeVdc_shiftedCorrelationMajorant T b h
   exact Finset.sum_le_sum
     (fun h hh =>
       Complex.realPhase_secondDerivative_vdc_shiftedCorrelation_bound_of_curvatureScale_data
@@ -6059,7 +6209,7 @@ theorem Real.secondDerivativeVdc_weylShiftLength_pos
     {T : ℝ}
     (hT : 1 ≤ T) :
     0 < Real.secondDerivativeVdc_weylShiftLength T := by
-  unfold Real.secondDerivativeVdc_weylShiftLength
+  show 0 < ⌊Real.sqrt (1 + T)⌋₊
   have hone_le_arg : 1 ≤ 1 + T :=
     le_add_of_nonneg_right (le_trans zero_le_one hT)
   have hone_le_sqrt : (1 : ℝ) ≤ Real.sqrt (1 + T) :=
@@ -6080,7 +6230,7 @@ theorem Real.secondDerivativeVdc_weylShiftLength_le_sqrt
     (hT : 1 ≤ T) :
     ((Real.secondDerivativeVdc_weylShiftLength T : ℕ) : ℝ) ≤
       Real.sqrt (1 + T) := by
-  unfold Real.secondDerivativeVdc_weylShiftLength
+  show ((⌊Real.sqrt (1 + T)⌋₊ : ℕ) : ℝ) ≤ Real.sqrt (1 + T)
   exact Nat.floor_le (Real.sqrt_nonneg (1 + T))
 
 /-- The square-root transition scale is below one plus the canonical Weyl
@@ -6089,7 +6239,7 @@ theorem Real.sqrt_lt_secondDerivativeVdc_weylShiftLength_add_one
     (T : ℝ) :
     Real.sqrt (1 + T) <
       ((Real.secondDerivativeVdc_weylShiftLength T : ℕ) : ℝ) + 1 := by
-  unfold Real.secondDerivativeVdc_weylShiftLength
+  show Real.sqrt (1 + T) < ((⌊Real.sqrt (1 + T)⌋₊ : ℕ) : ℝ) + 1
   exact Nat.lt_floor_add_one (Real.sqrt (1 + T))
 
 /-- The reciprocal of the positive canonical Weyl shift length is
@@ -6419,7 +6569,7 @@ theorem Complex.realPhase_secondDerivative_vdc_nonempty_derivPacket_endpoint_dat
     {T : ℝ}
     {m : ℤ}
     (hp :
-      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty)
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty)
     (hT : 1 ≤ T)
     (ha : 1 ≤ a)
     (hab : a ≤ b)
@@ -6500,7 +6650,7 @@ theorem Complex.realPhase_secondDerivative_vdc_nonempty_derivPacket_endpoint_dat
       (T *
           ((((b + 1 : ℕ) : ℝ) *
             (((b + 1 : ℕ) : ℝ)))⁻¹) *
-          ((q : ℝ) - (p : ℝ)) ≤
+          ((q : ℝ) - (p : ℝ))) ≤
         ‖deriv φ (q : ℝ) - deriv φ (p : ℝ)‖ :=
     Complex.realPhase_secondDerivative_vdc_deriv_norm_separation
       φ hcont hdiff horientation hcurvature_lower
@@ -6516,7 +6666,7 @@ theorem Complex.realPhase_secondDerivative_vdc_nonempty_derivPacket_endpoint_dat
       φ hp
   exact Exists.intro p
     (Exists.intro q
-      (And.intro hp_mem
+        (And.intro hp_mem
         (And.intro hq_mem
           (And.intro hp_interval
             (And.intro hq_interval
