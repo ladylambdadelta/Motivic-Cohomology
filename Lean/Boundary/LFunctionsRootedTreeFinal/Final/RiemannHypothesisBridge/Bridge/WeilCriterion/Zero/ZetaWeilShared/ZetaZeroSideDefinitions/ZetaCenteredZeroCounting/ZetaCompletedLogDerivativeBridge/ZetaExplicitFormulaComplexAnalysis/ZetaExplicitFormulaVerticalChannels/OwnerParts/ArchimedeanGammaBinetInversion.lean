@@ -604,7 +604,37 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_integra
       zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
         f F.toContourFamily t) =
       0 := by
-  sorry
+  have hlimit :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 (∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
+            f F.toContourFamily t)) :=
+    zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_scheduledWindow_tendsto_integral
+      f F h
+  have hzero :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 0) :=
+    zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_scheduledWindow_tendsto_zero_ownerInversion
+      f F h hcoh
+  exact tendsto_nhds_unique hlimit hzero
 
 /-- Genuine analytic leaf: whole-line value of the shifted-left archimedean Binet
 main kernel.
@@ -693,7 +723,41 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_integral
       zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
         f F.toContourFamily t) =
       0 := by
-  sorry
+  have hregular :
+      zetaCompletedExplicitFormulaLeftAffineLineGammaRegular
+        F.toContourFamily :=
+    zetaCompletedExplicitFormulaLeftAffineLineGammaRegular_of_verticallyRegular F
+  have hlimit :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 (∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+            f F.toContourFamily t)) :=
+    zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_scheduledWindow_tendsto_integral
+      f F h hregular
+  have hzero :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 0) :=
+    zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_scheduledWindow_tendsto_zero_ownerInversion
+      f F h hcoh
+  exact tendsto_nhds_unique hlimit hzero
 
 /-- Whole-line value of the right coupled main-plus-remainder Binet transform,
 assembled from the two right analytic leaves. -/
