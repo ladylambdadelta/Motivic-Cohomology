@@ -3421,6 +3421,35 @@ theorem scalarFourierLaplacePlemelj_pointwise_openHalfLine
       htarget.symm
       (scalarFourierLaplacePlemelj_pointwise_negative a ha x hxneg)
 
+/-- Normalized scalar finite-window Cauchy integral after multiplication by
+the compensating exponential. -/
+noncomputable def scalarFourierLaplacePlemelj_unweightedWindowMulExp
+    (a T x : ℝ) : ℂ :=
+  (∫ t in Set.Icc (-T) T,
+    (-1 / ((a : ℂ) + t * Complex.I)) *
+      Complex.exp
+        (Complex.I * (t : ℂ) * (x : ℂ))) *
+    Complex.exp ((a : ℂ) * (x : ℂ))
+
+/-- The normalized scalar finite-window Cauchy integral unfolds to the window integral
+times the compensating exponential. -/
+theorem scalarFourierLaplacePlemelj_unweightedWindowMulExp_eq
+    (a T x : ℝ) :
+    scalarFourierLaplacePlemelj_unweightedWindowMulExp a T x =
+      (∫ t in Set.Icc (-T) T,
+        (-1 / ((a : ℂ) + t * Complex.I)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ))) *
+        Complex.exp ((a : ℂ) * (x : ℂ)) := by
+  rfl
+
+/-- Positive-time finite-window Jordan bound for the normalized scalar Cauchy kernel. -/
+theorem scalarFourierLaplacePlemelj_unweightedWindowMulExp_norm_bound_positive_jordanEstimate
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hx : 0 < x) :
+    ‖scalarFourierLaplacePlemelj_unweightedWindowMulExp a T x‖
+      ≤ 2 * (Real.pi + 1) := by
+  sorry
+
 /-- Positive-time uniform finite-window bound for the normalized scalar Cauchy
 kernel. -/
 theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_positive
@@ -3431,7 +3460,11 @@ theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_posi
           (Complex.I * (t : ℂ) * (x : ℂ))) *
         Complex.exp ((a : ℂ) * (x : ℂ))‖
       ≤ 2 * (Real.pi + 1) := by
-  sorry
+  exact Eq.subst
+    (motive := fun z : ℂ => ‖z‖ ≤ 2 * (Real.pi + 1))
+    (scalarFourierLaplacePlemelj_unweightedWindowMulExp_eq a T x)
+    (scalarFourierLaplacePlemelj_unweightedWindowMulExp_norm_bound_positive_jordanEstimate
+      a ha T x hx)
 
 /-- The quadratic denominator in the zero-time Cauchy kernel is strictly
 positive. -/
@@ -3826,6 +3859,13 @@ theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_zero
     (scalarFourierLaplacePlemelj_zero_window_eq_arctan a ha T x hx)
     (scalarFourierLaplacePlemelj_zero_arctan_bound a ha T)
 
+/-- Negative-time finite-window Jordan bound for the normalized scalar Cauchy kernel. -/
+theorem scalarFourierLaplacePlemelj_unweightedWindowMulExp_norm_bound_negative_jordanEstimate
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hx : x < 0) :
+    ‖scalarFourierLaplacePlemelj_unweightedWindowMulExp a T x‖
+      ≤ 2 * (Real.pi + 1) := by
+  sorry
+
 /-- Negative-time uniform finite-window bound for the normalized scalar Cauchy
 kernel. -/
 theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_negative
@@ -3836,7 +3876,11 @@ theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_nega
           (Complex.I * (t : ℂ) * (x : ℂ))) *
         Complex.exp ((a : ℂ) * (x : ℂ))‖
       ≤ 2 * (Real.pi + 1) := by
-  sorry
+  exact Eq.subst
+    (motive := fun z : ℂ => ‖z‖ ≤ 2 * (Real.pi + 1))
+    (scalarFourierLaplacePlemelj_unweightedWindowMulExp_eq a T x)
+    (scalarFourierLaplacePlemelj_unweightedWindowMulExp_norm_bound_negative_jordanEstimate
+      a ha T x hx)
 
 /-- Uniform finite-window bound for the normalized scalar Cauchy kernel after
 the compensating exponential has been included. -/
