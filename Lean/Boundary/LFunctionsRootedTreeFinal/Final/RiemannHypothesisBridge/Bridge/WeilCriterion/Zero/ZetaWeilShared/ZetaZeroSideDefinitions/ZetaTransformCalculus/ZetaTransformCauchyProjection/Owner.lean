@@ -3712,7 +3712,9 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_eq_pr
       (T / (T - a)) *
         ∫ θ in (0 : ℝ)..Real.pi,
           Real.exp (-(T * x * Real.sin θ)) := by
-  sorry
+  exact intervalIntegral.integral_const_mul
+    (T / (T - a))
+    (fun θ : ℝ => Real.exp (-(T * x * Real.sin θ)))
 
 /-- Jordan's sine estimate for the positive upper-arc damping integral. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_sineDampingIntegral_le
@@ -4411,7 +4413,9 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_eq_pr
       (T / (T - a)) *
         ∫ θ in (-Real.pi)..(0 : ℝ),
           Real.exp (-(T * x * Real.sin θ)) := by
-  sorry
+  exact intervalIntegral.integral_const_mul
+    (T / (T - a))
+    (fun θ : ℝ => Real.exp (-(T * x * Real.sin θ)))
 
 /-- Jordan's sine estimate for the negative lower-arc damping integral. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_sineDampingIntegral_le
