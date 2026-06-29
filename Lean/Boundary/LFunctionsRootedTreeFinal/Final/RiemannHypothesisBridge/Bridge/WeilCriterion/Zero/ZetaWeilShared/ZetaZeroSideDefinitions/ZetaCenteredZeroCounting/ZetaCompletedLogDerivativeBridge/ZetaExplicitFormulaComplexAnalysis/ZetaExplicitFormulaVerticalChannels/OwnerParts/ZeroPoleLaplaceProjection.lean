@@ -244,7 +244,11 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel f F t) =
       zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f := by
-  sorry
+  exact
+    zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral_eq_value_of_scheduledVerticalInversion_tendsto_value_ownerTransport
+      f F h
+      (zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_value_of_tangentResidue_ownerLaplaceProjection
+        f F h)
 
 /-- Scheduled right zero-pole vertical inversion as a pure transport
 consequence of the whole-line right vertical value. -/
