@@ -1019,6 +1019,69 @@ theorem real_shifted_rpow_Ioi_negThree_integral_eq_half_inverseQuadratic
             (fun x : ℝ => (1 / 2 : ℝ) * x)
             (real_shifted_rpow_negTwo_eq_inverseQuadratic_boundary T hT)
 
+/-- The inverse-cubic norm majorant is invariant under real reflection. -/
+theorem real_inverseCubic_reflection_value (t : ℝ) :
+    (1 + ‖(-t)‖) ^ (-(3 : ℤ))
+      =
+    ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+  exact congrArg (fun x : ℝ => (1 + x) ^ (-(3 : ℤ))) (norm_neg t)
+
+/-- Reflecting the right closed tail across the origin gives the left closed
+tail. -/
+theorem preimage_neg_Ici_eq_Iic_neg (T : ℝ) :
+    (fun t : ℝ => -t) ⁻¹' Set.Ici T = Set.Iic (-T) := by
+  exact Set.ext (fun _ => le_neg)
+
+/-- The reflected inverse-cubic set integral over the left tail is the
+unreflected set integral over that same left tail. -/
+theorem real_inverseCubic_leftTail_integral_eq_reflected_preimage
+    (T : ℝ) :
+    (∫ t in Set.Iic (-T),
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      =
+    (∫ t in (fun x : ℝ => -x) ⁻¹' Set.Ici T,
+        (1 + ‖(-t)‖) ^ (-(3 : ℤ)) : ℝ) := by
+  have hSet :
+      (fun t : ℝ => -t) ⁻¹' Set.Ici T = Set.Iic (-T) :=
+    preimage_neg_Ici_eq_Iic_neg T
+  have hPoint :
+      ∀ t : ℝ,
+        t ∈ Set.Iic (-T) →
+          (1 + ‖t‖) ^ (-(3 : ℤ))
+            =
+          ((1 + ‖(-t)‖) ^ (-(3 : ℤ)) : ℝ) :=
+    fun t _ =>
+      (real_inverseCubic_reflection_value t).symm
+  calc
+    (∫ t in Set.Iic (-T),
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        =
+        (∫ t in Set.Iic (-T),
+          (1 + ‖(-t)‖) ^ (-(3 : ℤ)) : ℝ) := by
+          exact setIntegral_congr_fun measurableSet_Iic hPoint
+    _ =
+        (∫ t in (fun x : ℝ => -x) ⁻¹' Set.Ici T,
+          (1 + ‖(-t)‖) ^ (-(3 : ℤ)) : ℝ) := by
+          exact congrArg
+            (fun s : Set ℝ =>
+              ∫ t in s, (1 + ‖(-t)‖) ^ (-(3 : ℤ)) : ℝ)
+            hSet.symm
+
+/-- Set-integral change of variables for real reflection on the inverse-cubic
+tail. -/
+theorem real_inverseCubic_reflected_preimage_integral_eq_rightTail
+    (T : ℝ) :
+    (∫ t in (fun x : ℝ => -x) ⁻¹' Set.Ici T,
+        (1 + ‖(-t)‖) ^ (-(3 : ℤ)) : ℝ)
+      =
+    (∫ t in Set.Ici T,
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+  exact
+    (Measure.measurePreserving_neg (volume : Measure ℝ)).setIntegral_preimage_emb
+      (Homeomorph.neg ℝ).measurableEmbedding
+      (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      (Set.Ici T)
+
 /-- The left closed inverse-cubic norm tail is the corresponding right closed
 tail by the reflection symmetry of Lebesgue measure and the norm. -/
 theorem real_inverseCubic_leftTail_integral_eq_rightTail
@@ -1028,7 +1091,17 @@ theorem real_inverseCubic_leftTail_integral_eq_rightTail
       =
     (∫ t in Set.Ici T,
         (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
-  sorry
+  calc
+    (∫ t in Set.Iic (-T),
+        (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        =
+        (∫ t in (fun x : ℝ => -x) ⁻¹' Set.Ici T,
+          (1 + ‖(-t)‖) ^ (-(3 : ℤ)) : ℝ) := by
+          exact real_inverseCubic_leftTail_integral_eq_reflected_preimage T
+    _ =
+        (∫ t in Set.Ici T,
+          (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+          exact real_inverseCubic_reflected_preimage_integral_eq_rightTail T
 
 /-- Sharp right half-line inverse-cubic tail evaluation up to the harmless
 closed-endpoint convention. -/
