@@ -2083,6 +2083,73 @@ theorem fixedRightLine_fourierCauchy_symmetricWindow_eq_productIntegral
             (fixedRightLine_fourierCauchy_symmetricWindow_productIntegral_eq_iterated
               K hK_cont hK_compact hK_smooth c hc T).symm
 
+/-- Pointwise commutative reassociation for the scalar-window integrand. -/
+theorem fixedRightLine_scalarWindow_constMul_integrand_reassoc
+    (K : ℝ → ℂ) (c t x : ℝ) :
+    K x *
+        ((-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) =
+      (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+        K x *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ)) *
+        Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+  calc
+    K x *
+        ((-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+        =
+        (K x *
+          ((-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)))) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+          exact mul_assoc (K x)
+            ((-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)))
+            (Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+    _ =
+        ((K x * (-1 / (((c : ℂ) + t * Complex.I) - 1))) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ))) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+          exact congrArg
+            (fun z : ℂ =>
+              z *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+            (mul_assoc (K x)
+              (-1 / (((c : ℂ) + t * Complex.I) - 1))
+              (Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ))))
+    _ =
+        (((-1 / (((c : ℂ) + t * Complex.I) - 1)) * K x) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ))) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+          exact congrArg
+            (fun z : ℂ =>
+              (z *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ))) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+            (mul_comm (K x)
+              (-1 / (((c : ℂ) + t * Complex.I) - 1)))
+    _ =
+        ((-1 / (((c : ℂ) + t * Complex.I) - 1)) * K x) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+          exact (mul_assoc
+            ((-1 / (((c : ℂ) + t * Complex.I) - 1)) * K x)
+            (Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)))
+            (Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))).symm
+
 /-- The scalar-window expression is the reversed iterated product integral. -/
 theorem fixedRightLine_scalarWindowIntegral_eq_reversedIterated
     (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
@@ -2102,7 +2169,45 @@ theorem fixedRightLine_scalarWindowIntegral_eq_reversedIterated
             Complex.exp
               (Complex.I * (t : ℂ) * (x : ℂ)) *
             Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
-  sorry
+  exact
+    integral_congr_ae
+      (Eventually.of_forall
+        (fun x : ℝ =>
+          calc
+            K x *
+                (∫ t in Set.Icc (-T) T,
+                  (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                    Complex.exp
+                      (Complex.I * (t : ℂ) * (x : ℂ)) *
+                    Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+                =
+                ∫ t in Set.Icc (-T) T,
+                  K x *
+                    ((-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                      Complex.exp
+                        (Complex.I * (t : ℂ) * (x : ℂ)) *
+                      Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) := by
+                  exact
+                    (integral_mul_left
+                      (K x)
+                      (fun t : ℝ =>
+                        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                          Complex.exp
+                            (Complex.I * (t : ℂ) * (x : ℂ)) *
+                          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))).symm
+            _ =
+                ∫ t in Set.Icc (-T) T,
+                  (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                    K x *
+                    Complex.exp
+                      (Complex.I * (t : ℂ) * (x : ℂ)) *
+                    Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+                  exact
+                    integral_congr_ae
+                      (Eventually.of_forall
+                        (fun t : ℝ =>
+                          fixedRightLine_scalarWindow_constMul_integrand_reassoc
+                            K c t x))))
 
 /-- Reversed Fubini form of the scalar-window product integral. -/
 theorem fixedRightLine_scalarWindow_reversedIterated_eq_productIntegral
