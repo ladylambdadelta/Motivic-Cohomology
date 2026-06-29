@@ -2816,6 +2816,40 @@ theorem scalarFourierLaplacePlemelj_positive_residue_value
         Complex.exp (-(a : ℂ) * (x : ℂ)) := by
   exact rfl
 
+/-- Upper semicircle correction term for the positive-time scalar
+Fourier-Laplace contour.  The real segment runs from `-T` to `T`, and this arc
+returns from `T` to `-T` through the upper half-plane. -/
+noncomputable def scalarFourierLaplacePlemelj_positiveUpperArc
+    (a x T : ℝ) : ℂ :=
+  ∫ θ in (0 : ℝ)..Real.pi,
+    let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+    (-1 / ((a : ℂ) + z * Complex.I)) *
+      Complex.exp (Complex.I * z * (x : ℂ)) *
+      (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
+/-- Finite upper-half-plane residue identity for the positive-time scalar
+Fourier-Laplace contour. -/
+theorem scalarFourierLaplacePlemelj_positive_window_add_upperArc_eq_residueValue
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    ∀ᶠ T in atTop,
+      (∫ t in Set.Icc (-T) T,
+        (-1 / ((a : ℂ) + t * Complex.I)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ))) +
+          scalarFourierLaplacePlemelj_positiveUpperArc a x T =
+        (-2 * (Real.pi : ℂ)) *
+          Complex.exp (-(a : ℂ) * (x : ℂ)) := by
+  sorry
+
+/-- The upper semicircle correction term vanishes for positive time. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArc_tendsto_zero
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    Tendsto
+      (fun T : ℝ => scalarFourierLaplacePlemelj_positiveUpperArc a x T)
+      atTop
+      (𝓝 0) := by
+  sorry
+
 /-- Positive-time finite-window contour limit before multiplying by the
 compensating `exp (a x)` factor. -/
 theorem scalarFourierLaplacePlemelj_positive_window_tendsto_residueValue
@@ -2830,7 +2864,64 @@ theorem scalarFourierLaplacePlemelj_positive_window_tendsto_residueValue
       (𝓝
         ((-2 * (Real.pi : ℂ)) *
           Complex.exp (-(a : ℂ) * (x : ℂ)))) := by
-  sorry
+  let W : ℝ → ℂ :=
+    fun T : ℝ =>
+      ∫ t in Set.Icc (-T) T,
+        (-1 / ((a : ℂ) + t * Complex.I)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ))
+  let A : ℝ → ℂ :=
+    fun T : ℝ => scalarFourierLaplacePlemelj_positiveUpperArc a x T
+  let R : ℂ :=
+    (-2 * (Real.pi : ℂ)) *
+      Complex.exp (-(a : ℂ) * (x : ℂ))
+  have hsum_eventual :
+      ∀ᶠ T in atTop, W T + A T = R := by
+    unfold W
+    unfold A
+    unfold R
+    exact
+      scalarFourierLaplacePlemelj_positive_window_add_upperArc_eq_residueValue
+        a ha x hx
+  have hsum :
+      Tendsto (fun T : ℝ => W T + A T) atTop (𝓝 R) :=
+    tendsto_nhds_of_eventually_eq hsum_eventual
+  have hnegA :
+      Tendsto (fun T : ℝ => -A T) atTop (𝓝 0) := by
+    have hA :
+        Tendsto A atTop (𝓝 0) := by
+      unfold A
+      exact
+        scalarFourierLaplacePlemelj_positiveUpperArc_tendsto_zero
+          a ha x hx
+    exact Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto (fun T : ℝ => -A T) atTop (𝓝 z))
+      neg_zero
+      hA.neg
+  have hW :
+      Tendsto (fun T : ℝ => W T + A T + -A T) atTop (𝓝 (R + 0)) :=
+    hsum.add hnegA
+  have hpoint :
+      (fun T : ℝ => W T + A T + -A T) = W := by
+    funext T
+    calc
+      W T + A T + -A T = W T + (A T + -A T) := by
+        exact add_assoc (W T) (A T) (-A T)
+      _ = W T + 0 := by
+        exact congrArg (fun z : ℂ => W T + z) (add_neg_cancel (A T))
+      _ = W T := by
+        exact add_zero (W T)
+  have htarget : R + 0 = R :=
+    add_zero R
+  exact Eq.subst
+    (motive := fun u : ℝ → ℂ => Tendsto u atTop (𝓝 R))
+    hpoint
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto (fun T : ℝ => W T + A T + -A T) atTop (𝓝 z))
+      htarget
+      hW)
 
 /-- Multiplying a convergent positive-time residue window by `exp (a x)`. -/
 theorem scalarFourierLaplacePlemelj_positive_window_tendsto_residueValue_mul_exp
