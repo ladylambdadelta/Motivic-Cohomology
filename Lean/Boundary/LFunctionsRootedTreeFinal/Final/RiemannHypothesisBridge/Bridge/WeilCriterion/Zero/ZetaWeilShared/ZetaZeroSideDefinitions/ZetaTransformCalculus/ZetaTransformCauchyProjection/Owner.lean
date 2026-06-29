@@ -3090,6 +3090,39 @@ theorem scalarFourierLaplacePlemelj_pointwise_positive
     (scalarFourierLaplacePlemelj_positive_window_tendsto_laplaceJump
       a ha x hx)
 
+/-- Lower semicircle correction term for the negative-time scalar
+Fourier-Laplace contour.  The real segment runs from `-T` to `T`, and this arc
+returns from `T` to `-T` through the lower half-plane. -/
+noncomputable def scalarFourierLaplacePlemelj_negativeLowerArc
+    (a x T : ℝ) : ℂ :=
+  ∫ θ in (0 : ℝ)..(-Real.pi),
+    let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+    (-1 / ((a : ℂ) + z * Complex.I)) *
+      Complex.exp (Complex.I * z * (x : ℂ)) *
+      (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
+/-- Finite lower-half-plane pole-free contour identity for the negative-time
+scalar Fourier-Laplace contour. -/
+theorem scalarFourierLaplacePlemelj_negative_window_add_lowerArc_eq_zero
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
+    ∀ᶠ T in atTop,
+      (∫ t in Set.Icc (-T) T,
+        (-1 / ((a : ℂ) + t * Complex.I)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ))) +
+          scalarFourierLaplacePlemelj_negativeLowerArc a x T =
+        0 := by
+  sorry
+
+/-- The lower semicircle correction term vanishes for negative time. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArc_tendsto_zero
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
+    Tendsto
+      (fun T : ℝ => scalarFourierLaplacePlemelj_negativeLowerArc a x T)
+      atTop
+      (𝓝 0) := by
+  sorry
+
 /-- Negative-time finite-window contour limit before multiplying by the
 constant `exp (a x)`. -/
 theorem scalarFourierLaplacePlemelj_negative_window_tendsto_zero_without_exp
@@ -3102,7 +3135,60 @@ theorem scalarFourierLaplacePlemelj_negative_window_tendsto_zero_without_exp
               (Complex.I * (t : ℂ) * (x : ℂ)))
       atTop
       (𝓝 0) := by
-  sorry
+  let W : ℝ → ℂ :=
+    fun T : ℝ =>
+      ∫ t in Set.Icc (-T) T,
+        (-1 / ((a : ℂ) + t * Complex.I)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ))
+  let A : ℝ → ℂ :=
+    fun T : ℝ => scalarFourierLaplacePlemelj_negativeLowerArc a x T
+  have hsum_eventual :
+      ∀ᶠ T in atTop, W T + A T = 0 := by
+    unfold W
+    unfold A
+    exact
+      scalarFourierLaplacePlemelj_negative_window_add_lowerArc_eq_zero
+        a ha x hx
+  have hsum :
+      Tendsto (fun T : ℝ => W T + A T) atTop (𝓝 0) :=
+    tendsto_nhds_of_eventually_eq hsum_eventual
+  have hnegA :
+      Tendsto (fun T : ℝ => -A T) atTop (𝓝 0) := by
+    have hA :
+        Tendsto A atTop (𝓝 0) := by
+      unfold A
+      exact
+        scalarFourierLaplacePlemelj_negativeLowerArc_tendsto_zero
+          a ha x hx
+    exact Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto (fun T : ℝ => -A T) atTop (𝓝 z))
+      neg_zero
+      hA.neg
+  have hW :
+      Tendsto (fun T : ℝ => W T + A T + -A T) atTop (𝓝 (0 + 0 : ℂ)) :=
+    hsum.add hnegA
+  have hpoint :
+      (fun T : ℝ => W T + A T + -A T) = W := by
+    funext T
+    calc
+      W T + A T + -A T = W T + (A T + -A T) := by
+        exact add_assoc (W T) (A T) (-A T)
+      _ = W T + 0 := by
+        exact congrArg (fun z : ℂ => W T + z) (add_neg_cancel (A T))
+      _ = W T := by
+        exact add_zero (W T)
+  have htarget : (0 : ℂ) + 0 = 0 :=
+    add_zero (0 : ℂ)
+  exact Eq.subst
+    (motive := fun u : ℝ → ℂ => Tendsto u atTop (𝓝 0))
+    hpoint
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto (fun T : ℝ => W T + A T + -A T) atTop (𝓝 z))
+      htarget
+      hW)
 
 /-- Multiplication by `exp (a x)` preserves the negative-time zero limit. -/
 theorem scalarFourierLaplacePlemelj_negative_window_tendsto_zero_mul_exp
