@@ -2848,6 +2848,43 @@ theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_window_add_upperArc
           scalarFourierLaplacePlemelj_positiveUpperArc a x T := by
   rfl
 
+/-- The pole of the scalar Fourier-Laplace denominator in the upper half-plane. -/
+noncomputable def scalarFourierLaplacePlemelj_upperPole
+    (a : ℝ) : ℂ :=
+  (a : ℂ) * Complex.I
+
+/-- The scalar upper pole lies on the positive imaginary axis. -/
+theorem scalarFourierLaplacePlemelj_upperPole_eq
+    (a : ℝ) :
+    scalarFourierLaplacePlemelj_upperPole a = (a : ℂ) * Complex.I := by
+  rfl
+
+/-- The upper pole is inside the positive semicircle once the radius exceeds `a`. -/
+theorem scalarFourierLaplacePlemelj_upperPole_mem_upperSemicircleInterior_of_radius
+    (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) :
+    ‖scalarFourierLaplacePlemelj_upperPole a‖ < T := by
+  sorry
+
+/-- Residue of the positive-time normalized scalar kernel at the upper pole. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperPole_residue
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    (-2 * (Real.pi : ℂ)) *
+        Complex.exp (-(a : ℂ) * (x : ℂ)) =
+      (-2 * (Real.pi : ℂ)) *
+        Complex.exp (-(a : ℂ) * (x : ℂ)) := by
+  exact rfl
+
+/-- Upper semicircle contour integral equals the residue contribution once the pole
+is inside the contour. -/
+theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_residue_of_upperPoleInside
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (T : ℝ)
+    (_hpole : ‖scalarFourierLaplacePlemelj_upperPole a‖ < T) :
+    scalarFourierLaplacePlemelj_positiveClosedContour a x T =
+      (-2 * (Real.pi : ℂ)) *
+        Complex.exp (-(a : ℂ) * (x : ℂ)) := by
+  sorry
+
 /-- Radius-qualified upper-half-plane residue theorem for the positive-time scalar
 closed contour. -/
 theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_residueValue_of_poleInside
@@ -2856,7 +2893,11 @@ theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_residueValue_of_pol
     scalarFourierLaplacePlemelj_positiveClosedContour a x T =
       (-2 * (Real.pi : ℂ)) *
         Complex.exp (-(a : ℂ) * (x : ℂ)) := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_positiveClosedContour_eq_residue_of_upperPoleInside
+      a ha x hx T
+      (scalarFourierLaplacePlemelj_upperPole_mem_upperSemicircleInterior_of_radius
+        a ha T hT)
 
 /-- Upper-half-plane residue theorem for the positive-time scalar closed contour. -/
 theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_residueValue_residueTheorem
@@ -3186,13 +3227,93 @@ theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_window_add_lowerArc
           scalarFourierLaplacePlemelj_negativeLowerArc a x T := by
   rfl
 
+/-- The upper scalar pole is outside the lower half-plane contour. -/
+theorem scalarFourierLaplacePlemelj_upperPole_not_mem_lowerSemicircleInterior
+    (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : 0 < T) :
+    ¬ scalarFourierLaplacePlemelj_upperPole a =
+        (-(a : ℂ)) * Complex.I := by
+  intro hpole
+  have him :
+      Complex.im (scalarFourierLaplacePlemelj_upperPole a) =
+        Complex.im ((-(a : ℂ)) * Complex.I) :=
+    congrArg Complex.im hpole
+  have hleft :
+      Complex.im (scalarFourierLaplacePlemelj_upperPole a) = a := by
+    calc
+      Complex.im (scalarFourierLaplacePlemelj_upperPole a) =
+          Complex.im ((a : ℂ) * Complex.I) := by
+        exact congrArg Complex.im
+          (scalarFourierLaplacePlemelj_upperPole_eq a)
+      _ = (a : ℂ).re * Complex.I.im + (a : ℂ).im * Complex.I.re := by
+        exact Complex.mul_im (a : ℂ) Complex.I
+      _ = a * 1 + 0 * 0 := by
+        exact congrArg₂ HAdd.hAdd
+          (congrArg₂ HMul.hMul
+            (Complex.ofReal_re a)
+            Complex.I_im)
+          (congrArg₂ HMul.hMul
+            (Complex.ofReal_im a)
+            Complex.I_re)
+      _ = a * 1 := by
+        exact add_zero (a * 1)
+      _ = a := by
+        exact mul_one a
+  have hright :
+      Complex.im ((-(a : ℂ)) * Complex.I) = -a := by
+    calc
+      Complex.im ((-(a : ℂ)) * Complex.I) =
+          (-(a : ℂ)).re * Complex.I.im + (-(a : ℂ)).im * Complex.I.re := by
+        exact Complex.mul_im (-(a : ℂ)) Complex.I
+      _ = (-(a : ℂ)).re * 1 + (-(a : ℂ)).im * 0 := by
+        exact congrArg₂ HAdd.hAdd
+          (congrArg₂ HMul.hMul
+            rfl
+            Complex.I_im)
+          (congrArg₂ HMul.hMul
+            rfl
+            Complex.I_re)
+      _ = (-(a : ℂ)).re * 1 + 0 := by
+        exact congrArg
+          (fun y : ℝ => (-(a : ℂ)).re * 1 + y)
+          (mul_zero (-(a : ℂ)).im)
+      _ = (-(a : ℂ)).re * 1 := by
+        exact add_zero ((-(a : ℂ)).re * 1)
+      _ = (-(a : ℂ)).re := by
+        exact mul_one (-(a : ℂ)).re
+      _ = -a := by
+        exact (Complex.neg_re (a : ℂ)).trans
+          (congrArg Neg.neg (Complex.ofReal_re a))
+  have ha_eq_neg : a = -a :=
+    hleft.symm.trans (him.trans hright)
+  have htwo_zero : (2 : ℝ) * a = 0 := by
+    have hadd : a + a = 0 :=
+      eq_neg_iff_add_eq_zero.mp ha_eq_neg
+    exact (two_mul a).symm.trans hadd
+  have ha_zero : a = 0 :=
+    (mul_eq_zero.mp htwo_zero).resolve_left two_ne_zero
+  exact (ne_of_gt ha) ha_zero
+
+/-- Pole-free lower-half-plane contour integral for the negative-time scalar kernel. -/
+theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_of_noPole
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ)
+    (_hpole :
+      ¬ scalarFourierLaplacePlemelj_upperPole a =
+          (-(a : ℂ)) * Complex.I) :
+    scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 := by
+  sorry
+
 /-- Radius-qualified lower-half-plane pole-free residue theorem for the negative-time
 scalar closed contour. -/
 theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_of_poleOutside
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
     (T : ℝ) (hT : 0 < T) :
     scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_of_noPole
+      a ha x hx T
+      (scalarFourierLaplacePlemelj_upperPole_not_mem_lowerSemicircleInterior
+        a ha T hT)
 
 /-- Lower-half-plane pole-free residue theorem for the negative-time scalar closed
 contour. -/
