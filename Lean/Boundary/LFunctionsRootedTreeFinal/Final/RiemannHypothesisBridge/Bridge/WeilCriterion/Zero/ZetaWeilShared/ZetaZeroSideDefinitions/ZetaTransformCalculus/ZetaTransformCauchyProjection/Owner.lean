@@ -6845,17 +6845,91 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_uniform_bound
       scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_pi
         a ha T x⟩
 
-/-- Finite-window Dirichlet bound for the odd Hilbert-Cauchy sine kernel.
+/-- Nonzero-frequency normalized half-window Hilbert-sine Dirichlet bound. -/
+theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_ne_zero
+    (R y : ℝ) (hy : y ≠ 0) :
+    |∫ u in (0)..R,
+      (u / (1 + u ^ 2)) * Real.sin (y * u)| ≤
+      Real.pi / 2 := by
+  sorry
 
-This is the real-variable owner statement behind the odd-sine part of the
-uncompensated Cauchy window: the oscillation, not absolute domination, gives a
-radius-uniform bound. -/
+theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two
+    (R y : ℝ) :
+    |∫ u in (0)..R,
+      (u / (1 + u ^ 2)) * Real.sin (y * u)| ≤
+      Real.pi / 2 := by
+  match eq_or_ne y 0 with
+  | Or.inl hy =>
+      have hzero :
+          (∫ u in (0)..R,
+            (u / (1 + u ^ 2)) * Real.sin (y * u)) = 0 := by
+        calc
+          (∫ u in (0)..R,
+            (u / (1 + u ^ 2)) * Real.sin (y * u))
+              =
+              ∫ u in (0)..R,
+                (u / (1 + u ^ 2)) * Real.sin (0 * u) := by
+                exact intervalIntegral.integral_congr
+                  (Filter.Eventually.of_forall
+                    (fun u : ℝ => by
+                      exact congrArg
+                        (fun z : ℝ =>
+                          (u / (1 + u ^ 2)) * Real.sin (z * u))
+                        hy))
+          _ =
+              ∫ u in (0)..R, 0 := by
+                exact intervalIntegral.integral_congr
+                  (Filter.Eventually.of_forall
+                    (fun u : ℝ => by
+                      exact mul_zero (u / (1 + u ^ 2))))
+          _ = 0 := by
+                exact intervalIntegral.integral_zero
+      have htarget : |(0 : ℝ)| ≤ Real.pi / 2 := by
+        have hpi_half_nonneg : 0 ≤ Real.pi / 2 :=
+          div_nonneg Real.pi_pos.le zero_le_two
+        exact (abs_zero : |(0 : ℝ)| = 0).le.trans hpi_half_nonneg
+      exact Eq.subst
+        (motive := fun z : ℝ => |z| ≤ Real.pi / 2)
+        hzero.symm
+        htarget
+  | Or.inr hy =>
+      exact
+        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two_of_ne_zero
+          R y hy
+
+/-- Scaling reduction from the width-`a` Hilbert-Cauchy sine kernel to the
+normalized kernel `u / (1 + u^2)`. -/
+theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_eq_normalized
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    (∫ t in (0)..T,
+      (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)) =
+      ∫ u in (0)..(T / a),
+        (u / (1 + u ^ 2)) * Real.sin ((a * x) * u) := by
+  sorry
+
 theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_abs_le_pi_div_two
     (a : ℝ) (ha : 0 < a) (T x : ℝ) :
     |∫ t in (0)..T,
       (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| ≤
       Real.pi / 2 := by
-  sorry
+  have hscale :
+      (∫ t in (0)..T,
+        (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)) =
+        ∫ u in (0)..(T / a),
+          (u / (1 + u ^ 2)) * Real.sin ((a * x) * u) :=
+    scalarFourierLaplacePlemelj_halfHilbertSineKernel_eq_normalized
+      a ha T x
+  calc
+    |∫ t in (0)..T,
+      (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)|
+        =
+        |∫ u in (0)..(T / a),
+          (u / (1 + u ^ 2)) * Real.sin ((a * x) * u)| := by
+          exact congrArg abs hscale
+    _ ≤ Real.pi / 2 :=
+        scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_div_two
+          (T / a) (a * x)
+
 
 /-- Symmetric finite windows of the Hilbert-Cauchy sine kernel reduce to twice
 the positive half-window because the kernel is even. -/
