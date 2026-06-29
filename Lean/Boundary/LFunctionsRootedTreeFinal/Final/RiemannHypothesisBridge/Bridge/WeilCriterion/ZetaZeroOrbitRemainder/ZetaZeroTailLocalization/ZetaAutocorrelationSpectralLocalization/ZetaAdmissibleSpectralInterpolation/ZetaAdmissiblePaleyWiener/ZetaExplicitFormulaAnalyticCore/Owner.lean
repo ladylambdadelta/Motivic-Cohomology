@@ -1089,7 +1089,95 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_boxSum_tend
             zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f)
       Filter.atTop
       (𝓝 0) := by
-  sorry
+  let g : ZetaPrimePowerIndex → ℂ :=
+    fun ι => zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f
+  have hg_summable : Summable g :=
+    zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_summable f
+  have hg_star_eq_opposite : ∀ ι,
+      star (g ι) = zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f :=
+    fun ι => (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_star_eq_opposite ι f).symm
+  have hbox_conv : Filter.Tendsto
+      (fun N : ℕ =>
+        ∑ ι in ZetaPrimePowerIndex.box N, g ι)
+      Filter.atTop
+      (𝓝 (∑' ι : ZetaPrimePowerIndex, g ι)) :=
+    hg_summable.hasSum.comp ZetaPrimePowerIndex.box_tendsto_atTop
+  have hsum_identity : ∀ N,
+      (∑ ι in ZetaPrimePowerIndex.box N, g ι + star (g ι)) =
+      (∑ ι in ZetaPrimePowerIndex.box N,
+        zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f +
+          zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f) := by
+    intro N
+    exact Finset.sum_congr rfl
+      (fun ι _ =>
+        congrArg (fun z : ℂ => g ι + z) (hg_star_eq_opposite ι))
+  have hreal_part : ∀ N,
+      (∑ ι in ZetaPrimePowerIndex.box N, g ι + star (g ι)) =
+      ((2 : ℝ) *
+        Complex.re (∑ ι in ZetaPrimePowerIndex.box N, g ι) : ℂ) := by
+    intro N
+    calc
+      (∑ ι in ZetaPrimePowerIndex.box N, g ι + star (g ι)) =
+          ∑ ι in ZetaPrimePowerIndex.box N, (g ι + star (g ι)) := by
+        exact (Finset.sum_add_distrib).symm
+      _ = ∑ ι in ZetaPrimePowerIndex.box N,
+          ((2 : ℝ) * Complex.re (g ι) : ℂ) := by
+        exact Finset.sum_congr rfl
+          (fun ι _ => complex_add_star_eq_two_re (g ι))
+      _ = ((2 : ℝ) *
+          (∑ ι in ZetaPrimePowerIndex.box N, Complex.re (g ι)) : ℝ) := by
+        exact (Finset.mul_sum
+          (ZetaPrimePowerIndex.box N)
+          (fun ι => Complex.re (g ι))
+          (2 : ℝ)).symm
+      _ = ((2 : ℝ) *
+          Complex.re (∑ ι in ZetaPrimePowerIndex.box N, g ι) : ℂ) := by
+        have hre_sum : Complex.re (∑ ι in ZetaPrimePowerIndex.box N, g ι) =
+            ∑ ι in ZetaPrimePowerIndex.box N, Complex.re (g ι) :=
+          (Complex.sum_re (ZetaPrimePowerIndex.box N) g).symm
+        exact congrArg (fun r : ℝ => ((2 : ℝ) * r : ℝ) : ℂ) hre_sum
+  have hre_conv : Filter.Tendsto
+      (fun N : ℕ =>
+        Complex.re (∑ ι in ZetaPrimePowerIndex.box N, g ι))
+      Filter.atTop
+      (𝓝 (Complex.re (∑' ι : ZetaPrimePowerIndex, g ι))) :=
+    (Complex.continuous_re.tendsto _).comp hbox_conv
+  have hre_zero : Complex.re (∑' ι : ZetaPrimePowerIndex, g ι) = 0 :=
+    zetaCompletedPrimePowerAutocorrelation_oriented_tsum_re_eq_zero_residueLedger_core f
+  have hre_tendsto : Filter.Tendsto
+      (fun N : ℕ =>
+        Complex.re (∑ ι in ZetaPrimePowerIndex.box N, g ι))
+      Filter.atTop
+      (𝓝 0) :=
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Filter.Tendsto
+          (fun N : ℕ => Complex.re (∑ ι in ZetaPrimePowerIndex.box N, g ι))
+          Filter.atTop
+          (𝓝 (Complex.re z)))
+      hre_zero.symm
+      hre_conv
+  have hscale : Filter.Tendsto
+      (fun N : ℕ =>
+        ((2 : ℝ) *
+          Complex.re (∑ ι in ZetaPrimePowerIndex.box N, g ι) : ℂ))
+      Filter.atTop
+      (𝓝 0) :=
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Filter.Tendsto
+          (fun N : ℕ => ((2 : ℝ) * Complex.re (∑ ι in ZetaPrimePowerIndex.box N, g ι) : ℂ))
+          Filter.atTop
+          (𝓝 (((2 : ℝ) : ℂ) * z)))
+      (zero_mul ((2 : ℝ) : ℂ)).symm
+      (Filter.Tendsto.const_mul ((2 : ℝ) : ℂ) hre_tendsto)
+  exact Eq.subst
+    (motive := fun u : ℕ → ℂ =>
+      Filter.Tendsto u Filter.atTop (𝓝 0))
+    (funext
+      (fun N =>
+        (hsum_identity N).trans (hreal_part N)))
+    hscale
 
 /-- Finite-window real-part cancellation at the residue-ledger source layer. -/
 theorem zetaCompletedPrimePowerAutocorrelation_oriented_boxSum_re_tendsto_zero_residueLedger_source

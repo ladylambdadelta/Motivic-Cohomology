@@ -3305,16 +3305,19 @@ multiplication by the circular velocity. -/
 theorem scalarFourierLaplacePlemelj_upperHalfDisk_arc_integrand_decompose
     (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ) (_hp : ‖p‖ < T)
     (θ : ℝ) :
-    let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
-    let v : ℂ := Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
-    (F z / (z - p)) * v =
-      (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p z) * v +
-        (F p * (z - p)⁻¹) * v := by
-  intro z
-  intro v
+    (F ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) /
+        (((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - p)) *
+        (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
+      (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) +
+        (F p *
+          ((((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - p)⁻¹)) *
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
   exact
     congrArg
-      (fun w : ℂ => w * v)
+      (fun w : ℂ =>
+        w * (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
       (scalarFourierLaplacePlemelj_upperHalfDisk_arc_cauchyKernel_decompose
         F T _hT p _hp θ)
 
@@ -3342,10 +3345,83 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_simplePoleKernel_boundaryInteg
       ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) := by
   sorry
 
+/-- Pull a constant residue coefficient out of the upper half-disk scalar
+pole-kernel boundary integral. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_const_mul_simplePoleKernel_boundaryIntegral
+    (c : ℂ) (T : ℝ) (p : ℂ) :
+    scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+        (fun z : ℂ => c * (z - p)⁻¹) T =
+      c *
+        scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+          (fun z : ℂ => (z - p)⁻¹) T := by
+  unfold scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+  let A : ℂ := ∫ t in Set.Icc (-T) T, (((t : ℂ) - p)⁻¹)
+  let B : ℂ :=
+    ∫ θ in (0 : ℝ)..Real.pi,
+      let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+      ((z - p)⁻¹) *
+        (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+  have hreal :
+      (∫ t in Set.Icc (-T) T, c * (((t : ℂ) - p)⁻¹)) = c * A := by
+    exact integral_mul_left c (fun t : ℝ => (((t : ℂ) - p)⁻¹))
+  have harc :
+      (∫ θ in (0 : ℝ)..Real.pi,
+        let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+        (c * ((z - p)⁻¹)) *
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
+        c * B := by
+    have hcongr :
+        (∫ θ in (0 : ℝ)..Real.pi,
+          let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+          (c * ((z - p)⁻¹)) *
+            (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
+          ∫ θ in (0 : ℝ)..Real.pi,
+            c *
+              (let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+              ((z - p)⁻¹) *
+                (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) := by
+      exact
+        intervalIntegral.integral_congr
+          (fun θ _hθ =>
+            let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+            mul_assoc c ((z - p)⁻¹)
+              (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+    exact
+      hcongr.trans
+        (intervalIntegral.integral_const_mul c
+          (fun θ : ℝ =>
+            let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+            ((z - p)⁻¹) *
+              (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))))
+  calc
+    (∫ t in Set.Icc (-T) T, c * (((t : ℂ) - p)⁻¹)) +
+        (∫ θ in (0 : ℝ)..Real.pi,
+          let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+          (c * ((z - p)⁻¹)) *
+            (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
+        c * A + c * B := by
+      exact congrArg₂ HAdd.hAdd hreal harc
+    _ = c * (A + B) := by
+      exact (mul_add c A B).symm
+
+/-- Boundary integral decomposition before pulling the residue coefficient
+outside the scalar winding integral. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_cauchyKernel_boundaryIntegral_decompose_raw
+    (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ)
+    (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p) :
+    scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+        (fun z : ℂ => F z / (z - p)) T =
+      scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+        (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p) T +
+        scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+          (fun z : ℂ => F p * (z - p)⁻¹) T := by
+  sorry
+
 /-- Boundary integral decomposition of a Cauchy kernel into its regular
 removable part and its scalar winding part. -/
 theorem scalarFourierLaplacePlemelj_upperHalfDisk_cauchyKernel_boundaryIntegral_decompose
-    (F : ℂ → ℂ) (T : ℝ) (p : ℂ) :
+    (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ)
+    (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p) :
     scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
         (fun z : ℂ => F z / (z - p)) T =
       scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
@@ -3353,7 +3429,15 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_cauchyKernel_boundaryIntegral_
         F p *
           scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
             (fun z : ℂ => (z - p)⁻¹) T := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_upperHalfDisk_cauchyKernel_boundaryIntegral_decompose_raw
+      F T _hT p _hp _hp_upper).trans
+      (congrArg
+        (fun W : ℂ =>
+          scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+            (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p) T + W)
+        (scalarFourierLaplacePlemelj_upperHalfDisk_const_mul_simplePoleKernel_boundaryIntegral
+          (F p) T p))
 
 /-- Multiplying the scalar winding value by the residue coefficient gives the
 named simple-pole residue contribution. -/
@@ -3383,7 +3467,7 @@ theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_eq_simplePoleR
         F p := by
   exact
     (scalarFourierLaplacePlemelj_upperHalfDisk_cauchyKernel_boundaryIntegral_decompose
-      F T p).trans
+      F T _hT p _hp _hp_upper).trans
       ((congrArg₂ HAdd.hAdd
         (scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_boundaryIntegral_eq_zero
           F T _hT p _hp _hp_upper _hdiff)
