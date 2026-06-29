@@ -2848,6 +2848,16 @@ theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_window_add_upperArc
           scalarFourierLaplacePlemelj_positiveUpperArc a x T := by
   rfl
 
+/-- Radius-qualified upper-half-plane residue theorem for the positive-time scalar
+closed contour. -/
+theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_residueValue_of_poleInside
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (T : ℝ) (hT : a < T) :
+    scalarFourierLaplacePlemelj_positiveClosedContour a x T =
+      (-2 * (Real.pi : ℂ)) *
+        Complex.exp (-(a : ℂ) * (x : ℂ)) := by
+  sorry
+
 /-- Upper-half-plane residue theorem for the positive-time scalar closed contour. -/
 theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_residueValue_residueTheorem
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
@@ -2855,7 +2865,10 @@ theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_residueValue_residu
       scalarFourierLaplacePlemelj_positiveClosedContour a x T =
         (-2 * (Real.pi : ℂ)) *
           Complex.exp (-(a : ℂ) * (x : ℂ)) := by
-  sorry
+  exact (eventually_gt_atTop a).mono
+    (fun T hT =>
+      scalarFourierLaplacePlemelj_positiveClosedContour_eq_residueValue_of_poleInside
+        a ha x hx T hT)
 
 /-- Finite upper-half-plane residue identity for the positive-time scalar
 Fourier-Laplace contour. -/
@@ -3173,13 +3186,24 @@ theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_window_add_lowerArc
           scalarFourierLaplacePlemelj_negativeLowerArc a x T := by
   rfl
 
+/-- Radius-qualified lower-half-plane pole-free residue theorem for the negative-time
+scalar closed contour. -/
+theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_of_poleOutside
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ) (hT : 0 < T) :
+    scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 := by
+  sorry
+
 /-- Lower-half-plane pole-free residue theorem for the negative-time scalar closed
 contour. -/
 theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_residueTheorem
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
     ∀ᶠ T in atTop,
       scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 := by
-  sorry
+  exact (eventually_gt_atTop (0 : ℝ)).mono
+    (fun T hT =>
+      scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_of_poleOutside
+        a ha x hx T hT)
 
 /-- Finite lower-half-plane pole-free contour identity for the negative-time
 scalar Fourier-Laplace contour. -/
