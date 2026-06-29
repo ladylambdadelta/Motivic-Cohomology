@@ -2981,6 +2981,102 @@ noncomputable def scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant
     (a x T : ℝ) : ℝ :=
   (Real.pi * T / (T - a)) * ((T * x)⁻¹)
 
+/-- The shifted Jordan denominator tends to infinity with the radius. -/
+theorem scalarFourierLaplacePlemelj_jordanShiftedDenominator_tendsto_atTop
+    (a : ℝ) :
+    Tendsto
+      (fun T : ℝ => T - a)
+      atTop
+      atTop :=
+  tendsto_atTop_add_const_right (-a) tendsto_id
+
+/-- The Jordan prefactor remainder tends to zero. -/
+theorem scalarFourierLaplacePlemelj_jordanPrefactorRemainder_tendsto_zero
+    (a : ℝ) :
+    Tendsto
+      (fun T : ℝ => Real.pi * a / (T - a))
+      atTop
+      (𝓝 0) :=
+  tendsto_const_nhds.div_atTop
+    (scalarFourierLaplacePlemelj_jordanShiftedDenominator_tendsto_atTop a)
+
+/-- Pointwise algebra splitting of the Jordan prefactor away from its shifted
+denominator pole. -/
+theorem scalarFourierLaplacePlemelj_jordanPrefactor_eq_pi_add_remainder_of_ne
+    (a T : ℝ) (hT : T ≠ a) :
+    Real.pi * T / (T - a) =
+      Real.pi + Real.pi * a / (T - a) := by
+  have hden : T - a ≠ 0 :=
+    sub_ne_zero.mpr hT
+  calc
+    Real.pi * T / (T - a) =
+        Real.pi * ((T - a) + a) / (T - a) := by
+      exact congrArg
+        (fun y : ℝ => Real.pi * y / (T - a))
+        (sub_add_cancel T a).symm
+    _ = (Real.pi * (T - a) + Real.pi * a) / (T - a) := by
+      exact congrArg
+        (fun y : ℝ => y / (T - a))
+        (mul_add Real.pi (T - a) a)
+    _ =
+        Real.pi * (T - a) / (T - a) +
+          Real.pi * a / (T - a) := by
+      exact add_div (Real.pi * (T - a)) (Real.pi * a) (T - a)
+    _ =
+        Real.pi * ((T - a) / (T - a)) +
+          Real.pi * a / (T - a) := by
+      exact congrArg
+        (fun y : ℝ => y + Real.pi * a / (T - a))
+        (mul_div_assoc Real.pi (T - a) (T - a))
+    _ = Real.pi * 1 + Real.pi * a / (T - a) := by
+      exact congrArg
+        (fun y : ℝ => Real.pi * y + Real.pi * a / (T - a))
+        (div_self hden)
+    _ = Real.pi + Real.pi * a / (T - a) := by
+      exact congrArg
+        (fun y : ℝ => y + Real.pi * a / (T - a))
+        (mul_one Real.pi)
+
+/-- Eventually, the Jordan prefactor splits into its limit plus a vanishing
+remainder. -/
+theorem scalarFourierLaplacePlemelj_jordanPrefactor_eventually_eq_pi_add_remainder
+    (a : ℝ) :
+    (fun T : ℝ => Real.pi * T / (T - a)) =ᶠ[atTop]
+      (fun T : ℝ => Real.pi + Real.pi * a / (T - a)) := by
+  exact
+    (eventually_ne_atTop a).mono
+      (fun T hT =>
+        scalarFourierLaplacePlemelj_jordanPrefactor_eq_pi_add_remainder_of_ne
+          a T hT)
+
+/-- The positive upper-arc Jordan prefactor has a finite limit. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanPrefactor_tendsto_pi
+    (a : ℝ) :
+    Tendsto
+      (fun T : ℝ => Real.pi * T / (T - a))
+      atTop
+      (𝓝 Real.pi) := by
+  exact
+    Tendsto.congr'
+      (scalarFourierLaplacePlemelj_jordanPrefactor_eventually_eq_pi_add_remainder
+        a).symm
+      (tendsto_const_nhds.add
+        (scalarFourierLaplacePlemelj_jordanPrefactorRemainder_tendsto_zero
+          a))
+
+/-- The positive upper-arc reciprocal linear factor tends to zero. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanReciprocal_tendsto_zero
+    (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    Tendsto
+      (fun T : ℝ => (T * x)⁻¹)
+      atTop
+      (𝓝 0) := by
+  exact
+    tendsto_inv_atTop_zero.comp
+      (Tendsto.atTop_mul_const
+        (Set.mem_Ioi.mp hx)
+        tendsto_id)
+
 /-- The positive upper-arc Jordan majorant tends to zero. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_tendsto_zero
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
@@ -2989,7 +3085,11 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_tendsto_zero
         scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T)
       atTop
       (𝓝 0) := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_positiveUpperArcJordanPrefactor_tendsto_pi
+      a).mul
+      (scalarFourierLaplacePlemelj_positiveUpperArcJordanReciprocal_tendsto_zero
+        x hx)
 
 /-- The positive upper arc is bounded by the Jordan majorant. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_le_jordanMajorant
@@ -3421,6 +3521,30 @@ noncomputable def scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant
     (a x T : ℝ) : ℝ :=
   (Real.pi * T / (T - a)) * ((T * (-x))⁻¹)
 
+/-- The negative lower-arc Jordan prefactor has a finite limit. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanPrefactor_tendsto_pi
+    (a : ℝ) :
+    Tendsto
+      (fun T : ℝ => Real.pi * T / (T - a))
+      atTop
+      (𝓝 Real.pi) :=
+  scalarFourierLaplacePlemelj_positiveUpperArcJordanPrefactor_tendsto_pi a
+
+/-- The negative lower-arc reciprocal linear factor tends to zero. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanReciprocal_tendsto_zero
+    (x : ℝ) (hx : x < 0) :
+    Tendsto
+      (fun T : ℝ => (T * (-x))⁻¹)
+      atTop
+      (𝓝 0) := by
+  have hneg : 0 < -x :=
+    neg_pos.mpr hx
+  exact
+    tendsto_inv_atTop_zero.comp
+      (Tendsto.atTop_mul_const
+        hneg
+        tendsto_id)
+
 /-- The negative lower-arc Jordan majorant tends to zero. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_tendsto_zero
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
@@ -3429,7 +3553,11 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_tendsto_zero
         scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T)
       atTop
       (𝓝 0) := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_negativeLowerArcJordanPrefactor_tendsto_pi
+      a).mul
+      (scalarFourierLaplacePlemelj_negativeLowerArcJordanReciprocal_tendsto_zero
+        x hx)
 
 /-- The negative lower arc is bounded by the Jordan majorant. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanMajorant
