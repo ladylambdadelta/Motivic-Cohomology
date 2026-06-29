@@ -549,7 +549,40 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_negative_realAxisRapidDecay
             (zetaCompletedExplicitFormulaPhi f
               (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  sorry
+  match
+    zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay
+      (zetaAdmissibleDagger f)
+  with
+  | ⟨C, k, hC_nonneg, hpos⟩ =>
+      exact
+        ⟨C, k, hC_nonneg,
+          fun ι =>
+            let z : ℂ := (ZetaPrimePowerIndex.center ι : ℂ)
+            have hstar_z : star z = z := by
+              unfold z
+              exact Complex.conj_ofReal (ZetaPrimePowerIndex.center ι)
+            have harg : -star z = -z := by
+              exact congrArg Neg.neg hstar_z
+            have hdagger :
+                zetaCompletedExplicitFormulaPhi (zetaAdmissibleDagger f) z =
+                  star (zetaCompletedExplicitFormulaPhi f (-z)) := by
+              calc
+                zetaCompletedExplicitFormulaPhi (zetaAdmissibleDagger f) z =
+                    star (zetaCompletedExplicitFormulaPhi f (-star z)) := by
+                  exact zetaCompletedExplicitFormulaPhi_dagger f z
+                _ = star (zetaCompletedExplicitFormulaPhi f (-z)) := by
+                  exact congrArg
+                    (fun w : ℂ => star (zetaCompletedExplicitFormulaPhi f w))
+                    harg
+            have hnorm :
+                ‖star (zetaCompletedExplicitFormulaPhi f (-z))‖ =
+                  ‖zetaCompletedExplicitFormulaPhi (zetaAdmissibleDagger f) z‖ := by
+              exact congrArg norm hdagger.symm
+            Eq.subst
+              (motive := fun r : ℝ =>
+                r ≤ C * ZetaPrimePowerIndex.polynomialHeightDecay k ι)
+              hnorm.symm
+              (hpos ι)⟩
 
 /-- Two-sided real-axis rapid decay of the completed spectral transform at prime-power
 centers, assembled from the two one-sided real-axis estimates.
