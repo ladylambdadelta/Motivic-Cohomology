@@ -5504,7 +5504,14 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_setIntegral_eq_int
     (F : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T) :
     (∫ t in Set.Icc (-T) T, F (t : ℂ)) =
       ∫ t in (-T)..T, F (t : ℂ) := by
-  sorry
+  have hle : -T ≤ T := by
+    exact neg_le_self _hT
+  exact
+    Eq.trans
+      MeasureTheory.integral_Icc_eq_integral_Ioc
+      (intervalIntegral.integral_of_le
+        (f := fun t : ℝ => F (t : ℂ))
+        hle).symm
 
 /-- Restricting lower half-disk primitive data to the real diameter gives the
 one-variable derivative needed by the fundamental theorem of calculus. -/
