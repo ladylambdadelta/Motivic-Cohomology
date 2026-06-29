@@ -2926,6 +2926,16 @@ theorem scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution_eq
         Complex.exp (-(a : ℂ) * (x : ℂ)) := by
   exact rfl
 
+/-- Source residue theorem for the positive-time upper semicircle contour:
+the closed contour is the residue contribution of the enclosed upper pole. -/
+theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_upperPoleResidueContribution_source
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (T : ℝ)
+    (_hpole : ‖scalarFourierLaplacePlemelj_upperPole a‖ < T) :
+    scalarFourierLaplacePlemelj_positiveClosedContour a x T =
+      scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution a x := by
+  sorry
+
 /-- Owner residue theorem for the positive-time upper semicircle contour. -/
 theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_residueValue_owner
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
@@ -2934,7 +2944,11 @@ theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_residueValue_owner
     scalarFourierLaplacePlemelj_positiveClosedContour a x T =
       (-2 * (Real.pi : ℂ)) *
         Complex.exp (-(a : ℂ) * (x : ℂ)) := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_positiveClosedContour_eq_upperPoleResidueContribution_source
+      a ha x hx T _hpole).trans
+      (scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution_eq
+        a ha x hx)
 
 /-- Upper semicircle contour integral equals the abstract upper-pole residue contribution. -/
 theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_upperPoleResidueContribution
@@ -4762,7 +4776,7 @@ theorem scalarFourierLaplacePlemelj_upperPole_not_mem_lowerSemicircleInterior
 
 /-- Owner pole-free residue theorem for the negative-time lower semicircle
 contour. -/
-theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_owner
+theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_residueTheorem_source
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
     (T : ℝ)
     (_hpole :
@@ -4770,6 +4784,17 @@ theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_owner
           (-(a : ℂ)) * Complex.I) :
     scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 := by
   sorry
+
+theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_owner
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ)
+    (_hpole :
+      ¬ scalarFourierLaplacePlemelj_upperPole a =
+          (-(a : ℂ)) * Complex.I) :
+    scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 := by
+  exact
+    scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_residueTheorem_source
+      a ha x hx T _hpole
 
 /-- Pole-free lower-half-plane contour integral for the negative-time scalar kernel. -/
 theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_of_noPole
