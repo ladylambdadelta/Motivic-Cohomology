@@ -3753,6 +3753,108 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_eq_pr
     (T / (T - a))
     (fun θ : ℝ => Real.exp (-(T * x * Real.sin θ)))
 
+/-- The upper sine-damping integrand is interval-integrable on any finite
+interval. -/
+theorem scalarFourierLaplacePlemelj_upperSineDamping_intervalIntegrable
+    (c a b : ℝ) :
+    IntervalIntegrable
+      (fun θ : ℝ => Real.exp (-(c * Real.sin θ)))
+      MeasureTheory.volume
+      a
+      b := by
+  have harg :
+      Continuous
+        (fun θ : ℝ => -(c * Real.sin θ)) := by
+    exact (continuous_const.mul Real.continuous_sin).neg
+  have hintegrand :
+      Continuous
+        (fun θ : ℝ => Real.exp (-(c * Real.sin θ))) := by
+    exact Real.continuous_exp.comp harg
+  exact hintegrand.intervalIntegrable a b
+
+/-- The upper sine-damping integral splits at `π / 2`. -/
+theorem scalarFourierLaplacePlemelj_upperSineDampingIntegral_split_half
+    (c : ℝ) :
+    ∫ θ in (0 : ℝ)..Real.pi,
+        Real.exp (-(c * Real.sin θ)) =
+      (∫ θ in (0 : ℝ)..(Real.pi / 2),
+        Real.exp (-(c * Real.sin θ))) +
+      ∫ θ in (Real.pi / 2)..Real.pi,
+        Real.exp (-(c * Real.sin θ)) := by
+  have hleft :
+      IntervalIntegrable
+        (fun θ : ℝ => Real.exp (-(c * Real.sin θ)))
+        MeasureTheory.volume
+        (0 : ℝ)
+        (Real.pi / 2) :=
+    scalarFourierLaplacePlemelj_upperSineDamping_intervalIntegrable
+      c (0 : ℝ) (Real.pi / 2)
+  have hright :
+      IntervalIntegrable
+        (fun θ : ℝ => Real.exp (-(c * Real.sin θ)))
+        MeasureTheory.volume
+        (Real.pi / 2)
+        Real.pi :=
+    scalarFourierLaplacePlemelj_upperSineDamping_intervalIntegrable
+      c (Real.pi / 2) Real.pi
+  exact
+    (intervalIntegral.integral_add_adjacent_intervals hleft hright).symm
+
+/-- Pointwise reflection identity for the sine-damping integrand. -/
+theorem scalarFourierLaplacePlemelj_upperSineDamping_pi_sub_eq
+    (c θ : ℝ) :
+    Real.exp (-(c * Real.sin (Real.pi - θ))) =
+      Real.exp (-(c * Real.sin θ)) := by
+  exact congrArg
+    (fun r : ℝ => Real.exp (-(c * r)))
+    (Real.sin_pi_sub θ)
+
+/-- Endpoint transport for reflecting the right half interval. -/
+theorem scalarFourierLaplacePlemelj_upperSineDamping_reflectedEndpointIntegral_eq
+    (c : ℝ) :
+    (∫ θ in (Real.pi - Real.pi / 2)..(Real.pi - 0),
+        Real.exp (-(c * Real.sin θ))) =
+      ∫ θ in (Real.pi / 2)..Real.pi,
+        Real.exp (-(c * Real.sin θ)) := by
+  have hleft : Real.pi - Real.pi / 2 = Real.pi / 2 :=
+    sub_half Real.pi
+  have hright : Real.pi - 0 = Real.pi :=
+    sub_zero Real.pi
+  exact congrArg₂
+    (fun u v : ℝ =>
+      ∫ θ in u..v, Real.exp (-(c * Real.sin θ)))
+    hleft
+    hright
+
+/-- Reflection of the upper sine-damping right half onto the left half. -/
+theorem scalarFourierLaplacePlemelj_upperSineDampingIntegral_rightHalf_eq_leftHalf
+    (c : ℝ) :
+    ∫ θ in (Real.pi / 2)..Real.pi,
+        Real.exp (-(c * Real.sin θ)) =
+      ∫ θ in (0 : ℝ)..(Real.pi / 2),
+        Real.exp (-(c * Real.sin θ)) := by
+  calc
+    ∫ θ in (Real.pi / 2)..Real.pi,
+        Real.exp (-(c * Real.sin θ)) =
+        ∫ θ in (Real.pi - Real.pi / 2)..(Real.pi - 0),
+          Real.exp (-(c * Real.sin θ)) := by
+      exact
+        (scalarFourierLaplacePlemelj_upperSineDamping_reflectedEndpointIntegral_eq
+          c).symm
+    _ = ∫ θ in (0 : ℝ)..(Real.pi / 2),
+        Real.exp (-(c * Real.sin (Real.pi - θ))) := by
+      exact
+        (intervalIntegral.integral_comp_sub_left
+          (f := fun θ : ℝ => Real.exp (-(c * Real.sin θ)))
+          (a := (0 : ℝ))
+          (b := Real.pi / 2)
+          (d := Real.pi)).symm
+    _ = ∫ θ in (0 : ℝ)..(Real.pi / 2),
+        Real.exp (-(c * Real.sin θ)) := by
+      exact intervalIntegral.integral_congr
+        (fun θ _hθ =>
+          scalarFourierLaplacePlemelj_upperSineDamping_pi_sub_eq c θ)
+
 /-- Symmetry of the upper semicircle sine-damping integral around `π / 2`. -/
 theorem scalarFourierLaplacePlemelj_upperSineDampingIntegral_eq_two_half
     (c : ℝ) :
@@ -3760,7 +3862,23 @@ theorem scalarFourierLaplacePlemelj_upperSineDampingIntegral_eq_two_half
         Real.exp (-(c * Real.sin θ)) =
       2 * ∫ θ in (0 : ℝ)..(Real.pi / 2),
         Real.exp (-(c * Real.sin θ)) := by
-  sorry
+  let L : ℝ :=
+    ∫ θ in (0 : ℝ)..(Real.pi / 2),
+      Real.exp (-(c * Real.sin θ))
+  calc
+    ∫ θ in (0 : ℝ)..Real.pi,
+        Real.exp (-(c * Real.sin θ)) =
+        L +
+        ∫ θ in (Real.pi / 2)..Real.pi,
+          Real.exp (-(c * Real.sin θ)) := by
+      exact scalarFourierLaplacePlemelj_upperSineDampingIntegral_split_half c
+    _ = L + L := by
+      exact congrArg
+        (fun r : ℝ => L + r)
+        (scalarFourierLaplacePlemelj_upperSineDampingIntegral_rightHalf_eq_leftHalf
+          c)
+    _ = 2 * L := by
+      exact (two_mul L).symm
 
 /-- Jordan lower bound converted into an upper bound for the upper half
 sine-damping exponential. -/
