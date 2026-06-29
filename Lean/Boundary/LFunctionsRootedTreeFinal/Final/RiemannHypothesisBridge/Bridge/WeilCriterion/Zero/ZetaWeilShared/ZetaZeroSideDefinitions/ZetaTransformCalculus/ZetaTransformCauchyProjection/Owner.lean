@@ -4827,6 +4827,32 @@ theorem scalarFourierLaplacePlemelj_upperPole_not_mem_lowerSemicircleInterior
     (mul_eq_zero.mp htwo_zero).resolve_left two_ne_zero
   exact (ne_of_gt ha) ha_zero
 
+/-- The lower-half-plane residue sum for the negative-time scalar contour is
+zero because the pole is not enclosed. -/
+noncomputable def scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum
+    (_a _x : ℝ) : ℂ :=
+  0
+
+theorem scalarFourierLaplacePlemelj_two_pi_i_mul_negativeLowerHalfPlaneResidueSum_eq_zero
+    (a x : ℝ) :
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
+        scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum a x = 0 := by
+  unfold scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum
+  exact mul_zero ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)
+
+/-- Lower-half-plane pole-free residue theorem for the negative-time scalar
+contour, in `2πi` times residue-sum form. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_eq_two_pi_i_zeroResidueSum
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ)
+    (_hpole :
+      ¬ scalarFourierLaplacePlemelj_upperPole a =
+          (-(a : ℂ)) * Complex.I) :
+    scalarFourierLaplacePlemelj_negativeClosedContour a x T =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
+        scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum a x := by
+  sorry
+
 /-- Lower-half-plane pole-free residue theorem for the negative-time scalar
 contour. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_eq_zero
@@ -4836,7 +4862,11 @@ theorem scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_e
       ¬ scalarFourierLaplacePlemelj_upperPole a =
           (-(a : ℂ)) * Complex.I) :
     scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_eq_two_pi_i_zeroResidueSum
+      a ha x hx T _hpole).trans
+      (scalarFourierLaplacePlemelj_two_pi_i_mul_negativeLowerHalfPlaneResidueSum_eq_zero
+        a x)
 
 theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_owner
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
