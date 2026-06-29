@@ -3165,6 +3165,15 @@ theorem scalarFourierLaplacePlemelj_semicircleVelocity_norm_eq_radius
     _ = T := by
       exact mul_one T
 
+/-- Real part of the scalar Fourier-Laplace exponent on a circular arc. -/
+theorem scalarFourierLaplacePlemelj_semicircleExponent_re
+    (x T θ : ℝ) :
+    (Complex.I *
+      ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+      (x : ℂ)).re =
+      -(T * x * Real.sin θ) := by
+  sorry
+
 /-- Denominator part of the positive upper-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_denominator_norm_inv_le
     (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) (θ : ℝ) :
@@ -3182,7 +3191,33 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArc_exponential_norm_eq_damping
         ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
         (x : ℂ))‖ =
       Real.exp (-(T * x * Real.sin θ)) := by
-  sorry
+  calc
+    ‖Complex.exp
+      (Complex.I *
+        ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+        (x : ℂ))‖ =
+        Complex.abs
+          (Complex.exp
+            (Complex.I *
+              ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+              (x : ℂ))) := by
+      exact Complex.norm_eq_abs
+        (Complex.exp
+          (Complex.I *
+            ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+            (x : ℂ)))
+    _ =
+        Real.exp
+          (Complex.I *
+            ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+            (x : ℂ)).re := by
+      exact Complex.abs_exp
+        (Complex.I *
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+          (x : ℂ))
+    _ = Real.exp (-(T * x * Real.sin θ)) := by
+      exact congrArg Real.exp
+        (scalarFourierLaplacePlemelj_semicircleExponent_re x T θ)
 
 /-- Velocity part of the positive upper-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_velocity_norm_eq_radius
@@ -3762,7 +3797,9 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_exponential_norm_eq_damping
         ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
         (x : ℂ))‖ =
       Real.exp (-(T * x * Real.sin θ)) := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_positiveUpperArc_exponential_norm_eq_damping
+      x T θ
 
 /-- Velocity part of the negative lower-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_velocity_norm_eq_radius
