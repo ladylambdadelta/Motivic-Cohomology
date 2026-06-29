@@ -2,7 +2,6 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.D_PointwiseMajorants
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.E_EnvelopeBounds
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.F_IntegralAccounting
-import Mathlib
 
 import Mathlib.Analysis.Complex.PhragmenLindelof
 import Mathlib.Data.Complex.Exponential
@@ -36,6 +35,100 @@ namespace Boundary
 namespace LFunctions
 
 noncomputable section
+
+/-- Nonnegativity of the standard decaying-tail integral, obtained from the
+owner exponential lower bound. -/
+theorem Complex.binetSecondFormula_decayingTailIntegral_nonneg_of_norm_two
+    {w : ℂ}
+    (hw_norm_two : 2 ≤ ‖w‖) :
+    0 ≤ Complex.binetSecondFormulaDecayingTailIntegral w := by
+  match Complex.binetSecondFormula_decayingTailIntegral_expLower_owner with
+  | ⟨c, hc_pos, htail_lower⟩ =>
+      have hnorm_pos : 0 < ‖w‖ :=
+        lt_of_lt_of_le zero_lt_two hw_norm_two
+      have hexp_pos : 0 < Real.exp (-Real.pi * ‖w‖) :=
+        Real.exp_pos (-Real.pi * ‖w‖)
+      have hlower_nonneg :
+          0 ≤ c * ‖w‖ * Real.exp (-Real.pi * ‖w‖) :=
+        le_of_lt
+          (mul_pos
+            (mul_pos hc_pos hnorm_pos)
+            hexp_pos)
+      exact le_trans hlower_nonneg (htail_lower w hw_norm_two)
+
+/-- Honest full-sector Binet tail estimate before local-indentation
+absorption.
+
+This is the estimate supplied by the contour calculation in the open right
+half-plane.  It keeps the branch-wall logarithmic envelope explicit; the pure
+`C / ‖w‖` tail package is a strictly stronger absorption theorem. -/
+def Complex.BinetSecondFormulaBranchLocalIndentationTailControl : Prop :=
+  ∃ Cfar : ℝ,
+    0 ≤ Cfar ∧
+    ∀ w : ℂ,
+      0 < w.re →
+      2 ≤ ‖w‖ →
+        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+            ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤
+          Complex.binetSecondFormulaBranchLocalIndentationEnvelope w +
+            (Cfar / ‖w‖) *
+              Complex.binetSecondFormulaDecayingTailIntegral w
+
+/-- Honest tail-remainder estimate before local-indentation absorption.
+
+This is the tail-remainder version of
+`BinetSecondFormulaBranchLocalIndentationTailControl`: it transfers the
+principal-tail integral estimate to the actual Binet tail remainder while
+keeping the branch-wall local-indentation envelope explicit. -/
+def Complex.BinetSecondFormulaTailRemainderLocalIndentationTailControl : Prop :=
+  ∃ Cfar : ℝ,
+    0 ≤ Cfar ∧
+    ∀ w : ℂ,
+      0 < w.re →
+      2 ≤ ‖w‖ →
+        ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+          Complex.binetSecondFormulaBranchLocalIndentationEnvelope w +
+            (Cfar / ‖w‖) *
+              Complex.binetSecondFormulaDecayingTailIntegral w
+
+/-- Sector-local absorption of the Binet branch-wall local-indentation
+envelope.
+
+The pointwise logarithmic envelope is uniformly absorbable only after staying
+a fixed angular distance away from the branch wall, and only at the natural
+scale of the Binet decaying-tail integral.  The stronger pure
+`C / ‖w‖` scale is not a consequence of this scalar window estimate: the
+bounded indentation window has length comparable to `‖w‖`.  The full-sector
+pure tail theorem must therefore use paired contour cancellation rather than
+this local scalar absorption. -/
+def Complex.BinetSecondFormulaBranchLocalIndentationSectorAbsorption : Prop :=
+  ∀ δ : ℝ,
+    0 < δ →
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ w : ℂ,
+          δ * ‖w‖ ≤ w.re →
+          2 ≤ ‖w‖ →
+            Complex.binetSecondFormulaBranchLocalIndentationEnvelope w ≤
+              C * Complex.binetSecondFormulaDecayingTailIntegral w
+
+/-- Sector-local pre-cancellation tail-remainder absorption.
+
+Away from the branch wall, the local-indentation envelope can be absorbed
+into the standard decaying tail, leaving a sector-local tail-remainder bound.
+This is weaker than full branch-wall contour cancellation because the constant
+depends on the angular margin `δ`. -/
+def Complex.BinetSecondFormulaTailRemainderSectorLocalAbsorption : Prop :=
+  ∀ δ : ℝ,
+    0 < δ →
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ w : ℂ,
+          δ * ‖w‖ ≤ w.re →
+          2 ≤ ‖w‖ →
+            ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+              (C + C / ‖w‖) *
+                Complex.binetSecondFormulaDecayingTailIntegral w
 
 /-- On the Binet split-tail range the explicit decaying summand has no sign
 change, so its absolute value integrates as the constant multiple
@@ -106,13 +199,8 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_sectorBound_of_l
                     L ≤ Clocal * J :=
                   hlocal_absorb w hw_sector hw_norm_two
                 have hJ_nonneg : 0 ≤ J :=
-                  integral_nonneg_of_ae
-                    ((ae_restrict_mem measurableSet_Ioi).mono
-                      (fun t ht =>
-                        Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi t
-                          (lt_of_le_of_lt
-                            (div_nonneg (norm_nonneg w) Real.zero_le_two_real)
-                            ht)))
+                  Complex.binetSecondFormula_decayingTailIntegral_nonneg_of_norm_two
+                    hw_norm_two
                 have hlocal_C_le :
                     Clocal * J ≤ C * J :=
                   mul_le_mul_of_nonneg_right hClocal_le_C hJ_nonneg
@@ -128,19 +216,9 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_sectorBound_of_l
                   add_le_add (le_trans hlocal_le hlocal_C_le) hfar_C_le
                 have hconst :
                     C * J + (C / ‖w‖) * J =
-                      (C + C / ‖w‖) * J := by
-                  calc
-                    C * J + (C / ‖w‖) * J =
-                        (C + C / ‖w‖) * J := by
-                      exact (add_mul C (C / ‖w‖) J).symm
+                      (C + C / ‖w‖) * J :=
+                  (add_mul C (C / ‖w‖) J).symm
                 le_trans hprincipal_le (le_trans hsum_le (le_of_eq hconst))⟩
-
-/-- Tail absorption obtained from the legacy principal-tail norm estimate.
-
-This theorem is a compatibility bridge: it shows that the older raw-norm
-predicate is sufficient for the canonical contour-level tail-absorption target,
-but the owner theorem no longer depends on proving the raw-norm predicate. -/
-
 
 end
 end LFunctions

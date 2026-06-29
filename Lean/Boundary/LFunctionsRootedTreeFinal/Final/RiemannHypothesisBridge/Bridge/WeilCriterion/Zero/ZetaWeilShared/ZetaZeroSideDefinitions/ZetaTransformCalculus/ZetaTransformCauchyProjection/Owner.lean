@@ -5774,6 +5774,70 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegmentIntegral_eq_primiti
       (scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_intervalIntegral_eq_primitiveEndpointSub
         F G T _hT _hprimitive)
 
+/-- The lower semicircle parametrization. -/
+noncomputable def scalarFourierLaplacePlemelj_lowerArcParam
+    (T : ℝ) (θ : ℝ) : ℂ :=
+  (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+
+/-- The derivative of the lower semicircle parametrization. -/
+theorem scalarFourierLaplacePlemelj_lowerArcParam_hasDerivAt
+    (T θ : ℝ) :
+    HasDerivAt
+      (scalarFourierLaplacePlemelj_lowerArcParam T)
+      (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+      θ := by
+  sorry
+
+/-- The lower semicircle parametrization maps its angular interval into the
+lower half-disk. -/
+theorem scalarFourierLaplacePlemelj_lowerArcParam_mapsTo_lowerHalfDisk
+    (T : ℝ) (_hT : 0 ≤ T) :
+    Set.MapsTo
+      (scalarFourierLaplacePlemelj_lowerArcParam T)
+      (Set.uIcc (0 : ℝ) (-Real.pi))
+      (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
+  sorry
+
+/-- Along the lower arc, the primitive derivative is the displayed
+parametrized integrand. -/
+theorem scalarFourierLaplacePlemelj_lowerArcPrimitive_hasDerivAt
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
+    ∀ θ ∈ Set.uIcc (0 : ℝ) (-Real.pi),
+      HasDerivAt
+        (fun u : ℝ => G (scalarFourierLaplacePlemelj_lowerArcParam T u))
+        (F (scalarFourierLaplacePlemelj_lowerArcParam T θ) *
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+        θ := by
+  sorry
+
+/-- The lower arc integrand is interval-integrable over the returning arc. -/
+theorem scalarFourierLaplacePlemelj_lowerArc_intervalIntegrable
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
+    IntervalIntegrable
+      (fun θ : ℝ =>
+        F (scalarFourierLaplacePlemelj_lowerArcParam T θ) *
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+      MeasureTheory.volume
+      (0 : ℝ)
+      (-Real.pi) := by
+  sorry
+
+/-- The path-FTC form of the lower arc endpoint calculation. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_lowerArcIntegral_eq_primitiveEndpointSub_of_pathFTC
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
+    (∫ θ in (0 : ℝ)..(-Real.pi),
+      let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+      F z *
+        (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
+      G ((-T : ℝ) : ℂ) - G (T : ℂ) := by
+  sorry
+
 /-- The lower semicircle part of the boundary integral is the returning
 primitive endpoint difference. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfDisk_lowerArcIntegral_eq_primitiveEndpointSub
@@ -5785,7 +5849,9 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_lowerArcIntegral_eq_primitiveE
       F z *
         (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
       G ((-T : ℝ) : ℂ) - G (T : ℂ) := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_lowerHalfDisk_lowerArcIntegral_eq_primitiveEndpointSub_of_pathFTC
+      F G T _hT _hprimitive
 
 /-- Adding the two primitive endpoint differences around the lower half-disk
 boundary gives zero. -/
