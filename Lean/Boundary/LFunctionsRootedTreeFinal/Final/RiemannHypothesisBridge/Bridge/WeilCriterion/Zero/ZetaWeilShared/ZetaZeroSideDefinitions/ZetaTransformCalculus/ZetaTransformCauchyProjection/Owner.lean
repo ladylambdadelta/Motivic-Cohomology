@@ -2918,6 +2918,44 @@ noncomputable def scalarFourierLaplacePlemelj_positiveUpperPoleResidueContributi
   (-2 * (Real.pi : ℂ)) *
     Complex.exp (-(a : ℂ) * (x : ℂ))
 
+/-- Point residue coefficient of the positive-time normalized scalar kernel at
+the upper pole, before multiplication by `2πi`. -/
+noncomputable def scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient
+    (a x : ℝ) : ℂ :=
+  Complex.I * Complex.exp (-(a : ℂ) * (x : ℂ))
+
+/-- Multiplying the positive upper-pole residue coefficient by `2πi` gives the
+normalized residue contribution. -/
+theorem scalarFourierLaplacePlemelj_two_pi_i_mul_positiveUpperPoleResidueCoefficient_eq_contribution
+    (a x : ℝ) :
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
+        scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient a x =
+      scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution a x := by
+  let E : ℂ := Complex.exp (-(a : ℂ) * (x : ℂ))
+  unfold scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient
+  unfold scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution
+  change ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * (Complex.I * E) =
+    (-2 * (Real.pi : ℂ)) * E
+  calc
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * (Complex.I * E) =
+        (((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * Complex.I) * E := by
+      exact mul_assoc ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) Complex.I E
+    _ = (((2 : ℂ) * (Real.pi : ℂ)) * (Complex.I * Complex.I)) * E := by
+      exact congrArg (fun z : ℂ => z * E)
+        (mul_assoc ((2 : ℂ) * (Real.pi : ℂ)) Complex.I Complex.I).symm
+    _ = (((2 : ℂ) * (Real.pi : ℂ)) * (-1 : ℂ)) * E := by
+      exact congrArg
+        (fun z : ℂ => (((2 : ℂ) * (Real.pi : ℂ)) * z) * E)
+        Complex.I_mul_I
+    _ = (-((2 : ℂ) * (Real.pi : ℂ))) * E := by
+      exact congrArg (fun z : ℂ => z * E)
+        (mul_neg_one ((2 : ℂ) * (Real.pi : ℂ)))
+    _ = ((-2 : ℂ) * (Real.pi : ℂ)) * E := by
+      exact congrArg (fun z : ℂ => z * E)
+        (neg_mul (2 : ℂ) (Real.pi : ℂ)).symm
+    _ = (-2 * (Real.pi : ℂ)) * E := by
+      rfl
+
 /-- Evaluation of the positive-time normalized scalar residue at the upper pole. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution_eq
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
@@ -2928,13 +2966,28 @@ theorem scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution_eq
 
 /-- Upper-half-plane residue theorem for the positive-time scalar contour:
 the closed contour is the residue contribution of the enclosed upper pole. -/
+theorem scalarFourierLaplacePlemelj_upperHalfPlaneResidueTheorem_closedContour_eq_two_pi_i_residueCoefficient
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (T : ℝ)
+    (_hpole : ‖scalarFourierLaplacePlemelj_upperPole a‖ < T) :
+    scalarFourierLaplacePlemelj_positiveClosedContour a x T =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
+        scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient a x := by
+  sorry
+
+/-- Upper-half-plane residue theorem for the positive-time scalar contour:
+the closed contour is the residue contribution of the enclosed upper pole. -/
 theorem scalarFourierLaplacePlemelj_upperHalfPlaneResidueTheorem_closedContour_eq_upperPoleResidue
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
     (T : ℝ)
     (_hpole : ‖scalarFourierLaplacePlemelj_upperPole a‖ < T) :
     scalarFourierLaplacePlemelj_positiveClosedContour a x T =
       scalarFourierLaplacePlemelj_positiveUpperPoleResidueContribution a x := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_upperHalfPlaneResidueTheorem_closedContour_eq_two_pi_i_residueCoefficient
+      a ha x hx T _hpole).trans
+      (scalarFourierLaplacePlemelj_two_pi_i_mul_positiveUpperPoleResidueCoefficient_eq_contribution
+        a x)
 
 /-- Owner residue theorem for the positive-time upper semicircle contour. -/
 theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_residueValue_owner
