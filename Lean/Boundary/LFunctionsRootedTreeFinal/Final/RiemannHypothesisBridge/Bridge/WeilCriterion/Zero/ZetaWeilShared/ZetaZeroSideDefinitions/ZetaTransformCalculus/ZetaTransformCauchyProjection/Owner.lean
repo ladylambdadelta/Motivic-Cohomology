@@ -7037,6 +7037,41 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_smallPrefix_abs_le_one
         scalarFourierLaplacePlemelj_scaledSmallPrefix_abs_le_one
           (A / b) b hR_nonneg hR_le_one
 
+theorem scalarFourierLaplacePlemelj_one_le_two_pi :
+    (1 : ℝ) ≤ (2 : ℝ) * Real.pi := by
+  have hone_le_pi_half : (1 : ℝ) ≤ Real.pi / 2 :=
+    Real.one_le_pi_div_two
+  have hpi_half_le_pi : Real.pi / 2 ≤ Real.pi :=
+    div_le_self Real.pi_pos.le one_le_two
+  have hpi_le_two_pi : Real.pi ≤ (2 : ℝ) * Real.pi := by
+    calc
+      Real.pi = (1 : ℝ) * Real.pi := by
+        exact (one_mul Real.pi).symm
+      _ ≤ (2 : ℝ) * Real.pi := by
+        exact mul_le_mul_of_nonneg_right one_le_two Real.pi_pos.le
+  exact hone_le_pi_half.trans (hpi_half_le_pi.trans hpi_le_two_pi)
+
+theorem scalarFourierLaplacePlemelj_two_le_two_pi :
+    (2 : ℝ) ≤ (2 : ℝ) * Real.pi := by
+  have hone_le_pi_half : (1 : ℝ) ≤ Real.pi / 2 :=
+    Real.one_le_pi_div_two
+  have htwo_pos : (0 : ℝ) < 2 :=
+    two_pos
+  have htwo_le_pi : (2 : ℝ) ≤ Real.pi := by
+    have hone_mul_two_le_pi : (1 : ℝ) * 2 ≤ Real.pi :=
+      (le_div_iff₀ htwo_pos).mp hone_le_pi_half
+    calc
+      (2 : ℝ) = (1 : ℝ) * 2 := by
+        exact (one_mul 2).symm
+      _ ≤ Real.pi := hone_mul_two_le_pi
+  have hpi_le_two_pi : Real.pi ≤ (2 : ℝ) * Real.pi := by
+    calc
+      Real.pi = (1 : ℝ) * Real.pi := by
+        exact (one_mul Real.pi).symm
+      _ ≤ (2 : ℝ) * Real.pi := by
+        exact mul_le_mul_of_nonneg_right one_le_two Real.pi_pos.le
+  exact htwo_le_pi.trans hpi_le_two_pi
+
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_low_abs_le_one
     (A b : ℝ) (hb : 0 < b) (hbA : b ≤ A) (hA_le_one : A ≤ 1) :
     |∫ v in (b)..A,
@@ -7144,48 +7179,16 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_pi
     |∫ v in c..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
       (2 : ℝ) * Real.pi := by
-  have htwo_le_two_pi :
-      (2 : ℝ) ≤ (2 : ℝ) * Real.pi := by
-    have hone_le_pi_half : (1 : ℝ) ≤ Real.pi / 2 :=
-      Real.one_le_pi_div_two
-    have htwo_pos : (0 : ℝ) < 2 :=
-      two_pos
-    have htwo_le_pi : (2 : ℝ) ≤ Real.pi := by
-      have hone_mul_two_le_pi : (1 : ℝ) * 2 ≤ Real.pi :=
-        (le_div_iff₀ htwo_pos).mp hone_le_pi_half
-      calc
-        (2 : ℝ) = (1 : ℝ) * 2 := by
-          exact (one_mul 2).symm
-        _ ≤ Real.pi := hone_mul_two_le_pi
-    have hpi_le_two_pi : Real.pi ≤ (2 : ℝ) * Real.pi := by
-      calc
-        Real.pi = (1 : ℝ) * Real.pi := by
-          exact (one_mul Real.pi).symm
-        _ ≤ (2 : ℝ) * Real.pi := by
-          exact mul_le_mul_of_nonneg_right one_le_two Real.pi_pos.le
-    exact htwo_le_pi.trans hpi_le_two_pi
   exact
     (scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
-      A b c hb hone_le_c hb_le_c hcA).trans htwo_le_two_pi
+      A b c hb hone_le_c hb_le_c hcA).trans
+        scalarFourierLaplacePlemelj_two_le_two_pi
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_two_pi
     (A b : ℝ) (hb : 0 < b) (hbA : b ≤ A) :
     |∫ v in (b)..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
       (2 : ℝ) * Real.pi := by
-  have hone_le_two_pi :
-      (1 : ℝ) ≤ (2 : ℝ) * Real.pi := by
-    have hone_le_pi_half : (1 : ℝ) ≤ Real.pi / 2 :=
-      Real.one_le_pi_div_two
-    have hpi_half_le_pi : Real.pi / 2 ≤ Real.pi :=
-      div_le_self Real.pi_pos.le one_le_two
-    have hpi_le_two_pi : Real.pi ≤ (2 : ℝ) * Real.pi := by
-      calc
-        Real.pi = (1 : ℝ) * Real.pi := by
-          exact (one_mul Real.pi).symm
-        _ ≤ (2 : ℝ) * Real.pi := by
-          exact mul_le_mul_of_nonneg_right one_le_two Real.pi_pos.le
-    exact hone_le_pi_half.trans (hpi_half_le_pi.trans hpi_le_two_pi)
   match le_or_gt A 1 with
   | Or.inl hA_le_one =>
       have hlow :
@@ -7193,7 +7196,7 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_two_pi
             (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 1 :=
         scalarFourierLaplacePlemelj_dampedSineIntegral_tail_low_abs_le_one
           A b hb hbA hA_le_one
-      exact hlow.trans hone_le_two_pi
+      exact hlow.trans scalarFourierLaplacePlemelj_one_le_two_pi
   | Or.inr hone_lt_A =>
       match le_or_gt b 1 with
       | Or.inl hb_le_one =>
