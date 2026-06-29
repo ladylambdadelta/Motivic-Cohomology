@@ -120,6 +120,40 @@ theorem realLine_Icc_integral_norm_le_compl_integral_norm_of_integral_zero
       (MeasureTheory.norm_integral_le_integral_norm
         (μ := volume.restrict (Set.Icc (-T) T)ᶜ) φ)
 
+/-- Arbitrary-value complement decomposition for a measurable set. -/
+theorem realLine_setIntegral_sub_value_eq_neg_compl_of_integral_value
+    (φ : ℝ → ℂ)
+    (hφ_integrable : Integrable φ (volume : Measure ℝ))
+    (v : ℂ)
+    (hvalue : (∫ t : ℝ, φ t) = v)
+    (s : Set ℝ) (hs : MeasurableSet s) :
+    (∫ t in s, φ t) - v = -∫ t in sᶜ, φ t := by
+  sorry
+
+/-- The norm of the interval integral minus the whole-line value is bounded by
+the integral of the norm over the complementary tails. -/
+theorem realLine_Icc_integral_sub_value_norm_le_compl_integral_norm_of_integral_value
+    (φ : ℝ → ℂ)
+    (hφ_integrable : Integrable φ (volume : Measure ℝ))
+    (v : ℂ)
+    (hvalue : (∫ t : ℝ, φ t) = v)
+    (T : ℝ) :
+    ‖(∫ t in Set.Icc (-T) T, φ t) - v‖
+      ≤ ∫ t in (Set.Icc (-T) T)ᶜ, ‖φ t‖ := by
+  have hcomp :
+      (∫ t in Set.Icc (-T) T, φ t) - v =
+        -∫ t in (Set.Icc (-T) T)ᶜ, φ t :=
+    realLine_setIntegral_sub_value_eq_neg_compl_of_integral_value
+      φ hφ_integrable v hvalue (Set.Icc (-T) T) measurableSet_Icc
+  have hnorm :
+      ‖(∫ t in Set.Icc (-T) T, φ t) - v‖ =
+        ‖∫ t in (Set.Icc (-T) T)ᶜ, φ t‖ := by
+    exact Eq.trans (congrArg norm hcomp) (norm_neg _)
+  exact
+    le_of_eq_of_le hnorm
+      (MeasureTheory.norm_integral_le_integral_norm
+        (μ := volume.restrict (Set.Icc (-T) T)ᶜ) φ)
+
 /-- Pointwise bridge from the project `zpow` convention for fourth-order
 Japanese brackets to mathlib's `rpow` convention. -/
 theorem realLine_one_add_norm_zpow_four_eq_rpow_four
@@ -296,7 +330,68 @@ theorem realLine_intervalIntegral_eventually_inverseQuadratic_of_integral_value_
         ∀ᶠ T in atTop,
           ‖(∫ t in Set.Icc (-T) T, φ t) - v‖
             ≤ M * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
-  sorry
+  match realLine_one_add_norm_zpow_four_compl_Icc_tail_eventually_le_inverseQuadratic with
+  | ⟨C, hCpos, hC⟩ =>
+      let M : ℝ := A * C + 1
+      have hMpos : 0 < M := by
+        have hAC_nonneg : 0 ≤ A * C :=
+          mul_nonneg hA_nonneg (le_of_lt hCpos)
+        exact add_pos_of_nonneg_of_pos hAC_nonneg zero_lt_one
+      have hscaled :
+          ∀ᶠ T in atTop,
+            A *
+                ∫ t in (Set.Icc (-T) T)ᶜ,
+                  (1 + ‖t‖) ^ (-(4 : ℤ))
+              ≤ (A * C) * (1 + ‖T‖) ^ (-(2 : ℤ)) :=
+        hC.mono
+          (fun T hT =>
+            let q : ℝ := (1 + ‖T‖) ^ (-(2 : ℤ))
+            have htail :
+                ∫ t in (Set.Icc (-T) T)ᶜ,
+                    (1 + ‖t‖) ^ (-(4 : ℤ))
+                  ≤ C * q := hT
+            have hmul :
+                A *
+                    ∫ t in (Set.Icc (-T) T)ᶜ,
+                      (1 + ‖t‖) ^ (-(4 : ℤ))
+                  ≤ A * (C * q) :=
+              mul_le_mul_of_nonneg_left htail hA_nonneg
+            hmul.trans_eq (mul_assoc A C q).symm)
+      have hfinal :
+          ∀ᶠ T in atTop,
+            ‖(∫ t in Set.Icc (-T) T, φ t) - v‖
+              ≤ M * (1 + ‖T‖) ^ (-(2 : ℤ)) :=
+        hscaled.mono
+          (fun T hT =>
+            let q : ℝ := (1 + ‖T‖) ^ (-(2 : ℤ))
+            have hinterval :
+                ‖(∫ t in Set.Icc (-T) T, φ t) - v‖
+                  ≤ A *
+                    ∫ t in (Set.Icc (-T) T)ᶜ,
+                      (1 + ‖t‖) ^ (-(4 : ℤ)) := by
+              have hnorm :
+                  ‖(∫ t in Set.Icc (-T) T, φ t) - v‖
+                    ≤ ∫ t in (Set.Icc (-T) T)ᶜ, ‖φ t‖ :=
+                realLine_Icc_integral_sub_value_norm_le_compl_integral_norm_of_integral_value
+                  φ hφ_integrable v hvalue T
+              have htail :
+                  ∫ t in (Set.Icc (-T) T)ᶜ, ‖φ t‖
+                    ≤ A *
+                      ∫ t in (Set.Icc (-T) T)ᶜ,
+                        (1 + ‖t‖) ^ (-(4 : ℤ)) :=
+                realLine_setIntegral_norm_le_scaled_zpow_four_of_norm_le
+                  φ hφ_integrable A hA_nonneg hmajorant
+                  (Set.Icc (-T) T)ᶜ measurableSet_Icc.compl
+              exact hnorm.trans htail
+            have hMq :
+                (A * C) * q ≤ M * q := by
+              have hq_nonneg : 0 ≤ q :=
+                zpow_nonneg (add_nonneg zero_le_one (norm_nonneg T)) (-(2 : ℤ))
+              have hcoeff : A * C ≤ M := by
+                exact le_add_of_nonneg_right zero_le_one
+              exact mul_le_mul_of_nonneg_right hcoeff hq_nonneg
+            hinterval.trans (hT.trans hMq))
+      exact ⟨M, hMpos, hfinal⟩
 
 end
 end LFunctions
