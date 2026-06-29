@@ -6545,6 +6545,19 @@ theorem scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound
         scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound_eventually_of_arc
           a ha R δ Carc hδ hCarc_nonneg harc
 
+/-- Global uniform bound for the uncompensated scalar Cauchy Fourier window. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_window_uniform_norm_bound
+    (a : ℝ) (ha : 0 < a) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ T x : ℝ,
+          ‖∫ t in Set.Icc (-T) T,
+            (-1 / ((a : ℂ) + t * Complex.I)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ))‖
+          ≤ C := by
+  sorry
+
 /-- Uncompensated symmetric Cauchy-window bound in a punctured neighborhood of
 the Plemelj jump. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_punctured_nearZero_norm_bound_eventually
@@ -6561,7 +6574,16 @@ theorem scalarFourierLaplacePlemelj_uncompensated_punctured_nearZero_norm_bound_
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ))‖
               ≤ C := by
-  sorry
+  match
+    scalarFourierLaplacePlemelj_uncompensated_window_uniform_norm_bound
+      a ha
+  with
+  | ⟨C, hC_nonneg, hC⟩ =>
+      exact
+        ⟨C, hC_nonneg,
+          Eventually.of_forall
+            (fun T x _hx_ne _hxδ _hxR =>
+              hC T x)⟩
 
 /-- Uniform punctured-neighborhood Cauchy-window estimate near the Plemelj
 jump.  This is the shared near-zero Dirichlet estimate used by both signs. -/
