@@ -6870,12 +6870,97 @@ theorem scalarFourierLaplacePlemelj_sineIntegralKernel_interval_abs_le_two_pi
     |∫ v in a..A, Real.sin v / v| ≤ (2 : ℝ) * Real.pi := by
   sorry
 
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_split_at_scale
+    (A b : ℝ) (hbA : b ≤ A) :
+    (∫ v in (0)..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v) =
+      (∫ v in (0)..b,
+        (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
+        ∫ v in b..A,
+          (v / (b ^ 2 + v ^ 2)) * Real.sin v := by
+  sorry
+
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_abs_le_one_add_two_pi
     (A b : ℝ) (hA : 0 ≤ A) (hb : 0 < b) :
     |∫ v in (0)..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
       1 + (2 : ℝ) * Real.pi := by
-  sorry
+  match le_or_gt A b with
+  | Or.inl hA_le_b =>
+      have hsmall :
+          |∫ v in (0)..A,
+            (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 1 :=
+        scalarFourierLaplacePlemelj_dampedSineIntegral_smallPrefix_abs_le_one
+          A b hA hA_le_b hb
+      have hone_le_target :
+          (1 : ℝ) ≤ 1 + (2 : ℝ) * Real.pi :=
+        le_add_of_nonneg_right (mul_nonneg zero_le_two Real.pi_pos.le)
+      exact hsmall.trans hone_le_target
+  | Or.inr hb_lt_A =>
+      have hbA : b ≤ A :=
+        le_of_lt hb_lt_A
+      have hb_nonneg : 0 ≤ b :=
+        hb.le
+      have hsplit :
+          (∫ v in (0)..A,
+            (v / (b ^ 2 + v ^ 2)) * Real.sin v) =
+            (∫ v in (0)..b,
+              (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
+              ∫ v in b..A,
+                (v / (b ^ 2 + v ^ 2)) * Real.sin v :=
+        scalarFourierLaplacePlemelj_dampedSineIntegral_split_at_scale
+          A b hbA
+      have hsmall :
+          |∫ v in (0)..b,
+            (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 1 :=
+        scalarFourierLaplacePlemelj_dampedSineIntegral_smallPrefix_abs_le_one
+          b b hb.le (le_refl b) hb
+      have htail_cmp :
+          |∫ v in (b)..A,
+            (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
+            |∫ v in (b)..A, Real.sin v / v| :=
+        scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_sineIntegralKernel
+          A b hA hb
+      have htail :
+          |∫ v in (b)..A,
+            (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
+            (2 : ℝ) * Real.pi :=
+        htail_cmp.trans
+          (scalarFourierLaplacePlemelj_sineIntegralKernel_interval_abs_le_two_pi
+            b A hb_nonneg hA)
+      have hsum :
+          |(∫ v in (0)..b,
+            (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
+            ∫ v in b..A,
+              (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
+            1 + (2 : ℝ) * Real.pi := by
+        calc
+          |(∫ v in (0)..b,
+            (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
+            ∫ v in b..A,
+              (v / (b ^ 2 + v ^ 2)) * Real.sin v|
+              ≤
+              |∫ v in (0)..b,
+                (v / (b ^ 2 + v ^ 2)) * Real.sin v| +
+                |∫ v in b..A,
+                  (v / (b ^ 2 + v ^ 2)) * Real.sin v| := by
+                exact abs_add
+                  (∫ v in (0)..b,
+                    (v / (b ^ 2 + v ^ 2)) * Real.sin v)
+                  (∫ v in b..A,
+                    (v / (b ^ 2 + v ^ 2)) * Real.sin v)
+          _ ≤ 1 + (2 : ℝ) * Real.pi := by
+                exact add_le_add hsmall htail
+      calc
+        |∫ v in (0)..A,
+          (v / (b ^ 2 + v ^ 2)) * Real.sin v|
+            =
+            |(∫ v in (0)..b,
+              (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
+              ∫ v in b..A,
+                (v / (b ^ 2 + v ^ 2)) * Real.sin v| := by
+              exact congrArg abs hsplit
+        _ ≤ 1 + (2 : ℝ) * Real.pi := hsum
 
 /-- Positive-frequency change of variables `v = y*u` for the normalized
 Hilbert-sine kernel. -/
