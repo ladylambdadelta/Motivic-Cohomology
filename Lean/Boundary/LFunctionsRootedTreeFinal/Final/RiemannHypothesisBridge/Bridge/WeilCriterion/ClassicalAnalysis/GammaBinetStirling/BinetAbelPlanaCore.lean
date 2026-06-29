@@ -300,23 +300,21 @@ noncomputable def Complex.finiteAbelPlanaLogEndpointResidueRestoration
 
 /-- The honest finite Abel-Plana contour remainder after the lower boundary
 has been truncated to `(0,N]`, with the finite endpoint-restoration defect
-kept inside the contour remainder rather than discarded. -/
+kept in the finite residue identity rather than in the contour remainder. -/
 noncomputable def Complex.binetAbelPlanaFiniteContourRemainder
     (N : ℕ)
     (w : ℂ) : ℂ :=
   Complex.binetAbelPlanaFiniteLowerContourTail N w +
-    Complex.binetAbelPlanaFiniteUpperContourResidual N w -
-      Complex.finiteAbelPlanaLogEndpointResidueRestoration N w
+    Complex.binetAbelPlanaFiniteUpperContourResidual N w
 
 /-- The total finite Abel-Plana contour remainder unfolded as lower tail plus
-upper residual, minus the endpoint-restoration defect. -/
+upper residual. -/
 theorem Complex.binetAbelPlanaFiniteContourRemainder_core_unfold
     (N : ℕ)
     (w : ℂ) :
     Complex.binetAbelPlanaFiniteContourRemainder N w =
       Complex.binetAbelPlanaFiniteLowerContourTail N w +
-        Complex.binetAbelPlanaFiniteUpperContourResidual N w -
-          Complex.finiteAbelPlanaLogEndpointResidueRestoration N w :=
+        Complex.binetAbelPlanaFiniteUpperContourResidual N w :=
   rfl
 
 /-- The normalized finite Binet boundary integral after converting the
