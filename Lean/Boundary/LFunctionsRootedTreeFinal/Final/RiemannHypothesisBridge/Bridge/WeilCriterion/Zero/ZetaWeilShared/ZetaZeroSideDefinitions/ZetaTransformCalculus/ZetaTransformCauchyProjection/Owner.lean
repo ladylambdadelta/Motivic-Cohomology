@@ -2804,6 +2804,110 @@ theorem fixedRightLine_scalarProjection_Ioi_integral_eq_Ici_integral
         (-2 * (Real.pi : ℂ)) * K x := by
   exact (integral_Ici_eq_integral_Ioi : _).symm
 
+/-- Positive-time residue value for the normalized Fourier-Laplace denominator.
+
+This is the scalar contour-residue calculation before truncation limits are
+transported back to symmetric real-line windows. -/
+theorem scalarFourierLaplacePlemelj_positive_residue_value
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    (-2 * (Real.pi : ℂ)) *
+        Complex.exp (-(a : ℂ) * (x : ℂ)) =
+      (-2 * (Real.pi : ℂ)) *
+        Complex.exp (-(a : ℂ) * (x : ℂ)) := by
+  exact rfl
+
+/-- Positive-time finite-window contour limit before multiplying by the
+compensating `exp (a x)` factor. -/
+theorem scalarFourierLaplacePlemelj_positive_window_tendsto_residueValue
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / ((a : ℂ) + t * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)))
+      atTop
+      (𝓝
+        ((-2 * (Real.pi : ℂ)) *
+          Complex.exp (-(a : ℂ) * (x : ℂ)))) := by
+  sorry
+
+/-- Multiplying a convergent positive-time residue window by `exp (a x)`. -/
+theorem scalarFourierLaplacePlemelj_positive_window_tendsto_residueValue_mul_exp
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    Tendsto
+      (fun T : ℝ =>
+        (∫ t in Set.Icc (-T) T,
+          (-1 / ((a : ℂ) + t * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ))) *
+          Complex.exp ((a : ℂ) * (x : ℂ)))
+      atTop
+      (𝓝
+        (((-2 * (Real.pi : ℂ)) *
+          Complex.exp (-(a : ℂ) * (x : ℂ))) *
+          Complex.exp ((a : ℂ) * (x : ℂ)))) := by
+  exact
+    (scalarFourierLaplacePlemelj_positive_window_tendsto_residueValue
+      a ha x hx).mul
+      (tendsto_const_nhds :
+        Tendsto
+          (fun _T : ℝ => Complex.exp ((a : ℂ) * (x : ℂ)))
+          atTop
+          (𝓝 (Complex.exp ((a : ℂ) * (x : ℂ)))))
+
+/-- Pointwise algebra moving the compensating exponential inside the
+positive-time finite window. -/
+theorem scalarFourierLaplacePlemelj_positive_window_mul_exp_eq_window_with_exp
+    (a : ℝ) (x T : ℝ) :
+    (∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ))) *
+      Complex.exp ((a : ℂ) * (x : ℂ)) =
+    ∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ)) *
+        Complex.exp ((a : ℂ) * (x : ℂ)) := by
+  exact (intervalIntegral.integral_mul_const
+    (f := fun t : ℝ =>
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ)))
+    (c := Complex.exp ((a : ℂ) * (x : ℂ)))
+    (-T) T).symm
+
+/-- Positive-time residue limit after moving the compensating exponential
+inside the symmetric finite window. -/
+theorem scalarFourierLaplacePlemelj_positive_window_tendsto_residueValue_with_exp
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / ((a : ℂ) + t * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp ((a : ℂ) * (x : ℂ)))
+      atTop
+      (𝓝
+        (((-2 * (Real.pi : ℂ)) *
+          Complex.exp (-(a : ℂ) * (x : ℂ))) *
+          Complex.exp ((a : ℂ) * (x : ℂ)))) := by
+  exact Eq.subst
+    (motive := fun u : ℝ → ℂ =>
+      Tendsto u atTop
+        (𝓝
+          (((-2 * (Real.pi : ℂ)) *
+            Complex.exp (-(a : ℂ) * (x : ℂ))) *
+            Complex.exp ((a : ℂ) * (x : ℂ)))))
+    (funext
+      (fun T : ℝ =>
+        scalarFourierLaplacePlemelj_positive_window_mul_exp_eq_window_with_exp
+          a x T))
+    (scalarFourierLaplacePlemelj_positive_window_tendsto_residueValue_mul_exp
+      a ha x hx)
+
 /-- Positive-time scalar Plemelj window after the Laplace denominator has been
 evaluated by the one-sided exponential transform. -/
 theorem scalarFourierLaplacePlemelj_positive_window_tendsto_laplaceJump
@@ -2820,7 +2924,9 @@ theorem scalarFourierLaplacePlemelj_positive_window_tendsto_laplaceJump
         ((-2 * (Real.pi : ℂ)) *
           Complex.exp (-(a : ℂ) * (x : ℂ)) *
           Complex.exp ((a : ℂ) * (x : ℂ)))) := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_positive_window_tendsto_residueValue_with_exp
+      a ha x hx
 
 /-- The positive-time Laplace jump collapses after multiplying by the compensating
 `exp (a x)` factor. -/
