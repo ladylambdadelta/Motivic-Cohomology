@@ -3322,6 +3322,42 @@ theorem scalarFourierLaplacePlemelj_pointwise_openHalfLine
       htarget.symm
       (scalarFourierLaplacePlemelj_pointwise_negative a ha x hxneg)
 
+/-- Positive-time uniform finite-window bound for the normalized scalar Cauchy
+kernel. -/
+theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_positive
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hx : 0 < x) :
+    ‖(∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ))) *
+        Complex.exp ((a : ℂ) * (x : ℂ))‖
+      ≤ 2 * (Real.pi + 1) := by
+  sorry
+
+/-- Zero-time uniform finite-window bound for the normalized scalar Cauchy
+kernel. -/
+theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_zero
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hx : x = 0) :
+    ‖(∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ))) *
+        Complex.exp ((a : ℂ) * (x : ℂ))‖
+      ≤ 2 * (Real.pi + 1) := by
+  sorry
+
+/-- Negative-time uniform finite-window bound for the normalized scalar Cauchy
+kernel. -/
+theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_negative
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hx : x < 0) :
+    ‖(∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ))) *
+        Complex.exp ((a : ℂ) * (x : ℂ))‖
+      ≤ 2 * (Real.pi + 1) := by
+  sorry
+
 /-- Uniform finite-window bound for the normalized scalar Cauchy kernel after
 the compensating exponential has been included. -/
 theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound
@@ -3332,7 +3368,21 @@ theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound
           (Complex.I * (t : ℂ) * (x : ℂ))) *
         Complex.exp ((a : ℂ) * (x : ℂ))‖
       ≤ 2 * (Real.pi + 1) := by
-  sorry
+  match lt_trichotomy x 0 with
+  | Or.inl hxneg =>
+      exact
+        scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_negative
+          a ha T x hxneg
+  | Or.inr hnotneg =>
+      match hnotneg with
+      | Or.inl hxzero =>
+          exact
+            scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_zero
+              a ha T x hxzero
+      | Or.inr hxpos =>
+          exact
+            scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_positive
+              a ha T x hxpos
 
 /-- Uniform finite-window bound for the normalized Fourier-Laplace Plemelj
 kernel. -/
