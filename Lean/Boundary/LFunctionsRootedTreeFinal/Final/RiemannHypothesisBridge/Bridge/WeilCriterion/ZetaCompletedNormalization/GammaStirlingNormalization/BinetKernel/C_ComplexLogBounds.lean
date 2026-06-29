@@ -34,6 +34,8 @@ namespace LFunctions
 
 noncomputable section
 
+local notation "π" => Real.pi
+
 theorem Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius :
     ∃ R : ℝ,
       0 < R ∧
@@ -232,10 +234,6 @@ theorem Complex.binet_quotient_factors_ne_zero_of_denominator_ne_zero
     (hz : z.re ≠ 0) :
     1 + z * Complex.I ≠ 0 :=
   Complex.binet_quotient_factors_ne_zero_of_re_ne_zero z hz
-
-/-- Small-argument Binet remainder estimate with the explicit `1 / ‖w‖`
-factor. -/
-
 
 end
 end LFunctions
