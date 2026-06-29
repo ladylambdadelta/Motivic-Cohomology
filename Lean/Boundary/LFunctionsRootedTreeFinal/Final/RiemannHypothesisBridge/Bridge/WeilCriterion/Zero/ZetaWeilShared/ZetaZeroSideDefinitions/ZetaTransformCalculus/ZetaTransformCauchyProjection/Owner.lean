@@ -5111,6 +5111,51 @@ theorem scalarFourierLaplacePlemelj_negativeKernel_denominator_ne_zero_on_lowerH
       a ha T
       (hz_eq_pole ▸ hz)
 
+/-- The affine denominator of the scalar Cauchy kernel is complex differentiable. -/
+theorem scalarFourierLaplacePlemelj_negativeKernel_denominator_differentiableOn_lowerHalfDisk
+    (a : ℝ) (T : ℝ) :
+    DifferentiableOn ℂ
+      (fun z : ℂ => (a : ℂ) + z * Complex.I)
+      (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
+  exact
+    (differentiable_id.mul_const Complex.I).differentiableOn.const_add
+      (a : ℂ)
+
+/-- The reciprocal denominator of the scalar Cauchy kernel is complex
+differentiable on the lower half-disk. -/
+theorem scalarFourierLaplacePlemelj_negativeKernel_reciprocalDenominator_differentiableOn_lowerHalfDisk
+    (a : ℝ) (ha : 0 < a) (T : ℝ) :
+    DifferentiableOn ℂ
+      (fun z : ℂ => ((a : ℂ) + z * Complex.I)⁻¹)
+      (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
+  exact
+    (scalarFourierLaplacePlemelj_negativeKernel_denominator_differentiableOn_lowerHalfDisk
+      a T).inv
+      (fun z hz =>
+        scalarFourierLaplacePlemelj_negativeKernel_denominator_ne_zero_on_lowerHalfDisk
+          a ha T hz)
+
+/-- The normalized reciprocal denominator `-1 / ((a : ℂ) + z * I)` is complex
+differentiable on the lower half-disk. -/
+theorem scalarFourierLaplacePlemelj_negativeKernel_normalizedReciprocalDenominator_differentiableOn_lowerHalfDisk
+    (a : ℝ) (ha : 0 < a) (T : ℝ) :
+    DifferentiableOn ℂ
+      (fun z : ℂ => -1 / ((a : ℂ) + z * Complex.I))
+      (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
+  exact
+    (scalarFourierLaplacePlemelj_negativeKernel_reciprocalDenominator_differentiableOn_lowerHalfDisk
+      a ha T).const_mul
+      (-1 : ℂ)
+
+/-- The exponential numerator of the scalar Cauchy kernel is complex
+differentiable on the lower half-disk. -/
+theorem scalarFourierLaplacePlemelj_negativeKernel_exponentialNumerator_differentiableOn_lowerHalfDisk
+    (x : ℝ) (T : ℝ) :
+    DifferentiableOn ℂ
+      (fun z : ℂ => Complex.exp (Complex.I * z * (x : ℂ)))
+      (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
+  sorry
+
 /-- The negative lower-half-plane kernel has zero enclosed residue sum. -/
 theorem scalarFourierLaplacePlemelj_negativeKernel_lowerHalfPlaneResidueSum_eq_zero
     (a x : ℝ) :
@@ -5139,7 +5184,12 @@ theorem scalarFourierLaplacePlemelj_negativeKernel_differentiableOn_lowerHalfDis
     DifferentiableOn ℂ
       (scalarFourierLaplacePlemelj_negativeKernel a x)
       (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
-  sorry
+  unfold scalarFourierLaplacePlemelj_negativeKernel
+  exact
+    (scalarFourierLaplacePlemelj_negativeKernel_normalizedReciprocalDenominator_differentiableOn_lowerHalfDisk
+      a ha T).mul
+      (scalarFourierLaplacePlemelj_negativeKernel_exponentialNumerator_differentiableOn_lowerHalfDisk
+        x T)
 
 /-- Cauchy-Goursat for the negative-time scalar kernel on the lower half-disk
 boundary. -/
