@@ -6953,6 +6953,12 @@ theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_scaled_integrand_ident
             (fun s : ℝ => (u / (1 + u ^ 2)) * s)
             hphase
 
+/-- Endpoint cancellation for the positive scaling `t = a*u`. -/
+theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_scaled_endpoint
+    (a : ℝ) (ha : 0 < a) (T : ℝ) :
+    (T / a) * a = T := by
+  exact div_mul_cancel₀ T (ne_of_gt ha)
+
 /-- Change-of-variables form of the half-window Hilbert-Cauchy sine kernel
 under `t = a*u`, before applying the pointwise algebra identity. -/
 theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_eq_scaled_integral
@@ -6963,7 +6969,39 @@ theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_eq_scaled_integral
         ∫ u in (0)..(T / a),
           (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
             Real.sin ((u * a) * x)) := by
-  sorry
+  let F : ℝ → ℝ :=
+    fun t : ℝ => (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)
+  have hend : (T / a) * a = T :=
+    scalarFourierLaplacePlemelj_halfHilbertSineKernel_scaled_endpoint
+      a ha T
+  have hsubst :
+      a *
+        ∫ u in (0)..(T / a), F (u * a) =
+        ∫ t in (0 * a)..((T / a) * a), F t := by
+    exact intervalIntegral.smul_integral_comp_mul_right
+      (f := F) (a := 0) (b := T / a) a
+  calc
+    (∫ t in (0)..T,
+      (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x))
+        = ∫ t in (0)..T, F t := by
+          unfold F
+          rfl
+    _ = ∫ t in (0 * a)..((T / a) * a), F t := by
+          exact congrArg₂
+            (fun l r : ℝ => ∫ t in l..r, F t)
+            (zero_mul a).symm
+            hend.symm
+    _ =
+        a *
+          ∫ u in (0)..(T / a), F (u * a) := by
+          exact hsubst.symm
+    _ =
+        a *
+          ∫ u in (0)..(T / a),
+            (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
+              Real.sin ((u * a) * x)) := by
+          unfold F
+          rfl
 
 theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_eq_normalized
     (a : ℝ) (ha : 0 < a) (T x : ℝ) :
