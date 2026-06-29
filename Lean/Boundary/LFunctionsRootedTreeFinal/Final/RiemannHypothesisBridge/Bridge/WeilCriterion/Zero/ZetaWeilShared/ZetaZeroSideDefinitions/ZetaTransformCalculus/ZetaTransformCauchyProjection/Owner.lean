@@ -5498,6 +5498,34 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_hasPrimitive_of_differentiable
       scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T := by
   sorry
 
+/-- The unoriented real set integral on the lower half-disk diameter is the
+usual oriented interval integral when `0 ≤ T`. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_setIntegral_eq_intervalIntegral
+    (F : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T) :
+    (∫ t in Set.Icc (-T) T, F (t : ℂ)) =
+      ∫ t in (-T)..T, F (t : ℂ) := by
+  sorry
+
+/-- Restricting lower half-disk primitive data to the real diameter gives the
+one-variable derivative needed by the fundamental theorem of calculus. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasDerivAt
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
+    ∀ t ∈ Set.Icc (-T) T,
+      HasDerivAt (fun x : ℝ => G (x : ℂ)) (F (t : ℂ)) t := by
+  sorry
+
+/-- The interval integral over the real diameter evaluates to the primitive
+endpoint difference. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_intervalIntegral_eq_primitiveEndpointSub
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
+    (∫ t in (-T)..T, F (t : ℂ)) =
+      G (T : ℂ) - G ((-T : ℝ) : ℂ) := by
+  sorry
+
 /-- The real diameter part of the lower half-disk boundary integral is the
 primitive endpoint difference. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegmentIntegral_eq_primitiveEndpointSub
@@ -5506,7 +5534,12 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegmentIntegral_eq_primiti
       scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
     (∫ t in Set.Icc (-T) T, F (t : ℂ)) =
       G (T : ℂ) - G ((-T : ℝ) : ℂ) := by
-  sorry
+  exact
+    Eq.trans
+      (scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_setIntegral_eq_intervalIntegral
+        F T _hT)
+      (scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_intervalIntegral_eq_primitiveEndpointSub
+        F G T _hT _hprimitive)
 
 /-- The lower semicircle part of the boundary integral is the returning
 primitive endpoint difference. -/
