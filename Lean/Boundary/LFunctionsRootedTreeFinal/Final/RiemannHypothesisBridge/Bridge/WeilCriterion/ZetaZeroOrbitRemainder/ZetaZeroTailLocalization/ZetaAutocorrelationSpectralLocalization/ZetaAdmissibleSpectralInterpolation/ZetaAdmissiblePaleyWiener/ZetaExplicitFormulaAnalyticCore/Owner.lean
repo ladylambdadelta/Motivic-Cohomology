@@ -526,8 +526,33 @@ theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpec
           exact congrArg (fun x : ℝ => x * Dpos) (mul_comm Cneg Cpos)
     exact hmul_bounds.trans (hright_shrink.trans (le_of_eq halgebra))
 
+/-- Positive real-axis rapid decay of the completed spectral transform at prime-power
+centers. -/
+theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 ≤ C ∧
+        ∀ ι : ZetaPrimePowerIndex,
+          ‖zetaCompletedExplicitFormulaPhi f
+              (ZetaPrimePowerIndex.center ι)‖ ≤
+            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  sorry
+
+/-- Reflected negative real-axis rapid decay of the completed spectral transform at
+prime-power centers. -/
+theorem zetaCompletedExplicitFormulaPhi_primePower_negative_realAxisRapidDecay
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 ≤ C ∧
+        ∀ ι : ZetaPrimePowerIndex,
+          ‖star
+            (zetaCompletedExplicitFormulaPhi f
+              (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
+            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  sorry
+
 /-- Two-sided real-axis rapid decay of the completed spectral transform at prime-power
-centers.
+centers, assembled from the two one-sided real-axis estimates.
 
 This is the Paley-Wiener rapid-decay input on the unbounded real axis: both the
 positive centers and their reflected negative centers admit a common polynomial-height
@@ -545,7 +570,67 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_twoSided_realAxisRapidDecay
             (zetaCompletedExplicitFormulaPhi f
               (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι) := by
-  sorry
+  match zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay f with
+  | ⟨Cpos, kpos, hCpos_nonneg, hpos⟩ =>
+      match zetaCompletedExplicitFormulaPhi_primePower_negative_realAxisRapidDecay f with
+      | ⟨Cneg, kneg, hCneg_nonneg, hneg⟩ =>
+          let C : ℝ := max Cpos Cneg
+          let k : ℕ := min kpos kneg
+          have hC_nonneg : 0 ≤ C := by
+            unfold C
+            exact le_max_of_le_left hCpos_nonneg
+          have hCpos_le_C : Cpos ≤ C := by
+            unfold C
+            exact le_max_left Cpos Cneg
+          have hCneg_le_C : Cneg ≤ C := by
+            unfold C
+            exact le_max_right Cpos Cneg
+          have hk_le_kpos : k ≤ kpos := by
+            unfold k
+            exact min_le_left kpos kneg
+          have hk_le_kneg : k ≤ kneg := by
+            unfold k
+            exact min_le_right kpos kneg
+          have hpos_common :
+              ∀ ι : ZetaPrimePowerIndex,
+                ‖zetaCompletedExplicitFormulaPhi f
+                    (ZetaPrimePowerIndex.center ι)‖ ≤
+                  C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+            intro ι
+            let Dpos : ℝ := ZetaPrimePowerIndex.polynomialHeightDecay kpos ι
+            let D : ℝ := ZetaPrimePowerIndex.polynomialHeightDecay k ι
+            have hDpos_nonneg : 0 ≤ Dpos :=
+              ZetaPrimePowerIndex.polynomialHeightDecay_nonnegative kpos ι
+            have hDpos_le_D : Dpos ≤ D :=
+              ZetaPrimePowerIndex.polynomialHeightDecay_le_of_le hk_le_kpos ι
+            have hscale : Cpos * Dpos ≤ C * D := by
+              have hCposDpos_le_CDpos : Cpos * Dpos ≤ C * Dpos :=
+                mul_le_mul_of_nonneg_right hCpos_le_C hDpos_nonneg
+              have hCDpos_le_CD : C * Dpos ≤ C * D :=
+                mul_le_mul_of_nonneg_left hDpos_le_D hC_nonneg
+              exact hCposDpos_le_CDpos.trans hCDpos_le_CD
+            exact (hpos ι).trans hscale
+          have hneg_common :
+              ∀ ι : ZetaPrimePowerIndex,
+                ‖star
+                  (zetaCompletedExplicitFormulaPhi f
+                    (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
+                  C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+            intro ι
+            let Dneg : ℝ := ZetaPrimePowerIndex.polynomialHeightDecay kneg ι
+            let D : ℝ := ZetaPrimePowerIndex.polynomialHeightDecay k ι
+            have hDneg_nonneg : 0 ≤ Dneg :=
+              ZetaPrimePowerIndex.polynomialHeightDecay_nonnegative kneg ι
+            have hDneg_le_D : Dneg ≤ D :=
+              ZetaPrimePowerIndex.polynomialHeightDecay_le_of_le hk_le_kneg ι
+            have hscale : Cneg * Dneg ≤ C * D := by
+              have hCnegDneg_le_CDneg : Cneg * Dneg ≤ C * Dneg :=
+                mul_le_mul_of_nonneg_right hCneg_le_C hDneg_nonneg
+              have hCDneg_le_CD : C * Dneg ≤ C * D :=
+                mul_le_mul_of_nonneg_left hDneg_le_D hC_nonneg
+              exact hCnegDneg_le_CDneg.trans hCDneg_le_CD
+            exact (hneg ι).trans hscale
+          exact ⟨C, k, hC_nonneg, hpos_common, hneg_common⟩
 
 /-- Positive real-axis one-sided spectral majorant at prime-power centers. -/
 theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisSpectralMajorant
