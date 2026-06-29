@@ -5543,6 +5543,47 @@ theorem scalarFourierLaplacePlemelj_realSegment_Icc_mem_nhdsWithin_Ioi
     Icc_mem_nhdsWithin_Ioi
       ⟨le_of_lt _ht.1, _ht.2⟩
 
+/-- The local right-diameter derivative can be enlarged to the right-ray germ,
+because near an interior point the right ray remains inside the diameter. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_rightLocalDerivative_to_rightRay
+    (F G : ℂ → ℂ) (T t : ℝ) (_ht : t ∈ Set.Ioo (-T) T)
+    (_hlocal :
+      HasDerivWithinAt
+        (fun x : ℝ => G (x : ℂ))
+        (F (t : ℂ))
+        (Set.Ioi t ∩ Set.Icc (-T) T)
+        t) :
+    HasDerivWithinAt
+      (fun x : ℝ => G (x : ℂ))
+      (F (t : ℂ))
+      (Set.Ioi t)
+      t := by
+  exact
+    _hlocal.mono_of_mem_nhdsWithin
+      (inter_mem
+        self_mem_nhdsWithin
+        (scalarFourierLaplacePlemelj_realSegment_Icc_mem_nhdsWithin_Ioi
+          T t _ht))
+
+/-- Complex primitive data restricts to the local right-diameter derivative
+inside the closed diameter. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightLocalDerivWithinAt_of_complexPrimitive
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T)
+    (t : ℝ) (_ht : t ∈ Set.Ioo (-T) T)
+    (_ht_lower :
+      (t : ℂ) ∈ scalarFourierLaplacePlemelj_lowerHalfDisk T)
+    (_hderiv :
+      HasDerivWithinAt G (F (t : ℂ))
+        (scalarFourierLaplacePlemelj_lowerHalfDisk T) (t : ℂ)) :
+    HasDerivWithinAt
+      (fun x : ℝ => G (x : ℂ))
+      (F (t : ℂ))
+      (Set.Ioi t ∩ Set.Icc (-T) T)
+      t := by
+  sorry
+
 /-- Transport a complex lower-half-disk primitive derivative at a real interior
 point to the right real derivative along the diameter. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightDerivWithinAt_point_of_complexPrimitive
@@ -5560,7 +5601,11 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightDerivWithi
       (F (t : ℂ))
       (Set.Ioi t)
       t := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_rightLocalDerivative_to_rightRay
+      F G T t _ht
+      (scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightLocalDerivWithinAt_of_complexPrimitive
+        F G T _hT _hprimitive t _ht _ht_lower _hderiv)
 
 /-- Pointwise right-derivative transport from lower half-disk primitive data to
 the real diameter. -/
