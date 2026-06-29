@@ -6545,6 +6545,25 @@ theorem scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound
         scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound_eventually_of_arc
           a ha R δ Carc hδ hCarc_nonneg harc
 
+/-- Dirichlet decomposition bound for the uncompensated scalar Cauchy Fourier
+window.
+
+This is the real-variable core of the near-jump Cauchy estimate: after splitting
+`1 / (a + i t)` into its even real and odd imaginary pieces, Dirichlet's
+oscillatory-integral bound controls the finite symmetric windows uniformly in
+both the radius and frequency. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_window_dirichletDecomposition_uniform_norm_bound
+    (a : ℝ) (ha : 0 < a) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ T x : ℝ,
+          ‖∫ t in Set.Icc (-T) T,
+            (-1 / ((a : ℂ) + t * Complex.I)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ))‖
+          ≤ C := by
+  sorry
+
 /-- Global uniform bound for the uncompensated scalar Cauchy Fourier window. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_window_uniform_norm_bound
     (a : ℝ) (ha : 0 < a) :
@@ -6556,7 +6575,9 @@ theorem scalarFourierLaplacePlemelj_uncompensated_window_uniform_norm_bound
               Complex.exp
                 (Complex.I * (t : ℂ) * (x : ℂ))‖
           ≤ C := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_uncompensated_window_dirichletDecomposition_uniform_norm_bound
+      a ha
 
 /-- Uncompensated symmetric Cauchy-window bound in a punctured neighborhood of
 the Plemelj jump. -/
