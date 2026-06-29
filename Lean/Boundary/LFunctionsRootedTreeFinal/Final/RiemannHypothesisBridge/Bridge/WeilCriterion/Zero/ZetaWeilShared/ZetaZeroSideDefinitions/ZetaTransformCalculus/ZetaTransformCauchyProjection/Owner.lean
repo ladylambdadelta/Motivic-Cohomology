@@ -7466,6 +7466,158 @@ theorem scalarFourierLaplacePlemelj_dirichletAbel_sine_tail_abs_le_two_of_bonnet
           exact congrArg abs hbonnet
     _ ≤ 2 := hweighted
 
+/-- Derivative of the high-tail Cauchy amplitude `v / (b^2 + v^2)`. -/
+noncomputable def scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative
+    (b v : ℝ) : ℝ :=
+  (b ^ 2 - v ^ 2) / (b ^ 2 + v ^ 2) ^ 2
+
+/-- Integration-by-parts identity for the damped Cauchy-amplitude sine tail. -/
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_parts_identity_source
+    (A b c : ℝ) (hb : 0 < b) (hcA : c ≤ A) :
+    (∫ v in c..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v) =
+      -(A / (b ^ 2 + A ^ 2)) * Real.cos A +
+        (c / (b ^ 2 + c ^ 2)) * Real.cos c +
+          ∫ v in c..A,
+            scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+              Real.cos v := by
+  sorry
+
+/-- Total-variation bound for the derivative term in the damped Cauchy-amplitude
+sine-tail integration-by-parts formula. -/
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_derivativeVariation_source
+    (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
+    (hb_le_c : b ≤ c) (hcA : c ≤ A) :
+    |∫ v in c..A,
+      scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+        Real.cos v| ≤
+      c / (b ^ 2 + c ^ 2) - A / (b ^ 2 + A ^ 2) := by
+  sorry
+
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_of_partsVariation
+    (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
+    (hb_le_c : b ≤ c) (hcA : c ≤ A)
+    (hparts :
+      (∫ v in c..A,
+        (v / (b ^ 2 + v ^ 2)) * Real.sin v) =
+        -(A / (b ^ 2 + A ^ 2)) * Real.cos A +
+          (c / (b ^ 2 + c ^ 2)) * Real.cos c +
+            ∫ v in c..A,
+              scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+                Real.cos v)
+    (hvariation :
+      |∫ v in c..A,
+        scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+          Real.cos v| ≤
+        c / (b ^ 2 + c ^ 2) - A / (b ^ 2 + A ^ 2)) :
+    |∫ v in c..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 2 := by
+  let g : ℝ → ℝ := fun v : ℝ => v / (b ^ 2 + v ^ 2)
+  let d : ℝ := ∫ v in c..A,
+    scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+      Real.cos v
+  have hA_mem : A ∈ Set.Ici c :=
+    hcA
+  have hc_mem : c ∈ Set.Ici c :=
+    le_refl c
+  have hgA_nonneg : 0 ≤ g A :=
+    scalarFourierLaplacePlemelj_highTailCauchyAmplitude_nonnegative
+      b c A hb hb_le_c hA_mem
+  have hgc_nonneg : 0 ≤ g c :=
+    scalarFourierLaplacePlemelj_highTailCauchyAmplitude_nonnegative
+      b c c hb hb_le_c hc_mem
+  have hgA_le_gc : g A ≤ g c :=
+    scalarFourierLaplacePlemelj_highTailCauchyAmplitude_antitoneOn
+      b c hb hone_le_c hb_le_c hc_mem hA_mem hcA
+  have hdiff_nonneg : 0 ≤ g c - g A :=
+    sub_nonneg.mpr hgA_le_gc
+  have hgc_le_one : g c ≤ 1 :=
+    scalarFourierLaplacePlemelj_highTailCauchyAmplitude_le_one
+      b c c hb hone_le_c hc_mem
+  have hvariation_g : |d| ≤ g c - g A := by
+    unfold d
+    unfold g
+    exact hvariation
+  have hendpoint :
+      |-(g A) * Real.cos A + g c * Real.cos c + d| ≤
+        g A + g c + |d| := by
+    calc
+      |-(g A) * Real.cos A + g c * Real.cos c + d|
+          ≤ |-(g A) * Real.cos A| + |g c * Real.cos c| + |d| := by
+            exact abs_add_three (-(g A) * Real.cos A) (g c * Real.cos c) d
+      _ = g A * |Real.cos A| + g c * |Real.cos c| + |d| := by
+            exact congrArg₂ HAdd.hAdd
+              (congrArg₂ HAdd.hAdd
+                (calc
+                  |-(g A) * Real.cos A| =
+                      |-(g A)| * |Real.cos A| := by
+                      exact abs_mul (-(g A)) (Real.cos A)
+                  _ = g A * |Real.cos A| := by
+                      have habs_neg : |-(g A)| = |g A| :=
+                        abs_neg (g A)
+                      have habs_pos : |g A| = g A :=
+                        abs_of_nonneg hgA_nonneg
+                      exact congrArg
+                        (fun r : ℝ => r * |Real.cos A|)
+                        (habs_neg.trans habs_pos))
+                (calc
+                  |g c * Real.cos c| = |g c| * |Real.cos c| := by
+                    exact abs_mul (g c) (Real.cos c)
+                  _ = g c * |Real.cos c| := by
+                    exact congrArg
+                      (fun r : ℝ => r * |Real.cos c|)
+                      (abs_of_nonneg hgc_nonneg)))
+              rfl
+      _ ≤ g A * 1 + g c * 1 + |d| := by
+            exact add_le_add_right
+              (add_le_add
+                (mul_le_mul_of_nonneg_left (abs_cos_le_one A) hgA_nonneg)
+                (mul_le_mul_of_nonneg_left (abs_cos_le_one c) hgc_nonneg))
+              |d|
+      _ = g A + g c + |d| := by
+            exact congrArg₂ HAdd.hAdd
+              (congrArg₂ HAdd.hAdd (mul_one (g A)) (mul_one (g c)))
+              rfl
+  have hmain :
+      |-(g A) * Real.cos A + g c * Real.cos c + d| ≤
+        2 := by
+    calc
+      |-(g A) * Real.cos A + g c * Real.cos c + d|
+          ≤ g A + g c + |d| := hendpoint
+      _ ≤ g A + g c + (g c - g A) := by
+            exact add_le_add_left hvariation_g (g A + g c)
+      _ = g c + g c := by
+            calc
+              g A + g c + (g c - g A) =
+                  g c + (g A + (g c - g A)) := by
+                    exact add_left_comm (g A) (g c) (g c - g A)
+              _ = g c + g c := by
+                    have hinner : g A + (g c - g A) = g c := by
+                      calc
+                        g A + (g c - g A) =
+                            (g c - g A) + g A := by
+                          exact add_comm (g A) (g c - g A)
+                        _ = g c := by
+                          exact sub_add_cancel (g c) (g A)
+                    exact congrArg (fun r : ℝ => g c + r) hinner
+      _ = g c * 2 := by
+            exact (two_mul (g c)).symm
+      _ ≤ 1 * 2 := by
+            exact mul_le_mul_of_nonneg_right hgc_le_one zero_le_two
+      _ = 2 := by
+            exact one_mul 2
+  have hparts_g :
+      (∫ v in c..A,
+        (v / (b ^ 2 + v ^ 2)) * Real.sin v) =
+        -(g A) * Real.cos A + g c * Real.cos c + d := by
+    unfold g
+    unfold d
+    exact hparts
+  exact Eq.subst
+    (motive := fun x : ℝ => |x| ≤ 2)
+    hparts_g.symm
+    hmain
+
 /-- Damped Cauchy-amplitude sine tail bound from integration by parts and
 total variation.
 
@@ -7477,7 +7629,13 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_part
     (hb_le_c : b ≤ c) (hcA : c ≤ A) :
     |∫ v in c..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 2 := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_of_partsVariation
+      A b c hb hone_le_c hb_le_c hcA
+      (scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_parts_identity_source
+        A b c hb hcA)
+      (scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_derivativeVariation_source
+        A b c hb hone_le_c hb_le_c hcA)
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
     (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
