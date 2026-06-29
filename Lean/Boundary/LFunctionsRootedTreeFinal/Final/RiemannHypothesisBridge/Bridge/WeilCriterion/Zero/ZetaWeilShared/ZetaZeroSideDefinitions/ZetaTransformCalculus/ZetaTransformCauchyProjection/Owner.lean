@@ -3716,13 +3716,169 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_eq_pr
     (T / (T - a))
     (fun θ : ℝ => Real.exp (-(T * x * Real.sin θ)))
 
+/-- Symmetry of the upper semicircle sine-damping integral around `π / 2`. -/
+theorem scalarFourierLaplacePlemelj_upperSineDampingIntegral_eq_two_half
+    (c : ℝ) :
+    ∫ θ in (0 : ℝ)..Real.pi,
+        Real.exp (-(c * Real.sin θ)) =
+      2 * ∫ θ in (0 : ℝ)..(Real.pi / 2),
+        Real.exp (-(c * Real.sin θ)) := by
+  sorry
+
+/-- Jordan lower bound converted into an upper bound for the upper half
+sine-damping exponential. -/
+theorem scalarFourierLaplacePlemelj_upperSineDamping_integrand_le_linearExp
+    (c θ : ℝ) (hc : 0 < c)
+    (hθ0 : 0 ≤ θ) (hθhalf : θ ≤ Real.pi / 2) :
+    Real.exp (-(c * Real.sin θ)) ≤
+      Real.exp (-(((2 * c) / Real.pi) * θ)) := by
+  have hsin : (2 / Real.pi : ℝ) * θ ≤ Real.sin θ :=
+    Real.mul_le_sin hθ0 hθhalf
+  have hmul : c * ((2 / Real.pi : ℝ) * θ) ≤ c * Real.sin θ :=
+    mul_le_mul_of_nonneg_left hsin hc.le
+  have halg :
+      ((2 * c) / Real.pi) * θ =
+        c * ((2 / Real.pi : ℝ) * θ) := by
+    calc
+      ((2 * c) / Real.pi) * θ =
+          ((2 * c) * Real.pi⁻¹) * θ := by
+        exact congrArg
+          (fun r : ℝ => r * θ)
+          (div_eq_mul_inv (2 * c) Real.pi)
+      _ = (c * (2 * Real.pi⁻¹)) * θ := by
+        have htwo_c : 2 * c = c * 2 :=
+          mul_comm 2 c
+        exact congrArg
+          (fun r : ℝ => (r * Real.pi⁻¹) * θ)
+          htwo_c
+      _ = c * ((2 * Real.pi⁻¹) * θ) := by
+        exact mul_assoc c (2 * Real.pi⁻¹) θ
+      _ = c * ((2 / Real.pi : ℝ) * θ) := by
+        exact congrArg
+          (fun r : ℝ => c * (r * θ))
+          (div_eq_mul_inv 2 Real.pi).symm
+  have harg :
+      -(c * Real.sin θ) ≤ -(((2 * c) / Real.pi) * θ) := by
+    exact neg_le_neg
+      (halg.trans_le hmul)
+  exact Real.exp_le_exp.mpr harg
+
+/-- Elementary exponential integral bound on the upper half interval. -/
+theorem scalarFourierLaplacePlemelj_upperLinearExp_integral_le
+    (c : ℝ) (hc : 0 < c) :
+    ∫ θ in (0 : ℝ)..(Real.pi / 2),
+        Real.exp (-(((2 * c) / Real.pi) * θ)) ≤
+      (Real.pi / 2) * c⁻¹ := by
+  sorry
+
+/-- Pointwise Jordan's inequality integrates to comparison with the elementary
+linear exponential on the upper half interval. -/
+theorem scalarFourierLaplacePlemelj_upperSineDamping_halfIntegral_le_linearExpIntegral
+    (c : ℝ) (hc : 0 < c) :
+    ∫ θ in (0 : ℝ)..(Real.pi / 2),
+        Real.exp (-(c * Real.sin θ)) ≤
+      ∫ θ in (0 : ℝ)..(Real.pi / 2),
+        Real.exp (-(((2 * c) / Real.pi) * θ)) := by
+  have hhalf_nonneg : (0 : ℝ) ≤ Real.pi / 2 :=
+    half_nonneg Real.pi_nonneg
+  have hsine_cont :
+      Continuous
+        (fun θ : ℝ => Real.exp (-(c * Real.sin θ))) := by
+    have harg :
+        Continuous
+          (fun θ : ℝ => -(c * Real.sin θ)) := by
+      exact (continuous_const.mul Real.continuous_sin).neg
+    exact Real.continuous_exp.comp harg
+  have hlinear_cont :
+      Continuous
+        (fun θ : ℝ => Real.exp (-(((2 * c) / Real.pi) * θ))) := by
+    have harg :
+        Continuous
+          (fun θ : ℝ => -(((2 * c) / Real.pi) * θ)) := by
+      exact (continuous_const.mul continuous_id).neg
+    exact Real.continuous_exp.comp harg
+  have hsine_int :
+      IntervalIntegrable
+        (fun θ : ℝ => Real.exp (-(c * Real.sin θ)))
+        MeasureTheory.volume
+        (0 : ℝ)
+        (Real.pi / 2) :=
+    hsine_cont.intervalIntegrable (0 : ℝ) (Real.pi / 2)
+  have hlinear_int :
+      IntervalIntegrable
+        (fun θ : ℝ => Real.exp (-(((2 * c) / Real.pi) * θ)))
+        MeasureTheory.volume
+        (0 : ℝ)
+        (Real.pi / 2) :=
+    hlinear_cont.intervalIntegrable (0 : ℝ) (Real.pi / 2)
+  exact intervalIntegral.integral_mono_on
+    hhalf_nonneg
+    hsine_int
+    hlinear_int
+    (fun θ hθ =>
+      scalarFourierLaplacePlemelj_upperSineDamping_integrand_le_linearExp
+        c θ hc hθ.1 hθ.2)
+
+/-- Upper half-interval Jordan sine-damping integral bound. -/
+theorem scalarFourierLaplacePlemelj_upperSineDamping_halfIntegral_le
+    (c : ℝ) (hc : 0 < c) :
+    ∫ θ in (0 : ℝ)..(Real.pi / 2),
+        Real.exp (-(c * Real.sin θ)) ≤
+      (Real.pi / 2) * c⁻¹ := by
+  exact
+    (scalarFourierLaplacePlemelj_upperSineDamping_halfIntegral_le_linearExpIntegral
+      c hc).trans
+      (scalarFourierLaplacePlemelj_upperLinearExp_integral_le c hc)
+
+/-- The doubled half-interval majorant is the full Jordan majorant. -/
+theorem scalarFourierLaplacePlemelj_two_mul_upperHalfMajorant_eq
+    (c : ℝ) :
+    2 * ((Real.pi / 2) * c⁻¹) = Real.pi * c⁻¹ := by
+  calc
+    2 * ((Real.pi / 2) * c⁻¹) =
+        (2 * (Real.pi / 2)) * c⁻¹ := by
+      exact mul_assoc 2 (Real.pi / 2) c⁻¹
+    _ = ((2 * Real.pi) / 2) * c⁻¹ := by
+      exact congrArg
+        (fun r : ℝ => r * c⁻¹)
+        (mul_div_assoc 2 Real.pi 2).symm
+    _ = Real.pi * c⁻¹ := by
+      have htwo_ne : (2 : ℝ) ≠ 0 :=
+        two_ne_zero
+      have hcancel : (2 * Real.pi) / 2 = Real.pi := by
+        exact mul_div_cancel_left₀ Real.pi htwo_ne
+      exact congrArg
+        (fun r : ℝ => r * c⁻¹)
+        hcancel
+
+/-- Full upper semicircle Jordan sine-damping integral bound. -/
+theorem scalarFourierLaplacePlemelj_upperSineDamping_integral_le
+    (c : ℝ) (hc : 0 < c) :
+    ∫ θ in (0 : ℝ)..Real.pi,
+        Real.exp (-(c * Real.sin θ)) ≤
+      Real.pi * c⁻¹ := by
+  calc
+    ∫ θ in (0 : ℝ)..Real.pi,
+        Real.exp (-(c * Real.sin θ)) =
+        2 * ∫ θ in (0 : ℝ)..(Real.pi / 2),
+          Real.exp (-(c * Real.sin θ)) := by
+      exact scalarFourierLaplacePlemelj_upperSineDampingIntegral_eq_two_half c
+    _ ≤ 2 * ((Real.pi / 2) * c⁻¹) := by
+      exact mul_le_mul_of_nonneg_left
+        (scalarFourierLaplacePlemelj_upperSineDamping_halfIntegral_le c hc)
+        (by exact zero_le_two)
+    _ = Real.pi * c⁻¹ := by
+      exact scalarFourierLaplacePlemelj_two_mul_upperHalfMajorant_eq c
+
 /-- Jordan's sine estimate for the positive upper-arc damping integral. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_sineDampingIntegral_le
     (T x : ℝ) (hTx : 0 < T * x) :
     ∫ θ in (0 : ℝ)..Real.pi,
         Real.exp (-(T * x * Real.sin θ)) ≤
       Real.pi * (T * x)⁻¹ := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_upperSineDamping_integral_le
+      (T * x) hTx
 
 /-- Multiplication by the positive Jordan prefactor transports the scalar
 sine-damping estimate to the full density. -/
@@ -4417,13 +4573,86 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_eq_pr
     (T / (T - a))
     (fun θ : ℝ => Real.exp (-(T * x * Real.sin θ)))
 
+/-- The lower-arc damping integrand after `θ ↦ -θ` is the upper-arc damping
+integrand for `-x`. -/
+theorem scalarFourierLaplacePlemelj_lowerSineDamping_negIntegrand_eq_upper
+    (T x θ : ℝ) :
+    Real.exp (-(T * x * Real.sin (-θ))) =
+      Real.exp (-((T * (-x)) * Real.sin θ)) := by
+  have hleft_arg :
+      -(T * x * Real.sin (-θ)) =
+        T * x * Real.sin θ := by
+    calc
+      -(T * x * Real.sin (-θ)) =
+          -(T * x * (-Real.sin θ)) := by
+        exact congrArg
+          (fun r : ℝ => -(T * x * r))
+          (Real.sin_neg θ)
+      _ = -((T * x) * (-Real.sin θ)) := by
+        exact rfl
+      _ = -(-(T * x * Real.sin θ)) := by
+        exact congrArg Neg.neg
+          (mul_neg (T * x) (Real.sin θ))
+      _ = T * x * Real.sin θ := by
+        exact neg_neg (T * x * Real.sin θ)
+  have hright_arg :
+      -((T * (-x)) * Real.sin θ) =
+        T * x * Real.sin θ := by
+    calc
+      -((T * (-x)) * Real.sin θ) =
+          -((-(T * x)) * Real.sin θ) := by
+        exact congrArg
+          (fun r : ℝ => -(r * Real.sin θ))
+          (mul_neg T x)
+      _ = -(-(T * x * Real.sin θ)) := by
+        exact congrArg Neg.neg
+          (neg_mul (T * x) (Real.sin θ))
+      _ = T * x * Real.sin θ := by
+        exact neg_neg (T * x * Real.sin θ)
+  exact congrArg Real.exp
+    (hleft_arg.trans hright_arg.symm)
+
+/-- Lower semicircle sine-damping integral is transported to the upper
+semicircle by `θ ↦ -θ`. -/
+theorem scalarFourierLaplacePlemelj_lowerSineDampingIntegral_eq_upper
+    (T x : ℝ) :
+    ∫ θ in (-Real.pi)..(0 : ℝ),
+        Real.exp (-(T * x * Real.sin θ)) =
+      ∫ θ in (0 : ℝ)..Real.pi,
+        Real.exp (-((T * (-x)) * Real.sin θ)) := by
+  calc
+    ∫ θ in (-Real.pi)..(0 : ℝ),
+        Real.exp (-(T * x * Real.sin θ)) =
+        ∫ θ in (0 : ℝ)..Real.pi,
+          Real.exp (-(T * x * Real.sin (-θ))) := by
+      exact
+        (intervalIntegral.integral_comp_neg
+          (f := fun θ : ℝ => Real.exp (-(T * x * Real.sin θ)))
+          (a := (0 : ℝ))
+          (b := Real.pi)).symm
+    _ = ∫ θ in (0 : ℝ)..Real.pi,
+        Real.exp (-((T * (-x)) * Real.sin θ)) := by
+      exact intervalIntegral.integral_congr
+        (fun θ _hθ =>
+          scalarFourierLaplacePlemelj_lowerSineDamping_negIntegrand_eq_upper
+            T x θ)
+
 /-- Jordan's sine estimate for the negative lower-arc damping integral. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_sineDampingIntegral_le
     (T x : ℝ) (hTnegx : 0 < T * (-x)) :
     ∫ θ in (-Real.pi)..(0 : ℝ),
         Real.exp (-(T * x * Real.sin θ)) ≤
       Real.pi * (T * (-x))⁻¹ := by
-  sorry
+  calc
+    ∫ θ in (-Real.pi)..(0 : ℝ),
+        Real.exp (-(T * x * Real.sin θ)) =
+        ∫ θ in (0 : ℝ)..Real.pi,
+          Real.exp (-((T * (-x)) * Real.sin θ)) := by
+      exact scalarFourierLaplacePlemelj_lowerSineDampingIntegral_eq_upper
+        T x
+    _ ≤ Real.pi * (T * (-x))⁻¹ := by
+      exact scalarFourierLaplacePlemelj_upperSineDamping_integral_le
+        (T * (-x)) hTnegx
 
 /-- Multiplication by the positive Jordan prefactor transports the scalar
 lower-arc sine-damping estimate to the full density. -/
