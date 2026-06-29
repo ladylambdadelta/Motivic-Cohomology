@@ -2804,6 +2804,23 @@ theorem fixedRightLine_scalarProjection_Ioi_integral_eq_Ici_integral
         (-2 * (Real.pi : ℂ)) * K x := by
   exact (integral_Ici_eq_integral_Ioi : _).symm
 
+/-- Scalar fixed-right-line Plemelj theorem for finite symmetric Cauchy
+windows, expressed as the open half-line multiplier. -/
+theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_openHalfLine
+    (c : ℝ) (hc : 1 < c) (x : ℝ) :
+    Tendsto
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+      atTop
+      (𝓝
+        (Set.indicator (Set.Ioi (0 : ℝ))
+          (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) := by
+  sorry
+
 /-- Pointwise positive-time Bromwich/Plemelj value for the fixed-right-line
 finite scalar Cauchy windows. -/
 theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_positive
@@ -2817,7 +2834,26 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_positive
             Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
       atTop
       (𝓝 (-2 * (Real.pi : ℂ))) := by
-  sorry
+  have hbase :
+      Tendsto
+        (fun T : ℝ =>
+          ∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+        atTop
+        (𝓝
+          (Set.indicator (Set.Ioi (0 : ℝ))
+            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) :=
+    fixedRightLine_scalarCauchyWindow_pointwise_tendsto_openHalfLine c hc x
+  have hvalue :
+      Set.indicator (Set.Ioi (0 : ℝ))
+        (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x =
+        (-2 * (Real.pi : ℂ)) :=
+    indicator_of_mem hx
+      (fun _ : ℝ => (-2 * (Real.pi : ℂ)))
+  exact hvalue ▸ hbase
 
 /-- Pointwise negative-time Bromwich/Plemelj value for the fixed-right-line
 finite scalar Cauchy windows. -/
@@ -2832,7 +2868,28 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
             Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
       atTop
       (𝓝 0) := by
-  sorry
+  have hbase :
+      Tendsto
+        (fun T : ℝ =>
+          ∫ t in Set.Icc (-T) T,
+            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+        atTop
+        (𝓝
+          (Set.indicator (Set.Ioi (0 : ℝ))
+            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) :=
+    fixedRightLine_scalarCauchyWindow_pointwise_tendsto_openHalfLine c hc x
+  have hnot : x ∉ Set.Ioi (0 : ℝ) :=
+    fun hx_pos : 0 < x =>
+      (not_lt_of_ge (le_of_lt hx)) hx_pos
+  have hvalue :
+      Set.indicator (Set.Ioi (0 : ℝ))
+        (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x = 0 :=
+    indicator_of_not_mem hnot
+      (fun _ : ℝ => (-2 * (Real.pi : ℂ)))
+  exact hvalue ▸ hbase
 
 /-- Uniform compact-support domination for the paired scalar Cauchy windows. -/
 theorem fixedRightLine_scalarCauchyWindow_compactSupport_dominated
