@@ -543,7 +543,38 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_positive_spectralMajorant_sou
           ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction'
               (ZetaPrimePowerIndex.center ι)‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  exact Boundary.zetaLaplaceTransform_primePowerCenters_spectralMajorant_exists f
+  let I := ZetaPaleyWienerSupportInterval.mk f 0
+  let a : ℝ := 0
+  let b : ℝ := 1
+  let hstrip : ∀ ι : ZetaPrimePowerIndex,
+      zetaPaleyWienerInVerticalStrip a b (ZetaPrimePowerIndex.center ι : ℂ) :=
+    fun ι => ⟨Complex.ofReal_re _, Complex.ofReal_re _⟩
+  let henv : ∀ ι : ZetaPrimePowerIndex,
+      ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' (ZetaPrimePowerIndex.center ι : ℂ)‖ ≤
+        zetaPaleyWienerZeroOrderEnvelope f I a b :=
+    fun ι => zetaLaplaceTransform_supportInterval_zeroOrder_le_envelope f I a b
+      (ZetaPrimePowerIndex.center ι : ℂ) (hstrip ι)
+  let C : ℝ := zetaPaleyWienerZeroOrderEnvelope f I a b + 1
+  let k : ℕ := 0
+  let hC_nonneg : 0 ≤ C :=
+    add_nonneg (zetaPaleyWienerZeroOrderEnvelope_nonnegative f I a b) one_nonneg
+  let env : ℝ := zetaPaleyWienerZeroOrderEnvelope f I a b
+  let h_env_add : env + 0 = env := add_zero env
+  let h_env_le : env ≤ env + 1 := le_add_of_nonneg_right one_nonneg
+  let h_env_eq_C : env + 1 = C := Eq.refl C
+  let h_mul_one : C * 1 = C := mul_one C
+  let h_decay : ∀ ι, ZetaPrimePowerIndex.polynomialHeightDecay k ι = 1 :=
+    fun ι => Eq.refl 1
+  exact ⟨C, k, hC_nonneg, fun ι =>
+    calc
+      ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' (ZetaPrimePowerIndex.center ι : ℂ)‖ ≤
+          env := henv ι
+      _ = env + 0 := (h_env_add).symm
+      _ ≤ env + 1 := h_env_le
+      _ = C := h_env_eq_C
+      _ = C * 1 := (h_mul_one).symm
+      _ = C * ZetaPrimePowerIndex.polynomialHeightDecay k ι :=
+        congrArg (fun x : ℝ => C * x) (h_decay ι).symm⟩
 
 /-- Positive spectral majorant of the completed transform at prime-power centers. -/
 theorem zetaCompletedExplicitFormulaPhi_primePower_positive_spectralMajorant

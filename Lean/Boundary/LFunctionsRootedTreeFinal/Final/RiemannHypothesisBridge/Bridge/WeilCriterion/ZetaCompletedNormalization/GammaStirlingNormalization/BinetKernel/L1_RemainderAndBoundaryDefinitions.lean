@@ -822,7 +822,17 @@ algebra: the boundary target keeps the endpoint indentation, and the contour
 error is the endpoint-restored contour error with that indentation subtracted. -/
 def Complex.BinetSecondFormulaEndpointRestoredFiniteHeightContourInputs : Prop :=
   Complex.BinetSecondFormulaFiniteHeightBoundaryTargetEndpointRestored ∧
-    Complex.BinetSecondFormulaEndpointReturnedRestoredPairDecay
+    ∃ R : ℝ,
+      0 < R ∧
+      2 ≤ R ∧
+      ∀ w : ℂ,
+        0 < w.re →
+        R ≤ ‖w‖ →
+          ∀ N : ℕ,
+            ∀ᶠ T : ℝ in atTop,
+              ‖Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T‖ ≤
+                ((1 : ℝ) / ‖w‖) *
+                  Complex.binetSecondFormulaDecayingTailIntegral w
 
 end
 end LFunctions

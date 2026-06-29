@@ -35,24 +35,11 @@ This file is a sequential owner sublayer split out of
 -/
 
 namespace Boundary
-
-namespace Boundary
 namespace LFunctions
 
 noncomputable section
 
-  Complex.BinetSecondFormulaFiniteHeightBoundaryTargetEndpointRestored ∧
-    ∃ R : ℝ,
-      0 < R ∧
-      2 ≤ R ∧
-      ∀ w : ℂ,
-        0 < w.re →
-        R ≤ ‖w‖ →
-          ∀ N : ℕ,
-            ∀ᶠ T : ℝ in atTop,
-              ‖Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T‖ ≤
-                ((1 : ℝ) / ‖w‖) *
-                  Complex.binetSecondFormulaDecayingTailIntegral w
+open Filter
 
 /-- The historical sector-absorption predicate and the scalar log-window
 comparison predicate have the same mathematical content. -/
@@ -3276,14 +3263,6 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_inputs_of_boundaryTarget
     ⟨hboundary,
       Complex.binetSecondFormula_boundarySolvedStaticDecayEstimate_of_boundaryTarget_and_tailAbsorption
         hboundary htail⟩
-
-/-- Constructor from finite-height lower-vertical cancellation estimates to
-the public branch-wall tail-absorption theorem.
-
-This is the precise finite-height form expected from paired contour
-cancellation: for each large `w`, the cancelled lower-vertical finite-height
-tail is eventually bounded by the decaying scalar Binet tail. -/
-theorem Complex.binetSecondFormula_branchTail_wallCancellation_of_eventually_lowerVerticalUpTo_decay
 
 end
 end LFunctions
