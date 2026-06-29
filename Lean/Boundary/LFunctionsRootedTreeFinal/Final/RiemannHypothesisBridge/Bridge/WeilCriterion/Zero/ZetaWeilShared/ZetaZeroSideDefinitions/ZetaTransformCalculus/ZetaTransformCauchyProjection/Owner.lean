@@ -5786,7 +5786,39 @@ theorem scalarFourierLaplacePlemelj_lowerArcParam_hasDerivAt
       (scalarFourierLaplacePlemelj_lowerArcParam T)
       (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
       θ := by
-  sorry
+  unfold scalarFourierLaplacePlemelj_lowerArcParam
+  have hraw :
+      HasDerivAt
+        (fun u : ℝ => (T : ℂ) * Complex.exp (Complex.I * (u : ℂ)))
+        ((T : ℂ) *
+          (Complex.exp (Complex.I * (θ : ℂ)) * Complex.I))
+        θ := by
+    exact
+      (((Complex.ofRealCLM.hasDerivAt (x := θ)).const_mul Complex.I).cexp).const_mul
+        (T : ℂ)
+  have hvalue :
+      (T : ℂ) * (Complex.exp (Complex.I * (θ : ℂ)) * Complex.I) =
+        Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) := by
+    exact
+      Eq.trans
+        (congrArg
+          (fun w : ℂ => (T : ℂ) * w)
+          (mul_comm (Complex.exp (Complex.I * (θ : ℂ))) Complex.I))
+        (Eq.trans
+          (mul_assoc (T : ℂ) Complex.I
+            (Complex.exp (Complex.I * (θ : ℂ))))
+          (congrArg
+            (fun w : ℂ => w * Complex.exp (Complex.I * (θ : ℂ)))
+            (mul_comm (T : ℂ) Complex.I)))
+  exact
+    Eq.subst
+      (motive := fun v : ℂ =>
+        HasDerivAt
+          (fun u : ℝ => (T : ℂ) * Complex.exp (Complex.I * (u : ℂ)))
+          v
+          θ)
+      hvalue
+      hraw
 
 /-- The lower semicircle parametrization maps its angular interval into the
 lower half-disk. -/
@@ -5798,17 +5830,35 @@ theorem scalarFourierLaplacePlemelj_lowerArcParam_mapsTo_lowerHalfDisk
       (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
   sorry
 
-/-- Along the lower arc, the primitive derivative is the displayed
-parametrized integrand. -/
-theorem scalarFourierLaplacePlemelj_lowerArcPrimitive_hasDerivAt
+/-- Along the lower arc, the primitive is continuous on the angular interval. -/
+theorem scalarFourierLaplacePlemelj_lowerArcPrimitive_continuousOn
     (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
     (_hprimitive :
       scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
-    ∀ θ ∈ Set.uIcc (0 : ℝ) (-Real.pi),
-      HasDerivAt
+    ContinuousOn
+      (fun θ : ℝ => G (scalarFourierLaplacePlemelj_lowerArcParam T θ))
+      (Set.uIcc (0 : ℝ) (-Real.pi)) := by
+  have hparam_continuous : Continuous (scalarFourierLaplacePlemelj_lowerArcParam T) := by
+    exact fun θ : ℝ =>
+      (scalarFourierLaplacePlemelj_lowerArcParam_hasDerivAt T θ).continuousAt
+  exact
+    (scalarFourierLaplacePlemelj_lowerHalfDisk_primitiveFunction_continuousOn
+      F G T _hprimitive).comp
+      hparam_continuous.continuousOn
+      (scalarFourierLaplacePlemelj_lowerArcParam_mapsTo_lowerHalfDisk T _hT)
+
+/-- On the open lower arc, the primitive has the displayed one-sided
+parametrized derivative. -/
+theorem scalarFourierLaplacePlemelj_lowerArcPrimitive_hasRightDerivWithinAt
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
+    ∀ θ ∈ Set.Ioo (-Real.pi) (0 : ℝ),
+      HasDerivWithinAt
         (fun u : ℝ => G (scalarFourierLaplacePlemelj_lowerArcParam T u))
         (F (scalarFourierLaplacePlemelj_lowerArcParam T θ) *
           (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+        (Set.Ioi θ)
         θ := by
   sorry
 
@@ -5824,7 +5874,115 @@ theorem scalarFourierLaplacePlemelj_lowerArc_intervalIntegrable
       MeasureTheory.volume
       (0 : ℝ)
       (-Real.pi) := by
-  sorry
+  have hparam_continuous : Continuous (scalarFourierLaplacePlemelj_lowerArcParam T) := by
+    exact fun θ : ℝ =>
+      (scalarFourierLaplacePlemelj_lowerArcParam_hasDerivAt T θ).continuousAt
+  have hintegrand_continuous :
+      ContinuousOn
+        (fun θ : ℝ =>
+          F (scalarFourierLaplacePlemelj_lowerArcParam T θ) *
+            (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+        (Set.uIcc (0 : ℝ) (-Real.pi)) := by
+    have hF_continuous :
+        ContinuousOn
+          (fun θ : ℝ => F (scalarFourierLaplacePlemelj_lowerArcParam T θ))
+          (Set.uIcc (0 : ℝ) (-Real.pi)) := by
+      exact
+        _hprimitive.1.comp
+          hparam_continuous.continuousOn
+          (scalarFourierLaplacePlemelj_lowerArcParam_mapsTo_lowerHalfDisk T _hT)
+    have hexp_continuous :
+        Continuous
+          (fun θ : ℝ =>
+            Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
+      exact
+        (continuous_const.mul continuous_const).mul
+          (Complex.continuous_exp.comp
+            (continuous_const.mul Complex.continuous_ofReal))
+    exact hF_continuous.mul hexp_continuous.continuousOn
+  exact ContinuousOn.intervalIntegrable hintegrand_continuous
+
+/-- The lower arc parametrization starts at the right endpoint of the
+diameter. -/
+theorem scalarFourierLaplacePlemelj_lowerArcParam_zero
+    (T : ℝ) :
+    scalarFourierLaplacePlemelj_lowerArcParam T 0 = (T : ℂ) := by
+  unfold scalarFourierLaplacePlemelj_lowerArcParam
+  exact
+    Eq.trans
+      (congrArg
+        (fun w : ℂ => (T : ℂ) * Complex.exp w)
+        (mul_zero Complex.I))
+      (Eq.trans
+        (congrArg (fun w : ℂ => (T : ℂ) * w) Complex.exp_zero)
+        (mul_one (T : ℂ)))
+
+/-- The lower arc parametrization ends at the left endpoint of the diameter. -/
+theorem scalarFourierLaplacePlemelj_lowerArcParam_neg_pi
+    (T : ℝ) :
+    scalarFourierLaplacePlemelj_lowerArcParam T (-Real.pi) =
+      ((-T : ℝ) : ℂ) := by
+  unfold scalarFourierLaplacePlemelj_lowerArcParam
+  have harg :
+      Complex.I * (((-Real.pi : ℝ) : ℂ)) =
+        -((Real.pi : ℂ) * Complex.I) := by
+    exact
+      Eq.trans
+        (mul_comm Complex.I (((-Real.pi : ℝ) : ℂ)))
+        (Eq.trans
+          (congrArg (fun w : ℂ => w * Complex.I)
+            (Complex.ofReal_neg Real.pi))
+          (neg_mul_eq_neg_mul (Real.pi : ℂ) Complex.I).symm)
+  have hexp :
+      Complex.exp (Complex.I * (((-Real.pi : ℝ) : ℂ))) = (-1 : ℂ) := by
+    exact
+      Eq.trans
+        (congrArg Complex.exp harg)
+        (Eq.trans
+          (Complex.exp_neg ((Real.pi : ℂ) * Complex.I))
+          (Eq.trans
+            (congrArg Inv.inv Complex.exp_pi_mul_I)
+            (inv_neg_one : (-1 : ℂ)⁻¹ = -1)))
+  exact
+    Eq.trans
+      (congrArg (fun w : ℂ => (T : ℂ) * w) hexp)
+      (Eq.trans
+        (mul_neg_one (T : ℂ))
+        (Complex.ofReal_neg T).symm)
+
+/-- The open angular interval for the lower returning arc is `(-π,0)`. -/
+theorem scalarFourierLaplacePlemelj_lowerArc_openInterval_normalize :
+    Set.Ioo (min (0 : ℝ) (-Real.pi)) (max (0 : ℝ) (-Real.pi)) =
+      Set.Ioo (-Real.pi) (0 : ℝ) := by
+  have hneg : -Real.pi ≤ (0 : ℝ) :=
+    neg_nonpos.mpr Real.pi_pos.le
+  have hmin : min (0 : ℝ) (-Real.pi) = -Real.pi :=
+    min_eq_right hneg
+  have hmax : max (0 : ℝ) (-Real.pi) = (0 : ℝ) :=
+    max_eq_left hneg
+  exact congrArg₂ Set.Ioo hmin hmax
+
+/-- The path-FTC derivative hypothesis in the exact interval orientation. -/
+theorem scalarFourierLaplacePlemelj_lowerArcPrimitive_hasRightDerivWithinAt_minMax
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
+    ∀ θ ∈ Set.Ioo (min (0 : ℝ) (-Real.pi)) (max (0 : ℝ) (-Real.pi)),
+      HasDerivWithinAt
+        (fun u : ℝ => G (scalarFourierLaplacePlemelj_lowerArcParam T u))
+        (F (scalarFourierLaplacePlemelj_lowerArcParam T θ) *
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+        (Set.Ioi θ)
+        θ := by
+  intro θ hθ
+  exact
+    scalarFourierLaplacePlemelj_lowerArcPrimitive_hasRightDerivWithinAt
+      F G T _hT _hprimitive
+      θ
+      (Eq.subst
+        (fun S : Set ℝ => θ ∈ S)
+        scalarFourierLaplacePlemelj_lowerArc_openInterval_normalize
+        hθ)
 
 /-- The path-FTC form of the lower arc endpoint calculation. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfDisk_lowerArcIntegral_eq_primitiveEndpointSub_of_pathFTC
@@ -5836,7 +5994,37 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_lowerArcIntegral_eq_primitiveE
       F z *
         (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
       G ((-T : ℝ) : ℂ) - G (T : ℂ) := by
-  sorry
+  have hftc :
+      (∫ θ in (0 : ℝ)..(-Real.pi),
+        F (scalarFourierLaplacePlemelj_lowerArcParam T θ) *
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
+        G (scalarFourierLaplacePlemelj_lowerArcParam T (-Real.pi)) -
+          G (scalarFourierLaplacePlemelj_lowerArcParam T 0) :=
+    intervalIntegral.integral_eq_sub_of_hasDeriv_right
+      (scalarFourierLaplacePlemelj_lowerArcPrimitive_continuousOn
+        F G T _hT _hprimitive)
+      (scalarFourierLaplacePlemelj_lowerArcPrimitive_hasRightDerivWithinAt_minMax
+        F G T _hT _hprimitive)
+      (scalarFourierLaplacePlemelj_lowerArc_intervalIntegrable
+        F G T _hT _hprimitive)
+  have hleft :
+      (∫ θ in (0 : ℝ)..(-Real.pi),
+        let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+        F z *
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
+      (∫ θ in (0 : ℝ)..(-Real.pi),
+        F (scalarFourierLaplacePlemelj_lowerArcParam T θ) *
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) := by
+    rfl
+  have hend :
+      G (scalarFourierLaplacePlemelj_lowerArcParam T (-Real.pi)) -
+          G (scalarFourierLaplacePlemelj_lowerArcParam T 0) =
+        G ((-T : ℝ) : ℂ) - G (T : ℂ) := by
+    exact
+      congrArg₂ HSub.hSub
+        (congrArg G (scalarFourierLaplacePlemelj_lowerArcParam_neg_pi T))
+        (congrArg G (scalarFourierLaplacePlemelj_lowerArcParam_zero T))
+  exact Eq.trans hleft (Eq.trans hftc hend)
 
 /-- The lower semicircle part of the boundary integral is the returning
 primitive endpoint difference. -/
