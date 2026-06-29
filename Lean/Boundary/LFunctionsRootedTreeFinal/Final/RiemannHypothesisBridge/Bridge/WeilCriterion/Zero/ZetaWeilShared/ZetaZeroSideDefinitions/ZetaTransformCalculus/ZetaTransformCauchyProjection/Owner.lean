@@ -5236,7 +5236,7 @@ theorem scalarFourierLaplacePlemelj_negativeKernel_differentiableOn_lowerHalfDis
 /-- Cauchy-Goursat for a generic complex-differentiable function on the lower
 half-disk boundary. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_differentiableOn
-    (F : ℂ → ℂ) (T : ℝ)
+    (F : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
     (_hdiff : DifferentiableOn ℂ F
       (scalarFourierLaplacePlemelj_lowerHalfDisk T)) :
     scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral F T = 0 := by
@@ -5246,7 +5246,7 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_dif
 boundary. -/
 theorem scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyGoursat
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
-    (T : ℝ)
+    (T : ℝ) (hT : 0 < T)
     (_hdiff :
       DifferentiableOn ℂ
         (scalarFourierLaplacePlemelj_negativeKernel a x)
@@ -5257,13 +5257,13 @@ theorem scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyGoursat
     (scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral_eq_lowerHalfDiskBoundaryIntegral
       a x T).trans
       (scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_differentiableOn
-        (scalarFourierLaplacePlemelj_negativeKernel a x) T _hdiff)
+        (scalarFourierLaplacePlemelj_negativeKernel a x) T hT.le _hdiff)
 
 /-- Half-disk Cauchy theorem for the negative-time lower contour: the upper pole
 is outside the lower half-disk, so the boundary integral is zero. -/
 theorem scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyIntegralFormula
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
-    (T : ℝ)
+    (T : ℝ) (hT : 0 < T)
     (_hpole :
       ¬ scalarFourierLaplacePlemelj_upperPole a =
           (-(a : ℂ)) * Complex.I) :
@@ -5271,7 +5271,7 @@ theorem scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyIntegralFo
         a x T = 0 := by
   exact
     scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyGoursat
-      a ha x hx T
+      a ha x hx T hT
       (scalarFourierLaplacePlemelj_negativeKernel_differentiableOn_lowerHalfDisk
         a ha x T)
 
@@ -5279,7 +5279,7 @@ theorem scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyIntegralFo
 integral over the finite lower semicircle. -/
 theorem scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral_cauchyResidue
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
-    (T : ℝ)
+    (T : ℝ) (hT : 0 < T)
     (_hpole :
       ¬ scalarFourierLaplacePlemelj_upperPole a =
           (-(a : ℂ)) * Complex.I) :
@@ -5289,7 +5289,7 @@ theorem scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegra
         scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum a x := by
   exact
     (scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyIntegralFormula
-      a ha x hx T _hpole).trans
+      a ha x hx T hT _hpole).trans
       (scalarFourierLaplacePlemelj_two_pi_i_mul_negativeLowerHalfPlaneResidueSum_eq_zero
         a x).symm
 
@@ -5300,7 +5300,7 @@ The upper pole is outside this contour, so the enclosed residue sum is the
 named zero residue sum. -/
 theorem scalarFourierLaplacePlemelj_negativeKernel_lowerSemicircle_cauchyResidue
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
-    (T : ℝ)
+    (T : ℝ) (hT : 0 < T)
     (_hpole :
       ¬ scalarFourierLaplacePlemelj_upperPole a =
           (-(a : ℂ)) * Complex.I) :
@@ -5311,13 +5311,13 @@ theorem scalarFourierLaplacePlemelj_negativeKernel_lowerSemicircle_cauchyResidue
     (scalarFourierLaplacePlemelj_negativeClosedContour_eq_negativeKernelLowerSemicircleBoundaryIntegral
       a x T).trans
       (scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral_cauchyResidue
-        a ha x hx T _hpole)
+        a ha x hx T hT _hpole)
 
 /-- Lower-half-plane pole-free residue theorem for the negative-time scalar
 contour, in `2πi` times the named kernel residue-sum form. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_eq_two_pi_i_kernelResidueSum
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
-    (T : ℝ)
+    (T : ℝ) (hT : 0 < T)
     (_hpole :
       ¬ scalarFourierLaplacePlemelj_upperPole a =
           (-(a : ℂ)) * Complex.I) :
@@ -5326,13 +5326,13 @@ theorem scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_e
         scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum a x := by
   exact
     scalarFourierLaplacePlemelj_negativeKernel_lowerSemicircle_cauchyResidue
-      a ha x hx T _hpole
+      a ha x hx T hT _hpole
 
 /-- Lower-half-plane pole-free residue theorem for the negative-time scalar
 contour, in `2πi` times residue-sum form. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_eq_two_pi_i_zeroResidueSum
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
-    (T : ℝ)
+    (T : ℝ) (hT : 0 < T)
     (_hpole :
       ¬ scalarFourierLaplacePlemelj_upperPole a =
           (-(a : ℂ)) * Complex.I) :
@@ -5341,45 +5341,45 @@ theorem scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_e
         scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum a x := by
   exact
     scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_eq_two_pi_i_kernelResidueSum
-      a ha x hx T _hpole
+      a ha x hx T hT _hpole
 
 /-- Lower-half-plane pole-free residue theorem for the negative-time scalar
 contour. -/
 theorem scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_eq_zero
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
-    (T : ℝ)
+    (T : ℝ) (hT : 0 < T)
     (_hpole :
       ¬ scalarFourierLaplacePlemelj_upperPole a =
           (-(a : ℂ)) * Complex.I) :
     scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 := by
   exact
     (scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_eq_two_pi_i_zeroResidueSum
-      a ha x hx T _hpole).trans
+      a ha x hx T hT _hpole).trans
       (scalarFourierLaplacePlemelj_two_pi_i_mul_negativeLowerHalfPlaneResidueSum_eq_zero
         a x)
 
 theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_owner
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
-    (T : ℝ)
+    (T : ℝ) (hT : 0 < T)
     (_hpole :
       ¬ scalarFourierLaplacePlemelj_upperPole a =
           (-(a : ℂ)) * Complex.I) :
     scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 := by
   exact
     scalarFourierLaplacePlemelj_lowerHalfPlaneResidueTheorem_closedContour_eq_zero
-      a ha x hx T _hpole
+      a ha x hx T hT _hpole
 
 /-- Pole-free lower-half-plane contour integral for the negative-time scalar kernel. -/
 theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_of_noPole
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
-    (T : ℝ)
+    (T : ℝ) (hT : 0 < T)
     (_hpole :
       ¬ scalarFourierLaplacePlemelj_upperPole a =
           (-(a : ℂ)) * Complex.I) :
     scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 := by
   exact
     scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_owner
-      a ha x hx T _hpole
+      a ha x hx T hT _hpole
 
 /-- Radius-qualified lower-half-plane pole-free residue theorem for the negative-time
 scalar closed contour. -/
@@ -5389,7 +5389,7 @@ theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_of_poleOutside
     scalarFourierLaplacePlemelj_negativeClosedContour a x T = 0 := by
   exact
     scalarFourierLaplacePlemelj_negativeClosedContour_eq_zero_of_noPole
-      a ha x hx T
+      a ha x hx T hT
       (scalarFourierLaplacePlemelj_upperPole_not_mem_lowerSemicircleInterior
         a ha T hT)
 
