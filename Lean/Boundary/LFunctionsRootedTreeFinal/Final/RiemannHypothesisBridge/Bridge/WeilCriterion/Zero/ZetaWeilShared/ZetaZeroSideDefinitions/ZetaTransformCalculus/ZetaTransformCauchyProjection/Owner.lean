@@ -6062,6 +6062,29 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
       (fun _ : ℝ => (-2 * (Real.pi : ℂ)))
   exact hvalue ▸ hbase
 
+/-- Compact-support paired-window estimate for the fixed-right-line scalar
+Cauchy kernel.
+
+This is the true domination source: after pairing with the compactly supported
+kernel, the finite scalar Cauchy windows are bounded by a constant times
+`‖K x‖` eventually in the truncation radius. -/
+theorem fixedRightLine_scalarCauchyWindow_compactSupport_paired_norm_bound_eventually
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c : ℝ) (hc : 1 < c) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ᵐ x ∂volume,
+            ‖K x *
+              (∫ t in Set.Icc (-T) T,
+                (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
+              ≤ C * ‖K x‖ := by
+  sorry
+
 /-- Uniform compact-support domination for the paired scalar Cauchy windows. -/
 theorem fixedRightLine_scalarCauchyWindow_compactSupport_dominated
     (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
@@ -6079,7 +6102,26 @@ theorem fixedRightLine_scalarCauchyWindow_compactSupport_dominated
                       (Complex.I * (t : ℂ) * (x : ℂ)) *
                     Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
                 ≤ G x := by
-  sorry
+  match
+    fixedRightLine_scalarCauchyWindow_compactSupport_paired_norm_bound_eventually
+      K hK_cont hK_compact hK_smooth c hc
+  with
+  | ⟨C, hC_nonneg, hC_eventual⟩ =>
+      let G : ℝ → ℝ := fun x : ℝ => C * ‖K x‖
+      have hK_integrable : Integrable K volume :=
+        hK_cont.integrable_of_hasCompactSupport hK_compact
+      have hG_integrable : Integrable G volume :=
+        hK_integrable.norm.const_mul C
+      have hG_nonnegative : 0 ≤ᵐ[volume] G :=
+        Eventually.of_forall
+          (fun x : ℝ =>
+            mul_nonneg hC_nonneg (norm_nonneg (K x)))
+      exact
+        ⟨G, hG_integrable, hG_nonnegative,
+          hC_eventual.mono
+            (fun T hT =>
+              hT.mono
+                (fun _ hx => hx))⟩
 
 /-- Joint continuity of the finite scalar fixed-right-line Cauchy-window
 integrand in the space and frequency variables. -/
