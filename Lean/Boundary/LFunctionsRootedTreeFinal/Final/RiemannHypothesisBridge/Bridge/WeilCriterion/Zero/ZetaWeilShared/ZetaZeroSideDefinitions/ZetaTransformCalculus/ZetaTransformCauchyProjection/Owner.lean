@@ -6584,13 +6584,127 @@ noncomputable def scalarFourierLaplacePlemelj_uncompensated_oddSineWindow
   ∫ t in Set.Icc (-T) T,
     (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)
 
+/-- Pointwise domination of the even-cosine integrand by the positive Cauchy
+kernel. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_evenCosine_integrand_abs_le_kernel
+    (a : ℝ) (ha : 0 < a) (t x : ℝ) :
+    |(-(a / (a ^ 2 + t ^ 2))) * Real.cos (t * x)| ≤
+      a / (a ^ 2 + t ^ 2) := by
+  let p : ℝ := a / (a ^ 2 + t ^ 2)
+  let c : ℝ := Real.cos (t * x)
+  have hden_pos : 0 < a ^ 2 + t ^ 2 :=
+    scalarFourierLaplacePlemelj_zero_denominator_pos a ha t
+  have hp_nonneg : 0 ≤ p := by
+    unfold p
+    exact div_nonneg ha.le hden_pos.le
+  have hc_abs : |c| ≤ 1 := by
+    unfold c
+    exact abs_cos_le_one (t * x)
+  have habs :
+      |(-p) * c| = p * |c| := by
+    calc
+      |(-p) * c| = |-p| * |c| := by
+        exact abs_mul (-p) c
+      _ = |p| * |c| := by
+        exact congrArg (fun r : ℝ => r * |c|) (abs_neg p)
+      _ = p * |c| := by
+        exact congrArg (fun r : ℝ => r * |c|) (abs_of_nonneg hp_nonneg)
+  have hmul : p * |c| ≤ p * 1 :=
+    mul_le_mul_of_nonneg_left hc_abs hp_nonneg
+  calc
+    |(-(a / (a ^ 2 + t ^ 2))) * Real.cos (t * x)|
+        = |(-p) * c| := by
+          unfold p
+          unfold c
+          rfl
+    _ = p * |c| := habs
+    _ ≤ p * 1 := hmul
+    _ = a / (a ^ 2 + t ^ 2) := by
+          unfold p
+          exact mul_one (a / (a ^ 2 + t ^ 2))
+
+/-- Interval integrability of the positive Cauchy kernel on symmetric finite
+windows. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_positiveKernel_intervalIntegrable
+    (a : ℝ) (ha : 0 < a) (T : ℝ) :
+    IntervalIntegrable
+      (fun t : ℝ => a / (a ^ 2 + t ^ 2))
+      volume (-T) T := by
+  have hden_cont : Continuous (fun t : ℝ => a ^ 2 + t ^ 2) :=
+    continuous_const.add (continuous_id.pow 2)
+  have hden_ne : ∀ t : ℝ, a ^ 2 + t ^ 2 ≠ 0 :=
+    scalarFourierLaplacePlemelj_zero_denominator_ne_zero a ha
+  have hquot_cont : Continuous (fun t : ℝ => a / (a ^ 2 + t ^ 2)) :=
+    continuous_const.div hden_cont hden_ne
+  exact hquot_cont.intervalIntegrable (-T) T
+
+/-- Interval majorization of the even-cosine window by the positive Cauchy
+kernel mass. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_kernelMass_of_pointwise
+    (a : ℝ) (ha : 0 < a) (T x : ℝ)
+    (hpoint :
+      ∀ t : ℝ,
+        |(-(a / (a ^ 2 + t ^ 2))) * Real.cos (t * x)| ≤
+          a / (a ^ 2 + t ^ 2)) :
+    |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x| ≤
+      |∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)| := by
+  let f : ℝ → ℝ :=
+    fun t : ℝ => (-(a / (a ^ 2 + t ^ 2))) * Real.cos (t * x)
+  let g : ℝ → ℝ :=
+    fun t : ℝ => a / (a ^ 2 + t ^ 2)
+  have hmajor :
+      ∀ᵐ t ∂volume.restrict (Ι (-T) T), ‖f t‖ ≤ g t :=
+    Filter.Eventually.of_forall
+      (fun t : ℝ => by
+        calc
+          ‖f t‖ = |f t| := by
+            exact Real.norm_eq_abs (f t)
+          _ =
+              |(-(a / (a ^ 2 + t ^ 2))) * Real.cos (t * x)| := by
+                unfold f
+                rfl
+          _ ≤ a / (a ^ 2 + t ^ 2) := hpoint t
+          _ = g t := by
+                unfold g
+                rfl)
+  have hg :
+      IntervalIntegrable g volume (-T) T := by
+    unfold g
+    exact
+      scalarFourierLaplacePlemelj_uncompensated_positiveKernel_intervalIntegrable
+        a ha T
+  have hbound :
+      ‖∫ t in (-T)..T, f t‖ ≤
+        |∫ t in (-T)..T, g t| :=
+    intervalIntegral.norm_integral_le_of_norm_le
+      (a := -T) (b := T) (μ := volume) (f := f) (g := g)
+      hmajor hg
+  calc
+    |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x|
+        = ‖∫ t in (-T)..T, f t‖ := by
+          unfold scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow
+          unfold f
+          exact (Real.norm_eq_abs
+            (∫ t in (-T)..T,
+              (-(a / (a ^ 2 + t ^ 2))) * Real.cos (t * x))).symm
+    _ ≤ |∫ t in (-T)..T, g t| := hbound
+    _ =
+        |∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)| := by
+          unfold g
+          rfl
+
 /-- Absolute integral majorization of the even-cosine component by the
 nonoscillatory Cauchy kernel mass. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_kernelMass
     (a : ℝ) (ha : 0 < a) (T x : ℝ) :
     |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x| ≤
       |∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)| := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_kernelMass_of_pointwise
+      a ha T x
+      (fun t : ℝ =>
+        scalarFourierLaplacePlemelj_uncompensated_evenCosine_integrand_abs_le_kernel
+          a ha t x)
 
 /-- Exact arctangent primitive for the positive Cauchy kernel mass. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_kernelMass_eq_two_arctan
