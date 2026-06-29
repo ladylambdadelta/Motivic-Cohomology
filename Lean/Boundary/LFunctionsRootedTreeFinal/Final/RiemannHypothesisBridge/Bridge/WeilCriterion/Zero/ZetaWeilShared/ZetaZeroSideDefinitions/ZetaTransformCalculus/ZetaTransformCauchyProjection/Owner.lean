@@ -5056,6 +5056,16 @@ def scalarFourierLaplacePlemelj_lowerHalfDisk
     (T : ℝ) : Set ℂ :=
   {z : ℂ | ‖z‖ ≤ T ∧ Complex.im z ≤ 0}
 
+/-- Generic boundary integral over the finite lower half-disk contour: diameter
+from `-T` to `T`, then the lower semicircle returning from `T` to `-T`. -/
+noncomputable def scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral
+    (F : ℂ → ℂ) (T : ℝ) : ℂ :=
+  (∫ t in Set.Icc (-T) T, F (t : ℂ)) +
+    ∫ θ in (0 : ℝ)..(-Real.pi),
+      let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+      F z *
+        (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
 /-- The upper pole is not in any closed lower half-disk. -/
 theorem scalarFourierLaplacePlemelj_upperPole_not_mem_lowerHalfDisk
     (a : ℝ) (ha : 0 < a) (T : ℝ) :
@@ -5199,6 +5209,16 @@ theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_negativeKernelLower
         a x T := by
   rfl
 
+/-- The negative lower semicircle boundary integral is the generic lower
+half-disk boundary integral specialized to the negative scalar kernel. -/
+theorem scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral_eq_lowerHalfDiskBoundaryIntegral
+    (a x T : ℝ) :
+    scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral
+        a x T =
+      scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral
+        (scalarFourierLaplacePlemelj_negativeKernel a x) T := by
+  rfl
+
 /-- The negative-time scalar kernel is complex differentiable on the closed
 lower half-disk because its only pole is the upper pole. -/
 theorem scalarFourierLaplacePlemelj_negativeKernel_differentiableOn_lowerHalfDisk
@@ -5213,6 +5233,15 @@ theorem scalarFourierLaplacePlemelj_negativeKernel_differentiableOn_lowerHalfDis
       (scalarFourierLaplacePlemelj_negativeKernel_exponentialNumerator_differentiableOn_lowerHalfDisk
         x T)
 
+/-- Cauchy-Goursat for a generic complex-differentiable function on the lower
+half-disk boundary. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_differentiableOn
+    (F : ℂ → ℂ) (T : ℝ)
+    (_hdiff : DifferentiableOn ℂ F
+      (scalarFourierLaplacePlemelj_lowerHalfDisk T)) :
+    scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral F T = 0 := by
+  sorry
+
 /-- Cauchy-Goursat for the negative-time scalar kernel on the lower half-disk
 boundary. -/
 theorem scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyGoursat
@@ -5224,7 +5253,11 @@ theorem scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyGoursat
         (scalarFourierLaplacePlemelj_lowerHalfDisk T)) :
     scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral
         a x T = 0 := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral_eq_lowerHalfDiskBoundaryIntegral
+      a x T).trans
+      (scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_differentiableOn
+        (scalarFourierLaplacePlemelj_negativeKernel a x) T _hdiff)
 
 /-- Half-disk Cauchy theorem for the negative-time lower contour: the upper pole
 is outside the lower half-disk, so the boundary integral is zero. -/
