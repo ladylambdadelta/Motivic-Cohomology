@@ -1981,7 +1981,112 @@ theorem fixedRightLine_fourierCauchy_symmetricWindow_productIntegrable
             (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
           Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)))
       (Set.Icc (-T) T ×ˢ Set.univ) := by
-  sorry
+  let F : ℝ × ℝ → ℂ :=
+    fun p : ℝ × ℝ =>
+      (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+        K p.2 *
+        Complex.exp
+          (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+        Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ))
+  have hden :
+      Continuous
+        (fun p : ℝ × ℝ =>
+          (((c : ℂ) + p.1 * Complex.I) - 1)) :=
+    (continuous_const.add
+      ((Complex.continuous_ofReal.comp continuous_fst).mul continuous_const)).sub
+      continuous_const
+  have hden_ne :
+      ∀ p : ℝ × ℝ,
+        (((c : ℂ) + p.1 * Complex.I) - 1) ≠ 0 :=
+    fun p : ℝ × ℝ =>
+      fixedRightLine_cauchyDenominator_ne_zero c p.1 hc
+  have hscalar :
+      Continuous
+        (fun p : ℝ × ℝ =>
+          -1 / (((c : ℂ) + p.1 * Complex.I) - 1)) :=
+    continuous_const.div hden hden_ne
+  have hK_pair :
+      Continuous (fun p : ℝ × ℝ => K p.2) :=
+    hK_cont.comp continuous_snd
+  have hphase :
+      Continuous
+        (fun p : ℝ × ℝ =>
+          Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) :=
+    (continuous_const.mul
+      (Complex.continuous_ofReal.comp continuous_fst)).mul
+        (Complex.continuous_ofReal.comp continuous_snd)
+  have hweight :
+      Continuous
+        (fun p : ℝ × ℝ =>
+          ((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) :=
+    continuous_const.mul
+      (Complex.continuous_ofReal.comp continuous_snd)
+  have hF_cont : Continuous F :=
+    ((hscalar.mul hK_pair).mul
+      (Complex.continuous_exp.comp hphase)).mul
+        (Complex.continuous_exp.comp hweight)
+  have hcompact :
+      IsCompact (Set.Icc (-T) T ×ˢ tsupport K) :=
+    isCompact_Icc.prod hK_compact
+  have hF_compact :
+      IntegrableOn F (Set.Icc (-T) T ×ˢ tsupport K) :=
+    hF_cont.continuousOn.integrableOn_compact hcompact
+  exact
+    hF_compact.of_forall_diff_eq_zero
+      (measurableSet_Icc.prod measurableSet_univ)
+      (fun p hp =>
+        let hnot :
+            p.2 ∉ tsupport K :=
+          fun hp_support =>
+            hp.2 ⟨hp.1.1, hp_support⟩
+        calc
+          F p =
+              (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+                K p.2 *
+                Complex.exp
+                  (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
+                exact rfl
+          _ =
+              (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+                0 *
+                Complex.exp
+                  (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
+                exact congrArg
+                  (fun z : ℂ =>
+                    (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+                      z *
+                      Complex.exp
+                        (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+                      Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)))
+                  (image_eq_zero_of_nmem_tsupport hnot)
+          _ =
+              0 *
+                Complex.exp
+                  (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
+                exact congrArg
+                  (fun z : ℂ =>
+                    z *
+                      Complex.exp
+                        (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+                      Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)))
+                  (mul_zero
+                    (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)))
+          _ =
+              0 *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)) := by
+                exact congrArg
+                  (fun z : ℂ =>
+                    z *
+                      Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)))
+                  (zero_mul
+                    (Complex.exp
+                      (Complex.I * (p.1 : ℂ) * (p.2 : ℂ))))
+          _ = 0 := by
+                exact zero_mul
+                  (Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)))
 
 /-- Standard Fubini form of the finite-window product Cauchy integral. -/
 theorem fixedRightLine_fourierCauchy_symmetricWindow_productIntegral_eq_iterated
