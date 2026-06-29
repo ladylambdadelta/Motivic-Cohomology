@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCalculusBase.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.IteratedOscillatoryKernel.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.ZetaEntireJensen.EntireJensenFormula.ZeroFreePrimitive.RadialFTC.Owner
 import Mathlib.Analysis.Fourier.Inversion
 import Mathlib.Data.Real.Pi.Bounds
 import Mathlib.Analysis.SpecialFunctions.Integrals
@@ -5482,6 +5483,49 @@ theorem scalarFourierLaplacePlemelj_negativeKernel_differentiableOn_lowerHalfDis
       (scalarFourierLaplacePlemelj_negativeKernel_exponentialNumerator_differentiableOn_lowerHalfDisk
         x T)
 
+/-- The negative-time scalar kernel is analytic at every point of the lower
+half-disk. -/
+theorem scalarFourierLaplacePlemelj_negativeKernel_analyticAt_lowerHalfDisk
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (T : ℝ) :
+    ∀ z ∈ scalarFourierLaplacePlemelj_lowerHalfDisk T,
+      AnalyticAt ℂ (scalarFourierLaplacePlemelj_negativeKernel a x) z := by
+  intro z hz
+  unfold scalarFourierLaplacePlemelj_negativeKernel
+  have hden :
+      AnalyticAt ℂ (fun w : ℂ => (a : ℂ) + w * Complex.I) z :=
+    analyticAt_const.add (analyticAt_id.mul analyticAt_const)
+  have hden_ne :
+      (a : ℂ) + z * Complex.I ≠ 0 :=
+    scalarFourierLaplacePlemelj_negativeKernel_denominator_ne_zero_on_lowerHalfDisk
+      a ha T hz
+  have hnorm_rec :
+      AnalyticAt ℂ (fun w : ℂ => -1 / ((a : ℂ) + w * Complex.I)) z :=
+    analyticAt_const.div hden hden_ne
+  have harg :
+      AnalyticAt ℂ (fun w : ℂ => Complex.I * w * (x : ℂ)) z :=
+    (analyticAt_const.mul analyticAt_id).mul analyticAt_const
+  have hexp_normed :
+      AnalyticAt ℂ
+        (fun w : ℂ =>
+          NormedSpace.exp ℂ (Complex.I * w * (x : ℂ)))
+        z :=
+    (NormedSpace.exp_analytic (𝕂 := ℂ) (𝔸 := ℂ)
+      (Complex.I * z * (x : ℂ))).comp harg
+  have hexp :
+      AnalyticAt ℂ
+        (fun w : ℂ =>
+          Complex.exp (Complex.I * w * (x : ℂ)))
+        z := by
+    exact
+      Eq.subst
+        (motive := fun E : ℂ → ℂ =>
+          AnalyticAt ℂ
+            (fun w : ℂ => E (Complex.I * w * (x : ℂ)))
+            z)
+        Complex.exp_eq_exp_ℂ.symm
+        hexp_normed
+  exact hnorm_rec.mul hexp
+
 /-- Primitive data for a function on the lower half-disk. -/
 def scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk
     (F G : ℂ → ℂ) (T : ℝ) : Prop :=
@@ -5489,15 +5533,87 @@ def scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk
     ∀ z ∈ scalarFourierLaplacePlemelj_lowerHalfDisk T,
       HasDerivWithinAt G (F z) (scalarFourierLaplacePlemelj_lowerHalfDisk T) z
 
+/-- The lower half-disk is the intersection of the closed radius disk and the
+closed lower half-plane. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_eq_closedBall_inter_lowerHalfPlane
+    (T : ℝ) :
+    scalarFourierLaplacePlemelj_lowerHalfDisk T =
+      Metric.closedBall (0 : ℂ) T ∩ {z : ℂ | Complex.im z ≤ 0} := by
+  exact
+    Set.ext
+      (fun z : ℂ =>
+        Iff.intro
+          (fun hz =>
+            And.intro
+              (mem_closedBall_zero_iff.mpr hz.1)
+              hz.2)
+          (fun hz =>
+            And.intro
+              (mem_closedBall_zero_iff.mp hz.1)
+              hz.2))
+
+/-- The origin lies in every nonnegative lower half-disk. -/
+theorem scalarFourierLaplacePlemelj_zero_mem_lowerHalfDisk
+    (T : ℝ) (_hT : 0 ≤ T) :
+    (0 : ℂ) ∈ scalarFourierLaplacePlemelj_lowerHalfDisk T := by
+  exact
+    And.intro
+      (Eq.subst
+        (motive := fun r : ℝ => r ≤ T)
+        norm_zero
+        _hT)
+      (le_of_eq Complex.zero_im)
+
+/-- The lower half-disk is star-convex from the origin. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_starConvex
+    (T : ℝ) (_hT : 0 ≤ T) :
+    StarConvex ℝ (0 : ℂ) (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
+  have hconv_closedBall :
+      Convex ℝ (Metric.closedBall (0 : ℂ) T) :=
+    convex_closedBall (0 : ℂ) T
+  have hconv_lower :
+      Convex ℝ {z : ℂ | Complex.im z ≤ 0} :=
+    Complex.convex_halfSpace_im_le 0
+  have hconv :
+      Convex ℝ (Metric.closedBall (0 : ℂ) T ∩ {z : ℂ | Complex.im z ≤ 0}) :=
+    hconv_closedBall.inter hconv_lower
+  have hzero :
+      (0 : ℂ) ∈ Metric.closedBall (0 : ℂ) T ∩ {z : ℂ | Complex.im z ≤ 0} := by
+    exact
+      Eq.subst
+        (motive := fun S : Set ℂ => (0 : ℂ) ∈ S)
+        (scalarFourierLaplacePlemelj_lowerHalfDisk_eq_closedBall_inter_lowerHalfPlane T)
+        (scalarFourierLaplacePlemelj_zero_mem_lowerHalfDisk T _hT)
+  exact
+    Eq.subst
+      (motive := fun S : Set ℂ => StarConvex ℝ (0 : ℂ) S)
+      (scalarFourierLaplacePlemelj_lowerHalfDisk_eq_closedBall_inter_lowerHalfPlane T).symm
+      (hconv.starConvex hzero)
+
 /-- Holomorphicity on the lower half-disk supplies primitive data on that
-simply connected contour domain. -/
-theorem scalarFourierLaplacePlemelj_lowerHalfDisk_hasPrimitive_of_differentiableOn
+star-convex contour domain. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_hasPrimitive_of_analyticAt
     (F : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
-    (_hdiff : DifferentiableOn ℂ F
-      (scalarFourierLaplacePlemelj_lowerHalfDisk T)) :
+    (_hanalytic :
+      ∀ z ∈ scalarFourierLaplacePlemelj_lowerHalfDisk T,
+        AnalyticAt ℂ F z) :
     ∃ G : ℂ → ℂ,
       scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T := by
-  sorry
+  let G : ℂ → ℂ := LFunctions.complex_centerSegmentIntegral F
+  have hprimitive :
+      ∀ z : ℂ,
+        z ∈ scalarFourierLaplacePlemelj_lowerHalfDisk T →
+          AnalyticAt ℂ G z ∧ HasDerivAt G (F z) z := by
+    exact
+      LFunctions.complex_centerSegmentIntegral_parametricPrimitive_of_holomorphicOn_starConvex
+        F
+        (scalarFourierLaplacePlemelj_lowerHalfDisk_starConvex T _hT)
+        _hanalytic
+  exact
+    Exists.intro G
+      (And.intro
+        (fun z hz => (_hanalytic z hz).continuousAt.continuousWithinAt)
+        (fun z hz => (hprimitive z hz).2.hasDerivWithinAt))
 
 /-- The unoriented real set integral on the lower half-disk diameter is the
 usual oriented interval integral when `0 ≤ T`. -/
@@ -6259,35 +6375,34 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_has
         (scalarFourierLaplacePlemelj_lowerHalfDisk_primitiveEndpointSub_add_return_eq_zero
           G T)
 
-/-- Cauchy-Goursat for a generic complex-differentiable function on the lower
-half-disk boundary. -/
-theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_differentiableOn
+/-- Cauchy-Goursat for a generic analytic function on the lower half-disk
+boundary. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_analyticAt
     (F : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
-    (_hdiff : DifferentiableOn ℂ F
-      (scalarFourierLaplacePlemelj_lowerHalfDisk T)) :
+    (_hanalytic :
+      ∀ z ∈ scalarFourierLaplacePlemelj_lowerHalfDisk T,
+        AnalyticAt ℂ F z) :
     scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral F T = 0 := by
   exact
     scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_hasPrimitive
       F T _hT
-      (scalarFourierLaplacePlemelj_lowerHalfDisk_hasPrimitive_of_differentiableOn
-        F T _hT _hdiff)
+      (scalarFourierLaplacePlemelj_lowerHalfDisk_hasPrimitive_of_analyticAt
+        F T _hT _hanalytic)
 
 /-- Cauchy-Goursat for the negative-time scalar kernel on the lower half-disk
 boundary. -/
 theorem scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyGoursat
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
-    (T : ℝ) (hT : 0 < T)
-    (_hdiff :
-      DifferentiableOn ℂ
-        (scalarFourierLaplacePlemelj_negativeKernel a x)
-        (scalarFourierLaplacePlemelj_lowerHalfDisk T)) :
+    (T : ℝ) (hT : 0 < T) :
     scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral
         a x T = 0 := by
   exact
     (scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral_eq_lowerHalfDiskBoundaryIntegral
       a x T).trans
-      (scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_differentiableOn
-        (scalarFourierLaplacePlemelj_negativeKernel a x) T hT.le _hdiff)
+      (scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_analyticAt
+        (scalarFourierLaplacePlemelj_negativeKernel a x) T hT.le
+        (scalarFourierLaplacePlemelj_negativeKernel_analyticAt_lowerHalfDisk
+          a ha x T))
 
 /-- Half-disk Cauchy theorem for the negative-time lower contour: the upper pole
 is outside the lower half-disk, so the boundary integral is zero. -/
@@ -6302,8 +6417,6 @@ theorem scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyIntegralFo
   exact
     scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyGoursat
       a ha x hx T hT
-      (scalarFourierLaplacePlemelj_negativeKernel_differentiableOn_lowerHalfDisk
-        a ha x T)
 
 /-- Cauchy's residue theorem for the negative-time scalar kernel boundary
 integral over the finite lower semicircle. -/
