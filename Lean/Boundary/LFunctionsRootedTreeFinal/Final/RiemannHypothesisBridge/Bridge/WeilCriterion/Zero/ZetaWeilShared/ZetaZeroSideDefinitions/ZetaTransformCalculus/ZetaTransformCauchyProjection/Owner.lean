@@ -3924,7 +3924,174 @@ theorem scalarFourierLaplacePlemelj_upperLinearExp_integral_eq_scaled_one_sub_ex
     ∫ θ in (0 : ℝ)..(Real.pi / 2),
         Real.exp (-(((2 * c) / Real.pi) * θ)) =
       ((Real.pi / 2) * c⁻¹) * (1 - Real.exp (-c)) := by
-  sorry
+  let k : ℝ := (2 * c) / Real.pi
+  let A : ℝ := (Real.pi / 2) * c⁻¹
+  have hpi_ne : Real.pi ≠ 0 :=
+    Real.pi_pos.ne'
+  have hc_ne : c ≠ 0 :=
+    hc.ne'
+  have hk_pos : 0 < k := by
+    exact div_pos (mul_pos zero_lt_two hc) Real.pi_pos
+  have hk_ne : k ≠ 0 :=
+    hk_pos.ne'
+  have harg :
+      (fun θ : ℝ => Real.exp (-(((2 * c) / Real.pi) * θ))) =
+        fun θ : ℝ => Real.exp ((-k) * θ) := by
+    exact funext
+      (fun θ : ℝ =>
+        calc
+          Real.exp (-(((2 * c) / Real.pi) * θ)) =
+              Real.exp (-(k * θ)) := by
+            exact congrArg Real.exp
+              (congrArg Neg.neg
+                (congrArg (fun r : ℝ => r * θ) rfl))
+          _ = Real.exp ((-k) * θ) := by
+            exact congrArg Real.exp
+              (neg_mul k θ).symm)
+  have hendpoint_zero : (-k) * (0 : ℝ) = 0 :=
+    mul_zero (-k)
+  have hendpoint_half : (-k) * (Real.pi / 2) = -c := by
+    calc
+      (-k) * (Real.pi / 2) =
+          -(k * (Real.pi / 2)) := by
+        exact neg_mul k (Real.pi / 2)
+      _ = -(((2 * c) / Real.pi) * (Real.pi / 2)) := by
+        exact congrArg Neg.neg
+          (congrArg (fun r : ℝ => r * (Real.pi / 2)) rfl)
+      _ = -(((2 * c) * Real.pi⁻¹) * (Real.pi / 2)) := by
+        exact congrArg Neg.neg
+          (congrArg (fun r : ℝ => r * (Real.pi / 2))
+            (div_eq_mul_inv (2 * c) Real.pi))
+      _ = -((2 * c) * (Real.pi⁻¹ * (Real.pi / 2))) := by
+        exact congrArg Neg.neg
+          (mul_assoc (2 * c) Real.pi⁻¹ (Real.pi / 2))
+      _ = -((2 * c) * ((Real.pi⁻¹ * Real.pi) / 2)) := by
+        exact congrArg
+          (fun r : ℝ => -((2 * c) * r))
+          (mul_div_assoc Real.pi⁻¹ Real.pi 2).symm
+      _ = -((2 * c) * (1 / 2)) := by
+        exact congrArg
+          (fun r : ℝ => -((2 * c) * (r / 2)))
+          (inv_mul_cancel₀ hpi_ne)
+      _ = -(((2 * c) / 2)) := by
+        exact congrArg Neg.neg
+          (mul_div_assoc 2 c 2)
+      _ = -c := by
+        exact congrArg Neg.neg
+          (mul_div_cancel_left₀ c two_ne_zero)
+  have hscale_mul_k : A * k = 1 := by
+    calc
+      A * k =
+          ((Real.pi / 2) * c⁻¹) * ((2 * c) / Real.pi) := by
+        exact rfl
+      _ = ((Real.pi / 2) * c⁻¹) * ((2 * c) * Real.pi⁻¹) := by
+        exact congrArg
+          (fun r : ℝ => ((Real.pi / 2) * c⁻¹) * r)
+          (div_eq_mul_inv (2 * c) Real.pi)
+      _ = (Real.pi / 2) * (c⁻¹ * ((2 * c) * Real.pi⁻¹)) := by
+        exact mul_assoc (Real.pi / 2) c⁻¹ ((2 * c) * Real.pi⁻¹)
+      _ = (Real.pi / 2) * ((c⁻¹ * (2 * c)) * Real.pi⁻¹) := by
+        exact congrArg
+          (fun r : ℝ => (Real.pi / 2) * r)
+          (mul_assoc c⁻¹ (2 * c) Real.pi⁻¹)
+      _ = (Real.pi / 2) * (((c⁻¹ * c) * 2) * Real.pi⁻¹) := by
+        have htwo_c : 2 * c = c * 2 :=
+          mul_comm 2 c
+        have hstep :
+            c⁻¹ * (2 * c) = (c⁻¹ * c) * 2 := by
+          calc
+            c⁻¹ * (2 * c) = c⁻¹ * (c * 2) := by
+              exact congrArg (fun r : ℝ => c⁻¹ * r) htwo_c
+            _ = (c⁻¹ * c) * 2 := by
+              exact mul_assoc c⁻¹ c 2
+        exact congrArg
+          (fun r : ℝ => (Real.pi / 2) * (r * Real.pi⁻¹))
+          hstep
+      _ = (Real.pi / 2) * ((1 * 2) * Real.pi⁻¹) := by
+        exact congrArg
+          (fun r : ℝ => (Real.pi / 2) * ((r * 2) * Real.pi⁻¹))
+          (inv_mul_cancel₀ hc_ne)
+      _ = (Real.pi / 2) * (2 * Real.pi⁻¹) := by
+        exact congrArg
+          (fun r : ℝ => (Real.pi / 2) * (r * Real.pi⁻¹))
+          (one_mul 2)
+      _ = ((Real.pi / 2) * 2) * Real.pi⁻¹ := by
+        exact (mul_assoc (Real.pi / 2) 2 Real.pi⁻¹).symm
+      _ = Real.pi * Real.pi⁻¹ := by
+        exact congrArg
+          (fun r : ℝ => r * Real.pi⁻¹)
+          (div_mul_cancel₀ Real.pi two_ne_zero)
+      _ = 1 := by
+        exact mul_inv_cancel₀ hpi_ne
+  have hneg_inv : (-k)⁻¹ = -A := by
+    have hmul : (-A) * (-k) = 1 := by
+      calc
+        (-A) * (-k) = A * k := by
+          exact neg_mul_neg A k
+        _ = 1 := hscale_mul_k
+    exact eq_inv_of_mul_eq_one_left hmul
+  have hintegral :
+      ∫ θ in (0 : ℝ)..(Real.pi / 2), Real.exp ((-k) * θ) =
+        (-k)⁻¹ *
+          (Real.exp ((-k) * (Real.pi / 2)) -
+            Real.exp ((-k) * (0 : ℝ))) := by
+    calc
+      ∫ θ in (0 : ℝ)..(Real.pi / 2), Real.exp ((-k) * θ) =
+          (-k)⁻¹ •
+            ∫ y in ((-k) * (0 : ℝ))..((-k) * (Real.pi / 2)),
+              Real.exp y := by
+        exact intervalIntegral.integral_comp_mul_left
+          (f := Real.exp)
+          (a := (0 : ℝ))
+          (b := Real.pi / 2)
+          (c := -k)
+          (neg_ne_zero.mpr hk_ne)
+      _ =
+          (-k)⁻¹ *
+            (Real.exp ((-k) * (Real.pi / 2)) -
+              Real.exp ((-k) * (0 : ℝ))) := by
+        exact congrArg
+          (fun r : ℝ => (-k)⁻¹ * r)
+          (integral_exp
+            (a := (-k) * (0 : ℝ))
+            (b := (-k) * (Real.pi / 2)))
+  calc
+    ∫ θ in (0 : ℝ)..(Real.pi / 2),
+        Real.exp (-(((2 * c) / Real.pi) * θ)) =
+        ∫ θ in (0 : ℝ)..(Real.pi / 2), Real.exp ((-k) * θ) := by
+      exact congrArg
+        (fun f : ℝ → ℝ => ∫ θ in (0 : ℝ)..(Real.pi / 2), f θ)
+        harg
+    _ =
+        (-k)⁻¹ *
+          (Real.exp ((-k) * (Real.pi / 2)) -
+            Real.exp ((-k) * (0 : ℝ))) := by
+      exact hintegral
+    _ = (-A) * (Real.exp (-c) - Real.exp ((-k) * (0 : ℝ))) := by
+      exact congrArg₂
+        (fun u v : ℝ =>
+          u * (Real.exp v - Real.exp ((-k) * (0 : ℝ))))
+        hneg_inv
+        hendpoint_half
+    _ = (-A) * (Real.exp (-c) - Real.exp 0) := by
+      exact congrArg
+        (fun r : ℝ => (-A) * (Real.exp (-c) - Real.exp r))
+        hendpoint_zero
+    _ = (-A) * (Real.exp (-c) - 1) := by
+      exact congrArg
+        (fun r : ℝ => (-A) * (Real.exp (-c) - r))
+        Real.exp_zero
+    _ = A * (1 - Real.exp (-c)) := by
+      calc
+        (-A) * (Real.exp (-c) - 1) =
+            A * (-(Real.exp (-c) - 1)) := by
+          exact neg_mul_eq_mul_neg A (Real.exp (-c) - 1)
+        _ = A * (1 - Real.exp (-c)) := by
+          exact congrArg
+            (fun r : ℝ => A * r)
+            (neg_sub (Real.exp (-c)) 1)
+    _ = ((Real.pi / 2) * c⁻¹) * (1 - Real.exp (-c)) := by
+      exact rfl
 
 /-- The finite exponential loss factor is bounded by one. -/
 theorem scalarFourierLaplacePlemelj_one_sub_exp_neg_le_one
