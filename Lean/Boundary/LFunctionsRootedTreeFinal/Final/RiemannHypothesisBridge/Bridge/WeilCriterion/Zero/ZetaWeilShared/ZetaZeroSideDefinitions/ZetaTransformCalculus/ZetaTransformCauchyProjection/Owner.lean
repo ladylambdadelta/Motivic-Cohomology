@@ -2935,6 +2935,12 @@ noncomputable def scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBound
       scalarFourierLaplacePlemelj_positiveKernel a x z *
         (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
 
+/-- Analytic numerator of the positive-time scalar Cauchy kernel after factoring
+the simple upper-pole denominator. -/
+noncomputable def scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator
+    (x : ℝ) (z : ℂ) : ℂ :=
+  Complex.I * Complex.exp (Complex.I * z * (x : ℂ))
+
 /-- Point residue coefficient of the positive-time normalized scalar kernel at
 the upper pole, before multiplication by `2πi`. -/
 noncomputable def scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient
@@ -3065,6 +3071,31 @@ theorem scalarFourierLaplacePlemelj_positiveClosedContour_eq_positiveKernelUpper
         a x T := by
   rfl
 
+/-- The positive upper-pole residue coefficient is the analytic numerator
+evaluated at the upper pole. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient_eq_analyticNumerator
+    (a x : ℝ) :
+    scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient a x =
+      scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator
+        x (scalarFourierLaplacePlemelj_upperPole a) := by
+  unfold scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator
+  exact
+    scalarFourierLaplacePlemelj_positiveKernel_upperPole_residueCoefficient
+      a x
+
+/-- Half-disk Cauchy integral formula for the positive-time analytic numerator
+and the upper-pole denominator. -/
+theorem scalarFourierLaplacePlemelj_positiveKernelUpperHalfDisk_cauchyIntegralFormula
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (T : ℝ)
+    (_hpole : ‖scalarFourierLaplacePlemelj_upperPole a‖ < T) :
+    scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBoundaryIntegral
+        a x T =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
+        scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator
+          x (scalarFourierLaplacePlemelj_upperPole a) := by
+  sorry
+
 /-- Cauchy's residue theorem for the positive-time scalar kernel boundary
 integral over the finite upper semicircle. -/
 theorem scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBoundaryIntegral_cauchyResidue
@@ -3075,7 +3106,13 @@ theorem scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBoundaryIntegra
         a x T =
       ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
         scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient a x := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_positiveKernelUpperHalfDisk_cauchyIntegralFormula
+      a ha x hx T _hpole).trans
+      (congrArg
+        (fun R : ℂ => ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * R)
+        (scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient_eq_analyticNumerator
+          a x).symm)
 
 /-- Cauchy's residue theorem for the positive-time scalar Fourier-Laplace
 kernel on the finite upper semicircle.
@@ -5008,6 +5045,12 @@ noncomputable def scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBound
       scalarFourierLaplacePlemelj_negativeKernel a x z *
         (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
 
+/-- Analytic numerator of the negative-time scalar Cauchy kernel after factoring
+the simple upper-pole denominator. -/
+noncomputable def scalarFourierLaplacePlemelj_negativeKernelAnalyticNumerator
+    (x : ℝ) (z : ℂ) : ℂ :=
+  Complex.I * Complex.exp (Complex.I * z * (x : ℂ))
+
 /-- The negative lower-half-plane kernel has zero enclosed residue sum. -/
 theorem scalarFourierLaplacePlemelj_negativeKernel_lowerHalfPlaneResidueSum_eq_zero
     (a x : ℝ) :
@@ -5029,6 +5072,18 @@ theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_negativeKernelLower
         a x T := by
   rfl
 
+/-- Half-disk Cauchy theorem for the negative-time lower contour: the upper pole
+is outside the lower half-disk, so the boundary integral is zero. -/
+theorem scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyIntegralFormula
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ)
+    (_hpole :
+      ¬ scalarFourierLaplacePlemelj_upperPole a =
+          (-(a : ℂ)) * Complex.I) :
+    scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral
+        a x T = 0 := by
+  sorry
+
 /-- Cauchy's residue theorem for the negative-time scalar kernel boundary
 integral over the finite lower semicircle. -/
 theorem scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral_cauchyResidue
@@ -5041,7 +5096,11 @@ theorem scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegra
         a x T =
       ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) *
         scalarFourierLaplacePlemelj_negativeLowerHalfPlaneResidueSum a x := by
-  sorry
+  exact
+    (scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyIntegralFormula
+      a ha x hx T _hpole).trans
+      (scalarFourierLaplacePlemelj_two_pi_i_mul_negativeLowerHalfPlaneResidueSum_eq_zero
+        a x).symm
 
 /-- Cauchy's residue theorem for the negative-time scalar Fourier-Laplace
 kernel on the finite lower semicircle.
