@@ -7159,12 +7159,74 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_low_abs_le_one
               (v / (b ^ 2 + v ^ 2)) * Real.sin v)).symm
     _ ≤ 1 := htarget
 
+theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_nonnegative
+    (b c v : ℝ) (hb : 0 < b) (hc : b ≤ c) (hv : v ∈ Set.Ici c) :
+    0 ≤ v / (b ^ 2 + v ^ 2) := by
+  have hc_nonneg : 0 ≤ c :=
+    hb.le.trans hc
+  have hc_le_v : c ≤ v :=
+    hv
+  have hv_nonneg : 0 ≤ v :=
+    hc_nonneg.trans hc_le_v
+  have hden_pos : 0 < b ^ 2 + v ^ 2 :=
+    scalarFourierLaplacePlemelj_zero_denominator_pos b hb v
+  exact div_nonneg hv_nonneg hden_pos.le
+
+theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_le_one
+    (b c v : ℝ) (_hb : 0 < b) (hone_le_c : 1 ≤ c) (hv : v ∈ Set.Ici c) :
+    v / (b ^ 2 + v ^ 2) ≤ 1 := by
+  have hc_le_v : c ≤ v :=
+    hv
+  have hone_le_v : 1 ≤ v :=
+    hone_le_c.trans hc_le_v
+  have hv_nonneg : 0 ≤ v :=
+    zero_le_one.trans hone_le_v
+  have hden_pos : 0 < b ^ 2 + v ^ 2 :=
+    add_pos_of_nonneg_of_pos (sq_nonneg b) (sq_pos_of_pos (lt_of_lt_of_le zero_lt_one hone_le_v))
+  have hv_le_v_sq : v ≤ v ^ 2 := by
+    calc
+      v = v * 1 := by
+        exact (mul_one v).symm
+      _ ≤ v * v := by
+        exact mul_le_mul_of_nonneg_left hone_le_v hv_nonneg
+      _ = v ^ 2 := by
+        exact (pow_two v).symm
+  have hv_le_den : v ≤ b ^ 2 + v ^ 2 :=
+    hv_le_v_sq.trans (le_add_of_nonneg_left (sq_nonneg b))
+  exact (div_le_one hden_pos).mpr hv_le_den
+
+theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_antitoneOn
+    (b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c) (hb_le_c : b ≤ c) :
+    AntitoneOn
+      (fun v : ℝ => v / (b ^ 2 + v ^ 2))
+      (Set.Ici c) := by
+  sorry
+
+theorem scalarFourierLaplacePlemelj_dirichlet_sine_tail_abs_le_two
+    (g : ℝ → ℝ) (A c : ℝ)
+    (hone_le_c : 1 ≤ c) (hcA : c ≤ A)
+    (hg_nonneg : ∀ v ∈ Set.Ici c, 0 ≤ g v)
+    (hg_le_one : ∀ v ∈ Set.Ici c, g v ≤ 1)
+    (hg_antitone : AntitoneOn g (Set.Ici c)) :
+    |∫ v in c..A, g v * Real.sin v| ≤ 2 := by
+  sorry
+
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
     (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
     (hb_le_c : b ≤ c) (hcA : c ≤ A) :
     |∫ v in c..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 2 := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_dirichlet_sine_tail_abs_le_two
+      (fun v : ℝ => v / (b ^ 2 + v ^ 2)) A c hone_le_c hcA
+      (fun v hv =>
+        scalarFourierLaplacePlemelj_highTailCauchyAmplitude_nonnegative
+          b c v hb hb_le_c hv)
+      (fun v hv =>
+        scalarFourierLaplacePlemelj_highTailCauchyAmplitude_le_one
+          b c v hb hone_le_c hv)
+      (scalarFourierLaplacePlemelj_highTailCauchyAmplitude_antitoneOn
+        b c hb hone_le_c hb_le_c)
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_split_at_one
     (A b : ℝ) (hb : 0 < b) (hb_le_one : b ≤ 1)
