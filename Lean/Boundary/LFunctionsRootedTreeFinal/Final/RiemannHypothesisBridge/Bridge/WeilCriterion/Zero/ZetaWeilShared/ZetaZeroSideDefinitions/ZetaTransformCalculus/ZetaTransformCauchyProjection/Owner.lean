@@ -5092,6 +5092,25 @@ theorem scalarFourierLaplacePlemelj_upperPole_not_mem_lowerHalfDisk
         exact mul_one a
   exact (not_le_of_gt ha) (him_eq ▸ him_le)
 
+/-- The scalar Cauchy denominator is nonzero on the lower half-disk. -/
+theorem scalarFourierLaplacePlemelj_negativeKernel_denominator_ne_zero_on_lowerHalfDisk
+    (a : ℝ) (ha : 0 < a) (T : ℝ) {z : ℂ}
+    (hz : z ∈ scalarFourierLaplacePlemelj_lowerHalfDisk T) :
+    (a : ℂ) + z * Complex.I ≠ 0 := by
+  intro hzero
+  have hfactor_zero :
+      Complex.I * (z - scalarFourierLaplacePlemelj_upperPole a) = 0 :=
+    (scalarFourierLaplacePlemelj_positiveKernel_denominator_factor_upperPole
+      a z).symm.trans hzero
+  have hsub_zero : z - scalarFourierLaplacePlemelj_upperPole a = 0 :=
+    (mul_eq_zero.mp hfactor_zero).resolve_left Complex.I_ne_zero
+  have hz_eq_pole : z = scalarFourierLaplacePlemelj_upperPole a :=
+    sub_eq_zero.mp hsub_zero
+  exact
+    scalarFourierLaplacePlemelj_upperPole_not_mem_lowerHalfDisk
+      a ha T
+      (hz_eq_pole ▸ hz)
+
 /-- The negative lower-half-plane kernel has zero enclosed residue sum. -/
 theorem scalarFourierLaplacePlemelj_negativeKernel_lowerHalfPlaneResidueSum_eq_zero
     (a x : ℝ) :
