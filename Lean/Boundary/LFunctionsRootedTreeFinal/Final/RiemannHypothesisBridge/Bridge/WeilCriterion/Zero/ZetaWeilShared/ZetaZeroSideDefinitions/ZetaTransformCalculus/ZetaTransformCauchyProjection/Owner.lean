@@ -3165,6 +3165,146 @@ theorem scalarFourierLaplacePlemelj_semicircleVelocity_norm_eq_radius
     _ = T := by
       exact mul_one T
 
+/-- Real coordinate of the scalar semicircle point. -/
+theorem scalarFourierLaplacePlemelj_semicirclePoint_re
+    (T θ : ℝ) :
+    ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).re =
+      T * Real.cos θ := by
+  have harg :
+      Complex.I * (θ : ℂ) = (θ : ℂ) * Complex.I :=
+    mul_comm Complex.I (θ : ℂ)
+  have hexp_im :
+      (Complex.exp (Complex.I * (θ : ℂ))).im = Real.sin θ :=
+    (congrArg
+      (fun z : ℂ => (Complex.exp z).im)
+      harg).trans
+      (Complex.exp_ofReal_mul_I_im θ)
+  calc
+    ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).re =
+        (T : ℂ).re * (Complex.exp (Complex.I * (θ : ℂ))).re -
+          (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).im := by
+      exact Complex.mul_re (T : ℂ)
+        (Complex.exp (Complex.I * (θ : ℂ)))
+    _ =
+        T * (Complex.exp (Complex.I * (θ : ℂ))).re -
+          (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).im := by
+      exact congrArg
+        (fun r : ℝ =>
+          r * (Complex.exp (Complex.I * (θ : ℂ))).re -
+            (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).im)
+        (Complex.ofReal_re T)
+    _ =
+        T * (Complex.exp (Complex.I * (θ : ℂ))).re -
+          0 * (Complex.exp (Complex.I * (θ : ℂ))).im := by
+      exact congrArg
+        (fun r : ℝ =>
+          T * (Complex.exp (Complex.I * (θ : ℂ))).re -
+            r * (Complex.exp (Complex.I * (θ : ℂ))).im)
+        (Complex.ofReal_im T)
+    _ =
+        T * (Complex.exp (Complex.I * (θ : ℂ))).re - 0 := by
+      exact congrArg
+        (fun r : ℝ =>
+          T * (Complex.exp (Complex.I * (θ : ℂ))).re - r)
+        (zero_mul (Complex.exp (Complex.I * (θ : ℂ))).im)
+    _ = T * (Complex.exp (Complex.I * (θ : ℂ))).re := by
+      exact sub_zero (T * (Complex.exp (Complex.I * (θ : ℂ))).re)
+    _ = T * Real.cos θ := by
+      exact congrArg
+        (fun r : ℝ => T * r)
+        hexp_re
+
+/-- Imaginary coordinate of the scalar semicircle point. -/
+theorem scalarFourierLaplacePlemelj_semicirclePoint_im
+    (T θ : ℝ) :
+    ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im =
+      T * Real.sin θ := by
+  have harg :
+      Complex.I * (θ : ℂ) = (θ : ℂ) * Complex.I :=
+    mul_comm Complex.I (θ : ℂ)
+  have hexp_re :
+      (Complex.exp (Complex.I * (θ : ℂ))).re = Real.cos θ :=
+    (congrArg
+      (fun z : ℂ => (Complex.exp z).re)
+      harg).trans
+      (Complex.exp_ofReal_mul_I_re θ)
+  have hexp_im :
+      (Complex.exp (Complex.I * (θ : ℂ))).im = Real.sin θ :=
+    (congrArg
+      (fun z : ℂ => (Complex.exp z).im)
+      harg).trans
+      (Complex.exp_ofReal_mul_I_im θ)
+  calc
+    ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im =
+        (T : ℂ).re * (Complex.exp (Complex.I * (θ : ℂ))).im +
+          (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).re := by
+      exact Complex.mul_im (T : ℂ)
+        (Complex.exp (Complex.I * (θ : ℂ)))
+    _ =
+        T * (Complex.exp (Complex.I * (θ : ℂ))).im +
+          (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).re := by
+      exact congrArg
+        (fun r : ℝ =>
+          r * (Complex.exp (Complex.I * (θ : ℂ))).im +
+            (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).re)
+        (Complex.ofReal_re T)
+    _ =
+        T * (Complex.exp (Complex.I * (θ : ℂ))).im +
+          0 * (Complex.exp (Complex.I * (θ : ℂ))).re := by
+      exact congrArg
+        (fun r : ℝ =>
+          T * (Complex.exp (Complex.I * (θ : ℂ))).im +
+            r * (Complex.exp (Complex.I * (θ : ℂ))).re)
+        (Complex.ofReal_im T)
+    _ =
+        T * (Complex.exp (Complex.I * (θ : ℂ))).im + 0 := by
+      exact congrArg
+        (fun r : ℝ =>
+          T * (Complex.exp (Complex.I * (θ : ℂ))).im + r)
+        (zero_mul (Complex.exp (Complex.I * (θ : ℂ))).re)
+    _ = T * (Complex.exp (Complex.I * (θ : ℂ))).im := by
+      exact add_zero (T * (Complex.exp (Complex.I * (θ : ℂ))).im)
+    _ = T * Real.sin θ := by
+      exact congrArg
+        (fun r : ℝ => T * r)
+        hexp_im
+
+/-- Real part after multiplication by `Complex.I` on the left. -/
+theorem scalarFourierLaplacePlemelj_I_mul_semicirclePoint_re
+    (T θ : ℝ) :
+    (Complex.I * ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).re =
+      -(T * Real.sin θ) := by
+  calc
+    (Complex.I * ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).re =
+        -((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im := by
+      exact Complex.I_mul_re
+        ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+    _ = -(T * Real.sin θ) := by
+      exact congrArg Neg.neg
+        (scalarFourierLaplacePlemelj_semicirclePoint_im T θ)
+
+/-- Real scalar rearrangement for the circular exponent damping term. -/
+theorem scalarFourierLaplacePlemelj_semicircleExponent_scalar_rearrange
+    (x T θ : ℝ) :
+    (-(T * Real.sin θ)) * x = -(T * x * Real.sin θ) := by
+  have hinner :
+      (T * Real.sin θ) * x = T * x * Real.sin θ := by
+    calc
+      (T * Real.sin θ) * x = T * (Real.sin θ * x) := by
+        exact mul_assoc T (Real.sin θ) x
+      _ = T * (x * Real.sin θ) := by
+        exact congrArg
+          (fun r : ℝ => T * r)
+          (mul_comm (Real.sin θ) x)
+      _ = T * x * Real.sin θ := by
+        exact (mul_assoc T x (Real.sin θ)).symm
+  calc
+    (-(T * Real.sin θ)) * x =
+        -((T * Real.sin θ) * x) := by
+      exact neg_mul (T * Real.sin θ) x
+    _ = -(T * x * Real.sin θ) := by
+      exact congrArg Neg.neg hinner
+
 /-- Real part of the scalar Fourier-Laplace exponent on a circular arc. -/
 theorem scalarFourierLaplacePlemelj_semicircleExponent_re
     (x T θ : ℝ) :
@@ -3172,7 +3312,76 @@ theorem scalarFourierLaplacePlemelj_semicircleExponent_re
       ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
       (x : ℂ)).re =
       -(T * x * Real.sin θ) := by
-  sorry
+  calc
+    (Complex.I *
+      ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+      (x : ℂ)).re =
+        (Complex.I *
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).re *
+          (x : ℂ).re -
+        (Complex.I *
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).im *
+          (x : ℂ).im := by
+      exact Complex.mul_re
+        (Complex.I *
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+        (x : ℂ)
+    _ =
+        (Complex.I *
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).re *
+          x -
+        (Complex.I *
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).im *
+          (x : ℂ).im := by
+      exact congrArg
+        (fun r : ℝ =>
+          (Complex.I *
+            ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).re *
+            r -
+          (Complex.I *
+            ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).im *
+            (x : ℂ).im)
+        (Complex.ofReal_re x)
+    _ =
+        (Complex.I *
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).re *
+          x -
+        (Complex.I *
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).im *
+          0 := by
+      exact congrArg
+        (fun r : ℝ =>
+          (Complex.I *
+            ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).re *
+            x -
+          (Complex.I *
+            ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).im *
+            r)
+        (Complex.ofReal_im x)
+    _ =
+        (Complex.I *
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).re * x -
+        0 := by
+      exact congrArg
+        (fun r : ℝ =>
+          (Complex.I *
+            ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).re * x - r)
+        (mul_zero
+          (Complex.I *
+            ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).im)
+    _ =
+        (Complex.I *
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).re * x := by
+      exact sub_zero
+        ((Complex.I *
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).re * x)
+    _ = (-(T * Real.sin θ)) * x := by
+      exact congrArg
+        (fun r : ℝ => r * x)
+        (scalarFourierLaplacePlemelj_I_mul_semicirclePoint_re T θ)
+    _ = -(T * x * Real.sin θ) := by
+      exact scalarFourierLaplacePlemelj_semicircleExponent_scalar_rearrange
+        x T θ
 
 /-- Denominator part of the positive upper-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_denominator_norm_inv_le
