@@ -5514,13 +5514,35 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_setIntegral_eq_int
         hle).symm
 
 /-- Restricting lower half-disk primitive data to the real diameter gives the
-one-variable derivative needed by the fundamental theorem of calculus. -/
-theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasDerivAt
+right-derivative on the open interval needed by the fundamental theorem of
+calculus. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightDerivWithinAt
     (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
     (_hprimitive :
       scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
-    ∀ t ∈ Set.Icc (-T) T,
-      HasDerivAt (fun x : ℝ => G (x : ℂ)) (F (t : ℂ)) t := by
+    ∀ t ∈ Set.Ioo (-T) T,
+      HasDerivWithinAt
+        (fun x : ℝ => G (x : ℂ))
+        (F (t : ℂ))
+        (Set.Ioi t)
+        t := by
+  sorry
+
+/-- Primitive data on the lower half-disk makes the real-diameter primitive
+continuous on the closed diameter. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegmentPrimitive_continuousOn
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
+    ContinuousOn (fun x : ℝ => G (x : ℂ)) (Set.Icc (-T) T) := by
+  sorry
+
+/-- The real-diameter integrand is interval-integrable on the diameter. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_intervalIntegrable
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
+    IntervalIntegrable (fun x : ℝ => F (x : ℂ)) MeasureTheory.volume (-T) T := by
   sorry
 
 /-- The interval integral over the real diameter evaluates to the primitive
@@ -5531,7 +5553,17 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_intervalIntegral_e
       scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T) :
     (∫ t in (-T)..T, F (t : ℂ)) =
       G (T : ℂ) - G ((-T : ℝ) : ℂ) := by
-  sorry
+  have hle : -T ≤ T := by
+    exact neg_le_self _hT
+  exact
+    intervalIntegral.integral_eq_sub_of_hasDeriv_right_of_le
+      hle
+      (scalarFourierLaplacePlemelj_lowerHalfDisk_realSegmentPrimitive_continuousOn
+        F G T _hT _hprimitive)
+      (scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightDerivWithinAt
+        F G T _hT _hprimitive)
+      (scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_intervalIntegrable
+        F G T _hT _hprimitive)
 
 /-- The real diameter part of the lower half-disk boundary integral is the
 primitive endpoint difference. -/
