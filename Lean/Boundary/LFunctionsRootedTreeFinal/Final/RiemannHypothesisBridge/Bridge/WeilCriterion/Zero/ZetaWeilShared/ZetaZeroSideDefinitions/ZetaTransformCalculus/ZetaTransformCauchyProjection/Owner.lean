@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCalculusBase.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.IteratedOscillatoryKernel.Owner
 import Mathlib.Analysis.Fourier.Inversion
 import Mathlib.Analysis.SpecialFunctions.JapaneseBracket
 import Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
@@ -664,7 +665,7 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue_fo
 line.
 
 This is the genuine analytic core: the full-line Fourier-Cauchy multiplier
-integral recovers the negative-time half-line projection value. -/
+integral recovers the positive-time half-line projection value. -/
 theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue
     (φ : LFunctions.ZetaTestFunction) (c : ℝ) (hc : 1 < c) :
     (∫ t : ℝ,
@@ -700,6 +701,91 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue
 
 /-- Quadratic decay of the Fourier transform of the exponentially weighted
 smooth compactly supported kernel on the fixed right line. -/
+noncomputable def fixedRightLine_weightedKernel_admissibleFunction
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K) :
+    LFunctions.ZetaAdmissibleFunction where
+  toZetaTestFunction :=
+    CompactlySupportedContinuousMap.mk
+      (ContinuousMap.mk K hK_cont)
+      hK_compact
+  smooth := hK_smooth
+
+/-- The weighted fixed-line Fourier kernel is the Laplace transform of the
+packaged admissible kernel on the vertical line `c - 1 + it`. -/
+theorem fixedRightLine_weightedKernel_fourierIntegral_eq_laplace
+    (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
+    (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
+    (c t : ℝ) :
+    (∫ x : ℝ,
+        K x *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ)) *
+          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) =
+      zetaLaplaceTransform
+        (fixedRightLine_weightedKernel_admissibleFunction
+          K hK_cont hK_compact hK_smooth).toZetaTestFunction'
+        (((c - 1 : ℝ) : ℂ) + t * Complex.I) := by
+  unfold zetaLaplaceTransform
+  exact
+    (integral_congr_ae
+      (Eventually.of_forall
+        (fun x : ℝ =>
+          calc
+            K x *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))
+                =
+                K x *
+                  (Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) := by
+                  exact mul_assoc (K x)
+                    (Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)))
+                    (Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+            _ =
+                K x *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ) +
+                      ((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
+                  exact congrArg (fun z : ℂ => K x * z)
+                    ((Complex.exp_add
+                      (Complex.I * (t : ℂ) * (x : ℂ))
+                      (((c - 1 : ℝ) : ℂ) * (x : ℂ))).symm)
+            _ =
+                K x *
+                  Complex.exp
+                    ((((c - 1 : ℝ) : ℂ) + t * Complex.I) * (x : ℂ)) := by
+                  exact congrArg (fun z : ℂ => K x * Complex.exp z)
+                    (calc
+                      Complex.I * (t : ℂ) * (x : ℂ) +
+                          ((c - 1 : ℝ) : ℂ) * (x : ℂ)
+                          =
+                          ((t : ℂ) * Complex.I) * (x : ℂ) +
+                            ((c - 1 : ℝ) : ℂ) * (x : ℂ) := by
+                          exact congrArg
+                            (fun z : ℂ => z * (x : ℂ) +
+                              ((c - 1 : ℝ) : ℂ) * (x : ℂ))
+                            (mul_comm Complex.I (t : ℂ))
+                      _ =
+                          (((t : ℂ) * Complex.I) +
+                            ((c - 1 : ℝ) : ℂ)) * (x : ℂ) := by
+                          exact (add_mul
+                            ((t : ℂ) * Complex.I)
+                            (((c - 1 : ℝ) : ℂ))
+                            (x : ℂ)).symm
+                      _ =
+                          (((c - 1 : ℝ) : ℂ) +
+                            (t : ℂ) * Complex.I) * (x : ℂ) := by
+                          exact congrArg (fun z : ℂ => z * (x : ℂ))
+                            (add_comm ((t : ℂ) * Complex.I)
+                              (((c - 1 : ℝ) : ℂ)))
+                      _ =
+                          (((c - 1 : ℝ) : ℂ) + t * Complex.I) *
+                            (x : ℂ) := by
+                          rfl))))
+
 theorem fixedRightLine_weightedKernel_fourierIntegral_inverseQuadraticDecay
     (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
     (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
@@ -713,7 +799,86 @@ theorem fixedRightLine_weightedKernel_fourierIntegral_inverseQuadraticDecay
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
             ≤ B * (1 + ‖t‖) ^ (-(2 : ℤ)) := by
-  sorry
+  let f : LFunctions.ZetaAdmissibleFunction :=
+    fixedRightLine_weightedKernel_admissibleFunction
+      K hK_cont hK_compact hK_smooth
+  match LFunctions.zetaLaplaceTransform_verticalStripRapidDecay_of_compactSupport_smooth
+      f (c - 1) (c - 1) 2 with
+  | ⟨B, hBpos, hBbound⟩ =>
+      exact ⟨B, hBpos, fun t : ℝ =>
+        let z : ℂ := (((c - 1 : ℝ) : ℂ) + t * Complex.I)
+        let hz_re_left : c - 1 ≤ z.re := by
+          calc
+            c - 1 ≤ c - 1 := le_rfl
+            _ = z.re := by
+              exact
+                (calc
+                  z.re =
+                      (((c - 1 : ℝ) : ℂ).re + (t * Complex.I).re) := by
+                      exact Complex.add_re (((c - 1 : ℝ) : ℂ)) (t * Complex.I)
+                  _ = (c - 1) + (t * Complex.I).re := by
+                      exact congrArg (fun u : ℝ => u + (t * Complex.I).re)
+                        (Complex.ofReal_re (c - 1))
+                  _ = (c - 1) + 0 := by
+                      exact congrArg (fun u : ℝ => (c - 1) + u)
+                        (Complex.mul_I_re (t : ℂ))
+                  _ = c - 1 := add_zero (c - 1)).symm
+        let hz_re_right : z.re ≤ c - 1 := by
+          calc
+            z.re = c - 1 := by
+              calc
+                z.re =
+                    (((c - 1 : ℝ) : ℂ).re + (t * Complex.I).re) := by
+                    exact Complex.add_re (((c - 1 : ℝ) : ℂ)) (t * Complex.I)
+                _ = (c - 1) + (t * Complex.I).re := by
+                    exact congrArg (fun u : ℝ => u + (t * Complex.I).re)
+                      (Complex.ofReal_re (c - 1))
+                _ = (c - 1) + 0 := by
+                    exact congrArg (fun u : ℝ => (c - 1) + u)
+                      (Complex.mul_I_re (t : ℂ))
+                _ = c - 1 := add_zero (c - 1)
+            _ ≤ c - 1 := le_rfl
+        let hz_im_norm : ‖z.im‖ = ‖t‖ := by
+          exact congrArg norm
+            (calc
+              z.im =
+                  (((c - 1 : ℝ) : ℂ).im + (t * Complex.I).im) := by
+                  exact Complex.add_im (((c - 1 : ℝ) : ℂ)) (t * Complex.I)
+              _ = 0 + (t * Complex.I).im := by
+                  exact congrArg (fun u : ℝ => u + (t * Complex.I).im)
+                    (Complex.ofReal_im (c - 1))
+              _ = 0 + t := by
+                  exact congrArg (fun u : ℝ => 0 + u)
+                    (Complex.mul_I_im (t : ℂ))
+              _ = t := zero_add t)
+        let hdecay :
+            ‖zetaLaplaceTransform f.toZetaTestFunction' z‖
+              ≤ B * (1 + ‖z.im‖) ^ (-(2 : ℤ)) :=
+          hBbound z hz_re_left hz_re_right
+        let htransport :
+            ‖(∫ x : ℝ,
+                K x *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖ =
+              ‖zetaLaplaceTransform f.toZetaTestFunction' z‖ := by
+          exact congrArg norm
+            (fixedRightLine_weightedKernel_fourierIntegral_eq_laplace
+              K hK_cont hK_compact hK_smooth c t)
+        Eq.subst
+          (motive := fun u : ℝ =>
+            ‖(∫ x : ℝ,
+                K x *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                  Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
+              ≤ B * (1 + u) ^ (-(2 : ℤ)))
+          hz_im_norm
+          (Eq.subst
+            (motive := fun u : ℝ =>
+              u ≤ B * (1 + ‖z.im‖) ^ (-(2 : ℤ)))
+            htransport.symm
+            hdecay)⟩
 
 /-- Imaginary part of the shifted fixed-line Cauchy denominator. -/
 theorem fixedRightLine_cauchyDenominator_im
