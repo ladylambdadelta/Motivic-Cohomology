@@ -6127,7 +6127,11 @@ the away-from-zero threshold. -/
 theorem scalarFourierLaplacePlemelj_positive_awayZero_reciprocal_le
     (T x δ : ℝ) (hT : 0 < T) (hδ : 0 < δ) (hδx : δ ≤ x) :
     (T * x)⁻¹ ≤ (T * δ)⁻¹ := by
-  sorry
+  have hTδ_pos : 0 < T * δ :=
+    mul_pos hT hδ
+  have hTδ_le_Tx : T * δ ≤ T * x :=
+    mul_le_mul_of_nonneg_left hδx hT.le
+  exact inv_anti₀ hTδ_pos hTδ_le_Tx
 
 /-- Product assembly for the positive upper-arc Jordan majorant away from
 zero. -/
