@@ -6577,6 +6577,59 @@ theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_uniform_bound
           |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤ C := by
   sorry
 
+/-- Pointwise real/imaginary decomposition of the uncompensated Cauchy Fourier
+integrand. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_integrand_pointwise_decomposition
+    (a : ℝ) (ha : 0 < a) (t x : ℝ) :
+    (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) =
+      (((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+          (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ) +
+        (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+            (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+          Complex.I)) := by
+  sorry
+
+/-- The imaginary remainder in the symmetric uncompensated Cauchy Fourier
+window cancels by oddness. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_integral_eq_zero
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    ∫ t in Set.Icc (-T) T,
+      (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+          (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+        Complex.I) = 0 := by
+  sorry
+
+/-- The real remainder in the symmetric uncompensated Cauchy Fourier window is
+the even-cosine part minus the odd-sine part. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_realRemainder_integral_eq_even_sub_odd
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    ∫ t in Set.Icc (-T) T,
+      ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+          (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ) =
+      ((scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x -
+        scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x : ℝ) : ℂ) := by
+  sorry
+
+/-- Additivity of the real and imaginary remainders in the uncompensated
+Cauchy Fourier decomposition on a finite symmetric window. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_remainder_integral_add
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    ∫ t in Set.Icc (-T) T,
+      (((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+          (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ) +
+        (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+            (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+          Complex.I)) =
+      (∫ t in Set.Icc (-T) T,
+        ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+            (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ)) +
+        ∫ t in Set.Icc (-T) T,
+          (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+              (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+            Complex.I) := by
+  sorry
+
 /-- Exact real decomposition of the uncompensated symmetric Cauchy Fourier
 window into its surviving even-cosine and odd-sine pieces. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_window_eq_evenCosine_sub_oddSine
@@ -6587,7 +6640,55 @@ theorem scalarFourierLaplacePlemelj_uncompensated_window_eq_evenCosine_sub_oddSi
           (Complex.I * (t : ℂ) * (x : ℂ))) =
       ((scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x -
         scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x : ℝ) : ℂ) := by
-  sorry
+  calc
+    (∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ))) =
+        ∫ t in Set.Icc (-T) T,
+          (((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+              (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ) +
+            (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+                (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+              Complex.I)) := by
+          exact intervalIntegral.integral_congr
+            (Filter.Eventually.of_forall
+              (fun t : ℝ =>
+                scalarFourierLaplacePlemelj_uncompensated_integrand_pointwise_decomposition
+                  a ha t x))
+    _ =
+        (∫ t in Set.Icc (-T) T,
+          ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+              (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ)) +
+          ∫ t in Set.Icc (-T) T,
+            (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+                (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+              Complex.I) := by
+          exact
+            scalarFourierLaplacePlemelj_uncompensated_remainder_integral_add
+              a ha T x
+    _ =
+        (∫ t in Set.Icc (-T) T,
+          ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+              (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ)) + 0 := by
+          exact congrArg
+            (fun z : ℂ =>
+              (∫ t in Set.Icc (-T) T,
+                ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+                    (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ)) + z)
+            (scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_integral_eq_zero
+              a ha T x)
+    _ =
+        ∫ t in Set.Icc (-T) T,
+          ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+              (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ) := by
+          exact add_zero _
+    _ =
+      ((scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x -
+        scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x : ℝ) : ℂ) := by
+          exact
+            scalarFourierLaplacePlemelj_uncompensated_realRemainder_integral_eq_even_sub_odd
+              a ha T x
 
 /-- Assembly of the uncompensated complex Cauchy window norm from the bounded
 even-cosine and odd-sine real components. -/
