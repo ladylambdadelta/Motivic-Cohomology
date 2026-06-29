@@ -6611,6 +6611,29 @@ theorem scalarFourierLaplacePlemelj_uncompensated_realRemainder_integral_eq_even
         scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x : ℝ) : ℂ) := by
   sorry
 
+/-- Interval integrability of the real remainder in the uncompensated Cauchy
+Fourier decomposition. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_realRemainder_intervalIntegrable
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    IntervalIntegrable
+      (fun t : ℝ =>
+        ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+            (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ))
+      volume (-T) T := by
+  sorry
+
+/-- Interval integrability of the imaginary remainder in the uncompensated
+Cauchy Fourier decomposition. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_intervalIntegrable
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    IntervalIntegrable
+      (fun t : ℝ =>
+        (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+            (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+          Complex.I))
+      volume (-T) T := by
+  sorry
+
 /-- Additivity of the real and imaginary remainders in the uncompensated
 Cauchy Fourier decomposition on a finite symmetric window. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_remainder_integral_add
@@ -6628,7 +6651,11 @@ theorem scalarFourierLaplacePlemelj_uncompensated_remainder_integral_add
           (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
               (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
             Complex.I) := by
-  sorry
+  exact intervalIntegral.integral_add
+    (scalarFourierLaplacePlemelj_uncompensated_realRemainder_intervalIntegrable
+      a ha T x)
+    (scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_intervalIntegrable
+      a ha T x)
 
 /-- Exact real decomposition of the uncompensated symmetric Cauchy Fourier
 window into its surviving even-cosine and odd-sine pieces. -/
