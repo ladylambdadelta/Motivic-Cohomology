@@ -2863,7 +2863,30 @@ theorem scalarFourierLaplacePlemelj_upperPole_eq
 theorem scalarFourierLaplacePlemelj_upperPole_mem_upperSemicircleInterior_of_radius
     (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) :
     ‖scalarFourierLaplacePlemelj_upperPole a‖ < T := by
-  sorry
+  have hpole_norm :
+      ‖scalarFourierLaplacePlemelj_upperPole a‖ = a := by
+    calc
+      ‖scalarFourierLaplacePlemelj_upperPole a‖ =
+          ‖(a : ℂ) * Complex.I‖ := by
+        exact congrArg norm
+          (scalarFourierLaplacePlemelj_upperPole_eq a)
+      _ = ‖(a : ℂ)‖ * ‖Complex.I‖ := by
+        exact norm_mul (a : ℂ) Complex.I
+      _ = |a| * ‖Complex.I‖ := by
+        exact congrArg
+          (fun r : ℝ => r * ‖Complex.I‖)
+          (RCLike.norm_ofReal (K := ℂ) a)
+      _ = a * ‖Complex.I‖ := by
+        exact congrArg
+          (fun r : ℝ => r * ‖Complex.I‖)
+          (abs_of_pos ha)
+      _ = a * 1 := by
+        exact congrArg
+          (fun r : ℝ => a * r)
+          Complex.norm_I
+      _ = a := by
+        exact mul_one a
+  exact hpole_norm.trans_lt hT
 
 /-- Residue of the positive-time normalized scalar kernel at the upper pole. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperPole_residue

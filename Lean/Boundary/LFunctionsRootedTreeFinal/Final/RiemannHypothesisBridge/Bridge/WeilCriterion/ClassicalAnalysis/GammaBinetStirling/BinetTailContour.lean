@@ -17,6 +17,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped Topology
+open Filter
 open MeasureTheory
 
 /-- The lower Binet remainder piece after splitting at `‖w‖ / 2`.
@@ -859,7 +860,8 @@ theorem Complex.binetSecondFormulaPrincipalTailKernel_norm_le_sectorSeparated_sc
   match
     Complex.binetSecondFormula_arctan_tail_bounded_sectorSeparated ε hε with
   | ⟨B, hB_nonneg, hB⟩ =>
-      refine ⟨2 * B, mul_nonneg Real.zero_le_two_real hB_nonneg, ?_⟩
+      exact Exists.intro (2 * B)
+        (And.intro (mul_nonneg Real.zero_le_two_real hB_nonneg) (by
       intro w hw_re_pos hw_sep hw_large t ht_tail
       let D : ℝ := Real.exp ((2 : ℝ) * Real.pi * t) - 1
       have hw_norm_pos : 0 < ‖w‖ :=
@@ -911,6 +913,7 @@ theorem Complex.binetSecondFormulaPrincipalTailKernel_norm_le_sectorSeparated_sc
         _ =
             ((2 * B) / ‖w‖) * (t / D) := by
           exact mul_div_assoc ((2 * B) / ‖w‖) t D
+        ))
 
 /-- Sector-separated integrated `C / ‖w‖` estimate for the raw principal
 Binet tail kernel.
@@ -936,7 +939,8 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_sectorSeparated_
     Complex.binetSecondFormulaPrincipalTailKernel_norm_le_sectorSeparated_scaled_majorant
       ε hε with
   | ⟨C, hC_nonneg, hpoint⟩ =>
-      refine ⟨2 * C, mul_nonneg Real.zero_le_two_real hC_nonneg, ?_⟩
+      exact Exists.intro (2 * C)
+        (And.intro (mul_nonneg Real.zero_le_two_real hC_nonneg) (by
       intro w hw_re_pos hw_sep hw_large
       let M : ℝ → ℝ := fun t : ℝ =>
         t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
@@ -1007,6 +1011,7 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_sectorSeparated_
               (mul_div_assoc (2 : ℝ) C ‖w‖).symm
       exact
         le_trans htwice (le_of_eq hconst)
+        ))
 
 /-- Sector-separated principal-tail cancellation estimate in the exact
 positive-constant shape needed by the full owner gap.
@@ -1032,13 +1037,15 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_cancellation_est
     Complex.binetSecondFormula_principalTailKernel_integral_sectorSeparated_scaled_decay
       ε hε with
   | ⟨C, hC_nonneg, hdecay⟩ =>
-      refine ⟨C + 1, ?_, ?_⟩
-      · exact lt_of_lt_of_le zero_lt_one
+      exact Exists.intro (C + 1)
+        (And.intro
+          (lt_of_lt_of_le zero_lt_one
           (by
             calc
               (1 : ℝ) = 0 + 1 := (zero_add 1).symm
-              _ ≤ C + 1 := add_le_add_right hC_nonneg 1)
-      · intro w hw_re_pos hw_sep hw_large
+              _ ≤ C + 1 := add_le_add_right hC_nonneg 1))
+          (by
+        intro w hw_re_pos hw_sep hw_large
         let J : ℝ :=
           ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
             t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
@@ -1071,6 +1078,7 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_cancellation_est
             (C / ‖w‖) * J ≤ ((C + 1) / ‖w‖) * J :=
           mul_le_mul_of_nonneg_right hcoeff hJ_nonneg
         exact le_trans hraw hscaled
+          ))
 
 /-- Full-sector pointwise scaled majorant for the far part of the principal
 Binet tail, after the branch-wall window `t ≤ 2‖w‖` has been removed. -/
@@ -1087,7 +1095,7 @@ theorem Complex.binetSecondFormulaPrincipalTailKernel_norm_le_far_scaled_majoran
   let C : ℝ := max |Real.log (1 / 3 : ℝ)| |Real.log (3 : ℝ)| + Real.pi
   have hC_nonneg : 0 ≤ C :=
     add_nonneg (le_max_of_le_left (abs_nonneg _)) Real.pi_nonneg
-  refine ⟨C, hC_nonneg, ?_⟩
+  exact Exists.intro C (And.intro hC_nonneg (by
   intro w hw_re_pos t ht_far_open
   let D : ℝ := Real.exp ((2 : ℝ) * Real.pi * t) - 1
   let R : ℂ :=
@@ -1107,10 +1115,10 @@ theorem Complex.binetSecondFormulaPrincipalTailKernel_norm_le_far_scaled_majoran
     exact lt_of_le_of_lt htwo_norm_nonneg ht_far_open
   have hratio :
       (1 / 3 : ℝ) ≤ ‖R‖ ∧ ‖R‖ ≤ (3 : ℝ) := by
-    rcases
+    match
         Complex.binetSecondFormula_arctan_tail_far_ratio_bounds
           (w := w) (t := t) ht_far with
-      ⟨hnum_le, hden_le⟩
+    | ⟨hnum_le, hden_le⟩ =>
     have hden_lower :
         w.re ≤ ‖w - (t : ℂ) * Complex.I‖ :=
       Complex.binetSecondFormula_arctan_tail_ratio_denominator_lower
@@ -1229,6 +1237,7 @@ theorem Complex.binetSecondFormulaPrincipalTailKernel_norm_le_far_scaled_majoran
       div_le_div_of_nonneg_right hscaled_arctan hD_nonneg
     _ = (C / ‖w‖) * (t / D) :=
       mul_div_assoc (C / ‖w‖) t D
+  ))
 
 /-- Full-sector integrated scaled majorant for the far part of the principal
 Binet tail, after the bounded branch-wall window. -/
@@ -1245,7 +1254,8 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_far_scaled_decay
                   t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
   match Complex.binetSecondFormulaPrincipalTailKernel_norm_le_far_scaled_majorant with
   | ⟨C, hC_nonneg, hpoint⟩ =>
-      refine ⟨2 * C, mul_nonneg zero_le_two hC_nonneg, ?_⟩
+      exact Exists.intro (2 * C)
+        (And.intro (mul_nonneg zero_le_two hC_nonneg) (by
       intro w hw_re_pos _hw_large
       let M : ℝ → ℝ := fun t : ℝ =>
         t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
@@ -1275,8 +1285,11 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_far_scaled_decay
         hM_integrable_far.const_mul (C / ‖w‖)
       have hP_integrable_far :
           IntegrableOn P (Set.Ioi (2 * ‖w‖)) :=
-        (Complex.binetSecondFormulaPrincipalTailKernel_integrableOn_tail
-          (w := w) hw_re_pos).norm.mono_set hfar_subset_tail
+        have hP_integrable_tail :
+            IntegrableOn P (Set.Ioi (‖w‖ / 2)) :=
+          (Complex.binetSecondFormulaPrincipalTailKernel_integrableOn_tail
+            (w := w) hw_re_pos).norm
+        hP_integrable_tail.mono_set hfar_subset_tail
       have hpoint_ae :
           ∀ᵐ t ∂volume.restrict (Set.Ioi (2 * ‖w‖)),
             P t ≤ (C / ‖w‖) * M t :=
@@ -1343,6 +1356,7 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_far_scaled_decay
                 x * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t))
               (mul_div_assoc (2 : ℝ) C ‖w‖).symm
       exact le_trans htwice (le_of_eq hconst)
+        ))
 
 /-- Split the principal-tail norm integral into the bounded branch-wall window
 and the far tail. -/
@@ -1392,7 +1406,9 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_le_boundedWindow
     have hdisjoint :
         Disjoint (Set.Ioc (‖w‖ / 2) (2 * ‖w‖))
           (Set.Ioi (2 * ‖w‖)) :=
-      Ioc_disjoint_Ioi le_rfl
+      Set.disjoint_left.mpr
+        (fun t ht_window ht_tail =>
+          not_lt_of_ge ht_window.2 ht_tail)
     calc
       ∫ t : ℝ in Set.Ioi (‖w‖ / 2), P t =
           ∫ t : ℝ in
@@ -1428,7 +1444,7 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_localIndentation
                     t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
   match Complex.binetSecondFormula_principalTailKernel_integral_far_scaled_decay with
   | ⟨Cfar, hCfar_nonneg, hfar⟩ =>
-      refine ⟨Cfar, hCfar_nonneg, ?_⟩
+      exact Exists.intro Cfar (And.intro hCfar_nonneg (by
       intro w hw_re_pos hw_large
       let P : ℝ → ℝ := fun t : ℝ =>
         ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖
@@ -1474,6 +1490,7 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_localIndentation
         _ = 2 * L + 2 * ∫ t : ℝ in Set.Ioi (2 * ‖w‖), P t := hdistrib
         _ ≤ 2 * L + (Cfar / ‖w‖) * J :=
           add_le_add_left hfar' (2 * L)
+      ))
 
 /-- Integral branch comparison between the literal principal tail and a
 contour-deformed tail kernel on the split tail. -/
