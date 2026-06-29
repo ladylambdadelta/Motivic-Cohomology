@@ -3112,13 +3112,67 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_tendsto_zero
       (scalarFourierLaplacePlemelj_positiveUpperArcJordanReciprocal_tendsto_zero
         x hx)
 
+/-- Denominator part of the positive upper-arc Jordan pointwise estimate. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArc_denominator_norm_inv_le
+    (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) (θ : ℝ) :
+    ‖(-1 /
+      ((a : ℂ) +
+        ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I))‖ ≤
+      (T - a)⁻¹ := by
+  sorry
+
+/-- Exponential damping part of the positive upper-arc Jordan pointwise estimate. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArc_exponential_norm_eq_damping
+    (x T θ : ℝ) :
+    ‖Complex.exp
+      (Complex.I *
+        ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+        (x : ℂ))‖ =
+      Real.exp (-(T * x * Real.sin θ)) := by
+  sorry
+
+/-- Velocity part of the positive upper-arc Jordan pointwise estimate. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArc_velocity_norm_eq_radius
+    (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) (θ : ℝ) :
+    ‖Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ = T := by
+  sorry
+
+/-- Product assembly for the positive upper-arc Jordan pointwise estimate. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArcIntegrand_norm_le_jordanDensity_of_factors
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (T : ℝ) (hT : a < T) (θ : ℝ)
+    (hden :
+      ‖(-1 /
+        ((a : ℂ) +
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I))‖ ≤
+        (T - a)⁻¹)
+    (hexp :
+      ‖Complex.exp
+        (Complex.I *
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+          (x : ℂ))‖ =
+        Real.exp (-(T * x * Real.sin θ)))
+    (hvel :
+      ‖Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ = T) :
+    ‖scalarFourierLaplacePlemelj_positiveUpperArcIntegrand a x T θ‖ ≤
+      scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ := by
+  sorry
+
 /-- Pointwise Jordan domination of the positive upper-arc integrand. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArcIntegrand_norm_le_jordanDensity
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
     (T : ℝ) (hT : a < T) (θ : ℝ) :
     ‖scalarFourierLaplacePlemelj_positiveUpperArcIntegrand a x T θ‖ ≤
       scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_positiveUpperArcIntegrand_norm_le_jordanDensity_of_factors
+      a ha x hx T hT θ
+      (scalarFourierLaplacePlemelj_positiveUpperArc_denominator_norm_inv_le
+        a ha T hT θ)
+      (scalarFourierLaplacePlemelj_positiveUpperArc_exponential_norm_eq_damping
+        x T θ)
+      (scalarFourierLaplacePlemelj_positiveUpperArc_velocity_norm_eq_radius
+        a ha T hT θ)
 
 /-- Integral form of Jordan's sine estimate for the positive upper arc. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_le_majorant
@@ -3450,7 +3504,7 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_eq_integral_integrand
 /-- Real Jordan density for the negative lower semicircle estimate. -/
 noncomputable def scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity
     (a x T θ : ℝ) : ℝ :=
-  (T / (T - a)) * Real.exp (T * x * Real.sin θ)
+  (T / (T - a)) * Real.exp (-(T * x * Real.sin θ))
 
 /-- Closed lower-half-plane scalar contour integral for the negative-time
 Fourier-Laplace denominator. -/
@@ -3636,19 +3690,73 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_tendsto_zero
       (scalarFourierLaplacePlemelj_negativeLowerArcJordanReciprocal_tendsto_zero
         x hx)
 
+/-- Denominator part of the negative lower-arc Jordan pointwise estimate. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArc_denominator_norm_inv_le
+    (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) (θ : ℝ) :
+    ‖(-1 /
+      ((a : ℂ) +
+        ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I))‖ ≤
+      (T - a)⁻¹ := by
+  sorry
+
+/-- Exponential damping part of the negative lower-arc Jordan pointwise estimate. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArc_exponential_norm_eq_damping
+    (x T θ : ℝ) :
+    ‖Complex.exp
+      (Complex.I *
+        ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+        (x : ℂ))‖ =
+      Real.exp (-(T * x * Real.sin θ)) := by
+  sorry
+
+/-- Velocity part of the negative lower-arc Jordan pointwise estimate. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArc_velocity_norm_eq_radius
+    (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) (θ : ℝ) :
+    ‖Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ = T := by
+  sorry
+
+/-- Product assembly for the negative lower-arc Jordan pointwise estimate. -/
+theorem scalarFourierLaplacePlemelj_negativeLowerArcIntegrand_norm_le_jordanDensity_of_factors
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (T : ℝ) (hT : a < T) (θ : ℝ)
+    (hden :
+      ‖(-1 /
+        ((a : ℂ) +
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I))‖ ≤
+        (T - a)⁻¹)
+    (hexp :
+      ‖Complex.exp
+        (Complex.I *
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+          (x : ℂ))‖ =
+        Real.exp (-(T * x * Real.sin θ)))
+    (hvel :
+      ‖Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ = T) :
+    ‖scalarFourierLaplacePlemelj_negativeLowerArcIntegrand a x T θ‖ ≤
+      scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ := by
+  sorry
+
 /-- Pointwise Jordan domination of the negative lower-arc integrand. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArcIntegrand_norm_le_jordanDensity
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
     (T : ℝ) (hT : a < T) (θ : ℝ) :
     ‖scalarFourierLaplacePlemelj_negativeLowerArcIntegrand a x T θ‖ ≤
       scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_negativeLowerArcIntegrand_norm_le_jordanDensity_of_factors
+      a ha x hx T hT θ
+      (scalarFourierLaplacePlemelj_negativeLowerArc_denominator_norm_inv_le
+        a ha T hT θ)
+      (scalarFourierLaplacePlemelj_negativeLowerArc_exponential_norm_eq_damping
+        x T θ)
+      (scalarFourierLaplacePlemelj_negativeLowerArc_velocity_norm_eq_radius
+        a ha T hT θ)
 
 /-- Integral form of Jordan's sine estimate for the negative lower arc. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_le_majorant
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
     (T : ℝ) (hT : a < T) :
-    ∫ θ in (0 : ℝ)..(-Real.pi),
+    ∫ θ in (-Real.pi)..(0 : ℝ),
         scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ ≤
       scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T := by
   sorry
@@ -3659,7 +3767,7 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanDensity_integ
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
     (T : ℝ) (hT : a < T) :
     ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖ ≤
-      ∫ θ in (0 : ℝ)..(-Real.pi),
+      ∫ θ in (-Real.pi)..(0 : ℝ),
         scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ := by
   sorry
 
