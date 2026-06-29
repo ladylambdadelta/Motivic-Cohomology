@@ -141,7 +141,7 @@ theorem centeredCriticalHeightBox_abs_re_le_one
     (hz : z ∈ centeredCriticalHeightBox T) :
     |z.re| ≤ (1 : ℝ) := by
   have hhalf_le_one : (1 / 2 : ℝ) ≤ (1 : ℝ) := by
-    norm_num
+    exact half_le_self zero_le_one
   have hnegOne_le_negHalf : (-(1 : ℝ)) ≤ -(1 / 2 : ℝ) :=
     neg_le_neg hhalf_le_one
   exact abs_le.mpr
@@ -161,12 +161,19 @@ theorem centeredCriticalHeightBox_abs_im_le_abs_height
       ‖(z - (1 / 2 : ℂ)).im‖ ≤ |T| :=
     hcenter_le_height.trans (le_abs_self T)
   have him_eq : (z - (1 / 2 : ℂ)).im = z.im := by
+    have hhalf_im : (1 / 2 : ℂ).im = 0 := by
+      have hhalf_coe : (1 / 2 : ℂ) = ((1 / 2 : ℝ) : ℂ) := by
+        exact (Complex.ofReal_div (1 : ℝ) (2 : ℝ)).symm
+      exact Eq.subst
+        (motive := fun w : ℂ => w.im = 0)
+        hhalf_coe.symm
+        (Complex.ofReal_im (1 / 2 : ℝ))
     calc
       (z - (1 / 2 : ℂ)).im = z.im - (1 / 2 : ℂ).im := by
         exact Complex.sub_im z (1 / 2 : ℂ)
       _ = z.im - 0 := by
         exact congrArg (fun x : ℝ => z.im - x)
-          (show (1 / 2 : ℂ).im = 0 from Complex.ofReal_im (1 / 2 : ℝ))
+          hhalf_im
       _ = z.im := by
         exact sub_zero (z.im)
   have him_norm_le_abs_height :
