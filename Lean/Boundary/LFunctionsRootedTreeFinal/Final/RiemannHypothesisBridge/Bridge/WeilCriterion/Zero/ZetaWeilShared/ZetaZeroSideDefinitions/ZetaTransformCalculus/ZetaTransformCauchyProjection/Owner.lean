@@ -3521,6 +3521,20 @@ theorem scalarFourierLaplacePlemelj_semicircleDenominator_inv_norm_le
   exact hnorm.trans_le
     (inv_anti₀ hsub_pos hden_ge)
 
+/-- Algebraic normal form of the Jordan pointwise density. -/
+theorem scalarFourierLaplacePlemelj_jordanDensity_eq_inv_mul_exp_mul_radius
+    (a T E : ℝ) :
+    (T / (T - a)) * E = ((T - a)⁻¹ * E) * T := by
+  calc
+    (T / (T - a)) * E = (T * (T - a)⁻¹) * E := by
+      exact congrArg
+        (fun r : ℝ => r * E)
+        (div_eq_mul_inv T (T - a))
+    _ = T * ((T - a)⁻¹ * E) := by
+      exact mul_assoc T (T - a)⁻¹ E
+    _ = ((T - a)⁻¹ * E) * T := by
+      exact mul_comm T ((T - a)⁻¹ * E)
+
 /-- Denominator part of the positive upper-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_denominator_norm_inv_le
     (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) (θ : ℝ) :
@@ -3595,7 +3609,57 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcIntegrand_norm_le_jordanDens
       ‖Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ = T) :
     ‖scalarFourierLaplacePlemelj_positiveUpperArcIntegrand a x T θ‖ ≤
       scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ := by
-  sorry
+  let D : ℂ :=
+    -1 /
+      ((a : ℂ) +
+        ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I)
+  let E : ℂ :=
+    Complex.exp
+      (Complex.I *
+        ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+        (x : ℂ))
+  let V : ℂ :=
+    Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+  let R : ℝ :=
+    Real.exp (-(T * x * Real.sin θ))
+  have hER : ‖E‖ = R := by
+    exact hexp
+  have hVR : ‖V‖ = T := by
+    exact hvel
+  have hV_nonneg : 0 ≤ ‖V‖ :=
+    norm_nonneg V
+  have hstep :
+      (‖D‖ * ‖E‖) * ‖V‖ ≤
+        ((T - a)⁻¹ * ‖E‖) * ‖V‖ := by
+    exact mul_le_mul_of_nonneg_right
+      (mul_le_mul_of_nonneg_right hden (norm_nonneg E))
+      hV_nonneg
+  calc
+    ‖scalarFourierLaplacePlemelj_positiveUpperArcIntegrand a x T θ‖ =
+        ‖D * E * V‖ := by
+      exact rfl
+    _ = ‖D * E‖ * ‖V‖ := by
+      exact norm_mul (D * E) V
+    _ = (‖D‖ * ‖E‖) * ‖V‖ := by
+      exact congrArg
+        (fun r : ℝ => r * ‖V‖)
+        (norm_mul D E)
+    _ ≤ ((T - a)⁻¹ * ‖E‖) * ‖V‖ := by
+      exact hstep
+    _ = ((T - a)⁻¹ * R) * ‖V‖ := by
+      exact congrArg
+        (fun r : ℝ => ((T - a)⁻¹ * r) * ‖V‖)
+        hER
+    _ = ((T - a)⁻¹ * R) * T := by
+      exact congrArg
+        (fun r : ℝ => ((T - a)⁻¹ * R) * r)
+        hVR
+    _ = (T / (T - a)) * R := by
+      exact
+        (scalarFourierLaplacePlemelj_jordanDensity_eq_inv_mul_exp_mul_radius
+          a T R).symm
+    _ = scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ := by
+      exact rfl
 
 /-- Pointwise Jordan domination of the positive upper-arc integrand. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArcIntegrand_norm_le_jordanDensity
@@ -4179,7 +4243,57 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArcIntegrand_norm_le_jordanDens
       ‖Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ = T) :
     ‖scalarFourierLaplacePlemelj_negativeLowerArcIntegrand a x T θ‖ ≤
       scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ := by
-  sorry
+  let D : ℂ :=
+    -1 /
+      ((a : ℂ) +
+        ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I)
+  let E : ℂ :=
+    Complex.exp
+      (Complex.I *
+        ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+        (x : ℂ))
+  let V : ℂ :=
+    Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+  let R : ℝ :=
+    Real.exp (-(T * x * Real.sin θ))
+  have hER : ‖E‖ = R := by
+    exact hexp
+  have hVR : ‖V‖ = T := by
+    exact hvel
+  have hV_nonneg : 0 ≤ ‖V‖ :=
+    norm_nonneg V
+  have hstep :
+      (‖D‖ * ‖E‖) * ‖V‖ ≤
+        ((T - a)⁻¹ * ‖E‖) * ‖V‖ := by
+    exact mul_le_mul_of_nonneg_right
+      (mul_le_mul_of_nonneg_right hden (norm_nonneg E))
+      hV_nonneg
+  calc
+    ‖scalarFourierLaplacePlemelj_negativeLowerArcIntegrand a x T θ‖ =
+        ‖D * E * V‖ := by
+      exact rfl
+    _ = ‖D * E‖ * ‖V‖ := by
+      exact norm_mul (D * E) V
+    _ = (‖D‖ * ‖E‖) * ‖V‖ := by
+      exact congrArg
+        (fun r : ℝ => r * ‖V‖)
+        (norm_mul D E)
+    _ ≤ ((T - a)⁻¹ * ‖E‖) * ‖V‖ := by
+      exact hstep
+    _ = ((T - a)⁻¹ * R) * ‖V‖ := by
+      exact congrArg
+        (fun r : ℝ => ((T - a)⁻¹ * r) * ‖V‖)
+        hER
+    _ = ((T - a)⁻¹ * R) * T := by
+      exact congrArg
+        (fun r : ℝ => ((T - a)⁻¹ * R) * r)
+        hVR
+    _ = (T / (T - a)) * R := by
+      exact
+        (scalarFourierLaplacePlemelj_jordanDensity_eq_inv_mul_exp_mul_radius
+          a T R).symm
+    _ = scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ := by
+      exact rfl
 
 /-- Pointwise Jordan domination of the negative lower-arc integrand. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArcIntegrand_norm_le_jordanDensity

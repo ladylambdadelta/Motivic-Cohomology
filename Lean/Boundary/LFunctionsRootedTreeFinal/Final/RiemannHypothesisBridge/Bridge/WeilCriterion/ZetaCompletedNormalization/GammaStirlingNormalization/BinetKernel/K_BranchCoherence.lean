@@ -34,6 +34,8 @@ namespace LFunctions
 
 noncomputable section
 
+open scoped Topology
+
 def Complex.BinetSecondFormulaBranchCoherence : Prop :=
   (∀ z : ℂ, 0 < z.re →
       Complex.exp (Complex.binetLogGammaBranch z) = Complex.Gamma z) ∧
@@ -87,23 +89,6 @@ theorem Complex.BinetSecondFormulaBranchCoherence.of_owner_components
                     Complex.binetAbelPlanaFiniteContourRemainder N y)) :
     Complex.BinetSecondFormulaBranchCoherence :=
   ⟨hgamma, hreal, hopen⟩
-
-/-- Owner gap: Binet-branch coherence for the Binet second formula on the
-right half-plane. -/
-theorem Complex.binetSecondFormula_branchCoherence_ownerGap :
-    Complex.BinetSecondFormulaBranchCoherence :=
-  Complex.BinetSecondFormulaBranchCoherence.of_owner_components
-    (fun z hz_re_pos =>
-      Complex.exp_binetLogGammaBranch_eq_Gamma_of_finiteAbelPlana
-        hz_re_pos
-        (Complex.binetSecondFormula_finiteAbelPlana_decomposition_pointwise_openRightHalfPlane_ownerGap
-          z hz_re_pos))
-    Complex.binetSecondFormula_finiteAbelPlana_decomposition_posReal_ownerGap
-    Complex.binetSecondFormula_finiteAbelPlana_decomposition_openRightHalfPlane_ownerGap
-
-/-- Assemble the Binet branch-tail package from a tail absorption theorem and
-the already proved branch-coherence theorem. -/
-
 
 end
 end LFunctions
