@@ -5458,29 +5458,6 @@ theorem scalarFourierLaplacePlemelj_unweightedWindowMulExp_eq
         Complex.exp ((a : ℂ) * (x : ℂ)) := by
   rfl
 
-/-- Positive-time finite-window Jordan bound for the normalized scalar Cauchy kernel. -/
-theorem scalarFourierLaplacePlemelj_unweightedWindowMulExp_norm_bound_positive_jordanEstimate
-    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hx : 0 < x) :
-    ‖scalarFourierLaplacePlemelj_unweightedWindowMulExp a T x‖
-      ≤ 2 * (Real.pi + 1) := by
-  sorry
-
-/-- Positive-time uniform finite-window bound for the normalized scalar Cauchy
-kernel. -/
-theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_positive
-    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hx : 0 < x) :
-    ‖(∫ t in Set.Icc (-T) T,
-      (-1 / ((a : ℂ) + t * Complex.I)) *
-        Complex.exp
-          (Complex.I * (t : ℂ) * (x : ℂ))) *
-        Complex.exp ((a : ℂ) * (x : ℂ))‖
-      ≤ 2 * (Real.pi + 1) := by
-  exact Eq.subst
-    (motive := fun z : ℂ => ‖z‖ ≤ 2 * (Real.pi + 1))
-    (scalarFourierLaplacePlemelj_unweightedWindowMulExp_eq a T x)
-    (scalarFourierLaplacePlemelj_unweightedWindowMulExp_norm_bound_positive_jordanEstimate
-      a ha T x hx)
-
 /-- The quadratic denominator in the zero-time Cauchy kernel is strictly
 positive. -/
 theorem scalarFourierLaplacePlemelj_zero_denominator_pos
@@ -5874,80 +5851,13 @@ theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_zero
     (scalarFourierLaplacePlemelj_zero_window_eq_arctan a ha T x hx)
     (scalarFourierLaplacePlemelj_zero_arctan_bound a ha T)
 
-/-- Negative-time finite-window Jordan bound for the normalized scalar Cauchy kernel. -/
-theorem scalarFourierLaplacePlemelj_unweightedWindowMulExp_norm_bound_negative_jordanEstimate
-    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hx : x < 0) :
-    ‖scalarFourierLaplacePlemelj_unweightedWindowMulExp a T x‖
-      ≤ 2 * (Real.pi + 1) := by
-  sorry
-
-/-- Negative-time uniform finite-window bound for the normalized scalar Cauchy
-kernel. -/
-theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_negative
-    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hx : x < 0) :
-    ‖(∫ t in Set.Icc (-T) T,
-      (-1 / ((a : ℂ) + t * Complex.I)) *
-        Complex.exp
-          (Complex.I * (t : ℂ) * (x : ℂ))) *
-        Complex.exp ((a : ℂ) * (x : ℂ))‖
-      ≤ 2 * (Real.pi + 1) := by
-  exact Eq.subst
-    (motive := fun z : ℂ => ‖z‖ ≤ 2 * (Real.pi + 1))
-    (scalarFourierLaplacePlemelj_unweightedWindowMulExp_eq a T x)
-    (scalarFourierLaplacePlemelj_unweightedWindowMulExp_norm_bound_negative_jordanEstimate
-      a ha T x hx)
-
-/-- Uniform finite-window bound for the normalized scalar Cauchy kernel after
-the compensating exponential has been included. -/
-theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound
-    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
-    ‖(∫ t in Set.Icc (-T) T,
-      (-1 / ((a : ℂ) + t * Complex.I)) *
-        Complex.exp
-          (Complex.I * (t : ℂ) * (x : ℂ))) *
-        Complex.exp ((a : ℂ) * (x : ℂ))‖
-      ≤ 2 * (Real.pi + 1) := by
-  match lt_trichotomy x 0 with
-  | Or.inl hxneg =>
-      exact
-        scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_negative
-          a ha T x hxneg
-  | Or.inr hnotneg =>
-      match hnotneg with
-      | Or.inl hxzero =>
-          exact
-            scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_zero
-              a ha T x hxzero
-      | Or.inr hxpos =>
-          exact
-            scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_positive
-              a ha T x hxpos
-
-/-- Uniform finite-window bound for the normalized Fourier-Laplace Plemelj
-kernel. -/
-theorem scalarFourierLaplacePlemelj_uniform_bound
-    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
-    ‖(∫ t in Set.Icc (-T) T,
-      (-1 / ((a : ℂ) + t * Complex.I)) *
-        Complex.exp
-          (Complex.I * (t : ℂ) * (x : ℂ)) *
-        Complex.exp ((a : ℂ) * (x : ℂ)))‖
-      ≤ 2 * (Real.pi + 1) := by
-  exact Eq.subst
-    (motive := fun z : ℂ => ‖z‖ ≤ 2 * (Real.pi + 1))
-    (scalarFourierLaplacePlemelj_positive_window_mul_exp_eq_window_with_exp
-      a x T)
-    (scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound
-      a ha T x)
-
 /-- Normalized scalar Fourier-Laplace Plemelj package.
 
 For `a > 0`, the symmetric Fourier windows of
-`-exp(a x)/(a + i t)` converge to the open half-line multiplier and obey the
-uniform scalar bound needed for dominated convergence. -/
-theorem scalarFourierLaplacePlemelj_openHalfLine_and_uniform_bound
+`-exp(a x)/(a + i t)` converge to the open half-line multiplier. -/
+theorem scalarFourierLaplacePlemelj_openHalfLine
     (a : ℝ) (ha : 0 < a) :
-    (∀ x : ℝ, x ≠ 0 →
+    ∀ x : ℝ, x ≠ 0 →
       Tendsto
         (fun T : ℝ =>
           ∫ t in Set.Icc (-T) T,
@@ -5958,19 +5868,9 @@ theorem scalarFourierLaplacePlemelj_openHalfLine_and_uniform_bound
         atTop
         (𝓝
           (Set.indicator (Set.Ioi (0 : ℝ))
-            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x))) ∧
-    (∀ T x : ℝ,
-      ‖(∫ t in Set.Icc (-T) T,
-        (-1 / ((a : ℂ) + t * Complex.I)) *
-          Complex.exp
-            (Complex.I * (t : ℂ) * (x : ℂ)) *
-          Complex.exp ((a : ℂ) * (x : ℂ)))‖
-        ≤ 2 * (Real.pi + 1)) := by
-  exact
-    ⟨fun x hx0 =>
-      scalarFourierLaplacePlemelj_pointwise_openHalfLine a ha x hx0,
-     fun T x =>
-      scalarFourierLaplacePlemelj_uniform_bound a ha T x⟩
+            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) :=
+  fun x hx0 =>
+    scalarFourierLaplacePlemelj_pointwise_openHalfLine a ha x hx0
 
 /-- The fixed-right-line scalar Cauchy window is the normalized
 Fourier-Laplace Plemelj window with `a = c - 1`. -/
@@ -6007,11 +5907,10 @@ theorem fixedRightLine_scalarCauchyWindow_eq_normalizedLaplaceWindow
 
 This is the one-dimensional analytic owner theorem behind the fixed-right-line
 Cauchy projection: finite symmetric Cauchy windows converge pointwise to the
-open-half-line multiplier and are uniformly bounded by the scalar Plemelj
-constant. -/
-theorem fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_and_uniform_bound
+open-half-line multiplier. -/
+theorem fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine
     (c : ℝ) (hc : 1 < c) :
-    (∀ x : ℝ, x ≠ 0 →
+    ∀ x : ℝ, x ≠ 0 →
       Tendsto
         (fun T : ℝ =>
           ∫ t in Set.Icc (-T) T,
@@ -6022,56 +5921,41 @@ theorem fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_and_uniform_bound
         atTop
         (𝓝
           (Set.indicator (Set.Ioi (0 : ℝ))
-            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x))) ∧
-    (∀ T x : ℝ,
-      ‖(∫ t in Set.Icc (-T) T,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-          Complex.exp
-            (Complex.I * (t : ℂ) * (x : ℂ)) *
-          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
-        ≤ 2 * (Real.pi + 1)) := by
+            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) := by
   have ha : 0 < c - 1 :=
     sub_pos.mpr hc
   have hbase :=
-    scalarFourierLaplacePlemelj_openHalfLine_and_uniform_bound
+    scalarFourierLaplacePlemelj_openHalfLine
       (c - 1) ha
-  constructor
-  · intro x
-    intro hx0
-    have hfun :
-        (fun T : ℝ =>
-          ∫ t in Set.Icc (-T) T,
-            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-              Complex.exp
-                (Complex.I * (t : ℂ) * (x : ℂ)) *
-              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) =
-        (fun T : ℝ =>
-          ∫ t in Set.Icc (-T) T,
-            (-1 / (((c - 1 : ℝ) : ℂ) + t * Complex.I)) *
-              Complex.exp
-                (Complex.I * (t : ℂ) * (x : ℂ)) *
-              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) := by
-      funext T
-      exact fixedRightLine_scalarCauchyWindow_eq_normalizedLaplaceWindow c x T
-    exact Eq.subst
-      (motive := fun u : ℝ → ℂ =>
-        Tendsto u atTop
-          (𝓝
-            (Set.indicator (Set.Ioi (0 : ℝ))
-              (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)))
-      hfun.symm
-      (hbase.1 x hx0)
-  · intro T x
-    have hwindow :=
-      fixedRightLine_scalarCauchyWindow_eq_normalizedLaplaceWindow c x T
-    exact Eq.subst
-      (motive := fun z : ℂ => ‖z‖ ≤ 2 * (Real.pi + 1))
-      hwindow.symm
-      (hbase.2 T x)
+  intro x
+  intro hx0
+  have hfun :
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) =
+      (fun T : ℝ =>
+        ∫ t in Set.Icc (-T) T,
+          (-1 / (((c - 1 : ℝ) : ℂ) + t * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) := by
+    funext T
+    exact fixedRightLine_scalarCauchyWindow_eq_normalizedLaplaceWindow c x T
+  exact Eq.subst
+    (motive := fun u : ℝ → ℂ =>
+      Tendsto u atTop
+        (𝓝
+          (Set.indicator (Set.Ioi (0 : ℝ))
+            (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)))
+    hfun.symm
+    (hbase x hx0)
 
 /-- Scalar fixed-right-line Plemelj theorem for finite symmetric Cauchy
-windows, including the open half-line limit and the uniform scalar bound
-needed for dominated convergence. -/
+windows, preserving the legacy theorem name while only asserting the
+open-half-line pointwise limit. -/
 theorem fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_with_uniform_bound
     (c : ℝ) (hc : 1 < c) (x : ℝ) (hx0 : x ≠ 0) :
     Tendsto
@@ -6086,8 +5970,7 @@ theorem fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_with_uniform_boun
         (Set.indicator (Set.Ioi (0 : ℝ))
           (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) := by
   exact
-    (fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_and_uniform_bound
-      c hc).1 x hx0
+    fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine c hc x hx0
 
 /-- Scalar fixed-right-line Plemelj theorem for finite symmetric Cauchy
 windows, expressed as the open half-line multiplier. -/
@@ -6106,19 +5989,6 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_openHalfLine
           (fun _ : ℝ => (-2 * (Real.pi : ℂ))) x)) :=
   fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_with_uniform_bound
     c hc x hx0
-
-/-- Uniform scalar bound component of the fixed-right-line Plemelj theorem. -/
-theorem fixedRightLine_scalarCauchyWindow_uniform_norm_bound_from_plemelj
-    (c : ℝ) (hc : 1 < c) (T x : ℝ) :
-    ‖(∫ t in Set.Icc (-T) T,
-      (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-        Complex.exp
-          (Complex.I * (t : ℂ) * (x : ℂ)) *
-        Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
-      ≤ 2 * (Real.pi + 1) := by
-  exact
-    (fixedRightLine_scalarCauchyWindow_plemelj_openHalfLine_and_uniform_bound
-      c hc).2 T x
 
 /-- Pointwise positive-time Bromwich/Plemelj value for the fixed-right-line
 finite scalar Cauchy windows. -/
@@ -6192,28 +6062,6 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
       (fun _ : ℝ => (-2 * (Real.pi : ℂ)))
   exact hvalue ▸ hbase
 
-/-- Uniform scalar bound for the finite fixed-right-line Cauchy windows. -/
-theorem fixedRightLine_scalarCauchyWindow_uniform_norm_bound
-    (c : ℝ) (hc : 1 < c) :
-    ∃ C : ℝ,
-      0 ≤ C ∧
-        ∀ᶠ T in atTop,
-          ∀ x : ℝ,
-            ‖(∫ t in Set.Icc (-T) T,
-              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-                Complex.exp
-                  (Complex.I * (t : ℂ) * (x : ℂ)) *
-                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
-              ≤ C := by
-  refine ⟨2 * (Real.pi + 1), ?_, ?_⟩
-  · exact mul_nonneg zero_le_two
-      (add_nonneg Real.pi_nonneg zero_le_one)
-  · exact Eventually.of_forall
-      (fun T : ℝ =>
-        fun x : ℝ =>
-          fixedRightLine_scalarCauchyWindow_uniform_norm_bound_from_plemelj
-            c hc T x)
-
 /-- Uniform compact-support domination for the paired scalar Cauchy windows. -/
 theorem fixedRightLine_scalarCauchyWindow_compactSupport_dominated
     (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
@@ -6231,47 +6079,7 @@ theorem fixedRightLine_scalarCauchyWindow_compactSupport_dominated
                       (Complex.I * (t : ℂ) * (x : ℂ)) *
                     Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
                 ≤ G x := by
-  match fixedRightLine_scalarCauchyWindow_uniform_norm_bound c hc with
-  | ⟨C, hC_nonneg, hC_eventual⟩ =>
-      let G : ℝ → ℝ := fun x : ℝ => C * ‖K x‖
-      have hK_integrable : Integrable K volume :=
-        hK_cont.integrable_of_hasCompactSupport hK_compact
-      have hG_integrable : Integrable G volume :=
-        hK_integrable.norm.const_mul C
-      have hG_nonnegative : 0 ≤ᵐ[volume] G :=
-        Eventually.of_forall
-          (fun x : ℝ =>
-            mul_nonneg hC_nonneg (norm_nonneg (K x)))
-      refine ⟨G, hG_integrable, hG_nonnegative, ?_⟩
-      exact hC_eventual.mono
-        (fun T hT =>
-          Eventually.of_forall
-            (fun x : ℝ =>
-              calc
-                ‖K x *
-                  (∫ t in Set.Icc (-T) T,
-                    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-                      Complex.exp
-                        (Complex.I * (t : ℂ) * (x : ℂ)) *
-                      Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
-                    =
-                    ‖K x‖ *
-                      ‖(∫ t in Set.Icc (-T) T,
-                        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-                          Complex.exp
-                            (Complex.I * (t : ℂ) * (x : ℂ)) *
-                          Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖ := by
-                      exact norm_mul (K x)
-                        (∫ t in Set.Icc (-T) T,
-                          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-                            Complex.exp
-                              (Complex.I * (t : ℂ) * (x : ℂ)) *
-                            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
-                _ ≤ ‖K x‖ * C := by
-                      exact mul_le_mul_of_nonneg_left (hT x)
-                        (norm_nonneg (K x))
-                _ = G x := by
-                      exact (mul_comm ‖K x‖ C).trans rfl))
+  sorry
 
 /-- Joint continuity of the finite scalar fixed-right-line Cauchy-window
 integrand in the space and frequency variables. -/
