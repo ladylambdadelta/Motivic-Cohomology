@@ -526,6 +526,18 @@ theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpec
           exact congrArg (fun x : ℝ => x * Dpos) (mul_comm Cneg Cpos)
     exact hmul_bounds.trans (hright_shrink.trans (le_of_eq halgebra))
 
+/-- Paley-Wiener rapid decay of a compactly supported zeta test function's
+Laplace transform at positive prime-power centers. -/
+theorem zetaLaplaceTransform_primePower_positive_realAxisRapidDecay_source
+    (φ : ZetaTestFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 ≤ C ∧
+        ∀ ι : ZetaPrimePowerIndex,
+          ‖Boundary.zetaLaplaceTransform φ
+              (ZetaPrimePowerIndex.center ι)‖ ≤
+            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  sorry
+
 /-- Positive real-axis rapid decay of the completed spectral transform at prime-power
 centers. -/
 theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay
@@ -536,7 +548,21 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisRapidDecay
           ‖zetaCompletedExplicitFormulaPhi f
               (ZetaPrimePowerIndex.center ι)‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  sorry
+  obtain ⟨C, k, hC, hbound⟩ :=
+    zetaLaplaceTransform_primePower_positive_realAxisRapidDecay_source
+      f.toZetaTestFunction'
+  refine ⟨C, k, hC, ?_⟩
+  intro ι
+  have hphi :
+      zetaCompletedExplicitFormulaPhi f (ZetaPrimePowerIndex.center ι) =
+        Boundary.zetaLaplaceTransform f.toZetaTestFunction'
+          (ZetaPrimePowerIndex.center ι) := by
+    rfl
+  exact Eq.subst
+    (motive := fun z : ℂ =>
+      ‖z‖ ≤ C * ZetaPrimePowerIndex.polynomialHeightDecay k ι)
+    hphi.symm
+    (hbound ι)
 
 /-- Reflected negative real-axis rapid decay of the completed spectral transform at
 prime-power centers. -/
