@@ -880,6 +880,56 @@ theorem negThree_lt_negOne_real :
     (-(3 : ℝ)) < -1 := by
   exact neg_lt_neg one_lt_three
 
+/-- The exponent arithmetic in the `-3` tail antiderivative. -/
+theorem negThree_add_one_eq_negTwo_real :
+    (-(3 : ℝ) + 1) = -(2 : ℝ) := by
+  have hThree :
+      (3 : ℝ) = 2 + 1 :=
+    Nat.cast_add 2 1
+  calc
+    (-(3 : ℝ) + 1)
+        = -(2 + 1 : ℝ) + 1 := by
+          exact congrArg (fun x : ℝ => -x + 1) hThree
+    _ = (-(2 : ℝ) + -(1 : ℝ)) + 1 := by
+          exact congrArg (fun x : ℝ => x + 1) (neg_add (2 : ℝ) 1)
+    _ = -(2 : ℝ) + (-(1 : ℝ) + 1) := by
+          exact add_assoc (-(2 : ℝ)) (-(1 : ℝ)) 1
+    _ = -(2 : ℝ) + 0 := by
+          exact congrArg (fun x : ℝ => -(2 : ℝ) + x) (neg_add_cancel (1 : ℝ))
+    _ = -(2 : ℝ) := by
+          exact add_zero (-(2 : ℝ))
+
+/-- Division by two written in the orientation needed by the tail value. -/
+theorem div_two_eq_half_mul_real (x : ℝ) :
+    x / (2 : ℝ) = (1 / 2 : ℝ) * x := by
+  have hOneDiv :
+      (1 / 2 : ℝ) = (2 : ℝ)⁻¹ :=
+    one_div (2 : ℝ)
+  calc
+    x / (2 : ℝ)
+        = x * (2 : ℝ)⁻¹ := by
+          exact div_eq_mul_inv x (2 : ℝ)
+    _ = x * (1 / 2 : ℝ) := by
+          exact congrArg (fun y : ℝ => x * y) hOneDiv.symm
+    _ = (1 / 2 : ℝ) * x := by
+          exact mul_comm x (1 / 2 : ℝ)
+
+/-- The signed denominator in the `-3` tail antiderivative contributes the
+factor `1 / 2`. -/
+theorem neg_div_negTwo_eq_half_mul_real (x : ℝ) :
+    -x / (-(2 : ℝ)) = (1 / 2 : ℝ) * x := by
+  calc
+    -x / (-(2 : ℝ))
+        = x / (2 : ℝ) := by
+          exact neg_div_neg_eq x (2 : ℝ)
+    _ = (1 / 2 : ℝ) * x := by
+          exact div_two_eq_half_mul_real x
+
+/-- Transporting a real power across the `-3 + 1 = -2` exponent equality. -/
+theorem rpow_negThree_add_one_eq_rpow_negTwo_real (c : ℝ) :
+    c ^ (-(3 : ℝ) + 1) = c ^ (-(2 : ℝ)) := by
+  exact congrArg (fun a : ℝ => c ^ a) negThree_add_one_eq_negTwo_real
+
 /-- The antiderivative boundary value appearing in
 `integral_Ioi_rpow_of_lt` for exponent `-3` is the expected half
 inverse-square value. -/
@@ -888,7 +938,17 @@ theorem real_negThree_rpow_tail_antiderivative_value_eq_half_rpow_negTwo
     -(c ^ (-(3 : ℝ) + 1)) / (-(3 : ℝ) + 1)
       =
     (1 / 2 : ℝ) * c ^ (-(2 : ℝ)) := by
-  sorry
+  calc
+    -(c ^ (-(3 : ℝ) + 1)) / (-(3 : ℝ) + 1)
+        =
+        -(c ^ (-(2 : ℝ))) / (-(2 : ℝ)) := by
+          exact
+            congrArg₂
+              (fun x y : ℝ => -x / y)
+              (rpow_negThree_add_one_eq_rpow_negTwo_real c)
+              negThree_add_one_eq_negTwo_real
+    _ = (1 / 2 : ℝ) * c ^ (-(2 : ℝ)) := by
+          exact neg_div_negTwo_eq_half_mul_real (c ^ (-(2 : ℝ)))
 
 /-- Specialization of the standard improper-integral computation to the
 translated inverse-cubic power tail. -/
