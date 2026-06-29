@@ -5514,6 +5514,20 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_setIntegral_eq_int
         (f := fun t : ℝ => F (t : ℂ))
         hle).symm
 
+/-- Pointwise right-derivative transport from lower half-disk primitive data to
+the real diameter. -/
+theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightDerivWithinAt_point
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 ≤ T)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnLowerHalfDisk F G T)
+    (t : ℝ) (_ht : t ∈ Set.Ioo (-T) T) :
+    HasDerivWithinAt
+      (fun x : ℝ => G (x : ℂ))
+      (F (t : ℂ))
+      (Set.Ioi t)
+      t := by
+  sorry
+
 /-- Restricting lower half-disk primitive data to the real diameter gives the
 right-derivative on the open interval needed by the fundamental theorem of
 calculus. -/
@@ -5527,7 +5541,10 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightDerivWithi
         (F (t : ℂ))
         (Set.Ioi t)
         t := by
-  sorry
+  intro t ht
+  exact
+    scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_hasRightDerivWithinAt_point
+      F G T _hT _hprimitive t ht
 
 /-- Primitive data makes the primitive function continuous on the lower
 half-disk. -/
