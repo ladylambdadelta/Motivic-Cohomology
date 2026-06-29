@@ -3108,11 +3108,49 @@ theorem scalarFourierLaplacePlemelj_positiveUpperPoleResidueCoefficient_eq_analy
     scalarFourierLaplacePlemelj_positiveKernel_upperPole_residueCoefficient
       a x
 
+/-- Imaginary coordinate of the scalar upper pole. -/
+theorem scalarFourierLaplacePlemelj_upperPole_im
+    (a : ℝ) :
+    Complex.im (scalarFourierLaplacePlemelj_upperPole a) = a := by
+  calc
+    Complex.im (scalarFourierLaplacePlemelj_upperPole a) =
+        Complex.im ((a : ℂ) * Complex.I) := by
+      exact congrArg Complex.im
+        (scalarFourierLaplacePlemelj_upperPole_eq a)
+    _ = (a : ℂ).re * Complex.I.im + (a : ℂ).im * Complex.I.re := by
+      exact Complex.mul_im (a : ℂ) Complex.I
+    _ = a * 1 + 0 * 0 := by
+      exact congrArg₂ HAdd.hAdd
+        (congrArg₂ HMul.hMul
+          (Complex.ofReal_re a)
+          Complex.I_im)
+        (congrArg₂ HMul.hMul
+          (Complex.ofReal_im a)
+          Complex.I_re)
+    _ = a * 1 + 0 := by
+      exact congrArg
+        (fun r : ℝ => a * 1 + r)
+        (zero_mul (0 : ℝ))
+    _ = a * 1 := by
+      exact add_zero (a * 1)
+    _ = a := by
+      exact mul_one a
+
+/-- The scalar upper pole lies strictly in the upper half-plane for `0 < a`. -/
+theorem scalarFourierLaplacePlemelj_upperPole_im_pos
+    (a : ℝ) (ha : 0 < a) :
+    0 < Complex.im (scalarFourierLaplacePlemelj_upperPole a) := by
+  exact
+    Eq.subst
+      (motive := fun r : ℝ => 0 < r)
+      (scalarFourierLaplacePlemelj_upperPole_im a).symm
+      ha
+
 /-- Cauchy's integral formula for a generic upper half-disk boundary integral
 with one enclosed pole. -/
 theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_cauchyIntegralFormula
     (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ)
-    (_hp : ‖p‖ < T)
+    (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p)
     (_hdiff : DifferentiableOn ℂ F
       (scalarFourierLaplacePlemelj_upperHalfDisk T)) :
     scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
@@ -3271,6 +3309,7 @@ theorem scalarFourierLaplacePlemelj_positiveKernelUpperHalfDisk_cauchyIntegralFo
         T hT
         (scalarFourierLaplacePlemelj_upperPole a)
         _hpole
+        (scalarFourierLaplacePlemelj_upperPole_im_pos a ha)
         (scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator_differentiableOn_upperHalfDisk
           x T))
 
