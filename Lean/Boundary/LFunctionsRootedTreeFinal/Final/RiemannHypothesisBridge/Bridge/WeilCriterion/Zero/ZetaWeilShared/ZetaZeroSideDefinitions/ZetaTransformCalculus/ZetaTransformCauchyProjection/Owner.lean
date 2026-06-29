@@ -7036,12 +7036,63 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_smallPrefix_abs_le_one
         scalarFourierLaplacePlemelj_scaledSmallPrefix_abs_le_one
           (A / b) b hR_nonneg hR_le_one
 
-theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_two_pi
-    (A b : ℝ) (hA : 0 ≤ A) (hb : 0 < b) :
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_low_abs_le_one
+    (A b : ℝ) (hb : 0 < b) (hbA : b ≤ A) (hA_le_one : A ≤ 1) :
+    |∫ v in (b)..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 1 := by
+  sorry
+
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_crossing_abs_le_two_pi
+    (A b : ℝ) (hb : 0 < b) (hbA : b ≤ A)
+    (hb_le_one : b ≤ 1) (hone_le_A : 1 ≤ A) :
     |∫ v in (b)..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
       (2 : ℝ) * Real.pi := by
   sorry
+
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_pi
+    (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c) (hcA : c ≤ A) :
+    |∫ v in c..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
+      (2 : ℝ) * Real.pi := by
+  sorry
+
+theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_two_pi
+    (A b : ℝ) (hb : 0 < b) (hbA : b ≤ A) :
+    |∫ v in (b)..A,
+      (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
+      (2 : ℝ) * Real.pi := by
+  have hone_le_two_pi :
+      (1 : ℝ) ≤ (2 : ℝ) * Real.pi := by
+    have hone_le_pi_half : (1 : ℝ) ≤ Real.pi / 2 :=
+      Real.one_le_pi_div_two
+    have hpi_half_le_pi : Real.pi / 2 ≤ Real.pi :=
+      div_le_self Real.pi_pos.le one_le_two
+    have hpi_le_two_pi : Real.pi ≤ (2 : ℝ) * Real.pi := by
+      calc
+        Real.pi = (1 : ℝ) * Real.pi := by
+          exact (one_mul Real.pi).symm
+        _ ≤ (2 : ℝ) * Real.pi := by
+          exact mul_le_mul_of_nonneg_right one_le_two Real.pi_pos.le
+    exact hone_le_pi_half.trans (hpi_half_le_pi.trans hpi_le_two_pi)
+  match le_or_gt A 1 with
+  | Or.inl hA_le_one =>
+      have hlow :
+          |∫ v in (b)..A,
+            (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 1 :=
+        scalarFourierLaplacePlemelj_dampedSineIntegral_tail_low_abs_le_one
+          A b hb hbA hA_le_one
+      exact hlow.trans hone_le_two_pi
+  | Or.inr hone_lt_A =>
+      match le_or_gt b 1 with
+      | Or.inl hb_le_one =>
+          exact
+            scalarFourierLaplacePlemelj_dampedSineIntegral_tail_crossing_abs_le_two_pi
+              A b hb hbA hb_le_one (le_of_lt hone_lt_A)
+      | Or.inr hone_lt_b =>
+          exact
+            scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_pi
+              A b b hb (le_of_lt hone_lt_b) hbA
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_split_at_scale
     (A b : ℝ) (hb : 0 < b) (hbA : b ≤ A) :
@@ -7125,7 +7176,7 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_abs_le_one_add_two_pi
             (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
             (2 : ℝ) * Real.pi :=
         scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_two_pi
-          A b hA hb
+          A b hb hbA
       have hsum :
           |(∫ v in (0)..b,
             (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
