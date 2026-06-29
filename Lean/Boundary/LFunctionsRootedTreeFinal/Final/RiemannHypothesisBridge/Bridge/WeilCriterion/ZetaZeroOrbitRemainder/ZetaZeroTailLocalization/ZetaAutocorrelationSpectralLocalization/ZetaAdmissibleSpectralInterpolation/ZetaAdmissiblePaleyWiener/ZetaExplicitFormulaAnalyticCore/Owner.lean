@@ -526,6 +526,27 @@ theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpec
           exact congrArg (fun x : ℝ => x * Dpos) (mul_comm Cneg Cpos)
     exact hmul_bounds.trans (hright_shrink.trans (le_of_eq halgebra))
 
+/-- Two-sided real-axis rapid decay of the completed spectral transform at prime-power
+centers.
+
+This is the Paley-Wiener rapid-decay input on the unbounded real axis: both the
+positive centers and their reflected negative centers admit a common polynomial-height
+majorant. -/
+theorem zetaCompletedExplicitFormulaPhi_primePower_twoSided_realAxisRapidDecay
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 ≤ C ∧
+        (∀ ι : ZetaPrimePowerIndex,
+          ‖zetaCompletedExplicitFormulaPhi f
+              (ZetaPrimePowerIndex.center ι)‖ ≤
+            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι) ∧
+        (∀ ι : ZetaPrimePowerIndex,
+          ‖star
+            (zetaCompletedExplicitFormulaPhi f
+              (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
+            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι) := by
+  sorry
+
 /-- Positive real-axis one-sided spectral majorant at prime-power centers. -/
 theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisSpectralMajorant
     (f : ZetaAdmissibleFunction) :
@@ -535,7 +556,9 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_positive_realAxisSpectralMajo
           ‖zetaCompletedExplicitFormulaPhi f
               (ZetaPrimePowerIndex.center ι)‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  sorry
+  match zetaCompletedExplicitFormulaPhi_primePower_twoSided_realAxisRapidDecay f with
+  | ⟨C, k, hC, hpositive, _hnegative⟩ =>
+      exact ⟨C, k, hC, hpositive⟩
 
 /-- Reflected negative real-axis one-sided spectral majorant at prime-power
 centers. -/
@@ -548,7 +571,9 @@ theorem zetaCompletedExplicitFormulaPhi_primePower_negative_realAxisSpectralMajo
             (zetaCompletedExplicitFormulaPhi f
               (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  sorry
+  match zetaCompletedExplicitFormulaPhi_primePower_twoSided_realAxisRapidDecay f with
+  | ⟨C, k, hC, _hpositive, hnegative⟩ =>
+      exact ⟨C, k, hC, hnegative⟩
 
 /-- Real-axis prime-power spectral seed-pair summability majorant.
 
