@@ -6899,13 +6899,79 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_pi_di
 
 /-- Scaling reduction from the width-`a` Hilbert-Cauchy sine kernel to the
 normalized kernel `u / (1 + u^2)`. -/
+theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_scaled_integrand_identity
+    (a : ℝ) (ha : 0 < a) (x u : ℝ) :
+    a *
+      (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
+        Real.sin ((u * a) * x)) =
+      (u / (1 + u ^ 2)) * Real.sin ((a * x) * u) := by
+  sorry
+
+/-- Change-of-variables form of the half-window Hilbert-Cauchy sine kernel
+under `t = a*u`, before applying the pointwise algebra identity. -/
+theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_eq_scaled_integral
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    (∫ t in (0)..T,
+      (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)) =
+      a *
+        ∫ u in (0)..(T / a),
+          (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
+            Real.sin ((u * a) * x)) := by
+  sorry
+
 theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_eq_normalized
     (a : ℝ) (ha : 0 < a) (T x : ℝ) :
     (∫ t in (0)..T,
       (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)) =
       ∫ u in (0)..(T / a),
         (u / (1 + u ^ 2)) * Real.sin ((a * x) * u) := by
-  sorry
+  have hscale :
+      (∫ t in (0)..T,
+        (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)) =
+        a *
+          ∫ u in (0)..(T / a),
+            (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
+              Real.sin ((u * a) * x)) :=
+    scalarFourierLaplacePlemelj_halfHilbertSineKernel_eq_scaled_integral
+      a ha T x
+  have hpoint :
+      ∀ u : ℝ,
+        a *
+          (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
+            Real.sin ((u * a) * x)) =
+          (u / (1 + u ^ 2)) * Real.sin ((a * x) * u) :=
+    fun u : ℝ =>
+      scalarFourierLaplacePlemelj_halfHilbertSineKernel_scaled_integrand_identity
+        a ha x u
+  have hintegral :
+      a *
+        ∫ u in (0)..(T / a),
+          (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
+            Real.sin ((u * a) * x)) =
+        ∫ u in (0)..(T / a),
+          (u / (1 + u ^ 2)) * Real.sin ((a * x) * u) := by
+    calc
+      a *
+        ∫ u in (0)..(T / a),
+          (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
+            Real.sin ((u * a) * x))
+          =
+          ∫ u in (0)..(T / a),
+            a *
+              (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
+                Real.sin ((u * a) * x)) := by
+            exact (intervalIntegral.integral_const_mul
+              (a := 0) (b := T / a) (μ := volume)
+              a
+              (fun u : ℝ =>
+                (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
+                  Real.sin ((u * a) * x))).symm
+      _ =
+          ∫ u in (0)..(T / a),
+            (u / (1 + u ^ 2)) * Real.sin ((a * x) * u) := by
+            exact intervalIntegral.integral_congr
+              (Filter.Eventually.of_forall hpoint)
+  exact hscale.trans hintegral
 
 theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_abs_le_pi_div_two
     (a : ℝ) (ha : 0 < a) (T x : ℝ) :
