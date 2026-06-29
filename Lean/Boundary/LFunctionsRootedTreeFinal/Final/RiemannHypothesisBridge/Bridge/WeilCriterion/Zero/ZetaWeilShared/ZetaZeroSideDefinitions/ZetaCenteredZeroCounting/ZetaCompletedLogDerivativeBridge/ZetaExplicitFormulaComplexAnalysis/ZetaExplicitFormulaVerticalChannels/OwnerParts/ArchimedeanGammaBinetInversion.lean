@@ -54,7 +54,9 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_integral_eq_
       zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
         f F.toContourFamily t) =
       zetaCompletedExplicitFormulaPhi f 0 := by
-  sorry
+  exact
+    zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_expandedIntegral_eq_phiZero_ownerTransport
+      f F.toContourFamily
 
 /-- Right vertical window: the scheduled integral of the right Binet remainder
 kernel over the symmetric interval. This is the main term in line 83. -/

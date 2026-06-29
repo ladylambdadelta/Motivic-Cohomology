@@ -2992,6 +2992,132 @@ theorem zetaCompletedExplicitFormulaGammaLogDerivativeMain_integral_transport
             (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) := by
       exact htransport
 
+/-- Linearity peel for the raw right Binet-main integral.
+
+This contains no inverse-Mellin evaluation; it only separates the expanded
+right Binet-main integrand into the `π` term, fixed-vertical Gamma main term,
+and elementary correction term. -/
+theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_expandedIntegral_eq_componentIntegrals
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaContourFamily) :
+    (∫ t : ℝ,
+      (-(zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm +
+          (1 / 2 : ℂ) *
+            Complex.GammaLogDerivativeFixedVerticalMain
+              (F.c / 2) (t / 2)) -
+        explicitFormulaCorrectionLogDerivative
+          (zetaCompletedExplicitFormulaRightAffineLine F t)) *
+        zetaCompletedExplicitFormulaPhi f
+          (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) =
+      - ((∫ t : ℝ,
+        zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) +
+        ∫ t : ℝ,
+          ((1 / 2 : ℂ) *
+            Complex.GammaLogDerivativeFixedVerticalMain
+              (F.c / 2) (t / 2)) *
+            zetaCompletedExplicitFormulaPhi f
+              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) -
+        ∫ t : ℝ,
+          explicitFormulaCorrectionLogDerivative
+            (zetaCompletedExplicitFormulaRightAffineLine F t) *
+            zetaCompletedExplicitFormulaPhi f
+              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t) := by
+  sorry
+
+/-- Component-value peel for the raw right Binet-main integral.
+
+This is the actual scalar inverse-Mellin balance after linearity has separated
+the expanded right Binet-main integrand into named summands. -/
+theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_componentIntegrals_eq_phiZero
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaContourFamily) :
+    - ((∫ t : ℝ,
+      zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm *
+        zetaCompletedExplicitFormulaPhi f
+          (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) +
+      ∫ t : ℝ,
+        ((1 / 2 : ℂ) *
+          Complex.GammaLogDerivativeFixedVerticalMain
+            (F.c / 2) (t / 2)) *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) -
+      ∫ t : ℝ,
+        explicitFormulaCorrectionLogDerivative
+          (zetaCompletedExplicitFormulaRightAffineLine F t) *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t) =
+      zetaCompletedExplicitFormulaPhi f 0 := by
+  sorry
+
+/-- Raw expanded right Binet-main integral value.
+
+This is the unbundled inverse-Mellin evaluation before the expression is named
+as `zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel`.  The bundled
+owner theorem in `ArchimedeanGammaBinetInversion` is only definitional transport
+from this expanded integral. -/
+theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_expandedIntegral_eq_phiZero_ownerTransport
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaContourFamily) :
+    (∫ t : ℝ,
+      (-(zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm +
+          (1 / 2 : ℂ) *
+            Complex.GammaLogDerivativeFixedVerticalMain
+              (F.c / 2) (t / 2)) -
+        explicitFormulaCorrectionLogDerivative
+          (zetaCompletedExplicitFormulaRightAffineLine F t)) *
+        zetaCompletedExplicitFormulaPhi f
+          (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) =
+      zetaCompletedExplicitFormulaPhi f 0 := by
+  have hdecompose :
+      (∫ t : ℝ,
+        (-(zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm +
+            (1 / 2 : ℂ) *
+              Complex.GammaLogDerivativeFixedVerticalMain
+                (F.c / 2) (t / 2)) -
+          explicitFormulaCorrectionLogDerivative
+            (zetaCompletedExplicitFormulaRightAffineLine F t)) *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) =
+        - ((∫ t : ℝ,
+          zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm *
+            zetaCompletedExplicitFormulaPhi f
+              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) +
+          ∫ t : ℝ,
+            ((1 / 2 : ℂ) *
+              Complex.GammaLogDerivativeFixedVerticalMain
+                (F.c / 2) (t / 2)) *
+              zetaCompletedExplicitFormulaPhi f
+                (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) -
+          ∫ t : ℝ,
+            explicitFormulaCorrectionLogDerivative
+              (zetaCompletedExplicitFormulaRightAffineLine F t) *
+              zetaCompletedExplicitFormulaPhi f
+                (zetaCompletedExplicitFormulaRightCenteredAffineLine F t) :=
+    zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_expandedIntegral_eq_componentIntegrals
+      f F
+  have hcomponents :
+      - ((∫ t : ℝ,
+        zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) +
+        ∫ t : ℝ,
+          ((1 / 2 : ℂ) *
+            Complex.GammaLogDerivativeFixedVerticalMain
+              (F.c / 2) (t / 2)) *
+            zetaCompletedExplicitFormulaPhi f
+              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) -
+        ∫ t : ℝ,
+          explicitFormulaCorrectionLogDerivative
+            (zetaCompletedExplicitFormulaRightAffineLine F t) *
+            zetaCompletedExplicitFormulaPhi f
+              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t) =
+        zetaCompletedExplicitFormulaPhi f 0 :=
+    zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_componentIntegrals_eq_phiZero
+      f F
+  exact Eq.trans hdecompose hcomponents
+
 /-- Gamma geometry: the shifted Gamma log-derivative remainder component equals
 the regular remainder component via the duality between left and right
 parameters. -/

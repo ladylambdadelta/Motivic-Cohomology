@@ -23,7 +23,7 @@ transform and normalization lemmas that later owner files will consume.
 namespace Boundary
 
 open scoped FourierTransform
-open Real Complex Set MeasureTheory
+open Filter Real Complex Set MeasureTheory
 open AddCircle
 
 noncomputable section

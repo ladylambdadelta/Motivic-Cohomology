@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCalculusBase.Owner
+import Mathlib.Analysis.Fourier.Inversion
+import Mathlib.MeasureTheory.Integral.SetIntegral
 
 /-!
 # Fixed-line Cauchy projection for logarithmic Laplace transforms
@@ -10,8 +12,8 @@ zeta-specific naming wrapper.
 
 namespace Boundary
 
-open scoped FourierTransform
-open Real Complex Set MeasureTheory
+open scoped Filter FourierTransform
+open Filter Real Complex Set MeasureTheory
 
 noncomputable section
 
@@ -20,7 +22,7 @@ section FixedLineCauchyProjection
 /-- The right one-pole Cauchy/Laplace projection value attached to a compactly
 supported logarithmic test function. -/
 noncomputable def zetaLaplaceTransform_rightOnePoleCauchyProjectionValue
-    (φ : LFunctions.ZetaTestFunction) (c : ℝ) : ℂ :=
+    (φ : LFunctions.ZetaTestFunction) (_c : ℝ) : ℂ :=
   ∫ x in Set.Iic (0 : ℝ),
     (-2 * (Real.pi : ℂ)) *
       φ x *
