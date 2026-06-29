@@ -6064,6 +6064,44 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
 
 /-- The positive upper-arc Jordan majorant remains bounded after multiplication
 by the compensating exponential on compact intervals away from zero. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanPrefactor_eventually_le
+    (a : ℝ) :
+    ∀ᶠ T in atTop,
+      Real.pi * T / (T - a) ≤ Real.pi + 1 := by
+  sorry
+
+/-- Real exponential factor in the positive away-zero compact interval is
+bounded by the endpoint exponential. -/
+theorem scalarFourierLaplacePlemelj_positive_exp_norm_le_intervalEndpoint
+    (a : ℝ) (ha : 0 < a) (R x : ℝ) (hxR : ‖x‖ ≤ R) :
+    ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ Real.exp (a * R) := by
+  sorry
+
+/-- Reciprocal factor in the positive away-zero Jordan majorant is bounded by
+the away-from-zero threshold. -/
+theorem scalarFourierLaplacePlemelj_positive_awayZero_reciprocal_le
+    (T x δ : ℝ) (hT : 0 < T) (hδ : 0 < δ) (hδx : δ ≤ x) :
+    (T * x)⁻¹ ≤ (T * δ)⁻¹ := by
+  sorry
+
+/-- Product assembly for the positive upper-arc Jordan majorant away from
+zero. -/
+theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_awayZero_mulExp_bound_eventually_of_factors
+    (a : ℝ) (ha : 0 < a) (R δ B : ℝ) (hδ : 0 < δ)
+    (hB_nonneg : 0 ≤ B)
+    (hpref :
+      ∀ᶠ T in atTop,
+        Real.pi * T / (T - a) ≤ B) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            δ ≤ x →
+            ‖x‖ ≤ R →
+              scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T *
+                ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ C := by
+  sorry
+
 theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_awayZero_mulExp_bound_eventually
     (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
     ∃ C : ℝ,
@@ -6074,7 +6112,15 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_awayZero_mulE
             ‖x‖ ≤ R →
               scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T *
                 ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ C := by
-  sorry
+  let B : ℝ := Real.pi + 1
+  have hB_nonneg : 0 ≤ B := by
+    unfold B
+    exact add_nonneg Real.pi_nonneg zero_le_one
+  exact
+    scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_awayZero_mulExp_bound_eventually_of_factors
+      a ha R δ B hδ hB_nonneg
+      (scalarFourierLaplacePlemelj_positiveUpperArcJordanPrefactor_eventually_le
+        a)
 
 /-- Positive upper-arc away-from-zero estimate from its Jordan majorant. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_awayZero_mulExp_norm_bound_eventually_of_jordan
