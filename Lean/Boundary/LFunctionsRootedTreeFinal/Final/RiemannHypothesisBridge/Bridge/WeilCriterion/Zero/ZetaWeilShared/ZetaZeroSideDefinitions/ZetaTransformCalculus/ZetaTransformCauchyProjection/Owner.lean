@@ -6557,6 +6557,14 @@ noncomputable def scalarFourierLaplacePlemelj_uncompensated_oddSineWindow
   ∫ t in Set.Icc (-T) T,
     (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)
 
+/-- Fixed-constant Dirichlet bound for the even-cosine component of the
+uncompensated Cauchy kernel. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_pi
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x| ≤
+      Real.pi := by
+  sorry
+
 /-- Uniform Dirichlet bound for the even-cosine part of the uncompensated
 Cauchy Fourier window. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_uniform_bound
@@ -6565,6 +6573,17 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_uniform_bound
       0 ≤ C ∧
         ∀ T x : ℝ,
           |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x| ≤ C := by
+  exact ⟨Real.pi, Real.pi_pos.le,
+    fun T x =>
+      scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_pi
+        a ha T x⟩
+
+/-- Fixed-constant Dirichlet bound for the odd-sine component of the
+uncompensated Cauchy kernel. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_abs_le_pi
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤
+      Real.pi := by
   sorry
 
 /-- Uniform Dirichlet bound for the odd-sine part of the uncompensated Cauchy
@@ -6575,7 +6594,10 @@ theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_uniform_bound
       0 ≤ C ∧
         ∀ T x : ℝ,
           |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤ C := by
-  sorry
+  exact ⟨Real.pi, Real.pi_pos.le,
+    fun T x =>
+      scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_abs_le_pi
+        a ha T x⟩
 
 /-- Multiplication of two complex numbers presented by real and imaginary
 coordinates. -/
