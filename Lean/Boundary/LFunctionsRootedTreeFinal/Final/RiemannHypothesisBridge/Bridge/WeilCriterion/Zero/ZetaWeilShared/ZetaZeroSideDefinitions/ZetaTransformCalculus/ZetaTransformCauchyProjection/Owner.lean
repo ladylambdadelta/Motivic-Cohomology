@@ -6075,7 +6075,52 @@ bounded by the endpoint exponential. -/
 theorem scalarFourierLaplacePlemelj_positive_exp_norm_le_intervalEndpoint
     (a : ℝ) (ha : 0 < a) (R x : ℝ) (hxR : ‖x‖ ≤ R) :
     ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ Real.exp (a * R) := by
-  sorry
+  have hx_le_R : x ≤ R :=
+    (le_abs_self x).trans hxR
+  have hax_le_aR : a * x ≤ a * R :=
+    mul_le_mul_of_nonneg_left hx_le_R ha.le
+  have hnorm_eq :
+      ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ = Real.exp (a * x) := by
+    calc
+      ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ =
+          Complex.abs (Complex.exp ((a : ℂ) * (x : ℂ))) := by
+        exact Complex.norm_eq_abs (Complex.exp ((a : ℂ) * (x : ℂ)))
+      _ =
+          Real.exp (((a : ℂ) * (x : ℂ)).re) := by
+        exact Complex.abs_exp ((a : ℂ) * (x : ℂ))
+      _ =
+          Real.exp
+            ((a : ℂ).re * (x : ℂ).re -
+              (a : ℂ).im * (x : ℂ).im) := by
+        exact congrArg Real.exp (Complex.mul_re (a : ℂ) (x : ℂ))
+      _ =
+          Real.exp (a * (x : ℂ).re -
+              (a : ℂ).im * (x : ℂ).im) := by
+        exact congrArg
+          (fun r : ℝ =>
+            Real.exp
+              (r * (x : ℂ).re - (a : ℂ).im * (x : ℂ).im))
+          (Complex.ofReal_re a)
+      _ =
+          Real.exp (a * x -
+              (a : ℂ).im * (x : ℂ).im) := by
+        exact congrArg
+          (fun r : ℝ =>
+            Real.exp (a * r - (a : ℂ).im * (x : ℂ).im))
+          (Complex.ofReal_re x)
+      _ =
+          Real.exp (a * x - 0 * (x : ℂ).im) := by
+        exact congrArg
+          (fun r : ℝ => Real.exp (a * x - r * (x : ℂ).im))
+          (Complex.ofReal_im a)
+      _ =
+          Real.exp (a * x - 0) := by
+        exact congrArg Real.exp (congrArg (fun r : ℝ => a * x - r)
+          (zero_mul (x : ℂ).im))
+      _ =
+          Real.exp (a * x) := by
+        exact congrArg Real.exp (sub_zero (a * x))
+  exact (le_of_eq hnorm_eq).trans (Real.exp_le_exp.mpr hax_le_aR)
 
 /-- Reciprocal factor in the positive away-zero Jordan majorant is bounded by
 the away-from-zero threshold. -/
