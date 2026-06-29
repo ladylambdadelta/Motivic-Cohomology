@@ -6545,6 +6545,24 @@ theorem scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound
         scalarFourierLaplacePlemelj_compactInterval_positive_awayZero_norm_bound_eventually_of_arc
           a ha R δ Carc hδ hCarc_nonneg harc
 
+/-- Uncompensated symmetric Cauchy-window bound in a punctured neighborhood of
+the Plemelj jump. -/
+theorem scalarFourierLaplacePlemelj_uncompensated_punctured_nearZero_norm_bound_eventually
+    (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ᶠ T in atTop,
+          ∀ x : ℝ,
+            x ≠ 0 →
+            ‖x‖ < δ →
+            ‖x‖ ≤ R →
+              ‖∫ t in Set.Icc (-T) T,
+                (-1 / ((a : ℂ) + t * Complex.I)) *
+                  Complex.exp
+                    (Complex.I * (t : ℂ) * (x : ℂ))‖
+              ≤ C := by
+  sorry
+
 /-- Uniform punctured-neighborhood Cauchy-window estimate near the Plemelj
 jump.  This is the shared near-zero Dirichlet estimate used by both signs. -/
 theorem scalarFourierLaplacePlemelj_compactInterval_punctured_nearZero_norm_bound_eventually
@@ -6562,7 +6580,62 @@ theorem scalarFourierLaplacePlemelj_compactInterval_punctured_nearZero_norm_boun
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
               ≤ C := by
-  sorry
+  match
+    scalarFourierLaplacePlemelj_uncompensated_punctured_nearZero_norm_bound_eventually
+      a ha R δ hδ
+  with
+  | ⟨Craw, hCraw_nonneg, hraw⟩ =>
+      let Ebound : ℝ := Real.exp (a * R)
+      let C : ℝ := Craw * Ebound
+      have hEbound_nonneg : 0 ≤ Ebound := by
+        unfold Ebound
+        exact (Real.exp_pos (a * R)).le
+      have hC_nonneg : 0 ≤ C := by
+        unfold C
+        exact mul_nonneg hCraw_nonneg hEbound_nonneg
+      exact
+        ⟨C, hC_nonneg,
+          hraw.mono
+            (fun T hT x hx_ne hxδ hxR =>
+              let W : ℂ :=
+                ∫ t in Set.Icc (-T) T,
+                  (-1 / ((a : ℂ) + t * Complex.I)) *
+                    Complex.exp
+                      (Complex.I * (t : ℂ) * (x : ℂ))
+              let E : ℂ := Complex.exp ((a : ℂ) * (x : ℂ))
+              have htarget :
+                  (∫ t in Set.Icc (-T) T,
+                    (-1 / ((a : ℂ) + t * Complex.I)) *
+                      Complex.exp
+                        (Complex.I * (t : ℂ) * (x : ℂ)) *
+                      Complex.exp ((a : ℂ) * (x : ℂ))) =
+                  W * E :=
+                (scalarFourierLaplacePlemelj_positive_window_mul_exp_eq_window_with_exp
+                  a x T).symm
+              have hE_le : ‖E‖ ≤ Ebound := by
+                unfold E
+                unfold Ebound
+                exact
+                  scalarFourierLaplacePlemelj_positive_exp_norm_le_intervalEndpoint
+                    a ha R x hxR
+              have hE_nonneg : 0 ≤ ‖E‖ :=
+                norm_nonneg E
+              have hmul :
+                  ‖W‖ * ‖E‖ ≤ Craw * Ebound :=
+                mul_le_mul (hT x hx_ne hxδ hxR) hE_le hE_nonneg hCraw_nonneg
+              calc
+                ‖(∫ t in Set.Icc (-T) T,
+                  (-1 / ((a : ℂ) + t * Complex.I)) *
+                    Complex.exp
+                      (Complex.I * (t : ℂ) * (x : ℂ)) *
+                    Complex.exp ((a : ℂ) * (x : ℂ)))‖
+                    = ‖W * E‖ := by
+                  exact congrArg norm htarget
+                _ = ‖W‖ * ‖E‖ := by
+                  exact norm_mul W E
+                _ ≤ Craw * Ebound := hmul
+                _ = C := by
+                  rfl)⟩
 
 /-- Positive-time near-zero compact-interval estimate for the normalized
 scalar Fourier-Laplace Plemelj kernel. -/
