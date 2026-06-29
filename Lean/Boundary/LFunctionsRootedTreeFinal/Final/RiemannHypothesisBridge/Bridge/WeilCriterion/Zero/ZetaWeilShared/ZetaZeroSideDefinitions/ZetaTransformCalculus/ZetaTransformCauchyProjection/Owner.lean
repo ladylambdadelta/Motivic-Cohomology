@@ -3334,6 +3334,24 @@ theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_posi
       ≤ 2 * (Real.pi + 1) := by
   sorry
 
+/-- Zero-time symmetric Cauchy window has the elementary arctangent value. -/
+theorem scalarFourierLaplacePlemelj_zero_window_eq_arctan
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hx : x = 0) :
+    (∫ t in Set.Icc (-T) T,
+      (-1 / ((a : ℂ) + t * Complex.I)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ))) *
+        Complex.exp ((a : ℂ) * (x : ℂ)) =
+      (-(2 : ℝ) * Real.arctan (T / a) : ℂ) := by
+  sorry
+
+/-- The zero-time arctangent window is bounded by the scalar Plemelj constant. -/
+theorem scalarFourierLaplacePlemelj_zero_arctan_bound
+    (a : ℝ) (ha : 0 < a) (T : ℝ) :
+    ‖((-(2 : ℝ) * Real.arctan (T / a) : ℝ) : ℂ)‖
+      ≤ 2 * (Real.pi + 1) := by
+  sorry
+
 /-- Zero-time uniform finite-window bound for the normalized scalar Cauchy
 kernel. -/
 theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_zero
@@ -3344,7 +3362,10 @@ theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_zero
           (Complex.I * (t : ℂ) * (x : ℂ))) *
         Complex.exp ((a : ℂ) * (x : ℂ))‖
       ≤ 2 * (Real.pi + 1) := by
-  sorry
+  exact Eq.subst
+    (motive := fun z : ℂ => ‖z‖ ≤ 2 * (Real.pi + 1))
+    (scalarFourierLaplacePlemelj_zero_window_eq_arctan a ha T x hx)
+    (scalarFourierLaplacePlemelj_zero_arctan_bound a ha T)
 
 /-- Negative-time uniform finite-window bound for the normalized scalar Cauchy
 kernel. -/
