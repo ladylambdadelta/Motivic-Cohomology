@@ -7195,12 +7195,52 @@ theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_le_one
     hv_le_v_sq.trans (le_add_of_nonneg_left (sq_nonneg b))
   exact (div_le_one hden_pos).mpr hv_le_den
 
+theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_cross_mul_difference
+    (b u v : ℝ) :
+    u * (b ^ 2 + v ^ 2) - v * (b ^ 2 + u ^ 2) =
+      (v - u) * (u * v - b ^ 2) := by
+  sorry
+
+theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_bsq_le_mul
+    (b c u v : ℝ) (hb : 0 < b) (_hone_le_c : 1 ≤ c)
+    (hb_le_c : b ≤ c) (hu : u ∈ Set.Ici c) (hv : v ∈ Set.Ici c) :
+    b ^ 2 ≤ u * v := by
+  have hb_le_u : b ≤ u :=
+    hb_le_c.trans hu
+  have hb_le_v : b ≤ v :=
+    hb_le_c.trans hv
+  have hu_nonneg : 0 ≤ u :=
+    hb.le.trans hb_le_u
+  have hmul : b * b ≤ u * v :=
+    mul_le_mul hb_le_u hb_le_v hb.le hu_nonneg
+  calc
+    b ^ 2 = b * b := by
+      exact pow_two b
+    _ ≤ u * v := hmul
+
 theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_cross_mul_le
     (b c u v : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
     (hb_le_c : b ≤ c) (hu : u ∈ Set.Ici c) (hv : v ∈ Set.Ici c)
     (huv : u ≤ v) :
     v * (b ^ 2 + u ^ 2) ≤ u * (b ^ 2 + v ^ 2) := by
-  sorry
+  have hdiff_nonneg : 0 ≤ v - u :=
+    sub_nonneg.mpr huv
+  have hfactor_nonneg : 0 ≤ u * v - b ^ 2 :=
+    sub_nonneg.mpr
+      (scalarFourierLaplacePlemelj_highTailCauchyAmplitude_bsq_le_mul
+        b c u v hb hone_le_c hb_le_c hu hv)
+  have hprod_nonneg :
+      0 ≤ (v - u) * (u * v - b ^ 2) :=
+    mul_nonneg hdiff_nonneg hfactor_nonneg
+  have hdiff_eq :
+      u * (b ^ 2 + v ^ 2) - v * (b ^ 2 + u ^ 2) =
+        (v - u) * (u * v - b ^ 2) :=
+    scalarFourierLaplacePlemelj_highTailCauchyAmplitude_cross_mul_difference
+      b u v
+  have hsub_nonneg :
+      0 ≤ u * (b ^ 2 + v ^ 2) - v * (b ^ 2 + u ^ 2) :=
+    hdiff_eq.symm ▸ hprod_nonneg
+  exact sub_nonneg.mp hsub_nonneg
 
 theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_antitoneOn
     (b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c) (hb_le_c : b ≤ c) :
