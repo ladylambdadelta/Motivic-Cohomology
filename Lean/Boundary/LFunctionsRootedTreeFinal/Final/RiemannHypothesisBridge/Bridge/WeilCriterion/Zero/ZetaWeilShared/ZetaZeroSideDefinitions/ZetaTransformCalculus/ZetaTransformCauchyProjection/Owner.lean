@@ -3112,6 +3112,59 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_tendsto_zero
       (scalarFourierLaplacePlemelj_positiveUpperArcJordanReciprocal_tendsto_zero
         x hx)
 
+/-- The circular velocity on a positive-radius semicircle has norm equal to the
+radius. -/
+theorem scalarFourierLaplacePlemelj_semicircleVelocity_norm_eq_radius
+    (T : ℝ) (hT : 0 < T) (θ : ℝ) :
+    ‖Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ = T := by
+  have hexp_arg :
+      Complex.I * (θ : ℂ) = (θ : ℂ) * Complex.I :=
+    mul_comm Complex.I (θ : ℂ)
+  have hexp_norm :
+      ‖Complex.exp (Complex.I * (θ : ℂ))‖ = 1 := by
+    exact
+      (congrArg
+        (fun z : ℂ => ‖Complex.exp z‖)
+        hexp_arg).trans
+        (Complex.norm_exp_ofReal_mul_I θ)
+  have hTnorm :
+      ‖(T : ℂ)‖ = T := by
+    exact (RCLike.norm_ofReal (K := ℂ) T).trans
+      (abs_of_pos hT)
+  calc
+    ‖Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ =
+        ‖Complex.I * (T : ℂ)‖ *
+          ‖Complex.exp (Complex.I * (θ : ℂ))‖ := by
+      exact norm_mul (Complex.I * (T : ℂ))
+        (Complex.exp (Complex.I * (θ : ℂ)))
+    _ =
+        (‖Complex.I‖ * ‖(T : ℂ)‖) *
+          ‖Complex.exp (Complex.I * (θ : ℂ))‖ := by
+      exact congrArg
+        (fun r : ℝ => r * ‖Complex.exp (Complex.I * (θ : ℂ))‖)
+        (norm_mul Complex.I (T : ℂ))
+    _ = (1 * ‖(T : ℂ)‖) *
+          ‖Complex.exp (Complex.I * (θ : ℂ))‖ := by
+      exact congrArg
+        (fun r : ℝ => (r * ‖(T : ℂ)‖) *
+          ‖Complex.exp (Complex.I * (θ : ℂ))‖)
+        Complex.norm_I
+    _ = ‖(T : ℂ)‖ *
+          ‖Complex.exp (Complex.I * (θ : ℂ))‖ := by
+      exact congrArg
+        (fun r : ℝ => r * ‖Complex.exp (Complex.I * (θ : ℂ))‖)
+        (one_mul ‖(T : ℂ)‖)
+    _ = T * ‖Complex.exp (Complex.I * (θ : ℂ))‖ := by
+      exact congrArg
+        (fun r : ℝ => r * ‖Complex.exp (Complex.I * (θ : ℂ))‖)
+        hTnorm
+    _ = T * 1 := by
+      exact congrArg
+        (fun r : ℝ => T * r)
+        hexp_norm
+    _ = T := by
+      exact mul_one T
+
 /-- Denominator part of the positive upper-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_denominator_norm_inv_le
     (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) (θ : ℝ) :
@@ -3135,7 +3188,9 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArc_exponential_norm_eq_damping
 theorem scalarFourierLaplacePlemelj_positiveUpperArc_velocity_norm_eq_radius
     (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) (θ : ℝ) :
     ‖Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ = T := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_semicircleVelocity_norm_eq_radius
+      T (ha.trans hT) θ
 
 /-- Product assembly for the positive upper-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArcIntegrand_norm_le_jordanDensity_of_factors
@@ -3713,7 +3768,9 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_exponential_norm_eq_damping
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_velocity_norm_eq_radius
     (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : a < T) (θ : ℝ) :
     ‖Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ = T := by
-  sorry
+  exact
+    scalarFourierLaplacePlemelj_semicircleVelocity_norm_eq_radius
+      T (ha.trans hT) θ
 
 /-- Product assembly for the negative lower-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArcIntegrand_norm_le_jordanDensity_of_factors
