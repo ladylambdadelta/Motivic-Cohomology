@@ -35,7 +35,13 @@ namespace LFunctions
 
 noncomputable section
 
-theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_exists :
+/-- The canonical decaying tail kernel carries the uniform full-sector
+majorant used by contour-kernel assembly lemmas.
+
+This theorem deliberately records only the majorant package.  It does not
+assert an integral comparison from the principal branch tail to this decaying
+kernel; that comparison is the separate analytic wall-cancellation input. -/
+theorem Complex.binetSecondFormula_decaying_tail_kernel_uniform_majorant_package :
     ∃ K : ℂ → ℝ → ℂ, ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧
       0 < C ∧
@@ -44,8 +50,18 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_exists :
     two_pos, zero_lt_one,
     Complex.binetSecondFormula_contourTailMajorantKernel_uniform_majorant⟩
 
-/-- Positivity of the radius supplied by the contour-deformed tail kernel
-existence theorem. -/
+/-- Compatibility name for the decaying-kernel majorant package.
+
+The package supplies a uniformly majorized kernel, not the missing principal
+tail comparison to that kernel. -/
+theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_exists :
+    ∃ K : ℂ → ℝ → ℂ, ∃ R : ℝ, ∃ C : ℝ,
+      0 < R ∧
+      0 < C ∧
+      Complex.BinetSecondFormulaContourTailUniformMajorant K R C :=
+  Complex.binetSecondFormula_decaying_tail_kernel_uniform_majorant_package
+
+/-- The radius supplied by the decaying-kernel majorant package is positive. -/
 theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_radius_pos :
     ∃ K : Complex.BinetSecondFormulaContourDeformedTailKernel, ∃ R : ℝ,
       0 < R ∧
@@ -56,8 +72,8 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_radius_pos :
   | ⟨K, R, C, hR, hC, hmajorant⟩ =>
       exact ⟨K, R, hR, C, hC, hmajorant⟩
 
-/-- Positivity of the uniform majorant constant supplied by the
-contour-deformed tail kernel existence theorem. -/
+/-- The uniform majorant constant supplied by the
+decaying-kernel majorant package. -/
 theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_constant_pos :
     ∃ K : Complex.BinetSecondFormulaContourDeformedTailKernel, ∃ R : ℝ, ∃ C : ℝ,
       0 < C ∧
@@ -67,8 +83,10 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_constant_pos :
   | ⟨K, R, C, hR, hC, hmajorant⟩ =>
       ⟨K, R, C, hC, hR, hmajorant⟩
 
-/-- Principal-tail comparison supplied by the contour-deformed kernel
-existence theorem. -/
+/-- Compatibility projection of the decaying-kernel majorant package.
+
+Despite the historical name, this theorem does not supply a principal-tail
+comparison; it only returns a kernel with its uniform majorant. -/
 theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_principal_comparison_ae :
     ∃ K : Complex.BinetSecondFormulaContourDeformedTailKernel, ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧
@@ -76,8 +94,7 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_principal_compari
       Complex.BinetSecondFormulaContourTailUniformMajorant K R C :=
   Complex.binetSecondFormula_contourDeformed_tail_kernel_exists
 
-/-- Uniform pointwise majorant supplied by the contour-deformed kernel
-existence theorem. -/
+/-- Uniform pointwise majorant supplied by the decaying-kernel package. -/
 theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_uniform_majorant :
     ∃ K : Complex.BinetSecondFormulaContourDeformedTailKernel, ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧
