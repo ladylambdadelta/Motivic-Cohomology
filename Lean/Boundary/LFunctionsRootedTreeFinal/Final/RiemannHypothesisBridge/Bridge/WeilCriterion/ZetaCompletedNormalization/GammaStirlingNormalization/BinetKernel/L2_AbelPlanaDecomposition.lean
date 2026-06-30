@@ -1926,6 +1926,53 @@ theorem Complex.binetSecondFormula_lowerVerticalUpTo_sub_initialWindow_norm_eq_e
     Complex.finiteAbelPlana_lowerVerticalUpTo_sub_initialWindow_norm_eq_endpointReturnedRestoredPair_norm
       N w T
 
+/-- The endpoint-returned restored pair has the same improper limit as the
+finite-height lower-vertical tail.
+
+This is the convergence form of the endpoint-returned cancellation surface:
+the half-endpoint contribution is paired before passing to the limit. -/
+theorem Complex.binetSecondFormula_endpointReturnedRestoredPair_tendsto_tailRemainder_owner
+    (N : ℕ)
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    Tendsto
+      (fun T : ℝ =>
+        (((((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+            Complex.finiteAbelPlanaLogSummand w (x : ℂ)) -
+          Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+          Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
+          (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)) +
+          Complex.finiteAbelPlanaLogSummandHalfEndpoints N w) -
+          (Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T +
+            Complex.finiteAbelPlanaLogSummandHalfEndpoints N w)))
+      atTop
+      (𝓝 (Complex.binetSecondFormulaTailRemainder w)) := by
+  let L : ℝ → ℂ := fun T : ℝ =>
+    Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T -
+      (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+        Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)
+  let P : ℝ → ℂ := fun T : ℝ =>
+    (((((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+        Complex.finiteAbelPlanaLogSummand w (x : ℂ)) -
+      Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+      Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
+      (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+        Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)) +
+      Complex.finiteAbelPlanaLogSummandHalfEndpoints N w) -
+      (Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T +
+        Complex.finiteAbelPlanaLogSummandHalfEndpoints N w))
+  have hL :
+      Tendsto L atTop (𝓝 (Complex.binetSecondFormulaTailRemainder w)) :=
+    Complex.binetSecondFormula_lowerVerticalUpTo_sub_initialWindow_tendsto_tailRemainder_owner
+      hw_re_pos
+  have hLP : ∀ T : ℝ, L T = P T :=
+    fun T : ℝ =>
+      Complex.binetSecondFormula_lowerVerticalUpTo_sub_initialWindow_eq_endpointReturnedRestoredPair_owner
+        N w T
+  exact
+    hL.congr' (Filter.Eventually.of_forall hLP)
+
 /-- Limit of the solved finite-height boundary expression with the contour
 error removed.
 

@@ -688,6 +688,123 @@ theorem Complex.binetSecondFormula_endpointReturnedRestoredPair_decay_of_finiteH
                     hnorm
                     hlower_T)⟩⟩
 
+/-- Endpoint-returned restored-pair decay from branch-wall tail absorption.
+
+This is the direct endpoint-restored consumption of the tail-remainder
+absorption theorem.  The finite-height paired expression is first passed to its
+improper endpoint-returned limit, and the constant is doubled to turn the
+limit bound into eventual finite-height control. -/
+theorem Complex.binetSecondFormula_endpointReturnedRestoredPair_decay_of_tailAbsorption
+    (htail :
+      Complex.BinetSecondFormulaBranchWallContourCancellationTailAbsorption) :
+    Complex.BinetSecondFormulaEndpointReturnedRestoredPairDecay := by
+  match htail with
+  | ⟨Rtail, Ctail, hRtail_pos, hCtail_pos, htail_bound⟩ =>
+      let Rpair : ℝ := max Rtail 2
+      let Cpair : ℝ := 2 * Ctail
+      have hRpair_pos : 0 < Rpair :=
+        lt_of_lt_of_le hRtail_pos (le_max_left Rtail 2)
+      have hCpair_pos : 0 < Cpair :=
+        mul_pos two_pos hCtail_pos
+      exact
+        ⟨Rpair, Cpair, hRpair_pos, hCpair_pos,
+          fun w hw_re_pos hRpair_le =>
+            let N : ℕ := 0
+            have hRtail_le : Rtail ≤ ‖w‖ :=
+              le_trans (le_max_left Rtail 2) hRpair_le
+            have hw_norm_two : 2 ≤ ‖w‖ :=
+              le_trans (le_max_right Rtail 2) hRpair_le
+            let J : ℝ := Complex.binetSecondFormulaDecayingTailIntegral w
+            let S : ℝ := (Ctail / ‖w‖) * J
+            let B : ℝ := (Cpair / ‖w‖) * J
+            have htail_norm :
+                ‖Complex.binetSecondFormulaTailRemainder w‖ ≤ S :=
+              htail_bound w hw_re_pos hRtail_le
+            have hnorm_pos : 0 < ‖w‖ :=
+              lt_of_lt_of_le zero_lt_two hw_norm_two
+            have hJ_pos : 0 < J := by
+              match Complex.binetSecondFormula_decayingTailIntegral_expLower_owner with
+              | ⟨c, hc_pos, htail_lower⟩ =>
+                  have hcE_pos :
+                      0 < c * ‖w‖ * Real.exp (-Real.pi * ‖w‖) :=
+                    mul_pos
+                      (mul_pos hc_pos hnorm_pos)
+                      (Real.exp_pos (-Real.pi * ‖w‖))
+                  exact lt_of_lt_of_le hcE_pos (htail_lower w hw_norm_two)
+            have hscale_pos : 0 < (1 / ‖w‖) * J :=
+              mul_pos (one_div_pos.mpr hnorm_pos) hJ_pos
+            have hS_eq : S = Ctail * ((1 / ‖w‖) * J) := by
+              calc
+                S = (Ctail / ‖w‖) * J := by
+                  rfl
+                _ = (Ctail * (1 / ‖w‖)) * J := by
+                  exact congrArg (fun x : ℝ => x * J)
+                    (div_eq_mul_one_div Ctail ‖w‖)
+                _ = Ctail * ((1 / ‖w‖) * J) := by
+                  exact mul_assoc Ctail (1 / ‖w‖) J
+            have hB_eq : B = (2 * Ctail) * ((1 / ‖w‖) * J) := by
+              calc
+                B = (Cpair / ‖w‖) * J := by
+                  rfl
+                _ = ((2 * Ctail) / ‖w‖) * J := by
+                  rfl
+                _ = ((2 * Ctail) * (1 / ‖w‖)) * J := by
+                  exact congrArg (fun x : ℝ => x * J)
+                    (div_eq_mul_one_div (2 * Ctail) ‖w‖)
+                _ = (2 * Ctail) * ((1 / ‖w‖) * J) := by
+                  exact mul_assoc (2 * Ctail) (1 / ‖w‖) J
+            have htail_le_scaled :
+                ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+                  Ctail * ((1 / ‖w‖) * J) :=
+              Eq.subst
+                (motive := fun x : ℝ =>
+                  ‖Complex.binetSecondFormulaTailRemainder w‖ ≤ x)
+                hS_eq
+                htail_norm
+            have htail_lt_B :
+                ‖Complex.binetSecondFormulaTailRemainder w‖ < B := by
+              have hlt :
+                  ‖Complex.binetSecondFormulaTailRemainder w‖ <
+                    (2 * Ctail) * ((1 / ‖w‖) * J) :=
+                Real.le_mul_pos_scale_lt_two_mul
+                  htail_le_scaled hCtail_pos hscale_pos
+              exact
+                Eq.subst
+                  (motive := fun x : ℝ =>
+                    ‖Complex.binetSecondFormulaTailRemainder w‖ < x)
+                  hB_eq.symm
+                  hlt
+            have htendsto :
+                Tendsto
+                  (fun T : ℝ =>
+                    (((((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+                        Complex.finiteAbelPlanaLogSummand w (x : ℂ)) -
+                      Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+                      Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
+                      (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+                        Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)) +
+                      Complex.finiteAbelPlanaLogSummandHalfEndpoints N w) -
+                      (Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T +
+                        Complex.finiteAbelPlanaLogSummandHalfEndpoints N w)))
+                  atTop
+                  (nhds (Complex.binetSecondFormulaTailRemainder w)) :=
+              Complex.binetSecondFormula_endpointReturnedRestoredPair_tendsto_tailRemainder_owner
+                N hw_re_pos
+            have hevent :
+                ∀ᶠ T : ℝ in atTop,
+                  ‖(((((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+                      Complex.finiteAbelPlanaLogSummand w (x : ℂ)) -
+                    Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
+                    Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
+                    (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+                      Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)) +
+                    Complex.finiteAbelPlanaLogSummandHalfEndpoints N w) -
+                    (Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T +
+                      Complex.finiteAbelPlanaLogSummandHalfEndpoints N w))‖ ≤ B :=
+              Complex.eventually_norm_le_of_tendsto_norm_lt
+                htendsto htail_lt_B
+            ⟨N, hevent⟩⟩
+
 /-- Finite-height lower-vertical decay from the endpoint-returned restored
 paired estimate.
 
@@ -769,6 +886,31 @@ theorem Complex.binetSecondFormula_endpointReturnedRestoredPair_decay_iff_finite
       fun hlower =>
         Complex.binetSecondFormula_endpointReturnedRestoredPair_decay_of_finiteHeightLowerVerticalDifference_decay
           hlower⟩
+
+/-- Endpoint-returned restored-pair decay is equivalent to branch-wall tail
+absorption.
+
+The forward direction is the lower-vertical transport already used by the
+branch-uniform tail package.  The reverse direction is the endpoint-returned
+limit theorem with a doubled constant. -/
+theorem Complex.binetSecondFormula_endpointReturnedRestoredPair_decay_iff_tailAbsorption :
+    Complex.BinetSecondFormulaEndpointReturnedRestoredPairDecay ↔
+      Complex.BinetSecondFormulaBranchWallContourCancellationTailAbsorption := by
+  exact
+    ⟨fun hpair =>
+      let hfinite :
+          Complex.BinetSecondFormulaFiniteHeightLowerVerticalDifferenceDecay :=
+        Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_endpointReturnedRestoredPair_decay
+          hpair
+      let hlower :
+          Complex.BinetSecondFormulaLowerVerticalDifferenceDecay :=
+        Complex.binetSecondFormula_lowerVerticalDifference_decay_of_eventually_lowerVerticalUpTo_decay
+          hfinite
+      Complex.binetSecondFormula_branchTail_wallCancellation_of_lowerVerticalDifference_decay
+        hlower,
+      fun htail =>
+        Complex.binetSecondFormula_endpointReturnedRestoredPair_decay_of_tailAbsorption
+          htail⟩
 
 /-- Branch-wall tail absorption from the finite-height cancelled lower-vertical
 estimate.
