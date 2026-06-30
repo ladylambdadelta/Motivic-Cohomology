@@ -127,28 +127,26 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_centerSegmentPrimi
         (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p z)
         (scalarFourierLaplacePlemelj_upperHalfDisk T)
         z := by
-  match
-    scalarFourierLaplacePlemelj_upperHalfDisk_hasPrimitive_of_analyticAt
-      (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p)
-      T (le_of_lt _hT)
-      (scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_analyticAt
-        F T _hT p _hp _hp_upper _hanalytic) with
-  | ⟨G, hprimitive⟩ =>
-      have hG :
-          G =
-            LFunctions.complex_centerSegmentIntegral
-              (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p) := by
-        rfl
-      exact
-        Eq.subst
-          (motive := fun H : ℂ → ℂ =>
-            ∀ z ∈ scalarFourierLaplacePlemelj_upperHalfDisk T,
-              HasDerivWithinAt H
-                (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p z)
-                (scalarFourierLaplacePlemelj_upperHalfDisk T)
-                z)
-          hG
-          hprimitive.2
+  intro z hz
+  let R : ℂ → ℂ :=
+    scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p
+  let G : ℂ → ℂ := LFunctions.complex_centerSegmentIntegral R
+  have hregular_analytic :
+      ∀ w ∈ scalarFourierLaplacePlemelj_upperHalfDisk T,
+        AnalyticAt ℂ R w :=
+    scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_analyticAt
+      F T _hT p _hp _hp_upper _hanalytic
+  have hprimitive :
+      ∀ w : ℂ,
+        w ∈ scalarFourierLaplacePlemelj_upperHalfDisk T →
+          AnalyticAt ℂ G w ∧ HasDerivAt G (R w) w := by
+    exact
+      LFunctions.complex_centerSegmentIntegral_parametricPrimitive_of_holomorphicOn_starConvex
+        R
+        (scalarFourierLaplacePlemelj_upperHalfDisk_starConvex T (le_of_lt _hT))
+        hregular_analytic
+  exact
+    (hprimitive z hz).2.hasDerivWithinAt
 
 /-- The center-segment integral is primitive data for the removable Cauchy
 regular part on the upper half-disk. -/
@@ -211,9 +209,6 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_boundaryIntegral_e
         scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_eq_zero_of_hasPrimitive
           (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p)
           G T _hT hprimitive
-
-/-- Scalar lower half-disk boundary integral used only to close the winding
-calculation for an upper-half-plane pole. -/
 
 end FixedLineCauchyProjection
 

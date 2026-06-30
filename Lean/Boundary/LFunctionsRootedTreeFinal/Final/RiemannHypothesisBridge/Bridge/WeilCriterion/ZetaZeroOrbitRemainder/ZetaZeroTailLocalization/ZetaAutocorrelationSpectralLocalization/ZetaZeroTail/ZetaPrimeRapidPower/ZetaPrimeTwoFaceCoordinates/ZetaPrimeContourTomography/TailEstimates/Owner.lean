@@ -533,6 +533,42 @@ theorem finitePrimeContourTransportCoordinateRemainderWindow_tendsto_zero_ownerT
     hfun.symm
     hsub
 
+/-- The completed finite-window reconstruction supplies the visible summed
+contour/time transport datum with the coordinate-remainder window exposed.
+
+This is the durable prime transport provider: finite contour-realized windows
+are the time/log windows plus the named coordinate remainder, and that
+remainder tends to zero at the completed boundary. -/
+def completedSummedPrimeContourTimeTransport_of_finiteWindowReconstruction
+    (f : ZetaAdmissibleFunction)
+    (D : CompletedFiniteWindowPrimeDistributionReconstruction f) :
+    CompletedSummedPrimeContourTimeTransport f where
+  timeWindow :=
+    fun N : ℕ =>
+      finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f)
+  contourWindow :=
+    fun N : ℕ =>
+      finitePrimeContourRealizedTimeDistributionWindow N
+        (convolutionAutocorrelation f)
+  remainderWindow :=
+    fun N : ℕ => finitePrimeContourTransportCoordinateRemainderWindow N f
+  timeWindow_eq := by
+    intro N
+    rfl
+  contourWindow_eq := by
+    intro N
+    rfl
+  finite_additive_transport := by
+    intro N
+    exact finitePrimeTimeDistributionWindow_add_coordinateRemainderWindow N f
+  timeWindow_tendsto :=
+    finitePrimeTimeDistributionWindow_tendsto_completed f
+  remainderWindow_tendsto_zero :=
+    finitePrimeContourTransportCoordinateRemainderWindow_tendsto_zero_ownerTailEstimate
+      f D
+  contourWindow_tendsto :=
+    D.contourWindow_tendsto
+
 /-- Scheduled owner data for the canonical prime contour-transport family.
 
 This is genuine construction data: the contour construction must supply the deterministic

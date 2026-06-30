@@ -1,6 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCauchyProjection.PositiveContour.Base
 import Mathlib.Analysis.Analytic.IsolatedZeros
 import Mathlib.Analysis.Complex.RemovableSingularity
+import Mathlib.MeasureTheory.Integral.CircleIntegral
 
 namespace Boundary
 
@@ -41,10 +42,7 @@ theorem scalarFourierLaplacePlemelj_zero_mem_upperHalfDisk
     (0 : ℂ) ∈ scalarFourierLaplacePlemelj_upperHalfDisk T := by
   exact
     And.intro
-      (Eq.subst
-        (motive := fun r : ℝ => r ≤ T)
-        norm_zero
-        _hT)
+      (le_trans (le_of_eq norm_zero) _hT)
       (le_of_eq Complex.zero_im.symm)
 
 /-- The upper half-disk is star-convex from the origin. -/
@@ -56,7 +54,7 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_starConvex
     convex_closedBall (0 : ℂ) T
   have hconv_upper :
       Convex ℝ {z : ℂ | 0 ≤ Complex.im z} :=
-    Complex.convex_halfSpace_im_ge 0
+    convex_halfSpace_im_ge 0
   have hconv :
       Convex ℝ (Metric.closedBall (0 : ℂ) T ∩ {z : ℂ | 0 ≤ Complex.im z}) :=
     hconv_closedBall.inter hconv_upper
@@ -313,29 +311,75 @@ theorem scalarFourierLaplacePlemelj_upperArcParam_hasDerivAt
       (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
       θ := by
   unfold scalarFourierLaplacePlemelj_upperArcParam
-  have hraw :
+  have hcircle :
+      HasDerivAt
+        (circleMap 0 T)
+        (circleMap 0 T θ * Complex.I)
+        θ :=
+    hasDerivAt_circleMap 0 T θ
+  have hfun :
+      (fun u : ℝ => (T : ℂ) * Complex.exp (Complex.I * (u : ℂ))) =
+        circleMap 0 T := by
+    exact
+      funext
+        (fun u : ℝ =>
+          Eq.trans
+            (congrArg
+              (fun z : ℂ => (T : ℂ) * Complex.exp z)
+              (mul_comm Complex.I (u : ℂ)))
+            (circleMap_zero T u).symm)
+  have harg :
+      (θ : ℂ) * Complex.I = Complex.I * (θ : ℂ) :=
+    mul_comm (θ : ℂ) Complex.I
+  have hcircle_value :
+      circleMap 0 T θ * Complex.I =
+        Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) := by
+    calc
+      circleMap 0 T θ * Complex.I =
+          ((T : ℂ) * Complex.exp ((θ : ℂ) * Complex.I)) * Complex.I := by
+        exact congrArg (fun z : ℂ => z * Complex.I) (circleMap_zero T θ)
+      _ =
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I := by
+        exact congrArg
+          (fun z : ℂ => ((T : ℂ) * Complex.exp z) * Complex.I)
+          harg
+      _ =
+          (T : ℂ) *
+            (Complex.exp (Complex.I * (θ : ℂ)) * Complex.I) := by
+        exact mul_assoc (T : ℂ)
+          (Complex.exp (Complex.I * (θ : ℂ))) Complex.I
+      _ =
+          (T : ℂ) *
+            (Complex.I * Complex.exp (Complex.I * (θ : ℂ))) := by
+        exact congrArg
+          (fun z : ℂ => (T : ℂ) * z)
+          (mul_comm (Complex.exp (Complex.I * (θ : ℂ))) Complex.I)
+      _ =
+          ((T : ℂ) * Complex.I) *
+            Complex.exp (Complex.I * (θ : ℂ)) := by
+        exact (mul_assoc (T : ℂ) Complex.I
+          (Complex.exp (Complex.I * (θ : ℂ)))).symm
+      _ =
+          (Complex.I * (T : ℂ)) *
+            Complex.exp (Complex.I * (θ : ℂ)) := by
+        exact congrArg
+          (fun z : ℂ => z * Complex.exp (Complex.I * (θ : ℂ)))
+          (mul_comm (T : ℂ) Complex.I)
+      _ =
+          Complex.I * (T : ℂ) *
+            Complex.exp (Complex.I * (θ : ℂ)) := by
+        exact rfl
+  have hwith_function :
       HasDerivAt
         (fun u : ℝ => (T : ℂ) * Complex.exp (Complex.I * (u : ℂ)))
-        ((T : ℂ) *
-          (Complex.exp (Complex.I * (θ : ℂ)) * Complex.I))
+        (circleMap 0 T θ * Complex.I)
         θ := by
     exact
-      (((Complex.ofRealCLM.hasDerivAt (x := θ)).const_mul Complex.I).cexp).const_mul
-        (T : ℂ)
-  have hvalue :
-      (T : ℂ) * (Complex.exp (Complex.I * (θ : ℂ)) * Complex.I) =
-        Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) := by
-    exact
-      Eq.trans
-        (congrArg
-          (fun w : ℂ => (T : ℂ) * w)
-          (mul_comm (Complex.exp (Complex.I * (θ : ℂ))) Complex.I))
-        (Eq.trans
-          (mul_assoc (T : ℂ) Complex.I
-            (Complex.exp (Complex.I * (θ : ℂ))))
-          (congrArg
-            (fun w : ℂ => w * Complex.exp (Complex.I * (θ : ℂ)))
-            (mul_comm (T : ℂ) Complex.I)))
+      Eq.subst
+        (motive := fun F : ℝ → ℂ =>
+          HasDerivAt F (circleMap 0 T θ * Complex.I) θ)
+        hfun.symm
+        hcircle
   exact
     Eq.subst
       (motive := fun v : ℂ =>
@@ -343,8 +387,41 @@ theorem scalarFourierLaplacePlemelj_upperArcParam_hasDerivAt
           (fun u : ℝ => (T : ℂ) * Complex.exp (Complex.I * (u : ℂ)))
           v
           θ)
-      hvalue
-      hraw
+      hcircle_value
+      hwith_function
+
+/-- The upper semicircle parametrization is continuous. -/
+theorem scalarFourierLaplacePlemelj_upperArcParam_continuous
+    (T : ℝ) :
+    Continuous (scalarFourierLaplacePlemelj_upperArcParam T) := by
+  unfold scalarFourierLaplacePlemelj_upperArcParam
+  have harg :
+      Continuous (fun θ : ℝ => Complex.I * (θ : ℂ)) := by
+    exact continuous_const.mul Complex.continuous_ofReal
+  have hexp :
+      Continuous (fun θ : ℝ =>
+        Complex.exp (Complex.I * (θ : ℂ))) := by
+    exact Complex.continuous_exp.comp harg
+  exact continuous_const.mul hexp
+
+/-- The unordered upper angular interval is the ordinary interval because
+`0 ≤ π`. -/
+theorem scalarFourierLaplacePlemelj_upperArc_uIcc_mem_Icc
+    (θ : ℝ) :
+    θ ∈ Set.uIcc (0 : ℝ) Real.pi →
+      θ ∈ Set.Icc (0 : ℝ) Real.pi := by
+  intro hθ
+  have hcases :
+      0 ≤ θ ∧ θ ≤ Real.pi ∨ Real.pi ≤ θ ∧ θ ≤ 0 :=
+    mem_uIcc.mp hθ
+  match hcases with
+  | Or.inl hforward =>
+      exact hforward
+  | Or.inr hreverse =>
+      exact
+        And.intro
+          (le_trans Real.pi_pos.le hreverse.1)
+          (le_trans hreverse.2 Real.pi_pos.le)
 
 /-- The upper arc parametrization starts at the right endpoint of the diameter. -/
 theorem scalarFourierLaplacePlemelj_upperArcParam_zero
@@ -389,8 +466,7 @@ theorem scalarFourierLaplacePlemelj_upperArcPrimitive_continuousOn
       (fun θ : ℝ => G (scalarFourierLaplacePlemelj_upperArcParam T θ))
       (Set.uIcc (0 : ℝ) Real.pi) := by
   have hparam_continuous : Continuous (scalarFourierLaplacePlemelj_upperArcParam T) := by
-    exact fun θ : ℝ =>
-      (scalarFourierLaplacePlemelj_upperArcParam_hasDerivAt T θ).continuousAt
+    exact scalarFourierLaplacePlemelj_upperArcParam_continuous T
   have hmaps :
       Set.MapsTo
         (scalarFourierLaplacePlemelj_upperArcParam T)
@@ -400,7 +476,8 @@ theorem scalarFourierLaplacePlemelj_upperArcPrimitive_continuousOn
     unfold scalarFourierLaplacePlemelj_upperArcParam
     exact
       scalarFourierLaplacePlemelj_upperArc_mapsTo_upperHalfDisk
-        T _hT θ hθ
+        T _hT
+        (scalarFourierLaplacePlemelj_upperArc_uIcc_mem_Icc θ hθ)
   have hG_continuous :
       ContinuousOn G (scalarFourierLaplacePlemelj_upperHalfDisk T) := by
     intro z hz
@@ -426,14 +503,15 @@ theorem scalarFourierLaplacePlemelj_upperArcPrimitive_hasRightDerivWithinAt
   intro θ hθ
   let s : Set ℝ := Set.Ioi θ ∩ Set.Ioo (0 : ℝ) Real.pi
   have hθ_uIcc : θ ∈ Set.uIcc (0 : ℝ) Real.pi :=
-    mem_uIcc.mpr ⟨le_of_lt hθ.1, le_of_lt hθ.2⟩
+    mem_uIcc.mpr (Or.inl ⟨le_of_lt hθ.1, le_of_lt hθ.2⟩)
   have hθ_upper :
       scalarFourierLaplacePlemelj_upperArcParam T θ ∈
         scalarFourierLaplacePlemelj_upperHalfDisk T := by
     unfold scalarFourierLaplacePlemelj_upperArcParam
     exact
       scalarFourierLaplacePlemelj_upperArc_mapsTo_upperHalfDisk
-        T _hT θ hθ_uIcc
+        T _hT
+        (scalarFourierLaplacePlemelj_upperArc_uIcc_mem_Icc θ hθ_uIcc)
   have hinner :
       HasDerivWithinAt
         (scalarFourierLaplacePlemelj_upperArcParam T)
@@ -449,11 +527,12 @@ theorem scalarFourierLaplacePlemelj_upperArcPrimitive_hasRightDerivWithinAt
         (scalarFourierLaplacePlemelj_upperHalfDisk T) := by
     intro u hu
     have hu_uIcc : u ∈ Set.uIcc (0 : ℝ) Real.pi :=
-      mem_uIcc.mpr ⟨le_of_lt hu.2.1, le_of_lt hu.2.2⟩
+      mem_uIcc.mpr (Or.inl ⟨le_of_lt hu.2.1, le_of_lt hu.2.2⟩)
     unfold scalarFourierLaplacePlemelj_upperArcParam
     exact
       scalarFourierLaplacePlemelj_upperArc_mapsTo_upperHalfDisk
-        T _hT u hu_uIcc
+        T _hT
+        (scalarFourierLaplacePlemelj_upperArc_uIcc_mem_Icc u hu_uIcc)
   have houter :
       HasFDerivWithinAt G
         ((F (scalarFourierLaplacePlemelj_upperArcParam T θ)) •
@@ -514,6 +593,40 @@ theorem scalarFourierLaplacePlemelj_upperArcPrimitive_hasRightDerivWithinAt
     hlocal.mono_of_mem_nhdsWithin
       (inter_mem self_mem_nhdsWithin hIoo_mem)
 
+/-- The open angular interval for the upper returning arc is `(0, π)`. -/
+theorem scalarFourierLaplacePlemelj_upperArc_openInterval_normalize :
+    Set.Ioo (min (0 : ℝ) Real.pi) (max (0 : ℝ) Real.pi) =
+      Set.Ioo (0 : ℝ) Real.pi := by
+  have hpi_nonneg : (0 : ℝ) ≤ Real.pi :=
+    Real.pi_pos.le
+  have hmin : min (0 : ℝ) Real.pi = (0 : ℝ) :=
+    min_eq_left hpi_nonneg
+  have hmax : max (0 : ℝ) Real.pi = Real.pi :=
+    max_eq_right hpi_nonneg
+  exact congrArg₂ Set.Ioo hmin hmax
+
+/-- The path-FTC derivative hypothesis in the exact interval orientation. -/
+theorem scalarFourierLaplacePlemelj_upperArcPrimitive_hasRightDerivWithinAt_minMax
+    (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 < T)
+    (_hprimitive :
+      scalarFourierLaplacePlemelj_hasPrimitiveOnUpperHalfDisk F G T) :
+    ∀ θ ∈ Set.Ioo (min (0 : ℝ) Real.pi) (max (0 : ℝ) Real.pi),
+      HasDerivWithinAt
+        (fun u : ℝ => G (scalarFourierLaplacePlemelj_upperArcParam T u))
+        (F (scalarFourierLaplacePlemelj_upperArcParam T θ) *
+          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+        (Set.Ioi θ)
+        θ := by
+  intro θ hθ
+  exact
+    scalarFourierLaplacePlemelj_upperArcPrimitive_hasRightDerivWithinAt
+      F G T _hT _hprimitive
+      θ
+      (Eq.subst
+        (motive := fun S : Set ℝ => θ ∈ S)
+        scalarFourierLaplacePlemelj_upperArc_openInterval_normalize
+        hθ)
+
 /-- The upper arc integrand is interval-integrable over the returning arc. -/
 theorem scalarFourierLaplacePlemelj_upperArc_intervalIntegrable
     (F G : ℂ → ℂ) (T : ℝ) (_hT : 0 < T)
@@ -527,8 +640,7 @@ theorem scalarFourierLaplacePlemelj_upperArc_intervalIntegrable
       (0 : ℝ)
       Real.pi := by
   have hparam_continuous : Continuous (scalarFourierLaplacePlemelj_upperArcParam T) := by
-    exact fun θ : ℝ =>
-      (scalarFourierLaplacePlemelj_upperArcParam_hasDerivAt T θ).continuousAt
+    exact scalarFourierLaplacePlemelj_upperArcParam_continuous T
   have hmaps :
       Set.MapsTo
         (scalarFourierLaplacePlemelj_upperArcParam T)
@@ -538,7 +650,8 @@ theorem scalarFourierLaplacePlemelj_upperArc_intervalIntegrable
     unfold scalarFourierLaplacePlemelj_upperArcParam
     exact
       scalarFourierLaplacePlemelj_upperArc_mapsTo_upperHalfDisk
-        T _hT θ hθ
+        T _hT
+        (scalarFourierLaplacePlemelj_upperArc_uIcc_mem_Icc θ hθ)
   have hF_continuous :
       ContinuousOn
         (fun θ : ℝ => F (scalarFourierLaplacePlemelj_upperArcParam T θ))
@@ -583,7 +696,7 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_upperArcIntegral_eq_primitiveE
     intervalIntegral.integral_eq_sub_of_hasDeriv_right
       (scalarFourierLaplacePlemelj_upperArcPrimitive_continuousOn
         F G T _hT _hprimitive)
-      (scalarFourierLaplacePlemelj_upperArcPrimitive_hasRightDerivWithinAt
+      (scalarFourierLaplacePlemelj_upperArcPrimitive_hasRightDerivWithinAt_minMax
         F G T _hT _hprimitive)
       (scalarFourierLaplacePlemelj_upperArc_intervalIntegrable
         F G T _hT _hprimitive)
@@ -628,9 +741,38 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_primitiveEndpointSub_add_retur
     (G (T : ℂ) - G ((-T : ℝ) : ℂ)) +
         (G ((-T : ℝ) : ℂ) - G (T : ℂ)) =
       0 := by
-  exact
-    scalarFourierLaplacePlemelj_lowerHalfDisk_primitiveEndpointSub_add_return_eq_zero
-      G T
+  calc
+    (G (T : ℂ) - G ((-T : ℝ) : ℂ)) +
+        (G ((-T : ℝ) : ℂ) - G (T : ℂ)) =
+        G (T : ℂ) + -G ((-T : ℝ) : ℂ) +
+          (G ((-T : ℝ) : ℂ) + -G (T : ℂ)) := by
+      exact congrArg₂ HAdd.hAdd
+        (sub_eq_add_neg (G (T : ℂ)) (G ((-T : ℝ) : ℂ)))
+        (sub_eq_add_neg (G ((-T : ℝ) : ℂ)) (G (T : ℂ)))
+    _ =
+        G (T : ℂ) + (-G ((-T : ℝ) : ℂ) +
+          (G ((-T : ℝ) : ℂ) + -G (T : ℂ))) := by
+      exact add_assoc (G (T : ℂ)) (-G ((-T : ℝ) : ℂ))
+        (G ((-T : ℝ) : ℂ) + -G (T : ℂ))
+    _ =
+        G (T : ℂ) + ((-G ((-T : ℝ) : ℂ) +
+          G ((-T : ℝ) : ℂ)) + -G (T : ℂ)) := by
+      exact congrArg
+        (fun z : ℂ => G (T : ℂ) + z)
+        (add_assoc (-G ((-T : ℝ) : ℂ)) (G ((-T : ℝ) : ℂ))
+          (-G (T : ℂ))).symm
+    _ =
+        G (T : ℂ) + (0 + -G (T : ℂ)) := by
+      exact congrArg
+        (fun z : ℂ => G (T : ℂ) + (z + -G (T : ℂ)))
+        (neg_add_cancel (G ((-T : ℝ) : ℂ)))
+    _ =
+        G (T : ℂ) + -G (T : ℂ) := by
+      exact congrArg
+        (fun z : ℂ => G (T : ℂ) + z)
+        (zero_add (-G (T : ℂ)))
+    _ = 0 := by
+      exact add_neg_cancel (G (T : ℂ))
 
 /-- Upper-half-disk primitive data makes the boundary integral vanish. -/
 theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_eq_zero_of_hasPrimitive
@@ -648,9 +790,6 @@ theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_eq_zero_of_has
           F G T _hT _hprimitive))
       (scalarFourierLaplacePlemelj_upperHalfDisk_primitiveEndpointSub_add_return_eq_zero
         G T)
-
-/-- Strict interior of the upper half-disk, expressed by the two strict
-inequalities that make the closed constraints neighborhoods. -/
 
 end FixedLineCauchyProjection
 

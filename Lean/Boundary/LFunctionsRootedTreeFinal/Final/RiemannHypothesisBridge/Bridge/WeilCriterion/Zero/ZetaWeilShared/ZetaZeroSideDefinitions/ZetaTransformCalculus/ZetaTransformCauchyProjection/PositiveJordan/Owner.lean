@@ -225,61 +225,6 @@ theorem scalarFourierLaplacePlemelj_semicirclePoint_re
         (fun r : ℝ => T * r)
         hexp_re
 
-/-- Imaginary coordinate of the scalar semicircle point. -/
-theorem scalarFourierLaplacePlemelj_semicirclePoint_im
-    (T θ : ℝ) :
-    ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im =
-      T * Real.sin θ := by
-  have harg :
-      Complex.I * (θ : ℂ) = (θ : ℂ) * Complex.I :=
-    mul_comm Complex.I (θ : ℂ)
-  have hexp_re :
-      (Complex.exp (Complex.I * (θ : ℂ))).re = Real.cos θ :=
-    (congrArg
-      (fun z : ℂ => (Complex.exp z).re)
-      harg).trans
-      (Complex.exp_ofReal_mul_I_re θ)
-  have hexp_im :
-      (Complex.exp (Complex.I * (θ : ℂ))).im = Real.sin θ :=
-    (congrArg
-      (fun z : ℂ => (Complex.exp z).im)
-      harg).trans
-      (Complex.exp_ofReal_mul_I_im θ)
-  calc
-    ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im =
-        (T : ℂ).re * (Complex.exp (Complex.I * (θ : ℂ))).im +
-          (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).re := by
-      exact Complex.mul_im (T : ℂ)
-        (Complex.exp (Complex.I * (θ : ℂ)))
-    _ =
-        T * (Complex.exp (Complex.I * (θ : ℂ))).im +
-          (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).re := by
-      exact congrArg
-        (fun r : ℝ =>
-          r * (Complex.exp (Complex.I * (θ : ℂ))).im +
-            (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).re)
-        (Complex.ofReal_re T)
-    _ =
-        T * (Complex.exp (Complex.I * (θ : ℂ))).im +
-          0 * (Complex.exp (Complex.I * (θ : ℂ))).re := by
-      exact congrArg
-        (fun r : ℝ =>
-          T * (Complex.exp (Complex.I * (θ : ℂ))).im +
-            r * (Complex.exp (Complex.I * (θ : ℂ))).re)
-        (Complex.ofReal_im T)
-    _ =
-        T * (Complex.exp (Complex.I * (θ : ℂ))).im + 0 := by
-      exact congrArg
-        (fun r : ℝ =>
-          T * (Complex.exp (Complex.I * (θ : ℂ))).im + r)
-        (zero_mul (Complex.exp (Complex.I * (θ : ℂ))).re)
-    _ = T * (Complex.exp (Complex.I * (θ : ℂ))).im := by
-      exact add_zero (T * (Complex.exp (Complex.I * (θ : ℂ))).im)
-    _ = T * Real.sin θ := by
-      exact congrArg
-        (fun r : ℝ => T * r)
-        hexp_im
-
 /-- Real part after multiplication by `Complex.I` on the left. -/
 theorem scalarFourierLaplacePlemelj_I_mul_semicirclePoint_re
     (T θ : ℝ) :

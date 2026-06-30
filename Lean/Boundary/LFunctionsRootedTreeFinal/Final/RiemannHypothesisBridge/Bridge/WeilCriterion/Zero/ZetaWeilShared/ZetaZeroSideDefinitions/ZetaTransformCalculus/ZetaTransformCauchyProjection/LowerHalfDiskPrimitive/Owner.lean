@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCauchyProjection.FixedLineTails.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCauchyProjection.PositiveContour.Base
+import Mathlib.MeasureTheory.Integral.CircleIntegral
 
 namespace Boundary
 
@@ -53,10 +55,7 @@ theorem scalarFourierLaplacePlemelj_zero_mem_lowerHalfDisk
     (0 : ℂ) ∈ scalarFourierLaplacePlemelj_lowerHalfDisk T := by
   exact
     And.intro
-      (Eq.subst
-        (motive := fun r : ℝ => r ≤ T)
-        norm_zero
-        _hT)
+      (le_trans (le_of_eq norm_zero) _hT)
       (le_of_eq Complex.zero_im)
 
 /-- The lower half-disk is star-convex from the origin. -/
@@ -68,7 +67,7 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDisk_starConvex
     convex_closedBall (0 : ℂ) T
   have hconv_lower :
       Convex ℝ {z : ℂ | Complex.im z ≤ 0} :=
-    Complex.convex_halfSpace_im_le 0
+    convex_halfSpace_im_le 0
   have hconv :
       Convex ℝ (Metric.closedBall (0 : ℂ) T ∩ {z : ℂ | Complex.im z ≤ 0}) :=
     hconv_closedBall.inter hconv_lower
@@ -398,29 +397,75 @@ theorem scalarFourierLaplacePlemelj_lowerArcParam_hasDerivAt
       (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
       θ := by
   unfold scalarFourierLaplacePlemelj_lowerArcParam
-  have hraw :
+  have hcircle :
+      HasDerivAt
+        (circleMap 0 T)
+        (circleMap 0 T θ * Complex.I)
+        θ :=
+    hasDerivAt_circleMap 0 T θ
+  have hfun :
+      (fun u : ℝ => (T : ℂ) * Complex.exp (Complex.I * (u : ℂ))) =
+        circleMap 0 T := by
+    exact
+      funext
+        (fun u : ℝ =>
+          Eq.trans
+            (congrArg
+              (fun z : ℂ => (T : ℂ) * Complex.exp z)
+              (mul_comm Complex.I (u : ℂ)))
+            (circleMap_zero T u).symm)
+  have harg :
+      (θ : ℂ) * Complex.I = Complex.I * (θ : ℂ) :=
+    mul_comm (θ : ℂ) Complex.I
+  have hcircle_value :
+      circleMap 0 T θ * Complex.I =
+        Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) := by
+    calc
+      circleMap 0 T θ * Complex.I =
+          ((T : ℂ) * Complex.exp ((θ : ℂ) * Complex.I)) * Complex.I := by
+        exact congrArg (fun z : ℂ => z * Complex.I) (circleMap_zero T θ)
+      _ =
+          ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) * Complex.I := by
+        exact congrArg
+          (fun z : ℂ => ((T : ℂ) * Complex.exp z) * Complex.I)
+          harg
+      _ =
+          (T : ℂ) *
+            (Complex.exp (Complex.I * (θ : ℂ)) * Complex.I) := by
+        exact mul_assoc (T : ℂ)
+          (Complex.exp (Complex.I * (θ : ℂ))) Complex.I
+      _ =
+          (T : ℂ) *
+            (Complex.I * Complex.exp (Complex.I * (θ : ℂ))) := by
+        exact congrArg
+          (fun z : ℂ => (T : ℂ) * z)
+          (mul_comm (Complex.exp (Complex.I * (θ : ℂ))) Complex.I)
+      _ =
+          ((T : ℂ) * Complex.I) *
+            Complex.exp (Complex.I * (θ : ℂ)) := by
+        exact (mul_assoc (T : ℂ) Complex.I
+          (Complex.exp (Complex.I * (θ : ℂ)))).symm
+      _ =
+          (Complex.I * (T : ℂ)) *
+            Complex.exp (Complex.I * (θ : ℂ)) := by
+        exact congrArg
+          (fun z : ℂ => z * Complex.exp (Complex.I * (θ : ℂ)))
+          (mul_comm (T : ℂ) Complex.I)
+      _ =
+          Complex.I * (T : ℂ) *
+            Complex.exp (Complex.I * (θ : ℂ)) := by
+        exact rfl
+  have hwith_function :
       HasDerivAt
         (fun u : ℝ => (T : ℂ) * Complex.exp (Complex.I * (u : ℂ)))
-        ((T : ℂ) *
-          (Complex.exp (Complex.I * (θ : ℂ)) * Complex.I))
+        (circleMap 0 T θ * Complex.I)
         θ := by
     exact
-      (((Complex.ofRealCLM.hasDerivAt (x := θ)).const_mul Complex.I).cexp).const_mul
-        (T : ℂ)
-  have hvalue :
-      (T : ℂ) * (Complex.exp (Complex.I * (θ : ℂ)) * Complex.I) =
-        Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) := by
-    exact
-      Eq.trans
-        (congrArg
-          (fun w : ℂ => (T : ℂ) * w)
-          (mul_comm (Complex.exp (Complex.I * (θ : ℂ))) Complex.I))
-        (Eq.trans
-          (mul_assoc (T : ℂ) Complex.I
-            (Complex.exp (Complex.I * (θ : ℂ))))
-          (congrArg
-            (fun w : ℂ => w * Complex.exp (Complex.I * (θ : ℂ)))
-            (mul_comm (T : ℂ) Complex.I)))
+      Eq.subst
+        (motive := fun F : ℝ → ℂ =>
+          HasDerivAt F (circleMap 0 T θ * Complex.I) θ)
+        hfun.symm
+        hcircle
   exact
     Eq.subst
       (motive := fun v : ℂ =>
@@ -428,8 +473,22 @@ theorem scalarFourierLaplacePlemelj_lowerArcParam_hasDerivAt
           (fun u : ℝ => (T : ℂ) * Complex.exp (Complex.I * (u : ℂ)))
           v
           θ)
-      hvalue
-      hraw
+      hcircle_value
+      hwith_function
+
+/-- The lower semicircle parametrization is continuous. -/
+theorem scalarFourierLaplacePlemelj_lowerArcParam_continuous
+    (T : ℝ) :
+    Continuous (scalarFourierLaplacePlemelj_lowerArcParam T) := by
+  unfold scalarFourierLaplacePlemelj_lowerArcParam
+  have harg :
+      Continuous (fun θ : ℝ => Complex.I * (θ : ℂ)) := by
+    exact continuous_const.mul Complex.continuous_ofReal
+  have hexp :
+      Continuous (fun θ : ℝ =>
+        Complex.exp (Complex.I * (θ : ℂ))) := by
+    exact Complex.continuous_exp.comp harg
+  exact continuous_const.mul hexp
 
 /-- The lower arc point has radius bounded by the contour radius. -/
 theorem scalarFourierLaplacePlemelj_lowerArcParam_norm_le_radius
@@ -473,11 +532,19 @@ theorem scalarFourierLaplacePlemelj_lowerArcParam_norm_le_radius
 theorem scalarFourierLaplacePlemelj_lowerArc_sin_nonpos
     (θ : ℝ) (_hθ : θ ∈ Set.uIcc (0 : ℝ) (-Real.pi)) :
     Real.sin θ ≤ 0 := by
-  have hneg_pi_le : -Real.pi ≤ θ :=
-    (mem_uIcc.mp _hθ).1
-  have hle_zero : θ ≤ (0 : ℝ) :=
-    (mem_uIcc.mp _hθ).2
-  exact Real.sin_nonpos_of_nonnpos_of_neg_pi_le hle_zero hneg_pi_le
+  have hcases : 0 ≤ θ ∧ θ ≤ -Real.pi ∨ -Real.pi ≤ θ ∧ θ ≤ 0 :=
+    mem_uIcc.mp _hθ
+  match hcases with
+  | Or.inl hforward =>
+      have hneg_pi_le_zero : -Real.pi ≤ (0 : ℝ) :=
+        neg_nonpos.mpr Real.pi_pos.le
+      have hneg_pi_le : -Real.pi ≤ θ :=
+        le_trans hneg_pi_le_zero hforward.1
+      have hle_zero : θ ≤ (0 : ℝ) :=
+        le_trans hforward.2 hneg_pi_le_zero
+      exact Real.sin_nonpos_of_nonnpos_of_neg_pi_le hle_zero hneg_pi_le
+  | Or.inr hreturn =>
+      exact Real.sin_nonpos_of_nonnpos_of_neg_pi_le hreturn.2 hreturn.1
 
 /-- The lower arc point has nonpositive imaginary coordinate. -/
 theorem scalarFourierLaplacePlemelj_lowerArcParam_im_nonpos
@@ -488,7 +555,7 @@ theorem scalarFourierLaplacePlemelj_lowerArcParam_im_nonpos
   exact
     Eq.subst
       (motive := fun r : ℝ => r ≤ 0)
-      (scalarFourierLaplacePlemelj_semicirclePoint_im T θ)
+      (scalarFourierLaplacePlemelj_semicirclePoint_im T θ).symm
       (mul_nonpos_of_nonneg_of_nonpos
         _hT
         (scalarFourierLaplacePlemelj_lowerArc_sin_nonpos θ _hθ))
@@ -516,8 +583,7 @@ theorem scalarFourierLaplacePlemelj_lowerArcPrimitive_continuousOn
       (fun θ : ℝ => G (scalarFourierLaplacePlemelj_lowerArcParam T θ))
       (Set.uIcc (0 : ℝ) (-Real.pi)) := by
   have hparam_continuous : Continuous (scalarFourierLaplacePlemelj_lowerArcParam T) := by
-    exact fun θ : ℝ =>
-      (scalarFourierLaplacePlemelj_lowerArcParam_hasDerivAt T θ).continuousAt
+    exact scalarFourierLaplacePlemelj_lowerArcParam_continuous T
   exact
     (scalarFourierLaplacePlemelj_lowerHalfDisk_primitiveFunction_continuousOn
       F G T _hprimitive).comp
@@ -540,7 +606,7 @@ theorem scalarFourierLaplacePlemelj_lowerArcPrimitive_hasRightDerivWithinAt
   intro θ hθ
   let s : Set ℝ := Set.Ioi θ ∩ Set.Ioo (-Real.pi) (0 : ℝ)
   have hθ_uIcc : θ ∈ Set.uIcc (0 : ℝ) (-Real.pi) :=
-    mem_uIcc.mpr ⟨le_of_lt hθ.1, le_of_lt hθ.2⟩
+    mem_uIcc.mpr (Or.inr ⟨le_of_lt hθ.1, le_of_lt hθ.2⟩)
   have hθ_lower :
       scalarFourierLaplacePlemelj_lowerArcParam T θ ∈
         scalarFourierLaplacePlemelj_lowerHalfDisk T :=
@@ -561,7 +627,7 @@ theorem scalarFourierLaplacePlemelj_lowerArcPrimitive_hasRightDerivWithinAt
         (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
     intro u hu
     have hu_uIcc : u ∈ Set.uIcc (0 : ℝ) (-Real.pi) :=
-      mem_uIcc.mpr ⟨le_of_lt hu.2.1, le_of_lt hu.2.2⟩
+      mem_uIcc.mpr (Or.inr ⟨le_of_lt hu.2.1, le_of_lt hu.2.2⟩)
     exact
       scalarFourierLaplacePlemelj_lowerArcParam_mapsTo_lowerHalfDisk
         T _hT hu_uIcc
@@ -638,8 +704,7 @@ theorem scalarFourierLaplacePlemelj_lowerArc_intervalIntegrable
       (0 : ℝ)
       (-Real.pi) := by
   have hparam_continuous : Continuous (scalarFourierLaplacePlemelj_lowerArcParam T) := by
-    exact fun θ : ℝ =>
-      (scalarFourierLaplacePlemelj_lowerArcParam_hasDerivAt T θ).continuousAt
+    exact scalarFourierLaplacePlemelj_lowerArcParam_continuous T
   have hintegrand_continuous :
       ContinuousOn
         (fun θ : ℝ =>
@@ -743,7 +808,7 @@ theorem scalarFourierLaplacePlemelj_lowerArcPrimitive_hasRightDerivWithinAt_minM
       F G T _hT _hprimitive
       θ
       (Eq.subst
-        (fun S : Set ℝ => θ ∈ S)
+        (motive := fun S : Set ℝ => θ ∈ S)
         scalarFourierLaplacePlemelj_lowerArc_openInterval_normalize
         hθ)
 
@@ -883,9 +948,6 @@ theorem scalarFourierLaplacePlemelj_lowerHalfDiskBoundaryIntegral_eq_zero_of_ana
       F T _hT
       (scalarFourierLaplacePlemelj_lowerHalfDisk_hasPrimitive_of_analyticAt
         F T _hT _hanalytic)
-
-/-- Cauchy-Goursat for the negative-time scalar kernel on the lower half-disk
-boundary. -/
 
 end FixedLineCauchyProjection
 

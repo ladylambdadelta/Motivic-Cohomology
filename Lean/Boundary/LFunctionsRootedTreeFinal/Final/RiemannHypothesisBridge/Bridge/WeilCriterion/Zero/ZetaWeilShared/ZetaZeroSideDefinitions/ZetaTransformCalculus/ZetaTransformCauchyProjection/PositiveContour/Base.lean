@@ -203,20 +203,23 @@ theorem scalarFourierLaplacePlemelj_positiveKernel_denominator_factor_upperPole
             exact congrArg (fun w : ℂ => (a : ℂ) * w) Complex.I_mul_I
           _ = -(a : ℂ) := by
             exact mul_neg_one (a : ℂ)
-      exact Eq.subst
-        (motive := fun w : ℂ => z * Complex.I + (a : ℂ) = Complex.I * z - w)
-        hi2.symm
-        (calc
-          z * Complex.I + (a : ℂ) =
-              Complex.I * z + (a : ℂ) := by
-            exact congrArg (fun w : ℂ => w + (a : ℂ)) (mul_comm z Complex.I)
-          _ = Complex.I * z - (-(a : ℂ)) := by
-            exact (sub_neg_eq_add (Complex.I * z) (a : ℂ)).symm)
+      calc
+        Complex.I * z + (a : ℂ) =
+            Complex.I * z - (-(a : ℂ)) := by
+          exact (sub_neg_eq_add (Complex.I * z) (a : ℂ)).symm
+        _ = Complex.I * z - ((a : ℂ) * (Complex.I * Complex.I)) := by
+          exact congrArg (fun w : ℂ => Complex.I * z - w) hi2.symm
     _ = Complex.I * z - Complex.I * ((a : ℂ) * Complex.I) := by
       exact congrArg (fun w : ℂ => Complex.I * z - w)
-        (mul_assoc Complex.I (a : ℂ) Complex.I |>.trans
-          (congrArg (fun w : ℂ => w * Complex.I)
-            (mul_comm Complex.I (a : ℂ))))
+        (calc
+          (a : ℂ) * (Complex.I * Complex.I) =
+              ((a : ℂ) * Complex.I) * Complex.I := by
+            exact (mul_assoc (a : ℂ) Complex.I Complex.I).symm
+          _ = (Complex.I * (a : ℂ)) * Complex.I := by
+            exact congrArg (fun w : ℂ => w * Complex.I)
+              (mul_comm Complex.I (a : ℂ)).symm
+          _ = Complex.I * ((a : ℂ) * Complex.I) := by
+            exact mul_assoc Complex.I (a : ℂ) Complex.I)
     _ = Complex.I * (z - (a : ℂ) * Complex.I) := by
       exact (mul_sub Complex.I z ((a : ℂ) * Complex.I)).symm
 
@@ -232,7 +235,7 @@ theorem scalarFourierLaplacePlemelj_positiveKernel_upperPole_exponential
       Complex.I * ((a : ℂ) * Complex.I) * (x : ℂ) =
           ((Complex.I * (a : ℂ)) * Complex.I) * (x : ℂ) := by
         exact congrArg (fun w : ℂ => w * (x : ℂ))
-          (mul_assoc Complex.I (a : ℂ) Complex.I)
+          (mul_assoc Complex.I (a : ℂ) Complex.I).symm
       _ = (((a : ℂ) * Complex.I) * Complex.I) * (x : ℂ) := by
         exact congrArg (fun w : ℂ => (w * Complex.I) * (x : ℂ))
           (mul_comm Complex.I (a : ℂ))
@@ -273,10 +276,10 @@ theorem scalarFourierLaplacePlemelj_two_pi_i_mul_positiveUpperPoleResidueCoeffic
   calc
     ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * (Complex.I * E) =
         (((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * Complex.I) * E := by
-      exact mul_assoc ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) Complex.I E
+      exact (mul_assoc ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) Complex.I E).symm
     _ = (((2 : ℂ) * (Real.pi : ℂ)) * (Complex.I * Complex.I)) * E := by
       exact congrArg (fun z : ℂ => z * E)
-        (mul_assoc ((2 : ℂ) * (Real.pi : ℂ)) Complex.I Complex.I).symm
+        (mul_assoc ((2 : ℂ) * (Real.pi : ℂ)) Complex.I Complex.I)
     _ = (((2 : ℂ) * (Real.pi : ℂ)) * (-1 : ℂ)) * E := by
       exact congrArg
         (fun z : ℂ => (((2 : ℂ) * (Real.pi : ℂ)) * z) * E)
@@ -544,18 +547,75 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_arc_integrand_decompose
         (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
       (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p
           ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
-          (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) +
+        (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) +
         (F p *
           ((((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - p)⁻¹)) *
           (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
-  exact
-    congrArg
-      (fun w : ℂ =>
-        w * (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
-      (scalarFourierLaplacePlemelj_upperHalfDisk_arc_cauchyKernel_decompose
-        F T _hT p _hp θ)
+  let V : ℂ := Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+  let R : ℂ :=
+    scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p
+      ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+  let S : ℂ :=
+    F p * ((((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - p)⁻¹)
+  calc
+    (F ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) /
+        (((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - p)) * V =
+        (R + S) * V := by
+      exact
+        congrArg
+          (fun w : ℂ => w * V)
+          (scalarFourierLaplacePlemelj_upperHalfDisk_arc_cauchyKernel_decompose
+            F T _hT p _hp θ)
+    _ = R * V + S * V := by
+      show (R + S) * V = R * V + S * V
+      exact add_mul R S V
 
-/-- Primitive data for a function on the upper half-disk. -/
+/-- Imaginary coordinate of the scalar semicircle point. -/
+theorem scalarFourierLaplacePlemelj_semicirclePoint_im
+    (T θ : ℝ) :
+    ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im =
+      T * Real.sin θ := by
+  have harg :
+      Complex.I * (θ : ℂ) = (θ : ℂ) * Complex.I :=
+    mul_comm Complex.I (θ : ℂ)
+  have hexp_im :
+      (Complex.exp (Complex.I * (θ : ℂ))).im = Real.sin θ :=
+    (congrArg
+      (fun z : ℂ => (Complex.exp z).im)
+      harg).trans
+      (Complex.exp_ofReal_mul_I_im θ)
+  calc
+    ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im =
+        (T : ℂ).re * (Complex.exp (Complex.I * (θ : ℂ))).im +
+          (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).re := by
+      exact Complex.mul_im (T : ℂ)
+        (Complex.exp (Complex.I * (θ : ℂ)))
+    _ =
+        T * (Complex.exp (Complex.I * (θ : ℂ))).im +
+          (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).re := by
+      exact congrArg
+        (fun r : ℝ =>
+          r * (Complex.exp (Complex.I * (θ : ℂ))).im +
+            (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).re)
+        (Complex.ofReal_re T)
+    _ =
+        T * (Complex.exp (Complex.I * (θ : ℂ))).im +
+          0 * (Complex.exp (Complex.I * (θ : ℂ))).re := by
+      exact congrArg
+        (fun r : ℝ =>
+          T * (Complex.exp (Complex.I * (θ : ℂ))).im +
+            r * (Complex.exp (Complex.I * (θ : ℂ))).re)
+        (Complex.ofReal_im T)
+    _ =
+        T * (Complex.exp (Complex.I * (θ : ℂ))).im + 0 := by
+      exact congrArg
+        (fun r : ℝ =>
+          T * (Complex.exp (Complex.I * (θ : ℂ))).im + r)
+        (zero_mul (Complex.exp (Complex.I * (θ : ℂ))).re)
+    _ = T * (Complex.exp (Complex.I * (θ : ℂ))).im := by
+      exact add_zero (T * (Complex.exp (Complex.I * (θ : ℂ))).im)
+    _ = T * Real.sin θ := by
+      exact congrArg (fun r : ℝ => T * r) hexp_im
 
 theorem scalarFourierLaplacePlemelj_upperArc_mapsTo_upperHalfDisk
     (T : ℝ) (_hT : 0 < T) :
@@ -575,56 +635,10 @@ theorem scalarFourierLaplacePlemelj_upperArc_mapsTo_upperHalfDisk
         (motive := fun r : ℝ => r ≤ T)
         hnorm_eq.symm
         (le_refl T)
-  have harg :
-      Complex.I * (θ : ℂ) = (θ : ℂ) * Complex.I :=
-    mul_comm Complex.I (θ : ℂ)
-  have hexp_re :
-      (Complex.exp (Complex.I * (θ : ℂ))).re = Real.cos θ :=
-    (congrArg
-      (fun z : ℂ => (Complex.exp z).re)
-      harg).trans
-      (Complex.exp_ofReal_mul_I_re θ)
-  have hexp_im :
-      (Complex.exp (Complex.I * (θ : ℂ))).im = Real.sin θ :=
-    (congrArg
-      (fun z : ℂ => (Complex.exp z).im)
-      harg).trans
-      (Complex.exp_ofReal_mul_I_im θ)
   have him_eq :
       ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im =
         T * Real.sin θ := by
-    calc
-      ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im =
-          (T : ℂ).re * (Complex.exp (Complex.I * (θ : ℂ))).im +
-            (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).re := by
-        exact Complex.mul_im (T : ℂ)
-          (Complex.exp (Complex.I * (θ : ℂ)))
-      _ =
-          T * (Complex.exp (Complex.I * (θ : ℂ))).im +
-            (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).re := by
-        exact congrArg
-          (fun r : ℝ =>
-            r * (Complex.exp (Complex.I * (θ : ℂ))).im +
-              (T : ℂ).im * (Complex.exp (Complex.I * (θ : ℂ))).re)
-          (Complex.ofReal_re T)
-      _ =
-          T * (Complex.exp (Complex.I * (θ : ℂ))).im +
-            0 * (Complex.exp (Complex.I * (θ : ℂ))).re := by
-        exact congrArg
-          (fun r : ℝ =>
-            T * (Complex.exp (Complex.I * (θ : ℂ))).im +
-              r * (Complex.exp (Complex.I * (θ : ℂ))).re)
-          (Complex.ofReal_im T)
-      _ =
-          T * (Complex.exp (Complex.I * (θ : ℂ))).im + 0 := by
-        exact congrArg
-          (fun r : ℝ =>
-            T * (Complex.exp (Complex.I * (θ : ℂ))).im + r)
-          (zero_mul (Complex.exp (Complex.I * (θ : ℂ))).re)
-      _ = T * (Complex.exp (Complex.I * (θ : ℂ))).im := by
-        exact add_zero (T * (Complex.exp (Complex.I * (θ : ℂ))).im)
-      _ = T * Real.sin θ := by
-        exact congrArg (fun r : ℝ => T * r) hexp_im
+    exact scalarFourierLaplacePlemelj_semicirclePoint_im T θ
   have hsin : 0 ≤ Real.sin θ :=
     Real.sin_nonneg_of_mem_Icc hθ
   have him : 0 ≤ ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im := by
@@ -634,9 +648,6 @@ theorem scalarFourierLaplacePlemelj_upperArc_mapsTo_upperHalfDisk
         him_eq.symm
         (mul_nonneg _hT.le hsin)
   exact And.intro hnorm him
-
-/-- Interval integrability of the regular removable part on the upper
-semicircle parametrization. -/
 
 end FixedLineCauchyProjection
 
