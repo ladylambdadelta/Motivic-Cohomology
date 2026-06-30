@@ -116,7 +116,13 @@ theorem Real.one_add_rpow_le_exp_mul_of_large
       (fun y : ℝ => ‖y ^ s‖) ≤ᶠ[atTop]
         fun y : ℝ => ‖Real.exp (b * y)‖ :=
     by
-      simpa only [one_mul] using hsmall.bound zero_lt_one
+      exact
+        (hsmall.bound zero_lt_one).mono
+          (fun y hy =>
+            Eq.subst
+              (motive := fun r : ℝ => ‖y ^ s‖ ≤ r)
+              (one_mul ‖Real.exp (b * y)‖)
+              hy)
   have hnonneg_eventually : ∀ᶠ y : ℝ in atTop, 0 ≤ y :=
     eventually_ge_atTop 0
   have heventually :
@@ -294,7 +300,11 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_compact
   · intro t ht
     have hmem : t ∈ Set.Icc (-T) T := by
       have ht_abs : |t| ≤ T := by
-        simpa only [Real.norm_eq_abs] using ht
+        exact
+          Eq.subst
+            (motive := fun r : ℝ => r ≤ T)
+            (Real.norm_eq_abs t)
+            ht
       exact abs_le.mp ht_abs
     have hleC0 : ‖Complex.Gamma (σ + t * Complex.I)‖ ≤ C0 :=
       hC0 t hmem
@@ -547,7 +557,11 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_compact
   · intro t ht
     have hmem : t ∈ Set.Icc (-T) T := by
       have ht_abs : |t| ≤ T := by
-        simpa only [Real.norm_eq_abs] using ht
+        exact
+          Eq.subst
+            (motive := fun r : ℝ => r ≤ T)
+            (Real.norm_eq_abs t)
+            ht
       exact abs_le.mp ht_abs
     have hleC0 :
         ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤ C0 :=
