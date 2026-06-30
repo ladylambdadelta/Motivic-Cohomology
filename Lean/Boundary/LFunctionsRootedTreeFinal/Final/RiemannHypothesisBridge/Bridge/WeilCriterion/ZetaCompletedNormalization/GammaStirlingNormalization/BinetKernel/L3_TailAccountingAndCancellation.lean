@@ -1093,6 +1093,25 @@ theorem Complex.binetSecondFormula_lowerVerticalDifference_decay_iff_wallCancell
                   hnorm
                   (htail_bound w hw_re_pos hRle)⟩)
 
+/-- Finite-height lower-vertical decay from public wall-cancellation tail
+absorption.
+
+This is a pure transport theorem.  Wall cancellation is first moved to the
+full lower-vertical difference by the Binet tail split, and then convergence
+transports that full lower-vertical bound back to finite height with a doubled
+constant. -/
+theorem Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_wallCancellation
+    (htail :
+      Complex.BinetSecondFormulaBranchWallContourCancellationTailAbsorption) :
+    Complex.BinetSecondFormulaFiniteHeightLowerVerticalDifferenceDecay := by
+  have hdifference :
+      Complex.BinetSecondFormulaLowerVerticalDifferenceDecay :=
+    Complex.binetSecondFormula_lowerVerticalDifference_decay_iff_wallCancellation.mpr
+      htail
+  exact
+    Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_lowerVerticalDifference_decay
+      hdifference
+
 /-- Constructor from a genuinely contour-deformed kernel comparison and a
 uniform full-sector kernel majorant to branch-wall tail absorption.
 
