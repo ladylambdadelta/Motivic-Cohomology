@@ -1400,6 +1400,56 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_boundaryIntegral_e
           (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p)
           G T _hT hprimitive
 
+/-- Scalar lower half-disk boundary integral used only to close the winding
+calculation for an upper-half-plane pole. -/
+noncomputable def scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral
+    (p : ℂ) (T : ℝ) : ℂ :=
+  (∫ t in Set.Icc (-T) T, (((t : ℂ) - p)⁻¹)) +
+    ∫ θ in (0 : ℝ)..(-Real.pi),
+      let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+      ((z - p)⁻¹) *
+        (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
+/-- Full positively oriented circle integral of the scalar Cauchy kernel,
+using mathlib's circle-integral owner normalization. -/
+noncomputable def scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral
+    (p : ℂ) (T : ℝ) : ℂ :=
+  ∮ z in C((0 : ℂ), T), (z - p)⁻¹
+
+/-- The scalar Cauchy kernel has zero lower half-disk boundary integral when
+the pole lies strictly in the upper half-disk. -/
+theorem scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral_eq_zero
+    (T : ℝ) (_hT : 0 < T) (p : ℂ)
+    (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p) :
+    scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T = 0 := by
+  sorry
+
+/-- The full circle boundary integral of the scalar Cauchy kernel is `2πi`
+for a pole inside the radius-`T` circle. -/
+theorem scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral_eq_two_pi_i
+    (T : ℝ) (_hT : 0 < T) (p : ℂ)
+    (_hp : ‖p‖ < T) :
+    scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral p T =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) := by
+  unfold scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral
+  have hp_ball : p ∈ Metric.ball (0 : ℂ) T := by
+    exact
+      Eq.subst
+        (motive := fun r : ℝ => r < T)
+        (dist_zero_right p).symm
+        _hp
+  exact circleIntegral.integral_sub_inv_of_mem_ball hp_ball
+
+/-- The upper half-disk boundary integral is the full circle integral after
+removing the lower no-pole boundary contribution. -/
+theorem scalarFourierLaplacePlemelj_upperWinding_boundaryIntegral_eq_fullCircle_sub_lower
+    (T : ℝ) (p : ℂ) :
+    scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+        (fun z : ℂ => (z - p)⁻¹) T =
+      scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral p T -
+        scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T := by
+  sorry
+
 /-- The upper half-disk boundary has winding number one around any point in
 the strict upper half-disk. -/
 theorem scalarFourierLaplacePlemelj_upperHalfDisk_boundary_winding_one
@@ -1408,7 +1458,29 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_boundary_winding_one
     scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
         (fun z : ℂ => (z - p)⁻¹) T =
       ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) := by
-  sorry
+  calc
+    scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+        (fun z : ℂ => (z - p)⁻¹) T =
+        scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral p T -
+          scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T := by
+      exact
+        scalarFourierLaplacePlemelj_upperWinding_boundaryIntegral_eq_fullCircle_sub_lower
+          T p
+    _ =
+        ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) -
+          scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T := by
+      exact congrArg
+        (fun W : ℂ =>
+          W - scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T)
+        (scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral_eq_two_pi_i
+          T _hT p _hp)
+    _ = ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) - 0 := by
+      exact congrArg
+        (fun W : ℂ => ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) - W)
+        (scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral_eq_zero
+          T _hT p _hp _hp_upper)
+    _ = ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) := by
+      exact sub_zero ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)
 
 /-- The raw scalar simple-pole kernel has winding number one around a pole in
 the upper half-disk boundary contour. -/
