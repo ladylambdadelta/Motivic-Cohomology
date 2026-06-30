@@ -29,7 +29,11 @@ namespace MellinConjugacy
 is properly weighted. For conjugate points s and -conj(s), the Mellin
 transform values are conjugates. -/
 lemma mellin_conjugateSymmetric_property
-    (φ : ℝ → ℂ) (s : ℂ) :
+    (φ : ℝ → ℂ) (s : ℂ)
+    (hφ_weighted_real :
+      ∀ u : ℝ,
+        Real.exp (-(s.re) * u) • φ (Real.exp (-u)) =
+          star (Real.exp (-(s.re) * u) • φ (Real.exp (-u)))) :
     (mellin φ (-star s) : ℂ) = star (mellin φ s) := by
   -- By the Mellin-Fourier bridge (boundary_mellin_eq_fourierIntegral):
   -- mellin(φ)(s) = 𝓕(λ u ↦ exp(-s.re * u) • φ(exp(-u)))(s.im / (2π))
@@ -37,16 +41,22 @@ lemma mellin_conjugateSymmetric_property
   -- The key is that the Mellin transform at -conj(s) relates to the
   -- Fourier transform at opposite frequencies with conjugate weights.
 
-  rw [boundary_mellin_eq_fourierIntegral φ (s := -star s)]
-  rw [boundary_mellin_eq_fourierIntegral φ (s := s)]
-
   -- The exponential weights: exp(-(-star s).re * u) and exp(-(s.re) * u)
   have h_weight_real : (-(-star s)).re = -(s.re) := by
-    simp only [Complex.neg_re, Complex.star_re]
+    calc
+      (-(-star s)).re = -((-star s).re) := Complex.neg_re (-star s)
+      _ = -(-(star s).re) := congrArg Neg.neg (Complex.neg_re (star s))
+      _ = -(-(s.re)) := congrArg (fun y : ℝ => -(-y)) (Complex.star_re s)
+      _ = -(s.re) := neg_neg (s.re)
 
   -- The Fourier frequencies: ((-star s).im) / (2π) and (s.im) / (2π)
   have h_freq_real : (-(-star s)).im = -(s.im) := by
-    simp only [Complex.neg_im, Complex.star_im]
+    calc
+      (-(-star s)).im = -((-star s).im) := Complex.neg_im (-star s)
+      _ = -(-(star s).im) := congrArg Neg.neg (Complex.neg_im (star s))
+      _ = -(-(-(s.im))) := congrArg (fun y : ℝ => -(-y)) (Complex.star_im s)
+      _ = -(s.im) := by
+        exact neg_neg (-(s.im))
 
   -- Define the weighted test functions
   let φ₊ := fun u : ℝ => Real.exp (-(s.re) * u) • φ (Real.exp (-u))
@@ -55,23 +65,32 @@ lemma mellin_conjugateSymmetric_property
   -- By the weight relationship:
   have h_φ_eq : φ₋ = φ₊ := by
     funext u
-    simp only [φ₋, φ₊]
-    rw [h_weight_real]
+    exact congrArg
+      (fun r : ℝ => Real.exp (r * u) • φ (Real.exp (-u)))
+      h_weight_real
 
   -- The Fourier transforms at opposite frequencies
   have h_fourier : ∀ ω : ℝ, (𝓕 φ₊ (-ω : ℝ) : ℂ) = star (𝓕 φ₊ ω) :=
-    fun ω => FourierConjugacy.fourierTransform_conjugacy φ₊ ω
+    fun ω => FourierConjugacy.fourierTransform_conjugacy φ₊ hφ_weighted_real ω
 
-  calc (𝓕 φ₋ ((-(-star s)).im / (2 * π)) : ℂ)
-      = 𝓕 φ₊ ((-(-star s)).im / (2 * π)) := by
-          rw [h_φ_eq]
+  have hleft :
+      (mellin φ (-star s) : ℂ) =
+        𝓕 φ₋ ((-(-star s)).im / (2 * π)) :=
+    boundary_mellin_eq_fourierIntegral φ (s := -star s)
+  have hright :
+      (mellin φ s : ℂ) =
+        𝓕 φ₊ (s.im / (2 * π)) :=
+    boundary_mellin_eq_fourierIntegral φ (s := s)
+
+  calc (mellin φ (-star s) : ℂ)
+      = 𝓕 φ₋ ((-(-star s)).im / (2 * π)) := hleft
+    _ = 𝓕 φ₊ ((-(-star s)).im / (2 * π)) := by
+          exact congrArg (fun ψ : ℝ → ℂ => 𝓕 ψ ((-(-star s)).im / (2 * π))) h_φ_eq
     _ = 𝓕 φ₊ (-(s.im : ℝ) / (2 * π)) := by
-          rw [h_freq_real]
-          have : ((-(-star s)).im : ℝ) = (-(s.im : ℝ) : ℝ) := by
-            simp only [Complex.neg_im, Complex.star_im]
-          exact congrArg (𝓕 φ₊ · / (2 * π)) this
+          exact congrArg (fun y : ℝ => 𝓕 φ₊ (y / (2 * π))) h_freq_real
     _ = star (𝓕 φ₊ (s.im / (2 * π))) := h_fourier (s.im / (2 * π))
-    _ = star (𝓕 φ (s.im / (2 * π))) := by rfl
+    _ = star (mellin φ s) := by
+          exact congrArg star hright.symm
 
 /-- Mellin inversion applied to a conjugate-symmetric transform produces
 a function with conjugate symmetry in its values. -/
@@ -87,7 +106,11 @@ lemma mellinInv_preserves_conjugateSymmetry
 /-- The completed Mellin transform (with exponential damping for decay)
 preserves conjugate symmetry. -/
 lemma completed_mellin_conjugateSymmetric
-    (φ : ℝ → ℂ) (s : ℂ) (σ : ℝ) :
+    (φ : ℝ → ℂ) (s : ℂ) (σ : ℝ)
+    (hφ_weighted_real :
+      ∀ u : ℝ,
+        Real.exp (-(((σ : ℂ) + I * s).re) * u) • φ (Real.exp (-u)) =
+          star (Real.exp (-(((σ : ℂ) + I * s).re) * u) • φ (Real.exp (-u)))) :
     (mellin φ (-star (σ + I * (s : ℂ))) : ℂ) =
     star (mellin φ (σ + I * (s : ℂ))) := by
   -- This is a direct application of mellin_conjugateSymmetric_property
@@ -99,10 +122,12 @@ lemma completed_mellin_conjugateSymmetric
   -- So we're evaluating at conjugate points on vertical lines
 
   have h_point : σ + I * (s : ℂ) = (σ : ℂ) + I * s := by
-    simp [Complex.ofReal_mul]
+    rfl
 
-  rw [h_point]
-  exact mellin_conjugateSymmetric_property φ ((σ : ℂ) + I * s)
+  exact Eq.subst
+    (motive := fun z : ℂ => (mellin φ (-star z) : ℂ) = star (mellin φ z))
+    h_point.symm
+    (mellin_conjugateSymmetric_property φ ((σ : ℂ) + I * s) hφ_weighted_real)
 
 /-- For compactly supported smooth functions, Mellin inversion of the
 conjugate-symmetric transform yields a compactly supported smooth function
