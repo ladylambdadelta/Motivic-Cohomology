@@ -75,6 +75,15 @@ noncomputable def Complex.binetSecondFormulaDecayingTailKernel
   (((1 : ℝ) / ‖w‖) *
     (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) : ℝ)
 
+/-- Scaled decaying Binet tail kernel for contour packages whose comparison
+constant is not normalized to `1`. -/
+noncomputable def Complex.binetSecondFormulaScaledDecayingTailKernel
+    (C : ℝ)
+    (w : ℂ)
+    (t : ℝ) : ℂ :=
+  ((C / ‖w‖) *
+    (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) : ℝ)
+
 /-- The decaying Binet tail kernel has the uniform full-sector `1 / ‖w‖`
 pointwise bound. -/
 theorem Complex.binetSecondFormula_decayingTailKernel_uniform_majorant :
@@ -139,6 +148,64 @@ theorem Complex.binetSecondFormula_contourTailMajorantKernel_uniform_majorant :
     Complex.BinetSecondFormulaContourTailUniformMajorant
       Complex.binetSecondFormulaDecayingTailKernel 2 1 := by
   exact Complex.binetSecondFormula_decayingTailKernel_uniform_majorant
+
+/-- The scaled decaying Binet tail kernel has its explicit full-sector
+majorant. -/
+theorem Complex.binetSecondFormula_scaledDecayingTailKernel_uniform_majorant
+    {C : ℝ}
+    (hC_nonneg : 0 ≤ C) :
+    Complex.BinetSecondFormulaContourTailUniformMajorant
+      (Complex.binetSecondFormulaScaledDecayingTailKernel C) 2 C := by
+  exact fun w _hw_re_pos _hw_norm =>
+    (ae_restrict_mem measurableSet_Ioi).mono
+      (fun t ht =>
+        let ht_pos : 0 < t :=
+          lt_of_le_of_lt
+            (div_nonneg (norm_nonneg w) zero_le_two)
+            ht
+        let hmajorant_nonneg :
+            0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+          le_of_lt
+            (Real.binetSecondFormula_kernel_majorant_pos ht_pos)
+        let hcoeff_nonneg : 0 ≤ C / ‖w‖ :=
+          div_nonneg hC_nonneg (norm_nonneg w)
+        let hkernel_nonneg :
+            0 ≤
+              (C / ‖w‖) *
+                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+          mul_nonneg hcoeff_nonneg hmajorant_nonneg
+        let m : ℝ :=
+          (C / ‖w‖) *
+            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+        let hkernel_cast :
+            Complex.binetSecondFormulaScaledDecayingTailKernel C w t =
+              (m : ℂ) :=
+          Eq.refl _
+        let hm_nonneg : 0 ≤ m :=
+          hkernel_nonneg
+        let hnorm_eq :
+            ‖Complex.binetSecondFormulaScaledDecayingTailKernel C w t‖ =
+              (C / ‖w‖) *
+                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+          calc
+            ‖Complex.binetSecondFormulaScaledDecayingTailKernel C w t‖ =
+                ‖(m : ℂ)‖ :=
+              congrArg norm hkernel_cast
+            _ = |m| := RCLike.norm_ofReal (K := ℂ) m
+            _ = m := abs_of_nonneg hm_nonneg
+            _ =
+                (C / ‖w‖) *
+                  (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+              Eq.refl _
+        Eq.subst
+          (motive := fun x : ℝ =>
+            x ≤
+              (C / ‖w‖) *
+                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))
+          hnorm_eq.symm
+          (le_refl
+            ((C / ‖w‖) *
+              (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))))
 
 /-- The decaying Binet tail kernel packaged with its uniform full-sector
 majorant. -/

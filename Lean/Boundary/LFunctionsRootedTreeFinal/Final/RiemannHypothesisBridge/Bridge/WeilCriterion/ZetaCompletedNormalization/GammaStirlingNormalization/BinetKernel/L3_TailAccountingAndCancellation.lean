@@ -1374,6 +1374,83 @@ theorem Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_
     Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_wallCancellation
       htail
 
+/-- Branch-wall tail absorption from a scaled decaying contour-kernel
+comparison.
+
+This is the contour-package form needed when the contour deformation produces
+a positive comparison constant instead of the normalized constant `1`. -/
+theorem Complex.binetSecondFormula_branchTail_wallCancellation_of_scaledDecayingContourKernelComparison
+    {C : ℝ}
+    (hC_pos : 0 < C)
+    (hcomparison :
+      Complex.BinetSecondFormulaContourTailIntegralComparison
+        (Complex.binetSecondFormulaScaledDecayingTailKernel C) 2) :
+    Complex.BinetSecondFormulaBranchWallContourCancellationTailAbsorption := by
+  exact
+    Complex.binetSecondFormula_branchTail_wallCancellation_of_contourKernel_uniformMajorant
+      (K := Complex.binetSecondFormulaScaledDecayingTailKernel C)
+      (R := 2)
+      (C := C)
+      two_pos
+      hC_pos
+      hcomparison
+      (fun w _hw_re_pos _hRle =>
+        Complex.binetSecondFormula_scaledDecayingTailKernel_integrableOn_tail C w)
+      (Complex.binetSecondFormula_scaledDecayingTailKernel_uniform_majorant
+        (le_of_lt hC_pos))
+
+/-- Finite-height lower-vertical decay from a scaled decaying contour-kernel
+comparison. -/
+theorem Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_scaledDecayingContourKernelComparison
+    {C : ℝ}
+    (hC_pos : 0 < C)
+    (hcomparison :
+      Complex.BinetSecondFormulaContourTailIntegralComparison
+        (Complex.binetSecondFormulaScaledDecayingTailKernel C) 2) :
+    Complex.BinetSecondFormulaFiniteHeightLowerVerticalDifferenceDecay := by
+  have htail :
+      Complex.BinetSecondFormulaBranchWallContourCancellationTailAbsorption :=
+    Complex.binetSecondFormula_branchTail_wallCancellation_of_scaledDecayingContourKernelComparison
+      hC_pos hcomparison
+  exact
+    Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_wallCancellation
+      htail
+
+/-- Finite-height lower-vertical decay from an existential scaled decaying
+contour-kernel comparison package. -/
+theorem Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_exists_scaledDecayingContourKernelComparison
+    (hcomparison :
+      ∃ C : ℝ,
+        0 < C ∧
+          Complex.BinetSecondFormulaContourTailIntegralComparison
+            (Complex.binetSecondFormulaScaledDecayingTailKernel C) 2) :
+    Complex.BinetSecondFormulaFiniteHeightLowerVerticalDifferenceDecay := by
+  match hcomparison with
+  | ⟨C, hC_pos, hcomparison_C⟩ =>
+      exact
+        Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_scaledDecayingContourKernelComparison
+          hC_pos hcomparison_C
+
+/-- Full branch-uniform tail package from an existential scaled decaying
+contour-kernel comparison.
+
+This is a pure transport theorem: the analytic leaf remains the contour
+comparison, while branch coherence is supplied by the existing owner theorem. -/
+theorem Complex.binetSecondFormula_branchUniformTailAbsorption_of_exists_scaledDecayingContourKernelComparison
+    (hcomparison :
+      ∃ C : ℝ,
+        0 < C ∧
+          Complex.BinetSecondFormulaContourTailIntegralComparison
+            (Complex.binetSecondFormulaScaledDecayingTailKernel C) 2) :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption := by
+  have hfinite :
+      Complex.BinetSecondFormulaFiniteHeightLowerVerticalDifferenceDecay :=
+    Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_exists_scaledDecayingContourKernelComparison
+      hcomparison
+  exact
+    Complex.binetSecondFormula_branchUniformTailAbsorption_of_finiteHeightLowerVerticalDifference_decay
+      hfinite
+
 /-- Branch-wall transport from a contour-deformed kernel with a decaying
 majorant.
 

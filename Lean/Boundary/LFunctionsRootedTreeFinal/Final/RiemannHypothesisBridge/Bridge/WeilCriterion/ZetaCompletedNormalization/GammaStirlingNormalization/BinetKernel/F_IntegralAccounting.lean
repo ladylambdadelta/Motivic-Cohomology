@@ -64,6 +64,88 @@ theorem Complex.binetSecondFormula_decayingTailKernel_integrableOn_tail
       (Filter.Eventually.of_forall
         (fun _t => Eq.refl _))
 
+/-- The scaled decaying Binet tail kernel is integrable on the split tail. -/
+theorem Complex.binetSecondFormula_scaledDecayingTailKernel_integrableOn_tail
+    (C : ℝ)
+    (w : ℂ) :
+    IntegrableOn
+      (fun t : ℝ => Complex.binetSecondFormulaScaledDecayingTailKernel C w t)
+      (Set.Ioi (‖w‖ / 2)) := by
+  let M : ℝ → ℝ := fun t : ℝ =>
+    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  let S : Set ℝ := Set.Ioi (‖w‖ / 2)
+  have hhalf_nonneg : 0 ≤ ‖w‖ / 2 :=
+    div_nonneg (norm_nonneg w) zero_le_two
+  have hM_integrable :
+      IntegrableOn M S :=
+    Real.binetSecondFormula_kernel_majorant_integrableOn.mono_set
+      (fun t ht => lt_of_le_of_lt hhalf_nonneg ht)
+  have hscaled_integrable :
+      IntegrableOn
+        (fun t : ℝ => (C / ‖w‖) * M t)
+        S :=
+    hM_integrable.const_mul (C / ‖w‖)
+  have hbase :
+      Integrable
+        (fun t : ℝ => (((C / ‖w‖) * M t : ℝ) : ℂ))
+        (volume.restrict S) :=
+    Complex.ofRealCLM.integrable_comp hscaled_integrable
+  exact
+    hbase.congr
+      (Filter.Eventually.of_forall
+        (fun _t => Eq.refl _))
+
+/-- The norm integral of the scaled decaying Binet tail kernel is the scaled
+real Binet majorant tail integral. -/
+theorem Complex.binetSecondFormula_scaledDecayingTailKernel_norm_integral_eq
+    {C : ℝ}
+    (hC_nonneg : 0 ≤ C)
+    (w : ℂ) :
+    ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+        ‖Complex.binetSecondFormulaScaledDecayingTailKernel C w t‖ =
+      (C / ‖w‖) *
+        (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  let M : ℝ → ℝ := fun t : ℝ =>
+    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  let S : Set ℝ := Set.Ioi (‖w‖ / 2)
+  have hpoint :
+      ∀ t : ℝ, t ∈ S →
+        ‖Complex.binetSecondFormulaScaledDecayingTailKernel C w t‖ =
+          (C / ‖w‖) * M t := by
+    intro t ht
+    have ht_pos : 0 < t :=
+      lt_of_le_of_lt
+        (div_nonneg (norm_nonneg w) zero_le_two)
+        ht
+    have hM_nonneg : 0 ≤ M t :=
+      le_of_lt (Real.binetSecondFormula_kernel_majorant_pos ht_pos)
+    have hcoeff_nonneg : 0 ≤ C / ‖w‖ :=
+      div_nonneg hC_nonneg (norm_nonneg w)
+    have hprod_nonneg : 0 ≤ (C / ‖w‖) * M t :=
+      mul_nonneg hcoeff_nonneg hM_nonneg
+    let m : ℝ := (C / ‖w‖) * M t
+    have hkernel :
+        Complex.binetSecondFormulaScaledDecayingTailKernel C w t = (m : ℂ) :=
+      rfl
+    calc
+      ‖Complex.binetSecondFormulaScaledDecayingTailKernel C w t‖ =
+          ‖(m : ℂ)‖ := by
+        exact congrArg norm hkernel
+      _ = |m| := RCLike.norm_ofReal (K := ℂ) m
+      _ = m := abs_of_nonneg hprod_nonneg
+      _ = (C / ‖w‖) * M t := by
+        rfl
+  calc
+    ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+        ‖Complex.binetSecondFormulaScaledDecayingTailKernel C w t‖ =
+      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), (C / ‖w‖) * M t := by
+        exact setIntegral_congr_fun measurableSet_Ioi hpoint
+    _ =
+      (C / ‖w‖) *
+        (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
+        exact integral_mul_left (C / ‖w‖) M
+
 /-- Historical wrapper name for the genuine decaying tail kernel majorant. -/
 theorem Complex.binetSecondFormula_branchUniform_tail_absorption_of_decayingTailKernel_bound
     {R C : ℝ}
