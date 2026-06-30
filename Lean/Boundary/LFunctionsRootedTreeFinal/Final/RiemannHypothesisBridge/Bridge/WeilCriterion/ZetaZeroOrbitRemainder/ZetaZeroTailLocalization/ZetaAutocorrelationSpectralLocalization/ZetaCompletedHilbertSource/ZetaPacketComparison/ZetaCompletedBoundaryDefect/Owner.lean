@@ -23,7 +23,8 @@ namespace ZetaAdmissibleFunction
 /-- Helper: The completion correction packet coordinate is nonzero. -/
 private lemma zetaCompletionCorrectionPacketCoordinate_ne_zero :
     zetaCompletionCorrectionPacketCoordinate ≠ 0 := by
-  norm_num [zetaCompletionCorrectionPacketCoordinate]
+  unfold zetaCompletionCorrectionPacketCoordinate
+  exact two_ne_zero
 
 /-- The prime component of the completed zeta boundary defect. -/
 noncomputable def zetaCompletedBoundaryDefectPrime (f : ZetaAdmissibleFunction) :
