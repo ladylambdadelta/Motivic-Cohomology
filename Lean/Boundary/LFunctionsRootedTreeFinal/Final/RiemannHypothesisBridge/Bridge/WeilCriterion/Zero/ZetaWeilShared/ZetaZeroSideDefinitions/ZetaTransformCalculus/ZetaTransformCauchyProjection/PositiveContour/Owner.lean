@@ -1486,7 +1486,9 @@ theorem scalarFourierLaplacePlemelj_upperWinding_lowerCounterArc_eq_neg_lowerClo
     (T : ℝ) (p : ℂ) :
     scalarFourierLaplacePlemelj_upperWinding_lowerCounterArcIntegral p T =
       -scalarFourierLaplacePlemelj_upperWinding_lowerClockwiseArcIntegral p T := by
-  sorry
+  unfold scalarFourierLaplacePlemelj_upperWinding_lowerCounterArcIntegral
+  unfold scalarFourierLaplacePlemelj_upperWinding_lowerClockwiseArcIntegral
+  exact intervalIntegral.integral_symm (0 : ℝ) (-Real.pi)
 
 /-- The scalar lower half-disk boundary is the real diameter plus the clockwise
 lower semicircle. -/
