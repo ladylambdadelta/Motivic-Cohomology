@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCauchyProjection.FixedLineTails.Owner
+import Mathlib.Analysis.Analytic.IsolatedZeros
 import Mathlib.Analysis.Complex.RemovableSingularity
 
 namespace Boundary
@@ -1195,23 +1196,85 @@ theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_eq_zero_of_has
       (scalarFourierLaplacePlemelj_upperHalfDisk_primitiveEndpointSub_add_return_eq_zero
         G T)
 
-/-- Domain-relative Cauchy--FTC for the center-segment primitive on the closed
-upper half-disk.  This is the within-domain form needed at boundary points:
-continuity on the closed star-convex set and complex differentiability within
-that set are enough to differentiate the center-segment integral within the
-same set. -/
-theorem scalarFourierLaplacePlemelj_upperHalfDisk_centerSegmentIntegral_hasDerivWithinAt_of_differentiableOn
-    (φ : ℂ → ℂ) (T : ℝ) (_hT : 0 < T)
-    (_hcont : ContinuousOn φ (scalarFourierLaplacePlemelj_upperHalfDisk T))
-    (_hdiff : DifferentiableOn ℂ φ
-      (scalarFourierLaplacePlemelj_upperHalfDisk T)) :
+/-- Strict interior of the upper half-disk, expressed by the two strict
+inequalities that make the closed constraints neighborhoods. -/
+def scalarFourierLaplacePlemelj_upperHalfDiskStrictInterior
+    (T : ℝ) : Set ℂ :=
+  {z : ℂ | ‖z‖ < T ∧ 0 < Complex.im z}
+
+/-- Points in the strict upper half-disk belong to the closed upper half-disk. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDiskStrictInterior_subset_upperHalfDisk
+    (T : ℝ) :
+    scalarFourierLaplacePlemelj_upperHalfDiskStrictInterior T ⊆
+      scalarFourierLaplacePlemelj_upperHalfDisk T := by
+  intro z hz
+  exact
+    And.intro
+      (le_of_lt hz.1)
+      (le_of_lt hz.2)
+
+/-- A strict-interior point has the closed upper half-disk as a neighborhood. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_mem_nhds_of_strictInterior
+    (T : ℝ) (z : ℂ)
+    (_hz : z ∈ scalarFourierLaplacePlemelj_upperHalfDiskStrictInterior T) :
+    scalarFourierLaplacePlemelj_upperHalfDisk T ∈ 𝓝 z := by
+  exact
+    scalarFourierLaplacePlemelj_upperHalfDisk_mem_nhds_of_norm_lt_im_pos
+      T z _hz.1 _hz.2
+
+/-- The removable Cauchy regular part is analytic on the closed upper
+half-disk when the numerator is analytic there. -/
+theorem scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_analyticAt
+    (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ)
+    (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p)
+    (_hanalytic :
+      ∀ z ∈ scalarFourierLaplacePlemelj_upperHalfDisk T,
+        AnalyticAt ℂ F z) :
     ∀ z ∈ scalarFourierLaplacePlemelj_upperHalfDisk T,
-      HasDerivWithinAt
-        (LFunctions.complex_centerSegmentIntegral φ)
-        (φ z)
-        (scalarFourierLaplacePlemelj_upperHalfDisk T)
+      AnalyticAt ℂ
+        (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p)
         z := by
-  sorry
+  intro z hz
+  match Classical.em (z = p) with
+  | Or.inl hzp =>
+      have hp_mem :
+          p ∈ scalarFourierLaplacePlemelj_upperHalfDisk T :=
+        And.intro
+          (le_of_lt _hp)
+          (le_of_lt _hp_upper)
+      match _hanalytic p hp_mem with
+      | ⟨P, hP⟩ =>
+          exact
+            Eq.subst
+              (motive := fun q : ℂ =>
+                AnalyticAt ℂ
+                  (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p)
+                  q)
+              hzp.symm
+              ((HasFPowerSeriesAt.has_fpower_series_dslope_fslope hP).analyticAt)
+  | Or.inr hzp =>
+      have hquot_analytic :
+          AnalyticAt ℂ (fun w : ℂ => (F w - F p) / (w - p)) z := by
+        have hnum :
+            AnalyticAt ℂ (fun w : ℂ => F w - F p) z :=
+          (_hanalytic z hz).sub analyticAt_const
+        have hden :
+            AnalyticAt ℂ (fun w : ℂ => w - p) z :=
+          analyticAt_id.sub analyticAt_const
+        have hden_ne :
+            (fun w : ℂ => w - p) z ≠ 0 :=
+          sub_ne_zero.mpr hzp
+        exact hnum.div hden hden_ne
+      have hlocal :
+          (fun w : ℂ => (F w - F p) / (w - p)) =ᶠ[𝓝 z]
+            scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p := by
+        exact
+          (dslope_eventuallyEq_slope_of_ne (f := F) hzp).mono
+            (fun w hw =>
+              Eq.trans
+                (slope_def_field F p w).symm
+                hw.symm)
+      exact hquot_analytic.congr hlocal
 
 /-- Continuity of the removable Cauchy regular part on the upper half-disk. -/
 theorem scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_continuousOn
@@ -1242,8 +1305,9 @@ part within the upper half-disk. -/
 theorem scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_centerSegmentPrimitive_hasDerivWithinAt
     (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ)
     (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p)
-    (_hdiff : DifferentiableOn ℂ F
-      (scalarFourierLaplacePlemelj_upperHalfDisk T)) :
+    (_hanalytic :
+      ∀ z ∈ scalarFourierLaplacePlemelj_upperHalfDisk T,
+        AnalyticAt ℂ F z) :
     ∀ z ∈ scalarFourierLaplacePlemelj_upperHalfDisk T,
       HasDerivWithinAt
         (LFunctions.complex_centerSegmentIntegral
@@ -1251,35 +1315,37 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_centerSegmentPrimi
         (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p z)
         (scalarFourierLaplacePlemelj_upperHalfDisk T)
         z := by
-  have hdomain :
-      scalarFourierLaplacePlemelj_upperHalfDisk T ∈ 𝓝 p :=
-    scalarFourierLaplacePlemelj_upperHalfDisk_mem_nhds_of_norm_lt_im_pos
-      T p _hp _hp_upper
-  have hregular_continuous :
-      ContinuousOn
-        (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p)
-        (scalarFourierLaplacePlemelj_upperHalfDisk T) :=
-    scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_continuousOn
-      F T _hT p _hp _hp_upper _hdiff
-  have hregular_differentiable :
-      DifferentiableOn ℂ
-        (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p)
-        (scalarFourierLaplacePlemelj_upperHalfDisk T) :=
-    Iff.mpr
-      (Complex.differentiableOn_dslope hdomain)
-      _hdiff
-  exact
-    scalarFourierLaplacePlemelj_upperHalfDisk_centerSegmentIntegral_hasDerivWithinAt_of_differentiableOn
+  match
+    scalarFourierLaplacePlemelj_upperHalfDisk_hasPrimitive_of_analyticAt
       (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p)
-      T _hT hregular_continuous hregular_differentiable
+      T (le_of_lt _hT)
+      (scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_analyticAt
+        F T _hT p _hp _hp_upper _hanalytic) with
+  | ⟨G, hprimitive⟩ =>
+      have hG :
+          G =
+            LFunctions.complex_centerSegmentIntegral
+              (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p) := by
+        rfl
+      exact
+        Eq.subst
+          (motive := fun H : ℂ → ℂ =>
+            ∀ z ∈ scalarFourierLaplacePlemelj_upperHalfDisk T,
+              HasDerivWithinAt H
+                (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p z)
+                (scalarFourierLaplacePlemelj_upperHalfDisk T)
+                z)
+          hG
+          hprimitive.2
 
 /-- The center-segment integral is primitive data for the removable Cauchy
 regular part on the upper half-disk. -/
 theorem scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_centerSegmentPrimitive
     (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ)
     (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p)
-    (_hdiff : DifferentiableOn ℂ F
-      (scalarFourierLaplacePlemelj_upperHalfDisk T)) :
+    (_hanalytic :
+      ∀ z ∈ scalarFourierLaplacePlemelj_upperHalfDisk T,
+        AnalyticAt ℂ F z) :
     scalarFourierLaplacePlemelj_hasPrimitiveOnUpperHalfDisk
       (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p)
       (LFunctions.complex_centerSegmentIntegral
@@ -1288,17 +1354,19 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_centerSegmentPrimi
   exact
     And.intro
       (scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_continuousOn
-        F T _hT p _hp _hp_upper _hdiff)
+        F T _hT p _hp _hp_upper
+        (fun z hz => (_hanalytic z hz).differentiableAt.differentiableWithinAt))
       (scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_centerSegmentPrimitive_hasDerivWithinAt
-        F T _hT p _hp _hp_upper _hdiff)
+        F T _hT p _hp _hp_upper _hanalytic)
 
 /-- The regular part of the Cauchy kernel has primitive data on the upper
 half-disk. -/
 theorem scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_hasPrimitive
     (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ)
     (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p)
-    (_hdiff : DifferentiableOn ℂ F
-      (scalarFourierLaplacePlemelj_upperHalfDisk T)) :
+    (_hanalytic :
+      ∀ z ∈ scalarFourierLaplacePlemelj_upperHalfDisk T,
+        AnalyticAt ℂ F z) :
     ∃ G : ℂ → ℂ,
       scalarFourierLaplacePlemelj_hasPrimitiveOnUpperHalfDisk
         (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p)
@@ -1308,7 +1376,7 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_hasPrimitive
       (LFunctions.complex_centerSegmentIntegral
         (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p))
       (scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_centerSegmentPrimitive
-        F T _hT p _hp _hp_upper _hdiff)
+        F T _hT p _hp _hp_upper _hanalytic)
 
 /-- The regular part of the simple-pole Cauchy kernel has zero boundary
 integral on the upper half-disk.  This is the removable-singularity branch of
@@ -1318,13 +1386,14 @@ the star-convex upper half-disk. -/
 theorem scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_boundaryIntegral_eq_zero
     (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ)
     (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p)
-    (_hdiff : DifferentiableOn ℂ F
-      (scalarFourierLaplacePlemelj_upperHalfDisk T)) :
+    (_hanalytic :
+      ∀ z ∈ scalarFourierLaplacePlemelj_upperHalfDisk T,
+        AnalyticAt ℂ F z) :
     scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
         (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p) T = 0 := by
   match
     scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_hasPrimitive
-      F T _hT p _hp _hp_upper _hdiff with
+      F T _hT p _hp _hp_upper _hanalytic with
   | ⟨G, hprimitive⟩ =>
       exact
         scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_eq_zero_of_hasPrimitive
@@ -1954,7 +2023,10 @@ theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_eq_simplePoleR
     (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ)
     (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p)
     (_hdiff : DifferentiableOn ℂ F
-      (scalarFourierLaplacePlemelj_upperHalfDisk T)) :
+      (scalarFourierLaplacePlemelj_upperHalfDisk T))
+    (_hanalytic :
+      ∀ z ∈ scalarFourierLaplacePlemelj_upperHalfDisk T,
+        AnalyticAt ℂ F z) :
     scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
         (fun z : ℂ => F z / (z - p)) T =
       scalarFourierLaplacePlemelj_upperHalfDiskSimplePoleResidueContribution
@@ -1964,7 +2036,7 @@ theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_eq_simplePoleR
       F T _hT p _hp _hp_upper _hdiff).trans
       ((congrArg₂ HAdd.hAdd
         (scalarFourierLaplacePlemelj_upperHalfDisk_regularPart_boundaryIntegral_eq_zero
-          F T _hT p _hp _hp_upper _hdiff)
+          F T _hT p _hp _hp_upper _hanalytic)
         (congrArg
           (fun W : ℂ => F p * W)
           (scalarFourierLaplacePlemelj_upperHalfDisk_simplePoleKernel_boundaryIntegral_eq_two_pi_i
@@ -1986,14 +2058,17 @@ theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_cauchyIntegral
     (F : ℂ → ℂ) (T : ℝ) (_hT : 0 < T) (p : ℂ)
     (_hp : ‖p‖ < T) (_hp_upper : 0 < Complex.im p)
     (_hdiff : DifferentiableOn ℂ F
-      (scalarFourierLaplacePlemelj_upperHalfDisk T)) :
+      (scalarFourierLaplacePlemelj_upperHalfDisk T))
+    (_hanalytic :
+      ∀ z ∈ scalarFourierLaplacePlemelj_upperHalfDisk T,
+        AnalyticAt ℂ F z) :
     scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
         (fun z : ℂ => F z / (z - p)) T =
       ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * F p := by
   exact
     Eq.trans
       (scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_eq_simplePoleResidueContribution
-        F T _hT p _hp _hp_upper _hdiff)
+        F T _hT p _hp _hp_upper _hdiff _hanalytic)
       (scalarFourierLaplacePlemelj_upperHalfDiskSimplePoleResidueContribution_eq
         F p)
 
@@ -2110,6 +2185,38 @@ theorem scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator_differentiab
         hComp
   exact hComplexExp.const_mul Complex.I
 
+/-- The positive analytic numerator is entire, hence analytic at every point of
+the closed upper half-disk. -/
+theorem scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator_analyticAt_upperHalfDisk
+    (x : ℝ) (T : ℝ) :
+    ∀ z ∈ scalarFourierLaplacePlemelj_upperHalfDisk T,
+      AnalyticAt ℂ
+        (scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator x)
+        z := by
+  intro z _hz
+  unfold scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator
+  let L : ℂ → ℂ := fun w : ℂ => Complex.I * w * (x : ℂ)
+  have hL : Differentiable ℂ L := by
+    exact
+      (differentiable_id.const_mul Complex.I).mul_const
+        (x : ℂ)
+  have hExp :
+      Differentiable ℂ (NormedSpace.exp ℂ : ℂ → ℂ) := by
+    exact
+      fun w : ℂ =>
+        (NormedSpace.hasFDerivAt_exp (𝕂 := ℂ) (𝔸 := ℂ)).differentiableAt
+  have hComp :
+      Differentiable ℂ ((NormedSpace.exp ℂ : ℂ → ℂ) ∘ L) :=
+    hExp.comp hL
+  have hComplexExp :
+      Differentiable ℂ (Complex.exp ∘ L) :=
+    Eq.subst
+      (motive := fun E : ℂ → ℂ =>
+        Differentiable ℂ (E ∘ L))
+      Complex.exp_eq_exp_ℂ.symm
+      hComp
+  exact (hComplexExp.const_mul Complex.I).analyticAt z
+
 /-- Half-disk Cauchy integral formula for the positive-time analytic numerator
 and the upper-pole denominator. -/
 theorem scalarFourierLaplacePlemelj_positiveKernelUpperHalfDisk_cauchyIntegralFormula
@@ -2150,6 +2257,8 @@ theorem scalarFourierLaplacePlemelj_positiveKernelUpperHalfDisk_cauchyIntegralFo
         _hpole
         (scalarFourierLaplacePlemelj_upperPole_im_pos a ha)
         (scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator_differentiableOn_upperHalfDisk
+          x T)
+        (scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator_analyticAt_upperHalfDisk
           x T))
 
 /-- Cauchy's residue theorem for the positive-time scalar kernel boundary
