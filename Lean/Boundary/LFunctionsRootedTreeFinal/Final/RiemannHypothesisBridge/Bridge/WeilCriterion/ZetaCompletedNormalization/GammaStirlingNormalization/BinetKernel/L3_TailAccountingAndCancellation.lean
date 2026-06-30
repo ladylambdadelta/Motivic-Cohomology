@@ -1112,6 +1112,24 @@ theorem Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_
     Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_lowerVerticalDifference_decay
       hdifference
 
+/-- Finite-height lower-vertical cancellation is equivalent to public
+wall-cancellation tail absorption.
+
+The forward direction is the existing finite-height-to-full lower-vertical
+closure followed by the Binet tail split.  The reverse direction is the
+convergence transport from wall cancellation back to finite height. -/
+theorem Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_iff_wallCancellation :
+    Complex.BinetSecondFormulaFiniteHeightLowerVerticalDifferenceDecay ↔
+      Complex.BinetSecondFormulaBranchWallContourCancellationTailAbsorption := by
+  exact
+    Iff.intro
+      (fun hfinite =>
+        Complex.binetSecondFormula_branchTail_wallCancellation_of_finiteHeightLowerVerticalDifference_decay
+          hfinite)
+      (fun htail =>
+        Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_wallCancellation
+          htail)
+
 /-- Constructor from a genuinely contour-deformed kernel comparison and a
 uniform full-sector kernel majorant to branch-wall tail absorption.
 
