@@ -68,16 +68,14 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_realDiameter_regularPart_inter
         (fun t : ℝ => (F (t : ℂ) - F p) * (((t : ℂ) - p)⁻¹))
         (Set.Icc (-T) T) := by
     intro t ht
-    unfold scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart
     have hneq :
         (t : ℂ) ≠ p :=
       scalarFourierLaplacePlemelj_upperHalfDisk_realDiameter_ne_pole
         p _hp_upper t
-    have hif :
-        (if (t : ℂ) = p then 0 else (F (t : ℂ) - F p) / ((t : ℂ) - p)) =
-          (F (t : ℂ) - F p) / ((t : ℂ) - p) := by
-      exact if_neg hneq
-    exact hif.trans rfl
+    exact
+      (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart_eq_quotient_of_ne
+        F p (t : ℂ) hneq).trans
+        (div_eq_mul_inv (F (t : ℂ) - F p) ((t : ℂ) - p))
   exact
     ((ContinuousOn.congr hquot hregular_eq).intervalIntegrable_of_Icc hle)
 
@@ -120,28 +118,43 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_realDiameter_integral_decompos
         scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p (t : ℂ)) +
         ∫ t in Set.Icc (-T) T,
           (fun z : ℂ => F p * (z - p)⁻¹) (t : ℂ) := by
+  have hle : -T ≤ T := by
+    exact neg_le_self _hT.le
+  have hregular_integrableOn :
+      IntegrableOn
+        (fun t : ℝ =>
+          scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p (t : ℂ))
+        (Set.Icc (-T) T)
+        MeasureTheory.volume :=
+    (intervalIntegrable_iff_integrableOn_Icc_of_le hle).mp
+      (scalarFourierLaplacePlemelj_upperHalfDisk_realDiameter_regularPart_intervalIntegrable
+        F T _hT p _hp _hp_upper _hdiff)
+  have hpole_integrableOn :
+      IntegrableOn
+        (fun t : ℝ => (fun z : ℂ => F p * (z - p)⁻¹) (t : ℂ))
+        (Set.Icc (-T) T)
+        MeasureTheory.volume :=
+    (intervalIntegrable_iff_integrableOn_Icc_of_le hle).mp
+      (scalarFourierLaplacePlemelj_upperHalfDisk_realDiameter_simplePolePart_intervalIntegrable
+        F T _hT p _hp _hp_upper _hdiff)
   calc
     (∫ t in Set.Icc (-T) T, (fun z : ℂ => F z / (z - p)) (t : ℂ)) =
         ∫ t in Set.Icc (-T) T,
           scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p (t : ℂ) +
             (fun z : ℂ => F p * (z - p)⁻¹) (t : ℂ) := by
       exact
-        intervalIntegral.integral_congr
-          (Filter.Eventually.of_forall
-            (fun t : ℝ =>
-              scalarFourierLaplacePlemelj_upperHalfDisk_realDiameter_integrand_decompose
-                F p _hp_upper t))
+        setIntegral_congr_fun
+          measurableSet_Icc
+          (fun t _ht =>
+            scalarFourierLaplacePlemelj_upperHalfDisk_realDiameter_integrand_decompose
+              F p _hp_upper t)
     _ =
         (∫ t in Set.Icc (-T) T,
           scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart F p (t : ℂ)) +
           ∫ t in Set.Icc (-T) T,
             (fun z : ℂ => F p * (z - p)⁻¹) (t : ℂ) := by
       exact
-        intervalIntegral.integral_add
-          (scalarFourierLaplacePlemelj_upperHalfDisk_realDiameter_regularPart_intervalIntegrable
-            F T _hT p _hp _hp_upper _hdiff)
-          (scalarFourierLaplacePlemelj_upperHalfDisk_realDiameter_simplePolePart_intervalIntegrable
-            F T _hT p _hp _hp_upper _hdiff)
+        integral_add hregular_integrableOn hpole_integrableOn
 
 /-- The upper semicircle parametrization lies in the closed upper half-disk on
 the angular interval `[0, π]`. -/
@@ -222,21 +235,16 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_arc_regularPart_intervalIntegr
             ((((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - p)⁻¹))
         (Set.Icc (0 : ℝ) Real.pi) := by
     intro θ _hθ
-    unfold scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart
     have hneq :
         (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) ≠ p :=
       scalarFourierLaplacePlemelj_upperHalfDisk_arcPoint_ne_pole
         T _hT p _hp θ
-    have hif :
-        (if (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) = p
-          then 0
-          else
-            (F ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - F p) /
-              (((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - p)) =
-          (F ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - F p) /
-            (((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - p) := by
-      exact if_neg hneq
-    exact hif.trans rfl
+    exact
+      (scalarFourierLaplacePlemelj_upperHalfDiskCauchyRegularPart_eq_quotient_of_ne
+        F p ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) hneq).trans
+        (div_eq_mul_inv
+          (F ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - F p)
+          (((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - p))
   have hregular :
       ContinuousOn
         (fun θ : ℝ =>
@@ -417,15 +425,19 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_cauchyKernel_boundaryIntegral_
         (A + B) + (C + D) := by
       exact congrArg₂ HAdd.hAdd hreal harc
     _ = (A + C) + (B + D) := by
-      exact
-        Eq.trans
-          (add_assoc A B (C + D))
-          (Eq.trans
-            (congrArg (fun W : ℂ => A + W)
-              (Eq.trans
-                (add_assoc B C D).symm
-                (congrArg (fun W : ℂ => W + D) (add_comm B C))))
-            (add_assoc A C (B + D)).symm)
+      calc
+        (A + B) + (C + D) = A + (B + (C + D)) := by
+          exact add_assoc A B (C + D)
+        _ = A + ((B + C) + D) := by
+          exact congrArg (fun W : ℂ => A + W) (add_assoc B C D).symm
+        _ = A + ((C + B) + D) := by
+          exact congrArg
+            (fun W : ℂ => A + (W + D))
+            (add_comm B C)
+        _ = A + (C + (B + D)) := by
+          exact congrArg (fun W : ℂ => A + W) (add_assoc C B D)
+        _ = (A + C) + (B + D) := by
+          exact (add_assoc A C (B + D)).symm
 
 /-- Boundary integral decomposition of a Cauchy kernel into its regular
 removable part and its scalar winding part. -/
@@ -520,9 +532,6 @@ theorem scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral_cauchyIntegral
         F T _hT p _hp _hp_upper _hdiff _hanalytic)
       (scalarFourierLaplacePlemelj_upperHalfDiskSimplePoleResidueContribution_eq
         F p)
-
-/-- Scalar complex algebra behind the normalized Cauchy denominator:
-`-1 / (I * D) = I / D`. -/
 
 end FixedLineCauchyProjection
 
