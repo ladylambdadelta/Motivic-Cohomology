@@ -128,8 +128,83 @@ theorem complex_negLogDeriv_mul_inv_sub_correction
     (hB : B ≠ 0) (hC : C ≠ 0) :
     -((A * C⁻¹ + B * D) / (B * C⁻¹)) =
       -A / B - D / C⁻¹ := by
-  field_simp [hB, hC]
-  ring
+  have hCinv : C⁻¹ ≠ 0 :=
+    inv_ne_zero hC
+  have hBinv : (B * C⁻¹)⁻¹ = C * B⁻¹ := by
+    calc
+      (B * C⁻¹)⁻¹ = (C⁻¹)⁻¹ * B⁻¹ := by
+        exact mul_inv_rev B C⁻¹
+      _ = C * B⁻¹ := by
+        exact congrArg (fun W : ℂ => W * B⁻¹) (inv_inv C)
+  have hmain :
+      (A * C⁻¹ + B * D) / (B * C⁻¹) =
+        A / B + D / C⁻¹ := by
+    calc
+      (A * C⁻¹ + B * D) / (B * C⁻¹) =
+          (A * C⁻¹ + B * D) * (B * C⁻¹)⁻¹ := by
+        rfl
+      _ = (A * C⁻¹ + B * D) * (C * B⁻¹) := by
+        exact congrArg (fun W : ℂ => (A * C⁻¹ + B * D) * W) hBinv
+      _ = (A * C⁻¹) * (C * B⁻¹) + (B * D) * (C * B⁻¹) := by
+        exact add_mul (A * C⁻¹) (B * D) (C * B⁻¹)
+      _ = A * (C⁻¹ * C) * B⁻¹ + B * (D * C) * B⁻¹ := by
+        exact congrArg₂ HAdd.hAdd
+          (calc
+            (A * C⁻¹) * (C * B⁻¹) =
+                ((A * C⁻¹) * C) * B⁻¹ := by
+              exact mul_assoc (A * C⁻¹) C B⁻¹
+            _ = (A * (C⁻¹ * C)) * B⁻¹ := by
+              exact congrArg (fun W : ℂ => W * B⁻¹)
+                (mul_assoc A C⁻¹ C).symm)
+          (calc
+            (B * D) * (C * B⁻¹) =
+                ((B * D) * C) * B⁻¹ := by
+              exact mul_assoc (B * D) C B⁻¹
+            _ = (B * (D * C)) * B⁻¹ := by
+              exact congrArg (fun W : ℂ => W * B⁻¹)
+                (mul_assoc B D C).symm
+            _ = B * (D * C) * B⁻¹ := by
+              rfl)
+      _ = A * 1 * B⁻¹ + B * (D * C) * B⁻¹ := by
+        exact congrArg
+          (fun W : ℂ => A * W * B⁻¹ + B * (D * C) * B⁻¹)
+          (inv_mul_cancel₀ hC)
+      _ = A * B⁻¹ + (D * C) * (B * B⁻¹) := by
+        exact congrArg₂ HAdd.hAdd
+          (calc
+            A * 1 * B⁻¹ = A * B⁻¹ := by
+              exact congrArg (fun W : ℂ => W * B⁻¹) (mul_one A))
+          (calc
+            B * (D * C) * B⁻¹ =
+                (D * C) * B * B⁻¹ := by
+              exact congrArg (fun W : ℂ => W * B⁻¹)
+                (mul_comm B (D * C))
+            _ = (D * C) * (B * B⁻¹) := by
+              exact (mul_assoc (D * C) B B⁻¹).symm)
+      _ = A * B⁻¹ + (D * C) * 1 := by
+        exact congrArg
+          (fun W : ℂ => A * B⁻¹ + (D * C) * W)
+          (mul_inv_cancel₀ hB)
+      _ = A / B + D / C⁻¹ := by
+        exact congrArg₂ HAdd.hAdd
+          rfl
+          (calc
+            (D * C) * 1 = D * C := by
+              exact mul_one (D * C)
+            _ = D * (C⁻¹)⁻¹ := by
+              exact congrArg (fun W : ℂ => D * W) (inv_inv C).symm
+            _ = D / C⁻¹ := by
+              rfl)
+  calc
+    -((A * C⁻¹ + B * D) / (B * C⁻¹)) =
+        -(A / B + D / C⁻¹) := by
+      exact congrArg Neg.neg hmain
+    _ = -(A / B) + -(D / C⁻¹) := by
+      exact neg_add (A / B) (D / C⁻¹)
+    _ = -A / B + -(D / C⁻¹) := by
+      exact congrArg (fun W : ℂ => W + -(D / C⁻¹)) (neg_div B A).symm
+    _ = -A / B - D / C⁻¹ := by
+      exact (sub_eq_add_neg (-A / B) (D / C⁻¹)).symm
 
 /-- Removing the Gamma factor adds the explicit archimedean correction to the negative
 logarithmic derivative. This inverse-Gamma form is the owner-level statement available from
@@ -194,7 +269,7 @@ theorem riemannZeta_zero_eq_neg_half :
 /-- The value `-1/2` is nonzero in the complex normalization. -/
 theorem complex_neg_half_ne_zero :
     (-1 / 2 : ℂ) ≠ 0 := by
-  norm_num
+  exact neg_ne_zero.mpr (div_ne_zero one_ne_zero two_ne_zero)
 
 /-- The ordinary Riemann zeta function is nonzero at the normalization point `0`. -/
 theorem riemannZeta_zero_ne_zero :
@@ -216,18 +291,42 @@ theorem gammaReal_zeroIndex_iff_zero_or_negative_even
     cases n with
     | zero =>
         left
-        simpa using hn
+        calc
+          s = -(2 * ((0 : ℕ) : ℂ)) := hn
+          _ = -(2 * (0 : ℂ)) := by
+            rfl
+          _ = -0 := by
+            exact congrArg Neg.neg (mul_zero (2 : ℂ))
+          _ = 0 := by
+            exact neg_zero
     | succ n =>
         right
         refine ⟨n, ?_⟩
-        simpa [neg_mul] using hn
+        calc
+          s = -(2 * (((Nat.succ n) : ℕ) : ℂ)) := hn
+          _ = -(2 * (((n + 1 : ℕ) : ℂ))) := by
+            exact congrArg
+              (fun W : ℂ => -(2 * W))
+              (congrArg (fun m : ℕ => (m : ℂ)) (Nat.succ_eq_add_one n))
+          _ = (-2 : ℂ) * (((n + 1 : ℕ) : ℂ)) := by
+            exact neg_mul (2 : ℂ) (((n + 1 : ℕ) : ℂ))
   · intro h
     rcases h with hzero | hnegative
     · refine ⟨0, ?_⟩
-      simpa using hzero
+      calc
+        s = 0 := hzero
+        _ = -0 := by
+          exact neg_zero.symm
+        _ = -(2 * (0 : ℂ)) := by
+          exact congrArg Neg.neg (mul_zero (2 : ℂ)).symm
+        _ = -(2 * (((0 : ℕ) : ℂ))) := by
+          rfl
     · rcases hnegative with ⟨n, hn⟩
       refine ⟨n + 1, ?_⟩
-      simpa [neg_mul] using hn
+      calc
+        s = (-2 : ℂ) * (((n + 1 : ℕ) : ℂ)) := hn
+        _ = -(2 * (((n + 1 : ℕ) : ℂ))) := by
+          exact (neg_mul (2 : ℂ) (((n + 1 : ℕ) : ℂ))).symm
 
 /-- The exact zero locus of the completed Gamma factor in the current normalization. -/
 theorem Gammaℝ_eq_zero_iff_zero_or_negative_even
