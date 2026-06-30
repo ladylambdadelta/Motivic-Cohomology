@@ -267,7 +267,7 @@ theorem Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_int
 
 /-- Elementary integral normalization for the decaying summand included in the
 contour-tail majorant kernel. -/
-theorem Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integral_le_ownerGap :
+theorem Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integral_le_owner :
     ∀ w : ℂ,
       0 < w.re →
       2 ≤ ‖w‖ →
@@ -370,7 +370,7 @@ theorem Complex.binetSecondFormula_contourTailMajorantKernel_norm_eq_principal_a
 
 /-- Contour-deformed Binet tail kernel integral decomposition for the full
 right half-plane. -/
-theorem Complex.binetSecondFormula_contourTailMajorantKernel_integral_decomposition_ownerGap :
+theorem Complex.binetSecondFormula_contourTailMajorantKernel_integral_decomposition_owner :
     ∀ w : ℂ,
       0 < w.re →
       2 ≤ ‖w‖ →
@@ -465,7 +465,7 @@ theorem Complex.binetSecondFormula_contourTailMajorantKernel_integral_accounting
         ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
             ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
           P + D :=
-      Complex.binetSecondFormula_contourTailMajorantKernel_integral_decomposition_ownerGap
+      Complex.binetSecondFormula_contourTailMajorantKernel_integral_decomposition_owner
         w hw_re_pos hw_norm
     have hprincipal_w :
         2 * P ≤ (C / ‖w‖) * J :=
@@ -543,7 +543,7 @@ theorem Complex.binetSecondFormula_contourTailMajorantKernel_integral_decay_of_p
     ⟨C + 2, add_pos hC two_pos,
       Complex.binetSecondFormula_contourTailMajorantKernel_integral_accounting
         hprincipal
-        Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integral_le_ownerGap⟩
+        Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integral_le_owner⟩
 
 /-- The standard scalar Binet decaying-tail integral beginning at `‖w‖ / 2`. -/
 noncomputable def Complex.binetSecondFormulaDecayingTailIntegral

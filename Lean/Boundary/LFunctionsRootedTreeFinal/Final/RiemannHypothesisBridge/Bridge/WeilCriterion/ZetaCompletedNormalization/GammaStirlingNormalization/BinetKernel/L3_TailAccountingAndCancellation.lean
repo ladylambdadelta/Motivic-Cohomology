@@ -1416,7 +1416,7 @@ theorem Complex.binetSecondFormula_branchWall_tailAbsorption_of_principalTailCan
                   Complex.binetSecondFormulaDecayingTailIntegral w :=
         Complex.binetSecondFormula_contourTailMajorantKernel_integral_accounting
           hprincipal_bound
-          Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integral_le_ownerGap
+          Complex.binetSecondFormula_contourTailMajorantKernel_decayingSummand_integral_le_owner
       have htail_decay :
           ∀ w : ℂ,
             0 < w.re →
