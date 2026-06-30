@@ -827,7 +827,7 @@ theorem completedPrimeTimeDistributionPairing_eq_primePowerContribution_re
   have hright : (↑(∑' ι : ZetaPrimePowerIndex, r ι) : ℂ).re =
       (∑' ι : ZetaPrimePowerIndex, (r ι : ℂ)).re :=
     congrArg Complex.re (Complex.ofReal_tsum r)
-  simpa [r] using hleft.symm.trans hright
+  exact hleft.symm.trans hright
 
 /-- The real spectral prime off-diagonal coordinate in the completed prime-power
 explicit-formula distribution. -/
