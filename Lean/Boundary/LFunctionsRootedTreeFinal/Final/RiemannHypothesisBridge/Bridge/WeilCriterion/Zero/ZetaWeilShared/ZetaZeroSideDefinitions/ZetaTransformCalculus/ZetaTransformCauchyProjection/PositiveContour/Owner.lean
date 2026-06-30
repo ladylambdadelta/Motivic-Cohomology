@@ -1416,6 +1416,37 @@ noncomputable def scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryInt
     (p : ℂ) (T : ℝ) : ℂ :=
   ∮ z in C((0 : ℂ), T), (z - p)⁻¹
 
+/-- Counterclockwise lower semicircle arc of the scalar Cauchy kernel, from
+`-T` to `T`. -/
+noncomputable def scalarFourierLaplacePlemelj_upperWinding_lowerCounterArcIntegral
+    (p : ℂ) (T : ℝ) : ℂ :=
+  ∫ θ in (-Real.pi)..(0 : ℝ),
+    let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+    ((z - p)⁻¹) *
+      (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
+/-- Upper semicircle arc of the scalar Cauchy kernel, from `T` to `-T`. -/
+noncomputable def scalarFourierLaplacePlemelj_upperWinding_upperArcIntegral
+    (p : ℂ) (T : ℝ) : ℂ :=
+  ∫ θ in (0 : ℝ)..Real.pi,
+    let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+    ((z - p)⁻¹) *
+      (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
+/-- Clockwise lower semicircle arc of the scalar Cauchy kernel, from `T` to
+`-T`, matching the lower half-disk boundary parametrization. -/
+noncomputable def scalarFourierLaplacePlemelj_upperWinding_lowerClockwiseArcIntegral
+    (p : ℂ) (T : ℝ) : ℂ :=
+  ∫ θ in (0 : ℝ)..(-Real.pi),
+    let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+    ((z - p)⁻¹) *
+      (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
+/-- Real diameter contribution of the scalar Cauchy kernel. -/
+noncomputable def scalarFourierLaplacePlemelj_upperWinding_realDiameterIntegral
+    (p : ℂ) (T : ℝ) : ℂ :=
+  ∫ t in Set.Icc (-T) T, (((t : ℂ) - p)⁻¹)
+
 /-- The scalar Cauchy kernel has zero lower half-disk boundary integral when
 the pole lies strictly in the upper half-disk. -/
 theorem scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral_eq_zero
@@ -1440,15 +1471,124 @@ theorem scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral_eq_t
         _hp
   exact circleIntegral.integral_sub_inv_of_mem_ball hp_ball
 
-/-- The upper half-disk boundary integral is the full circle integral after
-removing the lower no-pole boundary contribution. -/
-theorem scalarFourierLaplacePlemelj_upperWinding_boundaryIntegral_eq_fullCircle_sub_lower
+/-- The mathlib full circle integral splits into the lower counterclockwise
+semicircle plus the upper semicircle. -/
+theorem scalarFourierLaplacePlemelj_upperWinding_fullCircle_eq_lowerCounter_add_upperArc
+    (T : ℝ) (p : ℂ) :
+    scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral p T =
+      scalarFourierLaplacePlemelj_upperWinding_lowerCounterArcIntegral p T +
+        scalarFourierLaplacePlemelj_upperWinding_upperArcIntegral p T := by
+  sorry
+
+/-- The counterclockwise lower arc is the negative of the clockwise lower arc
+with the same parametrized integrand. -/
+theorem scalarFourierLaplacePlemelj_upperWinding_lowerCounterArc_eq_neg_lowerClockwiseArc
+    (T : ℝ) (p : ℂ) :
+    scalarFourierLaplacePlemelj_upperWinding_lowerCounterArcIntegral p T =
+      -scalarFourierLaplacePlemelj_upperWinding_lowerClockwiseArcIntegral p T := by
+  sorry
+
+/-- The scalar lower half-disk boundary is the real diameter plus the clockwise
+lower semicircle. -/
+theorem scalarFourierLaplacePlemelj_upperWinding_lowerBoundary_eq_real_add_lowerClockwise
+    (T : ℝ) (p : ℂ) :
+    scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T =
+      scalarFourierLaplacePlemelj_upperWinding_realDiameterIntegral p T +
+        scalarFourierLaplacePlemelj_upperWinding_lowerClockwiseArcIntegral p T := by
+  rfl
+
+/-- The scalar upper half-disk boundary is the real diameter plus the upper
+semicircle. -/
+theorem scalarFourierLaplacePlemelj_upperWinding_upperBoundary_eq_real_add_upperArc
     (T : ℝ) (p : ℂ) :
     scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
         (fun z : ℂ => (z - p)⁻¹) T =
-      scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral p T -
+      scalarFourierLaplacePlemelj_upperWinding_realDiameterIntegral p T +
+        scalarFourierLaplacePlemelj_upperWinding_upperArcIntegral p T := by
+  rfl
+
+/-- Algebraic assembly of the upper boundary from the full circle and lower
+clockwise boundary, once the full circle has been split into semicircles. -/
+theorem scalarFourierLaplacePlemelj_upperWinding_boundary_assembly_algebra
+    (R U Lc : ℂ) :
+    R + U = ((-Lc) + U) + (R + Lc) := by
+  calc
+    R + U = U + R := by
+      exact add_comm R U
+    _ = U + (R + (Lc + -Lc)) := by
+      exact congrArg (fun W : ℂ => U + (R + W)) (add_right_neg Lc).symm
+    _ = U + ((R + Lc) + -Lc) := by
+      exact congrArg (fun W : ℂ => U + W) (add_assoc R Lc (-Lc)).symm
+    _ = (U + -Lc) + (R + Lc) := by
+      exact
+        Eq.trans
+          (add_assoc U (R + Lc) (-Lc))
+          (Eq.trans
+            (congrArg (fun W : ℂ => W + -Lc) (add_comm U (R + Lc)))
+            (add_assoc (R + Lc) U (-Lc)).symm)
+    _ = ((-Lc) + U) + (R + Lc) := by
+      exact congrArg
+        (fun W : ℂ => W + (R + Lc))
+        (add_comm U (-Lc))
+
+/-- The upper half-disk boundary integral is the full circle integral plus the
+clockwise lower no-pole boundary contribution.  The sign comes from the lower
+arc parametrization `0` to `-π`. -/
+theorem scalarFourierLaplacePlemelj_upperWinding_boundaryIntegral_eq_fullCircle_add_lower
+    (T : ℝ) (p : ℂ) :
+    scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+        (fun z : ℂ => (z - p)⁻¹) T =
+      scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral p T +
         scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T := by
-  sorry
+  let R : ℂ := scalarFourierLaplacePlemelj_upperWinding_realDiameterIntegral p T
+  let U : ℂ := scalarFourierLaplacePlemelj_upperWinding_upperArcIntegral p T
+  let Lc : ℂ := scalarFourierLaplacePlemelj_upperWinding_lowerClockwiseArcIntegral p T
+  let Lccw : ℂ := scalarFourierLaplacePlemelj_upperWinding_lowerCounterArcIntegral p T
+  have hupper :
+      scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+          (fun z : ℂ => (z - p)⁻¹) T =
+        R + U :=
+    scalarFourierLaplacePlemelj_upperWinding_upperBoundary_eq_real_add_upperArc
+      T p
+  have hfull :
+      scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral p T =
+        Lccw + U :=
+    scalarFourierLaplacePlemelj_upperWinding_fullCircle_eq_lowerCounter_add_upperArc
+      T p
+  have hlowerCounter :
+      Lccw = -Lc :=
+    scalarFourierLaplacePlemelj_upperWinding_lowerCounterArc_eq_neg_lowerClockwiseArc
+      T p
+  have hlower :
+      scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T =
+        R + Lc :=
+    scalarFourierLaplacePlemelj_upperWinding_lowerBoundary_eq_real_add_lowerClockwise
+      T p
+  calc
+    scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
+        (fun z : ℂ => (z - p)⁻¹) T =
+        R + U := by
+      exact hupper
+    _ = ((-Lc) + U) + (R + Lc) := by
+      exact scalarFourierLaplacePlemelj_upperWinding_boundary_assembly_algebra
+        R U Lc
+    _ = (Lccw + U) + (R + Lc) := by
+      exact congrArg
+        (fun W : ℂ => (W + U) + (R + Lc))
+        hlowerCounter.symm
+    _ =
+        scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral p T +
+          (R + Lc) := by
+      exact congrArg
+        (fun W : ℂ => W + (R + Lc))
+        hfull.symm
+    _ =
+        scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral p T +
+          scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T := by
+      exact congrArg
+        (fun W : ℂ =>
+          scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral p T + W)
+        hlower.symm
 
 /-- The upper half-disk boundary has winding number one around any point in
 the strict upper half-disk. -/
@@ -1461,26 +1601,26 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_boundary_winding_one
   calc
     scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
         (fun z : ℂ => (z - p)⁻¹) T =
-        scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral p T -
+        scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral p T +
           scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T := by
       exact
-        scalarFourierLaplacePlemelj_upperWinding_boundaryIntegral_eq_fullCircle_sub_lower
+        scalarFourierLaplacePlemelj_upperWinding_boundaryIntegral_eq_fullCircle_add_lower
           T p
     _ =
-        ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) -
+        ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) +
           scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T := by
       exact congrArg
         (fun W : ℂ =>
-          W - scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T)
+          W + scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T)
         (scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral_eq_two_pi_i
           T _hT p _hp)
-    _ = ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) - 0 := by
+    _ = ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) + 0 := by
       exact congrArg
-        (fun W : ℂ => ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) - W)
+        (fun W : ℂ => ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) + W)
         (scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral_eq_zero
           T _hT p _hp _hp_upper)
     _ = ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) := by
-      exact sub_zero ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)
+      exact add_zero ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)
 
 /-- The raw scalar simple-pole kernel has winding number one around a pole in
 the upper half-disk boundary contour. -/
