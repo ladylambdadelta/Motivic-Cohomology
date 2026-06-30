@@ -767,7 +767,7 @@ theorem Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper_restoredOrdinar
         Complex.binetAbelPlanaFiniteLowerContourTail N z -
           Complex.binetAbelPlanaFiniteUpperContourResidual N z :=
   Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper_endpointRestored hz hbridges N
-    (fun n _hn z => Classical.decEq z ((n + 1 : ℕ) : ℂ))
+    (fun n _hn z => Classical.decEq ℂ z ((n + 1 : ℕ) : ℂ))
 
 /-- The endpoint restoration term is exactly the half-weighted endpoint
 integer-residue contribution used by the principal-value rectangle. -/
@@ -1163,61 +1163,60 @@ theorem Complex.binetSecondFormula_tailRemainder_sectorBound_of_localIndentation
             le_max_right Clocal Cfar
           have hC_pos : 0 < C :=
             lt_of_lt_of_le hClocal_pos hClocal_le_C
-          exact
-            ⟨C, hC_pos,
-              fun w hw_sector hw_norm_two => by
-                let J : ℝ :=
-                  Complex.binetSecondFormulaDecayingTailIntegral w
-                let L : ℝ :=
-                  Complex.binetSecondFormulaBranchLocalIndentationEnvelope w
-                let F : ℝ := (Cfar / ‖w‖) * J
-                have htail_pre :
+          have hbound :
+              ∀ w : ℂ,
+                δ * ‖w‖ ≤ w.re →
+                  2 ≤ ‖w‖ →
                     ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
-                      L + F :=
-                  have hnorm_pos : 0 < ‖w‖ :=
-                    lt_of_lt_of_le zero_lt_two hw_norm_two
-                  have hsector_pos : 0 < δ * ‖w‖ :=
-                    mul_pos hδ hnorm_pos
-                  htail_local w
-                    (lt_of_lt_of_le hsector_pos hw_sector)
-                    hw_norm_two
-                have hlocal_le :
-                    L ≤ Clocal * J :=
-                  hlocal_absorb w hw_sector hw_norm_two
-                have hJ_nonneg : 0 ≤ J :=
-                  Complex.binetSecondFormula_decayingTailIntegral_nonneg_of_norm_two
-                    hw_norm_two
-                have hlocal_C_le :
-                    Clocal * J ≤ C * J :=
-                  mul_le_mul_of_nonneg_right hClocal_le_C hJ_nonneg
-                have hnorm_pos : 0 < ‖w‖ :=
-                  lt_of_lt_of_le zero_lt_two hw_norm_two
-                have hfar_C_le :
-                    (Cfar / ‖w‖) * J ≤ (C / ‖w‖) * J := by
-                  have hdiv_le : Cfar / ‖w‖ ≤ C / ‖w‖ :=
-                    div_le_div_of_nonneg_right hCfar_le_C (le_of_lt hnorm_pos)
-                  exact mul_le_mul_of_nonneg_right hdiv_le hJ_nonneg
-                have hsum_le :
-                    L + F ≤ C * J + (C / ‖w‖) * J :=
-                  add_le_add (le_trans hlocal_le hlocal_C_le) hfar_C_le
-                have hconst :
-                    C * J + (C / ‖w‖) * J =
-                      (C + C / ‖w‖) * J := by
-                  calc
-                    C * J + (C / ‖w‖) * J =
-                        (C + C / ‖w‖) * J := by
-                      exact (add_mul C (C / ‖w‖) J).symm
-                have htarget :
-                    L + F ≤ (C + C / ‖w‖) * J :=
-                  le_trans hsum_le (le_of_eq hconst)
-                exact le_trans htail_pre htarget⟩
+                      (C + C / ‖w‖) *
+                        Complex.binetSecondFormulaDecayingTailIntegral w := by
+            intro w hw_sector hw_norm_two
+            let J : ℝ :=
+              Complex.binetSecondFormulaDecayingTailIntegral w
+            let L : ℝ :=
+              Complex.binetSecondFormulaBranchLocalIndentationEnvelope w
+            let F : ℝ := (Cfar / ‖w‖) * J
+            have htail_pre :
+                ‖Complex.binetSecondFormulaTailRemainder w‖ ≤ L + F :=
+              have hnorm_pos : 0 < ‖w‖ :=
+                lt_of_lt_of_le zero_lt_two hw_norm_two
+              have hsector_pos : 0 < δ * ‖w‖ :=
+                mul_pos hδ hnorm_pos
+              htail_local w
+                (lt_of_lt_of_le hsector_pos hw_sector)
+                hw_norm_two
+            have hlocal_le :
+                L ≤ Clocal * J :=
+              hlocal_absorb w hw_sector hw_norm_two
+            have hJ_nonneg : 0 ≤ J :=
+              Complex.binetSecondFormula_decayingTailIntegral_nonneg_of_norm_two
+                hw_norm_two
+            have hlocal_C_le :
+                Clocal * J ≤ C * J :=
+              mul_le_mul_of_nonneg_right hClocal_le_C hJ_nonneg
+            have hnorm_pos : 0 < ‖w‖ :=
+              lt_of_lt_of_le zero_lt_two hw_norm_two
+            have hfar_C_le :
+                (Cfar / ‖w‖) * J ≤ (C / ‖w‖) * J := by
+              have hdiv_le : Cfar / ‖w‖ ≤ C / ‖w‖ :=
+                div_le_div_of_nonneg_right hCfar_le_C (le_of_lt hnorm_pos)
+              exact mul_le_mul_of_nonneg_right hdiv_le hJ_nonneg
+            have hsum_le :
+                L + F ≤ C * J + (C / ‖w‖) * J :=
+              add_le_add (le_trans hlocal_le hlocal_C_le) hfar_C_le
+            have hconst :
+                C * J + (C / ‖w‖) * J =
+                  (C + C / ‖w‖) * J :=
+              (add_mul C (C / ‖w‖) J).symm
+            exact le_trans htail_pre (le_trans hsum_le (le_of_eq hconst))
+          exact ⟨C, hC_pos, hbound⟩
 
 /-- Complex cutoff form of the Binet scalar tail lower bound from the
 one-dimensional real-variable tail estimate. -/
 theorem Complex.binetSecondFormula_branchTail_sectorWindow_of_expBounds
-    (henvelope :
+    (_henvelope :
       Complex.BinetSecondFormulaBranchLocalIndentationSectorEnvelopeExpBound)
-    (hintegral : Complex.BinetSecondFormulaDecayingTailIntegralExpLower) :
+    (_hintegral : Complex.BinetSecondFormulaDecayingTailIntegralExpLower) :
     Complex.BinetSecondFormulaBranchLocalIndentationSectorLogWindowComparison := by
   exact Complex.binetSecondFormula_branchLocalIndentation_sectorAbsorption_owner
 
@@ -1522,10 +1521,8 @@ theorem Complex.binetSecondFormula_finiteHeightContourError_eventually_scaled_de
         lt_of_lt_of_le zero_lt_two hw_norm_two
       have hcoeff_pos : 0 < C / ‖w‖ :=
         div_pos hC_pos hnorm_pos
-      have hE_pos : 0 < ‖w‖ * Real.exp (-Real.pi * ‖w‖) :=
-        mul_pos hnorm_pos (Real.exp_pos (-Real.pi * ‖w‖))
-      have hcE_pos : 0 < c * (‖w‖ * Real.exp (-Real.pi * ‖w‖)) :=
-        mul_pos hc_pos hE_pos
+      have hcE_pos : 0 < c * ‖w‖ * Real.exp (-Real.pi * ‖w‖) :=
+        mul_pos (mul_pos hc_pos hnorm_pos) (Real.exp_pos (-Real.pi * ‖w‖))
       have hJ_pos : 0 < J :=
         lt_of_lt_of_le hcE_pos (htail_lower w hw_norm_two)
       have hB_pos : 0 < B :=
@@ -1571,10 +1568,8 @@ theorem Complex.binetSecondFormula_finiteHeightEndpointRestoredContourError_even
         lt_of_lt_of_le zero_lt_two hw_norm_two
       have hcoeff_pos : 0 < C / ‖w‖ :=
         div_pos hC_pos hnorm_pos
-      have hE_pos : 0 < ‖w‖ * Real.exp (-Real.pi * ‖w‖) :=
-        mul_pos hnorm_pos (Real.exp_pos (-Real.pi * ‖w‖))
-      have hcE_pos : 0 < c * (‖w‖ * Real.exp (-Real.pi * ‖w‖)) :=
-        mul_pos hc_pos hE_pos
+      have hcE_pos : 0 < c * ‖w‖ * Real.exp (-Real.pi * ‖w‖) :=
+        mul_pos (mul_pos hc_pos hnorm_pos) (Real.exp_pos (-Real.pi * ‖w‖))
       have hJ_pos : 0 < J :=
         lt_of_lt_of_le hcE_pos (htail_lower w hw_norm_two)
       have hB_pos : 0 < B :=
@@ -1630,7 +1625,7 @@ theorem Complex.binetSecondFormula_endpointRestoredContourError_decay_of_realSeg
             have hdecInteriorPole :
                 ∀ n : ℕ, n ∈ Finset.range N →
                   ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)) :=
-              fun n _hn z => Classical.decEq z ((n + 1 : ℕ) : ℂ)
+              fun n _hn z => Classical.decEq ℂ z ((n + 1 : ℕ) : ℂ)
             Complex.binetSecondFormula_finiteHeightEndpointRestoredContourError_eventually_scaled_decayingTail_owner
               hw_re_pos hw_norm_two N hdecInteriorPole hpackage hCerror_pos⟩
 
@@ -1695,7 +1690,7 @@ theorem Complex.binetSecondFormula_finiteHeightContourError_eventually_scaled_de
   have hdecInteriorPole :
       ∀ n : ℕ, n ∈ Finset.range N →
         ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)) :=
-    fun n _hn z => Classical.decEq z ((n + 1 : ℕ) : ℂ)
+    fun n _hn z => Classical.decEq ℂ z ((n + 1 : ℕ) : ℂ)
   exact
     Complex.binetSecondFormula_finiteHeightContourError_eventually_scaled_decayingTail_owner
       hw_re_pos hw_norm_two N hdecInteriorPole hbridges hC_pos
@@ -1949,7 +1944,7 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_sub_initialWindow_tendst
           Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
           Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
           (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
-            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t))
+            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)))
       atTop
       (𝓝
         ((((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
@@ -1958,7 +1953,7 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_sub_initialWindow_tendst
           Complex.finiteAbelPlanaLogUpperVerticalFullIntegral N w -
           Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
           (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
-            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t))) := by
+            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)))) := by
   let R : ℂ :=
     ∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
       Complex.finiteAbelPlanaLogSummand w (x : ℂ)
@@ -1969,27 +1964,27 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_sub_initialWindow_tendst
       Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t
   let U : ℝ → ℂ := fun T : ℝ =>
     Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T
-  let U∞ : ℂ := Complex.finiteAbelPlanaLogUpperVerticalFullIntegral N w
-  have hU : Tendsto U atTop (𝓝 U∞) :=
+  let Ufull : ℂ := Complex.finiteAbelPlanaLogUpperVerticalFullIntegral N w
+  have hU : Tendsto U atTop (𝓝 Ufull) :=
     Complex.finiteAbelPlana_log_upperVerticalIntegralUpTo_tendsto_unsplitFull
       hw_re_pos N
   have hfirst :
       Tendsto
         (fun T : ℝ => (R + H) - U T)
         atTop
-        (𝓝 ((R + H) - U∞)) :=
+        (𝓝 ((R + H) - Ufull)) :=
     tendsto_const_nhds.sub hU
   have hminusP :
       Tendsto
         (fun T : ℝ => (R + H) - U T - P)
         atTop
-        (𝓝 ((R + H) - U∞ - P)) :=
+        (𝓝 ((R + H) - Ufull - P)) :=
     hfirst.sub tendsto_const_nhds
   have hminusI :
       Tendsto
         (fun T : ℝ => ((R + H) - U T - P) - I)
         atTop
-        (𝓝 (((R + H) - U∞ - P) - I)) :=
+        (𝓝 (((R + H) - Ufull - P) - I)) :=
     hminusP.sub tendsto_const_nhds
   exact hminusI
 
@@ -2009,7 +2004,7 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_endpointRestored_sub_ini
           Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
           Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
           (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
-            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t))
+            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)))
       atTop
       (𝓝
         ((((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
@@ -2017,7 +2012,7 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_endpointRestored_sub_ini
           Complex.finiteAbelPlanaLogUpperVerticalFullIntegral N w -
           Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
           (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
-            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t))) := by
+            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)))) := by
   let R : ℂ :=
     ∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
       Complex.finiteAbelPlanaLogSummand w (x : ℂ)
@@ -2027,27 +2022,27 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_endpointRestored_sub_ini
       Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t
   let U : ℝ → ℂ := fun T : ℝ =>
     Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T
-  let U∞ : ℂ := Complex.finiteAbelPlanaLogUpperVerticalFullIntegral N w
-  have hU : Tendsto U atTop (𝓝 U∞) :=
+  let Ufull : ℂ := Complex.finiteAbelPlanaLogUpperVerticalFullIntegral N w
+  have hU : Tendsto U atTop (𝓝 Ufull) :=
     Complex.finiteAbelPlana_log_upperVerticalIntegralUpTo_tendsto_unsplitFull
       hw_re_pos N
   have hfirst :
       Tendsto
         (fun T : ℝ => R - U T)
         atTop
-        (𝓝 (R - U∞)) :=
+        (𝓝 (R - Ufull)) :=
     tendsto_const_nhds.sub hU
   have hminusP :
       Tendsto
         (fun T : ℝ => R - U T - P)
         atTop
-        (𝓝 (R - U∞ - P)) :=
+        (𝓝 (R - Ufull - P)) :=
     hfirst.sub tendsto_const_nhds
   have hminusI :
       Tendsto
         (fun T : ℝ => (R - U T - P) - I)
         atTop
-        (𝓝 ((R - U∞ - P) - I)) :=
+        (𝓝 ((R - Ufull - P) - I)) :=
     hminusP.sub tendsto_const_nhds
   exact hminusI
 
@@ -2080,7 +2075,7 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_full_sub_initialWindow_e
   let H : ℂ := Complex.finiteAbelPlanaLogSummandHalfEndpoints N w
   let L : ℂ := Complex.finiteAbelPlanaLogSummandLowerVerticalIntegral N w
   let U : ℂ := Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w
-  let U∞ : ℂ := Complex.finiteAbelPlanaLogUpperVerticalFullIntegral N w
+  let Ufull : ℂ := Complex.finiteAbelPlanaLogUpperVerticalFullIntegral N w
   let P : ℂ := Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w
   let F : ℂ := Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w
   let I : ℂ :=
@@ -2099,7 +2094,7 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_full_sub_initialWindow_e
       R + H - L - U = P := by
     exact Eq.trans hboundary_named.symm hboundary_residue
   have hupper :
-      U∞ = U :=
+      Ufull = U :=
     Complex.finiteAbelPlana_log_upperVerticalFullIntegral_eq_named N w
   have hlower :
       F = L :=
@@ -2128,12 +2123,12 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_full_sub_initialWindow_e
           exact sub_sub_self A L
     exact hcancel
   have hleft_named :
-      (R + H - U∞ - P) - I = L - I := by
+      (R + H - Ufull - P) - I = L - I := by
     have hreplace_upper :
-        R + H - U∞ - P = R + H - U - P := by
+        R + H - Ufull - P = R + H - U - P := by
       exact congrArg (fun z : ℂ => R + H - z - P) hupper
     calc
-      (R + H - U∞ - P) - I =
+      (R + H - Ufull - P) - I =
           (R + H - U - P) - I := by
         exact congrArg (fun z : ℂ => z - I) hreplace_upper
       _ = L - I := by
@@ -2149,12 +2144,12 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_full_sub_initialWindow_e
       Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
       (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
         Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)) =
-        (R + H - U∞ - P) - I := by
+        (R + H - Ufull - P) - I := by
       rfl
-    _ = L - I :=
-      hleft_named
-    _ = F - I :=
-      hright_named
+    _ = L - I := by
+      exact hleft_named
+    _ = F - I := by
+      exact hright_named
     _ =
       Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w -
         (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
@@ -2189,18 +2184,18 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_endpointRestored_full_su
     ∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
       Complex.finiteAbelPlanaLogSummand w (x : ℂ)
   let H : ℂ := Complex.finiteAbelPlanaLogSummandHalfEndpoints N w
-  let U∞ : ℂ := Complex.finiteAbelPlanaLogUpperVerticalFullIntegral N w
+  let Ufull : ℂ := Complex.finiteAbelPlanaLogUpperVerticalFullIntegral N w
   let P : ℂ := Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w
   let F : ℂ := Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w
   let I : ℂ :=
     ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
       Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t
-  let A : ℂ := R - U∞ - P
+  let A : ℂ := R - Ufull - P
   let Y : ℂ := F - I
   have hwith_endpoint :
-      ((R + H - U∞ - P) - I) = Y := by
+      ((R + H - Ufull - P) - I) = Y := by
     calc
-      ((R + H - U∞ - P) - I) =
+      ((R + H - Ufull - P) - I) =
           (((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
               Complex.finiteAbelPlanaLogSummand w (x : ℂ)) +
             Complex.finiteAbelPlanaLogSummandHalfEndpoints N w -
@@ -2212,28 +2207,29 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_endpointRestored_full_su
       _ =
           Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w -
             (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
-              Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) :=
-        Complex.binetSecondFormula_boundarySolvedStatic_full_sub_initialWindow_eq_lowerVerticalFull_sub_initialWindow_owner
-          N hw_re_pos hbridges hdecInteriorPole
+              Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) := by
+        exact
+          Complex.binetSecondFormula_boundarySolvedStatic_full_sub_initialWindow_eq_lowerVerticalFull_sub_initialWindow_owner
+            N hw_re_pos hbridges hdecInteriorPole
       _ = Y := by
         rfl
   have hwith_endpoint_as_A :
-      ((R + H - U∞ - P) - I) = (A + H) - I := by
+      ((R + H - Ufull - P) - I) = (A + H) - I := by
     calc
-      ((R + H - U∞ - P) - I) =
-          (R - U∞ - P) + H - I := by
-        exact Complex.endpoint_middle_static_subtractions R H U∞ P I
+      ((R + H - Ufull - P) - I) =
+          (R - Ufull - P) + H - I := by
+        exact Complex.endpoint_middle_static_subtractions R H Ufull P I
       _ = (A + H) - I := by
         rfl
   have hA_sub_I_eq_with_endpoint_sub_H :
-      A - I = ((R + H - U∞ - P) - I) - H := by
+      A - I = ((R + H - Ufull - P) - I) - H := by
     calc
       A - I = (A - I + H) - H := by
         exact (add_sub_cancel_right (A - I) H).symm
       _ = ((A + H) - I) - H := by
         exact congrArg (fun z : ℂ => z - H)
           (Complex.add_middle_sub_right A H I).symm
-      _ = ((R + H - U∞ - P) - I) - H := by
+      _ = ((R + H - Ufull - P) - I) - H := by
         exact congrArg (fun z : ℂ => z - H) hwith_endpoint_as_A.symm
   calc
     (((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
@@ -2244,8 +2240,8 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_endpointRestored_full_su
         Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)) =
         A - I := by
       rfl
-    _ = ((R + H - U∞ - P) - I) - H :=
-      hA_sub_I_eq_with_endpoint_sub_H
+    _ = ((R + H - Ufull - P) - I) - H := by
+      exact hA_sub_I_eq_with_endpoint_sub_H
     _ = Y - H := by
       exact congrArg (fun z : ℂ => z - H) hwith_endpoint
     _ =
@@ -2335,7 +2331,7 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_endpointRestored_full_su
       Complex.finiteAbelPlanaLogUpperVerticalFullIntegral N w -
       Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
       (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
-        Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)) +
+        Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t))) +
       Complex.finiteAbelPlanaLogSummandHalfEndpoints N w =
       Complex.binetSecondFormulaTailRemainder w := by
   let S : ℂ :=
@@ -2358,7 +2354,18 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_endpointRestored_full_su
         exact congrArg (fun z : ℂ => z + H) hrestored
       _ = T := by
         exact sub_add_cancel T H
-  exact hreturn
+  calc
+    ((((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+        Complex.finiteAbelPlanaLogSummand w (x : ℂ)) -
+      Complex.finiteAbelPlanaLogUpperVerticalFullIntegral N w -
+      Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
+      (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+        Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t))) +
+      Complex.finiteAbelPlanaLogSummandHalfEndpoints N w =
+        S + H := by
+      rfl
+    _ = T := by
+      exact hreturn
 
 /-- Norm form of the endpoint-restored full static normalization after
 returning the endpoint term. -/
@@ -2375,7 +2382,7 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_endpointRestored_full_su
       Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
       (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
         Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)) +
-      Complex.finiteAbelPlanaLogSummandHalfEndpoints N w)‖ =
+      Complex.finiteAbelPlanaLogSummandHalfEndpoints N w))‖ =
       ‖Complex.binetSecondFormulaTailRemainder w‖ := by
   exact congrArg norm
     (Complex.binetSecondFormula_boundarySolvedStatic_endpointRestored_full_sub_initialWindow_add_halfEndpoints_eq_tailRemainder_owner
@@ -2552,7 +2559,7 @@ theorem Complex.binetSecondFormula_boundarySolvedStaticDecayEstimate_of_boundary
               have hdecInteriorPole :
                   ∀ n : ℕ, n ∈ Finset.range N →
                     ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)) :=
-                  fun n _hn z => Classical.decEq z ((n + 1 : ℕ) : ℂ)
+                  fun n _hn z => Classical.decEq ℂ z ((n + 1 : ℕ) : ℂ)
                 have htendsto :
                     Tendsto
                       (fun T : ℝ =>
@@ -2562,7 +2569,7 @@ theorem Complex.binetSecondFormula_boundarySolvedStaticDecayEstimate_of_boundary
                           Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
                           Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
                           (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
-                            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t))
+                            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)))
                       atTop
                       (𝓝
                         ((((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
@@ -2571,7 +2578,7 @@ theorem Complex.binetSecondFormula_boundarySolvedStaticDecayEstimate_of_boundary
                           Complex.finiteAbelPlanaLogUpperVerticalFullIntegral N w -
                           Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
                           (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
-                            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t))) :=
+                            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)))) :=
                   Complex.binetSecondFormula_boundarySolvedStatic_sub_initialWindow_tendsto_full_owner
                     N hw_re_pos
                 let A : ℂ :=
@@ -2606,10 +2613,10 @@ theorem Complex.binetSecondFormula_boundarySolvedStaticDecayEstimate_of_boundary
                   match Complex.binetSecondFormula_decayingTailIntegral_expLower_owner with
                   | ⟨c, hc_pos, htail_lower⟩ =>
                       let E : ℝ := ‖w‖ * Real.exp (-Real.pi * ‖w‖)
-                      have hE_pos : 0 < E :=
-                        mul_pos hnorm_pos (Real.exp_pos (-Real.pi * ‖w‖))
-                      have hcE_pos : 0 < c * E :=
-                        mul_pos hc_pos hE_pos
+                      have hcE_pos :
+                          0 < c * ‖w‖ * Real.exp (-Real.pi * ‖w‖) :=
+                        mul_pos (mul_pos hc_pos hnorm_pos)
+                          (Real.exp_pos (-Real.pi * ‖w‖))
                       exact lt_of_lt_of_le hcE_pos (htail_lower w hw_norm_two)
                 have hA_lt_B : ‖A‖ < B := by
                   have hscale_pos : 0 < (1 / ‖w‖) * J :=
@@ -2643,7 +2650,7 @@ theorem Complex.binetSecondFormula_boundarySolvedStaticDecayEstimate_of_boundary
                       ‖A‖ < (2 * Ctail) * ((1 / ‖w‖) * J) :=
                     Real.le_mul_pos_scale_lt_two_mul
                       hA_le_scaled hCtail_pos hscale_pos
-                  Eq.subst
+                  exact Eq.subst
                     (motive := fun x : ℝ => ‖A‖ < x)
                     hB_eq.symm
                     hlt
@@ -2655,7 +2662,7 @@ theorem Complex.binetSecondFormula_boundarySolvedStaticDecayEstimate_of_boundary
                         Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
                         Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
                         (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
-                          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)‖ ≤
+                          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t))‖ ≤
                         B :=
                   Complex.eventually_norm_le_of_tendsto_norm_lt
                     htendsto hA_lt_B
