@@ -1904,7 +1904,7 @@ theorem.
 
 This is the analytic root of the finite-window tail-control theorem: after
 forced dagger-constrained zero contributions are separated, the remaining
-zero-side terms admit a common summable polynomial height envelope, and a
+zero-side terms have a common summable polynomial height envelope, and a
 finite completed-zero window cuts the complementary tail below any tolerance.
 The finite interpolation step above then realizes that window inside the fixed
 autocorrelation spectral fiber. -/
