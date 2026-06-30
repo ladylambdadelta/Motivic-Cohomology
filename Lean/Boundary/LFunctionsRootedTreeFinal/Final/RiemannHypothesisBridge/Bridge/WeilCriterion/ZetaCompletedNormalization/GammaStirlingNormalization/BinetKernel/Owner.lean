@@ -23,7 +23,5 @@ Main theorem: Complex.binetSecondFormulaBranchUniformTailAbsorption_owner
 namespace Boundary
 namespace LFunctions
 
-export L_BranchUniformTailAssembly (Complex.binetSecondFormulaBranchUniformTailAbsorption_owner)
-
 end LFunctions
 end Boundary
