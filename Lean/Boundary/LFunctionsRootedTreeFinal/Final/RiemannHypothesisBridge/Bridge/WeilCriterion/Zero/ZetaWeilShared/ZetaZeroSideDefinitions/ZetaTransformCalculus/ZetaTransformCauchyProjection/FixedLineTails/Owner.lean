@@ -65,7 +65,7 @@ theorem cofinalHeight_one_add_norm_tendsto_atTop
 theorem cofinalHeight_one_add_norm_inverseQuadratic_tendsto_zero
     (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
     Tendsto
-      (fun u : ℝ => (1 + ‖height u‖) ^ (-(2 : ℤ)) : ℝ)
+      (fun u : ℝ => ((1 + ‖height u‖) ^ (-(2 : ℤ)) : ℝ))
       atTop
       (𝓝 0) :=
   (tendsto_zpow_atTop_zero (show (-(2 : ℤ)) < 0 by exact Int.negSucc_lt_zero 1)).comp
@@ -86,7 +86,12 @@ theorem real_inverseCubic_rightTail_value_eq_shifted_rpow
           exact congrArg (fun x : ℝ => x ^ (-(3 : ℤ)))
             (congrArg (fun x : ℝ => 1 + x) hnorm)
     _ = (1 + t) ^ (-(3 : ℝ)) := by
-          exact (Real.rpow_intCast (1 + t) (-(3 : ℤ))).symm
+          change (1 + t) ^ (-(3 : ℤ)) =
+            (1 + t) ^ ((-(3 : ℤ) : ℝ))
+          exact Eq.trans
+            (Real.rpow_intCast (1 + t) (-(3 : ℤ))).symm
+            (congrArg (fun x : ℝ => (1 + t) ^ x)
+              (Int.cast_neg (R := ℝ) 3))
     _ = (t + 1) ^ (-(3 : ℝ)) := by
           exact congrArg (fun x : ℝ => x ^ (-(3 : ℝ))) (add_comm 1 t)
 
@@ -111,7 +116,7 @@ theorem real_setIntegral_Ici_addRight_one
     (Homeomorph.addRight (1 : ℝ)).isClosedEmbedding.measurableEmbedding
   have himage :
       (fun x : ℝ => x + 1) '' Set.Ici T = Set.Ici (T + 1) :=
-    image_add_const_Ici
+    image_add_const_Ici (1 : ℝ) T
   have hmap :
       (∫ u in (fun x : ℝ => x + 1) '' Set.Ici T, f u)
         =
@@ -153,7 +158,7 @@ theorem real_inverseCubic_rightTail_integral_eq_shifted_rpow_Ioi
     fun u : ℝ => u ^ (-(3 : ℝ))
   have hpoint :
       EqOn
-        (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        (fun t : ℝ => ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ))
         (fun t : ℝ => shiftedWeight (t + 1))
         (Set.Ici T) :=
     fun t ht =>
@@ -184,14 +189,23 @@ theorem real_inverseCubic_rightTail_integral_eq_shifted_rpow_Ioi
 /-- Numeric comparison needed for the inverse-cubic improper integral. -/
 theorem negThree_lt_negOne_real :
     (-(3 : ℝ)) < -1 := by
-  exact neg_lt_neg one_lt_three
+  have hTwo_lt_three : (2 : ℝ) < 3 := by
+    exact Nat.cast_lt.mpr (Nat.lt_succ_self 2)
+  exact neg_lt_neg (one_lt_two.trans hTwo_lt_three)
 
 /-- The exponent arithmetic in the `-3` tail antiderivative. -/
 theorem negThree_add_one_eq_negTwo_real :
     (-(3 : ℝ) + 1) = -(2 : ℝ) := by
   have hThree :
       (3 : ℝ) = 2 + 1 :=
-    Nat.cast_add 2 1
+    have hNat : (3 : ℕ) = 2 + 1 :=
+      Eq.refl 3
+    have hCast : ((3 : ℕ) : ℝ) = ((2 + 1 : ℕ) : ℝ) :=
+      congrArg (fun n : ℕ => (n : ℝ)) hNat
+    have hAdd : ((2 + 1 : ℕ) : ℝ) = (2 : ℝ) + 1 :=
+      (Nat.cast_add 2 1).trans
+        (congrArg₂ (fun a b : ℝ => a + b) Nat.cast_ofNat Nat.cast_one)
+    hCast.trans hAdd
   calc
     (-(3 : ℝ) + 1)
         = -(2 + 1 : ℝ) + 1 := by
@@ -302,7 +316,12 @@ theorem real_shifted_rpow_negTwo_eq_inverseQuadratic_boundary
             (Real.norm_of_nonneg hT).symm
     _ =
         (1 + ‖T‖) ^ (-(2 : ℤ)) := by
-          exact Real.rpow_intCast (1 + ‖T‖) (-(2 : ℤ))
+          change (1 + ‖T‖) ^ (-(2 : ℝ)) =
+            (1 + ‖T‖) ^ (-(2 : ℤ))
+          exact (Eq.trans
+            (Real.rpow_intCast (1 + ‖T‖) (-(2 : ℤ))).symm
+            (congrArg (fun x : ℝ => (1 + ‖T‖) ^ x)
+              (Int.cast_neg (R := ℝ) 2))).symm
 
 /-- The translated open inverse-cubic power tail has the sharp inverse-square
 boundary value. -/
@@ -336,7 +355,23 @@ theorem real_inverseCubic_reflection_value (t : ℝ) :
 tail. -/
 theorem preimage_neg_Ici_eq_Iic_neg (T : ℝ) :
     (fun t : ℝ => -t) ⁻¹' Set.Ici T = Set.Iic (-T) := by
-  exact Set.ext (fun _ => le_neg)
+  exact Set.ext
+    (fun x =>
+      Iff.intro
+        (fun hx =>
+          have hneg : -(-x) ≤ -T :=
+            neg_le_neg hx
+          Eq.subst
+            (motive := fun y : ℝ => y ≤ -T)
+            (neg_neg x)
+            hneg)
+        (fun hx =>
+          have hneg : -(-T) ≤ -x :=
+            neg_le_neg hx
+          Eq.subst
+            (motive := fun y : ℝ => y ≤ -x)
+            (neg_neg T)
+            hneg))
 
 /-- The reflected inverse-cubic set integral over the left tail is the
 unreflected set integral over that same left tail. -/
@@ -370,7 +405,7 @@ theorem real_inverseCubic_leftTail_integral_eq_reflected_preimage
           (1 + ‖(-t)‖) ^ (-(3 : ℤ)) : ℝ) := by
           exact congrArg
             (fun s : Set ℝ =>
-              ∫ t in s, (1 + ‖(-t)‖) ^ (-(3 : ℤ)) : ℝ)
+              (∫ t in s, (1 + ‖(-t)‖) ^ (-(3 : ℤ)) : ℝ))
             hSet.symm
 
 /-- Set-integral change of variables for real reflection on the inverse-cubic
@@ -385,7 +420,7 @@ theorem real_inverseCubic_reflected_preimage_integral_eq_rightTail
   exact
     (Measure.measurePreserving_neg (volume : Measure ℝ)).setIntegral_preimage_emb
       (Homeomorph.neg ℝ).measurableEmbedding
-      (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      (fun t : ℝ => ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ))
       (Set.Ici T)
 
 /-- The left closed inverse-cubic norm tail is the corresponding right closed
@@ -454,7 +489,7 @@ theorem one_half_le_two_real :
     (1 / 2 : ℝ) ≤ 2 := by
   have hhalf_le_one :
       (1 / 2 : ℝ) ≤ 1 :=
-    one_div_le_one zero_le_one one_le_two
+    (one_div (2 : ℝ)).trans_le (inv_le_one_of_one_le₀ one_le_two)
   exact le_trans hhalf_le_one one_le_two
 
 /-- The inverse-quadratic boundary term is nonnegative. -/
@@ -518,41 +553,60 @@ tail union. -/
 theorem real_inverseCubic_tailUnion_ae_nonnegative
     (T : ℝ) :
     0 ≤ᵐ[volume.restrict (Set.Iic (-T) ∪ Set.Ici T)]
-      (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+      (fun t : ℝ => ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)) := by
   exact Eventually.of_forall
     (fun t : ℝ => real_inverseCubic_pointwise_nonnegative t)
 
 /-- The scalar inverse-cubic majorant is globally integrable. -/
 theorem real_inverseCubic_integrable :
     Integrable
-      (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
+      (fun t : ℝ => ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)) := by
   have hDimension :
       ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 := by
-    exact congrArg
+    exact (congrArg
       (fun n : ℕ => (n : ℝ))
-      (Module.finrank_self ℝ)
+      (Module.finrank_self ℝ)).trans (Nat.cast_one)
   have hDimensionBound :
       ((Module.finrank ℝ ℝ : ℕ) : ℝ) < 3 := by
     calc
       ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 := by
         exact hDimension
       _ < 3 := by
-        exact one_lt_three
+        have hCast :
+            ((1 : ℕ) : ℝ) < ((3 : ℕ) : ℝ) :=
+          (Nat.cast_lt (α := ℝ)).mpr
+            (show (1 : ℕ) < 3 from
+              Nat.succ_lt_succ (Nat.succ_pos 1))
+        have hOne : ((1 : ℕ) : ℝ) = 1 :=
+          Nat.cast_one
+        have hThree : ((3 : ℕ) : ℝ) = 3 :=
+          Nat.cast_ofNat
+        exact
+          Eq.subst
+            (motive := fun a : ℝ => a < 3)
+            hOne
+            (Eq.subst
+              (motive := fun b : ℝ => ((1 : ℕ) : ℝ) < b)
+              hThree
+              hCast)
   have hRpow :
       Integrable
-        (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℝ)) : ℝ) :=
+        (fun t : ℝ => ((1 + ‖t‖) ^ (-(3 : ℝ)) : ℝ)) :=
     integrable_one_add_norm (E := ℝ) (μ := volume) hDimensionBound
   exact hRpow.congr
     (Eventually.of_forall
       (fun t : ℝ =>
-        Real.rpow_intCast (1 + ‖t‖) (-(3 : ℤ))))
+        (Eq.trans
+          (Real.rpow_intCast (1 + ‖t‖) (-(3 : ℤ))).symm
+          (congrArg (fun x : ℝ => (1 + ‖t‖) ^ x)
+            (Int.cast_neg (R := ℝ) 3))).symm))
 
 /-- Integrability of the scalar inverse-cubic majorant on a closed right
 half-line tail. -/
 theorem real_inverseCubic_integrableOn_rightTail
     (T : ℝ) :
     IntegrableOn
-      (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      (fun t : ℝ => ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ))
       (Set.Ici T) := by
   exact real_inverseCubic_integrable.integrableOn
 
@@ -561,7 +615,7 @@ half-line tail. -/
 theorem real_inverseCubic_integrableOn_leftTail
     (T : ℝ) :
     IntegrableOn
-      (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      (fun t : ℝ => ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ))
       (Set.Iic (-T)) := by
   exact real_inverseCubic_integrable.integrableOn
 
@@ -570,7 +624,7 @@ outer closed half-line tails. -/
 theorem real_inverseCubic_integrableOn_leftTail_union_rightTail
     (T : ℝ) :
     IntegrableOn
-      (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+      (fun t : ℝ => ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ))
       (Set.Iic (-T) ∪ Set.Ici T) := by
   exact
     (real_inverseCubic_integrableOn_leftTail T).union
@@ -583,8 +637,12 @@ theorem leftTail_rightTail_inter_subsingleton_of_nonnegative
     (Set.Iic (-T) ∩ Set.Ici T).Subsingleton := by
   have hNegT_le_T : -T ≤ T :=
     le_trans (neg_nonpos.mpr hT) hT
-  exact (Set.subsingleton_Icc_of_ge hNegT_le_T).mono
-    (fun x hx => ⟨hx.right, hx.left⟩)
+  intro x hx y hy
+  have hx_le_y : x ≤ y :=
+    le_trans hx.left (le_trans hNegT_le_T hy.right)
+  have hy_le_x : y ≤ x :=
+    le_trans hy.left (le_trans hNegT_le_T hx.right)
+  exact le_antisymm hx_le_y hy_le_x
 
 /-- The two closed tails are a.e.-disjoint with respect to Lebesgue measure
 when the center radius is nonnegative. -/
@@ -608,17 +666,17 @@ theorem real_inverseCubic_tailUnionIntegral_le_left_plus_right
           (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
   have hIntegrableUnion :
       IntegrableOn
-        (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        (fun t : ℝ => ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ))
         (Set.Iic (-T) ∪ Set.Ici T) :=
     real_inverseCubic_integrableOn_leftTail_union_rightTail T
   have hIntegrableLeft :
       IntegrableOn
-        (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        (fun t : ℝ => ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ))
         (Set.Iic (-T)) :=
     hIntegrableUnion.left_of_union
   have hIntegrableRight :
       IntegrableOn
-        (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        (fun t : ℝ => ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ))
         (Set.Ici T) :=
     hIntegrableUnion.right_of_union
   calc
@@ -654,15 +712,16 @@ theorem real_inverseCubic_symmetricComplementIntegral_le_left_plus_right
           (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) := by
   have hUnionIntegrable :
       IntegrableOn
-        (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)
+        (fun t : ℝ => ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ))
         (Set.Iic (-T) ∪ Set.Ici T) :=
     real_inverseCubic_integrableOn_leftTail_union_rightTail T
   have hNonnegative :
       0 ≤ᵐ[volume.restrict (Set.Iic (-T) ∪ Set.Ici T)]
-        (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ) :=
+        (fun t : ℝ => ((1 + ‖t‖) ^ (-(3 : ℤ)) : ℝ)) :=
     real_inverseCubic_tailUnion_ae_nonnegative T
   have hSubset :
-      (Set.Icc (-T) T)ᶜ ≤ᵐ[volume] Set.Iic (-T) ∪ Set.Ici T :=
+      (fun x : ℝ => x ∈ (Set.Icc (-T) T)ᶜ) ≤ᵐ[volume]
+        (fun x : ℝ => x ∈ Set.Iic (-T) ∪ Set.Ici T) :=
     (compl_symmetricIcc_subset_leftTail_union_rightTail T).eventuallyLE
   calc
     (∫ t in (Set.Icc (-T) T)ᶜ,
@@ -716,7 +775,22 @@ theorem real_inverseCubic_symmetricComplementIntegral_inverseQuadratic_of_nonneg
                 (2 + 2) * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
                   exact (add_mul 2 2 ((1 + ‖T‖) ^ (-(2 : ℤ)))).symm
             _ = 4 * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
-                  exact rfl
+                  have hFour : (2 + 2 : ℝ) = 4 := by
+                    have hNat : (2 + 2 : ℕ) = 4 :=
+                      Eq.refl 4
+                    have hCastNat :
+                        ((2 + 2 : ℕ) : ℝ) = ((4 : ℕ) : ℝ) :=
+                      congrArg (fun n : ℕ => (n : ℝ)) hNat
+                    have hCastAdd :
+                        ((2 + 2 : ℕ) : ℝ) = (2 : ℝ) + 2 :=
+                      (Nat.cast_add 2 2).trans
+                        (congrArg₂ (fun a b : ℝ => a + b)
+                          Nat.cast_ofNat Nat.cast_ofNat)
+                    exact hCastAdd.symm.trans
+                      (hCastNat.trans Nat.cast_ofNat)
+                  exact congrArg
+                    (fun a : ℝ => a * (1 + ‖T‖) ^ (-(2 : ℤ)))
+                    hFour
 
 /-- The real inverse-cubic majorant has inverse-quadratic tails outside
 symmetric intervals. -/
@@ -763,7 +837,8 @@ theorem fixedRightLine_integrableFunction_symmetricTail_norm_le_majorantTail
       have hs : MeasurableSet s :=
         measurableSet_Icc
       have hcompl :
-          ∫ t in sᶜ, G t = ∫ t : ℝ, G t - ∫ t in s, G t :=
+          (∫ t in sᶜ, G t ∂volume) =
+            (∫ t : ℝ, G t ∂volume) - (∫ t in s, G t ∂volume) :=
         setIntegral_compl hs hG_integrable
       have hdiff :
           (∫ t in s, G t) - (∫ t : ℝ, G t)
@@ -774,8 +849,8 @@ theorem fixedRightLine_integrableFunction_symmetricTail_norm_le_majorantTail
               =
             -((∫ t : ℝ, G t) - (∫ t in s, G t)) := by
               exact (neg_sub (∫ t : ℝ, G t) (∫ t in s, G t)).symm
-          _ = -(∫ t in sᶜ, G t) := by
-              exact congrArg Neg.neg hcompl.symm
+            _ = -(∫ t in sᶜ, G t) := by
+                exact congrArg (fun z : ℂ => -z) hcompl.symm
       have hnormComplement :
           ‖(∫ t in s, G t) - (∫ t : ℝ, G t)‖
             =
@@ -905,7 +980,17 @@ theorem fixedRightLine_integrableFunction_symmetricTruncation_tendsto_fullLine_o
         hzero ▸ hdecay
       exact
         tendsto_iff_norm_sub_tendsto_zero.2
-          (squeeze_zero_norm' hMR_eventual hmajorant)
+          (squeeze_zero_norm'
+            (hMR_eventual.mono
+              (fun u hu =>
+                Eq.subst
+                  (motive := fun z : ℝ => z ≤
+                    MR * (1 + ‖height u‖) ^ (-(2 : ℤ)))
+                  (norm_norm
+                    ((∫ t in Set.Icc (-(height u)) (height u), G t) -
+                      (∫ t : ℝ, G t))).symm
+                  hu))
+            hmajorant)
 
 /-- The fixed right-line Fourier-Cauchy multiplier integrand is strongly
 measurable in the frequency variable. -/
@@ -1179,7 +1264,7 @@ theorem fixedRightLine_fourierCauchy_symmetricWindow_productIntegrable
     hF_cont.continuousOn.integrableOn_compact hcompact
   exact
     hF_compact.of_forall_diff_eq_zero
-      (measurableSet_Icc.prod measurableSet_univ)
+      (measurableSet_Icc.prod MeasurableSet.univ)
       (fun p hp =>
         let hnot :
             p.2 ∉ tsupport K :=
@@ -1233,6 +1318,7 @@ theorem fixedRightLine_fourierCauchy_symmetricWindow_productIntegrable
           _ = 0 := by
                 exact zero_mul
                   (Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)))
+        )
 
 /-- Standard Fubini form of the finite-window product Cauchy integral. -/
 theorem fixedRightLine_fourierCauchy_symmetricWindow_productIntegral_eq_iterated
@@ -1252,16 +1338,35 @@ theorem fixedRightLine_fourierCauchy_symmetricWindow_productIntegral_eq_iterated
             Complex.exp
               (Complex.I * (t : ℂ) * (x : ℂ)) *
             Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
-  exact
-    setIntegral_prod
-      (fun p : ℝ × ℝ =>
-        (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
-          K p.2 *
-          Complex.exp
-            (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
-          Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ)))
+  let F : ℝ × ℝ → ℂ :=
+    fun p : ℝ × ℝ =>
+      (-1 / (((c : ℂ) + p.1 * Complex.I) - 1)) *
+        K p.2 *
+        Complex.exp
+          (Complex.I * (p.1 : ℂ) * (p.2 : ℂ)) *
+        Complex.exp (((c - 1 : ℝ) : ℂ) * (p.2 : ℂ))
+  have hFubini :
+      (∫ p in Set.Icc (-T) T ×ˢ Set.univ, F p ∂volume.prod volume) =
+        ∫ t in Set.Icc (-T) T,
+          ∫ x in Set.univ, F (t, x) ∂volume ∂volume :=
+    setIntegral_prod F
       (fixedRightLine_fourierCauchy_symmetricWindow_productIntegrable
         K hK_cont hK_compact hK_smooth c hc T)
+  have hProductVolume :
+      (∫ p in Set.Icc (-T) T ×ˢ Set.univ, F p) =
+        (∫ p in Set.Icc (-T) T ×ˢ Set.univ, F p ∂volume.prod volume) :=
+    congrArg
+      (fun μ : MeasureTheory.Measure (ℝ × ℝ) =>
+        ∫ p in Set.Icc (-T) T ×ˢ Set.univ, F p ∂μ)
+      (MeasureTheory.Measure.volume_eq_prod ℝ ℝ)
+  have hInnerUniv :
+      (∫ t in Set.Icc (-T) T,
+          ∫ x in Set.univ, F (t, x) ∂volume ∂volume) =
+        ∫ t in Set.Icc (-T) T,
+          ∫ x : ℝ, F (t, x) ∂volume ∂volume :=
+    setIntegral_congr_fun measurableSet_Icc
+      (fun t _ => setIntegral_univ)
+  exact hProductVolume.trans (hFubini.trans hInnerUniv)
 
 /-- Pointwise reassociation for pulling the fixed Cauchy scalar outside the
 inner time-side integral. -/
@@ -1289,12 +1394,12 @@ theorem fixedRightLine_outerScalar_integrand_reassoc
             Complex.exp
               (Complex.I * (t : ℂ) * (x : ℂ)))) *
           Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
-          exact mul_assoc
-            (-1 / (((c : ℂ) + t * Complex.I) - 1))
-            (K x *
-              Complex.exp
-                (Complex.I * (t : ℂ) * (x : ℂ)))
-            (Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+            exact (mul_assoc
+              (-1 / (((c : ℂ) + t * Complex.I) - 1))
+              (K x *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)))
+              (Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))).symm
     _ =
         (((-1 / (((c : ℂ) + t * Complex.I) - 1)) * K x) *
           Complex.exp
@@ -1304,21 +1409,21 @@ theorem fixedRightLine_outerScalar_integrand_reassoc
             (fun z : ℂ =>
               z *
                 Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
-            (mul_assoc
-              (-1 / (((c : ℂ) + t * Complex.I) - 1))
-              (K x)
-              (Complex.exp
-                (Complex.I * (t : ℂ) * (x : ℂ))))
+              (mul_assoc
+                (-1 / (((c : ℂ) + t * Complex.I) - 1))
+                (K x)
+                (Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)))).symm
     _ =
         ((-1 / (((c : ℂ) + t * Complex.I) - 1)) * K x) *
           Complex.exp
             (Complex.I * (t : ℂ) * (x : ℂ)) *
           Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
-          exact (mul_assoc
-            ((-1 / (((c : ℂ) + t * Complex.I) - 1)) * K x)
-            (Complex.exp
-              (Complex.I * (t : ℂ) * (x : ℂ)))
-            (Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))).symm
+            exact Eq.refl
+              (((-1 / (((c : ℂ) + t * Complex.I) - 1)) * K x) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
 
 /-- The finite-window iterated product integral pulls the Cauchy scalar outside
 the inner time-side integral. -/
@@ -1454,11 +1559,11 @@ theorem fixedRightLine_scalarWindow_constMul_integrand_reassoc
             Complex.exp
               (Complex.I * (t : ℂ) * (x : ℂ)))) *
           Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
-          exact mul_assoc (K x)
-            ((-1 / (((c : ℂ) + t * Complex.I) - 1)) *
-              Complex.exp
-                (Complex.I * (t : ℂ) * (x : ℂ)))
-            (Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+            exact (mul_assoc (K x)
+              ((-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)))
+              (Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))).symm
     _ =
         ((K x * (-1 / (((c : ℂ) + t * Complex.I) - 1))) *
           Complex.exp
@@ -1468,10 +1573,10 @@ theorem fixedRightLine_scalarWindow_constMul_integrand_reassoc
             (fun z : ℂ =>
               z *
                 Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
-            (mul_assoc (K x)
-              (-1 / (((c : ℂ) + t * Complex.I) - 1))
-              (Complex.exp
-                (Complex.I * (t : ℂ) * (x : ℂ))))
+              (mul_assoc (K x)
+                (-1 / (((c : ℂ) + t * Complex.I) - 1))
+                (Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)))).symm
     _ =
         (((-1 / (((c : ℂ) + t * Complex.I) - 1)) * K x) *
           Complex.exp
@@ -1490,11 +1595,11 @@ theorem fixedRightLine_scalarWindow_constMul_integrand_reassoc
           Complex.exp
             (Complex.I * (t : ℂ) * (x : ℂ)) *
           Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
-          exact (mul_assoc
-            ((-1 / (((c : ℂ) + t * Complex.I) - 1)) * K x)
-            (Complex.exp
-              (Complex.I * (t : ℂ) * (x : ℂ)))
-            (Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))).symm
+            exact Eq.refl
+              (((-1 / (((c : ℂ) + t * Complex.I) - 1)) * K x) *
+                Complex.exp
+                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
 
 /-- The scalar-window expression is the reversed iterated product integral. -/
 theorem fixedRightLine_scalarWindowIntegral_eq_reversedIterated
@@ -1630,16 +1735,34 @@ theorem fixedRightLine_scalarWindow_reversedIterated_eq_swappedProductIntegral
           Complex.exp
             (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
           Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ)) := by
-  exact
-    (setIntegral_prod
-      (fun q : ℝ × ℝ =>
-        (-1 / (((c : ℂ) + q.2 * Complex.I) - 1)) *
-          K q.1 *
-          Complex.exp
-            (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
-          Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ)))
+  let G : ℝ × ℝ → ℂ :=
+    fun q : ℝ × ℝ =>
+      (-1 / (((c : ℂ) + q.2 * Complex.I) - 1)) *
+        K q.1 *
+        Complex.exp
+          (Complex.I * (q.2 : ℂ) * (q.1 : ℂ)) *
+        Complex.exp (((c - 1 : ℝ) : ℂ) * (q.1 : ℂ))
+  have hFubini :
+      (∫ q in Set.univ ×ˢ Set.Icc (-T) T, G q ∂volume.prod volume) =
+        ∫ x in Set.univ,
+          ∫ t in Set.Icc (-T) T, G (x, t) ∂volume ∂volume :=
+    setIntegral_prod G
       (fixedRightLine_scalarWindow_swappedProductIntegrable
-        K hK_cont hK_compact hK_smooth c hc T)).symm
+        K hK_cont hK_compact hK_smooth c hc T)
+  have hProductVolume :
+      (∫ q in Set.univ ×ˢ Set.Icc (-T) T, G q ∂volume.prod volume) =
+        (∫ q in Set.univ ×ˢ Set.Icc (-T) T, G q) :=
+    congrArg
+      (fun μ : MeasureTheory.Measure (ℝ × ℝ) =>
+        ∫ q in Set.univ ×ˢ Set.Icc (-T) T, G q ∂μ)
+      (MeasureTheory.Measure.volume_eq_prod ℝ ℝ).symm
+  have hOuterUniv :
+      (∫ x : ℝ,
+          ∫ t in Set.Icc (-T) T, G (x, t) ∂volume ∂volume) =
+        ∫ x in Set.univ,
+          ∫ t in Set.Icc (-T) T, G (x, t) ∂volume ∂volume :=
+    setIntegral_univ.symm
+  exact hOuterUniv.trans (hFubini.symm.trans hProductVolume)
 
 /-- Swapping coordinates sends the reversed product integral to the standard
 finite-window product integral. -/
@@ -1868,7 +1991,7 @@ theorem fixedRightLine_scalarWindowIntegral_eq_productIntegral
             (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
               Complex.exp
                 (Complex.I * (t : ℂ) * (x : ℂ)) *
-              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
         =
         ∫ x : ℝ,
           ∫ t in Set.Icc (-T) T,
@@ -1949,11 +2072,6 @@ theorem fixedRightLine_scalarProjection_Ioi_integral_eq_Ici_integral
       ∫ x in Set.Ici (0 : ℝ),
         (-2 * (Real.pi : ℂ)) * K x := by
   exact (integral_Ici_eq_integral_Ioi : _).symm
-
-/-- Positive-time residue value for the normalized Fourier-Laplace denominator.
-
-This is the scalar contour-residue calculation before truncation limits are
-transported back to symmetric real-line windows. -/
 
 end FixedLineCauchyProjection
 
