@@ -130,19 +130,19 @@ theorem Complex.binetSecondFormula_decayingTailKernel_uniform_majorant :
             (((1 : ℝ) / ‖w‖) *
               (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))))
 
-/-- The decaying Binet tail kernel is the contour-tail majorant used by later
-integral-accounting layers. -/
+/-- Compatibility name for the decaying Binet tail kernel majorant.
+
+The concrete contour-tail majorant kernel contains the raw principal-tail norm.
+This theorem is only the uniform majorant for
+`binetSecondFormulaDecayingTailKernel`. -/
 theorem Complex.binetSecondFormula_contourTailMajorantKernel_uniform_majorant :
     Complex.BinetSecondFormulaContourTailUniformMajorant
       Complex.binetSecondFormulaDecayingTailKernel 2 1 := by
   exact Complex.binetSecondFormula_decayingTailKernel_uniform_majorant
 
-/-- Exponential tail integral bound for the scaled decay `exp (-π t)`.
-
-The exact formula is
-`∫ t in Ioi a, exp (-π t) = π⁻¹ * exp (-π a)`; this bound is the only
-form needed for the Binet majorant tail estimate. -/
-theorem Complex.binetSecondFormula_arctan_tail_contourDeformed_kernel_fullSector_package :
+/-- The decaying Binet tail kernel packaged with its uniform full-sector
+majorant. -/
+theorem Complex.binetSecondFormula_decayingTailKernel_fullSector_package :
     ∃ K : ℂ → ℝ → ℂ, ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧
       0 < C ∧
@@ -159,6 +159,25 @@ theorem Complex.binetSecondFormula_arctan_tail_contourDeformed_kernel_fullSector
       fun w _hw hRle =>
         Complex.binetSecondFormula_decayingTailKernel_uniform_majorant
           w _hw hRle⟩
+
+/-- Compatibility package for the decaying Binet tail kernel.
+
+Despite the historical name, this package contains the decaying kernel, not an
+integral comparison from the principal branch tail to a contour-deformed
+kernel. -/
+theorem Complex.binetSecondFormula_arctan_tail_contourDeformed_kernel_fullSector_package :
+    ∃ K : ℂ → ℝ → ℂ, ∃ R : ℝ, ∃ C : ℝ,
+      0 < R ∧
+      0 < C ∧
+      ∀ w : ℂ,
+        0 < w.re →
+        R ≤ ‖w‖ →
+          ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
+            ‖K w t‖ ≤
+              (C / ‖w‖) *
+                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  exact
+    Complex.binetSecondFormula_decayingTailKernel_fullSector_package
 
 end
 end LFunctions

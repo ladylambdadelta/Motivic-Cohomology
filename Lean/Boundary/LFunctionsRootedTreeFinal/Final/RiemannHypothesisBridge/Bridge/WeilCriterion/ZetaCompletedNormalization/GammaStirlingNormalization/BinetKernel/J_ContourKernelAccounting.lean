@@ -42,13 +42,11 @@ This theorem deliberately records only the majorant package.  It does not
 assert an integral comparison from the principal branch tail to this decaying
 kernel; that comparison is the separate analytic wall-cancellation input. -/
 theorem Complex.binetSecondFormula_decaying_tail_kernel_uniform_majorant_package :
-    ∃ K : ℂ → ℝ → ℂ, ∃ R : ℝ, ∃ C : ℝ,
-      0 < R ∧
-      0 < C ∧
-      Complex.BinetSecondFormulaContourTailUniformMajorant K R C :=
-  ⟨Complex.binetSecondFormulaDecayingTailKernel, 2, 1,
-    two_pos, zero_lt_one,
-    Complex.binetSecondFormula_contourTailMajorantKernel_uniform_majorant⟩
+  ∃ K : ℂ → ℝ → ℂ, ∃ R : ℝ, ∃ C : ℝ,
+    0 < R ∧
+    0 < C ∧
+    Complex.BinetSecondFormulaContourTailUniformMajorant K R C :=
+  Complex.binetSecondFormula_decayingTailKernel_fullSector_package
 
 /-- Compatibility name for the decaying-kernel majorant package.
 
