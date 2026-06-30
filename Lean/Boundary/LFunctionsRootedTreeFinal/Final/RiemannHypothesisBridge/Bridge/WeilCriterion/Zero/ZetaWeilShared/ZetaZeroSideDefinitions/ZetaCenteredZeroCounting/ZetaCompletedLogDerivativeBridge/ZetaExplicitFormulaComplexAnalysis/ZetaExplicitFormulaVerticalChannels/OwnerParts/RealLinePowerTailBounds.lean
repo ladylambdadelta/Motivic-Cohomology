@@ -211,7 +211,7 @@ theorem realLine_one_div_three_mul_rpow_neg_three_eq_inv_three_mul_cube
     _ = (3 * T ^ 3)⁻¹ := by
           exact realLine_one_div_three_mul_inv_eq_inv_three_mul (T ^ 3)
 
-/-- `4 ≤ 9` as an ordered-ring fact, named to avoid numeric automation in
+/-- `4 ≤ 9` as an ordered fact, named to avoid arithmetic automation in
 tail arithmetic. -/
 theorem realLine_four_le_nine :
     (4 : ℝ) ≤ 9 := by
