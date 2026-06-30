@@ -161,8 +161,24 @@ theorem iteratedFDeriv_comp_add_left
         (x := q)
         (m := m)
   | succ n ih =>
-      rw [iteratedFDeriv_succ_eq_comp_left]
-      rw [iteratedFDeriv_succ_eq_comp_left]
+      have hleft_succ :
+          iteratedFDeriv ℝ (Nat.succ n)
+              (fun p : ℝ × ℝ => F (A + p)) q =
+            ((continuousMultilinearCurryLeftEquiv ℝ
+              (fun _ : Fin (Nat.succ n) => ℝ × ℝ)
+              ℂ).symm)
+              (fderiv ℝ
+                (iteratedFDeriv ℝ n
+                  (fun p : ℝ × ℝ => F (A + p)))
+                q) := by
+        exact congrFun iteratedFDeriv_succ_eq_comp_left q
+      have hright_succ :
+          iteratedFDeriv ℝ (Nat.succ n) F (A + q) =
+            ((continuousMultilinearCurryLeftEquiv ℝ
+              (fun _ : Fin (Nat.succ n) => ℝ × ℝ)
+              ℂ).symm)
+              (fderiv ℝ (iteratedFDeriv ℝ n F) (A + q)) := by
+        exact congrFun iteratedFDeriv_succ_eq_comp_left (A + q)
       have htranslated_jet :
           (fun p : ℝ × ℝ =>
             iteratedFDeriv ℝ n (fun r : ℝ × ℝ => F (A + r)) p) =
@@ -208,11 +224,24 @@ theorem iteratedFDeriv_comp_add_left
                 htranslate_deriv)
               (ContinuousLinearMap.comp_id
                 (fderiv ℝ (iteratedFDeriv ℝ n F) (A + q)))))
-      exact congrArg
-        ((continuousMultilinearCurryLeftEquiv ℝ
-          (fun _ : Fin (Nat.succ n) => ℝ × ℝ)
-          ℂ).symm)
-        hfderiv
+      have hbody :
+          ((continuousMultilinearCurryLeftEquiv ℝ
+            (fun _ : Fin (Nat.succ n) => ℝ × ℝ)
+            ℂ).symm)
+            (fderiv ℝ
+              (iteratedFDeriv ℝ n
+                (fun p : ℝ × ℝ => F (A + p)))
+              q) =
+          ((continuousMultilinearCurryLeftEquiv ℝ
+            (fun _ : Fin (Nat.succ n) => ℝ × ℝ)
+            ℂ).symm)
+            (fderiv ℝ (iteratedFDeriv ℝ n F) (A + q)) := by
+        exact congrArg
+          ((continuousMultilinearCurryLeftEquiv ℝ
+            (fun _ : Fin (Nat.succ n) => ℝ × ℝ)
+            ℂ).symm)
+          hfderiv
+      exact hleft_succ.trans (hbody.trans hright_succ.symm)
 
 /-- Frechet derivatives of the vertical affine restriction are obtained by precomposing the
 ambient Frechet derivative with the vertical linear embedding. -/
