@@ -1194,6 +1194,26 @@ theorem Complex.binetSecondFormula_branchTail_wallCancellation_of_decayingContou
         Complex.binetSecondFormula_decayingTailKernel_integrableOn_tail w)
       Complex.binetSecondFormula_decayingTailKernel_uniform_majorant
 
+/-- Finite-height lower-vertical decay from the canonical decaying contour
+kernel comparison.
+
+This is the finite-height form of
+`binetSecondFormula_branchTail_wallCancellation_of_decayingContourKernelComparison`:
+the contour comparison gives wall cancellation, and wall cancellation is then
+transported back to finite height by convergence of the lower vertical side. -/
+theorem Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_decayingContourKernelComparison
+    (hcomparison :
+      Complex.BinetSecondFormulaContourTailIntegralComparison
+        Complex.binetSecondFormulaDecayingTailKernel 2) :
+    Complex.BinetSecondFormulaFiniteHeightLowerVerticalDifferenceDecay := by
+  have htail :
+      Complex.BinetSecondFormulaBranchWallContourCancellationTailAbsorption :=
+    Complex.binetSecondFormula_branchTail_wallCancellation_of_decayingContourKernelComparison
+      hcomparison
+  exact
+    Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_wallCancellation
+      htail
+
 /-- Branch-wall transport from a contour-deformed kernel with a decaying
 majorant.
 
@@ -1227,6 +1247,35 @@ theorem Complex.binetSecondFormula_branchTail_wallCancellation_of_contourKernelP
           hcomparison
           hK_integrable
           hmajorant
+
+/-- Finite-height lower-vertical decay from a contour-kernel package.
+
+This is a pure finite-height assembly lemma for future analytic leaves: once
+a branch-safe contour-deformed kernel is supplied together with its integral
+comparison, split-tail integrability, and uniform decaying majorant, the
+finite-height lower-vertical cancellation predicate follows. -/
+theorem Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_contourKernelPackage
+    (hpackage :
+      ∃ K : Complex.BinetSecondFormulaContourDeformedTailKernel,
+        ∃ R : ℝ, ∃ C : ℝ,
+          0 < R ∧
+          0 < C ∧
+          Complex.BinetSecondFormulaContourTailIntegralComparison K R ∧
+          (∀ w : ℂ,
+            0 < w.re →
+            R ≤ ‖w‖ →
+              MeasureTheory.IntegrableOn
+                (fun t : ℝ => K w t)
+                (Set.Ioi (‖w‖ / 2))) ∧
+          Complex.BinetSecondFormulaContourTailUniformMajorant K R C) :
+    Complex.BinetSecondFormulaFiniteHeightLowerVerticalDifferenceDecay := by
+  have htail :
+      Complex.BinetSecondFormulaBranchWallContourCancellationTailAbsorption :=
+    Complex.binetSecondFormula_branchTail_wallCancellation_of_contourKernelPackage
+      hpackage
+  exact
+    Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_wallCancellation
+      htail
 
 /-- Assemble the historical solved-static input pair from the structural
 boundary target and an independent decaying contour-kernel comparison.
