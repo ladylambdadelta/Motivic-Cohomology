@@ -334,6 +334,113 @@ theorem Complex.binetSecondFormula_lowerVerticalDifference_decay_of_eventually_l
               hnorm
               htail_bound⟩
 
+/-- Finite-height lower-vertical decay from full lower-vertical decay.
+
+This is the reverse convergence transport to
+`binetSecondFormula_lowerVerticalDifference_decay_of_eventually_lowerVerticalUpTo_decay`.
+The full lower-vertical estimate supplies the limit bound; positivity of the
+decaying tail integral gives strict room after doubling the constant, so the
+finite-height family is eventually bounded at the doubled scale. -/
+theorem Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_lowerVerticalDifference_decay
+    (hdifference :
+      Complex.BinetSecondFormulaLowerVerticalDifferenceDecay) :
+    Complex.BinetSecondFormulaFiniteHeightLowerVerticalDifferenceDecay := by
+  match hdifference with
+  | ⟨R, C, hR_pos, hC_pos, hdifference_bound⟩ =>
+      let Rfinite : ℝ := max R 2
+      let Cfinite : ℝ := 2 * C
+      have hRfinite_pos : 0 < Rfinite :=
+        lt_of_lt_of_le hR_pos (le_max_left R 2)
+      have hCfinite_pos : 0 < Cfinite :=
+        mul_pos two_pos hC_pos
+      exact
+        ⟨Rfinite, Cfinite, hRfinite_pos, hCfinite_pos,
+          fun w hw_re_pos hRfinite_le =>
+            let J : ℝ := Complex.binetSecondFormulaDecayingTailIntegral w
+            let S : ℝ := (C / ‖w‖) * J
+            let B : ℝ := (Cfinite / ‖w‖) * J
+            have hnorm_pos : 0 < ‖w‖ :=
+              Complex.norm_pos_of_re_pos hw_re_pos
+            have hRle : R ≤ ‖w‖ :=
+              le_trans (le_max_left R 2) hRfinite_le
+            have htwo_le_norm : 2 ≤ ‖w‖ :=
+              le_trans (le_max_right R 2) hRfinite_le
+            have hJ_pos : 0 < J := by
+              match Complex.binetSecondFormula_decayingTailIntegral_expLower_owner with
+              | ⟨c, hc_pos, htail_lower⟩ =>
+                  have hcE_pos :
+                      0 < c * ‖w‖ * Real.exp (-Real.pi * ‖w‖) :=
+                    mul_pos (mul_pos hc_pos hnorm_pos)
+                      (Real.exp_pos (-Real.pi * ‖w‖))
+                  exact lt_of_lt_of_le hcE_pos (htail_lower w htwo_le_norm)
+            have htail_bound :
+                ‖Complex.binetSecondFormulaTailRemainder w‖ ≤ S := by
+              have hdiff_bound :
+                  ‖Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w -
+                    (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+                      Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)‖ ≤
+                    S :=
+                hdifference_bound w hw_re_pos hRle
+              have hnorm :
+                  ‖Complex.binetSecondFormulaTailRemainder w‖ =
+                    ‖Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w -
+                      (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+                        Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)‖ :=
+                Complex.binetSecondFormula_tailRemainder_norm_eq_lowerVerticalFullIntegral_sub_initialWindow_norm_owner
+                  hw_re_pos
+              exact
+                Eq.subst
+                  (motive := fun x : ℝ => x ≤ S)
+                  hnorm.symm
+                  hdiff_bound
+            have htail_lt :
+                ‖Complex.binetSecondFormulaTailRemainder w‖ < B := by
+              have hscale_pos : 0 < (1 / ‖w‖) * J :=
+                mul_pos (one_div_pos.mpr hnorm_pos) hJ_pos
+              have hS_eq : S = C * ((1 / ‖w‖) * J) := by
+                calc
+                  S = (C / ‖w‖) * J := by
+                    rfl
+                  _ = (C * (1 / ‖w‖)) * J := by
+                    exact congrArg (fun x : ℝ => x * J)
+                      (div_eq_mul_one_div C ‖w‖)
+                  _ = C * ((1 / ‖w‖) * J) := by
+                    exact mul_assoc C (1 / ‖w‖) J
+              have hB_eq : B = (2 * C) * ((1 / ‖w‖) * J) := by
+                calc
+                  B = (Cfinite / ‖w‖) * J := by
+                    rfl
+                  _ = ((2 * C) / ‖w‖) * J := by
+                    rfl
+                  _ = ((2 * C) * (1 / ‖w‖)) * J := by
+                    exact congrArg (fun x : ℝ => x * J)
+                      (div_eq_mul_one_div (2 * C) ‖w‖)
+                  _ = (2 * C) * ((1 / ‖w‖) * J) := by
+                    exact mul_assoc (2 * C) (1 / ‖w‖) J
+              have htail_le_scaled :
+                  ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+                    C * ((1 / ‖w‖) * J) :=
+                Eq.subst
+                  (motive := fun x : ℝ =>
+                    ‖Complex.binetSecondFormulaTailRemainder w‖ ≤ x)
+                  hS_eq
+                  htail_bound
+              have hlt :
+                  ‖Complex.binetSecondFormulaTailRemainder w‖ <
+                    (2 * C) * ((1 / ‖w‖) * J) :=
+                Real.le_mul_pos_scale_lt_two_mul
+                  htail_le_scaled hC_pos hscale_pos
+              exact
+                Eq.subst
+                  (motive := fun x : ℝ =>
+                    ‖Complex.binetSecondFormulaTailRemainder w‖ < x)
+                  hB_eq.symm
+                  hlt
+            Complex.eventually_norm_le_of_tendsto_norm_lt
+              (Complex.binetSecondFormula_lowerVerticalUpTo_sub_initialWindow_tendsto_tailRemainder_owner
+                hw_re_pos)
+              htail_lt⟩
+
 /-- Finite-height lower-vertical decay from separate static-boundary and
 contour-error estimates.
 
