@@ -38,16 +38,40 @@ theorem Complex.binetSecondFormula_sq_add_sq_ne_zero_of_re_pos
     intro hz
     have hre : (w + (t : ℂ) * Complex.I).re = (0 : ℂ).re :=
       congrArg Complex.re hz
-    rw [Complex.add_re, Complex.mul_I_re, Complex.ofReal_im, Complex.zero_re,
-      neg_zero, add_zero] at hre
-    exact hw.ne' hre
+    have hleft : (w + (t : ℂ) * Complex.I).re = w.re := by
+      calc
+        (w + (t : ℂ) * Complex.I).re =
+            w.re + ((t : ℂ) * Complex.I).re :=
+          Complex.add_re w ((t : ℂ) * Complex.I)
+        _ = w.re + -((t : ℂ).im) :=
+          congrArg (fun y : ℝ => w.re + y) (Complex.mul_I_re (t : ℂ))
+        _ = w.re + -0 :=
+          congrArg (fun y : ℝ => w.re + -y) (Complex.ofReal_im t)
+        _ = w.re + 0 :=
+          congrArg (fun y : ℝ => w.re + y) (neg_zero : -(0 : ℝ) = 0)
+        _ = w.re := add_zero w.re
+    have hw_re_zero : w.re = 0 :=
+      (hleft.symm.trans hre).trans Complex.zero_re
+    exact hw.ne' hw_re_zero
   have hsub : w - (t : ℂ) * Complex.I ≠ 0 := by
     intro hz
     have hre : (w - (t : ℂ) * Complex.I).re = (0 : ℂ).re :=
       congrArg Complex.re hz
-    rw [Complex.sub_re, Complex.mul_I_re, Complex.ofReal_im, Complex.zero_re,
-      neg_zero, sub_zero] at hre
-    exact hw.ne' hre
+    have hleft : (w - (t : ℂ) * Complex.I).re = w.re := by
+      calc
+        (w - (t : ℂ) * Complex.I).re =
+            w.re - ((t : ℂ) * Complex.I).re :=
+          Complex.sub_re w ((t : ℂ) * Complex.I)
+        _ = w.re - -((t : ℂ).im) :=
+          congrArg (fun y : ℝ => w.re - y) (Complex.mul_I_re (t : ℂ))
+        _ = w.re - -0 :=
+          congrArg (fun y : ℝ => w.re - -y) (Complex.ofReal_im t)
+        _ = w.re - 0 :=
+          congrArg (fun y : ℝ => w.re - y) (neg_zero : -(0 : ℝ) = 0)
+        _ = w.re := sub_zero w.re
+    have hw_re_zero : w.re = 0 :=
+      (hleft.symm.trans hre).trans Complex.zero_re
+    exact hw.ne' hw_re_zero
   have hprod : (w + (t : ℂ) * Complex.I) * (w - (t : ℂ) * Complex.I) ≠ 0 :=
     mul_ne_zero hadd hsub
   exact hfactor ▸ hprod
@@ -94,7 +118,7 @@ theorem Complex.binetSecondFormulaDerivativeKernel_hasDerivAt_of_re_pos
   have hd : HasDerivAt (fun z : ℂ => z ^ 2 + (t : ℂ) ^ 2) (2 * w) w :=
     hpow.add_const _
   have hc : HasDerivAt (fun _ : ℂ => -(t : ℂ)) 0 w := hasDerivAt_const w _
-  -- raw quotient derivative, then reconcile the numerator without `ring`
+  -- raw quotient derivative, then reconcile the numerator explicitly
   have hraw :
       HasDerivAt (fun z : ℂ => -(t : ℂ) / (z ^ 2 + (t : ℂ) ^ 2))
         ((0 * (w ^ 2 + (t : ℂ) ^ 2) - -(t : ℂ) * (2 * w)) /
@@ -127,7 +151,9 @@ theorem Complex.binetSecondFormula_deriv_numerator_norm_le
     ‖2 * (t : ℂ) * z‖ ≤ 2 * R * t := by
   have h2 : ‖(2 : ℂ)‖ = 2 := Complex.norm_ofNat 2
   have htnorm : ‖(t : ℂ)‖ = t := by
-    rw [Complex.norm_ofReal, abs_of_pos ht]
+    calc
+      ‖(t : ℂ)‖ = |t| := Complex.norm_ofReal t
+      _ = t := abs_of_pos ht
   have hstep :
       ‖2 * (t : ℂ) * z‖ = 2 * t * ‖z‖ := by
     calc
@@ -135,7 +161,7 @@ theorem Complex.binetSecondFormula_deriv_numerator_norm_le
       _ = ‖(2 : ℂ)‖ * ‖(t : ℂ)‖ * ‖z‖ := by
         exact congrArg (fun x : ℝ => x * ‖z‖) (norm_mul _ _)
       _ = 2 * t * ‖z‖ := by
-        rw [h2, htnorm]
+        exact congrArg₂ (fun a b : ℝ => a * b * ‖z‖) h2 htnorm
   have hzR : 2 * t * ‖z‖ ≤ 2 * t * R :=
     mul_le_mul_of_nonneg_left hz_le
       (mul_nonneg zero_le_two ht.le)
@@ -143,7 +169,10 @@ theorem Complex.binetSecondFormula_deriv_numerator_norm_le
     ‖2 * (t : ℂ) * z‖ = 2 * t * ‖z‖ := hstep
     _ ≤ 2 * t * R := hzR
     _ = 2 * R * t := by
-      rw [mul_assoc, mul_comm t R, ← mul_assoc]
+      calc
+        2 * t * R = 2 * (t * R) := mul_assoc 2 t R
+        _ = 2 * (R * t) := congrArg (fun y : ℝ => 2 * y) (mul_comm t R)
+        _ = 2 * R * t := (mul_assoc 2 R t).symm
 
 /-- Domination bound for the `w`-derivative of the Binet derivative kernel on a
 right-half-plane ball of real-part margin `δ` and radius bound `R`: it is
@@ -182,21 +211,61 @@ theorem Complex.binetSecondFormulaDerivativeKernel_deriv_norm_le_scaled_majorant
     Complex.binetSecondFormula_deriv_numerator_norm_le hz_le ht
   have hfrac_le : ‖2 * (t : ℂ) * z / D ^ 2‖ ≤ 2 * R * t / δ ^ 4 := by
     have hsplit : ‖2 * (t : ℂ) * z / D ^ 2‖ = ‖2 * (t : ℂ) * z‖ / ‖D‖ ^ 2 := by
-      rw [norm_div, norm_pow]
-    rw [hsplit]
-    exact div_le_div h2Rt_nonneg hnum hδ4_pos hDsq_ge
+      calc
+        ‖2 * (t : ℂ) * z / D ^ 2‖ =
+            ‖2 * (t : ℂ) * z‖ / ‖D ^ 2‖ := norm_div _ _
+        _ = ‖2 * (t : ℂ) * z‖ / ‖D‖ ^ 2 :=
+          congrArg (fun y : ℝ => ‖2 * (t : ℂ) * z‖ / y) (norm_pow D 2)
+    exact
+      Eq.subst
+        (motive := fun x : ℝ => x ≤ 2 * R * t / δ ^ 4)
+        hsplit.symm
+        (div_le_div h2Rt_nonneg hnum hδ4_pos hDsq_ge)
   -- assemble through the exponential denominator
   have hkernel_norm :
       ‖(2 * (t : ℂ) * z / D ^ 2) /
           (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ =
         ‖2 * (t : ℂ) * z / D ^ 2‖ / d := by
-    rw [norm_div, hden_norm]
+    calc
+      ‖(2 * (t : ℂ) * z / D ^ 2) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ =
+          ‖2 * (t : ℂ) * z / D ^ 2‖ /
+            ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ :=
+        norm_div _ _
+      _ = ‖2 * (t : ℂ) * z / D ^ 2‖ / d :=
+        congrArg (fun y : ℝ => ‖2 * (t : ℂ) * z / D ^ 2‖ / y) hden_norm
   have hdiv :
       ‖2 * (t : ℂ) * z / D ^ 2‖ / d ≤ (2 * R * t / δ ^ 4) / d :=
     div_le_div_of_nonneg_right hfrac_le hd_pos.le
   have hrearrange :
       (2 * R * t / δ ^ 4) / d = (2 * R / δ ^ 4) * (t / d) := by
-    rw [div_div, mul_div_assoc, mul_comm t d, ← div_div, mul_div_assoc]
+    let a : ℝ := 2 * R
+    let b : ℝ := δ ^ 4
+    have hleft :
+        (2 * R * t / δ ^ 4) / d =
+          (a * t) * (b⁻¹ * d⁻¹) := by
+      calc
+        (2 * R * t / δ ^ 4) / d =
+            ((a * t) / b) / d := rfl
+        _ = ((a * t) * b⁻¹) / d :=
+          congrArg (fun y : ℝ => y / d) (div_eq_mul_inv (a * t) b)
+        _ = ((a * t) * b⁻¹) * d⁻¹ :=
+          div_eq_mul_inv ((a * t) * b⁻¹) d
+        _ = (a * t) * (b⁻¹ * d⁻¹) :=
+          mul_assoc (a * t) b⁻¹ d⁻¹
+    have hright :
+        (2 * R / δ ^ 4) * (t / d) =
+          (a * t) * (b⁻¹ * d⁻¹) := by
+      calc
+        (2 * R / δ ^ 4) * (t / d) =
+            (a / b) * (t / d) := rfl
+        _ = (a * b⁻¹) * (t / d) :=
+          congrArg (fun y : ℝ => y * (t / d)) (div_eq_mul_inv a b)
+        _ = (a * b⁻¹) * (t * d⁻¹) :=
+          congrArg (fun y : ℝ => (a * b⁻¹) * y) (div_eq_mul_inv t d)
+        _ = (a * t) * (b⁻¹ * d⁻¹) :=
+          mul_mul_mul_comm a b⁻¹ t d⁻¹
+    exact hleft.trans hright.symm
   calc
     ‖(2 * (t : ℂ) * z / D ^ 2) /
         (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ =
