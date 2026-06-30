@@ -373,6 +373,9 @@ lemma mellinInv_reflectedVerticalLine_decomposition
 lemma conjugateSymmetricTransform_inverts_to_realValues
     {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M)
     (σ : ℝ)
+    (hg_line : ∀ y : ℝ,
+      M ((σ : ℂ) + 2 * π * (-y : ℝ) * I) =
+        star (M ((σ : ℂ) + 2 * π * y * I)))
     (hM_integrable : Integrable (fun y : ℝ => M (σ + 2 * π * y * I)))
     (x : ℝ) (hx : 0 < x) :
     mellinInv σ M x = star (mellinInv σ M x) := by
@@ -400,27 +403,13 @@ lemma conjugateSymmetricTransform_inverts_to_realValues
   -- This is 2 * Re(M(σ + iτ) x^(-σ-iτ)), which is real-valued.
   -- Therefore mellinInv σ M x is real, so it equals its conjugate.
 
-  -- Use the Mellin-Fourier bridge: mellinInv σ M x = x^(-σ) • 𝓕⁻(g)(-log x)
-  -- where g(y) = M(σ + 2πyI)
-  rw [boundary_mellinInv_eq_fourierIntegralInv σ M x hx]
-
   -- Define the induced function on the Fourier side
   let g := fun (y : ℝ) => M (σ + 2 * π * y * I)
 
   -- Step 1: Show g is conjugate-symmetric from M's conjugate symmetry
   have hg_conj : ∀ y : ℝ, g (-y) = star (g y) := by
     intro y
-    unfold g
-    have h_critical := mellinInv_reflectedVerticalLine_decomposition hM σ
-    -- g(-y) = M(σ + 2π(-y)I) = M(σ - 2πyI)
-    -- By conjugate symmetry M(-star(σ - 2πyI)) = star(M(σ - 2πyI))
-    -- And -star(σ - 2πyI) = -σ + 2πyI
-    -- So we need to relate the critical line decomposition to this
-    have h_neg : -star (σ - 2 * π * y * I) = σ + 2 * π * y * I := by
-      simp only [Complex.star_sub, Complex.star_ofReal, Complex.star_mul_I]
-      ring
-    rw [← h_neg]
-    exact hM (σ - 2 * π * y * I)
+    exact hg_line y
 
   -- Step 2: Apply Fourier inverse real-value property.
   have h_fourier_real :=
@@ -429,27 +418,42 @@ lemma conjugateSymmetricTransform_inverts_to_realValues
   -- Step 3: The result x^(-σ) is real, so scalar mult preserves real-valuedness
   have h_scalar_real : x ^ (-(σ : ℂ)) = star (x ^ (-(σ : ℂ))) := by
     -- For real x > 0 and real σ, x^(-σ) is a positive real number
-    have : x ^ (-(σ : ℂ)) = ↑(x ^ (-σ : ℝ) : ℝ) := by
-      norm_cast
-      exact (ofReal_rpow hx (-σ)).symm
-    rw [this]
-    exact conj_ofReal _
+    have hreal : x ^ (-(σ : ℂ)) = ↑(x ^ (-σ : ℝ) : ℝ) :=
+      (ofReal_rpow hx (-σ)).symm
+    calc
+      x ^ (-(σ : ℂ)) = ↑(x ^ (-σ : ℝ) : ℝ) := hreal
+      _ = star (↑(x ^ (-σ : ℝ) : ℝ)) := (conj_ofReal _).symm
+      _ = star (x ^ (-(σ : ℂ))) := congrArg star hreal.symm
 
+  have h_bridge :
+      mellinInv σ M x =
+        x ^ (-σ : ℂ) • 𝓕⁻ g (-Real.log x) :=
+    boundary_mellinInv_eq_fourierIntegralInv σ M x hx
   calc mellinInv σ M x
-      = x ^ (-σ : ℂ) • 𝓕⁻ g (-Real.log x) := rfl
+      = x ^ (-σ : ℂ) • 𝓕⁻ g (-Real.log x) := h_bridge
     _ = star (x ^ (-σ : ℂ) • 𝓕⁻ g (-Real.log x)) := by
-        rw [map_smul, h_scalar_real, h_fourier_real]
+        calc
+          x ^ (-σ : ℂ) • 𝓕⁻ g (-Real.log x) =
+              star (x ^ (-σ : ℂ)) • star (𝓕⁻ g (-Real.log x)) := by
+            exact congrArg₂ HSMul.hSMul h_scalar_real h_fourier_real
+          _ = star (x ^ (-σ : ℂ) • 𝓕⁻ g (-Real.log x)) := by
+            exact (map_smul starRingEnd (x ^ (-σ : ℂ)) (𝓕⁻ g (-Real.log x))).symm
+    _ = star (mellinInv σ M x) := congrArg star h_bridge.symm
 
 /-- Complete characterization: conjugate-symmetric Mellin transforms produce
 conjugate-symmetric time-domain functions. -/
 theorem mellinInversion_conjugateSymmetry
     {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M)
     (σ : ℝ)
+    (hg_line : ∀ y : ℝ,
+      M ((σ : ℂ) + 2 * π * (-y : ℝ) * I) =
+        star (M ((σ : ℂ) + 2 * π * y * I)))
     (hM_integrable : Integrable (fun y : ℝ => M (σ + 2 * π * y * I))) :
     ∀ x : ℝ, 0 < x →
     (mellinInv σ M x = star (mellinInv σ M x)) := by
   intro x hx
-  exact conjugateSymmetricTransform_inverts_to_realValues hM σ hM_integrable x hx
+  exact conjugateSymmetricTransform_inverts_to_realValues
+    hM σ hg_line hM_integrable x hx
 
 end MellinInversionConjugacy
 

@@ -97,11 +97,14 @@ a function with conjugate symmetry in its values. -/
 lemma mellinInv_preserves_conjugateSymmetry
     {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M)
     (σ : ℝ)
+    (hg_line : ∀ y : ℝ,
+      M ((σ : ℂ) + 2 * π * (-y : ℝ) * I) =
+        star (M ((σ : ℂ) + 2 * π * y * I)))
     (hM_integrable : Integrable (fun y : ℝ => M (σ + 2 * π * y * I)))
     (x : ℝ) (hx : 0 < x) :
     mellinInv σ M x = star (mellinInv σ M x) :=
   MellinInversionConjugacy.conjugateSymmetricTransform_inverts_to_realValues
-    hM σ hM_integrable x hx
+    hM σ hg_line hM_integrable x hx
 
 /-- The completed Mellin transform (with exponential damping for decay)
 preserves conjugate symmetry. -/
@@ -135,19 +138,25 @@ with the same compact support properties. -/
 theorem paleyWiener_mellinInv_conjugateSymmetric
     {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M)
     (σ : ℝ)
+    (hg_line : ∀ y : ℝ,
+      M ((σ : ℂ) + 2 * π * (-y : ℝ) * I) =
+        star (M ((σ : ℂ) + 2 * π * y * I)))
     (hM_integrable : Integrable (fun y : ℝ => M (σ + 2 * π * y * I))) :
     let f := mellinInv σ M
     ∀ x : ℝ, 0 < x → (f x = star (f x)) := by
   intro x hx
-  exact mellinInv_preserves_conjugateSymmetry hM σ hM_integrable x hx
+  exact mellinInv_preserves_conjugateSymmetry hM σ hg_line hM_integrable x hx
 
 /-- Public API: Paley-Wiener Mellin inversion produces conjugate-symmetric results. -/
 theorem paleyWienerMellinInv_conjugateSymmetric
     {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M) (σ : ℝ)
+    (hg_line : ∀ y : ℝ,
+      M ((σ : ℂ) + 2 * π * (-y : ℝ) * I) =
+        star (M ((σ : ℂ) + 2 * π * y * I)))
     (hM_integrable : Integrable (fun y : ℝ => M (σ + 2 * π * y * I))) :
     ∀ x : ℝ, 0 < x →
     mellinInv σ M x = star (mellinInv σ M x) :=
-  fun x hx => mellinInv_preserves_conjugateSymmetry hM σ hM_integrable x hx
+  fun x hx => mellinInv_preserves_conjugateSymmetry hM σ hg_line hM_integrable x hx
 
 end MellinConjugacy
 
