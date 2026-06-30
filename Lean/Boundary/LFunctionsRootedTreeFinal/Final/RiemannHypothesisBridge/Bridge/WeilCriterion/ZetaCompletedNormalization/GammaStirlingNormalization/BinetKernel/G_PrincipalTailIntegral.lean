@@ -130,10 +130,13 @@ def Complex.BinetSecondFormulaTailRemainderSectorLocalAbsorption : Prop :=
               (C + C / ‖w‖) *
                 Complex.binetSecondFormulaDecayingTailIntegral w
 
-/-- On the Binet split-tail range the explicit decaying summand has no sign
-change, so its absolute value integrates as the constant multiple
-`1 / ‖w‖` of the scalar tail kernel. -/
-theorem Complex.binetSecondFormula_principalTailKernel_integral_cancellation_estimate_ownerGap :
+/-- Owner pre-cancellation principal-tail estimate with the branch-wall
+local-indentation term still visible.
+
+This is the honest scalar contour estimate before paired branch-wall
+cancellation: the local-indentation envelope is retained, and only the far
+tail is already at the scaled decaying-tail size. -/
+theorem Complex.binetSecondFormula_principalTailKernel_integral_localIndentation_add_far_scaled_decay_owner :
     Complex.BinetSecondFormulaBranchLocalIndentationTailControl := by
   match
     Complex.binetSecondFormula_principalTailKernel_integral_localIndentation_add_far_scaled_decay with

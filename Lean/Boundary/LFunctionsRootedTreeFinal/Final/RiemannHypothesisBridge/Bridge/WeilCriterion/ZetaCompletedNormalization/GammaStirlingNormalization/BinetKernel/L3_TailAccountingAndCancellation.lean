@@ -1384,7 +1384,7 @@ theorem Complex.binetSecondFormula_tailRemainder_sectorBound_owner :
     Complex.BinetSecondFormulaTailRemainderSectorLocalAbsorption := by
   exact
     Complex.binetSecondFormula_tailRemainder_sectorBound_of_localIndentation_absorption
-      Complex.binetSecondFormula_tailRemainder_localIndentation_add_far_scaled_decay_ownerGap
+      Complex.binetSecondFormula_tailRemainder_localIndentation_add_far_scaled_decay_owner
       Complex.binetSecondFormula_branchLocalIndentation_sectorAbsorption_owner
 
 /-- Principal-tail sector estimate after absorbing the local-indentation envelope.

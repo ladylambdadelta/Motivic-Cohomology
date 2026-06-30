@@ -1134,11 +1134,11 @@ theorem Complex.binetSecondFormula_tailRemainder_norm_le_localIndentation_add_fa
 
 /-- Owner pre-cancellation tail-remainder estimate with the branch-wall
 local-indentation term still visible. -/
-theorem Complex.binetSecondFormula_tailRemainder_localIndentation_add_far_scaled_decay_ownerGap :
+theorem Complex.binetSecondFormula_tailRemainder_localIndentation_add_far_scaled_decay_owner :
     Complex.BinetSecondFormulaTailRemainderLocalIndentationTailControl := by
   exact
     Complex.binetSecondFormula_tailRemainder_norm_le_localIndentation_add_far_scaled_decay
-      Complex.binetSecondFormula_principalTailKernel_integral_cancellation_estimate_ownerGap
+      Complex.binetSecondFormula_principalTailKernel_integral_localIndentation_add_far_scaled_decay_owner
 
 /-- Sector-local pre-cancellation tail-remainder estimate after absorbing the
 local-indentation envelope.
