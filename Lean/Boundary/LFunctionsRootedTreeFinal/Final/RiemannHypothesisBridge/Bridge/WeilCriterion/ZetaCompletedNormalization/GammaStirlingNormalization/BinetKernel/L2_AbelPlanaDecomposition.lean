@@ -1121,8 +1121,8 @@ theorem Complex.binetSecondFormula_tailRemainder_norm_le_localIndentation_add_fa
                 ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
                   2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
                     ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ :=
-              Complex.binetSecondFormulaTailRemainder_norm_le_principalTailKernel_norm_integral
-                (w := w) hw_re_pos
+              Complex.binetSecondFormula_tailRemainder_norm_le_principalTailKernel_norm_integral_owner
+                hw_re_pos
             have hprincipal_local :
                 2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
                     ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤

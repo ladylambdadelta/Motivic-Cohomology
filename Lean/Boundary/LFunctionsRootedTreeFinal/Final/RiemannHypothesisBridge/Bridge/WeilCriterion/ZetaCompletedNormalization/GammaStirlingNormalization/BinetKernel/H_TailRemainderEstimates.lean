@@ -34,6 +34,23 @@ namespace LFunctions
 
 noncomputable section
 
+/-- Owner-level comparison from the Binet tail remainder to the principal-tail
+kernel norm integral.
+
+This is the tail-remainder transport used before any branch-wall cancellation:
+it bounds the actual Binet tail by the raw principal-tail norm integral.  The
+full wall-uniform estimate is owned later, after the branch-wall terms have
+cancelled. -/
+theorem Complex.binetSecondFormula_tailRemainder_norm_le_principalTailKernel_norm_integral_owner
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+      2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+        ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ := by
+  exact
+    Complex.binetSecondFormulaTailRemainder_norm_le_principalTailKernel_norm_integral
+      (w := w) hw_re_pos
+
 
 
 
