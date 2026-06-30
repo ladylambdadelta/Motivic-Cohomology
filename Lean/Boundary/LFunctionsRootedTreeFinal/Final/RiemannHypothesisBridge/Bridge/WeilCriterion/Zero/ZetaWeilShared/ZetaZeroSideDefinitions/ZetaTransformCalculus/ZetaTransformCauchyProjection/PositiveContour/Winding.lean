@@ -66,7 +66,7 @@ noncomputable def scalarFourierLaplacePlemelj_upperWinding_circleIntegrand
 mathlib's circle-integral integrand. -/
 theorem scalarFourierLaplacePlemelj_upperWinding_arcIntegrand_eq_circleIntegrand
     (T : ℝ) (p : ℂ) (θ : ℝ) :
-    (let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+    (let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ));
       ((z - p)⁻¹) *
         (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
       scalarFourierLaplacePlemelj_upperWinding_circleIntegrand p T θ := by
@@ -90,10 +90,19 @@ theorem scalarFourierLaplacePlemelj_upperWinding_arcIntegrand_eq_circleIntegrand
         z₂ * Complex.I := by
     exact deriv_circleMap (0 : ℂ) T θ
   calc
-    (let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+    (let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ));
       ((z - p)⁻¹) *
         (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
-        (z₁ - p)⁻¹ * (Complex.I * z₁) := by
+        (z₁ - p)⁻¹ *
+          ((Complex.I * (T : ℂ)) * Complex.exp (Complex.I * (θ : ℂ))) := by
+      rfl
+    _ = (z₁ - p)⁻¹ *
+        (Complex.I * ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) := by
+      exact congrArg
+        (fun W : ℂ => (z₁ - p)⁻¹ * W)
+        (mul_assoc Complex.I (T : ℂ)
+          (Complex.exp (Complex.I * (θ : ℂ))))
+    _ = (z₁ - p)⁻¹ * (Complex.I * z₁) := by
       rfl
     _ = (z₂ - p)⁻¹ * (Complex.I * z₂) := by
       exact congrArg
@@ -206,11 +215,36 @@ theorem scalarFourierLaplacePlemelj_upperWinding_integral_pi_two_pi_eq_lowerCoun
             (θ + 2 * Real.pi)) =
         ∫ θ in Real.pi..(2 * Real.pi),
           scalarFourierLaplacePlemelj_upperWinding_circleIntegrand p T θ := by
-    exact
+    let f : ℝ → ℂ :=
+      fun θ : ℝ =>
+        scalarFourierLaplacePlemelj_upperWinding_circleIntegrand p T θ
+    have hraw :
+        (∫ θ in (-Real.pi)..(0 : ℝ), f (θ + 2 * Real.pi)) =
+          ∫ θ in (-Real.pi) + 2 * Real.pi..(0 : ℝ) + 2 * Real.pi,
+            f θ :=
       intervalIntegral.integral_comp_add_right
-        (fun θ : ℝ =>
-          scalarFourierLaplacePlemelj_upperWinding_circleIntegrand p T θ)
+        f
         (2 * Real.pi)
+    have hleft : (-Real.pi) + 2 * Real.pi = Real.pi := by
+      calc
+        (-Real.pi) + 2 * Real.pi =
+            (-Real.pi) + (Real.pi + Real.pi) := by
+          exact congrArg (fun W : ℝ => (-Real.pi) + W) (two_mul Real.pi)
+        _ = ((-Real.pi) + Real.pi) + Real.pi := by
+          exact (add_assoc (-Real.pi) Real.pi Real.pi).symm
+        _ = 0 + Real.pi := by
+          exact congrArg (fun W : ℝ => W + Real.pi) (neg_add_cancel Real.pi)
+        _ = Real.pi := by
+          exact zero_add Real.pi
+    have hright : (0 : ℝ) + 2 * Real.pi = 2 * Real.pi := by
+      exact zero_add (2 * Real.pi)
+    exact
+      Eq.trans
+        hraw
+        (congrArg₂
+          (fun a b : ℝ => ∫ θ in a..b, f θ)
+          hleft
+          hright)
   have hperiodic :
       (∫ θ in (-Real.pi)..(0 : ℝ),
           scalarFourierLaplacePlemelj_upperWinding_circleIntegrand p T
@@ -536,17 +570,25 @@ theorem scalarFourierLaplacePlemelj_upperWinding_boundary_assembly_algebra
   calc
     R + U = U + R := by
       exact add_comm R U
+    _ = U + (R + 0) := by
+      exact congrArg (fun W : ℂ => U + W) (add_zero R).symm
     _ = U + (R + (Lc + -Lc)) := by
-      exact congrArg (fun W : ℂ => U + (R + W)) (add_right_neg Lc).symm
+      exact congrArg
+        (fun W : ℂ => U + (R + W))
+        (add_neg_cancel Lc).symm
     _ = U + ((R + Lc) + -Lc) := by
-      exact congrArg (fun W : ℂ => U + W) (add_assoc R Lc (-Lc)).symm
+      exact congrArg
+        (fun W : ℂ => U + W)
+        (add_assoc R Lc (-Lc)).symm
     _ = (U + -Lc) + (R + Lc) := by
-      exact
-        Eq.trans
-          (add_assoc U (R + Lc) (-Lc))
-          (Eq.trans
-            (congrArg (fun W : ℂ => W + -Lc) (add_comm U (R + Lc)))
-            (add_assoc (R + Lc) U (-Lc)).symm)
+      calc
+        U + ((R + Lc) + -Lc) =
+            U + (-Lc + (R + Lc)) := by
+          exact congrArg
+            (fun W : ℂ => U + W)
+            (add_comm (R + Lc) (-Lc))
+        _ = (U + -Lc) + (R + Lc) := by
+          exact (add_assoc U (-Lc) (R + Lc)).symm
     _ = ((-Lc) + U) + (R + Lc) := by
       exact congrArg
         (fun W : ℂ => W + (R + Lc))
@@ -556,7 +598,7 @@ theorem scalarFourierLaplacePlemelj_upperWinding_boundary_assembly_algebra
 clockwise lower no-pole boundary contribution.  The sign comes from the lower
 arc parametrization `0` to `-π`. -/
 theorem scalarFourierLaplacePlemelj_upperWinding_boundaryIntegral_eq_fullCircle_add_lower
-    (T : ℝ) (p : ℂ) :
+    (T : ℝ) (_hT : 0 < T) (p : ℂ) (_hp : ‖p‖ < T) :
     scalarFourierLaplacePlemelj_upperHalfDiskBoundaryIntegral
         (fun z : ℂ => (z - p)⁻¹) T =
       scalarFourierLaplacePlemelj_upperWinding_fullCircleBoundaryIntegral p T +
@@ -626,7 +668,7 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_boundary_winding_one
           scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T := by
       exact
         scalarFourierLaplacePlemelj_upperWinding_boundaryIntegral_eq_fullCircle_add_lower
-          T p
+          T _hT p _hp
     _ =
         ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) +
           scalarFourierLaplacePlemelj_upperWinding_lowerHalfDiskBoundaryIntegral p T := by
@@ -713,8 +755,6 @@ theorem scalarFourierLaplacePlemelj_upperHalfDisk_const_mul_simplePoleKernel_bou
       exact congrArg₂ HAdd.hAdd hreal harc
     _ = c * (A + B) := by
       exact (mul_add c A B).symm
-
-/-- Interval integrability of the regular removable part on the real diameter. -/
 
 end FixedLineCauchyProjection
 
