@@ -43,8 +43,8 @@ noncomputable def scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity
 Fourier-Laplace denominator. -/
 noncomputable def scalarFourierLaplacePlemelj_negativeClosedContour
     (a x T : ℝ) : ℂ :=
-  (∫ t in Set.Icc (-T) T,
-    (-1 / ((a : ℂ) + t * Complex.I)) *
+  (∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+    (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
       Complex.exp
         (Complex.I * (t : ℂ) * (x : ℂ))) +
     scalarFourierLaplacePlemelj_negativeLowerArc a x T
@@ -53,8 +53,8 @@ noncomputable def scalarFourierLaplacePlemelj_negativeClosedContour
 theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_window_add_lowerArc
     (a x T : ℝ) :
     scalarFourierLaplacePlemelj_negativeClosedContour a x T =
-      (∫ t in Set.Icc (-T) T,
-        (-1 / ((a : ℂ) + t * Complex.I)) *
+      (∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+        (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
           Complex.exp
             (Complex.I * (t : ℂ) * (x : ℂ))) +
           scalarFourierLaplacePlemelj_negativeLowerArc a x T := by
@@ -62,7 +62,7 @@ theorem scalarFourierLaplacePlemelj_negativeClosedContour_eq_window_add_lowerArc
 
 /-- The upper scalar pole is outside the lower half-plane contour. -/
 theorem scalarFourierLaplacePlemelj_upperPole_not_mem_lowerSemicircleInterior
-    (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : 0 < T) :
+    (a : ℝ) (ha : 0 < a) (T : ℝ) (_hT : 0 < T) :
     ¬ scalarFourierLaplacePlemelj_upperPole a =
         (-(a : ℂ)) * Complex.I := by
   intro hpole
@@ -87,6 +87,10 @@ theorem scalarFourierLaplacePlemelj_upperPole_not_mem_lowerSemicircleInterior
           (congrArg₂ HMul.hMul
             (Complex.ofReal_im a)
             Complex.I_re)
+      _ = a * 1 + 0 := by
+        exact congrArg
+          (fun r : ℝ => a * 1 + r)
+          (zero_mul (0 : ℝ))
       _ = a * 1 := by
         exact add_zero (a * 1)
       _ = a := by
@@ -121,7 +125,7 @@ theorem scalarFourierLaplacePlemelj_upperPole_not_mem_lowerSemicircleInterior
   have htwo_zero : (2 : ℝ) * a = 0 := by
     have hadd : a + a = 0 :=
       eq_neg_iff_add_eq_zero.mp ha_eq_neg
-    exact (two_mul a).symm.trans hadd
+    exact (two_mul a).trans hadd
   have ha_zero : a = 0 :=
     (mul_eq_zero.mp htwo_zero).resolve_left two_ne_zero
   exact (ne_of_gt ha) ha_zero
@@ -142,7 +146,7 @@ noncomputable def scalarFourierLaplacePlemelj_negativeKernel
 semicircle contour, written directly in terms of the named meromorphic kernel. -/
 noncomputable def scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral
     (a x T : ℝ) : ℂ :=
-  (∫ t in Set.Icc (-T) T,
+  (∫ t in Set.Icc (-T : ℝ) (T : ℝ),
     scalarFourierLaplacePlemelj_negativeKernel a x (t : ℂ)) +
     ∫ θ in (0 : ℝ)..(-Real.pi),
       let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
@@ -154,12 +158,6 @@ the simple upper-pole denominator. -/
 noncomputable def scalarFourierLaplacePlemelj_negativeKernelAnalyticNumerator
     (x : ℝ) (z : ℂ) : ℂ :=
   Complex.I * Complex.exp (Complex.I * z * (x : ℂ))
-
-/-- Closed lower half-disk used by the negative-time scalar contour. -/
-    ∫ θ in (0 : ℝ)..(-Real.pi),
-      let z : ℂ := (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
-      F z *
-        (Complex.I * (T : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
 
 /-- The upper pole is not in any closed lower half-disk. -/
 theorem scalarFourierLaplacePlemelj_upperPole_not_mem_lowerHalfDisk
@@ -265,23 +263,14 @@ theorem scalarFourierLaplacePlemelj_negativeKernel_exponentialNumerator_differen
       (differentiable_id.const_mul Complex.I).mul_const
         (x : ℂ)
   have hExp :
-      Differentiable ℂ (NormedSpace.exp ℂ : ℂ → ℂ) := by
-    exact
-      fun z : ℂ =>
-        (NormedSpace.hasFDerivAt_exp (𝕂 := ℂ) (𝔸 := ℂ)).differentiableAt
+      Differentiable ℂ Complex.exp :=
+    Complex.differentiable_exp
   have hComp :
       DifferentiableOn ℂ
-        ((NormedSpace.exp ℂ : ℂ → ℂ) ∘ L)
+        (Complex.exp ∘ L)
         (scalarFourierLaplacePlemelj_lowerHalfDisk T) := by
     exact hExp.comp_differentiableOn hL.differentiableOn
-  exact
-    Eq.subst
-      (motive := fun E : ℂ → ℂ =>
-        DifferentiableOn ℂ
-          (E ∘ L)
-          (scalarFourierLaplacePlemelj_lowerHalfDisk T))
-      Complex.exp_eq_exp_ℂ.symm
-      hComp
+  exact hComp
 
 /-- The negative lower-half-plane kernel has zero enclosed residue sum. -/
 theorem scalarFourierLaplacePlemelj_negativeKernel_lowerHalfPlaneResidueSum_eq_zero
@@ -349,31 +338,17 @@ theorem scalarFourierLaplacePlemelj_negativeKernel_analyticAt_lowerHalfDisk
   have harg :
       AnalyticAt ℂ (fun w : ℂ => Complex.I * w * (x : ℂ)) z :=
     (analyticAt_const.mul analyticAt_id).mul analyticAt_const
-  have hexp_normed :
-      AnalyticAt ℂ
-        (fun w : ℂ =>
-          NormedSpace.exp ℂ (Complex.I * w * (x : ℂ)))
-        z :=
-    (NormedSpace.exp_analytic (𝕂 := ℂ) (𝔸 := ℂ)
-      (Complex.I * z * (x : ℂ))).comp harg
   have hexp :
       AnalyticAt ℂ
         (fun w : ℂ =>
           Complex.exp (Complex.I * w * (x : ℂ)))
-        z := by
-    exact
-      Eq.subst
-        (motive := fun E : ℂ → ℂ =>
-          AnalyticAt ℂ
-            (fun w : ℂ => E (Complex.I * w * (x : ℂ)))
-            z)
-        Complex.exp_eq_exp_ℂ.symm
-        hexp_normed
+        z :=
+    analyticAt_cexp.comp harg
   exact hnorm_rec.mul hexp
 
 /-- Primitive data for a function on the lower half-disk. -/
 theorem scalarFourierLaplacePlemelj_negativeKernelLowerHalfDisk_cauchyGoursat
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (_hx : x < 0)
     (T : ℝ) (hT : 0 < T) :
     scalarFourierLaplacePlemelj_negativeKernelLowerSemicircleBoundaryIntegral
         a x T = 0 := by
@@ -533,8 +508,8 @@ scalar Fourier-Laplace contour. -/
 theorem scalarFourierLaplacePlemelj_negative_window_add_lowerArc_eq_zero
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
     ∀ᶠ T in atTop,
-      (∫ t in Set.Icc (-T) T,
-        (-1 / ((a : ℂ) + t * Complex.I)) *
+      (∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+        (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
           Complex.exp
             (Complex.I * (t : ℂ) * (x : ℂ))) +
           scalarFourierLaplacePlemelj_negativeLowerArc a x T =
@@ -580,17 +555,24 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanReciprocal_tendsto_zer
 
 /-- The negative lower-arc Jordan majorant tends to zero. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_tendsto_zero
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
+    (a : ℝ) (_ha : 0 < a) (x : ℝ) (hx : x < 0) :
     Tendsto
       (fun T : ℝ =>
         scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T)
       atTop
       (𝓝 0) := by
-  exact
-    (scalarFourierLaplacePlemelj_negativeLowerArcJordanPrefactor_tendsto_pi
+  exact Eq.subst
+    (motive := fun y : ℝ =>
+      Tendsto
+        (fun T : ℝ =>
+          scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant a x T)
+        atTop
+        (𝓝 y))
+    (mul_zero Real.pi)
+    ((scalarFourierLaplacePlemelj_negativeLowerArcJordanPrefactor_tendsto_pi
       a).mul
       (scalarFourierLaplacePlemelj_negativeLowerArcJordanReciprocal_tendsto_zero
-        x hx)
+        x hx))
 
 /-- Denominator part of the negative lower-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArc_denominator_norm_inv_le
@@ -625,8 +607,8 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_velocity_norm_eq_radius
 
 /-- Product assembly for the negative lower-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArcIntegrand_norm_le_jordanDensity_of_factors
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
-    (T : ℝ) (hT : a < T) (θ : ℝ)
+    (a : ℝ) (_ha : 0 < a) (x : ℝ) (_hx : x < 0)
+    (T : ℝ) (_hT : a < T) (θ : ℝ)
     (hden :
       ‖(-1 /
         ((a : ℂ) +
@@ -810,6 +792,14 @@ theorem scalarFourierLaplacePlemelj_lowerSineDampingIntegral_eq_upper
   calc
     ∫ θ in (-Real.pi)..(0 : ℝ),
         Real.exp (-(T * x * Real.sin θ)) =
+        ∫ θ in (-Real.pi)..(-(0 : ℝ)),
+          Real.exp (-(T * x * Real.sin θ)) := by
+      exact congrArg
+        (fun b : ℝ =>
+          ∫ θ in (-Real.pi)..b,
+            Real.exp (-(T * x * Real.sin θ)))
+        (neg_zero : -(0 : ℝ) = 0).symm
+    _ =
         ∫ θ in (0 : ℝ)..Real.pi,
           Real.exp (-(T * x * Real.sin (-θ))) := by
       exact
@@ -844,7 +834,7 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_sineDampingIntegral_le
 /-- Multiplication by the positive Jordan prefactor transports the scalar
 lower-arc sine-damping estimate to the full density. -/
 theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity_integral_le_majorant_of_sine
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (_hx : x < 0)
     (T : ℝ) (hT : a < T)
     (hsine :
       ∫ θ in (-Real.pi)..(0 : ℝ),
@@ -920,7 +910,7 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanDensity_integ
           scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ| := by
     exact intervalIntegral.norm_integral_le_of_norm_le
       (Eventually.of_forall
-        (fun θ _hθ =>
+        (fun θ =>
           scalarFourierLaplacePlemelj_negativeLowerArcIntegrand_norm_le_jordanDensity
             a ha x hx T hT θ))
       hdensity_int
@@ -936,11 +926,25 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_norm_le_jordanDensity_integ
           a ha x T θ hT)
   calc
     ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T‖ =
-        ‖∫ θ in (-Real.pi)..(0 : ℝ),
+        ‖∫ θ in (0 : ℝ)..(-Real.pi),
           scalarFourierLaplacePlemelj_negativeLowerArcIntegrand a x T θ‖ := by
       exact congrArg norm
         (scalarFourierLaplacePlemelj_negativeLowerArc_eq_integral_integrand
           a x T)
+    _ =
+        ‖∫ θ in (-Real.pi)..(0 : ℝ),
+          scalarFourierLaplacePlemelj_negativeLowerArcIntegrand a x T θ‖ := by
+      have hsymm :
+          ∫ θ in (0 : ℝ)..(-Real.pi),
+            scalarFourierLaplacePlemelj_negativeLowerArcIntegrand a x T θ =
+          -∫ θ in (-Real.pi)..(0 : ℝ),
+            scalarFourierLaplacePlemelj_negativeLowerArcIntegrand a x T θ :=
+        intervalIntegral.integral_symm (-Real.pi) (0 : ℝ)
+      exact
+        (congrArg norm hsymm).trans
+          (norm_neg
+            (∫ θ in (-Real.pi)..(0 : ℝ),
+              scalarFourierLaplacePlemelj_negativeLowerArcIntegrand a x T θ))
     _ ≤ |∫ θ in (-Real.pi)..(0 : ℝ),
           scalarFourierLaplacePlemelj_negativeLowerArcJordanDensity a x T θ| := by
       exact hnorm_abs
@@ -995,16 +999,16 @@ theorem scalarFourierLaplacePlemelj_negative_window_tendsto_zero_without_exp
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
     Tendsto
       (fun T : ℝ =>
-        ∫ t in Set.Icc (-T) T,
-          (-1 / ((a : ℂ) + t * Complex.I)) *
+        ∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+          (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
             Complex.exp
               (Complex.I * (t : ℂ) * (x : ℂ)))
       atTop
       (𝓝 0) := by
   let W : ℝ → ℂ :=
     fun T : ℝ =>
-      ∫ t in Set.Icc (-T) T,
-        (-1 / ((a : ℂ) + t * Complex.I)) *
+      ∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+        (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
           Complex.exp
             (Complex.I * (t : ℂ) * (x : ℂ))
   let A : ℝ → ℂ :=
@@ -1061,8 +1065,8 @@ theorem scalarFourierLaplacePlemelj_negative_window_tendsto_zero_mul_exp
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
     Tendsto
       (fun T : ℝ =>
-        (∫ t in Set.Icc (-T) T,
-          (-1 / ((a : ℂ) + t * Complex.I)) *
+        (∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+          (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
             Complex.exp
               (Complex.I * (t : ℂ) * (x : ℂ))) *
           Complex.exp ((a : ℂ) * (x : ℂ)))
@@ -1075,8 +1079,8 @@ theorem scalarFourierLaplacePlemelj_negative_window_tendsto_zero_mul_exp
     (motive := fun z : ℂ =>
       Tendsto
         (fun T : ℝ =>
-          (∫ t in Set.Icc (-T) T,
-            (-1 / ((a : ℂ) + t * Complex.I)) *
+          (∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+            (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
               Complex.exp
                 (Complex.I * (t : ℂ) * (x : ℂ))) *
             Complex.exp ((a : ℂ) * (x : ℂ)))
@@ -1097,8 +1101,8 @@ theorem scalarFourierLaplacePlemelj_negative_window_tendsto_zero
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
     Tendsto
       (fun T : ℝ =>
-        ∫ t in Set.Icc (-T) T,
-          (-1 / ((a : ℂ) + t * Complex.I)) *
+        ∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+          (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
             Complex.exp
               (Complex.I * (t : ℂ) * (x : ℂ)) *
             Complex.exp ((a : ℂ) * (x : ℂ)))
@@ -1119,8 +1123,8 @@ theorem scalarFourierLaplacePlemelj_pointwise_negative
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0) :
     Tendsto
       (fun T : ℝ =>
-        ∫ t in Set.Icc (-T) T,
-          (-1 / ((a : ℂ) + t * Complex.I)) *
+        ∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+          (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
             Complex.exp
               (Complex.I * (t : ℂ) * (x : ℂ)) *
             Complex.exp ((a : ℂ) * (x : ℂ)))
@@ -1139,8 +1143,8 @@ theorem scalarFourierLaplacePlemelj_pointwise_openHalfLine
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx0 : x ≠ 0) :
     Tendsto
       (fun T : ℝ =>
-        ∫ t in Set.Icc (-T) T,
-          (-1 / ((a : ℂ) + t * Complex.I)) *
+        ∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+          (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
             Complex.exp
               (Complex.I * (t : ℂ) * (x : ℂ)) *
             Complex.exp ((a : ℂ) * (x : ℂ)))
@@ -1158,8 +1162,8 @@ theorem scalarFourierLaplacePlemelj_pointwise_openHalfLine
       (motive := fun y : ℂ =>
         Tendsto
           (fun T : ℝ =>
-            ∫ t in Set.Icc (-T) T,
-              (-1 / ((a : ℂ) + t * Complex.I)) *
+            ∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+              (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp ((a : ℂ) * (x : ℂ)))
@@ -1178,8 +1182,8 @@ theorem scalarFourierLaplacePlemelj_pointwise_openHalfLine
       (motive := fun y : ℂ =>
         Tendsto
           (fun T : ℝ =>
-            ∫ t in Set.Icc (-T) T,
-              (-1 / ((a : ℂ) + t * Complex.I)) *
+            ∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+              (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp ((a : ℂ) * (x : ℂ)))
@@ -1187,9 +1191,6 @@ theorem scalarFourierLaplacePlemelj_pointwise_openHalfLine
           (𝓝 y))
       htarget.symm
       (scalarFourierLaplacePlemelj_pointwise_negative a ha x hxneg)
-
-/-- Normalized scalar finite-window Cauchy integral after multiplication by
-the compensating exponential. -/
 
 end FixedLineCauchyProjection
 
