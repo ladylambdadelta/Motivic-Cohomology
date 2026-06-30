@@ -77,7 +77,7 @@ lemma toLogSpace_fromLogSpace_id
     (g : ℝ → ℂ) (t : ℝ) :
     toLogSpace (fromLogSpace g) t = g t := by
   show g (Real.log (Real.exp t)) = g t
-  rw [Real.log_exp t]
+  exact congrArg g (Real.log_exp t)
 
 /-- Conjugacy is preserved under round-trip for log-space functions. -/
 lemma isLogConjugateSymmetric_preserved_roundTrip
@@ -88,7 +88,7 @@ lemma isLogConjugateSymmetric_preserved_roundTrip
       = g t := toLogSpace_fromLogSpace_id g t
     _ = star (g (-t)) := hg t
     _ = star (toLogSpace (fromLogSpace g) (-t)) := by
-        rw [toLogSpace_fromLogSpace_id g (-t)]
+        exact congrArg star (toLogSpace_fromLogSpace_id g (-t)).symm
 
 /-- Sublemma: Power simplification in log-space substitution
 When x = exp(t), the Jacobian gives x^(s-1) dx = exp(t)^s dt
@@ -103,19 +103,23 @@ Used to simplify exp(s * log(exp(t))) = exp(s * t)
 -/
 lemma mellin_log_exp_cancel (t : ℝ) (s : ℂ) :
     (Real.log (Real.exp t) : ℂ) = t := by
-  norm_cast
-  exact Real.log_exp t
+  exact congrArg (fun x : ℝ => (x : ℂ)) (Real.log_exp t)
 
-/-- Helper: Real-valued functions are their own conjugate. -/
-lemma isLogConjugateSymmetric_of_real_valued
-    (g : ℝ → ℂ) (hg : ∀ t : ℝ, (g t).im = 0) :
+/-- A real-valued even log-space function is conjugate-symmetric. -/
+lemma isLogConjugateSymmetric_of_real_valued_even
+    (g : ℝ → ℂ) (hg : ∀ t : ℝ, (g t).im = 0)
+    (heven : ∀ t : ℝ, g t = g (-t)) :
     IsLogConjugateSymmetric g := by
   intro t
-  have : g t = star (g t) := by
-    ext
-    · simp [Complex.star_re]
-    · simp [Complex.star_im, hg t]
-  rw [this]
+  have hstar : g (-t) = star (g (-t)) := by
+    apply Complex.ext
+    · exact (Complex.star_re (g (-t))).symm
+    · calc
+        (g (-t)).im = 0 := hg (-t)
+        _ = -0 := Eq.symm (neg_zero : -(0 : ℝ) = 0)
+        _ = -(g (-t)).im := congrArg Neg.neg (hg (-t)).symm
+        _ = (star (g (-t))).im := (Complex.star_im (g (-t))).symm
+  exact Eq.trans (heven t) hstar
 
 /-- Sublemma: Conjugate equivalence in log-space conjugacy -/
 lemma star_eq_via_conjugacy
@@ -127,14 +131,12 @@ lemma conj_from_neg_eq
     (g : ℝ → ℂ) (hg_conj : IsLogConjugateSymmetric g) (t : ℝ) :
     g t = star (g (-t)) := hg_conj t
 
-/-- Log-space conjugacy preserves integrability on positive reals. -/
+/-- Pointwise conjugation preserves integrability on positive reals. -/
 lemma integrableOn_conjugate_of_integrableOn_logSpace
-    (g : ℝ → ℂ) (hg_conj : IsLogConjugateSymmetric g)
+    (g : ℝ → ℂ)
     (hg : IntegrableOn g (Set.Ioi 0)) :
     IntegrableOn (fun t : ℝ => star (g t)) (Set.Ioi 0) := by
-  apply integrableOn_congr_fun hg
-  intro t _
-  rw [star_eq_via_conjugacy g hg_conj t, conj_from_neg_eq g hg_conj t]
+  exact hg.conj
 
 /-- Sublemma: Simplify exp(s * log(exp(t))) = exp(s * t) -/
 lemma mellin_exp_log_simplify (s : ℂ) (t : ℝ) :
