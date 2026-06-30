@@ -30,11 +30,32 @@ lemma fourier_kernel_unit_norm (x : ℝ) (ξ : ℝ) (hx : 0 < x) :
     ‖Complex.exp (-I * x * ξ)‖ = 1 := by
   have h_arg : (-I * x * ξ : ℂ).re = 0 := by
     show ((-I : ℂ) * (x : ℂ) * (ξ : ℂ)).re = 0
-    have : (-I : ℂ) * (x : ℂ) * (ξ : ℂ) = -(x * ξ : ℝ) * I := by
-      rw [mul_comm (-I : ℂ) x, mul_assoc x (-I : ℂ) ξ, mul_neg, mul_one]
-      exact (mul_comm ξ (x : ℂ)).symm
-    rw [this]
-    exact Complex.mul_I_re _
+    have hmul :
+        (-I : ℂ) * (x : ℂ) * (ξ : ℂ) =
+          -(((x : ℂ) * (ξ : ℂ)) * I) := by
+      calc
+        (-I : ℂ) * (x : ℂ) * (ξ : ℂ) =
+            (-I : ℂ) * ((x : ℂ) * (ξ : ℂ)) :=
+          mul_assoc (-I : ℂ) (x : ℂ) (ξ : ℂ)
+        _ = ((x : ℂ) * (ξ : ℂ)) * (-I : ℂ) :=
+          mul_comm (-I : ℂ) ((x : ℂ) * (ξ : ℂ))
+        _ = -(((x : ℂ) * (ξ : ℂ)) * I) :=
+          mul_neg ((x : ℂ) * (ξ : ℂ)) I
+    calc
+      ((-I : ℂ) * (x : ℂ) * (ξ : ℂ)).re =
+          (-(((x : ℂ) * (ξ : ℂ)) * I)).re :=
+        congrArg Complex.re hmul
+      _ = -((((x : ℂ) * (ξ : ℂ)) * I).re) :=
+        Complex.neg_re (((x : ℂ) * (ξ : ℂ)) * I)
+      _ = -(-(((x : ℂ) * (ξ : ℂ)).im)) :=
+        congrArg Neg.neg (Complex.mul_I_re ((x : ℂ) * (ξ : ℂ)))
+      _ = -(-0) := by
+        have hxi_im_zero : (((x : ℂ) * (ξ : ℂ)).im) = 0 :=
+          (congrArg Complex.im (Complex.ofReal_mul x ξ).symm).trans
+            (Complex.ofReal_im (x * ξ))
+        exact congrArg (fun y : ℝ => -(-y)) hxi_im_zero
+      _ = -0 := congrArg Neg.neg (neg_zero : -(0 : ℝ) = 0)
+      _ = 0 := neg_zero
   calc ‖Complex.exp (-I * x * ξ)‖
       = Complex.exp ((-I * x * ξ : ℂ).re) := Complex.norm_exp _
     _ = Complex.exp 0 := by exact congr_arg Complex.exp h_arg
@@ -78,14 +99,8 @@ lemma research_fourier_integrand_integrableOn_neg_pos
     (f_full : ℝ → ℂ) (hf_sym : ∀ ξ : ℝ, f_full (-ξ) = star (f_full ξ))
     (hf_pos : IntegrableOn f_full (Set.Ioi 0)) :
     IntegrableOn (fun ξ => f_full (-ξ)) (Set.Ioi 0) := by
-  calc IntegrableOn (fun ξ => f_full (-ξ)) (Set.Ioi 0)
-      = IntegrableOn (fun ξ => star (f_full ξ)) (Set.Ioi 0) := by
-        apply integrableOn_congr_fun
-        intro ξ _
-        exact (hf_sym ξ).symm
-    _ = IntegrableOn f_full (Set.Ioi 0) := by
-        rw [integrableOn_conj]
-  _ := hf_pos
+  exact integrableOn_congr_fun hf_pos.conj
+    (fun ξ _ => (hf_sym ξ).symm)
 
 /-- Sublemma: Negation cancels at zero -/
 lemma neg_zero_identity : (-0 : ℝ) = 0 := neg_zero
@@ -103,7 +118,6 @@ lemma research_integral_comp_neg_Iic_to_Ioi
     (hf_reflected : IntegrableOn (fun ξ => f (-ξ)) (Set.Ioi 0)) :
     ∫ ξ in Set.Iic 0, f ξ = ∫ η in Set.Ioi 0, f (-η) := by
   have h := integral_comp_neg_Ioi_at_zero f
-  simp only [neg_zero_identity] at h
   exact h.symm
 
 /-- RESEARCH LEMMA: Fourier inverse definition unfolding.
