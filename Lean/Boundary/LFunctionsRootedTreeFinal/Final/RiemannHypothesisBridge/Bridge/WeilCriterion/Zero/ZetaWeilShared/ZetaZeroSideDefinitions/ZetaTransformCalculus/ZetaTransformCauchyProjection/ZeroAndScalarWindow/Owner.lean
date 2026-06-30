@@ -59,9 +59,36 @@ theorem scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
     have hre : (((a : ℂ) + t * Complex.I).re) = (0 : ℂ).re :=
       congrArg Complex.re hz
     have ha_zero : a = 0 := by
-      simpa only [Complex.add_re, Complex.ofReal_re, Complex.mul_re,
-        Complex.ofReal_im, Complex.I_re, Complex.I_im, mul_zero, mul_one,
-        sub_zero, Complex.zero_re] using hre
+      have hleft : (((a : ℂ) + t * Complex.I).re) = a := by
+        calc
+          (((a : ℂ) + t * Complex.I).re) =
+              (a : ℂ).re + (t * Complex.I).re :=
+            Complex.add_re (a : ℂ) (t * Complex.I)
+          _ = a + (t * Complex.I).re :=
+            congrArg (fun y : ℝ => y + (t * Complex.I).re)
+              (Complex.ofReal_re a)
+          _ = a + ((t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im) :=
+            congrArg (fun y : ℝ => a + y)
+              (Complex.mul_re (t : ℂ) Complex.I)
+          _ = a + (t * Complex.I.re - (t : ℂ).im * Complex.I.im) :=
+            congrArg
+              (fun y : ℝ => a + (y * Complex.I.re - (t : ℂ).im * Complex.I.im))
+              (Complex.ofReal_re t)
+          _ = a + (t * 0 - (t : ℂ).im * Complex.I.im) :=
+            congrArg (fun y : ℝ => a + (t * y - (t : ℂ).im * Complex.I.im))
+              Complex.I_re
+          _ = a + (0 - (t : ℂ).im * Complex.I.im) :=
+            congrArg (fun y : ℝ => a + (y - (t : ℂ).im * Complex.I.im))
+              (mul_zero t)
+          _ = a + (0 - 0 * Complex.I.im) :=
+            congrArg (fun y : ℝ => a + (0 - y * Complex.I.im))
+              (Complex.ofReal_im t)
+          _ = a + (0 - 0) :=
+            congrArg (fun y : ℝ => a + (0 - 0 * y)) Complex.I_im
+          _ = a + 0 :=
+            congrArg (fun y : ℝ => a + y) (sub_self (0 : ℝ))
+          _ = a := add_zero a
+      exact hleft.symm.trans (hre.trans Complex.zero_re)
     exact (ne_of_gt ha) ha_zero
   ext
   · field_simp [hz_ne, hden_ne]
@@ -81,7 +108,12 @@ theorem scalarFourierLaplacePlemelj_zero_odd_imaginary_integral_eq_zero
     unfold f
     have hden :
         a ^ 2 + (-t) ^ 2 = a ^ 2 + t ^ 2 := by
-      ring
+      have hneg_sq : (-t) ^ 2 = t ^ 2 := by
+        calc
+          (-t) ^ 2 = (-t) * (-t) := pow_two (-t)
+          _ = t * t := neg_mul_neg t t
+          _ = t ^ 2 := (pow_two t).symm
+      exact congrArg (fun y : ℝ => a ^ 2 + y) hneg_sq
     calc
       ((((-t) / (a ^ 2 + (-t) ^ 2) : ℝ) : ℂ) * Complex.I)
           =
@@ -91,7 +123,21 @@ theorem scalarFourierLaplacePlemelj_zero_odd_imaginary_integral_eq_zero
               (congrArg (fun d : ℝ => (-t) / d) hden)
       _ =
           -(((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ) * Complex.I) := by
-            ring
+            calc
+              ((((-t) / (a ^ 2 + t ^ 2) : ℝ) : ℂ) * Complex.I)
+                  =
+                  (((-(t / (a ^ 2 + t ^ 2)) : ℝ) : ℂ) * Complex.I) := by
+                    exact congrArg
+                      (fun y : ℝ => ((y : ℂ) * Complex.I))
+                      (neg_div t (a ^ 2 + t ^ 2))
+              _ =
+                  (-(((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ)) * Complex.I) := by
+                    exact congrArg
+                      (fun z : ℂ => z * Complex.I)
+                      (Complex.ofReal_neg (t / (a ^ 2 + t ^ 2)))
+              _ =
+                  -(((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ) * Complex.I) := by
+                    exact neg_mul (((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ)) Complex.I
   have hcomp :
       (∫ t in (-T)..T, f (-t)) = ∫ t in (-T)..T, f t := by
     simpa only [neg_neg] using
