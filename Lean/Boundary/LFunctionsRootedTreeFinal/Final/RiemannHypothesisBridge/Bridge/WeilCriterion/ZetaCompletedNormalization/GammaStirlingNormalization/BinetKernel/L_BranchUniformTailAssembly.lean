@@ -20,7 +20,5 @@ Decomposition:
 namespace Boundary
 namespace LFunctions
 
-export L5_MainTheoremAssembly (Complex.binetSecondFormulaBranchUniformTailAbsorption_owner)
-
 end LFunctions
 end Boundary

@@ -22,9 +22,9 @@ theorem zetaPhi_verticalStripRapidDecay_of_admissible_owner
       ∀ z : ℂ,
         a ≤ z.re →
         z.re ≤ b →
-        ‖zetaCompletedExplicitFormulaPhi f z‖
-          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
-  have hbase :
+        ‖ZetaAdmissibleFunction.zetaCompletedExplicitFormulaPhi f z‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) :=
+  let hbase :
       ∃ C : ℝ,
         0 < C ∧
         ∀ z : ℂ,
@@ -36,11 +36,13 @@ theorem zetaPhi_verticalStripRapidDecay_of_admissible_owner
       f a b N
   match hbase with
   | ⟨C, hCpos, hboundBase⟩ =>
-      exact ⟨C, hCpos, fun z haz hzb =>
+      ⟨C, hCpos, fun z haz hzb =>
         let hphi :
-            zetaCompletedExplicitFormulaPhi f z =
-              Boundary.zetaLaplaceTransform f.toZetaTestFunction' z := by
-          exact congrFun (zetaCompletedExplicitFormulaPhi_eq_laplace f) z
+            ZetaAdmissibleFunction.zetaCompletedExplicitFormulaPhi f z =
+              Boundary.zetaLaplaceTransform f.toZetaTestFunction' z :=
+          congrFun
+            (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaPhi_eq_laplace f)
+            z
         let hbound :
             ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
               ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) :=

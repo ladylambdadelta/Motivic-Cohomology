@@ -824,10 +824,52 @@ theorem completedPrimeTimeDistributionPairing_eq_primePowerContribution_re
   have hleft : (↑(∑' ι : ZetaPrimePowerIndex, r ι) : ℂ).re =
       ∑' ι : ZetaPrimePowerIndex, r ι :=
     Complex.ofReal_re (∑' ι : ZetaPrimePowerIndex, r ι)
-  have hright : (↑(∑' ι : ZetaPrimePowerIndex, r ι) : ℂ).re =
-      (∑' ι : ZetaPrimePowerIndex, (r ι : ℂ)).re :=
+  have hcoerceTsum :
+      (↑(∑' ι : ZetaPrimePowerIndex, r ι) : ℂ).re =
+        (∑' ι : ZetaPrimePowerIndex, (r ι : ℂ)).re :=
     congrArg Complex.re (Complex.ofReal_tsum r)
-  exact hleft.symm.trans hright
+  have hcoordinate :
+      (fun ι : ZetaPrimePowerIndex => (r ι : ℂ)) =
+        fun ι : ZetaPrimePowerIndex =>
+          -((ι.weight : ℂ) *
+            (((zetaCompletedTimeBoundaryValue g ι.center +
+              star (zetaCompletedTimeBoundaryValue g ι.center)).re : ℝ) : ℂ)) :=
+    funext
+      (fun ι : ZetaPrimePowerIndex =>
+        calc
+          (r ι : ℂ) =
+              ((-(ι.weight *
+                Complex.re
+                  (zetaCompletedTimeBoundaryValue g ι.center +
+                    star (zetaCompletedTimeBoundaryValue g ι.center)))) : ℝ) := by
+                exact Eq.refl _
+          _ =
+              -(((ι.weight *
+                Complex.re
+                  (zetaCompletedTimeBoundaryValue g ι.center +
+                    star (zetaCompletedTimeBoundaryValue g ι.center))) : ℝ) : ℂ) := by
+                exact Complex.ofReal_neg
+                  (ι.weight *
+                    Complex.re
+                      (zetaCompletedTimeBoundaryValue g ι.center +
+                        star (zetaCompletedTimeBoundaryValue g ι.center)))
+          _ =
+              -((ι.weight : ℂ) *
+                (((zetaCompletedTimeBoundaryValue g ι.center +
+                  star (zetaCompletedTimeBoundaryValue g ι.center)).re : ℝ) : ℂ)) := by
+                exact congrArg Neg.neg
+                  (Complex.ofReal_mul ι.weight
+                    (Complex.re
+                      (zetaCompletedTimeBoundaryValue g ι.center +
+                        star (zetaCompletedTimeBoundaryValue g ι.center)))))
+  have hright :
+      (∑' ι : ZetaPrimePowerIndex, (r ι : ℂ)).re =
+        (∑' ι : ZetaPrimePowerIndex,
+          -((ι.weight : ℂ) *
+            (((zetaCompletedTimeBoundaryValue g ι.center +
+              star (zetaCompletedTimeBoundaryValue g ι.center)).re : ℝ) : ℂ))).re :=
+    congrArg (fun u : ZetaPrimePowerIndex → ℂ => (∑' ι, u ι).re) hcoordinate
+  exact (hleft.symm.trans hcoerceTsum).trans hright
 
 /-- The real spectral prime off-diagonal coordinate in the completed prime-power
 explicit-formula distribution. -/
@@ -1627,7 +1669,7 @@ theorem exists_rawHeightPolynomialBound_of_finsetSupport
   · have hu_zero : u ι = 0 :=
       hsupport ι hι
     have hnorm_zero : ‖u ι‖ = 0 :=
-      (congrArg norm hu_zero).trans (norm_zero (α := ℝ))
+      (congrArg norm hu_zero).trans (show ‖(0 : ℝ)‖ = 0 from norm_zero)
     have hright_nonnegative : 0 ≤ C * d ι :=
       mul_nonneg (le_of_lt hC_positive) (le_of_lt hd_positive)
     calc

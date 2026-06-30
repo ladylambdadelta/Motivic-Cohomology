@@ -441,9 +441,15 @@ theorem fixedRightLine_weightedKernel_fourierIntegral_inverseQuadraticDecay
                   _ = (c - 1) + (t * Complex.I).re := by
                       exact congrArg (fun u : ℝ => u + (t * Complex.I).re)
                         (Complex.ofReal_re (c - 1))
-                  _ = (c - 1) + 0 := by
+                  _ = (c - 1) + -((t : ℂ).im) := by
                       exact congrArg (fun u : ℝ => (c - 1) + u)
                         (Complex.mul_I_re (t : ℂ))
+                  _ = (c - 1) + -0 := by
+                      exact congrArg (fun u : ℝ => (c - 1) + -u)
+                        (Complex.ofReal_im t)
+                  _ = (c - 1) + 0 := by
+                      exact congrArg (fun u : ℝ => (c - 1) + u)
+                        (neg_zero : -(0 : ℝ) = 0)
                   _ = c - 1 := add_zero (c - 1)).symm
         let hz_re_right : z.re ≤ c - 1 := by
           calc
@@ -455,9 +461,15 @@ theorem fixedRightLine_weightedKernel_fourierIntegral_inverseQuadraticDecay
                 _ = (c - 1) + (t * Complex.I).re := by
                     exact congrArg (fun u : ℝ => u + (t * Complex.I).re)
                       (Complex.ofReal_re (c - 1))
-                _ = (c - 1) + 0 := by
+                _ = (c - 1) + -((t : ℂ).im) := by
                     exact congrArg (fun u : ℝ => (c - 1) + u)
                       (Complex.mul_I_re (t : ℂ))
+                _ = (c - 1) + -0 := by
+                    exact congrArg (fun u : ℝ => (c - 1) + -u)
+                      (Complex.ofReal_im t)
+                _ = (c - 1) + 0 := by
+                    exact congrArg (fun u : ℝ => (c - 1) + u)
+                      (neg_zero : -(0 : ℝ) = 0)
                 _ = c - 1 := add_zero (c - 1)
             _ ≤ c - 1 := le_rfl
         let hz_im_norm : ‖z.im‖ = ‖t‖ := by
@@ -551,7 +563,7 @@ theorem fixedRightLine_abs_frequency_le_cauchyDenominator_norm
         = |t| := by
           exact Real.norm_eq_abs t
     _ = |((((c : ℂ) + t * Complex.I) - 1).im)| := by
-          exact congrArg abs hIm.symm
+          exact congrArg _root_.abs hIm.symm
     _ ≤ Complex.abs (((c : ℂ) + t * Complex.I) - 1) := by
           exact hAbsIm
     _ = ‖(((c : ℂ) + t * Complex.I) - 1)‖ := by
@@ -614,9 +626,9 @@ theorem fixedRightLine_rate_le_cauchyDenominator_norm
   calc
     c - 1
         = |c - 1| := by
-          exact (abs_of_nonneg hRateNonnegative).symm
+          exact (_root_.abs_of_nonneg hRateNonnegative).symm
     _ = |((((c : ℂ) + t * Complex.I) - 1).re)| := by
-          exact congrArg abs hRe.symm
+          exact congrArg _root_.abs hRe.symm
     _ ≤ Complex.abs (((c : ℂ) + t * Complex.I) - 1) := by
           exact hAbsRe
     _ = ‖(((c : ℂ) + t * Complex.I) - 1)‖ := by
@@ -635,7 +647,8 @@ theorem fixedRightLine_cauchyDenominator_ne_zero
   exact
     fun hZero =>
       (ne_of_gt hPositive)
-        (Eq.trans hRealPart (congrArg Complex.re hZero))
+        (hRealPart.symm.trans
+          ((congrArg Complex.re hZero).trans Complex.zero_re))
 
 /-- The reciprocal of the fixed-line Cauchy denominator is bounded after
 multiplication by the Japanese bracket. -/
@@ -714,7 +727,7 @@ theorem fixedRightLine_cauchyMultiplier_bracketed_bound
         (c - 1)⁻¹ + 1 := by
           exact add_le_add
             (inv_le_inv_of_le hRatePos hRateNorm)
-            (inv_mul_le_one₀ hFreq hDenomPos.le)
+            ((inv_mul_le_one₀ hDenomPos).mpr hFreq)
     _ = 1 + (c - 1)⁻¹ := by
           exact add_comm ((c - 1)⁻¹) 1
 
@@ -863,9 +876,6 @@ theorem fixedRightLine_cauchyMultiplier_times_fourierIntegral_inverseCubicBound
           exact congrArg
             (fun z : ℝ => (D * B) * z)
             (one_add_norm_zpow_negOne_mul_negTwo_eq_negThree t)
-
-/-- The fixed-line Fourier-Cauchy multiplier integrand has cubic decay for a
-smooth compactly supported time kernel. -/
 
 end FixedLineCauchyProjection
 

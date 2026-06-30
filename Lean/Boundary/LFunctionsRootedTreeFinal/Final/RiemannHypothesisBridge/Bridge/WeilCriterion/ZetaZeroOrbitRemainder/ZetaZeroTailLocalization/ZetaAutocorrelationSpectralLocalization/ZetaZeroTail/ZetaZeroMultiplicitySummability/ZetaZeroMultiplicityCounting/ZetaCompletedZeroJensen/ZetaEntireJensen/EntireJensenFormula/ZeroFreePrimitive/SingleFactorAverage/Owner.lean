@@ -315,13 +315,19 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduc
     (hF0 : F 0 ≠ 0)
     (ρ : ℝ)
     [∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ)] :
-    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+    @entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
         F hF ρ
-        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
-          F hF hF0 ρ) =
+        (entireFunctionZero_coe_eq_zero_decidable F)
+        (entireFunctionZero_norm_lt_decidable F ρ)
+        (@entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ
+          (entireFunctionZero_coe_eq_zero_decidable F)
+          (entireFunctionZero_norm_lt_decidable F ρ)) =
       ∑ z in
-        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
-          F hF hF0 ρ,
+        @entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ
+          (entireFunctionZero_coe_eq_zero_decidable F)
+          (entireFunctionZero_norm_lt_decidable F ρ),
         (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
           ((2 * Real.pi)⁻¹ *
             (∫ θ in (0 : ℝ)..(2 * Real.pi),
@@ -330,8 +336,10 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduc
   exact
     entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum_eq_singleFactorBoundaryAverageSum_of_mem_zeroInside
       F hF ρ
-      (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
-        F hF hF0 ρ)
+      (@entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+        F hF hF0 ρ
+        (entireFunctionZero_coe_eq_zero_decidable F)
+        (entireFunctionZero_norm_lt_decidable F ρ))
       (fun z hz =>
         entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_ne_zero
           F hF hF0 ρ z hz)
