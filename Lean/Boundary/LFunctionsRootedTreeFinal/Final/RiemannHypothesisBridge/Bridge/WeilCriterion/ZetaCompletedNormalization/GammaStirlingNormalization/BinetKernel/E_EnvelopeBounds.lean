@@ -111,7 +111,7 @@ theorem Real.binetEnvelope_reciprocal_exp_sub_one_le_two_div_exp
       (one_div (Real.exp u - 1))
       hquotient
 
-/-- Positivity of the shifted exponential denominator. -/
+/-- The shifted exponential denominator is positive. -/
 theorem Real.binetEnvelope_exp_sub_one_pos
     {u : ℝ}
     (hu_pos : 0 < u) :

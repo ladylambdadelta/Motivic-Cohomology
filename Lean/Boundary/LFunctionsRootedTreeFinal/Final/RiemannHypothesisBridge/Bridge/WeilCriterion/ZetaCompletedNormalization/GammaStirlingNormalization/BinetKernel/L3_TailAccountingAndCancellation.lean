@@ -338,7 +338,7 @@ theorem Complex.binetSecondFormula_lowerVerticalDifference_decay_of_eventually_l
 
 This is the reverse convergence transport to
 `binetSecondFormula_lowerVerticalDifference_decay_of_eventually_lowerVerticalUpTo_decay`.
-The full lower-vertical estimate supplies the limit bound; positivity of the
+The full lower-vertical estimate supplies the limit bound; the positive lower bound for the
 decaying tail integral gives strict room after doubling the constant, so the
 finite-height family is eventually bounded at the doubled scale. -/
 theorem Complex.binetSecondFormula_finiteHeightLowerVerticalDifference_decay_of_lowerVerticalDifference_decay
@@ -1268,7 +1268,7 @@ theorem Complex.binetSecondFormula_branchTail_wallCancellation_of_contourKernelP
 
 /-- Finite-height lower-vertical decay from a contour-kernel package.
 
-This is a pure finite-height assembly lemma for future analytic leaves: once
+This is a pure finite-height assembly lemma for later analytic leaves: once
 a branch-safe contour-deformed kernel is supplied together with its integral
 comparison, split-tail integrability, and uniform decaying majorant, the
 finite-height lower-vertical cancellation predicate follows. -/

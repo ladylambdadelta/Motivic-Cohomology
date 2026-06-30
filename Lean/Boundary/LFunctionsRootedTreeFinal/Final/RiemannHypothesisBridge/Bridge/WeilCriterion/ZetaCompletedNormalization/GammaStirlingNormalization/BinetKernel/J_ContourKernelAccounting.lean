@@ -50,8 +50,8 @@ theorem Complex.binetSecondFormula_decaying_tail_kernel_uniform_majorant_package
 
 /-- Compatibility name for the decaying-kernel majorant package.
 
-The package supplies a uniformly majorized kernel, not the missing principal
-tail comparison to that kernel. -/
+The package supplies a uniformly majorized kernel, not the principal-tail
+comparison to that kernel. -/
 theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_exists :
     ∃ K : ℂ → ℝ → ℂ, ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧

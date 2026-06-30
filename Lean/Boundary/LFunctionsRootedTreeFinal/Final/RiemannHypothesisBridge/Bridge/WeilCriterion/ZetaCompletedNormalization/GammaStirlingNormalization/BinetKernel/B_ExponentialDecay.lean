@@ -54,7 +54,7 @@ def Real.BinetSecondFormulaKernelMajorantTailExpLower : Prop :=
 
 /-- Unit-interval lower bound for the Binet scalar kernel.
 
-This is the local positivity estimate on the first unit interval of the tail:
+This is the local positive lower estimate on the first unit interval of the tail:
 for `a ≥ 1`, the interval contribution already has exponential size
 `exp (-π a)`. -/
 def Real.BinetSecondFormulaKernelMajorantUnitIntervalExpLower : Prop :=
