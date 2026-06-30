@@ -219,8 +219,14 @@ lemma fourierInv_conjugateSymmetric_is_real
         calc star ((-I : ℂ) * x * ξ)
             = star (-I) * star (x : ℂ) * star (ξ : ℂ) := by exact (star_mul ((-I : ℂ) * x) ξ).trans (congr_arg (fun y => star ((-I : ℂ) * x) * y) (star_mul (-I) x).symm)
           _ = I * x * ξ := by exact congr₃ (fun a b c => a * b * c) h1 h2 h3
-      rw [h_arg, ← h_conj]
-      exact h_exp_conj _))
+      calc
+        Complex.exp ((-I : ℂ) * x * (-ξ : ℂ)) =
+            Complex.exp (I * x * ξ) :=
+          congrArg Complex.exp h_arg
+        _ = Complex.exp (star ((-I : ℂ) * x * ξ)) :=
+          congrArg Complex.exp h_conj.symm
+        _ = star (Complex.exp ((-I : ℂ) * x * ξ)) :=
+          (h_exp_conj _).symm))
     (star_mul _ _).symm
 
   -- The key measure-theoretic fact:
@@ -264,12 +270,24 @@ lemma fourierInv_conjugateSymmetric_is_real
 
     have h_decomposed : (∫ ξ : ℝ, f_full ξ) =
                         ∫ ξ in Set.Iic 0, f_full ξ + ∫ ξ in Set.Ioi 0, f_full ξ := by
-      rw [← integral_union disjoint_Iic_Ioi]
-      · congr 1
-        ext x
-        exact le_or_lt 0 x
-      · exact h_integrable_neg
-      · exact h_integrable_pos
+      have h_union :
+          ∫ ξ in Set.Iic 0 ∪ Set.Ioi 0, f_full ξ =
+            ∫ ξ in Set.Iic 0, f_full ξ + ∫ ξ in Set.Ioi 0, f_full ξ :=
+        integral_union disjoint_Iic_Ioi h_integrable_neg h_integrable_pos
+      have h_domain : Set.Iic (0 : ℝ) ∪ Set.Ioi (0 : ℝ) = Set.univ := by
+        ext y
+        constructor
+        · intro _
+          exact Set.mem_univ y
+        · intro _
+          exact le_or_lt y 0
+      calc
+        (∫ ξ : ℝ, f_full ξ) =
+            ∫ ξ in Set.univ, f_full ξ := rfl
+        _ = ∫ ξ in Set.Iic 0 ∪ Set.Ioi 0, f_full ξ := by
+          exact congrArg (fun s : Set ℝ => ∫ ξ in s, f_full ξ) h_domain.symm
+        _ = ∫ ξ in Set.Iic 0, f_full ξ + ∫ ξ in Set.Ioi 0, f_full ξ :=
+          h_union
 
     have h_integrable_neg_on_pos : IntegrableOn (fun ξ => f_full (-ξ)) (Set.Ioi 0) :=
       research_fourier_integrand_integrableOn_neg_pos f_full h_integrand_symm h_integrable_pos
@@ -287,24 +305,34 @@ lemma fourierInv_conjugateSymmetric_is_real
       apply integral_congr_ae
       exact Filter.eventually_of_forall fun ξ => by
         have : f_full (-ξ) + f_full ξ = star (f_full ξ) + f_full ξ := by
-          rw [h_integrand_symm]
-        rw [this, star_add_self_eq_two_mul_re]
+          exact congrArg (fun z : ℂ => z + f_full ξ) (h_integrand_symm ξ)
+        exact this.trans (star_add_self_eq_two_mul_re (f_full ξ))
 
     have h_real_integral : ∫ ξ in Set.Ioi 0, 2 * Complex.re (f_full ξ) =
                           ↑(∫ ξ in Set.Ioi 0, 2 * Complex.re (f_full ξ) : ℝ) :=
       rfl
 
-    calc (∫ ξ : ℝ, f_full ξ)
+    have htotal_real_value :
+        (∫ ξ : ℝ, f_full ξ) =
+          ∫ ξ in Set.Ioi 0, 2 * Complex.re (f_full ξ) := by
+      calc (∫ ξ : ℝ, f_full ξ)
         = ∫ ξ in Set.Iic 0, f_full ξ + ∫ ξ in Set.Ioi 0, f_full ξ := h_decomposed
       _ = ∫ η in Set.Ioi 0, f_full (-η) + ∫ ξ in Set.Ioi 0, f_full ξ := by
-          rw [h_neg_to_pos]
+          exact congrArg
+            (fun z : ℂ => z + ∫ ξ in Set.Ioi 0, f_full ξ)
+            h_neg_to_pos
       _ = ∫ ξ in Set.Ioi 0, (f_full (-ξ) + f_full ξ) := h_combine
       _ = ∫ ξ in Set.Ioi 0, 2 * Complex.re (f_full ξ) := h_is_real
-      _ = star (∫ ξ : ℝ, f_full ξ) := by
-          -- Since (∫ ξ in Set.Ioi 0, 2 * Complex.re (f_full ξ)) is real-valued,
-          -- its conjugate equals itself
-          rw [← h_integral_real]
-          exact Complex.conj_ofReal _
+    have hstar_total :
+        star (∫ ξ : ℝ, f_full ξ) =
+          ∫ ξ in Set.Ioi 0, 2 * Complex.re (f_full ξ) := by
+      calc
+        star (∫ ξ : ℝ, f_full ξ) =
+            star (∫ ξ in Set.Ioi 0, 2 * Complex.re (f_full ξ)) :=
+          congrArg star htotal_real_value
+        _ = ∫ ξ in Set.Ioi 0, 2 * Complex.re (f_full ξ) :=
+          Complex.conj_ofReal _
+    exact htotal_real_value.trans hstar_total.symm
 
   -- Now apply to Fourier inverse definition
   -- 𝓕⁻ g x = (1/(2π)) ∫ g(ξ) exp(-ix·ξ) dξ
@@ -322,11 +350,14 @@ lemma fourierInv_conjugateSymmetric_is_real
   calc 𝓕⁻ g x = ((1 : ℂ) / (2 * π : ℂ)) • (∫ ξ : ℝ, f_full ξ) := by
         exact h_fourier_def
       _ = ((1 : ℂ) / (2 * π : ℂ)) • star (∫ ξ : ℝ, f_full ξ) := by
-        rw [h_integral_real]
+        exact congrArg (fun z : ℂ => ((1 : ℂ) / (2 * π : ℂ)) • z) h_integral_real
       _ = star ((1 : ℂ) / (2 * π : ℂ)) • star (∫ ξ : ℝ, f_full ξ) := by
-        rw [h_const_real]
+        exact congrArg
+          (fun z : ℂ => z • star (∫ ξ : ℝ, f_full ξ))
+          h_const_real
       _ = star (((1 : ℂ) / (2 * π : ℂ)) • (∫ ξ : ℝ, f_full ξ)) := by
-        rw [map_smul]
+        exact (map_smul starRingEnd ((1 : ℂ) / (2 * π : ℂ))
+          (∫ ξ : ℝ, f_full ξ)).symm
       _ = star (𝓕⁻ g x) := by
         symm
         exact h_fourier_def
