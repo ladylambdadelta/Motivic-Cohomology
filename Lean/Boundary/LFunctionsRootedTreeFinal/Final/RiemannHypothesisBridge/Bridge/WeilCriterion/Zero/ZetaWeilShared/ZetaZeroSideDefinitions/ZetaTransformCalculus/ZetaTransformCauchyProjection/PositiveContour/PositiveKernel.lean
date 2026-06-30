@@ -25,7 +25,7 @@ theorem scalarFourierLaplacePlemelj_neg_one_div_I_mul_eq_I_div
         (fun W : ℂ => (-1 : ℂ) * (D⁻¹ * W))
         Complex.inv_I
     _ = ((-1 : ℂ) * D⁻¹) * (-Complex.I) := by
-      exact mul_assoc (-1 : ℂ) D⁻¹ (-Complex.I)
+      exact (mul_assoc (-1 : ℂ) D⁻¹ (-Complex.I)).symm
     _ = (-(D⁻¹)) * (-Complex.I) := by
       exact congrArg
         (fun W : ℂ => W * (-Complex.I))
@@ -100,8 +100,10 @@ theorem scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator_differentiab
   have hExp :
       Differentiable ℂ (NormedSpace.exp ℂ : ℂ → ℂ) := by
     exact
-      fun z : ℂ =>
-        (NormedSpace.hasFDerivAt_exp (𝕂 := ℂ) (𝔸 := ℂ)).differentiableAt
+      Eq.subst
+        (motive := fun E : ℂ → ℂ => Differentiable ℂ E)
+        Complex.exp_eq_exp_ℂ
+        (Complex.differentiable_exp (𝕜 := ℂ))
   have hComp :
       DifferentiableOn ℂ
         ((NormedSpace.exp ℂ : ℂ → ℂ) ∘ L)
@@ -139,8 +141,10 @@ theorem scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator_analyticAt_u
   have hExp :
       Differentiable ℂ (NormedSpace.exp ℂ : ℂ → ℂ) := by
     exact
-      fun w : ℂ =>
-        (NormedSpace.hasFDerivAt_exp (𝕂 := ℂ) (𝔸 := ℂ)).differentiableAt
+      Eq.subst
+        (motive := fun E : ℂ → ℂ => Differentiable ℂ E)
+        Complex.exp_eq_exp_ℂ
+        (Complex.differentiable_exp (𝕜 := ℂ))
   have hComp :
       Differentiable ℂ ((NormedSpace.exp ℂ : ℂ → ℂ) ∘ L) :=
     hExp.comp hL
@@ -156,7 +160,7 @@ theorem scalarFourierLaplacePlemelj_positiveKernelAnalyticNumerator_analyticAt_u
 /-- Half-disk Cauchy integral formula for the positive-time analytic numerator
 and the upper-pole denominator. -/
 theorem scalarFourierLaplacePlemelj_positiveKernelUpperHalfDisk_cauchyIntegralFormula
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (_hx : x ∈ Set.Ioi (0 : ℝ))
     (T : ℝ)
     (_hpole : ‖scalarFourierLaplacePlemelj_upperPole a‖ < T) :
     scalarFourierLaplacePlemelj_positiveKernelUpperSemicircleBoundaryIntegral
@@ -358,8 +362,8 @@ Fourier-Laplace contour. -/
 theorem scalarFourierLaplacePlemelj_positive_window_add_upperArc_eq_residueValue
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
     ∀ᶠ T in atTop,
-      (∫ t in Set.Icc (-T) T,
-        (-1 / ((a : ℂ) + t * Complex.I)) *
+      (∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+        (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
           Complex.exp
             (Complex.I * (t : ℂ) * (x : ℂ))) +
           scalarFourierLaplacePlemelj_positiveUpperArc a x T =
@@ -376,9 +380,6 @@ theorem scalarFourierLaplacePlemelj_positive_window_add_upperArc_eq_residueValue
     (fun T hT =>
       (scalarFourierLaplacePlemelj_positiveClosedContour_eq_window_add_upperArc
         a x T).symm.trans hT)
-
-/-- Positive upper-arc Jordan majorant. -/
-
 
 end FixedLineCauchyProjection
 
