@@ -185,19 +185,60 @@ theorem scalarFourierLaplacePlemelj_zero_real_kernel_integral_eq_arctan
         (∫ u in (-(T / a))..(T / a),
           (-(1 : ℝ) / (1 + u ^ 2))) =
           -(2 : ℝ) * Real.arctan (T / a) := by
+      let r : ℝ := T / a
+      have hneg_integrand :
+          (∫ u in (-(T / a))..(T / a),
+            (-(1 : ℝ) / (1 + u ^ 2))) =
+            -∫ u in (-(T / a))..(T / a),
+              ((1 : ℝ) + u ^ 2)⁻¹ := by
+        have hpoint :
+            ∀ u : ℝ,
+              (-(1 : ℝ) / (1 + u ^ 2)) =
+                -(((1 : ℝ) + u ^ 2)⁻¹) := by
+          intro u
+          calc
+            (-(1 : ℝ) / (1 + u ^ 2)) =
+                -((1 : ℝ) / (1 + u ^ 2)) :=
+              neg_div (1 : ℝ) (1 + u ^ 2)
+            _ = -(((1 : ℝ) + u ^ 2)⁻¹) := by
+              exact congrArg Neg.neg (one_div ((1 : ℝ) + u ^ 2))
+        calc
+          (∫ u in (-(T / a))..(T / a),
+            (-(1 : ℝ) / (1 + u ^ 2))) =
+              ∫ u in (-(T / a))..(T / a),
+                -(((1 : ℝ) + u ^ 2)⁻¹) := by
+            exact intervalIntegral.integral_congr
+              (Filter.Eventually.of_forall hpoint)
+          _ =
+              -∫ u in (-(T / a))..(T / a),
+                ((1 : ℝ) + u ^ 2)⁻¹ :=
+            intervalIntegral.integral_neg
+      have harctan_algebra :
+          -(Real.arctan r - Real.arctan (-r)) =
+            -(2 : ℝ) * Real.arctan r := by
+        calc
+          -(Real.arctan r - Real.arctan (-r)) =
+              -(Real.arctan r - -Real.arctan r) := by
+            exact congrArg
+              (fun y : ℝ => -(Real.arctan r - y))
+              (Real.arctan_neg r)
+          _ = -(Real.arctan r + Real.arctan r) := by
+            exact congrArg Neg.neg (sub_neg_eq_add (Real.arctan r) (Real.arctan r))
+          _ = -(2 * Real.arctan r) := by
+            exact congrArg Neg.neg (two_mul (Real.arctan r)).symm
+          _ = -(2 : ℝ) * Real.arctan r :=
+            neg_mul 2 (Real.arctan r)
       calc
         (∫ u in (-(T / a))..(T / a),
           (-(1 : ℝ) / (1 + u ^ 2)))
             = -∫ u in (-(T / a))..(T / a),
-                ((1 : ℝ) + u ^ 2)⁻¹ := by
-              simp only [neg_div, one_div, intervalIntegral.integral_neg]
+                ((1 : ℝ) + u ^ 2)⁻¹ := hneg_integrand
         _ = -(Real.arctan (T / a) - Real.arctan (-(T / a))) := by
               exact congrArg Neg.neg
                 (Real.integral_inv_one_add_sq
                   (a := -(T / a)) (b := T / a))
         _ = -(2 : ℝ) * Real.arctan (T / a) := by
-              rw [Real.arctan_neg]
-              ring
+              exact harctan_algebra
     have hsub :
         (∫ t in (-T)..T, (-(a / (a ^ 2 + t ^ 2)) : ℝ)) =
           ∫ u in (-(T / a))..(T / a),
