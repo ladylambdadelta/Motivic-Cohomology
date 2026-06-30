@@ -299,7 +299,12 @@ theorem eulerMaclaurinPoleClearedZetaFinitePart_sum_cardinality_polynomial_bound
         z.re ≤ 2 →
         ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ ≤ C * (1 + ‖z‖) ^ m := by
   refine ⟨3, 2, ?_, ?_⟩
-  · norm_num
+  · exact
+      lt_of_lt_of_le
+        (zero_lt_one : (0 : ℝ) < 1)
+        (le_trans
+          (show (1 : ℝ) ≤ 2 from one_le_two)
+          (le_of_lt (Nat.cast_lt.mpr (Nat.lt_succ_self 2))))
   intro z hz_one _hz_two
   unfold eulerMaclaurinPoleClearedZetaFinitePart
   let H : ℝ := 1 + ‖z‖
