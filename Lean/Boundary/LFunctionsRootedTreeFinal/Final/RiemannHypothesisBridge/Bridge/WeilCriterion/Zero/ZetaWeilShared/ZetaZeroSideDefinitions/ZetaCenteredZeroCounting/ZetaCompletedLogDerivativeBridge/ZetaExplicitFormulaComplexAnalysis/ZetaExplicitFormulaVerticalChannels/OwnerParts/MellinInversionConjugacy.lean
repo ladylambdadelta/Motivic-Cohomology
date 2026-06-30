@@ -116,16 +116,15 @@ lemma research_fourier_inverse_eq_integral
     𝓕⁻ g x = ((1 : ℂ) / (2 * π : ℂ)) • (∫ ξ : ℝ, g ξ * Complex.exp (-I * x * ξ)) :=
   rfl
 
-/-- RESEARCH LEMMA: Mellin inversion conjugacy on critical vertical line.
-For a conjugate-symmetric transform M and points σ ± it on the critical line,
-M(σ + it) = star(M(σ - it)). This is the vertical line version of conjugate
-symmetry, derived from M(-star(s)) = star(M(s)). -/
-lemma research_mellin_conjugacy_on_vertical_line
+/-- RESEARCH LEMMA: Mellin inversion conjugacy on the reflected vertical line.
+For a conjugate-symmetric transform `M`, the point reflected by `s ↦ -star s`
+has conjugate value. -/
+lemma research_mellin_conjugacy_on_reflected_vertical_line
     (M : ℂ → ℂ) (σ : ℝ) (t : ℝ)
     (hM : ∀ s : ℂ, M (-star s) = star (M s)) :
-    M (σ + t * I) = star (M (σ - t * I)) := by
+    M (-star ((σ : ℂ) + t * I)) = star (M ((σ : ℂ) + t * I)) := by
   have h_conj_sym : Transform.IsConjugateSymmetric M := hM
-  exact (Transform.conjugateSymmetric_on_critical_line h_conj_sym σ t).symm
+  exact Transform.conjugateSymmetric_on_reflected_vertical_line h_conj_sym σ t
 
 /-- Sublemma: real part of star(z) + z equals 2·Re(z) -/
 lemma star_add_re_eq (z : ℂ) : (star z + z).re = 2 * z.re :=
@@ -318,12 +317,12 @@ lemma fourierInv_conjugateSymmetric_is_real
         symm
         exact h_fourier_def
 
-/-- The Mellin inversion integral decomposes at conjugate-symmetric points. -/
-lemma mellinInv_criticalLine_decomposition
+/-- The Mellin inversion integral decomposes at reflected conjugate-symmetric points. -/
+lemma mellinInv_reflectedVerticalLine_decomposition
     {M : ℂ → ℂ} (hM : Transform.IsConjugateSymmetric M)
     (σ : ℝ) :
-    ∀ t : ℝ, M (σ + t * I) = star (M (σ - t * I)) :=
-  research_mellin_conjugacy_on_vertical_line M σ hM
+    ∀ t : ℝ, M (-star ((σ : ℂ) + t * I)) = star (M ((σ : ℂ) + t * I)) :=
+  research_mellin_conjugacy_on_reflected_vertical_line M σ hM
 
 /-- Conjugate-symmetric transforms have real-valued inversions on the critical line. -/
 lemma conjugateSymmetricTransform_inverts_to_realValues
@@ -367,7 +366,7 @@ lemma conjugateSymmetricTransform_inverts_to_realValues
   have hg_conj : ∀ y : ℝ, g (-y) = star (g y) := by
     intro y
     unfold g
-    have h_critical := mellinInv_criticalLine_decomposition hM σ
+    have h_critical := mellinInv_reflectedVerticalLine_decomposition hM σ
     -- g(-y) = M(σ + 2π(-y)I) = M(σ - 2πyI)
     -- By conjugate symmetry M(-star(σ - 2πyI)) = star(M(σ - 2πyI))
     -- And -star(σ - 2πyI) = -σ + 2πyI

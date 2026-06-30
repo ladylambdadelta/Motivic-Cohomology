@@ -32,38 +32,38 @@ def IsConjugateSymmetric (M : ℂ → ℂ) : Prop :=
 def IsConjugateSymmetricAt (M : ℂ → ℂ) (s : ℂ) : Prop :=
   M (-star s) = star (M s)
 
-/-- A property of conjugate-symmetric transforms: M is real-valued on the real axis. -/
-theorem conjugateSymmetric_real_on_real_axis
+/-- A conjugate-symmetric transform reflects negative real values to conjugates. -/
+theorem conjugateSymmetric_neg_real_axis
     {M : ℂ → ℂ} (hM : IsConjugateSymmetric M) (r : ℝ) :
-    M r = star (M r) := by
-  have := hM (r : ℂ)
-  simp only [Complex.ofReal_neg, Complex.star_ofReal] at this
-  exact this
+    M (-(r : ℂ)) = star (M (r : ℂ)) := by
+  have hpoint : M (-star (r : ℂ)) = star (M (r : ℂ)) := hM (r : ℂ)
+  have harg : -star (r : ℂ) = -(r : ℂ) :=
+    congrArg Neg.neg (Complex.star_ofReal r)
+  exact Eq.subst
+    (motive := fun z : ℂ => M z = star (M (r : ℂ)))
+    harg
+    hpoint
 
-/-- The real axis value of a conjugate-symmetric transform is real-valued. -/
-theorem conjugateSymmetric_real_on_real_line
+/-- The imaginary parts at opposite real inputs are negatives of each other. -/
+theorem conjugateSymmetric_neg_real_axis_im
     {M : ℂ → ℂ} (hM : IsConjugateSymmetric M) (r : ℝ) :
-    (M r).im = 0 := by
-  have h := conjugateSymmetric_real_on_real_axis hM r
-  have : M r = star (M r) := h
-  have : (M r).re = (star (M r)).re ∧ (M r).im = (star (M r)).im := by
-    constructor
-    · exact congrArg Complex.re this
-    · exact congrArg Complex.im this
-  simp [Complex.star_im] at this
-  exact this.2
+    (M (-(r : ℂ))).im = -((M (r : ℂ)).im) := by
+  have hvalue : M (-(r : ℂ)) = star (M (r : ℂ)) :=
+    conjugateSymmetric_neg_real_axis hM r
+  exact Eq.trans
+    (congrArg Complex.im hvalue)
+    (Complex.star_im (M (r : ℂ)))
 
 /-- Composition preservation of conjugate symmetry (product of symmetric transforms). -/
 theorem conjugateSymmetric_mul
     {M₁ M₂ : ℂ → ℂ} (h₁ : IsConjugateSymmetric M₁) (h₂ : IsConjugateSymmetric M₂) :
     IsConjugateSymmetric (fun s => M₁ s * M₂ s) := by
   intro s
-  simp only [IsConjugateSymmetric] at h₁ h₂
   calc
     (fun s => M₁ s * M₂ s) (-star s)
         = M₁ (-star s) * M₂ (-star s) := by rfl
       _ = star (M₁ s) * star (M₂ s) := by
-          rw [h₁ s, h₂ s]
+          exact congrArg₂ HMul.hMul (h₁ s) (h₂ s)
       _ = star (M₁ s * M₂ s) := by
           exact (star_mul (M₁ s) (M₂ s)).symm
 
@@ -72,15 +72,15 @@ theorem conjugateSymmetric_smul_real
     {M : ℂ → ℂ} (hM : IsConjugateSymmetric M) (c : ℝ) :
     IsConjugateSymmetric (fun s => (c : ℂ) * M s) := by
   intro s
-  simp only [IsConjugateSymmetric] at hM
   calc
     (fun s => (c : ℂ) * M s) (-star s)
         = (c : ℂ) * M (-star s) := by rfl
       _ = (c : ℂ) * star (M s) := by
-          rw [hM s]
+          exact congrArg (fun z : ℂ => (c : ℂ) * z) (hM s)
       _ = star ((c : ℂ) * M s) := by
-          rw [star_mul]
-          simp [Complex.star_ofReal]
+          exact Eq.trans
+            (congrArg (fun z : ℂ => z * star (M s)) (Complex.star_ofReal c).symm)
+            (star_mul (c : ℂ) (M s)).symm
 
 /-- Conjugate-symmetric transforms are determined by values on upper half-plane. -/
 theorem conjugateSymmetric_determined_by_upper_half
@@ -88,15 +88,11 @@ theorem conjugateSymmetric_determined_by_upper_half
     M (-star s) = star (M s) := by
   exact hM s
 
-/-- Conjugate-symmetric transforms on the critical line (real(s) = σ). -/
-theorem conjugateSymmetric_on_critical_line
+/-- Conjugate-symmetric transforms on the line reflected by `s ↦ -star s`. -/
+theorem conjugateSymmetric_on_reflected_vertical_line
     {M : ℂ → ℂ} (hM : IsConjugateSymmetric M) (σ t : ℝ) :
-    M (σ - t * I) = star (M (σ + t * I)) := by
-  have : -star (σ + t * I) = σ - t * I := by
-    simp [Complex.star_add, Complex.star_ofReal, Complex.I_im]
-    ring
-  rw [← this]
-  exact hM (σ + t * I)
+    M (-star ((σ : ℂ) + t * I)) = star (M ((σ : ℂ) + t * I)) := by
+  exact hM ((σ : ℂ) + t * I)
 
 end Transform
 
