@@ -43,7 +43,13 @@ In complex numbers: 2 * π * I * (-(ξ : ℂ)) * t = -(2 * π * I * (ξ : ℂ) *
 This requires careful handling of multiplication associativity and negation. -/
 lemma research_mult_neg_assoc (ξ t : ℂ) :
     2 * π * I * (-ξ) * t = -(2 * π * I * ξ * t) := by
-  rw [mul_neg, mul_assoc]
+  calc
+    2 * π * I * (-ξ) * t =
+        (2 * π * I) * (-ξ) * t := rfl
+    _ = (-(2 * π * I * ξ)) * t := by
+      exact congrArg (fun z : ℂ => z * t) (mul_neg (2 * π * I) ξ)
+    _ = -((2 * π * I * ξ) * t) := neg_mul (2 * π * I * ξ) t
+    _ = -(2 * π * I * ξ * t) := rfl
 
 /-- RESEARCH LEMMA: Negation distributes through ofReal multiplication.
 -(2 * π * I * (ξ : ℝ) : ℂ) * t = -(2 * π * I * (ξ : ℂ) * t). -/
@@ -52,8 +58,8 @@ lemma research_neg_ofReal_mult (ξ t : ℂ) :
   rfl
 
 /-- Step 1: Fourier transform conjugate symmetry.
-For smooth integrable functions, the Fourier transform at opposite frequencies
-satisfies: F(-ξ) = conj(F(ξ)).
+For real-valued smooth integrable functions, the Fourier transform at opposite
+frequencies satisfies: F(-ξ) = conj(F(ξ)).
 
 This follows from:
 1. Kernel conjugacy: exp(2πi(-ξ)t) = conj(exp(-2πiξt))
@@ -62,6 +68,7 @@ This follows from:
 -/
 lemma fourierTransform_conjugate_symmetry
     (φ : ℝ → ℂ) (ξ : ℝ) (hφ : Integrable φ)
+    (hφ_real : ∀ t : ℝ, φ t = star (φ t))
     (hφ_hat : Integrable (𝓕 φ)) :
     (𝓕 φ (-ξ : ℝ) : ℂ) = star (𝓕 φ ξ) := by
   -- Apply integral conjugacy to the Fourier transform definition
@@ -74,15 +81,26 @@ lemma fourierTransform_conjugate_symmetry
           = 2 * π * I * (-(ξ : ℂ)) * t := by exact congr_arg (fun x => 2 * π * I * x * t) h1
         _ = -(2 * π * I * (ξ : ℂ) * t) := research_mult_neg_assoc (ξ : ℂ) t
         _ = -(2 * π * I * (ξ : ℝ) : ℂ) * t := (research_neg_ofReal_mult (ξ : ℂ) t).symm
-    rw [h_arg]
-    exact (Complex.exp_conj _).symm
+    exact Eq.subst
+      (motive := fun z : ℂ =>
+        Complex.exp z = star (Complex.exp (-(2 * π * I * (ξ : ℝ) : ℂ) * t)))
+      h_arg.symm
+      (Complex.exp_conj _).symm
 
   -- The Fourier transform integrand at -ξ composed with conjugacy at ξ
   have h_integrand_conj : ∀ t : ℝ, φ t * Complex.exp (2 * π * I * ((-ξ : ℝ) : ℂ) * t) =
                                      star (φ t * Complex.exp (-(2 * π * I * (ξ : ℝ) : ℂ) * t)) := by
     intro t
-    rw [h_kernel t]
-    exact (star_mul _ _).symm
+    calc
+      φ t * Complex.exp (2 * π * I * ((-ξ : ℝ) : ℂ) * t) =
+          φ t * star (Complex.exp (-(2 * π * I * (ξ : ℝ) : ℂ) * t)) := by
+        exact congrArg (fun z : ℂ => φ t * z) (h_kernel t)
+      _ = star (φ t) * star (Complex.exp (-(2 * π * I * (ξ : ℝ) : ℂ) * t)) := by
+        exact congrArg
+          (fun z : ℂ => z * star (Complex.exp (-(2 * π * I * (ξ : ℝ) : ℂ) * t)))
+          (hφ_real t)
+      _ = star (φ t * Complex.exp (-(2 * π * I * (ξ : ℝ) : ℂ) * t)) := by
+        exact (star_mul _ _).symm
 
   -- Apply integral_conj via the integrand conjugacy
   calc (𝓕 φ (-ξ : ℝ) : ℂ)
