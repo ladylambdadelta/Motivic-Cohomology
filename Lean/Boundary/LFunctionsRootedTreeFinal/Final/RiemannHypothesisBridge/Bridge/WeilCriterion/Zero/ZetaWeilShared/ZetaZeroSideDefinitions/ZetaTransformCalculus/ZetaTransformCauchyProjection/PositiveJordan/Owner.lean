@@ -20,7 +20,10 @@ theorem scalarFourierLaplacePlemelj_jordanShiftedDenominator_tendsto_atTop
       (fun T : ℝ => T - a)
       atTop
       atTop :=
-  tendsto_atTop_add_const_right (-a) tendsto_id
+  Tendsto.congr'
+    (Eventually.of_forall
+      (fun T : ℝ => (sub_eq_add_neg T a).symm))
+    (tendsto_atTop_add_const_right atTop (-a) tendsto_id)
 
 /-- The Jordan prefactor remainder tends to zero. -/
 theorem scalarFourierLaplacePlemelj_jordanPrefactorRemainder_tendsto_zero
@@ -88,13 +91,19 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanPrefactor_tendsto_pi
       (fun T : ℝ => Real.pi * T / (T - a))
       atTop
       (𝓝 Real.pi) := by
-  exact
-    Tendsto.congr'
+  exact Eq.subst
+    (motive := fun y : ℝ =>
+      Tendsto
+        (fun T : ℝ => Real.pi * T / (T - a))
+        atTop
+        (𝓝 y))
+    (add_zero Real.pi)
+    (Tendsto.congr'
       (scalarFourierLaplacePlemelj_jordanPrefactor_eventually_eq_pi_add_remainder
         a).symm
       (tendsto_const_nhds.add
         (scalarFourierLaplacePlemelj_jordanPrefactorRemainder_tendsto_zero
-          a))
+          a)))
 
 /-- The positive upper-arc reciprocal linear factor tends to zero. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanReciprocal_tendsto_zero
@@ -111,17 +120,24 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanReciprocal_tendsto_zer
 
 /-- The positive upper-arc Jordan majorant tends to zero. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant_tendsto_zero
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
+    (a : ℝ) (_ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ)) :
     Tendsto
       (fun T : ℝ =>
         scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T)
       atTop
       (𝓝 0) := by
-  exact
-    (scalarFourierLaplacePlemelj_positiveUpperArcJordanPrefactor_tendsto_pi
+  exact Eq.subst
+    (motive := fun y : ℝ =>
+      Tendsto
+        (fun T : ℝ =>
+          scalarFourierLaplacePlemelj_positiveUpperArcJordanMajorant a x T)
+        atTop
+        (𝓝 y))
+    (mul_zero Real.pi)
+    ((scalarFourierLaplacePlemelj_positiveUpperArcJordanPrefactor_tendsto_pi
       a).mul
       (scalarFourierLaplacePlemelj_positiveUpperArcJordanReciprocal_tendsto_zero
-        x hx)
+        x hx))
 
 /-- The circular velocity on a positive-radius semicircle has norm equal to the
 radius. -/
@@ -190,6 +206,12 @@ theorem scalarFourierLaplacePlemelj_semicirclePoint_re
       (fun z : ℂ => (Complex.exp z).im)
       harg).trans
       (Complex.exp_ofReal_mul_I_im θ)
+  have hexp_re :
+      (Complex.exp (Complex.I * (θ : ℂ))).re = Real.cos θ :=
+    (congrArg
+      (fun z : ℂ => (Complex.exp z).re)
+      harg).trans
+      (Complex.exp_ofReal_mul_I_re θ)
   calc
     ((T : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).re =
         (T : ℂ).re * (Complex.exp (Complex.I * (θ : ℂ))).re -
@@ -503,7 +525,7 @@ theorem scalarFourierLaplacePlemelj_jordanPrefactor_mul_pi_inv_eq_majorant
         (fun r : ℝ => r * (Real.pi * Y⁻¹))
         (div_eq_mul_inv T (T - a))
     _ = ((T * (T - a)⁻¹) * Real.pi) * Y⁻¹ := by
-      exact mul_assoc (T * (T - a)⁻¹) Real.pi Y⁻¹
+      exact (mul_assoc (T * (T - a)⁻¹) Real.pi Y⁻¹).symm
     _ = (Real.pi * (T * (T - a)⁻¹)) * Y⁻¹ := by
       exact congrArg
         (fun r : ℝ => r * Y⁻¹)
@@ -511,7 +533,7 @@ theorem scalarFourierLaplacePlemelj_jordanPrefactor_mul_pi_inv_eq_majorant
     _ = ((Real.pi * T) * (T - a)⁻¹) * Y⁻¹ := by
       exact congrArg
         (fun r : ℝ => r * Y⁻¹)
-        (mul_assoc Real.pi T (T - a)⁻¹)
+        (mul_assoc Real.pi T (T - a)⁻¹).symm
     _ = (Real.pi * T / (T - a)) * Y⁻¹ := by
       exact congrArg
         (fun r : ℝ => r * Y⁻¹)
@@ -574,8 +596,8 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArc_velocity_norm_eq_radius
 
 /-- Product assembly for the positive upper-arc Jordan pointwise estimate. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArcIntegrand_norm_le_jordanDensity_of_factors
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
-    (T : ℝ) (hT : a < T) (θ : ℝ)
+    (a : ℝ) (_ha : 0 < a) (x : ℝ) (_hx : x ∈ Set.Ioi (0 : ℝ))
+    (T : ℝ) (_hT : a < T) (θ : ℝ)
     (hden :
       ‖(-1 /
         ((a : ℂ) +
@@ -859,9 +881,16 @@ theorem scalarFourierLaplacePlemelj_upperSineDamping_integrand_le_linearExp
       _ = (c * (2 * Real.pi⁻¹)) * θ := by
         have htwo_c : 2 * c = c * 2 :=
           mul_comm 2 c
-        exact congrArg
-          (fun r : ℝ => (r * Real.pi⁻¹) * θ)
-          htwo_c
+        calc
+          ((2 * c) * Real.pi⁻¹) * θ =
+              ((c * 2) * Real.pi⁻¹) * θ := by
+            exact congrArg
+              (fun r : ℝ => (r * Real.pi⁻¹) * θ)
+              htwo_c
+          _ = (c * (2 * Real.pi⁻¹)) * θ := by
+            exact congrArg
+              (fun r : ℝ => r * θ)
+              (mul_assoc c 2 Real.pi⁻¹)
       _ = c * ((2 * Real.pi⁻¹) * θ) := by
         exact mul_assoc c (2 * Real.pi⁻¹) θ
       _ = c * ((2 / Real.pi : ℝ) * θ) := by
@@ -931,7 +960,11 @@ theorem scalarFourierLaplacePlemelj_upperLinearExp_integral_eq_scaled_one_sub_ex
           (inv_mul_cancel₀ hpi_ne)
       _ = -(((2 * c) / 2)) := by
         exact congrArg Neg.neg
-          (mul_div_assoc 2 c 2)
+          (calc
+            (2 * c) * (1 / 2 : ℝ) = (2 * c) * (2 : ℝ)⁻¹ := by
+              exact congrArg (fun r : ℝ => (2 * c) * r) (one_div 2)
+            _ = (2 * c) / 2 := by
+              exact (div_eq_mul_inv (2 * c) 2).symm)
       _ = -c := by
         exact congrArg Neg.neg
           (mul_div_cancel_left₀ c two_ne_zero)
@@ -949,7 +982,7 @@ theorem scalarFourierLaplacePlemelj_upperLinearExp_integral_eq_scaled_one_sub_ex
       _ = (Real.pi / 2) * ((c⁻¹ * (2 * c)) * Real.pi⁻¹) := by
         exact congrArg
           (fun r : ℝ => (Real.pi / 2) * r)
-          (mul_assoc c⁻¹ (2 * c) Real.pi⁻¹)
+          (mul_assoc c⁻¹ (2 * c) Real.pi⁻¹).symm
       _ = (Real.pi / 2) * (((c⁻¹ * c) * 2) * Real.pi⁻¹) := by
         have htwo_c : 2 * c = c * 2 :=
           mul_comm 2 c
@@ -959,7 +992,7 @@ theorem scalarFourierLaplacePlemelj_upperLinearExp_integral_eq_scaled_one_sub_ex
             c⁻¹ * (2 * c) = c⁻¹ * (c * 2) := by
               exact congrArg (fun r : ℝ => c⁻¹ * r) htwo_c
             _ = (c⁻¹ * c) * 2 := by
-              exact mul_assoc c⁻¹ c 2
+              exact (mul_assoc c⁻¹ c 2).symm
         exact congrArg
           (fun r : ℝ => (Real.pi / 2) * (r * Real.pi⁻¹))
           hstep
@@ -985,7 +1018,7 @@ theorem scalarFourierLaplacePlemelj_upperLinearExp_integral_eq_scaled_one_sub_ex
         (-A) * (-k) = A * k := by
           exact neg_mul_neg A k
         _ = 1 := hscale_mul_k
-    exact eq_inv_of_mul_eq_one_left hmul
+    exact (eq_inv_of_mul_eq_one_left hmul).symm
   have hintegral :
       ∫ θ in (0 : ℝ)..(Real.pi / 2), Real.exp ((-k) * θ) =
         (-k)⁻¹ *
@@ -1040,6 +1073,9 @@ theorem scalarFourierLaplacePlemelj_upperLinearExp_integral_eq_scaled_one_sub_ex
     _ = A * (1 - Real.exp (-c)) := by
       calc
         (-A) * (Real.exp (-c) - 1) =
+            -(A * (Real.exp (-c) - 1)) := by
+          exact neg_mul A (Real.exp (-c) - 1)
+        _ =
             A * (-(Real.exp (-c) - 1)) := by
           exact neg_mul_eq_mul_neg A (Real.exp (-c) - 1)
         _ = A * (1 - Real.exp (-c)) := by
@@ -1060,7 +1096,7 @@ theorem scalarFourierLaplacePlemelj_upperLinearExp_scale_nonneg
     (c : ℝ) (hc : 0 < c) :
     0 ≤ (Real.pi / 2) * c⁻¹ := by
   have hhalf_nonneg : 0 ≤ Real.pi / 2 :=
-    half_nonneg Real.pi_nonneg
+    div_nonneg Real.pi_nonneg zero_le_two
   have hinv_nonneg : 0 ≤ c⁻¹ :=
     inv_nonneg.mpr hc.le
   exact mul_nonneg hhalf_nonneg hinv_nonneg
@@ -1094,7 +1130,7 @@ theorem scalarFourierLaplacePlemelj_upperSineDamping_halfIntegral_le_linearExpIn
       ∫ θ in (0 : ℝ)..(Real.pi / 2),
         Real.exp (-(((2 * c) / Real.pi) * θ)) := by
   have hhalf_nonneg : (0 : ℝ) ≤ Real.pi / 2 :=
-    half_nonneg Real.pi_nonneg
+    div_nonneg Real.pi_nonneg zero_le_two
   have hsine_cont :
       Continuous
         (fun θ : ℝ => Real.exp (-(c * Real.sin θ))) := by
@@ -1151,7 +1187,7 @@ theorem scalarFourierLaplacePlemelj_two_mul_upperHalfMajorant_eq
   calc
     2 * ((Real.pi / 2) * c⁻¹) =
         (2 * (Real.pi / 2)) * c⁻¹ := by
-      exact mul_assoc 2 (Real.pi / 2) c⁻¹
+      exact (mul_assoc 2 (Real.pi / 2) c⁻¹).symm
     _ = ((2 * Real.pi) / 2) * c⁻¹ := by
       exact congrArg
         (fun r : ℝ => r * c⁻¹)
@@ -1197,7 +1233,7 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArc_sineDampingIntegral_le
 /-- Multiplication by the positive Jordan prefactor transports the scalar
 sine-damping estimate to the full density. -/
 theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity_integral_le_majorant_of_sine
-    (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x ∈ Set.Ioi (0 : ℝ))
+    (a : ℝ) (ha : 0 < a) (x : ℝ) (_hx : x ∈ Set.Ioi (0 : ℝ))
     (T : ℝ) (hT : a < T)
     (hsine :
       ∫ θ in (0 : ℝ)..Real.pi,
@@ -1273,7 +1309,7 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArc_norm_le_jordanDensity_integ
           scalarFourierLaplacePlemelj_positiveUpperArcJordanDensity a x T θ| := by
     exact intervalIntegral.norm_integral_le_of_norm_le
       (Eventually.of_forall
-        (fun θ _hθ =>
+        (fun θ =>
           scalarFourierLaplacePlemelj_positiveUpperArcIntegrand_norm_le_jordanDensity
             a ha x hx T hT θ))
       hdensity_int
@@ -1441,23 +1477,23 @@ theorem scalarFourierLaplacePlemelj_positive_window_tendsto_residueValue_mul_exp
 positive-time finite window. -/
 theorem scalarFourierLaplacePlemelj_positive_window_mul_exp_eq_window_with_exp
     (a : ℝ) (x T : ℝ) :
-    (∫ t in Set.Icc (-T) T,
-      (-1 / ((a : ℂ) + t * Complex.I)) *
+    (∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+      (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
         Complex.exp
           (Complex.I * (t : ℂ) * (x : ℂ))) *
       Complex.exp ((a : ℂ) * (x : ℂ)) =
-    ∫ t in Set.Icc (-T) T,
-      (-1 / ((a : ℂ) + t * Complex.I)) *
+    ∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+      (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
         Complex.exp
           (Complex.I * (t : ℂ) * (x : ℂ)) *
         Complex.exp ((a : ℂ) * (x : ℂ)) := by
-  exact (intervalIntegral.integral_mul_const
-    (f := fun t : ℝ =>
-      (-1 / ((a : ℂ) + t * Complex.I)) *
+  exact (MeasureTheory.integral_mul_right
+    (μ := MeasureTheory.volume.restrict (Set.Icc (-T : ℝ) (T : ℝ)))
+    (Complex.exp ((a : ℂ) * (x : ℂ)))
+    (fun t : ℝ =>
+      (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
         Complex.exp
-          (Complex.I * (t : ℂ) * (x : ℂ)))
-    (c := Complex.exp ((a : ℂ) * (x : ℂ)))
-    (-T) T).symm
+          (Complex.I * (t : ℂ) * (x : ℂ)))).symm
 
 /-- Positive-time residue limit after moving the compensating exponential
 inside the symmetric finite window. -/
@@ -1519,7 +1555,10 @@ theorem scalarFourierLaplacePlemelj_positive_laplaceJump_mul_eq_constant
       (-2 * (Real.pi : ℂ)) := by
   have hsum :
       (-(a : ℂ) * (x : ℂ)) + ((a : ℂ) * (x : ℂ)) = 0 :=
-    neg_add_cancel ((a : ℂ) * (x : ℂ))
+    Eq.subst
+      (motive := fun z : ℂ => z + ((a : ℂ) * (x : ℂ)) = 0)
+      (neg_mul (a : ℂ) (x : ℂ)).symm
+      (neg_add_cancel ((a : ℂ) * (x : ℂ)))
   have hexp :
       Complex.exp (-(a : ℂ) * (x : ℂ)) *
           Complex.exp ((a : ℂ) * (x : ℂ)) =
@@ -1579,10 +1618,6 @@ theorem scalarFourierLaplacePlemelj_pointwise_positive
     (scalarFourierLaplacePlemelj_positive_laplaceJump_mul_eq_constant a x)
     (scalarFourierLaplacePlemelj_positive_window_tendsto_laplaceJump
       a ha x hx)
-
-/-- Lower semicircle correction term for the negative-time scalar
-Fourier-Laplace contour.  The real segment runs from `-T` to `T`, and this arc
-returns from `T` to `-T` through the lower half-plane. -/
 
 end FixedLineCauchyProjection
 
