@@ -64,7 +64,7 @@ theorem zero_admissible_conjugateSymmetric :
     (0 : ZetaAdmissibleFunction).toZetaTestFunction (-c) =
     star ((0 : ZetaAdmissibleFunction).toZetaTestFunction c) := by
   intro c
-  simp
+  rfl
 
 /-- Conjugate symmetry is preserved by scalar multiplication (real scalars). -/
 theorem scalar_multiple_conjugateSymmetric
@@ -103,7 +103,7 @@ theorem add_conjugateSymmetric
     (f + g).toZetaTestFunction (-c)
         = f.toZetaTestFunction (-c) + g.toZetaTestFunction (-c) := by rfl
       _ = star (f.toZetaTestFunction c) + star (g.toZetaTestFunction c) := by
-          rw [hf, hg]
+          exact congrArg₂ HAdd.hAdd hf hg
       _ = star (f.toZetaTestFunction c + g.toZetaTestFunction c) := by
           exact (star_add (f.toZetaTestFunction c) (g.toZetaTestFunction c)).symm
       _ = star ((f + g).toZetaTestFunction c) := by rfl
