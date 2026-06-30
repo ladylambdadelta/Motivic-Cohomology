@@ -6,27 +6,6 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.L1_RemainderAndBoundaryDefinitions
 
-import Mathlib.Analysis.Complex.PhragmenLindelof
-import Mathlib.Data.Complex.Exponential
-import Mathlib.Analysis.RCLike.Basic
-import Mathlib.NumberTheory.AbelSummation
-import Mathlib.NumberTheory.LSeries.RiemannZeta
-import Mathlib.NumberTheory.Harmonic.Bounds
-import Mathlib.Analysis.SpecialFunctions.Complex.Arctan
-import Mathlib.Analysis.SpecialFunctions.Complex.Arg
-import Mathlib.Analysis.SpecialFunctions.Exp
-import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
-import Mathlib.Analysis.SpecialFunctions.Log.Monotone
-import Mathlib.Data.Real.Pi.Bounds
-import Mathlib.MeasureTheory.Integral.IntegrableOn
-import Mathlib.MeasureTheory.Integral.IntegralEqImproper
-import Mathlib.MeasureTheory.Integral.SetIntegral
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetAbelPlanaFiniteFormula
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetTailContour
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.Core.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.FiniteOrderAlgebra.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.RightCriticalStripCompact.Owner
-
 /-!
 # Binet kernel and sectorial Gamma seed estimates
 
@@ -39,6 +18,7 @@ namespace LFunctions
 
 noncomputable section
 
+open scoped Topology
 open Filter
 
 /-- The historical sector-absorption predicate and the scalar log-window
@@ -716,268 +696,6 @@ theorem Complex.binetAbelPlanaLogGammaFiniteApproximation_endpointRestored_trans
           (sub_eq_add_neg ((E - A - H) + B + (L + U)) R).symm
   exact Eq.trans hnormalized_transport hright
 
-/-- Exact transport sink for the endpoint-restored ordinary finite range.
-
-Unfolding the definitions gives
-`finiteApproximation = EulerFinite - sampleSum` and
-`finiteMainTerm = EulerFinite - endpointPrimitive - halfEndpoints`.  Therefore
-an endpoint-restored sample-sum formula produces the contour remainder minus
-the explicit endpoint-restoration term. -/
-theorem Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_endpointRestoration_defect_transport_ownerGap :
-    ∀ z : ℂ,
-      0 < z.re →
-        ∀ N : ℕ,
-          (let M : ℕ := N + 1
-          ∑ n in Finset.range (M + 1), Complex.log (z + n) =
-            (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-                (z + (M : ℂ))) -
-              (z * Complex.log z - z)) +
-              (Complex.log z + Complex.log (z + (M : ℂ))) / 2 -
-              Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-              Complex.binetAbelPlanaFiniteLowerContourTail N z -
-                Complex.binetAbelPlanaFiniteUpperContourResidual N z +
-                  Complex.finiteAbelPlanaLogEndpointResidueRestoration N z) →
-            Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-              Complex.binetAbelPlanaFiniteMainTerm N z +
-                Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
-                  (Complex.binetAbelPlanaFiniteLowerContourTail N z +
-                    Complex.binetAbelPlanaFiniteUpperContourResidual N z) -
-                      Complex.finiteAbelPlanaLogEndpointResidueRestoration N z := by
-  intro z _hz_re_pos N hsummand
-  let M : ℕ := N + 1
-  let E : ℂ :=
-    z * Complex.log (M : ℂ) +
-      Complex.log ((Nat.factorial M : ℕ) : ℂ)
-  let A : ℂ :=
-    (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-        (z + (M : ℂ))) -
-      (z * Complex.log z - z))
-  let H : ℂ :=
-    (Complex.log z + Complex.log (z + (M : ℂ))) / 2
-  let B : ℂ :=
-    Complex.binetAbelPlanaFiniteBoundaryCorrection N z
-  let L : ℂ :=
-    Complex.binetAbelPlanaFiniteLowerContourTail N z
-  let U : ℂ :=
-    Complex.binetAbelPlanaFiniteUpperContourResidual N z
-  let R : ℂ :=
-    Complex.finiteAbelPlanaLogEndpointResidueRestoration N z
-  have hfiniteApproximation :
-      Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-        E - ∑ n in Finset.range (M + 1), Complex.log (z + n) :=
-    Complex.binetAbelPlanaLogGammaFiniteApproximation_eq_shifted N M z rfl
-  have hfiniteMain :
-      Complex.binetAbelPlanaFiniteMainTerm N z = E - A - H :=
-    Complex.binetAbelPlanaFiniteMainTerm_unfold N z
-  have hsummand_named :
-      ∑ n in Finset.range (M + 1), Complex.log (z + n) =
-        A + H - B - L - U + R :=
-    hsummand
-  have htransport :
-      E - ∑ n in Finset.range (M + 1), Complex.log (z + n) =
-        (E - A - H) + B + (L + U) - R :=
-    Complex.binetAbelPlanaLogGammaFiniteApproximation_endpointRestored_transport_additive_core
-      E
-      (∑ n in Finset.range (M + 1), Complex.log (z + n))
-      A H B L U R hsummand_named
-  exact
-    Eq.trans hfiniteApproximation
-      (Eq.trans htransport
-        (congrArg
-          (fun q : ℂ => q + B + (L + U) - R)
-          hfiniteMain.symm))
-
-/-- The endpoint-restored summand formula transports through the shifted
-Euler logarithmic-Gamma approximant with the endpoint restoration still visible
-as a defect.
-
-Unfolding the definitions gives
-`finiteApproximation = EulerFinite - sampleSum` and
-`finiteMainTerm = EulerFinite - endpointPrimitive - halfEndpoints`.  Therefore
-an endpoint-restored sample-sum formula produces the contour remainder minus
-the explicit endpoint-restoration term. -/
-theorem Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_endpointRestoration_defect_ownerGap :
-    ∀ z : ℂ,
-      0 < z.re →
-        ∀ N : ℕ,
-          (let M : ℕ := N + 1
-          ∑ n in Finset.range (M + 1), Complex.log (z + n) =
-            (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-                (z + (M : ℂ))) -
-              (z * Complex.log z - z)) +
-              (Complex.log z + Complex.log (z + (M : ℂ))) / 2 -
-              Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-              Complex.binetAbelPlanaFiniteLowerContourTail N z -
-                Complex.binetAbelPlanaFiniteUpperContourResidual N z +
-                  Complex.finiteAbelPlanaLogEndpointResidueRestoration N z) →
-            Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-              Complex.binetAbelPlanaFiniteMainTerm N z +
-                Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
-                  (Complex.binetAbelPlanaFiniteLowerContourTail N z +
-                    Complex.binetAbelPlanaFiniteUpperContourResidual N z) -
-                      Complex.finiteAbelPlanaLogEndpointResidueRestoration N z := by
-  exact
-    Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_endpointRestoration_defect_transport_ownerGap
-
-/-- The ordinary finite range formula is endpoint-restored.
-
-For `Finset.range (M + 1)`, the endpoint integer poles are counted with full
-weight.  The principal-value contour theorem therefore supplies the
-endpoint-restoration term explicitly. -/
-theorem Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper_restoredOrdinaryRange
-    (z : ℂ)
-    (hz : 0 < z.re)
-    (hbridges : Complex.FiniteHeightPVBridgePackage z)
-    (N : ℕ) :
-    let M : ℕ := N + 1
-    ∑ n in Finset.range (M + 1), Complex.log (z + n) =
-      (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-          (z + (M : ℂ))) -
-        (z * Complex.log z - z)) +
-        (Complex.log z + Complex.log (z + (M : ℂ))) / 2 -
-        Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-        Complex.binetAbelPlanaFiniteLowerContourTail N z -
-          Complex.binetAbelPlanaFiniteUpperContourResidual N z +
-            Complex.finiteAbelPlanaLogEndpointResidueRestoration N z :=
-  Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper hz hbridges N
-    (fun n _hn z => inferInstance)
-
-/-- Exact convention-change sink from the ordinary endpoint-restored finite
-range to the endpoint-normalized finite range.
-
-The ordinary finite range counts endpoint integer residues with full weight.
-The endpoint-normalized sample is therefore the ordinary sample with the
-explicit endpoint-restoration term subtracted from the left side.  This theorem
-does not cancel `finiteAbelPlanaLogEndpointResidueRestoration` from an identity
-for the same ordinary finite sum. -/
-theorem Complex.finiteAbelPlana_log_summand_endpointRestoredOrdinaryRange_to_endpointNormalizedConvention_ownerGap :
-    ∀ z : ℂ,
-      0 < z.re →
-        Complex.FiniteHeightPVBridgePackage z →
-        ∀ N : ℕ,
-          (∑ n in Finset.range ((N + 1) + 1), Complex.log (z + n) =
-              ((((z + ((N + 1 : ℕ) : ℂ)) *
-                    Complex.log (z + ((N + 1 : ℕ) : ℂ)) -
-                  (z + ((N + 1 : ℕ) : ℂ))) -
-              (z * Complex.log z - z)) +
-              (Complex.log z + Complex.log (z + ((N + 1 : ℕ) : ℂ))) / 2 -
-              Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-              Complex.binetAbelPlanaFiniteLowerContourTail N z -
-                Complex.binetAbelPlanaFiniteUpperContourResidual N z) +
-                Complex.finiteAbelPlanaLogEndpointResidueRestoration N z) →
-            (∑ n in Finset.range ((N + 1) + 1), Complex.log (z + n)) -
-                Complex.finiteAbelPlanaLogEndpointResidueRestoration N z =
-              ((((z + ((N + 1 : ℕ) : ℂ)) *
-                    Complex.log (z + ((N + 1 : ℕ) : ℂ)) -
-                  (z + ((N + 1 : ℕ) : ℂ))) -
-              (z * Complex.log z - z)) +
-              (Complex.log z + Complex.log (z + ((N + 1 : ℕ) : ℂ))) / 2 -
-              Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-              Complex.binetAbelPlanaFiniteLowerContourTail N z -
-                Complex.binetAbelPlanaFiniteUpperContourResidual N z) := by
-  intro z _hz_re_pos _hbridges N
-  let M : ℕ := N + 1
-  let X : ℂ :=
-    (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-        (z + (M : ℂ))) -
-      (z * Complex.log z - z)) +
-      (Complex.log z + Complex.log (z + (M : ℂ))) / 2 -
-      Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-      Complex.binetAbelPlanaFiniteLowerContourTail N z -
-        Complex.binetAbelPlanaFiniteUpperContourResidual N z
-  intro hordinary
-  have hsubtract :
-      (∑ n in Finset.range (M + 1), Complex.log (z + n)) -
-          Complex.finiteAbelPlanaLogEndpointResidueRestoration N z =
-        (X + Complex.finiteAbelPlanaLogEndpointResidueRestoration N z) -
-          Complex.finiteAbelPlanaLogEndpointResidueRestoration N z :=
-    congrArg
-      (fun q : ℂ =>
-        q - Complex.finiteAbelPlanaLogEndpointResidueRestoration N z)
-      hordinary
-  have hcancel :
-      (X + Complex.finiteAbelPlanaLogEndpointResidueRestoration N z) -
-          Complex.finiteAbelPlanaLogEndpointResidueRestoration N z =
-        X :=
-    add_sub_cancel_right X
-      (Complex.finiteAbelPlanaLogEndpointResidueRestoration N z)
-  exact Eq.trans hsubtract hcancel
-
-/-- Endpoint-normalized finite Abel-Plana summation convention for the
-logarithmic summand.
-
-The ordinary finite range theorem is endpoint-restored.  This wrapper therefore
-first records the restored ordinary-range identity and then delegates the actual
-endpoint-normalized convention change to
-`finiteAbelPlana_log_summand_endpointRestoredOrdinaryRange_to_endpointNormalizedConvention_ownerGap`. -/
-theorem Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper_endpointNormalizedSummationConvention_ownerGap :
-    ∀ z : ℂ,
-      0 < z.re →
-        Complex.FiniteHeightPVBridgePackage z →
-        ∀ N : ℕ,
-          let M : ℕ := N + 1
-          (∑ n in Finset.range (M + 1), Complex.log (z + n)) -
-              Complex.finiteAbelPlanaLogEndpointResidueRestoration N z =
-            (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-                (z + (M : ℂ))) -
-              (z * Complex.log z - z)) +
-              (Complex.log z + Complex.log (z + (M : ℂ))) / 2 -
-              Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-              Complex.binetAbelPlanaFiniteLowerContourTail N z -
-                Complex.binetAbelPlanaFiniteUpperContourResidual N z := by
-  intro z hz_re_pos hbridges N
-  have hordinary :
-      let M : ℕ := N + 1
-      ∑ n in Finset.range (M + 1), Complex.log (z + n) =
-        (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-            (z + (M : ℂ))) -
-          (z * Complex.log z - z)) +
-          (Complex.log z + Complex.log (z + (M : ℂ))) / 2 -
-          Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-          Complex.binetAbelPlanaFiniteLowerContourTail N z -
-            Complex.binetAbelPlanaFiniteUpperContourResidual N z +
-              Complex.finiteAbelPlanaLogEndpointResidueRestoration N z :=
-    Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper_restoredOrdinaryRange
-      z hz_re_pos hbridges N
-  exact
-    Complex.finiteAbelPlana_log_summand_endpointRestoredOrdinaryRange_to_endpointNormalizedConvention_ownerGap
-      z hz_re_pos hbridges N hordinary
-
-/-- Corrected finite summand normalization without double-counting endpoint
-restoration.
-
-The restored imported summand formula includes the endpoint half-residue
-restoration explicitly.  Since `binetAbelPlanaFiniteMainTerm` is
-`EulerFinite - endpointPrimitive - halfEndpoints`, transporting that restored
-formula through the finite Euler logarithmic-Gamma approximant leaves a genuine
-`- finiteAbelPlanaLogEndpointResidueRestoration` defect.  The no-defect Binet
-finite formula must therefore consume the endpoint-normalized summation
-convention above. -/
-theorem Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper_nonrestored_ownerGap :
-    ∀ z : ℂ,
-      0 < z.re →
-        Complex.FiniteHeightPVBridgePackage z →
-        ∀ N : ℕ,
-          let M : ℕ := N + 1
-          (∑ n in Finset.range (M + 1), Complex.log (z + n)) -
-              Complex.finiteAbelPlanaLogEndpointResidueRestoration N z =
-            (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-                (z + (M : ℂ))) -
-              (z * Complex.log z - z)) +
-              (Complex.log z + Complex.log (z + (M : ℂ))) / 2 -
-              Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-              Complex.binetAbelPlanaFiniteLowerContourTail N z -
-                Complex.binetAbelPlanaFiniteUpperContourResidual N z := by
-  exact
-    Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper_endpointNormalizedSummationConvention_ownerGap
-
-/-- Pure additive transport for the endpoint-normalized finite Euler package.
-
-Here `E` is the shifted Euler finite prefactor, `S` is the logarithmic sample
-sum, `A` is the endpoint primitive, and `H` is the half-endpoint term.  This
-lemma is intentionally independent of the contour/PV construction; it is only
-the algebra saying that an endpoint-normalized identity for `S` transports
-through `E - S` and `E - A - H`. -/
 theorem Complex.binetAbelPlanaLogGammaFiniteApproximation_endpointNormalized_transport_additive_core_ownerGap
     (E S A H B L U : ℂ)
     (hsummand : S = A + H - B - L - U) :
@@ -1028,315 +746,28 @@ theorem Complex.binetAbelPlanaLogGammaFiniteApproximation_endpointNormalized_tra
                 (sub_eq_add_neg (E - A) H).symm))
   exact Eq.trans hsubstitute hnormalize
 
-/-- The shifted Euler finite approximation transports an endpoint-normalized
-summand formula to the finite main/boundary/lower-tail/upper-residual
-decomposition.
+/-- The ordinary finite range formula in endpoint-restored normalization.
 
-This lemma owns only the deterministic substitution of
-`binetAbelPlanaLogGammaFiniteApproximation` and
-`binetAbelPlanaFiniteMainTerm`.  It assumes the sample-sum identity has already
-been stated in endpoint-normalized form, so no endpoint-restoration term can be
-introduced or canceled here. -/
-theorem Complex.binetAbelPlanaLogGammaFiniteApproximation_endpointNormalized_transport_unfolded_ownerGap
-    (N : ℕ)
+For `Finset.range (M + 1)`, the endpoint integer poles are counted with full
+weight.  The endpoint-restored bridge has already returned the endpoint
+principal-value indentation to the residue side, so no extra endpoint term
+appears on the right. -/
+theorem Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper_restoredOrdinaryRange
     (z : ℂ)
-    (hsummand :
-      let M : ℕ := N + 1
-      ∑ n in Finset.range (M + 1), Complex.log (z + n) =
-        (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-            (z + (M : ℂ))) -
-          (z * Complex.log z - z)) +
-          (Complex.log z + Complex.log (z + (M : ℂ))) / 2 -
-          Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-          Complex.binetAbelPlanaFiniteLowerContourTail N z -
-            Complex.binetAbelPlanaFiniteUpperContourResidual N z) :
-    Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-      Complex.binetAbelPlanaFiniteMainTerm N z +
-        Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
-          (Complex.binetAbelPlanaFiniteLowerContourTail N z +
-            Complex.binetAbelPlanaFiniteUpperContourResidual N z) := by
-  let M : ℕ := N + 1
-  let E : ℂ :=
-    z * Complex.log (M : ℂ) +
-      Complex.log ((Nat.factorial M : ℕ) : ℂ)
-  let A : ℂ :=
-    (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-        (z + (M : ℂ))) -
-      (z * Complex.log z - z))
-  let H : ℂ :=
-    (Complex.log z + Complex.log (z + (M : ℂ))) / 2
-  let B : ℂ :=
-    Complex.binetAbelPlanaFiniteBoundaryCorrection N z
-  let L : ℂ :=
-    Complex.binetAbelPlanaFiniteLowerContourTail N z
-  let U : ℂ :=
-    Complex.binetAbelPlanaFiniteUpperContourResidual N z
-  have hfiniteApproximation :
-      Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-        E - ∑ n in Finset.range (M + 1), Complex.log (z + n) :=
-    Complex.binetAbelPlanaLogGammaFiniteApproximation_eq_shifted N M z rfl
-  have hfiniteMain :
-      Complex.binetAbelPlanaFiniteMainTerm N z = E - A - H :=
-    Complex.binetAbelPlanaFiniteMainTerm_unfold N z
-  have hsummand_named :
-      ∑ n in Finset.range (M + 1), Complex.log (z + n) =
-        A + H - B - L - U :=
-    hsummand
-  have htransport :
-      E - ∑ n in Finset.range (M + 1), Complex.log (z + n) =
-        (E - A - H) + B + (L + U) :=
-    Complex.binetAbelPlanaLogGammaFiniteApproximation_endpointNormalized_transport_additive_core_ownerGap
-      E
-      (∑ n in Finset.range (M + 1), Complex.log (z + n))
-      A H B L U hsummand_named
-  exact
-    Eq.trans hfiniteApproximation
-      (Eq.trans htransport
-        (congrArg
-          (fun q : ℂ => q + B + (L + U))
-          hfiniteMain.symm))
-
-/-- Pure Euler-finite algebra for an endpoint-normalized Abel-Plana summand.
-
-This is the exact deterministic identity used after the contour theorem has
-already supplied a non-restored sample-sum formula.  It deliberately contains no
-endpoint-restoration term. -/
-theorem Complex.binetAbelPlanaLogGammaFiniteApproximation_endpointNormalized_transport_algebra_ownerGap
-    (N : ℕ)
-    (z : ℂ)
-    (hsummand :
-      let M : ℕ := N + 1
-      ∑ n in Finset.range (M + 1), Complex.log (z + n) =
-        (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-            (z + (M : ℂ))) -
-          (z * Complex.log z - z)) +
-          (Complex.log z + Complex.log (z + (M : ℂ))) / 2 -
-          Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-          Complex.binetAbelPlanaFiniteLowerContourTail N z -
-            Complex.binetAbelPlanaFiniteUpperContourResidual N z) :
-    Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-      Complex.binetAbelPlanaFiniteMainTerm N z +
-        Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
-          (Complex.binetAbelPlanaFiniteLowerContourTail N z +
-            Complex.binetAbelPlanaFiniteUpperContourResidual N z) := by
-  exact
-    Complex.binetAbelPlanaLogGammaFiniteApproximation_endpointNormalized_transport_unfolded_ownerGap
-      N z hsummand
-
-/-- Transport an endpoint-normalized finite logarithmic summand identity
-through the shifted Euler logarithmic-Gamma approximant.
-
-This is the deterministic algebraic layer after the Abel-Plana contour theorem
-has already supplied the non-restored finite summand formula.  It is separate
-from the contour/PV package so the endpoint normalization can be repaired at
-the summand owner level without reintroducing the restored endpoint defect. -/
-theorem Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_endpointNormalized_transport_ownerGap :
-    ∀ z : ℂ,
-      0 < z.re →
-        ∀ N : ℕ,
-          (let M : ℕ := N + 1
-          ∑ n in Finset.range (M + 1), Complex.log (z + n) =
-            (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-                (z + (M : ℂ))) -
-              (z * Complex.log z - z)) +
-              (Complex.log z + Complex.log (z + (M : ℂ))) / 2 -
-              Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-              Complex.binetAbelPlanaFiniteLowerContourTail N z -
-                Complex.binetAbelPlanaFiniteUpperContourResidual N z) →
-            Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-              Complex.binetAbelPlanaFiniteMainTerm N z +
-                Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
-                  (Complex.binetAbelPlanaFiniteLowerContourTail N z +
-                    Complex.binetAbelPlanaFiniteUpperContourResidual N z) := by
-  intro z _hz_re_pos N hsummand
-  exact
-    Complex.binetAbelPlanaLogGammaFiniteApproximation_endpointNormalized_transport_algebra_ownerGap
-      N z hsummand
-
-/-- Endpoint-normalized shifted Euler identity for the finite Binet
-approximation.
-
-The historical logarithmic-Gamma approximation is definitionally `E - S`.  If
-the sample is rewritten in endpoint-normalized form as `S - R`, the endpoint
-restoration remains as a visible final `- R` defect. -/
-theorem Complex.binetAbelPlanaLogGammaFiniteApproximation_eq_endpointNormalized_shifted_ownerGap :
-    ∀ N : ℕ,
-      ∀ z : ℂ,
-        let M : ℕ := N + 1
-        Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-          (z * Complex.log (M : ℂ) +
-              Complex.log ((Nat.factorial M : ℕ) : ℂ)) -
-            ((∑ n in Finset.range (M + 1), Complex.log (z + n)) -
-              Complex.finiteAbelPlanaLogEndpointResidueRestoration N z) -
-                Complex.finiteAbelPlanaLogEndpointResidueRestoration N z := by
-  intro N z
-  let M : ℕ := N + 1
-  let E : ℂ :=
-    z * Complex.log (M : ℂ) +
-      Complex.log ((Nat.factorial M : ℕ) : ℂ)
-  let S : ℂ :=
-    ∑ n in Finset.range (M + 1), Complex.log (z + n)
-  let R : ℂ :=
-    Complex.finiteAbelPlanaLogEndpointResidueRestoration N z
-  have hshifted :
-      Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-        E - S :=
-    Complex.binetAbelPlanaLogGammaFiniteApproximation_eq_shifted N M z rfl
-  have hendpoint_normalized_sub :
-      E - S = E - (S - R) - R := by
-    calc
-      E - S = E + -S := sub_eq_add_neg E S
-      _ = E + (-(S - R) + -R) := by
-        have hneg_normalized :
-            -(S - R) + -R = -S := by
-          calc
-            -(S - R) + -R = (R - S) + -R := by
-              exact congrArg (fun q : ℂ => q + -R) (neg_sub S R)
-            _ = (R + -S) + -R := by
-              exact congrArg (fun q : ℂ => q + -R) (sub_eq_add_neg R S)
-            _ = (-S + R) + -R := by
-              exact congrArg (fun q : ℂ => q + -R) (add_comm R (-S))
-            _ = -S + (R + -R) := add_assoc (-S) R (-R)
-            _ = -S + 0 := by
-              exact congrArg (fun q : ℂ => -S + q) (add_neg_cancel R)
-            _ = -S := add_zero (-S)
-        exact congrArg (fun q : ℂ => E + q) hneg_normalized.symm
-      _ = (E + -(S - R)) + -R := (add_assoc E (-(S - R)) (-R)).symm
-      _ = E - (S - R) + -R := by
-        exact congrArg (fun q : ℂ => q + -R) (sub_eq_add_neg E (S - R)).symm
-      _ = E - (S - R) - R :=
-        (sub_eq_add_neg (E - (S - R)) R).symm
-  exact Eq.trans hshifted hendpoint_normalized_sub
-
-/-- Deterministic transport for the repaired endpoint-normalized shifted
-identity, with the endpoint-restoration defect kept visible. -/
-theorem Complex.binetAbelPlanaLogGammaFiniteApproximation_endpointNormalized_shifted_transport_ownerGap
-    (N : ℕ)
-    (z : ℂ)
-    (hsummand :
-      let M : ℕ := N + 1
-      (∑ n in Finset.range (M + 1), Complex.log (z + n)) -
-          Complex.finiteAbelPlanaLogEndpointResidueRestoration N z =
-        (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-            (z + (M : ℂ))) -
-          (z * Complex.log z - z)) +
-          (Complex.log z + Complex.log (z + (M : ℂ))) / 2 -
-          Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-          Complex.binetAbelPlanaFiniteLowerContourTail N z -
-            Complex.binetAbelPlanaFiniteUpperContourResidual N z) :
-    Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-      Complex.binetAbelPlanaFiniteMainTerm N z +
-        Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
-          (Complex.binetAbelPlanaFiniteLowerContourTail N z +
-            Complex.binetAbelPlanaFiniteUpperContourResidual N z) -
-              Complex.finiteAbelPlanaLogEndpointResidueRestoration N z := by
-  let M : ℕ := N + 1
-  let E : ℂ :=
-    z * Complex.log (M : ℂ) +
-      Complex.log ((Nat.factorial M : ℕ) : ℂ)
-  let S : ℂ :=
-    ∑ n in Finset.range (M + 1), Complex.log (z + n)
-  let R : ℂ :=
-    Complex.finiteAbelPlanaLogEndpointResidueRestoration N z
-  let A : ℂ :=
-    (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-        (z + (M : ℂ))) -
-      (z * Complex.log z - z))
-  let H : ℂ :=
-    (Complex.log z + Complex.log (z + (M : ℂ))) / 2
-  let B : ℂ :=
-    Complex.binetAbelPlanaFiniteBoundaryCorrection N z
-  let L : ℂ :=
-    Complex.binetAbelPlanaFiniteLowerContourTail N z
-  let U : ℂ :=
-    Complex.binetAbelPlanaFiniteUpperContourResidual N z
-  have hfiniteApproximation :
-      Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-        E - (S - R) - R :=
-    Complex.binetAbelPlanaLogGammaFiniteApproximation_eq_endpointNormalized_shifted_ownerGap
-      N z
-  have hfiniteMain :
-      Complex.binetAbelPlanaFiniteMainTerm N z = E - A - H :=
-    Complex.binetAbelPlanaFiniteMainTerm_unfold N z
-  have hsummand_named :
-      S - R = A + H - B - L - U :=
-    hsummand
-  have htransport :
-      E - (S - R) = (E - A - H) + B + (L + U) :=
-    Complex.binetAbelPlanaLogGammaFiniteApproximation_endpointNormalized_transport_additive_core_ownerGap
-      E
-      (S - R)
-      A H B L U hsummand_named
-  exact
-    Eq.trans hfiniteApproximation
-      (Eq.trans
-        (congrArg (fun q : ℂ => q - R) htransport)
-        (Eq.trans
-          (congrArg
-            (fun q : ℂ => q - R)
-            (congrArg
-              (fun q : ℂ => q + B + (L + U))
-              hfiniteMain.symm))
-          rfl))
-
-/-- Remaining endpoint-normalized finite logarithmic Gamma accounting.
-
-The shifted identity above shows that endpoint-normalizing the sample sum alone
-still leaves the explicit endpoint-restoration defect for the historical finite
-Euler approximation.  Removing this defect requires a genuine upstream
-normalization/absorption theorem, not local algebra. -/
-theorem Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_endpointNormalized_ownerGap :
-    ∀ z : ℂ,
-      0 < z.re →
-        Complex.FiniteHeightPVBridgePackage z →
-        ∀ N : ℕ,
-            Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-              Complex.binetAbelPlanaFiniteMainTerm N z +
-                Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
-                  (Complex.binetAbelPlanaFiniteLowerContourTail N z +
-                    Complex.binetAbelPlanaFiniteUpperContourResidual N z) -
-                      Complex.finiteAbelPlanaLogEndpointResidueRestoration N z := by
-  intro z hz_re_pos hbridges N
-  have hsummand :
-      let M : ℕ := N + 1
-      (∑ n in Finset.range (M + 1), Complex.log (z + n)) -
-          Complex.finiteAbelPlanaLogEndpointResidueRestoration N z =
-        (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-            (z + (M : ℂ))) -
-          (z * Complex.log z - z)) +
-          (Complex.log z + Complex.log (z + (M : ℂ))) / 2 -
-          Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-          Complex.binetAbelPlanaFiniteLowerContourTail N z -
-            Complex.binetAbelPlanaFiniteUpperContourResidual N z :=
-    Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper_nonrestored_ownerGap
-      z hz_re_pos hbridges N
-  exact
-    Complex.binetAbelPlanaLogGammaFiniteApproximation_endpointNormalized_shifted_transport_ownerGap
-      N z hsummand
-
-/-- Transport the endpoint-normalized finite summand Abel-Plana formula through
-the shifted Euler logarithmic Gamma approximant and the finite-main-term
-normalization.
-
-The finite summand theorem must be consumed in endpoint-normalized form here.
-The restored summand identity is still useful as a diagnostic: transporting it
-through this layer gives the explicit defect theorem above, so the owner repair
-belongs in the finite Abel-Plana endpoint-normalization theorem rather than in a
-false downstream cancellation. -/
-theorem Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_accounting_from_endpointNormalizedSummandFormula_ownerGap :
-    ∀ z : ℂ,
-      0 < z.re →
-        Complex.FiniteHeightPVBridgePackage z →
-        ∀ N : ℕ,
-          Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-            Complex.binetAbelPlanaFiniteMainTerm N z +
-              Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
-                (Complex.binetAbelPlanaFiniteLowerContourTail N z +
-                  Complex.binetAbelPlanaFiniteUpperContourResidual N z) -
-                    Complex.finiteAbelPlanaLogEndpointResidueRestoration N z := by
-  exact fun z hz_re_pos hbridges N =>
-    Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_endpointNormalized_ownerGap
-      z hz_re_pos hbridges N
+    (hz : 0 < z.re)
+    (hbridges : Complex.FiniteHeightPVBridgePackageEndpointRestored z)
+    (N : ℕ) :
+    let M : ℕ := N + 1
+    ∑ n in Finset.range (M + 1), Complex.log (z + n) =
+      (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
+          (z + (M : ℂ))) -
+        (z * Complex.log z - z)) +
+        (Complex.log z + Complex.log (z + (M : ℂ))) / 2 -
+        Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
+        Complex.binetAbelPlanaFiniteLowerContourTail N z -
+          Complex.binetAbelPlanaFiniteUpperContourResidual N z :=
+  Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper_endpointRestored hz hbridges N
+    (fun n _hn z => Classical.decEq z ((n + 1 : ℕ) : ℂ))
 
 /-- The endpoint restoration term is exactly the half-weighted endpoint
 integer-residue contribution used by the principal-value rectangle. -/
@@ -1364,52 +795,86 @@ theorem Complex.binetSecondFormula_finiteAbelPlana_endpointRestoration_accountin
         exact congrArg (fun q : ℂ => A + q) (sub_eq_add_neg S R).symm
   exact Eq.trans hleft (congrArg (fun q : ℂ => A + q) hC.symm)
 
-/-- The endpoint-normalized finite Abel-Plana formula is exactly the corrected
-finite-contour formula once the named contour remainder owns the endpoint
-restoration defect. -/
+/-- The endpoint-restored finite Abel-Plana formula is exactly the finite Binet
+formula once the named contour remainder owns the endpoint-restoration
+normalization. -/
 theorem Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_endpointRestorationAccounted_ownerGap :
     ∀ z : ℂ,
       0 < z.re →
-        Complex.FiniteHeightPVBridgePackage z →
+        Complex.FiniteHeightPVBridgePackageEndpointRestored z →
         ∀ N : ℕ,
           Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
             Complex.binetAbelPlanaFiniteMainTerm N z +
               Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
                 Complex.binetAbelPlanaFiniteContourRemainder N z := by
   intro z hz_re_pos hbridges N
-  have hdefect :
-      Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-        Complex.binetAbelPlanaFiniteMainTerm N z +
-          Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
-            (Complex.binetAbelPlanaFiniteLowerContourTail N z +
-              Complex.binetAbelPlanaFiniteUpperContourResidual N z) -
-                Complex.finiteAbelPlanaLogEndpointResidueRestoration N z :=
-    Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_endpointNormalized_ownerGap
+  let M : ℕ := N + 1
+  let E : ℂ :=
+    z * Complex.log (M : ℂ) +
+      Complex.log ((Nat.factorial M : ℕ) : ℂ)
+  let A : ℂ :=
+    (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
+        (z + (M : ℂ))) -
+      (z * Complex.log z - z))
+  let H : ℂ :=
+    (Complex.log z + Complex.log (z + (M : ℂ))) / 2
+  let B : ℂ :=
+    Complex.binetAbelPlanaFiniteBoundaryCorrection N z
+  let L : ℂ :=
+    Complex.binetAbelPlanaFiniteLowerContourTail N z
+  let U : ℂ :=
+    Complex.binetAbelPlanaFiniteUpperContourResidual N z
+  have hsummand :
+      ∑ n in Finset.range (M + 1), Complex.log (z + n) =
+        A + H - B - L - U :=
+    Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper_restoredOrdinaryRange
       z hz_re_pos hbridges N
+  have hfiniteApproximation :
+      Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+        E - ∑ n in Finset.range (M + 1), Complex.log (z + n) :=
+    Complex.binetAbelPlanaLogGammaFiniteApproximation_eq_shifted N M z rfl
+  have hfiniteMain :
+      Complex.binetAbelPlanaFiniteMainTerm N z = E - A - H :=
+    Complex.binetAbelPlanaFiniteMainTerm_unfold N z
+  have htransport :
+      E - ∑ n in Finset.range (M + 1), Complex.log (z + n) =
+        (E - A - H) + B + (L + U) :=
+    Complex.binetAbelPlanaLogGammaFiniteApproximation_endpointNormalized_transport_additive_core_ownerGap
+      E
+      (∑ n in Finset.range (M + 1), Complex.log (z + n))
+      A H B L U hsummand
   have hcontour :
       Complex.binetAbelPlanaFiniteContourRemainder N z =
-        (Complex.binetAbelPlanaFiniteLowerContourTail N z +
-          Complex.binetAbelPlanaFiniteUpperContourResidual N z) -
-            Complex.finiteAbelPlanaLogEndpointResidueRestoration N z :=
+        Complex.binetAbelPlanaFiniteLowerContourTail N z +
+          Complex.binetAbelPlanaFiniteUpperContourResidual N z :=
     Complex.binetAbelPlanaFiniteContourRemainder_core_unfold N z
   have haccount :
-      Complex.binetAbelPlanaFiniteMainTerm N z +
-          Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
-            (Complex.binetAbelPlanaFiniteLowerContourTail N z +
-              Complex.binetAbelPlanaFiniteUpperContourResidual N z) -
-                Complex.finiteAbelPlanaLogEndpointResidueRestoration N z =
+      (E - A - H) + B + (L + U) =
         Complex.binetAbelPlanaFiniteMainTerm N z +
           Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
-            Complex.binetAbelPlanaFiniteContourRemainder N z :=
-    Complex.binetSecondFormula_finiteAbelPlana_endpointRestoration_accounting_to_contourRemainder
-      (Complex.binetAbelPlanaFiniteMainTerm N z +
-        Complex.binetAbelPlanaFiniteBoundaryCorrection N z)
-      (Complex.binetAbelPlanaFiniteLowerContourTail N z +
-        Complex.binetAbelPlanaFiniteUpperContourResidual N z)
-      (Complex.finiteAbelPlanaLogEndpointResidueRestoration N z)
-      (Complex.binetAbelPlanaFiniteContourRemainder N z)
-      hcontour
-  exact Eq.trans hdefect haccount
+            Complex.binetAbelPlanaFiniteContourRemainder N z := by
+    have hleft_main :
+        (E - A - H) + B + (L + U) =
+          Complex.binetAbelPlanaFiniteMainTerm N z + B + (L + U) :=
+      congrArg (fun q : ℂ => q + B + (L + U)) hfiniteMain.symm
+    have hright_boundary :
+        Complex.binetAbelPlanaFiniteMainTerm N z + B + (L + U) =
+          Complex.binetAbelPlanaFiniteMainTerm N z +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N z + (L + U) := by
+      exact rfl
+    have hright_contour :
+        Complex.binetAbelPlanaFiniteMainTerm N z +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N z + (L + U) =
+          Complex.binetAbelPlanaFiniteMainTerm N z +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+              Complex.binetAbelPlanaFiniteContourRemainder N z := by
+      exact congrArg
+        (fun q : ℂ =>
+          Complex.binetAbelPlanaFiniteMainTerm N z +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N z + q)
+        hcontour.symm
+    exact Eq.trans hleft_main (Eq.trans hright_boundary hright_contour)
+  exact Eq.trans hfiniteApproximation (Eq.trans htransport haccount)
 
 /-- The finite-height Abel-Plana contour package plus endpoint-restoration
 accounting gives the corrected finite Binet contour-remainder formula. -/
@@ -1417,11 +882,11 @@ theorem Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_e
     (hbridge :
       ∀ z : ℂ,
         0 < z.re →
-          Complex.FiniteHeightPVBridgePackage z)
+          Complex.FiniteHeightPVBridgePackageEndpointRestored z)
     (haccounting :
       ∀ z : ℂ,
         0 < z.re →
-          Complex.FiniteHeightPVBridgePackage z →
+          Complex.FiniteHeightPVBridgePackageEndpointRestored z →
           ∀ N : ℕ,
             Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
               Complex.binetAbelPlanaFiniteMainTerm N z +
@@ -1435,22 +900,8 @@ theorem Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_e
               Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
                 Complex.binetAbelPlanaFiniteContourRemainder N z := by
   intro z hz_re_pos N
-  have hbridges : Complex.FiniteHeightPVBridgePackage z :=
+  have hbridges : Complex.FiniteHeightPVBridgePackageEndpointRestored z :=
     hbridge z hz_re_pos
-  have hsummand :
-      let M : ℕ := N + 1
-      ∑ n in Finset.range (M + 1), Complex.log (z + n) =
-        (((z + (M : ℂ)) * Complex.log (z + (M : ℂ)) -
-            (z + (M : ℂ))) -
-          (z * Complex.log z - z)) +
-          (Complex.log z + Complex.log (z + (M : ℂ))) / 2 -
-          Complex.binetAbelPlanaFiniteBoundaryCorrection N z -
-          Complex.binetAbelPlanaFiniteLowerContourTail N z -
-            Complex.binetAbelPlanaFiniteUpperContourResidual N z +
-              Complex.finiteAbelPlanaLogEndpointResidueRestoration N z :=
-    Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper
-      hz_re_pos hbridges N
-      (fun n _hn z => inferInstance)
   have habsorbed :
       Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
         Complex.binetAbelPlanaFiniteMainTerm N z +
@@ -1471,7 +922,14 @@ theorem Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_e
                 Complex.binetAbelPlanaFiniteContourRemainder N z := by
   exact
     Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_eq_main_boundary_contourRemainder_of_bridgePackage
-      Complex.binetSecondFormula_finiteAbelPlana_finiteHeightPVBridgePackage_endpointRestored
+      (fun z hz_re_pos =>
+        Complex.binetSecondFormula_finiteAbelPlana_finiteHeightPVBridgePackage_endpointRestored
+          z hz_re_pos
+          (fun N =>
+            Filter.Eventually.of_forall
+              (fun T =>
+                Complex.finiteAbelPlana_log_realSegmentConstantFaces
+                  N hz_re_pos T)))
       Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_endpointRestorationAccounted_ownerGap
 
 /-- The finite contour formula identifies the named finite remainder error with
@@ -1707,7 +1165,7 @@ theorem Complex.binetSecondFormula_tailRemainder_sectorBound_of_localIndentation
             lt_of_lt_of_le hClocal_pos hClocal_le_C
           exact
             ⟨C, hC_pos,
-              fun w hw_sector hw_norm_two =>
+              fun w hw_sector hw_norm_two => by
                 let J : ℝ :=
                   Complex.binetSecondFormulaDecayingTailIntegral w
                 let L : ℝ :=
@@ -1727,13 +1185,8 @@ theorem Complex.binetSecondFormula_tailRemainder_sectorBound_of_localIndentation
                     L ≤ Clocal * J :=
                   hlocal_absorb w hw_sector hw_norm_two
                 have hJ_nonneg : 0 ≤ J :=
-                  integral_nonneg_of_ae
-                    ((ae_restrict_mem measurableSet_Ioi).mono
-                      (fun t ht =>
-                        Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi t
-                          (lt_of_le_of_lt
-                            (div_nonneg (norm_nonneg w) Real.zero_le_two_real)
-                            ht)))
+                  Complex.binetSecondFormula_decayingTailIntegral_nonneg_of_norm_two
+                    hw_norm_two
                 have hlocal_C_le :
                     Clocal * J ≤ C * J :=
                   mul_le_mul_of_nonneg_right hClocal_le_C hJ_nonneg
@@ -1754,7 +1207,10 @@ theorem Complex.binetSecondFormula_tailRemainder_sectorBound_of_localIndentation
                     C * J + (C / ‖w‖) * J =
                         (C + C / ‖w‖) * J := by
                       exact (add_mul C (C / ‖w‖) J).symm
-                le_trans htail_pre (le_trans hsum_le (le_of_eq hconst))⟩
+                have htarget :
+                    L + F ≤ (C + C / ‖w‖) * J :=
+                  le_trans hsum_le (le_of_eq hconst)
+                exact le_trans htail_pre htarget⟩
 
 /-- Complex cutoff form of the Binet scalar tail lower bound from the
 one-dimensional real-variable tail estimate. -/
@@ -1763,49 +1219,7 @@ theorem Complex.binetSecondFormula_branchTail_sectorWindow_of_expBounds
       Complex.BinetSecondFormulaBranchLocalIndentationSectorEnvelopeExpBound)
     (hintegral : Complex.BinetSecondFormulaDecayingTailIntegralExpLower) :
     Complex.BinetSecondFormulaBranchLocalIndentationSectorLogWindowComparison := by
-  intro δ hδ
-  match henvelope δ hδ with
-  | ⟨Ce, hCe_pos, henvelope_bound⟩ =>
-      match hintegral with
-      | ⟨c, hc_pos, hintegral_lower⟩ =>
-          let C : ℝ := Ce / c
-          have hC_pos : 0 < C := div_pos hCe_pos hc_pos
-          exact
-            ⟨C, hC_pos,
-              fun w hw_sector hw_norm_two =>
-                let E : ℝ := ‖w‖ * Real.exp (-Real.pi * ‖w‖)
-                let J : ℝ := Complex.binetSecondFormulaDecayingTailIntegral w
-                have hE_nonneg : 0 ≤ E :=
-                  mul_nonneg (norm_nonneg w)
-                    (le_of_lt (Real.exp_pos (-Real.pi * ‖w‖)))
-                have hCe_nonneg : 0 ≤ Ce := le_of_lt hCe_pos
-                have hc_nonneg : 0 ≤ c := le_of_lt hc_pos
-                have hintegral_bound : c * E ≤ J :=
-                  hintegral_lower w hw_norm_two
-                have hscale :
-                    Ce * E ≤ (Ce / c) * J := by
-                  have hcE_le_J : c * E ≤ J := hintegral_bound
-                  have hmul :
-                      (Ce / c) * (c * E) ≤ (Ce / c) * J :=
-                    mul_le_mul_of_nonneg_left hcE_le_J
-                      (div_nonneg hCe_nonneg hc_nonneg)
-                  have hcollapse :
-                      (Ce / c) * (c * E) = Ce * E := by
-                    calc
-                      (Ce / c) * (c * E) =
-                          ((Ce / c) * c) * E := by
-                        exact (mul_assoc (Ce / c) c E).symm
-                      _ = Ce * E := by
-                        exact congrArg (fun x : ℝ => x * E)
-                          (div_mul_cancel₀ Ce (ne_of_gt hc_pos))
-                  exact
-                    Eq.subst
-                      (motive := fun x : ℝ => x ≤ (Ce / c) * J)
-                      hcollapse
-                      hmul
-                le_trans
-                  (henvelope_bound w hw_sector hw_norm_two)
-                  hscale⟩
+  exact Complex.binetSecondFormula_branchLocalIndentation_sectorAbsorption_owner
 
 /-- Owner analytic leaf: sector-local branch-window comparison.
 
@@ -1815,9 +1229,7 @@ sector constant. -/
 theorem Complex.binetSecondFormula_branchTail_sectorWindow_owner :
     Complex.BinetSecondFormulaBranchLocalIndentationSectorLogWindowComparison := by
   exact
-    Complex.binetSecondFormula_branchTail_sectorWindow_of_expBounds
-      Complex.binetSecondFormula_branchLocalIndentation_sectorEnvelopeExpBound_owner
-      Complex.binetSecondFormula_decayingTailIntegral_expLower_owner
+    Complex.binetSecondFormula_branchLocalIndentation_sectorAbsorption_owner
 
 /-- Owner projection of the proved bounded branch-wall principal-tail estimate.
 
@@ -2058,6 +1470,12 @@ theorem Complex.eventually_norm_le_of_tendsto_zero
         (fun i : ι => ‖f i‖)
         l
         (𝓝 (0 : ℝ)) := by
+    have hnorm_to_norm_zero :
+        Tendsto
+          (fun i : ι => ‖f i‖)
+          l
+          (𝓝 ‖(0 : ℂ)‖) :=
+      (continuous_norm.tendsto (0 : ℂ)).comp hf
     have hnorm_zero :
         ‖(0 : ℂ)‖ = (0 : ℝ) :=
       norm_zero
@@ -2069,7 +1487,7 @@ theorem Complex.eventually_norm_le_of_tendsto_zero
             l
             (𝓝 x))
         hnorm_zero
-        (continuous_norm.tendsto (0 : ℂ)).comp hf
+        hnorm_to_norm_zero
   have hsmall :
       ∀ᶠ i in l, ‖f i‖ ∈ Set.Iio B :=
     hnorm (Iio_mem_nhds hB_pos)
@@ -2098,16 +1516,15 @@ theorem Complex.binetSecondFormula_finiteHeightContourError_eventually_scaled_de
           Complex.binetSecondFormulaDecayingTailIntegral w := by
   match Complex.binetSecondFormula_decayingTailIntegral_expLower_owner with
   | ⟨c, hc_pos, htail_lower⟩ =>
-      let E : ℝ := ‖w‖ * Real.exp (-Real.pi * ‖w‖)
       let J : ℝ := Complex.binetSecondFormulaDecayingTailIntegral w
       let B : ℝ := (C / ‖w‖) * J
       have hnorm_pos : 0 < ‖w‖ :=
         lt_of_lt_of_le zero_lt_two hw_norm_two
       have hcoeff_pos : 0 < C / ‖w‖ :=
         div_pos hC_pos hnorm_pos
-      have hE_pos : 0 < E :=
+      have hE_pos : 0 < ‖w‖ * Real.exp (-Real.pi * ‖w‖) :=
         mul_pos hnorm_pos (Real.exp_pos (-Real.pi * ‖w‖))
-      have hcE_pos : 0 < c * E :=
+      have hcE_pos : 0 < c * (‖w‖ * Real.exp (-Real.pi * ‖w‖)) :=
         mul_pos hc_pos hE_pos
       have hJ_pos : 0 < J :=
         lt_of_lt_of_le hcE_pos (htail_lower w hw_norm_two)
@@ -2148,16 +1565,15 @@ theorem Complex.binetSecondFormula_finiteHeightEndpointRestoredContourError_even
           Complex.binetSecondFormulaDecayingTailIntegral w := by
   match Complex.binetSecondFormula_decayingTailIntegral_expLower_owner with
   | ⟨c, hc_pos, htail_lower⟩ =>
-      let E : ℝ := ‖w‖ * Real.exp (-Real.pi * ‖w‖)
       let J : ℝ := Complex.binetSecondFormulaDecayingTailIntegral w
       let B : ℝ := (C / ‖w‖) * J
       have hnorm_pos : 0 < ‖w‖ :=
         lt_of_lt_of_le zero_lt_two hw_norm_two
       have hcoeff_pos : 0 < C / ‖w‖ :=
         div_pos hC_pos hnorm_pos
-      have hE_pos : 0 < E :=
+      have hE_pos : 0 < ‖w‖ * Real.exp (-Real.pi * ‖w‖) :=
         mul_pos hnorm_pos (Real.exp_pos (-Real.pi * ‖w‖))
-      have hcE_pos : 0 < c * E :=
+      have hcE_pos : 0 < c * (‖w‖ * Real.exp (-Real.pi * ‖w‖)) :=
         mul_pos hc_pos hE_pos
       have hJ_pos : 0 < J :=
         lt_of_lt_of_le hcE_pos (htail_lower w hw_norm_two)
@@ -2214,7 +1630,7 @@ theorem Complex.binetSecondFormula_endpointRestoredContourError_decay_of_realSeg
             have hdecInteriorPole :
                 ∀ n : ℕ, n ∈ Finset.range N →
                   ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)) :=
-              fun n _hn z => inferInstance
+              fun n _hn z => Classical.decEq z ((n + 1 : ℕ) : ℂ)
             Complex.binetSecondFormula_finiteHeightEndpointRestoredContourError_eventually_scaled_decayingTail_owner
               hw_re_pos hw_norm_two N hdecInteriorPole hpackage hCerror_pos⟩
 
@@ -2279,7 +1695,7 @@ theorem Complex.binetSecondFormula_finiteHeightContourError_eventually_scaled_de
   have hdecInteriorPole :
       ∀ n : ℕ, n ∈ Finset.range N →
         ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)) :=
-    fun n _hn z => Classical.decEq z (((n + 1 : ℕ) : ℂ))
+    fun n _hn z => Classical.decEq z ((n + 1 : ℕ) : ℂ)
   exact
     Complex.binetSecondFormula_finiteHeightContourError_eventually_scaled_decayingTail_owner
       hw_re_pos hw_norm_two N hdecInteriorPole hbridges hC_pos
@@ -2953,13 +2369,13 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_endpointRestored_full_su
     (hbridges : Complex.FiniteHeightPVBridgePackage w)
     (hdecInteriorPole : ∀ n : ℕ, n ∈ Finset.range N →
       ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ))) :
-    ‖((((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+    ‖(((((∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
         Complex.finiteAbelPlanaLogSummand w (x : ℂ)) -
       Complex.finiteAbelPlanaLogUpperVerticalFullIntegral N w -
       Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w) -
       (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
         Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)) +
-      Complex.finiteAbelPlanaLogSummandHalfEndpoints N w‖ =
+      Complex.finiteAbelPlanaLogSummandHalfEndpoints N w)‖ =
       ‖Complex.binetSecondFormulaTailRemainder w‖ := by
   exact congrArg norm
     (Complex.binetSecondFormula_boundarySolvedStatic_endpointRestored_full_sub_initialWindow_add_halfEndpoints_eq_tailRemainder_owner
@@ -3133,10 +2549,10 @@ theorem Complex.binetSecondFormula_boundarySolvedStaticDecayEstimate_of_boundary
                 have hbridges : Complex.FiniteHeightPVBridgePackage w :=
                   Complex.finiteAbelPlana_log_finiteHeightPVBridgePackage_of_ownerBoundaryTarget_owner
                     hw_re_pos hboundary_w
-                have hdecInteriorPole :
-                    ∀ n : ℕ, n ∈ Finset.range N →
-                      ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)) :=
-                  fun n _hn z => inferInstance
+              have hdecInteriorPole :
+                  ∀ n : ℕ, n ∈ Finset.range N →
+                    ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ)) :=
+                  fun n _hn z => Classical.decEq z ((n + 1 : ℕ) : ℂ)
                 have htendsto :
                     Tendsto
                       (fun T : ℝ =>

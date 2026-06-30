@@ -45,6 +45,31 @@ theorem Complex.add_sub_add_sub_add_eq_add_sub_sub_sub_add
     _ = (P + H - A - B - C) + R := rfl
     _ = P + H - A - B - C + R := rfl
 
+/-- Split a subtraction of a two-term boundary sum into successive
+subtractions. -/
+theorem Complex.add_sub_add_sub_eq_add_sub_sub
+    (P H A B C : ℂ) :
+    P + H - (A + B) - C =
+      P + H - A - B - C := by
+  calc
+    P + H - (A + B) - C =
+        (P + H - (A + B)) + -C := by
+      exact sub_eq_add_neg (P + H - (A + B)) C
+    _ = ((P + H) + -(A + B)) + -C := by
+      exact congrArg (fun x : ℂ => x + -C)
+        (sub_eq_add_neg (P + H) (A + B))
+    _ = ((P + H) + (-A + -B)) + -C := by
+      exact congrArg
+        (fun x : ℂ => ((P + H) + x) + -C)
+        (neg_add A B)
+    _ = (((P + H) + -A) + -B) + -C := by
+      exact congrArg (fun x : ℂ => x + -C)
+        (add_assoc (P + H) (-A) (-B)).symm
+    _ = ((P + H - A) - B) - C := by
+      exact congrArg (fun x : ℂ => x - C)
+        (sub_eq_add_neg (P + H - A) B).symm
+    _ = P + H - A - B - C := rfl
+
 /-- Stable wrapper for finite-height residue accounting with the orientation
 sign forced by `horizontalEdgeError = bottom - top`. -/
 theorem Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEdgeError
@@ -718,6 +743,326 @@ theorem Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper
               (Complex.binetAbelPlanaFiniteLowerContourTail N w)
               (Complex.binetAbelPlanaFiniteUpperContourResidual N w)
               (Complex.finiteAbelPlanaLogEndpointResidueRestoration N w)
+
+/-- Endpoint indentation and endpoint restoration are the same half-endpoint
+normalization term. -/
+theorem Complex.finiteAbelPlana_log_endpointPVIndentation_eq_endpointRestoration
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w =
+      Complex.finiteAbelPlanaLogEndpointResidueRestoration N w := by
+  calc
+    Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w =
+        Complex.finiteAbelPlanaLogSummandHalfEndpoints N w := by
+      exact Complex.finiteAbelPlana_log_endpointPVIndentationContribution_unfold N w
+    _ = Complex.finiteAbelPlanaLogEndpointResidueRestoration N w := by
+      rfl
+
+/-- Endpoint-restored principal-value cotangent formula.  The endpoint
+indentation carried by the restored finite-height package is exactly the
+ordinary endpoint restoration term. -/
+theorem Complex.finiteAbelPlana_log_principalValueCotangentFormula_endpointRestored
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (hbridges : Complex.FiniteHeightPVBridgePackageEndpointRestored w) :
+    ∀ N : ℕ,
+      (∀ n : ℕ, n ∈ Finset.range N →
+        ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ))) →
+      Complex.finiteAbelPlanaLogBoundaryNamedPieces N w =
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w +
+          Complex.finiteAbelPlanaLogEndpointResidueRestoration N w := by
+  intro N hdecInteriorPole
+  let E : ℂ := Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w
+  have hboundary :
+      Filter.Tendsto
+        (fun T : ℝ =>
+          Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T)
+        Filter.atTop
+        (𝓝 (Complex.finiteAbelPlanaLogBoundaryNamedPieces N w)) :=
+    Complex.finiteAbelPlana_log_boundaryNamedPiecesUpTo_tendsto_full hw N
+  have hrestored_error :
+      Filter.Tendsto
+        (fun T : ℝ =>
+          Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T)
+        Filter.atTop
+        (𝓝 (0 : ℂ)) :=
+    Complex.finiteAbelPlana_log_finiteHeightEndpointRestoredContourError_tendsto_zero
+      hw N hdecInteriorPole (hbridges N)
+  have herror_to_endpoint :
+      Filter.Tendsto
+        (fun T : ℝ => Complex.finiteAbelPlanaLogFiniteHeightContourError N w T)
+        Filter.atTop
+        (𝓝 E) := by
+    have hfun :
+        (fun T : ℝ => Complex.finiteAbelPlanaLogFiniteHeightContourError N w T) =
+          (fun T : ℝ =>
+            Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T + E) := by
+      funext T
+      calc
+        Complex.finiteAbelPlanaLogFiniteHeightContourError N w T =
+            (Complex.finiteAbelPlanaLogFiniteHeightContourError N w T - E) + E := by
+          exact (sub_add_cancel
+            (Complex.finiteAbelPlanaLogFiniteHeightContourError N w T) E).symm
+        _ =
+            Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T + E := by
+          rfl
+    have hsum :
+        Filter.Tendsto
+          (fun T : ℝ =>
+            Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T + E)
+          Filter.atTop
+          (𝓝 (0 + E)) :=
+      hrestored_error.add tendsto_const_nhds
+    have htarget : 0 + E = E :=
+      zero_add E
+    have htarget_nhds :
+        𝓝 (0 + E) = 𝓝 E :=
+      congrArg (fun q : ℂ => 𝓝 q) htarget
+    have hsum_endpoint :
+        Filter.Tendsto
+          (fun T : ℝ =>
+            Complex.finiteAbelPlanaLogFiniteHeightEndpointRestoredContourError N w T + E)
+          Filter.atTop
+          (𝓝 E) :=
+      htarget_nhds ▸ hsum
+    exact hfun ▸ hsum_endpoint
+  have hboundary_to_pv_endpoint :
+      Filter.Tendsto
+        (fun T : ℝ =>
+          Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T)
+        Filter.atTop
+        (𝓝 (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w + E)) := by
+    have hdecomp :
+        (fun T : ℝ =>
+          Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T) =
+          (fun T : ℝ =>
+            Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w +
+              Complex.finiteAbelPlanaLogFiniteHeightContourError N w T) := by
+      funext T
+      exact
+        Complex.finiteAbelPlana_log_boundaryNamedPiecesUpTo_eq_residueSum_add_error
+          N w T
+    have hsum :
+        Filter.Tendsto
+          (fun T : ℝ =>
+            Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w +
+              Complex.finiteAbelPlanaLogFiniteHeightContourError N w T)
+          Filter.atTop
+          (𝓝 (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w + E)) :=
+      tendsto_const_nhds.add herror_to_endpoint
+    exact hdecomp.symm ▸ hsum
+  have hboundary_eq :
+      Complex.finiteAbelPlanaLogBoundaryNamedPieces N w =
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w + E :=
+    tendsto_nhds_unique hboundary hboundary_to_pv_endpoint
+  have hendpoint :
+      E = Complex.finiteAbelPlanaLogEndpointResidueRestoration N w :=
+    Complex.finiteAbelPlana_log_endpointPVIndentation_eq_endpointRestoration N w
+  exact Eq.trans hboundary_eq
+    (congrArg
+      (fun q : ℂ => Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w + q)
+      hendpoint)
+
+/-- The named finite Abel-Plana boundary pieces normalize to the Binet finite
+main boundary expression. -/
+theorem Complex.finiteAbelPlana_log_boundaryNamedPieces_eq_mainBoundaryUpper
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (N : ℕ) :
+    let M : ℕ := N + 1
+    Complex.finiteAbelPlanaLogBoundaryNamedPieces N w =
+      (((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+          (w + (M : ℂ))) -
+        (w * Complex.log w - w)) +
+        (Complex.log w + Complex.log (w + (M : ℂ))) / 2 -
+        Complex.binetAbelPlanaFiniteBoundaryCorrection N w -
+        Complex.binetAbelPlanaFiniteLowerContourTail N w -
+          Complex.binetAbelPlanaFiniteUpperContourResidual N w := by
+  let M : ℕ := N + 1
+  have hboundary :
+      Complex.finiteAbelPlanaLogBoundaryNamedPieces N w =
+        (∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+          Complex.finiteAbelPlanaLogSummand w (x : ℂ)) +
+          Complex.finiteAbelPlanaLogSummandHalfEndpoints N w -
+          Complex.finiteAbelPlanaLogSummandLowerVerticalIntegral N w -
+          Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w :=
+    Complex.finiteAbelPlana_log_boundaryNamedPieces_unfold N w
+  have hprimitive :
+      (∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+          Complex.finiteAbelPlanaLogSummand w (x : ℂ)) =
+        (((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+            (w + (M : ℂ))) -
+          (w * Complex.log w - w)) := by
+    exact Eq.trans
+      (Complex.finiteAbelPlana_log_summand_realSegmentIntegral_eq_endpointPrimitive
+        hw N)
+      (Complex.finiteAbelPlanaLogSummandEndpointPrimitive_unfold N w)
+  have hhalf :
+      Complex.finiteAbelPlanaLogSummandHalfEndpoints N w =
+        (Complex.log w + Complex.log (w + (M : ℂ))) / 2 := by
+    rfl
+  have hlower_name :
+      Complex.finiteAbelPlanaLogSummandLowerVerticalIntegral N w =
+        Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+          Complex.binetAbelPlanaFiniteLowerContourTail N w := by
+    rfl
+  have hupper_name :
+      Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w =
+        Complex.binetAbelPlanaFiniteUpperContourResidual N w := by
+    rfl
+  calc
+    Complex.finiteAbelPlanaLogBoundaryNamedPieces N w =
+        (∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+          Complex.finiteAbelPlanaLogSummand w (x : ℂ)) +
+          Complex.finiteAbelPlanaLogSummandHalfEndpoints N w -
+          Complex.finiteAbelPlanaLogSummandLowerVerticalIntegral N w -
+          Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w := by
+      exact hboundary
+    _ =
+        (((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+            (w + (M : ℂ))) -
+          (w * Complex.log w - w)) +
+          Complex.finiteAbelPlanaLogSummandHalfEndpoints N w -
+          Complex.finiteAbelPlanaLogSummandLowerVerticalIntegral N w -
+          Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w := by
+      exact congrArg
+        (fun t : ℂ =>
+          t +
+            Complex.finiteAbelPlanaLogSummandHalfEndpoints N w -
+            Complex.finiteAbelPlanaLogSummandLowerVerticalIntegral N w -
+            Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w)
+        hprimitive
+    _ =
+        (((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+            (w + (M : ℂ))) -
+          (w * Complex.log w - w)) +
+          (Complex.log w + Complex.log (w + (M : ℂ))) / 2 -
+          Complex.finiteAbelPlanaLogSummandLowerVerticalIntegral N w -
+          Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w := by
+      exact congrArg
+        (fun t : ℂ =>
+          (((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+              (w + (M : ℂ))) -
+            (w * Complex.log w - w)) +
+            t -
+            Complex.finiteAbelPlanaLogSummandLowerVerticalIntegral N w -
+            Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w)
+        hhalf
+    _ =
+        (((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+            (w + (M : ℂ))) -
+          (w * Complex.log w - w)) +
+          (Complex.log w + Complex.log (w + (M : ℂ))) / 2 -
+          (Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+            Complex.binetAbelPlanaFiniteLowerContourTail N w) -
+          Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w := by
+      exact congrArg
+        (fun t : ℂ =>
+          (((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+              (w + (M : ℂ))) -
+            (w * Complex.log w - w)) +
+            (Complex.log w + Complex.log (w + (M : ℂ))) / 2 -
+            t -
+            Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w)
+        hlower_name
+    _ =
+        (((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+            (w + (M : ℂ))) -
+          (w * Complex.log w - w)) +
+          (Complex.log w + Complex.log (w + (M : ℂ))) / 2 -
+          (Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+            Complex.binetAbelPlanaFiniteLowerContourTail N w) -
+          Complex.binetAbelPlanaFiniteUpperContourResidual N w := by
+      exact congrArg
+        (fun t : ℂ =>
+          (((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+              (w + (M : ℂ))) -
+            (w * Complex.log w - w)) +
+            (Complex.log w + Complex.log (w + (M : ℂ))) / 2 -
+            (Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteLowerContourTail N w) -
+            t)
+        hupper_name
+    _ =
+        (((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+            (w + (M : ℂ))) -
+          (w * Complex.log w - w)) +
+          (Complex.log w + Complex.log (w + (M : ℂ))) / 2 -
+          Complex.binetAbelPlanaFiniteBoundaryCorrection N w -
+          Complex.binetAbelPlanaFiniteLowerContourTail N w -
+          Complex.binetAbelPlanaFiniteUpperContourResidual N w := by
+      exact
+        Complex.add_sub_add_sub_eq_add_sub_sub
+          ((((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+              (w + (M : ℂ))) -
+            (w * Complex.log w - w)))
+          ((Complex.log w + Complex.log (w + (M : ℂ))) / 2)
+          (Complex.binetAbelPlanaFiniteBoundaryCorrection N w)
+          (Complex.binetAbelPlanaFiniteLowerContourTail N w)
+          (Complex.binetAbelPlanaFiniteUpperContourResidual N w)
+
+/-- Endpoint-restored finite Abel-Plana summation formula for the logarithmic
+summand.  In this normalization the endpoint restoration is already part of the
+principal-value side, so no extra endpoint term remains on the right. -/
+theorem Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper_endpointRestored
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (hbridges : Complex.FiniteHeightPVBridgePackageEndpointRestored w) :
+    ∀ N : ℕ,
+      (∀ n : ℕ, n ∈ Finset.range N →
+        ∀ z : ℂ, Decidable (z = ((n + 1 : ℕ) : ℂ))) →
+      let M : ℕ := N + 1
+      ∑ n in Finset.range (M + 1), Complex.log (w + n) =
+        (((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+            (w + (M : ℂ))) -
+          (w * Complex.log w - w)) +
+          (Complex.log w + Complex.log (w + (M : ℂ))) / 2 -
+          Complex.binetAbelPlanaFiniteBoundaryCorrection N w -
+          Complex.binetAbelPlanaFiniteLowerContourTail N w -
+            Complex.binetAbelPlanaFiniteUpperContourResidual N w := by
+  intro N hdecInteriorPole
+  let M : ℕ := N + 1
+  have hsample :
+      Complex.finiteAbelPlanaLogIntegerResidueSum N w =
+        ∑ n in Finset.range (M + 1),
+          Complex.finiteAbelPlanaLogSummand w n :=
+    Complex.finiteAbelPlana_log_integerResidueSum_eq_summandRange N w
+  have hrestore :
+      Complex.finiteAbelPlanaLogIntegerResidueSum N w =
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w +
+          Complex.finiteAbelPlanaLogEndpointResidueRestoration N w :=
+    Complex.finiteAbelPlana_log_integerResidueSum_eq_pvResidue_add_endpointRestoration
+      N w
+  have hboundary_residue :
+      Complex.finiteAbelPlanaLogBoundaryNamedPieces N w =
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w +
+          Complex.finiteAbelPlanaLogEndpointResidueRestoration N w :=
+    Complex.finiteAbelPlana_log_principalValueCotangentFormula_endpointRestored
+      hw hbridges N hdecInteriorPole
+  have hsample_boundary :
+      ∑ n in Finset.range (M + 1), Complex.log (w + n) =
+        Complex.finiteAbelPlanaLogBoundaryNamedPieces N w := by
+    calc
+      ∑ n in Finset.range (M + 1), Complex.log (w + n) =
+          Complex.finiteAbelPlanaLogIntegerResidueSum N w := by
+        exact hsample.symm
+      _ =
+          Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w +
+            Complex.finiteAbelPlanaLogEndpointResidueRestoration N w := by
+        exact hrestore
+      _ = Complex.finiteAbelPlanaLogBoundaryNamedPieces N w := by
+        exact hboundary_residue.symm
+  have hboundary_main :
+      Complex.finiteAbelPlanaLogBoundaryNamedPieces N w =
+        (((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
+            (w + (M : ℂ))) -
+          (w * Complex.log w - w)) +
+          (Complex.log w + Complex.log (w + (M : ℂ))) / 2 -
+          Complex.binetAbelPlanaFiniteBoundaryCorrection N w -
+          Complex.binetAbelPlanaFiniteLowerContourTail N w -
+            Complex.binetAbelPlanaFiniteUpperContourResidual N w :=
+    Complex.finiteAbelPlana_log_boundaryNamedPieces_eq_mainBoundaryUpper hw N
+  exact hsample_boundary.trans hboundary_main
 
 end
 

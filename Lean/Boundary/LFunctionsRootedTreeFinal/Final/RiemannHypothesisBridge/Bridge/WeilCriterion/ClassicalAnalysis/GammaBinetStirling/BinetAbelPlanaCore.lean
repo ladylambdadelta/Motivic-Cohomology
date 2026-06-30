@@ -656,7 +656,7 @@ theorem Complex.sin_pi_mul_ne_zero_of_im_ne_zero
     hleft_im.symm.trans him
   have hz_zero : z.im = 0 := by
     match mul_eq_zero.mp hpi_mul with
-    | Or.inl hpi_zero => exact False.elim (Real.pi_ne_zero hpi_zero)
+    | Or.inl hpi_zero => exact (Real.pi_ne_zero hpi_zero).elim
     | Or.inr hz_zero => exact hz_zero
   exact hz hz_zero
 
@@ -677,7 +677,7 @@ theorem Complex.finiteAbelPlana_log_rectangle_sin_pi_zero_mem_integer_poles
     exact hneg_zero ▸ hz.2.1
   have him_neg : z.im < 0 := by
     exact hz.2.2
-  exact False.elim ((not_lt_of_ge him_pos.le) him_neg)
+  exact ((not_lt_of_ge him_pos.le) him_neg).elim
 
 /-- The residue contribution of the Abel-Plana cotangent kernel at an integer.
 
