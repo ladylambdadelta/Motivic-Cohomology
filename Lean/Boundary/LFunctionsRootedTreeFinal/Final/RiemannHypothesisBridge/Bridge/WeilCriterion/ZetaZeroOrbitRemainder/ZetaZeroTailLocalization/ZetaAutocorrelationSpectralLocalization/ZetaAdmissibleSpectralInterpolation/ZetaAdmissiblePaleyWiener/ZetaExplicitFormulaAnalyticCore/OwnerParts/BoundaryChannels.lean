@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.OwnerParts.BoundaryCancellation
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.OwnerParts.PrimePowerCoordinates
 
 /-!
 # Boundary explicit-formula analytic core
@@ -50,7 +50,7 @@ theorem zetaCompletedExplicitFormulaPrimePowerContribution_eq_primeContribution
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaPrimePowerContribution f =
       zetaCompletedExplicitFormulaPrimeContribution f := by
-  rfl
+  exact Eq.refl (zetaCompletedExplicitFormulaPrimePowerContribution f)
 
 /-- The archimedean contribution in the completed explicit formula. -/
 noncomputable def zetaCompletedExplicitFormulaArchimedeanContribution
@@ -68,14 +68,14 @@ theorem zetaCompletedExplicitFormulaPrimeContribution_eq
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaPrimeContribution f =
       zetaCompletedExplicitFormulaPrimePowerContribution f := by
-  rfl
+  exact Eq.refl (zetaCompletedExplicitFormulaPrimeContribution f)
 
 /-- The archimedean contribution is the spectral value at the self-paired basepoint. -/
 theorem zetaCompletedExplicitFormulaArchimedeanContribution_eq
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaArchimedeanContribution f =
       (2 : ℂ) * zetaCompletedExplicitFormulaPhi f 0 := by
-  rfl
+  exact Eq.refl (zetaCompletedExplicitFormulaArchimedeanContribution f)
 
 /-- The correction contribution is the centered pole correction at the basepoint. -/
 theorem zetaCompletedExplicitFormulaCorrectionContribution_eq
@@ -83,7 +83,7 @@ theorem zetaCompletedExplicitFormulaCorrectionContribution_eq
     zetaCompletedExplicitFormulaCorrectionContribution f =
       (1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ))) *
         zetaCompletedExplicitFormulaPhi f 0 := by
-  rfl
+  exact Eq.refl (zetaCompletedExplicitFormulaCorrectionContribution f)
 
 /-- The centered correction contribution vanishes on the zero admissible probe. -/
 theorem zetaCompletedExplicitFormulaCorrectionContribution_zero :
@@ -162,34 +162,34 @@ theorem completedBoundaryChannel_unfold
     (g : ZetaAdmissibleFunction) :
     completedBoundaryChannel g =
       zetaCompletedExplicitFormulaBoundarySumCore g := by
-  rfl
+  exact Eq.refl (completedBoundaryChannel g)
 
 /-- The prime boundary channel unfolds to the prime contribution. -/
 theorem primeBoundaryChannel_unfold
     (g : ZetaAdmissibleFunction) :
     primeBoundaryChannel g =
       zetaCompletedExplicitFormulaPrimeContribution g := by
-  rfl
+  exact Eq.refl (primeBoundaryChannel g)
 
 /-- The archimedean boundary channel unfolds to the archimedean contribution. -/
 theorem archimedeanBoundaryChannel_unfold
     (g : ZetaAdmissibleFunction) :
     archimedeanBoundaryChannel g =
       zetaCompletedExplicitFormulaArchimedeanContribution g := by
-  rfl
+  exact Eq.refl (archimedeanBoundaryChannel g)
 
 /-- The pole boundary channel unfolds to the correction contribution. -/
 theorem poleBoundaryChannel_unfold
     (g : ZetaAdmissibleFunction) :
     poleBoundaryChannel g =
       zetaCompletedExplicitFormulaCorrectionContribution g := by
-  rfl
+  exact Eq.refl (poleBoundaryChannel g)
 
 /-- The residual completion channel is zero in the current normalization. -/
 theorem completionBoundaryChannel_unfold
     (g : ZetaAdmissibleFunction) :
     completionBoundaryChannel g = 0 := by
-  rfl
+  exact Eq.refl (completionBoundaryChannel g)
 
 /-- The local channel decomposition of the completed boundary functional. -/
 theorem completedBoundaryChannel_eq_prime_add_archimedean_add_pole_add_completion
