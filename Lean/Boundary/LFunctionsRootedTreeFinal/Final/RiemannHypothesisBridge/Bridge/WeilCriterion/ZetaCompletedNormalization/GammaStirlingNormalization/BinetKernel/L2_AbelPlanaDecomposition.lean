@@ -1315,7 +1315,7 @@ theorem Complex.binetSecondFormula_boundedWindow_decay_of_weightedFullLogEnvelop
 legacy full principal-tail cancellation predicate.
 
 The far part of the split tail is already owned by
-`binetSecondFormula_principalTailKernel_integral_far_scaled_decay`.  Thus the
+`binetSecondFormula_principalTailKernel_integral_far_scaled_decay_owner`.  Thus the
 only analytic input to this assembly is the bounded window
 `Ioc (‖w‖ / 2) (2‖w‖)`, with the moving branch-wall exponential weight kept
 before any fixed `w.re`-window replacement. -/
@@ -1333,7 +1333,7 @@ theorem Complex.binetSecondFormula_branchWallPrincipalTailCancellation_of_bounde
     Complex.BinetSecondFormulaBranchWallPrincipalTailCancellation := by
   match hbounded with
   | ⟨Cbounded, hCbounded_pos, hbounded_estimate⟩ =>
-      match Complex.binetSecondFormula_principalTailKernel_integral_far_scaled_decay with
+      match Complex.binetSecondFormula_principalTailKernel_integral_far_scaled_decay_owner with
       | ⟨Cfar, hCfar_nonneg, hfar_estimate⟩ =>
           let C : ℝ := Cbounded + Cfar
           have hC_pos : 0 < C :=
@@ -1346,11 +1346,11 @@ theorem Complex.binetSecondFormula_branchWallPrincipalTailCancellation_of_bounde
                 let J : ℝ :=
                   Complex.binetSecondFormulaDecayingTailIntegral w
                 have hsplit :
-                    ∫ t : ℝ in Set.Ioi (‖w‖ / 2), P t ≤
+                  ∫ t : ℝ in Set.Ioi (‖w‖ / 2), P t ≤
                       (∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖), P t) +
                         (∫ t : ℝ in Set.Ioi (2 * ‖w‖), P t) :=
-                  Complex.binetSecondFormula_principalTailKernel_integral_le_boundedWindow_add_far
-                    (w := w) hw_re_pos
+                  Complex.binetSecondFormula_principalTailKernel_integral_le_boundedWindow_add_far_owner
+                    hw_re_pos
                 have htwice_split :
                     2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), P t ≤
                       2 *

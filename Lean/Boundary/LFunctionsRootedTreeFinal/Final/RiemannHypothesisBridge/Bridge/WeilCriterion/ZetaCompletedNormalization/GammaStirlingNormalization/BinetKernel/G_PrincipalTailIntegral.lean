@@ -143,6 +143,39 @@ theorem Complex.binetSecondFormula_principalTailKernel_integral_cancellation_est
           fun w hw_re_pos hw_norm_two =>
             hestimate w hw_re_pos (le_trans one_le_two hw_norm_two)⟩
 
+/-- Owner-level far-tail principal-kernel integral decay.
+
+This is the far part of the principal-tail split, already away from the
+branch-wall window. -/
+theorem Complex.binetSecondFormula_principalTailKernel_integral_far_scaled_decay_owner :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+      ∀ w : ℂ,
+        0 < w.re →
+          1 ≤ ‖w‖ →
+            2 * ∫ t : ℝ in Set.Ioi (2 * ‖w‖),
+                ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤
+              (C / ‖w‖) *
+                (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+                  t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  exact
+    Complex.binetSecondFormula_principalTailKernel_integral_far_scaled_decay
+
+/-- Owner-level split of the principal-tail norm integral into its bounded
+branch-wall window and far-tail pieces. -/
+theorem Complex.binetSecondFormula_principalTailKernel_integral_le_boundedWindow_add_far_owner
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+        ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤
+      (∫ t : ℝ in Set.Ioc (‖w‖ / 2) (2 * ‖w‖),
+        ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖) +
+      (∫ t : ℝ in Set.Ioi (2 * ‖w‖),
+        ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖) := by
+  exact
+    Complex.binetSecondFormula_principalTailKernel_integral_le_boundedWindow_add_far
+      (w := w) hw_re_pos
+
 /-- Pre-cancellation tail-remainder estimate with the branch-wall
 local-indentation term still visible.
 
