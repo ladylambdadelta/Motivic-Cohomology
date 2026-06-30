@@ -3,10 +3,8 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.J_ContourKernelAccounting
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.H_TailRemainderEstimates
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.K_BranchCoherence
-import Mathlib
 
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.L2_AbelPlanaDecomposition
-import Mathlib
 
 import Mathlib.Analysis.Complex.PhragmenLindelof
 import Mathlib.Data.Complex.Exponential
@@ -37,11 +35,11 @@ This file is a sequential owner sublayer split out of
 -/
 
 namespace Boundary
-
-namespace Boundary
 namespace LFunctions
 
 noncomputable section
+
+open Filter
 
 theorem Complex.binetSecondFormula_branchTail_wallCancellation_of_eventually_lowerVerticalUpTo_decay
     (hfinite :
@@ -955,8 +953,7 @@ theorem Complex.binetSecondFormula_boundarySolvedStatic_decay_of_boundaryTarget_
                               (-Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T))) =
                             Complex.finiteAbelPlanaLogNamedBoundaryFaceSum N w T :=
                       hboundary_bound w hw_re_pos hRboundary_le N
-                    exact
-                      ⟨N, hboundary_T, hstatic_T⟩⟩
+                    ⟨N, hboundary_T, hstatic_T⟩⟩
 
 /-- The lower-vertical difference decay predicate is exactly the public
 wall-cancellation theorem after transporting across the proved Binet tail
@@ -964,31 +961,30 @@ split. -/
 theorem Complex.binetSecondFormula_lowerVerticalDifference_decay_iff_wallCancellation :
     Complex.BinetSecondFormulaLowerVerticalDifferenceDecay ↔
       Complex.BinetSecondFormulaBranchWallContourCancellationTailAbsorption := by
-  constructor
-  · intro hdifference
-    exact
+  exact
+    Iff.intro
+      (fun hdifference =>
       Complex.binetSecondFormula_branchTail_wallCancellation_of_lowerVerticalDifference_decay
-        hdifference
-  · intro htail
-    match htail with
-    | ⟨R, C, hR_pos, hC_pos, htail_bound⟩ =>
-        exact
-          ⟨R, C, hR_pos, hC_pos,
-            fun w hw_re_pos hRle =>
-              have hnorm :
-                  ‖Complex.binetSecondFormulaTailRemainder w‖ =
-                    ‖Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w -
-                      (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
-                        Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)‖ :=
-                Complex.binetSecondFormula_tailRemainder_norm_eq_lowerVerticalFullIntegral_sub_initialWindow_norm_owner
-                  hw_re_pos
-              Eq.subst
-                (motive := fun x : ℝ =>
-                  x ≤
-                    (C / ‖w‖) *
-                      Complex.binetSecondFormulaDecayingTailIntegral w)
-                hnorm
-                (htail_bound w hw_re_pos hRle)⟩
+        hdifference)
+      (fun htail =>
+        match htail with
+        | ⟨R, C, hR_pos, hC_pos, htail_bound⟩ =>
+            ⟨R, C, hR_pos, hC_pos,
+              fun w hw_re_pos hRle =>
+                have hnorm :
+                    ‖Complex.binetSecondFormulaTailRemainder w‖ =
+                      ‖Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w -
+                        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+                          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)‖ :=
+                  Complex.binetSecondFormula_tailRemainder_norm_eq_lowerVerticalFullIntegral_sub_initialWindow_norm_owner
+                    hw_re_pos
+                Eq.subst
+                  (motive := fun x : ℝ =>
+                    x ≤
+                      (C / ‖w‖) *
+                        Complex.binetSecondFormulaDecayingTailIntegral w)
+                  hnorm
+                  (htail_bound w hw_re_pos hRle)⟩)
 
 /-- Constructor from a genuinely contour-deformed kernel comparison and a
 uniform full-sector kernel majorant to branch-wall tail absorption.
@@ -1006,7 +1002,7 @@ theorem Complex.binetSecondFormula_branchTail_wallCancellation_of_contourKernel_
       ∀ w : ℂ,
         0 < w.re →
         R ≤ ‖w‖ →
-          IntegrableOn
+          MeasureTheory.IntegrableOn
             (fun t : ℝ => K w t)
             (Set.Ioi (‖w‖ / 2)))
     (hmajorant : Complex.BinetSecondFormulaContourTailUniformMajorant K R C) :
@@ -1022,27 +1018,26 @@ theorem Complex.binetSecondFormula_branchTail_wallCancellation_of_contourKernel_
             (Ctail / ‖w‖) *
               (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
                 t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-    intro w hw_re_pos hRle
-    have hraw :
-        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), ‖K w t‖ ≤
-          ((2 * C) / ‖w‖) *
-            (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-              t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
-      Complex.binetSecondFormula_contourTailKernel_integral_decay_of_uniform_majorant
-        hK_integrable
-        hmajorant
-        w hw_re_pos hRle
-    have hCtail_eq : Ctail = 2 * C := by
-      rfl
-    exact
-      Eq.subst
-        (motive := fun x : ℝ =>
+    exact fun w hw_re_pos hRle =>
+      have hraw :
           2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), ‖K w t‖ ≤
-            (x / ‖w‖) *
+            ((2 * C) / ‖w‖) *
               (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))
-        hCtail_eq.symm
-        hraw
+                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+        Complex.binetSecondFormula_contourTailKernel_integral_decay_of_uniform_majorant
+          hK_integrable
+          hmajorant
+          w hw_re_pos hRle
+      have hCtail_eq : Ctail = 2 * C := by
+        rfl
+      Eq.subst
+          (motive := fun x : ℝ =>
+            2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), ‖K w t‖ ≤
+              (x / ‖w‖) *
+                (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+                  t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))
+          hCtail_eq.symm
+          hraw
   exact
     ⟨R, Ctail, hR_pos, hCtail_pos,
       Complex.binetSecondFormula_tailRemainder_norm_le_of_contourTailKernel_integral_decay
@@ -1089,7 +1084,7 @@ theorem Complex.binetSecondFormula_branchTail_wallCancellation_of_contourKernelP
           (∀ w : ℂ,
             0 < w.re →
             R ≤ ‖w‖ →
-              IntegrableOn
+              MeasureTheory.IntegrableOn
                 (fun t : ℝ => K w t)
                 (Set.Ioi (‖w‖ / 2))) ∧
           Complex.BinetSecondFormulaContourTailUniformMajorant K R C) :
@@ -1189,14 +1184,6 @@ theorem Complex.binetSecondFormula_branchLocalIndentation_sectorLogWindowCompari
     Complex.BinetSecondFormulaBranchLocalIndentationSectorLogWindowComparison := by
   exact
     Complex.binetSecondFormula_branchTail_sectorWindow_owner
-
-/-- Sector-local absorption is exactly the scalar log-window comparison, kept
-under the historical absorption name consumed by the later tail estimates. -/
-theorem Complex.binetSecondFormula_branchLocalIndentation_sectorAbsorption_owner :
-    Complex.BinetSecondFormulaBranchLocalIndentationSectorAbsorption := by
-  exact
-    Complex.BinetSecondFormulaBranchLocalIndentationSectorAbsorption_iff_logWindowComparison.mpr
-      Complex.binetSecondFormula_branchLocalIndentation_sectorLogWindowComparison_owner
 
 /-- Owner sector-local tail-remainder estimate after absorbing the
 local-indentation envelope. -/
@@ -1548,7 +1535,7 @@ theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalf
           ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := fun hbranch =>
   let ⟨Rlog, hRlog, hlog⟩ :=
     Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius
-  let ⟨Rtail, K, hRtail, hK, htail⟩ :=
+  let ⟨Rtail, K, _hRtail, hK, htail⟩ :=
     Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_requires_tail_absorption
       hbranch
   ⟨max Rlog Rtail, K,
@@ -1561,10 +1548,6 @@ theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalf
         le_trans (le_max_right Rlog Rtail) hnorm
       ⟨hlog w hw_re_pos hRlog_le,
         htail w hw_re_pos hRtail_le⟩⟩
-
-/-- Exponentiating Binet's logarithmic branch identity separates the main term
-from the Binet remainder. -/
-theorem Complex.Gamma_eq_exp_binetLogGammaMainTerm_mul_exp_binetRemainder_of_binetBranch
 
 end
 end LFunctions
