@@ -3,10 +3,9 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.J_ContourKernelAccounting
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.H_TailRemainderEstimates
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.K_BranchCoherence
-import Mathlib
 
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.L1_RemainderAndBoundaryDefinitions
-import Mathlib
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.BinetKernel.L3_TailAccountingAndCancellation
 
 import Mathlib.Analysis.Complex.PhragmenLindelof
 import Mathlib.Data.Complex.Exponential
@@ -35,8 +34,6 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 This file is a sequential owner sublayer split out of
 `ZetaCompletedNormalization.GammaStirlingNormalization.Owner`.  Declaration order is preserved.
 -/
-
-namespace Boundary
 
 namespace Boundary
 namespace LFunctions
@@ -485,12 +482,6 @@ theorem Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_norm_le_of_binetRe
       (Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_eq_exp_binetRemainder_sub_one
         hw_ne hexp_branch hbinet).symm
       (Complex.sqrt_two_pi_mul_exp_sub_one_norm_le_of_norm_le_one hE)
-
-/-- Unconditional Binet branch-uniform tail absorption theorem.
-
-This theorem bundles the Binet branch-tail decay bound with the branch-coherence property
-into a single unconditional statement. -/
-theorem Complex.binetSecondFormulaBranchUniformTailAbsorption_owner :
 
 end
 end LFunctions
