@@ -31,7 +31,9 @@ theorem zetaCompletedSpectralWeilForm_eq_zeroSide
 theorem zetaWeilFormCompleted_eq_zeroSide
     (φ : ZetaProbe) :
     zetaWeilFormCompleted φ = zetaCompletedZeroSideRe φ := by
-  rw [zetaWeilFormCompleted_def, zetaCompletedSpectralWeilForm_def]
+  exact
+    (zetaWeilFormCompleted_eq_completedSpectralWeilForm φ).trans
+      (zetaCompletedSpectralWeilForm_eq_zeroSide φ)
 
 end ZetaProbe
 

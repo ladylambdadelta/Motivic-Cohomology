@@ -26,7 +26,6 @@ def formalLog (f : K⟦X⟧) : K⟦X⟧ :=
         ((-1 : K) ^ (k + 1) / (k : K)) *
           PowerSeries.coeff K n ((f - 1) ^ k)
 
-@[simp]
 theorem coeff_formalLog_zero (f : K⟦X⟧) :
     PowerSeries.coeff K 0 (formalLog f) = 0 := by
   exact (PowerSeries.coeff_mk 0 (fun n =>

@@ -137,12 +137,17 @@ theorem weightedLaplaceKernel_bound_pointwise_on_support_of_nmem_bump
     ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖
         = ‖(t : ℂ) * 0 * Complex.exp (w * t)‖ := by
             exact congrArg (fun x => ‖(t : ℂ) * x * Complex.exp (w * t)‖) hzero
-    _ = 0 := by
-          simp
+    _ = ‖(0 : ℂ)‖ := by
+          exact congrArg norm
+            (calc
+              (t : ℂ) * 0 * Complex.exp (w * t) =
+                  0 * Complex.exp (w * t) := by
+                exact congrArg (fun z : ℂ => z * Complex.exp (w * t))
+                  (mul_zero (t : ℂ))
+              _ = 0 := zero_mul (Complex.exp (w * t)))
+    _ = 0 := norm_zero
     _ ≤ max C 0 + 1 := by
-          have hnonneg : (0 : ℝ) ≤ max C 0 + 1 := by
-            linarith [le_max_right C 0]
-          exact hnonneg
+          exact add_nonneg (le_max_right C 0) zero_le_one
 
 theorem weightedLaplaceKernel_bound_pointwise_on_support_of_nmem
     (φ : LFunctions.ZetaAdmissibleFunction) (z : ℂ) (C : ℝ)
@@ -191,10 +196,34 @@ theorem hasDerivAt_laplaceKernel_const_mul_exp_core
   have hconst : HasDerivAt (fun w : ℂ => φ t) 0 z := hasDerivAt_const z (φ t)
   have hexp : HasDerivAt (fun w : ℂ => Complex.exp (w * t))
       (Complex.exp (z * t) * (t : ℂ)) z := hasDerivAt_laplaceKernel_exp t z
-  have hprod : HasDerivAt (fun w : ℂ => φ t * Complex.exp (w * t))
+  have hprodRaw : HasDerivAt (fun w : ℂ => φ t * Complex.exp (w * t))
       (0 * (Complex.exp (z * t) * (t : ℂ)) + φ t * (Complex.exp (z * t) * (t : ℂ))) z := by
-    simpa [mul_assoc, mul_left_comm, mul_comm] using hconst.mul hexp
-  simpa [mul_assoc, mul_left_comm, mul_comm] using hprod
+    exact hconst.mul hexp
+  have htarget :
+      0 * (Complex.exp (z * t) * (t : ℂ)) +
+          φ t * (Complex.exp (z * t) * (t : ℂ)) =
+        (t : ℂ) * φ t * Complex.exp (z * t) := by
+    calc
+      0 * (Complex.exp (z * t) * (t : ℂ)) +
+          φ t * (Complex.exp (z * t) * (t : ℂ)) =
+          0 + φ t * (Complex.exp (z * t) * (t : ℂ)) := by
+        exact congrArg
+          (fun y : ℂ => y + φ t * (Complex.exp (z * t) * (t : ℂ)))
+          (zero_mul (Complex.exp (z * t) * (t : ℂ)))
+      _ = φ t * (Complex.exp (z * t) * (t : ℂ)) := zero_add _
+      _ = φ t * ((t : ℂ) * Complex.exp (z * t)) := by
+        exact congrArg (fun y : ℂ => φ t * y)
+          (mul_comm (Complex.exp (z * t)) (t : ℂ))
+      _ = (φ t * (t : ℂ)) * Complex.exp (z * t) :=
+        mul_assoc (φ t) (t : ℂ) (Complex.exp (z * t))
+      _ = ((t : ℂ) * φ t) * Complex.exp (z * t) := by
+        exact congrArg (fun y : ℂ => y * Complex.exp (z * t))
+          (mul_comm (φ t) (t : ℂ))
+      _ = (t : ℂ) * φ t * Complex.exp (z * t) := rfl
+  exact Eq.subst
+    (motive := fun d : ℂ =>
+      HasDerivAt (fun w : ℂ => φ t * Complex.exp (w * t)) d z)
+    htarget hprodRaw
 
 /-- The weighted Laplace kernel has the expected pointwise derivative in the spectral variable. -/
 theorem hasDerivAt_weightedLaplaceKernel
@@ -234,18 +263,31 @@ theorem weightedLaplaceKernel_bound_on_support_indicator
   refine hdom.mono ?_
   intro t ht w hw
   by_cases hts : t ∈ tsupport φ.toZetaTestFunction'
-  · rw [Set.indicator_of_mem hts]
-    exact ht w hw
+  · calc
+      ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖
+          ≤ C := ht w hw
+      _ =
+          Set.indicator (tsupport φ.toZetaTestFunction') (fun _ : ℝ => C) t := by
+            exact (Set.indicator_of_mem hts (fun _ : ℝ => C)).symm
   · have hzero : φ.toZetaTestFunction' t = 0 := image_eq_zero_of_nmem_tsupport hts
-    rw [Set.indicator_of_not_mem hts]
     calc
       ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖
           = ‖(t : ℂ) * 0 * Complex.exp (w * t)‖ := by
               exact congrArg (fun x => ‖(t : ℂ) * x * Complex.exp (w * t)‖) hzero
-      _ = 0 := by
-            simp
+      _ = ‖(0 : ℂ)‖ := by
+            exact congrArg norm
+              (calc
+                (t : ℂ) * 0 * Complex.exp (w * t) =
+                    0 * Complex.exp (w * t) := by
+                  exact congrArg (fun z : ℂ => z * Complex.exp (w * t))
+                    (mul_zero (t : ℂ))
+                _ = 0 := zero_mul (Complex.exp (w * t)))
+      _ = 0 := norm_zero
       _ ≤ 0 := by
             exact le_rfl
+      _ =
+          Set.indicator (tsupport φ.toZetaTestFunction') (fun _ : ℝ => C) t := by
+            exact (Set.indicator_of_not_mem hts (fun _ : ℝ => C)).symm
 
 /-- The zeta Laplace transform is differentiable at every spectral parameter. -/
 theorem aestronglyMeasurable_laplaceKernel_eventually

@@ -1314,8 +1314,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanContribution_convolutionAutocorre
           star (zetaCompletedExplicitFormulaPhi f 0)) := by
   unfold zetaCompletedExplicitFormulaArchimedeanContribution
   exact congrArg (fun z : ℂ => (2 : ℂ) * z)
-    (by
-      simpa using zetaCompletedExplicitFormulaPhi_convolutionAutocorrelation_real_pair f 0)
+    (zetaCompletedExplicitFormulaPhi_convolutionAutocorrelation_real_pair f 0)
 
 /-- The paired archimedean spectral packet contribution is the weighted paired product. -/
 theorem zetaCompletedExplicitFormulaArchimedeanConvolutionPairedContribution_eq_weightedPaired

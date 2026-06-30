@@ -27,57 +27,46 @@ def dual (a : HodgeNumberProfile) : HodgeNumberProfile :=
 def tateTwist (n : ℤ) (a : HodgeNumberProfile) : HodgeNumberProfile :=
   Hodge.twistProfile n a
 
-@[simp]
 theorem directSum_apply (a b : HodgeNumberProfile) (p q : ℤ) :
     directSum a b (p, q) = a (p, q) + b (p, q) :=
   rfl
 
-@[simp]
 theorem dual_apply (a : HodgeNumberProfile) (p q : ℤ) :
     dual a (p, q) = a (-p, -q) :=
   rfl
 
-@[simp]
 theorem tateTwist_apply (n : ℤ) (a : HodgeNumberProfile) (p q : ℤ) :
     tateTwist n a (p, q) = a (p + n, q + n) :=
   rfl
 
-@[simp]
 theorem dual_dual (a : HodgeNumberProfile) : dual (dual a) = a :=
   Hodge.BigradedRankProfile.dual_dual a
 
-@[simp]
 theorem tateTwist_zero (a : HodgeNumberProfile) : tateTwist 0 a = a :=
   Hodge.twistProfile_zero a
 
-@[simp]
 theorem directSum_comm (a b : HodgeNumberProfile) : directSum a b = directSum b a := by
   funext pq
   exact Nat.add_comm _ _
 
-@[simp]
 theorem directSum_assoc (a b c : HodgeNumberProfile) :
     directSum (directSum a b) c = directSum a (directSum b c) := by
   funext pq
   exact Nat.add_assoc _ _ _
 
-@[simp]
 theorem directSum_zero (a : HodgeNumberProfile) : directSum a 0 = a := by
   funext pq
   exact Nat.add_zero _
 
-@[simp]
 theorem zero_directSum (a : HodgeNumberProfile) : directSum 0 a = a := by
   funext pq
   exact zero_add _
 
-@[simp]
 theorem dual_directSum (a b : HodgeNumberProfile) :
     dual (directSum a b) = directSum (dual a) (dual b) := by
   funext pq
   rfl
 
-@[simp]
 theorem tateTwist_directSum (n : ℤ) (a b : HodgeNumberProfile) :
     tateTwist n (directSum a b) = directSum (tateTwist n a) (tateTwist n b) := by
   funext pq

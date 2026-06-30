@@ -40,20 +40,17 @@ def eulerPolynomial (F : Module.End K V) : K[X] :=
 def eulerFactor (F : Module.End K V) (T : K) : K :=
   (eulerPolynomial F).eval T
 
-@[simp]
 theorem eulerFactor_def (F : Module.End K V) (T : K) :
     eulerFactor F T = (eulerPolynomial F).eval T :=
   rfl
 
 /-- The constant term of the Euler polynomial is `1`. -/
-@[simp]
 theorem eulerPolynomial_coeff_zero (F : Module.End K V) :
     (eulerPolynomial F).coeff 0 = 1 := by
   exact (Polynomial.coeff_zero_reverse (F.charpoly)).trans
     (LinearMap.charpoly_monic F).leadingCoeff
 
 /-- The Euler factor is normalized to be `1` at `T = 0`. -/
-@[simp]
 theorem eulerFactor_zero (F : Module.End K V) :
     eulerFactor F 0 = 1 := by
   exact (Polynomial.coeff_zero_eq_eval_zero (eulerPolynomial F)).symm.trans

@@ -241,7 +241,6 @@ theorem power_product (A B : EndomorphismObject K) (n : ℕ) :
     (fun T => ({ product A B with endomorphism := T } : EndomorphismObject K))
     (endomorphism_product_pow A B n)
 
-@[simp]
 theorem power_one (A : EndomorphismObject K) :
     power A 1 = A := by
   cases A
@@ -303,13 +302,11 @@ theorem power_power (A : EndomorphismObject K) (m n : ℕ) :
              endomorphism := T } : EndomorphismObject K))
         (pow_mul endomorphism m n).symm
 
-@[simp]
 theorem tracePower_one_power (A : EndomorphismObject K) (n : ℕ) :
     tracePower 1 (power A n) = tracePower n A := by
   rfl
 
 /-- Determinants multiply under direct sums. -/
-@[simp]
 theorem determinantRatFunc_product (A B : EndomorphismObject K) :
     determinantRatFunc (product A B) = determinantRatFunc A * determinantRatFunc B := by
   change algebraMap (Polynomial K) (RatFunc K)
@@ -323,14 +320,12 @@ theorem determinantRatFunc_product (A B : EndomorphismObject K) :
       (eulerPolynomial A.endomorphism) (eulerPolynomial B.endomorphism))
 
 /-- Determinant units multiply under direct sums. -/
-@[simp]
 theorem determinantUnit_product (A B : EndomorphismObject K) :
     determinantUnit (product A B) = determinantUnit A * determinantUnit B := by
   ext
   exact determinantRatFunc_product A B
 
 /-- First traces add under direct sums. -/
-@[simp]
 theorem tracePower_one_product (A B : EndomorphismObject K) :
     tracePower 1 (product A B) = tracePower 1 A + tracePower 1 B := by
   change LinearMap.trace K (A.carrier × B.carrier)
@@ -340,7 +335,6 @@ theorem tracePower_one_product (A B : EndomorphismObject K) :
   exact LinearMap.trace_prodMap' A.endomorphism B.endomorphism
 
 /-- Trace powers add under direct sums. -/
-@[simp]
 theorem tracePower_product (A B : EndomorphismObject K) (n : ℕ) :
     tracePower n (product A B) = tracePower n A + tracePower n B := by
   change LinearMap.trace K (A.carrier × B.carrier) ((product A B).endomorphism ^ n) =
@@ -350,7 +344,6 @@ theorem tracePower_product (A B : EndomorphismObject K) (n : ℕ) :
     (congrArg (LinearMap.trace K (A.carrier × B.carrier)) (endomorphism_product_pow A B n))
     (LinearMap.trace_prodMap' (A.endomorphism ^ n) (B.endomorphism ^ n))
 
-@[simp]
 theorem determinantUnit_conj (A : EndomorphismObject K) {B : EndomorphismObject K}
     (e : A.carrier ≃ₗ[K] B.carrier) :
     determinantUnit (conj A e) = determinantUnit A := by
@@ -359,7 +352,6 @@ theorem determinantUnit_conj (A : EndomorphismObject K) {B : EndomorphismObject 
   exact congrArg (algebraMap (Polynomial K) (RatFunc K))
     (LinearEulerFactor.eulerPolynomial_conj e A.endomorphism)
 
-@[simp]
 theorem tracePower_conj (n : ℕ) (A : EndomorphismObject K) {B : EndomorphismObject K}
     (e : A.carrier ≃ₗ[K] B.carrier) :
     tracePower n (conj A e) = tracePower n A := by
