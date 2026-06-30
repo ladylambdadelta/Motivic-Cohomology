@@ -510,12 +510,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedTermKernel_tsum_integrable
   have hsummable :
       ∀ᵐ t : ℝ ∂(volume : Measure ℝ),
         Summable fun n : ℕ => (‖K n t‖₊ : ℝ) := by
-    rw [← MeasureTheory.lintegral_tsum hnormMeas] at hfinite
+    have hfinite_lintegral :
+        (∫⁻ t : ℝ,
+          ∑' n : ℕ, (‖K n t‖₊ : ℝ≥0∞) ∂(volume : Measure ℝ)) ≠ ∞ :=
+      Eq.subst
+        (motive := fun x : ℝ≥0∞ => x ≠ ∞)
+        (MeasureTheory.lintegral_tsum hnormMeas).symm
+        hfinite
     refine
-      (ae_lt_top' (AEMeasurable.ennreal_tsum hnormMeas) hfinite).mono ?_
+      (ae_lt_top' (AEMeasurable.ennreal_tsum hnormMeas) hfinite_lintegral).mono ?_
     intro t ht
-    rw [← ENNReal.tsum_coe_ne_top_iff_summable_coe]
-    exact ht.ne
+    exact ENNReal.tsum_coe_ne_top_iff_summable_coe.mp ht.ne
   have htsumMeas :
       AEStronglyMeasurable
         (fun t : ℝ => ∑' n : ℕ, K n t)
@@ -537,7 +542,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedTermKernel_tsum_integrable
       filter_upwards [hsummable] with t ht
       have hnorm :
           Summable fun n : ℕ => ‖K n t‖ := by
-        simpa [coe_nnnorm] using ht
+        exact ht
       exact hnorm.of_norm.hasSum.tendsto_sum_nat
     exact aestronglyMeasurable_of_tendsto_ae atTop hpartial hlim
   have hfiniteIntegral :
