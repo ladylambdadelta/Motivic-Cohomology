@@ -333,8 +333,12 @@ theorem zetaCenteredZero_not_mem_daggerClosed_orbitSpectralSample_of_completedZe
     rcases Finset.mem_image.mp hrefl with ⟨w, hwsamp, hweq⟩
     unfold zetaZeroOrbitSpectralSampleFinset at hwsamp
     rcases Finset.mem_image.mp hwsamp with ⟨θ, hθorbit, hθw⟩
-    rw [← hθw] at hweq
-    have hweq' : -star (zetaCenteredZero θ) = zetaCenteredZero η := hweq
+    have hweq' : -star (zetaCenteredZero θ) = zetaCenteredZero η := by
+      exact
+        Eq.subst
+          (motive := fun x : ℂ => -star x = zetaCenteredZero η)
+          hθw.symm
+          hweq
     have hre :
         (-star (zetaCenteredZero θ)).re = (zetaCenteredZero η).re :=
       congrArg Complex.re hweq'
