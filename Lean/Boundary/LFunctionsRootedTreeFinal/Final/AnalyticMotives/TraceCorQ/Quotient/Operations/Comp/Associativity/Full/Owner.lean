@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Quotient.Operations.Comp.Associativity.FormalSums.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Quotient.Operations.Comp.Associativity.Full.Edges.Owner
 
 /-!
 # Full associativity normalization for quotient trace-correspondence composition
@@ -25,14 +25,16 @@ theorem TraceCorQQuotient.comp_assoc_four_left
           second
           (TraceCorQQuotient.comp third fourth)) :=
   Eq.trans
-    (TraceCorQQuotient.comp_assoc
-      (TraceCorQQuotient.comp first second)
-      third
-      fourth)
-    (TraceCorQQuotient.comp_assoc
+    (TraceCorQQuotient.comp_assoc_four_left_outer_edge
       first
       second
-      (TraceCorQQuotient.comp third fourth))
+      third
+      fourth)
+    (TraceCorQQuotient.comp_assoc_four_left_inner_edge
+      first
+      second
+      third
+      fourth)
 
 /-- Normalize the quotient composite with the middle pair associated first. -/
 theorem TraceCorQQuotient.comp_assoc_four_middle_left
@@ -48,17 +50,16 @@ theorem TraceCorQQuotient.comp_assoc_four_middle_left
           second
           (TraceCorQQuotient.comp third fourth)) :=
   Eq.trans
-    (TraceCorQQuotient.comp_assoc
+    (TraceCorQQuotient.comp_assoc_four_middle_left_outer_edge
       first
-      (TraceCorQQuotient.comp second third)
+      second
+      third
       fourth)
-    (congrArg
-      (fun tail =>
-        TraceCorQQuotient.comp first tail)
-      (TraceCorQQuotient.comp_assoc
-        second
-        third
-        fourth))
+    (TraceCorQQuotient.comp_assoc_four_tail_edge
+      first
+      second
+      third
+      fourth)
 
 /-- Normalize the quotient composite split as two binary composites. -/
 theorem TraceCorQQuotient.comp_assoc_four_binary
@@ -71,10 +72,11 @@ theorem TraceCorQQuotient.comp_assoc_four_binary
         (TraceCorQQuotient.comp
           second
           (TraceCorQQuotient.comp third fourth)) :=
-  TraceCorQQuotient.comp_assoc
+  TraceCorQQuotient.comp_assoc_four_left_inner_edge
     first
     second
-    (TraceCorQQuotient.comp third fourth)
+    third
+    fourth
 
 /-- Normalize the quotient composite whose right tail is left-associated. -/
 theorem TraceCorQQuotient.comp_assoc_four_middle_right
@@ -89,13 +91,11 @@ theorem TraceCorQQuotient.comp_assoc_four_middle_right
         (TraceCorQQuotient.comp
           second
           (TraceCorQQuotient.comp third fourth)) :=
-  congrArg
-    (fun tail =>
-      TraceCorQQuotient.comp first tail)
-    (TraceCorQQuotient.comp_assoc
-      second
-      third
-      fourth)
+  TraceCorQQuotient.comp_assoc_four_tail_edge
+    first
+    second
+    third
+    fourth
 
 /-- The right-associated fourfold quotient composite is already normal. -/
 theorem TraceCorQQuotient.comp_assoc_four_right

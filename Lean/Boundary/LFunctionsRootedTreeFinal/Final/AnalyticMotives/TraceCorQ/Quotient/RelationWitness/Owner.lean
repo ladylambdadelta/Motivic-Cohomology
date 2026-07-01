@@ -195,6 +195,34 @@ def TraceCorQRelationWitness.cancelAdjacentOpposite
       coefficient
       generator)
 
+/-- A concrete witness for adjacent same-generator coefficient combination. -/
+def TraceCorQRelationWitness.combineAdjacentSame
+    (ledger : TraceCorQRelationLedger)
+    (prefix suffix : TraceCorQFormalSum)
+    (leftCoefficient rightCoefficient : Rat)
+    (generator : TraceCorQGenerator) :
+    TraceCorQRelationWitness
+      (TraceCorQQuotientInput.ofFormalSumLedger
+        (prefix ++
+          (leftCoefficient, generator) ::
+            (rightCoefficient, generator) ::
+              suffix)
+        ledger)
+      (TraceCorQQuotientInput.ofFormalSumLedger
+        (prefix ++
+          (leftCoefficient + rightCoefficient, generator) ::
+            suffix)
+        ledger) :=
+  TraceCorQRelationWitness.ofLedgerDerivation
+    ledger
+    (TraceCorQRelationClosure.combineAdjacentSameDerivation
+      ledger
+      prefix
+      suffix
+      leftCoefficient
+      rightCoefficient
+      generator)
+
 /-- Transport a concrete relation witness along endpoint equalities. -/
 def TraceCorQRelationWitness.transportEndpoints
     {sourceLeft sourceRight targetLeft targetRight :
@@ -315,6 +343,22 @@ theorem TraceCorQRelationWitness.cancelAdjacentOpposite_ledger
       prefix
       suffix
       coefficient
+      generator).ledger =
+      ledger :=
+  rfl
+
+/-- Adjacent same-generator coefficient-combination witnesses carry the supplied ledger. -/
+theorem TraceCorQRelationWitness.combineAdjacentSame_ledger
+    (ledger : TraceCorQRelationLedger)
+    (prefix suffix : TraceCorQFormalSum)
+    (leftCoefficient rightCoefficient : Rat)
+    (generator : TraceCorQGenerator) :
+    (TraceCorQRelationWitness.combineAdjacentSame
+      ledger
+      prefix
+      suffix
+      leftCoefficient
+      rightCoefficient
       generator).ledger =
       ledger :=
   rfl

@@ -102,6 +102,23 @@ inductive TraceCorQRelationClosure :
         (TraceCorQQuotientInput.ofFormalSumLedger
           (prefix ++ suffix)
           ledger)
+  | combineAdjacentSame (ledger : TraceCorQRelationLedger)
+      (prefix suffix : TraceCorQFormalSum)
+      (leftCoefficient rightCoefficient : Rat)
+      (generator : TraceCorQGenerator) :
+      TraceCorQRelationClosure
+        ledger
+        (TraceCorQQuotientInput.ofFormalSumLedger
+          (prefix ++
+            (leftCoefficient, generator) ::
+              (rightCoefficient, generator) ::
+                suffix)
+          ledger)
+        (TraceCorQQuotientInput.ofFormalSumLedger
+          (prefix ++
+            (leftCoefficient + rightCoefficient, generator) ::
+              suffix)
+          ledger)
 
 /-- Reflexive relation-closure derivation for a candidate. -/
 def TraceCorQRelationClosure.reflDerivation
@@ -241,6 +258,33 @@ def TraceCorQRelationClosure.cancelAdjacentOppositeDerivation
     prefix
     suffix
     coefficient
+    generator
+
+/-- Adjacent rational multiples of the same generator combine. -/
+def TraceCorQRelationClosure.combineAdjacentSameDerivation
+    (ledger : TraceCorQRelationLedger)
+    (prefix suffix : TraceCorQFormalSum)
+    (leftCoefficient rightCoefficient : Rat)
+    (generator : TraceCorQGenerator) :
+    TraceCorQRelationClosure
+      ledger
+      (TraceCorQQuotientInput.ofFormalSumLedger
+        (prefix ++
+          (leftCoefficient, generator) ::
+            (rightCoefficient, generator) ::
+              suffix)
+        ledger)
+      (TraceCorQQuotientInput.ofFormalSumLedger
+        (prefix ++
+          (leftCoefficient + rightCoefficient, generator) ::
+            suffix)
+        ledger) :=
+  TraceCorQRelationClosure.combineAdjacentSame
+    ledger
+    prefix
+    suffix
+    leftCoefficient
+    rightCoefficient
     generator
 
 end AnalyticMotives

@@ -144,6 +144,33 @@ def TraceCorQQuotientRelation.cancelAdjacentOpposite
       coefficient
       generator)
 
+/-- Adjacent rational multiples of the same generator combine. -/
+def TraceCorQQuotientRelation.combineAdjacentSame
+    (ledger : TraceCorQRelationLedger)
+    (prefix suffix : TraceCorQFormalSum)
+    (leftCoefficient rightCoefficient : Rat)
+    (generator : TraceCorQGenerator) :
+    TraceCorQQuotientRelation
+      (TraceCorQQuotientInput.ofFormalSumLedger
+        (prefix ++
+          (leftCoefficient, generator) ::
+            (rightCoefficient, generator) ::
+              suffix)
+        ledger)
+      (TraceCorQQuotientInput.ofFormalSumLedger
+        (prefix ++
+          (leftCoefficient + rightCoefficient, generator) ::
+            suffix)
+        ledger) :=
+  TraceCorQQuotientRelation.ofWitness
+    (TraceCorQRelationWitness.combineAdjacentSame
+      ledger
+      prefix
+      suffix
+      leftCoefficient
+      rightCoefficient
+      generator)
+
 /-- Endpoint transport for the witness-generated quotient relation. -/
 def TraceCorQQuotientRelation.transportEndpoints
     {sourceLeft sourceRight targetLeft targetRight :

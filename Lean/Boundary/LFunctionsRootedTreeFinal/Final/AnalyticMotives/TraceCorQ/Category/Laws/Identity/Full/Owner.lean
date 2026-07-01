@@ -1,5 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Laws.Identity.Typed.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Laws.Associativity.Typed.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Laws.Identity.Full.Associativity.Owner
 
 /-!
 # Full identity normalization for typed trace-correspondence composition
@@ -50,21 +50,6 @@ theorem TraceCorQHom.left_id_comp_right_id
         TraceCorQHom.comp normalized (TraceCorQHom.id target))
       (TraceCorQHom.left_id hom))
     (TraceCorQHom.right_id hom)
-
-/-- Move the source identity across a right-associated target identity. -/
-theorem TraceCorQHom.left_id_right_id_reassociate
-    {source target : TraceCorQObject}
-    (hom : TraceCorQHom source target) :
-    TraceCorQHom.comp
-      (TraceCorQHom.comp (TraceCorQHom.id source) hom)
-      (TraceCorQHom.id target) =
-      TraceCorQHom.comp
-        (TraceCorQHom.id source)
-        (TraceCorQHom.comp hom (TraceCorQHom.id target)) :=
-  TraceCorQHom.comp_assoc
-    (TraceCorQHom.id source)
-    hom
-    (TraceCorQHom.id target)
 
 /-- The right-associated two-sided unit form is the reverse of the left-associated one. -/
 theorem TraceCorQHom.left_id_right_id_eq_left_id_comp_right_id

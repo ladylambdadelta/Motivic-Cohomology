@@ -93,6 +93,34 @@ theorem TraceCorQQuotient.sound_cancelAdjacentOpposite
       coefficient
       generator)
 
+/-- Adjacent rational multiples of the same generator combine in the quotient. -/
+theorem TraceCorQQuotient.sound_combineAdjacentSame
+    (ledger : TraceCorQRelationLedger)
+    (prefix suffix : TraceCorQFormalSum)
+    (leftCoefficient rightCoefficient : Rat)
+    (generator : TraceCorQGenerator) :
+    TraceCorQQuotient.ofCandidate
+      (TraceCorQQuotientInput.ofFormalSumLedger
+        (prefix ++
+          (leftCoefficient, generator) ::
+            (rightCoefficient, generator) ::
+              suffix)
+        ledger) =
+      TraceCorQQuotient.ofCandidate
+        (TraceCorQQuotientInput.ofFormalSumLedger
+          (prefix ++
+            (leftCoefficient + rightCoefficient, generator) ::
+              suffix)
+          ledger) :=
+  TraceCorQQuotient.sound
+    (TraceCorQQuotientRelation.combineAdjacentSame
+      ledger
+      prefix
+      suffix
+      leftCoefficient
+      rightCoefficient
+      generator)
+
 end AnalyticMotives
 end LFunctions
 end Boundary

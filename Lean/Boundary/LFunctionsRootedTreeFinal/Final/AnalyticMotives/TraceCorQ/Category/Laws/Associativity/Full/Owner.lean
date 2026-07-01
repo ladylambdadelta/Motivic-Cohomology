@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Laws.Associativity.Typed.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Laws.Associativity.Full.Edges.Owner
 
 /-!
 # Full associativity normalization for typed trace-correspondence composition
@@ -31,14 +31,16 @@ theorem TraceCorQHom.comp_assoc_four_left
           secondMap
           (TraceCorQHom.comp thirdMap fourthMap)) :=
   Eq.trans
-    (TraceCorQHom.comp_assoc
-      (TraceCorQHom.comp firstMap secondMap)
-      thirdMap
-      fourthMap)
-    (TraceCorQHom.comp_assoc
+    (TraceCorQHom.comp_assoc_four_left_outer_edge
       firstMap
       secondMap
-      (TraceCorQHom.comp thirdMap fourthMap))
+      thirdMap
+      fourthMap)
+    (TraceCorQHom.comp_assoc_four_left_inner_edge
+      firstMap
+      secondMap
+      thirdMap
+      fourthMap)
 
 /-- Normalize the fourfold composite with the middle pair associated first. -/
 theorem TraceCorQHom.comp_assoc_four_middle_left
@@ -58,17 +60,16 @@ theorem TraceCorQHom.comp_assoc_four_middle_left
           secondMap
           (TraceCorQHom.comp thirdMap fourthMap)) :=
   Eq.trans
-    (TraceCorQHom.comp_assoc
+    (TraceCorQHom.comp_assoc_four_middle_left_outer_edge
       firstMap
-      (TraceCorQHom.comp secondMap thirdMap)
+      secondMap
+      thirdMap
       fourthMap)
-    (congrArg
-      (fun tail =>
-        TraceCorQHom.comp firstMap tail)
-      (TraceCorQHom.comp_assoc
-        secondMap
-        thirdMap
-        fourthMap))
+    (TraceCorQHom.comp_assoc_four_tail_edge
+      firstMap
+      secondMap
+      thirdMap
+      fourthMap)
 
 /-- Normalize the fourfold composite split as two binary composites. -/
 theorem TraceCorQHom.comp_assoc_four_binary
@@ -85,10 +86,11 @@ theorem TraceCorQHom.comp_assoc_four_binary
         (TraceCorQHom.comp
           secondMap
           (TraceCorQHom.comp thirdMap fourthMap)) :=
-  TraceCorQHom.comp_assoc
+  TraceCorQHom.comp_assoc_four_left_inner_edge
     firstMap
     secondMap
-    (TraceCorQHom.comp thirdMap fourthMap)
+    thirdMap
+    fourthMap
 
 /-- Normalize the fourfold composite whose right tail is left-associated. -/
 theorem TraceCorQHom.comp_assoc_four_middle_right
@@ -107,13 +109,11 @@ theorem TraceCorQHom.comp_assoc_four_middle_right
         (TraceCorQHom.comp
           secondMap
           (TraceCorQHom.comp thirdMap fourthMap)) :=
-  congrArg
-    (fun tail =>
-      TraceCorQHom.comp firstMap tail)
-    (TraceCorQHom.comp_assoc
-      secondMap
-      thirdMap
-      fourthMap)
+  TraceCorQHom.comp_assoc_four_tail_edge
+    firstMap
+    secondMap
+    thirdMap
+    fourthMap
 
 /-- The right-associated fourfold composite is already in normal form. -/
 theorem TraceCorQHom.comp_assoc_four_right
