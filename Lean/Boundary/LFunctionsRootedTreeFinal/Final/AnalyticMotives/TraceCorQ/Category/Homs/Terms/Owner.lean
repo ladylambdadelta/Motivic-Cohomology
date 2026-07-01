@@ -38,6 +38,13 @@ def TraceCorQHomTerm.generator
     TraceCorQGenerator :=
   term.raw.2
 
+/-- The analytic certificate ledger carried by a typed hom term. -/
+def TraceCorQHomTerm.certificateLedger
+    {source target : TraceCorQObject}
+    (term : TraceCorQHomTerm source target) :
+    ResidueChannelCertificateLedger :=
+  term.raw.certificateLedger
+
 /-- Build a typed hom term from a coefficient, generator, and endpoint equalities. -/
 def TraceCorQHomTerm.ofGenerator
     (source target : TraceCorQObject)
@@ -63,6 +70,23 @@ theorem TraceCorQHomTerm.ofGenerator_raw
       source_eq
       target_eq).raw =
       (coefficient, generator) :=
+  rfl
+
+/-- The certificate ledger of a built typed hom term is the generator certificate ledger. -/
+theorem TraceCorQHomTerm.ofGenerator_certificateLedger
+    (source target : TraceCorQObject)
+    (coefficient : Rat)
+    (generator : TraceCorQGenerator)
+    (source_eq : generator.source = source)
+    (target_eq : generator.target = target) :
+    (TraceCorQHomTerm.ofGenerator
+      source
+      target
+      coefficient
+      generator
+      source_eq
+      target_eq).certificateLedger =
+      generator.certificateLedger :=
   rfl
 
 /-- The source endpoint proof carried by a typed hom term. -/

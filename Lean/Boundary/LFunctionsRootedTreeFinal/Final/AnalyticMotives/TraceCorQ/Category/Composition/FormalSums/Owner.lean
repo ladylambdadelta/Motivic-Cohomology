@@ -44,6 +44,17 @@ theorem TraceCorQHomTerm.compRight_raw
             tailRaw)
         (TraceCorQHomTerm.compRight_raw left rightTail)
 
+/-- Typed term-right composition carries the raw term-right composition certificate ledger. -/
+theorem TraceCorQHomTerm.compRight_certificateLedger
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomTerm source middle)
+    (right : TraceCorQHomFormalSum middle target) :
+    (TraceCorQHomTerm.compRight left right).certificateLedger =
+      (TraceCorQTerm.compRight left.raw right.raw).certificateLedger :=
+  congrArg
+    TraceCorQFormalSum.certificateLedger
+    (TraceCorQHomTerm.compRight_raw left right)
+
 /-- Raw forgetful map sends typed formal-sum composition to raw composition. -/
 theorem TraceCorQHomFormalSum.comp_raw
     {source middle target : TraceCorQObject}
@@ -71,6 +82,17 @@ theorem TraceCorQHomFormalSum.comp_raw
                 headRaw
                 (TraceCorQFormalSum.comp leftTail.raw right.raw))
             (TraceCorQHomTerm.compRight_raw leftTerm right)))
+
+/-- Typed formal-sum composition carries the raw formal composition certificate ledger. -/
+theorem TraceCorQHomFormalSum.comp_certificateLedger
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomFormalSum source middle)
+    (right : TraceCorQHomFormalSum middle target) :
+    (TraceCorQHomFormalSum.comp left right).certificateLedger =
+      (TraceCorQFormalSum.comp left.raw right.raw).certificateLedger :=
+  congrArg
+    TraceCorQFormalSum.certificateLedger
+    (TraceCorQHomFormalSum.comp_raw left right)
 
 end AnalyticMotives
 end LFunctions

@@ -14,9 +14,9 @@ namespace Boundary
 namespace LFunctions
 namespace AnalyticMotives
 
-/-- Objects for raw trace transport are residue-channel presentation spines. -/
+/-- Objects for raw trace transport are certified residue-channel presentations. -/
 abbrev TraceTransportObject :=
-  ResidueChannelPresentationSpine
+  CertifiedResidueChannelPresentation
 
 end AnalyticMotives
 end LFunctions

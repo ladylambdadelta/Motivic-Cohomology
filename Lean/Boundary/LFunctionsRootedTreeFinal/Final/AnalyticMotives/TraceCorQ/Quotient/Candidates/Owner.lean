@@ -42,6 +42,24 @@ def TraceCorQQuotientCandidate.ledger
     TraceCorQRelationLedger :=
   candidate.input.ledger
 
+/-- The analytic certificate ledger represented by a quotient candidate. -/
+def TraceCorQQuotientCandidate.certificateLedger
+    (candidate : TraceCorQQuotientCandidate) :
+    ResidueChannelCertificateLedger :=
+  candidate.input.certificateLedger
+
+/-- The imported finite-rectangle payload represented by a quotient candidate. -/
+def TraceCorQQuotientCandidate.importedRectangleCount
+    (candidate : TraceCorQQuotientCandidate) :
+    Nat :=
+  candidate.input.importedRectangleCount
+
+/-- The internal trace-bookkeeping payload represented by a quotient candidate. -/
+def TraceCorQQuotientCandidate.traceBookkeepingCount
+    (candidate : TraceCorQQuotientCandidate) :
+    Nat :=
+  candidate.input.traceBookkeepingCount
+
 /-- The empty quotient candidate. -/
 def TraceCorQQuotientCandidate.empty :
     TraceCorQQuotientCandidate :=
@@ -93,6 +111,27 @@ theorem TraceCorQQuotientCandidate.ofInput_ledger
       input.ledger :=
   rfl
 
+/-- The certificate ledger of a candidate built from an input is the input certificate ledger. -/
+theorem TraceCorQQuotientCandidate.ofInput_certificateLedger
+    (input : TraceCorQQuotientInput) :
+    (TraceCorQQuotientCandidate.ofInput input).certificateLedger =
+      input.certificateLedger :=
+  rfl
+
+/-- The imported payload of a candidate built from an input is the input payload. -/
+theorem TraceCorQQuotientCandidate.ofInput_importedRectangleCount
+    (input : TraceCorQQuotientInput) :
+    (TraceCorQQuotientCandidate.ofInput input).importedRectangleCount =
+      input.importedRectangleCount :=
+  rfl
+
+/-- The bookkeeping payload of a candidate built from an input is the input payload. -/
+theorem TraceCorQQuotientCandidate.ofInput_traceBookkeepingCount
+    (input : TraceCorQQuotientInput) :
+    (TraceCorQQuotientCandidate.ofInput input).traceBookkeepingCount =
+      input.traceBookkeepingCount :=
+  rfl
+
 /-- The input of a candidate sum is the sum of the inputs. -/
 theorem TraceCorQQuotientCandidate.add_input
     (left right : TraceCorQQuotientCandidate) :
@@ -113,6 +152,45 @@ theorem TraceCorQQuotientCandidate.add_ledger
     (TraceCorQQuotientCandidate.add left right).ledger =
       TraceCorQRelationLedger.append left.ledger right.ledger :=
   rfl
+
+/-- The certificate ledger of a candidate sum records summed formal and relation certificates. -/
+theorem TraceCorQQuotientCandidate.add_certificateLedger
+    (left right : TraceCorQQuotientCandidate) :
+    (TraceCorQQuotientCandidate.add left right).certificateLedger =
+      ResidueChannelCertificateLedger.append
+        (ResidueChannelCertificateLedger.append
+          left.formalSum.certificateLedger
+          right.formalSum.certificateLedger)
+        (ResidueChannelCertificateLedger.append
+          left.ledger.certificateLedger
+          right.ledger.certificateLedger) :=
+  TraceCorQQuotientInput.add_certificateLedger
+    left.input
+    right.input
+
+/-- Candidate addition adds imported finite-rectangle payload by component. -/
+theorem TraceCorQQuotientCandidate.add_importedRectangleCount
+    (left right : TraceCorQQuotientCandidate) :
+    (TraceCorQQuotientCandidate.add left right).importedRectangleCount =
+      (left.formalSum.importedRectangleCount +
+        right.formalSum.importedRectangleCount) +
+        (left.ledger.importedRectangleCount +
+          right.ledger.importedRectangleCount) :=
+  TraceCorQQuotientInput.add_importedRectangleCount
+    left.input
+    right.input
+
+/-- Candidate addition adds internal trace-bookkeeping payload by component. -/
+theorem TraceCorQQuotientCandidate.add_traceBookkeepingCount
+    (left right : TraceCorQQuotientCandidate) :
+    (TraceCorQQuotientCandidate.add left right).traceBookkeepingCount =
+      (left.formalSum.traceBookkeepingCount +
+        right.formalSum.traceBookkeepingCount) +
+        (left.ledger.traceBookkeepingCount +
+          right.ledger.traceBookkeepingCount) :=
+  TraceCorQQuotientInput.add_traceBookkeepingCount
+    left.input
+    right.input
 
 /-- The input of a scaled candidate is the scaled input. -/
 theorem TraceCorQQuotientCandidate.smul_input
@@ -138,6 +216,36 @@ theorem TraceCorQQuotientCandidate.smul_ledger
       candidate.ledger :=
   rfl
 
+/-- Scaling a candidate preserves its analytic certificate ledger. -/
+theorem TraceCorQQuotientCandidate.smul_certificateLedger
+    (coefficient : Rat)
+    (candidate : TraceCorQQuotientCandidate) :
+    (TraceCorQQuotientCandidate.smul coefficient candidate).certificateLedger =
+      candidate.certificateLedger :=
+  TraceCorQQuotientInput.smul_certificateLedger
+    coefficient
+    candidate.input
+
+/-- Scaling a candidate preserves imported finite-rectangle payload. -/
+theorem TraceCorQQuotientCandidate.smul_importedRectangleCount
+    (coefficient : Rat)
+    (candidate : TraceCorQQuotientCandidate) :
+    (TraceCorQQuotientCandidate.smul coefficient candidate).importedRectangleCount =
+      candidate.importedRectangleCount :=
+  TraceCorQQuotientInput.smul_importedRectangleCount
+    coefficient
+    candidate.input
+
+/-- Scaling a candidate preserves internal trace-bookkeeping payload. -/
+theorem TraceCorQQuotientCandidate.smul_traceBookkeepingCount
+    (coefficient : Rat)
+    (candidate : TraceCorQQuotientCandidate) :
+    (TraceCorQQuotientCandidate.smul coefficient candidate).traceBookkeepingCount =
+      candidate.traceBookkeepingCount :=
+  TraceCorQQuotientInput.smul_traceBookkeepingCount
+    coefficient
+    candidate.input
+
 /-- The input of a candidate composition is the composition of inputs. -/
 theorem TraceCorQQuotientCandidate.comp_input
     (left right : TraceCorQQuotientCandidate) :
@@ -158,6 +266,45 @@ theorem TraceCorQQuotientCandidate.comp_ledger
     (TraceCorQQuotientCandidate.comp left right).ledger =
       TraceCorQRelationLedger.append left.ledger right.ledger :=
   rfl
+
+/-- The certificate ledger of candidate composition records composed formal and relation certificates. -/
+theorem TraceCorQQuotientCandidate.comp_certificateLedger
+    (left right : TraceCorQQuotientCandidate) :
+    (TraceCorQQuotientCandidate.comp left right).certificateLedger =
+      ResidueChannelCertificateLedger.append
+        (TraceCorQFormalSum.comp left.formalSum right.formalSum).certificateLedger
+        (ResidueChannelCertificateLedger.append
+          left.ledger.certificateLedger
+          right.ledger.certificateLedger) :=
+  TraceCorQQuotientInput.comp_certificateLedger
+    left.input
+    right.input
+
+/-- Candidate composition splits imported payload into composed formal and relation parts. -/
+theorem TraceCorQQuotientCandidate.comp_importedRectangleCount
+    (left right : TraceCorQQuotientCandidate) :
+    (TraceCorQQuotientCandidate.comp left right).importedRectangleCount =
+      (TraceCorQFormalSum.comp
+        left.formalSum
+        right.formalSum).importedRectangleCount +
+        (left.ledger.importedRectangleCount +
+          right.ledger.importedRectangleCount) :=
+  TraceCorQQuotientInput.comp_importedRectangleCount
+    left.input
+    right.input
+
+/-- Candidate composition splits bookkeeping payload into composed formal and relation parts. -/
+theorem TraceCorQQuotientCandidate.comp_traceBookkeepingCount
+    (left right : TraceCorQQuotientCandidate) :
+    (TraceCorQQuotientCandidate.comp left right).traceBookkeepingCount =
+      (TraceCorQFormalSum.comp
+        left.formalSum
+        right.formalSum).traceBookkeepingCount +
+        (left.ledger.traceBookkeepingCount +
+          right.ledger.traceBookkeepingCount) :=
+  TraceCorQQuotientInput.comp_traceBookkeepingCount
+    left.input
+    right.input
 
 /-- The formal-sum projection of left-distributed candidate composition. -/
 theorem TraceCorQQuotientCandidate.add_comp_formalSum

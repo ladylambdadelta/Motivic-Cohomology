@@ -1,4 +1,5 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Presheaves.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Descent.Generators.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Descent.Localization.Owner
 
 /-!
 # Descent and refinement localization

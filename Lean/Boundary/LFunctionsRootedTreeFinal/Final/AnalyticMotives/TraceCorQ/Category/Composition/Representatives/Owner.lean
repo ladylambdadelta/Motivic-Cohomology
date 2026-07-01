@@ -45,6 +45,21 @@ theorem TraceCorQHomRepresentative.comp_rawCandidate_ledger
         right.rawCandidate.ledger :=
   rfl
 
+/-- Representative composition records composed formal and relation certificates. -/
+theorem TraceCorQHomRepresentative.comp_certificateLedger
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomRepresentative source middle)
+    (right : TraceCorQHomRepresentative middle target) :
+    (TraceCorQHomRepresentative.comp left right).certificateLedger =
+      ResidueChannelCertificateLedger.append
+        (TraceCorQFormalSum.comp left.formalSum.raw right.formalSum.raw).certificateLedger
+        (ResidueChannelCertificateLedger.append
+          left.ledger.certificateLedger
+          right.ledger.certificateLedger) :=
+  TraceCorQQuotientCandidate.comp_certificateLedger
+    left.rawCandidate
+    right.rawCandidate
+
 /-- Representative composition is compatible with the typed hom relation. -/
 def TraceCorQHomRelation.compCongr
     {source middle target : TraceCorQObject}

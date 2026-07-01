@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.FixedVerticalEnvelope.ShiftedEnvelope
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.VerticalRecurrence.Factors.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.VerticalRecurrence.Recurrence.Owner
 
 /-!
 # Fixed vertical recurrence transport
@@ -256,13 +258,6 @@ theorem Complex.verticalStripGammaBounds_of_shiftedRawBounds_and_recurrenceProdu
               hlower_div
             _ = ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ :=
               hnorm_rec.symm)⟩
-
-/-- Sectorial Stirling at the deterministic right shift, transported back
-through the finite Gamma recurrence product.
-
-This is the single non-special-function owner sink for the vertical-strip
-transport.  It combines the deterministic shift geometry, the exact Gamma
-recurrence product identity, and the finite-product upper/lower estimates. -/
 
 end
 end LFunctions

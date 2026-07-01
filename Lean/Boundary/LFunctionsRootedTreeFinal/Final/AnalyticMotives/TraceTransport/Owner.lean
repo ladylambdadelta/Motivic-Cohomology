@@ -1,6 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceTransport.Objects.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceTransport.Morphisms.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceTransport.Composition.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceTransport.Certificates.Owner
 
 /-!
 # Trace transport

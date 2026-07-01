@@ -40,6 +40,22 @@ theorem TraceCorQHomRepresentative.add_rawCandidate_ledger
         right.rawCandidate.ledger :=
   rfl
 
+/-- Representative addition records summed formal and relation certificates. -/
+theorem TraceCorQHomRepresentative.add_certificateLedger
+    {source target : TraceCorQObject}
+    (left right : TraceCorQHomRepresentative source target) :
+    (TraceCorQHomRepresentative.add left right).certificateLedger =
+      ResidueChannelCertificateLedger.append
+        (ResidueChannelCertificateLedger.append
+          left.formalSum.certificateLedger
+          right.formalSum.certificateLedger)
+        (ResidueChannelCertificateLedger.append
+          left.ledger.certificateLedger
+          right.ledger.certificateLedger) :=
+  TraceCorQQuotientCandidate.add_certificateLedger
+    left.rawCandidate
+    right.rawCandidate
+
 /-- Representative addition is compatible with the typed hom relation. -/
 def TraceCorQHomRelation.addCongr
     {source target : TraceCorQObject}

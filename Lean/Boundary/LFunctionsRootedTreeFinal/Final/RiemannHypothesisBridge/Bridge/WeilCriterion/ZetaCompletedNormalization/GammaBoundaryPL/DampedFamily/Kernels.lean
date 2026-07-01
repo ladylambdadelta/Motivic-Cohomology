@@ -15,6 +15,36 @@ open Filter
 open scoped Filter Topology
 local notation "π" => Real.pi
 
+theorem real_two_mul_two_eq_four : (2 : ℝ) * 2 = 4 := by
+  have hnat : ((2 * 2 : ℕ) : ℝ) = ((4 : ℕ) : ℝ) :=
+    congrArg (fun n : ℕ => (n : ℝ)) (show (2 * 2 : ℕ) = 4 from rfl)
+  have hleft : ((2 * 2 : ℕ) : ℝ) = (2 : ℝ) * 2 :=
+    Nat.cast_mul 2 2
+  have hright : ((4 : ℕ) : ℝ) = (4 : ℝ) := rfl
+  exact Eq.trans hleft.symm (Eq.trans hnat hright)
+
+theorem real_two_add_four_eq_six : (2 : ℝ) + 4 = 6 := by
+  have hnat : ((2 + 4 : ℕ) : ℝ) = ((6 : ℕ) : ℝ) :=
+    congrArg (fun n : ℕ => (n : ℝ)) (show (2 + 4 : ℕ) = 6 from rfl)
+  have hleft : ((2 + 4 : ℕ) : ℝ) = (2 : ℝ) + 4 :=
+    Nat.cast_add 2 4
+  have hright : ((6 : ℕ) : ℝ) = (6 : ℝ) := rfl
+  exact Eq.trans hleft.symm (Eq.trans hnat hright)
+
+theorem real_two_mul_nat_two_succ_eq_six :
+    (2 : ℝ) * (((2 : ℕ) + 1 : ℕ) : ℝ) = 6 := by
+  have hsucc_nat : ((2 : ℕ) + 1 : ℕ) = 3 := rfl
+  have hsucc_real : (((2 : ℕ) + 1 : ℕ) : ℝ) = 3 :=
+    Eq.trans (congrArg (fun n : ℕ => (n : ℝ)) hsucc_nat) rfl
+  have htwo_three : (2 : ℝ) * 3 = 6 := by
+    have hnat : ((2 * 3 : ℕ) : ℝ) = ((6 : ℕ) : ℝ) :=
+      congrArg (fun n : ℕ => (n : ℝ)) (show (2 * 3 : ℕ) = 6 from rfl)
+    have hleft : ((2 * 3 : ℕ) : ℝ) = (2 : ℝ) * 3 :=
+      Nat.cast_mul 2 3
+    have hright : ((6 : ℕ) : ℝ) = (6 : ℝ) := rfl
+    exact Eq.trans hleft.symm (Eq.trans hnat hright)
+  exact Eq.trans (congrArg (fun T : ℝ => (2 : ℝ) * T) hsucc_real) htwo_three
+
 /-- Center of the vertical strip `a ≤ re z ≤ b`. -/
 def verticalStripCenter
     (a b : ℝ) : ℝ :=
@@ -559,19 +589,15 @@ theorem verticalStripCenter_abs_le_abs_sum_plus_two
     le_of_lt htwo_pos
   have hhalf_le_self : S / 2 ≤ S := by
     have hhalf_eq : S / 2 = (1 / 2) * S := by
-      exact (one_div_mul_eq_div S 2).symm
+      exact (one_div_mul_eq_div 2 S).symm
     have hone_half_le_one : (1 / 2 : ℝ) ≤ 1 := by
-      exact (div_le_one htwo_pos).mpr (le_of_eq rfl)
+      exact (div_le_one htwo_pos).mpr one_le_two
     have hscaled : (1 / 2 : ℝ) * S ≤ 1 * S :=
       mul_le_mul_of_nonneg_right hone_half_le_one hS_nonneg
-    exact
-      Eq.subst
-        (motive := fun x : ℝ => x ≤ S)
-        (mul_one S)
-        (Eq.subst
-          (motive := fun x : ℝ => x ≤ 1 * S)
-          hhalf_eq.symm
-          hscaled)
+    calc
+      S / 2 = (1 / 2 : ℝ) * S := hhalf_eq
+      _ ≤ 1 * S := hscaled
+      _ = S := one_mul S
   have habs_add : |a + b| ≤ S :=
     abs_add a b
   have hdiv_le : |a + b| / 2 ≤ S / 2 :=
@@ -604,8 +630,9 @@ theorem verticalStrip_re_abs_le_abs_sum_plus_two
     have hneg_le_a : -(|a| + |b| + 2) ≤ a := by
       have hneg_le_neg_abs_a : -(|a| + |b| + 2) ≤ -|a| := by
         have habs_a_le_sum : |a| ≤ |a| + |b| + 2 :=
-          le_add_of_nonneg_right
-            (add_nonneg (abs_nonneg b) zero_le_two)
+          le_trans
+            (le_add_of_nonneg_right (abs_nonneg b))
+            (le_add_of_nonneg_right zero_le_two)
         exact neg_le_neg habs_a_le_sum
       exact le_trans hneg_le_neg_abs_a (neg_abs_le a)
     exact le_trans hneg_le_a hza
@@ -675,7 +702,8 @@ theorem verticalStripUpperTailDampingBase_im_abs_le
         exact congrArg₂ HAdd.hAdd (one_mul K).symm (one_mul K).symm
       _ = (1 + 1) * K := by
         exact (add_mul 1 1 K).symm
-      _ = 2 * K := rfl
+      _ = 2 * K := by
+        exact congrArg (fun T : ℝ => T * K) one_add_one_eq_two
   exact
     le_trans
       (le_of_eq him_eq)
@@ -740,7 +768,8 @@ theorem verticalStripUpperTailDegreePolynomialBase_im_abs_le
         exact congrArg₂ HAdd.hAdd (one_mul K).symm (one_mul K).symm
       _ = (1 + 1) * K := by
         exact (add_mul 1 1 K).symm
-      _ = 2 * K := rfl
+      _ = 2 * K := by
+        exact congrArg (fun T : ℝ => T * K) one_add_one_eq_two
   exact
     le_trans
       (le_of_eq him_eq)
@@ -868,7 +897,8 @@ theorem verticalStripUpperTailDegreePolynomialBase_two_degree_mul_im_abs_le_re
           exact congrArg (fun x : ℝ => (2 * x) * K) (mul_comm M 2)
         _ = ((2 * 2) * M) * K := by
           exact congrArg (fun x : ℝ => x * K) (mul_assoc 2 2 M).symm
-        _ = (4 * M) * K := rfl
+        _ = (4 * M) * K := by
+          exact congrArg (fun T : ℝ => (T * M) * K) real_two_mul_two_eq_four
         _ = 4 * (M * K) := mul_assoc 4 M K
     have hright_eq : 4 * M * K = 4 * (M * K) :=
       mul_assoc 4 M K
@@ -1138,13 +1168,14 @@ theorem verticalStripUpperTailDegreePolynomialBase_sq_re_nonneg_on_upperTail
     have hone_le_factor :
         (1 : ℝ) ≤ 2 * (((2 : ℕ) + 1 : ℕ) : ℝ) := by
       have hfactor_eq :
-          2 * (((2 : ℕ) + 1 : ℕ) : ℝ) = 6 := rfl
+          2 * (((2 : ℕ) + 1 : ℕ) : ℝ) = 6 := by
+        exact real_two_mul_nat_two_succ_eq_six
       have hone_le_six : (1 : ℝ) ≤ 6 := by
         calc
           (1 : ℝ) ≤ 2 := one_le_two
           _ ≤ 2 + 4 := le_add_of_nonneg_right (show (0 : ℝ) ≤ 4 from zero_le_four)
           _ = 6 := by
-            rfl
+            exact real_two_add_four_eq_six
       exact
         Eq.subst
           (motive := fun T : ℝ => (1 : ℝ) ≤ T)
@@ -1314,25 +1345,21 @@ theorem complex_mul_im_abs_le_sum_sector_widths
         |u.re| * |v.im| ≤ u.re * (B * v.re) := by
       have hleft_nonneg : 0 ≤ |u.re| :=
         abs_nonneg u.re
-      exact
-        Eq.subst
-          (motive := fun T : ℝ => |u.re| * |v.im| ≤ T * (B * v.re))
-          hre_abs.symm
-          (mul_le_mul_of_nonneg_left hv_im hleft_nonneg)
+      calc
+        |u.re| * |v.im| ≤ |u.re| * (B * v.re) :=
+          mul_le_mul_of_nonneg_left hv_im hleft_nonneg
+        _ = u.re * (B * v.re) := by
+          exact congrArg (fun T : ℝ => T * (B * v.re)) hre_abs
     have htarget :
         u.re * (B * v.re) = B * (u.re * v.re) := by
       calc
         u.re * (B * v.re) = (u.re * B) * v.re := (mul_assoc u.re B v.re).symm
         _ = (B * u.re) * v.re := congrArg (fun T : ℝ => T * v.re) (mul_comm u.re B)
         _ = B * (u.re * v.re) := mul_assoc B u.re v.re
-    exact
-      Eq.subst
-        (motive := fun T : ℝ => |u.re * v.im| ≤ T)
-        htarget
-        (Eq.subst
-          (motive := fun T : ℝ => T ≤ u.re * (B * v.re))
-          habs_mul.symm
-          hraw)
+    calc
+      |u.re * v.im| = |u.re| * |v.im| := habs_mul
+      _ ≤ u.re * (B * v.re) := hraw
+      _ = B * (u.re * v.re) := htarget
   have hterm_right :
       |u.im * v.re| ≤ A * (u.re * v.re) := by
     have habs_mul :
@@ -1340,18 +1367,18 @@ theorem complex_mul_im_abs_le_sum_sector_widths
       abs_mul u.im v.re
     have hre_abs : |v.re| = v.re :=
       abs_of_nonneg hv_re_nonneg
-    have hraw :
-        |u.im| * |v.re| ≤ (A * u.re) * v.re := by
-      have hright_nonneg : 0 ≤ |v.re| :=
-        abs_nonneg v.re
-      exact
-        Eq.subst
-          (motive := fun T : ℝ => |u.im| * |v.re| ≤ (A * u.re) * T)
-          hre_abs.symm
-          (mul_le_mul_of_nonneg_right hu_im hright_nonneg)
-    have htarget :
-        (A * u.re) * v.re = A * (u.re * v.re) :=
-      mul_assoc A u.re v.re
+      have hraw :
+          |u.im| * |v.re| ≤ (A * u.re) * v.re := by
+        have hright_nonneg : 0 ≤ |v.re| :=
+          abs_nonneg v.re
+      calc
+        |u.im| * |v.re| ≤ (A * u.re) * |v.re| :=
+          mul_le_mul_of_nonneg_right hu_im hright_nonneg
+        _ = (A * u.re) * v.re := by
+          exact congrArg (fun T : ℝ => (A * u.re) * T) hre_abs
+        have htarget :
+            (A * u.re) * v.re = A * (u.re * v.re) :=
+          mul_assoc A u.re v.re
     exact
       Eq.subst
         (motive := fun T : ℝ => |u.im * v.re| ≤ T)
@@ -1783,16 +1810,11 @@ theorem sectorPowerWidth_le_linear_of_step_margins
         have hright : 2 * (0 : ℝ) * B = 0 := by
           calc
             2 * (0 : ℝ) * B = 0 * B := by
-              rfl
+              exact congrArg (fun T : ℝ => T * B) (mul_zero (2 : ℝ))
             _ = 0 := zero_mul B
-        exact
-          Eq.subst
-            (motive := fun T : ℝ => T ≤ 2 * (0 : ℝ) * B)
-            hleft
-            (Eq.subst
-              (motive := fun T : ℝ => 0 ≤ T)
-              hright.symm
-              (le_of_eq rfl))
+        calc
+          sectorPowerWidth B 0 = 0 := hleft
+          _ = 2 * (0 : ℝ) * B := hright.symm
       have hnonneg0 :
           0 ≤ sectorPowerWidth B 0 :=
         Eq.subst
@@ -1801,11 +1823,15 @@ theorem sectorPowerWidth_le_linear_of_step_margins
           (le_of_eq rfl)
       exact
         ⟨fun k hk =>
-          match Nat.eq_zero_of_le_zero hk with
+          have hk_eq : k = 0 := Nat.eq_zero_of_le_zero hk
+          match hk_eq with
           | rfl => hwidth0,
          fun k hk =>
-          match Nat.eq_zero_of_le_zero hk with
-          | rfl => hnonneg0,
+          have hk_eq : k = 0 := Nat.eq_zero_of_le_zero hk
+          Eq.subst
+            (motive := fun T : ℕ => 0 ≤ sectorPowerWidth B T)
+            hk_eq.symm
+            hnonneg0,
          fun k hk => False.elim (Nat.not_lt_zero k hk)⟩
   | n + 1, hsmall, hmargin => by
       have hsmall_prev :
@@ -1856,7 +1882,7 @@ theorem sectorPowerWidth_le_linear_of_step_margins
           | Or.inl heq =>
               Eq.subst
                 (motive := fun T : ℕ =>
-                  sectorPowerWidth B k ≤ 2 * (T : ℝ) * B)
+                  sectorPowerWidth B T ≤ 2 * (T : ℝ) * B)
                 heq.symm
                 hsucc_width
           | Or.inr hlt =>
@@ -1866,7 +1892,7 @@ theorem sectorPowerWidth_le_linear_of_step_margins
           | Or.inl heq =>
               Eq.subst
                 (motive := fun T : ℕ => 0 ≤ sectorPowerWidth B T)
-                heq
+                heq.symm
                 hsucc_nonneg
           | Or.inr hlt =>
               hprev.2.1 k (Nat.le_of_lt_succ hlt),
@@ -1875,7 +1901,7 @@ theorem sectorPowerWidth_le_linear_of_step_margins
           | Or.inl heq =>
               Eq.subst
                 (motive := fun T : ℕ => sectorPowerWidth B T * B < 1)
-                heq
+                heq.symm
                 hn_subcritical
           | Or.inr hlt =>
               hprev.2.2 k hlt⟩
@@ -1970,13 +1996,9 @@ theorem complex_pow_sector_and_re_lower_of_scalar_widths
             _ = 1 * 1 := congrArg (fun T : ℝ => 1 * T) (pow_zero w.re)
             _ = 1 := one_mul 1
         exact
-          Eq.subst
-            (motive := fun T : ℝ => T ≤ (w ^ (0 : ℕ)).re)
-            hleft
-            (Eq.subst
-              (motive := fun T : ℝ => 1 ≤ T)
-              hre_zero.symm
-              (le_of_eq rfl))
+          calc
+            sectorPowerRealConstant B 0 * w.re ^ (0 : ℕ) = 1 := hleft
+            _ = (w ^ (0 : ℕ)).re := hre_zero.symm
       have hre_nonneg : 0 ≤ (w ^ (0 : ℕ)).re :=
         Eq.subst
           (motive := fun T : ℝ => 0 ≤ T)
@@ -1998,13 +2020,9 @@ theorem complex_pow_sector_and_re_lower_of_scalar_widths
               congrArg (fun T : ℝ => T * (w ^ (0 : ℕ)).re) hwidth_zero
             _ = 0 := zero_mul (w ^ (0 : ℕ)).re
         exact
-          Eq.subst
-            (motive := fun T : ℝ => T ≤ sectorPowerWidth B 0 * (w ^ (0 : ℕ)).re)
-            hleft_abs
-            (Eq.subst
-              (motive := fun T : ℝ => 0 ≤ T)
-              hright_zero.symm
-              (le_of_eq rfl))
+          calc
+            |(w ^ (0 : ℕ)).im| = 0 := hleft_abs
+            _ ≤ sectorPowerWidth B 0 * (w ^ (0 : ℕ)).re := le_of_eq hright_zero.symm
       exact ⟨hlower, hre_nonneg, him_bound⟩
   | n + 1, hwidth_nonneg, hwidth_subcritical => by
       have hprev_nonneg :
@@ -2152,7 +2170,10 @@ theorem verticalStripUpperTailDamping_scaledBase_im_abs_le_pi_div_four
           _ = π * M / (M * 4) := by
             exact congrArg (fun x : ℝ => π * M / x) (mul_comm 4 M)
           _ = π / 4 := by
-            exact mul_div_mul_right π 4 hM_ne
+            calc
+              π * M / (M * 4) = π * M / (4 * M) := by
+                exact congrArg (fun T : ℝ => π * M / T) (mul_comm M 4)
+              _ = π / 4 := mul_div_mul_right π 4 hM_ne
   exact
     le_trans
       (le_of_eq habs_mul)
@@ -2382,13 +2403,10 @@ theorem verticalStripUpperTailDamping_cos_lower_bound
       Real.sqrt 2 / 2 = Real.cos (π / 4) :=
     (Real.cos_pi_div_four).symm
   exact
-    Eq.subst
-      (motive := fun y : ℝ => y ≤ Real.cos x)
-      hcos_endpoint
-      (Eq.subst
-        (motive := fun y : ℝ => Real.cos (π / 4) ≤ y)
-        hcos_abs
-        hcos_endpoint_le_abs)
+    calc
+      Real.sqrt 2 / 2 = Real.cos (π / 4) := hcos_endpoint
+      _ ≤ Real.cos |x| := hcos_endpoint_le_abs
+      _ = Real.cos x := hcos_abs
 
 /-- Quantitative real-part lower bound for the tilted upper-tail damping
 kernel on the closed strip. -/
@@ -2738,10 +2756,21 @@ theorem verticalStripUpperTailDampingFactor_norm_le_exp_explicit
           Real.exp
             (verticalStripUpperTailDampingScale a b *
               (|a| + |b| + 2 + z.im)) :=
-    mul_assoc ε (Real.sqrt 2 / 2)
-      (Real.exp
-        (verticalStripUpperTailDampingScale a b *
-          (|a| + |b| + 2 + z.im)))
+    calc
+      ε * L =
+        ε * ((Real.sqrt 2 / 2) *
+          Real.exp
+            (verticalStripUpperTailDampingScale a b *
+              (|a| + |b| + 2 + z.im))) := rfl
+      _ =
+        ε * (Real.sqrt 2 / 2) *
+          Real.exp
+            (verticalStripUpperTailDampingScale a b *
+              (|a| + |b| + 2 + z.im)) :=
+        (mul_assoc ε (Real.sqrt 2 / 2)
+          (Real.exp
+            (verticalStripUpperTailDampingScale a b *
+              (|a| + |b| + 2 + z.im)))).symm
   have htarget_arg :
       -(ε * L) =
         -(ε * (Real.sqrt 2 / 2) *
@@ -2905,13 +2934,11 @@ theorem verticalStrip_subcritical_cosineBarrier_angle_abs_lt_pi_div_two
         leftEndpoint_sub_verticalStripCenter a b
       _ = -((b - a) / 2) := by
         have hnum : a - b = -(b - a) := by
-          calc
-            a - b = -(b - a) := by
-              exact sub_eq_neg_sub a b
+          exact (neg_sub b a).symm
         exact
           Eq.trans
             (congrArg (fun t : ℝ => t / 2) hnum)
-            (neg_div (b - a) 2).symm
+            (neg_div 2 (b - a))
       _ = -(w / 2) := rfl
   have hright_endpoint :
       b - verticalStripCenter a b = w / 2 := by
@@ -2949,8 +2976,6 @@ theorem verticalStrip_subcritical_cosineBarrier_angle_abs_lt_pi_div_two
       _ = d * |x - verticalStripCenter a b| := by
         exact congrArg
           (fun t : ℝ => t * |x - verticalStripCenter a b|)
-
-
           (abs_of_pos hd_pos)
   have hd_nonneg : 0 ≤ d :=
     le_of_lt hd_pos
@@ -2962,16 +2987,15 @@ theorem verticalStrip_subcritical_cosineBarrier_angle_abs_lt_pi_div_two
     have hdiv : d * w / 2 < π / 2 :=
       div_lt_div_of_pos_right hdw_lt_pi zero_lt_two
     exact
-      Eq.subst
-        (motive := fun t : ℝ => t < π / 2)
-        (mul_div_assoc d w 2).symm
-        hdiv
+      calc
+        d * (w / 2) = d * w / 2 := (mul_div_assoc d w 2).symm
+        _ < π / 2 := hdiv
   exact
     lt_of_le_of_lt
-      (Eq.subst
-        (motive := fun t : ℝ => t ≤ d * (w / 2))
-        hmul_abs
-        hmul_le)
+      (calc
+        |d * (x - verticalStripCenter a b)| =
+          d * |x - verticalStripCenter a b| := hmul_abs
+        _ ≤ d * (w / 2) := hmul_le)
       hdw_half_lt
 
 

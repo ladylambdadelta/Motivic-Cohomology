@@ -23,6 +23,27 @@ def TraceCorQHomFormalSum.raw
     TraceCorQFormalSum :=
   formalSum.map TraceCorQHomTerm.raw
 
+/-- The analytic certificate ledger carried by a typed formal sum. -/
+def TraceCorQHomFormalSum.certificateLedger
+    {source target : TraceCorQObject}
+    (formalSum : TraceCorQHomFormalSum source target) :
+    ResidueChannelCertificateLedger :=
+  formalSum.raw.certificateLedger
+
+/-- The imported finite-rectangle payload carried by a typed formal sum. -/
+def TraceCorQHomFormalSum.importedRectangleCount
+    {source target : TraceCorQObject}
+    (formalSum : TraceCorQHomFormalSum source target) :
+    Nat :=
+  formalSum.certificateLedger.importedRectangleCount
+
+/-- The internal trace-bookkeeping payload carried by a typed formal sum. -/
+def TraceCorQHomFormalSum.traceBookkeepingCount
+    {source target : TraceCorQObject}
+    (formalSum : TraceCorQHomFormalSum source target) :
+    Nat :=
+  formalSum.certificateLedger.traceBookkeepingCount
+
 /-- The empty typed formal sum. -/
 def TraceCorQHomFormalSum.zero
     (source target : TraceCorQObject) :
@@ -59,6 +80,27 @@ theorem TraceCorQHomFormalSum.zero_raw
       TraceCorQFormalSum.zero :=
   rfl
 
+/-- The empty typed formal sum carries the empty analytic certificate ledger. -/
+theorem TraceCorQHomFormalSum.zero_certificateLedger
+    (source target : TraceCorQObject) :
+    (TraceCorQHomFormalSum.zero source target).certificateLedger =
+      ResidueChannelCertificateLedger.empty :=
+  rfl
+
+/-- The empty typed formal sum carries no imported finite-rectangle payload. -/
+theorem TraceCorQHomFormalSum.zero_importedRectangleCount
+    (source target : TraceCorQObject) :
+    (TraceCorQHomFormalSum.zero source target).importedRectangleCount =
+      0 :=
+  rfl
+
+/-- The empty typed formal sum carries no internal trace-bookkeeping payload. -/
+theorem TraceCorQHomFormalSum.zero_traceBookkeepingCount
+    (source target : TraceCorQObject) :
+    (TraceCorQHomFormalSum.zero source target).traceBookkeepingCount =
+      0 :=
+  rfl
+
 /-- The raw formal sum of a typed singleton is the raw singleton. -/
 theorem TraceCorQHomFormalSum.singleton_raw
     (source target : TraceCorQObject)
@@ -76,6 +118,25 @@ theorem TraceCorQHomFormalSum.singleton_raw
       TraceCorQFormalSum.singleton coefficient generator :=
   rfl
 
+/-- The certificate ledger of a typed singleton is the generator certificate ledger. -/
+theorem TraceCorQHomFormalSum.singleton_certificateLedger
+    (source target : TraceCorQObject)
+    (coefficient : Rat)
+    (generator : TraceCorQGenerator)
+    (source_eq : generator.source = source)
+    (target_eq : generator.target = target) :
+    (TraceCorQHomFormalSum.singleton
+      source
+      target
+      coefficient
+      generator
+      source_eq
+      target_eq).certificateLedger =
+      ResidueChannelCertificateLedger.append
+        generator.certificateLedger
+        ResidueChannelCertificateLedger.empty :=
+  rfl
+
 /-- Raw forgetful map sends typed addition to raw formal-sum addition. -/
 theorem TraceCorQHomFormalSum.add_raw
     {source target : TraceCorQObject}
@@ -83,6 +144,50 @@ theorem TraceCorQHomFormalSum.add_raw
     (TraceCorQHomFormalSum.add left right).raw =
       TraceCorQFormalSum.add left.raw right.raw :=
   List.map_append TraceCorQHomTerm.raw left right
+
+/-- Typed formal-sum addition appends analytic certificate ledgers. -/
+theorem TraceCorQHomFormalSum.add_certificateLedger
+    {source target : TraceCorQObject}
+    (left right : TraceCorQHomFormalSum source target) :
+    (TraceCorQHomFormalSum.add left right).certificateLedger =
+      ResidueChannelCertificateLedger.append
+        left.certificateLedger
+        right.certificateLedger :=
+  Eq.trans
+    (congrArg
+      TraceCorQFormalSum.certificateLedger
+      (TraceCorQHomFormalSum.add_raw left right))
+    (TraceCorQFormalSum.add_certificateLedger left.raw right.raw)
+
+/-- Typed formal-sum addition adds imported finite-rectangle payload. -/
+theorem TraceCorQHomFormalSum.add_importedRectangleCount
+    {source target : TraceCorQObject}
+    (left right : TraceCorQHomFormalSum source target) :
+    (TraceCorQHomFormalSum.add left right).importedRectangleCount =
+      left.importedRectangleCount +
+        right.importedRectangleCount :=
+  Eq.trans
+    (congrArg
+      ResidueChannelCertificateLedger.importedRectangleCount
+      (TraceCorQHomFormalSum.add_certificateLedger left right))
+    (ResidueChannelCertificateLedger.append_importedRectangleCount
+      left.certificateLedger
+      right.certificateLedger)
+
+/-- Typed formal-sum addition adds internal trace-bookkeeping payload. -/
+theorem TraceCorQHomFormalSum.add_traceBookkeepingCount
+    {source target : TraceCorQObject}
+    (left right : TraceCorQHomFormalSum source target) :
+    (TraceCorQHomFormalSum.add left right).traceBookkeepingCount =
+      left.traceBookkeepingCount +
+        right.traceBookkeepingCount :=
+  Eq.trans
+    (congrArg
+      ResidueChannelCertificateLedger.traceBookkeepingCount
+      (TraceCorQHomFormalSum.add_certificateLedger left right))
+    (ResidueChannelCertificateLedger.append_traceBookkeepingCount
+      left.certificateLedger
+      right.certificateLedger)
 
 end AnalyticMotives
 end LFunctions

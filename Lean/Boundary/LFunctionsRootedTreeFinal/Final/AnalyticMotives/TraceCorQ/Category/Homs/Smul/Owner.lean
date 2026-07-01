@@ -92,6 +92,17 @@ theorem TraceCorQHomRepresentative.smul_rawCandidate_ledger
       representative.rawCandidate.ledger :=
   rfl
 
+/-- Representative scalar multiplication preserves analytic certificate ledgers. -/
+theorem TraceCorQHomRepresentative.smul_certificateLedger
+    {source target : TraceCorQObject}
+    (coefficient : Rat)
+    (representative : TraceCorQHomRepresentative source target) :
+    (TraceCorQHomRepresentative.smul coefficient representative).certificateLedger =
+      representative.certificateLedger :=
+  TraceCorQQuotientCandidate.smul_certificateLedger
+    coefficient
+    representative.rawCandidate
+
 /-- A scaled representative is related to ambient scaling of its raw candidate. -/
 def TraceCorQHomRelation.smulRepresentative_to_candidateSmul
     {source target : TraceCorQObject}

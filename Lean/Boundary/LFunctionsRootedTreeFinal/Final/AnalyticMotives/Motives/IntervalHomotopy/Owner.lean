@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Descent.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.IntervalHomotopy.Generators.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.IntervalHomotopy.Localization.Owner
 
 /-!
 # Analytic interval homotopy

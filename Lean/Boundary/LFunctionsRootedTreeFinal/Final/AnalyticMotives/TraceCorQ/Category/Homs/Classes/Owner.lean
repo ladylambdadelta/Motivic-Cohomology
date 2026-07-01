@@ -42,6 +42,13 @@ def TraceCorQHomRepresentative.rawCandidate
     representative.formalSum.raw
     representative.ledger
 
+/-- The analytic certificate ledger carried by a typed hom representative. -/
+def TraceCorQHomRepresentative.certificateLedger
+    {source target : TraceCorQObject}
+    (representative : TraceCorQHomRepresentative source target) :
+    ResidueChannelCertificateLedger :=
+  representative.rawCandidate.certificateLedger
+
 /-- Build a typed hom representative from a formal sum and ledger. -/
 def TraceCorQHomRepresentative.ofFormalSumLedger
     {source target : TraceCorQObject}
@@ -70,6 +77,19 @@ theorem TraceCorQHomRepresentative.ofFormalSumLedger_rawCandidate_ledger
       formalSum
       ledger).rawCandidate.ledger =
       ledger :=
+  rfl
+
+/-- The certificate ledger of a built representative records formal-sum and relation certificates. -/
+theorem TraceCorQHomRepresentative.ofFormalSumLedger_certificateLedger
+    {source target : TraceCorQObject}
+    (formalSum : TraceCorQHomFormalSum source target)
+    (ledger : TraceCorQRelationLedger) :
+    (TraceCorQHomRepresentative.ofFormalSumLedger
+      formalSum
+      ledger).certificateLedger =
+      ResidueChannelCertificateLedger.append
+        formalSum.certificateLedger
+        ledger.certificateLedger :=
   rfl
 
 /-- The typed hom relation induced by the ambient quotient relation. -/

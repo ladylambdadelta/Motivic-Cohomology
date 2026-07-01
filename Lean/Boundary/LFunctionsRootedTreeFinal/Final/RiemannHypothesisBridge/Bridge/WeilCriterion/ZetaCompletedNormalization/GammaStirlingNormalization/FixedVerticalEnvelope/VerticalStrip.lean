@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.FixedVerticalEnvelope.RecurrenceTransport
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.VerticalRecurrence.VerticalStrip.Owner
 
 /-!
 # Fixed vertical strip Gamma bounds
@@ -231,8 +232,6 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_large
           c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
   exact Complex.fixedRealPartVerticalStirling_largeHeight_classical hbranch a
-
-/-- The compact-height part of a fixed vertical line. -/
 
 end
 end LFunctions

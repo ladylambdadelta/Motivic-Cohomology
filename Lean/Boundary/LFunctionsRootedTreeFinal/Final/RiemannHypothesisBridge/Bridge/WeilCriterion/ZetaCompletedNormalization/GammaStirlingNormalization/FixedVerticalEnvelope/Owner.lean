@@ -1002,11 +1002,6 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_of_lower_bound
         _ = c⁻¹ * Real.exp x * H ^ (1 / 2 - a) :=
           htarget_eq
 
-/-- Reciprocal transport for vertical-strip Gamma estimates.
-
-A uniform lower Stirling bound on a real strip gives the matching reciprocal
-upper bound on the same large-height region. -/
-
 /-- Fixed-real-part reciprocal vertical Stirling bound for `Complex.Gamma`, obtained
 from the lower fixed-line estimate by reciprocal transport. -/
 theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_stirling_bound_classical :

@@ -60,6 +60,20 @@ theorem TraceCorQGenerator.comp_path
       first.path.comp second.path :=
   TraceTransport.comp_path first second
 
+/-- The identity generator carries the identity transport certificate ledger. -/
+theorem TraceCorQGenerator.id_certificateLedger
+    (object : TraceCorQObject) :
+    (TraceCorQGenerator.id object).certificateLedger =
+      (TraceTransport.id object).certificateLedger :=
+  rfl
+
+/-- Generator composition carries the composed transport certificate ledger. -/
+theorem TraceCorQGenerator.comp_certificateLedger
+    (first second : TraceCorQGenerator) :
+    (TraceCorQGenerator.comp first second).certificateLedger =
+      (TraceTransport.comp first second).certificateLedger :=
+  rfl
+
 end AnalyticMotives
 end LFunctions
 end Boundary

@@ -5,6 +5,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Catego
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Laws.Linearity.Sub.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Laws.Linearity.Sub.Derived.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Laws.Linearity.Zero.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Laws.Linearity.Instances.Owner
 
 /-!
 # Linearity laws for typed trace-correspondence composition

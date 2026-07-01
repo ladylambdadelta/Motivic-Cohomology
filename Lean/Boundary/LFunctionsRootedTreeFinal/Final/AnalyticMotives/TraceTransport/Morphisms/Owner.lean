@@ -16,28 +16,18 @@ namespace LFunctions
 namespace AnalyticMotives
 
 /--
-A raw trace transport between presentation spines.
+A raw trace transport between certified residue-channel presentations.
 
-The components are source presentation, target presentation, and the rewrite
-path used as the computadic trace of the transport.
+The endpoint equalities tie the computadic rewrite path to the analytic source
+expressions of the certified presentations.  This prevents a transport from
+carrying an unrelated rewrite trace.
 -/
-abbrev TraceTransport :=
-  TraceTransportObject × TraceTransportObject × TraceRewritePath
-
-/-- The source presentation of a raw trace transport. -/
-def TraceTransport.source (transport : TraceTransport) :
-    TraceTransportObject :=
-  transport.1
-
-/-- The target presentation of a raw trace transport. -/
-def TraceTransport.target (transport : TraceTransport) :
-    TraceTransportObject :=
-  transport.2.1
-
-/-- The rewrite path carried by a raw trace transport. -/
-def TraceTransport.path (transport : TraceTransport) :
-    TraceRewritePath :=
-  transport.2.2
+structure TraceTransport where
+  source : TraceTransportObject
+  target : TraceTransportObject
+  path : TraceRewritePath
+  path_source : path.source = source.source
+  path_target : path.target = target.source
 
 end AnalyticMotives
 end LFunctions

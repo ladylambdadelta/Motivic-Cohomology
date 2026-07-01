@@ -18,6 +18,36 @@ namespace AnalyticMotives
 abbrev TraceCorQObject :=
   TraceTransportObject
 
+/-- The source trace expression of a Q-linear trace-correspondence object. -/
+def TraceCorQObject.source
+    (object : TraceCorQObject) :
+    QTraceExpression :=
+  CertifiedResidueChannelPresentation.source object
+
+/-- The residue ledger of a Q-linear trace-correspondence object. -/
+def TraceCorQObject.ledger
+    (object : TraceCorQObject) :
+    ResidueLedger :=
+  CertifiedResidueChannelPresentation.ledger object
+
+/-- The channel expressions of a Q-linear trace-correspondence object. -/
+def TraceCorQObject.channels
+    (object : TraceCorQObject) :
+    ResidueChannelExpressionList :=
+  CertifiedResidueChannelPresentation.channels object
+
+/-- The trace schedule of a Q-linear trace-correspondence object. -/
+def TraceCorQObject.schedule
+    (object : TraceCorQObject) :
+    TraceSchedule :=
+  CertifiedResidueChannelPresentation.schedule object
+
+/-- The analytic certificate ledger of a Q-linear trace-correspondence object. -/
+def TraceCorQObject.certificateLedger
+    (object : TraceCorQObject) :
+    ResidueChannelCertificateLedger :=
+  CertifiedResidueChannelPresentation.certificateLedger object
+
 end AnalyticMotives
 end LFunctions
 end Boundary
