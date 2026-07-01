@@ -3,11 +3,21 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 namespace Boundary
 
 open scoped Filter FourierTransform Topology
-open Filter Real Complex Set MeasureTheory
+open Filter Real Set MeasureTheory
 
 noncomputable section
 
 section FixedLineCauchyProjection
+
+theorem setIntegral_Icc_eq_intervalIntegral_of_le
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (f : ℝ → E) {a b : ℝ} (hab : a ≤ b) :
+    (∫ t in Set.Icc a b, f t) = ∫ t in a..b, f t := by
+  exact Eq.trans
+    (MeasureTheory.integral_Icc_eq_integral_Ioc
+      (f := f) (x := a) (y := b) (μ := volume))
+    (intervalIntegral.integral_of_le
+      (f := f) (a := a) (b := b) (μ := volume) hab).symm
 
 noncomputable def scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow
     (a T x : ℝ) : ℝ :=
@@ -88,46 +98,87 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_kernel
     fun t : ℝ => (-(a / (a ^ 2 + t ^ 2))) * Real.cos (t * x)
   let g : ℝ → ℝ :=
     fun t : ℝ => a / (a ^ 2 + t ^ 2)
-  have hmajor :
-      ∀ᵐ t ∂volume.restrict (Ι (-T) T), ‖f t‖ ≤ g t :=
-    Filter.Eventually.of_forall
-      (fun t : ℝ => by
-        calc
-          ‖f t‖ = |f t| := by
-            exact Real.norm_eq_abs (f t)
-          _ =
-              |(-(a / (a ^ 2 + t ^ 2))) * Real.cos (t * x)| := by
-                unfold f
-                rfl
-          _ ≤ a / (a ^ 2 + t ^ 2) := hpoint t
-          _ = g t := by
-                unfold g
-                rfl)
-  have hg :
-      IntervalIntegrable g volume (-T) T := by
-    unfold g
-    exact
-      scalarFourierLaplacePlemelj_uncompensated_positiveKernel_intervalIntegrable
-        a ha T
-  have hbound :
-      ‖∫ t in (-T)..T, f t‖ ≤
-        |∫ t in (-T)..T, g t| :=
-    intervalIntegral.norm_integral_le_of_norm_le
-      (a := -T) (b := T) (μ := volume) (f := f) (g := g)
-      hmajor hg
-  calc
-    |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x|
-        = ‖∫ t in (-T)..T, f t‖ := by
-          unfold scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow
-          unfold f
-          exact (Real.norm_eq_abs
-            (∫ t in (-T)..T,
-              (-(a / (a ^ 2 + t ^ 2))) * Real.cos (t * x))).symm
-    _ ≤ |∫ t in (-T)..T, g t| := hbound
-    _ =
-        |∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)| := by
-          unfold g
-          rfl
+  by_cases hle : -T ≤ T
+  · have hmajor :
+        ∀ᵐ t ∂volume.restrict (Ι (-T) T), ‖f t‖ ≤ g t :=
+      Filter.Eventually.of_forall
+        (fun t : ℝ => by
+          calc
+            ‖f t‖ = |f t| := by
+              exact Real.norm_eq_abs (f t)
+            _ =
+                |(-(a / (a ^ 2 + t ^ 2))) * Real.cos (t * x)| := by
+                  unfold f
+                  rfl
+            _ ≤ a / (a ^ 2 + t ^ 2) := hpoint t
+            _ = g t := by
+                  unfold g
+                  rfl)
+    have hg :
+        IntervalIntegrable g volume (-T) T := by
+      unfold g
+      exact
+        scalarFourierLaplacePlemelj_uncompensated_positiveKernel_intervalIntegrable
+          a ha T
+    have hbound :
+        ‖∫ t in (-T)..T, f t‖ ≤
+          |∫ t in (-T)..T, g t| :=
+      intervalIntegral.norm_integral_le_of_norm_le
+        (a := -T) (b := T) (μ := volume) (f := f) (g := g)
+        hmajor hg
+    have hf_set_interval :
+        (∫ t in Set.Icc (-T) T, f t) = ∫ t in (-T)..T, f t :=
+      setIntegral_Icc_eq_intervalIntegral_of_le f hle
+    have hg_set_interval :
+        (∫ t in Set.Icc (-T) T, g t) = ∫ t in (-T)..T, g t :=
+      setIntegral_Icc_eq_intervalIntegral_of_le g hle
+    calc
+      |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x|
+          = |∫ t in Set.Icc (-T) T, f t| := by
+            unfold scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow
+            unfold f
+            rfl
+      _ = ‖∫ t in Set.Icc (-T) T, f t‖ := by
+            exact (Real.norm_eq_abs (∫ t in Set.Icc (-T) T, f t)).symm
+      _ = ‖∫ t in (-T)..T, f t‖ := by
+            exact congrArg norm hf_set_interval
+      _ ≤ |∫ t in (-T)..T, g t| := hbound
+      _ = |∫ t in Set.Icc (-T) T, g t| := by
+            exact congrArg abs hg_set_interval.symm
+      _ =
+          |∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)| := by
+            unfold g
+            rfl
+  · have hlt : T < -T :=
+      lt_of_not_ge hle
+    have hinterval_empty : Set.Icc (-T) T = (∅ : Set ℝ) :=
+      Set.Icc_eq_empty_of_lt hlt
+    have hf_zero :
+        (∫ t in Set.Icc (-T) T, f t) = 0 := by
+      exact Eq.subst
+        (motive := fun s : Set ℝ => (∫ t in s, f t) = 0)
+        hinterval_empty.symm
+        (setIntegral_empty (μ := volume) (f := f))
+    have hg_zero :
+        (∫ t in Set.Icc (-T) T, g t) = 0 := by
+      exact Eq.subst
+        (motive := fun s : Set ℝ => (∫ t in s, g t) = 0)
+        hinterval_empty.symm
+        (setIntegral_empty (μ := volume) (f := g))
+    calc
+      |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x|
+          = |∫ t in Set.Icc (-T) T, f t| := by
+            unfold scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow
+            unfold f
+            rfl
+      _ = |(0 : ℝ)| := by
+            exact congrArg abs hf_zero
+      _ ≤ |∫ t in Set.Icc (-T) T, g t| := by
+            exact le_of_eq (congrArg abs hg_zero).symm
+      _ =
+          |∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)| := by
+            unfold g
+            rfl
 
 /-- Absolute integral majorization of the even-cosine component by the
 nonoscillatory Cauchy kernel mass. -/
@@ -144,7 +195,7 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_kernel
 
 /-- Exact arctangent primitive for the positive Cauchy kernel mass. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_kernelMass_eq_two_arctan
-    (a : ℝ) (ha : 0 < a) (T : ℝ) :
+    (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : 0 ≤ T) :
     (∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)) =
       (2 : ℝ) * Real.arctan (T / a) := by
   let P : ℝ → ℝ := fun t : ℝ => a / (a ^ 2 + t ^ 2)
@@ -157,51 +208,39 @@ theorem scalarFourierLaplacePlemelj_uncompensated_kernelMass_eq_two_arctan
           =
           ∫ t in Set.Icc (-T) T,
             ((-(a / (a ^ 2 + t ^ 2)) : ℝ) : ℂ) := by
-            exact intervalIntegral.integral_congr
-              (Filter.Eventually.of_forall
+            exact setIntegral_congr_fun measurableSet_Icc
+              (fun t _ =>
                 (fun t : ℝ => by
                   unfold P
-                  rfl))
+                  rfl) t)
       _ =
           (-(2 : ℝ) * Real.arctan (T / a) : ℂ) := by
             exact
               scalarFourierLaplacePlemelj_zero_real_kernel_integral_eq_arctan
-                a ha T
+                a ha T hT
       _ = ((-A : ℝ) : ℂ) := by
             unfold A
-            exact congrArg (fun r : ℝ => (r : ℂ))
-              (neg_mul (2 : ℝ) (Real.arctan (T / a))).symm
+            calc
+              -((2 : ℝ) : ℂ) * ((Real.arctan (T / a) : ℝ) : ℂ)
+                  = -(((2 : ℝ) : ℂ) * ((Real.arctan (T / a) : ℝ) : ℂ)) := by
+                    exact neg_mul ((2 : ℝ) : ℂ) ((Real.arctan (T / a) : ℝ) : ℂ)
+              _ = -(((2 : ℝ) * Real.arctan (T / a) : ℝ) : ℂ) := by
+                    exact congrArg Neg.neg
+                      (Complex.ofReal_mul (2 : ℝ) (Real.arctan (T / a))).symm
+              _ = ((-((2 : ℝ) * Real.arctan (T / a)) : ℝ) : ℂ) := by
+                    exact (Complex.ofReal_neg
+                      ((2 : ℝ) * Real.arctan (T / a))).symm
   have hneg_real :
       (∫ t in Set.Icc (-T) T, (-P t : ℝ)) = -A := by
     have hofReal :
         (∫ t in Set.Icc (-T) T, ((-P t : ℝ) : ℂ)) =
           (((∫ t in Set.Icc (-T) T, (-P t : ℝ)) : ℝ) : ℂ) := by
-      calc
-        (∫ t in Set.Icc (-T) T, ((-P t : ℝ) : ℂ))
-            =
-            ∫ t in (-T)..T, ((-P t : ℝ) : ℂ) := by
-              rfl
-        _ =
-            (((∫ t in (-T)..T, (-P t : ℝ)) : ℝ) : ℂ) := by
-              exact intervalIntegral.integral_ofReal
-        _ =
-            (((∫ t in Set.Icc (-T) T, (-P t : ℝ)) : ℝ) : ℂ) := by
-              rfl
+      exact integral_ofReal
     exact Complex.ofReal_injective (hofReal.symm.trans hneg_complex)
   have hneg_relation :
       (∫ t in Set.Icc (-T) T, (-P t : ℝ)) =
         -(∫ t in Set.Icc (-T) T, P t) := by
-    calc
-      (∫ t in Set.Icc (-T) T, (-P t : ℝ))
-          =
-          ∫ t in (-T)..T, (-P t : ℝ) := by
-            rfl
-      _ =
-          -(∫ t in (-T)..T, P t) := by
-            exact intervalIntegral.integral_neg
-      _ =
-          -(∫ t in Set.Icc (-T) T, P t) := by
-            rfl
+    exact integral_neg (f := P) (μ := volume.restrict (Set.Icc (-T) T))
   have hneg_target :
       -(∫ t in Set.Icc (-T) T, P t) = -A :=
     hneg_relation.symm.trans hneg_real
@@ -230,7 +269,7 @@ theorem scalarFourierLaplacePlemelj_two_mul_arctan_abs_le_pi
       2 * (-(Real.pi / 2)) < (2 : ℝ) * u :=
     mul_lt_mul_of_pos_left hlower_half htwo_pos
   have htwo_half : (2 : ℝ) * (Real.pi / 2) = Real.pi :=
-    two_mul_div_two Real.pi
+    mul_div_cancel₀ Real.pi two_ne_zero
   have htwo_neg_half : (2 : ℝ) * (-(Real.pi / 2)) = -Real.pi := by
     calc
       (2 : ℝ) * (-(Real.pi / 2)) = -((2 : ℝ) * (Real.pi / 2)) := by
@@ -243,30 +282,87 @@ theorem scalarFourierLaplacePlemelj_two_mul_arctan_abs_le_pi
     le_of_lt (htwo_neg_half.symm.trans_lt hmul_lower)
   exact abs_le.mpr ⟨hlower, hupper⟩
 
+/-- Scaling reduction from the width-`a` Hilbert-Cauchy sine kernel to the
+normalized kernel `u / (1 + u^2)`. -/
+theorem scalarFourierLaplacePlemelj_scaledHilbertSineKernel_coefficient_identity
+    (a : ℝ) (ha : 0 < a) (u : ℝ) :
+    a * ((u * a) / (a ^ 2 + (u * a) ^ 2)) =
+      u / (1 + u ^ 2) := by
+  have ha_ne : a ≠ 0 :=
+    ne_of_gt ha
+  have ha_sq_ne : a ^ 2 ≠ 0 := by
+    exact pow_ne_zero 2 ha_ne
+  have hnum : a * (u * a) = u * a ^ 2 := by
+    calc
+      a * (u * a) = (a * u) * a := by
+        exact (mul_assoc a u a).symm
+      _ = (u * a) * a := by
+        exact congrArg (fun r : ℝ => r * a) (mul_comm a u)
+      _ = u * (a * a) := by
+        exact mul_assoc u a a
+      _ = u * a ^ 2 := by
+        exact congrArg (fun r : ℝ => u * r) (sq a).symm
+  have huasq : (u * a) ^ 2 = u ^ 2 * a ^ 2 := by
+    exact mul_pow u a 2
+  have hden : a ^ 2 + (u * a) ^ 2 = (1 + u ^ 2) * a ^ 2 := by
+    calc
+      a ^ 2 + (u * a) ^ 2
+          = a ^ 2 + u ^ 2 * a ^ 2 := by
+            exact congrArg (fun r : ℝ => a ^ 2 + r) huasq
+      _ = 1 * a ^ 2 + u ^ 2 * a ^ 2 := by
+            exact congrArg
+              (fun r : ℝ => r + u ^ 2 * a ^ 2)
+              (one_mul (a ^ 2)).symm
+      _ = (1 + u ^ 2) * a ^ 2 := by
+            exact (add_mul 1 (u ^ 2) (a ^ 2)).symm
+  calc
+    a * ((u * a) / (a ^ 2 + (u * a) ^ 2))
+        = (a * (u * a)) / (a ^ 2 + (u * a) ^ 2) := by
+          exact mul_div_assoc' a (u * a) (a ^ 2 + (u * a) ^ 2)
+    _ = (u * a ^ 2) / (a ^ 2 + (u * a) ^ 2) := by
+          exact congrArg
+            (fun r : ℝ => r / (a ^ 2 + (u * a) ^ 2))
+            hnum
+    _ = (u * a ^ 2) / ((1 + u ^ 2) * a ^ 2) := by
+          exact congrArg (fun r : ℝ => (u * a ^ 2) / r) hden
+    _ = u / (1 + u ^ 2) := by
+          exact mul_div_mul_right u (1 + u ^ 2) ha_sq_ne
+
+theorem scalarFourierLaplacePlemelj_scaledHilbertSineKernel_phase_identity
+    (a x u : ℝ) :
+    Real.sin ((u * a) * x) = Real.sin ((a * x) * u) := by
+  have harg : (u * a) * x = (a * x) * u := by
+    calc
+      (u * a) * x = u * (a * x) := by
+        exact mul_assoc u a x
+      _ = (a * x) * u := by
+        exact mul_comm u (a * x)
+  exact congrArg Real.sin harg
+
 /-- The symmetric nonoscillatory Cauchy kernel mass is bounded by `π`. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_kernelMass_abs_le_pi
-    (a : ℝ) (ha : 0 < a) (T : ℝ) :
+    (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : 0 ≤ T) :
     |∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)| ≤ Real.pi := by
   calc
     |∫ t in Set.Icc (-T) T, (a / (a ^ 2 + t ^ 2) : ℝ)|
         = |(2 : ℝ) * Real.arctan (T / a)| := by
           exact congrArg abs
             (scalarFourierLaplacePlemelj_uncompensated_kernelMass_eq_two_arctan
-              a ha T)
+              a ha T hT)
     _ ≤ Real.pi :=
           scalarFourierLaplacePlemelj_two_mul_arctan_abs_le_pi (T / a)
 
 /-- Fixed-constant Dirichlet bound for the even-cosine component of the
 uncompensated Cauchy kernel. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_pi
-    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hT : 0 ≤ T) :
     |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x| ≤
       Real.pi := by
   exact
     (scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_kernelMass
       a ha T x).trans
       (scalarFourierLaplacePlemelj_uncompensated_kernelMass_abs_le_pi
-        a ha T)
+        a ha T hT)
 
 /-- Uniform Dirichlet bound for the even-cosine part of the uncompensated
 Cauchy Fourier window. -/
@@ -278,8 +374,36 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_uniform_bound
           |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x| ≤ C := by
   exact ⟨Real.pi, Real.pi_pos.le,
     fun T x =>
-      scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_pi
-        a ha T x⟩
+      if hT : 0 ≤ T then
+        scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow_abs_le_pi
+          a ha T x hT
+      else
+        have hT_lt : T < 0 :=
+          lt_of_not_ge hT
+        have hT_lt_neg : T < -T :=
+          hT_lt.trans (neg_pos.mpr hT_lt)
+        have hinterval_empty : Set.Icc (-T) T = (∅ : Set ℝ) :=
+          Set.Icc_eq_empty_of_lt hT_lt_neg
+        have hwindow_zero :
+            scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x = 0 := by
+          unfold scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow
+          exact Eq.subst
+            (motive := fun s : Set ℝ =>
+              (∫ t in s,
+                (-(a / (a ^ 2 + t ^ 2))) *
+                  Real.cos (t * x)) = 0)
+            hinterval_empty.symm
+            (setIntegral_empty
+              (μ := volume)
+              (f := fun t : ℝ =>
+                (-(a / (a ^ 2 + t ^ 2))) *
+                  Real.cos (t * x)))
+        calc
+          |scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x|
+              = |(0 : ℝ)| := by
+                exact congrArg abs hwindow_zero
+          _ = 0 := abs_zero
+          _ ≤ Real.pi := Real.pi_pos.le⟩
 
 /-- Nonnegative-radius, positive-frequency normalized half-window Hilbert-sine
 Dirichlet bound. -/
@@ -318,9 +442,9 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_smallPrefix_scaled_eq
       _ =
           (b * ((w * b) / (b ^ 2 + (w * b) ^ 2))) *
             Real.sin (w * b) := by
-            exact mul_assoc b
+            exact (mul_assoc b
               ((w * b) / (b ^ 2 + (w * b) ^ 2))
-              (Real.sin (w * b))
+              (Real.sin (w * b))).symm
       _ =
           (w / (1 + w ^ 2)) * Real.sin (w * b) := by
             exact congrArg
@@ -352,7 +476,7 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_smallPrefix_scaled_eq
           ∫ w in (0)..(A / b),
             (w / (1 + w ^ 2)) * Real.sin (b * w) := by
             exact intervalIntegral.integral_congr
-              (Filter.Eventually.of_forall hpoint)
+              (fun w _ => hpoint w)
   calc
     (∫ v in (0)..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v)
@@ -378,10 +502,17 @@ theorem scalarFourierLaplacePlemelj_scaledSmallPrefix_abs_le_one
     fun w : ℝ => (w / (1 + w ^ 2)) * Real.sin (b * w)
   have hpoint : ∀ w ∈ Ι (0 : ℝ) R, ‖f w‖ ≤ (1 : ℝ) := by
     intro w hw
+    have hw_uIcc : w ∈ Set.uIcc (0 : ℝ) R :=
+      Set.uIoc_subset_uIcc hw
+    have hw_Icc : w ∈ Set.Icc (0 : ℝ) R :=
+      Eq.subst
+        (motive := fun s : Set ℝ => w ∈ s)
+        (Set.uIcc_of_le hR_nonneg)
+        hw_uIcc
     have hw_nonneg : 0 ≤ w :=
-      (mem_uIcc.mp hw).1
+      hw_Icc.1
     have hw_le_R : w ≤ R :=
-      (mem_uIcc.mp hw).2
+      hw_Icc.2
     have hw_le_one : w ≤ 1 :=
       hw_le_R.trans hR_le_one
     have hden_pos : 0 < 1 + w ^ 2 :=
@@ -515,10 +646,17 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_low_abs_le_one
     fun v : ℝ => (v / (b ^ 2 + v ^ 2)) * Real.sin v
   have hpoint : ∀ v ∈ Ι b A, ‖f v‖ ≤ (1 : ℝ) := by
     intro v hv
+    have hv_uIcc : v ∈ Set.uIcc b A :=
+      Set.uIoc_subset_uIcc hv
+    have hv_Icc : v ∈ Set.Icc b A :=
+      Eq.subst
+        (motive := fun s : Set ℝ => v ∈ s)
+        (Set.uIcc_of_le hbA)
+        hv_uIcc
     have hb_le_v : b ≤ v :=
-      (mem_uIcc.mp hv).1
+      hv_Icc.1
     have hv_le_A : v ≤ A :=
-      (mem_uIcc.mp hv).2
+      hv_Icc.2
     have hv_nonneg : 0 ≤ v :=
       hb.le.trans hb_le_v
     have hden_pos : 0 < b ^ 2 + v ^ 2 :=
@@ -527,7 +665,7 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_low_abs_le_one
       div_nonneg hv_nonneg hden_pos.le
     have hsin_abs_le_v : |Real.sin v| ≤ v := by
       calc
-        |Real.sin v| ≤ |v| := Real.abs_sin_le_abs v
+        |Real.sin v| ≤ |v| := Real.abs_sin_le_abs
         _ = v := by
           exact abs_of_nonneg hv_nonneg
     have hv_sq_le_den : v ^ 2 ≤ b ^ 2 + v ^ 2 :=
@@ -537,7 +675,7 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_low_abs_le_one
       calc
         (v / (b ^ 2 + v ^ 2)) * v =
             (v * v) / (b ^ 2 + v ^ 2) := by
-            exact div_mul_eq_mul_div v v (b ^ 2 + v ^ 2)
+            exact div_mul_eq_mul_div v (b ^ 2 + v ^ 2) v
         _ = v ^ 2 / (b ^ 2 + v ^ 2) := by
             exact congrArg
               (fun r : ℝ => r / (b ^ 2 + v ^ 2))
@@ -592,6 +730,11 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_low_abs_le_one
             (∫ v in b..A,
               (v / (b ^ 2 + v ^ 2)) * Real.sin v)).symm
     _ ≤ 1 := htarget
+
+/-- High-tail Cauchy amplitude `v / (b^2 + v^2)`. -/
+noncomputable def scalarFourierLaplacePlemelj_highTailCauchyAmplitude
+    (b v : ℝ) : ℝ :=
+  v / (b ^ 2 + v ^ 2)
 
 theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_nonnegative
     (b c v : ℝ) (hb : 0 < b) (hc : b ≤ c) (hv : v ∈ Set.Ici c) :
@@ -668,10 +811,14 @@ theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_cross_mul_difference
       _ =
           (v * (u * v) - u * (u * v)) +
             (u * b ^ 2 - v * b ^ 2) := by
-            exact sub_sub_eq_add_sub
-              (v * (u * v) - u * (u * v))
-              (v * b ^ 2)
-              (u * b ^ 2)
+            let X : ℝ := v * (u * v) - u * (u * v)
+            calc
+              X - (v * b ^ 2 - u * b ^ 2)
+                  = X + -(v * b ^ 2 - u * b ^ 2) := by
+                    exact sub_eq_add_neg X (v * b ^ 2 - u * b ^ 2)
+              _ = X + (u * b ^ 2 - v * b ^ 2) := by
+                    exact congrArg (fun r : ℝ => X + r)
+                      (neg_sub (v * b ^ 2) (u * b ^ 2))
       _ =
           (u * b ^ 2 - v * b ^ 2) +
             (v * (u * v) - u * (u * v)) := by
@@ -684,17 +831,17 @@ theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_cross_mul_difference
             have hvuv : v * (u * v) = u * v ^ 2 := by
               calc
                 v * (u * v) = (v * u) * v := by
-                  exact mul_assoc v u v
+                  exact (mul_assoc v u v).symm
                 _ = (u * v) * v := by
                   exact congrArg (fun r : ℝ => r * v) (mul_comm v u)
                 _ = u * (v * v) := by
-                  exact (mul_assoc u v v).symm
+                  exact mul_assoc u v v
                 _ = u * v ^ 2 := by
                   exact congrArg (fun r : ℝ => u * r) (pow_two v).symm
             have huuv : u * (u * v) = v * u ^ 2 := by
               calc
                 u * (u * v) = (u * u) * v := by
-                  exact mul_assoc u u v
+                  exact (mul_assoc u u v).symm
                 _ = u ^ 2 * v := by
                   exact congrArg (fun r : ℝ => r * v) (pow_two u).symm
                 _ = v * u ^ 2 := by
@@ -765,11 +912,19 @@ theorem scalarFourierLaplacePlemelj_sine_intervalIntegral_abs_le_two
     |∫ v in c..A, Real.sin v| ≤ 2 := by
   have hsin_eq :
       (∫ v in c..A, Real.sin v) = Real.cos c - Real.cos A :=
-    Real.integral_sin
+    integral_sin
   have htriangle :
       |Real.cos c - Real.cos A| ≤
-        |Real.cos c| + |Real.cos A| :=
-    abs_sub_le (Real.cos c) (Real.cos A)
+        |Real.cos c| + |Real.cos A| := by
+    calc
+      |Real.cos c - Real.cos A| =
+          |Real.cos c + (-Real.cos A)| := by
+          exact congrArg abs (sub_eq_add_neg (Real.cos c) (Real.cos A))
+      _ ≤ |Real.cos c| + |-Real.cos A| := by
+          exact abs_add (Real.cos c) (-Real.cos A)
+      _ = |Real.cos c| + |Real.cos A| := by
+          exact congrArg (fun r : ℝ => |Real.cos c| + r)
+            (abs_neg (Real.cos A))
   have hcos_sum : |Real.cos c| + |Real.cos A| ≤ 1 + 1 :=
     add_le_add (abs_cos_le_one c) (abs_cos_le_one A)
   calc
@@ -779,7 +934,7 @@ theorem scalarFourierLaplacePlemelj_sine_intervalIntegral_abs_le_two
     _ ≤ |Real.cos c| + |Real.cos A| := htriangle
     _ ≤ 1 + 1 := hcos_sum
     _ = 2 := by
-        rfl
+        exact one_add_one_eq_two
 
 theorem scalarFourierLaplacePlemelj_dirichletAbel_sine_tail_abs_le_two_of_bonnet_identity
     (g : ℝ → ℝ) (A c ξ : ℝ)
@@ -879,6 +1034,17 @@ noncomputable def scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative
     (b v : ℝ) : ℝ :=
   (b ^ 2 - v ^ 2) / (b ^ 2 + v ^ 2) ^ 2
 
+/-- Total-variation integrand for the high-tail Cauchy amplitude. -/
+noncomputable def scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation
+    (b v : ℝ) : ℝ :=
+  -scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v
+
+/-- Damped high-tail sine integral for the Cauchy amplitude. -/
+noncomputable def scalarFourierLaplacePlemelj_dampedSineIntegralHighTail
+    (A b c : ℝ) : ℝ :=
+  ∫ v in c..A,
+    (v / (b ^ 2 + v ^ 2)) * Real.sin v
+
 theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_derivative_numerator
     (b v : ℝ) :
     1 * (b ^ 2 + v ^ 2) - v * (2 * v) = b ^ 2 - v ^ 2 := by
@@ -900,9 +1066,12 @@ theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_derivative_numerator
     _ = b ^ 2 + v ^ 2 - 2 * v ^ 2 := by
       exact congrArg (fun x : ℝ => b ^ 2 + v ^ 2 - x) hv_mul_two_mul
     _ = b ^ 2 + (v ^ 2 - 2 * v ^ 2) := by
-      exact (sub_eq_add_neg (b ^ 2 + v ^ 2) (2 * v ^ 2)).trans
-        (congrArg (fun x : ℝ => b ^ 2 + x)
-          (sub_eq_add_neg (v ^ 2) (2 * v ^ 2)).symm)
+      exact Eq.trans
+        (sub_eq_add_neg (b ^ 2 + v ^ 2) (2 * v ^ 2))
+        ((add_assoc (b ^ 2) (v ^ 2) (-(2 * v ^ 2))).trans
+          (congrArg
+            (fun r : ℝ => b ^ 2 + r)
+            (sub_eq_add_neg (v ^ 2) (2 * v ^ 2)).symm))
     _ = b ^ 2 + -(v ^ 2) := by
       have htwo : 2 * v ^ 2 = v ^ 2 + v ^ 2 := by
         exact two_mul (v ^ 2)
@@ -911,7 +1080,14 @@ theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_derivative_numerator
           v ^ 2 - 2 * v ^ 2 = v ^ 2 - (v ^ 2 + v ^ 2) := by
             exact congrArg (fun x : ℝ => v ^ 2 - x) htwo
           _ = -(v ^ 2) := by
-            exact sub_add_cancel (v ^ 2) (v ^ 2) ▸ sub_self (v ^ 2)
+            calc
+              v ^ 2 - (v ^ 2 + v ^ 2)
+                  = v ^ 2 - v ^ 2 - v ^ 2 := by
+                    exact sub_add_eq_sub_sub (v ^ 2) (v ^ 2) (v ^ 2)
+              _ = 0 - v ^ 2 := by
+                    exact congrArg (fun r : ℝ => r - v ^ 2) (sub_self (v ^ 2))
+              _ = -(v ^ 2) := by
+                    exact zero_sub (v ^ 2)
       exact congrArg (fun x : ℝ => b ^ 2 + x) hsub
     _ = b ^ 2 - v ^ 2 := by
       exact (sub_eq_add_neg (b ^ 2) (v ^ 2)).symm
@@ -931,8 +1107,29 @@ theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_hasDerivAt
     have hconst : HasDerivAt (fun _x : ℝ => b ^ 2) 0 v :=
       hasDerivAt_const v (b ^ 2)
     have hsquare : HasDerivAt (fun x : ℝ => x ^ 2) (2 * v) v := by
-      exact hasDerivAt_pow 2 v
-    exact hconst.add hsquare
+      have hraw :
+          HasDerivAt (fun x : ℝ => x ^ 2) ((2 : ℕ) * v ^ (2 - 1)) v :=
+        hasDerivAt_pow 2 v
+      have hderiv_eq : ((2 : ℕ) * v ^ (2 - 1) : ℝ) = 2 * v := by
+        have hpow : v ^ (2 - 1 : ℕ) = v := by
+          exact pow_one v
+        calc
+          ((2 : ℕ) * v ^ (2 - 1) : ℝ)
+              = (2 : ℝ) * v ^ (2 - 1 : ℕ) := by
+                rfl
+          _ = 2 * v := by
+                exact congrArg (fun r : ℝ => (2 : ℝ) * r) hpow
+      exact Eq.subst
+        (motive := fun d : ℝ => HasDerivAt (fun x : ℝ => x ^ 2) d v)
+        hderiv_eq
+        hraw
+    have hadd : HasDerivAt (fun x : ℝ => b ^ 2 + x ^ 2) (0 + 2 * v) v :=
+      hconst.add hsquare
+    exact Eq.subst
+      (motive := fun d : ℝ =>
+        HasDerivAt (fun x : ℝ => b ^ 2 + x ^ 2) d v)
+      (zero_add (2 * v))
+      hadd
   have hquot :
       HasDerivAt
         (fun x : ℝ => x / (b ^ 2 + x ^ 2))
@@ -987,7 +1184,7 @@ theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_negDerivative_integr
       -scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v) =
       c / (b ^ 2 + c ^ 2) - A / (b ^ 2 + A ^ 2) := by
   have hderiv :
-      ∀ v : ℝ, v ∈ [[c, A]] →
+      ∀ v : ℝ, v ∈ Set.uIcc c A →
         HasDerivAt
           (fun x : ℝ => x / (b ^ 2 + x ^ 2))
           (scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v)
@@ -1012,8 +1209,9 @@ theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitude_negDerivative_integr
         -(∫ v in c..A,
           scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v) := by
       exact intervalIntegral.integral_neg
-        (fun v : ℝ =>
+        (f := fun v : ℝ =>
           scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v)
+        (a := c) (b := A) (μ := volume)
     _ = -(A / (b ^ 2 + A ^ 2) - c / (b ^ 2 + c ^ 2)) := by
       exact congrArg Neg.neg hftc
     _ = c / (b ^ 2 + c ^ 2) - A / (b ^ 2 + A ^ 2) := by
@@ -1036,13 +1234,13 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_parts_identity_
     fun v : ℝ => scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v
   let h : ℝ → ℝ := fun v : ℝ => -Real.cos v
   have hg_deriv :
-      ∀ v : ℝ, v ∈ [[c, A]] → HasDerivAt g (D v) v := by
+      ∀ v : ℝ, v ∈ Set.uIcc c A → HasDerivAt g (D v) v := by
     intro v _hv
     unfold g
     unfold D
     exact scalarFourierLaplacePlemelj_highTailCauchyAmplitude_hasDerivAt b v hb
   have hh_deriv :
-      ∀ v : ℝ, v ∈ [[c, A]] → HasDerivAt h (Real.sin v) v := by
+      ∀ v : ℝ, v ∈ Set.uIcc c A → HasDerivAt h (Real.sin v) v := by
     intro v _hv
     unfold h
     have hcos : HasDerivAt (fun x : ℝ => Real.cos x) (-Real.sin v) v :=
@@ -1082,11 +1280,13 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_parts_identity_
           g A * (-Real.cos A) - g c * (-Real.cos c) -
             ∫ v in c..A, D v * (-Real.cos v) := by
             unfold h
+            rfl
       _ =
           -(g A) * Real.cos A + g c * Real.cos c +
             ∫ v in c..A, D v * Real.cos v := by
             have hleft : g A * (-Real.cos A) = -(g A) * Real.cos A := by
-              exact mul_neg (g A) (Real.cos A)
+              exact (mul_neg (g A) (Real.cos A)).trans
+                (neg_mul (g A) (Real.cos A)).symm
             have hmid : g c * (-Real.cos c) = -(g c * Real.cos c) := by
               exact mul_neg (g c) (Real.cos c)
             have hint :
@@ -1103,7 +1303,8 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_parts_identity_
                   (fun F : ℝ → ℝ => ∫ v in c..A, F v)
                   hpoint)
                 (intervalIntegral.integral_neg
-                  (fun v : ℝ => D v * Real.cos v))
+                  (f := fun v : ℝ => D v * Real.cos v)
+                  (a := c) (b := A) (μ := volume))
             calc
               g A * (-Real.cos A) - g c * (-Real.cos c) -
                   ∫ v in c..A, D v * (-Real.cos v) =
@@ -1131,10 +1332,7 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_parts_identity_
                               (∫ v in c..A, D v * Real.cos v)
                       _ = -(g A) * Real.cos A + g c * Real.cos c +
                             ∫ v in c..A, D v * Real.cos v := by
-                            exact add_assoc
-                              (-(g A) * Real.cos A)
-                              (g c * Real.cos c)
-                              (∫ v in c..A, D v * Real.cos v)
+                            rfl
       _ =
           -(A / (b ^ 2 + A ^ 2)) * Real.cos A +
           (c / (b ^ 2 + c ^ 2)) * Real.cos c +
@@ -1143,89 +1341,80 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_parts_identity_
                 Real.cos v := by
             unfold g
             unfold D
+            rfl
   exact htarget
 
-/-- Total-variation bound for the derivative term in the damped Cauchy-amplitude
-sine-tail integration-by-parts formula. -/
-theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_derivativeVariation_source
-    (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
-    (hb_le_c : b ≤ c) (hcA : c ≤ A) :
-    |∫ v in c..A,
-      scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
-        Real.cos v| ≤
-      c / (b ^ 2 + c ^ 2) - A / (b ^ 2 + A ^ 2) := by
-  let g : ℝ → ℝ := fun v : ℝ => v / (b ^ 2 + v ^ 2)
-  let D : ℝ → ℝ :=
-    fun v : ℝ => scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v
-  have hD_nonpos :
-      ∀ v : ℝ, v ∈ Set.Icc c A → D v ≤ 0 := by
-    intro v hv
-    have hcv : c ≤ v := hv.1
-    have hb_le_v : b ≤ v := hb_le_c.trans hcv
-    have hb_nonneg : 0 ≤ b := le_of_lt hb
-    have hv_nonneg : 0 ≤ v := hb_nonneg.trans hb_le_v
-    have hsq_le : b ^ 2 ≤ v ^ 2 := by
-      exact sq_le_sq.mpr (abs_le_abs.mpr hb_le_v)
-    have hnum_nonpos : b ^ 2 - v ^ 2 ≤ 0 :=
-      sub_nonpos.mpr hsq_le
-    have hden_nonneg : 0 ≤ (b ^ 2 + v ^ 2) ^ 2 :=
-      sq_nonneg (b ^ 2 + v ^ 2)
-    have hden_pos : 0 < (b ^ 2 + v ^ 2) ^ 2 := by
-      have hbase_pos : 0 < b ^ 2 + v ^ 2 :=
-        scalarFourierLaplacePlemelj_zero_denominator_pos b hb v
-      exact sq_pos_of_pos hbase_pos
-    unfold D
-    unfold scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative
-    exact div_nonpos_of_nonpos_of_nonneg hnum_nonpos hden_nonneg
-  have hD_abs_eq_neg :
-      ∀ v : ℝ, v ∈ Set.Icc c A → |D v| = -D v := by
-    intro v hv
-    exact abs_of_nonpos (hD_nonpos v hv)
-  have hpoint :
-      ∀ v : ℝ, v ∈ Set.Icc c A →
-        ‖D v * Real.cos v‖ ≤ -D v := by
-    intro v hv
-    have hDabs : |D v| = -D v :=
-      hD_abs_eq_neg v hv
-    have hDneg_nonneg : 0 ≤ -D v :=
-      neg_nonneg.mpr (hD_nonpos v hv)
+/-- The high-tail Cauchy-amplitude derivative is nonpositive on the high tail. -/
+theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative_nonpos_on_Icc
+    (A b c v : ℝ) (hb : 0 < b) (hb_le_c : b ≤ c)
+    (hv : v ∈ Set.Icc c A) :
+    scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v ≤ 0 := by
+  have hcv : c ≤ v := hv.1
+  have hb_le_v : b ≤ v := hb_le_c.trans hcv
+  have hb_nonneg : 0 ≤ b := le_of_lt hb
+  have hv_nonneg : 0 ≤ v := hb_nonneg.trans hb_le_v
+  have hsq_le : b ^ 2 ≤ v ^ 2 := by
     calc
-      ‖D v * Real.cos v‖ = |D v * Real.cos v| := by
-        exact Real.norm_eq_abs (D v * Real.cos v)
-      _ = |D v| * |Real.cos v| := by
-        exact abs_mul (D v) (Real.cos v)
-      _ = (-D v) * |Real.cos v| := by
-        exact congrArg (fun r : ℝ => r * |Real.cos v|) hDabs
-      _ ≤ (-D v) * 1 := by
-        exact mul_le_mul_of_nonneg_left (abs_cos_le_one v) hDneg_nonneg
-      _ = -D v := by
-        exact mul_one (-D v)
-  have hnorm :
-      |∫ v in c..A, D v * Real.cos v| ≤
-        ∫ v in c..A, -D v := by
-    have hnorm' :
-        ‖∫ v in c..A, D v * Real.cos v‖ ≤
-          ∫ v in c..A, -D v :=
-      intervalIntegral.norm_integral_le_of_norm_le
-        (fun v hv => hpoint v hv)
-    exact hnorm'
-  have hanti :
-      AntitoneOn g (Set.Ici c) :=
-    scalarFourierLaplacePlemelj_highTailCauchyAmplitude_antitoneOn
-      b c hb hone_le_c hb_le_c
-  have hdrop :
-      ∫ v in c..A, -D v = g c - g A := by
-    unfold D
-    unfold g
-    exact
-      scalarFourierLaplacePlemelj_highTailCauchyAmplitude_negDerivative_integral_eq_drop
-        A b c hb hcA
-  have htarget :
-      |∫ v in c..A, D v * Real.cos v| ≤ g c - g A :=
-    hnorm.trans (le_of_eq hdrop)
-  unfold D at htarget
-  unfold g at htarget
-  exact htarget
+      b ^ 2 = b * b := by
+        exact pow_two b
+      _ ≤ v * v := by
+        exact mul_le_mul hb_le_v hb_le_v hb_nonneg hv_nonneg
+      _ = v ^ 2 := by
+        exact (pow_two v).symm
+  have hnum_nonpos : b ^ 2 - v ^ 2 ≤ 0 :=
+    sub_nonpos.mpr hsq_le
+  have hden_nonneg : 0 ≤ (b ^ 2 + v ^ 2) ^ 2 :=
+    sq_nonneg (b ^ 2 + v ^ 2)
+  unfold scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative
+  exact div_nonpos_of_nonpos_of_nonneg hnum_nonpos hden_nonneg
+
+/-- Pointwise domination of the oscillatory derivative term by total variation. -/
+theorem scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative_cos_norm_le_neg
+    (A b c v : ℝ) (hb : 0 < b) (hb_le_c : b ≤ c)
+    (hv : v ∈ Set.Icc c A) :
+    ‖scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+        Real.cos v‖ ≤
+      scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation b v := by
+  have hD_nonpos :
+      scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v ≤ 0 :=
+    scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative_nonpos_on_Icc
+      A b c v hb hb_le_c hv
+  have hDabs :
+      |scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v| =
+        -scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v :=
+    abs_of_nonpos hD_nonpos
+  have hDneg_nonneg :
+      0 ≤ -scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v :=
+    neg_nonneg.mpr hD_nonpos
+  calc
+    ‖scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+        Real.cos v‖ =
+        |scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+          Real.cos v| := by
+      exact Real.norm_eq_abs
+        (scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+          Real.cos v)
+    _ =
+        |scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v| *
+          |Real.cos v| := by
+      exact abs_mul
+        (scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v)
+        (Real.cos v)
+    _ =
+        (-scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v) *
+          |Real.cos v| := by
+      exact congrArg (fun r : ℝ => r * |Real.cos v|) hDabs
+    _ ≤
+        (-scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v) *
+          1 := by
+      exact mul_le_mul_of_nonneg_left (abs_cos_le_one v) hDneg_nonneg
+    _ = scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation b v := by
+      exact Eq.trans
+        (mul_one
+          (-scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v))
+        (by
+          unfold scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation
+          rfl)
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_of_partsVariation
     (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
@@ -1235,16 +1424,10 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_of_p
         (v / (b ^ 2 + v ^ 2)) * Real.sin v) =
         -(A / (b ^ 2 + A ^ 2)) * Real.cos A +
           (c / (b ^ 2 + c ^ 2)) * Real.cos c +
-            ∫ v in c..A,
-              scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
-                Real.cos v)
-    (hvariation :
-      |∫ v in c..A,
-        scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
-          Real.cos v| ≤
-        c / (b ^ 2 + c ^ 2) - A / (b ^ 2 + A ^ 2)) :
-    |∫ v in c..A,
-      (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 2 := by
+        ∫ v in c..A,
+          scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+                Real.cos v) :
+    |scalarFourierLaplacePlemelj_dampedSineIntegralHighTail A b c| ≤ 2 := by
   let g : ℝ → ℝ := fun v : ℝ => v / (b ^ 2 + v ^ 2)
   let d : ℝ := ∫ v in c..A,
     scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
@@ -1268,9 +1451,107 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_of_p
     scalarFourierLaplacePlemelj_highTailCauchyAmplitude_le_one
       b c c hb hone_le_c hc_mem
   have hvariation_g : |d| ≤ g c - g A := by
+    have hbound :
+        IntervalIntegrable
+          (fun v : ℝ =>
+            scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation b v)
+          volume c A := by
+      have hcont :
+          Continuous
+            (fun v : ℝ =>
+              scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation b v) := by
+        unfold scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation
+        exact
+          (scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative_continuous
+            b hb).neg
+      exact hcont.intervalIntegrable c A
+    have hae_bound :
+        ∀ᵐ v ∂volume.restrict (Ι c A),
+          ‖scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+              Real.cos v‖ ≤
+            scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation b v :=
+      (ae_restrict_mem measurableSet_uIoc).mono
+        (fun v hv => by
+          have hv_uIcc : v ∈ Set.uIcc c A :=
+            Set.uIoc_subset_uIcc hv
+          have hv_Icc : v ∈ Set.Icc c A :=
+            Eq.subst
+              (motive := fun s : Set ℝ => v ∈ s)
+              (Set.uIcc_of_le hcA)
+              hv_uIcc
+          exact
+            scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative_cos_norm_le_neg
+              A b c v hb hb_le_c hv_Icc)
+    have hnorm :
+        ‖∫ v in c..A,
+          scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+            Real.cos v‖ ≤
+          |∫ v in c..A,
+            scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation b v| :=
+      intervalIntegral.norm_integral_le_of_norm_le
+        (f := fun v : ℝ =>
+          scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+            Real.cos v)
+        (g := fun v : ℝ =>
+          scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation b v)
+        (a := c) (b := A) (μ := volume)
+        hae_bound
+        hbound
+    have hvariation_nonneg :
+        0 ≤
+          ∫ v in c..A,
+            scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation b v := by
+      exact intervalIntegral.integral_nonneg
+        (μ := volume)
+        (f := fun v : ℝ =>
+          scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation b v)
+        hcA
+        (fun v hv => by
+          unfold scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation
+          exact
+            neg_nonneg.mpr
+              (scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative_nonpos_on_Icc
+                A b c v hb hb_le_c hv))
+    have hnorm_no_abs :
+        ‖∫ v in c..A,
+          scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+            Real.cos v‖ ≤
+          ∫ v in c..A,
+            scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation b v := by
+      exact hnorm.trans_eq (abs_of_nonneg hvariation_nonneg)
+    have hdrop :
+        (∫ v in c..A,
+          scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation b v) =
+          g c - g A := by
+      unfold g
+      unfold scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation
+      exact
+        scalarFourierLaplacePlemelj_highTailCauchyAmplitude_negDerivative_integral_eq_drop
+          A b c hb hcA
+    have hnorm_abs :
+        |∫ v in c..A,
+          scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+            Real.cos v| ≤
+          ∫ v in c..A,
+            scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation b v := by
+      calc
+        |∫ v in c..A,
+          scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+            Real.cos v| =
+            ‖∫ v in c..A,
+              scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+                Real.cos v‖ := by
+              exact
+                (Real.norm_eq_abs
+                  (∫ v in c..A,
+                    scalarFourierLaplacePlemelj_highTailCauchyAmplitudeDerivative b v *
+                      Real.cos v)).symm
+        _ ≤
+          ∫ v in c..A,
+            scalarFourierLaplacePlemelj_highTailCauchyAmplitudeVariation b v :=
+            hnorm_no_abs
     unfold d
-    unfold g
-    exact hvariation
+    exact hnorm_abs.trans (le_of_eq hdrop)
   have hendpoint :
       |-(g A) * Real.cos A + g c * Real.cos c + d| ≤
         g A + g c + |d| := by
@@ -1323,7 +1604,8 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_of_p
             calc
               g A + g c + (g c - g A) =
                   g c + (g A + (g c - g A)) := by
-                    exact add_left_comm (g A) (g c) (g c - g A)
+                    exact (add_assoc (g A) (g c) (g c - g A)).trans
+                      (add_left_comm (g A) (g c) (g c - g A))
               _ = g c + g c := by
                     have hinner : g A + (g c - g A) = g c := by
                       calc
@@ -1334,15 +1616,15 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_of_p
                           exact sub_add_cancel (g c) (g A)
                     exact congrArg (fun r : ℝ => g c + r) hinner
       _ = g c * 2 := by
-            exact (two_mul (g c)).symm
+            exact (mul_two (g c)).symm
       _ ≤ 1 * 2 := by
             exact mul_le_mul_of_nonneg_right hgc_le_one zero_le_two
       _ = 2 := by
             exact one_mul 2
   have hparts_g :
-      (∫ v in c..A,
-        (v / (b ^ 2 + v ^ 2)) * Real.sin v) =
+      scalarFourierLaplacePlemelj_dampedSineIntegralHighTail A b c =
         -(g A) * Real.cos A + g c * Real.cos c + d := by
+    unfold scalarFourierLaplacePlemelj_dampedSineIntegralHighTail
     unfold g
     unfold d
     exact hparts
@@ -1360,21 +1642,17 @@ proof is the finite-interval integration-by-parts calculation for
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_partsVariation_source
     (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
     (hb_le_c : b ≤ c) (hcA : c ≤ A) :
-    |∫ v in c..A,
-      (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 2 := by
+    |scalarFourierLaplacePlemelj_dampedSineIntegralHighTail A b c| ≤ 2 := by
   exact
     scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_of_partsVariation
       A b c hb hone_le_c hb_le_c hcA
       (scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_parts_identity_source
         A b c hb hcA)
-      (scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_derivativeVariation_source
-        A b c hb hone_le_c hb_le_c hcA)
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
     (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
     (hb_le_c : b ≤ c) (hcA : c ≤ A) :
-    |∫ v in c..A,
-      (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 2 := by
+    |scalarFourierLaplacePlemelj_dampedSineIntegralHighTail A b c| ≤ 2 := by
   exact
     scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_partsVariation_source
       A b c hb hone_le_c hb_le_c hcA
@@ -1427,8 +1705,7 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_split_at_one
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_pi
     (A b c : ℝ) (hb : 0 < b) (hone_le_c : 1 ≤ c)
     (hb_le_c : b ≤ c) (hcA : c ≤ A) :
-    |∫ v in c..A,
-      (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤
+    |scalarFourierLaplacePlemelj_dampedSineIntegralHighTail A b c| ≤
       (2 : ℝ) * Real.pi := by
   exact
     (scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
@@ -1468,8 +1745,13 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_crossing_abs_le_two_
   have hhigh :
       |∫ v in (1 : ℝ)..A,
         (v / (b ^ 2 + v ^ 2)) * Real.sin v| ≤ 2 :=
-    scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
-      A b 1 hb (le_refl 1) hb_le_one hone_le_A
+    by
+      have hhigh_named :
+          |scalarFourierLaplacePlemelj_dampedSineIntegralHighTail A b 1| ≤ 2 :=
+        scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two
+          A b 1 hb (le_refl 1) hb_le_one hone_le_A
+      unfold scalarFourierLaplacePlemelj_dampedSineIntegralHighTail at hhigh_named
+      exact hhigh_named
   have hsum :
       |(∫ v in b..1,
         (v / (b ^ 2 + v ^ 2)) * Real.sin v) +
@@ -1493,7 +1775,7 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_crossing_abs_le_two_
       _ ≤ 1 + 2 := by
             exact add_le_add hlow hhigh
       _ = 3 := by
-            rfl
+            exact (add_comm (1 : ℝ) 2).trans two_add_one_eq_three
   calc
     |∫ v in (b)..A,
       (v / (b ^ 2 + v ^ 2)) * Real.sin v|
@@ -1527,9 +1809,13 @@ theorem scalarFourierLaplacePlemelj_dampedSineIntegral_tail_abs_le_two_pi
             scalarFourierLaplacePlemelj_dampedSineIntegral_tail_crossing_abs_le_two_pi
               A b hb hbA hb_le_one (le_of_lt hone_lt_A)
       | Or.inr hone_lt_b =>
-          exact
+          have hhigh_named :
+              |scalarFourierLaplacePlemelj_dampedSineIntegralHighTail A b b| ≤
+                (2 : ℝ) * Real.pi :=
             scalarFourierLaplacePlemelj_dampedSineIntegral_tail_high_abs_le_two_pi
               A b b hb (le_of_lt hone_lt_b) (le_refl b) hbA
+          unfold scalarFourierLaplacePlemelj_dampedSineIntegralHighTail at hhigh_named
+          exact hhigh_named
 
 theorem scalarFourierLaplacePlemelj_dampedSineIntegral_split_at_scale
     (A b : ℝ) (hb : 0 < b) (hbA : b ≤ A) :
@@ -1711,7 +1997,7 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_eq_dampedSin
         (u / (1 + u ^ 2)) * Real.sin (y * u))
           = ∫ u in (0)..R, y * G (u * y) := by
             exact intervalIntegral.integral_congr
-              (Filter.Eventually.of_forall hpoint)
+              (fun u _ => hpoint u)
       _ = y * ∫ u in (0)..R, G (u * y) := by
             exact intervalIntegral.integral_const_mul
               (a := 0) (b := R) (μ := volume)
@@ -1781,7 +2067,7 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_integrand_ev
           = (-u) / (1 + u ^ 2) := by
             exact congrArg (fun d : ℝ => (-u) / d) hden
       _ = -(u / (1 + u ^ 2)) := by
-            exact neg_div u (1 + u ^ 2)
+            exact (neg_div' (1 + u ^ 2) u).symm
   calc
     ((-u) / (1 + (-u) ^ 2)) * Real.sin (y * (-u))
         = (-(u / (1 + u ^ 2))) * Real.sin (y * (-u)) := by
@@ -1820,9 +2106,13 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_one_a
           exact (neg_neg R).symm
         calc
           (∫ u in (0)..S, F (-u))
-              = ∫ u in (-S)..0, F u := by
+              = ∫ u in (-S)..(-0), F u := by
                 exact intervalIntegral.integral_comp_neg
                   (f := F) (a := 0) (b := S)
+          _ = ∫ u in (-S)..0, F u := by
+                exact congrArg
+                  (fun r : ℝ => ∫ u in (-S)..r, F u)
+                  neg_zero
           _ = ∫ u in R..0, F u := by
                 exact congrArg
                   (fun l : ℝ => ∫ u in l..0, F u)
@@ -1830,12 +2120,11 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_one_a
       have heven :
           (∫ u in (0)..S, F (-u)) = ∫ u in (0)..S, F u := by
         exact intervalIntegral.integral_congr
-          (Filter.Eventually.of_forall
-            (fun u : ℝ => by
+          (fun u _ => by
               unfold F
               exact
                 scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_integrand_even
-                  y u))
+                  y u)
       have hR_to_S :
           (∫ u in (0)..R, F u) = -∫ u in (0)..S, F u := by
         calc
@@ -1898,7 +2187,7 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_neg_frequenc
       (u / (1 + u ^ 2)) * Real.sin ((-y) * u))
         = ∫ u in (0)..R, -F u := by
           exact intervalIntegral.integral_congr
-            (Filter.Eventually.of_forall hpoint)
+            (fun u _ => hpoint u)
     _ = -∫ u in (0)..R, F u := by
           exact intervalIntegral.integral_neg
     _ =
@@ -1934,12 +2223,11 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_one_a
               ∫ u in (0)..R,
                 (u / (1 + u ^ 2)) * Real.sin ((-yp) * u) := by
                 exact intervalIntegral.integral_congr
-                  (Filter.Eventually.of_forall
-                    (fun u : ℝ => by
+                  (fun u _ => by
                       exact congrArg
                         (fun z : ℝ =>
                           (u / (1 + u ^ 2)) * Real.sin (z * u))
-                        hy_eq))
+                        hy_eq)
           _ =
               -∫ u in (0)..R,
                 (u / (1 + u ^ 2)) * Real.sin (yp * u) := by
@@ -1988,18 +2276,23 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_one_a
               ∫ u in (0)..R,
                 (u / (1 + u ^ 2)) * Real.sin (0 * u) := by
                 exact intervalIntegral.integral_congr
-                  (Filter.Eventually.of_forall
-                    (fun u : ℝ => by
+                  (fun u _ => by
                       exact congrArg
                         (fun z : ℝ =>
                           (u / (1 + u ^ 2)) * Real.sin (z * u))
-                        hy))
+                        hy)
           _ =
               ∫ u in (0)..R, 0 := by
                 exact intervalIntegral.integral_congr
-                  (Filter.Eventually.of_forall
-                    (fun u : ℝ => by
-                      exact mul_zero (u / (1 + u ^ 2))))
+                  (fun u _ => by
+                      calc
+                        (u / (1 + u ^ 2)) * Real.sin (0 * u)
+                            = (u / (1 + u ^ 2)) * 0 := by
+                              exact congrArg
+                                (fun r : ℝ => (u / (1 + u ^ 2)) * r)
+                                ((congrArg Real.sin (zero_mul u)).trans Real.sin_zero)
+                        _ = 0 := by
+                              exact mul_zero (u / (1 + u ^ 2)))
           _ = 0 := by
                 exact intervalIntegral.integral_zero
       have htarget : |(0 : ℝ)| ≤ 1 + (2 : ℝ) * Real.pi := by
@@ -2014,63 +2307,6 @@ theorem scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_one_a
       exact
         scalarFourierLaplacePlemelj_normalizedHalfHilbertSineKernel_abs_le_one_add_two_pi_of_ne_zero
           R y hy
-
-/-- Scaling reduction from the width-`a` Hilbert-Cauchy sine kernel to the
-normalized kernel `u / (1 + u^2)`. -/
-theorem scalarFourierLaplacePlemelj_scaledHilbertSineKernel_coefficient_identity
-    (a : ℝ) (ha : 0 < a) (u : ℝ) :
-    a * ((u * a) / (a ^ 2 + (u * a) ^ 2)) =
-      u / (1 + u ^ 2) := by
-  have ha_ne : a ≠ 0 :=
-    ne_of_gt ha
-  have ha_sq_ne : a ^ 2 ≠ 0 := by
-    exact pow_ne_zero 2 ha_ne
-  have hnum : a * (u * a) = u * a ^ 2 := by
-    calc
-      a * (u * a) = (a * u) * a := by
-        exact (mul_assoc a u a).symm
-      _ = (u * a) * a := by
-        exact congrArg (fun r : ℝ => r * a) (mul_comm a u)
-      _ = u * (a * a) := by
-        exact mul_assoc u a a
-      _ = u * a ^ 2 := by
-        exact congrArg (fun r : ℝ => u * r) (sq a).symm
-  have huasq : (u * a) ^ 2 = u ^ 2 * a ^ 2 := by
-    exact mul_pow u a 2
-  have hden : a ^ 2 + (u * a) ^ 2 = (1 + u ^ 2) * a ^ 2 := by
-    calc
-      a ^ 2 + (u * a) ^ 2
-          = a ^ 2 + u ^ 2 * a ^ 2 := by
-            exact congrArg (fun r : ℝ => a ^ 2 + r) huasq
-      _ = 1 * a ^ 2 + u ^ 2 * a ^ 2 := by
-            exact congrArg
-              (fun r : ℝ => r + u ^ 2 * a ^ 2)
-              (one_mul (a ^ 2)).symm
-      _ = (1 + u ^ 2) * a ^ 2 := by
-            exact (add_mul 1 (u ^ 2) (a ^ 2)).symm
-  calc
-    a * ((u * a) / (a ^ 2 + (u * a) ^ 2))
-        = (a * (u * a)) / (a ^ 2 + (u * a) ^ 2) := by
-          exact mul_div_assoc' a (u * a) (a ^ 2 + (u * a) ^ 2)
-    _ = (u * a ^ 2) / (a ^ 2 + (u * a) ^ 2) := by
-          exact congrArg
-            (fun r : ℝ => r / (a ^ 2 + (u * a) ^ 2))
-            hnum
-    _ = (u * a ^ 2) / ((1 + u ^ 2) * a ^ 2) := by
-          exact congrArg (fun r : ℝ => (u * a ^ 2) / r) hden
-    _ = u / (1 + u ^ 2) := by
-          exact mul_div_mul_right u (1 + u ^ 2) ha_sq_ne
-
-theorem scalarFourierLaplacePlemelj_scaledHilbertSineKernel_phase_identity
-    (a x u : ℝ) :
-    Real.sin ((u * a) * x) = Real.sin ((a * x) * u) := by
-  have harg : (u * a) * x = (a * x) * u := by
-    calc
-      (u * a) * x = u * (a * x) := by
-        exact mul_assoc u a x
-      _ = (a * x) * u := by
-        exact mul_comm u (a * x)
-  exact congrArg Real.sin harg
 
 theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_scaled_integrand_identity
     (a : ℝ) (ha : 0 < a) (x u : ℝ) :
@@ -2094,9 +2330,9 @@ theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_scaled_integrand_ident
         =
         (a * ((u * a) / (a ^ 2 + (u * a) ^ 2))) *
           Real.sin ((u * a) * x) := by
-          exact mul_assoc a
+          exact (mul_assoc a
             ((u * a) / (a ^ 2 + (u * a) ^ 2))
-            (Real.sin ((u * a) * x))
+            (Real.sin ((u * a) * x))).symm
     _ =
         (u / (1 + u ^ 2)) *
           Real.sin ((u * a) * x) := by
@@ -2190,27 +2426,31 @@ theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_eq_normalized
             Real.sin ((u * a) * x)) =
         ∫ u in (0)..(T / a),
           (u / (1 + u ^ 2)) * Real.sin ((a * x) * u) := by
-    calc
-      a *
-        ∫ u in (0)..(T / a),
-          (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
-            Real.sin ((u * a) * x))
-          =
+    have hconst :
+        a *
+          ∫ u in (0)..(T / a),
+            (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
+              Real.sin ((u * a) * x)) =
           ∫ u in (0)..(T / a),
             a *
               (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
-                Real.sin ((u * a) * x)) := by
-            exact (intervalIntegral.integral_const_mul
-              (a := 0) (b := T / a) (μ := volume)
-              a
-              (fun u : ℝ =>
-                (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
-                  Real.sin ((u * a) * x))).symm
-      _ =
+                Real.sin ((u * a) * x)) :=
+      (intervalIntegral.integral_const_mul
+        (a := 0) (b := T / a) (μ := volume)
+        a
+        (fun u : ℝ =>
+          (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
+            Real.sin ((u * a) * x)))).symm
+    have hcongr :
+        (∫ u in (0)..(T / a),
+          a *
+            (((u * a) / (a ^ 2 + (u * a) ^ 2)) *
+              Real.sin ((u * a) * x))) =
           ∫ u in (0)..(T / a),
-            (u / (1 + u ^ 2)) * Real.sin ((a * x) * u) := by
-            exact intervalIntegral.integral_congr
-              (Filter.Eventually.of_forall hpoint)
+            (u / (1 + u ^ 2)) * Real.sin ((a * x) * u) :=
+      intervalIntegral.integral_congr
+        (fun u _ => hpoint u)
+    exact hconst.trans hcongr
   exact hscale.trans hintegral
 
 theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_abs_le_one_add_two_pi
@@ -2240,7 +2480,7 @@ theorem scalarFourierLaplacePlemelj_halfHilbertSineKernel_abs_le_one_add_two_pi
 /-- Symmetric finite windows of the Hilbert-Cauchy sine kernel reduce to twice
 the positive half-window because the kernel is even. -/
 theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_symmetric_eq_two_half
-    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hT : 0 ≤ T) :
     (∫ t in Set.Icc (-T) T,
       (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)) =
       (2 : ℝ) *
@@ -2283,7 +2523,7 @@ theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_symmetric_eq_two_hal
             = (-t) / (a ^ 2 + t ^ 2) := by
               exact congrArg (fun d : ℝ => (-t) / d) hden
         _ = -(t / (a ^ 2 + t ^ 2)) := by
-              exact neg_div t (a ^ 2 + t ^ 2)
+              exact (neg_div' (a ^ 2 + t ^ 2) t).symm
     calc
       ((-t) / (a ^ 2 + (-t) ^ 2)) * Real.sin ((-t) * x)
           =
@@ -2303,14 +2543,20 @@ theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_symmetric_eq_two_hal
       (∫ t in (-T)..0, f t) = ∫ t in (0)..T, f t := by
     have hcomp :
         (∫ t in (0)..T, f (-t)) = ∫ t in (-T)..0, f t := by
-      exact
-        intervalIntegral.integral_comp_neg
-          (f := f) (a := 0) (b := T)
+      calc
+        (∫ t in (0)..T, f (-t)) = ∫ t in (-T)..(-0), f t := by
+          exact
+            intervalIntegral.integral_comp_neg
+              (f := f) (a := 0) (b := T)
+        _ = ∫ t in (-T)..0, f t := by
+          exact congrArg
+            (fun r : ℝ => ∫ t in (-T)..r, f t)
+            neg_zero
     have hcomp_even :
         (∫ t in (0)..T, f (-t)) = ∫ t in (0)..T, f t := by
       exact
         intervalIntegral.integral_congr
-          (Filter.Eventually.of_forall heven)
+          (fun t _ => heven t)
     exact hcomp.symm.trans hcomp_even
   have hsplit :
       (∫ t in (-T)..T, f t) =
@@ -2323,7 +2569,9 @@ theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_symmetric_eq_two_hal
       (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x))
         = ∫ t in (-T)..T, f t := by
           unfold f
-          rfl
+          exact setIntegral_Icc_eq_intervalIntegral_of_le
+            (fun t : ℝ => t / (a ^ 2 + t ^ 2) * Real.sin (t * x))
+            (neg_le_self hT)
     _ = (∫ t in (-T)..0, f t) + ∫ t in (0)..T, f t := hsplit
     _ = (∫ t in (0)..T, f t) + ∫ t in (0)..T, f t := by
           exact congrArg
@@ -2340,7 +2588,7 @@ theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_symmetric_eq_two_hal
 
 /-- Finite-window Dirichlet bound for the odd Hilbert-Cauchy sine kernel. -/
 theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_abs_le_two_add_four_pi
-    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hT : 0 ≤ T) :
     |∫ t in Set.Icc (-T) T,
       (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| ≤
       (2 : ℝ) * (1 + (2 : ℝ) * Real.pi) := by
@@ -2351,7 +2599,7 @@ theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_abs_le_two_add_four_
           ∫ t in (0)..T,
             (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) :=
     scalarFourierLaplacePlemelj_finiteHilbertSineKernel_symmetric_eq_two_half
-      a ha T x
+      a ha T x hT
   have hhalf :
       |∫ t in (0)..T,
         (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)| ≤
@@ -2411,22 +2659,22 @@ theorem scalarFourierLaplacePlemelj_finiteHilbertSineKernel_abs_le_two_add_four_
 /-- Dirichlet bound for the odd-sine Cauchy component after the standard
 scale reduction. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_scaled_abs_le_two_add_four_pi
-    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hT : 0 ≤ T) :
     |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤
       (2 : ℝ) * (1 + (2 : ℝ) * Real.pi) := by
   exact
     scalarFourierLaplacePlemelj_finiteHilbertSineKernel_abs_le_two_add_four_pi
-      a ha T x
+      a ha T x hT
 
 /-- Fixed-constant Dirichlet bound for the odd-sine component of the
 uncompensated Cauchy kernel. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_abs_le_two_add_four_pi
-    (a : ℝ) (ha : 0 < a) (T x : ℝ) :
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hT : 0 ≤ T) :
     |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x| ≤
       (2 : ℝ) * (1 + (2 : ℝ) * Real.pi) := by
   exact
     scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_scaled_abs_le_two_add_four_pi
-      a ha T x
+      a ha T x hT
 
 /-- Uniform Dirichlet bound for the odd-sine part of the uncompensated Cauchy
 Fourier window. -/
@@ -2440,8 +2688,35 @@ theorem scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_uniform_bound
     mul_nonneg zero_le_two
       (add_nonneg zero_le_one (mul_nonneg zero_le_two Real.pi_pos.le)),
     fun T x =>
-      scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_abs_le_two_add_four_pi
-        a ha T x⟩
+      if hT : 0 ≤ T then
+        scalarFourierLaplacePlemelj_uncompensated_oddSineWindow_abs_le_two_add_four_pi
+          a ha T x hT
+      else
+        have hT_lt : T < 0 :=
+          lt_of_not_ge hT
+        have hT_lt_neg : T < -T :=
+          hT_lt.trans (neg_pos.mpr hT_lt)
+        have hinterval_empty : Set.Icc (-T) T = (∅ : Set ℝ) :=
+          Set.Icc_eq_empty_of_lt hT_lt_neg
+        have hwindow_zero :
+            scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x = 0 := by
+          unfold scalarFourierLaplacePlemelj_uncompensated_oddSineWindow
+          exact Eq.subst
+            (motive := fun s : Set ℝ =>
+              (∫ t in s, t / (a ^ 2 + t ^ 2) * Real.sin (t * x)) = 0)
+            hinterval_empty.symm
+            (setIntegral_empty
+              (μ := volume)
+              (f := fun t : ℝ => t / (a ^ 2 + t ^ 2) * Real.sin (t * x)))
+        calc
+          |scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x|
+              = |(0 : ℝ)| := by
+                exact congrArg abs hwindow_zero
+          _ = 0 := abs_zero
+          _ ≤ (2 : ℝ) * (1 + (2 : ℝ) * Real.pi) :=
+                mul_nonneg zero_le_two
+                  (add_nonneg zero_le_one
+                    (mul_nonneg zero_le_two Real.pi_pos.le))⟩
 
 /-- Multiplication of two complex numbers presented by real and imaginary
 coordinates. -/
@@ -2596,7 +2871,7 @@ theorem intervalIntegral_integral_eq_zero_of_forall_neg_eq_neg
       (∫ t in (-T)..T, f (-t))
           = ∫ t in (-T)..T, -f t := by
             exact intervalIntegral.integral_congr
-              (Filter.Eventually.of_forall hodd)
+              (fun t _ => hodd t)
       _ = -∫ t in (-T)..T, f t := by
             exact intervalIntegral.integral_neg
   have hself_neg : (∫ t in (-T)..T, f t) = -∫ t in (-T)..T, f t :=
@@ -2625,7 +2900,7 @@ theorem scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_pointwise_o
       Complex.I) =
       -((((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
           (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
-        Complex.I) := by
+        Complex.I)) := by
   let D : ℝ := a ^ 2 + t ^ 2
   let A : ℝ := -(a / D)
   let B : ℝ := t / D
@@ -2650,7 +2925,7 @@ theorem scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_pointwise_o
       (-t) / (a ^ 2 + (-t) ^ 2) = (-t) / D := by
         exact congrArg (fun d : ℝ => (-t) / d) hden
       _ = -(t / D) := by
-        exact neg_div t D
+        exact (neg_div' D t).symm
       _ = -B := by
         rfl
   have hsin :
@@ -2706,32 +2981,33 @@ theorem scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_pointwise_o
           -(-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
               (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x)) := by
             exact congrArg Neg.neg hreal_right.symm
-  calc
-    (((-(a / (a ^ 2 + (-t) ^ 2)) * Real.sin ((-t) * x) +
-        ((-t) / (a ^ 2 + (-t) ^ 2)) * Real.cos ((-t) * x) : ℝ) : ℂ) *
-      Complex.I)
-        =
-        (((-(-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
-            (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x)) : ℝ) : ℂ) *
-          Complex.I) := by
-          exact congrArg (fun y : ℝ => ((y : ℂ) * Complex.I)) hreal
-    _ =
-        (-((( -(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
-            (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ))) *
-          Complex.I := by
-          exact congrArg
-            (fun z : ℂ => z * Complex.I)
-            (Complex.ofReal_neg
-              (-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
-                (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x)))
-    _ =
-        -((((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
-            (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
-          Complex.I) := by
-          exact neg_mul
-            (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
-              (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ))
-            Complex.I
+  let R : ℝ :=
+    (-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+      (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x))
+  have hcomplex :
+      (((-(a / (a ^ 2 + (-t) ^ 2)) * Real.sin ((-t) * x) +
+          ((-t) / (a ^ 2 + (-t) ^ 2)) * Real.cos ((-t) * x) : ℝ) : ℂ) *
+        Complex.I) =
+        (((-R : ℝ) : ℂ) * Complex.I) := by
+    exact congrArg (fun y : ℝ => ((y : ℂ) * Complex.I)) hreal
+  have hofReal_neg :
+      (((-R : ℝ) : ℂ) * Complex.I) =
+        (-((R : ℂ))) * Complex.I := by
+    exact congrArg
+      (fun z : ℂ => z * Complex.I)
+      (Complex.ofReal_neg R)
+  have hmul_neg :
+      (-((R : ℂ))) * Complex.I =
+        -(((R : ℂ) * Complex.I)) := by
+    exact neg_mul (R : ℂ) Complex.I
+  have htarget :
+      (((-(a / (a ^ 2 + (-t) ^ 2)) * Real.sin ((-t) * x) +
+          ((-t) / (a ^ 2 + (-t) ^ 2)) * Real.cos ((-t) * x) : ℝ) : ℂ) *
+        Complex.I) =
+        -(((R : ℂ) * Complex.I)) :=
+    hcomplex.trans (hofReal_neg.trans hmul_neg)
+  unfold R at htarget
+  exact htarget
 
 /-- The imaginary remainder in the symmetric uncompensated Cauchy Fourier
 window cancels by oddness. -/
@@ -2752,7 +3028,41 @@ theorem scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_integral_eq
     exact
       scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_pointwise_odd
         a ha x t
-  exact intervalIntegral_integral_eq_zero_of_forall_neg_eq_neg f T hodd
+  if hT : 0 ≤ T then
+    have hset_interval :
+        (∫ t in Set.Icc (-T) T, f t) = ∫ t in (-T)..T, f t :=
+      setIntegral_Icc_eq_intervalIntegral_of_le f (neg_le_self hT)
+    have hinterval_zero :
+        ∫ t in (-T)..T, f t = 0 :=
+      intervalIntegral_integral_eq_zero_of_forall_neg_eq_neg f T hodd
+    calc
+      (∫ t in Set.Icc (-T) T,
+        (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+            (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+          Complex.I))
+          = ∫ t in Set.Icc (-T) T, f t := by
+            unfold f
+            rfl
+      _ = ∫ t in (-T)..T, f t := hset_interval
+      _ = 0 := hinterval_zero
+  else
+    have hT_lt : T < 0 :=
+      lt_of_not_ge hT
+    have hT_lt_neg : T < -T :=
+      hT_lt.trans (neg_pos.mpr hT_lt)
+    have hinterval_empty : Set.Icc (-T) T = (∅ : Set ℝ) :=
+      Set.Icc_eq_empty_of_lt hT_lt_neg
+    calc
+      (∫ t in Set.Icc (-T) T,
+        (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+            (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+          Complex.I))
+          = ∫ t in (∅ : Set ℝ), f t := by
+            unfold f
+            exact congrArg
+              (fun s : Set ℝ => ∫ t in s, f t)
+              hinterval_empty
+      _ = 0 := setIntegral_empty
 
 /-- Interval integrability of the even-cosine scalar component of the
 uncompensated real remainder. -/
@@ -2810,20 +3120,12 @@ theorem scalarFourierLaplacePlemelj_uncompensated_evenCosine_component_integral_
     (∫ t in Set.Icc (-T) T,
       ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ)) =
       ((scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x : ℝ) : ℂ) := by
-  calc
-    (∫ t in Set.Icc (-T) T,
-      ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ))
-        =
-        ∫ t in (-T)..T,
-          ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) := by
-          rfl
-    _ =
-        ((∫ t in (-T)..T,
-          (-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ)) : ℂ) := by
-          exact intervalIntegral.integral_ofReal
-    _ =
-        ((scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x : ℝ) : ℂ) := by
-          rfl
+  unfold scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow
+  exact integral_ofReal
+    (𝕜 := ℂ)
+    (f := fun t : ℝ =>
+      (-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ))
+    (μ := volume.restrict (Set.Icc (-T) T))
 
 /-- The odd-sine component commutes with the real-to-complex integral. -/
 theorem scalarFourierLaplacePlemelj_uncompensated_oddSine_component_integral_ofReal
@@ -2831,20 +3133,12 @@ theorem scalarFourierLaplacePlemelj_uncompensated_oddSine_component_integral_ofR
     (∫ t in Set.Icc (-T) T,
       (((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ)) =
       ((scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x : ℝ) : ℂ) := by
-  calc
-    (∫ t in Set.Icc (-T) T,
-      (((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ))
-        =
-        ∫ t in (-T)..T,
-          (((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ) := by
-          rfl
-    _ =
-        ((∫ t in (-T)..T,
-          ((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ)) : ℂ) := by
-          exact intervalIntegral.integral_ofReal
-    _ =
-        ((scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x : ℝ) : ℂ) := by
-          rfl
+  unfold scalarFourierLaplacePlemelj_uncompensated_oddSineWindow
+  exact integral_ofReal
+    (𝕜 := ℂ)
+    (f := fun t : ℝ =>
+      ((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ))
+    (μ := volume.restrict (Set.Icc (-T) T))
 
 /-- The real remainder in the symmetric uncompensated Cauchy Fourier window is
 the even-cosine part minus the odd-sine part. -/
@@ -2855,6 +3149,48 @@ theorem scalarFourierLaplacePlemelj_uncompensated_realRemainder_integral_eq_even
           (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ) =
       ((scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x -
         scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x : ℝ) : ℂ) := by
+  have hleft_int :
+      Integrable
+        (fun t : ℝ =>
+          ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ))
+        (volume.restrict (Set.Icc (-T) T)) := by
+    have hden_cont : Continuous (fun t : ℝ => a ^ 2 + t ^ 2) :=
+      continuous_const.add (continuous_id.pow 2)
+    have hden_ne : ∀ t : ℝ, a ^ 2 + t ^ 2 ≠ 0 :=
+      scalarFourierLaplacePlemelj_zero_denominator_ne_zero a ha
+    have hcoeff :
+        Continuous (fun t : ℝ => -(a / (a ^ 2 + t ^ 2))) :=
+      (continuous_const.div hden_cont hden_ne).neg
+    have htx : Continuous (fun t : ℝ => t * x) :=
+      continuous_id.mul continuous_const
+    have hcos : Continuous (fun t : ℝ => Real.cos (t * x)) :=
+      Real.continuous_cos.comp htx
+    have hreal :
+        Continuous
+          (fun t : ℝ => -(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x)) :=
+      hcoeff.mul hcos
+    exact (Complex.continuous_ofReal.comp hreal).integrableOn_Icc
+  have hright_int :
+      Integrable
+        (fun t : ℝ =>
+          (((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ))
+        (volume.restrict (Set.Icc (-T) T)) := by
+    have hden_cont : Continuous (fun t : ℝ => a ^ 2 + t ^ 2) :=
+      continuous_const.add (continuous_id.pow 2)
+    have hden_ne : ∀ t : ℝ, a ^ 2 + t ^ 2 ≠ 0 :=
+      scalarFourierLaplacePlemelj_zero_denominator_ne_zero a ha
+    have hcoeff :
+        Continuous (fun t : ℝ => t / (a ^ 2 + t ^ 2)) :=
+      continuous_id.div hden_cont hden_ne
+    have htx : Continuous (fun t : ℝ => t * x) :=
+      continuous_id.mul continuous_const
+    have hsin : Continuous (fun t : ℝ => Real.sin (t * x)) :=
+      Real.continuous_sin.comp htx
+    have hreal :
+        Continuous
+          (fun t : ℝ => (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)) :=
+      hcoeff.mul hsin
+    exact (Complex.continuous_ofReal.comp hreal).integrableOn_Icc
   calc
     (∫ t in Set.Icc (-T) T,
       ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
@@ -2863,22 +3199,23 @@ theorem scalarFourierLaplacePlemelj_uncompensated_realRemainder_integral_eq_even
         ∫ t in Set.Icc (-T) T,
           ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) -
             (((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ) := by
-          exact intervalIntegral.integral_congr
-            (Filter.Eventually.of_forall
-              (fun t : ℝ =>
+          exact setIntegral_congr_fun measurableSet_Icc
+            (fun t _ =>
                 Complex.ofReal_sub
                   (-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x))
-                  ((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x))))
+                  ((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)))
     _ =
         (∫ t in Set.Icc (-T) T,
           ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ)) -
           ∫ t in Set.Icc (-T) T,
             (((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ) := by
-          exact intervalIntegral.integral_sub
-            (scalarFourierLaplacePlemelj_uncompensated_evenCosine_component_intervalIntegrable
-              a ha T x)
-            (scalarFourierLaplacePlemelj_uncompensated_oddSine_component_intervalIntegrable
-              a ha T x)
+          exact integral_sub
+            (f := fun t : ℝ =>
+              ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ))
+            (g := fun t : ℝ =>
+              (((t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ))
+            (μ := volume.restrict (Set.Icc (-T) T))
+            hleft_int hright_int
     _ =
         ((scalarFourierLaplacePlemelj_uncompensated_evenCosineWindow a T x : ℝ) : ℂ) -
           ((scalarFourierLaplacePlemelj_uncompensated_oddSineWindow a T x : ℝ) : ℂ) := by
@@ -2981,11 +3318,75 @@ theorem scalarFourierLaplacePlemelj_uncompensated_remainder_integral_add
           (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
               (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
             Complex.I) := by
-  exact intervalIntegral.integral_add
-    (scalarFourierLaplacePlemelj_uncompensated_realRemainder_intervalIntegrable
-      a ha T x)
-    (scalarFourierLaplacePlemelj_uncompensated_imaginaryRemainder_intervalIntegrable
-      a ha T x)
+  have hreal_int :
+      Integrable
+        (fun t : ℝ =>
+          ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+              (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ))
+        (volume.restrict (Set.Icc (-T) T)) := by
+    have hden_cont : Continuous (fun t : ℝ => a ^ 2 + t ^ 2) :=
+      continuous_const.add (continuous_id.pow 2)
+    have hden_ne : ∀ t : ℝ, a ^ 2 + t ^ 2 ≠ 0 :=
+      scalarFourierLaplacePlemelj_zero_denominator_ne_zero a ha
+    have hleft_coeff :
+        Continuous (fun t : ℝ => -(a / (a ^ 2 + t ^ 2))) :=
+      (continuous_const.div hden_cont hden_ne).neg
+    have hright_coeff :
+        Continuous (fun t : ℝ => t / (a ^ 2 + t ^ 2)) :=
+      continuous_id.div hden_cont hden_ne
+    have htx : Continuous (fun t : ℝ => t * x) :=
+      continuous_id.mul continuous_const
+    have hcos : Continuous (fun t : ℝ => Real.cos (t * x)) :=
+      Real.continuous_cos.comp htx
+    have hsin : Continuous (fun t : ℝ => Real.sin (t * x)) :=
+      Real.continuous_sin.comp htx
+    have hreal :
+        Continuous
+          (fun t : ℝ =>
+            -(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+              (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x)) :=
+      (hleft_coeff.mul hcos).sub (hright_coeff.mul hsin)
+    exact (Complex.continuous_ofReal.comp hreal).integrableOn_Icc
+  have himag_int :
+      Integrable
+        (fun t : ℝ =>
+          (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+              (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+            Complex.I))
+        (volume.restrict (Set.Icc (-T) T)) := by
+    have hden_cont : Continuous (fun t : ℝ => a ^ 2 + t ^ 2) :=
+      continuous_const.add (continuous_id.pow 2)
+    have hden_ne : ∀ t : ℝ, a ^ 2 + t ^ 2 ≠ 0 :=
+      scalarFourierLaplacePlemelj_zero_denominator_ne_zero a ha
+    have hleft_coeff :
+        Continuous (fun t : ℝ => -(a / (a ^ 2 + t ^ 2))) :=
+      (continuous_const.div hden_cont hden_ne).neg
+    have hright_coeff :
+        Continuous (fun t : ℝ => t / (a ^ 2 + t ^ 2)) :=
+      continuous_id.div hden_cont hden_ne
+    have htx : Continuous (fun t : ℝ => t * x) :=
+      continuous_id.mul continuous_const
+    have hcos : Continuous (fun t : ℝ => Real.cos (t * x)) :=
+      Real.continuous_cos.comp htx
+    have hsin : Continuous (fun t : ℝ => Real.sin (t * x)) :=
+      Real.continuous_sin.comp htx
+    have hreal :
+        Continuous
+          (fun t : ℝ =>
+            -(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+              (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x)) :=
+      (hleft_coeff.mul hsin).add (hright_coeff.mul hcos)
+    exact ((Complex.continuous_ofReal.comp hreal).mul continuous_const).integrableOn_Icc
+  exact integral_add
+    (f := fun t : ℝ =>
+      ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
+          (t / (a ^ 2 + t ^ 2)) * Real.sin (t * x) : ℝ) : ℂ))
+    (g := fun t : ℝ =>
+      (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
+          (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
+        Complex.I))
+    (μ := volume.restrict (Set.Icc (-T) T))
+    hreal_int himag_int
 
 /-- Exact real decomposition of the uncompensated symmetric Cauchy Fourier
 window into its surviving even-cosine and odd-sine pieces. -/
@@ -3008,11 +3409,10 @@ theorem scalarFourierLaplacePlemelj_uncompensated_window_eq_evenCosine_sub_oddSi
             (((-(a / (a ^ 2 + t ^ 2)) * Real.sin (t * x) +
                 (t / (a ^ 2 + t ^ 2)) * Real.cos (t * x) : ℝ) : ℂ) *
               Complex.I)) := by
-          exact intervalIntegral.integral_congr
-            (Filter.Eventually.of_forall
-              (fun t : ℝ =>
+          exact setIntegral_congr_fun measurableSet_Icc
+            (fun t _ =>
                 scalarFourierLaplacePlemelj_uncompensated_integrand_pointwise_decomposition
-                  a ha t x))
+                  a ha t x)
     _ =
         (∫ t in Set.Icc (-T) T,
           ((-(a / (a ^ 2 + t ^ 2)) * Real.cos (t * x) -
@@ -3073,8 +3473,14 @@ theorem scalarFourierLaplacePlemelj_uncompensated_window_norm_bound_of_even_odd
   have hnorm :
       ‖((E - O : ℝ) : ℂ)‖ = |E - O| :=
     RCLike.norm_ofReal (K := ℂ) (E - O)
-  have htri : |E - O| ≤ |E| + |O| :=
-    abs_sub_le E O
+  have htri : |E - O| ≤ |E| + |O| := by
+    calc
+      |E - O| = |E + (-O)| := by
+        exact congrArg abs (sub_eq_add_neg E O)
+      _ ≤ |E| + |-O| := by
+        exact abs_add E (-O)
+      _ = |E| + |O| := by
+        exact congrArg (fun r : ℝ => |E| + r) (abs_neg O)
   have heven' : |E| ≤ Ceven := by
     unfold E
     exact heven
@@ -3147,7 +3553,7 @@ theorem scalarFourierLaplacePlemelj_uncompensated_punctured_nearZero_norm_bound_
     (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             x ≠ 0 →
             ‖x‖ < δ →
@@ -3165,7 +3571,7 @@ theorem scalarFourierLaplacePlemelj_uncompensated_punctured_nearZero_norm_bound_
       exact
         ⟨C, hC_nonneg,
           Eventually.of_forall
-            (fun T x _hx_ne _hxδ _hxR =>
+            (fun (T : ℝ) x _hx_ne _hxδ _hxR =>
               hC T x)⟩
 
 /-- Uniform punctured-neighborhood Cauchy-window estimate near the Plemelj
@@ -3174,7 +3580,7 @@ theorem scalarFourierLaplacePlemelj_compactInterval_punctured_nearZero_norm_boun
     (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             x ≠ 0 →
             ‖x‖ < δ →
@@ -3201,7 +3607,7 @@ theorem scalarFourierLaplacePlemelj_compactInterval_punctured_nearZero_norm_boun
       exact
         ⟨C, hC_nonneg,
           hraw.mono
-            (fun T hT x hx_ne hxδ hxR =>
+            (fun (T : ℝ) hT x hx_ne hxδ hxR =>
               let W : ℂ :=
                 ∫ t in Set.Icc (-T) T,
                   (-1 / ((a : ℂ) + t * Complex.I)) *
@@ -3241,9 +3647,6 @@ theorem scalarFourierLaplacePlemelj_compactInterval_punctured_nearZero_norm_boun
                 _ ≤ Craw * Ebound := hmul
                 _ = C := by
                   rfl)⟩
-
-/-- Positive-time near-zero compact-interval estimate for the normalized
-scalar Fourier-Laplace Plemelj kernel. -/
 
 end FixedLineCauchyProjection
 

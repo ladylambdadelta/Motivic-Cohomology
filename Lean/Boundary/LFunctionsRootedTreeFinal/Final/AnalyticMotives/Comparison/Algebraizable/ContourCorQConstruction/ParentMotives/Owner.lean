@@ -1,0 +1,28 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Comparison.Algebraizable.ContourCorQConstruction.ParentMotives.SmoothAlgebraization.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Comparison.Algebraizable.ContourCorQConstruction.ParentMotives.Effective.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Comparison.Algebraizable.ContourCorQConstruction.ParentMotives.Geometric.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Comparison.Algebraizable.ContourCorQConstruction.ParentMotives.Stable.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Comparison.Algebraizable.ContourCorQConstruction.ParentMotives.Generators.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Comparison.Algebraizable.ContourCorQConstruction.ParentMotives.GeneratorFamilies.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Comparison.Algebraizable.ContourCorQConstruction.ParentMotives.IdempotentCompletions.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Comparison.Algebraizable.ContourCorQConstruction.ParentMotives.CompactGeometric.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Comparison.Algebraizable.ContourCorQConstruction.ParentMotives.StablePackages.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Comparison.Algebraizable.ContourCorQConstruction.ParentMotives.Profiles.Owner
+
+/-!
+# Parent motive comparison adapters
+
+This aggregate exposes the one-directional bridge from algebraizable analytic
+contour bulks, constructed compact generator families, compact-geometric
+packages, stable analytic motive packages, and comparison profiles to the
+parent effective, geometric effective, and stabilized Boundary motive
+constructions.
+-/
+
+namespace Boundary
+namespace LFunctions
+namespace AnalyticMotives
+
+end AnalyticMotives
+end LFunctions
+end Boundary

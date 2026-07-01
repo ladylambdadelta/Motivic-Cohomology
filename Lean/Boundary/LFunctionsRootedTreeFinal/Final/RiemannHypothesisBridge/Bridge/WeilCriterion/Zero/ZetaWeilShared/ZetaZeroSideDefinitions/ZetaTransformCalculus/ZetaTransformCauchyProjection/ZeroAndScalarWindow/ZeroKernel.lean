@@ -11,8 +11,8 @@ section FixedLineCauchyProjection
 
 noncomputable def scalarFourierLaplacePlemelj_unweightedWindowMulExp
     (a T x : ℝ) : ℂ :=
-  (∫ t in Set.Icc (-T) T,
-    (-1 / ((a : ℂ) + t * Complex.I)) *
+  (∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+    (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
       Complex.exp
         (Complex.I * (t : ℂ) * (x : ℂ))) *
     Complex.exp ((a : ℂ) * (x : ℂ))
@@ -22,8 +22,8 @@ times the compensating exponential. -/
 theorem scalarFourierLaplacePlemelj_unweightedWindowMulExp_eq
     (a T x : ℝ) :
     scalarFourierLaplacePlemelj_unweightedWindowMulExp a T x =
-      (∫ t in Set.Icc (-T) T,
-        (-1 / ((a : ℂ) + t * Complex.I)) *
+      (∫ t in Set.Icc (-T : ℝ) (T : ℝ),
+        (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
           Complex.exp
             (Complex.I * (t : ℂ) * (x : ℂ))) *
         Complex.exp ((a : ℂ) * (x : ℂ)) := by
@@ -83,8 +83,10 @@ theorem scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
           _ = a + (0 - 0 * Complex.I.im) :=
             congrArg (fun y : ℝ => a + (0 - y * Complex.I.im))
               (Complex.ofReal_im t)
-          _ = a + (0 - 0) :=
-            congrArg (fun y : ℝ => a + (0 - 0 * y)) Complex.I_im
+          _ = a + (0 - 0) := by
+            exact congrArg
+              (fun y : ℝ => a + (0 - y))
+              (zero_mul Complex.I.im)
           _ = a + 0 :=
             congrArg (fun y : ℝ => a + y) (sub_self (0 : ℝ))
           _ = a := add_zero a
@@ -117,8 +119,10 @@ theorem scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
       _ = a + (0 - 0 * Complex.I.im) :=
         congrArg (fun y : ℝ => a + (0 - y * Complex.I.im))
           (Complex.ofReal_im t)
-      _ = a + (0 - 0) :=
-        congrArg (fun y : ℝ => a + (0 - 0 * y)) Complex.I_im
+      _ = a + (0 - 0) := by
+        exact congrArg
+          (fun y : ℝ => a + (0 - y))
+          (zero_mul Complex.I.im)
       _ = a + 0 :=
         congrArg (fun y : ℝ => a + y) (sub_self (0 : ℝ))
       _ = a := add_zero a
@@ -143,8 +147,10 @@ theorem scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
       _ = 0 + (t * 1 + 0 * Complex.I.re) :=
         congrArg (fun y : ℝ => 0 + (t * 1 + y * Complex.I.re))
           (Complex.ofReal_im t)
-      _ = 0 + (t * 1 + 0) :=
-        congrArg (fun y : ℝ => 0 + (t * 1 + 0 * y)) Complex.I_re
+      _ = 0 + (t * 1 + 0) := by
+        exact congrArg
+          (fun y : ℝ => 0 + (t * 1 + y))
+          (zero_mul Complex.I.re)
       _ = 0 + (t * 1) :=
         congrArg (fun y : ℝ => 0 + y) (add_zero (t * 1))
       _ = 0 + t :=
@@ -169,35 +175,35 @@ theorem scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
             y + ((((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ) * Complex.I).re))
           (Complex.ofReal_re (-(a / (a ^ 2 + t ^ 2))))
       _ = (-(a / (a ^ 2 + t ^ 2))) +
-            ((t / (a ^ 2 + t ^ 2) : ℂ).re * Complex.I.re -
-              (t / (a ^ 2 + t ^ 2) : ℂ).im * Complex.I.im) :=
+            (((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ).re * Complex.I.re -
+              ((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ).im * Complex.I.im) :=
         congrArg (fun y : ℝ => (-(a / (a ^ 2 + t ^ 2))) + y)
           (Complex.mul_re
             ((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ) Complex.I)
       _ = (-(a / (a ^ 2 + t ^ 2))) +
             ((t / (a ^ 2 + t ^ 2)) * Complex.I.re -
-              (t / (a ^ 2 + t ^ 2) : ℂ).im * Complex.I.im) := by
+              ((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ).im * Complex.I.im) := by
         exact congrArg
           (fun y : ℝ =>
             (-(a / (a ^ 2 + t ^ 2))) +
               (y * Complex.I.re -
-                (t / (a ^ 2 + t ^ 2) : ℂ).im * Complex.I.im))
+                ((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ).im * Complex.I.im))
           (Complex.ofReal_re (t / (a ^ 2 + t ^ 2)))
       _ = (-(a / (a ^ 2 + t ^ 2))) +
             ((t / (a ^ 2 + t ^ 2)) * 0 -
-              (t / (a ^ 2 + t ^ 2) : ℂ).im * Complex.I.im) := by
+              ((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ).im * Complex.I.im) := by
         exact congrArg
           (fun y : ℝ =>
             (-(a / (a ^ 2 + t ^ 2))) +
               ((t / (a ^ 2 + t ^ 2)) * y -
-                (t / (a ^ 2 + t ^ 2) : ℂ).im * Complex.I.im))
+                ((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ).im * Complex.I.im))
           Complex.I_re
       _ = (-(a / (a ^ 2 + t ^ 2))) +
-            (0 - (t / (a ^ 2 + t ^ 2) : ℂ).im * Complex.I.im) := by
+            (0 - ((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ).im * Complex.I.im) := by
         exact congrArg
           (fun y : ℝ =>
             (-(a / (a ^ 2 + t ^ 2))) +
-              (y - (t / (a ^ 2 + t ^ 2) : ℂ).im * Complex.I.im))
+              (y - ((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ).im * Complex.I.im))
           (mul_zero (t / (a ^ 2 + t ^ 2)))
       _ = (-(a / (a ^ 2 + t ^ 2))) +
             (0 - 0 * Complex.I.im) := by
@@ -208,8 +214,8 @@ theorem scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
       _ = (-(a / (a ^ 2 + t ^ 2))) + (0 - 0) := by
         exact congrArg
           (fun y : ℝ =>
-            (-(a / (a ^ 2 + t ^ 2))) + (0 - 0 * y))
-          Complex.I_im
+            (-(a / (a ^ 2 + t ^ 2))) + (0 - y))
+          (zero_mul Complex.I.im)
       _ = (-(a / (a ^ 2 + t ^ 2))) + 0 := by
         exact congrArg
           (fun y : ℝ => (-(a / (a ^ 2 + t ^ 2))) + y)
@@ -233,24 +239,24 @@ theorem scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
           (fun y : ℝ =>
             y + ((((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ) * Complex.I).im))
           (Complex.ofReal_im (-(a / (a ^ 2 + t ^ 2))))
-      _ = 0 + ((t / (a ^ 2 + t ^ 2) : ℂ).re * Complex.I.im +
-              (t / (a ^ 2 + t ^ 2) : ℂ).im * Complex.I.re) :=
+      _ = 0 + (((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ).re * Complex.I.im +
+              ((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ).im * Complex.I.re) :=
         congrArg (fun y : ℝ => 0 + y)
           (Complex.mul_im
             ((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ) Complex.I)
       _ = 0 + ((t / (a ^ 2 + t ^ 2)) * Complex.I.im +
-              (t / (a ^ 2 + t ^ 2) : ℂ).im * Complex.I.re) := by
+              ((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ).im * Complex.I.re) := by
         exact congrArg
           (fun y : ℝ =>
             0 + (y * Complex.I.im +
-              (t / (a ^ 2 + t ^ 2) : ℂ).im * Complex.I.re))
+              ((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ).im * Complex.I.re))
           (Complex.ofReal_re (t / (a ^ 2 + t ^ 2)))
       _ = 0 + ((t / (a ^ 2 + t ^ 2)) * 1 +
-              (t / (a ^ 2 + t ^ 2) : ℂ).im * Complex.I.re) := by
+              ((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ).im * Complex.I.re) := by
         exact congrArg
           (fun y : ℝ =>
             0 + ((t / (a ^ 2 + t ^ 2)) * y +
-              (t / (a ^ 2 + t ^ 2) : ℂ).im * Complex.I.re))
+              ((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ).im * Complex.I.re))
           Complex.I_im
       _ = 0 + ((t / (a ^ 2 + t ^ 2)) * 1 +
               0 * Complex.I.re) := by
@@ -261,8 +267,8 @@ theorem scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
       _ = 0 + ((t / (a ^ 2 + t ^ 2)) * 1 + 0) := by
         exact congrArg
           (fun y : ℝ =>
-            0 + ((t / (a ^ 2 + t ^ 2)) * 1 + 0 * y))
-          Complex.I_re
+            0 + ((t / (a ^ 2 + t ^ 2)) * 1 + y))
+          (zero_mul Complex.I.re)
       _ = 0 + ((t / (a ^ 2 + t ^ 2)) * 1) := by
         exact congrArg (fun y : ℝ => 0 + y)
           (add_zero ((t / (a ^ 2 + t ^ 2)) * 1))
@@ -294,7 +300,8 @@ theorem scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
           (congrArg₂ HDiv.hDiv
             (congrArg₂ HMul.hMul
               (Complex.neg_im 1 |>.trans
-                (congrArg Neg.neg (Complex.one_im)))
+                ((congrArg Neg.neg (Complex.one_im)).trans
+                  (neg_zero : -(0 : ℝ) = 0)))
               him_z)
             hnorm)
       _ =
@@ -309,12 +316,18 @@ theorem scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
           (-(a : ℝ)) / (a ^ 2 + t ^ 2) + 0 := by
         exact congrArg
           (fun y : ℝ => (-(a : ℝ)) / (a ^ 2 + t ^ 2) + y)
-          (zero_mul t ▸ zero_div (a ^ 2 + t ^ 2))
+          (calc
+            0 * t / (a ^ 2 + t ^ 2) =
+                0 / (a ^ 2 + t ^ 2) := by
+              exact congrArg
+                (fun y : ℝ => y / (a ^ 2 + t ^ 2))
+                (zero_mul t)
+            _ = 0 := zero_div (a ^ 2 + t ^ 2))
       _ =
           (-(a : ℝ)) / (a ^ 2 + t ^ 2) :=
         add_zero ((-(a : ℝ)) / (a ^ 2 + t ^ 2))
       _ = -(a / (a ^ 2 + t ^ 2)) :=
-        neg_div a (a ^ 2 + t ^ 2)
+        neg_div (a ^ 2 + t ^ 2) a
   have him_left :
       ((-1 / ((a : ℂ) + t * Complex.I)).im) =
         t / (a ^ 2 + t ^ 2) := by
@@ -332,7 +345,8 @@ theorem scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
           (congrArg₂ HDiv.hDiv
             (congrArg₂ HMul.hMul
               (Complex.neg_im 1 |>.trans
-                (congrArg Neg.neg (Complex.one_im)))
+                ((congrArg Neg.neg (Complex.one_im)).trans
+                  (neg_zero : -(0 : ℝ) = 0)))
               hre_z)
             hnorm)
           (congrArg₂ HDiv.hDiv
@@ -344,7 +358,13 @@ theorem scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
       _ =
           0 - (-(t : ℝ)) / (a ^ 2 + t ^ 2) := by
         exact congrArg₂ HSub.hSub
-          (zero_mul a ▸ zero_div (a ^ 2 + t ^ 2))
+          (calc
+            0 * a / (a ^ 2 + t ^ 2) =
+                0 / (a ^ 2 + t ^ 2) := by
+              exact congrArg
+                (fun y : ℝ => y / (a ^ 2 + t ^ 2))
+                (zero_mul a)
+            _ = 0 := zero_div (a ^ 2 + t ^ 2))
           (congrArg
             (fun y : ℝ => y / (a ^ 2 + t ^ 2))
             (neg_mul (1 : ℝ) t |>.trans
@@ -354,7 +374,7 @@ theorem scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
         zero_sub ((-(t : ℝ)) / (a ^ 2 + t ^ 2))
       _ =
           -(-(t / (a ^ 2 + t ^ 2))) := by
-        exact congrArg Neg.neg (neg_div t (a ^ 2 + t ^ 2))
+        exact congrArg Neg.neg (neg_div (a ^ 2 + t ^ 2) t)
       _ =
           t / (a ^ 2 + t ^ 2) :=
         neg_neg (t / (a ^ 2 + t ^ 2))
@@ -362,11 +382,22 @@ theorem scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
 
 /-- The odd imaginary part of the zero-time symmetric Cauchy window cancels. -/
 theorem scalarFourierLaplacePlemelj_zero_odd_imaginary_integral_eq_zero
-    (a : ℝ) (ha : 0 < a) (T : ℝ) :
+    (a : ℝ) (_ha : 0 < a) (T : ℝ) (hT : 0 ≤ T) :
     ∫ t in Set.Icc (-T) T,
       (((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ) * Complex.I) = 0 := by
   let f : ℝ → ℂ :=
     fun t : ℝ => (((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ) * Complex.I)
+  let F : ℂ → ℂ :=
+    fun z : ℂ => (((z.re / (a ^ 2 + z.re ^ 2) : ℝ) : ℂ) * Complex.I)
+  have hF_ofReal :
+      ∀ t : ℝ,
+        F (t : ℂ) = f t := by
+    intro t
+    unfold F
+    unfold f
+    exact congrArg
+      (fun y : ℝ => (((y / (a ^ 2 + y ^ 2) : ℝ) : ℂ) * Complex.I))
+      (Complex.ofReal_re t)
   have hodd : ∀ t : ℝ, f (-t) = -f t := by
     intro t
     unfold f
@@ -393,7 +424,7 @@ theorem scalarFourierLaplacePlemelj_zero_odd_imaginary_integral_eq_zero
                   (((-(t / (a ^ 2 + t ^ 2)) : ℝ) : ℂ) * Complex.I) := by
                     exact congrArg
                       (fun y : ℝ => ((y : ℂ) * Complex.I))
-                      (neg_div t (a ^ 2 + t ^ 2))
+                      (neg_div (a ^ 2 + t ^ 2) t)
               _ =
                   (-(((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ)) * Complex.I) := by
                     exact congrArg
@@ -419,7 +450,7 @@ theorem scalarFourierLaplacePlemelj_zero_odd_imaginary_integral_eq_zero
       (∫ t in (-T)..T, f (-t))
           = ∫ t in (-T)..T, -f t := by
             exact intervalIntegral.integral_congr
-              (Filter.Eventually.of_forall hodd)
+              (fun t _ht => hodd t)
       _ = -∫ t in (-T)..T, f t := by
             exact intervalIntegral.integral_neg
   have hself_neg : (∫ t in (-T)..T, f t) = -∫ t in (-T)..T, f t :=
@@ -439,16 +470,44 @@ theorem scalarFourierLaplacePlemelj_zero_odd_imaginary_integral_eq_zero
     exact (two_mul (∫ t in (-T)..T, f t)).trans hsum_zero
   have htwo_ne : (2 : ℂ) ≠ 0 :=
     two_ne_zero
-  exact mul_eq_zero.mp htwo_zero |>.resolve_left htwo_ne
+  have hinterval_zero : (∫ t in (-T)..T, f t) = 0 :=
+    mul_eq_zero.mp htwo_zero |>.resolve_left htwo_ne
+  calc
+    (∫ t in Set.Icc (-T) T,
+      (((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ) * Complex.I))
+        =
+        ∫ t in Set.Icc (-T) T, F (t : ℂ) := by
+          exact setIntegral_congr_fun measurableSet_Icc
+            (fun t _ht => (hF_ofReal t).symm)
+    _ =
+        ∫ t in (-T)..T, F (t : ℂ) := by
+          exact
+            scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_setIntegral_eq_intervalIntegral
+              F T hT
+    _ =
+        ∫ t in (-T)..T, f t := by
+          exact intervalIntegral.integral_congr
+            (fun t _ht => hF_ofReal t)
+    _ = 0 := hinterval_zero
 
 /-- The even real part of the zero-time symmetric Cauchy window has the
 arctangent primitive value. -/
 theorem scalarFourierLaplacePlemelj_zero_real_kernel_integral_eq_arctan
-    (a : ℝ) (ha : 0 < a) (T : ℝ) :
+    (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : 0 ≤ T) :
     ∫ t in Set.Icc (-T) T,
       ((-(a / (a ^ 2 + t ^ 2)) : ℝ) : ℂ) =
       (-(2 : ℝ) * Real.arctan (T / a) : ℂ) := by
   have ha_ne : a ≠ 0 := ne_of_gt ha
+  let F : ℂ → ℂ :=
+    fun z : ℂ => ((-(a / (a ^ 2 + z.re ^ 2)) : ℝ) : ℂ)
+  have hF_ofReal :
+      ∀ t : ℝ,
+        F (t : ℂ) = ((-(a / (a ^ 2 + t ^ 2)) : ℝ) : ℂ) := by
+    intro t
+    unfold F
+    exact congrArg
+      (fun y : ℝ => ((-(a / (a ^ 2 + y ^ 2)) : ℝ) : ℂ))
+      (Complex.ofReal_re t)
   have hreal :
       (∫ t in (-T)..T, (-(a / (a ^ 2 + t ^ 2)) : ℝ)) =
         -(2 : ℝ) * Real.arctan (T / a) := by
@@ -470,7 +529,7 @@ theorem scalarFourierLaplacePlemelj_zero_real_kernel_integral_eq_arctan
           calc
             (-(1 : ℝ) / (1 + u ^ 2)) =
                 -((1 : ℝ) / (1 + u ^ 2)) :=
-              neg_div (1 : ℝ) (1 + u ^ 2)
+              neg_div (1 + u ^ 2) (1 : ℝ)
             _ = -(((1 : ℝ) + u ^ 2)⁻¹) := by
               exact congrArg Neg.neg (one_div ((1 : ℝ) + u ^ 2))
         calc
@@ -479,7 +538,7 @@ theorem scalarFourierLaplacePlemelj_zero_real_kernel_integral_eq_arctan
               ∫ u in (-(T / a))..(T / a),
                 -(((1 : ℝ) + u ^ 2)⁻¹) := by
             exact intervalIntegral.integral_congr
-              (Filter.Eventually.of_forall hpoint)
+              (fun u _hu => hpoint u)
           _ =
               -∫ u in (-(T / a))..(T / a),
                 ((1 : ℝ) + u ^ 2)⁻¹ :=
@@ -498,7 +557,7 @@ theorem scalarFourierLaplacePlemelj_zero_real_kernel_integral_eq_arctan
           _ = -(2 * Real.arctan r) := by
             exact congrArg Neg.neg (two_mul (Real.arctan r)).symm
           _ = -(2 : ℝ) * Real.arctan r :=
-            neg_mul 2 (Real.arctan r)
+            (neg_mul 2 (Real.arctan r)).symm
       calc
         (∫ u in (-(T / a))..(T / a),
           (-(1 : ℝ) / (1 + u ^ 2)))
@@ -506,7 +565,7 @@ theorem scalarFourierLaplacePlemelj_zero_real_kernel_integral_eq_arctan
                 ((1 : ℝ) + u ^ 2)⁻¹ := hneg_integrand
         _ = -(Real.arctan (T / a) - Real.arctan (-(T / a))) := by
               exact congrArg Neg.neg
-                (Real.integral_inv_one_add_sq
+                (integral_inv_one_add_sq
                   (a := -(T / a)) (b := T / a))
         _ = -(2 : ℝ) * Real.arctan (T / a) := by
               exact harctan_algebra
@@ -516,6 +575,7 @@ theorem scalarFourierLaplacePlemelj_zero_real_kernel_integral_eq_arctan
             (-(1 : ℝ) / (1 + u ^ 2)) := by
       have hcomp :=
         intervalIntegral.smul_integral_comp_mul_left
+          (a := -(T / a)) (b := T / a)
           (f := fun t : ℝ => (-(a / (a ^ 2 + t ^ 2)) : ℝ))
           a
       have hpoint :
@@ -546,7 +606,7 @@ theorem scalarFourierLaplacePlemelj_zero_real_kernel_integral_eq_arctan
                 exact mul_neg a (a / (a ^ 2 + (a * u) ^ 2))
           _ = -((a * a) / (a ^ 2 + (a * u) ^ 2)) := by
                 exact congrArg Neg.neg
-                  (mul_div_assoc a a (a ^ 2 + (a * u) ^ 2))
+                  (mul_div_assoc a a (a ^ 2 + (a * u) ^ 2)).symm
           _ = -(a ^ 2 / (a ^ 2 + (a * u) ^ 2)) := by
                 exact congrArg
                   (fun y : ℝ => -(y / (a ^ 2 + (a * u) ^ 2)))
@@ -561,7 +621,7 @@ theorem scalarFourierLaplacePlemelj_zero_real_kernel_integral_eq_arctan
                 exact congrArg Neg.neg
                   (mul_div_mul_left 1 (1 + u ^ 2) ha_sq_ne)
           _ = -(1 : ℝ) / (1 + u ^ 2) := by
-                exact (neg_div (1 : ℝ) (1 + u ^ 2)).symm
+                exact (neg_div (1 + u ^ 2) (1 : ℝ)).symm
       have hleft : a * (-(T / a)) = -T := by
         calc
           a * (-(T / a)) = -(a * (T / a)) := by
@@ -596,22 +656,54 @@ theorem scalarFourierLaplacePlemelj_zero_real_kernel_integral_eq_arctan
             ∫ u in (-(T / a))..(T / a),
               (-(1 : ℝ) / (1 + u ^ 2)) := by
               exact intervalIntegral.integral_congr
-                (Filter.Eventually.of_forall hpoint)
+                (fun u _hu => hpoint u)
     exact hsub.trans hscale
+  have hofReal :
+      (∫ t in (-T)..T,
+        ((-(a / (a ^ 2 + t ^ 2)) : ℝ) : ℂ)) =
+        (((∫ t in (-T)..T,
+          (-(a / (a ^ 2 + t ^ 2)) : ℝ)) : ℝ) : ℂ) := by
+    exact intervalIntegral.integral_ofReal
+  have htarget_cast :
+      (((-(2 : ℝ) * Real.arctan (T / a) : ℝ) : ℂ)) =
+        (-(2 : ℝ) * Real.arctan (T / a) : ℂ) := by
+    calc
+      (((-(2 : ℝ) * Real.arctan (T / a) : ℝ) : ℂ)) =
+          ((-(2 : ℝ) : ℝ) : ℂ) *
+            ((Real.arctan (T / a) : ℝ) : ℂ) := by
+        exact Complex.ofReal_mul (-(2 : ℝ)) (Real.arctan (T / a))
+      _ =
+          (-(2 : ℂ)) *
+            ((Real.arctan (T / a) : ℝ) : ℂ) := by
+        exact congrArg
+          (fun z : ℂ => z * ((Real.arctan (T / a) : ℝ) : ℂ))
+          (Complex.ofReal_neg (2 : ℝ))
+      _ =
+          (-(2 : ℝ) * Real.arctan (T / a) : ℂ) := by
+        rfl
   calc
-    (∫ t in Set.Icc (-T) T,
+    (∫ t in Set.Icc (-T : ℝ) (T : ℝ),
       ((-(a / (a ^ 2 + t ^ 2)) : ℝ) : ℂ))
         =
+        ∫ t in Set.Icc (-T) T, F (t : ℂ) := by
+          exact setIntegral_congr_fun measurableSet_Icc
+            (fun t _ht => (hF_ofReal t).symm)
+    _ =
+        ∫ t in (-T)..T, F (t : ℂ) := by
+          exact
+            scalarFourierLaplacePlemelj_lowerHalfDisk_realSegment_setIntegral_eq_intervalIntegral
+              F T hT
+    _ =
         ∫ t in (-T)..T,
           ((-(a / (a ^ 2 + t ^ 2)) : ℝ) : ℂ) := by
-          rfl
+          exact intervalIntegral.integral_congr
+            (fun t _ht => hF_ofReal t)
     _ =
-        ((∫ t in (-T)..T,
-          (-(a / (a ^ 2 + t ^ 2)) : ℝ)) : ℂ) := by
-          exact intervalIntegral.integral_ofReal
+        (((∫ t in (-T)..T,
+          (-(a / (a ^ 2 + t ^ 2)) : ℝ)) : ℝ) : ℂ) := hofReal
     _ =
         (-(2 : ℝ) * Real.arctan (T / a) : ℂ) := by
-          exact congrArg (fun y : ℝ => (y : ℂ)) hreal
+          exact (congrArg (fun y : ℝ => (y : ℂ)) hreal).trans htarget_cast
 
 /-- Interval integrability of the even real part of the zero-time Cauchy
 kernel on symmetric finite windows. -/
@@ -648,8 +740,6 @@ theorem scalarFourierLaplacePlemelj_zero_odd_imaginary_intervalIntegrable
     Complex.continuous_ofReal.comp hquot_cont
   exact (hcomplex_cont.mul continuous_const).intervalIntegrable (-T) T
 
-/-- Zero-time symmetric Cauchy window before multiplying by the trivial
-endpoint exponential factors. -/
 end FixedLineCauchyProjection
 
 end

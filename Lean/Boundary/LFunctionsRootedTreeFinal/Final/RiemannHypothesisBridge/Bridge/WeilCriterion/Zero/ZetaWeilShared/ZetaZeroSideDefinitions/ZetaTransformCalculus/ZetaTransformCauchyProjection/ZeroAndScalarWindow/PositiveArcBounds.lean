@@ -21,9 +21,14 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArcJordanPrefactor_eventually_l
     scalarFourierLaplacePlemelj_positiveUpperArcJordanPrefactor_tendsto_pi a
   have hpi_lt : Real.pi < Real.pi + 1 :=
     lt_add_of_pos_right Real.pi zero_lt_one
-  exact
-    (hlimit (Set.Iio_mem_nhds hpi_lt)).mono
-      (fun T hT => le_of_lt hT)
+  have heventually_lt :
+      ∀ᶠ T in atTop,
+        Real.pi * T / (T - a) < Real.pi + 1 :=
+    Filter.eventually_of_mem
+      (hlimit (Iio_mem_nhds hpi_lt))
+      (fun _ hT => hT)
+  exact heventually_lt.mono
+    (fun _ hT => le_of_lt hT)
 
 /-- Real exponential factor in the positive away-zero compact interval is
 bounded by the endpoint exponential. -/
@@ -263,8 +268,6 @@ theorem scalarFourierLaplacePlemelj_positiveUpperArc_awayZero_mulExp_norm_bound_
         scalarFourierLaplacePlemelj_positiveUpperArc_awayZero_mulExp_norm_bound_eventually_of_jordan
           a ha R δ Cj hδ hCj_nonneg hjordan
 
-/-- Radius-qualified finite upper-half-plane residue identity for the
-positive-time scalar window. -/
 end FixedLineCauchyProjection
 
 end

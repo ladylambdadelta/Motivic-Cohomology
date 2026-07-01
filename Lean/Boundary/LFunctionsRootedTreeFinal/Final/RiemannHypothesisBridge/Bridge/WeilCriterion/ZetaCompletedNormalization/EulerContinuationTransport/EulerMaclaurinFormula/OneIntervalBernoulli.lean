@@ -514,8 +514,8 @@ theorem eulerMaclaurin_affineSawtooth_oneInterval_integral_eq_zero
 theorem eulerMaclaurin_affineSawtooth_oneInterval_firstMoment_eq_one_twelfth
     (n : ℕ) :
     (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
-      (((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ) *
-        ((((x - ((n : ℕ) : ℝ)) : ℝ) : ℂ))) =
+      ((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ) *
+        ((x - ((n : ℕ) : ℝ) : ℝ) : ℂ)) =
       (1 / 12 : ℂ) := by
   let a : ℝ := ((n : ℕ) : ℝ)
   let b : ℝ := (((n + 1 : ℕ) : ℝ))
@@ -619,7 +619,7 @@ theorem eulerMaclaurin_affineSawtooth_oneInterval_firstMoment_eq_one_twelfth
         have hfour :
             (4 : ℝ) = 2 * 2 := by
           have hnat : (2 * 2 : ℕ) = 4 := rfl
-          exact Eq.trans (Nat.cast_mul 2 2).symm (congrArg Nat.cast hnat)
+          exact Eq.trans (congrArg Nat.cast hnat).symm (Nat.cast_mul 2 2)
         have htwo_over_four :
             (2 * u) / 4 = u / 2 := by
           calc
@@ -629,7 +629,7 @@ theorem eulerMaclaurin_affineSawtooth_oneInterval_firstMoment_eq_one_twelfth
               exact mul_div_mul_left u 2 (show (2 : ℝ) ≠ 0 from two_ne_zero)
         have hhalf_mul :
             (1 / 2 : ℝ) * u = u / 2 :=
-          one_div_mul_eq_div u 2
+          one_div_mul_eq_div 2 u
         calc
           (x - a) ^ 2 - (2 * (x - a)) / 4 =
               u ^ 2 - (2 * u) / 4 := by
@@ -651,7 +651,17 @@ theorem eulerMaclaurin_affineSawtooth_oneInterval_firstMoment_eq_one_twelfth
             r x)
         halg
         hsub
-    exact hreal.ofReal_comp
+    have hraw :
+        HasDerivAt F
+          ((((x - a - 1 / 2) * (x - a) : ℝ) : ℂ)) x :=
+      hreal.ofReal_comp
+    have hfx :
+        ((((x - a - 1 / 2) * (x - a) : ℝ) : ℂ)) = f x := by
+      exact Complex.ofReal_mul (x - a - 1 / 2) (x - a)
+    exact Eq.subst
+      (motive := fun z : ℂ => HasDerivAt F z x)
+      hfx
+      hraw
   have hint :
       IntervalIntegrable f volume a b := by
     have hcont : ContinuousOn f (Set.uIcc a b) := by
@@ -702,17 +712,23 @@ theorem eulerMaclaurin_affineSawtooth_oneInterval_firstMoment_eq_one_twelfth
             Nat.cast_ne_zero.mpr (show (4 : ℕ) ≠ 0 from Nat.succ_ne_zero 3)
           have hcommon :
               (1 / 3 : ℝ) - 1 / 4 =
-                ((1 : ℝ) * 4 - (1 : ℝ) * 3) / (3 * 4) := by
+                ((1 : ℝ) * 4 - 3 * (1 : ℝ)) / (3 * 4) := by
             exact div_sub_div (1 : ℝ) (1 : ℝ) hthree_ne hfour_ne
           have hnum :
-              (1 : ℝ) * 4 - (1 : ℝ) * 3 = 1 := by
+              (1 : ℝ) * 4 - 3 * (1 : ℝ) = 1 := by
             calc
-              (1 : ℝ) * 4 - (1 : ℝ) * 3 = 4 - (1 : ℝ) * 3 := by
-                exact congrArg (fun r : ℝ => r - (1 : ℝ) * 3) (one_mul 4)
+              (1 : ℝ) * 4 - 3 * (1 : ℝ) = 4 - 3 * (1 : ℝ) := by
+                exact congrArg (fun r : ℝ => r - 3 * (1 : ℝ)) (one_mul 4)
               _ = 4 - 3 := by
-                exact congrArg (fun r : ℝ => 4 - r) (one_mul 3)
+                exact congrArg (fun r : ℝ => 4 - r) (mul_one 3)
               _ = 1 := by
-                exact sub_eq_iff_eq_add.mpr rfl
+                have hfour_eq : (4 : ℝ) = 1 + 3 := by
+                  have hthree_add_one : (3 : ℝ) + 1 = 4 :=
+                    three_add_one_eq_four
+                  calc
+                    (4 : ℝ) = 3 + 1 := hthree_add_one.symm
+                    _ = 1 + 3 := add_comm 3 1
+                exact sub_eq_iff_eq_add.mpr hfour_eq
           have hden :
               (3 : ℝ) * 4 = 12 := by
             have hnat : (3 * 4 : ℕ) = 12 := rfl
@@ -723,7 +739,7 @@ theorem eulerMaclaurin_affineSawtooth_oneInterval_firstMoment_eq_one_twelfth
               exact congrArg (fun r : ℝ => r / 3 - (1 : ℝ) ^ 2 / 4) hpow3
             _ = 1 / 3 - 1 / 4 := by
               exact congrArg (fun r : ℝ => 1 / 3 - r / 4) hpow2
-            _ = ((1 : ℝ) * 4 - (1 : ℝ) * 3) / (3 * 4) := by
+            _ = ((1 : ℝ) * 4 - 3 * (1 : ℝ)) / (3 * 4) := by
               exact hcommon
             _ = 1 / (3 * 4) := by
               exact congrArg (fun r : ℝ => r / (3 * 4)) hnum

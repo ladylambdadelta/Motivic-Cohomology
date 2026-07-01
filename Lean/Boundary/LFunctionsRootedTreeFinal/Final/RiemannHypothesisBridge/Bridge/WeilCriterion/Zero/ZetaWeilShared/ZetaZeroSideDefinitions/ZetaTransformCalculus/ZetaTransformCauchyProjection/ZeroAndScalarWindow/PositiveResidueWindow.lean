@@ -146,8 +146,6 @@ theorem scalarFourierLaplacePlemelj_positive_window_with_exp_norm_le_residue_add
     _ ≤ ‖R‖ + ‖A * E‖ := by
       exact norm_sub_le R (A * E)
 
-/-- Positive away-from-zero window bound from the upper-arc bound and the
-positive residue identity. -/
 end FixedLineCauchyProjection
 
 end

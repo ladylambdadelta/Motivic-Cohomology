@@ -10,7 +10,7 @@ noncomputable section
 section FixedLineCauchyProjection
 
 theorem scalarFourierLaplacePlemelj_zero_raw_window_eq_arctan
-    (a : ℝ) (ha : 0 < a) (T : ℝ) :
+    (a : ℝ) (ha : 0 < a) (T : ℝ) (hT : 0 ≤ T) :
     ∫ t in Set.Icc (-T) T,
       (-1 / ((a : ℂ) + t * Complex.I)) =
       (-(2 : ℝ) * Real.arctan (T / a) : ℂ) := by
@@ -21,21 +21,33 @@ theorem scalarFourierLaplacePlemelj_zero_raw_window_eq_arctan
         ∫ t in Set.Icc (-T) T,
           ((-(a / (a ^ 2 + t ^ 2)) : ℝ) : ℂ) +
             (((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ) * Complex.I) := by
-          exact intervalIntegral.integral_congr
-            (Filter.Eventually.of_forall
-              (fun t : ℝ =>
-                scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
-                  a ha t))
+          exact setIntegral_congr_fun measurableSet_Icc
+            (fun t _ht =>
+              scalarFourierLaplacePlemelj_zero_kernel_pointwise_decomposition
+                a ha t)
     _ =
         (∫ t in Set.Icc (-T) T,
           ((-(a / (a ^ 2 + t ^ 2)) : ℝ) : ℂ)) +
           ∫ t in Set.Icc (-T) T,
             (((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ) * Complex.I) := by
-          exact intervalIntegral.integral_add
-            (scalarFourierLaplacePlemelj_zero_real_kernel_intervalIntegrable
-              a ha T)
-            (scalarFourierLaplacePlemelj_zero_odd_imaginary_intervalIntegrable
-              a ha T)
+          have hle : -T ≤ T :=
+            neg_le_self hT
+          have hreal_integrable :
+              IntegrableOn
+                (fun t : ℝ => ((-(a / (a ^ 2 + t ^ 2)) : ℝ) : ℂ))
+                (Set.Icc (-T) T) volume :=
+            (intervalIntegrable_iff_integrableOn_Icc_of_le hle).mp
+              (scalarFourierLaplacePlemelj_zero_real_kernel_intervalIntegrable
+                a ha T)
+          have himag_integrable :
+              IntegrableOn
+                (fun t : ℝ =>
+                  (((t / (a ^ 2 + t ^ 2) : ℝ) : ℂ) * Complex.I))
+                (Set.Icc (-T) T) volume :=
+            (intervalIntegrable_iff_integrableOn_Icc_of_le hle).mp
+              (scalarFourierLaplacePlemelj_zero_odd_imaginary_intervalIntegrable
+                a ha T)
+          exact integral_add hreal_integrable himag_integrable
     _ =
         (∫ t in Set.Icc (-T) T,
           ((-(a / (a ^ 2 + t ^ 2)) : ℝ) : ℂ)) + 0 := by
@@ -44,7 +56,7 @@ theorem scalarFourierLaplacePlemelj_zero_raw_window_eq_arctan
               (∫ t in Set.Icc (-T) T,
                 ((-(a / (a ^ 2 + t ^ 2)) : ℝ) : ℂ)) + z)
             (scalarFourierLaplacePlemelj_zero_odd_imaginary_integral_eq_zero
-              a ha T)
+              a ha T hT)
     _ =
         ∫ t in Set.Icc (-T) T,
           ((-(a / (a ^ 2 + t ^ 2)) : ℝ) : ℂ) := by
@@ -53,11 +65,11 @@ theorem scalarFourierLaplacePlemelj_zero_raw_window_eq_arctan
         (-(2 : ℝ) * Real.arctan (T / a) : ℂ) := by
           exact
             scalarFourierLaplacePlemelj_zero_real_kernel_integral_eq_arctan
-              a ha T
+              a ha T hT
 
 /-- Zero-time symmetric Cauchy window has the elementary arctangent value. -/
 theorem scalarFourierLaplacePlemelj_zero_window_eq_arctan
-    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hx : x = 0) :
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hT : 0 ≤ T) (hx : x = 0) :
     (∫ t in Set.Icc (-T) T,
       (-1 / ((a : ℂ) + t * Complex.I)) *
         Complex.exp
@@ -71,31 +83,44 @@ theorem scalarFourierLaplacePlemelj_zero_window_eq_arctan
             (Complex.I * (t : ℂ) * (x : ℂ))) =
         ∫ t in Set.Icc (-T) T,
           (-1 / ((a : ℂ) + t * Complex.I)) := by
-    exact intervalIntegral.integral_congr
-      (Filter.Eventually.of_forall
-        (fun t : ℝ =>
-          congrArg
-            (fun z : ℂ =>
+    exact setIntegral_congr_fun measurableSet_Icc
+      (fun t _ht =>
+        calc
+          (-1 / ((a : ℂ) + t * Complex.I)) *
+              Complex.exp (Complex.I * (t : ℂ) * (x : ℂ)) =
               (-1 / ((a : ℂ) + t * Complex.I)) *
-                Complex.exp z)
-            (calc
-              Complex.I * (t : ℂ) * (x : ℂ) =
-                  Complex.I * (t : ℂ) * (0 : ℂ) := by
-                exact congrArg
-                  (fun y : ℂ => Complex.I * (t : ℂ) * y)
-                  (congrArg (fun y : ℝ => (y : ℂ)) hx)
-              _ = 0 := by
-                exact mul_zero (Complex.I * (t : ℂ)))))
+                Complex.exp 0 := by
+            exact congrArg
+              (fun z : ℂ =>
+                (-1 / ((a : ℂ) + t * Complex.I)) *
+                  Complex.exp z)
+              (calc
+                Complex.I * (t : ℂ) * (x : ℂ) =
+                    Complex.I * (t : ℂ) * (0 : ℂ) := by
+                  exact congrArg
+                    (fun y : ℂ => Complex.I * (t : ℂ) * y)
+                    (congrArg (fun y : ℝ => (y : ℂ)) hx)
+                _ = 0 := by
+                  exact mul_zero (Complex.I * (t : ℂ)))
+          _ =
+              (-1 / ((a : ℂ) + t * Complex.I)) * 1 := by
+            exact congrArg
+              (fun z : ℂ => (-1 / ((a : ℂ) + t * Complex.I)) * z)
+              Complex.exp_zero
+          _ =
+              (-1 / ((a : ℂ) + t * Complex.I)) := by
+            exact mul_one (-1 / ((a : ℂ) + t * Complex.I)))
   have houter :
       Complex.exp ((a : ℂ) * (x : ℂ)) = 1 := by
-    exact congrArg Complex.exp
-      (calc
+    have hz : (a : ℂ) * (x : ℂ) = 0 := by
+      calc
         (a : ℂ) * (x : ℂ) = (a : ℂ) * (0 : ℂ) := by
           exact congrArg
             (fun y : ℂ => (a : ℂ) * y)
             (congrArg (fun y : ℝ => (y : ℂ)) hx)
         _ = 0 := by
-          exact mul_zero (a : ℂ))
+          exact mul_zero (a : ℂ)
+    exact (congrArg Complex.exp hz).trans Complex.exp_zero
   calc
     (∫ t in Set.Icc (-T) T,
         (-1 / ((a : ℂ) + t * Complex.I)) *
@@ -124,11 +149,11 @@ theorem scalarFourierLaplacePlemelj_zero_window_eq_arctan
     _ =
         (-(2 : ℝ) * Real.arctan (T / a) : ℂ) := by
           exact scalarFourierLaplacePlemelj_zero_raw_window_eq_arctan
-            a ha T
+            a ha T hT
 
 /-- The zero-time arctangent window is bounded by the scalar Plemelj constant. -/
 theorem scalarFourierLaplacePlemelj_zero_arctan_bound
-    (a : ℝ) (ha : 0 < a) (T : ℝ) :
+    (a : ℝ) (_ha : 0 < a) (T : ℝ) :
     ‖((-(2 : ℝ) * Real.arctan (T / a) : ℝ) : ℂ)‖
       ≤ 2 * (Real.pi + 1) := by
   let y : ℝ := T / a
@@ -156,7 +181,9 @@ theorem scalarFourierLaplacePlemelj_zero_arctan_bound
       |(-(2 : ℝ) * u)| = |(2 : ℝ) * u| := by
     have hneg_mul : (-(2 : ℝ) * u) = -((2 : ℝ) * u) :=
       neg_mul (2 : ℝ) u
-    exact (congrArg abs hneg_mul).trans (abs_neg ((2 : ℝ) * u))
+    exact
+      (congrArg (fun r : ℝ => |r|) hneg_mul).trans
+        (abs_neg ((2 : ℝ) * u))
   have habs_mul :
       |(2 : ℝ) * u| = (2 : ℝ) * |u| := by
     calc
@@ -180,22 +207,42 @@ theorem scalarFourierLaplacePlemelj_zero_arctan_bound
 /-- Zero-time uniform finite-window bound for the normalized scalar Cauchy
 kernel. -/
 theorem scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_zero
-    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hx : x = 0) :
+    (a : ℝ) (ha : 0 < a) (T x : ℝ) (hT : 0 ≤ T) (hx : x = 0) :
     ‖(∫ t in Set.Icc (-T) T,
       (-1 / ((a : ℂ) + t * Complex.I)) *
         Complex.exp
           (Complex.I * (t : ℂ) * (x : ℂ))) *
         Complex.exp ((a : ℂ) * (x : ℂ))‖
       ≤ 2 * (Real.pi + 1) := by
+  have htarget_cast :
+      (((-(2 : ℝ) * Real.arctan (T / a) : ℝ) : ℂ)) =
+        (-(2 : ℝ) * Real.arctan (T / a) : ℂ) := by
+    calc
+      (((-(2 : ℝ) * Real.arctan (T / a) : ℝ) : ℂ)) =
+          ((-(2 : ℝ) : ℝ) : ℂ) *
+            ((Real.arctan (T / a) : ℝ) : ℂ) := by
+        exact Complex.ofReal_mul (-(2 : ℝ)) (Real.arctan (T / a))
+      _ =
+          (-(2 : ℂ)) *
+            ((Real.arctan (T / a) : ℝ) : ℂ) := by
+        exact congrArg
+          (fun z : ℂ => z * ((Real.arctan (T / a) : ℝ) : ℂ))
+          (Complex.ofReal_neg (2 : ℝ))
+      _ =
+          (-(2 : ℝ) * Real.arctan (T / a) : ℂ) := by
+        rfl
+  have htarget_bound :
+      ‖(-(2 : ℝ) * Real.arctan (T / a) : ℂ)‖
+        ≤ 2 * (Real.pi + 1) :=
+    Eq.subst
+      (motive := fun z : ℂ => ‖z‖ ≤ 2 * (Real.pi + 1))
+      htarget_cast
+      (scalarFourierLaplacePlemelj_zero_arctan_bound a ha T)
   exact Eq.subst
     (motive := fun z : ℂ => ‖z‖ ≤ 2 * (Real.pi + 1))
-    (scalarFourierLaplacePlemelj_zero_window_eq_arctan a ha T x hx)
-    (scalarFourierLaplacePlemelj_zero_arctan_bound a ha T)
+    (scalarFourierLaplacePlemelj_zero_window_eq_arctan a ha T x hT hx).symm
+    htarget_bound
 
-/-- Normalized scalar Fourier-Laplace Plemelj package.
-
-For `a > 0`, the symmetric Fourier windows of
-`-exp(a x)/(a + i t)` converge to the open half-line multiplier. -/
 end FixedLineCauchyProjection
 
 end

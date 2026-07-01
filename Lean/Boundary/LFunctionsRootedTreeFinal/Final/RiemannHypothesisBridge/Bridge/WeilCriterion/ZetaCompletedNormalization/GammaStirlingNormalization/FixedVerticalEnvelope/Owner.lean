@@ -1985,8 +1985,8 @@ theorem Complex.Gamma_verticalStrip_reciprocal_bound_of_lower_bound
                 hT_def
           _ = c * Complex.fixedRealPartVerticalStirlingEnvelope x y := by
             exact
-              (mul_assoc c (Real.exp (-(Real.pi / 2) * ‖y‖))
-                ((1 + ‖y‖) ^ (x - 1 / 2))).symm
+              mul_assoc c (Real.exp (-(Real.pi / 2) * ‖y‖))
+                ((1 + ‖y‖) ^ (x - 1 / 2))
           _ ≤ ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ :=
             hlower x y hx_left hx_right hy
           _ = ‖G‖ := rfl
@@ -2412,7 +2412,7 @@ theorem Complex.fixedRealPartVerticalReciprocalStirlingEnvelope_zero_half_le_exp
         exact congrArg Real.exp hsum
   have hy_norm_le_P : ‖y‖ ≤ ‖P‖ := by
     have him_le : ‖P.im‖ ≤ ‖P‖ :=
-      Complex.norm_im_le_norm P
+      Complex.abs_im_le_abs P
     have him_eq : P.im = y :=
       Complex.fixedRealPartVerticalPoint_im x y
     have hnorm_eq : ‖P.im‖ = ‖y‖ :=
@@ -2489,9 +2489,39 @@ theorem Complex.Gamma_inv_zero_half_strip_verticalTail_finiteOrder_bound
               have henv :
                   Complex.fixedRealPartVerticalReciprocalStirlingEnvelope
                       w.re w.im ≤
-                    Real.exp (B * (1 + ‖w‖)) :=
-                Complex.fixedRealPartVerticalReciprocalStirlingEnvelope_zero_half_le_exp
-                  hw_re_nonneg hw_re_half
+                    Real.exp (B * (1 + ‖w‖)) := by
+                have hpoint_eq :
+                    Complex.fixedRealPartVerticalPoint w.re w.im = w := by
+                  exact Complex.ext
+                    (Complex.fixedRealPartVerticalPoint_re w.re w.im)
+                    (Complex.fixedRealPartVerticalPoint_im w.re w.im)
+                have hraw :
+                    Complex.fixedRealPartVerticalReciprocalStirlingEnvelope
+                        w.re w.im ≤
+                      Real.exp (((Real.pi / 2) + 1) *
+                        (1 + ‖Complex.fixedRealPartVerticalPoint w.re w.im‖)) :=
+                  Complex.fixedRealPartVerticalReciprocalStirlingEnvelope_zero_half_le_exp
+                    hw_re_nonneg hw_re_half
+                have hB_def : B = (Real.pi / 2) + 1 := rfl
+                have hexp_eq :
+                    Real.exp (((Real.pi / 2) + 1) *
+                        (1 + ‖Complex.fixedRealPartVerticalPoint w.re w.im‖)) =
+                      Real.exp (B * (1 + ‖w‖)) := by
+                  have hnorm_eq :
+                      ‖Complex.fixedRealPartVerticalPoint w.re w.im‖ = ‖w‖ :=
+                    congrArg norm hpoint_eq
+                  calc
+                    Real.exp (((Real.pi / 2) + 1) *
+                        (1 + ‖Complex.fixedRealPartVerticalPoint w.re w.im‖)) =
+                        Real.exp (((Real.pi / 2) + 1) * (1 + ‖w‖)) := by
+                      exact congrArg
+                        (fun u : ℝ => Real.exp (((Real.pi / 2) + 1) * (1 + u)))
+                        hnorm_eq
+                    _ = Real.exp (B * (1 + ‖w‖)) := by
+                      exact congrArg
+                        (fun u : ℝ => Real.exp (u * (1 + ‖w‖)))
+                        hB_def.symm
+                exact le_trans hraw (le_of_eq hexp_eq)
               have henv_nonneg :
                   0 ≤
                     Complex.fixedRealPartVerticalReciprocalStirlingEnvelope

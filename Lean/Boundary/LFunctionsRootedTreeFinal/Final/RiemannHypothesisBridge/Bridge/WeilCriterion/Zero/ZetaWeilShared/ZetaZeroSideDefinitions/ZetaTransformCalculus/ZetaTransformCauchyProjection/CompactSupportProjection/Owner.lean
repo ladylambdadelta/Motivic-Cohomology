@@ -13,13 +13,13 @@ theorem scalarFourierLaplacePlemelj_compactInterval_positive_nearZero_norm_bound
     (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             0 < x →
             x < δ →
             ‖x‖ ≤ R →
               ‖(∫ t in Set.Icc (-T) T,
-                (-1 / ((a : ℂ) + t * Complex.I)) *
+                (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
@@ -45,36 +45,36 @@ theorem scalarFourierLaplacePlemelj_compactInterval_positive_norm_bound_eventual
     (a : ℝ) (ha : 0 < a) (R δ Cnear Caway : ℝ) (hδ : 0 < δ)
     (hCnear_nonneg : 0 ≤ Cnear) (hCaway_nonneg : 0 ≤ Caway)
     (hnear :
-      ∀ᶠ T in atTop,
+      ∀ᶠ (T : ℝ) in atTop,
         ∀ x : ℝ,
           0 < x →
           x < δ →
           ‖x‖ ≤ R →
             ‖(∫ t in Set.Icc (-T) T,
-              (-1 / ((a : ℂ) + t * Complex.I)) *
+              (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp ((a : ℂ) * (x : ℂ)))‖
             ≤ Cnear)
     (haway :
-      ∀ᶠ T in atTop,
+      ∀ᶠ (T : ℝ) in atTop,
         ∀ x : ℝ,
           δ ≤ x →
           ‖x‖ ≤ R →
             ‖(∫ t in Set.Icc (-T) T,
-              (-1 / ((a : ℂ) + t * Complex.I)) *
+              (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp ((a : ℂ) * (x : ℂ)))‖
             ≤ Caway) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             0 < x →
             ‖x‖ ≤ R →
               ‖(∫ t in Set.Icc (-T) T,
-                (-1 / ((a : ℂ) + t * Complex.I)) *
+                (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
@@ -104,12 +104,12 @@ theorem scalarFourierLaplacePlemelj_compactInterval_positive_norm_bound_eventual
     (a : ℝ) (ha : 0 < a) (R : ℝ) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             0 < x →
             ‖x‖ ≤ R →
               ‖(∫ t in Set.Icc (-T) T,
-                (-1 / ((a : ℂ) + t * Complex.I)) *
+                (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
@@ -152,11 +152,11 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_awayZero_mulE
     (a : ℝ) (ha : 0 < a) (R δ B : ℝ) (hδ : 0 < δ)
     (hB_nonneg : 0 ≤ B)
     (hpref :
-      ∀ᶠ T in atTop,
+      ∀ᶠ (T : ℝ) in atTop,
         Real.pi * T / (T - a) ≤ B) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             x ≤ -δ →
             ‖x‖ ≤ R →
@@ -245,7 +245,7 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArcJordanMajorant_awayZero_mulE
     (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             x ≤ -δ →
             ‖x‖ ≤ R →
@@ -266,7 +266,7 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_awayZero_mulExp_norm_bound_
     (a : ℝ) (ha : 0 < a) (R δ Cj : ℝ) (hδ : 0 < δ)
     (hCj_nonneg : 0 ≤ Cj)
     (hjordan :
-      ∀ᶠ T in atTop,
+      ∀ᶠ (T : ℝ) in atTop,
         ∀ x : ℝ,
           x ≤ -δ →
           ‖x‖ ≤ R →
@@ -274,7 +274,7 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_awayZero_mulExp_norm_bound_
               ‖Complex.exp ((a : ℂ) * (x : ℂ))‖ ≤ Cj) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             x ≤ -δ →
             ‖x‖ ≤ R →
@@ -316,7 +316,7 @@ theorem scalarFourierLaplacePlemelj_negativeLowerArc_awayZero_mulExp_norm_bound_
     (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             x ≤ -δ →
             ‖x‖ ≤ R →
@@ -337,7 +337,7 @@ theorem scalarFourierLaplacePlemelj_negative_window_add_lowerArc_eq_zero_of_radi
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
     (T : ℝ) (hT : 0 < T) :
       (∫ t in Set.Icc (-T) T,
-        (-1 / ((a : ℂ) + t * Complex.I)) *
+        (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
           Complex.exp
             (Complex.I * (t : ℂ) * (x : ℂ))) +
           scalarFourierLaplacePlemelj_negativeLowerArc a x T =
@@ -356,7 +356,7 @@ theorem scalarFourierLaplacePlemelj_negative_window_with_exp_eq_neg_lowerArc_mul
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
     (T : ℝ) (hT : 0 < T) :
       (∫ t in Set.Icc (-T) T,
-        (-1 / ((a : ℂ) + t * Complex.I)) *
+        (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
           Complex.exp
             (Complex.I * (t : ℂ) * (x : ℂ)) *
           Complex.exp ((a : ℂ) * (x : ℂ))) =
@@ -364,7 +364,7 @@ theorem scalarFourierLaplacePlemelj_negative_window_with_exp_eq_neg_lowerArc_mul
           Complex.exp ((a : ℂ) * (x : ℂ))) := by
   let W : ℂ :=
     ∫ t in Set.Icc (-T) T,
-      (-1 / ((a : ℂ) + t * Complex.I)) *
+      (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
         Complex.exp
           (Complex.I * (t : ℂ) * (x : ℂ))
   let A : ℂ := scalarFourierLaplacePlemelj_negativeLowerArc a x T
@@ -391,7 +391,7 @@ theorem scalarFourierLaplacePlemelj_negative_window_with_exp_eq_neg_lowerArc_mul
   have hwindow :
       W * E =
         ∫ t in Set.Icc (-T) T,
-          (-1 / ((a : ℂ) + t * Complex.I)) *
+          (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
             Complex.exp
               (Complex.I * (t : ℂ) * (x : ℂ)) *
             Complex.exp ((a : ℂ) * (x : ℂ)) :=
@@ -405,7 +405,7 @@ theorem scalarFourierLaplacePlemelj_negative_window_with_exp_norm_le_lowerArc_of
     (a : ℝ) (ha : 0 < a) (x : ℝ) (hx : x < 0)
     (T : ℝ) (hT : 0 < T) :
       ‖(∫ t in Set.Icc (-T) T,
-        (-1 / ((a : ℂ) + t * Complex.I)) *
+        (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
           Complex.exp
             (Complex.I * (t : ℂ) * (x : ℂ)) *
           Complex.exp ((a : ℂ) * (x : ℂ)))‖
@@ -415,7 +415,7 @@ theorem scalarFourierLaplacePlemelj_negative_window_with_exp_norm_le_lowerArc_of
   let E : ℂ := Complex.exp ((a : ℂ) * (x : ℂ))
   let Wexp : ℂ :=
     ∫ t in Set.Icc (-T) T,
-      (-1 / ((a : ℂ) + t * Complex.I)) *
+      (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
         Complex.exp
           (Complex.I * (t : ℂ) * (x : ℂ)) *
         Complex.exp ((a : ℂ) * (x : ℂ))
@@ -428,6 +428,9 @@ theorem scalarFourierLaplacePlemelj_negative_window_with_exp_norm_le_lowerArc_of
       exact congrArg norm heq
     _ = ‖A * E‖ := by
       exact norm_neg (A * E)
+    _ ≤ ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T *
+        Complex.exp ((a : ℂ) * (x : ℂ))‖ := by
+      exact le_refl ‖A * E‖
 
 /-- Negative-time away-from-zero compact-interval estimate for the normalized
 scalar Fourier-Laplace Plemelj kernel. -/
@@ -435,12 +438,12 @@ theorem scalarFourierLaplacePlemelj_compactInterval_negative_awayZero_norm_bound
     (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             x ≤ -δ →
             ‖x‖ ≤ R →
               ‖(∫ t in Set.Icc (-T) T,
-                (-1 / ((a : ℂ) + t * Complex.I)) *
+                (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
@@ -450,24 +453,35 @@ theorem scalarFourierLaplacePlemelj_compactInterval_negative_awayZero_norm_bound
       a ha R δ hδ
   with
   | ⟨Carc, hCarc_nonneg, harc⟩ =>
-      exact
-        ⟨Carc, hCarc_nonneg,
-          (harc.and (eventually_gt_atTop (0 : ℝ))).mono
-            (fun T hTpair x hxδ hxR =>
+      have hevent :
+          ∀ᶠ (T : ℝ) in atTop,
+            ∀ x : ℝ,
+              x ≤ -δ →
+              ‖x‖ ≤ R →
+                ‖(∫ t in Set.Icc (-T) T,
+                  (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
+                    Complex.exp
+                      (Complex.I * (t : ℂ) * (x : ℂ)) *
+                    Complex.exp ((a : ℂ) * (x : ℂ)))‖
+                ≤ Carc :=
+        (harc.and (eventually_gt_atTop (0 : ℝ))).mono
+          (fun T hTpair =>
+            fun x hxδ hxR =>
               have hxneg : x < 0 := by
                 have hnegδ_neg : -δ < 0 := neg_lt_zero.mpr hδ
                 exact hxδ.trans_lt hnegδ_neg
               have hwindow :
                   ‖(∫ t in Set.Icc (-T) T,
-                    (-1 / ((a : ℂ) + t * Complex.I)) *
+                    (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                       Complex.exp
                         (Complex.I * (t : ℂ) * (x : ℂ)) *
                       Complex.exp ((a : ℂ) * (x : ℂ)))‖
                   ≤ ‖scalarFourierLaplacePlemelj_negativeLowerArc a x T *
                       Complex.exp ((a : ℂ) * (x : ℂ))‖ :=
                 scalarFourierLaplacePlemelj_negative_window_with_exp_norm_le_lowerArc_of_radius
-                  a ha x hxneg T hTpair.2
-              hwindow.trans (hTpair.1 x hxδ hxR)⟩
+                  a ha x hxneg T (hTpair.2)
+              hwindow.trans (hTpair.1 x hxδ hxR))
+      exact ⟨Carc, hCarc_nonneg, hevent⟩
 
 /-- Negative-time near-zero compact-interval estimate for the normalized
 scalar Fourier-Laplace Plemelj kernel. -/
@@ -475,13 +489,13 @@ theorem scalarFourierLaplacePlemelj_compactInterval_negative_nearZero_norm_bound
     (a : ℝ) (ha : 0 < a) (R δ : ℝ) (hδ : 0 < δ) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             x < 0 →
             -δ < x →
             ‖x‖ ≤ R →
               ‖(∫ t in Set.Icc (-T) T,
-                (-1 / ((a : ℂ) + t * Complex.I)) *
+                (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
@@ -510,36 +524,36 @@ theorem scalarFourierLaplacePlemelj_compactInterval_negative_norm_bound_eventual
     (a : ℝ) (ha : 0 < a) (R δ Cnear Caway : ℝ) (hδ : 0 < δ)
     (hCnear_nonneg : 0 ≤ Cnear) (hCaway_nonneg : 0 ≤ Caway)
     (hnear :
-      ∀ᶠ T in atTop,
+      ∀ᶠ (T : ℝ) in atTop,
         ∀ x : ℝ,
           x < 0 →
           -δ < x →
           ‖x‖ ≤ R →
             ‖(∫ t in Set.Icc (-T) T,
-              (-1 / ((a : ℂ) + t * Complex.I)) *
+              (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp ((a : ℂ) * (x : ℂ)))‖
             ≤ Cnear)
     (haway :
-      ∀ᶠ T in atTop,
+      ∀ᶠ (T : ℝ) in atTop,
         ∀ x : ℝ,
           x ≤ -δ →
           ‖x‖ ≤ R →
             ‖(∫ t in Set.Icc (-T) T,
-              (-1 / ((a : ℂ) + t * Complex.I)) *
+              (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp ((a : ℂ) * (x : ℂ)))‖
             ≤ Caway) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             x < 0 →
             ‖x‖ ≤ R →
               ‖(∫ t in Set.Icc (-T) T,
-                (-1 / ((a : ℂ) + t * Complex.I)) *
+                (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
@@ -571,12 +585,12 @@ theorem scalarFourierLaplacePlemelj_compactInterval_negative_norm_bound_eventual
     (a : ℝ) (ha : 0 < a) (R : ℝ) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             x < 0 →
             ‖x‖ ≤ R →
               ‖(∫ t in Set.Icc (-T) T,
-                (-1 / ((a : ℂ) + t * Complex.I)) *
+                (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
@@ -601,14 +615,81 @@ Fourier-Laplace Plemelj kernel. -/
 theorem scalarFourierLaplacePlemelj_compactInterval_zero_norm_bound
     (a : ℝ) (ha : 0 < a) (R T x : ℝ) (hx_zero : x = 0) :
     ‖(∫ t in Set.Icc (-T) T,
-      (-1 / ((a : ℂ) + t * Complex.I)) *
+      (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
         Complex.exp
           (Complex.I * (t : ℂ) * (x : ℂ)) *
         Complex.exp ((a : ℂ) * (x : ℂ)))‖
       ≤ 2 * (Real.pi + 1) := by
-  exact
-    scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_zero
-      a ha T x hx_zero
+  if hT : 0 ≤ T then
+    have hbound :
+        ‖(∫ t in Set.Icc (-T) T,
+          (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ))) *
+            Complex.exp ((a : ℂ) * (x : ℂ))‖
+          ≤ 2 * (Real.pi + 1) :=
+      scalarFourierLaplacePlemelj_unweighted_window_mul_exp_uniform_bound_zero
+        a ha T x hT hx_zero
+    have hwindow :
+        (∫ t in Set.Icc (-T) T,
+          (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ))) *
+            Complex.exp ((a : ℂ) * (x : ℂ)) =
+          ∫ t in Set.Icc (-T) T,
+            (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp ((a : ℂ) * (x : ℂ)) :=
+      scalarFourierLaplacePlemelj_positive_window_mul_exp_eq_window_with_exp
+        a x T
+    exact
+      Eq.subst
+        (motive := fun z : ℂ => ‖z‖ ≤ 2 * (Real.pi + 1))
+        hwindow
+        hbound
+  else
+    have hT_lt : T < 0 :=
+      lt_of_not_ge hT
+    have hT_lt_neg : T < -T := by
+      calc
+        T < 0 := hT_lt
+        _ < -T := neg_pos.mpr hT_lt
+    have hinterval_empty : Set.Icc (-T) T = (∅ : Set ℝ) :=
+      Set.Icc_eq_empty_of_lt hT_lt_neg
+    have hintegral_zero :
+        (∫ t in Set.Icc (-T) T,
+          (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp ((a : ℂ) * (x : ℂ))) = 0 := by
+      exact Eq.subst
+        (motive := fun s : Set ℝ =>
+          (∫ t in s,
+            (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp ((a : ℂ) * (x : ℂ))) = 0)
+        hinterval_empty.symm
+        (setIntegral_empty
+          (μ := volume)
+          (f := fun t : ℝ =>
+            (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
+              Complex.exp
+                (Complex.I * (t : ℂ) * (x : ℂ)) *
+              Complex.exp ((a : ℂ) * (x : ℂ))))
+    calc
+      ‖(∫ t in Set.Icc (-T) T,
+        (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ)) *
+          Complex.exp ((a : ℂ) * (x : ℂ)))‖
+          = ‖(0 : ℂ)‖ := by
+            exact congrArg norm hintegral_zero
+      _ = 0 := norm_zero
+      _ ≤ 2 * (Real.pi + 1) :=
+            mul_nonneg zero_le_two
+              (add_nonneg Real.pi_pos.le zero_le_one)
 
 /-- The maximum of the two one-sided compact-interval constants and the
 zero-time constant is a common compact-interval Plemelj constant. -/
@@ -616,34 +697,34 @@ theorem scalarFourierLaplacePlemelj_compactInterval_commonConstant_bound
     (a : ℝ) (ha : 0 < a) (R Cpos Cneg : ℝ)
     (hCpos_nonneg : 0 ≤ Cpos) (hCneg_nonneg : 0 ≤ Cneg)
     (hpos :
-      ∀ᶠ T in atTop,
+      ∀ᶠ (T : ℝ) in atTop,
         ∀ x : ℝ,
           0 < x →
           ‖x‖ ≤ R →
             ‖(∫ t in Set.Icc (-T) T,
-              (-1 / ((a : ℂ) + t * Complex.I)) *
+              (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp ((a : ℂ) * (x : ℂ)))‖
             ≤ Cpos)
     (hneg :
-      ∀ᶠ T in atTop,
+      ∀ᶠ (T : ℝ) in atTop,
         ∀ x : ℝ,
           x < 0 →
           ‖x‖ ≤ R →
             ‖(∫ t in Set.Icc (-T) T,
-              (-1 / ((a : ℂ) + t * Complex.I)) *
+              (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp ((a : ℂ) * (x : ℂ)))‖
             ≤ Cneg) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             ‖x‖ ≤ R →
               ‖(∫ t in Set.Icc (-T) T,
-                (-1 / ((a : ℂ) + t * Complex.I)) *
+                (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
@@ -688,11 +769,11 @@ theorem scalarFourierLaplacePlemelj_compactInterval_norm_bound_eventually
     (a : ℝ) (ha : 0 < a) (R : ℝ) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             ‖x‖ ≤ R →
               ‖(∫ t in Set.Icc (-T) T,
-                (-1 / ((a : ℂ) + t * Complex.I)) *
+                (-1 / ((a : ℂ) + (t : ℂ) * Complex.I)) *
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp ((a : ℂ) * (x : ℂ)))‖
@@ -717,11 +798,11 @@ theorem fixedRightLine_scalarCauchyWindow_compactInterval_norm_bound_eventually
     (R c : ℝ) (hc : 1 < c) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             ‖x‖ ≤ R →
               ‖(∫ t in Set.Icc (-T) T,
-                (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
@@ -753,11 +834,11 @@ theorem fixedRightLine_scalarCauchyWindow_tsupport_norm_bound_eventually
     (c : ℝ) (hc : 1 < c) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ x : ℝ,
             x ∈ tsupport K →
               ‖(∫ t in Set.Icc (-T) T,
-                (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
@@ -788,11 +869,11 @@ theorem fixedRightLine_scalarCauchyWindow_compactSupport_paired_norm_bound_event
     (c : ℝ) (hc : 1 < c) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ (T : ℝ) in atTop,
           ∀ᵐ x ∂volume,
             ‖K x *
               (∫ t in Set.Icc (-T) T,
-                (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
@@ -808,10 +889,12 @@ theorem fixedRightLine_scalarCauchyWindow_compactSupport_paired_norm_bound_event
             (fun T hT =>
               Eventually.of_forall
                 (fun x : ℝ =>
+                  haveI : Decidable (x ∈ tsupport K) :=
+                    Classical.propDecidable (x ∈ tsupport K)
                   if hx_support : x ∈ tsupport K then
                     let W : ℂ :=
                       ∫ t in Set.Icc (-T) T,
-                        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                        (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                           Complex.exp
                             (Complex.I * (t : ℂ) * (x : ℂ)) *
                           Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))
@@ -828,7 +911,7 @@ theorem fixedRightLine_scalarCauchyWindow_compactSupport_paired_norm_bound_event
                   else
                     let W : ℂ :=
                       ∫ t in Set.Icc (-T) T,
-                        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                        (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                           Complex.exp
                             (Complex.I * (t : ℂ) * (x : ℂ)) *
                           Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))
@@ -865,11 +948,11 @@ theorem fixedRightLine_scalarCauchyWindow_compactSupport_dominated
     ∃ G : ℝ → ℝ,
       Integrable G ∧
         0 ≤ᵐ[volume] G ∧
-          ∀ᶠ T in atTop,
+          ∀ᶠ (T : ℝ) in atTop,
             ∀ᵐ x ∂volume,
               ‖K x *
                 (∫ t in Set.Icc (-T) T,
-                  (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                  (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                     Complex.exp
                       (Complex.I * (t : ℂ) * (x : ℂ)) *
                     Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))‖
@@ -901,26 +984,26 @@ theorem fixedRightLine_scalarCauchyWindow_integrand_joint_continuous
     (c : ℝ) (hc : 1 < c) :
     Continuous
       (fun p : ℝ × ℝ =>
-        (-1 / (((c : ℂ) + p.2 * Complex.I) - 1)) *
+        (-1 / (((c : ℂ) + (p.2 : ℂ) * Complex.I) - 1)) *
           Complex.exp
             (Complex.I * (p.2 : ℂ) * (p.1 : ℂ)) *
           Complex.exp (((c - 1 : ℝ) : ℂ) * (p.1 : ℂ))) := by
   have hden :
       Continuous
         (fun p : ℝ × ℝ =>
-          (((c : ℂ) + p.2 * Complex.I) - 1)) :=
+          (((c : ℂ) + (p.2 : ℂ) * Complex.I) - 1)) :=
     (continuous_const.add
       ((Complex.continuous_ofReal.comp continuous_snd).mul continuous_const)).sub
       continuous_const
   have hden_ne :
       ∀ p : ℝ × ℝ,
-        (((c : ℂ) + p.2 * Complex.I) - 1) ≠ 0 :=
+        (((c : ℂ) + (p.2 : ℂ) * Complex.I) - 1) ≠ 0 :=
     fun p : ℝ × ℝ =>
       fixedRightLine_cauchyDenominator_ne_zero c p.2 hc
   have hscalar :
       Continuous
         (fun p : ℝ × ℝ =>
-          -1 / (((c : ℂ) + p.2 * Complex.I) - 1)) :=
+          -1 / (((c : ℂ) + (p.2 : ℂ) * Complex.I) - 1)) :=
     continuous_const.div hden hden_ne
   have hphase :
       Continuous
@@ -946,11 +1029,16 @@ theorem fixedRightLine_scalarCauchyWindow_continuous
     Continuous
       (fun x : ℝ =>
         ∫ t in Set.Icc (-T) T,
-          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
             Complex.exp
               (Complex.I * (t : ℂ) * (x : ℂ)) *
             Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))) :=
   continuous_parametric_integral_of_continuous
+    (f := fun x : ℝ => fun t : ℝ =>
+      (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
+        Complex.exp
+          (Complex.I * (t : ℂ) * (x : ℂ)) *
+        Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
     (fixedRightLine_scalarCauchyWindow_integrand_joint_continuous c hc)
     isCompact_Icc
 
@@ -964,7 +1052,7 @@ theorem fixedRightLine_scalarCauchyWindow_paired_continuous
       (fun x : ℝ =>
         K x *
           (∫ t in Set.Icc (-T) T,
-            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
               Complex.exp
                 (Complex.I * (t : ℂ) * (x : ℂ)) *
               Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) := by
@@ -976,12 +1064,12 @@ theorem fixedRightLine_scalarCauchyWindow_paired_aestronglyMeasurable_eventually
     (K : ℝ → ℂ) (hK_cont : Continuous K) (hK_compact : HasCompactSupport K)
     (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
     (c : ℝ) (hc : 1 < c) :
-    ∀ᶠ T in atTop,
+    ∀ᶠ (T : ℝ) in atTop,
       AEStronglyMeasurable
         (fun x : ℝ =>
           K x *
             (∫ t in Set.Icc (-T) T,
-              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
@@ -1000,7 +1088,7 @@ theorem fixedRightLine_scalarCauchyWindow_paired_pointwise_tendsto_positive
       (fun T : ℝ =>
         K x *
           (∫ t in Set.Icc (-T) T,
-            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
               Complex.exp
                 (Complex.I * (t : ℂ) * (x : ℂ)) *
               Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
@@ -1012,7 +1100,7 @@ theorem fixedRightLine_scalarCauchyWindow_paired_pointwise_tendsto_positive
       Tendsto
         (fun T : ℝ =>
           ∫ t in Set.Icc (-T) T,
-            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
               Complex.exp
                 (Complex.I * (t : ℂ) * (x : ℂ)) *
               Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
@@ -1025,7 +1113,7 @@ theorem fixedRightLine_scalarCauchyWindow_paired_pointwise_tendsto_positive
         (fun T : ℝ =>
           K x *
             (∫ t in Set.Icc (-T) T,
-              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
@@ -1057,7 +1145,7 @@ theorem fixedRightLine_scalarCauchyWindow_paired_pointwise_tendsto_negative
       (fun T : ℝ =>
         K x *
           (∫ t in Set.Icc (-T) T,
-            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
               Complex.exp
                 (Complex.I * (t : ℂ) * (x : ℂ)) *
               Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
@@ -1069,7 +1157,7 @@ theorem fixedRightLine_scalarCauchyWindow_paired_pointwise_tendsto_negative
       Tendsto
         (fun T : ℝ =>
           ∫ t in Set.Icc (-T) T,
-            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
               Complex.exp
                 (Complex.I * (t : ℂ) * (x : ℂ)) *
               Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
@@ -1082,7 +1170,7 @@ theorem fixedRightLine_scalarCauchyWindow_paired_pointwise_tendsto_negative
         (fun T : ℝ =>
           K x *
             (∫ t in Set.Icc (-T) T,
-              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
@@ -1118,7 +1206,7 @@ theorem fixedRightLine_scalarCauchyWindow_ae_tendsto_openHalfLineKernel
         (fun T : ℝ =>
           K x *
             (∫ t in Set.Icc (-T) T,
-              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
@@ -1153,7 +1241,7 @@ theorem fixedRightLine_scalarCauchyWindow_paired_tendsto_openHalfLineIntegral
         ∫ x : ℝ,
           K x *
             (∫ t in Set.Icc (-T) T,
-              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
@@ -1167,12 +1255,12 @@ theorem fixedRightLine_scalarCauchyWindow_paired_tendsto_openHalfLineIntegral
   with
   | ⟨G, hG_int, hG_nonneg, hG_bound⟩ =>
       have hmeas :
-          ∀ᶠ T in atTop,
+          ∀ᶠ (T : ℝ) in atTop,
             AEStronglyMeasurable
               (fun x : ℝ =>
                 K x *
                   (∫ t in Set.Icc (-T) T,
-                    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                    (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                       Complex.exp
                         (Complex.I * (t : ℂ) * (x : ℂ)) *
                       Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
@@ -1185,7 +1273,7 @@ theorem fixedRightLine_scalarCauchyWindow_paired_tendsto_openHalfLineIntegral
               (fun T : ℝ =>
                 K x *
                   (∫ t in Set.Icc (-T) T,
-                    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                    (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                       Complex.exp
                         (Complex.I * (t : ℂ) * (x : ℂ)) *
                       Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
@@ -1218,7 +1306,7 @@ theorem fixedRightLine_scalarCauchyWindow_paired_tendsto_indicatorIntegral
         ∫ x : ℝ,
           K x *
             (∫ t in Set.Icc (-T) T,
-              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
@@ -1234,7 +1322,7 @@ theorem fixedRightLine_scalarCauchyWindow_paired_tendsto_indicatorIntegral
           ∫ x : ℝ,
             K x *
               (∫ t in Set.Icc (-T) T,
-                (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
@@ -1270,7 +1358,7 @@ theorem fixedRightLine_fourierCauchy_symmetricTruncation_tendsto_scalarKernelInt
     Tendsto
       (fun T : ℝ =>
         ∫ t in Set.Icc (-T) T,
-          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
             (∫ x : ℝ,
               K x *
                 Complex.exp
@@ -1288,7 +1376,7 @@ theorem fixedRightLine_fourierCauchy_symmetricTruncation_tendsto_scalarKernelInt
           ∫ x : ℝ,
             K x *
               (∫ t in Set.Icc (-T) T,
-                (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                   Complex.exp
                     (Complex.I * (t : ℂ) * (x : ℂ)) *
                   Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ))))
@@ -1303,7 +1391,7 @@ theorem fixedRightLine_fourierCauchy_symmetricTruncation_tendsto_scalarKernelInt
   have hfunctions :
       (fun T : ℝ =>
         ∫ t in Set.Icc (-T) T,
-          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
             (∫ x : ℝ,
               K x *
                 Complex.exp
@@ -1313,7 +1401,7 @@ theorem fixedRightLine_fourierCauchy_symmetricTruncation_tendsto_scalarKernelInt
         ∫ x : ℝ,
           K x *
             (∫ t in Set.Icc (-T) T,
-              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                 Complex.exp
                   (Complex.I * (t : ℂ) * (x : ℂ)) *
                 Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))) :=
@@ -1330,7 +1418,7 @@ theorem fixedRightLine_fourierCauchy_fullLine_smooth_scalarKernelIntegral
     (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
     (c : ℝ) (hc : 1 < c) :
     (∫ t : ℝ,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+        (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
           (∫ x : ℝ,
             K x *
               Complex.exp
@@ -1344,7 +1432,7 @@ theorem fixedRightLine_fourierCauchy_fullLine_smooth_scalarKernelIntegral
       Tendsto
         (fun T : ℝ =>
           ∫ t in Set.Icc (-T) T,
-            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
               (∫ x : ℝ,
                 K x *
                   Complex.exp
@@ -1353,7 +1441,7 @@ theorem fixedRightLine_fourierCauchy_fullLine_smooth_scalarKernelIntegral
         atTop
         (𝓝
           (∫ t : ℝ,
-            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
               (∫ x : ℝ,
                 K x *
                   Complex.exp
@@ -1365,7 +1453,7 @@ theorem fixedRightLine_fourierCauchy_fullLine_smooth_scalarKernelIntegral
       Tendsto
         (fun T : ℝ =>
           ∫ t in Set.Icc (-T) T,
-            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
               (∫ x : ℝ,
                 K x *
                   Complex.exp
@@ -1391,7 +1479,7 @@ theorem fixedRightLine_fourierCauchy_fullLine_smooth_oneSidedProjection
     (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
     (c : ℝ) (hc : 1 < c) :
     (∫ t : ℝ,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+        (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
           (∫ x : ℝ,
             K x *
               Complex.exp
@@ -1401,7 +1489,7 @@ theorem fixedRightLine_fourierCauchy_fullLine_smooth_oneSidedProjection
         (-2 * (Real.pi : ℂ)) * K x := by
   calc
     (∫ t : ℝ,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+        (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
           (∫ x : ℝ,
             K x *
               Complex.exp
@@ -1431,7 +1519,7 @@ theorem fixedRightLine_fourierCauchy_symmetricTruncation_tendsto_oneSidedProject
     Tendsto
       (fun T : ℝ =>
         ∫ t in Set.Icc (-T) T,
-          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
             (∫ x : ℝ,
               K x *
                 Complex.exp
@@ -1445,7 +1533,7 @@ theorem fixedRightLine_fourierCauchy_symmetricTruncation_tendsto_oneSidedProject
       Tendsto
         (fun T : ℝ =>
           ∫ t in Set.Icc (-T) T,
-            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
               (∫ x : ℝ,
                 K x *
                   Complex.exp
@@ -1454,7 +1542,7 @@ theorem fixedRightLine_fourierCauchy_symmetricTruncation_tendsto_oneSidedProject
         atTop
         (𝓝
           (∫ t : ℝ,
-            (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+            (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
               (∫ x : ℝ,
                 K x *
                   Complex.exp
@@ -1464,7 +1552,7 @@ theorem fixedRightLine_fourierCauchy_symmetricTruncation_tendsto_oneSidedProject
       K hK_cont hK_compact hK_smooth c hc
   have hvalue :
       (∫ t : ℝ,
-          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
             (∫ x : ℝ,
               K x *
                 Complex.exp
@@ -1483,7 +1571,7 @@ theorem fixedRightLine_fourierCauchy_fullLine_oneSidedProjection
     (hK_smooth : ContDiff ℝ (↑(⊤ : ℕ∞) : WithTop ℕ∞) K)
     (c : ℝ) (hc : 1 < c) :
     (∫ t : ℝ,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+        (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
           (∫ x : ℝ,
             K x *
               Complex.exp
@@ -1500,7 +1588,7 @@ rewritten as the Fourier transform of the right projection kernel. -/
 theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue_fourierKernel
     (f : LFunctions.ZetaAdmissibleFunction) (c : ℝ) (hc : 1 < c) :
     (∫ t : ℝ,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+        (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
           (∫ x : ℝ,
             zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction' x *
               Complex.exp
@@ -1509,7 +1597,7 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue_fo
       zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c := by
   calc
     (∫ t : ℝ,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+        (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
           (∫ x : ℝ,
             zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction' x *
               Complex.exp
@@ -1544,18 +1632,18 @@ integral recovers the positive-time half-line projection value. -/
 theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue
     (f : LFunctions.ZetaAdmissibleFunction) (c : ℝ) (hc : 1 < c) :
     (∫ t : ℝ,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+        (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
           zetaLaplaceTransform f.toZetaTestFunction'
-            (((c : ℂ) + t * Complex.I) - 1 / 2)) =
+            (((c : ℂ) + (t : ℂ) * Complex.I) - 1 / 2)) =
       zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c := by
   calc
     (∫ t : ℝ,
-        (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+        (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
           zetaLaplaceTransform f.toZetaTestFunction'
-            (((c : ℂ) + t * Complex.I) - 1 / 2))
+            (((c : ℂ) + (t : ℂ) * Complex.I) - 1 / 2))
         =
         ∫ t : ℝ,
-          (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+          (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
             (∫ x : ℝ,
               zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction' x *
                 Complex.exp
@@ -1567,7 +1655,7 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue
                 (fun t : ℝ =>
                   congrArg
                     (fun z : ℂ =>
-                      (-1 / (((c : ℂ) + t * Complex.I) - 1)) * z)
+                      (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) * z)
                     (zetaLaplaceTransform_rightOnePoleProjectionKernel_verticalSlice_eq_fourier
                       f.toZetaTestFunction' c t)))
     _ = zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c :=
@@ -1583,13 +1671,13 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_truncationTail_inverse
       0 < MR ∧
         ∀ᶠ u in atTop,
           ‖(∫ t in Set.Icc (-(height u)) (height u),
-              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                 zetaLaplaceTransform f.toZetaTestFunction'
-                  (((c : ℂ) + t * Complex.I) - 1 / 2)) -
+                  (((c : ℂ) + (t : ℂ) * Complex.I) - 1 / 2)) -
             (∫ t : ℝ,
-              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                 zetaLaplaceTransform f.toZetaTestFunction'
-                  (((c : ℂ) + t * Complex.I) - 1 / 2))‖
+                  (((c : ℂ) + (t : ℂ) * Complex.I) - 1 / 2))‖
             ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
   match
     fixedRightLine_fourierCauchy_truncationTail_inverseQuadratic
@@ -1605,11 +1693,11 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_truncationTail_inverse
           (fun u hu =>
             let hfinite :
                 (∫ t in Set.Icc (-(height u)) (height u),
-                    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                    (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                       zetaLaplaceTransform f.toZetaTestFunction'
-                        (((c : ℂ) + t * Complex.I) - 1 / 2)) =
+                        (((c : ℂ) + (t : ℂ) * Complex.I) - 1 / 2)) =
                   (∫ t in Set.Icc (-(height u)) (height u),
-                    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                    (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                       (∫ x : ℝ,
                         zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction' x *
                           Complex.exp
@@ -1619,16 +1707,16 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_truncationTail_inverse
                   (fun t _ht =>
                     congrArg
                       (fun z : ℂ =>
-                        (-1 / (((c : ℂ) + t * Complex.I) - 1)) * z)
+                        (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) * z)
                       (zetaLaplaceTransform_rightOnePoleProjectionKernel_verticalSlice_eq_fourier
                         f.toZetaTestFunction' c t))
             let hfull :
                 (∫ t : ℝ,
-                    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                    (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                       zetaLaplaceTransform f.toZetaTestFunction'
-                        (((c : ℂ) + t * Complex.I) - 1 / 2)) =
+                        (((c : ℂ) + (t : ℂ) * Complex.I) - 1 / 2)) =
                   (∫ t : ℝ,
-                    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                    (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                       (∫ x : ℝ,
                         zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction' x *
                           Complex.exp
@@ -1639,22 +1727,22 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_truncationTail_inverse
                     (fun t : ℝ =>
                       congrArg
                         (fun z : ℂ =>
-                          (-1 / (((c : ℂ) + t * Complex.I) - 1)) * z)
+                          (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) * z)
                         (zetaLaplaceTransform_rightOnePoleProjectionKernel_verticalSlice_eq_fourier
                           f.toZetaTestFunction' c t)))
             Eq.subst
               (motive := fun finiteValue : ℂ =>
                 ‖finiteValue -
                   (∫ t : ℝ,
-                    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                    (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                       zetaLaplaceTransform f.toZetaTestFunction'
-                        (((c : ℂ) + t * Complex.I) - 1 / 2))‖
+                        (((c : ℂ) + (t : ℂ) * Complex.I) - 1 / 2))‖
                   ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)))
               hfinite.symm
               (Eq.subst
                 (motive := fun fullValue : ℂ =>
                   ‖(∫ t in Set.Icc (-(height u)) (height u),
-                      (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                      (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                         (∫ x : ℝ,
                           zetaLaplaceTransform_rightOnePoleProjectionKernel f.toZetaTestFunction' x *
                             Complex.exp
@@ -1680,9 +1768,9 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fixedLineCauchyMultipl
       0 < MR ∧
         ∀ᶠ u in atTop,
           ‖(∫ t in Set.Icc (-(height u)) (height u),
-              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                 zetaLaplaceTransform f.toZetaTestFunction'
-                  (((c : ℂ) + t * Complex.I) - 1 / 2)) -
+                  (((c : ℂ) + (t : ℂ) * Complex.I) - 1 / 2)) -
             zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c‖
             ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
   match
@@ -1695,18 +1783,18 @@ theorem zetaLaplaceTransform_rightOnePoleProjectionKernel_fixedLineCauchyMultipl
           (fun u hu =>
             let hvalue :
                 (∫ t : ℝ,
-                    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                    (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                       zetaLaplaceTransform f.toZetaTestFunction'
-                        (((c : ℂ) + t * Complex.I) - 1 / 2)) =
+                        (((c : ℂ) + (t : ℂ) * Complex.I) - 1 / 2)) =
                   zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c :=
                 zetaLaplaceTransform_rightOnePoleProjectionKernel_fullLineCauchyValue
                   f c hc
             Eq.subst
               (motive := fun z : ℂ =>
                 ‖(∫ t in Set.Icc (-(height u)) (height u),
-                    (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+                    (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                       zetaLaplaceTransform f.toZetaTestFunction'
-                        (((c : ℂ) + t * Complex.I) - 1 / 2)) -
+                        (((c : ℂ) + (t : ℂ) * Complex.I) - 1 / 2)) -
                   z‖
                   ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)))
               hvalue
@@ -1725,9 +1813,9 @@ theorem zetaLaplaceTransform_fixedLine_rightOnePoleCauchyProjection_eventual_inv
       0 < MR ∧
         ∀ᶠ u in atTop,
           ‖(∫ t in Set.Icc (-(height u)) (height u),
-              (-1 / (((c : ℂ) + t * Complex.I) - 1)) *
+              (-1 / (((c : ℂ) + (t : ℂ) * Complex.I) - 1)) *
                 zetaLaplaceTransform f.toZetaTestFunction'
-                  (((c : ℂ) + t * Complex.I) - 1 / 2)) -
+                  (((c : ℂ) + (t : ℂ) * Complex.I) - 1 / 2)) -
             zetaLaplaceTransform_rightOnePoleCauchyProjectionValue f.toZetaTestFunction' c‖
             ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
   exact

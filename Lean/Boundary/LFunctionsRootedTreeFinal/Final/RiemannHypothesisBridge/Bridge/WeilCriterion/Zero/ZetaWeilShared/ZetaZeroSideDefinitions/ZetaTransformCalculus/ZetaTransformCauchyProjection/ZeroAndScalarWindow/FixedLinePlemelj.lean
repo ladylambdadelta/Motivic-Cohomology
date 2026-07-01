@@ -40,22 +40,37 @@ theorem fixedRightLine_scalarCauchyWindow_eq_normalizedLaplaceWindow
         Complex.exp
           (Complex.I * (t : ℂ) * (x : ℂ)) *
         Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)) := by
-  exact intervalIntegral.integral_congr
-    (Filter.Eventually.of_forall
-      (fun t : ℝ =>
-        congrArg
-          (fun z : ℂ =>
-            (-1 / z) *
-              Complex.exp
-                (Complex.I * (t : ℂ) * (x : ℂ)) *
-              Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
-          (calc
-            ((c : ℂ) + t * Complex.I) - 1 =
-                ((c : ℂ) - 1) + t * Complex.I := by
-              exact sub_add_eq_add_sub (c : ℂ) (t * Complex.I) 1
-            _ = (((c - 1 : ℝ) : ℂ) + t * Complex.I) := by
-              exact congrArg (fun z : ℂ => z + t * Complex.I)
-                (Complex.ofReal_sub c 1).symm)))
+  exact setIntegral_congr_fun measurableSet_Icc
+    (fun t _ht =>
+      congrArg
+        (fun z : ℂ =>
+          (-1 / z) *
+            Complex.exp
+              (Complex.I * (t : ℂ) * (x : ℂ)) *
+            Complex.exp (((c - 1 : ℝ) : ℂ) * (x : ℂ)))
+        (calc
+          ((c : ℂ) + t * Complex.I) - 1 =
+              ((c : ℂ) + t * Complex.I) + (-(1 : ℂ)) := by
+            exact sub_eq_add_neg ((c : ℂ) + t * Complex.I) 1
+          _ =
+              (c : ℂ) + (t * Complex.I + (-(1 : ℂ))) :=
+            add_assoc (c : ℂ) (t * Complex.I) (-(1 : ℂ))
+          _ =
+              (c : ℂ) + ((-(1 : ℂ)) + t * Complex.I) := by
+            exact congrArg
+              (fun z : ℂ => (c : ℂ) + z)
+              (add_comm (t * Complex.I) (-(1 : ℂ)))
+          _ =
+              ((c : ℂ) + (-(1 : ℂ))) + t * Complex.I :=
+            (add_assoc (c : ℂ) (-(1 : ℂ)) (t * Complex.I)).symm
+          _ =
+              ((c : ℂ) - 1) + t * Complex.I := by
+            exact congrArg
+              (fun z : ℂ => z + t * Complex.I)
+              (sub_eq_add_neg (c : ℂ) 1).symm
+          _ = (((c - 1 : ℝ) : ℂ) + t * Complex.I) := by
+            exact congrArg (fun z : ℂ => z + t * Complex.I)
+              (Complex.ofReal_sub c 1).symm))
 
 /-- Scalar fixed-right-line Cauchy/Plemelj package.
 
@@ -216,8 +231,6 @@ theorem fixedRightLine_scalarCauchyWindow_pointwise_tendsto_negative
       (fun _ : ℝ => (-2 * (Real.pi : ℂ)))
   exact hvalue ▸ hbase
 
-/-- The positive upper-arc Jordan majorant remains bounded after multiplication
-by the compensating exponential on compact intervals away from zero. -/
 end FixedLineCauchyProjection
 
 end
