@@ -1,0 +1,424 @@
+import Mathlib.Data.List.Perm.Basic
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Generators.Composition.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceExpression.QLinear.Owner
+
+/-!
+# Formal Q-linear trace correspondences
+
+This file owns formal finite `Q`-linear sums of trace-correspondence
+generators.
+
+This is the additive envelope before quotienting by analytic relations.
+-/
+
+namespace Boundary
+namespace LFunctions
+namespace AnalyticMotives
+
+/-- A rationally weighted trace-correspondence generator. -/
+abbrev TraceCorQTerm :=
+  Rat × TraceCorQGenerator
+
+/-- A finite Q-linear formal sum of trace-correspondence generators. -/
+abbrev TraceCorQFormalSum :=
+  List TraceCorQTerm
+
+/-- The zero formal trace-correspondence sum. -/
+def TraceCorQFormalSum.zero : TraceCorQFormalSum :=
+  []
+
+/-- The singleton formal trace-correspondence sum. -/
+def TraceCorQFormalSum.singleton
+    (coefficient : Rat) (generator : TraceCorQGenerator) :
+    TraceCorQFormalSum :=
+  [(coefficient, generator)]
+
+/-- Addition of formal trace-correspondence sums is list concatenation. -/
+def TraceCorQFormalSum.add
+    (left right : TraceCorQFormalSum) : TraceCorQFormalSum :=
+  left ++ right
+
+/-- Scalar multiplication of formal sums scales every rational coefficient. -/
+def TraceCorQFormalSum.smul
+    (coefficient : Rat)
+    (formalSum : TraceCorQFormalSum) :
+    TraceCorQFormalSum :=
+  formalSum.map
+    (fun term => (coefficient * term.1, term.2))
+
+/-- Compose one formal term on the right with every term in a formal sum. -/
+def TraceCorQTerm.compRight
+    (leftTerm : TraceCorQTerm)
+    (rightFormalSum : TraceCorQFormalSum) :
+    TraceCorQFormalSum :=
+  rightFormalSum.map
+    (fun rightTerm =>
+      (leftTerm.1 * rightTerm.1,
+        TraceCorQGenerator.comp leftTerm.2 rightTerm.2))
+
+/-- Composing one formal term on the right distributes over formal-sum addition. -/
+theorem TraceCorQTerm.compRight_add
+    (term : TraceCorQTerm)
+    (left right : TraceCorQFormalSum) :
+    TraceCorQTerm.compRight
+      term
+      (TraceCorQFormalSum.add left right) =
+      TraceCorQFormalSum.add
+        (TraceCorQTerm.compRight term left)
+        (TraceCorQTerm.compRight term right) :=
+  List.map_append
+    (fun rightTerm =>
+      (term.1 * rightTerm.1,
+        TraceCorQGenerator.comp term.2 rightTerm.2))
+    left
+    right
+
+/-- Compose formal sums by the finite bilinear expansion on generators. -/
+def TraceCorQFormalSum.comp
+    (left right : TraceCorQFormalSum) :
+    TraceCorQFormalSum :=
+  left.bind
+    (fun leftTerm => TraceCorQTerm.compRight leftTerm right)
+
+/-- Adding the zero formal sum on the left leaves a formal sum unchanged. -/
+theorem TraceCorQFormalSum.zero_add
+    (formalSum : TraceCorQFormalSum) :
+    TraceCorQFormalSum.add
+      TraceCorQFormalSum.zero
+      formalSum =
+      formalSum :=
+  rfl
+
+/-- Adding the zero formal sum on the right leaves a formal sum unchanged. -/
+theorem TraceCorQFormalSum.add_zero
+    (formalSum : TraceCorQFormalSum) :
+    TraceCorQFormalSum.add
+      formalSum
+      TraceCorQFormalSum.zero =
+      formalSum :=
+  List.append_nil formalSum
+
+/-- Addition of formal trace-correspondence sums is associative. -/
+theorem TraceCorQFormalSum.add_assoc
+    (first second third : TraceCorQFormalSum) :
+    TraceCorQFormalSum.add
+      (TraceCorQFormalSum.add first second)
+      third =
+      TraceCorQFormalSum.add
+        first
+        (TraceCorQFormalSum.add second third) :=
+  List.append_assoc first second third
+
+/-- Scalar multiplication of the zero formal sum is zero. -/
+theorem TraceCorQFormalSum.smul_zero
+    (coefficient : Rat) :
+    TraceCorQFormalSum.smul coefficient TraceCorQFormalSum.zero =
+      TraceCorQFormalSum.zero :=
+  rfl
+
+/-- Scalar multiplication distributes over formal-sum addition. -/
+theorem TraceCorQFormalSum.smul_add
+    (coefficient : Rat)
+    (left right : TraceCorQFormalSum) :
+    TraceCorQFormalSum.smul
+      coefficient
+      (TraceCorQFormalSum.add left right) =
+      TraceCorQFormalSum.add
+        (TraceCorQFormalSum.smul coefficient left)
+        (TraceCorQFormalSum.smul coefficient right) :=
+  List.map_append
+    (fun term => (coefficient * term.1, term.2))
+    left
+    right
+
+/-- Scaling a formal sum by one leaves it unchanged. -/
+theorem TraceCorQFormalSum.one_smul
+    (formalSum : TraceCorQFormalSum) :
+    TraceCorQFormalSum.smul 1 formalSum =
+      formalSum :=
+  match formalSum with
+  | [] => rfl
+  | (coefficient, generator) :: tail =>
+      Eq.trans
+        (congrArg
+          (fun scaledCoefficient =>
+            (scaledCoefficient, generator) ::
+              TraceCorQFormalSum.smul 1 tail)
+          (one_mul coefficient))
+        (congrArg
+          (fun scaledTail => (coefficient, generator) :: scaledTail)
+          (TraceCorQFormalSum.one_smul tail))
+
+/-- Successive scalar multiplications compose by multiplying scalars. -/
+theorem TraceCorQFormalSum.smul_smul
+    (leftCoefficient rightCoefficient : Rat)
+    (formalSum : TraceCorQFormalSum) :
+    TraceCorQFormalSum.smul
+      leftCoefficient
+      (TraceCorQFormalSum.smul rightCoefficient formalSum) =
+      TraceCorQFormalSum.smul
+        (leftCoefficient * rightCoefficient)
+        formalSum :=
+  match formalSum with
+  | [] => rfl
+  | (coefficient, generator) :: tail =>
+      Eq.trans
+        (congrArg
+          (fun scaledCoefficient =>
+            (scaledCoefficient, generator) ::
+              TraceCorQFormalSum.smul
+                leftCoefficient
+                (TraceCorQFormalSum.smul rightCoefficient tail))
+          (Eq.symm
+            (mul_assoc
+              leftCoefficient
+              rightCoefficient
+              coefficient)))
+        (congrArg
+          (fun scaledTail =>
+            ((leftCoefficient * rightCoefficient) * coefficient,
+              generator) :: scaledTail)
+          (TraceCorQFormalSum.smul_smul
+            leftCoefficient
+            rightCoefficient
+            tail))
+
+/-- Scalar multiplication of a singleton scales its coefficient. -/
+theorem TraceCorQFormalSum.smul_singleton
+    (leftCoefficient rightCoefficient : Rat)
+    (generator : TraceCorQGenerator) :
+    TraceCorQFormalSum.smul
+      leftCoefficient
+      (TraceCorQFormalSum.singleton rightCoefficient generator) =
+      TraceCorQFormalSum.singleton
+        (leftCoefficient * rightCoefficient)
+        generator :=
+  rfl
+
+/-- Composing the zero formal sum on the left gives zero. -/
+theorem TraceCorQFormalSum.zero_comp
+    (formalSum : TraceCorQFormalSum) :
+    TraceCorQFormalSum.comp
+      TraceCorQFormalSum.zero
+      formalSum =
+      TraceCorQFormalSum.zero :=
+  rfl
+
+/-- Composing a formal term on the right with the zero formal sum gives zero. -/
+theorem TraceCorQTerm.compRight_zero
+    (term : TraceCorQTerm) :
+    TraceCorQTerm.compRight term TraceCorQFormalSum.zero =
+      TraceCorQFormalSum.zero :=
+  rfl
+
+/-- Composing the zero formal sum on the right gives zero. -/
+theorem TraceCorQFormalSum.comp_zero
+    (formalSum : TraceCorQFormalSum) :
+    TraceCorQFormalSum.comp
+      formalSum
+      TraceCorQFormalSum.zero =
+      TraceCorQFormalSum.zero :=
+  match formalSum with
+  | [] => rfl
+  | term :: tail =>
+      Eq.trans
+        (congrArg
+          (fun tailComp =>
+            TraceCorQTerm.compRight term TraceCorQFormalSum.zero ++
+              tailComp)
+          (TraceCorQFormalSum.comp_zero tail))
+        (TraceCorQFormalSum.zero_add TraceCorQFormalSum.zero)
+
+/-- Formal composition is left-distributive over formal-sum addition. -/
+theorem TraceCorQFormalSum.add_comp
+    (left right tail : TraceCorQFormalSum) :
+    TraceCorQFormalSum.comp
+      (TraceCorQFormalSum.add left right)
+      tail =
+      TraceCorQFormalSum.add
+        (TraceCorQFormalSum.comp left tail)
+        (TraceCorQFormalSum.comp right tail) :=
+  match left with
+  | [] => rfl
+  | term :: leftTail =>
+      Eq.trans
+        (congrArg
+          (fun tailComp =>
+            TraceCorQTerm.compRight term tail ++ tailComp)
+          (TraceCorQFormalSum.add_comp leftTail right tail))
+        (Eq.symm
+          (List.append_assoc
+            (TraceCorQTerm.compRight term tail)
+            (TraceCorQFormalSum.comp leftTail tail)
+            (TraceCorQFormalSum.comp right tail)))
+
+/-- Formal composition is right-distributive over addition up to list permutation. -/
+theorem TraceCorQFormalSum.comp_add_perm
+    (left right tail : TraceCorQFormalSum) :
+    List.Perm
+      (TraceCorQFormalSum.comp
+        left
+        (TraceCorQFormalSum.add right tail))
+      (TraceCorQFormalSum.add
+        (TraceCorQFormalSum.comp left right)
+        (TraceCorQFormalSum.comp left tail)) :=
+  (List.Perm.flatMap_left
+    left
+    (fun term _ =>
+      Eq.subst
+        (motive := fun formalSum =>
+          List.Perm
+            (TraceCorQTerm.compRight
+              term
+              (TraceCorQFormalSum.add right tail))
+            formalSum)
+        (TraceCorQTerm.compRight_add term right tail)
+        (List.Perm.refl
+          (TraceCorQTerm.compRight
+            term
+            (TraceCorQFormalSum.add right tail))))).trans
+    (List.flatMap_append_perm
+      left
+      (fun term => TraceCorQTerm.compRight term right)
+      (fun term => TraceCorQTerm.compRight term tail)).symm
+
+/-- Scaling the left term scales term-right composition. -/
+theorem TraceCorQTerm.smul_compRight
+    (coefficient : Rat)
+    (term : TraceCorQTerm)
+    (formalSum : TraceCorQFormalSum) :
+    TraceCorQTerm.compRight
+      (coefficient * term.1, term.2)
+      formalSum =
+      TraceCorQFormalSum.smul
+        coefficient
+        (TraceCorQTerm.compRight term formalSum) :=
+  match formalSum with
+  | [] => rfl
+  | rightTerm :: tail =>
+      Eq.trans
+        (congrArg
+          (fun scaledCoefficient =>
+            (scaledCoefficient,
+              TraceCorQGenerator.comp term.2 rightTerm.2) ::
+              TraceCorQTerm.compRight
+                (coefficient * term.1, term.2)
+                tail)
+          (mul_assoc coefficient term.1 rightTerm.1))
+        (congrArg
+          (fun scaledTail =>
+            (coefficient * (term.1 * rightTerm.1),
+              TraceCorQGenerator.comp term.2 rightTerm.2) ::
+              scaledTail)
+          (TraceCorQTerm.smul_compRight coefficient term tail))
+
+/-- Scaling the right formal sum scales term-right composition. -/
+theorem TraceCorQTerm.compRight_smul
+    (coefficient : Rat)
+    (term : TraceCorQTerm)
+    (formalSum : TraceCorQFormalSum) :
+    TraceCorQTerm.compRight
+      term
+      (TraceCorQFormalSum.smul coefficient formalSum) =
+      TraceCorQFormalSum.smul
+        coefficient
+        (TraceCorQTerm.compRight term formalSum) :=
+  match formalSum with
+  | [] => rfl
+  | rightTerm :: tail =>
+      Eq.trans
+        (congrArg
+          (fun scaledCoefficient =>
+            (scaledCoefficient,
+              TraceCorQGenerator.comp term.2 rightTerm.2) ::
+              TraceCorQTerm.compRight
+                term
+                (TraceCorQFormalSum.smul coefficient tail))
+          (Eq.trans
+            (mul_assoc term.1 coefficient rightTerm.1)
+            (Eq.trans
+              (congrArg
+                (fun leftCoefficient =>
+                  leftCoefficient * rightTerm.1)
+                (mul_comm term.1 coefficient))
+              (Eq.symm
+                (mul_assoc coefficient term.1 rightTerm.1)))))
+        (congrArg
+          (fun scaledTail =>
+            (coefficient * (term.1 * rightTerm.1),
+              TraceCorQGenerator.comp term.2 rightTerm.2) ::
+              scaledTail)
+          (TraceCorQTerm.compRight_smul coefficient term tail))
+
+/-- Scaling the left formal sum scales formal composition. -/
+theorem TraceCorQFormalSum.smul_comp
+    (coefficient : Rat)
+    (left right : TraceCorQFormalSum) :
+    TraceCorQFormalSum.comp
+      (TraceCorQFormalSum.smul coefficient left)
+      right =
+      TraceCorQFormalSum.smul
+        coefficient
+        (TraceCorQFormalSum.comp left right) :=
+  match left with
+  | [] => rfl
+  | term :: tail =>
+      Eq.trans
+        (congrArg
+          (fun tailComp =>
+            TraceCorQTerm.compRight
+              (coefficient * term.1, term.2)
+              right ++ tailComp)
+          (TraceCorQFormalSum.smul_comp coefficient tail right))
+        (Eq.trans
+          (congrArg
+            (fun headComp =>
+              headComp ++
+                TraceCorQFormalSum.smul
+                  coefficient
+                  (TraceCorQFormalSum.comp tail right))
+            (TraceCorQTerm.smul_compRight coefficient term right))
+          (Eq.symm
+            (TraceCorQFormalSum.smul_add
+              coefficient
+              (TraceCorQTerm.compRight term right)
+              (TraceCorQFormalSum.comp tail right))))
+
+/-- Scaling the right formal sum scales formal composition. -/
+theorem TraceCorQFormalSum.comp_smul
+    (coefficient : Rat)
+    (left right : TraceCorQFormalSum) :
+    TraceCorQFormalSum.comp
+      left
+      (TraceCorQFormalSum.smul coefficient right) =
+      TraceCorQFormalSum.smul
+        coefficient
+        (TraceCorQFormalSum.comp left right) :=
+  match left with
+  | [] => rfl
+  | term :: tail =>
+      Eq.trans
+        (congrArg
+          (fun tailComp =>
+            TraceCorQTerm.compRight
+              term
+              (TraceCorQFormalSum.smul coefficient right) ++
+              tailComp)
+          (TraceCorQFormalSum.comp_smul coefficient tail right))
+        (Eq.trans
+          (congrArg
+            (fun headComp =>
+              headComp ++
+                TraceCorQFormalSum.smul
+                  coefficient
+                  (TraceCorQFormalSum.comp tail right))
+            (TraceCorQTerm.compRight_smul coefficient term right))
+          (Eq.symm
+            (TraceCorQFormalSum.smul_add
+              coefficient
+              (TraceCorQTerm.compRight term right)
+              (TraceCorQFormalSum.comp tail right))))
+
+end AnalyticMotives
+end LFunctions
+end Boundary

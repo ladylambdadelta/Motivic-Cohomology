@@ -1,3 +1,7 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.SectorialLog.FixedVerticalPoint
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.SectorialLog.VerticalStripShift
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.SectorialLog.PowerNorm
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.SectorialLog.VerticalStripGeometry
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.NormalizedStirling.Owner
 import Mathlib.Analysis.SpecialFunctions.Pow.Complex
 
@@ -16,80 +20,9 @@ noncomputable section
 open scoped Filter Topology
 local notation "π" => Real.pi
 
-def Complex.fixedRealPartVerticalPoint (a b : ℝ) : ℂ :=
-  (a : ℂ) + (b : ℂ) * Complex.I
-
-/-- The real half embedded in `ℂ` is the complex half. -/
-theorem Complex.ofReal_one_div_two_eq_complex_one_div_two :
-    (((1 / 2 : ℝ) : ℂ) = (1 / 2 : ℂ)) := by
-  exact Complex.ofReal_div 1 2
-
-/-- The fixed-line point has real coordinate `a`. -/
-theorem Complex.fixedRealPartVerticalPoint_re
-    (a b : ℝ) :
-    (Complex.fixedRealPartVerticalPoint a b).re = a := by
-  calc
-    (Complex.fixedRealPartVerticalPoint a b).re =
-        ((a : ℂ) + (b : ℂ) * Complex.I).re := rfl
-    _ = (a : ℂ).re + ((b : ℂ) * Complex.I).re :=
-        Complex.add_re (a : ℂ) ((b : ℂ) * Complex.I)
-    _ = a + 0 := by
-      congr 1
-      calc
-        ((b : ℂ) * Complex.I).re = -((b : ℂ).im) :=
-          Complex.mul_I_re (b : ℂ)
-        _ = -0 :=
-          congrArg Neg.neg (Complex.ofReal_im b)
-        _ = 0 :=
-          neg_zero
-    _ = a := add_zero a
-
-/-- The fixed-line point has imaginary coordinate `b`. -/
-theorem Complex.fixedRealPartVerticalPoint_im
-    (a b : ℝ) :
-    (Complex.fixedRealPartVerticalPoint a b).im = b := by
-  calc
-    (Complex.fixedRealPartVerticalPoint a b).im =
-        ((a : ℂ) + (b : ℂ) * Complex.I).im := rfl
-    _ = (a : ℂ).im + ((b : ℂ) * Complex.I).im :=
-        Complex.add_im (a : ℂ) ((b : ℂ) * Complex.I)
-    _ = 0 + b := by
-      congr 1
-      exact Complex.mul_I_im (b : ℂ)
-    _ = b := zero_add b
-
-/-- A complex number is its fixed-real-part vertical point. -/
-theorem Complex.fixedRealPartVerticalPoint_re_im
-    (z : ℂ) :
-    Complex.fixedRealPartVerticalPoint z.re z.im = z := by
-  exact Complex.ext
-    (Complex.fixedRealPartVerticalPoint_re z.re z.im)
-    (Complex.fixedRealPartVerticalPoint_im z.re z.im)
-
-/-- The direct fixed-real-part vertical Stirling envelope. -/
-def Complex.fixedRealPartVerticalStirlingEnvelope (a b : ℝ) : ℝ :=
-  Real.exp (-(Real.pi / 2) * ‖b‖) * (1 + ‖b‖) ^ (a - 1 / 2)
-
 /-- The reciprocal fixed-real-part vertical Stirling envelope. -/
 def Complex.fixedRealPartVerticalReciprocalStirlingEnvelope (a b : ℝ) : ℝ :=
   Real.exp ((Real.pi / 2) * ‖b‖) * (1 + ‖b‖) ^ (1 / 2 - a)
-
-/-- The fixed-real-part direct Stirling envelope is positive. -/
-theorem Complex.fixedRealPartVerticalStirlingEnvelope_pos
-    (a b : ℝ) :
-    0 < Complex.fixedRealPartVerticalStirlingEnvelope a b := by
-  have hbase_pos : 0 < 1 + ‖b‖ :=
-    lt_of_lt_of_le zero_lt_one
-      (le_add_of_nonneg_right (norm_nonneg b))
-  exact mul_pos
-    (Real.exp_pos (-(Real.pi / 2) * ‖b‖))
-    (Real.rpow_pos_of_pos hbase_pos (a - 1 / 2))
-
-/-- The fixed-real-part direct Stirling envelope is nonnegative. -/
-theorem Complex.fixedRealPartVerticalStirlingEnvelope_nonneg
-    (a b : ℝ) :
-    0 ≤ Complex.fixedRealPartVerticalStirlingEnvelope a b :=
-  le_of_lt (Complex.fixedRealPartVerticalStirlingEnvelope_pos a b)
 
 /-- The fixed-real-part reciprocal Stirling envelope is positive. -/
 theorem Complex.fixedRealPartVerticalReciprocalStirlingEnvelope_pos
@@ -672,19 +605,6 @@ theorem Complex.log_norm_exp_eq_re
     _ = w.re :=
       Real.log_exp w.re
 
-/-- Norm of the complex exponential. -/
-theorem Complex.norm_exp_eq_exp_re
-    (w : ℂ) :
-    ‖Complex.exp w‖ = Real.exp w.re := by
-  have hnorm_eq_abs :
-      ‖Complex.exp w‖ = Complex.abs (Complex.exp w) :=
-    Complex.norm_eq_abs (Complex.exp w)
-  calc
-    ‖Complex.exp w‖ = Complex.abs (Complex.exp w) :=
-      hnorm_eq_abs
-    _ = Real.exp w.re :=
-      Complex.abs_exp w
-
 /-- Exact log expansion of the normalized Gamma Stirling factor. -/
 theorem Complex.normalizedGammaStirlingFactor_log_eq
     (w : ℂ)
@@ -1039,32 +959,6 @@ theorem Complex.log_abs_cpow_eq_re_mul_log_abs_sub_arg_mul_im_of_ne_zero
         (fun x : ℝ => a.re * Real.log (Complex.abs z) - x)
         (Real.log_exp (Complex.arg z * a.im))
 
-/-- Principal-branch norm formula for complex powers. -/
-theorem Complex.norm_cpow_eq_norm_rpow_div_exp_arg_mul_im_of_ne_zero
-    {z a : ℂ}
-    (hz_ne : z ≠ 0) :
-    ‖z ^ a‖ =
-      ‖z‖ ^ a.re / Real.exp (Complex.arg z * a.im) := by
-  have hnorm_cpow_abs :
-      ‖z ^ a‖ = Complex.abs (z ^ a) :=
-    Complex.norm_eq_abs (z ^ a)
-  have hnorm_z_abs :
-      ‖z‖ = Complex.abs z :=
-    Complex.norm_eq_abs z
-  have habs_cpow :
-      Complex.abs (z ^ a) =
-        Complex.abs z ^ a.re / Real.exp (Complex.arg z * a.im) :=
-    Complex.abs_cpow_of_ne_zero hz_ne a
-  calc
-    ‖z ^ a‖ = Complex.abs (z ^ a) :=
-      hnorm_cpow_abs
-    _ = Complex.abs z ^ a.re / Real.exp (Complex.arg z * a.im) :=
-      habs_cpow
-    _ = ‖z‖ ^ a.re / Real.exp (Complex.arg z * a.im) := by
-      exact congrArg
-        (fun r : ℝ => r ^ a.re / Real.exp (Complex.arg z * a.im))
-        hnorm_z_abs.symm
-
 /-- Principal-branch norm formula for complex powers in logarithmic form. -/
 theorem Complex.log_norm_cpow_eq_re_mul_log_norm_sub_arg_mul_im_of_ne_zero
     {z a : ℂ}
@@ -1090,38 +984,6 @@ theorem Complex.log_norm_cpow_eq_re_mul_log_norm_sub_arg_mul_im_of_ne_zero
       exact congrArg
         (fun x : ℝ => a.re * Real.log x - Complex.arg z * a.im)
         hnorm_z_abs.symm
-
-/-- Real coordinate of the Stirling power exponent `(1/2) - w`. -/
-theorem Complex.half_minus_self_re
-    (w : ℂ) :
-    ((1 / 2 : ℂ) - w).re = (1 / 2 : ℝ) - w.re := by
-  calc
-    ((1 / 2 : ℂ) - w).re =
-        (1 / 2 : ℂ).re - w.re :=
-      Complex.sub_re (1 / 2 : ℂ) w
-    _ = (((1 / 2 : ℝ) : ℂ).re) - w.re := by
-      exact congrArg
-        (fun z : ℂ => z.re - w.re)
-        Complex.ofReal_one_div_two_eq_complex_one_div_two.symm
-    _ = (1 / 2 : ℝ) - w.re := by
-      exact congrArg (fun x : ℝ => x - w.re) (Complex.ofReal_re (1 / 2 : ℝ))
-
-/-- Imaginary coordinate of the Stirling power exponent `(1/2) - w`. -/
-theorem Complex.half_minus_self_im
-    (w : ℂ) :
-    ((1 / 2 : ℂ) - w).im = -w.im := by
-  calc
-    ((1 / 2 : ℂ) - w).im =
-        (1 / 2 : ℂ).im - w.im :=
-      Complex.sub_im (1 / 2 : ℂ) w
-    _ = (((1 / 2 : ℝ) : ℂ).im) - w.im := by
-      exact congrArg
-        (fun z : ℂ => z.im - w.im)
-        Complex.ofReal_one_div_two_eq_complex_one_div_two.symm
-    _ = 0 - w.im := by
-      exact congrArg (fun x : ℝ => x - w.im) (Complex.ofReal_im (1 / 2 : ℝ))
-    _ = -w.im :=
-      zero_sub w.im
 
 /-- Algebraic rearrangement of the cpow logarithmic formula for the Stirling
 exponent. -/
@@ -1231,218 +1093,6 @@ theorem Complex.re_le_norm
       _ = ‖w‖ :=
         hnorm_eq_abs.symm
   exact le_trans (le_abs_self w.re) hre_abs_le_norm
-
-/-- Fixed vertical points lie in the closed right half-plane exactly when their
-fixed real part is nonnegative. -/
-theorem Complex.fixedRealPartVerticalPoint_closedRightHalfPlaneSector
-    {a b : ℝ}
-    (ha : 0 ≤ a) :
-    Complex.closedRightHalfPlaneSector
-      (Complex.fixedRealPartVerticalPoint a b) := by
-  calc
-    (0 : ℝ) ≤ a :=
-      ha
-    _ = (Complex.fixedRealPartVerticalPoint a b).re :=
-      (Complex.fixedRealPartVerticalPoint_re a b).symm
-
-/-- The imaginary height is bounded by the complex norm of a fixed vertical
-point. -/
-theorem Complex.fixedRealPartVerticalPoint_abs_im_le_norm
-    (a b : ℝ) :
-    ‖b‖ ≤ ‖Complex.fixedRealPartVerticalPoint a b‖ := by
-  have him :
-      (Complex.fixedRealPartVerticalPoint a b).im = b :=
-    Complex.fixedRealPartVerticalPoint_im a b
-  have hbasic :
-      |(Complex.fixedRealPartVerticalPoint a b).im| ≤
-        ‖Complex.fixedRealPartVerticalPoint a b‖ :=
-    Complex.abs_im_le_norm (Complex.fixedRealPartVerticalPoint a b)
-  have hnorm_eq_abs : ‖b‖ = |b| :=
-    Real.norm_eq_abs b
-  have hb_abs_le :
-      |b| ≤ ‖Complex.fixedRealPartVerticalPoint a b‖ := by
-    calc
-      |b| = |(Complex.fixedRealPartVerticalPoint a b).im| :=
-        congrArg abs him.symm
-      _ ≤ ‖Complex.fixedRealPartVerticalPoint a b‖ :=
-        hbasic
-  calc
-    ‖b‖ = |b| :=
-      hnorm_eq_abs
-    _ ≤ ‖Complex.fixedRealPartVerticalPoint a b‖ :=
-      hb_abs_le
-
-/-- A large imaginary height forces a large complex radius on a fixed vertical
-line. -/
-theorem Complex.fixedRealPartVerticalPoint_radius_ge_of_height_ge
-    {a b H : ℝ}
-    (hH : H ≤ ‖b‖) :
-    H ≤ ‖Complex.fixedRealPartVerticalPoint a b‖ :=
-  le_trans hH (Complex.fixedRealPartVerticalPoint_abs_im_le_norm a b)
-
-/-- If `H` dominates a sectorial radius cutoff, then a height cutoff by `H`
-dominates the corresponding complex radius cutoff. -/
-theorem Complex.fixedRealPartVerticalPoint_sectorialRadius_ge_of_height_ge
-    {a b H R : ℝ}
-    (hR_le_H : R ≤ H)
-    (hH : H ≤ ‖b‖) :
-    R ≤ ‖Complex.fixedRealPartVerticalPoint a b‖ :=
-  le_trans hR_le_H
-    (Complex.fixedRealPartVerticalPoint_radius_ge_of_height_ge hH)
-
-/-- Shifting a fixed vertical point by a natural number shifts only its real
-coordinate. -/
-theorem Complex.fixedRealPartVerticalPoint_natShift_re
-    (x y : ℝ)
-    (N : ℕ) :
-    (Complex.fixedRealPartVerticalPoint (x + N) y).re =
-      x + (N : ℝ) := by
-  exact Complex.fixedRealPartVerticalPoint_re (x + N) y
-
-/-- Shifting a fixed vertical point by a natural number preserves its imaginary
-coordinate. -/
-theorem Complex.fixedRealPartVerticalPoint_natShift_im
-    (x y : ℝ)
-    (N : ℕ) :
-    (Complex.fixedRealPartVerticalPoint (x + N) y).im = y := by
-  exact Complex.fixedRealPartVerticalPoint_im (x + N) y
-
-/-- A natural right shift moves the whole real strip into the closed right
-half-plane. -/
-theorem Complex.fixedRealPartVerticalPoint_natShift_closedRightHalfPlaneSector
-    {A x y : ℝ}
-    {N : ℕ}
-    (hA : -A ≤ (N : ℝ))
-    (hx : A ≤ x) :
-    Complex.closedRightHalfPlaneSector
-      (Complex.fixedRealPartVerticalPoint (x + N) y) := by
-  have hnonneg : 0 ≤ x + (N : ℝ) := by
-    have hneg_x_le_N : -x ≤ (N : ℝ) :=
-      le_trans (neg_le_neg hx) hA
-    calc
-      (0 : ℝ) = -x + x :=
-        (neg_add_cancel x).symm
-      _ ≤ (N : ℝ) + x :=
-        add_le_add_right hneg_x_le_N x
-      _ = x + (N : ℝ) :=
-        add_comm (N : ℝ) x
-  exact
-    Complex.fixedRealPartVerticalPoint_closedRightHalfPlaneSector hnonneg
-
-/-- The shifted vertical point has radius bounded below by the same height. -/
-theorem Complex.fixedRealPartVerticalPoint_natShift_radius_ge_of_height_ge
-    {x y H : ℝ}
-    {N : ℕ}
-    (hH : H ≤ ‖y‖) :
-    H ≤ ‖Complex.fixedRealPartVerticalPoint (x + N) y‖ :=
-  Complex.fixedRealPartVerticalPoint_radius_ge_of_height_ge hH
-
-/-- Bounded real part in a strip remains bounded after a fixed natural shift. -/
-theorem real_natShift_mem_strip_of_mem_strip
-    {A B x : ℝ}
-    (N : ℕ)
-    (hxA : A ≤ x)
-    (hxB : x ≤ B) :
-    A + (N : ℝ) ≤ x + (N : ℝ) ∧
-      x + (N : ℝ) ≤ B + (N : ℝ) :=
-  ⟨add_le_add_right hxA (N : ℝ),
-    add_le_add_right hxB (N : ℝ)⟩
-
-/-- Deterministic right shift for a vertical strip.
-
-It is a natural shift at least `1 - A`, so it moves the strip lower edge `A`
-into the strict right half-plane with real part at least `1`. -/
-def Complex.verticalStripRightShift (A : ℝ) : ℕ :=
-  Nat.ceil (max 1 (1 - A))
-
-/-- The deterministic strip shift dominates the negative lower endpoint. -/
-theorem Complex.neg_lower_le_verticalStripRightShift
-    (A : ℝ) :
-    -A ≤ (Complex.verticalStripRightShift A : ℝ) :=
-  let hneg_le_one_sub : -A ≤ 1 - A := by
-    calc
-      -A = 0 + -A := by
-        exact (zero_add (-A)).symm
-      _ ≤ 1 + -A :=
-        add_le_add_right zero_le_one (-A)
-      _ = 1 - A := (sub_eq_add_neg 1 A).symm
-  let hmax : 1 - A ≤ max 1 (1 - A) :=
-    le_max_right 1 (1 - A)
-  let hceil : max 1 (1 - A) ≤ (Complex.verticalStripRightShift A : ℝ) :=
-    Nat.le_ceil (max 1 (1 - A))
-  le_trans hneg_le_one_sub (le_trans hmax hceil)
-
-/-- The deterministic strip shift places the lower endpoint at real part at
-least `1`. -/
-theorem Complex.one_le_lower_add_verticalStripRightShift
-    (A : ℝ) :
-    1 ≤ A + (Complex.verticalStripRightShift A : ℝ) :=
-  let hmax : 1 - A ≤ max 1 (1 - A) :=
-    le_max_right 1 (1 - A)
-  let hceil : max 1 (1 - A) ≤ (Complex.verticalStripRightShift A : ℝ) :=
-    Nat.le_ceil (max 1 (1 - A))
-  have hshift : 1 - A ≤ (Complex.verticalStripRightShift A : ℝ) :=
-    le_trans hmax hceil
-  calc
-    1 = A + (1 - A) := by
-      calc
-        1 = (1 - A) + A := by
-          exact (sub_add_cancel 1 A).symm
-        _ = A + (1 - A) := by
-          exact add_comm (1 - A) A
-    _ ≤ A + (Complex.verticalStripRightShift A : ℝ) :=
-      add_le_add_left hshift A
-
-/-- Shifted strip points have strictly positive real part. -/
-theorem Complex.fixedRealPartVerticalPoint_verticalStripRightShift_re_pos
-    {A x y : ℝ}
-    (hx : A ≤ x) :
-    0 <
-      (Complex.fixedRealPartVerticalPoint
-        (x + Complex.verticalStripRightShift A) y).re :=
-  have hone_le : 1 ≤ x + (Complex.verticalStripRightShift A : ℝ) :=
-    calc
-      1 ≤ A + (Complex.verticalStripRightShift A : ℝ) :=
-        Complex.one_le_lower_add_verticalStripRightShift A
-      _ ≤ x + (Complex.verticalStripRightShift A : ℝ) :=
-        add_le_add_right hx (Complex.verticalStripRightShift A : ℝ)
-  have hzero_lt_one : (0 : ℝ) < 1 := zero_lt_one
-  have hpos : 0 < x + (Complex.verticalStripRightShift A : ℝ) :=
-    lt_of_lt_of_le hzero_lt_one hone_le
-  calc
-    0 < x + (Complex.verticalStripRightShift A : ℝ) := hpos
-    _ =
-        (Complex.fixedRealPartVerticalPoint
-          (x + Complex.verticalStripRightShift A) y).re :=
-      (Complex.fixedRealPartVerticalPoint_re
-        (x + Complex.verticalStripRightShift A) y).symm
-
-/-- The deterministic strip shift is nonnegative as a real number. -/
-theorem Complex.verticalStripRightShift_nonneg
-    (A : ℝ) :
-    (0 : ℝ) ≤ (Complex.verticalStripRightShift A : ℝ) :=
-  Nat.cast_nonneg (Complex.verticalStripRightShift A)
-
-/-- The deterministic shift moves every point in the strip into the closed
-right half-plane. -/
-theorem Complex.fixedRealPartVerticalPoint_verticalStripRightShift_closedRightHalfPlaneSector
-    {A x y : ℝ}
-    (hx : A ≤ x) :
-    Complex.closedRightHalfPlaneSector
-      (Complex.fixedRealPartVerticalPoint
-        (x + Complex.verticalStripRightShift A) y) :=
-  Complex.fixedRealPartVerticalPoint_natShift_closedRightHalfPlaneSector
-    (Complex.neg_lower_le_verticalStripRightShift A) hx
-
-/-- The deterministic shift preserves the large-height-to-large-radius lower
-bound. -/
-theorem Complex.fixedRealPartVerticalPoint_verticalStripRightShift_radius_ge_of_height_ge
-    {A x y H : ℝ}
-    (hH : H ≤ ‖y‖) :
-    H ≤
-      ‖Complex.fixedRealPartVerticalPoint
-        (x + Complex.verticalStripRightShift A) y‖ :=
-  Complex.fixedRealPartVerticalPoint_natShift_radius_ge_of_height_ge hH
 
 /-- A positive lower radius cutoff makes the logarithmic envelope positive. -/
 theorem real_largeRadius_log_envelope_pos

@@ -1,0 +1,22 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Realizations.Analytic.TraceValue.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaContour.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaContour.ZetaExplicitFormulaRectangleAPI.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaContour.ZetaExplicitFormulaContourPathLemmas.Owner
+
+/-!
+# Completed-zeta finite-rectangle geometry adapter
+
+This file imports the concrete completed-zeta rectangle geometry and path
+owners from the RH lane.
+
+It is an analytic realization adapter: it provides geometric input for
+interpreting synthetic trace atoms by actual finite-rectangle contour data.
+-/
+
+namespace Boundary
+namespace LFunctions
+namespace AnalyticMotives
+
+end AnalyticMotives
+end LFunctions
+end Boundary
