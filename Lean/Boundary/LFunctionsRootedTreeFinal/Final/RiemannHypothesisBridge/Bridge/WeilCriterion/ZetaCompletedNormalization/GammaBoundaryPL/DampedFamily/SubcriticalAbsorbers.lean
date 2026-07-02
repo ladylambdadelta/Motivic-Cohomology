@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaBoundaryPL.DampedFamily.HolomorphyAndBarriers
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaBoundaryPL.DampedFamily.BoundedHeightRectangle
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.EulerContinuationTransport.FiniteOrderPL.Owner
 
 namespace Boundary
 namespace LFunctions
@@ -8,6 +10,93 @@ noncomputable section
 open Filter
 open scoped Filter Topology
 local notation "π" => Real.pi
+
+/-- Real part of the subcritical cosine-damping exponent. -/
+theorem verticalStripSubcriticalCosineDampingExponent_re_eq_neg_mul
+    (a b d ε : ℝ)
+    (z : ℂ) :
+    (-((ε : ℝ) : ℂ) *
+        verticalStripSubcriticalCosineBarrierKernel a b d z).re =
+      -ε * (verticalStripSubcriticalCosineBarrierKernel a b d z).re := by
+  calc
+    (-((ε : ℝ) : ℂ) *
+        verticalStripSubcriticalCosineBarrierKernel a b d z).re =
+        (-ε) * (verticalStripSubcriticalCosineBarrierKernel a b d z).re -
+          (0 : ℝ) * (verticalStripSubcriticalCosineBarrierKernel a b d z).im := by
+      exact
+        Eq.trans
+          (Complex.mul_re
+            (-((ε : ℝ) : ℂ))
+            (verticalStripSubcriticalCosineBarrierKernel a b d z))
+          (congrArg₂
+            (fun x y : ℝ =>
+              x * (verticalStripSubcriticalCosineBarrierKernel a b d z).re -
+                y * (verticalStripSubcriticalCosineBarrierKernel a b d z).im)
+            (by
+              calc
+                (-((ε : ℝ) : ℂ)).re = -(((ε : ℝ) : ℂ).re) :=
+                  Complex.neg_re ((ε : ℝ) : ℂ)
+                _ = -ε :=
+                  congrArg Neg.neg (Complex.ofReal_re ε))
+            (by
+              calc
+                (-((ε : ℝ) : ℂ)).im = -(((ε : ℝ) : ℂ).im) :=
+                  Complex.neg_im ((ε : ℝ) : ℂ)
+                _ = -0 :=
+                  congrArg Neg.neg (Complex.ofReal_im ε)
+                _ = 0 :=
+                  neg_zero))
+    _ = (-ε) * (verticalStripSubcriticalCosineBarrierKernel a b d z).re - 0 := by
+      exact congrArg
+        (fun x : ℝ =>
+          (-ε) * (verticalStripSubcriticalCosineBarrierKernel a b d z).re - x)
+        (zero_mul (verticalStripSubcriticalCosineBarrierKernel a b d z).im)
+    _ = (-ε) * (verticalStripSubcriticalCosineBarrierKernel a b d z).re := by
+      exact sub_zero
+        ((-ε) * (verticalStripSubcriticalCosineBarrierKernel a b d z).re)
+    _ = -(ε * (verticalStripSubcriticalCosineBarrierKernel a b d z).re) := by
+      exact neg_mul ε (verticalStripSubcriticalCosineBarrierKernel a b d z).re
+    _ = -ε * (verticalStripSubcriticalCosineBarrierKernel a b d z).re := by
+      exact (neg_mul ε (verticalStripSubcriticalCosineBarrierKernel a b d z).re).symm
+
+/-- Exponentiating a lower bound for the barrier real part gives the matching
+upper bound for the damping factor. -/
+theorem verticalStripSubcriticalCosineDampingFactor_norm_le_exp_neg_of_re_lower
+    {a b d ε L : ℝ}
+    (hε : 0 ≤ ε)
+    {z : ℂ}
+    (hL :
+      L ≤ (verticalStripSubcriticalCosineBarrierKernel a b d z).re) :
+    ‖Complex.exp
+        (-((ε : ℝ) : ℂ) *
+          verticalStripSubcriticalCosineBarrierKernel a b d z)‖ ≤
+      Real.exp (-(ε * L)) := by
+  let K : ℂ := verticalStripSubcriticalCosineBarrierKernel a b d z
+  let w : ℂ := -((ε : ℝ) : ℂ) * K
+  have hre :
+      w.re = -ε * K.re := by
+    exact
+      verticalStripSubcriticalCosineDampingExponent_re_eq_neg_mul a b d ε z
+  have hmul_le : ε * L ≤ ε * K.re :=
+    mul_le_mul_of_nonneg_left hL hε
+  have hneg_le : -(ε * K.re) ≤ -(ε * L) :=
+    neg_le_neg hmul_le
+  have harg_eq : -ε * K.re = -(ε * K.re) :=
+    neg_mul ε K.re
+  have hre_le : w.re ≤ -(ε * L) :=
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ -(ε * L))
+      (Eq.trans hre harg_eq).symm
+      hneg_le
+  have hexp_le : Real.exp w.re ≤ Real.exp (-(ε * L)) :=
+    Real.exp_le_exp.mpr hre_le
+  have hnorm : ‖Complex.exp w‖ = Real.exp w.re :=
+    complexNorm_exp_eq_realExp_re w
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ Real.exp (-(ε * L)))
+      hnorm.symm
+      hexp_le
 
 /-- Top-edge pointwise estimate for the subcritical cosine-damped family,
 before the scalar `c < d` absorption step. -/
@@ -120,10 +209,11 @@ theorem doubleExponential_exp_mul_subcritical_absorber_eventually_le_const
                 exact congrArg (fun x : ℝ => x * D)
                   (mul_inv_cancel₀ (ne_of_gt hE_pos))
               _ = D := one_mul D
-          Eq.subst
-            (motive := fun x : ℝ => x ≤ E * Real.exp ((d - c) * T))
-            hcancel
-            hscaled
+          exact
+            Eq.subst
+              (motive := fun x : ℝ => x ≤ E * Real.exp ((d - c) * T))
+              hcancel
+              hscaled
         have hexp_c_pos : 0 < Real.exp (c * T) :=
           Real.exp_pos (c * T)
         have hmul_le :
@@ -263,16 +353,16 @@ theorem verticalStripSubcriticalCosineBarrierKernel_rightBoundary_re_ge_exp_neg
         exact congrArg
           (fun y : ℝ => c * y)
           (div_eq_mul_one_div (Real.exp (-(d * z.im))) 2).symm
-  exact
-    Eq.subst
-      (motive := fun y : ℝ =>
-        (c / 2) * Real.exp (-(d * z.im)) ≤ y)
+  calc
+    (c / 2) * Real.exp (-(d * z.im)) ≤
+        c * Real.cosh (d * z.im) := by
+      calc
+        (c / 2) * Real.exp (-(d * z.im)) =
+            c * (Real.exp (-(d * z.im)) / 2) := hleft_eq
+        _ ≤ c * Real.cosh (d * z.im) := hmul_lower
+    _ = (verticalStripSubcriticalCosineBarrierKernel a b d z).re :=
       (verticalStripSubcriticalCosineBarrierKernel_rightBoundary_re_eq
         a b d hz).symm
-      (Eq.subst
-        (motive := fun y : ℝ => y ≤ c * Real.cosh (d * z.im))
-        hleft_eq
-        hmul_lower)
 
 /-- On the left boundary ray, the subcritical barrier real part has
 exponential lower growth in the lower-tail height. -/
@@ -316,54 +406,16 @@ theorem verticalStripSubcriticalCosineBarrierKernel_leftBoundary_re_ge_exp_neg
         exact congrArg
           (fun y : ℝ => c * y)
           (div_eq_mul_one_div (Real.exp (-(d * z.im))) 2).symm
-  exact
-    Eq.subst
-      (motive := fun y : ℝ =>
-        (c / 2) * Real.exp (-(d * z.im)) ≤ y)
+  calc
+    (c / 2) * Real.exp (-(d * z.im)) ≤
+        c * Real.cosh (d * z.im) := by
+      calc
+        (c / 2) * Real.exp (-(d * z.im)) =
+            c * (Real.exp (-(d * z.im)) / 2) := hleft_eq
+        _ ≤ c * Real.cosh (d * z.im) := hmul_lower
+    _ = (verticalStripSubcriticalCosineBarrierKernel a b d z).re :=
       (verticalStripSubcriticalCosineBarrierKernel_leftBoundary_re_eq
         a b d hz).symm
-      (Eq.subst
-        (motive := fun y : ℝ => y ≤ c * Real.cosh (d * z.im))
-        hleft_eq
-        hmul_lower)
-
-/-- Exponentiating a lower bound for the barrier real part gives the matching
-upper bound for the damping factor. -/
-theorem verticalStripSubcriticalCosineDampingFactor_norm_le_exp_neg_of_re_lower
-    {a b d ε L : ℝ}
-    (hε : 0 ≤ ε)
-    {z : ℂ}
-    (hL :
-      L ≤ (verticalStripSubcriticalCosineBarrierKernel a b d z).re) :
-    ‖Complex.exp
-        (-((ε : ℝ) : ℂ) *
-          verticalStripSubcriticalCosineBarrierKernel a b d z)‖ ≤
-      Real.exp (-(ε * L)) := by
-  let K : ℂ := verticalStripSubcriticalCosineBarrierKernel a b d z
-  let w : ℂ := -((ε : ℝ) : ℂ) * K
-  have hre :
-      w.re = -ε * K.re := by
-    verticalStripSubcriticalCosineDampingExponent_re_eq_neg_mul a b d ε z
-  have hmul_le : ε * L ≤ ε * K.re :=
-    mul_le_mul_of_nonneg_left hL hε
-  have hneg_le : -(ε * K.re) ≤ -(ε * L) :=
-    neg_le_neg hmul_le
-  have harg_eq : -ε * K.re = -(ε * K.re) :=
-    neg_mul ε K.re
-  have hre_le : w.re ≤ -(ε * L) :=
-    Eq.subst
-      (motive := fun x : ℝ => x ≤ -(ε * L))
-      (Eq.trans hre harg_eq).symm
-      hneg_le
-  have hexp_le : Real.exp w.re ≤ Real.exp (-(ε * L)) :=
-    Real.exp_le_exp.mpr hre_le
-  have hnorm : ‖Complex.exp w‖ = Real.exp w.re :=
-    complexNorm_exp_eq_realExp_re w
-  exact
-    Eq.subst
-      (motive := fun x : ℝ => x ≤ Real.exp (-(ε * L)))
-      hnorm.symm
-      hexp_le
 
 /-- Right-boundary pointwise estimate for the subcritical damped family,
 before the scalar absorption step. -/
@@ -418,6 +470,9 @@ theorem verticalStripSubcriticalCosineDampedFamily_rightBoundary_preAbsorption
   have hf :
       ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z.im‖) ^ m) :=
     hboundary z hz_re hz_im
+  have hf_rhs_nonneg :
+      0 ≤ A * Real.exp (B * (1 + ‖z.im‖) ^ m) :=
+    le_trans (norm_nonneg (f z)) hf
   have hg_nonneg :
       0 ≤
         Real.exp
@@ -436,7 +491,7 @@ theorem verticalStripSubcriticalCosineDampedFamily_rightBoundary_preAbsorption
             (-(ε *
               ((Real.cos (d * ((b - a) / 2)) / 2) *
                 Real.exp (d * z.im)))) :=
-    mul_le_mul hf hg (norm_nonneg g) hg_nonneg
+    mul_le_mul hf hg (norm_nonneg g) hf_rhs_nonneg
   exact
     Eq.subst
       (motive := fun x : ℝ =>
@@ -502,6 +557,9 @@ theorem verticalStripSubcriticalCosineDampedFamily_leftBoundary_preAbsorption
   have hf :
       ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z.im‖) ^ m) :=
     hboundary z hz_re hz_im
+  have hf_rhs_nonneg :
+      0 ≤ A * Real.exp (B * (1 + ‖z.im‖) ^ m) :=
+    le_trans (norm_nonneg (f z)) hf
   have hg_nonneg :
       0 ≤
         Real.exp
@@ -520,7 +578,7 @@ theorem verticalStripSubcriticalCosineDampedFamily_leftBoundary_preAbsorption
             (-(ε *
               ((Real.cos (d * (-((b - a) / 2))) / 2) *
                 Real.exp (d * z.im)))) :=
-    mul_le_mul hf hg (norm_nonneg g) hg_nonneg
+    mul_le_mul hf hg (norm_nonneg g) hf_rhs_nonneg
   exact
     Eq.subst
       (motive := fun x : ℝ =>
@@ -836,12 +894,12 @@ theorem finiteOrder_exp_mul_shifted_upperTail_absorber_eventually_le_one
           have hmul_add :
               s * (M + T) = s * M + s * T :=
             mul_add s M T
-          exact
-            Eq.subst
-              (motive := fun x : ℝ =>
-                Real.exp (s * (M + T)) = Real.exp x)
-              hmul_add.symm
-              (Real.exp_add (s * M) (s * T))
+          calc
+            Real.exp (s * (M + T)) =
+                Real.exp (s * M + s * T) := by
+              exact congrArg Real.exp hmul_add
+            _ = Real.exp (s * M) * Real.exp (s * T) :=
+              Real.exp_add (s * M) (s * T)
         have hkernel :
             K * Real.exp (s * (M + T)) =
               K' * Real.exp (s * T) := by
@@ -872,62 +930,6 @@ theorem finiteOrder_exp_mul_shifted_upperTail_absorber_eventually_le_one
           (motive := fun x : ℝ => x ≤ 1)
           htotal.symm
           hT
-
-/-- Real part of the subcritical cosine-damping exponent. -/
-theorem verticalStripSubcriticalCosineDampingExponent_re_eq_neg_mul
-    (a b d ε : ℝ)
-    (z : ℂ) :
-    (-((ε : ℝ) : ℂ) *
-        verticalStripSubcriticalCosineBarrierKernel a b d z).re =
-      -ε * (verticalStripSubcriticalCosineBarrierKernel a b d z).re := by
-  calc
-    (-((ε : ℝ) : ℂ) *
-        verticalStripSubcriticalCosineBarrierKernel a b d z).re =
-        (-ε) * (verticalStripSubcriticalCosineBarrierKernel a b d z).re -
-          (0 : ℝ) * (verticalStripSubcriticalCosineBarrierKernel a b d z).im := by
-      exact
-        Eq.trans
-          (Complex.mul_re
-            (-((ε : ℝ) : ℂ))
-            (verticalStripSubcriticalCosineBarrierKernel a b d z))
-          (congrArg₂
-            (fun x y : ℝ =>
-              x * (verticalStripSubcriticalCosineBarrierKernel a b d z).re -
-                y * (verticalStripSubcriticalCosineBarrierKernel a b d z).im)
-            (by
-              calc
-                (-((ε : ℝ) : ℂ)).re = -(((ε : ℝ) : ℂ).re) :=
-                  Complex.neg_re ((ε : ℝ) : ℂ)
-                _ = -ε :=
-                  congrArg Neg.neg (Complex.ofReal_re ε))
-            (by
-              calc
-                (-((ε : ℝ) : ℂ)).im = -(((ε : ℝ) : ℂ).im) :=
-                  Complex.neg_im ((ε : ℝ) : ℂ)
-                _ = -0 :=
-                  congrArg Neg.neg (Complex.ofReal_im ε)
-                _ = 0 :=
-                  neg_zero))
-    _ =
-        (-ε) * (verticalStripSubcriticalCosineBarrierKernel a b d z).re - 0 := by
-      exact congrArg
-        (fun y : ℝ =>
-          (-ε) * (verticalStripSubcriticalCosineBarrierKernel a b d z).re - y)
-        (zero_mul (verticalStripSubcriticalCosineBarrierKernel a b d z).im)
-    _ =
-        (-ε) * (verticalStripSubcriticalCosineBarrierKernel a b d z).re := by
-      exact
-        sub_zero
-          ((-ε) * (verticalStripSubcriticalCosineBarrierKernel a b d z).re)
-    _ =
-        -(ε * (verticalStripSubcriticalCosineBarrierKernel a b d z).re) := by
-      exact
-        neg_mul ε (verticalStripSubcriticalCosineBarrierKernel a b d z).re
-    _ =
-        -ε * (verticalStripSubcriticalCosineBarrierKernel a b d z).re := by
-      exact
-        (neg_mul ε
-          (verticalStripSubcriticalCosineBarrierKernel a b d z).re).symm
 
 /-- Right-boundary scalar absorption supplied by the subcritical cosine
 barrier exponent. -/
@@ -1358,7 +1360,7 @@ theorem verticalStripSubcriticalCosineDampingFactor_rightBoundary_norm_le_exp_ne
       -(ε * L) =
         -(ε * (c / 2) * Real.exp (d * z.im)) := by
     exact congrArg Neg.neg
-      (mul_assoc ε (c / 2) (Real.exp (d * z.im)))
+      (mul_assoc ε (c / 2) (Real.exp (d * z.im))).symm
   exact
     Eq.subst
       (motive := fun y : ℝ =>
@@ -1422,7 +1424,7 @@ theorem verticalStripSubcriticalCosineDampingFactor_leftBoundary_norm_le_exp_neg
       -(ε * L) =
         -(ε * (c / 2) * Real.exp (d * z.im)) := by
     exact congrArg Neg.neg
-      (mul_assoc ε (c / 2) (Real.exp (d * z.im)))
+      (mul_assoc ε (c / 2) (Real.exp (d * z.im))).symm
   exact
     Eq.subst
       (motive := fun y : ℝ =>
@@ -1486,7 +1488,7 @@ theorem verticalStripSubcriticalCosineDampingFactor_rightBoundary_norm_le_exp_ne
       -(ε * L) =
         -(ε * (c / 2) * Real.exp (-(d * z.im))) := by
     exact congrArg Neg.neg
-      (mul_assoc ε (c / 2) (Real.exp (-(d * z.im))))
+      (mul_assoc ε (c / 2) (Real.exp (-(d * z.im)))).symm
   exact
     Eq.subst
       (motive := fun y : ℝ =>
@@ -1550,7 +1552,7 @@ theorem verticalStripSubcriticalCosineDampingFactor_leftBoundary_norm_le_exp_neg
       -(ε * L) =
         -(ε * (c / 2) * Real.exp (-(d * z.im))) := by
     exact congrArg Neg.neg
-      (mul_assoc ε (c / 2) (Real.exp (-(d * z.im))))
+      (mul_assoc ε (c / 2) (Real.exp (-(d * z.im)))).symm
   exact
     Eq.subst
       (motive := fun y : ℝ =>
@@ -1688,7 +1690,7 @@ theorem finiteOrderPolynomialExponent_eventually_le_exp_absorber_half
     div_pos hK
       (mul_pos (mul_pos zero_lt_two hB) (Real.exp_pos d))
   have hshift : Filter.Tendsto (fun y : ℝ => 1 + y) Filter.atTop Filter.atTop :=
-    tendsto_atTop_add_const_left (1 : ℝ) tendsto_id
+    tendsto_id.const_add (1 : ℝ)
   have hlittle :
       (fun y : ℝ => (1 + y) ^ m) =o[Filter.atTop]
         fun y : ℝ => Real.exp (d * (1 + y)) :=
@@ -1820,11 +1822,11 @@ theorem finiteOrderEnvelope_mul_exp_absorber_eventually_le_const
               le_of_lt hK
             calc
               K / 2 = (1 / 2 : ℝ) * K := by
-                exact (one_div_mul_eq_div K 2).symm
+                exact (one_mul_div K 2).symm
               _ ≤ 1 * K := by
                 exact mul_le_mul_of_nonneg_right
                   (by
-                    exact (div_le_one zero_lt_two).mpr (le_of_eq rfl))
+                    exact (div_le_one zero_lt_two).mpr one_le_two)
                   hK_nonneg
               _ = K := one_mul K
           exact mul_le_mul_of_nonneg_right hK_half_le (le_of_lt hE_pos)
@@ -1833,12 +1835,11 @@ theorem finiteOrderEnvelope_mul_exp_absorber_eventually_le_const
           have hle_full :
               B * (1 + y) ^ m ≤ K * Real.exp (d * y) :=
             le_trans hy hhalf_le_full
-          exact
-            Eq.subst
-              (motive := fun x : ℝ =>
-                B * (1 + y) ^ m + -(K * Real.exp (d * y)) ≤ x)
-              (sub_self (K * Real.exp (d * y))).symm
-              (add_le_add_right hle_full (-(K * Real.exp (d * y))))
+          calc
+            B * (1 + y) ^ m + -(K * Real.exp (d * y)) ≤
+                K * Real.exp (d * y) + -(K * Real.exp (d * y)) :=
+              add_le_add_right hle_full (-(K * Real.exp (d * y)))
+            _ = 0 := sub_self (K * Real.exp (d * y))
         have hexp_le_one :
             Real.exp (B * (1 + y) ^ m + -(K * Real.exp (d * y))) ≤ 1 :=
           Real.exp_le_one_iff.mpr hexponent_nonpos
@@ -1912,7 +1913,7 @@ theorem verticalStripSubcriticalCosineDampedFamily_rightBoundary_eventually_uppe
             Real.exp (-(K * Real.exp (d * T))) ≤ A :=
     finiteOrderEnvelope_mul_exp_absorber_eventually_le_const
       hA hB hK_pos hd_pos
-  have hlarge : ∀ᶠ T in Filter.atTop, 1 ≤ T :=
+  have hlarge : ∀ᶠ T : ℝ in Filter.atTop, 1 ≤ T :=
     eventually_ge_atTop (1 : ℝ)
   exact
     (htail.and hlarge).mono
@@ -1997,7 +1998,7 @@ theorem verticalStripSubcriticalCosineDampedFamily_leftBoundary_eventually_upper
             Real.exp (-(K * Real.exp (d * T))) ≤ A :=
     finiteOrderEnvelope_mul_exp_absorber_eventually_le_const
       hA hB hK_pos hd_pos
-  have hlarge : ∀ᶠ T in Filter.atTop, 1 ≤ T :=
+  have hlarge : ∀ᶠ T : ℝ in Filter.atTop, 1 ≤ T :=
     eventually_ge_atTop (1 : ℝ)
   exact
     (htail.and hlarge).mono
@@ -2192,7 +2193,7 @@ theorem verticalStripSubcriticalCosineDampedFamily_rightBoundary_eventually_lowe
             Real.exp (-(K * Real.exp (d * T))) ≤ A :=
     finiteOrderEnvelope_mul_exp_absorber_eventually_le_const
       hA hB hK_pos hd_pos
-  have hlarge : ∀ᶠ T in Filter.atTop, 1 ≤ T :=
+  have hlarge : ∀ᶠ T : ℝ in Filter.atTop, 1 ≤ T :=
     eventually_ge_atTop (1 : ℝ)
   exact
     (htail.and hlarge).mono
@@ -2205,11 +2206,10 @@ theorem verticalStripSubcriticalCosineDampedFamily_rightBoundary_eventually_lowe
               (neg_nonpos.mpr (le_trans zero_le_one hT.2))
           have hnorm_neg : ‖z.im‖ = -z.im :=
             Real.norm_of_nonpos hneg_nonpos
-          have hneg_eq : -z.im = T :=
-            Eq.subst
-              (motive := fun x : ℝ => x = T)
-              hz_im
-              (neg_neg T)
+          have hneg_eq : -z.im = T := by
+            calc
+              -z.im = -(-T) := congrArg Neg.neg hz_im
+              _ = T := neg_neg T
           Eq.trans hnorm_neg hneg_eq
         have hboundary :
             ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z.im‖) ^ m) :=
@@ -2290,7 +2290,7 @@ theorem verticalStripSubcriticalCosineDampedFamily_leftBoundary_eventually_lower
             Real.exp (-(K * Real.exp (d * T))) ≤ A :=
     finiteOrderEnvelope_mul_exp_absorber_eventually_le_const
       hA hB hK_pos hd_pos
-  have hlarge : ∀ᶠ T in Filter.atTop, 1 ≤ T :=
+  have hlarge : ∀ᶠ T : ℝ in Filter.atTop, 1 ≤ T :=
     eventually_ge_atTop (1 : ℝ)
   exact
     (htail.and hlarge).mono
@@ -2303,11 +2303,10 @@ theorem verticalStripSubcriticalCosineDampedFamily_leftBoundary_eventually_lower
               (neg_nonpos.mpr (le_trans zero_le_one hT.2))
           have hnorm_neg : ‖z.im‖ = -z.im :=
             Real.norm_of_nonpos hneg_nonpos
-          have hneg_eq : -z.im = T :=
-            Eq.subst
-              (motive := fun x : ℝ => x = T)
-              hz_im
-              (neg_neg T)
+          have hneg_eq : -z.im = T := by
+            calc
+              -z.im = -(-T) := congrArg Neg.neg hz_im
+              _ = T := neg_neg T
           Eq.trans hnorm_neg hneg_eq
         have hboundary :
             ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z.im‖) ^ m) :=

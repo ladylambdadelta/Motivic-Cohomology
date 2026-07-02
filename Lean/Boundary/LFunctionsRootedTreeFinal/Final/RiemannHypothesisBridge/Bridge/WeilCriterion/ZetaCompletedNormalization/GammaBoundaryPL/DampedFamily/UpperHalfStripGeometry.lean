@@ -14,11 +14,6 @@ def verticalStripCompactHeightRectangle
     (a b : ℝ) : Set ℂ :=
   {z : ℂ | a ≤ z.re ∧ z.re ≤ b ∧ ‖z.im‖ ≤ 1}
 
-/-- The bounded-height rectangle of a vertical strip, with variable height. -/
-def verticalStripBoundedHeightRectangle
-    (a b R : ℝ) : Set ℂ :=
-  {z : ℂ | a ≤ z.re ∧ z.re ≤ b ∧ ‖z.im‖ ≤ R}
-
 /-- The closed upper half-strip starting at height `1`. -/
 def verticalStripUpperHalfStrip
     (a b : ℝ) : Set ℂ :=
