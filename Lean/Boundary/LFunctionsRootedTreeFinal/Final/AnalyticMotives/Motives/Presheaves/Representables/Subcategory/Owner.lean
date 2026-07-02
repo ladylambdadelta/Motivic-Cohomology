@@ -151,6 +151,35 @@ theorem TraceCorQRepresentablePresheaf.yonedaHomEquiv_symm_apply
       TraceCorQRepresentablePresheaf.yonedaPreimage morphism :=
   rfl
 
+/-- The lifted-Yoneda preimage of an identity representable morphism is the identity trace. -/
+theorem TraceCorQRepresentablePresheaf.yonedaPreimage_id
+    (object : TraceCorQObject) :
+    TraceCorQRepresentablePresheaf.yonedaPreimage
+      (𝟙 ((TraceCorQRepresentablePresheaf.yoneda).obj object)) =
+      𝟙 object :=
+  TraceCorQPresheaf.representablePreimage_id object
+
+/-- Lifted-Yoneda preimage sends composition of subcategory morphisms to composition of traces. -/
+theorem TraceCorQRepresentablePresheaf.yonedaPreimage_comp
+    {first second third : TraceCorQObject}
+    (left :
+      (TraceCorQRepresentablePresheaf.yoneda).obj first ⟶
+        (TraceCorQRepresentablePresheaf.yoneda).obj second)
+    (right :
+      (TraceCorQRepresentablePresheaf.yoneda).obj second ⟶
+        (TraceCorQRepresentablePresheaf.yoneda).obj third) :
+    TraceCorQRepresentablePresheaf.yonedaPreimage (left ≫ right) =
+      TraceCorQRepresentablePresheaf.yonedaPreimage left ≫
+        TraceCorQRepresentablePresheaf.yonedaPreimage right :=
+  Eq.trans
+    (congrArg
+      (fun morphism =>
+        TraceCorQPresheaf.representablePreimage morphism)
+      (TraceCorQRepresentablePresheaf.inclusion.map_comp left right))
+    (TraceCorQPresheaf.representablePreimage_comp
+      (TraceCorQRepresentablePresheaf.inclusion.map left)
+      (TraceCorQRepresentablePresheaf.inclusion.map right))
+
 /-- The lifted Yoneda functor is full. -/
 instance TraceCorQRepresentablePresheaf.yonedaFull :
     (TraceCorQRepresentablePresheaf.yoneda).Full :=

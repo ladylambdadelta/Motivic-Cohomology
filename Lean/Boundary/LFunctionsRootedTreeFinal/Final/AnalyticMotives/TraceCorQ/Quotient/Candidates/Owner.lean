@@ -60,6 +60,49 @@ def TraceCorQQuotientCandidate.traceBookkeepingCount
     Nat :=
   candidate.input.traceBookkeepingCount
 
+/-- The explicit rewrite-step payload represented by a quotient candidate. -/
+def TraceCorQQuotientCandidate.rewriteStepCount
+    (candidate : TraceCorQQuotientCandidate) :
+    Nat :=
+  candidate.input.rewriteStepCount
+
+/-- A candidate certificate ledger is formal-sum certificates followed by relation certificates. -/
+theorem TraceCorQQuotientCandidate.certificateLedger_eq_formalSum_ledger
+    (candidate : TraceCorQQuotientCandidate) :
+    candidate.certificateLedger =
+      ResidueChannelCertificateLedger.append
+        candidate.formalSum.certificateLedger
+        candidate.ledger.certificateLedger :=
+  TraceCorQQuotientInput.certificateLedger_eq_formalSum_ledger
+    candidate.input
+
+/-- A candidate imported payload splits into formal-sum and relation-ledger payload. -/
+theorem TraceCorQQuotientCandidate.importedRectangleCount_eq_formalSum_ledger
+    (candidate : TraceCorQQuotientCandidate) :
+    candidate.importedRectangleCount =
+      candidate.formalSum.importedRectangleCount +
+        candidate.ledger.importedRectangleCount :=
+  TraceCorQQuotientInput.importedRectangleCount_eq_formalSum_ledger
+    candidate.input
+
+/-- A candidate bookkeeping payload splits into formal-sum and relation-ledger payload. -/
+theorem TraceCorQQuotientCandidate.traceBookkeepingCount_eq_formalSum_ledger
+    (candidate : TraceCorQQuotientCandidate) :
+    candidate.traceBookkeepingCount =
+      candidate.formalSum.traceBookkeepingCount +
+        candidate.ledger.traceBookkeepingCount :=
+  TraceCorQQuotientInput.traceBookkeepingCount_eq_formalSum_ledger
+    candidate.input
+
+/-- A candidate rewrite-step payload splits into formal-sum and relation-ledger payload. -/
+theorem TraceCorQQuotientCandidate.rewriteStepCount_eq_formalSum_ledger
+    (candidate : TraceCorQQuotientCandidate) :
+    candidate.rewriteStepCount =
+      candidate.formalSum.rewriteStepCount +
+        candidate.ledger.rewriteStepCount :=
+  TraceCorQQuotientInput.rewriteStepCount_eq_formalSum_ledger
+    candidate.input
+
 /-- The empty quotient candidate. -/
 def TraceCorQQuotientCandidate.empty :
     TraceCorQQuotientCandidate :=
@@ -132,6 +175,13 @@ theorem TraceCorQQuotientCandidate.ofInput_traceBookkeepingCount
       input.traceBookkeepingCount :=
   rfl
 
+/-- The rewrite-step payload of a candidate built from an input is the input payload. -/
+theorem TraceCorQQuotientCandidate.ofInput_rewriteStepCount
+    (input : TraceCorQQuotientInput) :
+    (TraceCorQQuotientCandidate.ofInput input).rewriteStepCount =
+      input.rewriteStepCount :=
+  rfl
+
 /-- The input of a candidate sum is the sum of the inputs. -/
 theorem TraceCorQQuotientCandidate.add_input
     (left right : TraceCorQQuotientCandidate) :
@@ -192,6 +242,18 @@ theorem TraceCorQQuotientCandidate.add_traceBookkeepingCount
     left.input
     right.input
 
+/-- Candidate addition adds explicit rewrite-step payload by component. -/
+theorem TraceCorQQuotientCandidate.add_rewriteStepCount
+    (left right : TraceCorQQuotientCandidate) :
+    (TraceCorQQuotientCandidate.add left right).rewriteStepCount =
+      (left.formalSum.rewriteStepCount +
+        right.formalSum.rewriteStepCount) +
+        (left.ledger.rewriteStepCount +
+          right.ledger.rewriteStepCount) :=
+  TraceCorQQuotientInput.add_rewriteStepCount
+    left.input
+    right.input
+
 /-- The input of a scaled candidate is the scaled input. -/
 theorem TraceCorQQuotientCandidate.smul_input
     (coefficient : Rat)
@@ -243,6 +305,16 @@ theorem TraceCorQQuotientCandidate.smul_traceBookkeepingCount
     (TraceCorQQuotientCandidate.smul coefficient candidate).traceBookkeepingCount =
       candidate.traceBookkeepingCount :=
   TraceCorQQuotientInput.smul_traceBookkeepingCount
+    coefficient
+    candidate.input
+
+/-- Scaling a candidate preserves explicit rewrite-step payload. -/
+theorem TraceCorQQuotientCandidate.smul_rewriteStepCount
+    (coefficient : Rat)
+    (candidate : TraceCorQQuotientCandidate) :
+    (TraceCorQQuotientCandidate.smul coefficient candidate).rewriteStepCount =
+      candidate.rewriteStepCount :=
+  TraceCorQQuotientInput.smul_rewriteStepCount
     coefficient
     candidate.input
 
@@ -303,6 +375,19 @@ theorem TraceCorQQuotientCandidate.comp_traceBookkeepingCount
         (left.ledger.traceBookkeepingCount +
           right.ledger.traceBookkeepingCount) :=
   TraceCorQQuotientInput.comp_traceBookkeepingCount
+    left.input
+    right.input
+
+/-- Candidate composition splits rewrite-step payload into composed formal and relation parts. -/
+theorem TraceCorQQuotientCandidate.comp_rewriteStepCount
+    (left right : TraceCorQQuotientCandidate) :
+    (TraceCorQQuotientCandidate.comp left right).rewriteStepCount =
+      (TraceCorQFormalSum.comp
+        left.formalSum
+        right.formalSum).rewriteStepCount +
+        (left.ledger.rewriteStepCount +
+          right.ledger.rewriteStepCount) :=
+  TraceCorQQuotientInput.comp_rewriteStepCount
     left.input
     right.input
 

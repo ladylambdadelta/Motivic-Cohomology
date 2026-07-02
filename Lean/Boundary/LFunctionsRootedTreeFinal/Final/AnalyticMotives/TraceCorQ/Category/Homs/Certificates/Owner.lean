@@ -28,6 +28,14 @@ theorem TraceCorQHomRepresentative.rawCandidate_ledger
       representative.ledger :=
   rfl
 
+/-- The raw candidate of a typed hom representative has the representative's certificates. -/
+theorem TraceCorQHomRepresentative.rawCandidate_certificateLedger
+    {source target : TraceCorQObject}
+    (representative : TraceCorQHomRepresentative source target) :
+    representative.rawCandidate.certificateLedger =
+      representative.certificateLedger :=
+  rfl
+
 /--
 The certificate ledger of a typed hom representative is the append of its typed
 formal-sum certificates and relation-ledger certificates.
@@ -55,6 +63,37 @@ def TraceCorQHomRepresentative.traceBookkeepingCount
     Nat :=
   representative.certificateLedger.traceBookkeepingCount
 
+/-- The explicit rewrite-step payload carried by a typed hom representative. -/
+def TraceCorQHomRepresentative.rewriteStepCount
+    {source target : TraceCorQObject}
+    (representative : TraceCorQHomRepresentative source target) :
+    Nat :=
+  representative.certificateLedger.rewriteStepCount
+
+/-- The raw candidate of a typed hom representative has the representative's imported payload. -/
+theorem TraceCorQHomRepresentative.rawCandidate_importedRectangleCount
+    {source target : TraceCorQObject}
+    (representative : TraceCorQHomRepresentative source target) :
+    representative.rawCandidate.importedRectangleCount =
+      representative.importedRectangleCount :=
+  rfl
+
+/-- The raw candidate of a typed hom representative has the representative's bookkeeping payload. -/
+theorem TraceCorQHomRepresentative.rawCandidate_traceBookkeepingCount
+    {source target : TraceCorQObject}
+    (representative : TraceCorQHomRepresentative source target) :
+    representative.rawCandidate.traceBookkeepingCount =
+      representative.traceBookkeepingCount :=
+  rfl
+
+/-- The raw candidate of a typed hom representative has the representative's rewrite-step payload. -/
+theorem TraceCorQHomRepresentative.rawCandidate_rewriteStepCount
+    {source target : TraceCorQObject}
+    (representative : TraceCorQHomRepresentative source target) :
+    representative.rawCandidate.rewriteStepCount =
+      representative.rewriteStepCount :=
+  rfl
+
 /-- Representative imported payload splits into formal-sum and relation-ledger payload. -/
 theorem TraceCorQHomRepresentative.importedRectangleCount_eq
     {source target : TraceCorQObject}
@@ -74,6 +113,17 @@ theorem TraceCorQHomRepresentative.traceBookkeepingCount_eq
       representative.formalSum.traceBookkeepingCount +
         representative.ledger.traceBookkeepingCount :=
   ResidueChannelCertificateLedger.append_traceBookkeepingCount
+    representative.formalSum.certificateLedger
+    representative.ledger.certificateLedger
+
+/-- Representative rewrite-step payload splits into formal-sum and relation-ledger payload. -/
+theorem TraceCorQHomRepresentative.rewriteStepCount_eq
+    {source target : TraceCorQObject}
+    (representative : TraceCorQHomRepresentative source target) :
+    representative.rewriteStepCount =
+      representative.formalSum.rewriteStepCount +
+        representative.ledger.rewriteStepCount :=
+  ResidueChannelCertificateLedger.append_rewriteStepCount
     representative.formalSum.certificateLedger
     representative.ledger.certificateLedger
 
@@ -101,6 +151,15 @@ theorem TraceCorQHomRepresentative.zero_traceBookkeepingCount
     (TraceCorQHomRepresentative.ofFormalSumLedger
       (TraceCorQHomFormalSum.zero source target)
       TraceCorQRelationLedger.empty).traceBookkeepingCount =
+      0 :=
+  rfl
+
+/-- The zero representative carries no explicit rewrite-step payload. -/
+theorem TraceCorQHomRepresentative.zero_rewriteStepCount
+    (source target : TraceCorQObject) :
+    (TraceCorQHomRepresentative.ofFormalSumLedger
+      (TraceCorQHomFormalSum.zero source target)
+      TraceCorQRelationLedger.empty).rewriteStepCount =
       0 :=
   rfl
 

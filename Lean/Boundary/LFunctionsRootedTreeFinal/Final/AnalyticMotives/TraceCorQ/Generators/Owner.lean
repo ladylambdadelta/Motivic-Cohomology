@@ -37,6 +37,12 @@ def TraceCorQGenerator.traceBookkeepingCount
     Nat :=
   TraceTransport.traceBookkeepingCount generator
 
+/-- The explicit rewrite-step payload carried by a trace-correspondence generator. -/
+def TraceCorQGenerator.rewriteStepCount
+    (generator : TraceCorQGenerator) :
+    Nat :=
+  TraceTransport.rewriteStepCount generator
+
 /-- Generator imported payload is the imported payload of its certificate ledger. -/
 theorem TraceCorQGenerator.importedRectangleCount_eq_certificateLedger_count
     (generator : TraceCorQGenerator) :
@@ -50,6 +56,51 @@ theorem TraceCorQGenerator.traceBookkeepingCount_eq_certificateLedger_count
     generator.traceBookkeepingCount =
       generator.certificateLedger.traceBookkeepingCount :=
   rfl
+
+/-- Generator rewrite-step payload is the rewrite-step payload of its certificate ledger. -/
+theorem TraceCorQGenerator.rewriteStepCount_eq_certificateLedger_count
+    (generator : TraceCorQGenerator) :
+    generator.rewriteStepCount =
+      generator.certificateLedger.rewriteStepCount :=
+  rfl
+
+/-- Generator certificate ledger is source certificates, target certificates, then path certificates. -/
+theorem TraceCorQGenerator.certificateLedger_eq_source_target_path
+    (generator : TraceCorQGenerator) :
+    generator.certificateLedger =
+      ResidueChannelCertificateLedger.append
+        generator.source.certificateLedger
+        (ResidueChannelCertificateLedger.append
+          generator.target.certificateLedger
+          generator.pathCertificateLedger) :=
+  TraceTransport.certificateLedger_eq_source_target_path generator
+
+/-- Generator imported payload splits into source, target, and path payload. -/
+theorem TraceCorQGenerator.importedRectangleCount_eq_source_target_path
+    (generator : TraceCorQGenerator) :
+    generator.importedRectangleCount =
+      generator.source.importedRectangleCount +
+        (generator.target.importedRectangleCount +
+          generator.pathCertificateLedger.importedRectangleCount) :=
+  TraceTransport.importedRectangleCount_eq_source_target_path generator
+
+/-- Generator bookkeeping payload splits into source, target, and path payload. -/
+theorem TraceCorQGenerator.traceBookkeepingCount_eq_source_target_path
+    (generator : TraceCorQGenerator) :
+    generator.traceBookkeepingCount =
+      generator.source.traceBookkeepingCount +
+        (generator.target.traceBookkeepingCount +
+          generator.pathCertificateLedger.traceBookkeepingCount) :=
+  TraceTransport.traceBookkeepingCount_eq_source_target_path generator
+
+/-- Generator rewrite-step payload splits into source, target, and path payload. -/
+theorem TraceCorQGenerator.rewriteStepCount_eq_source_target_path
+    (generator : TraceCorQGenerator) :
+    generator.rewriteStepCount =
+      generator.source.rewriteStepCount +
+        (generator.target.rewriteStepCount +
+          generator.pathCertificateLedger.rewriteStepCount) :=
+  TraceTransport.rewriteStepCount_eq_source_target_path generator
 
 end AnalyticMotives
 end LFunctions

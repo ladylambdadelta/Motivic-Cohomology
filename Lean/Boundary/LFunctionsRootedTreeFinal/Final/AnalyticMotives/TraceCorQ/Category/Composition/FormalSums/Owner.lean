@@ -55,6 +55,28 @@ theorem TraceCorQHomTerm.compRight_certificateLedger
     TraceCorQFormalSum.certificateLedger
     (TraceCorQHomTerm.compRight_raw left right)
 
+/-- Typed term-right composition carries the raw term-right composition imported payload. -/
+theorem TraceCorQHomTerm.compRight_importedRectangleCount
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomTerm source middle)
+    (right : TraceCorQHomFormalSum middle target) :
+    (TraceCorQHomTerm.compRight left right).importedRectangleCount =
+      (TraceCorQTerm.compRight left.raw right.raw).importedRectangleCount :=
+  congrArg
+    ResidueChannelCertificateLedger.importedRectangleCount
+    (TraceCorQHomTerm.compRight_certificateLedger left right)
+
+/-- Typed term-right composition carries the raw term-right composition bookkeeping payload. -/
+theorem TraceCorQHomTerm.compRight_traceBookkeepingCount
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomTerm source middle)
+    (right : TraceCorQHomFormalSum middle target) :
+    (TraceCorQHomTerm.compRight left right).traceBookkeepingCount =
+      (TraceCorQTerm.compRight left.raw right.raw).traceBookkeepingCount :=
+  congrArg
+    ResidueChannelCertificateLedger.traceBookkeepingCount
+    (TraceCorQHomTerm.compRight_certificateLedger left right)
+
 /-- Raw forgetful map sends typed formal-sum composition to raw composition. -/
 theorem TraceCorQHomFormalSum.comp_raw
     {source middle target : TraceCorQObject}
@@ -93,6 +115,28 @@ theorem TraceCorQHomFormalSum.comp_certificateLedger
   congrArg
     TraceCorQFormalSum.certificateLedger
     (TraceCorQHomFormalSum.comp_raw left right)
+
+/-- Typed formal-sum composition carries the raw formal composition imported payload. -/
+theorem TraceCorQHomFormalSum.comp_importedRectangleCount
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomFormalSum source middle)
+    (right : TraceCorQHomFormalSum middle target) :
+    (TraceCorQHomFormalSum.comp left right).importedRectangleCount =
+      (TraceCorQFormalSum.comp left.raw right.raw).importedRectangleCount :=
+  congrArg
+    ResidueChannelCertificateLedger.importedRectangleCount
+    (TraceCorQHomFormalSum.comp_certificateLedger left right)
+
+/-- Typed formal-sum composition carries the raw formal composition bookkeeping payload. -/
+theorem TraceCorQHomFormalSum.comp_traceBookkeepingCount
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomFormalSum source middle)
+    (right : TraceCorQHomFormalSum middle target) :
+    (TraceCorQHomFormalSum.comp left right).traceBookkeepingCount =
+      (TraceCorQFormalSum.comp left.raw right.raw).traceBookkeepingCount :=
+  congrArg
+    ResidueChannelCertificateLedger.traceBookkeepingCount
+    (TraceCorQHomFormalSum.comp_certificateLedger left right)
 
 end AnalyticMotives
 end LFunctions

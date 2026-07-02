@@ -54,6 +54,12 @@ def TraceCorQRelationLedger.traceBookkeepingCount
     Nat :=
   ledger.certificateLedger.traceBookkeepingCount
 
+/-- The explicit rewrite-step payload carried by a relation ledger. -/
+def TraceCorQRelationLedger.rewriteStepCount
+    (ledger : TraceCorQRelationLedger) :
+    Nat :=
+  ledger.certificateLedger.rewriteStepCount
+
 /-- Appending the empty ledger on the left leaves a ledger unchanged. -/
 theorem TraceCorQRelationLedger.empty_append
     (ledger : TraceCorQRelationLedger) :
@@ -81,6 +87,12 @@ theorem TraceCorQRelationLedger.empty_traceBookkeepingCount :
       0 :=
   rfl
 
+/-- The empty relation ledger carries no explicit rewrite-step payload. -/
+theorem TraceCorQRelationLedger.empty_rewriteStepCount :
+    TraceCorQRelationLedger.empty.rewriteStepCount =
+      0 :=
+  rfl
+
 /-- A singleton relation ledger carries the relation's certificate ledger. -/
 theorem TraceCorQRelationLedger.singleton_certificateLedger
     (relation : TraceCorQRelationGenerator) :
@@ -88,6 +100,30 @@ theorem TraceCorQRelationLedger.singleton_certificateLedger
       ResidueChannelCertificateLedger.append
         relation.certificateLedger
         ResidueChannelCertificateLedger.empty :=
+  rfl
+
+/-- A singleton relation ledger carries the relation's imported finite-rectangle payload. -/
+theorem TraceCorQRelationLedger.singleton_importedRectangleCount
+    (relation : TraceCorQRelationGenerator) :
+    (TraceCorQRelationLedger.singleton relation).importedRectangleCount =
+      relation.importedRectangleCount +
+        0 :=
+  rfl
+
+/-- A singleton relation ledger carries the relation's internal trace-bookkeeping payload. -/
+theorem TraceCorQRelationLedger.singleton_traceBookkeepingCount
+    (relation : TraceCorQRelationGenerator) :
+    (TraceCorQRelationLedger.singleton relation).traceBookkeepingCount =
+      relation.traceBookkeepingCount +
+        0 :=
+  rfl
+
+/-- A singleton relation ledger carries the relation's explicit rewrite-step payload. -/
+theorem TraceCorQRelationLedger.singleton_rewriteStepCount
+    (relation : TraceCorQRelationGenerator) :
+    (TraceCorQRelationLedger.singleton relation).rewriteStepCount =
+      relation.rewriteStepCount +
+        0 :=
   rfl
 
 /-- Appending a singleton ledger on the left conses its relation onto the ledger. -/
@@ -129,6 +165,17 @@ theorem TraceCorQRelationLedger.cons_traceBookkeepingCount
       relation.traceBookkeepingCount +
         ledger.traceBookkeepingCount :=
   ResidueChannelCertificateLedger.append_traceBookkeepingCount
+    relation.certificateLedger
+    ledger.certificateLedger
+
+/-- The rewrite-step payload of a cons relation ledger is head payload plus tail payload. -/
+theorem TraceCorQRelationLedger.cons_rewriteStepCount
+    (relation : TraceCorQRelationGenerator)
+    (ledger : TraceCorQRelationLedger) :
+    (relation :: ledger).rewriteStepCount =
+      relation.rewriteStepCount +
+        ledger.rewriteStepCount :=
+  ResidueChannelCertificateLedger.append_rewriteStepCount
     relation.certificateLedger
     ledger.certificateLedger
 
@@ -205,6 +252,20 @@ theorem TraceCorQRelationLedger.append_traceBookkeepingCount
       ResidueChannelCertificateLedger.traceBookkeepingCount
       (TraceCorQRelationLedger.append_certificateLedger first second))
     (ResidueChannelCertificateLedger.append_traceBookkeepingCount
+      first.certificateLedger
+      second.certificateLedger)
+
+/-- Appending relation ledgers adds explicit rewrite-step payload. -/
+theorem TraceCorQRelationLedger.append_rewriteStepCount
+    (first second : TraceCorQRelationLedger) :
+    (TraceCorQRelationLedger.append first second).rewriteStepCount =
+      first.rewriteStepCount +
+        second.rewriteStepCount :=
+  Eq.trans
+    (congrArg
+      ResidueChannelCertificateLedger.rewriteStepCount
+      (TraceCorQRelationLedger.append_certificateLedger first second))
+    (ResidueChannelCertificateLedger.append_rewriteStepCount
       first.certificateLedger
       second.certificateLedger)
 

@@ -56,6 +56,66 @@ theorem TraceCorQHomRepresentative.add_certificateLedger
     left.rawCandidate
     right.rawCandidate
 
+/-- Representative addition records formal and relation imported payload. -/
+theorem TraceCorQHomRepresentative.add_importedRectangleCount
+    {source target : TraceCorQObject}
+    (left right : TraceCorQHomRepresentative source target) :
+    (TraceCorQHomRepresentative.add left right).importedRectangleCount =
+      (left.formalSum.importedRectangleCount +
+        right.formalSum.importedRectangleCount) +
+        (left.ledger.importedRectangleCount +
+          right.ledger.importedRectangleCount) :=
+  Eq.trans
+    (Eq.trans
+      (congrArg
+        ResidueChannelCertificateLedger.importedRectangleCount
+        (TraceCorQHomRepresentative.add_certificateLedger left right))
+      (ResidueChannelCertificateLedger.append_importedRectangleCount
+        (ResidueChannelCertificateLedger.append
+          left.formalSum.certificateLedger
+          right.formalSum.certificateLedger)
+        (ResidueChannelCertificateLedger.append
+          left.ledger.certificateLedger
+          right.ledger.certificateLedger)))
+    (congrArg₂
+      Nat.add
+      (ResidueChannelCertificateLedger.append_importedRectangleCount
+        left.formalSum.certificateLedger
+        right.formalSum.certificateLedger)
+      (ResidueChannelCertificateLedger.append_importedRectangleCount
+        left.ledger.certificateLedger
+        right.ledger.certificateLedger))
+
+/-- Representative addition records formal and relation bookkeeping payload. -/
+theorem TraceCorQHomRepresentative.add_traceBookkeepingCount
+    {source target : TraceCorQObject}
+    (left right : TraceCorQHomRepresentative source target) :
+    (TraceCorQHomRepresentative.add left right).traceBookkeepingCount =
+      (left.formalSum.traceBookkeepingCount +
+        right.formalSum.traceBookkeepingCount) +
+        (left.ledger.traceBookkeepingCount +
+          right.ledger.traceBookkeepingCount) :=
+  Eq.trans
+    (Eq.trans
+      (congrArg
+        ResidueChannelCertificateLedger.traceBookkeepingCount
+        (TraceCorQHomRepresentative.add_certificateLedger left right))
+      (ResidueChannelCertificateLedger.append_traceBookkeepingCount
+        (ResidueChannelCertificateLedger.append
+          left.formalSum.certificateLedger
+          right.formalSum.certificateLedger)
+        (ResidueChannelCertificateLedger.append
+          left.ledger.certificateLedger
+          right.ledger.certificateLedger)))
+    (congrArg₂
+      Nat.add
+      (ResidueChannelCertificateLedger.append_traceBookkeepingCount
+        left.formalSum.certificateLedger
+        right.formalSum.certificateLedger)
+      (ResidueChannelCertificateLedger.append_traceBookkeepingCount
+        left.ledger.certificateLedger
+        right.ledger.certificateLedger))
+
 /-- Representative addition is compatible with the typed hom relation. -/
 def TraceCorQHomRelation.addCongr
     {source target : TraceCorQObject}

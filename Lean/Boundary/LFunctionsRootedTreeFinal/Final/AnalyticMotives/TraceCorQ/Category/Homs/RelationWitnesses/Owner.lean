@@ -52,6 +52,69 @@ def TraceCorQHomRelationWitness.traceBookkeepingCount
     Nat :=
   TraceCorQRelationWitness.traceBookkeepingCount witness
 
+/-- A typed hom relation witness has the same ledger as the underlying raw witness. -/
+theorem TraceCorQHomRelationWitness.ledger_eq_raw
+    {source target : TraceCorQObject}
+    {left right : TraceCorQHomRepresentative source target}
+    (witness : TraceCorQHomRelationWitness left right) :
+    witness.ledger =
+      TraceCorQRelationWitness.ledger witness :=
+  rfl
+
+/-- A typed hom relation witness has the same certificate ledger as the raw witness. -/
+theorem TraceCorQHomRelationWitness.certificateLedger_eq_raw
+    {source target : TraceCorQObject}
+    {left right : TraceCorQHomRepresentative source target}
+    (witness : TraceCorQHomRelationWitness left right) :
+    witness.certificateLedger =
+      TraceCorQRelationWitness.certificateLedger witness :=
+  rfl
+
+/-- A typed hom relation witness imports the same payload as the raw witness. -/
+theorem TraceCorQHomRelationWitness.importedRectangleCount_eq_raw
+    {source target : TraceCorQObject}
+    {left right : TraceCorQHomRepresentative source target}
+    (witness : TraceCorQHomRelationWitness left right) :
+    witness.importedRectangleCount =
+      TraceCorQRelationWitness.importedRectangleCount witness :=
+  rfl
+
+/-- A typed hom relation witness keeps the same bookkeeping payload as the raw witness. -/
+theorem TraceCorQHomRelationWitness.traceBookkeepingCount_eq_raw
+    {source target : TraceCorQObject}
+    {left right : TraceCorQHomRepresentative source target}
+    (witness : TraceCorQHomRelationWitness left right) :
+    witness.traceBookkeepingCount =
+      TraceCorQRelationWitness.traceBookkeepingCount witness :=
+  rfl
+
+/-- A typed hom relation witness carries exactly its ledger's certificates. -/
+theorem TraceCorQHomRelationWitness.certificateLedger_eq_ledger
+    {source target : TraceCorQObject}
+    {left right : TraceCorQHomRepresentative source target}
+    (witness : TraceCorQHomRelationWitness left right) :
+    witness.certificateLedger =
+      witness.ledger.certificateLedger :=
+  TraceCorQRelationWitness.certificateLedger_eq_ledger witness
+
+/-- A typed hom relation witness imports exactly its ledger's finite-rectangle payload. -/
+theorem TraceCorQHomRelationWitness.importedRectangleCount_eq_ledger
+    {source target : TraceCorQObject}
+    {left right : TraceCorQHomRepresentative source target}
+    (witness : TraceCorQHomRelationWitness left right) :
+    witness.importedRectangleCount =
+      witness.ledger.importedRectangleCount :=
+  TraceCorQRelationWitness.importedRectangleCount_eq_ledger witness
+
+/-- A typed hom relation witness keeps exactly its ledger's bookkeeping payload. -/
+theorem TraceCorQHomRelationWitness.traceBookkeepingCount_eq_ledger
+    {source target : TraceCorQObject}
+    {left right : TraceCorQHomRepresentative source target}
+    (witness : TraceCorQHomRelationWitness left right) :
+    witness.traceBookkeepingCount =
+      witness.ledger.traceBookkeepingCount :=
+  TraceCorQRelationWitness.traceBookkeepingCount_eq_ledger witness
+
 /-- A typed hom relation witness induces the proof-valued typed hom relation. -/
 def TraceCorQHomRelation.ofWitness
     {source target : TraceCorQObject}

@@ -31,6 +31,17 @@ theorem TraceCorQHom.ambient_ofRepresentative
       representative.ambientClass :=
   rfl
 
+/-- The ambient map sends a typed formal-sum and ledger class to its raw candidate class. -/
+theorem TraceCorQHom.ambient_ofFormalSumLedger
+    {source target : TraceCorQObject}
+    (formalSum : TraceCorQHomFormalSum source target)
+    (ledger : TraceCorQRelationLedger) :
+    TraceCorQHom.ambient
+      (TraceCorQHom.ofFormalSumLedger formalSum ledger) =
+      TraceCorQQuotient.ofCandidate
+        (TraceCorQQuotientInput.ofFormalSumLedger formalSum.raw ledger) :=
+  rfl
+
 /-- The ambient map sends a typed formal-sum class to its raw formal-sum class. -/
 theorem TraceCorQHom.ambient_ofFormalSum
     {source target : TraceCorQObject}

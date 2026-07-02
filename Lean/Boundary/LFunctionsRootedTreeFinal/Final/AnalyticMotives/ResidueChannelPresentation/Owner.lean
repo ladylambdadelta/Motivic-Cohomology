@@ -163,6 +163,12 @@ def CertifiedResidueChannelPresentation.traceBookkeepingCount
     Nat :=
   presentation.certificateLedger.traceBookkeepingCount
 
+/-- The number of one-step rewrite generators explicitly certified by a presentation. -/
+def CertifiedResidueChannelPresentation.rewriteStepCount
+    (presentation : CertifiedResidueChannelPresentation) :
+    Nat :=
+  presentation.certificateLedger.rewriteStepCount
+
 /-- The empty certified presentation on a source expression. -/
 def CertifiedResidueChannelPresentation.ofSource
     (source : QTraceExpression) :
@@ -252,6 +258,17 @@ theorem CertifiedResidueChannelPresentation.withAdditionalCertificates_traceBook
       presentation.traceBookkeepingCount +
         certificates.traceBookkeepingCount :=
   ResidueChannelCertificateLedger.append_traceBookkeepingCount
+    presentation.certificateLedger
+    certificates
+
+/-- Adding certificates adds explicit rewrite-step payload. -/
+theorem CertifiedResidueChannelPresentation.withAdditionalCertificates_rewriteStepCount
+    (presentation : CertifiedResidueChannelPresentation)
+    (certificates : ResidueChannelCertificateLedger) :
+    (presentation.withAdditionalCertificates certificates).rewriteStepCount =
+      presentation.rewriteStepCount +
+        certificates.rewriteStepCount :=
+  ResidueChannelCertificateLedger.append_rewriteStepCount
     presentation.certificateLedger
     certificates
 

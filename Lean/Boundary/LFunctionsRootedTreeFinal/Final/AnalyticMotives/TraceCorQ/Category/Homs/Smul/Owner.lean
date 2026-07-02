@@ -37,6 +37,24 @@ theorem TraceCorQHomTerm.smul_raw
       (coefficient * term.raw.1, term.raw.2) :=
   rfl
 
+/-- Scaling a typed hom term preserves imported finite-rectangle payload. -/
+theorem TraceCorQHomTerm.smul_importedRectangleCount
+    {source target : TraceCorQObject}
+    (coefficient : Rat)
+    (term : TraceCorQHomTerm source target) :
+    (TraceCorQHomTerm.smul coefficient term).importedRectangleCount =
+      term.importedRectangleCount :=
+  rfl
+
+/-- Scaling a typed hom term preserves internal trace-bookkeeping payload. -/
+theorem TraceCorQHomTerm.smul_traceBookkeepingCount
+    {source target : TraceCorQObject}
+    (coefficient : Rat)
+    (term : TraceCorQHomTerm source target) :
+    (TraceCorQHomTerm.smul coefficient term).traceBookkeepingCount =
+      term.traceBookkeepingCount :=
+  rfl
+
 /-- Scale a typed hom formal sum termwise. -/
 def TraceCorQHomFormalSum.smul
     {source target : TraceCorQObject}
@@ -102,6 +120,32 @@ theorem TraceCorQHomRepresentative.smul_certificateLedger
   TraceCorQQuotientCandidate.smul_certificateLedger
     coefficient
     representative.rawCandidate
+
+/-- Representative scalar multiplication preserves imported finite-rectangle payload. -/
+theorem TraceCorQHomRepresentative.smul_importedRectangleCount
+    {source target : TraceCorQObject}
+    (coefficient : Rat)
+    (representative : TraceCorQHomRepresentative source target) :
+    (TraceCorQHomRepresentative.smul coefficient representative).importedRectangleCount =
+      representative.importedRectangleCount :=
+  congrArg
+    ResidueChannelCertificateLedger.importedRectangleCount
+    (TraceCorQHomRepresentative.smul_certificateLedger
+      coefficient
+      representative)
+
+/-- Representative scalar multiplication preserves internal trace-bookkeeping payload. -/
+theorem TraceCorQHomRepresentative.smul_traceBookkeepingCount
+    {source target : TraceCorQObject}
+    (coefficient : Rat)
+    (representative : TraceCorQHomRepresentative source target) :
+    (TraceCorQHomRepresentative.smul coefficient representative).traceBookkeepingCount =
+      representative.traceBookkeepingCount :=
+  congrArg
+    ResidueChannelCertificateLedger.traceBookkeepingCount
+    (TraceCorQHomRepresentative.smul_certificateLedger
+      coefficient
+      representative)
 
 /-- A scaled representative is related to ambient scaling of its raw candidate. -/
 def TraceCorQHomRelation.smulRepresentative_to_candidateSmul

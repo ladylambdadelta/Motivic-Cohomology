@@ -45,6 +45,20 @@ def TraceCorQHomTerm.certificateLedger
     ResidueChannelCertificateLedger :=
   term.raw.certificateLedger
 
+/-- The imported finite-rectangle payload carried by a typed hom term. -/
+def TraceCorQHomTerm.importedRectangleCount
+    {source target : TraceCorQObject}
+    (term : TraceCorQHomTerm source target) :
+    Nat :=
+  term.certificateLedger.importedRectangleCount
+
+/-- The internal trace-bookkeeping payload carried by a typed hom term. -/
+def TraceCorQHomTerm.traceBookkeepingCount
+    {source target : TraceCorQObject}
+    (term : TraceCorQHomTerm source target) :
+    Nat :=
+  term.certificateLedger.traceBookkeepingCount
+
 /-- Build a typed hom term from a coefficient, generator, and endpoint equalities. -/
 def TraceCorQHomTerm.ofGenerator
     (source target : TraceCorQObject)
@@ -87,6 +101,40 @@ theorem TraceCorQHomTerm.ofGenerator_certificateLedger
       source_eq
       target_eq).certificateLedger =
       generator.certificateLedger :=
+  rfl
+
+/-- The imported payload of a built typed hom term is the generator imported payload. -/
+theorem TraceCorQHomTerm.ofGenerator_importedRectangleCount
+    (source target : TraceCorQObject)
+    (coefficient : Rat)
+    (generator : TraceCorQGenerator)
+    (source_eq : generator.source = source)
+    (target_eq : generator.target = target) :
+    (TraceCorQHomTerm.ofGenerator
+      source
+      target
+      coefficient
+      generator
+      source_eq
+      target_eq).importedRectangleCount =
+      generator.importedRectangleCount :=
+  rfl
+
+/-- The bookkeeping payload of a built typed hom term is the generator bookkeeping payload. -/
+theorem TraceCorQHomTerm.ofGenerator_traceBookkeepingCount
+    (source target : TraceCorQObject)
+    (coefficient : Rat)
+    (generator : TraceCorQGenerator)
+    (source_eq : generator.source = source)
+    (target_eq : generator.target = target) :
+    (TraceCorQHomTerm.ofGenerator
+      source
+      target
+      coefficient
+      generator
+      source_eq
+      target_eq).traceBookkeepingCount =
+      generator.traceBookkeepingCount :=
   rfl
 
 /-- The source endpoint proof carried by a typed hom term. -/

@@ -48,6 +48,45 @@ def TraceCorQObject.certificateLedger
     ResidueChannelCertificateLedger :=
   CertifiedResidueChannelPresentation.certificateLedger object
 
+/-- The imported finite-rectangle payload carried by a Q-linear trace-correspondence object. -/
+def TraceCorQObject.importedRectangleCount
+    (object : TraceCorQObject) :
+    Nat :=
+  CertifiedResidueChannelPresentation.importedRectangleCount object
+
+/-- The internal trace-bookkeeping payload carried by a Q-linear trace-correspondence object. -/
+def TraceCorQObject.traceBookkeepingCount
+    (object : TraceCorQObject) :
+    Nat :=
+  CertifiedResidueChannelPresentation.traceBookkeepingCount object
+
+/-- The explicit rewrite-step payload carried by a Q-linear trace-correspondence object. -/
+def TraceCorQObject.rewriteStepCount
+    (object : TraceCorQObject) :
+    Nat :=
+  CertifiedResidueChannelPresentation.rewriteStepCount object
+
+/-- Object imported payload is counted by its analytic certificate ledger. -/
+theorem TraceCorQObject.importedRectangleCount_eq_certificateLedger_count
+    (object : TraceCorQObject) :
+    object.importedRectangleCount =
+      object.certificateLedger.importedRectangleCount :=
+  rfl
+
+/-- Object bookkeeping payload is counted by its analytic certificate ledger. -/
+theorem TraceCorQObject.traceBookkeepingCount_eq_certificateLedger_count
+    (object : TraceCorQObject) :
+    object.traceBookkeepingCount =
+      object.certificateLedger.traceBookkeepingCount :=
+  rfl
+
+/-- Object rewrite-step payload is counted by its analytic certificate ledger. -/
+theorem TraceCorQObject.rewriteStepCount_eq_certificateLedger_count
+    (object : TraceCorQObject) :
+    object.rewriteStepCount =
+      object.certificateLedger.rewriteStepCount :=
+  rfl
+
 end AnalyticMotives
 end LFunctions
 end Boundary

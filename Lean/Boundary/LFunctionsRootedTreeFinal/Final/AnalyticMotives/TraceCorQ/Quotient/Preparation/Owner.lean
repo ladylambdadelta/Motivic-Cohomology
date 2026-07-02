@@ -51,6 +51,51 @@ def TraceCorQQuotientInput.traceBookkeepingCount
     Nat :=
   input.certificateLedger.traceBookkeepingCount
 
+/-- The explicit rewrite-step payload carried by a quotient input. -/
+def TraceCorQQuotientInput.rewriteStepCount
+    (input : TraceCorQQuotientInput) :
+    Nat :=
+  input.certificateLedger.rewriteStepCount
+
+/-- A quotient input certificate ledger is formal-sum certificates followed by relation certificates. -/
+theorem TraceCorQQuotientInput.certificateLedger_eq_formalSum_ledger
+    (input : TraceCorQQuotientInput) :
+    input.certificateLedger =
+      ResidueChannelCertificateLedger.append
+        input.formalSum.certificateLedger
+        input.ledger.certificateLedger :=
+  rfl
+
+/-- A quotient input imported payload splits into formal-sum and relation-ledger payload. -/
+theorem TraceCorQQuotientInput.importedRectangleCount_eq_formalSum_ledger
+    (input : TraceCorQQuotientInput) :
+    input.importedRectangleCount =
+      input.formalSum.importedRectangleCount +
+        input.ledger.importedRectangleCount :=
+  ResidueChannelCertificateLedger.append_importedRectangleCount
+    input.formalSum.certificateLedger
+    input.ledger.certificateLedger
+
+/-- A quotient input bookkeeping payload splits into formal-sum and relation-ledger payload. -/
+theorem TraceCorQQuotientInput.traceBookkeepingCount_eq_formalSum_ledger
+    (input : TraceCorQQuotientInput) :
+    input.traceBookkeepingCount =
+      input.formalSum.traceBookkeepingCount +
+        input.ledger.traceBookkeepingCount :=
+  ResidueChannelCertificateLedger.append_traceBookkeepingCount
+    input.formalSum.certificateLedger
+    input.ledger.certificateLedger
+
+/-- A quotient input rewrite-step payload splits into formal-sum and relation-ledger payload. -/
+theorem TraceCorQQuotientInput.rewriteStepCount_eq_formalSum_ledger
+    (input : TraceCorQQuotientInput) :
+    input.rewriteStepCount =
+      input.formalSum.rewriteStepCount +
+        input.ledger.rewriteStepCount :=
+  ResidueChannelCertificateLedger.append_rewriteStepCount
+    input.formalSum.certificateLedger
+    input.ledger.certificateLedger
+
 /-- Build a quotient input from a formal sum and relation ledger. -/
 def TraceCorQQuotientInput.ofFormalSumLedger
     (formalSum : TraceCorQFormalSum)
@@ -121,9 +166,8 @@ theorem TraceCorQQuotientInput.ofFormalSumLedger_importedRectangleCount
       ledger).importedRectangleCount =
       formalSum.importedRectangleCount +
         ledger.importedRectangleCount :=
-  ResidueChannelCertificateLedger.append_importedRectangleCount
-    formalSum.certificateLedger
-    ledger.certificateLedger
+  TraceCorQQuotientInput.importedRectangleCount_eq_formalSum_ledger
+    (TraceCorQQuotientInput.ofFormalSumLedger formalSum ledger)
 
 /-- Built quotient-input bookkeeping payload splits into formal-sum and relation-ledger payload. -/
 theorem TraceCorQQuotientInput.ofFormalSumLedger_traceBookkeepingCount
@@ -134,9 +178,20 @@ theorem TraceCorQQuotientInput.ofFormalSumLedger_traceBookkeepingCount
       ledger).traceBookkeepingCount =
       formalSum.traceBookkeepingCount +
         ledger.traceBookkeepingCount :=
-  ResidueChannelCertificateLedger.append_traceBookkeepingCount
-    formalSum.certificateLedger
-    ledger.certificateLedger
+  TraceCorQQuotientInput.traceBookkeepingCount_eq_formalSum_ledger
+    (TraceCorQQuotientInput.ofFormalSumLedger formalSum ledger)
+
+/-- Built quotient-input rewrite-step payload splits into formal-sum and relation-ledger payload. -/
+theorem TraceCorQQuotientInput.ofFormalSumLedger_rewriteStepCount
+    (formalSum : TraceCorQFormalSum)
+    (ledger : TraceCorQRelationLedger) :
+    (TraceCorQQuotientInput.ofFormalSumLedger
+      formalSum
+      ledger).rewriteStepCount =
+      formalSum.rewriteStepCount +
+        ledger.rewriteStepCount :=
+  TraceCorQQuotientInput.rewriteStepCount_eq_formalSum_ledger
+    (TraceCorQQuotientInput.ofFormalSumLedger formalSum ledger)
 
 /-- The empty quotient input has zero formal sum. -/
 theorem TraceCorQQuotientInput.empty_formalSum :
@@ -165,6 +220,12 @@ theorem TraceCorQQuotientInput.empty_importedRectangleCount :
 /-- The empty quotient input carries no internal trace-bookkeeping payload. -/
 theorem TraceCorQQuotientInput.empty_traceBookkeepingCount :
     TraceCorQQuotientInput.empty.traceBookkeepingCount =
+      0 :=
+  rfl
+
+/-- The empty quotient input carries no explicit rewrite-step payload. -/
+theorem TraceCorQQuotientInput.empty_rewriteStepCount :
+    TraceCorQQuotientInput.empty.rewriteStepCount =
       0 :=
   rfl
 
@@ -260,6 +321,35 @@ theorem TraceCorQQuotientInput.add_traceBookkeepingCount
         left.ledger.certificateLedger
         right.ledger.certificateLedger))
 
+/-- Quotient-input addition adds explicit rewrite-step payload by component. -/
+theorem TraceCorQQuotientInput.add_rewriteStepCount
+    (left right : TraceCorQQuotientInput) :
+    (TraceCorQQuotientInput.add left right).rewriteStepCount =
+      (left.formalSum.rewriteStepCount +
+        right.formalSum.rewriteStepCount) +
+        (left.ledger.rewriteStepCount +
+          right.ledger.rewriteStepCount) :=
+  Eq.trans
+    (Eq.trans
+      (congrArg
+        ResidueChannelCertificateLedger.rewriteStepCount
+        (TraceCorQQuotientInput.add_certificateLedger left right))
+      (ResidueChannelCertificateLedger.append_rewriteStepCount
+        (ResidueChannelCertificateLedger.append
+          left.formalSum.certificateLedger
+          right.formalSum.certificateLedger)
+        (ResidueChannelCertificateLedger.append
+          left.ledger.certificateLedger
+          right.ledger.certificateLedger)))
+    (congrArg₂
+      Nat.add
+      (ResidueChannelCertificateLedger.append_rewriteStepCount
+        left.formalSum.certificateLedger
+        right.formalSum.certificateLedger)
+      (ResidueChannelCertificateLedger.append_rewriteStepCount
+        left.ledger.certificateLedger
+        right.ledger.certificateLedger))
+
 /-- The formal sum of a scaled quotient input is the scaled formal sum. -/
 theorem TraceCorQQuotientInput.smul_formalSum
     (coefficient : Rat)
@@ -309,6 +399,16 @@ theorem TraceCorQQuotientInput.smul_traceBookkeepingCount
       input.traceBookkeepingCount :=
   congrArg
     ResidueChannelCertificateLedger.traceBookkeepingCount
+    (TraceCorQQuotientInput.smul_certificateLedger coefficient input)
+
+/-- Scaling a quotient input preserves explicit rewrite-step payload. -/
+theorem TraceCorQQuotientInput.smul_rewriteStepCount
+    (coefficient : Rat)
+    (input : TraceCorQQuotientInput) :
+    (TraceCorQQuotientInput.smul coefficient input).rewriteStepCount =
+      input.rewriteStepCount :=
+  congrArg
+    ResidueChannelCertificateLedger.rewriteStepCount
     (TraceCorQQuotientInput.smul_certificateLedger coefficient input)
 
 /-- The formal sum of a quotient-input composition is the composed formal sum. -/
@@ -400,6 +500,37 @@ theorem TraceCorQQuotientInput.comp_traceBookkeepingCount
           right.formalSum).traceBookkeepingCount +
           count)
       (ResidueChannelCertificateLedger.append_traceBookkeepingCount
+        left.ledger.certificateLedger
+        right.ledger.certificateLedger))
+
+/-- Quotient-input composition splits rewrite-step payload into composed formal and relation parts. -/
+theorem TraceCorQQuotientInput.comp_rewriteStepCount
+    (left right : TraceCorQQuotientInput) :
+    (TraceCorQQuotientInput.comp left right).rewriteStepCount =
+      (TraceCorQFormalSum.comp
+        left.formalSum
+        right.formalSum).rewriteStepCount +
+        (left.ledger.rewriteStepCount +
+          right.ledger.rewriteStepCount) :=
+  Eq.trans
+    (Eq.trans
+      (congrArg
+        ResidueChannelCertificateLedger.rewriteStepCount
+        (TraceCorQQuotientInput.comp_certificateLedger left right))
+      (ResidueChannelCertificateLedger.append_rewriteStepCount
+        (TraceCorQFormalSum.comp
+          left.formalSum
+          right.formalSum).certificateLedger
+        (ResidueChannelCertificateLedger.append
+          left.ledger.certificateLedger
+          right.ledger.certificateLedger)))
+    (congrArg
+      (fun count =>
+        (TraceCorQFormalSum.comp
+          left.formalSum
+          right.formalSum).rewriteStepCount +
+          count)
+      (ResidueChannelCertificateLedger.append_rewriteStepCount
         left.ledger.certificateLedger
         right.ledger.certificateLedger))
 

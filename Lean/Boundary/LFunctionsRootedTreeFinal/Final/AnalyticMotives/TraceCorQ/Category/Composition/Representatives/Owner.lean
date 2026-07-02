@@ -60,6 +60,72 @@ theorem TraceCorQHomRepresentative.comp_certificateLedger
     left.rawCandidate
     right.rawCandidate
 
+/-- Representative composition records composed formal and relation imported payload. -/
+theorem TraceCorQHomRepresentative.comp_importedRectangleCount
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomRepresentative source middle)
+    (right : TraceCorQHomRepresentative middle target) :
+    (TraceCorQHomRepresentative.comp left right).importedRectangleCount =
+      (TraceCorQFormalSum.comp
+        left.formalSum.raw
+        right.formalSum.raw).importedRectangleCount +
+        (left.ledger.importedRectangleCount +
+          right.ledger.importedRectangleCount) :=
+  Eq.trans
+    (Eq.trans
+      (congrArg
+        ResidueChannelCertificateLedger.importedRectangleCount
+        (TraceCorQHomRepresentative.comp_certificateLedger left right))
+      (ResidueChannelCertificateLedger.append_importedRectangleCount
+        (TraceCorQFormalSum.comp
+          left.formalSum.raw
+          right.formalSum.raw).certificateLedger
+        (ResidueChannelCertificateLedger.append
+          left.ledger.certificateLedger
+          right.ledger.certificateLedger)))
+    (congrArg
+      (fun count =>
+        (TraceCorQFormalSum.comp
+          left.formalSum.raw
+          right.formalSum.raw).importedRectangleCount +
+          count)
+      (ResidueChannelCertificateLedger.append_importedRectangleCount
+        left.ledger.certificateLedger
+        right.ledger.certificateLedger))
+
+/-- Representative composition records composed formal and relation bookkeeping payload. -/
+theorem TraceCorQHomRepresentative.comp_traceBookkeepingCount
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomRepresentative source middle)
+    (right : TraceCorQHomRepresentative middle target) :
+    (TraceCorQHomRepresentative.comp left right).traceBookkeepingCount =
+      (TraceCorQFormalSum.comp
+        left.formalSum.raw
+        right.formalSum.raw).traceBookkeepingCount +
+        (left.ledger.traceBookkeepingCount +
+          right.ledger.traceBookkeepingCount) :=
+  Eq.trans
+    (Eq.trans
+      (congrArg
+        ResidueChannelCertificateLedger.traceBookkeepingCount
+        (TraceCorQHomRepresentative.comp_certificateLedger left right))
+      (ResidueChannelCertificateLedger.append_traceBookkeepingCount
+        (TraceCorQFormalSum.comp
+          left.formalSum.raw
+          right.formalSum.raw).certificateLedger
+        (ResidueChannelCertificateLedger.append
+          left.ledger.certificateLedger
+          right.ledger.certificateLedger)))
+    (congrArg
+      (fun count =>
+        (TraceCorQFormalSum.comp
+          left.formalSum.raw
+          right.formalSum.raw).traceBookkeepingCount +
+          count)
+      (ResidueChannelCertificateLedger.append_traceBookkeepingCount
+        left.ledger.certificateLedger
+        right.ledger.certificateLedger))
+
 /-- Representative composition is compatible with the typed hom relation. -/
 def TraceCorQHomRelation.compCongr
     {source middle target : TraceCorQObject}

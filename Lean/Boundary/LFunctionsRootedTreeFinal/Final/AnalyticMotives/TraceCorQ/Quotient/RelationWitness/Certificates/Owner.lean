@@ -34,6 +34,30 @@ def TraceCorQRelationWitness.traceBookkeepingCount
     Nat :=
   witness.certificateLedger.traceBookkeepingCount
 
+/-- A relation witness carries exactly the certificate ledger of its relation ledger. -/
+theorem TraceCorQRelationWitness.certificateLedger_eq_ledger
+    {left right : TraceCorQQuotientCandidate}
+    (witness : TraceCorQRelationWitness left right) :
+    witness.certificateLedger =
+      witness.ledger.certificateLedger :=
+  rfl
+
+/-- A relation witness imports exactly the finite-rectangle payload of its relation ledger. -/
+theorem TraceCorQRelationWitness.importedRectangleCount_eq_ledger
+    {left right : TraceCorQQuotientCandidate}
+    (witness : TraceCorQRelationWitness left right) :
+    witness.importedRectangleCount =
+      witness.ledger.importedRectangleCount :=
+  rfl
+
+/-- A relation witness keeps exactly the bookkeeping payload of its relation ledger. -/
+theorem TraceCorQRelationWitness.traceBookkeepingCount_eq_ledger
+    {left right : TraceCorQQuotientCandidate}
+    (witness : TraceCorQRelationWitness left right) :
+    witness.traceBookkeepingCount =
+      witness.ledger.traceBookkeepingCount :=
+  rfl
+
 /-- A witness built from a ledger carries that ledger's certificates. -/
 theorem TraceCorQRelationWitness.ofLedgerDerivation_certificateLedger
     {left right : TraceCorQQuotientCandidate}
@@ -43,7 +67,8 @@ theorem TraceCorQRelationWitness.ofLedgerDerivation_certificateLedger
       ledger
       derivation).certificateLedger =
       ledger.certificateLedger :=
-  rfl
+  TraceCorQRelationWitness.certificateLedger_eq_ledger
+    (TraceCorQRelationWitness.ofLedgerDerivation ledger derivation)
 
 /-- A witness built from a ledger carries that ledger's imported payload. -/
 theorem TraceCorQRelationWitness.ofLedgerDerivation_importedRectangleCount
@@ -54,7 +79,8 @@ theorem TraceCorQRelationWitness.ofLedgerDerivation_importedRectangleCount
       ledger
       derivation).importedRectangleCount =
       ledger.importedRectangleCount :=
-  rfl
+  TraceCorQRelationWitness.importedRectangleCount_eq_ledger
+    (TraceCorQRelationWitness.ofLedgerDerivation ledger derivation)
 
 /-- A witness built from a ledger carries that ledger's bookkeeping payload. -/
 theorem TraceCorQRelationWitness.ofLedgerDerivation_traceBookkeepingCount
@@ -65,7 +91,8 @@ theorem TraceCorQRelationWitness.ofLedgerDerivation_traceBookkeepingCount
       ledger
       derivation).traceBookkeepingCount =
       ledger.traceBookkeepingCount :=
-  rfl
+  TraceCorQRelationWitness.traceBookkeepingCount_eq_ledger
+    (TraceCorQRelationWitness.ofLedgerDerivation ledger derivation)
 
 /-- Reflexive witnesses carry the empty certificate ledger. -/
 theorem TraceCorQRelationWitness.refl_certificateLedger

@@ -35,16 +35,16 @@ theorem completedZetaZeroPoleLedgeredResidueTransport_ledger :
       completedZetaZeroPoleTraceCorQRelationLedger :=
   rfl
 
-/-- The zero-pole ledgered residue transport starts at the residue presentation spine. -/
+/-- The zero-pole ledgered residue transport starts at the certified residue presentation. -/
 theorem completedZetaZeroPoleLedgeredResidueTransport_source :
     completedZetaZeroPoleLedgeredResidueTransport.source =
-      completedZetaZeroPoleResiduePresentationSpine :=
+      completedZetaZeroPoleResiduePresentation :=
   rfl
 
-/-- The zero-pole ledgered residue transport targets the residue output spine. -/
+/-- The zero-pole ledgered residue transport targets the certified residue output. -/
 theorem completedZetaZeroPoleLedgeredResidueTransport_target :
     completedZetaZeroPoleLedgeredResidueTransport.target =
-      completedZetaZeroPoleResidueOutputSpine :=
+      completedZetaZeroPoleResidueOutput :=
   rfl
 
 /-- The zero-pole ledgered residue transport carries the residue path. -/
@@ -72,16 +72,16 @@ theorem completedZetaZeroPoleLedgeredChannelTransport_ledger :
       completedZetaZeroPoleTraceCorQRelationLedger :=
   rfl
 
-/-- The zero-pole ledgered channel transport starts at the channel presentation spine. -/
+/-- The zero-pole ledgered channel transport starts at the certified channel presentation. -/
 theorem completedZetaZeroPoleLedgeredChannelTransport_source :
     completedZetaZeroPoleLedgeredChannelTransport.source =
-      completedZetaZeroPoleChannelPresentationSpine :=
+      completedZetaZeroPoleChannelPresentation :=
   rfl
 
-/-- The zero-pole ledgered channel transport targets the channel output spine. -/
+/-- The zero-pole ledgered channel transport targets the certified channel output. -/
 theorem completedZetaZeroPoleLedgeredChannelTransport_target :
     completedZetaZeroPoleLedgeredChannelTransport.target =
-      completedZetaZeroPoleChannelOutputSpine :=
+      completedZetaZeroPoleChannelOutput :=
   rfl
 
 /-- The zero-pole ledgered channel transport carries the channel path. -/

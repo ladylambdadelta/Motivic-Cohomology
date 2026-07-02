@@ -62,6 +62,12 @@ def TraceCorQRelationGenerator.traceBookkeepingCount
     Nat :=
   relation.certificateLedger.traceBookkeepingCount
 
+/-- The explicit rewrite-step payload attached to a relation generator. -/
+def TraceCorQRelationGenerator.rewriteStepCount
+    (relation : TraceCorQRelationGenerator) :
+    Nat :=
+  relation.certificateLedger.rewriteStepCount
+
 /-- A relation built from a cell and support is certified by that cell. -/
 theorem TraceCorQRelationGenerator.ofCellSupport_certificateLedger
     (cell : TraceCoherenceCell) (support : TraceCorQFormalSum) :
@@ -87,6 +93,15 @@ theorem TraceCorQRelationGenerator.ofCellSupport_traceBookkeepingCount
       cell
       support).traceBookkeepingCount =
       (ResidueChannelCertificateLedger.ofCoherenceCell cell).traceBookkeepingCount :=
+  rfl
+
+/-- A relation built from a cell carries the rewrite-step payload of that cell certificate. -/
+theorem TraceCorQRelationGenerator.ofCellSupport_rewriteStepCount
+    (cell : TraceCoherenceCell) (support : TraceCorQFormalSum) :
+    (TraceCorQRelationGenerator.ofCellSupport
+      cell
+      support).rewriteStepCount =
+      (ResidueChannelCertificateLedger.ofCoherenceCell cell).rewriteStepCount :=
   rfl
 
 end AnalyticMotives

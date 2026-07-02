@@ -41,6 +41,80 @@ def TraceTransport.traceBookkeepingCount
     Nat :=
   transport.certificateLedger.traceBookkeepingCount
 
+/-- The explicit rewrite-step payload carried by a trace transport. -/
+def TraceTransport.rewriteStepCount
+    (transport : TraceTransport) :
+    Nat :=
+  transport.certificateLedger.rewriteStepCount
+
+/-- A transport certificate ledger is source certificates, target certificates, then path certificates. -/
+theorem TraceTransport.certificateLedger_eq_source_target_path
+    (transport : TraceTransport) :
+    transport.certificateLedger =
+      ResidueChannelCertificateLedger.append
+        transport.source.certificateLedger
+        (ResidueChannelCertificateLedger.append
+          transport.target.certificateLedger
+          transport.pathCertificateLedger) :=
+  rfl
+
+/-- A transport's imported payload splits into source, target, and path payload. -/
+theorem TraceTransport.importedRectangleCount_eq_source_target_path
+    (transport : TraceTransport) :
+    transport.importedRectangleCount =
+      transport.source.importedRectangleCount +
+        (transport.target.importedRectangleCount +
+          transport.pathCertificateLedger.importedRectangleCount) :=
+  Eq.trans
+    (ResidueChannelCertificateLedger.append_importedRectangleCount
+      transport.source.certificateLedger
+      (ResidueChannelCertificateLedger.append
+        transport.target.certificateLedger
+        transport.pathCertificateLedger))
+    (congrArg
+      (fun count => transport.source.importedRectangleCount + count)
+      (ResidueChannelCertificateLedger.append_importedRectangleCount
+        transport.target.certificateLedger
+        transport.pathCertificateLedger))
+
+/-- A transport's bookkeeping payload splits into source, target, and path payload. -/
+theorem TraceTransport.traceBookkeepingCount_eq_source_target_path
+    (transport : TraceTransport) :
+    transport.traceBookkeepingCount =
+      transport.source.traceBookkeepingCount +
+        (transport.target.traceBookkeepingCount +
+          transport.pathCertificateLedger.traceBookkeepingCount) :=
+  Eq.trans
+    (ResidueChannelCertificateLedger.append_traceBookkeepingCount
+      transport.source.certificateLedger
+      (ResidueChannelCertificateLedger.append
+        transport.target.certificateLedger
+        transport.pathCertificateLedger))
+    (congrArg
+      (fun count => transport.source.traceBookkeepingCount + count)
+      (ResidueChannelCertificateLedger.append_traceBookkeepingCount
+        transport.target.certificateLedger
+        transport.pathCertificateLedger))
+
+/-- A transport's explicit rewrite-step payload splits into source, target, and path payload. -/
+theorem TraceTransport.rewriteStepCount_eq_source_target_path
+    (transport : TraceTransport) :
+    transport.rewriteStepCount =
+      transport.source.rewriteStepCount +
+        (transport.target.rewriteStepCount +
+          transport.pathCertificateLedger.rewriteStepCount) :=
+  Eq.trans
+    (ResidueChannelCertificateLedger.append_rewriteStepCount
+      transport.source.certificateLedger
+      (ResidueChannelCertificateLedger.append
+        transport.target.certificateLedger
+        transport.pathCertificateLedger))
+    (congrArg
+      (fun count => transport.source.rewriteStepCount + count)
+      (ResidueChannelCertificateLedger.append_rewriteStepCount
+        transport.target.certificateLedger
+        transport.pathCertificateLedger))
+
 /-- The identity transport's path certificate ledger is the singleton identity path certificate. -/
 theorem TraceTransport.id_pathCertificateLedger
     (object : TraceTransportObject) :
@@ -105,6 +179,28 @@ theorem TraceTransport.id_traceBookkeepingCount
         (ResidueChannelCertificateLedger.ofRewritePath
           (TraceRewritePath.id object.source))))
 
+/-- The identity transport's explicit rewrite-step payload comes from endpoints and its identity path. -/
+theorem TraceTransport.id_rewriteStepCount
+    (object : TraceTransportObject) :
+    (TraceTransport.id object).rewriteStepCount =
+      object.rewriteStepCount +
+        (object.rewriteStepCount +
+          (ResidueChannelCertificateLedger.ofRewritePath
+            (TraceRewritePath.id object.source)).rewriteStepCount) :=
+  Eq.trans
+    (ResidueChannelCertificateLedger.append_rewriteStepCount
+      object.certificateLedger
+      (ResidueChannelCertificateLedger.append
+        object.certificateLedger
+        (ResidueChannelCertificateLedger.ofRewritePath
+          (TraceRewritePath.id object.source))))
+    (congrArg
+      (fun count => object.rewriteStepCount + count)
+      (ResidueChannelCertificateLedger.append_rewriteStepCount
+        object.certificateLedger
+        (ResidueChannelCertificateLedger.ofRewritePath
+          (TraceRewritePath.id object.source))))
+
 /-- The path certificate ledger of a composed transport certifies the concatenated path. -/
 theorem TraceTransport.comp_pathCertificateLedger
     (first second : TraceTransport) :
@@ -165,6 +261,28 @@ theorem TraceTransport.comp_traceBookkeepingCount
     (congrArg
       (fun count => first.source.traceBookkeepingCount + count)
       (ResidueChannelCertificateLedger.append_traceBookkeepingCount
+        second.target.certificateLedger
+        (ResidueChannelCertificateLedger.ofRewritePath
+          (first.path.comp second.path))))
+
+/-- A composed transport's explicit rewrite-step payload comes from exposed endpoints and path. -/
+theorem TraceTransport.comp_rewriteStepCount
+    (first second : TraceTransport) :
+    (TraceTransport.comp first second).rewriteStepCount =
+      first.source.rewriteStepCount +
+        (second.target.rewriteStepCount +
+          (ResidueChannelCertificateLedger.ofRewritePath
+            (first.path.comp second.path)).rewriteStepCount) :=
+  Eq.trans
+    (ResidueChannelCertificateLedger.append_rewriteStepCount
+      first.source.certificateLedger
+      (ResidueChannelCertificateLedger.append
+        second.target.certificateLedger
+        (ResidueChannelCertificateLedger.ofRewritePath
+          (first.path.comp second.path))))
+    (congrArg
+      (fun count => first.source.rewriteStepCount + count)
+      (ResidueChannelCertificateLedger.append_rewriteStepCount
         second.target.certificateLedger
         (ResidueChannelCertificateLedger.ofRewritePath
           (first.path.comp second.path))))

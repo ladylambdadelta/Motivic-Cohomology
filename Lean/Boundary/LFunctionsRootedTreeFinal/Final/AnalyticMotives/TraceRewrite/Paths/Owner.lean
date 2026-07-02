@@ -47,6 +47,75 @@ def TraceRewritePath.target : TraceRewritePath → QTraceExpression
   | step generator => generator.target
   | concat _ second => second.target
 
+/-- The number of one-step rewrite generators occurring in a rewrite path. -/
+def TraceRewritePath.stepCount : TraceRewritePath → Nat
+  | identity _ => 0
+  | step _ => 1
+  | concat first second => first.stepCount + second.stepCount
+
+/-- An identity rewrite path has no one-step generators. -/
+theorem TraceRewritePath.id_stepCount
+    (expression : QTraceExpression) :
+    (TraceRewritePath.id expression).stepCount =
+      0 :=
+  rfl
+
+/-- A one-step rewrite path has exactly one generator. -/
+theorem TraceRewritePath.ofGenerator_stepCount
+    (generator : TraceRewriteGenerator) :
+    (TraceRewritePath.ofGenerator generator).stepCount =
+      1 :=
+  rfl
+
+/-- Concatenating rewrite paths adds their generator counts. -/
+theorem TraceRewritePath.comp_stepCount
+    (first second : TraceRewritePath) :
+    (TraceRewritePath.comp first second).stepCount =
+      first.stepCount + second.stepCount :=
+  rfl
+
+/-- The source of an identity path is its expression. -/
+theorem TraceRewritePath.id_source
+    (expression : QTraceExpression) :
+    (TraceRewritePath.id expression).source =
+      expression :=
+  rfl
+
+/-- The target of an identity path is its expression. -/
+theorem TraceRewritePath.id_target
+    (expression : QTraceExpression) :
+    (TraceRewritePath.id expression).target =
+      expression :=
+  rfl
+
+/-- The source of a one-step path is the generator source. -/
+theorem TraceRewritePath.ofGenerator_source
+    (generator : TraceRewriteGenerator) :
+    (TraceRewritePath.ofGenerator generator).source =
+      generator.source :=
+  rfl
+
+/-- The target of a one-step path is the generator target. -/
+theorem TraceRewritePath.ofGenerator_target
+    (generator : TraceRewriteGenerator) :
+    (TraceRewritePath.ofGenerator generator).target =
+      generator.target :=
+  rfl
+
+/-- The source of a concatenated path is the source of the first path. -/
+theorem TraceRewritePath.comp_source
+    (first second : TraceRewritePath) :
+    (TraceRewritePath.comp first second).source =
+      first.source :=
+  rfl
+
+/-- The target of a concatenated path is the target of the second path. -/
+theorem TraceRewritePath.comp_target
+    (first second : TraceRewritePath) :
+    (TraceRewritePath.comp first second).target =
+      second.target :=
+  rfl
+
 end AnalyticMotives
 end LFunctions
 end Boundary
