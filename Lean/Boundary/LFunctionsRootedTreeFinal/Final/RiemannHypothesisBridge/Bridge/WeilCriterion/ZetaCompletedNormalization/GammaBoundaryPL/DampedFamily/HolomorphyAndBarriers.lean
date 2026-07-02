@@ -143,7 +143,7 @@ theorem verticalStripCosineDampedFamily_diffContOnCl
       fun z : ℂ =>
         calc
           g z • f z = g z * f z := by
-            exact smul_eq_mul (g z) (f z)
+            exact (smul_eq_mul ℂ : (g z) • f z = g z * f z)
           _ = f z * g z := mul_comm (g z) (f z)
           _ = verticalStripCosineDampedFamily f a b ε z := rfl
   exact
@@ -178,7 +178,7 @@ theorem verticalStripSubcriticalCosineDampedFamily_diffContOnCl
       fun z : ℂ =>
         calc
           g z • f z = g z * f z := by
-            exact smul_eq_mul (g z) (f z)
+            exact (smul_eq_mul ℂ : (g z) • f z = g z * f z)
           _ = f z * g z := mul_comm (g z) (f z)
           _ = verticalStripSubcriticalCosineDampedFamily f a b d ε z := rfl
   exact
@@ -198,7 +198,7 @@ theorem verticalStripUpperTailDampingBase_differentiable
       Differentiable ℂ
         (fun z : ℂ => K - Complex.I * (z - c)) := by
     exact
-      differentiable_const.sub
+      (differentiable_const K).sub
         ((differentiable_id.sub_const c).const_mul Complex.I)
   have hfunctions :
       (fun z : ℂ => K - Complex.I * (z - c)) =
@@ -250,10 +250,7 @@ theorem verticalStripUpperTailPolynomialNormalizerKernel_differentiable
       (fun z : ℂ => (verticalStripUpperTailDampingBase a b z) ^ N) =
         verticalStripUpperTailPolynomialNormalizerKernel a b N :=
     funext
-      fun z : ℂ =>
-        calc
-          (verticalStripUpperTailDampingBase a b z) ^ N =
-              verticalStripUpperTailPolynomialNormalizerKernel a b N z := rfl
+      fun z : ℂ => rfl
   exact
     Eq.subst
       (motive := fun F : ℂ → ℂ => Differentiable ℂ F)
@@ -323,7 +320,7 @@ theorem verticalStripUpperTailPolynomialNormalizedFamily_diffContOnCl
       fun z : ℂ =>
         calc
           g z • f z = g z * f z := by
-            exact smul_eq_mul (g z) (f z)
+            exact (smul_eq_mul ℂ : (g z) • f z = g z * f z)
           _ = f z * g z := mul_comm (g z) (f z)
           _ =
             verticalStripUpperTailPolynomialNormalizedFamily f a b C N z := rfl
@@ -367,9 +364,9 @@ theorem verticalStripUpperTailPolynomialBoundedFactor_diffContOnCl
           κ • verticalStripUpperTailPolynomialNormalizedFamily f a b C N z =
               κ * verticalStripUpperTailPolynomialNormalizedFamily f a b C N z := by
             exact
-              smul_eq_mul
-                κ
-                (verticalStripUpperTailPolynomialNormalizedFamily f a b C N z)
+              (smul_eq_mul ℂ :
+                κ • verticalStripUpperTailPolynomialNormalizedFamily f a b C N z =
+                  κ * verticalStripUpperTailPolynomialNormalizedFamily f a b C N z)
           _ =
               ((A⁻¹ : ℝ) : ℂ) *
                 verticalStripUpperTailPolynomialNormalizedFamily f a b C N z := rfl
@@ -394,7 +391,7 @@ theorem verticalStripUpperTailDegreePolynomialBase_differentiable
       Differentiable ℂ
         (fun z : ℂ => K - Complex.I * (z - c)) := by
     exact
-      differentiable_const.sub
+      (differentiable_const K).sub
         ((differentiable_id.sub_const c).const_mul Complex.I)
   have hfunctions :
       (fun z : ℂ => K - Complex.I * (z - c)) =
@@ -428,10 +425,7 @@ theorem verticalStripUpperTailDegreePolynomialKernel_differentiable
       (fun z : ℂ => (verticalStripUpperTailDegreePolynomialBase a b N z) ^ N) =
         verticalStripUpperTailDegreePolynomialKernel a b N :=
     funext
-      fun z : ℂ =>
-        calc
-          (verticalStripUpperTailDegreePolynomialBase a b N z) ^ N =
-              verticalStripUpperTailDegreePolynomialKernel a b N z := rfl
+      fun z : ℂ => rfl
   exact
     Eq.subst
       (motive := fun F : ℂ → ℂ => Differentiable ℂ F)
@@ -493,7 +487,7 @@ theorem verticalStripUpperTailDegreePolynomialBoundedFactor_diffContOnCl
                 (g z * f z) := by
             exact congrArg
               (fun y : ℂ => ((A⁻¹ : ℝ) : ℂ) * y)
-              (smul_eq_mul (g z) (f z))
+              (smul_eq_mul ℂ : (g z) • f z = g z * f z)
           _ =
               ((A⁻¹ : ℝ) : ℂ) *
                 (f z * g z) := by
@@ -588,7 +582,7 @@ theorem verticalStripUpperTailDampedFamily_diffContOnCl
       fun z : ℂ =>
         calc
           g z • f z = g z * f z := by
-            exact smul_eq_mul (g z) (f z)
+            exact (smul_eq_mul ℂ : (g z) • f z = g z * f z)
           _ = f z * g z := mul_comm (g z) (f z)
           _ = verticalStripUpperTailDampedFamily f a b ε z := rfl
   exact
@@ -634,7 +628,7 @@ theorem verticalStripCosineDampingAffine_re_mem_standardWindow_ownerGap
       _ = (-(b - a)) / 2 := by
         exact congrArg (fun x : ℝ => x / 2) (neg_sub b a).symm
       _ = -((b - a) / 2) := by
-        exact neg_div (b - a) 2
+        exact neg_div 2 (b - a)
       _ = -(verticalStripWidth a b / 2) := rfl
   have hright_endpoint :
       b - verticalStripCenter a b =
@@ -1455,8 +1449,8 @@ theorem verticalStripSubcriticalCosineBarrierKernel_leftBoundary_re_eq
       (Eq.trans
         (leftEndpoint_sub_verticalStripCenter a b)
         (Eq.trans
-          (congrArg (fun x : ℝ => x / 2) (sub_eq_neg_sub a b))
-          (neg_div (b - a) 2).symm))
+          (congrArg (fun x : ℝ => x / 2) (neg_sub b a).symm)
+          (neg_div 2 (b - a))))
   exact Eq.trans
     (verticalStripSubcriticalCosineBarrierKernel_re_eq_cos_mul_cosh a b d z)
     (congrArg
@@ -1524,8 +1518,8 @@ theorem verticalStripSubcriticalCosineBarrierKernel_leftBoundary_cos_pos
     exact Eq.trans
       (leftEndpoint_sub_verticalStripCenter a b)
       (Eq.trans
-        (congrArg (fun x : ℝ => x / 2) (sub_eq_neg_sub a b))
-        (neg_div (b - a) 2).symm)
+        (congrArg (fun x : ℝ => x / 2) (neg_sub b a).symm)
+        (neg_div 2 (b - a)))
   have hangle_endpoint :
       |d * (-((b - a) / 2))| < π / 2 := by
     exact Eq.subst
@@ -1725,16 +1719,16 @@ theorem verticalStripSubcriticalCosineBarrierKernel_rightBoundary_re_ge_exp
         exact congrArg
           (fun y : ℝ => c * y)
           (div_eq_mul_one_div (Real.exp (d * z.im)) 2).symm
-  exact
-    Eq.subst
-      (motive := fun y : ℝ =>
-        (c / 2) * Real.exp (d * z.im) ≤ y)
+  calc
+    (c / 2) * Real.exp (d * z.im) ≤
+        c * Real.cosh (d * z.im) := by
+      calc
+        (c / 2) * Real.exp (d * z.im) =
+            c * (Real.exp (d * z.im) / 2) := hleft_eq
+        _ ≤ c * Real.cosh (d * z.im) := hmul_lower
+    _ = (verticalStripSubcriticalCosineBarrierKernel a b d z).re :=
       (verticalStripSubcriticalCosineBarrierKernel_rightBoundary_re_eq
         a b d hz).symm
-      (Eq.subst
-        (motive := fun y : ℝ => y ≤ c * Real.cosh (d * z.im))
-        hleft_eq
-        hmul_lower)
 
 /-- On the left boundary ray, the subcritical barrier real part has
 exponential lower growth in the upper-tail height. -/
@@ -1778,16 +1772,16 @@ theorem verticalStripSubcriticalCosineBarrierKernel_leftBoundary_re_ge_exp
         exact congrArg
           (fun y : ℝ => c * y)
           (div_eq_mul_one_div (Real.exp (d * z.im)) 2).symm
-  exact
-    Eq.subst
-      (motive := fun y : ℝ =>
-        (c / 2) * Real.exp (d * z.im) ≤ y)
+  calc
+    (c / 2) * Real.exp (d * z.im) ≤
+        c * Real.cosh (d * z.im) := by
+      calc
+        (c / 2) * Real.exp (d * z.im) =
+            c * (Real.exp (d * z.im) / 2) := hleft_eq
+        _ ≤ c * Real.cosh (d * z.im) := hmul_lower
+    _ = (verticalStripSubcriticalCosineBarrierKernel a b d z).re :=
       (verticalStripSubcriticalCosineBarrierKernel_leftBoundary_re_eq
         a b d hz).symm
-      (Eq.subst
-        (motive := fun y : ℝ => y ≤ c * Real.cosh (d * z.im))
-        hleft_eq
-        hmul_lower)
 
 /-- On the whole closed strip, the subcritical barrier real part has a uniform
 positive upper-tail exponential lower bound. -/
@@ -1814,11 +1808,11 @@ theorem verticalStripSubcriticalCosineBarrierKernel_closedStrip_re_ge_exp
           leftEndpoint_sub_verticalStripCenter a b
         _ = -(w / 2) := by
           have hnum : a - b = -w :=
-            sub_eq_neg_sub a b
+            (neg_sub b a).symm
           exact
             Eq.trans
               (congrArg (fun t : ℝ => t / 2) hnum)
-              (neg_div w 2).symm
+              (neg_div 2 w)
     have hmono :
         a - verticalStripCenter a b ≤
           z.re - verticalStripCenter a b :=
@@ -1855,11 +1849,9 @@ theorem verticalStripSubcriticalCosineBarrierKernel_closedStrip_re_ge_exp
   have hendpoint_lt_pi_div_two : d * (w / 2) < π / 2 := by
     have hdiv : d * w / 2 < π / 2 :=
       div_lt_div_of_pos_right hdw_lt_pi zero_lt_two
-    exact
-      Eq.subst
-        (motive := fun y : ℝ => y < π / 2)
-        (mul_div_assoc d w 2).symm
-        hdiv
+    calc
+      d * (w / 2) = d * w / 2 := (mul_div_assoc d w 2).symm
+      _ < π / 2 := hdiv
   have hendpoint_nonneg : 0 ≤ d * (w / 2) :=
     mul_nonneg (le_of_lt hd_pos)
       (div_nonneg (le_of_lt hw_pos) (le_of_lt zero_lt_two))
@@ -1878,20 +1870,20 @@ theorem verticalStripSubcriticalCosineBarrierKernel_closedStrip_re_ge_exp
     Real.cos_abs θ
   have hcos_lower :
       Real.cos (d * (w / 2)) ≤ Real.cos θ :=
-    Eq.subst
-      (motive := fun y : ℝ => Real.cos (d * (w / 2)) ≤ y)
-      hcos_abs
-      hcos_endpoint_le_abs
+    calc
+      Real.cos (d * (w / 2)) ≤ Real.cos |θ| :=
+        hcos_endpoint_le_abs
+      _ = Real.cos θ := hcos_abs
   have hcosh_lower :
       Real.exp (d * z.im) / 2 ≤ Real.cosh (d * z.im) :=
     real_exp_half_le_cosh (d * z.im)
   have hcos_endpoint_pos :
       0 < Real.cos (d * (w / 2)) := by
-    have hangle_abs : |d * (w / 2)| < π / 2 :=
-      Eq.subst
-        (motive := fun y : ℝ => |y| < π / 2)
-        (abs_of_nonneg hendpoint_nonneg).symm
-        hendpoint_lt_pi_div_two
+    have hangle_abs : |d * (w / 2)| < π / 2 := by
+      calc
+        |d * (w / 2)| = d * (w / 2) :=
+          abs_of_nonneg hendpoint_nonneg
+        _ < π / 2 := hendpoint_lt_pi_div_two
     exact Real.cos_pos_of_mem_Ioo (abs_lt.mp hangle_abs)
   have hcos_endpoint_nonneg :
       0 ≤ Real.cos (d * (w / 2)) :=

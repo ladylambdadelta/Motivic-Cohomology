@@ -1367,26 +1367,22 @@ theorem complex_mul_im_abs_le_sum_sector_widths
       abs_mul u.im v.re
     have hre_abs : |v.re| = v.re :=
       abs_of_nonneg hv_re_nonneg
-      have hraw :
-          |u.im| * |v.re| ≤ (A * u.re) * v.re := by
-        have hright_nonneg : 0 ≤ |v.re| :=
-          abs_nonneg v.re
+    have hraw :
+        |u.im| * |v.re| ≤ (A * u.re) * v.re := by
+      have hright_nonneg : 0 ≤ |v.re| :=
+        abs_nonneg v.re
       calc
         |u.im| * |v.re| ≤ (A * u.re) * |v.re| :=
           mul_le_mul_of_nonneg_right hu_im hright_nonneg
         _ = (A * u.re) * v.re := by
           exact congrArg (fun T : ℝ => (A * u.re) * T) hre_abs
-        have htarget :
-            (A * u.re) * v.re = A * (u.re * v.re) :=
-          mul_assoc A u.re v.re
-    exact
-      Eq.subst
-        (motive := fun T : ℝ => |u.im * v.re| ≤ T)
-        htarget
-        (Eq.subst
-          (motive := fun T : ℝ => T ≤ (A * u.re) * v.re)
-          habs_mul.symm
-          hraw)
+    have htarget :
+        (A * u.re) * v.re = A * (u.re * v.re) :=
+      mul_assoc A u.re v.re
+    calc
+      |u.im * v.re| = |u.im| * |v.re| := habs_mul
+      _ ≤ (A * u.re) * v.re := hraw
+      _ = A * (u.re * v.re) := htarget
   have habs_sum :
       |u.re * v.im + u.im * v.re| ≤
         |u.re * v.im| + |u.im * v.re| :=
@@ -1804,17 +1800,23 @@ theorem sectorPowerWidth_le_linear_of_step_margins
         (∀ k : ℕ, k < n → sectorPowerWidth B k * B < 1)
   | 0, _, _ => by
       have hwidth0 :
-          sectorPowerWidth B 0 ≤ 2 * (0 : ℝ) * B := by
+          sectorPowerWidth B 0 ≤ 2 * ((0 : ℕ) : ℝ) * B := by
         have hleft : sectorPowerWidth B 0 = 0 :=
           sectorPowerWidth_zero B
-        have hright : 2 * (0 : ℝ) * B = 0 := by
+        have hright : 2 * ((0 : ℕ) : ℝ) * B = 0 := by
+          have hcast_zero : (((0 : ℕ) : ℝ) = 0) :=
+            Nat.cast_zero
+          have htwo_mul_zero : (2 : ℝ) * 0 = 0 :=
+            mul_zero (2 : ℝ)
           calc
-            2 * (0 : ℝ) * B = 0 * B := by
-              exact congrArg (fun T : ℝ => T * B) (mul_zero (2 : ℝ))
+            2 * ((0 : ℕ) : ℝ) * B = 2 * 0 * B := by
+              exact congrArg (fun T : ℝ => 2 * T * B) hcast_zero
+            _ = 0 * B := by
+              exact congrArg (fun T : ℝ => T * B) htwo_mul_zero
             _ = 0 := zero_mul B
         calc
           sectorPowerWidth B 0 = 0 := hleft
-          _ = 2 * (0 : ℝ) * B := hright.symm
+          _ ≤ 2 * ((0 : ℕ) : ℝ) * B := le_of_eq hright.symm
       have hnonneg0 :
           0 ≤ sectorPowerWidth B 0 :=
         Eq.subst
@@ -1824,14 +1826,12 @@ theorem sectorPowerWidth_le_linear_of_step_margins
       exact
         ⟨fun k hk =>
           have hk_eq : k = 0 := Nat.eq_zero_of_le_zero hk
-          match hk_eq with
+          match hk_eq.symm with
           | rfl => hwidth0,
          fun k hk =>
           have hk_eq : k = 0 := Nat.eq_zero_of_le_zero hk
-          Eq.subst
-            (motive := fun T : ℕ => 0 ≤ sectorPowerWidth B T)
-            hk_eq.symm
-            hnonneg0,
+          match hk_eq.symm with
+          | rfl => hnonneg0,
          fun k hk => False.elim (Nat.not_lt_zero k hk)⟩
   | n + 1, hsmall, hmargin => by
       have hsmall_prev :
@@ -1998,7 +1998,7 @@ theorem complex_pow_sector_and_re_lower_of_scalar_widths
         exact
           calc
             sectorPowerRealConstant B 0 * w.re ^ (0 : ℕ) = 1 := hleft
-            _ = (w ^ (0 : ℕ)).re := hre_zero.symm
+            _ ≤ (w ^ (0 : ℕ)).re := le_of_eq hre_zero.symm
       have hre_nonneg : 0 ≤ (w ^ (0 : ℕ)).re :=
         Eq.subst
           (motive := fun T : ℝ => 0 ≤ T)
