@@ -1,6 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaBoundaryPL.DampedFamily.HolomorphyAndBarriers
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaBoundaryPL.DampedFamily.BoundedHeightRectangle
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.EulerContinuationTransport.FiniteOrderPL.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaBoundaryPL.DampedFamily.FiniteOrderEnvelope
 
 namespace Boundary
 namespace LFunctions
@@ -10,6 +10,39 @@ noncomputable section
 open Filter
 open scoped Filter Topology
 local notation "π" => Real.pi
+
+/-- Upper-tail scalar absorber for the subcritical cosine damping estimate. -/
+def verticalStripSubcriticalCosineUpperAbsorber
+    (a b d ε y : ℝ) : ℝ :=
+  Real.exp
+    (-(ε * (Real.cos (d * ((b - a) / 2)) / 2) *
+      Real.exp (d * y)))
+
+/-- Top-edge lower-bound scalar for the subcritical cosine barrier. -/
+def verticalStripSubcriticalCosineTopEdgeBarrierLower
+    (a b d y : ℝ) : ℝ :=
+  (Real.cos (d * ((b - a) / 2)) / 2) *
+    Real.exp (d * y)
+
+/-- Top-edge scalar bound for the subcritical cosine damping factor. -/
+def verticalStripSubcriticalCosineDampingFactorTopEdgeBound
+    (a b d ε y : ℝ) : ℝ :=
+  Real.exp
+    (-(ε * verticalStripSubcriticalCosineTopEdgeBarrierLower a b d y))
+
+/-- Norm of the scalar subcritical cosine damping factor. -/
+def verticalStripSubcriticalCosineDampingFactorNorm
+    (a b d ε : ℝ)
+    (z : ℂ) : ℝ :=
+  ‖Complex.exp
+    (-((ε : ℝ) : ℂ) *
+      verticalStripSubcriticalCosineBarrierKernel a b d z)‖
+
+/-- Product bound used by the top-edge subcritical damping estimate. -/
+def verticalStripSubcriticalCosineTopEdgePreAbsorptionBound
+    (a b c d D ε K y : ℝ) : ℝ :=
+  (K * Real.exp (D * Real.exp (c * y))) *
+    verticalStripSubcriticalCosineDampingFactorTopEdgeBound a b d ε y
 
 /-- Real part of the subcritical cosine-damping exponent. -/
 theorem verticalStripSubcriticalCosineDampingExponent_re_eq_neg_mul
@@ -98,6 +131,79 @@ theorem verticalStripSubcriticalCosineDampingFactor_norm_le_exp_neg_of_re_lower
       hnorm.symm
       hexp_le
 
+/-- The subcritical damped family norm factors into the original norm times the
+scalar damping factor norm. -/
+theorem verticalStripSubcriticalCosineDampedFamily_norm_eq_mul_dampingNorm
+    (f : ℂ → ℂ)
+    (a b d ε : ℝ)
+    (z : ℂ) :
+    ‖verticalStripSubcriticalCosineDampedFamily f a b d ε z‖ =
+      ‖f z‖ *
+        verticalStripSubcriticalCosineDampingFactorNorm a b d ε z := by
+  let g : ℂ :=
+    Complex.exp
+      (-((ε : ℝ) : ℂ) *
+        verticalStripSubcriticalCosineBarrierKernel a b d z)
+  calc
+    ‖verticalStripSubcriticalCosineDampedFamily f a b d ε z‖ =
+        ‖f z * g‖ := by
+      rfl
+    _ = ‖f z‖ * ‖g‖ := by
+      exact norm_mul (f z) g
+
+/-- Top-edge lower bound for the cosine barrier converted to the scalar
+damping-factor estimate. -/
+theorem verticalStripSubcriticalCosineDampingFactor_topEdge_norm_le
+    {a b d ε : ℝ}
+    (hab : a < b)
+    (hd_pos : 0 < d)
+    (hd_threshold : d < π / (b - a))
+    (hε : 0 ≤ ε)
+    {z : ℂ}
+    (hza : a ≤ z.re)
+    (hzb : z.re ≤ b) :
+    verticalStripSubcriticalCosineDampingFactorNorm a b d ε z ≤
+      verticalStripSubcriticalCosineDampingFactorTopEdgeBound a b d ε z.im := by
+  have hL :
+      verticalStripSubcriticalCosineTopEdgeBarrierLower a b d z.im ≤
+        (verticalStripSubcriticalCosineBarrierKernel a b d z).re :=
+    verticalStripSubcriticalCosineBarrierKernel_closedStrip_re_ge_exp
+      hab hd_pos hd_threshold hza hzb
+  exact
+    verticalStripSubcriticalCosineDampingFactor_norm_le_exp_neg_of_re_lower
+      hε hL
+
+/-- Multiplying the function envelope by the scalar top-edge damping estimate. -/
+theorem verticalStripSubcriticalCosineTopEdge_mul_envelope_le_bound
+    {a b c d D ε K : ℝ}
+    {z : ℂ}
+    {f : ℂ → ℂ}
+    (hf : ‖f z‖ ≤ K * Real.exp (D * Real.exp (c * z.im)))
+    (hg :
+      verticalStripSubcriticalCosineDampingFactorNorm a b d ε z ≤
+        verticalStripSubcriticalCosineDampingFactorTopEdgeBound a b d ε z.im) :
+    ‖f z‖ *
+        verticalStripSubcriticalCosineDampingFactorNorm a b d ε z ≤
+      verticalStripSubcriticalCosineTopEdgePreAbsorptionBound
+        a b c d D ε K z.im := by
+  let gnorm : ℝ :=
+    verticalStripSubcriticalCosineDampingFactorNorm a b d ε z
+  let envelope : ℝ := K * Real.exp (D * Real.exp (c * z.im))
+  let absorber : ℝ :=
+    verticalStripSubcriticalCosineDampingFactorTopEdgeBound a b d ε z.im
+  have hgnorm_nonneg : 0 ≤ gnorm :=
+    norm_nonneg
+      (Complex.exp
+        (-((ε : ℝ) : ℂ) *
+          verticalStripSubcriticalCosineBarrierKernel a b d z))
+  have hfirst : ‖f z‖ * gnorm ≤ envelope * gnorm :=
+    mul_le_mul_of_nonneg_right hf hgnorm_nonneg
+  have henvelope_nonneg : 0 ≤ envelope :=
+    le_trans (norm_nonneg (f z)) hf
+  have hsecond : envelope * gnorm ≤ envelope * absorber :=
+    mul_le_mul_of_nonneg_left hg henvelope_nonneg
+  exact le_trans hfirst hsecond
+
 /-- Top-edge pointwise estimate for the subcritical cosine-damped family,
 before the scalar `c < d` absorption step. -/
 theorem verticalStripSubcriticalCosineDampedFamily_topEdge_preAbsorption
@@ -113,53 +219,33 @@ theorem verticalStripSubcriticalCosineDampedFamily_topEdge_preAbsorption
     (hf :
       ‖f z‖ ≤ K * Real.exp (D * Real.exp (c * z.im))) :
     ‖verticalStripSubcriticalCosineDampedFamily f a b d ε z‖ ≤
-      (K * Real.exp (D * Real.exp (c * z.im))) *
-        Real.exp
-          (-(ε * (Real.cos (d * ((b - a) / 2)) / 2) *
-            Real.exp (d * z.im))) := by
-  let g : ℂ :=
-    Complex.exp
-      (-((ε : ℝ) : ℂ) *
-        verticalStripSubcriticalCosineBarrierKernel a b d z)
-  let envelope : ℝ := K * Real.exp (D * Real.exp (c * z.im))
-  let absorber : ℝ :=
-    Real.exp
-      (-(ε * (Real.cos (d * ((b - a) / 2)) / 2) *
-        Real.exp (d * z.im)))
-  have hL :
-      (Real.cos (d * ((b - a) / 2)) / 2) *
-          Real.exp (d * z.im) ≤
-        (verticalStripSubcriticalCosineBarrierKernel a b d z).re :=
-    verticalStripSubcriticalCosineBarrierKernel_closedStrip_re_ge_exp
-      hab hd_pos hd_threshold hza hzb
-  have hfactor :
-      ‖g‖ ≤ absorber :=
-    verticalStripSubcriticalCosineDampingFactor_norm_le_exp_neg_of_re_lower
-      hε hL
+      verticalStripSubcriticalCosineTopEdgePreAbsorptionBound
+        a b c d D ε K z.im := by
   have hnorm_mul :
       ‖verticalStripSubcriticalCosineDampedFamily f a b d ε z‖ =
-        ‖f z‖ * ‖g‖ := by
-    calc
-      ‖verticalStripSubcriticalCosineDampedFamily f a b d ε z‖ =
-          ‖f z * g‖ := by
-        rfl
-      _ = ‖f z‖ * ‖g‖ := by
-        exact norm_mul (f z) g
-  have hfactor_nonneg : 0 ≤ ‖g‖ :=
-    norm_nonneg g
-  have hfirst :
-      ‖f z‖ * ‖g‖ ≤ envelope * ‖g‖ :=
-    mul_le_mul_of_nonneg_right hf hfactor_nonneg
-  have henvelope_nonneg : 0 ≤ envelope :=
-    le_trans (norm_nonneg (f z)) hf
-  have hsecond :
-      envelope * ‖g‖ ≤ envelope * absorber :=
-    mul_le_mul_of_nonneg_left hfactor henvelope_nonneg
+        ‖f z‖ *
+          verticalStripSubcriticalCosineDampingFactorNorm a b d ε z :=
+    verticalStripSubcriticalCosineDampedFamily_norm_eq_mul_dampingNorm
+      f a b d ε z
+  have hfactor :
+      verticalStripSubcriticalCosineDampingFactorNorm a b d ε z ≤
+        verticalStripSubcriticalCosineDampingFactorTopEdgeBound a b d ε z.im :=
+    verticalStripSubcriticalCosineDampingFactor_topEdge_norm_le
+      hab hd_pos hd_threshold hε hza hzb
+  have hproduct :
+      ‖f z‖ *
+          verticalStripSubcriticalCosineDampingFactorNorm a b d ε z ≤
+        verticalStripSubcriticalCosineTopEdgePreAbsorptionBound
+          a b c d D ε K z.im :=
+    verticalStripSubcriticalCosineTopEdge_mul_envelope_le_bound
+      hf hfactor
   exact
-    Eq.subst
-      (motive := fun y : ℝ => y ≤ envelope * absorber)
+    (Eq.subst
+      (motive := fun y : ℝ =>
+        y ≤ verticalStripSubcriticalCosineTopEdgePreAbsorptionBound
+          a b c d D ε K z.im)
       hnorm_mul.symm
-      (le_trans hfirst hsecond)
+      hproduct)
 
 /-- A lower-rate double exponential is eventually absorbed by a higher-rate
 double-exponential damping term. -/
@@ -248,12 +334,12 @@ theorem doubleExponential_exp_mul_subcritical_absorber_eventually_le_const
             hmul_le
         have hsum_nonpos :
             D * Real.exp (c * T) + -(E * Real.exp (d * T)) ≤ 0 := by
-          exact
-            Eq.subst
-              (motive := fun x : ℝ =>
-                D * Real.exp (c * T) + -(E * Real.exp (d * T)) ≤ x)
-              (sub_self (E * Real.exp (d * T))).symm
-              (add_le_add_right hexponent_le (-(E * Real.exp (d * T))))
+          calc
+            D * Real.exp (c * T) + -(E * Real.exp (d * T)) ≤
+                E * Real.exp (d * T) + -(E * Real.exp (d * T)) :=
+              add_le_add_right hexponent_le (-(E * Real.exp (d * T)))
+            _ = 0 :=
+              add_neg_cancel (E * Real.exp (d * T))
         have hexp_le_one :
             Real.exp (D * Real.exp (c * T) + -(E * Real.exp (d * T))) ≤ 1 :=
           Real.exp_le_one_iff.mpr hsum_nonpos
@@ -712,7 +798,7 @@ theorem finiteOrder_exp_mul_subcritical_absorber_eventually_le_one
   have hhalf_pos : 0 < d / 2 :=
     div_pos hd zero_lt_two
   match
-    finiteOrder_verticalExponent_eventually_le_doubleExponentialExponent
+    gammaBoundaryPL_finiteOrder_verticalExponent_eventually_le_doubleExponentialExponent
       A B (d / 2) m hA hB hhalf_pos
   with
   | ⟨D, hD_pos, hfinite_exp⟩ =>
@@ -724,8 +810,13 @@ theorem finiteOrder_exp_mul_subcritical_absorber_eventually_le_one
             D * Real.exp ((d / 2) * T) ≤ E * Real.exp (d * T) :=
         real_const_mul_exp_half_rate_eventually_le_pos_mul_exp_rate
           D E d hE_pos hd
+      have hboth :
+          ∀ᶠ T : ℝ in Filter.atTop,
+            (Real.log A + B * (1 + T) ^ m ≤ D * Real.exp ((d / 2) * T)) ∧
+              D * Real.exp ((d / 2) * T) ≤ E * Real.exp (d * T) :=
+        hfinite_exp.and hcompare
       exact
-        (hfinite_exp.and hcompare).mono
+        hboth.mono
           (fun T hT =>
             by
               have htotal :
@@ -783,11 +874,15 @@ theorem finiteOrder_exp_mul_subcritical_absorber_eventually_le_one
                 have hhalf_eq :
                     (ε * (K * Real.exp (d * T))) / 2 =
                       (1 / 2 : ℝ) * (ε * (K * Real.exp (d * T))) := by
-                  exact
-                    (one_div_mul_eq_div
-                      (ε * (K * Real.exp (d * T))) 2).symm
+                  calc
+                    (ε * (K * Real.exp (d * T))) / 2 =
+                        (ε * (K * Real.exp (d * T))) * (1 / 2 : ℝ) := by
+                      exact div_eq_mul_one_div
+                        (ε * (K * Real.exp (d * T))) 2
+                    _ = (1 / 2 : ℝ) * (ε * (K * Real.exp (d * T))) :=
+                      mul_comm (ε * (K * Real.exp (d * T))) (1 / 2 : ℝ)
                 have hone_half_le_one : (1 / 2 : ℝ) ≤ 1 :=
-                  (div_le_one zero_lt_two).mpr (le_of_eq rfl)
+                  (div_le_one zero_lt_two).mpr one_le_two
                 have hscaled :
                     (1 / 2 : ℝ) *
                         (ε * (K * Real.exp (d * T))) ≤
@@ -1690,7 +1785,13 @@ theorem finiteOrderPolynomialExponent_eventually_le_exp_absorber_half
     div_pos hK
       (mul_pos (mul_pos zero_lt_two hB) (Real.exp_pos d))
   have hshift : Filter.Tendsto (fun y : ℝ => 1 + y) Filter.atTop Filter.atTop :=
-    tendsto_id.const_add (1 : ℝ)
+    Filter.tendsto_atTop.2
+      (fun R =>
+        Filter.eventually_atTop.2
+          ⟨R, fun y hy =>
+            calc
+              R ≤ y := hy
+              _ ≤ 1 + y := le_add_of_nonneg_left zero_le_one⟩)
   have hlittle :
       (fun y : ℝ => (1 + y) ^ m) =o[Filter.atTop]
         fun y : ℝ => Real.exp (d * (1 + y)) :=
@@ -1700,7 +1801,7 @@ theorem finiteOrderPolynomialExponent_eventually_le_exp_absorber_half
         ‖(1 + y) ^ m‖ ≤ c * ‖Real.exp (d * (1 + y))‖ :=
     hlittle.bound hc_pos
   have hnonneg :
-      ∀ᶠ y in Filter.atTop, 0 ≤ (1 + y) ^ m :=
+      ∀ᶠ y : ℝ in Filter.atTop, 0 ≤ (1 + y) ^ m :=
     (eventually_ge_atTop (0 : ℝ)).mono
       fun y hy =>
         pow_nonneg (add_nonneg zero_le_one hy) m
@@ -1771,7 +1872,8 @@ theorem finiteOrderPolynomialExponent_eventually_le_exp_absorber_half
             _ =
                 ((K / (2 * Real.exp d)) * Real.exp d) *
                   Real.exp (d * y) :=
-              mul_assoc (K / (2 * Real.exp d)) (Real.exp d) (Real.exp (d * y))
+              (mul_assoc
+                (K / (2 * Real.exp d)) (Real.exp d) (Real.exp (d * y))).symm
             _ =
                 (K / 2) * Real.exp (d * y) := by
               have hcancel :
@@ -1779,12 +1881,18 @@ theorem finiteOrderPolynomialExponent_eventually_le_exp_absorber_half
                 calc
                   (K / (2 * Real.exp d)) * Real.exp d =
                       K * Real.exp d / (2 * Real.exp d) := by
-                    exact (div_mul_eq_mul_div K (2 * Real.exp d) (Real.exp d)).symm
+                    exact div_mul_eq_mul_div K (2 * Real.exp d) (Real.exp d)
                   _ = K * Real.exp d / (Real.exp d * 2) := by
                     exact congrArg (fun x : ℝ => K * Real.exp d / x)
                       (mul_comm 2 (Real.exp d))
                   _ = K / 2 := by
-                    exact mul_div_mul_left K 2 (Real.exp_pos d).ne'
+                    calc
+                      K * Real.exp d / (Real.exp d * 2) =
+                          Real.exp d * K / (Real.exp d * 2) := by
+                        exact congrArg (fun x : ℝ => x / (Real.exp d * 2))
+                          (mul_comm K (Real.exp d))
+                      _ = K / 2 :=
+                        mul_div_mul_left K 2 (Real.exp_pos d).ne'
               exact congrArg
                 (fun x : ℝ => x * Real.exp (d * y))
                 hcancel
@@ -1822,7 +1930,7 @@ theorem finiteOrderEnvelope_mul_exp_absorber_eventually_le_const
               le_of_lt hK
             calc
               K / 2 = (1 / 2 : ℝ) * K := by
-                exact (one_mul_div K 2).symm
+                exact (one_div_mul_eq_div (a := (2 : ℝ)) (b := K)).symm
               _ ≤ 1 * K := by
                 exact mul_le_mul_of_nonneg_right
                   (by
@@ -1951,6 +2059,8 @@ theorem verticalStripSubcriticalCosineDampedFamily_rightBoundary_eventually_uppe
                     Real.exp (d * z.im))) =
               A * Real.exp (B * (1 + T) ^ m) *
                 Real.exp (-(K * Real.exp (d * T))) := by
+          have hcoeff_eq :
+              ε * (Real.cos (d * ((b - a) / 2)) / 2) = K := rfl
           exact congrArg₂ (fun x y : ℝ => x * y)
             (congrArg
               (fun x : ℝ => A * Real.exp (B * (1 + x) ^ m))
@@ -1958,13 +2068,12 @@ theorem verticalStripSubcriticalCosineDampedFamily_rightBoundary_eventually_uppe
             (congrArg Real.exp
               (congrArg Neg.neg
                 (congrArg₂ (fun x y : ℝ => x * Real.exp (d * y))
-                  rfl hz_im)))
-        exact
-          le_trans hraw
-            (Eq.subst
-              (motive := fun x : ℝ => x ≤ A)
-              htarget_eq.symm
-              hT.1)
+                  hcoeff_eq hz_im)))
+        le_trans hraw
+          (Eq.subst
+            (motive := fun x : ℝ => x ≤ A)
+            htarget_eq.symm
+            hT.1)
 
 /-- Left-boundary upper-tail eventual constant bound for the subcritical
 cosine-damped family. -/
@@ -2036,6 +2145,8 @@ theorem verticalStripSubcriticalCosineDampedFamily_leftBoundary_eventually_upper
                     Real.exp (d * z.im))) =
               A * Real.exp (B * (1 + T) ^ m) *
                 Real.exp (-(K * Real.exp (d * T))) := by
+          have hcoeff_eq :
+              ε * (Real.cos (d * (-((b - a) / 2))) / 2) = K := rfl
           exact congrArg₂ (fun x y : ℝ => x * y)
             (congrArg
               (fun x : ℝ => A * Real.exp (B * (1 + x) ^ m))
@@ -2043,13 +2154,12 @@ theorem verticalStripSubcriticalCosineDampedFamily_leftBoundary_eventually_upper
             (congrArg Real.exp
               (congrArg Neg.neg
                 (congrArg₂ (fun x y : ℝ => x * Real.exp (d * y))
-                  rfl hz_im)))
-        exact
-          le_trans hraw
-            (Eq.subst
-              (motive := fun x : ℝ => x ≤ A)
-              htarget_eq.symm
-              hT.1)
+                  hcoeff_eq hz_im)))
+        le_trans hraw
+          (Eq.subst
+            (motive := fun x : ℝ => x ≤ A)
+            htarget_eq.symm
+            hT.1)
 
 /-- Right-boundary finite-order envelope transported through the
 superexponential lower-tail damping estimate. -/
@@ -2198,6 +2308,11 @@ theorem verticalStripSubcriticalCosineDampedFamily_rightBoundary_eventually_lowe
   exact
     (htail.and hlarge).mono
       fun T hT z hz_re hz_im =>
+        have hneg_eq : -z.im = T := by
+          calc
+            -z.im = -(-T) := by
+              exact congrArg Neg.neg hz_im
+            _ = T := neg_neg T
         have hz_im_norm : ‖z.im‖ = T := by
           have hneg_nonpos : z.im ≤ 0 :=
             Eq.subst
@@ -2206,11 +2321,7 @@ theorem verticalStripSubcriticalCosineDampedFamily_rightBoundary_eventually_lowe
               (neg_nonpos.mpr (le_trans zero_le_one hT.2))
           have hnorm_neg : ‖z.im‖ = -z.im :=
             Real.norm_of_nonpos hneg_nonpos
-          have hneg_eq : -z.im = T := by
-            calc
-              -z.im = -(-T) := congrArg Neg.neg hz_im
-              _ = T := neg_neg T
-          Eq.trans hnorm_neg hneg_eq
+          exact Eq.trans hnorm_neg hneg_eq
         have hboundary :
             ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z.im‖) ^ m) :=
           hright z hz_re
@@ -2233,30 +2344,27 @@ theorem verticalStripSubcriticalCosineDampedFamily_rightBoundary_eventually_lowe
                     Real.exp (-(d * z.im)))) =
               A * Real.exp (B * (1 + T) ^ m) *
                 Real.exp (-(K * Real.exp (d * T))) := by
+          have hcoeff_eq :
+              ε * (Real.cos (d * ((b - a) / 2)) / 2) = K := rfl
           have hdt :
               -(d * z.im) = d * T := by
             calc
               -(d * z.im) = d * (-z.im) := by
                 exact (mul_neg d z.im).symm
               _ = d * T := by
-                exact congrArg (fun x : ℝ => d * x)
-                  (Eq.subst
-                    (motive := fun x : ℝ => -z.im = x)
-                    hz_im
-                    (neg_neg T))
+                exact congrArg (fun x : ℝ => d * x) hneg_eq
           exact congrArg₂ (fun x y : ℝ => x * y)
             (congrArg
               (fun x : ℝ => A * Real.exp (B * (1 + x) ^ m))
               hz_im_norm)
             (congrArg Real.exp
               (congrArg Neg.neg
-                (congrArg₂ (fun x y : ℝ => x * Real.exp y) rfl hdt)))
-        exact
-          le_trans hraw
-            (Eq.subst
-              (motive := fun x : ℝ => x ≤ A)
-              htarget_eq.symm
-              hT.1)
+                (congrArg₂ (fun x y : ℝ => x * Real.exp y) hcoeff_eq hdt)))
+        le_trans hraw
+          (Eq.subst
+            (motive := fun x : ℝ => x ≤ A)
+            htarget_eq.symm
+            hT.1)
 
 /-- Left-boundary lower-tail eventual constant bound for the subcritical
 cosine-damped family. -/
@@ -2295,6 +2403,11 @@ theorem verticalStripSubcriticalCosineDampedFamily_leftBoundary_eventually_lower
   exact
     (htail.and hlarge).mono
       fun T hT z hz_re hz_im =>
+        have hneg_eq : -z.im = T := by
+          calc
+            -z.im = -(-T) := by
+              exact congrArg Neg.neg hz_im
+            _ = T := neg_neg T
         have hz_im_norm : ‖z.im‖ = T := by
           have hneg_nonpos : z.im ≤ 0 :=
             Eq.subst
@@ -2303,11 +2416,7 @@ theorem verticalStripSubcriticalCosineDampedFamily_leftBoundary_eventually_lower
               (neg_nonpos.mpr (le_trans zero_le_one hT.2))
           have hnorm_neg : ‖z.im‖ = -z.im :=
             Real.norm_of_nonpos hneg_nonpos
-          have hneg_eq : -z.im = T := by
-            calc
-              -z.im = -(-T) := congrArg Neg.neg hz_im
-              _ = T := neg_neg T
-          Eq.trans hnorm_neg hneg_eq
+          exact Eq.trans hnorm_neg hneg_eq
         have hboundary :
             ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z.im‖) ^ m) :=
           hleft z hz_re
@@ -2330,30 +2439,27 @@ theorem verticalStripSubcriticalCosineDampedFamily_leftBoundary_eventually_lower
                     Real.exp (-(d * z.im)))) =
               A * Real.exp (B * (1 + T) ^ m) *
                 Real.exp (-(K * Real.exp (d * T))) := by
+          have hcoeff_eq :
+              ε * (Real.cos (d * (-((b - a) / 2))) / 2) = K := rfl
           have hdt :
               -(d * z.im) = d * T := by
             calc
               -(d * z.im) = d * (-z.im) := by
                 exact (mul_neg d z.im).symm
               _ = d * T := by
-                exact congrArg (fun x : ℝ => d * x)
-                  (Eq.subst
-                    (motive := fun x : ℝ => -z.im = x)
-                    hz_im
-                    (neg_neg T))
+                exact congrArg (fun x : ℝ => d * x) hneg_eq
           exact congrArg₂ (fun x y : ℝ => x * y)
             (congrArg
               (fun x : ℝ => A * Real.exp (B * (1 + x) ^ m))
               hz_im_norm)
             (congrArg Real.exp
               (congrArg Neg.neg
-                (congrArg₂ (fun x y : ℝ => x * Real.exp y) rfl hdt)))
-        exact
-          le_trans hraw
-            (Eq.subst
-              (motive := fun x : ℝ => x ≤ A)
-              htarget_eq.symm
-              hT.1)
+                (congrArg₂ (fun x y : ℝ => x * Real.exp y) hcoeff_eq hdt)))
+        le_trans hraw
+          (Eq.subst
+            (motive := fun x : ℝ => x ≤ A)
+            htarget_eq.symm
+            hT.1)
 
 /-- Upper and lower eventual boundary control, together with compactness of the
 remaining bounded-height rectangle, gives a uniform tail boundary package for
