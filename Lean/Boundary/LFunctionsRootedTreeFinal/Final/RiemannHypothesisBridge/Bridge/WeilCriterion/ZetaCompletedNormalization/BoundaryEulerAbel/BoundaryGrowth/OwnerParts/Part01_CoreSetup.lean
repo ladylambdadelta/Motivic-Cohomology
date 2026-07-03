@@ -236,6 +236,25 @@ theorem boundaryGrowth_real_forty_mul_two_eq_eighty :
     _ = (80 : ℝ) := by
       exact boundaryGrowth_natCast_eighty_eq_real_eighty
 
+theorem boundaryGrowth_complex_one_eq_ofReal_one :
+    ((1 : ℂ) = ((1 : ℝ) : ℂ)) :=
+  Complex.ofReal_one.symm
+
+theorem boundaryGrowth_complex_two_eq_ofReal_two :
+    ((2 : ℂ) = ((2 : ℝ) : ℂ)) :=
+  (Complex.ofReal_natCast 2).symm
+
+theorem boundaryGrowth_complex_one_div_two_eq_ofReal_real_one_div_two :
+    ((1 / 2 : ℂ) = (((1 / 2 : ℝ) : ℂ))) := by
+  calc
+    (1 / 2 : ℂ) =
+        ((1 : ℝ) : ℂ) / ((2 : ℝ) : ℂ) := by
+      exact congrArg₂ Div.div
+        boundaryGrowth_complex_one_eq_ofReal_one
+        boundaryGrowth_complex_two_eq_ofReal_two
+    _ = (((1 / 2 : ℝ) : ℂ)) := by
+      exact (Complex.ofReal_div 1 2).symm
+
 theorem boundaryGrowth_complex_one_div_two_norm_le_one :
     ‖(1 / 2 : ℂ)‖ ≤ (1 : ℝ) := by
   have hhalf_nonneg : (0 : ℝ) ≤ (1 / 2 : ℝ) := by
@@ -252,7 +271,8 @@ theorem boundaryGrowth_complex_one_div_two_norm_le_one :
     calc
       ‖(1 / 2 : ℂ)‖ =
           ‖(((1 / 2 : ℝ) : ℂ))‖ := by
-        rfl
+        exact congrArg Norm.norm
+          boundaryGrowth_complex_one_div_two_eq_ofReal_real_one_div_two
       _ = |(1 / 2 : ℝ)| := by
         exact RCLike.norm_ofReal (1 / 2 : ℝ)
       _ = (1 / 2 : ℝ) := by
@@ -359,5 +379,6 @@ theorem boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailBounded_of_finit
     (hmajorant M hcutoff)
 
 
+end
 end LFunctions
 end Boundary
