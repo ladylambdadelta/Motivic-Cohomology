@@ -12,7 +12,20 @@ namespace LFunctions
 noncomputable section
 
 open scoped Filter Topology
+open MeasureTheory
 local notation "π" => Real.pi
+
+theorem boundaryGrowth_real_one_le_three :
+    (1 : ℝ) ≤ 3 := by
+  have hnat : (((1 : ℕ) : ℝ)) ≤ (((3 : ℕ) : ℝ)) :=
+    Nat.cast_le.mpr (show (1 : ℕ) ≤ 3 from Nat.succ_le_succ (Nat.zero_le 2))
+  exact Eq.subst
+    (motive := fun left : ℝ => left ≤ (3 : ℝ))
+    boundaryGrowth_natCast_one_eq_real_one
+    (Eq.subst
+      (motive := fun right : ℝ => (((1 : ℕ) : ℝ)) ≤ right)
+      boundaryGrowth_natCast_three_eq_real_three
+      hnat)
 
 /-- Positive integer logarithmic step ratios decrease with the integer index. -/
 theorem boundaryGrowth_logarithmicStepRatio_antitone_nat
@@ -39,7 +52,9 @@ theorem boundaryGrowth_logarithmicStepRatio_antitone_nat
     calc
       (((n + 1 : ℕ) : ℝ) / (n : ℝ)) =
           (((n : ℕ) : ℝ) + (1 : ℝ)) / (n : ℝ) := by
-        exact congrArg (fun y : ℝ => y / (n : ℝ)) (Nat.cast_add n 1)
+        exact congrArg (fun y : ℝ => y / (n : ℝ))
+          ((Nat.cast_add n 1).trans
+            (congrArg (fun y : ℝ => ((n : ℕ) : ℝ) + y) Nat.cast_one))
       _ = ((n : ℝ) / (n : ℝ)) + ((1 : ℝ) / (n : ℝ)) := by
         exact add_div (n : ℝ) (1 : ℝ) (n : ℝ)
       _ = (1 : ℝ) + ((1 : ℝ) / (n : ℝ)) := by
@@ -51,7 +66,9 @@ theorem boundaryGrowth_logarithmicStepRatio_antitone_nat
     calc
       (((m + 1 : ℕ) : ℝ) / (m : ℝ)) =
           (((m : ℕ) : ℝ) + (1 : ℝ)) / (m : ℝ) := by
-        exact congrArg (fun y : ℝ => y / (m : ℝ)) (Nat.cast_add m 1)
+        exact congrArg (fun y : ℝ => y / (m : ℝ))
+          ((Nat.cast_add m 1).trans
+            (congrArg (fun y : ℝ => ((m : ℕ) : ℝ) + y) Nat.cast_one))
       _ = ((m : ℝ) / (m : ℝ)) + ((1 : ℝ) / (m : ℝ)) := by
         exact add_div (m : ℝ) (1 : ℝ) (m : ℝ)
       _ = (1 : ℝ) + ((1 : ℝ) / (m : ℝ)) := by
@@ -136,7 +153,7 @@ theorem logarithmicPhase_integerIncrementMonotoneOn_of_logRatioMonotone_ownerGap
     le_total 0 t
   match hcases with
   | Or.inl ht_nonneg =>
-      exact Or.inr
+      exact Or.inl
         (fun m hm n hn hmn =>
           have hm_ge_a : a ≤ m :=
             (Finset.mem_Ico.mp hm).1
@@ -178,7 +195,7 @@ theorem logarithmicPhase_integerIncrementMonotoneOn_of_logRatioMonotone_ownerGap
               hn_increment.symm
               hscaled))
   | Or.inr ht_nonpos =>
-      exact Or.inl
+      exact Or.inr
         (fun m hm n hn hmn =>
           have hm_ge_a : a ≤ m :=
             (Finset.mem_Ico.mp hm).1
@@ -259,7 +276,8 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_vdcEndpoint_le_public80
     calc
       (((⌊x⌋₊ + 1 : ℕ) : ℝ) : ℝ) =
           ((⌊x⌋₊ : ℕ) : ℝ) + 1 := by
-        exact Nat.cast_add ⌊x⌋₊ 1
+        exact (Nat.cast_add ⌊x⌋₊ 1).trans
+          (congrArg (fun y : ℝ => ((⌊x⌋₊ : ℕ) : ℝ) + y) Nat.cast_one)
       _ ≤ x + 1 :=
         add_le_add_right hfloor_le_x 1
   have hone_div_le_one : (1 : ℝ) / T ≤ 1 := by
@@ -313,19 +331,34 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_vdcEndpoint_le_public80
   have hLfloor_nonneg : 0 ≤ Lfloor := by
     have hthree_le_arg : (3 : ℝ) ≤ 2 + ((⌊x⌋₊ : ℕ) : ℝ) := by
       have hfloor_one : (1 : ℝ) ≤ ((⌊x⌋₊ : ℕ) : ℝ) := by
+        have hcutoff_one_natCast :
+            (((1 : ℕ) : ℝ)) ≤ ((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) :=
+          Nat.cast_le.mpr
+            (Nat.succ_le_of_lt (boundaryLineOnePointRealParam_cutoff_pos t))
         have hcutoff_one : (1 : ℝ) ≤ ((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) :=
-          Nat.cast_le.mpr (Nat.succ_le_of_lt (Nat.floor_pos.mpr (lt_of_lt_of_le zero_lt_two
-            (le_add_of_nonneg_right (norm_nonneg t)))))
+          Eq.subst
+            (motive := fun left : ℝ =>
+              left ≤ ((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))
+            boundaryGrowth_natCast_one_eq_real_one
+            hcutoff_one_natCast
         have hx_one : (1 : ℝ) ≤ x :=
           le_trans hcutoff_one hx
-        exact Nat.cast_le.mpr ((Nat.le_floor_iff hx_nonneg).mpr hx_one)
+        have hfloor_one_nat : 1 ≤ ⌊x⌋₊ :=
+          (Nat.one_le_floor_iff x).mpr hx_one
+        have hfloor_one_natCast :
+            (((1 : ℕ) : ℝ)) ≤ ((⌊x⌋₊ : ℕ) : ℝ) :=
+          Nat.cast_le.mpr hfloor_one_nat
+        exact Eq.subst
+          (motive := fun left : ℝ => left ≤ ((⌊x⌋₊ : ℕ) : ℝ))
+          boundaryGrowth_natCast_one_eq_real_one
+          hfloor_one_natCast
       calc
         (3 : ℝ) = 2 + 1 := by
           exact boundaryGrowth_real_two_add_one_eq_three.symm
         _ ≤ 2 + ((⌊x⌋₊ : ℕ) : ℝ) :=
           add_le_add_left hfloor_one 2
     have hone_le_arg : (1 : ℝ) ≤ 2 + ((⌊x⌋₊ : ℕ) : ℝ) :=
-      le_trans (show (1 : ℝ) ≤ 3 from one_le_three) hthree_le_arg
+      le_trans boundaryGrowth_real_one_le_three hthree_le_arg
     exact Real.log_nonneg hone_le_arg
   have hmul_factor_log :
       ((((⌊x⌋₊ + 1 : ℕ) : ℝ) / T + S) * Lfloor) ≤
@@ -350,17 +383,55 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_vdcEndpoint_le_public80
     _ = 80 * ((x / T) + S) * Lx := by
       calc
         40 * ((2 * (x / T + S)) * Lx)
-            = (40 * 2) * ((x / T + S) * Lx) := by
-          exact Eq.trans
-            (mul_assoc 40 (2 * (x / T + S)) Lx).symm
-            (congrArg (fun y : ℝ => y * Lx)
-              (mul_assoc 40 2 (x / T + S)))
+            = 40 * (2 * ((x / T + S) * Lx)) := by
+          exact congrArg (fun y : ℝ => 40 * y)
+            (mul_assoc 2 (x / T + S) Lx)
+        _ = (40 * 2) * ((x / T + S) * Lx) := by
+          exact (mul_assoc 40 2 ((x / T + S) * Lx)).symm
         _ = 80 * ((x / T + S) * Lx) := by
           exact congrArg (fun y : ℝ => y * ((x / T + S) * Lx))
             boundaryGrowth_real_forty_mul_two_eq_eighty
         _ = 80 * (x / T + S) * Lx := by
-          exact mul_assoc 80 (x / T + S) Lx
+          exact (mul_assoc 80 (x / T + S) Lx).symm
     _ = 80 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := rfl
+
+theorem boundaryLineOnePointRealParam_logarithmicPhase_public80_le_public500
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {x : ℝ}
+    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
+    80 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) ≤
+      500 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
+  let B : ℝ := (x / ‖t‖) + Real.sqrt (1 + ‖t‖)
+  let L : ℝ := Real.log (2 + x)
+  have ht_nonneg : (0 : ℝ) ≤ ‖t‖ :=
+    norm_nonneg t
+  have hx_nonneg : (0 : ℝ) ≤ x := by
+    exact le_trans (Nat.cast_nonneg ⌊2 + ‖t‖⌋₊) hx
+  have hB_nonneg : 0 ≤ B := by
+    exact add_nonneg
+      (div_nonneg hx_nonneg ht_nonneg)
+      (Real.sqrt_nonneg (1 + ‖t‖))
+  have hL_nonneg : 0 ≤ L := by
+    have hone_le_arg : (1 : ℝ) ≤ 2 + x := by
+      calc
+        (1 : ℝ) ≤ 2 := by
+          exact one_le_two
+        _ ≤ 2 + x := by
+          exact le_add_of_nonneg_right hx_nonneg
+    exact Real.log_nonneg hone_le_arg
+  have hBL_nonneg : 0 ≤ B * L :=
+    mul_nonneg hB_nonneg hL_nonneg
+  have hconst : (80 : ℝ) ≤ 500 :=
+    Nat.cast_le.mpr (show (80 : ℕ) ≤ 500 from Nat.le_of_ble_eq_true rfl)
+  calc
+    80 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) =
+        80 * (B * L) := by
+      exact mul_assoc 80 B L
+    _ ≤ 500 * (B * L) := by
+      exact mul_le_mul_of_nonneg_right hconst hBL_nonneg
+    _ = 500 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
+      exact (mul_assoc 500 B L).symm
 
 /-- Endpoint-floor normalization from the proved VDC endpoint form to the
 public first-derivative partial-sum bound. -/
@@ -378,8 +449,11 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_of_vdc_end
     boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound t := by
   intro x hx
   exact le_trans
-    (hvdc hx)
-    (boundaryLineOnePointRealParam_logarithmicPhase_vdcEndpoint_le_public80
+    (le_trans
+      (hvdc hx)
+      (boundaryLineOnePointRealParam_logarithmicPhase_vdcEndpoint_le_public80
+        t ht hx))
+    (boundaryLineOnePointRealParam_logarithmicPhase_public80_le_public500
       t ht hx)
 
 /-- Conditional owner wrapper from the proved logarithmic-phase VDC estimate to
@@ -433,7 +507,9 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_exponent_add_o
         ((-1 : ℂ) + (-(t : ℂ) * Complex.I)) + (1 : ℂ) := by
       exact congrArg (fun z : ℂ => z + (1 : ℂ)) htail.symm
     _ = (-(t : ℂ) * Complex.I) + ((-1 : ℂ) + (1 : ℂ)) := by
-      exact add_right_comm (-1 : ℂ) (-(t : ℂ) * Complex.I) (1 : ℂ)
+      exact Eq.trans
+        (add_right_comm (-1 : ℂ) (-(t : ℂ) * Complex.I) (1 : ℂ))
+        (add_comm ((-1 : ℂ) + (1 : ℂ)) (-(t : ℂ) * Complex.I))
     _ = (-(t : ℂ) * Complex.I) + (0 : ℂ) := by
       exact congrArg (fun z : ℂ => (-(t : ℂ) * Complex.I) + z) (neg_add_cancel (1 : ℂ))
     _ = -(t : ℂ) * Complex.I := by
@@ -487,12 +563,43 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_exponent_ne_ne
       _ = 0 := by
         exact neg_zero
   have hnorm_zero : ‖t‖ = (0 : ℝ) :=
-    congrArg norm ht_zero
+    Eq.trans (congrArg norm ht_zero) (norm_zero : ‖(0 : ℝ)‖ = (0 : ℝ))
   have hzero_lt_one : (0 : ℝ) < 1 :=
     zero_lt_one
   have hnot : ¬ ((1 : ℝ) ≤ 0) :=
     not_le.mpr hzero_lt_one
   exact hnot (Eq.subst (motive := fun r : ℝ => (1 : ℝ) ≤ r) hnorm_zero ht)
+
+/-- The post-cutoff interval stays in the positive half-line. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_mem_interval_pos
+    (t : ℝ)
+    {M : ℕ}
+    (hM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    {x : ℝ}
+    (hx :
+      x ∈
+        Set.uIcc
+          (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))
+          (((M : ℕ) : ℝ))) :
+    0 < x := by
+  have hle :
+      (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ≤ (((M : ℕ) : ℝ)) :=
+    Nat.cast_le.mpr hM
+  have hinterval :
+      x ∈
+        Set.Icc
+          (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))
+          (((M : ℕ) : ℝ)) :=
+    (Set.uIcc_of_le hle) ▸ hx
+  have hleft_le_x :
+      (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ≤ x :=
+    hinterval.1
+  have hcutoff_pos_nat : 0 < ⌊2 + ‖t‖⌋₊ :=
+    boundaryLineOnePointRealParam_cutoff_pos t
+  have hcutoff_pos_real :
+      (0 : ℝ) < (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr hcutoff_pos_nat
+  exact lt_of_lt_of_le hcutoff_pos_real hleft_le_x
 
 /-- The positive post-cutoff interval avoids the origin. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_zero_not_mem_uIcc
@@ -500,7 +607,9 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_zero_not_mem_u
     {M : ℕ}
     (hM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     (0 : ℝ) ∉
-      [[(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)), (((M : ℕ) : ℝ))]] := by
+      (Set.uIcc
+        (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))
+        (((M : ℕ) : ℝ))) := by
   intro hzero_mem
   have hzero_pos :
       (0 : ℝ) < 0 :=
@@ -518,13 +627,13 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_intervalIntegr
         (((x : ℝ) : ℂ) ^ (-boundaryLineOnePointRealParam t))) =
       (((((M : ℕ) : ℝ) : ℂ) ^
             ((-boundaryLineOnePointRealParam t) + (1 : ℂ))) -
-          (((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ) ^
+          ((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ) ^
             ((-boundaryLineOnePointRealParam t) + (1 : ℂ)))) /
         ((-boundaryLineOnePointRealParam t) + (1 : ℂ)) := by
   exact
     integral_cpow
-      (a := (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))
-      (b := (((M : ℕ) : ℝ)))
+      (a := ((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))
+      (b := ((M : ℕ) : ℝ))
       (r := -boundaryLineOnePointRealParam t)
       (Or.inr
         ⟨boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_exponent_ne_neg_one
@@ -548,7 +657,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_intervalIntegr
           (((x : ℝ) : ℂ) ^ (-boundaryLineOnePointRealParam t))) =
         (((((M : ℕ) : ℝ) : ℂ) ^
               ((-boundaryLineOnePointRealParam t) + (1 : ℂ))) -
-            (((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ) ^
+            ((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ) ^
               ((-boundaryLineOnePointRealParam t) + (1 : ℂ)))) /
           ((-boundaryLineOnePointRealParam t) + (1 : ℂ)) :=
     boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_intervalIntegral_eq_rawCpowAntiderivative
@@ -789,37 +898,6 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_inverseSquareM
         exact (div_eq_mul_inv (1 + ‖t‖) (x ^ 2)).symm
   exact halg ▸ hneg
 
-/-- The post-cutoff interval stays in the positive half-line. -/
-theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_mem_interval_pos
-    (t : ℝ)
-    {M : ℕ}
-    (hM : ⌊2 + ‖t‖⌋₊ ≤ M)
-    {x : ℝ}
-    (hx :
-      x ∈
-        Set.uIcc
-          (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))
-          (((M : ℕ) : ℝ))) :
-    0 < x := by
-  have hle :
-      (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ≤ (((M : ℕ) : ℝ)) :=
-    Nat.cast_le.mpr hM
-  have hinterval :
-      x ∈
-        Set.Icc
-          (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))
-          (((M : ℕ) : ℝ)) :=
-    (Set.uIcc_of_le hle) ▸ hx
-  have hleft_le_x :
-      (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ≤ x :=
-    hinterval.1
-  have hcutoff_pos_nat : 0 < ⌊2 + ‖t‖⌋₊ :=
-    boundaryLineOnePointRealParam_cutoff_pos t
-  have hcutoff_pos_real :
-      (0 : ℝ) < (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) :=
-    Nat.cast_pos.mpr hcutoff_pos_nat
-  exact lt_of_lt_of_le hcutoff_pos_real hleft_le_x
-
 /-- Interval integrability of the inverse-square majorant on the positive
 post-cutoff interval. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_inverseSquareMajorant_intervalIntegrable
@@ -1033,7 +1111,14 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_one_le_of_mem_
       boundaryLineOnePointRealParam_cutoff_pos t
     have hone_le_nat : 1 ≤ ⌊2 + ‖t‖⌋₊ :=
       Nat.succ_le_of_lt hcutoff_pos_nat
-    exact Nat.cast_le.mpr hone_le_nat
+    have hone_le_natCast :
+        (((1 : ℕ) : ℝ)) ≤ (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) :=
+      Nat.cast_le.mpr hone_le_nat
+    exact Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤ (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)))
+      boundaryGrowth_natCast_one_eq_real_one
+      hone_le_natCast
   exact le_trans hcutoff_ge_one hcutoff_le_x
 
 /-- Positive real powers with exponent `-2` are inverse squares. -/
@@ -1100,9 +1185,9 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_bernoulliKerne
   have hpow_nonneg :
       0 ≤ x ^ (-(2 : ℝ)) :=
     Real.rpow_nonneg (le_of_lt hx_pos) (-(2 : ℝ))
-  have hparam_nonneg :
-      0 ≤ ‖boundaryLineOnePointRealParam t‖ :=
-    norm_nonneg (boundaryLineOnePointRealParam t)
+  have hparam_upper_nonneg :
+      0 ≤ (1 : ℝ) + ‖t‖ :=
+    add_nonneg zero_le_one (norm_nonneg t)
   have hinner_bound :
       ‖-boundaryLineOnePointRealParam t *
           (((x : ℝ) : ℂ) ^
@@ -1146,7 +1231,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_bernoulliKerne
         (norm_nonneg
           (((x : ℝ) : ℂ) ^
             (-(boundaryLineOnePointRealParam t + 1))))
-        hparam_nonneg
+        hparam_upper_nonneg
     exact Eq.subst
       (motive := fun r : ℝ =>
         r ≤ ((1 : ℝ) + ‖t‖) * x ^ (-(2 : ℝ)))
@@ -1368,7 +1453,7 @@ theorem boundaryLineOnePointRealParam_postCutoff_one_add_norm_le_cutoff
             exact eq_sub_iff_add_eq.mpr
               (one_add_one_eq_two : (1 : ℝ) + 1 = 2))
       _ = (2 + ‖t‖) - 1 := by
-        exact (sub_add_eq_add_sub 2 1 ‖t‖).symm
+        exact sub_add_eq_add_sub 2 1 ‖t‖
   exact (le_of_eq hone_add_eq).trans hsub_lt.le
 
 /-- Sharp real-variable cutoff estimate for the Bernoulli-remainder derivative
@@ -1515,18 +1600,43 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_norm_mul_cutof
       Real.log_le_log harg_pos harg_le
     exact le_trans hlog_lower_norm hlog_le
   have hfactor_ge_one :
-      (1 : ℝ) ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + M) :=
-    one_le_mul hsqrt_ge_one hlog_lower_M
+      (1 : ℝ) ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + M) := by
+    have hsqrt_nonneg : 0 ≤ Real.sqrt (1 + ‖t‖) :=
+      Real.sqrt_nonneg (1 + ‖t‖)
+    have hlog_nonneg : 0 ≤ Real.log (2 + M) :=
+      le_trans (show (0 : ℝ) ≤ 1 from zero_le_one) hlog_lower_M
+    have hone_mul_one_le :
+        (1 : ℝ) * 1 ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + M) :=
+      mul_le_mul
+        hsqrt_ge_one
+        hlog_lower_M
+        (show (0 : ℝ) ≤ 1 from zero_le_one)
+        hsqrt_nonneg
+    exact Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + M))
+      (one_mul (1 : ℝ))
+      hone_mul_one_le
   have hscale_ge_one :
       (1 : ℝ) ≤ 2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + M) := by
-    calc
-      (1 : ℝ) ≤ 2 * (Real.sqrt (1 + ‖t‖) * Real.log (2 + M)) :=
-        le_trans hfactor_ge_one
-          (mul_le_mul_of_nonneg_right
+    let B : ℝ := Real.sqrt (1 + ‖t‖) * Real.log (2 + M)
+    have hB_nonneg : 0 ≤ B :=
+      mul_nonneg
+        (Real.sqrt_nonneg (1 + ‖t‖))
+        (le_trans (show (0 : ℝ) ≤ 1 from zero_le_one) hlog_lower_M)
+    have hB_le_twoB : B ≤ 2 * B := by
+      calc
+        B = 1 * B := by
+          exact (one_mul B).symm
+        _ ≤ 2 * B := by
+          exact mul_le_mul_of_nonneg_right
             (show (1 : ℝ) ≤ 2 from one_le_two)
-            (mul_nonneg
-              (Real.sqrt_nonneg (1 + ‖t‖))
-              (le_trans (show (0 : ℝ) ≤ 1 from zero_le_one) hlog_lower_M)))
+            hB_nonneg
+    calc
+      (1 : ℝ) ≤ B :=
+        hfactor_ge_one
+      _ ≤ 2 * B :=
+        hB_le_twoB
       _ = 2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + M) :=
         (mul_assoc 2 (Real.sqrt (1 + ‖t‖)) (Real.log (2 + M))).symm
   exact le_trans
@@ -1535,5 +1645,6 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_norm_mul_cutof
     hscale_ge_one
 
 
+end
 end LFunctions
 end Boundary
