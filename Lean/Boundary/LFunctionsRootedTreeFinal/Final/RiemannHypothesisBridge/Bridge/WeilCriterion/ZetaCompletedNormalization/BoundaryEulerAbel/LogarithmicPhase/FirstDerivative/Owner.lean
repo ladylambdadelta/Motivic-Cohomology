@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.PartialSums.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.DyadicComparison
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.FirstDerivativeBlock
 
 /-!
@@ -32,6 +33,211 @@ def logarithmicPhaseFiniteDifferenceHypothesis : Prop :=
               (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
               (‖t‖ / ((b + 1 : ℕ) : ℝ))
 
+/-- Arithmetic normalization for scaling an `8`-constant estimate by `5/2`. -/
+theorem real_five_div_two_mul_eight_eq_twenty_for_boundaryEulerAbel_logPhase :
+    (5 / 2 : ℝ) * 8 = 20 := by
+  have hfive_mul_eight_nat : (5 * 8 : ℕ) = 40 :=
+    rfl
+  have htwenty_mul_two_nat : (20 * 2 : ℕ) = 40 :=
+    rfl
+  have hfive_mul_eight :
+      (5 : ℝ) * 8 = 40 :=
+    Eq.trans
+      (Nat.cast_mul 5 8).symm
+      (congrArg (fun n : ℕ => (n : ℝ)) hfive_mul_eight_nat)
+  have htwenty_mul_two :
+      (20 : ℝ) * 2 = 40 :=
+    Eq.trans
+      (Nat.cast_mul 20 2).symm
+      (congrArg (fun n : ℕ => (n : ℝ)) htwenty_mul_two_nat)
+  have hmul :
+      (5 : ℝ) * 8 = 20 * 2 :=
+    Eq.trans hfive_mul_eight htwenty_mul_two.symm
+  calc
+    (5 / 2 : ℝ) * 8 = (5 * 8 : ℝ) / 2 :=
+      div_mul_eq_mul_div 5 2 8
+    _ = 20 :=
+      div_eq_of_eq_mul (show (2 : ℝ) ≠ 0 from two_ne_zero) hmul
+
+/-- Arithmetic normalization for scaling a `16`-constant estimate by `5/2`. -/
+theorem real_five_div_two_mul_sixteen_eq_forty_for_boundaryEulerAbel_logPhase :
+    (5 / 2 : ℝ) * 16 = 40 := by
+  have hfive_mul_sixteen_nat : (5 * 16 : ℕ) = 80 :=
+    rfl
+  have hforty_mul_two_nat : (40 * 2 : ℕ) = 80 :=
+    rfl
+  have hfive_mul_sixteen :
+      (5 : ℝ) * 16 = 80 :=
+    Eq.trans
+      (Nat.cast_mul 5 16).symm
+      (congrArg (fun n : ℕ => (n : ℝ)) hfive_mul_sixteen_nat)
+  have hforty_mul_two :
+      (40 : ℝ) * 2 = 80 :=
+    Eq.trans
+      (Nat.cast_mul 40 2).symm
+      (congrArg (fun n : ℕ => (n : ℝ)) hforty_mul_two_nat)
+  have hmul :
+      (5 : ℝ) * 16 = 40 * 2 :=
+    Eq.trans hfive_mul_sixteen hforty_mul_two.symm
+  calc
+    (5 / 2 : ℝ) * 16 = (5 * 16 : ℝ) / 2 :=
+      div_mul_eq_mul_div 5 2 16
+    _ = 40 :=
+      div_eq_of_eq_mul (show (2 : ℝ) ≠ 0 from two_ne_zero) hmul
+
+/-- The dyadic-cover expression comparison with the `20` block constant. -/
+theorem logarithmicPhase_dyadic_cover_expression_twenty_le_standard
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (N : ℕ)
+    [Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
+    20 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) ≤
+      40 *
+        (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+          Real.log (2 + N) := by
+  have hbase :
+      8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) ≤
+        16 *
+          (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+            Real.log (2 + N) :=
+    Complex.logarithmicPhase_dyadic_cover_expression_le_standard t ht N
+  have hscale_nonneg : 0 ≤ (5 / 2 : ℝ) :=
+    div_nonneg (Nat.cast_nonneg 5) zero_lt_two.le
+  have hscaled :
+      (5 / 2 : ℝ) *
+          (8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1)) ≤
+        (5 / 2 : ℝ) *
+          (16 *
+            (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+              Real.log (2 + N)) :=
+    mul_le_mul_of_nonneg_left hbase hscale_nonneg
+  have hleft :
+      (5 / 2 : ℝ) *
+          (8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1)) =
+        20 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) := by
+    calc
+      (5 / 2 : ℝ) *
+          (8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1)) =
+          ((5 / 2 : ℝ) * 8) *
+            (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) :=
+        (mul_assoc (5 / 2 : ℝ) 8
+          (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1)).symm
+      _ = 20 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) :=
+        congrArg
+          (fun c : ℝ =>
+            c * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1))
+          real_five_div_two_mul_eight_eq_twenty_for_boundaryEulerAbel_logPhase
+  have hright :
+      (5 / 2 : ℝ) *
+          (16 *
+            (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+              Real.log (2 + N)) =
+        40 *
+          (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+            Real.log (2 + N) := by
+    calc
+      (5 / 2 : ℝ) *
+          (16 *
+            (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+              Real.log (2 + N)) =
+          ((5 / 2 : ℝ) * 16) *
+            (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+              Real.log (2 + N) := by
+        calc
+          (5 / 2 : ℝ) *
+              (16 *
+                (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+                  Real.log (2 + N)) =
+              ((5 / 2 : ℝ) *
+                (16 *
+                  (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) *
+                    Real.log (2 + N) :=
+            (mul_assoc (5 / 2 : ℝ)
+              (16 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))
+              (Real.log (2 + N))).symm
+          _ =
+              (((5 / 2 : ℝ) * 16) *
+                (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) *
+                  Real.log (2 + N) := by
+            exact congrArg
+              (fun r : ℝ => r * Real.log (2 + N))
+              ((mul_assoc (5 / 2 : ℝ) 16
+                (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))).symm)
+      _ =
+          40 *
+            (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+              Real.log (2 + N) :=
+        congrArg
+          (fun c : ℝ =>
+            c * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+              Real.log (2 + N))
+          real_five_div_two_mul_sixteen_eq_forty_for_boundaryEulerAbel_logPhase
+  exact Eq.subst
+    (motive := fun left : ℝ =>
+      left ≤
+        40 *
+          (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+            Real.log (2 + N))
+    hleft
+    (Eq.subst
+      (motive := fun right : ℝ =>
+        (5 / 2 : ℝ) *
+            (8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1)) ≤
+          right)
+      hright
+      hscaled)
+
+/-- Concrete dyadic first-derivative estimate for positive-index logarithmic
+phase sums. -/
+theorem logarithmicPhase_dyadic_firstDerivative_sum_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hfiniteDifference : logarithmicPhaseFiniteDifferenceHypothesis)
+    (N : ℕ)
+    [Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
+    ‖Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum t N‖ ≤
+      40 *
+        (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+          Real.log (2 + N) := by
+  let hblock :
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ {a b : ℕ},
+            1 ≤ a →
+              a ≤ b →
+                ‖∑ n ∈ Finset.Icc a b,
+                  ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+                  20 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + 1) :=
+    fun t ht {a} {b} ha hab =>
+      let hfd := hfiniteDifference t ht ha hab
+      Complex.logarithmicPhase_monotone_firstDerivative_block_bound
+        t ht ha hab hfd.1 hfd.2.1 hfd.2.2
+  have hsum_eq :
+      Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum t N =
+        ∑ n ∈ Finset.Icc 1 N,
+          ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
+    rfl
+  have hcover :
+      ‖∑ n ∈ Finset.Icc 1 N,
+        ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+          20 *
+            (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) :=
+    Complex.logarithmicPhase_dyadic_block_cover_bound hblock t ht N
+  have hcomparison :
+      20 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) ≤
+        40 *
+          (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+            Real.log (2 + N) :=
+    logarithmicPhase_dyadic_cover_expression_twenty_le_standard t ht N
+  exact Eq.subst
+    (motive := fun z : ℂ =>
+      ‖z‖ ≤
+        40 *
+          (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+            Real.log (2 + N))
+    hsum_eq.symm
+    (le_trans hcover hcomparison)
+
 /-- Honest owner theorem available from the classical logarithmic-phase lane:
 under the finite-difference/separation hypothesis, the positive-index
 logarithmic-phase sums satisfy the proved first-derivative bound with an
@@ -51,9 +257,23 @@ theorem logarithmicPhase_positiveIndex_firstDerivative_bound_of_finiteDifference
               A *
                 (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
                   Real.log (2 + N) := by
-  exact
-    Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_bound
-      hfiniteDifference
+  have hA_pos : 0 < (40 : ℝ) :=
+    Nat.cast_pos.mpr
+      (show (0 : ℕ) < 40 from Nat.succ_pos 39)
+  have hA_bound :
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ N : ℕ,
+            ‖Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum t N‖ ≤
+              (40 : ℝ) *
+                (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+                  Real.log (2 + N) :=
+    fun t ht N =>
+      letI : Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint) :=
+        Classical.propDecidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)
+      logarithmicPhase_dyadic_firstDerivative_sum_bound
+        t ht hfiniteDifference N
+  exact Exists.intro (40 : ℝ) (And.intro hA_pos hA_bound)
 
 /-- The logarithmic-phase exponent is nonzero when `1 ≤ ‖t‖`. -/
 theorem logarithmicPhase_complexExponent_ne_zero_of_one_le_norm
@@ -210,7 +430,7 @@ theorem logarithmicPhase_localPartialSum_firstDerivative_bound_40_of_finiteDiffe
         40 *
           (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
             Real.log (2 + N) :=
-    Complex.logarithmicPhase_dyadic_firstDerivative_sum_bound
+    logarithmicPhase_dyadic_firstDerivative_sum_bound
       t ht hfiniteDifference N
   have hsum_eq :
       boundaryLineOnePointRealParam_logarithmicPhasePartialSum t N =
@@ -234,19 +454,19 @@ theorem finiteFirstDerivativeTest_exp_sum_norm_le
     (hfiniteDifference : logarithmicPhaseFiniteDifferenceHypothesis)
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
-    (hphase_deriv :
+    (_hphase_deriv :
       ∀ {u : ℝ}, 0 < u →
         deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u =
           (((-(t : ℂ) * Complex.I) / (u : ℂ)) *
             boundaryLineOnePointRealParam_logarithmicPhaseFunction t u))
-    (hphase_deriv_norm :
+    (_hphase_deriv_norm :
       ∀ {u : ℝ}, 0 < u →
         ‖deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u‖ =
           ‖t‖ / u)
-    (hphase_deriv_antitone :
+    (_hphase_deriv_antitone :
       AntitoneOn (fun u : ℝ => ‖t‖ / u) (Set.Ioi 0))
     {x : ℝ}
-    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x)
+    (_hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x)
     [Decidable ((⌊x⌋₊ : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)] :
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       40 *
