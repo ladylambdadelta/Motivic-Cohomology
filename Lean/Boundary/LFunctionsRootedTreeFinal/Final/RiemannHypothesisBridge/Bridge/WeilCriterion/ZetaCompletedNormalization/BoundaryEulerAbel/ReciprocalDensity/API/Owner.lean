@@ -415,17 +415,17 @@ theorem boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant_le_log
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
     boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
-      36 * Real.log (2 + ‖t‖) := by
+      37 * Real.log (2 + ‖t‖) := by
   let L : ℝ := Real.log (2 + ‖t‖)
   have hlog_one : (1 : ℝ) ≤ L :=
     one_le_log_two_add_norm_of_one_le_norm ht
-  have hfour_le : (4 : ℝ) ≤ 4 * L := by
+  have hfive_le : (5 : ℝ) ≤ 5 * L := by
     calc
-        (4 : ℝ) = 4 * 1 := by
-          exact (mul_one 4).symm
-      _ ≤ 4 * L :=
+        (5 : ℝ) = 5 * 1 := by
+          exact (mul_one 5).symm
+      _ ≤ 5 * L :=
         mul_le_mul_of_nonneg_left hlog_one
-          (show (0 : ℝ) ≤ 4 by exact Nat.cast_nonneg 4)
+          (show (0 : ℝ) ≤ 5 by exact Nat.cast_nonneg 5)
   have hlog_three :
       Real.log (3 + ‖t‖) ≤ 2 * L :=
     reciprocalDensity_log_three_add_norm_le_two_mul_log_two_add_norm t
@@ -459,28 +459,28 @@ theorem boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant_le_log
             exact congrArg
               (fun c : ℝ => c * L)
               hsixteen_two
-  have hfour_thirtytwo : (4 : ℝ) + 32 = 36 := by
-    have hnat : (4 : ℕ) + 32 = 36 := by decide
+  have hfive_thirtytwo : (5 : ℝ) + 32 = 37 := by
+    have hnat : (5 : ℕ) + 32 = 37 := by decide
     have hcast :
-        (((4 : ℕ) + 32 : ℕ) : ℝ) = (36 : ℝ) :=
+        (((5 : ℕ) + 32 : ℕ) : ℝ) = (37 : ℝ) :=
       congrArg (fun n : ℕ => (n : ℝ)) hnat
-    exact Eq.trans (Nat.cast_add 4 32).symm hcast
+    exact Eq.trans (Nat.cast_add 5 32).symm hcast
   have hsum_eq :
-      4 * L + 32 * L = 36 * L := by
+      5 * L + 32 * L = 37 * L := by
     calc
-      4 * L + 32 * L = (4 + 32) * L :=
-        (add_mul 4 32 L).symm
-      _ = 36 * L :=
-        congrArg (fun c : ℝ => c * L) hfour_thirtytwo
+      5 * L + 32 * L = (5 + 32) * L :=
+        (add_mul 5 32 L).symm
+      _ = 37 * L :=
+        congrArg (fun c : ℝ => c * L) hfive_thirtytwo
   calc
     boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t =
-        4 + 16 * Real.log (3 + ‖t‖) := by
+        5 + 16 * Real.log (3 + ‖t‖) := by
       rfl
-    _ ≤ 4 * L + 32 * L :=
-      add_le_add hfour_le hsixteen
-    _ = 36 * L :=
+    _ ≤ 5 * L + 32 * L :=
+      add_le_add hfive_le hsixteen
+    _ = 37 * L :=
       hsum_eq
-    _ = 36 * Real.log (2 + ‖t‖) := by
+    _ = 37 * Real.log (2 + ‖t‖) := by
       rfl
 
 /-- Adjacent finite interval sums split over `Ioc` blocks. -/
@@ -535,7 +535,7 @@ theorem finite_sum_Ioc_eq_sub_left
           _ = (A + -A) + B := by
             exact (add_assoc A (-A) B).symm
           _ = 0 + B := by
-            exact congrArg (fun y : α => y + B) (add_right_neg A)
+            exact congrArg (fun y : α => y + B) (add_neg_cancel A)
           _ = B := by
             exact zero_add B
       exact hcancel.symm
@@ -656,7 +656,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
         ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailMajorant t N M := by
   match hM_cut_dec with
-  | Or.inl hMcut =>
+  | isTrue hMcut =>
     have hpre :
         ‖∑ n ∈ Finset.Ioc N M,
             ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
@@ -673,11 +673,11 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
             boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailMajorant t N M by
           exact (if_pos hMcut).symm)
         hpre
-  | Or.inr hMcut =>
+  | isFalse hMcut =>
     have hC_le_M : ⌊2 + ‖t‖⌋₊ ≤ M :=
       Nat.le_of_not_ge hMcut
     match hN_cut_dec with
-    | Or.inl hC_le_N =>
+    | isTrue hC_le_N =>
       have hpost :
           ‖∑ n ∈ Finset.Ioc N M,
               ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
@@ -696,7 +696,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
               boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailMajorant t N M by
             exact (if_pos hC_le_N).symm.trans (if_neg hMcut).symm)
           hpost
-    | Or.inr hC_le_N =>
+    | isFalse hC_le_N =>
       have hN_le_C : N ≤ ⌊2 + ‖t‖⌋₊ :=
         Nat.le_of_not_ge hC_le_N
       let C : ℕ := ⌊2 + ‖t‖⌋₊
