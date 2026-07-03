@@ -37,10 +37,15 @@ theorem finiteOrderPL_degreePolynomialScalarWidth_lt_one
     Nat.succ_pos N
   have hsucc_pos_real : 0 < ((N + 1 : ℕ) : ℝ) :=
     Nat.cast_pos.mpr hsucc_pos_nat
-  have hsucc_ge_one_nat : 1 ≤ N + 1 :=
+  have hsucc_ge_one_nat : (1 : ℕ) ≤ N + 1 :=
     Nat.succ_le_succ (Nat.zero_le N)
   have hsucc_ge_one_real : (1 : ℝ) ≤ ((N + 1 : ℕ) : ℝ) :=
-    Nat.cast_le.mpr hsucc_ge_one_nat
+    have hone_cast : (((1 : ℕ) : ℝ)) = (1 : ℝ) :=
+      Nat.cast_one
+    Eq.subst
+      (motive := fun T : ℝ => T ≤ ((N + 1 : ℕ) : ℝ))
+      hone_cast
+      (Nat.cast_le.mpr hsucc_ge_one_nat)
   have htwo_le_den :
       (2 : ℝ) ≤ 2 * ((N + 1 : ℕ) : ℝ) := by
     calc
@@ -146,7 +151,6 @@ needed for one tangent-width recursion step. -/
 theorem finiteOrderPL_sectorPowerWidth_step_margin_of_linear_bound
     {B : ℝ}
     (k : ℕ)
-    (hB_nonneg : 0 ≤ B)
     (hwidth :
       sectorPowerWidth B k ≤ 2 * (k : ℝ) * B)
     (hloss :
@@ -178,18 +182,11 @@ theorem finiteOrderPL_sectorPowerWidth_step_margin_of_linear_bound
         _ = 2 * (k : ℝ) * B + 2 * B :=
           add_mul (2 * (k : ℝ)) 2 B
         _ = 2 * (k : ℝ) * B + (B + B) := by
-          have htwo_B : 2 * B = B + B := by
-            calc
-              2 * B = (1 + 1) * B := by
-                rfl
-              _ = 1 * B + 1 * B := add_mul 1 1 B
-              _ = B + B :=
-                Eq.trans
-                  (congrArg (fun X : ℝ => X + 1 * B) (one_mul B))
-                  (congrArg (fun X : ℝ => B + X) (one_mul B))
+          have htwo_B : 2 * B = B + B :=
+            two_mul B
           exact congrArg (fun X : ℝ => 2 * (k : ℝ) * B + X) htwo_B
         _ = (2 * (k : ℝ) * B + B) + B :=
-          add_assoc (2 * (k : ℝ) * B) B B
+          (add_assoc (2 * (k : ℝ) * B) B B).symm
     have hsub_eq :
         L - B = 2 * (k : ℝ) * B + B := by
       calc
@@ -274,7 +271,7 @@ theorem finiteOrderPL_sectorPowerWidth_step_margin_of_linear_bound_and_loss
       (2 * ((k + 1 : ℕ) : ℝ) * B) *
         (1 - sectorPowerWidth B k * B) :=
   finiteOrderPL_sectorPowerWidth_step_margin_of_linear_bound
-    k hB_nonneg hwidth
+    k hwidth
     (finiteOrderPL_sectorPowerWidth_loss_of_linear_bound
       k hB_nonneg hwidth hloss_scalar)
 
@@ -369,17 +366,20 @@ theorem finiteOrderPL_sectorPowerWidth_fixed_linear_package
     | zero =>
         intro _hn
         have hwidth0 :
-            sectorPowerWidth B 0 ≤ 2 * (0 : ℝ) * B := by
+            sectorPowerWidth B 0 ≤ 2 * ((0 : ℕ) : ℝ) * B := by
           have hleft : sectorPowerWidth B 0 = 0 :=
             sectorPowerWidth_zero B
-          have hright : 2 * (0 : ℝ) * B = 0 := by
+          have hright : 2 * ((0 : ℕ) : ℝ) * B = 0 := by
             calc
-              2 * (0 : ℝ) * B = 0 * B := by
-                rfl
+              2 * ((0 : ℕ) : ℝ) * B = 2 * (0 : ℝ) * B := by
+                exact congrArg (fun X : ℝ => 2 * X * B) (Nat.cast_zero)
+              _ = (2 * (0 : ℝ)) * B := rfl
+              _ = 0 * B := by
+                exact congrArg (fun X : ℝ => X * B) (mul_zero 2)
               _ = 0 := zero_mul B
           exact
             Eq.subst
-              (motive := fun T : ℝ => T ≤ 2 * (0 : ℝ) * B)
+              (motive := fun T : ℝ => T ≤ 2 * ((0 : ℕ) : ℝ) * B)
               hleft
               (Eq.subst
                 (motive := fun T : ℝ => 0 ≤ T)
@@ -393,11 +393,20 @@ theorem finiteOrderPL_sectorPowerWidth_fixed_linear_package
             (le_of_eq rfl)
         exact
           ⟨fun k hk =>
-              match Nat.eq_zero_of_le_zero hk with
-              | rfl => hwidth0,
+              have heq : k = 0 :=
+                Nat.eq_zero_of_le_zero hk
+              Eq.subst
+                (motive := fun T : ℕ =>
+                  sectorPowerWidth B T ≤ 2 * (T : ℝ) * B)
+                heq.symm
+                hwidth0,
             fun k hk =>
-              match Nat.eq_zero_of_le_zero hk with
-              | rfl => hnonneg0,
+              have heq : k = 0 :=
+                Nat.eq_zero_of_le_zero hk
+              Eq.subst
+                (motive := fun T : ℕ => 0 ≤ sectorPowerWidth B T)
+                heq.symm
+                hnonneg0,
             fun k hk => False.elim (Nat.not_lt_zero k hk)⟩
     | succ n ih =>
         intro hsucc_le_N
@@ -450,7 +459,7 @@ theorem finiteOrderPL_sectorPowerWidth_fixed_linear_package
               | Or.inl heq =>
                   Eq.subst
                     (motive := fun T : ℕ =>
-                      sectorPowerWidth B k ≤ 2 * (T : ℝ) * B)
+                      sectorPowerWidth B T ≤ 2 * (T : ℝ) * B)
                     heq.symm
                     hsucc_width
               | Or.inr hlt =>
@@ -460,7 +469,7 @@ theorem finiteOrderPL_sectorPowerWidth_fixed_linear_package
               | Or.inl heq =>
                   Eq.subst
                     (motive := fun T : ℕ => 0 ≤ sectorPowerWidth B T)
-                    heq
+                    heq.symm
                     hsucc_nonneg
               | Or.inr hlt =>
                   hprev.2.1 k (Nat.le_of_lt_succ hlt),
@@ -469,10 +478,10 @@ theorem finiteOrderPL_sectorPowerWidth_fixed_linear_package
               | Or.inl heq =>
                   Eq.subst
                     (motive := fun T : ℕ => sectorPowerWidth B T * B < 1)
-                    heq
+                    heq.symm
                     hn_subcritical
               | Or.inr hlt =>
-          hprev.2.2 k hlt⟩
+                  hprev.2.2 k hlt⟩
   exact hstep N le_rfl
 
 /-- The accumulated real-part constant for the fixed degree-polynomial scalar
@@ -596,9 +605,9 @@ theorem verticalStripUpperTailDegreePolynomialKernel_dominates_boundary_envelope
   have hc_inv_nonneg : 0 ≤ c⁻¹ :=
     inv_nonneg.mpr (le_of_lt hc_pos)
   have hheight :
-      (1 + ‖z.im‖) ^ m ≤ W.re ^ m :=
+    (1 + ‖z.im‖) ^ m ≤ W.re ^ m :=
     verticalStripUpperTailDegreePolynomialBase_one_add_im_norm_pow_le_re_pow
-      a b m hz_im
+      a b m m hz_im
   have hkernel_lower :
       c * W.re ^ m ≤
         (verticalStripUpperTailDegreePolynomialKernel a b m z).re :=
@@ -652,6 +661,152 @@ theorem verticalStripUpperTailDegreePolynomialKernel_dominates_boundary_envelope
         hright
         hkernel_scaled)
 
+/-- A positive exponential times a sufficiently strong negative exponential is
+bounded by one, in the form needed by the early boundary normalizer lemmas. -/
+theorem finiteOrderPL_real_exp_mul_exp_neg_le_one_of_le
+    {X Y : ℝ}
+    (hXY : X ≤ Y) :
+    Real.exp X * Real.exp (-Y) ≤ 1 := by
+  have hsum_nonpos : X + -Y ≤ 0 := by
+    calc
+      X + -Y ≤ Y + -Y := add_le_add_right hXY (-Y)
+      _ = 0 := add_neg_cancel Y
+  have hprod_eq :
+      Real.exp X * Real.exp (-Y) = Real.exp (X + -Y) :=
+    (Real.exp_add X (-Y)).symm
+  exact
+    Eq.subst
+      (motive := fun T : ℝ => T ≤ 1)
+      hprod_eq.symm
+      (Real.exp_le_one_iff.mpr hsum_nonpos)
+
+/-- Early owner lemma: boundary finite-order control plus real-part dominance of
+the degree normalizer gives unit boundary control. -/
+theorem finiteOrderPL_degreePolynomialBoundary_norm_le_one_of_re_dominates
+    (f : ℂ → ℂ)
+    (a b A B C : ℝ)
+    (m N : ℕ)
+    (z : ℂ)
+    (hA : 0 < A)
+    (hboundary :
+      ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z.im‖) ^ m))
+    (hdominates :
+      B * (1 + ‖z.im‖) ^ m ≤
+        C * (verticalStripUpperTailDegreePolynomialKernel a b N z).re) :
+    ‖verticalStripUpperTailDegreePolynomialBoundedFactor f a b A C N z‖ ≤ 1 := by
+  let X : ℝ := B * (1 + ‖z.im‖) ^ m
+  let Y : ℝ :=
+    C * (verticalStripUpperTailDegreePolynomialKernel a b N z).re
+  have hnorm_eq :
+      ‖verticalStripUpperTailDegreePolynomialBoundedFactor f a b A C N z‖ =
+        ‖A⁻¹‖ * (‖f z‖ * Real.exp (-Y)) :=
+    verticalStripUpperTailDegreePolynomialBoundedFactor_norm_eq f a b A C N z
+  have hAinv_nonneg : 0 ≤ A⁻¹ :=
+    inv_nonneg.mpr (le_of_lt hA)
+  have hAinv_norm : ‖A⁻¹‖ = A⁻¹ :=
+    Real.norm_of_nonneg hAinv_nonneg
+  have hunit_real :
+      A⁻¹ * Real.exp (-Y) * ‖f z‖ ≤ 1 := by
+    have hboundaryY :
+        ‖f z‖ * Real.exp (-Y) ≤
+          (A * Real.exp X) * Real.exp (-Y) :=
+      mul_le_mul_of_nonneg_right hboundary
+        (le_of_lt (Real.exp_pos (-Y)))
+    have hcollapse :
+        (A * Real.exp X) * Real.exp (-Y) ≤ A := by
+      have hmul :
+          Real.exp X * Real.exp (-Y) ≤ 1 :=
+        finiteOrderPL_real_exp_mul_exp_neg_le_one_of_le hdominates
+      have hnonneg_A : 0 ≤ A :=
+        le_of_lt hA
+      have hassoc :
+          (A * Real.exp X) * Real.exp (-Y) =
+            A * (Real.exp X * Real.exp (-Y)) :=
+        mul_assoc A (Real.exp X) (Real.exp (-Y))
+      calc
+        (A * Real.exp X) * Real.exp (-Y) =
+            A * (Real.exp X * Real.exp (-Y)) := hassoc
+        _ ≤ A * 1 := mul_le_mul_of_nonneg_left hmul hnonneg_A
+        _ = A := mul_one A
+    have hscaled :
+        A⁻¹ * (‖f z‖ * Real.exp (-Y)) ≤ A⁻¹ * A :=
+      mul_le_mul_of_nonneg_left (le_trans hboundaryY hcollapse) hAinv_nonneg
+    have hleft :
+        A⁻¹ * (‖f z‖ * Real.exp (-Y)) =
+          A⁻¹ * Real.exp (-Y) * ‖f z‖ := by
+      calc
+        A⁻¹ * (‖f z‖ * Real.exp (-Y)) =
+            A⁻¹ * (Real.exp (-Y) * ‖f z‖) :=
+          congrArg (fun t : ℝ => A⁻¹ * t)
+            (mul_comm ‖f z‖ (Real.exp (-Y)))
+        _ = A⁻¹ * Real.exp (-Y) * ‖f z‖ :=
+          (mul_assoc A⁻¹ (Real.exp (-Y)) ‖f z‖).symm
+    have hright : A⁻¹ * A = 1 :=
+      inv_mul_cancel₀ hA.ne'
+    exact Eq.subst
+      (motive := fun lhs : ℝ => lhs ≤ 1)
+      hleft
+      (Eq.subst
+        (motive := fun rhs : ℝ =>
+          A⁻¹ * (‖f z‖ * Real.exp (-Y)) ≤ rhs)
+        hright
+        hscaled)
+  have hnorm_real :
+      ‖verticalStripUpperTailDegreePolynomialBoundedFactor f a b A C N z‖ =
+        A⁻¹ * Real.exp (-Y) * ‖f z‖ := by
+    have hrewrite :
+        ‖A⁻¹‖ * (‖f z‖ * Real.exp (-Y)) =
+          A⁻¹ * Real.exp (-Y) * ‖f z‖ := by
+      calc
+        ‖A⁻¹‖ * (‖f z‖ * Real.exp (-Y)) =
+            A⁻¹ * (‖f z‖ * Real.exp (-Y)) :=
+          congrArg (fun t : ℝ => t * (‖f z‖ * Real.exp (-Y)))
+            hAinv_norm
+        _ = A⁻¹ * (Real.exp (-Y) * ‖f z‖) :=
+          congrArg (fun t : ℝ => A⁻¹ * t)
+            (mul_comm ‖f z‖ (Real.exp (-Y)))
+        _ = A⁻¹ * Real.exp (-Y) * ‖f z‖ :=
+          (mul_assoc A⁻¹ (Real.exp (-Y)) ‖f z‖).symm
+    exact Eq.trans hnorm_eq hrewrite
+  exact
+    Eq.subst
+      (motive := fun T : ℝ => T ≤ 1)
+      hnorm_real.symm
+      hunit_real
+
+/-- Early mixed boundary lemma: cosine damping can only reduce the boundary
+norm on the closed strip. -/
+theorem finiteOrderPL_subcriticalCosineDegreePolynomialBoundary_norm_le_one_of_re_dominates
+    (f : ℂ → ℂ)
+    (a b d A B C ε : ℝ)
+    (m N : ℕ)
+    (z : ℂ)
+    (hab : a < b)
+    (hd_pos : 0 < d)
+    (hd_threshold : d < π / (b - a))
+    (hε : 0 ≤ ε)
+    (hza : a ≤ z.re)
+    (hzb : z.re ≤ b)
+    (hA : 0 < A)
+    (hboundary :
+      ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z.im‖) ^ m))
+    (hdominates :
+      B * (1 + ‖z.im‖) ^ m ≤
+        C * (verticalStripUpperTailDegreePolynomialKernel a b N z).re) :
+    ‖verticalStripSubcriticalCosineDegreePolynomialBoundedFactor
+        f a b d A C ε N z‖ ≤ 1 := by
+  have hdamped_boundary :
+      ‖verticalStripSubcriticalCosineDampedFamily f a b d ε z‖ ≤
+        A * Real.exp (B * (1 + ‖z.im‖) ^ m) :=
+    le_trans
+      (verticalStripSubcriticalCosineDampedFamily_norm_le_original_on_closedStrip
+        f hab hd_pos hd_threshold hε z hza hzb)
+      hboundary
+  exact
+    finiteOrderPL_degreePolynomialBoundary_norm_le_one_of_re_dominates
+      (verticalStripSubcriticalCosineDampedFamily f a b d ε)
+      a b A B C m N z hA hdamped_boundary hdominates
+
 /-- Boundary finite-order control gives unit control of the degree-polynomial
 bounded normalized factor on the closed upper tail. -/
 theorem verticalStripUpperTailDegreePolynomialBoundedFactor_boundary_norm_le_one_on_upperTail
@@ -681,7 +836,7 @@ theorem verticalStripUpperTailDegreePolynomialBoundedFactor_boundary_norm_le_one
     verticalStripUpperTailDegreePolynomialKernel_dominates_boundary_envelope
       a b B₀ m hza hzb hz_im hB₀_nonneg
   exact
-    verticalStripUpperTailDegreePolynomialBoundedFactor_boundary_norm_le_one_of_re_dominates
+    finiteOrderPL_degreePolynomialBoundary_norm_le_one_of_re_dominates
       f a b A₀ B₀ (B₀ * c⁻¹) m m z hA₀ hboundary hdominates
 
 /-- The mixed cosine/degree-polynomial bounded factor has unit control on the
@@ -735,7 +890,7 @@ theorem verticalStripSubcriticalCosineDegreePolynomialBoundedFactor_vertical_bou
         ‖f z‖ ≤ A₀ * Real.exp (B₀ * (1 + ‖z.im‖) ^ m) :=
       hleft z hz_re (upperTail_im_norm_ge_one z hz_im)
     exact
-      verticalStripSubcriticalCosineDegreePolynomialBoundedFactor_boundary_norm_le_one_of_re_dominates
+      finiteOrderPL_subcriticalCosineDegreePolynomialBoundary_norm_le_one_of_re_dominates
         f a b d A₀ B₀ (B₀ * c⁻¹) ε m m z
         hab hd_pos hd_threshold hε_nonneg hza hzb hA₀ hboundary
         (verticalStripUpperTailDegreePolynomialKernel_dominates_boundary_envelope
@@ -749,7 +904,7 @@ theorem verticalStripSubcriticalCosineDegreePolynomialBoundedFactor_vertical_bou
         ‖f z‖ ≤ A₀ * Real.exp (B₀ * (1 + ‖z.im‖) ^ m) :=
       hright z hz_re (upperTail_im_norm_ge_one z hz_im)
     exact
-      verticalStripSubcriticalCosineDegreePolynomialBoundedFactor_boundary_norm_le_one_of_re_dominates
+      finiteOrderPL_subcriticalCosineDegreePolynomialBoundary_norm_le_one_of_re_dominates
         f a b d A₀ B₀ (B₀ * c⁻¹) ε m m z
         hab hd_pos hd_threshold hε_nonneg hza hzb hA₀ hboundary
         (verticalStripUpperTailDegreePolynomialKernel_dominates_boundary_envelope
@@ -877,6 +1032,44 @@ theorem verticalStripUpperTailDegreePolynomial_exp_le_one_on_upperTail
     neg_nonpos.mpr hprod_nonneg
   exact Real.exp_le_one_iff.mpr hneg_nonpos
 
+/-- Transport the named top-edge pre-absorption bound from a point height to
+the rectangular top-edge height. -/
+theorem verticalStripSubcriticalCosineTopEdgePreAbsorptionBound_eq_at_height
+    (a b c d D ε K y R : ℝ)
+    (hyR : y = R) :
+    verticalStripSubcriticalCosineTopEdgePreAbsorptionBound
+        a b c d D ε K y =
+      K * Real.exp (D * Real.exp (c * R)) *
+        Real.exp
+          (-(ε * (Real.cos (d * ((b - a) / 2)) / 2) *
+            Real.exp (d * R))) := by
+  let L : ℝ := Real.cos (d * ((b - a) / 2)) / 2
+  have hmul_assoc_y :
+      ε * (L * Real.exp (d * y)) =
+        ε * L * Real.exp (d * y) :=
+    (mul_assoc ε L (Real.exp (d * y))).symm
+  calc
+    verticalStripSubcriticalCosineTopEdgePreAbsorptionBound
+        a b c d D ε K y =
+      (K * Real.exp (D * Real.exp (c * y))) *
+        Real.exp (-(ε * (L * Real.exp (d * y)))) := by
+      rfl
+    _ =
+      (K * Real.exp (D * Real.exp (c * y))) *
+        Real.exp (-(ε * L * Real.exp (d * y))) := by
+      exact congrArg
+        (fun x : ℝ =>
+          (K * Real.exp (D * Real.exp (c * y))) * Real.exp (-x))
+        hmul_assoc_y
+    _ =
+      K * Real.exp (D * Real.exp (c * R)) *
+        Real.exp (-(ε * L * Real.exp (d * R))) := by
+      exact congrArg₂
+        (fun x z : ℝ =>
+          K * Real.exp (D * Real.exp (c * x)) *
+            Real.exp (-(ε * L * Real.exp (d * z))))
+        hyR hyR
+
 /-- Eventual top-edge constant control for the mixed normalized factor. -/
 theorem verticalStripSubcriticalCosineDegreePolynomialBoundedFactor_eventually_topEdge_bound
     (f : ℂ → ℂ)
@@ -1001,8 +1194,7 @@ theorem verticalStripSubcriticalCosineDegreePolynomialBoundedFactor_eventually_t
                           (le_of_lt (Real.exp_pos
                             (-(Cpoly *
                               (verticalStripUpperTailDegreePolynomialKernel a b m z).re))))
-                          (norm_nonneg
-                            (verticalStripSubcriticalCosineDampedFamily f a b d ε z))
+                          (le_of_lt hK_pos)
                       have hscaled :
                           ‖A₀⁻¹‖ *
                               (‖verticalStripSubcriticalCosineDampedFamily f a b d ε z‖ *
@@ -1028,7 +1220,7 @@ theorem verticalStripSubcriticalCosineDegreePolynomialBoundedFactor_eventually_t
                         hscaleK_le
                   | Or.inr hzb_eq =>
                       le_trans
-                        (hboundary.2 z hzb_eq.symm hz_im_ge)
+                        (hboundary.2 z hzb_eq hz_im_ge)
                         hone_le_Ctop
               | Or.inr hza_eq =>
                   le_trans
@@ -1399,52 +1591,26 @@ theorem verticalStripSubcriticalCosineDegreePolynomialBoundedFactor_uniform_uppe
                                   (fun y : ℝ =>
                                     K * Real.exp (D * Real.exp (c * y)))
                                   hz_im.symm
-                              Eq.subst
+                              exact Eq.subst
                                 (motive := fun x : ℝ => ‖f z‖ ≤ x)
                                 hrhs
                                 hraw
                             have hpre :
                                 ‖verticalStripSubcriticalCosineDampedFamily
                                     f a b d ε z‖ ≤
-                                  (K * Real.exp (D * Real.exp (c * z.im))) *
-                                    Real.exp
-                                      (-(ε *
-                                          (Real.cos (d * ((b - a) / 2)) / 2) *
-                                        Real.exp (d * z.im))) :=
+                                  verticalStripSubcriticalCosineTopEdgePreAbsorptionBound
+                                    a b c d D ε K z.im :=
                               verticalStripSubcriticalCosineDampedFamily_topEdge_preAbsorption
                                 f hab hd_pos hd_threshold (le_of_lt hε_pos)
                                 (le_of_lt hza_strict) (le_of_lt hzb_strict) hf
                             have htarget :
-                                (K * Real.exp (D * Real.exp (c * z.im))) *
-                                    Real.exp
-                                      (-(ε *
-                                          (Real.cos (d * ((b - a) / 2)) / 2) *
-                                        Real.exp (d * z.im))) =
+                                verticalStripSubcriticalCosineTopEdgePreAbsorptionBound
+                                    a b c d D ε K z.im =
                                   K * Real.exp (D * Real.exp (c * R)) *
                                     Real.exp (-(ε * L * Real.exp (d * R))) := by
-                              calc
-                                (K * Real.exp (D * Real.exp (c * z.im))) *
-                                    Real.exp
-                                      (-(ε *
-                                          (Real.cos (d * ((b - a) / 2)) / 2) *
-                                        Real.exp (d * z.im))) =
-                                  K * Real.exp (D * Real.exp (c * R)) *
-                                    Real.exp
-                                      (-(ε *
-                                          (Real.cos (d * ((b - a) / 2)) / 2) *
-                                        Real.exp (d * R))) := by
-                                    exact congrArg₂
-                                      (fun x y : ℝ =>
-                                        K * Real.exp (D * Real.exp (c * x)) *
-                                          Real.exp
-                                            (-(ε *
-                                                (Real.cos
-                                                    (d * ((b - a) / 2)) / 2) *
-                                              Real.exp (d * y))))
-                                      hz_im hz_im
-                                _ =
-                                  K * Real.exp (D * Real.exp (c * R)) *
-                                    Real.exp (-(ε * L * Real.exp (d * R))) := rfl
+                              exact
+                                verticalStripSubcriticalCosineTopEdgePreAbsorptionBound_eq_at_height
+                                  a b c d D ε K z.im R hz_im
                             have hdamped :
                                 ‖verticalStripSubcriticalCosineDampedFamily
                                     f a b d ε z‖ ≤ K :=
@@ -1488,9 +1654,7 @@ theorem verticalStripSubcriticalCosineDegreePolynomialBoundedFactor_uniform_uppe
                                     (-(Cpoly *
                                       (verticalStripUpperTailDegreePolynomialKernel
                                         a b m z).re))))
-                                (norm_nonneg
-                                  (verticalStripSubcriticalCosineDampedFamily
-                                    f a b d ε z))
+                                (le_of_lt hK_pos)
                             have hscaled :
                                 ‖A₀⁻¹‖ *
                                     (‖verticalStripSubcriticalCosineDampedFamily
@@ -1520,7 +1684,7 @@ theorem verticalStripSubcriticalCosineDegreePolynomialBoundedFactor_uniform_uppe
                               hscaleK_le
                         | Or.inr hzb_eq =>
                             le_trans
-                              (hboundary.2 z hzb_eq.symm hz_im_ge)
+                              (hboundary.2 z hzb_eq hz_im_ge)
                               hone_le_Cbound
                     | Or.inr hza_eq =>
                         le_trans
@@ -1670,7 +1834,7 @@ theorem verticalStripUpperTailDegreePolynomialBoundedFactor_undamps_to_finiteEnv
         _ = ‖A⁻¹‖ * (‖f z‖ * Real.exp (-X)) :=
           congrArg (fun y : ℝ => y * (‖f z‖ * Real.exp (-X)))
             hAinv_norm.symm
-    Eq.subst
+    exact Eq.subst
       (motive := fun T : ℝ => T ≤ M)
       hrewrite.symm
       (Eq.subst
@@ -1704,9 +1868,9 @@ theorem verticalStripUpperTailDegreePolynomialBoundedFactor_undamps_to_finiteEnv
       mul_le_mul_of_nonneg_left hunit_real hM_inv_nonneg
     have hright : M⁻¹ * M = 1 :=
       inv_mul_cancel₀ hM.ne'
-    Eq.subst
+    exact Eq.subst
       (motive := fun T : ℝ => T ≤ 1)
-      hcollapse
+      hcollapse.symm
       (Eq.subst
         (motive := fun T : ℝ =>
           M⁻¹ * (A⁻¹ * Real.exp (-X) * ‖f z‖) ≤ T)
@@ -2125,7 +2289,7 @@ theorem verticalStripUpperTailDegreePolynomialBoundedFactor_boundary_norm_le_one
           (mul_assoc A⁻¹ (Real.exp (-Y)) ‖f z‖).symm
     have hright : A⁻¹ * A = 1 :=
       inv_mul_cancel₀ hA.ne'
-    Eq.subst
+    exact Eq.subst
       (motive := fun lhs : ℝ => lhs ≤ 1)
       hleft
       (Eq.subst
@@ -2149,7 +2313,7 @@ theorem verticalStripUpperTailDegreePolynomialBoundedFactor_boundary_norm_le_one
             (mul_comm ‖f z‖ (Real.exp (-Y)))
         _ = A⁻¹ * Real.exp (-Y) * ‖f z‖ :=
           (mul_assoc A⁻¹ (Real.exp (-Y)) ‖f z‖).symm
-    Eq.trans hnorm_eq hrewrite
+    exact Eq.trans hnorm_eq hrewrite
   exact
     Eq.subst
       (motive := fun T : ℝ => T ≤ 1)
@@ -2273,7 +2437,7 @@ theorem verticalStripUpperTailPolynomialBoundedFactor_undamps_to_finiteEnvelope
         _ = ‖A⁻¹‖ * (‖f z‖ * Real.exp (-X)) :=
           congrArg (fun y : ℝ => y * (‖f z‖ * Real.exp (-X)))
             hAinv_norm.symm
-    Eq.subst
+    exact Eq.subst
       (motive := fun T : ℝ => T ≤ 1)
       hrewrite.symm
       (Eq.subst
@@ -2332,7 +2496,7 @@ theorem verticalStripUpperTailDegreePolynomialBoundedFactor_undamps_to_finiteEnv
         _ = ‖A⁻¹‖ * (‖f z‖ * Real.exp (-X)) :=
           congrArg (fun y : ℝ => y * (‖f z‖ * Real.exp (-X)))
             hAinv_norm.symm
-    Eq.subst
+    exact Eq.subst
       (motive := fun T : ℝ => T ≤ 1)
       hrewrite.symm
       (Eq.subst
