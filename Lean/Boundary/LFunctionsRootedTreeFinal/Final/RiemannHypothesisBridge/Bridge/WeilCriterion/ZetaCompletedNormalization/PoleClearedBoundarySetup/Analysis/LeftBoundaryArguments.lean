@@ -224,7 +224,7 @@ theorem half_norm_ge_one_half_of_one_le_norm
   exact Eq.subst
     (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x)
     hnorm_div.symm
-    ((div_le_div_right htwo_pos).mpr ht)
+    ((div_le_div_iff_of_pos_right htwo_pos).mpr ht)
 
 /-- Negating the half-scaled vertical coordinate preserves the half-tail bound. -/
 theorem neg_half_norm_ge_one_half_of_one_le_norm
