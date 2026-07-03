@@ -9,6 +9,22 @@ open Filter
 open scoped Filter Topology
 local notation "π" => Real.pi
 
+/-- On the upper tail, the imaginary part bound implies the corresponding
+absolute-value bound used by vertical-side hypotheses. -/
+theorem compactHeight_upperTail_im_norm_ge_one
+    (z : ℂ)
+    (hz_im : 1 ≤ z.im) :
+    1 ≤ ‖z.im‖ := by
+  have him_nonneg : 0 ≤ z.im :=
+    le_trans zero_le_one hz_im
+  have him_norm : ‖z.im‖ = z.im :=
+    Real.norm_of_nonneg him_nonneg
+  exact
+    Eq.subst
+      (motive := fun y : ℝ => 1 ≤ y)
+      him_norm.symm
+      hz_im
+
 /-- The compact-height strip rectangle is closed. -/
 theorem verticalStripCompactHeightRectangle_isClosed
     (a b : ℝ) :
@@ -625,7 +641,8 @@ theorem verticalStripSubcriticalCosineDampedFamily_upperHalfStrip_bound
             ‖verticalStripSubcriticalCosineDampedFamily f a b d ε z‖ ≤ C :=
         fun z hz_re hz_im =>
           le_trans
-            (hleft_side z hz_re (upperTail_im_norm_ge_one z hz_im))
+            (hleft_side z hz_re
+              (compactHeight_upperTail_im_norm_ge_one z hz_im))
             hCside_le
       have hright_C :
           ∀ z : ℂ,
@@ -634,7 +651,8 @@ theorem verticalStripSubcriticalCosineDampedFamily_upperHalfStrip_bound
             ‖verticalStripSubcriticalCosineDampedFamily f a b d ε z‖ ≤ C :=
         fun z hz_re hz_im =>
           le_trans
-            (hright_side z hz_re (upperTail_im_norm_ge_one z hz_im))
+            (hright_side z hz_re
+              (compactHeight_upperTail_im_norm_ge_one z hz_im))
             hCside_le
       have htop_C :
           ∀ᶠ R : ℝ in Filter.atTop,
@@ -810,7 +828,7 @@ theorem verticalStripCosineDampedFamily_compact_boundary_bound_ownerGap
     (f : ℂ → ℂ)
     (a b ε : ℝ)
     (hab : a < b)
-    (hε : 0 < ε)
+    (_hε : 0 < ε)
     (hhol : DiffContOnCl ℂ f (Complex.re ⁻¹' Set.Ioo a b)) :
     ∃ C : ℝ,
       0 < C ∧
@@ -1008,7 +1026,7 @@ theorem verticalStripSubcriticalCosineDampedFamily_finiteOrder_growth_of_boundar
                   𝓟 (Complex.re ⁻¹' Set.Ioo a b)]
               fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) :=
     verticalStripSubcriticalCosineDampedFamily_analytic_growth_package
-      f a b d ε hab hd_pos hd_threshold hε_pos hhol hfinite
+      f hab hd_pos hd_threshold (le_of_lt hε_pos) hhol hfinite
   have htail :
       ∃ C : ℝ,
         0 < C ∧
