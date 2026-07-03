@@ -238,7 +238,7 @@ theorem strip_upperTail_vertical_boundary_complex_height_real_damping_unit_bound
         have hinv :
             (Real.exp (B * (1 + ‖z‖) ^ m))⁻¹ ≤
               (Real.exp (B * (1 + ‖z.im‖) ^ m))⁻¹ :=
-          inv_le_inv_of_le hpos_vertical henv
+          inv_anti₀ hpos_vertical henv
         have hcomplex_inv :
             Real.exp (-(B * (1 + ‖z‖) ^ m)) =
               (Real.exp (B * (1 + ‖z‖) ^ m))⁻¹ :=
@@ -765,7 +765,7 @@ theorem verticalStripSubcriticalCosineDampedFamily_uniform_finiteEnvelope_inputs
                                 𝓟 (Complex.re ⁻¹' Set.Ioo a b)]
                             fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) :=
                   verticalStripSubcriticalCosineDampedFamily_analytic_growth_package
-                    f a b d ε hab hd_pos hd_threshold hε_pos hhol hfinite
+                    f hab hd_pos hd_threshold (le_of_lt hε_pos) hhol hfinite
                 have hboundaryε :
                     (∀ z : ℂ,
                       z.re = a →
