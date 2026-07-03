@@ -490,7 +490,7 @@ theorem logarithmicPhase_nat_sample_norm_le_one
     [Decidable (-(t : ℂ) * Complex.I = 0)] :
     ‖(k : ℂ) ^ (-(t : ℂ) * Complex.I)‖ ≤ 1 := by
   match (inferInstance : Decidable (k = 0)) with
-  | Or.inl hk =>
+  | isTrue hk =>
     let a : ℂ := -(t : ℂ) * Complex.I
     have hterm :
         (k : ℂ) ^ a = (0 : ℂ) ^ a := by
@@ -503,7 +503,7 @@ theorem logarithmicPhase_nat_sample_norm_le_one
         congrArg (fun z : ℂ => z ^ a) hzero_cast
       exact hnat_zero.trans hcast_zero
     match (inferInstance : Decidable (a = 0)) with
-    | Or.inl ha =>
+    | isTrue ha =>
       have hzero_pow : (0 : ℂ) ^ a = 1 := by
         exact Eq.subst
           (motive := fun z : ℂ => (0 : ℂ) ^ z = 1)
@@ -519,7 +519,7 @@ theorem logarithmicPhase_nat_sample_norm_le_one
           _ = 1 :=
             norm_one
       exact le_of_eq hnorm
-    | Or.inr ha =>
+    | isFalse ha =>
       have hzero_pow : (0 : ℂ) ^ a = 0 :=
         Complex.zero_cpow ha
       have hnorm :
@@ -532,7 +532,7 @@ theorem logarithmicPhase_nat_sample_norm_le_one
           _ = 0 :=
             norm_zero
       exact hnorm.le.trans zero_le_one
-  | Or.inr hk =>
+  | isFalse hk =>
     have hk_pos : 0 < k :=
       Nat.pos_of_ne_zero hk
     have hnorm :
