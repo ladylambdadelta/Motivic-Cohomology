@@ -133,14 +133,10 @@ theorem boundaryLineOnePointRealParam_reciprocalSquare_le_adjacent_reciprocal_di
         calc
           b / (a * b) = b * (a * b)⁻¹ := by
             exact div_eq_mul_inv b (a * b)
-          _ = b * (a⁻¹ * b⁻¹) := by
+          _ = b * (b⁻¹ * a⁻¹) := by
             exact congrArg (fun r : ℝ => b * r) (mul_inv_rev a b)
           _ = (b * b⁻¹) * a⁻¹ := by
-            calc
-              b * (a⁻¹ * b⁻¹) = b * (b⁻¹ * a⁻¹) := by
-                exact congrArg (fun r : ℝ => b * r) (mul_comm a⁻¹ b⁻¹)
-              _ = (b * b⁻¹) * a⁻¹ := by
-                exact (mul_assoc b b⁻¹ a⁻¹).symm
+            exact (mul_assoc b b⁻¹ a⁻¹).symm
           _ = 1 * a⁻¹ := by
             exact congrArg (fun r : ℝ => r * a⁻¹) (mul_inv_cancel₀ hb_pos.ne')
           _ = a⁻¹ := by
@@ -154,15 +150,11 @@ theorem boundaryLineOnePointRealParam_reciprocalSquare_le_adjacent_reciprocal_di
         calc
           a / (a * b) = a * (a * b)⁻¹ := by
             exact div_eq_mul_inv a (a * b)
-          _ = a * (b⁻¹ * a⁻¹) := by
+          _ = a * (a⁻¹ * b⁻¹) := by
             exact congrArg (fun r : ℝ => a * r)
-              (Eq.trans (mul_inv_rev a b) (mul_comm a⁻¹ b⁻¹))
+              (Eq.trans (mul_inv_rev a b) (mul_comm b⁻¹ a⁻¹))
           _ = (a * a⁻¹) * b⁻¹ := by
-            calc
-              a * (b⁻¹ * a⁻¹) = a * (a⁻¹ * b⁻¹) := by
-                exact congrArg (fun r : ℝ => a * r) (mul_comm b⁻¹ a⁻¹)
-              _ = (a * a⁻¹) * b⁻¹ := by
-                exact (mul_assoc a a⁻¹ b⁻¹).symm
+            exact (mul_assoc a a⁻¹ b⁻¹).symm
           _ = 1 * b⁻¹ := by
             exact congrArg (fun r : ℝ => r * b⁻¹) (mul_inv_cancel₀ ha_pos.ne')
           _ = b⁻¹ := by
@@ -265,12 +257,11 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_norm_mul_pred_
     boundaryLineOnePointRealParam_postCutoff_one_add_norm_le_cutoff t
   have htwo_le_one_add_norm :
       (2 : ℝ) ≤ (1 : ℝ) + ‖t‖ := by
-    have htwo_eq : (2 : ℝ) = 1 + 1 :=
-      (one_add_one_eq_two : (1 : ℝ) + 1 = 2).symm
-    exact Eq.subst
-      (motive := fun r : ℝ => r ≤ (1 : ℝ) + ‖t‖)
-      htwo_eq
-      (add_le_add_left ht 1)
+    calc
+      (2 : ℝ) = 1 + 1 := by
+        exact (one_add_one_eq_two : (1 : ℝ) + 1 = 2).symm
+      _ ≤ 1 + ‖t‖ := by
+        exact add_le_add_left ht 1
   have htwo_le_C_real : (2 : ℝ) ≤ ((C : ℕ) : ℝ) :=
     le_trans htwo_le_one_add_norm hcutoff_ge
   have htwo_le_C_nat : 2 ≤ C := by
@@ -280,11 +271,14 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_norm_mul_pred_
     exact Nat.cast_le.mp hcast
   have hone_le_C_nat : 1 ≤ C :=
     le_trans
-      (show 1 ≤ 2 from Nat.succ_le_succ (Nat.succ_le_succ Nat.zero_le))
+      (show 1 ≤ 2 from Nat.succ_le_succ (Nat.zero_le 1))
       htwo_le_C_nat
   have hpred_cast :
       (((C - 1 : ℕ) : ℝ)) = ((C : ℕ) : ℝ) - 1 :=
-    Nat.cast_sub hone_le_C_nat
+    Eq.trans
+      (Nat.cast_sub hone_le_C_nat)
+      (congrArg (fun r : ℝ => ((C : ℕ) : ℝ) - r)
+        boundaryGrowth_natCast_one_eq_real_one)
   have hnorm_eq_sub :
       ‖t‖ = ((1 : ℝ) + ‖t‖) - 1 := by
     exact (add_sub_cancel_left 1 ‖t‖).symm
@@ -337,22 +331,23 @@ theorem boundaryLineOnePointRealParam_reciprocalSquare_Ioc_pred_sum_le_reciproca
     intro n hn
     have hC_lt_n : C < n :=
       (Finset.mem_Ioc.mp hn).left
+    have htwo_le_C : 2 ≤ C :=
+      Nat.succ_le_of_lt hC
     have htwo_lt_n : 2 < n :=
-      lt_of_lt_of_le
-        (lt_of_lt_of_le (show 1 < C from hC) (Nat.le_of_lt hC_lt_n))
-        (Nat.le_refl n)
+      lt_of_le_of_lt htwo_le_C hC_lt_n
+    have htwo_le_n : 2 ≤ n :=
+      Nat.le_of_lt htwo_lt_n
     have hpred_pos : 0 < n - 2 :=
       Nat.sub_pos_of_lt htwo_lt_n
+    have hsucc_left_raw :
+        n + 1 - 2 = n - 2 + 1 :=
+      Nat.succ_sub htwo_le_n
+    have hsucc_right :
+        n + 1 - 2 = n - 1 :=
+      Nat.add_sub_add_right n 1 1
     have hsucc_pred :
         n - 2 + 1 = n - 1 := by
-      exact Nat.succ_sub (Nat.succ_le_of_lt htwo_lt_n) 1
-    have hsucc_right :
-        n + 1 - 2 = n - 1 := by
-      have htwo_le_n : 2 ≤ n :=
-        Nat.le_of_lt htwo_lt_n
-      calc
-        n + 1 - 2 = n - 1 := by
-          exact Nat.add_sub_add_right n 1 1
+      exact Eq.trans hsucc_left_raw.symm hsucc_right
     have hraw :
         (1 : ℝ) /
             ((((n - 2) + 1 : ℕ) : ℝ) *
@@ -379,16 +374,21 @@ theorem boundaryLineOnePointRealParam_reciprocalSquare_Ioc_pred_sum_le_reciproca
           (1 : ℝ) / (((n - 2 : ℕ) : ℝ)) -
             (1 : ℝ) / (((k : ℕ) : ℝ)))
         (Eq.trans hsucc_pred hsucc_right.symm)
-    exact Eq.subst
-      (motive := fun r : ℝ => u n ≤ r)
-      hright
-      (Eq.subst
+    have hleft_transport :
+        u n ≤
+          (1 : ℝ) / (((n - 2 : ℕ) : ℝ)) -
+            (1 : ℝ) / (((((n - 2) + 1 : ℕ) : ℕ) : ℝ)) :=
+      Eq.subst
         (motive := fun r : ℝ =>
           r ≤
             (1 : ℝ) / (((n - 2 : ℕ) : ℝ)) -
               (1 : ℝ) / (((((n - 2) + 1 : ℕ) : ℕ) : ℝ)))
         hleft
-        hraw)
+        hraw
+    exact Eq.subst
+      (motive := fun r : ℝ => u n ≤ r)
+      hright
+      hleft_transport
   have hsum :
       (∑ n ∈ Finset.Ioc C M, u n) ≤
         ∑ n ∈ Finset.Ioc C M, (v n - v (n + 1)) :=
@@ -445,12 +445,11 @@ theorem boundaryLineOnePointRealParam_reciprocalVariation_selected_Ioc_sum_le_on
     boundaryLineOnePointRealParam_postCutoff_one_add_norm_le_cutoff t
   have htwo_le_one_add_norm :
       (2 : ℝ) ≤ (1 : ℝ) + ‖t‖ := by
-    have htwo_eq : (2 : ℝ) = 1 + 1 :=
-      (one_add_one_eq_two : (1 : ℝ) + 1 = 2).symm
-    exact Eq.subst
-      (motive := fun r : ℝ => r ≤ (1 : ℝ) + ‖t‖)
-      htwo_eq
-      (add_le_add_left ht 1)
+    calc
+      (2 : ℝ) = 1 + 1 := by
+        exact (one_add_one_eq_two : (1 : ℝ) + 1 = 2).symm
+      _ ≤ 1 + ‖t‖ := by
+        exact add_le_add_left ht 1
   have htwo_le_C_real : (2 : ℝ) ≤ ((C : ℕ) : ℝ) :=
     le_trans htwo_le_one_add_norm hcutoff_ge
   have htwo_le_C_nat : 2 ≤ C := by
@@ -770,7 +769,7 @@ theorem boundaryLineOnePointRealParam_phaseDrift_leftEndpointCoefficient_norm_eq
     {m : ℕ}
     (hm : 0 < m) :
     ‖((-(t : ℂ) * Complex.I) *
-        (((((m : ℕ) : ℝ) : ℂ)⁻¹))‖ =
+        (((((m : ℕ) : ℝ) : ℂ)⁻¹)))‖ =
       ‖t‖ / (((m : ℕ) : ℝ)) := by
   let A : ℂ := -(t : ℂ) * Complex.I
   let mr : ℝ := ((m : ℕ) : ℝ)
@@ -803,7 +802,7 @@ theorem boundaryLineOnePointRealParam_phaseDrift_rightEndpointCoefficient_norm_e
     {M n : ℕ}
     (hn : n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M) :
     ‖((-(t : ℂ) * Complex.I) *
-        ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹))‖ =
+        ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹)))‖ =
       ‖t‖ / (((((n - 1 : ℕ) : ℕ) : ℝ))) := by
   have hcutoff_lt_n : ⌊2 + ‖t‖⌋₊ < n :=
     (Finset.mem_Ioc.mp hn).1
@@ -853,9 +852,9 @@ theorem boundaryLineOnePointRealParam_phaseDrift_leftEndpointCoefficient_eq_dire
     _ = (A * (T⁻¹ * T)) * R⁻¹ := by
       exact congrArg (fun z : ℂ => (A * z) * R⁻¹) hcancel.symm
     _ = ((A * T⁻¹) * T) * R⁻¹ := by
-      exact congrArg (fun z : ℂ => z * R⁻¹) (mul_assoc A T⁻¹ T)
+      exact congrArg (fun z : ℂ => z * R⁻¹) (mul_assoc A T⁻¹ T).symm
     _ = (A * T⁻¹) * (T * R⁻¹) := by
-      exact (mul_assoc (A * T⁻¹) T R⁻¹).symm
+      exact mul_assoc (A * T⁻¹) T R⁻¹
     _ = (A / T) * (T / R) := by
       exact congrArg₂ (fun x y : ℂ => x * y)
         (div_eq_mul_inv A T).symm
@@ -947,7 +946,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_bernoulliRemai
     have hone_le_arg : (1 : ℝ) ≤ 3 + ‖t‖ := by
       calc
         (1 : ℝ) ≤ 3 := by
-          exact one_le_three
+          exact boundaryGrowth_real_one_le_three
         _ ≤ 3 + ‖t‖ :=
           le_add_of_nonneg_right (norm_nonneg t)
     exact Real.log_nonneg hone_le_arg
@@ -992,5 +991,6 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_bernoulliRemai
       t ht hM
 
 
+end
 end LFunctions
 end Boundary
