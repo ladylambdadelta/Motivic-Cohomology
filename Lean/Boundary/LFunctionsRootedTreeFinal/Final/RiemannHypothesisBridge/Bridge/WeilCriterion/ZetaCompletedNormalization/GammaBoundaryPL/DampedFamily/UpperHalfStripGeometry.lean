@@ -1,3 +1,4 @@
+import Mathlib.Analysis.Complex.ReImTopology
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaBoundaryPL.DampedFamily.UpperTailAbsorbers
 
 namespace Boundary
@@ -69,8 +70,8 @@ the two vertical sides, and the top-edge damping estimate. -/
 theorem verticalStripUpperHalfStripRectangle_norm_le_of_frontier_bound
     (g : ℂ → ℂ)
     (a b R C : ℝ)
-    (hab : a < b)
-    (hR : 1 < R)
+    (_hab : a < b)
+    (_hR : 1 < R)
     (hhol :
       DiffContOnCl ℂ g (Set.Ioo a b ×ℂ Set.Ioo (1 : ℝ) R))
     (hfrontier :
@@ -83,7 +84,8 @@ theorem verticalStripUpperHalfStripRectangle_norm_le_of_frontier_bound
   exact
     fun z hz =>
       Complex.norm_le_of_forall_mem_frontier_norm_le
-        ((isBounded_Ioo a b).reProdIm (isBounded_Ioo (1 : ℝ) R))
+        ((Metric.isBounded_Ioo a b).reProdIm
+          (Metric.isBounded_Ioo (1 : ℝ) R))
         hhol
         hfrontier
         hz
@@ -109,7 +111,7 @@ theorem verticalStripUpperHalfStripRectangle_mem_closure_openRectangle
     calc
       closure (Set.Ioo a b ×ℂ Set.Ioo (1 : ℝ) R) =
           closure (Set.Ioo a b) ×ℂ closure (Set.Ioo (1 : ℝ) R) :=
-        closure_reProdIm (Set.Ioo a b) (Set.Ioo (1 : ℝ) R)
+        Complex.closure_reProdIm (Set.Ioo a b) (Set.Ioo (1 : ℝ) R)
       _ = Set.Icc a b ×ℂ closure (Set.Ioo (1 : ℝ) R) := by
         exact congrArg
           (fun S : Set ℝ => S ×ℂ closure (Set.Ioo (1 : ℝ) R))
@@ -148,7 +150,7 @@ theorem verticalStripUpperHalfStripRectangle_frontier_subset_boundary
       frontier (Set.Ioo a b ×ℂ Set.Ioo (1 : ℝ) R) =
         closure (Set.Ioo a b) ×ℂ frontier (Set.Ioo (1 : ℝ) R) ∪
           frontier (Set.Ioo a b) ×ℂ closure (Set.Ioo (1 : ℝ) R) :=
-    frontier_reProdIm (Set.Ioo a b) (Set.Ioo (1 : ℝ) R)
+    Complex.frontier_reProdIm (Set.Ioo a b) (Set.Ioo (1 : ℝ) R)
   have hz_union :
       z ∈ closure (Set.Ioo a b) ×ℂ frontier (Set.Ioo (1 : ℝ) R) ∪
           frontier (Set.Ioo a b) ×ℂ closure (Set.Ioo (1 : ℝ) R) :=
@@ -173,7 +175,10 @@ theorem verticalStripUpperHalfStripRectangle_frontier_subset_boundary
           exact
             ⟨hre_icc.1, hre_icc.2,
               le_of_eq him_bottom.symm,
-              le_trans (le_of_lt hR) (le_of_eq him_bottom),
+              Eq.subst
+                (motive := fun y : ℝ => y ≤ R)
+                him_bottom.symm
+                (le_of_lt hR),
               Or.inl him_bottom⟩
       | Or.inr him_top_singleton =>
           have him_top : z.im = R :=
@@ -504,45 +509,50 @@ theorem verticalStripSubcriticalCosineDampedFamily_eventually_topEdge_open_bound
                   congrArg
                     (fun y : ℝ => K * Real.exp (D * Real.exp (c * y)))
                     hz_im.symm
-                Eq.subst
-                  (motive := fun x : ℝ => ‖f z‖ ≤ x)
-                  hrhs
-                  hraw
+                exact
+                  Eq.subst
+                    (motive := fun x : ℝ => ‖f z‖ ≤ x)
+                    hrhs
+                    hraw
               have hpre :
                   ‖verticalStripSubcriticalCosineDampedFamily f a b d ε z‖ ≤
-                    (K * Real.exp (D * Real.exp (c * z.im))) *
-                      Real.exp
-                        (-(ε * (Real.cos (d * ((b - a) / 2)) / 2) *
-                          Real.exp (d * z.im))) :=
+                    verticalStripSubcriticalCosineTopEdgePreAbsorptionBound
+                      a b c d D ε K z.im :=
                 verticalStripSubcriticalCosineDampedFamily_topEdge_preAbsorption
                   f hab hd_pos hd_threshold (le_of_lt hε_pos)
                   (le_of_lt hza) (le_of_lt hzb) hf
               have htarget :
-                  (K * Real.exp (D * Real.exp (c * z.im))) *
-                      Real.exp
-                        (-(ε * (Real.cos (d * ((b - a) / 2)) / 2) *
-                          Real.exp (d * z.im))) =
+                  verticalStripSubcriticalCosineTopEdgePreAbsorptionBound
+                      a b c d D ε K z.im =
                     K * Real.exp (D * Real.exp (c * R)) *
                       Real.exp (-(ε * L * Real.exp (d * R))) := by
+                have hmul_assoc_z :
+                    ε * (L * Real.exp (d * z.im)) =
+                      ε * L * Real.exp (d * z.im) :=
+                  (mul_assoc ε L (Real.exp (d * z.im))).symm
                 calc
-                  (K * Real.exp (D * Real.exp (c * z.im))) *
+                  verticalStripSubcriticalCosineTopEdgePreAbsorptionBound
+                      a b c d D ε K z.im =
+                    (K * Real.exp (D * Real.exp (c * z.im))) *
                       Real.exp
-                        (-(ε * (Real.cos (d * ((b - a) / 2)) / 2) *
-                          Real.exp (d * z.im))) =
+                        (-(ε * (L * Real.exp (d * z.im)))) := by
+                    rfl
+                  _ =
+                    (K * Real.exp (D * Real.exp (c * z.im))) *
+                      Real.exp (-(ε * L * Real.exp (d * z.im))) := by
+                    exact congrArg
+                      (fun x : ℝ =>
+                        (K * Real.exp (D * Real.exp (c * z.im))) *
+                          Real.exp (-x))
+                      hmul_assoc_z
+                  _ =
                     K * Real.exp (D * Real.exp (c * R)) *
-                      Real.exp
-                        (-(ε * (Real.cos (d * ((b - a) / 2)) / 2) *
-                          Real.exp (d * R))) := by
+                      Real.exp (-(ε * L * Real.exp (d * R))) := by
                       exact congrArg₂
                         (fun x y : ℝ =>
                           K * Real.exp (D * Real.exp (c * x)) *
-                            Real.exp
-                              (-(ε * (Real.cos (d * ((b - a) / 2)) / 2) *
-                                Real.exp (d * y))))
+                            Real.exp (-(ε * L * Real.exp (d * y))))
                         hz_im hz_im
-                  _ =
-                    K * Real.exp (D * Real.exp (c * R)) *
-                      Real.exp (-(ε * L * Real.exp (d * R))) := rfl
               le_trans hpre
                 (Eq.subst
                   (motive := fun x : ℝ => x ≤ K)
@@ -651,7 +661,7 @@ theorem verticalStripSubcriticalCosineDampedFamily_eventually_topEdge_finiteEnve
                       le_trans (hR.1 z hza_lt hzb_lt hz_im) hopen_le
                   | Or.inr hzb_eq =>
                       le_trans
-                        (hright z hzb_eq.symm hzim_ge)
+                        (hright z hzb_eq hzim_ge)
                         hboundary_le
               | Or.inr hza_eq =>
                   le_trans
@@ -730,10 +740,11 @@ theorem verticalStripSubcriticalCosineDampedFamily_eventually_topEdge_bound
                   le_trans zero_le_one hzim_ge
                 have hnorm : ‖z.im‖ = z.im :=
                   Real.norm_of_nonneg hzim_nonneg
-                Eq.subst
-                  (motive := fun y : ℝ => 1 ≤ y)
-                  hnorm.symm
-                  hzim_ge
+                exact
+                  Eq.subst
+                    (motive := fun y : ℝ => 1 ≤ y)
+                    hnorm.symm
+                    hzim_ge
               match lt_or_eq_of_le hza with
               | Or.inl hza_strict =>
                   match lt_or_eq_of_le hzb with
@@ -743,7 +754,7 @@ theorem verticalStripSubcriticalCosineDampedFamily_eventually_topEdge_bound
                         hCopen_le
                   | Or.inr hzb_eq =>
                       le_trans
-                        (hright_bd z hzb_eq.symm hz_tail)
+                        (hright_bd z hzb_eq hz_tail)
                         hCbd_le
               | Or.inr hza_eq =>
                   le_trans

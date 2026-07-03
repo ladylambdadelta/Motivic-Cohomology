@@ -48,7 +48,7 @@ theorem verticalStripUpperTailDampedFamily_rightBoundary_eventually_upperTail_bo
             Real.exp (-(ε * (K * Real.exp (s * (M + T))))) ≤ 1 :=
     finiteOrder_exp_mul_shifted_upperTail_absorber_eventually_le_one
       A B K s M ε m hA hB hK_pos hs_pos hε_pos
-  have hlarge : ∀ᶠ T in Filter.atTop, 1 ≤ T :=
+  have hlarge : ∀ᶠ T : ℝ in Filter.atTop, 1 ≤ T :=
     eventually_ge_atTop (1 : ℝ)
   exact
     (htail.and hlarge).mono
@@ -168,12 +168,11 @@ theorem verticalStripUpperTailDampedFamily_rightBoundary_eventually_upperTail_bo
               (fun x : ℝ => A * Real.exp (B * (1 + x) ^ m))
               hheight)
             (congrArg Real.exp (congrArg Neg.neg hfactor_arg))
-        exact
-          le_trans hraw
-            (Eq.subst
-              (motive := fun x : ℝ => x ≤ 1)
-              htarget_eq.symm
-              hT.1)
+        le_trans hraw
+          (Eq.subst
+            (motive := fun x : ℝ => x ≤ 1)
+            htarget_eq.symm
+            hT.1)
 
 /-- Left-boundary upper-tail eventual constant bound for the holomorphic
 upper-tail damped family. -/
@@ -208,7 +207,7 @@ theorem verticalStripUpperTailDampedFamily_leftBoundary_eventually_upperTail_bou
             Real.exp (-(ε * (K * Real.exp (s * (M + T))))) ≤ 1 :=
     finiteOrder_exp_mul_shifted_upperTail_absorber_eventually_le_one
       A B K s M ε m hA hB hK_pos hs_pos hε_pos
-  have hlarge : ∀ᶠ T in Filter.atTop, 1 ≤ T :=
+  have hlarge : ∀ᶠ T : ℝ in Filter.atTop, 1 ≤ T :=
     eventually_ge_atTop (1 : ℝ)
   exact
     (htail.and hlarge).mono
@@ -328,12 +327,11 @@ theorem verticalStripUpperTailDampedFamily_leftBoundary_eventually_upperTail_bou
               (fun x : ℝ => A * Real.exp (B * (1 + x) ^ m))
               hheight)
             (congrArg Real.exp (congrArg Neg.neg hfactor_arg))
-        exact
-          le_trans hraw
-            (Eq.subst
-              (motive := fun x : ℝ => x ≤ 1)
-              htarget_eq.symm
-              hT.1)
+        le_trans hraw
+          (Eq.subst
+            (motive := fun x : ℝ => x ≤ 1)
+            htarget_eq.symm
+            hT.1)
 
 /-- The subcritical holomorphic damping factor is bounded by one on the
 open-strip Phragmen-Lindelöf filter. -/
