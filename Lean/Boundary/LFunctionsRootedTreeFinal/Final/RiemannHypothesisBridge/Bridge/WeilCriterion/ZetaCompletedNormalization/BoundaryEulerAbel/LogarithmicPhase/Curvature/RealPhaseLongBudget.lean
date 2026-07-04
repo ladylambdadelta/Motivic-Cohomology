@@ -15,6 +15,74 @@ noncomputable section
 
 open scoped Topology
 
+/-- Three endpoint-tail budgets assemble into the endpoint packet budget. -/
+theorem Complex.logarithmicPhaseRealPhase_endpoint_packet_budget
+    (t : ℝ)
+    {a b : ℕ}
+    (hab : a ≤ b)
+    (hright :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointRightActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+    (hleft :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+    (hfar :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointActiveDerivPackets t a b,
+      Complex.realPhase_secondDerivative_vdc_packetSum
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b m‖ ≤
+      60 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  let E : ℝ :=
+    (((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))
+  have hsplit :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointRightActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ +
+      (‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ +
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖) :=
+    Complex.logarithmicPhaseRealPhase_endpointPacket_norm_le_three_tail_norms
+      t hab
+  have htails :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointRightActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ +
+      (‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ +
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖) ≤
+        60 * E :=
+    le_trans
+      (add_le_add hright (add_le_add hleft hfar))
+      (Real.logarithmicPhase_three_twenty_targets_le_sixty E)
+  exact le_trans hsplit htails
+
 /-- The stationary and endpoint packet budgets assemble into the long
 real-phase block estimate. -/
 theorem Complex.logarithmicPhaseRealPhase_long_packet_budget
