@@ -39,8 +39,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
             (lower c) (upper c))
     (hcell_closed :
       ∀ c : ι, c ∈ cells →
-        ([[ (lower c).re, (upper c).re ]] ×ℂ
-          [[ (lower c).im, (upper c).im ]]) ⊆
+        (Set.uIcc (lower c).re (upper c).re ×ℂ
+          Set.uIcc (lower c).im (upper c).im) ⊆
           finiteRectanglePuncturedDomain
             (explicitFormulaContourFamilyInterior F T)
             (explicitFormulaRectangleRawSingularCoordinates T)
@@ -64,8 +64,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
       ∀ c : ι, c ∈ cells →
         ContinuousOn
           (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-          ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]) :=
+          (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im) :=
     fun c hc =>
       (explicitFormulaRectangleRawPuncturedInterior_continuousOn
         f F h hT hε hinterior).mono
@@ -110,8 +110,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
             (lower c) (upper c))
     (hcell_closed :
       ∀ c : ι, c ∈ cells →
-        ([[ (lower c).re, (upper c).re ]] ×ℂ
-          [[ (lower c).im, (upper c).im ]]) ⊆
+        (Set.uIcc (lower c).re (upper c).re ×ℂ
+          Set.uIcc (lower c).im (upper c).im) ⊆
           finiteRectanglePuncturedDomain
             (explicitFormulaContourFamilyInterior F T)
             (explicitFormulaRectangleRawSingularCoordinates T)
@@ -150,14 +150,14 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
     (hcell_interior :
       ∀ c : ι, c ∈ cells →
         ∀ z : ℂ,
-          z ∈ ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]) →
+          z ∈ (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im) →
             z ∈ explicitFormulaContourFamilyInterior F T)
     (hcell_offRaw :
       ∀ c : ι, c ∈ cells →
         ∀ z : ℂ,
-          z ∈ ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]) →
+          z ∈ (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im) →
             z ∉ explicitFormulaRectangleRawSingularCoordinates T) :
     explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBoundaryIntegral
       f F T ε = 0 := by
@@ -168,13 +168,13 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
       ∀ c : ι, c ∈ cells →
         ContinuousOn
           (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-          ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]) :=
+          (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im) :=
     fun c hc =>
       explicitFormulaRectangleInteriorOffRawSingular_continuousOn
         f F h hT hinterior
-        ([[ (lower c).re, (upper c).re ]] ×ℂ
-          [[ (lower c).im, (upper c).im ]])
+        (Set.uIcc (lower c).re (upper c).re ×ℂ
+          Set.uIcc (lower c).im (upper c).im)
         (hcell_interior c hc)
         (hcell_offRaw c hc)
   have Hd :
@@ -189,15 +189,15 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
               (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z) x := by
     intro c hc x hx
     have hxClosed :
-        x ∈ ([[ (lower c).re, (upper c).re ]] ×ℂ
-          [[ (lower c).im, (upper c).im ]]) :=
+        x ∈ (Set.uIcc (lower c).re (upper c).re ×ℂ
+          Set.uIcc (lower c).im (upper c).im) :=
       finiteRectangleSubdivisionOpenCell_subset_closedCell
         (lower c) (upper c) hx.1
     exact
       explicitFormulaRectangleInteriorOffRawSingular_differentiableAt
         f F h hT hinterior
-        ([[ (lower c).re, (upper c).re ]] ×ℂ
-          [[ (lower c).im, (upper c).im ]])
+        (Set.uIcc (lower c).re (upper c).re ×ℂ
+          Set.uIcc (lower c).im (upper c).im)
         (hcell_interior c hc)
         (hcell_offRaw c hc)
         hxClosed
@@ -234,15 +234,15 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
     (hcell_location :
       ∀ c : ι, c ∈ cells →
         ∀ z : ℂ,
-          z ∈ ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]) →
+          z ∈ (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im) →
             z ∈ explicitFormulaContourFamilyInterior F T ∨
               z ∈ explicitFormulaContourFamilyBoundary F T)
     (hcell_closed_offRaw :
       ∀ c : ι, c ∈ cells →
         ∀ z : ℂ,
-          z ∈ ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]) →
+          z ∈ (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im) →
             z ∈ explicitFormulaContourFamilyInterior F T →
               z ∉ explicitFormulaRectangleRawSingularCoordinates T)
     (hcell_open_interior :
@@ -270,13 +270,13 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
       ∀ c : ι, c ∈ cells →
         ContinuousOn
           (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-          ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]) :=
+          (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im) :=
     fun c hc =>
       explicitFormulaRectangleInteriorOrBoundaryOffRawSingular_continuousOn
         f F h hT hinterior hboundary
-        ([[ (lower c).re, (upper c).re ]] ×ℂ
-          [[ (lower c).im, (upper c).im ]])
+        (Set.uIcc (lower c).re (upper c).re ×ℂ
+          Set.uIcc (lower c).im (upper c).im)
         (hcell_location c hc)
         (hcell_closed_offRaw c hc)
   have Hd :
@@ -325,22 +325,22 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
     (hcell_interior :
       ∀ c : ι, c ∈ cells →
         ∀ z : ℂ,
-          z ∈ ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]) →
+          z ∈ (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im) →
             z ∈ explicitFormulaContourFamilyInterior F T)
     (hcell_disjoint :
       ∀ c : ι, c ∈ cells →
         ∀ a : ℂ,
           a ∈ explicitFormulaRectangleRawSingularCoordinates T →
             Disjoint
-              ([[ (lower c).re, (upper c).re ]] ×ℂ
-                [[ (lower c).im, (upper c).im ]])
+              (Set.uIcc (lower c).re (upper c).re ×ℂ
+                Set.uIcc (lower c).im (upper c).im)
               (explicitFormulaRectangleRawInscribedSquareClosedCell ε a)) :
     explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBoundaryIntegral
       f F T ε = 0 :=
   explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBoundaryIntegral_eq_zero_of_interiorOffRawSingularClosedSubdivision
     cells lower upper f F h hT hinterior hsubdivision hcell_interior
-    (fun c hc z hz =>
+    (fun c hc _ hz =>
       explicitFormulaRectangleSubdivisionCell_not_mem_rawSingularCoordinates_of_disjoint_inscribedSquares
         T ε hε (lower c) (upper c) (hcell_disjoint c hc) hz)
 
@@ -367,20 +367,20 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
     (hcell_interior :
       ∀ c : ι, c ∈ cells →
         ∀ z : ℂ,
-          z ∈ ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]) →
+          z ∈ (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im) →
             z ∈ explicitFormulaContourFamilyInterior F T)
     (hcell_omits_raw :
       ∀ c : ι, c ∈ cells →
         ∀ a : ℂ,
           a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-            a.re ∉ [[ (lower c).re, (upper c).re ]] ∨
-              a.im ∉ [[ (lower c).im, (upper c).im ]]) :
+            a.re ∉ Set.uIcc (lower c).re (upper c).re ∨
+              a.im ∉ Set.uIcc (lower c).im (upper c).im) :
     explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBoundaryIntegral
       f F T ε = 0 :=
   explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBoundaryIntegral_eq_zero_of_interiorOffRawSingularClosedSubdivision
     cells lower upper f F h hT hinterior hsubdivision hcell_interior
-    (fun c hc z hz =>
+    (fun c hc _ hz =>
       explicitFormulaRectangleSubdivisionCell_not_mem_rawSingularCoordinates_of_coordinate_omission
         T (lower c) (upper c) (hcell_omits_raw c hc) hz)
 

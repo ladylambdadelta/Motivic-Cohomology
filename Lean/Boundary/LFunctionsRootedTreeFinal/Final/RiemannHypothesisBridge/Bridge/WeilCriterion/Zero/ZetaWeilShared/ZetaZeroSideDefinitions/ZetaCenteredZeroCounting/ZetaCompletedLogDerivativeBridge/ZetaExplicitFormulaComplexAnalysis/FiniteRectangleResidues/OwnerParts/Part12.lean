@@ -34,16 +34,42 @@ theorem finiteRectangleSubdivisionCollapsedColumnsBoundary_sum_range
   let U : ℂ := ∑ i in Finset.range cols, top i
   let R : ℂ := ∑ i in Finset.range cols, right i
   let L : ℂ := ∑ i in Finset.range cols, left i
+  have hcell_group :
+      (∑ i in Finset.range cols,
+          (bottom i - top i + right i - left i)) =
+        ∑ i in Finset.range cols,
+          (bottom i - top i + (right i - left i)) := by
+    exact Finset.sum_congr rfl
+      (fun i _hi =>
+        calc
+          bottom i - top i + right i - left i =
+              (bottom i - top i + right i) + -left i := by
+            exact sub_eq_add_neg (bottom i - top i + right i) (left i)
+          _ = bottom i - top i + (right i + -left i) := by
+            exact add_assoc (bottom i - top i) (right i) (-left i)
+          _ = bottom i - top i + (right i - left i) := by
+            exact congrArg
+              (fun z : ℂ => bottom i - top i + z)
+              (sub_eq_add_neg (right i) (left i)).symm)
   have hsplit :
       (∑ i in Finset.range cols,
           (bottom i - top i + right i - left i)) =
         (∑ i in Finset.range cols, (bottom i - top i)) +
           (∑ i in Finset.range cols, (right i - left i)) := by
-    exact
-      Finset.sum_add_distrib
-        (s := Finset.range cols)
-        (f := fun i : ℕ => bottom i - top i)
-        (g := fun i : ℕ => right i - left i)
+    calc
+      (∑ i in Finset.range cols,
+          (bottom i - top i + right i - left i)) =
+          ∑ i in Finset.range cols,
+            (bottom i - top i + (right i - left i)) := by
+        exact hcell_group
+      _ =
+          (∑ i in Finset.range cols, (bottom i - top i)) +
+            (∑ i in Finset.range cols, (right i - left i)) := by
+        exact
+          Finset.sum_add_distrib
+            (s := Finset.range cols)
+            (f := fun i : ℕ => bottom i - top i)
+            (g := fun i : ℕ => right i - left i)
   have hbottom_top :
       (∑ i in Finset.range cols, (bottom i - top i)) = B - U := by
     calc
@@ -205,8 +231,8 @@ theorem finiteRectangleSubdivisionBoundarySum_eq_zero_of_cellCauchy
     (Hc :
       ∀ c : ι, c ∈ cells →
         ContinuousOn g
-          ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]))
+          (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im))
     (Hd :
       ∀ c : ι, c ∈ cells →
         ∀ x : ℂ,
@@ -226,6 +252,72 @@ theorem finiteRectangleSubdivisionBoundarySum_eq_zero_of_cellCauchy
       (fun c hc =>
         finiteRectangleSubdivisionCellBoundaryIntegral_eq_zero_of_differentiable_on_off_countable
           g (lower c) (upper c) (s c) (hs c hc) (Hc c hc) (Hd c hc))
+
+/-- The oriented boundary integral of a finite punctured rectangle in the residue
+normalization used in this owner file.  The outer rectangle is counterclockwise; each
+deleted circle is recorded with positive residue orientation and therefore subtracted from
+the punctured-domain boundary. -/
+noncomputable def finiteRectanglePuncturedBoundaryIntegral
+    (S : Finset ℂ) (outer : ℂ) (deletedCircle : ℂ → ℂ) : ℂ :=
+  outer - finiteRectangleDeletedCircleBoundarySum S deletedCircle
+
+/-- The positive-orientation deleted-circle boundary contribution of the completed
+explicit-formula integrand around a singular coordinate. -/
+noncomputable def explicitFormulaRectangleRawDeletedCircleBoundary
+    (f : ZetaAdmissibleFunction) (ε : ℝ) (a : ℂ) : ℂ :=
+  ∮ z in C(a, ε), zetaCompletedExplicitFormulaContourIntegrand f z
+
+/-- The positive-orientation square deleted-boundary contribution of the completed
+explicit-formula integrand around a singular coordinate.  This is the rectangular
+replacement boundary used by the finite square-hole subdivision before transport back to
+the public circular deleted-boundary normalization. -/
+noncomputable def explicitFormulaRectangleRawDeletedSquareBoundary
+    (f : ZetaAdmissibleFunction) (ε : ℝ) (a : ℂ) : ℂ :=
+  finiteRectangleSquareBoundaryIntegral
+    (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z) a ε
+
+/-- The positive-orientation inscribed-square deleted-boundary contribution of the
+completed explicit-formula integrand around a singular coordinate.  The square half-width
+is `ε / 2`, so this boundary is the square-hole replacement compatible with radius-`ε`
+closed-disk controls. -/
+noncomputable def explicitFormulaRectangleRawInscribedSquareBoundary
+    (f : ZetaAdmissibleFunction) (ε : ℝ) (a : ℂ) : ℂ :=
+  finiteRectangleSquareBoundaryIntegral
+    (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z) a (ε / 2)
+
+/-- The tangent punctured-boundary integral for the completed explicit-formula rectangle
+in the tangent-weighted contour normalization used by Cauchy-Goursat. -/
+noncomputable def explicitFormulaRectangleTangentPuncturedBoundaryIntegral
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ)
+    (S : Finset ℂ) (deletedCircle : ℂ → ℂ) : ℂ :=
+  finiteRectanglePuncturedBoundaryIntegral S
+    (zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T))
+    deletedCircle
+
+/-- The finite-radius tangent punctured-boundary integral for the completed explicit
+formula, using the actual deleted-circle boundary integrals of the raw integrand. -/
+noncomputable def explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T ε : ℝ) : ℂ :=
+  explicitFormulaRectangleTangentPuncturedBoundaryIntegral f F T
+    (explicitFormulaRectangleRawSingularCoordinates T)
+    (explicitFormulaRectangleRawDeletedCircleBoundary f ε)
+
+/-- The finite-radius tangent square-punctured boundary for the completed explicit
+formula, using square deleted-boundary integrals of the raw integrand. -/
+noncomputable def explicitFormulaRectangleTangentFiniteRadiusSquarePuncturedBoundaryIntegral
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T ε : ℝ) : ℂ :=
+  explicitFormulaRectangleTangentPuncturedBoundaryIntegral f F T
+    (explicitFormulaRectangleRawSingularCoordinates T)
+    (explicitFormulaRectangleRawDeletedSquareBoundary f ε)
+
+/-- The finite-radius tangent inscribed-square-punctured boundary for the completed
+explicit formula, using half-width `ε / 2` square deleted-boundary integrals of the raw
+integrand. -/
+noncomputable def explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBoundaryIntegral
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T ε : ℝ) : ℂ :=
+  explicitFormulaRectangleTangentPuncturedBoundaryIntegral f F T
+    (explicitFormulaRectangleRawSingularCoordinates T)
+    (explicitFormulaRectangleRawInscribedSquareBoundary f ε)
 
 /-- Transport zero from a concrete finite subdivision boundary sum to the finite-radius
 punctured rectangle boundary expression.  The equality hypothesis is the genuine
@@ -270,8 +362,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral_eq_
       ∀ c : ι, c ∈ cells →
         ContinuousOn
           (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-          ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]))
+          (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im))
     (Hd :
       ∀ c : ι, c ∈ cells →
         ∀ x : ℂ,
@@ -299,18 +391,18 @@ theorem explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral_eq_
             (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
             (lower c) (upper c) := by
       exact hsubdivision
-	    _ = 0 := by
-	      exact hsum
+    _ = 0 := by
+      exact hsum
 
 /-- The open rectangle of a subdivision cell is contained in its closed rectangle. -/
 theorem finiteRectangleSubdivisionOpenCell_subset_closedCell (z w : ℂ) :
     (Set.Ioo (min z.re w.re) (max z.re w.re) ×ℂ
       Set.Ioo (min z.im w.im) (max z.im w.im)) ⊆
-      ([[z.re, w.re]] ×ℂ [[z.im, w.im]]) :=
-  fun x hx =>
+      (Set.uIcc z.re w.re ×ℂ Set.uIcc z.im w.im) :=
+  fun _ hx =>
     And.intro
-      (Ioo_subset_Icc_self hx.1)
-      (Ioo_subset_Icc_self hx.2)
+      (Set.Ioo_subset_Icc_self hx.1)
+      (Set.Ioo_subset_Icc_self hx.2)
 
 /-- Cauchy-Goursat zero for the finite-radius punctured rectangle from a concrete
 subdivision by regular rectangular cells contained in the raw punctured interior.  The
@@ -335,8 +427,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral_eq_
             (lower c) (upper c))
     (hcell_closed :
       ∀ c : ι, c ∈ cells →
-        ([[ (lower c).re, (upper c).re ]] ×ℂ
-          [[ (lower c).im, (upper c).im ]]) ⊆
+        (Set.uIcc (lower c).re (upper c).re ×ℂ
+          Set.uIcc (lower c).im (upper c).im) ⊆
           finiteRectanglePuncturedDomain
             (explicitFormulaContourFamilyInterior F T)
             (explicitFormulaRectangleRawSingularCoordinates T)
@@ -359,8 +451,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral_eq_
       ∀ c : ι, c ∈ cells →
         ContinuousOn
           (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-          ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]) :=
+          (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im) :=
     fun c hc =>
       (explicitFormulaRectangleRawPuncturedInterior_continuousOn
         f F h hT hε hinterior).mono
@@ -406,8 +498,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral_eq_
             (lower c) (upper c))
     (hcell_closed :
       ∀ c : ι, c ∈ cells →
-        ([[ (lower c).re, (upper c).re ]] ×ℂ
-          [[ (lower c).im, (upper c).im ]]) ⊆
+        (Set.uIcc (lower c).re (upper c).re ×ℂ
+          Set.uIcc (lower c).im (upper c).im) ⊆
           finiteRectanglePuncturedDomain
             (explicitFormulaContourFamilyInterior F T)
             (explicitFormulaRectangleRawSingularCoordinates T)
@@ -463,8 +555,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusSquarePuncturedBoundaryIntegr
       ∀ c : ι, c ∈ cells →
         ContinuousOn
           (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-          ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]))
+          (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im))
     (Hd :
       ∀ c : ι, c ∈ cells →
         ∀ x : ℂ,
@@ -518,8 +610,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusSquarePuncturedBoundaryIntegr
             (lower c) (upper c))
     (hcell_closed :
       ∀ c : ι, c ∈ cells →
-        ([[ (lower c).re, (upper c).re ]] ×ℂ
-          [[ (lower c).im, (upper c).im ]]) ⊆
+        (Set.uIcc (lower c).re (upper c).re ×ℂ
+          Set.uIcc (lower c).im (upper c).im) ⊆
           finiteRectanglePuncturedDomain
             (explicitFormulaContourFamilyInterior F T)
             (explicitFormulaRectangleRawSingularCoordinates T)
@@ -542,8 +634,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusSquarePuncturedBoundaryIntegr
       ∀ c : ι, c ∈ cells →
         ContinuousOn
           (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-          ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]) :=
+          (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im) :=
     fun c hc =>
       (explicitFormulaRectangleRawPuncturedInterior_continuousOn
         f F h hT hε hinterior).mono
@@ -588,8 +680,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusSquarePuncturedBoundaryIntegr
             (lower c) (upper c))
     (hcell_closed :
       ∀ c : ι, c ∈ cells →
-        ([[ (lower c).re, (upper c).re ]] ×ℂ
-          [[ (lower c).im, (upper c).im ]]) ⊆
+        (Set.uIcc (lower c).re (upper c).re ×ℂ
+          Set.uIcc (lower c).im (upper c).im) ⊆
           finiteRectanglePuncturedDomain
             (explicitFormulaContourFamilyInterior F T)
             (explicitFormulaRectangleRawSingularCoordinates T)
@@ -622,8 +714,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
       ∀ c : ι, c ∈ cells →
         ContinuousOn
           (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-          ([[ (lower c).re, (upper c).re ]] ×ℂ
-            [[ (lower c).im, (upper c).im ]]))
+          (Set.uIcc (lower c).re (upper c).re ×ℂ
+            Set.uIcc (lower c).im (upper c).im))
     (Hd :
       ∀ c : ι, c ∈ cells →
         ∀ x : ℂ,
@@ -655,6 +747,188 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
       exact hsubdivision
     _ = 0 := by
       exact hsum
+
+/-- Lower-left corner of the inscribed square of circular radius `ε` around a raw
+singular coordinate. -/
+def explicitFormulaRectangleRawInscribedSquareLowerCorner (ε : ℝ) (a : ℂ) : ℂ :=
+  finiteRectangleSquareLowerCorner a (ε / 2)
+
+/-- Upper-right corner of the inscribed square of circular radius `ε` around a raw
+singular coordinate. -/
+def explicitFormulaRectangleRawInscribedSquareUpperCorner (ε : ℝ) (a : ℂ) : ℂ :=
+  finiteRectangleSquareUpperCorner a (ε / 2)
+
+/-- The lower-left corner of the raw inscribed square is the lower-left corner of the
+ordinary deleted square at half-width `ε / 2`. -/
+theorem explicitFormulaRectangleRawInscribedSquareLowerCorner_eq_squareLowerCorner_half
+    (ε : ℝ) (a : ℂ) :
+    explicitFormulaRectangleRawInscribedSquareLowerCorner ε a =
+      finiteRectangleSquareLowerCorner a (ε / 2) := by
+  rfl
+
+/-- The upper-right corner of the raw inscribed square is the upper-right corner of the
+ordinary deleted square at half-width `ε / 2`. -/
+theorem explicitFormulaRectangleRawInscribedSquareUpperCorner_eq_squareUpperCorner_half
+    (ε : ℝ) (a : ℂ) :
+    explicitFormulaRectangleRawInscribedSquareUpperCorner ε a =
+      finiteRectangleSquareUpperCorner a (ε / 2) := by
+  rfl
+
+/-- Closed cell of the inscribed square of circular radius `ε` around a raw singular
+coordinate. -/
+def explicitFormulaRectangleRawInscribedSquareClosedCell (ε : ℝ) (a : ℂ) : Set ℂ :=
+  Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re
+      (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re ×ℂ
+    Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im
+      (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im
+
+/-- The named inscribed-square closed cell is the closed rectangle between the named
+lower-left and upper-right corners. -/
+theorem explicitFormulaRectangleRawInscribedSquareClosedCell_eq
+    (ε : ℝ) (a : ℂ) :
+    explicitFormulaRectangleRawInscribedSquareClosedCell ε a =
+      (Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re ×ℂ
+        Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im) := by
+  rfl
+
+/-- Transport membership in an unordered closed interval across endpoint equalities. -/
+theorem finiteRectangle_mem_uIcc_congr_endpoints
+    {x a b c d : ℝ} (ha : a = c) (hb : b = d)
+    (hx : x ∈ Set.uIcc a b) :
+    x ∈ Set.uIcc c d :=
+  match ha, hb with
+  | rfl, rfl => hx
+
+/-- Real coordinate of the lower-left corner of a raw inscribed square. -/
+theorem explicitFormulaRectangleRawInscribedSquareLowerCorner_re
+    (ε : ℝ) (a : ℂ) :
+    (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re =
+      a.re - ε / 2 :=
+  finiteRectangleSquareLowerCorner_re a (ε / 2)
+
+/-- Imaginary coordinate of the lower-left corner of a raw inscribed square. -/
+theorem explicitFormulaRectangleRawInscribedSquareLowerCorner_im
+    (ε : ℝ) (a : ℂ) :
+    (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im =
+      a.im - ε / 2 :=
+  finiteRectangleSquareLowerCorner_im a (ε / 2)
+
+/-- Real coordinate of the upper-right corner of a raw inscribed square. -/
+theorem explicitFormulaRectangleRawInscribedSquareUpperCorner_re
+    (ε : ℝ) (a : ℂ) :
+    (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re =
+      a.re + ε / 2 :=
+  finiteRectangleSquareUpperCorner_re a (ε / 2)
+
+/-- Imaginary coordinate of the upper-right corner of a raw inscribed square. -/
+theorem explicitFormulaRectangleRawInscribedSquareUpperCorner_im
+    (ε : ℝ) (a : ℂ) :
+    (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im =
+      a.im + ε / 2 :=
+  finiteRectangleSquareUpperCorner_im a (ε / 2)
+
+/-- The center of a raw inscribed square belongs to its named closed cell. -/
+theorem explicitFormulaRectangleRawSingular_mem_own_inscribedSquareClosedCell
+    {ε : ℝ} (hε : 0 ≤ ε) (a : ℂ) :
+    a ∈ explicitFormulaRectangleRawInscribedSquareClosedCell ε a := by
+  have hε_div_two_nonneg : 0 ≤ ε / 2 :=
+    div_nonneg hε zero_le_two
+  have hre_left : a.re - ε / 2 ≤ a.re :=
+    sub_le_self a.re hε_div_two_nonneg
+  have hre_right : a.re ≤ a.re + ε / 2 :=
+    le_add_of_nonneg_right hε_div_two_nonneg
+  have him_left : a.im - ε / 2 ≤ a.im :=
+    sub_le_self a.im hε_div_two_nonneg
+  have him_right : a.im ≤ a.im + ε / 2 :=
+    le_add_of_nonneg_right hε_div_two_nonneg
+  have hre_center :
+      a.re ∈ Set.uIcc (a.re - ε / 2) (a.re + ε / 2) :=
+    Set.mem_uIcc.mpr (Or.inl (And.intro hre_left hre_right))
+  have him_center :
+      a.im ∈ Set.uIcc (a.im - ε / 2) (a.im + ε / 2) :=
+    Set.mem_uIcc.mpr (Or.inl (And.intro him_left him_right))
+  have hre :
+      a.re ∈
+        Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re :=
+    finiteRectangle_mem_uIcc_congr_endpoints
+      (explicitFormulaRectangleRawInscribedSquareLowerCorner_re ε a).symm
+      (explicitFormulaRectangleRawInscribedSquareUpperCorner_re ε a).symm
+      hre_center
+  have him :
+      a.im ∈
+        Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im :=
+    finiteRectangle_mem_uIcc_congr_endpoints
+      (explicitFormulaRectangleRawInscribedSquareLowerCorner_im ε a).symm
+      (explicitFormulaRectangleRawInscribedSquareUpperCorner_im ε a).symm
+      him_center
+  exact And.intro hre him
+
+/-- A rectangular subdivision cell disjoint from every removed raw inscribed square avoids
+the raw singular carrier. -/
+theorem explicitFormulaRectangleSubdivisionCell_not_mem_rawSingularCoordinates_of_disjoint_inscribedSquares
+    (T ε : ℝ) (hε : 0 ≤ ε) (lower upper : ℂ)
+    (hdisjoint :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          Disjoint
+            (Set.uIcc lower.re upper.re ×ℂ Set.uIcc lower.im upper.im)
+            (explicitFormulaRectangleRawInscribedSquareClosedCell ε a))
+    {z : ℂ}
+    (hz : z ∈ (Set.uIcc lower.re upper.re ×ℂ Set.uIcc lower.im upper.im)) :
+    z ∉ explicitFormulaRectangleRawSingularCoordinates T := by
+  intro hzRaw
+  have hzOwn :
+      z ∈ explicitFormulaRectangleRawInscribedSquareClosedCell ε z :=
+    explicitFormulaRectangleRawSingular_mem_own_inscribedSquareClosedCell hε z
+  exact
+    (Set.disjoint_left.mp (hdisjoint z hzRaw)) hz hzOwn
+
+/-- A point in a rectangular cell can equal a center only if both center coordinates lie in
+the corresponding coordinate intervals. -/
+theorem finiteRectangleSubdivisionCell_ne_center_of_coordinate_omission
+    (lower upper a z : ℂ)
+    (hz : z ∈ (Set.uIcc lower.re upper.re ×ℂ Set.uIcc lower.im upper.im))
+    (homit :
+      a.re ∉ Set.uIcc lower.re upper.re ∨
+        a.im ∉ Set.uIcc lower.im upper.im) :
+    z ≠ a := by
+  intro hza
+  match homit with
+  | Or.inl hre_omit =>
+      have hre_mem : a.re ∈ Set.uIcc lower.re upper.re :=
+        Eq.subst
+          (motive := fun w : ℂ => w.re ∈ Set.uIcc lower.re upper.re)
+          hza
+          hz.1
+      exact hre_omit hre_mem
+  | Or.inr him_omit =>
+      have him_mem : a.im ∈ Set.uIcc lower.im upper.im :=
+        Eq.subst
+          (motive := fun w : ℂ => w.im ∈ Set.uIcc lower.im upper.im)
+          hza
+          hz.2
+      exact him_omit him_mem
+
+/-- A rectangular subdivision cell avoids the raw finite singular-coordinate carrier when
+each raw center is omitted by at least one coordinate interval. -/
+theorem explicitFormulaRectangleSubdivisionCell_not_mem_rawSingularCoordinates_of_coordinate_omission
+    (T : ℝ) (lower upper : ℂ)
+    (homit :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          a.re ∉ Set.uIcc lower.re upper.re ∨
+            a.im ∉ Set.uIcc lower.im upper.im)
+    {z : ℂ}
+    (hz : z ∈ (Set.uIcc lower.re upper.re ×ℂ Set.uIcc lower.im upper.im)) :
+    z ∉ explicitFormulaRectangleRawSingularCoordinates T := by
+  intro hzRaw
+  exact
+    finiteRectangleSubdivisionCell_ne_center_of_coordinate_omission
+      lower upper z z hz (homit z hzRaw) rfl
 
 end ZetaAdmissibleFunction
 

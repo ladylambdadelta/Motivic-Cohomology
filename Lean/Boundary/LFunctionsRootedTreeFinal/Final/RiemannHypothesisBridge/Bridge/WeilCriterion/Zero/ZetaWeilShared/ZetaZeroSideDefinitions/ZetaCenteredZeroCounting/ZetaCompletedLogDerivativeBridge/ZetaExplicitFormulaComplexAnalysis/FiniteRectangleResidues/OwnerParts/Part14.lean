@@ -27,17 +27,17 @@ theorem explicitFormulaRectangle_zeroPole_deletedCircleIntegral_eq_twoPiI_smul_r
     (s : Set ℂ) (hs : s.Countable)
     (hcontinuous :
       ContinuousOn
-        (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z)
+        (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z)
         (Metric.closedBall (0 : ℂ) R \ {(0 : ℂ)}))
     (hdifferentiable :
       ∀ z : ℂ,
         z ∈ (Metric.ball (0 : ℂ) R \ {(0 : ℂ)}) \ s →
           DifferentiableAt ℂ
-            (fun w : ℂ => w * zetaCompletedExplicitFormulaContourIntegrand f w)
+            (fun w : ℂ => (w - 0) * zetaCompletedExplicitFormulaContourIntegrand f w)
             z)
     (hlocal :
       Tendsto
-        (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z)
+        (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z)
         (𝓝[≠] (0 : ℂ))
         (𝓝 (explicitFormulaRectangle_zeroPoleResidue f))) :
     (∮ z in C((0 : ℂ), R),
@@ -92,56 +92,6 @@ theorem explicitFormulaRectangle_onePole_deletedCircleIntegral_eq_twoPiI_smul_re
       hdifferentiable
       hlocal
 
-/-- A point in the punctured rectangle lies in the original rectangle domain. -/
-theorem finiteRectanglePuncturedDomain_mem_base
-    (R : Set ℂ) (S : Finset ℂ) (ε : ℝ) {z : ℂ}
-    (hz : z ∈ finiteRectanglePuncturedDomain R S ε) :
-    z ∈ R :=
-  hz.left
-
-/-- A point in the punctured rectangle lies outside the finite deleted-disk union. -/
-theorem finiteRectanglePuncturedDomain_not_mem_deletedDisks
-    (R : Set ℂ) (S : Finset ℂ) (ε : ℝ) {z : ℂ}
-    (hz : z ∈ finiteRectanglePuncturedDomain R S ε) :
-    z ∉ finiteRectangleDeletedDisks S ε :=
-  hz.right
-
-/-- A point in the punctured rectangle avoids every deleted disk centered at a listed
-singular coordinate. -/
-theorem finiteRectanglePuncturedDomain_not_mem_deletedBall
-    (R : Set ℂ) (S : Finset ℂ) (ε : ℝ) {a z : ℂ}
-    (hz : z ∈ finiteRectanglePuncturedDomain R S ε) (ha : a ∈ S) :
-    z ∉ Metric.ball a ε :=
-  fun hball =>
-    finiteRectanglePuncturedDomain_not_mem_deletedDisks R S ε hz
-      (finiteRectangleDeletedDisks_mem_of_mem_ball S ε ha hball)
-
-/-- A point in the indexed punctured rectangle lies in the original rectangle domain. -/
-theorem finiteRectangleIndexedPuncturedDomain_mem_base
-    {α : Type*} (R : Set ℂ) (S : Finset α) (center : α → ℂ) (ε : ℝ) {z : ℂ}
-    (hz : z ∈ finiteRectangleIndexedPuncturedDomain R S center ε) :
-    z ∈ R :=
-  hz.left
-
-/-- A point in the indexed punctured rectangle lies outside the indexed finite deleted-disk
-union. -/
-theorem finiteRectangleIndexedPuncturedDomain_not_mem_deletedDisks
-    {α : Type*} (R : Set ℂ) (S : Finset α) (center : α → ℂ) (ε : ℝ) {z : ℂ}
-    (hz : z ∈ finiteRectangleIndexedPuncturedDomain R S center ε) :
-    z ∉ finiteRectangleIndexedDeletedDisks S center ε :=
-  hz.right
-
-/-- A point in the indexed punctured rectangle avoids every indexed deleted disk centered
-at a listed singular coordinate. -/
-theorem finiteRectangleIndexedPuncturedDomain_not_mem_deletedBall
-    {α : Type*} (R : Set ℂ) (S : Finset α) (center : α → ℂ) (ε : ℝ)
-    {a : α} {z : ℂ}
-    (hz : z ∈ finiteRectangleIndexedPuncturedDomain R S center ε) (ha : a ∈ S) :
-    z ∉ Metric.ball (center a) ε :=
-  fun hball =>
-    finiteRectangleIndexedPuncturedDomain_not_mem_deletedDisks R S center ε hz
-      (finiteRectangleIndexedDeletedDisks_mem_of_mem_ball S center ε ha hball)
-
 /-- A base-domain point avoiding each listed deleted disk lies in the punctured rectangle. -/
 theorem finiteRectanglePuncturedDomain_mem_of_mem_base_of_forall_not_mem_ball
     (R : Set ℂ) (S : Finset ℂ) (ε : ℝ) {z : ℂ}
@@ -170,16 +120,16 @@ theorem finiteRectanglePuncturedDomain_subset_of_subset_base_of_forall_not_mem_b
 closed cell lies in the base rectangle and avoids every deleted disk. -/
 theorem finiteRectangleClosedCell_subset_puncturedDomain_of_subset_base_of_forall_not_mem_ball
     (R : Set ℂ) (S : Finset ℂ) (ε : ℝ) (z w : ℂ)
-    (hR : ([[z.re, w.re]] ×ℂ [[z.im, w.im]]) ⊆ R)
+    (hR : (Set.uIcc z.re w.re ×ℂ Set.uIcc z.im w.im) ⊆ R)
     (havoid :
       ∀ x : ℂ,
-        x ∈ ([[z.re, w.re]] ×ℂ [[z.im, w.im]]) →
+        x ∈ (Set.uIcc z.re w.re ×ℂ Set.uIcc z.im w.im) →
           ∀ a : ℂ, a ∈ S → x ∉ Metric.ball a ε) :
-    ([[z.re, w.re]] ×ℂ [[z.im, w.im]]) ⊆
+    (Set.uIcc z.re w.re ×ℂ Set.uIcc z.im w.im) ⊆
       finiteRectanglePuncturedDomain R S ε :=
   finiteRectanglePuncturedDomain_subset_of_subset_base_of_forall_not_mem_ball
     R
-    ([[z.re, w.re]] ×ℂ [[z.im, w.im]])
+    (Set.uIcc z.re w.re ×ℂ Set.uIcc z.im w.im)
     S ε hR havoid
 
 /-- Under closed-radius containment and strict pairwise separation, every point on a
@@ -199,7 +149,7 @@ theorem finiteRectanglePuncturedDomain_mem_of_mem_sphere_of_closedBall_subset_pa
     z ∈ finiteRectanglePuncturedDomain R S ε :=
   finiteRectanglePuncturedDomain_mem_of_mem_base_of_forall_not_mem_ball
     R S ε
-    (hclosed a ha (sphere_subset_closedBall hz))
+    (hclosed a ha (Metric.mem_closedBall.mpr (le_of_eq (Metric.mem_sphere.mp hz))))
     (fun b hb hball =>
       match eq_or_ne b a with
       | Or.inl hba =>
@@ -212,7 +162,7 @@ theorem finiteRectanglePuncturedDomain_mem_of_mem_sphere_of_closedBall_subset_pa
               hball
           have hlt : dist z a < ε :=
             Metric.mem_ball.mp hball_a
-          (not_lt_of_ge (le_of_eq hz_dist)) hlt
+          (not_lt_of_ge (le_of_eq hz_dist.symm)) hlt
       | Or.inr hba_ne =>
           have hza : dist z a = ε :=
             Metric.mem_sphere.mp hz
@@ -235,7 +185,7 @@ theorem finiteRectanglePuncturedDomain_mem_of_mem_sphere_of_closedBall_subset_pa
                       exact add_lt_add_left hzb_lt ε)
           have hsep_ab : ε + ε < dist a b :=
             hsep a ha b hb hba_ne.symm
-          exact (lt_asymm hab_lt hsep_ab))
+          lt_asymm hab_lt hsep_ab)
 
 /-- The actual deleted-circle parametrization for one raw singular coordinate lies in
 the finite-radius punctured rectangle whenever the chosen radius has the closed-disk
@@ -340,7 +290,7 @@ theorem explicitFormulaRectangleRawCircleMap_range_subset_puncturedDomain_of_clo
         (explicitFormulaContourFamilyInterior F T)
         (explicitFormulaRectangleRawSingularCoordinates T)
         ε :=
-  fun z hz =>
+  fun _ hz =>
     Exists.elim hz
       (fun θ hθ =>
         Eq.subst
@@ -371,7 +321,7 @@ theorem explicitFormulaRectangleRawCircleMap_range_subset_interior_of_closedRadi
             c ∈ explicitFormulaRectangleRawSingularCoordinates T →
               b ≠ c → ε + ε < dist b c) :
     Set.range (circleMap a ε) ⊆ explicitFormulaContourFamilyInterior F T :=
-  fun z hz =>
+  fun _ hz =>
     finiteRectanglePuncturedDomain_mem_base
       (explicitFormulaContourFamilyInterior F T)
       (explicitFormulaRectangleRawSingularCoordinates T)
@@ -509,38 +459,38 @@ theorem finiteRectangleDeletedBoundary_tendsto_sum_of_local
         (fun i : ι => ∑ a in S, deleted i a)
         l
         (𝓝 (∑ a in S, residue a)) := by
-  apply Finset.induction_on S
-  · intro _hlocal
-    change Tendsto (fun _ : ι => (0 : ℂ)) l (𝓝 (0 : ℂ))
-    exact tendsto_const_nhds
-  · intro a S ha ih hlocal
-    have hlocal_a : Tendsto (fun i : ι => deleted i a) l (𝓝 (residue a)) :=
-      hlocal a (Finset.mem_insert_self a S)
-    have hlocal_S :
-        ∀ b : α, b ∈ S → Tendsto (fun i : ι => deleted i b) l (𝓝 (residue b)) :=
-      fun b hb => hlocal b (Finset.mem_insert_of_mem hb)
-    have hsum_S :
-        Tendsto
-          (fun i : ι => ∑ b in S, deleted i b)
-          l
-          (𝓝 (∑ b in S, residue b)) :=
-      ih hlocal_S
-    have hsum_insert :
-        Tendsto
-          (fun i : ι => deleted i a + ∑ b in S, deleted i b)
-          l
-          (𝓝 (residue a + ∑ b in S, residue b)) :=
-      hlocal_a.add hsum_S
-    have hsource :
-        (fun i : ι => deleted i a + ∑ b in S, deleted i b) =
-          (fun i : ι => ∑ b in insert a S, deleted i b) := by
-      funext i
-      exact (Finset.sum_insert ha).symm
-    have htarget :
-        residue a + ∑ b in S, residue b =
-          ∑ b in insert a S, residue b :=
-      (Finset.sum_insert ha).symm
-    exact htarget ▸ (hsum_insert.congr' (Filter.Eventually.of_forall (fun i => congrFun hsource i)))
+  exact
+    Finset.cons_induction_on S
+      (fun _hlocal => tendsto_const_nhds)
+      (fun a S ha ih hlocal =>
+        let hlocal_a : Tendsto (fun i : ι => deleted i a) l (𝓝 (residue a)) :=
+          hlocal a (Finset.mem_cons_self a S)
+        let hlocal_S :
+            ∀ b : α, b ∈ S → Tendsto (fun i : ι => deleted i b) l (𝓝 (residue b)) :=
+          fun b hb => hlocal b (Finset.mem_cons_of_mem hb)
+        let hsum_S :
+            Tendsto
+              (fun i : ι => ∑ b in S, deleted i b)
+              l
+              (𝓝 (∑ b in S, residue b)) :=
+          ih hlocal_S
+        let hsum_cons :
+            Tendsto
+              (fun i : ι => deleted i a + ∑ b in S, deleted i b)
+              l
+              (𝓝 (residue a + ∑ b in S, residue b)) :=
+          hlocal_a.add hsum_S
+        let hsource :
+            (fun i : ι => deleted i a + ∑ b in S, deleted i b) =
+              (fun i : ι => ∑ b in S.cons a ha, deleted i b) := by
+          funext i
+          exact (Finset.sum_cons ha).symm
+        let htarget :
+            residue a + ∑ b in S, residue b =
+              ∑ b in S.cons a ha, residue b :=
+          (Finset.sum_cons ha).symm
+        htarget ▸
+          (hsum_cons.congr' (Filter.Eventually.of_forall (fun i => congrFun hsource i))))
 
 /-- The deleted-circle limits over the completed-zero height window assemble to the exact
 finite residue window used by the explicit formula. -/

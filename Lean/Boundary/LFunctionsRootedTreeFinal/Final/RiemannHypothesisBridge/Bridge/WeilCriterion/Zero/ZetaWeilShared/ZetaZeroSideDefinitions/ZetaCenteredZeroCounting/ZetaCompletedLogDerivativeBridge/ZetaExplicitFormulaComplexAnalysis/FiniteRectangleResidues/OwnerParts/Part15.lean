@@ -80,37 +80,6 @@ theorem finiteRectangleResidueAccounting_tendsto_of_puncturedCauchy_and_deletedB
     zero_add residueSum
   exact (htarget ▸ hsum).congr' hpoint
 
-/-- Finite deleted-circle boundary contributions are recorded with positive residue
-orientation.  The punctured rectangle boundary therefore appears as outer boundary minus
-this deleted-circle sum. -/
-noncomputable def finiteRectangleDeletedCircleBoundarySum
-    (S : Finset ℂ) (deletedCircle : ℂ → ℂ) : ℂ :=
-  ∑ a in S, deletedCircle a
-
-/-- The positive-orientation deleted-circle boundary contribution of the completed
-explicit-formula integrand around a singular coordinate. -/
-noncomputable def explicitFormulaRectangleRawDeletedCircleBoundary
-    (f : ZetaAdmissibleFunction) (ε : ℝ) (a : ℂ) : ℂ :=
-  ∮ z in C(a, ε), zetaCompletedExplicitFormulaContourIntegrand f z
-
-/-- The positive-orientation square deleted-boundary contribution of the completed
-explicit-formula integrand around a singular coordinate.  This is the rectangular
-replacement boundary used by the finite square-hole subdivision before transport back to
-the public circular deleted-boundary normalization. -/
-noncomputable def explicitFormulaRectangleRawDeletedSquareBoundary
-    (f : ZetaAdmissibleFunction) (ε : ℝ) (a : ℂ) : ℂ :=
-  finiteRectangleSquareBoundaryIntegral
-    (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z) a ε
-
-/-- The positive-orientation inscribed-square deleted-boundary contribution of the
-completed explicit-formula integrand around a singular coordinate.  The square half-width
-is `ε / 2`, so this boundary is the square-hole replacement compatible with radius-`ε`
-closed-disk controls. -/
-noncomputable def explicitFormulaRectangleRawInscribedSquareBoundary
-    (f : ZetaAdmissibleFunction) (ε : ℝ) (a : ℂ) : ℂ :=
-  finiteRectangleSquareBoundaryIntegral
-    (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z) a (ε / 2)
-
 /-- The raw deleted-circle boundary is unchanged when the radius is transported across a
 regular annulus about the same raw coordinate. -/
 theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_of_annulus_regular
@@ -133,59 +102,14 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_of_annulus_regular
     (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
     s hs hcontinuous hdifferentiable
 
-/-- Lower-left corner of the inscribed square of circular radius `ε` around a raw
-singular coordinate. -/
-def explicitFormulaRectangleRawInscribedSquareLowerCorner (ε : ℝ) (a : ℂ) : ℂ :=
-  finiteRectangleSquareLowerCorner a (ε / 2)
-
-/-- Upper-right corner of the inscribed square of circular radius `ε` around a raw
-singular coordinate. -/
-def explicitFormulaRectangleRawInscribedSquareUpperCorner (ε : ℝ) (a : ℂ) : ℂ :=
-  finiteRectangleSquareUpperCorner a (ε / 2)
-
-/-- The lower-left corner of the raw inscribed square is the lower-left corner of the
-ordinary deleted square at half-width `ε / 2`. -/
-theorem explicitFormulaRectangleRawInscribedSquareLowerCorner_eq_squareLowerCorner_half
-    (ε : ℝ) (a : ℂ) :
-    explicitFormulaRectangleRawInscribedSquareLowerCorner ε a =
-      finiteRectangleSquareLowerCorner a (ε / 2) := by
-  rfl
-
-/-- The upper-right corner of the raw inscribed square is the upper-right corner of the
-ordinary deleted square at half-width `ε / 2`. -/
-theorem explicitFormulaRectangleRawInscribedSquareUpperCorner_eq_squareUpperCorner_half
-    (ε : ℝ) (a : ℂ) :
-    explicitFormulaRectangleRawInscribedSquareUpperCorner ε a =
-      finiteRectangleSquareUpperCorner a (ε / 2) := by
-  rfl
-
-/-- Closed cell of the inscribed square of circular radius `ε` around a raw singular
-coordinate. -/
-def explicitFormulaRectangleRawInscribedSquareClosedCell (ε : ℝ) (a : ℂ) : Set ℂ :=
-  [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re,
-      (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re ]] ×ℂ
-    [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im,
-      (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im ]]
-
-/-- The named inscribed-square closed cell is the closed rectangle between the named
-lower-left and upper-right corners. -/
-theorem explicitFormulaRectangleRawInscribedSquareClosedCell_eq
-    (ε : ℝ) (a : ℂ) :
-    explicitFormulaRectangleRawInscribedSquareClosedCell ε a =
-      ([[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re,
-          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re ]] ×ℂ
-        [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im,
-          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im ]]) := by
-  rfl
-
 /-- A point in the named inscribed-square closed cell has its real coordinate in the
 cell's closed real interval. -/
 theorem explicitFormulaRectangleRawInscribedSquareClosedCell_re_mem
     (ε : ℝ) (a z : ℂ)
     (hz : z ∈ explicitFormulaRectangleRawInscribedSquareClosedCell ε a) :
     z.re ∈
-      [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re,
-        (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re ]] :=
+      Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re
+        (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re :=
   hz.1
 
 /-- A point in the named inscribed-square closed cell has its imaginary coordinate in the
@@ -194,8 +118,8 @@ theorem explicitFormulaRectangleRawInscribedSquareClosedCell_im_mem
     (ε : ℝ) (a z : ℂ)
     (hz : z ∈ explicitFormulaRectangleRawInscribedSquareClosedCell ε a) :
     z.im ∈
-      [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im,
-        (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im ]] :=
+      Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im
+        (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im :=
   hz.2
 
 /-- Membership in the named inscribed-square closed cell is equivalent to the two
@@ -204,25 +128,17 @@ theorem explicitFormulaRectangleRawInscribedSquareClosedCell_mem_iff
     (ε : ℝ) (a z : ℂ) :
     z ∈ explicitFormulaRectangleRawInscribedSquareClosedCell ε a ↔
       z.re ∈
-        [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re,
-          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re ]] ∧
+        Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re ∧
         z.im ∈
-          [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im,
-            (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im ]] := by
+          Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im
+            (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im := by
   exact Iff.rfl
-
-/-- Transport membership in an unordered closed interval across endpoint equalities. -/
-theorem finiteRectangle_mem_uIcc_congr_endpoints
-    {x a b c d : ℝ} (ha : a = c) (hb : b = d)
-    (hx : x ∈ [[a, b]]) :
-    x ∈ [[c, d]] :=
-  match ha, hb with
-  | rfl, rfl => hx
 
 /-- Membership in the closed interval `[c - r, c + r]` bounds displacement from `c`. -/
 theorem finiteRectangle_mem_uIcc_sub_add_abs_sub_le
     {c r x : ℝ} (hr : 0 ≤ r)
-    (hx : x ∈ [[c - r, c + r]]) :
+    (hx : x ∈ Set.uIcc (c - r) (c + r)) :
     |x - c| ≤ r := by
   have hleft : c - r ≤ c :=
     sub_le_self c hr
@@ -245,13 +161,6 @@ theorem finiteRectangle_mem_uIcc_sub_add_abs_sub_le
     sub_le_comm.1 hx_lower
   exact abs_sub_le_iff.2 (And.intro hupper hlower)
 
-/-- Real coordinate of the lower-left corner of a raw inscribed square. -/
-theorem explicitFormulaRectangleRawInscribedSquareLowerCorner_re
-    (ε : ℝ) (a : ℂ) :
-    (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re =
-      a.re - ε / 2 :=
-  finiteRectangleSquareLowerCorner_re a (ε / 2)
-
 /-- The real coordinate of the raw inscribed-square lower-left corner is the real
 coordinate of the deleted-square lower-left corner at half-width `ε / 2`. -/
 theorem explicitFormulaRectangleRawInscribedSquareLowerCorner_re_eq_squareLowerCorner_half_re
@@ -260,13 +169,6 @@ theorem explicitFormulaRectangleRawInscribedSquareLowerCorner_re_eq_squareLowerC
       (finiteRectangleSquareLowerCorner a (ε / 2)).re := by
   exact congrArg Complex.re
     (explicitFormulaRectangleRawInscribedSquareLowerCorner_eq_squareLowerCorner_half ε a)
-
-/-- Imaginary coordinate of the lower-left corner of a raw inscribed square. -/
-theorem explicitFormulaRectangleRawInscribedSquareLowerCorner_im
-    (ε : ℝ) (a : ℂ) :
-    (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im =
-      a.im - ε / 2 :=
-  finiteRectangleSquareLowerCorner_im a (ε / 2)
 
 /-- The imaginary coordinate of the raw inscribed-square lower-left corner is the imaginary
 coordinate of the deleted-square lower-left corner at half-width `ε / 2`. -/
@@ -277,13 +179,6 @@ theorem explicitFormulaRectangleRawInscribedSquareLowerCorner_im_eq_squareLowerC
   exact congrArg Complex.im
     (explicitFormulaRectangleRawInscribedSquareLowerCorner_eq_squareLowerCorner_half ε a)
 
-/-- Real coordinate of the upper-right corner of a raw inscribed square. -/
-theorem explicitFormulaRectangleRawInscribedSquareUpperCorner_re
-    (ε : ℝ) (a : ℂ) :
-    (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re =
-      a.re + ε / 2 :=
-  finiteRectangleSquareUpperCorner_re a (ε / 2)
-
 /-- The real coordinate of the raw inscribed-square upper-right corner is the real
 coordinate of the deleted-square upper-right corner at half-width `ε / 2`. -/
 theorem explicitFormulaRectangleRawInscribedSquareUpperCorner_re_eq_squareUpperCorner_half_re
@@ -292,13 +187,6 @@ theorem explicitFormulaRectangleRawInscribedSquareUpperCorner_re_eq_squareUpperC
       (finiteRectangleSquareUpperCorner a (ε / 2)).re := by
   exact congrArg Complex.re
     (explicitFormulaRectangleRawInscribedSquareUpperCorner_eq_squareUpperCorner_half ε a)
-
-/-- Imaginary coordinate of the upper-right corner of a raw inscribed square. -/
-theorem explicitFormulaRectangleRawInscribedSquareUpperCorner_im
-    (ε : ℝ) (a : ℂ) :
-    (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im =
-      a.im + ε / 2 :=
-  finiteRectangleSquareUpperCorner_im a (ε / 2)
 
 /-- The imaginary coordinate of the raw inscribed-square upper-right corner is the
 imaginary coordinate of the deleted-square upper-right corner at half-width `ε / 2`. -/
@@ -333,18 +221,18 @@ theorem explicitFormulaRectangleRawInscribedSquareClosedCell_re_abs_sub_le_half
     |z.re - a.re| ≤ ε / 2 := by
   have hmem :
       z.re ∈
-        [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re,
-          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re ]] :=
+        Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re :=
     explicitFormulaRectangleRawInscribedSquareClosedCell_re_mem ε a z hz
   have hmem_center :
-      z.re ∈ [[a.re - ε / 2, a.re + ε / 2]] :=
+      z.re ∈ Set.uIcc (a.re - ε / 2) (a.re + ε / 2) :=
     finiteRectangle_mem_uIcc_congr_endpoints
       (explicitFormulaRectangleRawInscribedSquareLowerCorner_re ε a)
       (explicitFormulaRectangleRawInscribedSquareUpperCorner_re ε a)
       hmem
   exact
     finiteRectangle_mem_uIcc_sub_add_abs_sub_le
-      (half_nonneg hε)
+      (div_nonneg hε zero_le_two)
       hmem_center
 
 /-- A point in a raw inscribed square has imaginary-coordinate displacement at most
@@ -355,18 +243,18 @@ theorem explicitFormulaRectangleRawInscribedSquareClosedCell_im_abs_sub_le_half
     |z.im - a.im| ≤ ε / 2 := by
   have hmem :
       z.im ∈
-        [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im,
-          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im ]] :=
+        Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im :=
     explicitFormulaRectangleRawInscribedSquareClosedCell_im_mem ε a z hz
   have hmem_center :
-      z.im ∈ [[a.im - ε / 2, a.im + ε / 2]] :=
+      z.im ∈ Set.uIcc (a.im - ε / 2) (a.im + ε / 2) :=
     finiteRectangle_mem_uIcc_congr_endpoints
       (explicitFormulaRectangleRawInscribedSquareLowerCorner_im ε a)
       (explicitFormulaRectangleRawInscribedSquareUpperCorner_im ε a)
       hmem
   exact
     finiteRectangle_mem_uIcc_sub_add_abs_sub_le
-      (half_nonneg hε)
+      (div_nonneg hε zero_le_two)
       hmem_center
 
 /-- A point in a raw inscribed square is within circular radius `ε` of the square
@@ -502,44 +390,6 @@ theorem explicitFormulaRectangleRawInscribedSquareClosedCell_pairwiseDisjoint_of
     (explicitFormulaRectangleRawInscribedSquareClosedCell_subset_closedBall hε b)
     (hsep a ha b hb hab)
 
-/-- The center of a raw inscribed square belongs to its named closed cell. -/
-theorem explicitFormulaRectangleRawSingular_mem_own_inscribedSquareClosedCell
-    {ε : ℝ} (hε : 0 ≤ ε) (a : ℂ) :
-    a ∈ explicitFormulaRectangleRawInscribedSquareClosedCell ε a := by
-  have hhalf_nonneg : 0 ≤ ε / 2 :=
-    half_nonneg hε
-  have hre_left : a.re - ε / 2 ≤ a.re :=
-    sub_le_self a.re hhalf_nonneg
-  have hre_right : a.re ≤ a.re + ε / 2 :=
-    le_add_of_nonneg_right hhalf_nonneg
-  have him_left : a.im - ε / 2 ≤ a.im :=
-    sub_le_self a.im hhalf_nonneg
-  have him_right : a.im ≤ a.im + ε / 2 :=
-    le_add_of_nonneg_right hhalf_nonneg
-  have hre_center :
-      a.re ∈ [[a.re - ε / 2, a.re + ε / 2]] :=
-    Set.mem_uIcc.mpr (Or.inl (And.intro hre_left hre_right))
-  have him_center :
-      a.im ∈ [[a.im - ε / 2, a.im + ε / 2]] :=
-    Set.mem_uIcc.mpr (Or.inl (And.intro him_left him_right))
-  have hre :
-      a.re ∈
-        [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re,
-          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re ]] :=
-    finiteRectangle_mem_uIcc_congr_endpoints
-      (explicitFormulaRectangleRawInscribedSquareLowerCorner_re ε a).symm
-      (explicitFormulaRectangleRawInscribedSquareUpperCorner_re ε a).symm
-      hre_center
-  have him :
-      a.im ∈
-        [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im,
-          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im ]] :=
-    finiteRectangle_mem_uIcc_congr_endpoints
-      (explicitFormulaRectangleRawInscribedSquareLowerCorner_im ε a).symm
-      (explicitFormulaRectangleRawInscribedSquareUpperCorner_im ε a).symm
-      him_center
-  exact And.intro hre him
-
 /-- The lower-left corner of a raw inscribed square belongs to its named closed cell. -/
 theorem explicitFormulaRectangleRawInscribedSquareLowerCorner_mem_closedCell
     (ε : ℝ) (a : ℂ) :
@@ -547,13 +397,13 @@ theorem explicitFormulaRectangleRawInscribedSquareLowerCorner_mem_closedCell
       explicitFormulaRectangleRawInscribedSquareClosedCell ε a := by
   have hre :
       (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re ∈
-        [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re,
-          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re ]] :=
+        Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re :=
     Set.left_mem_uIcc
   have him :
       (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im ∈
-        [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im,
-          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im ]] :=
+        Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im :=
     Set.left_mem_uIcc
   exact And.intro hre him
 
@@ -564,13 +414,13 @@ theorem explicitFormulaRectangleRawInscribedSquareUpperCorner_mem_closedCell
       explicitFormulaRectangleRawInscribedSquareClosedCell ε a := by
   have hre :
       (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re ∈
-        [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re,
-          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re ]] :=
+        Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re :=
     Set.right_mem_uIcc
   have him :
       (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im ∈
-        [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im,
-          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im ]] :=
+        Set.uIcc (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im :=
     Set.right_mem_uIcc
   exact And.intro hre him
 

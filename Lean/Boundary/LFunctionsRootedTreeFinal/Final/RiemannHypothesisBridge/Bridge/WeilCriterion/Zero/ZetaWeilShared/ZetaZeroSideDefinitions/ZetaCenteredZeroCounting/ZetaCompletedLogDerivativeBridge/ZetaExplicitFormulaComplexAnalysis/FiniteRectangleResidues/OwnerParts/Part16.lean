@@ -18,25 +18,6 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- A rectangular subdivision cell disjoint from every removed raw inscribed square avoids
-the raw singular carrier. -/
-theorem explicitFormulaRectangleSubdivisionCell_not_mem_rawSingularCoordinates_of_disjoint_inscribedSquares
-    (T ε : ℝ) (hε : 0 ≤ ε) (lower upper : ℂ)
-    (hdisjoint :
-      ∀ a : ℂ,
-        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-          Disjoint
-            ([[ lower.re, upper.re ]] ×ℂ [[ lower.im, upper.im ]])
-            (explicitFormulaRectangleRawInscribedSquareClosedCell ε a))
-    {z : ℂ}
-    (hz : z ∈ ([[ lower.re, upper.re ]] ×ℂ [[ lower.im, upper.im ]])) :
-    z ∉ explicitFormulaRectangleRawSingularCoordinates T :=
-  explicitFormulaRectangleRawSingularCoordinates_not_mem_of_disjoint_inscribedSquares
-    T ε hε
-    ([[ lower.re, upper.re ]] ×ℂ [[ lower.im, upper.im ]])
-    hdisjoint
-    hz
-
 /-- The annulus between half of a selected closed radius and the selected radius remains in
 the contour-family interior. -/
 theorem explicitFormulaRectangleRawSingularHalfAnnulus_subset_interior_of_closedRadiusControls
@@ -179,53 +160,10 @@ theorem explicitFormulaRectangleRawSingularHalfAnnulus_differentiableAt_of_close
         T ε hε hsep a ha)
       hzAnnulus
 
-/-- A point in a rectangular cell can equal a center only if both center coordinates lie in
-the corresponding coordinate intervals. -/
-theorem finiteRectangleSubdivisionCell_ne_center_of_coordinate_omission
-    (lower upper a z : ℂ)
-    (hz : z ∈ ([[ lower.re, upper.re ]] ×ℂ [[ lower.im, upper.im ]]))
-    (homit :
-      a.re ∉ [[ lower.re, upper.re ]] ∨
-        a.im ∉ [[ lower.im, upper.im ]]) :
-    z ≠ a := by
-  intro hza
-  match homit with
-  | Or.inl hre_omit =>
-      have hre_mem : a.re ∈ [[ lower.re, upper.re ]] :=
-        Eq.subst
-          (motive := fun w : ℂ => w.re ∈ [[ lower.re, upper.re ]])
-          hza
-          hz.1
-      exact hre_omit hre_mem
-  | Or.inr him_omit =>
-      have him_mem : a.im ∈ [[ lower.im, upper.im ]] :=
-        Eq.subst
-          (motive := fun w : ℂ => w.im ∈ [[ lower.im, upper.im ]])
-          hza
-          hz.2
-      exact him_omit him_mem
-
-/-- A rectangular subdivision cell avoids the raw finite singular-coordinate carrier when
-each raw center is omitted by at least one coordinate interval. -/
-theorem explicitFormulaRectangleSubdivisionCell_not_mem_rawSingularCoordinates_of_coordinate_omission
-    (T : ℝ) (lower upper : ℂ)
-    (homit :
-      ∀ a : ℂ,
-        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-          a.re ∉ [[ lower.re, upper.re ]] ∨
-            a.im ∉ [[ lower.im, upper.im ]])
-    {z : ℂ}
-    (hz : z ∈ ([[ lower.re, upper.re ]] ×ℂ [[ lower.im, upper.im ]])) :
-    z ∉ explicitFormulaRectangleRawSingularCoordinates T := by
-  intro hzRaw
-  exact
-    finiteRectangleSubdivisionCell_ne_center_of_coordinate_omission
-      lower upper z z hz (homit z hzRaw) rfl
-
 /-- Lower-left corner of the outer explicit-formula rectangle at height `T`. -/
 def explicitFormulaRectangleOuterLowerCorner
     (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  (F.c : ℂ) + (-T : ℂ) * Complex.I
+  (F.c : ℂ) + ((-T : ℝ) : ℂ) * Complex.I
 
 /-- Upper-right corner of the outer explicit-formula rectangle at height `T`. -/
 def explicitFormulaRectangleOuterUpperCorner
@@ -235,22 +173,24 @@ def explicitFormulaRectangleOuterUpperCorner
 /-- The closed cell of the outer explicit-formula rectangle. -/
 def explicitFormulaRectangleOuterClosedCell
     (F : ExplicitFormulaContourFamily) (T : ℝ) : Set ℂ :=
-  [[ (explicitFormulaRectangleOuterLowerCorner F T).re,
-      (explicitFormulaRectangleOuterUpperCorner F T).re ]] ×ℂ
-    [[ (explicitFormulaRectangleOuterLowerCorner F T).im,
-      (explicitFormulaRectangleOuterUpperCorner F T).im ]]
+  Set.uIcc (explicitFormulaRectangleOuterLowerCorner F T).re
+      (explicitFormulaRectangleOuterUpperCorner F T).re ×ℂ
+    Set.uIcc (explicitFormulaRectangleOuterLowerCorner F T).im
+      (explicitFormulaRectangleOuterUpperCorner F T).im
 
 /-- Real coordinate of the lower-left outer rectangle corner. -/
 theorem explicitFormulaRectangleOuterLowerCorner_re
     (F : ExplicitFormulaContourFamily) (T : ℝ) :
-    (explicitFormulaRectangleOuterLowerCorner F T).re = F.c :=
-  ofReal_add_mul_I_re F.c (-T)
+    (explicitFormulaRectangleOuterLowerCorner F T).re = F.c := by
+  unfold explicitFormulaRectangleOuterLowerCorner
+  exact ofReal_add_mul_I_re F.c (-T)
 
 /-- Imaginary coordinate of the lower-left outer rectangle corner. -/
 theorem explicitFormulaRectangleOuterLowerCorner_im
     (F : ExplicitFormulaContourFamily) (T : ℝ) :
-    (explicitFormulaRectangleOuterLowerCorner F T).im = -T :=
-  ofReal_add_mul_I_im F.c (-T)
+    (explicitFormulaRectangleOuterLowerCorner F T).im = -T := by
+  unfold explicitFormulaRectangleOuterLowerCorner
+  exact ofReal_add_mul_I_im F.c (-T)
 
 /-- Real coordinate of the upper-right outer rectangle corner. -/
 theorem explicitFormulaRectangleOuterUpperCorner_re
@@ -291,7 +231,7 @@ noncomputable def explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints
     (F : ExplicitFormulaContourFamily) (T ε : ℝ) : Finset ℝ :=
   insert F.c <|
     insert (1 - F.c) <|
-      (explicitFormulaRectangleRawSingularCoordinates T).bind
+      (explicitFormulaRectangleRawSingularCoordinates T).biUnion
         (fun a : ℂ =>
           { (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re,
             (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re })
@@ -302,7 +242,7 @@ noncomputable def explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints
     (T ε : ℝ) : Finset ℝ :=
   insert (-T) <|
     insert T <|
-      (explicitFormulaRectangleRawSingularCoordinates T).bind
+      (explicitFormulaRectangleRawSingularCoordinates T).biUnion
         (fun a : ℂ =>
           { (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im,
             (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im })
@@ -344,7 +284,7 @@ theorem explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints_mem_holeLef
       explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints F T ε :=
   Finset.mem_insert_of_mem <|
     Finset.mem_insert_of_mem <|
-      Finset.mem_bind.mpr
+      Finset.mem_biUnion.mpr
         ⟨a, ha, Finset.mem_insert_self
           (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re _⟩
 
@@ -357,10 +297,10 @@ theorem explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints_mem_holeRig
       explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints F T ε :=
   Finset.mem_insert_of_mem <|
     Finset.mem_insert_of_mem <|
-      Finset.mem_bind.mpr
+      Finset.mem_biUnion.mpr
         ⟨a, ha, Finset.mem_insert_of_mem
-          (Finset.mem_insert_self
-            (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re _)⟩
+          (Finset.mem_singleton_self
+            (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re)⟩
 
 /-- The bottom side of each inscribed square hole is recorded in the vertical subdivision
 endpoint carrier. -/
@@ -371,7 +311,7 @@ theorem explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints_mem_holeBot
       explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints T ε :=
   Finset.mem_insert_of_mem <|
     Finset.mem_insert_of_mem <|
-      Finset.mem_bind.mpr
+      Finset.mem_biUnion.mpr
         ⟨a, ha, Finset.mem_insert_self
           (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).im _⟩
 
@@ -384,10 +324,10 @@ theorem explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints_mem_holeTop
       explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints T ε :=
   Finset.mem_insert_of_mem <|
     Finset.mem_insert_of_mem <|
-      Finset.mem_bind.mpr
+      Finset.mem_biUnion.mpr
         ⟨a, ha, Finset.mem_insert_of_mem
-          (Finset.mem_insert_self
-            (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im _)⟩
+          (Finset.mem_singleton_self
+            (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im)⟩
 
 /-- Closed-radius controls put every lower-square horizontal endpoint strictly inside the
 outer horizontal span. -/
@@ -464,12 +404,12 @@ theorem explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints_mem_horizon
           Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T)
     {x : ℝ}
     (hx : x ∈ explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints F T ε) :
-    x ∈ [[F.c, 1 - F.c]] := by
+    x ∈ Set.uIcc F.c (1 - F.c) := by
   match Finset.mem_insert.mp hx with
   | Or.inl hx_left =>
       exact
         Eq.subst
-          (motive := fun y : ℝ => y ∈ [[F.c, 1 - F.c]])
+          (motive := fun y : ℝ => y ∈ Set.uIcc F.c (1 - F.c))
           hx_left.symm
           Set.left_mem_uIcc
   | Or.inr hx_not_left =>
@@ -477,11 +417,11 @@ theorem explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints_mem_horizon
       | Or.inl hx_right =>
           exact
             Eq.subst
-              (motive := fun y : ℝ => y ∈ [[F.c, 1 - F.c]])
+              (motive := fun y : ℝ => y ∈ Set.uIcc F.c (1 - F.c))
               hx_right.symm
               Set.right_mem_uIcc
       | Or.inr hx_hole =>
-          match Finset.mem_bind.mp hx_hole with
+          match Finset.mem_biUnion.mp hx_hole with
           | ⟨a, ha, hx_side⟩ =>
               match Finset.mem_insert.mp hx_side with
               | Or.inl hx_lower =>
@@ -492,14 +432,17 @@ theorem explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints_mem_horizon
                       F T ε hε hclosed ha
                   have hclosed_span :
                       (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a).re ∈
-                        [[F.c, 1 - F.c]] :=
+                        Set.uIcc F.c (1 - F.c) :=
                     Set.uIoo_subset_uIcc F.c (1 - F.c) hstrict
                   exact
                     Eq.subst
-                      (motive := fun y : ℝ => y ∈ [[F.c, 1 - F.c]])
+                      (motive := fun y : ℝ => y ∈ Set.uIcc F.c (1 - F.c))
                       hx_lower.symm
                       hclosed_span
               | Or.inr hx_upper =>
+                  have hx_upper_eq :
+                      x = (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re :=
+                    Finset.eq_of_mem_singleton hx_upper
                   have hstrict :
                       (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re ∈
                         Set.uIoo F.c (1 - F.c) :=
@@ -507,12 +450,12 @@ theorem explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints_mem_horizon
                       F T ε hε hclosed ha
                   have hclosed_span :
                       (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).re ∈
-                        [[F.c, 1 - F.c]] :=
+                        Set.uIcc F.c (1 - F.c) :=
                     Set.uIoo_subset_uIcc F.c (1 - F.c) hstrict
                   exact
                     Eq.subst
-                      (motive := fun y : ℝ => y ∈ [[F.c, 1 - F.c]])
-                      hx_upper.symm
+                      (motive := fun y : ℝ => y ∈ Set.uIcc F.c (1 - F.c))
+                      hx_upper_eq.symm
                       hclosed_span
 
 /-- Every vertical endpoint of the inscribed-square subdivision lies in the closed height
@@ -546,7 +489,7 @@ theorem explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints_mem_vertica
               hy_top.symm
               (Set.right_mem_Icc.mpr hnegT_le_T)
       | Or.inr hy_hole =>
-          match Finset.mem_bind.mp hy_hole with
+          match Finset.mem_biUnion.mp hy_hole with
           | ⟨a, ha, hy_side⟩ =>
               match Finset.mem_insert.mp hy_side with
               | Or.inl hy_lower =>
@@ -565,6 +508,9 @@ theorem explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints_mem_vertica
                       hy_lower.symm
                       hclosed_height
               | Or.inr hy_upper =>
+                  have hy_upper_eq :
+                      y = (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im :=
+                    Finset.eq_of_mem_singleton hy_upper
                   have hstrict :
                       (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a).im ∈
                         Set.Ioo (-T) T :=
@@ -577,7 +523,7 @@ theorem explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints_mem_vertica
                   exact
                     Eq.subst
                       (motive := fun u : ℝ => u ∈ Set.Icc (-T) T)
-                      hy_upper.symm
+                      hy_upper_eq.symm
                       hclosed_height
 
 /-- A rectangular grid cell index is a pair of horizontal endpoints and a pair of vertical
