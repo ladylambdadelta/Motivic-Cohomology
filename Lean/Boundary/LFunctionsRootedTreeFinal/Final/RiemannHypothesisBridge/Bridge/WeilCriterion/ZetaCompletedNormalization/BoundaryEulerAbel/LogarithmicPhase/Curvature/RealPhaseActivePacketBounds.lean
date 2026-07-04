@@ -142,6 +142,59 @@ theorem Complex.logarithmicPhaseRealPhase_activeDerivPacket_index_upper
           hn_index
           (le_trans hindex_le hderiv_half)
 
+/-- Active logarithmic packet indices are bounded below by the left endpoint
+derivative, with the unavoidable half-window slack. -/
+theorem Complex.logarithmicPhaseRealPhase_activeDerivPacket_index_lower
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    {m : ℤ}
+    (hm :
+      m ∈
+        Complex.realPhase_secondDerivative_vdc_activeDerivPackets
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b) :
+    -(‖t‖ / (a : ℝ)) - (1 / 2 : ℝ) ≤ (m : ℝ) := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  match
+    Complex.logarithmicPhaseRealPhase_activeDerivPacket_witness t hm with
+  | ⟨n, hn_block, hn_index⟩ =>
+      have hn_Icc :
+          (n : ℝ) ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) :=
+        Complex.logarithmicPhaseRealPhase_activeDerivPacket_witness_mem_Icc
+          hn_block
+      have hneg_deriv_upper :
+          -deriv φ n ≤ ‖t‖ / (a : ℝ) :=
+        Complex.logarithmicPhaseRealPhase_neg_deriv_upper_on_integer_block
+          t ht_nonneg ha hn_Icc
+      have hderiv_lower :
+          -(‖t‖ / (a : ℝ)) ≤ deriv φ n := by
+        have hneg :
+            -(‖t‖ / (a : ℝ)) ≤ -(-deriv φ n) :=
+          neg_le_neg hneg_deriv_upper
+        exact
+          Eq.subst
+            (motive := fun right : ℝ =>
+              -(‖t‖ / (a : ℝ)) ≤ right)
+            (neg_neg (deriv φ n))
+            hneg
+      have hderiv_half :
+          -(‖t‖ / (a : ℝ)) - (1 / 2 : ℝ) ≤
+            deriv φ n - (1 / 2 : ℝ) :=
+        sub_le_sub_right hderiv_lower (1 / 2 : ℝ)
+      have hindex_lower :
+          deriv φ n - (1 / 2 : ℝ) ≤
+            ((Complex.realPhase_secondDerivative_vdc_derivPacketIndex φ n : ℤ) : ℝ) :=
+        Complex.realPhase_secondDerivative_vdc_deriv_sub_half_le_index_cast φ n
+      exact
+        Eq.subst
+          (motive := fun k : ℤ =>
+            -(‖t‖ / (a : ℝ)) - (1 / 2 : ℝ) ≤ (k : ℝ))
+          hn_index
+          (le_trans hderiv_half hindex_lower)
+
 end
 
 end LFunctions
