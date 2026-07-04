@@ -95,6 +95,68 @@ theorem Complex.logarithmicPhase_successive_log_ratio_upper_bound
       hratio_sub
       hlog_le
 
+/-- Successive logarithmic ratios are antitone on positive indices. -/
+theorem Complex.logarithmicPhase_successive_log_ratio_antitone
+    {m n : ℕ}
+    (hm : 0 < m)
+    (hmn : m ≤ n) :
+    Real.log ((((n + 1 : ℕ) : ℝ)) / (((n : ℕ) : ℝ))) ≤
+      Real.log ((((m + 1 : ℕ) : ℝ)) / (((m : ℕ) : ℝ))) := by
+  have hn : 0 < n :=
+    lt_of_lt_of_le hm hmn
+  have hm_real_pos : (0 : ℝ) < (((m : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr hm
+  have hn_real_pos : (0 : ℝ) < (((n : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr hn
+  have hnsucc_real_pos : (0 : ℝ) < (((n + 1 : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr (Nat.succ_pos n)
+  have hleft_pos :
+      0 < (((n + 1 : ℕ) : ℝ)) / (((n : ℕ) : ℝ)) :=
+    div_pos hnsucc_real_pos hn_real_pos
+  have hm_le_n_real : (((m : ℕ) : ℝ)) ≤ (((n : ℕ) : ℝ)) :=
+    Nat.cast_le.mpr hmn
+  have hcross :
+      (((n + 1 : ℕ) : ℝ)) * (((m : ℕ) : ℝ)) ≤
+        (((m + 1 : ℕ) : ℝ)) * (((n : ℕ) : ℝ)) := by
+    calc
+      (((n + 1 : ℕ) : ℝ)) * (((m : ℕ) : ℝ)) =
+          ((((n : ℕ) : ℝ) + 1) * (((m : ℕ) : ℝ))) := by
+        exact congrArg
+          (fun y : ℝ => y * (((m : ℕ) : ℝ)))
+          (Nat.cast_add_one n)
+      _ =
+          (((n : ℕ) : ℝ) * ((m : ℕ) : ℝ)) +
+            (1 * (((m : ℕ) : ℝ))) := by
+        exact add_mul (((n : ℕ) : ℝ)) 1 (((m : ℕ) : ℝ))
+      _ = (((n : ℕ) : ℝ) * ((m : ℕ) : ℝ)) + (((m : ℕ) : ℝ)) := by
+        exact congrArg
+          (fun y : ℝ => (((n : ℕ) : ℝ) * ((m : ℕ) : ℝ)) + y)
+          (one_mul (((m : ℕ) : ℝ)))
+      _ ≤ (((n : ℕ) : ℝ) * ((m : ℕ) : ℝ)) + (((n : ℕ) : ℝ)) := by
+        exact add_le_add_left hm_le_n_real
+          (((n : ℕ) : ℝ) * ((m : ℕ) : ℝ))
+      _ = (((m : ℕ) : ℝ) * (((n : ℕ) : ℝ))) + (((n : ℕ) : ℝ)) := by
+        exact congrArg
+          (fun y : ℝ => y + (((n : ℕ) : ℝ)))
+          (mul_comm (((n : ℕ) : ℝ)) (((m : ℕ) : ℝ)))
+      _ =
+          (((m : ℕ) : ℝ) * (((n : ℕ) : ℝ))) +
+            (1 * (((n : ℕ) : ℝ))) := by
+        exact congrArg
+          (fun y : ℝ => (((m : ℕ) : ℝ) * (((n : ℕ) : ℝ))) + y)
+          (one_mul (((n : ℕ) : ℝ))).symm
+      _ = ((((m : ℕ) : ℝ) + 1) * (((n : ℕ) : ℝ))) := by
+        exact (add_mul (((m : ℕ) : ℝ)) 1 (((n : ℕ) : ℝ))).symm
+      _ = (((m + 1 : ℕ) : ℝ)) * (((n : ℕ) : ℝ)) := by
+        exact congrArg
+          (fun y : ℝ => y * (((n : ℕ) : ℝ)))
+          (Nat.cast_add_one m).symm
+  have hratio_le :
+      (((n + 1 : ℕ) : ℝ)) / (((n : ℕ) : ℝ)) ≤
+        (((m + 1 : ℕ) : ℝ)) / (((m : ℕ) : ℝ)) :=
+    (div_le_div_iff₀ hn_real_pos hm_real_pos).mpr hcross
+  exact Real.log_le_log hleft_pos hratio_le
+
 /-- The logarithmic phase adjacent increment has norm at most the local
 reciprocal scale. -/
 theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_norm_le_localScale
@@ -456,6 +518,160 @@ theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_reducedIncrem
   exact
     (toIocMod_eq_self Real.two_pi_pos).mpr
       (real_mem_Ioc_pi_to_periodic_upper_for_logarithmicPhase hθ)
+
+/-- The raw adjacent increments are monotone, with the chosen monotone branch
+made explicit. -/
+theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_integerIncrement_monotoneOn
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hp :
+      (Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b 0).Nonempty) :
+    MonotoneOn
+      (fun n : ℕ =>
+        Complex.realPhase_integerIncrement
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n)
+      (Finset.Ico
+        ((Complex.realPhase_secondDerivative_vdc_derivPacket
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b 0).min' hp)
+        b : Set ℕ) := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  let packet : Finset ℕ :=
+    Complex.realPhase_secondDerivative_vdc_derivPacket φ a b 0
+  let c : ℕ := packet.min' hp
+  have hc_mem : c ∈ packet :=
+    Finset.min'_mem packet hp
+  have hc_block : c ∈ Finset.Icc a b :=
+    Complex.realPhase_secondDerivative_vdc_derivPacket_mem_block φ hc_mem
+  have hc_bounds : a ≤ c ∧ c ≤ b :=
+    Finset.mem_Icc.mp hc_block
+  have hc_one : 1 ≤ c :=
+    le_trans ha hc_bounds.1
+  have hc_pos : 0 < c :=
+    Nat.lt_of_succ_le hc_one
+  intro x hx y hy hxy
+  have hx_bounds : c ≤ x ∧ x < b :=
+    Finset.mem_Ico.mp hx
+  have hx_pos : 0 < x :=
+    lt_of_lt_of_le hc_pos hx_bounds.1
+  have hlog_yx :
+      Real.log ((((y + 1 : ℕ) : ℝ)) / (((y : ℕ) : ℝ))) ≤
+        Real.log ((((x + 1 : ℕ) : ℝ)) / (((x : ℕ) : ℝ))) :=
+    Complex.logarithmicPhase_successive_log_ratio_antitone hx_pos hxy
+  have ht_neg_nonpos : -t ≤ 0 :=
+    neg_nonpos.mpr ht_nonneg
+  have hscaled :
+      -t * Real.log ((((x + 1 : ℕ) : ℝ)) / (((x : ℕ) : ℝ))) ≤
+        -t * Real.log ((((y + 1 : ℕ) : ℝ)) / (((y : ℕ) : ℝ))) :=
+    mul_le_mul_of_nonpos_left hlog_yx ht_neg_nonpos
+  have hx_eq :
+      Complex.realPhase_integerIncrement φ x =
+        -t * Real.log ((((x + 1 : ℕ) : ℝ)) / (((x : ℕ) : ℝ))) :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_eq_neg_mul_log_ratio
+      t hx_pos
+  have hy_bounds : c ≤ y ∧ y < b :=
+    Finset.mem_Ico.mp hy
+  have hy_pos : 0 < y :=
+    lt_of_lt_of_le hc_pos hy_bounds.1
+  have hy_eq :
+      Complex.realPhase_integerIncrement φ y =
+        -t * Real.log ((((y + 1 : ℕ) : ℝ)) / (((y : ℕ) : ℝ))) :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_eq_neg_mul_log_ratio
+      t hy_pos
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤ Complex.realPhase_integerIncrement φ y)
+      hx_eq.symm
+      (Eq.subst
+        (motive := fun right : ℝ =>
+          -t * Real.log ((((x + 1 : ℕ) : ℝ)) / (((x : ℕ) : ℝ))) ≤ right)
+        hy_eq.symm
+        hscaled)
+
+/-- The raw adjacent increments are monotone on the zero terminal packet. -/
+theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_integerIncrementMonotoneOn
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hp :
+      (Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b 0).Nonempty) :
+    Complex.realPhase_integerIncrementMonotoneOn
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      ((Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b 0).min' hp)
+      b :=
+  Or.inl
+    (Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_integerIncrement_monotoneOn
+      t ht_nonneg ha hp)
+
+/-- The reduced adjacent increments are monotone on the zero terminal packet. -/
+theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_reducedIntegerIncrementMonotoneOn
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hp :
+      (Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b 0).Nonempty) :
+    Complex.realPhase_reducedIntegerIncrementMonotoneOn
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      ((Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b 0).min' hp)
+      b := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  let packet : Finset ℕ :=
+    Complex.realPhase_secondDerivative_vdc_derivPacket φ a b 0
+  let c : ℕ := packet.min' hp
+  have hraw :
+      MonotoneOn
+        (fun n : ℕ => Complex.realPhase_integerIncrement φ n)
+        (Finset.Ico c b : Set ℕ) :=
+    Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_integerIncrement_monotoneOn
+      t ht_nonneg ha hp
+  have hmono :
+      MonotoneOn
+        (fun n : ℕ => Complex.realPhase_reducedIntegerIncrement φ n)
+        (Finset.Ico c b : Set ℕ) := by
+    intro x hx y hy hxy
+    have hx_eq :
+        Complex.realPhase_reducedIntegerIncrement φ x =
+          Complex.realPhase_integerIncrement φ x :=
+      Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_reducedIncrement_eq
+        t ht ht_nonneg ha hp hx
+    have hy_eq :
+        Complex.realPhase_reducedIntegerIncrement φ y =
+          Complex.realPhase_integerIncrement φ y :=
+      Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_reducedIncrement_eq
+        t ht ht_nonneg ha hp hy
+    have hxy_raw :
+        Complex.realPhase_integerIncrement φ x ≤
+          Complex.realPhase_integerIncrement φ y :=
+      hraw hx hy hxy
+    exact
+      Eq.subst
+        (motive := fun left : ℝ =>
+          left ≤ Complex.realPhase_reducedIntegerIncrement φ y)
+        hx_eq.symm
+        (Eq.subst
+          (motive := fun right : ℝ =>
+            Complex.realPhase_integerIncrement φ x ≤ right)
+          hy_eq.symm
+          hxy_raw)
+  exact Or.inl hmono
 
 
 end
