@@ -33,6 +33,20 @@ theorem Real.logarithmicPhase_endpoint_sqrt_target_mono_right
     (div_le_div_iff_of_pos_right hT_pos).mpr hnum_le
   exact add_le_add_right hdiv_le (Real.sqrt (1 + ‖t‖))
 
+/-- Three subblock endpoint-plus-square-root targets are bounded by three
+ambient targets. -/
+theorem Real.logarithmicPhase_three_subblock_targets_le_three_ambient
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {r b : ℕ}
+    (hrb : r ≤ b) :
+    3 * (((r + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) ≤
+      3 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) := by
+  exact
+    mul_le_mul_of_nonneg_left
+      (Real.logarithmicPhase_endpoint_sqrt_target_mono_right t ht hrb)
+      (Nat.cast_nonneg 3)
+
 /-- A closed logarithmic real-phase subblock estimate at its own right endpoint
 widens to the ambient endpoint target. -/
 theorem Complex.logarithmicPhaseRealPhase_Icc_subblock_bound_mono_right
