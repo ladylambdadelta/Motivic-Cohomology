@@ -32,28 +32,6 @@ theorem Int.neg_cast_pos_of_lt_zero
       (Int.cast_lt.mpr hm)
   exact neg_pos.mpr hcast_neg
 
-/-- In the nonnegative-parameter branch, the logarithmic phase derivative is
-the negative reciprocal profile with amplitude `‖t‖`. -/
-theorem Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div
-    (t : ℝ)
-    (ht_nonneg : 0 ≤ t)
-    {x : ℝ}
-    (hx_pos : 0 < x) :
-    deriv
-      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
-      -‖t‖ / x := by
-  have hderiv :
-      deriv
-        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
-        -t / x :=
-    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_eq
-      t hx_pos
-  have hnorm : ‖t‖ = t :=
-    Real.norm_of_nonneg ht_nonneg
-  have hright : -t / x = -‖t‖ / x := by
-    exact congrArg (fun r : ℝ => -r / x) hnorm.symm
-  exact Eq.trans hderiv hright
-
 /-- For nonzero logarithmic frequency and negative packet index, the
 stationary point is positive. -/
 theorem Complex.logarithmicPhaseRealPhase_stationaryPoint_pos

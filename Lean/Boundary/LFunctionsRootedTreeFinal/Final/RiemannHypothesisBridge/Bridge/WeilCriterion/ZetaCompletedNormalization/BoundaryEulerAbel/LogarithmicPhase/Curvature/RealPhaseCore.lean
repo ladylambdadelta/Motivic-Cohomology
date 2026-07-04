@@ -14,6 +14,161 @@ noncomputable section
 
 open scoped ComplexConjugate Topology
 
+/-- In the nonnegative-parameter branch, the logarithmic phase derivative is
+the negative reciprocal profile with amplitude `‖t‖`. -/
+theorem Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {x : ℝ}
+    (hx_pos : 0 < x) :
+    deriv
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
+      -‖t‖ / x := by
+  have hderiv :
+      deriv
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
+        -t / x :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_eq
+      t hx_pos
+  have hnorm : ‖t‖ = t :=
+    Real.norm_of_nonneg ht_nonneg
+  have hright : -t / x = -‖t‖ / x := by
+    exact congrArg (fun r : ℝ => -r / x) hnorm.symm
+  exact Eq.trans hderiv hright
+
+/-- Parenthesized form of the nonnegative-branch derivative identity. -/
+theorem Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div_parenthesized
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {x : ℝ}
+    (hx_pos : 0 < x) :
+    deriv
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
+      -(‖t‖ / x) := by
+  have hderiv :
+      deriv
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
+        -‖t‖ / x :=
+    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div
+      t ht_nonneg hx_pos
+  have hright :
+      -‖t‖ / x = -(‖t‖ / x) :=
+    neg_div x ‖t‖
+  exact Eq.trans hderiv hright
+
+/-- The negative derivative is the positive reciprocal profile `‖t‖ / x`. -/
+theorem Complex.logarithmicPhaseRealPhase_neg_deriv_eq_norm_div
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {x : ℝ}
+    (hx_pos : 0 < x) :
+    -deriv
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
+      ‖t‖ / x := by
+  have hderiv :
+      deriv
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
+        -(‖t‖ / x) :=
+    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div_parenthesized
+      t ht_nonneg hx_pos
+  calc
+    -deriv
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
+        -(-(‖t‖ / x)) := by
+      exact congrArg Neg.neg hderiv
+    _ = ‖t‖ / x :=
+      neg_neg (‖t‖ / x)
+
+/-- Lower endpoint bound for the positive reciprocal derivative profile on an
+integer block. -/
+theorem Complex.logarithmicPhaseRealPhase_neg_deriv_lower_on_integer_block
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    {x : ℝ}
+    (hx : x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ)) :
+    ‖t‖ / (((b + 1 : ℕ) : ℝ)) ≤
+      -deriv
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x := by
+  have ha_pos : (0 : ℝ) < (a : ℝ) :=
+    Nat.cast_pos.mpr (Nat.lt_of_succ_le ha)
+  have hx_pos : 0 < x :=
+    lt_of_lt_of_le ha_pos hx.1
+  have hneg_deriv :
+      -deriv
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
+      ‖t‖ / x :=
+    Complex.logarithmicPhaseRealPhase_neg_deriv_eq_norm_div
+      t ht_nonneg hx_pos
+  have hamp_nonneg : 0 ≤ ‖t‖ :=
+    norm_nonneg t
+  have hrecip_le : (((b + 1 : ℕ) : ℝ))⁻¹ ≤ x⁻¹ :=
+    inv_anti₀ hx_pos hx.2
+  have hdiv_le : ‖t‖ / (((b + 1 : ℕ) : ℝ)) ≤ ‖t‖ / x := by
+    have hmul :
+        ‖t‖ * (((b + 1 : ℕ) : ℝ))⁻¹ ≤ ‖t‖ * x⁻¹ :=
+      mul_le_mul_of_nonneg_left hrecip_le hamp_nonneg
+    exact
+      Eq.subst
+        (motive := fun left : ℝ => left ≤ ‖t‖ / x)
+        (div_eq_mul_inv ‖t‖ (((b + 1 : ℕ) : ℝ))).symm
+        (Eq.subst
+          (motive := fun right : ℝ =>
+            ‖t‖ * (((b + 1 : ℕ) : ℝ))⁻¹ ≤ right)
+          (div_eq_mul_inv ‖t‖ x).symm
+          hmul)
+  exact
+    Eq.subst
+      (motive := fun right : ℝ =>
+        ‖t‖ / (((b + 1 : ℕ) : ℝ)) ≤ right)
+      hneg_deriv.symm
+      hdiv_le
+
+/-- Upper endpoint bound for the positive reciprocal derivative profile on an
+integer block. -/
+theorem Complex.logarithmicPhaseRealPhase_neg_deriv_upper_on_integer_block
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    {x : ℝ}
+    (hx : x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ)) :
+    -deriv
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x ≤
+      ‖t‖ / (a : ℝ) := by
+  have ha_pos : (0 : ℝ) < (a : ℝ) :=
+    Nat.cast_pos.mpr (Nat.lt_of_succ_le ha)
+  have hx_pos : 0 < x :=
+    lt_of_lt_of_le ha_pos hx.1
+  have hneg_deriv :
+      -deriv
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
+      ‖t‖ / x :=
+    Complex.logarithmicPhaseRealPhase_neg_deriv_eq_norm_div
+      t ht_nonneg hx_pos
+  have hamp_nonneg : 0 ≤ ‖t‖ :=
+    norm_nonneg t
+  have hrecip_le : x⁻¹ ≤ (a : ℝ)⁻¹ :=
+    inv_anti₀ ha_pos hx.1
+  have hdiv_le : ‖t‖ / x ≤ ‖t‖ / (a : ℝ) := by
+    have hmul :
+        ‖t‖ * x⁻¹ ≤ ‖t‖ * (a : ℝ)⁻¹ :=
+      mul_le_mul_of_nonneg_left hrecip_le hamp_nonneg
+    exact
+      Eq.subst
+        (motive := fun left : ℝ => left ≤ ‖t‖ / (a : ℝ))
+        (div_eq_mul_inv ‖t‖ x).symm
+        (Eq.subst
+          (motive := fun right : ℝ => ‖t‖ * x⁻¹ ≤ right)
+          (div_eq_mul_inv ‖t‖ (a : ℝ)).symm
+          hmul)
+  exact
+    Eq.subst
+      (motive := fun left : ℝ => left ≤ ‖t‖ / (a : ℝ))
+      hneg_deriv.symm
+      hdiv_le
+
 /-- Exact second derivative of the real scalar logarithmic phase on the
 positive half-line. -/
 theorem Complex.logarithmicPhaseRealPhase_secondDerivative_eq
