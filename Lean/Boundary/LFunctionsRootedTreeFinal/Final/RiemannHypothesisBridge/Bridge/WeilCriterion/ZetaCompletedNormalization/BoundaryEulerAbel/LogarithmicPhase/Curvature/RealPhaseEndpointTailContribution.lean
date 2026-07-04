@@ -201,6 +201,80 @@ theorem Complex.logarithmicPhaseRealPhase_endpointFarRightPacketContribution_le_
               t ht_nonneg ha hm_mem
           exact le_trans hsum_le_packet (hpoint m hm_mem)
 
+/-- Cardinality control of each left endpoint-tail packet gives the full left
+endpoint-tail contribution bound. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointLeftPacketContribution_le_twentyTarget_of_card
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hcard :
+      ∀ m : ℤ,
+        m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b →
+          ((Complex.realPhase_secondDerivative_vdc_derivPacket
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b m).card : ℝ) ≤
+          20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+      20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  have hpoint :
+      ∀ m : ℤ,
+        m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b →
+          ‖Complex.realPhase_secondDerivative_vdc_packetSum
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b m‖ ≤
+          20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+    fun m hm =>
+      le_trans
+        (Complex.realPhase_secondDerivative_vdc_packetSum_norm_le_card
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m)
+        (hcard m hm)
+  exact
+    Complex.logarithmicPhaseRealPhase_endpointLeftPacketContribution_le_twentyTarget_of_pointwise
+      t ht ht_nonneg ha hpoint
+
+/-- Cardinality control of each far-right endpoint-tail packet gives the full
+far-right endpoint-tail contribution bound. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointFarRightPacketContribution_le_twentyTarget_of_card
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hcard :
+      ∀ m : ℤ,
+        m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b →
+          ((Complex.realPhase_secondDerivative_vdc_derivPacket
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b m).card : ℝ) ≤
+          20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+      20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  have hpoint :
+      ∀ m : ℤ,
+        m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b →
+          ‖Complex.realPhase_secondDerivative_vdc_packetSum
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b m‖ ≤
+          20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+    fun m hm =>
+      le_trans
+        (Complex.realPhase_secondDerivative_vdc_packetSum_norm_le_card
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m)
+        (hcard m hm)
+  exact
+    Complex.logarithmicPhaseRealPhase_endpointFarRightPacketContribution_le_twentyTarget_of_pointwise
+      t ht ht_nonneg ha hpoint
+
 end
 
 end LFunctions
