@@ -18,6 +18,16 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- Adding a half after subtracting a half returns the original complex coordinate. -/
+theorem explicitFormulaRectangle_half_add_sub_half (z : ℂ) :
+    (1 / 2 : ℂ) + (z - (1 / 2 : ℂ)) = z := by
+  calc
+    (1 / 2 : ℂ) + (z - (1 / 2 : ℂ)) =
+        z + (1 / 2 : ℂ) - (1 / 2 : ℂ) := by
+      exact add_sub_comm (1 / 2 : ℂ) z (1 / 2 : ℂ)
+    _ = z := by
+      exact add_sub_cancel_right z (1 / 2 : ℂ)
+
 /-- Compatibility sink for consumers that still state the completed-zero residue with the
 named zero-side summand. -/
 theorem explicitFormulaRectangle_completedZero_localResidue_zeroSideCoordinateCompatibility_ownerGap
@@ -202,7 +212,8 @@ def explicitFormulaCompletedZeroOfContourZero
             exact centeredCompletedRiemannZeta_eq_completedRiemannZeta_shift
               (z - (1 / 2 : ℂ))
           _ = completedRiemannZeta z := by
-            exact congrArg completedRiemannZeta (half_add_sub_half z)
+            exact congrArg completedRiemannZeta
+              (explicitFormulaRectangle_half_add_sub_half z)
           _ = 0 := hzeta)⟩
 
 /-- The contour-zero constructor has the expected uncentered residue coordinate. -/
@@ -217,7 +228,7 @@ theorem explicitFormulaCompletedZeroOfContourZero_residueCoordinate
         (1 / 2 : ℂ) + (z - (1 / 2 : ℂ)) := by
       rfl
     _ = z := by
-      exact half_add_sub_half z
+      exact explicitFormulaRectangle_half_add_sub_half z
 
 /-- A non-pole interior singular point is represented by a completed-zero residue
 coordinate. -/

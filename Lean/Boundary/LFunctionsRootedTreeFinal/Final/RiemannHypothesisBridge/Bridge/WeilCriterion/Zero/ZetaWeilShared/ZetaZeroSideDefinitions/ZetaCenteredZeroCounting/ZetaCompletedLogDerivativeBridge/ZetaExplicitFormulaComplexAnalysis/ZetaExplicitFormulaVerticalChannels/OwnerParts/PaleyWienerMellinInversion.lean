@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.OwnerParts.Base
+import Mathlib.Analysis.MellinInversion
 
 /-!
 # Paley-Wiener Mellin inversion normalization
@@ -15,7 +17,8 @@ namespace LFunctions
 noncomputable section
 
 open Complex
-open scoped FourierTransform
+open MeasureTheory
+open scoped FourierTransform Real
 
 namespace ZetaAdmissibleFunction
 
@@ -177,7 +180,13 @@ theorem zetaCompletedExplicitFormulaDirectVerticalMellinIntegral_eq_twoPi_smul_m
     exact mul_ne_zero two_ne_zero Real.pi_ne_zero
   have hscalar :
       (2 * π : ℝ) * (1 / (2 * π : ℝ)) = 1 :=
-    mul_inv_cancel₀ htwo
+    calc
+      (2 * π : ℝ) * (1 / (2 * π : ℝ)) =
+          (2 * π : ℝ) * (2 * π : ℝ)⁻¹ := by
+        exact congrArg (fun r : ℝ => (2 * π : ℝ) * r)
+          (one_div (2 * π : ℝ))
+      _ = 1 := by
+        exact mul_inv_cancel₀ htwo
   calc
     zetaCompletedExplicitFormulaDirectVerticalMellinIntegral σ F x =
         I := by

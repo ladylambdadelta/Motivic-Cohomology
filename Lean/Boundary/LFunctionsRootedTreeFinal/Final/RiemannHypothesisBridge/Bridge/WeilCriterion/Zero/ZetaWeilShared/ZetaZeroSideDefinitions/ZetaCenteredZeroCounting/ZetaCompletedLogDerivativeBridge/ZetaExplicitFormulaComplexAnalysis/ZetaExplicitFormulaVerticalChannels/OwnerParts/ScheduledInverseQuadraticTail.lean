@@ -15,9 +15,7 @@ noncomputable section
 
 open Complex
 open Filter
-open LSeries ArithmeticFunction
 open MeasureTheory
-open scoped ArithmeticFunction
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
