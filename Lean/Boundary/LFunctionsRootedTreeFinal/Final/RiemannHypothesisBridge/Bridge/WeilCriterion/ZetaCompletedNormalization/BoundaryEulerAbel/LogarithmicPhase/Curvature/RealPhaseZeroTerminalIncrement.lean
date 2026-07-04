@@ -12,6 +12,21 @@ namespace LFunctions
 
 noncomputable section
 
+/-- The half-window used by the zero packet lies strictly inside the
+principal `(-π, π]` interval. -/
+theorem Real.logarithmicPhase_one_half_lt_pi :
+    (1 / 2 : ℝ) < Real.pi := by
+  have hhalf_lt_one : (1 / 2 : ℝ) < 1 :=
+    one_half_lt_one
+  have hone_lt_three : (1 : ℝ) < 3 :=
+    Nat.one_lt_ofNat
+  exact lt_trans (lt_trans hhalf_lt_one hone_lt_three) Real.pi_gt_three
+
+/-- The negative half-window is strictly to the right of `-π`. -/
+theorem Real.logarithmicPhase_neg_pi_lt_neg_one_half :
+    -Real.pi < -(1 / 2 : ℝ) :=
+  neg_lt_neg Real.logarithmicPhase_one_half_lt_pi
+
 /-- Successive integer logarithmic ratios have the canonical reciprocal upper
 bound. -/
 theorem Complex.logarithmicPhase_successive_log_ratio_upper_bound
@@ -370,6 +385,77 @@ theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_increment_non
   exact
     Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_nonpos
       t ht_nonneg hn_pos
+
+/-- On a nonempty zero derivative-frequency terminal packet, every adjacent
+increment lies in the principal interval `(-π, π]`. -/
+theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_increment_mem_Ioc_pi
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hp :
+      (Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b 0).Nonempty)
+    {n : ℕ}
+    (hn :
+      n ∈ Finset.Ico
+        ((Complex.realPhase_secondDerivative_vdc_derivPacket
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b 0).min' hp)
+        b) :
+    Complex.realPhase_integerIncrement
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n ∈
+      Set.Ioc (-Real.pi) Real.pi := by
+  let θ : ℝ :=
+    Complex.realPhase_integerIncrement
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n
+  have hleft_half : -(1 / 2 : ℝ) ≤ θ :=
+    Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_increment_neg_half_le
+      t ht ht_nonneg ha hp hn
+  have hleft : -Real.pi < θ :=
+    lt_of_lt_of_le Real.logarithmicPhase_neg_pi_lt_neg_one_half hleft_half
+  have hnonpos : θ ≤ 0 :=
+    Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_increment_nonpos
+      t ht_nonneg ha hp hn
+  have hright : θ ≤ Real.pi :=
+    le_trans hnonpos Real.pi_pos.le
+  exact And.intro hleft hright
+
+/-- On the zero terminal packet, the reduced adjacent increment is exactly the
+raw adjacent increment; there is no winding across `2πℤ`. -/
+theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_reducedIncrement_eq
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hp :
+      (Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b 0).Nonempty)
+    {n : ℕ}
+    (hn :
+      n ∈ Finset.Ico
+        ((Complex.realPhase_secondDerivative_vdc_derivPacket
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b 0).min' hp)
+        b) :
+    Complex.realPhase_reducedIntegerIncrement
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n =
+      Complex.realPhase_integerIncrement
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n := by
+  let θ : ℝ :=
+    Complex.realPhase_integerIncrement
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n
+  have hθ : θ ∈ Set.Ioc (-Real.pi) Real.pi :=
+    Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_increment_mem_Ioc_pi
+      t ht ht_nonneg ha hp hn
+  show toIocMod Real.two_pi_pos (-Real.pi) θ = θ
+  exact
+    (toIocMod_eq_self Real.two_pi_pos).mpr
+      (real_mem_Ioc_pi_to_periodic_upper_for_logarithmicPhase hθ)
 
 
 end
