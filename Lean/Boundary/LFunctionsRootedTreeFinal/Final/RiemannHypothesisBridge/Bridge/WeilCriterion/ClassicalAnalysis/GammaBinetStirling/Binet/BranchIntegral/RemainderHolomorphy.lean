@@ -111,8 +111,7 @@ theorem Complex.binetSecondFormulaDerivativeKernel_hasDerivAt_of_re_pos
   have hpow : HasDerivAt (fun z : ℂ => z ^ 2) (2 * w) w := by
     have h0 : HasDerivAt (fun z : ℂ => z ^ 2)
         ((2 : ℂ) * w ^ (2 - 1)) w := by
-      have := hasDerivAt_pow 2 w
-      rwa [Nat.cast_ofNat] at this
+      exact hasDerivAt_pow 2 w
     have hexp : w ^ (2 - 1) = w := pow_one w
     exact (congrArg (fun s : ℂ => (2 : ℂ) * s) hexp) ▸ h0
   have hd : HasDerivAt (fun z : ℂ => z ^ 2 + (t : ℂ) ^ 2) (2 * w) w :=
@@ -152,7 +151,7 @@ theorem Complex.binetSecondFormula_deriv_numerator_norm_le
   have h2 : ‖(2 : ℂ)‖ = 2 := Complex.norm_ofNat 2
   have htnorm : ‖(t : ℂ)‖ = t := by
     calc
-      ‖(t : ℂ)‖ = |t| := Complex.norm_ofReal t
+      ‖(t : ℂ)‖ = |t| := RCLike.norm_ofReal t
       _ = t := abs_of_pos ht
   have hstep :
       ‖2 * (t : ℂ) * z‖ = 2 * t * ‖z‖ := by
@@ -200,7 +199,8 @@ theorem Complex.binetSecondFormulaDerivativeKernel_deriv_norm_le_scaled_majorant
   have hDsq_ge : δ ^ 4 ≤ ‖D‖ ^ 2 := by
     have h := pow_le_pow_left (sq_nonneg δ) hlow 2
     calc
-      δ ^ 4 = (δ ^ 2) ^ 2 := (pow_mul δ 2 2).symm
+      δ ^ 4 = δ ^ (2 * 2) := rfl
+      _ = (δ ^ 2) ^ 2 := pow_mul δ 2 2
       _ ≤ ‖D‖ ^ 2 := h
   have hδ4_pos : 0 < δ ^ 4 := pow_pos hδ_pos 4
   have hR_nonneg : 0 ≤ R := le_trans (norm_nonneg z) hz_le
