@@ -216,16 +216,18 @@ theorem Complex.logarithmicPhaseRealPhase_activeDerivPackets_eq_stationary_union
     (fun m =>
       Iff.intro
         (fun hm =>
-          match Classical.em
-              ((m < 0) ∧
-                Complex.logarithmicPhaseRealPhase_stationaryPoint t m ∈
-                  Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ)) with
-          | Or.inl hstat =>
+          match
+            inferInstanceAs
+              (Decidable
+                ((m < 0) ∧
+                  Complex.logarithmicPhaseRealPhase_stationaryPoint t m ∈
+                    Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ))) with
+          | isTrue hstat =>
               Finset.mem_union.mpr
                 (Or.inl
                   (Finset.mem_filter.mpr
                     (And.intro hm hstat)))
-          | Or.inr hnot =>
+          | isFalse hnot =>
               Finset.mem_union.mpr
                 (Or.inr
                   (Finset.mem_filter.mpr
