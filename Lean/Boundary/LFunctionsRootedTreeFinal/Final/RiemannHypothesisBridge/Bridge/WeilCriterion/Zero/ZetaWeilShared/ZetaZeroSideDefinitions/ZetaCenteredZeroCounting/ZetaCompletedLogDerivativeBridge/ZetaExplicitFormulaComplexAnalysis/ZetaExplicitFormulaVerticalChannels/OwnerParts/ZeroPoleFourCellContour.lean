@@ -164,11 +164,11 @@ theorem zetaExplicitFormulaZeroPole_canonicalBottomCell_avoids_zero_of_pos_heigh
     (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T) :
     ∀ z : ℂ,
       z ∈
-          ([[ ((1 - F.c) + (-T) * Complex.I).re,
-               (F.c + (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+          ([[ ((1 - F.c : ℝ) + (-T : ℝ) * Complex.I).re,
+               (F.c + (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
                   Complex.I).re ]] ×ℂ
-            [[ ((1 - F.c) + (-T) * Complex.I).im,
-               (F.c + (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+            [[ ((1 - F.c : ℝ) + (-T : ℝ) * Complex.I).im,
+               (F.c + (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
                   Complex.I).im ]]) →
         z ≠ 0 := by
   intro z hz
@@ -182,10 +182,10 @@ theorem zetaExplicitFormulaZeroPole_canonicalBottomCell_avoids_zero_of_pos_heigh
         zetaExplicitFormulaOnePole_horizontalAffine_im (1 - F.c) (-T)
       _ < 0 := neg_lt_zero.mpr hT
   have hbottom_right :
-      (F.c + (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+      (F.c + (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
           Complex.I).im < 0 := by
     calc
-      (F.c + (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+      (F.c + (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
           Complex.I).im =
           -(zetaExplicitFormulaZeroPolePunctureRadius F T) :=
         zetaExplicitFormulaOnePole_horizontalAffine_im
@@ -193,13 +193,13 @@ theorem zetaExplicitFormulaZeroPole_canonicalBottomCell_avoids_zero_of_pos_heigh
       _ < 0 := neg_lt_zero.mpr hR_pos
   have him_mem :
       z.im ∈
-        [[ ((1 - F.c) + (-T) * Complex.I).im,
-           (F.c + (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+        [[ ((1 - F.c : ℝ) + (-T : ℝ) * Complex.I).im,
+           (F.c + (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
               Complex.I).im ]] :=
     (Complex.mem_reProdIm.mp hz).2
   have him_sup_lt :
-      (((1 - F.c) + (-T) * Complex.I).im ⊔
-        (F.c + (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+      (((1 - F.c : ℝ) + (-T : ℝ) * Complex.I).im ⊔
+        (F.c + (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
           Complex.I).im) < 0 :=
     sup_lt_iff.mpr (And.intro hbottom_left hbottom_right)
   have him_lt_zero : z.im < 0 :=
@@ -212,11 +212,11 @@ theorem zetaExplicitFormulaZeroPole_canonicalTopCell_avoids_zero_of_pos_height
     (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T) :
     ∀ z : ℂ,
       z ∈
-          ([[ ((1 - F.c) +
+          ([[ ((1 - F.c : ℝ) +
                   (zetaExplicitFormulaZeroPolePunctureRadius F T) *
                     Complex.I).re,
                (F.c + T * Complex.I).re ]] ×ℂ
-            [[ ((1 - F.c) +
+            [[ ((1 - F.c : ℝ) +
                   (zetaExplicitFormulaZeroPolePunctureRadius F T) *
                     Complex.I).im,
                (F.c + T * Complex.I).im ]]) →
@@ -243,14 +243,14 @@ theorem zetaExplicitFormulaZeroPole_canonicalTopCell_avoids_zero_of_pos_height
       _ > 0 := hT
   have him_mem :
       z.im ∈
-        [[ ((1 - F.c) +
+        [[ ((1 - F.c : ℝ) +
               (zetaExplicitFormulaZeroPolePunctureRadius F T) *
                 Complex.I).im,
            (F.c + T * Complex.I).im ]] :=
     (Complex.mem_reProdIm.mp hz).2
   have him_inf_pos :
       0 <
-        (((1 - F.c) +
+        (((1 - F.c : ℝ) +
               (zetaExplicitFormulaZeroPolePunctureRadius F T) *
                 Complex.I).im ⊓
           (F.c + T * Complex.I).im) :=
@@ -265,14 +265,14 @@ theorem zetaExplicitFormulaZeroPole_canonicalLeftCell_avoids_zero_of_pos_height
     (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T) :
     ∀ z : ℂ,
       z ∈
-          ([[ ((1 - F.c) +
-                  (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+          ([[ ((1 - F.c : ℝ) +
+                  (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
                     Complex.I).re,
                ((-zetaExplicitFormulaZeroPolePunctureRadius F T) +
                   (zetaExplicitFormulaZeroPolePunctureRadius F T) *
                     Complex.I).re ]] ×ℂ
-            [[ ((1 - F.c) +
-                  (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+            [[ ((1 - F.c : ℝ) +
+                  (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
                     Complex.I).im,
                ((-zetaExplicitFormulaZeroPolePunctureRadius F T) +
                   (zetaExplicitFormulaZeroPolePunctureRadius F T) *
@@ -284,11 +284,11 @@ theorem zetaExplicitFormulaZeroPole_canonicalLeftCell_avoids_zero_of_pos_height
     zetaExplicitFormulaZeroPolePunctureRadius_pos F hT
   have hleft_lower :
       ((1 - F.c : ℝ) +
-          (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+          (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
             Complex.I).re < 0 := by
     calc
       ((1 - F.c : ℝ) +
-          (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+          (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
             Complex.I).re = 1 - F.c :=
         zetaExplicitFormulaOnePole_verticalAffine_re
           (1 - F.c) (-(zetaExplicitFormulaZeroPolePunctureRadius F T))
@@ -308,16 +308,16 @@ theorem zetaExplicitFormulaZeroPole_canonicalLeftCell_avoids_zero_of_pos_height
       _ < 0 := neg_lt_zero.mpr hR_pos
   have hre_mem :
       z.re ∈
-        [[ ((1 - F.c) +
-              (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+        [[ ((1 - F.c : ℝ) +
+              (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
                 Complex.I).re,
            ((-zetaExplicitFormulaZeroPolePunctureRadius F T) +
               (zetaExplicitFormulaZeroPolePunctureRadius F T) *
                 Complex.I).re ]] :=
     (Complex.mem_reProdIm.mp hz).1
   have hre_sup_lt :
-      (((1 - F.c) +
-          (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+      (((1 - F.c : ℝ) +
+          (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
             Complex.I).re ⊔
         ((-zetaExplicitFormulaZeroPolePunctureRadius F T) +
           (zetaExplicitFormulaZeroPolePunctureRadius F T) *
@@ -334,13 +334,13 @@ theorem zetaExplicitFormulaZeroPole_canonicalRightCell_avoids_zero_of_pos_height
     ∀ z : ℂ,
       z ∈
           ([[ (zetaExplicitFormulaZeroPolePunctureRadius F T +
-                  (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+                  (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
                     Complex.I).re,
                (F.c +
                   (zetaExplicitFormulaZeroPolePunctureRadius F T) *
                     Complex.I).re ]] ×ℂ
             [[ (zetaExplicitFormulaZeroPolePunctureRadius F T +
-                  (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+                  (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
                     Complex.I).im,
                (F.c +
                   (zetaExplicitFormulaZeroPolePunctureRadius F T) *
@@ -353,13 +353,13 @@ theorem zetaExplicitFormulaZeroPole_canonicalRightCell_avoids_zero_of_pos_height
   have hright_lower :
       0 <
         (zetaExplicitFormulaZeroPolePunctureRadius F T +
-          (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+          (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
             Complex.I).re := by
     calc
       0 < zetaExplicitFormulaZeroPolePunctureRadius F T := hR_pos
       _ =
           (zetaExplicitFormulaZeroPolePunctureRadius F T +
-            (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+            (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
               Complex.I).re := by
         exact
           (zetaExplicitFormulaOnePole_verticalAffine_re
@@ -380,7 +380,7 @@ theorem zetaExplicitFormulaZeroPole_canonicalRightCell_avoids_zero_of_pos_height
   have hre_mem :
       z.re ∈
         [[ (zetaExplicitFormulaZeroPolePunctureRadius F T +
-              (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+              (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
                 Complex.I).re,
            (F.c + (zetaExplicitFormulaZeroPolePunctureRadius F T) *
               Complex.I).re ]] :=
@@ -388,7 +388,7 @@ theorem zetaExplicitFormulaZeroPole_canonicalRightCell_avoids_zero_of_pos_height
   have hre_inf_gt :
       0 <
         ((zetaExplicitFormulaZeroPolePunctureRadius F T +
-            (-(zetaExplicitFormulaZeroPolePunctureRadius F T)) *
+            (-zetaExplicitFormulaZeroPolePunctureRadius F T : ℝ) *
               Complex.I).re ⊓
           (F.c + (zetaExplicitFormulaZeroPolePunctureRadius F T) *
             Complex.I).re) :=
@@ -439,10 +439,20 @@ theorem zetaExplicitFormulaZeroPoleFourCellPuncturedRectangleBoundarySum_eq_zero
             zetaExplicitFormulaZeroPoleLeftPunctureCellBoundaryIntegral g F T R +
               zetaExplicitFormulaZeroPoleRightPunctureCellBoundaryIntegral g F T R := by
       exact
-        zero_add
-          (zetaExplicitFormulaZeroPoleTopPunctureCellBoundaryIntegral g F T R +
-            zetaExplicitFormulaZeroPoleLeftPunctureCellBoundaryIntegral g F T R +
-              zetaExplicitFormulaZeroPoleRightPunctureCellBoundaryIntegral g F T R)
+        Eq.trans
+          (congrArg
+            (fun z : ℂ =>
+              z + zetaExplicitFormulaZeroPoleRightPunctureCellBoundaryIntegral g F T R)
+            (add_assoc
+              (0 : ℂ)
+              (zetaExplicitFormulaZeroPoleTopPunctureCellBoundaryIntegral g F T R)
+              (zetaExplicitFormulaZeroPoleLeftPunctureCellBoundaryIntegral g F T R)))
+          (congrArg
+            (fun z : ℂ =>
+              z + zetaExplicitFormulaZeroPoleRightPunctureCellBoundaryIntegral g F T R)
+            (zero_add
+              (zetaExplicitFormulaZeroPoleTopPunctureCellBoundaryIntegral g F T R +
+                zetaExplicitFormulaZeroPoleLeftPunctureCellBoundaryIntegral g F T R)))
     _ = 0 +
             zetaExplicitFormulaZeroPoleLeftPunctureCellBoundaryIntegral g F T R +
               zetaExplicitFormulaZeroPoleRightPunctureCellBoundaryIntegral g F T R := by
@@ -456,9 +466,14 @@ theorem zetaExplicitFormulaZeroPoleFourCellPuncturedRectangleBoundarySum_eq_zero
             zetaExplicitFormulaZeroPoleLeftPunctureCellBoundaryIntegral g F T R +
               zetaExplicitFormulaZeroPoleRightPunctureCellBoundaryIntegral g F T R := by
       exact
-        zero_add
-          (zetaExplicitFormulaZeroPoleLeftPunctureCellBoundaryIntegral g F T R +
-            zetaExplicitFormulaZeroPoleRightPunctureCellBoundaryIntegral g F T R)
+        Eq.trans
+          (add_assoc
+            (0 : ℂ)
+            (zetaExplicitFormulaZeroPoleLeftPunctureCellBoundaryIntegral g F T R)
+            (zetaExplicitFormulaZeroPoleRightPunctureCellBoundaryIntegral g F T R))
+          (zero_add
+            (zetaExplicitFormulaZeroPoleLeftPunctureCellBoundaryIntegral g F T R +
+              zetaExplicitFormulaZeroPoleRightPunctureCellBoundaryIntegral g F T R))
     _ = 0 +
               zetaExplicitFormulaZeroPoleRightPunctureCellBoundaryIntegral g F T R := by
       exact congrArg
