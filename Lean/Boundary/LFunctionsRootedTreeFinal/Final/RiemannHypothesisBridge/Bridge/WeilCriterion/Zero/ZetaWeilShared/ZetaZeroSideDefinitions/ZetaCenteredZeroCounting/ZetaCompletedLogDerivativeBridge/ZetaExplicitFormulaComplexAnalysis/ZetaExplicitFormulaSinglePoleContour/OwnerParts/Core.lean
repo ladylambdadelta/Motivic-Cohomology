@@ -412,6 +412,167 @@ noncomputable def zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordina
       Complex.I • (∫ y : ℝ in bottom..top, g (right + y * Complex.I)) -
         Complex.I • (∫ y : ℝ in bottom..top, g (left + y * Complex.I))
 
+/-- The affine coordinate `x + y I` has real part `x`. -/
+theorem zetaExplicitFormulaSinglePole_affine_re
+    (x y : ℝ) :
+    ((x : ℂ) + (y : ℂ) * Complex.I).re = x := by
+  calc
+    ((x : ℂ) + (y : ℂ) * Complex.I).re =
+        (x : ℂ).re + ((y : ℂ) * Complex.I).re := by
+      exact Complex.add_re (x : ℂ) ((y : ℂ) * Complex.I)
+    _ = x + ((y : ℂ) * Complex.I).re := by
+      exact congrArg
+        (fun r : ℝ => r + ((y : ℂ) * Complex.I).re)
+        (Complex.ofReal_re x)
+    _ = x + (-(y : ℂ).im) := by
+      exact congrArg (fun r : ℝ => x + r) (Complex.mul_I_re (y : ℂ))
+    _ = x + (-0) := by
+      exact congrArg (fun r : ℝ => x + (-r)) (Complex.ofReal_im y)
+    _ = x + 0 := by
+      exact congrArg (fun r : ℝ => x + r) (neg_zero)
+    _ = x := by
+      exact add_zero x
+
+/-- The affine coordinate `x + y I` has imaginary part `y`. -/
+theorem zetaExplicitFormulaSinglePole_affine_im
+    (x y : ℝ) :
+    ((x : ℂ) + (y : ℂ) * Complex.I).im = y := by
+  calc
+    ((x : ℂ) + (y : ℂ) * Complex.I).im =
+        (x : ℂ).im + ((y : ℂ) * Complex.I).im := by
+      exact Complex.add_im (x : ℂ) ((y : ℂ) * Complex.I)
+    _ = 0 + ((y : ℂ) * Complex.I).im := by
+      exact congrArg
+        (fun r : ℝ => r + ((y : ℂ) * Complex.I).im)
+        (Complex.ofReal_im x)
+    _ = 0 + (y : ℂ).re := by
+      exact congrArg (fun r : ℝ => 0 + r) (Complex.mul_I_im (y : ℂ))
+    _ = 0 + y := by
+      exact congrArg (fun r : ℝ => 0 + r) (Complex.ofReal_re y)
+    _ = y := by
+      exact zero_add y
+
+/-- A rectangular subdivision cell with affine corner coordinates unfolds to
+the corresponding standard real-coordinate rectangle boundary. -/
+theorem zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral_affine_eq_standard
+    (g : ℂ → ℂ) (left right bottom top : ℝ) :
+    zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral
+        g ((left : ℂ) + bottom * Complex.I) ((right : ℂ) + top * Complex.I) =
+      zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+        g left right bottom top := by
+  let z : ℂ := (left : ℂ) + bottom * Complex.I
+  let w : ℂ := (right : ℂ) + top * Complex.I
+  have hzre : z.re = left :=
+    zetaExplicitFormulaSinglePole_affine_re left bottom
+  have hzim : z.im = bottom :=
+    zetaExplicitFormulaSinglePole_affine_im left bottom
+  have hwre : w.re = right :=
+    zetaExplicitFormulaSinglePole_affine_re right top
+  have hwim : w.im = top :=
+    zetaExplicitFormulaSinglePole_affine_im right top
+  let A₁ : ℂ := ∫ x : ℝ in z.re..w.re, g (x + z.im * Complex.I)
+  let A₂ : ℂ := ∫ x : ℝ in z.re..w.re, g (x + w.im * Complex.I)
+  let A₃ : ℂ := Complex.I • (∫ y : ℝ in z.im..w.im, g (w.re + y * Complex.I))
+  let A₄ : ℂ := Complex.I • (∫ y : ℝ in z.im..w.im, g (z.re + y * Complex.I))
+  let B₁ : ℂ := ∫ x : ℝ in left..right, g (x + bottom * Complex.I)
+  let B₂ : ℂ := ∫ x : ℝ in left..right, g (x + top * Complex.I)
+  let B₃ : ℂ := Complex.I • (∫ y : ℝ in bottom..top, g (right + y * Complex.I))
+  let B₄ : ℂ := Complex.I • (∫ y : ℝ in bottom..top, g (left + y * Complex.I))
+  have hA₁ : A₁ = B₁ := by
+    calc
+      A₁ = ∫ x : ℝ in z.re..w.re, g (x + z.im * Complex.I) := by
+        rfl
+      _ = ∫ x : ℝ in left..w.re, g (x + z.im * Complex.I) := by
+        exact congrArg
+          (fun u : ℝ => ∫ x : ℝ in u..w.re, g (x + z.im * Complex.I))
+          hzre
+      _ = ∫ x : ℝ in left..right, g (x + z.im * Complex.I) := by
+        exact congrArg
+          (fun u : ℝ => ∫ x : ℝ in left..u, g (x + z.im * Complex.I))
+          hwre
+      _ = ∫ x : ℝ in left..right, g (x + bottom * Complex.I) := by
+        exact congrArg
+          (fun u : ℝ => ∫ x : ℝ in left..right, g (x + u * Complex.I))
+          hzim
+      _ = B₁ := by
+        rfl
+  have hA₂ : A₂ = B₂ := by
+    calc
+      A₂ = ∫ x : ℝ in z.re..w.re, g (x + w.im * Complex.I) := by
+        rfl
+      _ = ∫ x : ℝ in left..w.re, g (x + w.im * Complex.I) := by
+        exact congrArg
+          (fun u : ℝ => ∫ x : ℝ in u..w.re, g (x + w.im * Complex.I))
+          hzre
+      _ = ∫ x : ℝ in left..right, g (x + w.im * Complex.I) := by
+        exact congrArg
+          (fun u : ℝ => ∫ x : ℝ in left..u, g (x + w.im * Complex.I))
+          hwre
+      _ = ∫ x : ℝ in left..right, g (x + top * Complex.I) := by
+        exact congrArg
+          (fun u : ℝ => ∫ x : ℝ in left..right, g (x + u * Complex.I))
+          hwim
+      _ = B₂ := by
+        rfl
+  have hA₃ : A₃ = B₃ := by
+    calc
+      A₃ = Complex.I • (∫ y : ℝ in z.im..w.im, g (w.re + y * Complex.I)) := by
+        rfl
+      _ = Complex.I • (∫ y : ℝ in bottom..w.im, g (w.re + y * Complex.I)) := by
+        exact congrArg
+          (fun u : ℝ => Complex.I •
+            (∫ y : ℝ in u..w.im, g (w.re + y * Complex.I)))
+          hzim
+      _ = Complex.I • (∫ y : ℝ in bottom..top, g (w.re + y * Complex.I)) := by
+        exact congrArg
+          (fun u : ℝ => Complex.I •
+            (∫ y : ℝ in bottom..u, g (w.re + y * Complex.I)))
+          hwim
+      _ = Complex.I • (∫ y : ℝ in bottom..top, g (right + y * Complex.I)) := by
+        exact congrArg
+          (fun u : ℝ => Complex.I •
+            (∫ y : ℝ in bottom..top, g (u + y * Complex.I)))
+          hwre
+      _ = B₃ := by
+        rfl
+  have hA₄ : A₄ = B₄ := by
+    calc
+      A₄ = Complex.I • (∫ y : ℝ in z.im..w.im, g (z.re + y * Complex.I)) := by
+        rfl
+      _ = Complex.I • (∫ y : ℝ in bottom..w.im, g (z.re + y * Complex.I)) := by
+        exact congrArg
+          (fun u : ℝ => Complex.I •
+            (∫ y : ℝ in u..w.im, g (z.re + y * Complex.I)))
+          hzim
+      _ = Complex.I • (∫ y : ℝ in bottom..top, g (z.re + y * Complex.I)) := by
+        exact congrArg
+          (fun u : ℝ => Complex.I •
+            (∫ y : ℝ in bottom..u, g (z.re + y * Complex.I)))
+          hwim
+      _ = Complex.I • (∫ y : ℝ in bottom..top, g (left + y * Complex.I)) := by
+        exact congrArg
+          (fun u : ℝ => Complex.I •
+            (∫ y : ℝ in bottom..top, g (u + y * Complex.I)))
+          hzre
+      _ = B₄ := by
+        rfl
+  calc
+    zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral
+        g ((left : ℂ) + bottom * Complex.I) ((right : ℂ) + top * Complex.I) =
+        A₁ - A₂ + A₃ - A₄ := by
+      rfl
+    _ = B₁ - A₂ + A₃ - A₄ := by
+      exact congrArg (fun u : ℂ => u - A₂ + A₃ - A₄) hA₁
+    _ = B₁ - B₂ + A₃ - A₄ := by
+      exact congrArg (fun u : ℂ => B₁ - u + A₃ - A₄) hA₂
+    _ = B₁ - B₂ + B₃ - A₄ := by
+      exact congrArg (fun u : ℂ => B₁ - B₂ + u - A₄) hA₃
+    _ = B₁ - B₂ + B₃ - B₄ := by
+      exact congrArg (fun u : ℂ => B₁ - B₂ + B₃ - u) hA₄
+    _ = zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+        g left right bottom top := by
+      rfl
+
 /-- Standard boundary integral of the square puncture centered at `1` with
 half-width `R`.  This is the inner rectangular boundary produced by finite
 rectangular cell cancellation. -/
@@ -432,28 +593,28 @@ punctured by the inner square around `1`. -/
 noncomputable def zetaExplicitFormulaOnePoleBottomPunctureCellBoundaryIntegral
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ) : ℂ :=
   zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral
-    g ((1 - F.c) + (-T) * Complex.I) (F.c + (-R) * Complex.I)
+    g (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I) ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I)
 
 /-- The top cell in the four-rectangle decomposition of the rectangle
 punctured by the inner square around `1`. -/
 noncomputable def zetaExplicitFormulaOnePoleTopPunctureCellBoundaryIntegral
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ) : ℂ :=
   zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral
-    g ((1 - F.c) + R * Complex.I) (F.c + T * Complex.I)
+    g (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I) (F.c + T * Complex.I)
 
 /-- The left cell in the four-rectangle decomposition of the rectangle
 punctured by the inner square around `1`. -/
 noncomputable def zetaExplicitFormulaOnePoleLeftPunctureCellBoundaryIntegral
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ) : ℂ :=
   zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral
-    g ((1 - F.c) + (-R) * Complex.I) ((1 - R) + R * Complex.I)
+    g (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I) (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I)
 
 /-- The right cell in the four-rectangle decomposition of the rectangle
 punctured by the inner square around `1`. -/
 noncomputable def zetaExplicitFormulaOnePoleRightPunctureCellBoundaryIntegral
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ) : ℂ :=
   zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral
-    g ((1 + R) + (-R) * Complex.I) (F.c + R * Complex.I)
+    g (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I) (F.c + R * Complex.I)
 
 /-- The finite four-cell boundary sum for the rectangle with the one-pole inner
 square removed. -/
@@ -503,13 +664,31 @@ theorem zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral_eq
 theorem zetaExplicitFormulaOnePoleBottomPunctureCellBoundaryIntegral_eq
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ) :
     zetaExplicitFormulaOnePoleBottomPunctureCellBoundaryIntegral g F T R =
-      (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)) -
-        (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) +
+      (∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)) -
+        (∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) +
           Complex.I •
             (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) -
             Complex.I •
-              (∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I)) := by
-  rfl
+              (∫ y : ℝ in -T..(-R), g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) := by
+  calc
+    zetaExplicitFormulaOnePoleBottomPunctureCellBoundaryIntegral g F T R =
+        zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral
+          g (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I) ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I) := by
+      rfl
+    _ =
+        zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+          g (1 - F.c) F.c (-T) (-R) := by
+      exact
+        zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral_affine_eq_standard
+          g (1 - F.c) F.c (-T) (-R)
+    _ =
+      (∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)) -
+        (∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) +
+          Complex.I •
+            (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) -
+            Complex.I •
+              (∫ y : ℝ in -T..(-R), g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) := by
+      rfl
 
 /-- The top cell boundary unfolds to its four coordinate sides. -/
 theorem zetaExplicitFormulaOnePoleTopPunctureCellBoundaryIntegral_eq
@@ -520,32 +699,86 @@ theorem zetaExplicitFormulaOnePoleTopPunctureCellBoundaryIntegral_eq
           Complex.I •
             (∫ y : ℝ in R..T, g (F.c + y * Complex.I)) -
             Complex.I •
-              (∫ y : ℝ in R..T, g ((1 - F.c) + y * Complex.I)) := by
-  rfl
+              (∫ y : ℝ in R..T, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) := by
+  calc
+    zetaExplicitFormulaOnePoleTopPunctureCellBoundaryIntegral g F T R =
+        zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral
+          g (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I) (F.c + T * Complex.I) := by
+      rfl
+    _ =
+        zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+          g (1 - F.c) F.c R T := by
+      exact
+        zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral_affine_eq_standard
+          g (1 - F.c) F.c R T
+    _ =
+      (∫ x : ℝ in (1 - F.c)..F.c, g (x + R * Complex.I)) -
+        (∫ x : ℝ in (1 - F.c)..F.c, g (x + T * Complex.I)) +
+          Complex.I •
+            (∫ y : ℝ in R..T, g (F.c + y * Complex.I)) -
+            Complex.I •
+              (∫ y : ℝ in R..T, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) := by
+      rfl
 
 /-- The left cell boundary unfolds to its four coordinate sides. -/
 theorem zetaExplicitFormulaOnePoleLeftPunctureCellBoundaryIntegral_eq
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ) :
     zetaExplicitFormulaOnePoleLeftPunctureCellBoundaryIntegral g F T R =
-      (∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (-R) * Complex.I)) -
+      (∫ x : ℝ in (1 - F.c)..(1 - R), g (x + ((-R : ℝ) : ℂ) * Complex.I)) -
         (∫ x : ℝ in (1 - F.c)..(1 - R), g (x + R * Complex.I)) +
           Complex.I •
-            (∫ y : ℝ in -R..R, g ((1 - R) + y * Complex.I)) -
+            (∫ y : ℝ in -R..R, g (((1 - R : ℝ) : ℂ) + y * Complex.I)) -
             Complex.I •
-              (∫ y : ℝ in -R..R, g ((1 - F.c) + y * Complex.I)) := by
-  rfl
+              (∫ y : ℝ in -R..R, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) := by
+  calc
+    zetaExplicitFormulaOnePoleLeftPunctureCellBoundaryIntegral g F T R =
+        zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral
+          g (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I) (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I) := by
+      rfl
+    _ =
+        zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+          g (1 - F.c) (1 - R) (-R) R := by
+      exact
+        zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral_affine_eq_standard
+          g (1 - F.c) (1 - R) (-R) R
+    _ =
+      (∫ x : ℝ in (1 - F.c)..(1 - R), g (x + ((-R : ℝ) : ℂ) * Complex.I)) -
+        (∫ x : ℝ in (1 - F.c)..(1 - R), g (x + R * Complex.I)) +
+          Complex.I •
+            (∫ y : ℝ in -R..R, g (((1 - R : ℝ) : ℂ) + y * Complex.I)) -
+            Complex.I •
+              (∫ y : ℝ in -R..R, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) := by
+      rfl
 
 /-- The right cell boundary unfolds to its four coordinate sides. -/
 theorem zetaExplicitFormulaOnePoleRightPunctureCellBoundaryIntegral_eq
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ) :
     zetaExplicitFormulaOnePoleRightPunctureCellBoundaryIntegral g F T R =
-      (∫ x : ℝ in (1 + R)..F.c, g (x + (-R) * Complex.I)) -
+      (∫ x : ℝ in (1 + R)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) -
         (∫ x : ℝ in (1 + R)..F.c, g (x + R * Complex.I)) +
           Complex.I •
             (∫ y : ℝ in -R..R, g (F.c + y * Complex.I)) -
             Complex.I •
-              (∫ y : ℝ in -R..R, g ((1 + R) + y * Complex.I)) := by
-  rfl
+              (∫ y : ℝ in -R..R, g (((1 + R : ℝ) : ℂ) + y * Complex.I)) := by
+  calc
+    zetaExplicitFormulaOnePoleRightPunctureCellBoundaryIntegral g F T R =
+        zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral
+          g (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I) (F.c + R * Complex.I) := by
+      rfl
+    _ =
+        zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+          g (1 + R) F.c (-R) R := by
+      exact
+        zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral_affine_eq_standard
+          g (1 + R) F.c (-R) R
+    _ =
+      (∫ x : ℝ in (1 + R)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) -
+        (∫ x : ℝ in (1 + R)..F.c, g (x + R * Complex.I)) +
+          Complex.I •
+            (∫ y : ℝ in -R..R, g (F.c + y * Complex.I)) -
+            Complex.I •
+              (∫ y : ℝ in -R..R, g (((1 + R : ℝ) : ℂ) + y * Complex.I)) := by
+      rfl
 
 /-- The four-cell one-pole punctured rectangle boundary is the ordered sum of
 the bottom, top, left, and right cell boundaries. -/
@@ -563,41 +796,41 @@ coordinate cell boundaries. -/
 theorem zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum_eq_expandedCells
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ) :
     zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum g F T R =
-      ((∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)) -
-        (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) +
+      ((∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)) -
+        (∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) +
           Complex.I •
             (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) -
             Complex.I •
-              (∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I))) +
+              (∫ y : ℝ in -T..(-R), g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
         ((∫ x : ℝ in (1 - F.c)..F.c, g (x + R * Complex.I)) -
           (∫ x : ℝ in (1 - F.c)..F.c, g (x + T * Complex.I)) +
             Complex.I •
               (∫ y : ℝ in R..T, g (F.c + y * Complex.I)) -
               Complex.I •
-                (∫ y : ℝ in R..T, g ((1 - F.c) + y * Complex.I))) +
-          ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (-R) * Complex.I)) -
+                (∫ y : ℝ in R..T, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
+          ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + ((-R : ℝ) : ℂ) * Complex.I)) -
             (∫ x : ℝ in (1 - F.c)..(1 - R), g (x + R * Complex.I)) +
               Complex.I •
-                (∫ y : ℝ in -R..R, g ((1 - R) + y * Complex.I)) -
+                (∫ y : ℝ in -R..R, g (((1 - R : ℝ) : ℂ) + y * Complex.I)) -
                 Complex.I •
-                  (∫ y : ℝ in -R..R, g ((1 - F.c) + y * Complex.I))) +
-            ((∫ x : ℝ in (1 + R)..F.c, g (x + (-R) * Complex.I)) -
+                  (∫ y : ℝ in -R..R, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
+            ((∫ x : ℝ in (1 + R)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) -
               (∫ x : ℝ in (1 + R)..F.c, g (x + R * Complex.I)) +
                 Complex.I •
                   (∫ y : ℝ in -R..R, g (F.c + y * Complex.I)) -
                   Complex.I •
-                    (∫ y : ℝ in -R..R, g ((1 + R) + y * Complex.I))) := by
+                    (∫ y : ℝ in -R..R, g (((1 + R : ℝ) : ℂ) + y * Complex.I))) := by
   let B : ℂ := zetaExplicitFormulaOnePoleBottomPunctureCellBoundaryIntegral g F T R
   let U : ℂ := zetaExplicitFormulaOnePoleTopPunctureCellBoundaryIntegral g F T R
   let L : ℂ := zetaExplicitFormulaOnePoleLeftPunctureCellBoundaryIntegral g F T R
   let Q : ℂ := zetaExplicitFormulaOnePoleRightPunctureCellBoundaryIntegral g F T R
   have hB : B =
-      (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)) -
-        (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) +
+      (∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)) -
+        (∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) +
           Complex.I •
             (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) -
             Complex.I •
-              (∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I)) :=
+              (∫ y : ℝ in -T..(-R), g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) :=
     zetaExplicitFormulaOnePoleBottomPunctureCellBoundaryIntegral_eq g F T R
   have hU : U =
       (∫ x : ℝ in (1 - F.c)..F.c, g (x + R * Complex.I)) -
@@ -605,139 +838,139 @@ theorem zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum_eq_expan
           Complex.I •
             (∫ y : ℝ in R..T, g (F.c + y * Complex.I)) -
             Complex.I •
-              (∫ y : ℝ in R..T, g ((1 - F.c) + y * Complex.I)) :=
+              (∫ y : ℝ in R..T, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) :=
     zetaExplicitFormulaOnePoleTopPunctureCellBoundaryIntegral_eq g F T R
   have hL : L =
-      (∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (-R) * Complex.I)) -
+      (∫ x : ℝ in (1 - F.c)..(1 - R), g (x + ((-R : ℝ) : ℂ) * Complex.I)) -
         (∫ x : ℝ in (1 - F.c)..(1 - R), g (x + R * Complex.I)) +
           Complex.I •
-            (∫ y : ℝ in -R..R, g ((1 - R) + y * Complex.I)) -
+            (∫ y : ℝ in -R..R, g (((1 - R : ℝ) : ℂ) + y * Complex.I)) -
             Complex.I •
-              (∫ y : ℝ in -R..R, g ((1 - F.c) + y * Complex.I)) :=
+              (∫ y : ℝ in -R..R, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) :=
     zetaExplicitFormulaOnePoleLeftPunctureCellBoundaryIntegral_eq g F T R
   have hQ : Q =
-      (∫ x : ℝ in (1 + R)..F.c, g (x + (-R) * Complex.I)) -
+      (∫ x : ℝ in (1 + R)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) -
         (∫ x : ℝ in (1 + R)..F.c, g (x + R * Complex.I)) +
           Complex.I •
             (∫ y : ℝ in -R..R, g (F.c + y * Complex.I)) -
             Complex.I •
-              (∫ y : ℝ in -R..R, g ((1 + R) + y * Complex.I)) :=
+              (∫ y : ℝ in -R..R, g (((1 + R : ℝ) : ℂ) + y * Complex.I)) :=
     zetaExplicitFormulaOnePoleRightPunctureCellBoundaryIntegral_eq g F T R
   calc
     zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum g F T R =
         B + U + L + Q := by
       rfl
     _ =
-      ((∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)) -
-        (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) +
+      ((∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)) -
+        (∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) +
           Complex.I •
             (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) -
             Complex.I •
-              (∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I))) + U + L + Q := by
+              (∫ y : ℝ in -T..(-R), g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) + U + L + Q := by
       exact congrArg (fun z : ℂ => z + U + L + Q) hB
     _ =
-      ((∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)) -
-        (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) +
+      ((∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)) -
+        (∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) +
           Complex.I •
             (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) -
             Complex.I •
-              (∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I))) +
+              (∫ y : ℝ in -T..(-R), g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
         ((∫ x : ℝ in (1 - F.c)..F.c, g (x + R * Complex.I)) -
           (∫ x : ℝ in (1 - F.c)..F.c, g (x + T * Complex.I)) +
             Complex.I •
               (∫ y : ℝ in R..T, g (F.c + y * Complex.I)) -
               Complex.I •
-                (∫ y : ℝ in R..T, g ((1 - F.c) + y * Complex.I))) + L + Q := by
+                (∫ y : ℝ in R..T, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) + L + Q := by
       exact congrArg
         (fun z : ℂ =>
-          ((∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)) -
-            (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) +
+          ((∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)) -
+            (∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) +
               Complex.I •
                 (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) -
                 Complex.I •
-                  (∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I))) +
+                  (∫ y : ℝ in -T..(-R), g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
             z + L + Q)
         hU
     _ =
-      ((∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)) -
-        (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) +
+      ((∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)) -
+        (∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) +
           Complex.I •
             (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) -
             Complex.I •
-              (∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I))) +
+              (∫ y : ℝ in -T..(-R), g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
         ((∫ x : ℝ in (1 - F.c)..F.c, g (x + R * Complex.I)) -
           (∫ x : ℝ in (1 - F.c)..F.c, g (x + T * Complex.I)) +
             Complex.I •
               (∫ y : ℝ in R..T, g (F.c + y * Complex.I)) -
               Complex.I •
-                (∫ y : ℝ in R..T, g ((1 - F.c) + y * Complex.I))) +
-          ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (-R) * Complex.I)) -
+                (∫ y : ℝ in R..T, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
+          ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + ((-R : ℝ) : ℂ) * Complex.I)) -
             (∫ x : ℝ in (1 - F.c)..(1 - R), g (x + R * Complex.I)) +
               Complex.I •
-                (∫ y : ℝ in -R..R, g ((1 - R) + y * Complex.I)) -
+                (∫ y : ℝ in -R..R, g (((1 - R : ℝ) : ℂ) + y * Complex.I)) -
                 Complex.I •
-                  (∫ y : ℝ in -R..R, g ((1 - F.c) + y * Complex.I))) + Q := by
+                  (∫ y : ℝ in -R..R, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) + Q := by
       exact congrArg
         (fun z : ℂ =>
-          ((∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)) -
-            (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) +
+          ((∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)) -
+            (∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) +
               Complex.I •
                 (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) -
                 Complex.I •
-                  (∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I))) +
+                  (∫ y : ℝ in -T..(-R), g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
             ((∫ x : ℝ in (1 - F.c)..F.c, g (x + R * Complex.I)) -
               (∫ x : ℝ in (1 - F.c)..F.c, g (x + T * Complex.I)) +
                 Complex.I •
                   (∫ y : ℝ in R..T, g (F.c + y * Complex.I)) -
                   Complex.I •
-                    (∫ y : ℝ in R..T, g ((1 - F.c) + y * Complex.I))) +
+                    (∫ y : ℝ in R..T, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
               z + Q)
         hL
     _ =
-      ((∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)) -
-        (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) +
+      ((∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)) -
+        (∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) +
           Complex.I •
             (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) -
             Complex.I •
-              (∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I))) +
+              (∫ y : ℝ in -T..(-R), g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
         ((∫ x : ℝ in (1 - F.c)..F.c, g (x + R * Complex.I)) -
           (∫ x : ℝ in (1 - F.c)..F.c, g (x + T * Complex.I)) +
             Complex.I •
               (∫ y : ℝ in R..T, g (F.c + y * Complex.I)) -
               Complex.I •
-                (∫ y : ℝ in R..T, g ((1 - F.c) + y * Complex.I))) +
-          ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (-R) * Complex.I)) -
+                (∫ y : ℝ in R..T, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
+          ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + ((-R : ℝ) : ℂ) * Complex.I)) -
             (∫ x : ℝ in (1 - F.c)..(1 - R), g (x + R * Complex.I)) +
               Complex.I •
-                (∫ y : ℝ in -R..R, g ((1 - R) + y * Complex.I)) -
+                (∫ y : ℝ in -R..R, g (((1 - R : ℝ) : ℂ) + y * Complex.I)) -
                 Complex.I •
-                  (∫ y : ℝ in -R..R, g ((1 - F.c) + y * Complex.I))) +
-            ((∫ x : ℝ in (1 + R)..F.c, g (x + (-R) * Complex.I)) -
+                  (∫ y : ℝ in -R..R, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
+            ((∫ x : ℝ in (1 + R)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) -
               (∫ x : ℝ in (1 + R)..F.c, g (x + R * Complex.I)) +
                 Complex.I •
                   (∫ y : ℝ in -R..R, g (F.c + y * Complex.I)) -
                   Complex.I •
-                    (∫ y : ℝ in -R..R, g ((1 + R) + y * Complex.I)) ) := by
+                    (∫ y : ℝ in -R..R, g (((1 + R : ℝ) : ℂ) + y * Complex.I)) ) := by
       exact congrArg
         (fun z : ℂ =>
-          ((∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)) -
-            (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) +
+          ((∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)) -
+            (∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) +
               Complex.I •
                 (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) -
                 Complex.I •
-                  (∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I))) +
+                  (∫ y : ℝ in -T..(-R), g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
             ((∫ x : ℝ in (1 - F.c)..F.c, g (x + R * Complex.I)) -
               (∫ x : ℝ in (1 - F.c)..F.c, g (x + T * Complex.I)) +
                 Complex.I •
                   (∫ y : ℝ in R..T, g (F.c + y * Complex.I)) -
                   Complex.I •
-                    (∫ y : ℝ in R..T, g ((1 - F.c) + y * Complex.I))) +
-              ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (-R) * Complex.I)) -
+                    (∫ y : ℝ in R..T, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
+              ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + ((-R : ℝ) : ℂ) * Complex.I)) -
                 (∫ x : ℝ in (1 - F.c)..(1 - R), g (x + R * Complex.I)) +
                   Complex.I •
-                    (∫ y : ℝ in -R..R, g ((1 - R) + y * Complex.I)) -
+                    (∫ y : ℝ in -R..R, g (((1 - R : ℝ) : ℂ) + y * Complex.I)) -
                     Complex.I •
-                      (∫ y : ℝ in -R..R, g ((1 - F.c) + y * Complex.I))) +
+                      (∫ y : ℝ in -R..R, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
                 z)
         hQ
 
@@ -766,15 +999,19 @@ theorem zetaExplicitFormulaOnePole_topPath_eq_coordinate
 theorem zetaExplicitFormulaOnePole_bottomPath_eq_coordinate
     (F : ExplicitFormulaContourFamily) (T x : ℝ) :
     zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x =
-      x + (-T) * Complex.I := by
+      x + ((-T : ℝ) : ℂ) * Complex.I := by
   calc
     zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x =
-        x - T * Complex.I := by
+        (x : ℂ) - (T : ℂ) * Complex.I := by
       rfl
-    _ = x + -(T * Complex.I) := by
-      exact sub_eq_add_neg x (T * Complex.I)
-    _ = x + (-T) * Complex.I := by
-      exact congrArg (fun z : ℂ => x + z) (neg_mul T Complex.I).symm
+    _ = (x : ℂ) + -((T : ℂ) * Complex.I) := by
+      exact sub_eq_add_neg (x : ℂ) ((T : ℂ) * Complex.I)
+    _ = (x : ℂ) + (-(T : ℂ)) * Complex.I := by
+      exact congrArg (fun z : ℂ => (x : ℂ) + z)
+        (neg_mul (T : ℂ) Complex.I).symm
+    _ = (x : ℂ) + ((-T : ℝ) : ℂ) * Complex.I := by
+      exact congrArg (fun z : ℂ => (x : ℂ) + z * Complex.I)
+        (Complex.ofReal_neg T).symm
 
 /-- The one-pole kernel along the right path is the corresponding raw
 coordinate integrand. -/
@@ -819,7 +1056,7 @@ theorem zetaExplicitFormulaOnePole_bottomPath_integrand_eq_coordinate
     zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
         (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x) =
       zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-        (x + (-T) * Complex.I) := by
+        (x + ((-T : ℝ) : ℂ) * Complex.I) := by
   exact congrArg
     (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
     (zetaExplicitFormulaOnePole_bottomPath_eq_coordinate F T x)
@@ -836,6 +1073,12 @@ theorem zetaExplicitFormulaSinglePole_setIntegral_Icc_eq_intervalIntegral_of_le
       (∫ x in Set.Icc a b, φ x) = ∫ x in Set.Ioc a b, φ x :=
     MeasureTheory.integral_Icc_eq_integral_Ioc
   exact Eq.trans hset hinterval.symm
+
+/-- A nonnegative symmetric height gives the ordered interval `[-T, T]`. -/
+theorem zetaExplicitFormulaSinglePole_neg_le_self_of_nonneg {T : ℝ}
+    (hT : 0 ≤ T) :
+    -T ≤ T :=
+  le_trans (neg_nonpos.mpr hT) hT
 
 /-- Multiplication by the tangent `I` can be pulled out of a one-dimensional
 interval integral in the right-multiplication convention. -/
@@ -858,7 +1101,7 @@ theorem zetaExplicitFormulaSinglePole_intervalIntegral_mul_I_eq_smul
     _ = Complex.I * J := by
       exact mul_comm J Complex.I
     _ = Complex.I • J := by
-      exact (smul_eq_mul Complex.I J).symm
+      exact (Algebra.smul_def Complex.I J).symm
 
 /-- The right one-pole tangent side is the coordinate vertical edge integral in
 Mathlib's rectangle convention. -/
@@ -895,7 +1138,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral_eq_coo
         ∫ y : ℝ in -T..T, φ y * Complex.I :=
     zetaExplicitFormulaSinglePole_setIntegral_Icc_eq_intervalIntegral_of_le
       (fun y : ℝ => φ y * Complex.I)
-      (neg_nonpos.mpr hT)
+      (zetaExplicitFormulaSinglePole_neg_le_self_of_nonneg hT)
   calc
     zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral f F T =
         ∫ y in Set.Icc (-T) T, ψ y * Complex.I := by
@@ -942,7 +1185,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral_eq_coor
         ∫ y : ℝ in -T..T, φ y * Complex.I :=
     zetaExplicitFormulaSinglePole_setIntegral_Icc_eq_intervalIntegral_of_le
       (fun y : ℝ => φ y * Complex.I)
-      (neg_nonpos.mpr hT)
+      (zetaExplicitFormulaSinglePole_neg_le_self_of_nonneg hT)
   calc
     zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral f F T =
         ∫ y in Set.Icc (-T) T, ψ y * Complex.I := by
@@ -975,7 +1218,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIn
         (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x)
   let Bcoord : ℂ :=
     ∫ x : ℝ in (1 - F.c)..F.c,
-      g (x + (-T) * Complex.I)
+      g (x + ((-T : ℝ) : ℂ) * Complex.I)
   let Tcoord : ℂ :=
     ∫ x : ℝ in (1 - F.c)..F.c,
       g (x + T * Complex.I)
@@ -986,14 +1229,14 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIn
   let Lcoord : ℂ :=
     Complex.I •
       (∫ y : ℝ in -T..T,
-        g ((1 - F.c) + y * Complex.I))
+        g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
   have hleft_right : 1 - F.c ≤ F.c :=
     le_of_lt (lt_trans F.one_sub_c_neg F.c_pos)
   have hbottom_point :
       (fun x : ℝ =>
         zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
           (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x)) =
-        (fun x : ℝ => g (x + (-T) * Complex.I)) := by
+        (fun x : ℝ => g (x + ((-T : ℝ) : ℂ) * Complex.I)) := by
     funext x
     exact zetaExplicitFormulaOnePole_bottomPath_integrand_eq_coordinate f F T x
   have htop_point :
@@ -1007,14 +1250,14 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIn
       Bset = Bcoord := by
     have hcongr :
         Bset =
-          ∫ x in Set.Icc (1 - F.c) F.c, g (x + (-T) * Complex.I) :=
+          ∫ x in Set.Icc (1 - F.c) F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I) :=
       MeasureTheory.setIntegral_congr_fun measurableSet_Icc
         (fun x _hx => congrFun hbottom_point x)
     have hinterval :
-        (∫ x in Set.Icc (1 - F.c) F.c, g (x + (-T) * Complex.I)) =
-          ∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I) :=
+        (∫ x in Set.Icc (1 - F.c) F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)) =
+          ∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I) :=
       zetaExplicitFormulaSinglePole_setIntegral_Icc_eq_intervalIntegral_of_le
-        (fun x : ℝ => g (x + (-T) * Complex.I))
+        (fun x : ℝ => g (x + ((-T : ℝ) : ℂ) * Complex.I))
         hleft_right
     exact Eq.trans hcongr hinterval
   have htop_set :
@@ -1038,9 +1281,30 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIn
       f F hT
   have hleft :
       zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral f F T =
-        Lcoord :=
-    zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral_eq_coordinate
-      f F hT
+        Lcoord := by
+    have hraw :
+        zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral f F T =
+          Complex.I •
+            (∫ y : ℝ in -T..T,
+              g (((1 : ℂ) - (F.c : ℂ)) + y * Complex.I)) :=
+      zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral_eq_coordinate
+        f F hT
+    have hpoint :
+        (fun y : ℝ => g (((1 : ℂ) - (F.c : ℂ)) + y * Complex.I)) =
+          (fun y : ℝ => g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) := by
+      funext y
+      exact congrArg
+        (fun z : ℂ => g (z + y * Complex.I))
+        (Complex.ofReal_sub 1 F.c).symm
+    have hrhs :
+        Complex.I •
+            (∫ y : ℝ in -T..T,
+              g (((1 : ℂ) - (F.c : ℂ)) + y * Complex.I)) =
+          Lcoord := by
+      exact congrArg
+        (fun φ : ℝ → ℂ => Complex.I • (∫ y : ℝ in -T..T, φ y))
+        hpoint
+    exact Eq.trans hraw hrhs
   calc
     zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral f F T =
         Bset - Tset +
@@ -1077,10 +1341,16 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIn
         (fun z : ℂ => Bcoord - Tcoord + Rcoord - z)
         hleft
     _ =
+      zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+        g (1 - F.c) F.c (-T) T := by
+      rfl
+    _ =
       zetaExplicitFormulaOnePoleOuterStandardBoundaryCoordinateIntegral
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
         F T := by
-      rfl
+      exact
+        (zetaExplicitFormulaOnePoleOuterStandardBoundaryCoordinateIntegral_eq
+          g F T).symm
 
 /-- Two adjacent interval integrals combine into the integral over their union,
 in the orientation convention used by rectangle edges. -/
@@ -1183,22 +1453,22 @@ theorem zetaExplicitFormulaOnePole_leftOuterVertical_eq_threeSegments
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ)
     (hbottom :
       IntervalIntegrable
-        (fun y : ℝ => g ((1 - F.c) + y * Complex.I)) volume (-T) (-R))
+        (fun y : ℝ => g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) volume (-T) (-R))
     (hmiddle :
       IntervalIntegrable
-        (fun y : ℝ => g ((1 - F.c) + y * Complex.I)) volume (-R) R)
+        (fun y : ℝ => g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) volume (-R) R)
     (htop :
       IntervalIntegrable
-        (fun y : ℝ => g ((1 - F.c) + y * Complex.I)) volume R T) :
+        (fun y : ℝ => g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) volume R T) :
     (Complex.I •
-        (((∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I)) +
-          (∫ y : ℝ in -R..R, g ((1 - F.c) + y * Complex.I))) +
-            (∫ y : ℝ in R..T, g ((1 - F.c) + y * Complex.I)))) =
+        (((∫ y : ℝ in -T..(-R), g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) +
+          (∫ y : ℝ in -R..R, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
+            (∫ y : ℝ in R..T, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)))) =
       Complex.I •
-        (∫ y : ℝ in -T..T, g ((1 - F.c) + y * Complex.I)) := by
+        (∫ y : ℝ in -T..T, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) := by
   exact
     zetaExplicitFormulaSinglePole_verticalIntegral_split_three
-      (fun y : ℝ => g ((1 - F.c) + y * Complex.I))
+      (fun y : ℝ => g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
       (-T) (-R) R T
       hbottom hmiddle htop
 
@@ -1208,20 +1478,20 @@ theorem zetaExplicitFormulaOnePole_bottomPunctureHorizontal_threeSegments
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (R : ℝ)
     (hleft :
       IntervalIntegrable
-        (fun x : ℝ => g (x + (-R) * Complex.I)) volume (1 - F.c) (1 - R))
+        (fun x : ℝ => g (x + ((-R : ℝ) : ℂ) * Complex.I)) volume (1 - F.c) (1 - R))
     (hinner :
       IntervalIntegrable
-        (fun x : ℝ => g (x + (-R) * Complex.I)) volume (1 - R) (1 + R))
+        (fun x : ℝ => g (x + ((-R : ℝ) : ℂ) * Complex.I)) volume (1 - R) (1 + R))
     (hright :
       IntervalIntegrable
-        (fun x : ℝ => g (x + (-R) * Complex.I)) volume (1 + R) F.c) :
-    ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (-R) * Complex.I)) +
-        (∫ x : ℝ in (1 - R)..(1 + R), g (x + (-R) * Complex.I))) +
-          (∫ x : ℝ in (1 + R)..F.c, g (x + (-R) * Complex.I)) =
-      ∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I) := by
+        (fun x : ℝ => g (x + ((-R : ℝ) : ℂ) * Complex.I)) volume (1 + R) F.c) :
+    ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + ((-R : ℝ) : ℂ) * Complex.I)) +
+        (∫ x : ℝ in (1 - R)..(1 + R), g (x + ((-R : ℝ) : ℂ) * Complex.I))) +
+          (∫ x : ℝ in (1 + R)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I)) =
+      ∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-R : ℝ) : ℂ) * Complex.I) := by
   exact
     zetaExplicitFormulaSinglePole_intervalIntegral_split_three
-      (fun x : ℝ => g (x + (-R) * Complex.I))
+      (fun x : ℝ => g (x + ((-R : ℝ) : ℂ) * Complex.I))
       (1 - F.c) (1 - R) (1 + R) F.c
       hleft hinner hright
 
@@ -1417,28 +1687,28 @@ theorem zetaExplicitFormulaOnePoleBottomPunctureCellBoundaryIntegral_eq_zero_of_
     (s : Set ℂ) (hs : s.Countable)
     (Hc :
       ContinuousOn g
-        ([[ ((1 - F.c) + (-T) * Complex.I).re,
-             (F.c + (-R) * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (-T) * Complex.I).im,
-             (F.c + (-R) * Complex.I).im ]]))
+        ([[ (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re,
+             ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re ]] ×ℂ
+          [[ (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im,
+             ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im ]]))
     (Hd :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (-T) * Complex.I).re
-                  (F.c + (-R) * Complex.I).re)
-                (max ((1 - F.c) + (-T) * Complex.I).re
-                  (F.c + (-R) * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (-T) * Complex.I).im
-                  (F.c + (-R) * Complex.I).im)
-                (max ((1 - F.c) + (-T) * Complex.I).im
-                  (F.c + (-R) * Complex.I).im) \ s →
+                (min (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im) \ s →
           DifferentiableAt ℂ g x) :
     zetaExplicitFormulaOnePoleBottomPunctureCellBoundaryIntegral g F T R = 0 := by
   exact
     zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral_eq_zero_of_differentiable_on_off_countable
-      g ((1 - F.c) + (-T) * Complex.I) (F.c + (-R) * Complex.I)
+      g (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I) ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I)
       s hs Hc Hd
 
 /-- The top puncture cell has zero boundary under the rectangular
@@ -1448,28 +1718,28 @@ theorem zetaExplicitFormulaOnePoleTopPunctureCellBoundaryIntegral_eq_zero_of_cau
     (s : Set ℂ) (hs : s.Countable)
     (Hc :
       ContinuousOn g
-        ([[ ((1 - F.c) + R * Complex.I).re,
+        ([[ (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).re,
              (F.c + T * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + R * Complex.I).im,
+          [[ (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).im,
              (F.c + T * Complex.I).im ]]))
     (Hd :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + R * Complex.I).re
+                (min (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).re
                   (F.c + T * Complex.I).re)
-                (max ((1 - F.c) + R * Complex.I).re
+                (max (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).re
                   (F.c + T * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + R * Complex.I).im
+                (min (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).im
                   (F.c + T * Complex.I).im)
-                (max ((1 - F.c) + R * Complex.I).im
+                (max (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).im
                   (F.c + T * Complex.I).im) \ s →
           DifferentiableAt ℂ g x) :
     zetaExplicitFormulaOnePoleTopPunctureCellBoundaryIntegral g F T R = 0 := by
   exact
     zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral_eq_zero_of_differentiable_on_off_countable
-      g ((1 - F.c) + R * Complex.I) (F.c + T * Complex.I)
+      g (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I) (F.c + T * Complex.I)
       s hs Hc Hd
 
 /-- The left puncture cell has zero boundary under the rectangular
@@ -1479,28 +1749,28 @@ theorem zetaExplicitFormulaOnePoleLeftPunctureCellBoundaryIntegral_eq_zero_of_ca
     (s : Set ℂ) (hs : s.Countable)
     (Hc :
       ContinuousOn g
-        ([[ ((1 - F.c) + (-R) * Complex.I).re,
-             ((1 - R) + R * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (-R) * Complex.I).im,
-             ((1 - R) + R * Complex.I).im ]]))
+        ([[ (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re,
+             (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).re ]] ×ℂ
+          [[ (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im,
+             (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).im ]]))
     (Hd :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (-R) * Complex.I).re
-                  ((1 - R) + R * Complex.I).re)
-                (max ((1 - F.c) + (-R) * Complex.I).re
-                  ((1 - R) + R * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re
+                  (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re
+                  (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (-R) * Complex.I).im
-                  ((1 - R) + R * Complex.I).im)
-                (max ((1 - F.c) + (-R) * Complex.I).im
-                  ((1 - R) + R * Complex.I).im) \ s →
+                (min (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im
+                  (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im
+                  (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).im) \ s →
           DifferentiableAt ℂ g x) :
     zetaExplicitFormulaOnePoleLeftPunctureCellBoundaryIntegral g F T R = 0 := by
   exact
     zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral_eq_zero_of_differentiable_on_off_countable
-      g ((1 - F.c) + (-R) * Complex.I) ((1 - R) + R * Complex.I)
+      g (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I) (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I)
       s hs Hc Hd
 
 /-- The right puncture cell has zero boundary under the rectangular
@@ -1510,28 +1780,28 @@ theorem zetaExplicitFormulaOnePoleRightPunctureCellBoundaryIntegral_eq_zero_of_c
     (s : Set ℂ) (hs : s.Countable)
     (Hc :
       ContinuousOn g
-        ([[ ((1 + R) + (-R) * Complex.I).re,
+        ([[ (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re,
              (F.c + R * Complex.I).re ]] ×ℂ
-          [[ ((1 + R) + (-R) * Complex.I).im,
+          [[ (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im,
              (F.c + R * Complex.I).im ]]))
     (Hd :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 + R) + (-R) * Complex.I).re
+                (min (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re
                   (F.c + R * Complex.I).re)
-                (max ((1 + R) + (-R) * Complex.I).re
+                (max (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re
                   (F.c + R * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 + R) + (-R) * Complex.I).im
+                (min (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im
                   (F.c + R * Complex.I).im)
-                (max ((1 + R) + (-R) * Complex.I).im
+                (max (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im
                   (F.c + R * Complex.I).im) \ s →
           DifferentiableAt ℂ g x) :
     zetaExplicitFormulaOnePoleRightPunctureCellBoundaryIntegral g F T R = 0 := by
   exact
     zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral_eq_zero_of_differentiable_on_off_countable
-      g ((1 + R) + (-R) * Complex.I) (F.c + R * Complex.I)
+      g (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I) (F.c + R * Complex.I)
       s hs Hc Hd
 
 /-- The finite four-cell boundary sum vanishes when each of the four cells
@@ -1545,82 +1815,82 @@ theorem zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum_eq_zero_
     (hsRight : sRight.Countable)
     (HcBottom :
       ContinuousOn g
-        ([[ ((1 - F.c) + (-T) * Complex.I).re,
-             (F.c + (-R) * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (-T) * Complex.I).im,
-             (F.c + (-R) * Complex.I).im ]]))
+        ([[ (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re,
+             ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re ]] ×ℂ
+          [[ (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im,
+             ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im ]]))
     (HdBottom :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (-T) * Complex.I).re
-                  (F.c + (-R) * Complex.I).re)
-                (max ((1 - F.c) + (-T) * Complex.I).re
-                  (F.c + (-R) * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (-T) * Complex.I).im
-                  (F.c + (-R) * Complex.I).im)
-                (max ((1 - F.c) + (-T) * Complex.I).im
-                  (F.c + (-R) * Complex.I).im) \ sBottom →
+                (min (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im) \ sBottom →
           DifferentiableAt ℂ g x)
     (HcTop :
       ContinuousOn g
-        ([[ ((1 - F.c) + R * Complex.I).re,
+        ([[ (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).re,
              (F.c + T * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + R * Complex.I).im,
+          [[ (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).im,
              (F.c + T * Complex.I).im ]]))
     (HdTop :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + R * Complex.I).re
+                (min (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).re
                   (F.c + T * Complex.I).re)
-                (max ((1 - F.c) + R * Complex.I).re
+                (max (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).re
                   (F.c + T * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + R * Complex.I).im
+                (min (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).im
                   (F.c + T * Complex.I).im)
-                (max ((1 - F.c) + R * Complex.I).im
+                (max (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).im
                   (F.c + T * Complex.I).im) \ sTop →
           DifferentiableAt ℂ g x)
     (HcLeft :
       ContinuousOn g
-        ([[ ((1 - F.c) + (-R) * Complex.I).re,
-             ((1 - R) + R * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (-R) * Complex.I).im,
-             ((1 - R) + R * Complex.I).im ]]))
+        ([[ (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re,
+             (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).re ]] ×ℂ
+          [[ (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im,
+             (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).im ]]))
     (HdLeft :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (-R) * Complex.I).re
-                  ((1 - R) + R * Complex.I).re)
-                (max ((1 - F.c) + (-R) * Complex.I).re
-                  ((1 - R) + R * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re
+                  (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re
+                  (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (-R) * Complex.I).im
-                  ((1 - R) + R * Complex.I).im)
-                (max ((1 - F.c) + (-R) * Complex.I).im
-                  ((1 - R) + R * Complex.I).im) \ sLeft →
+                (min (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im
+                  (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im
+                  (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).im) \ sLeft →
           DifferentiableAt ℂ g x)
     (HcRight :
       ContinuousOn g
-        ([[ ((1 + R) + (-R) * Complex.I).re,
+        ([[ (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re,
              (F.c + R * Complex.I).re ]] ×ℂ
-          [[ ((1 + R) + (-R) * Complex.I).im,
+          [[ (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im,
              (F.c + R * Complex.I).im ]]))
     (HdRight :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 + R) + (-R) * Complex.I).re
+                (min (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re
                   (F.c + R * Complex.I).re)
-                (max ((1 + R) + (-R) * Complex.I).re
+                (max (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re
                   (F.c + R * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 + R) + (-R) * Complex.I).im
+                (min (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im
                   (F.c + R * Complex.I).im)
-                (max ((1 + R) + (-R) * Complex.I).im
+                (max (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im
                   (F.c + R * Complex.I).im) \ sRight →
           DifferentiableAt ℂ g x) :
     zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum g F T R = 0 := by
@@ -3014,14 +3284,6 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleKernel_vertical_intervalInt
       f hPhi (fun y : ℝ => (x : ℂ) + y * Complex.I)
       (zetaExplicitFormulaOnePole_verticalAffine_continuousOn x a b)
       havoid
-
-/-- Canonical one-pole square-punctured boundary bookkeeping: the punctured
-outer rectangle boundary is the four-cell boundary sum around the isolated
-`s = 1` square.
-
-This is pure finite contour accounting.  It owns no Cauchy theorem and no
-residue computation; it only identifies the two boundary expressions at the
-canonical puncture radius. -/
 
 end ZetaAdmissibleFunction
 
