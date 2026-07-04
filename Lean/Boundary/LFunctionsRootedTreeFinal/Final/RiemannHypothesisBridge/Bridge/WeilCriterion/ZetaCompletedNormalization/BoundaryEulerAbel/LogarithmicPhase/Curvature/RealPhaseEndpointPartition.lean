@@ -374,6 +374,188 @@ theorem Complex.logarithmicPhaseRealPhase_endpointFarRightActive_index_window
       hlower_neg
   exact And.intro hlower hupper
 
+/-- Two integers cannot both lie in the same real half-window of length
+strictly less than one. -/
+theorem Int.eq_of_cast_mem_left_half_window
+    {A : ℝ}
+    {m n : ℤ}
+    (hm_lower : A - (1 / 2 : ℝ) ≤ (m : ℝ))
+    (hm_upper : (m : ℝ) < A)
+    (hn_lower : A - (1 / 2 : ℝ) ≤ (n : ℝ))
+    (hn_upper : (n : ℝ) < A) :
+    m = n := by
+  have hhalf_lt_one : (1 / 2 : ℝ) < 1 :=
+    one_half_lt_one
+  have hm_A_lt_succ : A < (m : ℝ) + 1 := by
+    have hA_le_m_half : A ≤ (m : ℝ) + (1 / 2 : ℝ) :=
+      (sub_le_iff_le_add).mp hm_lower
+    have hm_half_lt_succ : (m : ℝ) + (1 / 2 : ℝ) < (m : ℝ) + 1 :=
+      add_lt_add_left hhalf_lt_one (m : ℝ)
+    exact lt_of_le_of_lt hA_le_m_half hm_half_lt_succ
+  have hn_A_lt_succ : A < (n : ℝ) + 1 := by
+    have hA_le_n_half : A ≤ (n : ℝ) + (1 / 2 : ℝ) :=
+      (sub_le_iff_le_add).mp hn_lower
+    have hn_half_lt_succ : (n : ℝ) + (1 / 2 : ℝ) < (n : ℝ) + 1 :=
+      add_lt_add_left hhalf_lt_one (n : ℝ)
+    exact lt_of_le_of_lt hA_le_n_half hn_half_lt_succ
+  have hm_le_n : m ≤ n := by
+    exact le_of_not_gt
+      (fun hnm : n < m =>
+        have hn_succ_le_m : n + 1 ≤ m :=
+          Int.add_one_le_iff.mpr hnm
+        have hcast_succ :
+            (((n + 1 : ℤ) : ℝ)) = (n : ℝ) + 1 :=
+          Eq.trans
+            (Int.cast_add n 1)
+            (congrArg (fun right : ℝ => (n : ℝ) + right) Int.cast_one)
+        have hn_succ_le_m_cast :
+            (n : ℝ) + 1 ≤ (m : ℝ) :=
+          Eq.subst
+            (motive := fun left : ℝ => left ≤ (m : ℝ))
+            hcast_succ
+            (Int.cast_le.mpr hn_succ_le_m)
+        have hn_succ_lt_A : (n : ℝ) + 1 < A :=
+          lt_of_le_of_lt hn_succ_le_m_cast hm_upper
+        not_lt_of_ge (le_of_lt hn_A_lt_succ) hn_succ_lt_A)
+  have hn_le_m : n ≤ m := by
+    exact le_of_not_gt
+      (fun hmn : m < n =>
+        have hm_succ_le_n : m + 1 ≤ n :=
+          Int.add_one_le_iff.mpr hmn
+        have hcast_succ :
+            (((m + 1 : ℤ) : ℝ)) = (m : ℝ) + 1 :=
+          Eq.trans
+            (Int.cast_add m 1)
+            (congrArg (fun right : ℝ => (m : ℝ) + right) Int.cast_one)
+        have hm_succ_le_n_cast :
+            (m : ℝ) + 1 ≤ (n : ℝ) :=
+          Eq.subst
+            (motive := fun left : ℝ => left ≤ (n : ℝ))
+            hcast_succ
+            (Int.cast_le.mpr hm_succ_le_n)
+        have hm_succ_lt_A : (m : ℝ) + 1 < A :=
+          lt_of_le_of_lt hm_succ_le_n_cast hn_upper
+        not_lt_of_ge (le_of_lt hm_A_lt_succ) hm_succ_lt_A)
+  exact le_antisymm hm_le_n hn_le_m
+
+/-- Two integers cannot both lie in the same right-closed real half-window of
+length strictly less than one. -/
+theorem Int.eq_of_cast_mem_right_half_window
+    {A : ℝ}
+    {m n : ℤ}
+    (hm_lower : A < (m : ℝ))
+    (hm_upper : (m : ℝ) ≤ A + (1 / 2 : ℝ))
+    (hn_lower : A < (n : ℝ))
+    (hn_upper : (n : ℝ) ≤ A + (1 / 2 : ℝ)) :
+    m = n := by
+  have hhalf_lt_one : (1 / 2 : ℝ) < 1 :=
+    one_half_lt_one
+  have hm_half_lt_succ : A + (1 / 2 : ℝ) < (m : ℝ) + 1 := by
+    have hhalf_step : A + (1 / 2 : ℝ) < A + 1 :=
+      add_lt_add_left hhalf_lt_one A
+    have hA_one_le_m_one : A + 1 ≤ (m : ℝ) + 1 :=
+      add_le_add_right (le_of_lt hm_lower) 1
+    exact lt_of_lt_of_le hhalf_step hA_one_le_m_one
+  have hn_half_lt_succ : A + (1 / 2 : ℝ) < (n : ℝ) + 1 := by
+    have hhalf_step : A + (1 / 2 : ℝ) < A + 1 :=
+      add_lt_add_left hhalf_lt_one A
+    have hA_one_le_n_one : A + 1 ≤ (n : ℝ) + 1 :=
+      add_le_add_right (le_of_lt hn_lower) 1
+    exact lt_of_lt_of_le hhalf_step hA_one_le_n_one
+  have hm_le_n : m ≤ n := by
+    exact le_of_not_gt
+      (fun hnm : n < m =>
+        have hn_succ_le_m : n + 1 ≤ m :=
+          Int.add_one_le_iff.mpr hnm
+        have hcast_succ :
+            (((n + 1 : ℤ) : ℝ)) = (n : ℝ) + 1 :=
+          Eq.trans
+            (Int.cast_add n 1)
+            (congrArg (fun right : ℝ => (n : ℝ) + right) Int.cast_one)
+        have hn_succ_le_m_cast :
+            (n : ℝ) + 1 ≤ (m : ℝ) :=
+          Eq.subst
+            (motive := fun left : ℝ => left ≤ (m : ℝ))
+            hcast_succ
+            (Int.cast_le.mpr hn_succ_le_m)
+        have hn_succ_le_half : (n : ℝ) + 1 ≤ A + (1 / 2 : ℝ) :=
+          le_trans hn_succ_le_m_cast hm_upper
+        not_lt_of_ge hn_succ_le_half hn_half_lt_succ)
+  have hn_le_m : n ≤ m := by
+    exact le_of_not_gt
+      (fun hmn : m < n =>
+        have hm_succ_le_n : m + 1 ≤ n :=
+          Int.add_one_le_iff.mpr hmn
+        have hcast_succ :
+            (((m + 1 : ℤ) : ℝ)) = (m : ℝ) + 1 :=
+          Eq.trans
+            (Int.cast_add m 1)
+            (congrArg (fun right : ℝ => (m : ℝ) + right) Int.cast_one)
+        have hm_succ_le_n_cast :
+            (m : ℝ) + 1 ≤ (n : ℝ) :=
+          Eq.subst
+            (motive := fun left : ℝ => left ≤ (n : ℝ))
+            hcast_succ
+            (Int.cast_le.mpr hm_succ_le_n)
+        have hm_succ_le_half : (m : ℝ) + 1 ≤ A + (1 / 2 : ℝ) :=
+          le_trans hm_succ_le_n_cast hn_upper
+        not_lt_of_ge hm_succ_le_half hm_half_lt_succ)
+  exact le_antisymm hm_le_n hn_le_m
+
+/-- Left endpoint-tail packet indices are unique. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointLeftActive_index_eq_of_mem
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    {m n : ℤ}
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b)
+    (hn :
+      n ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b) :
+    m = n := by
+  have hm_window :
+      -(‖t‖ / (a : ℝ)) - (1 / 2 : ℝ) ≤ (m : ℝ) ∧
+        (m : ℝ) < -(‖t‖ / (a : ℝ)) :=
+    Complex.logarithmicPhaseRealPhase_endpointLeftActive_index_window
+      t ht_nonneg ha hm
+  have hn_window :
+      -(‖t‖ / (a : ℝ)) - (1 / 2 : ℝ) ≤ (n : ℝ) ∧
+        (n : ℝ) < -(‖t‖ / (a : ℝ)) :=
+    Complex.logarithmicPhaseRealPhase_endpointLeftActive_index_window
+      t ht_nonneg ha hn
+  exact
+    Int.eq_of_cast_mem_left_half_window
+      hm_window.1 hm_window.2 hn_window.1 hn_window.2
+
+/-- Far-right endpoint-tail packet indices are unique. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointFarRightActive_index_eq_of_mem
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    {m n : ℤ}
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b)
+    (hn :
+      n ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b) :
+    m = n := by
+  have hm_window :
+      -(‖t‖ / (((b + 1 : ℕ) : ℝ))) < (m : ℝ) ∧
+        (m : ℝ) ≤
+          -(‖t‖ / (((b + 1 : ℕ) : ℝ))) + (1 / 2 : ℝ) :=
+    Complex.logarithmicPhaseRealPhase_endpointFarRightActive_index_window
+      t ht_nonneg ha hm
+  have hn_window :
+      -(‖t‖ / (((b + 1 : ℕ) : ℝ))) < (n : ℝ) ∧
+        (n : ℝ) ≤
+          -(‖t‖ / (((b + 1 : ℕ) : ℝ))) + (1 / 2 : ℝ) :=
+    Complex.logarithmicPhaseRealPhase_endpointFarRightActive_index_window
+      t ht_nonneg ha hn
+  exact
+    Int.eq_of_cast_mem_right_half_window
+      hm_window.1 hm_window.2 hn_window.1 hn_window.2
+
 end
 
 end LFunctions
