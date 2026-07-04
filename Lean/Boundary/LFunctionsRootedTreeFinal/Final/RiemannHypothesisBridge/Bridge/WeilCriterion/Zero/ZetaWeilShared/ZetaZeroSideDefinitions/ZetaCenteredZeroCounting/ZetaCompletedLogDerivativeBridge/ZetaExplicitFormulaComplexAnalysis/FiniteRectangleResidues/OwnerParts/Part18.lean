@@ -135,8 +135,8 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBoundarySum_adjacentPairL
             ypair ∈ ypairs →
               ∀ a : ℂ,
                 a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                  a.re ∉ [[xpair'.x₀, xpair'.x₁]] ∨
-                    a.im ∉ [[ypair.y₀, ypair.y₁]]) :
+                  a.re ∉ Set.uIcc xpair'.x₀ xpair'.x₁ ∨
+                    a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) :
     explicitFormulaRectangleRegularGridEndpointDataBoundarySum f
         (explicitFormulaRectangleEndpointDataListOfAdjacentEndpointPairLists
           (xpair :: rest) ypairs homit) =
@@ -221,27 +221,17 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBoundarySum_fixedX_cons
         ypair' ∈ ypair :: rest →
           ∀ a : ℂ,
             a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              a.re ∉ [[xpair.x₀, xpair.x₁]] ∨
-                a.im ∉ [[ypair'.y₀, ypair'.y₁]]) :
+              a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
+                a.im ∉ Set.uIcc ypair'.y₀ ypair'.y₁) :
     explicitFormulaRectangleRegularGridEndpointDataBoundarySum f
         (explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
           (explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
             xpair (ypair :: rest) homit)) =
       explicitFormulaRectangleRegularGridCellEndpointDataBoundary f
-        ({ x₀ := xpair.x₀
-          x₁ := xpair.x₁
-          y₀ := ypair.y₀
-          y₁ := ypair.y₁
-          hx₀ := xpair.hx₀
-          hx₁ := xpair.hx₁
-          hy₀ := ypair.hy₀
-          hy₁ := ypair.hy₁
-          hx_order := xpair.hx_order
-          hy_order := ypair.hy_order
-          hx_adj := xpair.hx_adj
-          hy_adj := ypair.hy_adj
-          homit := homit ypair (List.mem_cons_self ypair rest) } :
-            ExplicitFormulaRectangleRegularGridCellEndpointData F T ε) +
+        (({ xpair := xpair
+            ypair := ypair
+            homit := homit ypair (List.mem_cons_self ypair rest) } :
+              ExplicitFormulaRectangleRegularAdjacentEndpointPairCell F T ε).toEndpointData) +
         explicitFormulaRectangleRegularGridEndpointDataBoundarySum f
           (explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
             (explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
@@ -262,8 +252,8 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBoundarySum_fixedX_nil
           ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε)) →
           ∀ a : ℂ,
             a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              a.re ∉ [[xpair.x₀, xpair.x₁]] ∨
-                a.im ∉ [[ypair.y₀, ypair.y₁]]) :
+              a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
+                a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) :
     explicitFormulaRectangleRegularGridEndpointDataBoundarySum f
         (explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
           (explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
@@ -481,27 +471,17 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum_fixedX_cons
         ypair' ∈ ypair :: rest →
           ∀ a : ℂ,
             a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              a.re ∉ [[xpair.x₀, xpair.x₁]] ∨
-                a.im ∉ [[ypair'.y₀, ypair'.y₁]]) :
+              a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
+                a.im ∉ Set.uIcc ypair'.y₀ ypair'.y₁) :
     explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum f
         (explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
           (explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
             xpair (ypair :: rest) homit)) =
       explicitFormulaRectangleRegularGridCellEndpointDataBottomEdge f
-        ({ x₀ := xpair.x₀
-          x₁ := xpair.x₁
-          y₀ := ypair.y₀
-          y₁ := ypair.y₁
-          hx₀ := xpair.hx₀
-          hx₁ := xpair.hx₁
-          hy₀ := ypair.hy₀
-          hy₁ := ypair.hy₁
-          hx_order := xpair.hx_order
-          hy_order := ypair.hy_order
-          hx_adj := xpair.hx_adj
-          hy_adj := ypair.hy_adj
-          homit := homit ypair (List.mem_cons_self ypair rest) } :
-            ExplicitFormulaRectangleRegularGridCellEndpointData F T ε) +
+        (({ xpair := xpair
+            ypair := ypair
+            homit := homit ypair (List.mem_cons_self ypair rest) } :
+              ExplicitFormulaRectangleRegularAdjacentEndpointPairCell F T ε).toEndpointData) +
         explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum f
           (explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
             (explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
@@ -522,8 +502,8 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum_fixedX_nil
           ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε)) →
           ∀ a : ℂ,
             a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              a.re ∉ [[xpair.x₀, xpair.x₁]] ∨
-                a.im ∉ [[ypair.y₀, ypair.y₁]]) :
+              a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
+                a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) :
     explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum f
         (explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
           (explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
@@ -545,8 +525,8 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum_adjacentPai
             ypair ∈ ypairs →
               ∀ a : ℂ,
                 a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                  a.re ∉ [[xpair'.x₀, xpair'.x₁]] ∨
-                    a.im ∉ [[ypair.y₀, ypair.y₁]]) :
+                  a.re ∉ Set.uIcc xpair'.x₀ xpair'.x₁ ∨
+                    a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) :
     explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum f
         (explicitFormulaRectangleEndpointDataListOfAdjacentEndpointPairLists
           (xpair :: rest) ypairs homit) =
