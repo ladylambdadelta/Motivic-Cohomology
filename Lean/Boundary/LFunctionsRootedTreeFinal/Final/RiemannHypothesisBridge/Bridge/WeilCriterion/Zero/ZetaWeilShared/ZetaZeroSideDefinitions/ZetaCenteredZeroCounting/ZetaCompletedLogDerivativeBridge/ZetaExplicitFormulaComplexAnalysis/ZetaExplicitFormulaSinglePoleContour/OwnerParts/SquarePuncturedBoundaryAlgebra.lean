@@ -25,6 +25,36 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- The core rectangle convention `bottom - top + right - left` can be read as
+`bottom - top + (right - left)`. -/
+theorem zetaExplicitFormulaOnePole_standardRectangleBoundaryCoordinateIntegral_eq_four_edges
+    (g : ℂ → ℂ) (left right bottom top : ℝ) :
+    zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+        g left right bottom top =
+      (∫ x : ℝ in left..right, g (x + bottom * Complex.I)) -
+        (∫ x : ℝ in left..right, g (x + top * Complex.I)) +
+          (Complex.I • (∫ y : ℝ in bottom..top, g (right + y * Complex.I)) -
+            Complex.I • (∫ y : ℝ in bottom..top, g (left + y * Complex.I))) := by
+  let bottomEdge : ℂ := ∫ x : ℝ in left..right, g (x + bottom * Complex.I)
+  let topEdge : ℂ := ∫ x : ℝ in left..right, g (x + top * Complex.I)
+  let rightEdge : ℂ :=
+    Complex.I • (∫ y : ℝ in bottom..top, g (right + y * Complex.I))
+  let leftEdge : ℂ :=
+    Complex.I • (∫ y : ℝ in bottom..top, g (left + y * Complex.I))
+  change
+    (bottomEdge - topEdge + rightEdge) - leftEdge =
+      bottomEdge - topEdge + (rightEdge - leftEdge)
+  calc
+    (bottomEdge - topEdge + rightEdge) - leftEdge =
+        (bottomEdge - topEdge + rightEdge) + -leftEdge := by
+      exact sub_eq_add_neg (bottomEdge - topEdge + rightEdge) leftEdge
+    _ = (bottomEdge - topEdge) + (rightEdge + -leftEdge) := by
+      exact add_assoc (bottomEdge - topEdge) rightEdge (-leftEdge)
+    _ = bottomEdge - topEdge + (rightEdge - leftEdge) := by
+      exact congrArg
+        (fun z : ℂ => bottomEdge - topEdge + z)
+        (sub_eq_add_neg rightEdge leftEdge).symm
+
 /-- Rebracket two four-edge boundary expressions grouped as
 bottom-minus-top plus right-minus-left. -/
 theorem zetaExplicitFormulaOnePole_add_four_edge_groups
@@ -223,11 +253,24 @@ theorem zetaExplicitFormulaOnePole_neg_inner_four_edges_exposed
         exact zero_add
           ((-innerBottom) - (-innerTop) +
             ((-innerRight) - (-innerLeft)))
+      have hzero_outer_sub :
+          ((0 : G) - 0 + (0 - 0)) -
+              (innerBottom - innerTop + (innerRight - innerLeft)) =
+            (0 : G) -
+              (innerBottom - innerTop + (innerRight - innerLeft)) := by
+        exact congrArg
+          (fun z : G =>
+            z - (innerBottom - innerTop + (innerRight - innerLeft)))
+          hzero_outer
       calc
         - (innerBottom - innerTop + (innerRight - innerLeft)) =
             (0 : G) -
               (innerBottom - innerTop + (innerRight - innerLeft)) := by
           exact hleft.symm
+        _ =
+            ((0 : G) - 0 + (0 - 0)) -
+              (innerBottom - innerTop + (innerRight - innerLeft)) := by
+          exact hzero_outer_sub.symm
         _ =
             ((0 : G) - 0 + (0 - 0)) +
               ((-innerBottom) - (-innerTop) +
@@ -831,7 +874,7 @@ theorem zetaExplicitFormulaOnePole_collectedUpperLowerBlocks_merge
           hleft_assoc
       _ = (h + (r + right₃)) + (left₁ + (left₂ + left₃)) := by
         exact (add_assoc h (r + right₃) (left₁ + (left₂ + left₃))).symm
-  Eq.trans hfirst (Eq.trans hsecond hthird)
+  exact Eq.trans hfirst (Eq.trans hsecond hthird)
 
 /-- Expanded four-cell regrouping into horizontal, raw right-side, and raw
 left-side contributions.  This is the pure term-collection step before the left
@@ -1046,41 +1089,86 @@ side before it is split into the four rectangular cells. -/
 theorem zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral_eq_exposedEdges
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ) :
     zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral g F T R =
-      ((∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)) +
-          (-(∫ x : ℝ in (1 - R)..(1 + R), g (x + (-R) * Complex.I)))) -
+      ((∫ x : ℝ in (1 - F.c)..F.c,
+          g (x + ((-T : ℝ) : ℂ) * Complex.I)) +
+          (-(∫ x : ℝ in (1 - R)..(1 + R),
+            g (x + ((-R : ℝ) : ℂ) * Complex.I)))) -
         ((∫ x : ℝ in (1 - F.c)..F.c, g (x + T * Complex.I)) +
           (-(∫ x : ℝ in (1 - R)..(1 + R), g (x + R * Complex.I)))) +
         ((Complex.I • (∫ y : ℝ in -T..T, g (F.c + y * Complex.I))) +
           (-(Complex.I •
-              (∫ y : ℝ in -R..R, g ((1 + R) + y * Complex.I))))) -
+              (∫ y : ℝ in -R..R,
+                g (((1 + R : ℝ) : ℂ) + y * Complex.I))))) -
           ((Complex.I •
-              (∫ y : ℝ in -T..T, g ((1 - F.c) + y * Complex.I))) +
+              (∫ y : ℝ in -T..T,
+                g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
             (-(Complex.I •
-                (∫ y : ℝ in -R..R, g ((1 - R) + y * Complex.I))))) := by
+                (∫ y : ℝ in -R..R,
+                  g (((1 - R : ℝ) : ℂ) + y * Complex.I))))) := by
   let outerBottom : ℂ :=
-    ∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)
+    ∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)
   let outerTop : ℂ :=
     ∫ x : ℝ in (1 - F.c)..F.c, g (x + T * Complex.I)
   let outerRight : ℂ :=
     Complex.I • (∫ y : ℝ in -T..T, g (F.c + y * Complex.I))
   let outerLeft : ℂ :=
-    Complex.I • (∫ y : ℝ in -T..T, g ((1 - F.c) + y * Complex.I))
+    Complex.I •
+      (∫ y : ℝ in -T..T, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
   let innerBottom : ℂ :=
-    ∫ x : ℝ in (1 - R)..(1 + R), g (x + (-R) * Complex.I)
+    ∫ x : ℝ in (1 - R)..(1 + R), g (x + ((-R : ℝ) : ℂ) * Complex.I)
   let innerTop : ℂ :=
     ∫ x : ℝ in (1 - R)..(1 + R), g (x + R * Complex.I)
   let innerRight : ℂ :=
-    Complex.I • (∫ y : ℝ in -R..R, g ((1 + R) + y * Complex.I))
+    Complex.I •
+      (∫ y : ℝ in -R..R, g (((1 + R : ℝ) : ℂ) + y * Complex.I))
   let innerLeft : ℂ :=
-    Complex.I • (∫ y : ℝ in -R..R, g ((1 - R) + y * Complex.I))
+    Complex.I •
+      (∫ y : ℝ in -R..R, g (((1 - R : ℝ) : ℂ) + y * Complex.I))
   have houter :
       zetaExplicitFormulaOnePoleOuterStandardBoundaryCoordinateIntegral g F T =
         outerBottom - outerTop + (outerRight - outerLeft) := by
-    rfl
+    change
+      zetaExplicitFormulaOnePoleOuterStandardBoundaryCoordinateIntegral g F T =
+        (∫ x : ℝ in (1 - F.c)..F.c,
+          g (x + ((-T : ℝ) : ℂ) * Complex.I)) -
+          (∫ x : ℝ in (1 - F.c)..F.c, g (x + T * Complex.I)) +
+            ((Complex.I • (∫ y : ℝ in -T..T, g (F.c + y * Complex.I))) -
+              (Complex.I •
+                (∫ y : ℝ in -T..T,
+                  g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))))
+    calc
+      zetaExplicitFormulaOnePoleOuterStandardBoundaryCoordinateIntegral g F T =
+          zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+            g (1 - F.c) F.c (-T) T := by
+        exact zetaExplicitFormulaOnePoleOuterStandardBoundaryCoordinateIntegral_eq
+          g F T
+      _ = outerBottom - outerTop + (outerRight - outerLeft) := by
+        exact
+          zetaExplicitFormulaOnePole_standardRectangleBoundaryCoordinateIntegral_eq_four_edges
+            g (1 - F.c) F.c (-T) T
   have hinner :
       zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral g R =
         innerBottom - innerTop + (innerRight - innerLeft) := by
-    rfl
+    change
+      zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral g R =
+        (∫ x : ℝ in (1 - R)..(1 + R),
+          g (x + ((-R : ℝ) : ℂ) * Complex.I)) -
+          (∫ x : ℝ in (1 - R)..(1 + R), g (x + R * Complex.I)) +
+            ((Complex.I •
+              (∫ y : ℝ in -R..R,
+                g (((1 + R : ℝ) : ℂ) + y * Complex.I))) -
+              (Complex.I •
+                (∫ y : ℝ in -R..R,
+                  g (((1 - R : ℝ) : ℂ) + y * Complex.I))))
+    calc
+      zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral g R =
+          zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+            g (1 - R) (1 + R) (-R) R := by
+        exact zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral_eq g R
+      _ = innerBottom - innerTop + (innerRight - innerLeft) := by
+        exact
+          zetaExplicitFormulaOnePole_standardRectangleBoundaryCoordinateIntegral_eq_four_edges
+            g (1 - R) (1 + R) (-R) R
   have halgebra :
       (outerBottom - outerTop + (outerRight - outerLeft)) -
           (innerBottom - innerTop + (innerRight - innerLeft)) =
@@ -1113,18 +1201,36 @@ theorem zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral_eq_ex
           ((outerRight + -innerRight) - (outerLeft + -innerLeft)) := by
       exact halgebra
     _ =
-      ((∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)) +
-          (-(∫ x : ℝ in (1 - R)..(1 + R), g (x + (-R) * Complex.I)))) -
+      ((∫ x : ℝ in (1 - F.c)..F.c,
+          g (x + ((-T : ℝ) : ℂ) * Complex.I)) +
+          (-(∫ x : ℝ in (1 - R)..(1 + R),
+            g (x + ((-R : ℝ) : ℂ) * Complex.I)))) -
         ((∫ x : ℝ in (1 - F.c)..F.c, g (x + T * Complex.I)) +
           (-(∫ x : ℝ in (1 - R)..(1 + R), g (x + R * Complex.I)))) +
         ((Complex.I • (∫ y : ℝ in -T..T, g (F.c + y * Complex.I))) +
           (-(Complex.I •
-              (∫ y : ℝ in -R..R, g ((1 + R) + y * Complex.I))))) -
+              (∫ y : ℝ in -R..R,
+                g (((1 + R : ℝ) : ℂ) + y * Complex.I))))) -
           ((Complex.I •
-              (∫ y : ℝ in -T..T, g ((1 - F.c) + y * Complex.I))) +
+              (∫ y : ℝ in -T..T,
+                g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
             (-(Complex.I •
-                (∫ y : ℝ in -R..R, g ((1 - R) + y * Complex.I))))) := by
-      rfl
+                (∫ y : ℝ in -R..R,
+                g (((1 - R : ℝ) : ℂ) + y * Complex.I))))) := by
+      let horizontal : ℂ :=
+        (outerBottom + -innerBottom) - (outerTop + -innerTop)
+      let right : ℂ := outerRight + -innerRight
+      let left : ℂ := outerLeft + -innerLeft
+      change horizontal + (right - left) = horizontal + right - left
+      calc
+        horizontal + (right - left) =
+            horizontal + (right + -left) := by
+          exact congrArg (fun z : ℂ => horizontal + z)
+            (sub_eq_add_neg right left)
+        _ = (horizontal + right) + -left := by
+          exact (add_assoc horizontal right (-left)).symm
+        _ = horizontal + right - left := by
+          exact (sub_eq_add_neg (horizontal + right) left).symm
 
 /-- The two horizontal cell rows plus the short horizontal puncture edges
 collapse to the exposed outer-minus-inner horizontal contribution. -/
@@ -1442,9 +1548,10 @@ theorem zetaExplicitFormulaOnePole_fourCellSplitBoundary_eq_groupedContributions
           (leftBottom + leftTop + leftMiddle - innerLeft)) := by
       exact congrArg₂ Add.add
         (congrArg₂ Add.add
-          (congrArg₂ Add.add rfl (sub_eq_add_neg bottomLeft topLeft))
-          (sub_eq_add_neg bottomRight topRight))
-        (congrArg₂ (fun x y : G => x - y) hrightContribution hleftContribution)
+          (congrArg₂ Add.add rfl (sub_eq_add_neg bottomLeft topLeft).symm)
+          (sub_eq_add_neg bottomRight topRight).symm)
+        (congrArg₂ (fun x y : G => x - y)
+          hrightContribution.symm hleftContribution.symm)
 
 /-- Four-cell split algebra cancels the duplicated puncture-height horizontal
 segments and collects the three vertical pieces on each outer side. -/
@@ -1499,7 +1606,7 @@ theorem zetaExplicitFormulaOnePole_fourCellSplitBoundary_eq_verticalSplitExposed
       bottomLeft bottomRight topLeft topRight
       rightBottom rightMiddle rightTop innerRight
       leftBottom leftMiddle leftTop innerLeft
-  Eq.trans hgrouped hexposed
+  exact Eq.trans hgrouped hexposed
 
 end ZetaAdmissibleFunction
 
