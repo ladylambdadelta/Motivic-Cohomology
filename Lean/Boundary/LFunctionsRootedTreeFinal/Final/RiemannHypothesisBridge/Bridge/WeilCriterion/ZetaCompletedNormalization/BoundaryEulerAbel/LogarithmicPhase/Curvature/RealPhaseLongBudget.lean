@@ -1,6 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhasePacketReconstruction
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseLongBudgetArithmetic
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseEndpointRightContribution
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseEndpointTailContribution
 
 /-!
 # Real-phase long-budget assembly
@@ -189,6 +190,67 @@ theorem Complex.logarithmicPhaseRealPhase_long_packet_budget_of_tail_budgets
   exact
     Complex.logarithmicPhaseRealPhase_long_packet_budget
       t hstationary hendpoint
+
+/-- Stationary budget plus closed-subinterval endpoint budgets assemble into
+the long real-phase block estimate. -/
+theorem Complex.logarithmicPhaseRealPhase_long_packet_budget_of_Icc_endpoint_bounds
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hstationary :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+    (hleftIcc :
+      ∀ {r : ℕ},
+        a ≤ r →
+        r ≤ b →
+          ‖∑ n ∈ Finset.Icc a r,
+            Complex.exp
+              (Complex.I *
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                  t n : ℂ))‖ ≤
+            20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+    (hfarIcc :
+      ∀ {c r : ℕ},
+        a ≤ c →
+        c ≤ r →
+        r ≤ b →
+          ‖∑ n ∈ Finset.Icc c r,
+            Complex.exp
+              (Complex.I *
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                  t n : ℂ))‖ ≤
+            20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  have hleft :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+    Complex.logarithmicPhaseRealPhase_endpointLeftPacketContribution_le_twentyTarget_of_Icc_bounds
+      t ht ht_nonneg ha hab hleftIcc
+  have hfar :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+    Complex.logarithmicPhaseRealPhase_endpointFarRightPacketContribution_le_twentyTarget_of_Icc_bounds
+      t ht ht_nonneg ha hab hfarIcc
+  exact
+    Complex.logarithmicPhaseRealPhase_long_packet_budget_of_tail_budgets
+      t ht ht_nonneg ha hab hstationary hleft hfar
 
 end
 
