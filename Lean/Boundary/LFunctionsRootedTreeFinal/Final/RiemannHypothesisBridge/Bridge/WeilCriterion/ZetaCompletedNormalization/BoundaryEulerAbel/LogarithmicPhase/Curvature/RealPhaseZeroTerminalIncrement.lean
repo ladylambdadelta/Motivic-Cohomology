@@ -27,6 +27,151 @@ theorem Real.logarithmicPhase_neg_pi_lt_neg_one_half :
     -Real.pi < -(1 / 2 : ℝ) :=
   neg_lt_neg Real.logarithmicPhase_one_half_lt_pi
 
+/-- The half-window is bounded by one full turn. -/
+theorem Real.logarithmicPhase_one_half_le_two_pi :
+    (1 / 2 : ℝ) ≤ 2 * Real.pi := by
+  have hhalf_le_pi : (1 / 2 : ℝ) ≤ Real.pi :=
+    le_of_lt Real.logarithmicPhase_one_half_lt_pi
+  have hpi_le_two_pi : Real.pi ≤ 2 * Real.pi := by
+    calc
+      Real.pi = 1 * Real.pi := by
+        exact (one_mul Real.pi).symm
+      _ ≤ 2 * Real.pi :=
+        mul_le_mul_of_nonneg_right one_le_two (le_of_lt Real.pi_pos)
+  exact le_trans hhalf_le_pi hpi_le_two_pi
+
+/-- One is bounded by one full turn. -/
+theorem Real.logarithmicPhase_one_le_two_pi :
+    (1 : ℝ) ≤ 2 * Real.pi := by
+  have hone_lt_three : (1 : ℝ) < 3 :=
+    Nat.one_lt_ofNat
+  have hone_le_pi : (1 : ℝ) ≤ Real.pi :=
+    le_of_lt (lt_trans hone_lt_three Real.pi_gt_three)
+  have hpi_le_two_pi : Real.pi ≤ 2 * Real.pi := by
+    calc
+      Real.pi = 1 * Real.pi := by
+        exact (one_mul Real.pi).symm
+      _ ≤ 2 * Real.pi :=
+        mul_le_mul_of_nonneg_right one_le_two (le_of_lt Real.pi_pos)
+  exact le_trans hone_le_pi hpi_le_two_pi
+
+/-- The elementary identity `-1/2 + 1 = 1/2`. -/
+theorem Real.logarithmicPhase_neg_half_add_one :
+    -(1 / 2 : ℝ) + 1 = (1 / 2 : ℝ) := by
+  calc
+    -(1 / 2 : ℝ) + 1 = 1 + -(1 / 2 : ℝ) := by
+      exact add_comm (-(1 / 2 : ℝ)) 1
+    _ = 1 - (1 / 2 : ℝ) := by
+      exact (sub_eq_add_neg 1 (1 / 2 : ℝ)).symm
+    _ = (1 / 2 : ℝ) :=
+      sub_half 1
+
+/-- Positive nonzero `2π` lattice points are at least half a unit away from a
+nonpositive half-window angle. -/
+theorem Real.logarithmicPhase_zeroWindow_posInt_twoPi_distance_ge_half
+    {θ : ℝ}
+    (hθ_nonpos : θ ≤ 0)
+    (q : ℕ) :
+    (1 / 2 : ℝ) ≤
+      ‖θ - (2 * Real.pi * (((Nat.succ q : ℕ) : ℝ)))‖ := by
+  let A : ℝ := 2 * Real.pi * (((Nat.succ q : ℕ) : ℝ))
+  have htwo_pi_nonneg : 0 ≤ 2 * Real.pi :=
+    mul_nonneg zero_le_two (le_of_lt Real.pi_pos)
+  have hq_one : (1 : ℝ) ≤ (((Nat.succ q : ℕ) : ℝ)) :=
+    Eq.subst
+      (motive := fun left : ℝ => left ≤ (((Nat.succ q : ℕ) : ℝ)))
+      (Nat.cast_one : (((1 : ℕ) : ℝ)) = 1)
+      (Nat.cast_le.mpr (Nat.succ_le_succ (Nat.zero_le q)))
+  have hA_ge_half : (1 / 2 : ℝ) ≤ A := by
+    have htwo_pi_le_A : 2 * Real.pi ≤ A := by
+      calc
+        2 * Real.pi = 2 * Real.pi * 1 := by
+          exact (mul_one (2 * Real.pi)).symm
+        _ ≤ 2 * Real.pi * (((Nat.succ q : ℕ) : ℝ)) :=
+          mul_le_mul_of_nonneg_left hq_one htwo_pi_nonneg
+    exact le_trans Real.logarithmicPhase_one_half_le_two_pi htwo_pi_le_A
+  have hsub_le_zero_sub :
+      θ - A ≤ 0 - A :=
+    sub_le_sub_right hθ_nonpos A
+  have hzero_sub : 0 - A = -A :=
+    zero_sub A
+  have hneg_A_le_neg_half : -A ≤ -(1 / 2 : ℝ) :=
+    neg_le_neg hA_ge_half
+  have hsub_le_neg_half :
+      θ - A ≤ -(1 / 2 : ℝ) :=
+    le_trans hsub_le_zero_sub
+      (Eq.subst
+        (motive := fun left : ℝ => left ≤ -(1 / 2 : ℝ))
+        hzero_sub.symm
+        hneg_A_le_neg_half)
+  have hhalf_abs :
+      (1 / 2 : ℝ) ≤ |θ - A| :=
+    (le_abs'.mpr (Or.inl hsub_le_neg_half))
+  exact
+    Eq.subst
+      (motive := fun right : ℝ => (1 / 2 : ℝ) ≤ right)
+      (Real.norm_eq_abs (θ - A)).symm
+      hhalf_abs
+
+/-- Negative nonzero `2π` lattice points are at least half a unit away from a
+half-window angle. -/
+theorem Real.logarithmicPhase_zeroWindow_negInt_twoPi_distance_ge_half
+    {θ : ℝ}
+    (hθ_neg_half : -(1 / 2 : ℝ) ≤ θ)
+    (q : ℕ) :
+    (1 / 2 : ℝ) ≤
+      ‖θ - (2 * Real.pi * (-(((Nat.succ q : ℕ) : ℝ))))‖ := by
+  let A : ℝ := 2 * Real.pi * (((Nat.succ q : ℕ) : ℝ))
+  have htwo_pi_nonneg : 0 ≤ 2 * Real.pi :=
+    mul_nonneg zero_le_two (le_of_lt Real.pi_pos)
+  have hq_one : (1 : ℝ) ≤ (((Nat.succ q : ℕ) : ℝ)) :=
+    Eq.subst
+      (motive := fun left : ℝ => left ≤ (((Nat.succ q : ℕ) : ℝ)))
+      (Nat.cast_one : (((1 : ℕ) : ℝ)) = 1)
+      (Nat.cast_le.mpr (Nat.succ_le_succ (Nat.zero_le q)))
+  have hA_ge_one : (1 : ℝ) ≤ A := by
+    have htwo_pi_le_A : 2 * Real.pi ≤ A := by
+      calc
+        2 * Real.pi = 2 * Real.pi * 1 := by
+          exact (mul_one (2 * Real.pi)).symm
+        _ ≤ 2 * Real.pi * (((Nat.succ q : ℕ) : ℝ)) :=
+          mul_le_mul_of_nonneg_left hq_one htwo_pi_nonneg
+    exact le_trans Real.logarithmicPhase_one_le_two_pi htwo_pi_le_A
+  have hhalf_le_theta_add_A : (1 / 2 : ℝ) ≤ θ + A := by
+    have hsum :
+        -(1 / 2 : ℝ) + 1 ≤ θ + A :=
+      add_le_add hθ_neg_half hA_ge_one
+    exact
+      Eq.subst
+        (motive := fun left : ℝ => left ≤ θ + A)
+        Real.logarithmicPhase_neg_half_add_one
+        hsum
+  have hmul_neg :
+      2 * Real.pi * (-(((Nat.succ q : ℕ) : ℝ))) = -A :=
+    mul_neg (2 * Real.pi) (((Nat.succ q : ℕ) : ℝ))
+  have hsub_neg :
+      θ - (2 * Real.pi * (-(((Nat.succ q : ℕ) : ℝ)))) = θ + A := by
+    calc
+      θ - (2 * Real.pi * (-(((Nat.succ q : ℕ) : ℝ)))) =
+          θ - (-A) := by
+        exact congrArg (fun y : ℝ => θ - y) hmul_neg
+      _ = θ + A :=
+        sub_neg_eq_add θ A
+  have hhalf_abs :
+      (1 / 2 : ℝ) ≤ |θ - (2 * Real.pi * (-(((Nat.succ q : ℕ) : ℝ))))| :=
+    (le_abs'.mpr
+      (Or.inr
+        (Eq.subst
+          (motive := fun right : ℝ => (1 / 2 : ℝ) ≤ right)
+          hsub_neg.symm
+          hhalf_le_theta_add_A)))
+  exact
+    Eq.subst
+      (motive := fun right : ℝ => (1 / 2 : ℝ) ≤ right)
+      (Real.norm_eq_abs
+        (θ - (2 * Real.pi * (-(((Nat.succ q : ℕ) : ℝ)))))).symm
+      hhalf_abs
+
 /-- Successive integer logarithmic ratios have the canonical reciprocal upper
 bound. -/
 theorem Complex.logarithmicPhase_successive_log_ratio_upper_bound
@@ -672,6 +817,112 @@ theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_reducedIntege
           hy_eq.symm
           hxy_raw)
   exact Or.inl hmono
+
+/-- On the zero terminal packet, the adjacent increment is separated from every
+`2πℤ` lattice point at the endpoint block scale. -/
+theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_integerIncrementSeparatedOn
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hp :
+      (Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b 0).Nonempty) :
+    Complex.realPhase_integerIncrementSeparatedOn
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      ((Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b 0).min' hp)
+      b
+      (‖t‖ / ((b + 1 : ℕ) : ℝ)) := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  let packet : Finset ℕ :=
+    Complex.realPhase_secondDerivative_vdc_derivPacket φ a b 0
+  let c : ℕ := packet.min' hp
+  have hc_mem : c ∈ packet :=
+    Finset.min'_mem packet hp
+  have hc_block : c ∈ Finset.Icc a b :=
+    Complex.realPhase_secondDerivative_vdc_derivPacket_mem_block φ hc_mem
+  have hc_bounds : a ≤ c ∧ c ≤ b :=
+    Finset.mem_Icc.mp hc_block
+  have hc_one : 1 ≤ c :=
+    le_trans ha hc_bounds.1
+  intro n hn k
+  let θ : ℝ := Complex.realPhase_integerIncrement φ n
+  have hθ_lower :
+      -(1 / 2 : ℝ) ≤ θ :=
+    Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_increment_neg_half_le
+      t ht ht_nonneg ha hp hn
+  have hθ_nonpos : θ ≤ 0 :=
+    Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_increment_nonpos
+      t ht_nonneg ha hp hn
+  have hscale_le_half :
+      ‖t‖ / ((b + 1 : ℕ) : ℝ) ≤ (1 / 2 : ℝ) := by
+    have hscale_le_norm :
+        ‖t‖ / ((b + 1 : ℕ) : ℝ) ≤ ‖θ‖ :=
+      Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_norm_ge_blockScale
+        t hc_one hn
+    have hnorm_le_half :
+        ‖θ‖ ≤ (1 / 2 : ℝ) :=
+      Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_increment_norm_le_half
+        t ht ht_nonneg ha hp hn
+    exact le_trans hscale_le_norm hnorm_le_half
+  match k with
+  | Int.ofNat q =>
+      match q with
+      | Nat.zero =>
+          have hzero_mul :
+              2 * Real.pi * (((0 : ℕ) : ℤ) : ℝ) = 0 := by
+            calc
+              2 * Real.pi * (((0 : ℕ) : ℤ) : ℝ) =
+                  2 * Real.pi * (0 : ℝ) := by
+                exact congrArg (fun r : ℝ => 2 * Real.pi * r) Int.cast_zero
+              _ = 0 :=
+                mul_zero (2 * Real.pi)
+          have hsub_zero :
+              θ - 2 * Real.pi * (((0 : ℕ) : ℤ) : ℝ) = θ := by
+            calc
+              θ - 2 * Real.pi * (((0 : ℕ) : ℤ) : ℝ) =
+                  θ - 0 := by
+                exact congrArg (fun r : ℝ => θ - r) hzero_mul
+              _ = θ :=
+                sub_zero θ
+          have hscale_le_norm :
+              ‖t‖ / ((b + 1 : ℕ) : ℝ) ≤ ‖θ‖ :=
+            Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_norm_ge_blockScale
+              t hc_one hn
+          exact
+            Eq.subst
+              (motive := fun right : ℝ =>
+                ‖t‖ / ((b + 1 : ℕ) : ℝ) ≤ ‖right‖)
+              hsub_zero.symm
+              hscale_le_norm
+      | Nat.succ q' =>
+          have hhalf_dist :
+              (1 / 2 : ℝ) ≤
+                ‖θ - (2 * Real.pi * (((Nat.succ q' : ℕ) : ℝ)))‖ :=
+            Real.logarithmicPhase_zeroWindow_posInt_twoPi_distance_ge_half
+              hθ_nonpos q'
+          exact le_trans hscale_le_half hhalf_dist
+  | Int.negSucc q =>
+      have hcast_negSucc :
+          ((Int.negSucc q : ℤ) : ℝ) = -(((Nat.succ q : ℕ) : ℝ)) :=
+        Int.cast_negSucc q
+      have hhalf_dist :
+          (1 / 2 : ℝ) ≤
+            ‖θ - (2 * Real.pi * (-(((Nat.succ q : ℕ) : ℝ))))‖ :=
+        Real.logarithmicPhase_zeroWindow_negInt_twoPi_distance_ge_half
+          hθ_lower q
+      exact
+        le_trans hscale_le_half
+          (Eq.subst
+            (motive := fun right : ℝ =>
+              (1 / 2 : ℝ) ≤ ‖θ - (2 * Real.pi * right)‖)
+            hcast_negSucc.symm
+            hhalf_dist)
 
 
 end
