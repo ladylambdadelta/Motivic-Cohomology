@@ -15,6 +15,50 @@ noncomputable section
 
 open scoped Topology
 
+/-- The endpoint-plus-square-root target is monotone in the natural right
+endpoint. -/
+theorem Real.logarithmicPhase_endpoint_sqrt_target_mono_right
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {r b : ℕ}
+    (hrb : r ≤ b) :
+    (((r + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) ≤
+      (((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) := by
+  have hT_pos : 0 < ‖t‖ :=
+    lt_of_lt_of_le zero_lt_one ht
+  have hnum_le : ((r + 1 : ℕ) : ℝ) ≤ ((b + 1 : ℕ) : ℝ) :=
+    Nat.cast_le.mpr (Nat.succ_le_succ hrb)
+  have hdiv_le :
+      ((r + 1 : ℕ) : ℝ) / ‖t‖ ≤ ((b + 1 : ℕ) : ℝ) / ‖t‖ :=
+    (div_le_div_iff_of_pos_right hT_pos).mpr hnum_le
+  exact add_le_add_right hdiv_le (Real.sqrt (1 + ‖t‖))
+
+/-- A closed logarithmic real-phase subblock estimate at its own right endpoint
+widens to the ambient endpoint target. -/
+theorem Complex.logarithmicPhaseRealPhase_Icc_subblock_bound_mono_right
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {b c r : ℕ}
+    (hr_right : r ≤ b)
+    (hlocal :
+      ‖∑ n ∈ Finset.Icc c r,
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+        80 * ((((r + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ n ∈ Finset.Icc c r,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  have htarget_mono :
+      80 * ((((r + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) ≤
+        80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+    mul_le_mul_of_nonneg_left
+      (Real.logarithmicPhase_endpoint_sqrt_target_mono_right t ht hr_right)
+      (Nat.cast_nonneg 80)
+  exact le_trans hlocal htarget_mono
+
 /-- A half-open logarithmic real-phase interval estimate follows from the
 corresponding closed-interval estimates, with the empty interval handled
 constructively. -/
