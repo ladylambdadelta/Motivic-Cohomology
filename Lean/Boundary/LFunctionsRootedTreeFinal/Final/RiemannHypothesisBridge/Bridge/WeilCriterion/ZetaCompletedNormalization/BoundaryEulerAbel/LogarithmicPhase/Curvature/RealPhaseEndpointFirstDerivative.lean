@@ -173,6 +173,37 @@ theorem Complex.logarithmicPhaseRealPhase_firstDerivative_subblock_le_twentyTarg
       (Nat.cast_nonneg 20)
   exact le_trans hfirst (le_trans hone_to_sqrt hright_mono)
 
+/-- The concrete logarithmic first-derivative estimate on a subblock with the
+raw increment monotonicity discharged from the logarithmic formula. -/
+theorem Complex.logarithmicPhaseRealPhase_firstDerivative_subblock_le_twentyTarget_of_reduced_sep
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {b c r : ℕ}
+    (hc_one : 1 ≤ c)
+    (hcr : c ≤ r)
+    (hr_right : r ≤ b)
+    (hred_mono :
+      Complex.realPhase_reducedIntegerIncrementMonotoneOn
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) c r)
+    (hsep :
+      Complex.realPhase_integerIncrementSeparatedOn
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) c r
+        (‖t‖ / ((r + 1 : ℕ) : ℝ))) :
+    ‖∑ n ∈ Finset.Icc c r,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  have hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) c r :=
+    Complex.logarithmicPhaseRealPhase_integerIncrementMonotoneOn
+      t ht_nonneg hc_one
+  exact
+    Complex.logarithmicPhaseRealPhase_firstDerivative_subblock_le_twentyTarget
+      t ht hc_one hcr hr_right hinc_mono hred_mono hsep
+
 end
 
 end LFunctions
