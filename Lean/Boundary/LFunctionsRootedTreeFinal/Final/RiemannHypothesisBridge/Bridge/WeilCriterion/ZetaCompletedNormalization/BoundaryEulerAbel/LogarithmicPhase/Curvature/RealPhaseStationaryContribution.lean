@@ -1,0 +1,116 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseIntervalReduction
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhasePacketReconstruction
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseStationaryInterval
+
+/-!
+# Real-phase stationary packet contribution
+
+This file owns the finite reconstruction step for stationary packets in the
+long logarithmic curvature branch.
+-/
+
+namespace Boundary
+namespace LFunctions
+
+noncomputable section
+
+open scoped Topology
+
+/-- Stationary packet-family sample sums inherit a closed-subinterval
+twentieth-budget bound through the stationary interval reconstruction. -/
+theorem Complex.logarithmicPhaseRealPhase_stationaryPacketFamilyUnion_le_twentyTarget_of_Icc_bounds
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hIcc :
+      ∀ {c r : ℕ},
+        a ≤ c →
+        c ≤ r →
+        r ≤ b →
+          ‖∑ n ∈ Finset.Icc c r,
+            Complex.exp
+              (Complex.I *
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                  t n : ℂ))‖ ≤
+            20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b
+        (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b),
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  match
+    Complex.logarithmicPhaseRealPhase_stationaryPacketFamilyUnion_eq_boundedInterval
+      t ht ht_nonneg ha hab with
+  | ⟨c, d, hc_left, _hcd, hd_right, hpacket_eq⟩ =>
+      have hIco :
+          ‖∑ n ∈ Finset.Ico c d,
+            Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+            20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+        Complex.logarithmicPhaseRealPhase_Ico_twenty_bound_of_Icc_bounds
+          t ht hd_right
+          (fun {r : ℕ} hcr hrb => hIcc hc_left hcr hrb)
+      exact
+        Eq.subst
+          (motive := fun S : Finset ℕ =>
+            ‖∑ n ∈ S, Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+              20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+          hpacket_eq.symm
+          hIco
+
+/-- Stationary packet sums inherit a closed-subinterval twentieth-budget
+bound after finite packet-family reconstruction. -/
+theorem Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_twentyTarget_of_Icc_bounds
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hIcc :
+      ∀ {c r : ℕ},
+        a ≤ c →
+        c ≤ r →
+        r ≤ b →
+          ‖∑ n ∈ Finset.Icc c r,
+            Complex.exp
+              (Complex.I *
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                  t n : ℂ))‖ ≤
+            20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+      20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  have hnorm :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum φ a b m‖ =
+      ‖∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+          φ a b
+          (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b),
+        Complex.exp (Complex.I * (φ n : ℂ))‖ :=
+    Complex.logarithmicPhaseRealPhase_stationaryPacketFamilyUnion_norm_eq
+      t a b
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤
+          20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+      hnorm.symm
+      (Complex.logarithmicPhaseRealPhase_stationaryPacketFamilyUnion_le_twentyTarget_of_Icc_bounds
+        t ht ht_nonneg ha hab hIcc)
+
+end
+
+end LFunctions
+end Boundary
