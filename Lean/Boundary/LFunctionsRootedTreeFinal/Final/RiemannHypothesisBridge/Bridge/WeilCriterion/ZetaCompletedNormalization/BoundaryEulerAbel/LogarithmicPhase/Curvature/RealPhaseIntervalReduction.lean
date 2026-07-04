@@ -112,6 +112,32 @@ theorem Complex.logarithmicPhaseRealPhase_Ico_bound_of_Icc_bounds
           hsum_zero.symm
           hzero_bound
 
+/-- Half-open logarithmic B-process interval reduction from closed subinterval
+estimates.  This theorem owns only the finite interval-shape conversion; the
+closed-interval analytic estimate is supplied as a local premise. -/
+theorem Complex.logarithmicPhaseRealPhase_Ico_bProcess_of_Icc_bounds
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {b c d : ℕ}
+    (hd_right : d ≤ b + 1)
+    (hIcc :
+      ∀ {r : ℕ},
+        c ≤ r →
+        r ≤ b →
+          ‖∑ n ∈ Finset.Icc c r,
+            Complex.exp
+              (Complex.I *
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+            80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ n ∈ Finset.Ico c d,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_Ico_bound_of_Icc_bounds
+      t ht hd_right hIcc
+
 end
 
 end LFunctions
