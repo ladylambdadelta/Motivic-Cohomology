@@ -18,10 +18,10 @@ open scoped Topology
 tail packet budgets. -/
 theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_tail_budgets
     (t : ℝ)
-    (_ht_nonneg : 0 ≤ t)
-    (_ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    (ht : 1 ≤ ‖t‖)
     {a b : ℕ}
-    (_ha : 1 ≤ a)
+    (ha : 1 ≤ a)
     (hab : a ≤ b)
     (_hab_strict : a < b)
     (_hlong_sqrt :
@@ -31,12 +31,6 @@ theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_tail_bu
         (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
     (hstationary :
       ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
-        Complex.realPhase_secondDerivative_vdc_packetSum
-          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-          a b m‖ ≤
-        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
-    (hright :
-      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointRightActiveDerivPackets t a b,
         Complex.realPhase_secondDerivative_vdc_packetSum
           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
           a b m‖ ≤
@@ -61,7 +55,7 @@ theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_tail_bu
         Real.sqrt (1 + ‖t‖))) := by
   exact
     Complex.logarithmicPhaseRealPhase_long_packet_budget_of_tail_budgets
-      t hab hstationary hright hleft hfar
+      t ht ht_nonneg ha hab hstationary hleft hfar
 
 end
 
