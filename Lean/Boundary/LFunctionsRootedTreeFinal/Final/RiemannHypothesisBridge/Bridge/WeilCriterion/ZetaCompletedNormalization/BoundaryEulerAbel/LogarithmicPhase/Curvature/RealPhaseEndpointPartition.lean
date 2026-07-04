@@ -1,3 +1,4 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseActivePacketBounds
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhasePacketPartition
 
 /-!
@@ -260,6 +261,118 @@ theorem Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets_mem
   Complex.logarithmicPhaseRealPhase_endpointActiveDerivPackets_mem_active t
     (Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets_mem_endpoint
       t hm)
+
+/-- A left endpoint-tail packet index lies in the half-window immediately below
+the left endpoint derivative scale. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointLeftActive_index_window
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    {m : ℤ}
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b) :
+    -(‖t‖ / (a : ℝ)) - (1 / 2 : ℝ) ≤ (m : ℝ) ∧
+      (m : ℝ) < -(‖t‖ / (a : ℝ)) := by
+  have hm_active :
+      m ∈
+        Complex.realPhase_secondDerivative_vdc_activeDerivPackets
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b :=
+    Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets_mem_active
+      t hm
+  have hlower :
+      -(‖t‖ / (a : ℝ)) - (1 / 2 : ℝ) ≤ (m : ℝ) :=
+    Complex.logarithmicPhaseRealPhase_activeDerivPacket_index_lower
+      t ht_nonneg ha hm_active
+  have hm_data :
+      m < 0 ∧
+        Complex.logarithmicPhaseRealPhase_stationaryPoint t m < (a : ℝ) :=
+    (Finset.mem_filter.mp hm).2
+  have hden_pos : 0 < -(m : ℝ) :=
+    Int.neg_cast_pos_of_lt_zero hm_data.1
+  have ha_pos : (0 : ℝ) < (a : ℝ) :=
+    Nat.cast_pos.mpr (Nat.lt_of_succ_le ha)
+  have hmul :
+      ‖t‖ < (a : ℝ) * (-(m : ℝ)) :=
+    (div_lt_iff₀ hden_pos).mp hm_data.2
+  have hmul_commuted :
+      ‖t‖ < (-(m : ℝ)) * (a : ℝ) :=
+    Eq.subst
+      (motive := fun right : ℝ => ‖t‖ < right)
+      (mul_comm (a : ℝ) (-(m : ℝ)))
+      hmul
+  have hdiv :
+      ‖t‖ / (a : ℝ) < -(m : ℝ) :=
+    (div_lt_iff₀ ha_pos).mpr hmul_commuted
+  have hupper_neg :
+      -(-(m : ℝ)) < -(‖t‖ / (a : ℝ)) :=
+    neg_lt_neg hdiv
+  have hupper :
+      (m : ℝ) < -(‖t‖ / (a : ℝ)) :=
+    Eq.subst
+      (motive := fun left : ℝ => left < -(‖t‖ / (a : ℝ)))
+      (neg_neg (m : ℝ))
+      hupper_neg
+  exact And.intro hlower hupper
+
+/-- A far-right endpoint-tail packet index lies in the half-window immediately
+above the right endpoint derivative scale. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointFarRightActive_index_window
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    {m : ℤ}
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b) :
+    -(‖t‖ / (((b + 1 : ℕ) : ℝ))) < (m : ℝ) ∧
+      (m : ℝ) ≤
+        -(‖t‖ / (((b + 1 : ℕ) : ℝ))) + (1 / 2 : ℝ) := by
+  have hm_active :
+      m ∈
+        Complex.realPhase_secondDerivative_vdc_activeDerivPackets
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b :=
+    Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets_mem_active
+      t hm
+  have hupper :
+      (m : ℝ) ≤
+        -(‖t‖ / (((b + 1 : ℕ) : ℝ))) + (1 / 2 : ℝ) :=
+    Complex.logarithmicPhaseRealPhase_activeDerivPacket_index_upper
+      t ht_nonneg ha hm_active
+  have hm_data :
+      m < 0 ∧
+        ((b + 1 : ℕ) : ℝ) <
+          Complex.logarithmicPhaseRealPhase_stationaryPoint t m :=
+    (Finset.mem_filter.mp hm).2
+  have hden_pos : 0 < -(m : ℝ) :=
+    Int.neg_cast_pos_of_lt_zero hm_data.1
+  have hb_pos : (0 : ℝ) < (((b + 1 : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr (Nat.succ_pos b)
+  have hmul :
+      ((b + 1 : ℕ) : ℝ) * (-(m : ℝ)) < ‖t‖ :=
+    (lt_div_iff₀ hden_pos).mp hm_data.2
+  have hmul_commuted :
+      (-(m : ℝ)) * (((b + 1 : ℕ) : ℝ)) < ‖t‖ :=
+    Eq.subst
+      (motive := fun left : ℝ => left < ‖t‖)
+      (mul_comm (((b + 1 : ℕ) : ℝ)) (-(m : ℝ)))
+      hmul
+  have hdiv :
+      -(m : ℝ) < ‖t‖ / (((b + 1 : ℕ) : ℝ)) :=
+    (lt_div_iff₀ hb_pos).mpr hmul_commuted
+  have hlower_neg :
+      -(‖t‖ / (((b + 1 : ℕ) : ℝ))) < -(-(m : ℝ)) :=
+    neg_lt_neg hdiv
+  have hlower :
+      -(‖t‖ / (((b + 1 : ℕ) : ℝ))) < (m : ℝ) :=
+    Eq.subst
+      (motive := fun right : ℝ =>
+        -(‖t‖ / (((b + 1 : ℕ) : ℝ))) < right)
+      (neg_neg (m : ℝ))
+      hlower_neg
+  exact And.intro hlower hupper
 
 end
 
