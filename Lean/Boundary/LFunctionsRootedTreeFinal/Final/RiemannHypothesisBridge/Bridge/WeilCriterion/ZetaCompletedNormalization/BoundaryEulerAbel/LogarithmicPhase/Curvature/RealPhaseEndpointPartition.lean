@@ -623,6 +623,147 @@ theorem Complex.logarithmicPhaseRealPhase_endpointFarRightActive_eq_empty_or_sin
         Complex.logarithmicPhaseRealPhase_endpointFarRightActive_index_eq_of_mem
           t ht_nonneg ha hm hn)
 
+/-- The sum over an empty-or-singleton finite set is controlled by one named
+entry. -/
+theorem Finset.sum_norm_le_of_eq_empty_or_singleton
+    {α : Type*}
+    [DecidableEq α]
+    {S : Finset α}
+    {F : α → ℂ}
+    {x : α}
+    (hS : S = ∅ ∨ S = {x}) :
+    ‖∑ y ∈ S, F y‖ ≤ ‖F x‖ := by
+  match hS with
+  | Or.inl hS_empty =>
+      have hsum : (∑ y ∈ S, F y) = 0 :=
+        Eq.trans
+          (congrArg (fun U : Finset α => ∑ y ∈ U, F y) hS_empty)
+          Finset.sum_empty
+      have hzero_norm : ‖(0 : ℂ)‖ ≤ ‖F x‖ :=
+        Eq.subst
+          (motive := fun left : ℝ => left ≤ ‖F x‖)
+          (norm_zero : ‖(0 : ℂ)‖ = 0).symm
+          (norm_nonneg (F x))
+      exact
+        Eq.subst
+          (motive := fun z : ℂ => ‖z‖ ≤ ‖F x‖)
+          hsum.symm
+          hzero_norm
+  | Or.inr hS_singleton =>
+      have hsum : (∑ y ∈ S, F y) = F x :=
+        Eq.trans
+          (congrArg (fun U : Finset α => ∑ y ∈ U, F y) hS_singleton)
+          (Finset.sum_singleton F x)
+      exact
+        Eq.subst
+          (motive := fun z : ℂ => ‖z‖ ≤ ‖F x‖)
+          hsum.symm
+          (le_refl ‖F x‖)
+
+/-- If the left endpoint-tail packet set is nonempty, its full packet
+contribution is controlled by that unique packet. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointLeftPacket_sum_norm_le_of_mem
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    {m : ℤ}
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b) :
+    ‖∑ n ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b n‖ ≤
+      ‖Complex.realPhase_secondDerivative_vdc_packetSum
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b m‖ := by
+  let S : Finset ℤ :=
+    Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b
+  let F : ℤ → ℂ :=
+    fun n : ℤ =>
+      Complex.realPhase_secondDerivative_vdc_packetSum
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b n
+  have hsingle :
+      S = ∅ ∨ S = {m} := by
+    match
+      Complex.logarithmicPhaseRealPhase_endpointLeftActive_eq_empty_or_singleton
+        t ht_nonneg (a := a) (b := b) ha with
+    | Or.inl hS_empty =>
+        exact Or.inl hS_empty
+    | Or.inr hS_exists =>
+        match hS_exists with
+        | ⟨k, hS_singleton_k⟩ =>
+            have hk_mem : k ∈ S :=
+              Eq.subst
+                (motive := fun U : Finset ℤ => k ∈ U)
+                hS_singleton_k.symm
+                (Finset.mem_singleton_self k)
+            have hm_eq_k : m = k :=
+              Complex.logarithmicPhaseRealPhase_endpointLeftActive_index_eq_of_mem
+                t ht_nonneg ha hm hk_mem
+            have hsingleton_m : ({k} : Finset ℤ) = {m} :=
+              congrArg (fun z : ℤ => ({z} : Finset ℤ)) hm_eq_k.symm
+            exact Or.inr (Eq.trans hS_singleton_k hsingleton_m)
+  exact
+    Finset.sum_norm_le_of_eq_empty_or_singleton
+      (S := S)
+      (F := F)
+      (x := m)
+      hsingle
+
+/-- If the far-right endpoint-tail packet set is nonempty, its full packet
+contribution is controlled by that unique packet. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointFarRightPacket_sum_norm_le_of_mem
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    {m : ℤ}
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b) :
+    ‖∑ n ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b n‖ ≤
+      ‖Complex.realPhase_secondDerivative_vdc_packetSum
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b m‖ := by
+  let S : Finset ℤ :=
+    Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b
+  let F : ℤ → ℂ :=
+    fun n : ℤ =>
+      Complex.realPhase_secondDerivative_vdc_packetSum
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b n
+  have hsingle :
+      S = ∅ ∨ S = {m} := by
+    match
+      Complex.logarithmicPhaseRealPhase_endpointFarRightActive_eq_empty_or_singleton
+        t ht_nonneg (a := a) (b := b) ha with
+    | Or.inl hS_empty =>
+        exact Or.inl hS_empty
+    | Or.inr hS_exists =>
+        match hS_exists with
+        | ⟨k, hS_singleton_k⟩ =>
+            have hk_mem : k ∈ S :=
+              Eq.subst
+                (motive := fun U : Finset ℤ => k ∈ U)
+                hS_singleton_k.symm
+                (Finset.mem_singleton_self k)
+            have hm_eq_k : m = k :=
+              Complex.logarithmicPhaseRealPhase_endpointFarRightActive_index_eq_of_mem
+                t ht_nonneg ha hm hk_mem
+            have hsingleton_m : ({k} : Finset ℤ) = {m} :=
+              congrArg (fun z : ℤ => ({z} : Finset ℤ)) hm_eq_k.symm
+            exact Or.inr (Eq.trans hS_singleton_k hsingleton_m)
+  exact
+    Finset.sum_norm_le_of_eq_empty_or_singleton
+      (S := S)
+      (F := F)
+      (x := m)
+      hsingle
+
 end
 
 end LFunctions
