@@ -1,6 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseEndpointFirstDerivative
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseEndpointRightZero
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseZeroDerivPacketTerminal
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseZeroTerminalIncrement
 
 /-!
 # Real-phase right endpoint contribution
@@ -145,29 +146,7 @@ theorem Complex.logarithmicPhaseRealPhase_endpointRightZeroPacketContribution_le
     (hp :
       (Complex.realPhase_secondDerivative_vdc_derivPacket
         (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-        a b 0).Nonempty)
-    (hinc_mono :
-      Complex.realPhase_integerIncrementMonotoneOn
-        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-        ((Complex.realPhase_secondDerivative_vdc_derivPacket
-          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-          a b 0).min' hp)
-        b)
-    (hred_mono :
-      Complex.realPhase_reducedIntegerIncrementMonotoneOn
-        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-        ((Complex.realPhase_secondDerivative_vdc_derivPacket
-          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-          a b 0).min' hp)
-        b)
-    (hsep :
-      Complex.realPhase_integerIncrementSeparatedOn
-        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-        ((Complex.realPhase_secondDerivative_vdc_derivPacket
-          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-          a b 0).min' hp)
-        b
-        (‖t‖ / ((b + 1 : ℕ) : ℝ))) :
+        a b 0).Nonempty) :
     ‖Complex.realPhase_secondDerivative_vdc_packetSum
         (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
         a b 0‖ ≤
@@ -189,6 +168,22 @@ theorem Complex.logarithmicPhaseRealPhase_endpointRightZeroPacketContribution_le
       Complex.realPhase_secondDerivative_vdc_derivPacket φ a b 0 =
         Finset.Icc c b :=
     Complex.logarithmicPhaseRealPhase_zeroDerivPacket_nonempty_eq_min_Icc
+      t ht ht_nonneg ha hp
+  have hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        φ c b :=
+    Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_integerIncrementMonotoneOn
+      t ht_nonneg ha hp
+  have hred_mono :
+      Complex.realPhase_reducedIntegerIncrementMonotoneOn
+        φ c b :=
+    Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_reducedIntegerIncrementMonotoneOn
+      t ht ht_nonneg ha hp
+  have hsep :
+      Complex.realPhase_integerIncrementSeparatedOn
+        φ c b
+        (‖t‖ / ((b + 1 : ℕ) : ℝ)) :=
+    Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_integerIncrementSeparatedOn
       t ht ht_nonneg ha hp
   exact
     Complex.logarithmicPhaseRealPhase_endpointRightZeroPacketContribution_le_twentyTarget_of_terminalInterval
