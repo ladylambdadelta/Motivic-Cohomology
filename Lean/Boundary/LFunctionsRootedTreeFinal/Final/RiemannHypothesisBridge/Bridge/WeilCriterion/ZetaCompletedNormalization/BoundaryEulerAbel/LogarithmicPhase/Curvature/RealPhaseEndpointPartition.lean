@@ -556,6 +556,73 @@ theorem Complex.logarithmicPhaseRealPhase_endpointFarRightActive_index_eq_of_mem
     Int.eq_of_cast_mem_right_half_window
       hm_window.1 hm_window.2 hn_window.1 hn_window.2
 
+/-- A finite set whose members are all equal is either empty or a singleton. -/
+theorem Finset.eq_empty_or_exists_eq_singleton_of_mem_eq
+    {α : Type*}
+    [DecidableEq α]
+    (S : Finset α)
+    (huniq : ∀ x ∈ S, ∀ y ∈ S, x = y) :
+    S = ∅ ∨ ∃ x : α, S = {x} := by
+  match S.eq_empty_or_nonempty with
+  | Or.inl hS_empty =>
+      exact Or.inl hS_empty
+  | Or.inr hS_nonempty =>
+      match hS_nonempty with
+      | ⟨x, hx_mem⟩ =>
+          have hS_singleton : S = {x} :=
+            Finset.ext
+              (fun y =>
+                Iff.intro
+                  (fun hy =>
+                    have hy_eq : y = x :=
+                      huniq y hy x hx_mem
+                    Eq.subst
+                      (motive := fun z : α => z ∈ ({x} : Finset α))
+                      hy_eq.symm
+                      (Finset.mem_singleton_self x))
+                  (fun hy_singleton =>
+                    have hy_eq : y = x :=
+                      Finset.mem_singleton.mp hy_singleton
+                    Eq.subst
+                      (motive := fun z : α => z ∈ S)
+                      hy_eq.symm
+                      hx_mem))
+          exact Or.inr (Exists.intro x hS_singleton)
+
+/-- The left endpoint-tail packet set is empty or a singleton. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointLeftActive_eq_empty_or_singleton
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a) :
+    Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b = ∅ ∨
+      ∃ m : ℤ,
+        Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b =
+          {m} := by
+  exact
+    Finset.eq_empty_or_exists_eq_singleton_of_mem_eq
+      (Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b)
+      (fun m hm n hn =>
+        Complex.logarithmicPhaseRealPhase_endpointLeftActive_index_eq_of_mem
+          t ht_nonneg ha hm hn)
+
+/-- The far-right endpoint-tail packet set is empty or a singleton. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointFarRightActive_eq_empty_or_singleton
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a) :
+    Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b = ∅ ∨
+      ∃ m : ℤ,
+        Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b =
+          {m} := by
+  exact
+    Finset.eq_empty_or_exists_eq_singleton_of_mem_eq
+      (Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b)
+      (fun m hm n hn =>
+        Complex.logarithmicPhaseRealPhase_endpointFarRightActive_index_eq_of_mem
+          t ht_nonneg ha hm hn)
+
 end
 
 end LFunctions
