@@ -138,6 +138,49 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerI
         (div_eq_mul_inv ‖t‖ (((n : ℕ) : ℝ))).symm
         hmul_upper)
 
+/-- In the nonnegative-parameter branch, every logarithmic adjacent increment
+is nonpositive. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_nonpos
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {n : ℕ}
+    (hn : 0 < n) :
+    Complex.realPhase_integerIncrement
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n ≤
+      0 := by
+  let L : ℝ :=
+    Real.log ((((n + 1 : ℕ) : ℝ)) / (((n : ℕ) : ℝ)))
+  have hL_lower :
+      (((n + 1 : ℕ) : ℝ))⁻¹ ≤ L :=
+    Complex.logarithmicPhase_successive_log_ratio_lower_bound hn
+  have hnsucc_pos_nat : 0 < n + 1 :=
+    Nat.succ_pos n
+  have hnsucc_pos_real : (0 : ℝ) < (((n + 1 : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr hnsucc_pos_nat
+  have hL_nonneg : 0 ≤ L :=
+    le_trans (inv_nonneg.mpr (le_of_lt hnsucc_pos_real)) hL_lower
+  have hmul_nonneg : 0 ≤ t * L :=
+    mul_nonneg ht_nonneg hL_nonneg
+  have hneg_mul_nonpos : -(t * L) ≤ 0 :=
+    neg_nonpos.mpr hmul_nonneg
+  have hleft :
+      -t * L = -(t * L) :=
+    neg_mul t L
+  have hincrement_eq :
+      Complex.realPhase_integerIncrement
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n =
+        -t * L :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_eq_neg_mul_log_ratio
+      t hn
+  exact
+    Eq.subst
+      (motive := fun left : ℝ => left ≤ 0)
+      hincrement_eq.symm
+      (Eq.subst
+        (motive := fun left : ℝ => left ≤ 0)
+        hleft.symm
+        hneg_mul_nonpos)
+
 /-- On a nonempty zero derivative-frequency terminal packet, every adjacent
 increment in the terminal interval is at most one half in norm. -/
 theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_increment_norm_le_half
@@ -243,6 +286,91 @@ theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_increment_nor
     Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_norm_le_localScale
       t hn_pos_nat
   exact le_trans hincrement_le (le_trans hscale_n hscale_c)
+
+/-- On a nonempty zero derivative-frequency terminal packet, every adjacent
+increment lies above `-1/2`. -/
+theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_increment_neg_half_le
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hp :
+      (Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b 0).Nonempty)
+    {n : ℕ}
+    (hn :
+      n ∈ Finset.Ico
+        ((Complex.realPhase_secondDerivative_vdc_derivPacket
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b 0).min' hp)
+        b) :
+    -(1 / 2 : ℝ) ≤
+      Complex.realPhase_integerIncrement
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n := by
+  let θ : ℝ :=
+    Complex.realPhase_integerIncrement
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n
+  have hnorm :
+      ‖θ‖ ≤ (1 / 2 : ℝ) :=
+    Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_increment_norm_le_half
+      t ht ht_nonneg ha hp hn
+  have habs :
+      |θ| ≤ (1 / 2 : ℝ) :=
+    Eq.subst
+      (motive := fun left : ℝ => left ≤ (1 / 2 : ℝ))
+      (Real.norm_eq_abs θ)
+      hnorm
+  exact neg_le_of_abs_le habs
+
+/-- On a nonempty zero derivative-frequency terminal packet, every adjacent
+increment is nonpositive. -/
+theorem Complex.logarithmicPhaseRealPhase_zeroDerivPacket_terminal_increment_nonpos
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hp :
+      (Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b 0).Nonempty)
+    {n : ℕ}
+    (hn :
+      n ∈ Finset.Ico
+        ((Complex.realPhase_secondDerivative_vdc_derivPacket
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b 0).min' hp)
+        b) :
+    Complex.realPhase_integerIncrement
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n ≤
+      0 := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  let packet : Finset ℕ :=
+    Complex.realPhase_secondDerivative_vdc_derivPacket φ a b 0
+  let c : ℕ := packet.min' hp
+  have hc_mem : c ∈ packet :=
+    Finset.min'_mem packet hp
+  have hc_block : c ∈ Finset.Icc a b :=
+    Complex.realPhase_secondDerivative_vdc_derivPacket_mem_block φ hc_mem
+  have hc_bounds : a ≤ c ∧ c ≤ b :=
+    Finset.mem_Icc.mp hc_block
+  have hc_one : 1 ≤ c :=
+    le_trans ha hc_bounds.1
+  have hn_bounds :
+      ((Complex.realPhase_secondDerivative_vdc_derivPacket
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b 0).min' hp) ≤ n ∧ n < b :=
+    Finset.mem_Ico.mp hn
+  have hc_pos : 0 < c :=
+    Nat.lt_of_succ_le hc_one
+  have hn_pos : 0 < n :=
+    lt_of_lt_of_le hc_pos hn_bounds.1
+  exact
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_nonpos
+      t ht_nonneg hn_pos
+
 
 end
 
