@@ -269,8 +269,6 @@ theorem logarithmicPhase_positiveIndex_firstDerivative_bound_of_finiteDifference
                 (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
                   Real.log (2 + N) :=
     fun t ht N =>
-      letI : Decidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint) :=
-        Classical.propDecidable ((N : ℝ) ≤ Complex.realLogDyadicComparisonCriticalPoint)
       logarithmicPhase_dyadic_firstDerivative_sum_bound
         t ht hfiniteDifference N
   exact Exists.intro (40 : ℝ) (And.intro hA_pos hA_bound)
