@@ -189,6 +189,42 @@ theorem Complex.logarithmicPhaseRealPhase_endpointRightZeroPacketContribution_le
     Complex.logarithmicPhaseRealPhase_endpointRightZeroPacketContribution_le_twentyTarget_of_terminalInterval
       t ht hc_one hc_bounds.2 hpacket hinc_mono hred_mono hsep
 
+/-- The right endpoint-tail packet family has the endpoint contribution budget. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointRightPacket_le_twentyTarget
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a) :
+    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointRightActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+      20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  let packet : Finset ℕ :=
+    Complex.realPhase_secondDerivative_vdc_derivPacket φ a b 0
+  have hright_to_zero :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointRightActiveDerivPackets t a b,
+          Complex.realPhase_secondDerivative_vdc_packetSum φ a b m‖ ≤
+        ‖Complex.realPhase_secondDerivative_vdc_packetSum φ a b 0‖ :=
+    Complex.logarithmicPhaseRealPhase_endpointRightPacket_sum_norm_le_zero_packet
+      t ht_nonneg ha
+  have hzero_budget :
+      ‖Complex.realPhase_secondDerivative_vdc_packetSum φ a b 0‖ ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+    match packet.eq_empty_or_nonempty with
+    | Or.inl hpacket_empty =>
+        exact
+          Complex.logarithmicPhaseRealPhase_endpointRightZeroPacketContribution_le_twentyTarget_of_empty
+            t ht hpacket_empty
+    | Or.inr hpacket_nonempty =>
+        exact
+          Complex.logarithmicPhaseRealPhase_endpointRightZeroPacketContribution_le_twentyTarget_of_nonempty
+            t ht ht_nonneg ha hpacket_nonempty
+  exact le_trans hright_to_zero hzero_budget
+
 end
 
 end LFunctions
