@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseIntervalReduction
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseZeroTerminalIncrement
 
 /-!
 # Real-phase endpoint first-derivative estimates
@@ -41,6 +42,71 @@ theorem Real.logarithmicPhase_endpoint_one_le_endpoint_sqrt_target
     add_le_add_left
       (Real.logarithmicPhase_one_le_sqrt_one_add_norm t ht)
       (((r + 1 : ℕ) : ℝ) / ‖t‖)
+
+/-- For nonnegative parameter, the concrete logarithmic adjacent increments
+are monotone on every integer subblock. -/
+theorem Complex.logarithmicPhaseRealPhase_integerIncrement_monotoneOn
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {c r : ℕ}
+    (hc_one : 1 ≤ c) :
+    MonotoneOn
+      (fun n : ℕ =>
+        Complex.realPhase_integerIncrement
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) n)
+      (Finset.Ico c r : Set ℕ) := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  intro x hx y _hy hxy
+  have hx_bounds : c ≤ x ∧ x < r :=
+    Finset.mem_Ico.mp hx
+  have hx_pos : 0 < x :=
+    lt_of_lt_of_le (Nat.lt_of_succ_le hc_one) hx_bounds.1
+  have hy_pos : 0 < y :=
+    lt_of_lt_of_le hx_pos hxy
+  have hlog_yx :
+      Real.log ((((y + 1 : ℕ) : ℝ)) / (((y : ℕ) : ℝ))) ≤
+        Real.log ((((x + 1 : ℕ) : ℝ)) / (((x : ℕ) : ℝ))) :=
+    Complex.logarithmicPhase_successive_log_ratio_antitone hx_pos hxy
+  have ht_neg_nonpos : -t ≤ 0 :=
+    neg_nonpos.mpr ht_nonneg
+  have hscaled :
+      -t * Real.log ((((x + 1 : ℕ) : ℝ)) / (((x : ℕ) : ℝ))) ≤
+        -t * Real.log ((((y + 1 : ℕ) : ℝ)) / (((y : ℕ) : ℝ))) :=
+    mul_le_mul_of_nonpos_left hlog_yx ht_neg_nonpos
+  have hx_eq :
+      Complex.realPhase_integerIncrement φ x =
+        -t * Real.log ((((x + 1 : ℕ) : ℝ)) / (((x : ℕ) : ℝ))) :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_eq_neg_mul_log_ratio
+      t hx_pos
+  have hy_eq :
+      Complex.realPhase_integerIncrement φ y =
+        -t * Real.log ((((y + 1 : ℕ) : ℝ)) / (((y : ℕ) : ℝ))) :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_integerIncrement_eq_neg_mul_log_ratio
+      t hy_pos
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤ Complex.realPhase_integerIncrement φ y)
+      hx_eq.symm
+      (Eq.subst
+        (motive := fun right : ℝ =>
+          -t * Real.log ((((x + 1 : ℕ) : ℝ)) / (((x : ℕ) : ℝ))) ≤ right)
+        hy_eq.symm
+        hscaled)
+
+/-- For nonnegative parameter, the concrete logarithmic adjacent increments
+are monotone in the first-derivative-test hypothesis format. -/
+theorem Complex.logarithmicPhaseRealPhase_integerIncrementMonotoneOn
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {c r : ℕ}
+    (hc_one : 1 ≤ c) :
+    Complex.realPhase_integerIncrementMonotoneOn
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) c r :=
+  Or.inl
+    (Complex.logarithmicPhaseRealPhase_integerIncrement_monotoneOn
+      t ht_nonneg hc_one)
 
 /-- The concrete logarithmic first-derivative estimate on a subblock, widened
 to the ambient endpoint-plus-square-root target.  The finite-difference
