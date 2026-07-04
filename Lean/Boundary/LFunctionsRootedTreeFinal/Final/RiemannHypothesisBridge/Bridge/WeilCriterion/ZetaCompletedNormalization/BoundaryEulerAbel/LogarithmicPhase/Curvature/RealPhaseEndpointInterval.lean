@@ -495,6 +495,336 @@ theorem Complex.logarithmicPhaseRealPhase_endpointFarRightPacketFamilyUnion_eq_b
         t ht ht_nonneg ha hn hl hk_block hnk hkl
   exact Finset.exists_eq_Ico_of_subset_Icc_intervalConvex hab hS_block hconvex
 
+/-- Left endpoint-tail packet indices lie below the left endpoint derivative
+frequency. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointLeftActive_index_lt_leftEndpoint
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    {m : ℤ}
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b) :
+    (m : ℝ) < -(‖t‖ / (a : ℝ)) := by
+  have hm_data :
+      m < 0 ∧
+        Complex.logarithmicPhaseRealPhase_stationaryPoint t m < (a : ℝ) :=
+    (Finset.mem_filter.mp hm).2
+  have hm_neg : m < 0 :=
+    hm_data.1
+  have hsp_left :
+      Complex.logarithmicPhaseRealPhase_stationaryPoint t m < (a : ℝ) :=
+    hm_data.2
+  have hden_pos : 0 < -(m : ℝ) :=
+    Int.neg_cast_pos_of_lt_zero hm_neg
+  have ha_pos : 0 < (a : ℝ) :=
+    lt_trans
+      (Complex.logarithmicPhaseRealPhase_stationaryPoint_pos t ht hm_neg)
+      hsp_left
+  have hdiv_lt :
+      ‖t‖ / (-(m : ℝ)) < (a : ℝ) := by
+    exact hsp_left
+  have hT_lt :
+      ‖t‖ < (a : ℝ) * (-(m : ℝ)) :=
+    (div_lt_iff₀ hden_pos).mp hdiv_lt
+  have hdiv_left :
+      ‖t‖ / (a : ℝ) < -(m : ℝ) :=
+    (div_lt_iff₀ ha_pos).mpr
+      (Eq.subst
+        (motive := fun right : ℝ => ‖t‖ < right)
+        (mul_comm (a : ℝ) (-(m : ℝ)))
+        hT_lt)
+  have hneg :
+      - (-(m : ℝ)) < -(‖t‖ / (a : ℝ)) :=
+    neg_lt_neg hdiv_left
+  exact
+    Eq.subst
+      (motive := fun left : ℝ => left < -(‖t‖ / (a : ℝ)))
+      (neg_neg (m : ℝ))
+      hneg
+
+/-- A sample in a left endpoint-tail packet has reciprocal scale still above
+the left endpoint scale, up to the packet half-window. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointLeftPacket_sample_scale_lower
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b n : ℕ}
+    {m : ℤ}
+    (ha : 1 ≤ a)
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b)
+    (hn :
+      n ∈ Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b m) :
+    ‖t‖ / (a : ℝ) - (1 / 2 : ℝ) < ‖t‖ / (n : ℝ) := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  have hn_block : n ∈ Finset.Icc a b :=
+    Complex.realPhase_secondDerivative_vdc_derivPacket_mem_block φ hn
+  have hn_one : 1 ≤ n :=
+    le_trans ha (Finset.mem_Icc.mp hn_block).1
+  have hn_pos : 0 < n :=
+    Nat.lt_of_succ_le hn_one
+  have hindex :
+      (m : ℝ) < -(‖t‖ / (a : ℝ)) :=
+    Complex.logarithmicPhaseRealPhase_endpointLeftActive_index_lt_leftEndpoint
+      t ht hm
+  have hupper_packet :
+      deriv φ n < (m : ℝ) + (1 / 2 : ℝ) :=
+    Complex.realPhase_secondDerivative_vdc_derivPacket_upper φ hn
+  have hcenter_lt :
+      (m : ℝ) + (1 / 2 : ℝ) <
+        -(‖t‖ / (a : ℝ)) + (1 / 2 : ℝ) :=
+    add_lt_add_right hindex (1 / 2 : ℝ)
+  have hderiv_lt :
+      deriv φ n < -(‖t‖ / (a : ℝ)) + (1 / 2 : ℝ) :=
+    lt_trans hupper_packet hcenter_lt
+  have hderiv :
+      deriv φ n = -(‖t‖ / (n : ℝ)) :=
+    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div_parenthesized
+      t ht_nonneg (Nat.cast_pos.mpr hn_pos)
+  have hneg_lt :
+      -(‖t‖ / (n : ℝ)) < -(‖t‖ / (a : ℝ)) + (1 / 2 : ℝ) :=
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left < -(‖t‖ / (a : ℝ)) + (1 / 2 : ℝ))
+      hderiv
+      hderiv_lt
+  have hflipped :
+      - (-(‖t‖ / (a : ℝ)) + (1 / 2 : ℝ)) < - (-(‖t‖ / (n : ℝ))) :=
+    neg_lt_neg hneg_lt
+  have hleft :
+      - (-(‖t‖ / (a : ℝ)) + (1 / 2 : ℝ)) =
+        ‖t‖ / (a : ℝ) - (1 / 2 : ℝ) := by
+    calc
+      - (-(‖t‖ / (a : ℝ)) + (1 / 2 : ℝ)) =
+          - (-(‖t‖ / (a : ℝ))) - (1 / 2 : ℝ) :=
+        neg_add (-(‖t‖ / (a : ℝ))) (1 / 2 : ℝ)
+      _ = ‖t‖ / (a : ℝ) - (1 / 2 : ℝ) := by
+        exact congrArg (fun r : ℝ => r - (1 / 2 : ℝ))
+          (neg_neg (‖t‖ / (a : ℝ)))
+  have hright :
+      - (-(‖t‖ / (n : ℝ))) = ‖t‖ / (n : ℝ) :=
+    neg_neg (‖t‖ / (n : ℝ))
+  exact
+    Eq.subst
+      (motive := fun left : ℝ => left < ‖t‖ / (n : ℝ))
+      hleft
+      (Eq.subst
+        (motive := fun right : ℝ =>
+          - (-(‖t‖ / (a : ℝ)) + (1 / 2 : ℝ)) < right)
+        hright
+        hflipped)
+
+/-- The left endpoint packet-family union is contained in the corresponding
+left reciprocal-scale cut. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointLeftPacketFamilyUnion_subset_scaleCut
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a) :
+    Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b
+        (Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b)
+      ⊆
+      (Finset.Icc a b).filter
+        (fun n : ℕ =>
+          ‖t‖ / (a : ℝ) - (1 / 2 : ℝ) < ‖t‖ / (n : ℝ)) := by
+  intro n hn
+  have hmember :
+      ∃ m : ℤ,
+        m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b ∧
+          n ∈ Complex.realPhase_secondDerivative_vdc_derivPacket
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b m :=
+    Finset.mem_biUnion.mp hn
+  match hmember with
+  | ⟨m, hm, hn_packet⟩ =>
+      have hn_block :
+          n ∈ Finset.Icc a b :=
+        Complex.realPhase_secondDerivative_vdc_derivPacket_mem_block
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          hn_packet
+      have hcut :
+          ‖t‖ / (a : ℝ) - (1 / 2 : ℝ) < ‖t‖ / (n : ℝ) :=
+        Complex.logarithmicPhaseRealPhase_endpointLeftPacket_sample_scale_lower
+          t ht ht_nonneg ha hm hn_packet
+      exact Finset.mem_filter.mpr (And.intro hn_block hcut)
+
+/-- Far-right endpoint-tail packet indices lie above the right endpoint
+derivative frequency. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointFarRightActive_rightEndpoint_lt_index
+    (t : ℝ)
+    {a b : ℕ}
+    {m : ℤ}
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b) :
+    -(‖t‖ / (((b + 1 : ℕ) : ℝ))) < (m : ℝ) := by
+  have hm_data :
+      m < 0 ∧
+        ((b + 1 : ℕ) : ℝ) <
+          Complex.logarithmicPhaseRealPhase_stationaryPoint t m :=
+    (Finset.mem_filter.mp hm).2
+  have hm_neg : m < 0 :=
+    hm_data.1
+  have hright_sp :
+      ((b + 1 : ℕ) : ℝ) <
+        Complex.logarithmicPhaseRealPhase_stationaryPoint t m :=
+    hm_data.2
+  have hden_pos : 0 < -(m : ℝ) :=
+    Int.neg_cast_pos_of_lt_zero hm_neg
+  have hB_pos : 0 < (((b + 1 : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr (Nat.succ_pos b)
+  have hB_lt :
+      ((b + 1 : ℕ) : ℝ) < ‖t‖ / (-(m : ℝ)) := by
+    exact hright_sp
+  have hprod_lt :
+      ((b + 1 : ℕ) : ℝ) * (-(m : ℝ)) < ‖t‖ :=
+    (lt_div_iff₀ hden_pos).mp hB_lt
+  have hneg_lt :
+      -(m : ℝ) < ‖t‖ / (((b + 1 : ℕ) : ℝ)) :=
+    (lt_div_iff₀ hB_pos).mpr
+      (Eq.subst
+        (motive := fun left : ℝ => left < ‖t‖)
+        (mul_comm (((b + 1 : ℕ) : ℝ)) (-(m : ℝ)))
+        hprod_lt)
+  have hneg :
+      -(‖t‖ / (((b + 1 : ℕ) : ℝ))) < -(-(m : ℝ)) :=
+    neg_lt_neg hneg_lt
+  exact
+    Eq.subst
+      (motive := fun right : ℝ =>
+        -(‖t‖ / (((b + 1 : ℕ) : ℝ))) < right)
+      (neg_neg (m : ℝ))
+      hneg
+
+/-- A sample in a far-right endpoint-tail packet has reciprocal scale below the
+right endpoint scale, up to the packet half-window. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointFarRightPacket_sample_scale_upper
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b n : ℕ}
+    {m : ℤ}
+    (ha : 1 ≤ a)
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b)
+    (hn :
+      n ∈ Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b m) :
+    ‖t‖ / (n : ℝ) <
+      ‖t‖ / (((b + 1 : ℕ) : ℝ)) + (1 / 2 : ℝ) := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  have hn_block : n ∈ Finset.Icc a b :=
+    Complex.realPhase_secondDerivative_vdc_derivPacket_mem_block φ hn
+  have hn_one : 1 ≤ n :=
+    le_trans ha (Finset.mem_Icc.mp hn_block).1
+  have hn_pos : 0 < n :=
+    Nat.lt_of_succ_le hn_one
+  have hindex :
+      -(‖t‖ / (((b + 1 : ℕ) : ℝ))) < (m : ℝ) :=
+    Complex.logarithmicPhaseRealPhase_endpointFarRightActive_rightEndpoint_lt_index
+      t hm
+  have hlower_packet :
+      (m : ℝ) - (1 / 2 : ℝ) ≤ deriv φ n :=
+    Complex.realPhase_secondDerivative_vdc_derivPacket_lower φ hn
+  have hcenter_lt :
+      -(‖t‖ / (((b + 1 : ℕ) : ℝ))) - (1 / 2 : ℝ) <
+        (m : ℝ) - (1 / 2 : ℝ) :=
+    sub_lt_sub_right hindex (1 / 2 : ℝ)
+  have hlt_deriv :
+      -(‖t‖ / (((b + 1 : ℕ) : ℝ))) - (1 / 2 : ℝ) < deriv φ n :=
+    lt_of_lt_of_le hcenter_lt hlower_packet
+  have hderiv :
+      deriv φ n = -(‖t‖ / (n : ℝ)) :=
+    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div_parenthesized
+      t ht_nonneg (Nat.cast_pos.mpr hn_pos)
+  have hlt_neg :
+      -(‖t‖ / (((b + 1 : ℕ) : ℝ))) - (1 / 2 : ℝ) <
+        -(‖t‖ / (n : ℝ)) :=
+    Eq.subst
+      (motive := fun right : ℝ =>
+        -(‖t‖ / (((b + 1 : ℕ) : ℝ))) - (1 / 2 : ℝ) < right)
+      hderiv
+      hlt_deriv
+  have hflipped :
+      - (-(‖t‖ / (n : ℝ))) <
+        - (-(‖t‖ / (((b + 1 : ℕ) : ℝ))) - (1 / 2 : ℝ)) :=
+    neg_lt_neg hlt_neg
+  have hleft :
+      - (-(‖t‖ / (n : ℝ))) = ‖t‖ / (n : ℝ) :=
+    neg_neg (‖t‖ / (n : ℝ))
+  have hright :
+      - (-(‖t‖ / (((b + 1 : ℕ) : ℝ))) - (1 / 2 : ℝ)) =
+        ‖t‖ / (((b + 1 : ℕ) : ℝ)) + (1 / 2 : ℝ) := by
+    calc
+      - (-(‖t‖ / (((b + 1 : ℕ) : ℝ))) - (1 / 2 : ℝ)) =
+          - (-(‖t‖ / (((b + 1 : ℕ) : ℝ))) + -(1 / 2 : ℝ)) := by
+        exact congrArg Neg.neg
+          (sub_eq_add_neg (-(‖t‖ / (((b + 1 : ℕ) : ℝ)))) (1 / 2 : ℝ))
+      _ =
+          - (-(‖t‖ / (((b + 1 : ℕ) : ℝ)))) - (-(1 / 2 : ℝ)) :=
+        neg_add (-(‖t‖ / (((b + 1 : ℕ) : ℝ)))) (-(1 / 2 : ℝ))
+      _ =
+          ‖t‖ / (((b + 1 : ℕ) : ℝ)) - (-(1 / 2 : ℝ)) := by
+        exact congrArg (fun r : ℝ => r - (-(1 / 2 : ℝ)))
+          (neg_neg (‖t‖ / (((b + 1 : ℕ) : ℝ))))
+      _ =
+          ‖t‖ / (((b + 1 : ℕ) : ℝ)) + (1 / 2 : ℝ) :=
+        sub_neg_eq_add (‖t‖ / (((b + 1 : ℕ) : ℝ))) (1 / 2 : ℝ)
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left < ‖t‖ / (((b + 1 : ℕ) : ℝ)) + (1 / 2 : ℝ))
+      hleft
+      (Eq.subst
+        (motive := fun right : ℝ =>
+          - (-(‖t‖ / (n : ℝ))) < right)
+        hright
+        hflipped)
+
+/-- The far-right endpoint packet-family union is contained in the
+corresponding right reciprocal-scale cut. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointFarRightPacketFamilyUnion_subset_scaleCut
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a) :
+    Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b
+        (Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b)
+      ⊆
+      (Finset.Icc a b).filter
+        (fun n : ℕ =>
+          ‖t‖ / (n : ℝ) <
+            ‖t‖ / (((b + 1 : ℕ) : ℝ)) + (1 / 2 : ℝ)) := by
+  intro n hn
+  have hmember :
+      ∃ m : ℤ,
+        m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b ∧
+          n ∈ Complex.realPhase_secondDerivative_vdc_derivPacket
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b m :=
+    Finset.mem_biUnion.mp hn
+  match hmember with
+  | ⟨m, hm, hn_packet⟩ =>
+      have hn_block :
+          n ∈ Finset.Icc a b :=
+        Complex.realPhase_secondDerivative_vdc_derivPacket_mem_block
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          hn_packet
+      have hcut :
+          ‖t‖ / (n : ℝ) <
+            ‖t‖ / (((b + 1 : ℕ) : ℝ)) + (1 / 2 : ℝ) :=
+        Complex.logarithmicPhaseRealPhase_endpointFarRightPacket_sample_scale_upper
+          t ht_nonneg ha hm hn_packet
+      exact Finset.mem_filter.mpr (And.intro hn_block hcut)
+
 end
 
 end LFunctions
