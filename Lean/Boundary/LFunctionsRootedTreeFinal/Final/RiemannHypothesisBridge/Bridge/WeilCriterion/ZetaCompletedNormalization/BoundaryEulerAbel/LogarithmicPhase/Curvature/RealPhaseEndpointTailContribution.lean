@@ -1,4 +1,7 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseEndpointInterval
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseEndpointPartition
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseIntervalReduction
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhasePacketReconstruction
 
 /-!
 # Real-phase left and far-right endpoint tail contribution reductions
@@ -274,6 +277,175 @@ theorem Complex.logarithmicPhaseRealPhase_endpointFarRightPacketContribution_le_
   exact
     Complex.logarithmicPhaseRealPhase_endpointFarRightPacketContribution_le_twentyTarget_of_pointwise
       t ht ht_nonneg ha hpoint
+
+/-- The left endpoint-tail contribution is controlled once every closed
+initial subinterval has the endpoint first-derivative budget. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointLeftPacketContribution_le_twentyTarget_of_Icc_bounds
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hIcc :
+      ∀ {r : ℕ},
+        a ≤ r →
+        r ≤ b →
+          ‖∑ n ∈ Finset.Icc a r,
+            Complex.exp
+              (Complex.I *
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                  t n : ℂ))‖ ≤
+            20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+      20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  have hinterval :
+      ∃ c : ℕ,
+        a ≤ c ∧ c ≤ b + 1 ∧
+        Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b
+            (Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets
+              t a b) =
+          Finset.Ico a c :=
+    Complex.logarithmicPhaseRealPhase_endpointLeftPacketFamilyUnion_eq_initialInterval
+      t ht ht_nonneg ha hab
+  match hinterval with
+  | ⟨c, _hac, hcb, hfamily⟩ =>
+      have hsample :
+          ‖∑ n ∈ Finset.Ico a c,
+            Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+            20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+        Complex.logarithmicPhaseRealPhase_Ico_twenty_bound_of_Icc_bounds
+          t ht hcb hIcc
+      have hunion_sum :
+          (∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b
+              (Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets
+                t a b),
+            Complex.exp (Complex.I * (φ n : ℂ))) =
+          ∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets
+              t a b,
+            Complex.realPhase_secondDerivative_vdc_packetSum φ a b m :=
+        Complex.logarithmicPhaseRealPhase_endpointLeftPacketFamilyUnion_sum_eq
+          t a b
+      have hsample_eq :
+          (∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b
+              (Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets
+                t a b),
+            Complex.exp (Complex.I * (φ n : ℂ))) =
+          ∑ n ∈ Finset.Ico a c,
+            Complex.exp (Complex.I * (φ n : ℂ)) :=
+        congrArg
+          (fun S : Finset ℕ =>
+            ∑ n ∈ S, Complex.exp (Complex.I * (φ n : ℂ)))
+          hfamily
+      have hpacket_sum :
+          (∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets
+              t a b,
+            Complex.realPhase_secondDerivative_vdc_packetSum φ a b m) =
+          ∑ n ∈ Finset.Ico a c,
+            Complex.exp (Complex.I * (φ n : ℂ)) :=
+        Eq.trans hunion_sum.symm hsample_eq
+      exact
+        Eq.subst
+          (motive := fun z : ℂ =>
+            ‖z‖ ≤
+              20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+          hpacket_sum.symm
+          hsample
+
+/-- The far-right endpoint-tail contribution is controlled once every closed
+subinterval has the endpoint first-derivative budget. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointFarRightPacketContribution_le_twentyTarget_of_Icc_bounds
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hIcc :
+      ∀ {c r : ℕ},
+        a ≤ c →
+        c ≤ r →
+        r ≤ b →
+          ‖∑ n ∈ Finset.Icc c r,
+            Complex.exp
+              (Complex.I *
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                  t n : ℂ))‖ ≤
+            20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+      20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  have hinterval :
+      ∃ c d : ℕ,
+        a ≤ c ∧ c ≤ d ∧ d ≤ b + 1 ∧
+        Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b
+            (Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets
+              t a b) =
+          Finset.Ico c d :=
+    Complex.logarithmicPhaseRealPhase_endpointFarRightPacketFamilyUnion_eq_boundedInterval
+      t ht ht_nonneg ha hab
+  match hinterval with
+  | ⟨c, d, hac, _hcd, hdb, hfamily⟩ =>
+      have hclosed :
+          ∀ {r : ℕ},
+            c ≤ r →
+            r ≤ b →
+              ‖∑ n ∈ Finset.Icc c r,
+                Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+                20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+                  Real.sqrt (1 + ‖t‖))) :=
+        fun {r} hcr hrb =>
+          hIcc hac hcr hrb
+      have hsample :
+          ‖∑ n ∈ Finset.Ico c d,
+            Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+            20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+        Complex.logarithmicPhaseRealPhase_Ico_twenty_bound_of_Icc_bounds
+          t ht hdb hclosed
+      have hunion_sum :
+          (∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b
+              (Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets
+                t a b),
+            Complex.exp (Complex.I * (φ n : ℂ))) =
+          ∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets
+              t a b,
+            Complex.realPhase_secondDerivative_vdc_packetSum φ a b m :=
+        Complex.logarithmicPhaseRealPhase_endpointFarRightPacketFamilyUnion_sum_eq
+          t a b
+      have hsample_eq :
+          (∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b
+              (Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets
+                t a b),
+            Complex.exp (Complex.I * (φ n : ℂ))) =
+          ∑ n ∈ Finset.Ico c d,
+            Complex.exp (Complex.I * (φ n : ℂ)) :=
+        congrArg
+          (fun S : Finset ℕ =>
+            ∑ n ∈ S, Complex.exp (Complex.I * (φ n : ℂ)))
+          hfamily
+      have hpacket_sum :
+          (∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets
+              t a b,
+            Complex.realPhase_secondDerivative_vdc_packetSum φ a b m) =
+          ∑ n ∈ Finset.Ico c d,
+            Complex.exp (Complex.I * (φ n : ℂ)) :=
+        Eq.trans hunion_sum.symm hsample_eq
+      exact
+        Eq.subst
+          (motive := fun z : ℂ =>
+            ‖z‖ ≤
+              20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+          hpacket_sum.symm
+          hsample
 
 end
 
