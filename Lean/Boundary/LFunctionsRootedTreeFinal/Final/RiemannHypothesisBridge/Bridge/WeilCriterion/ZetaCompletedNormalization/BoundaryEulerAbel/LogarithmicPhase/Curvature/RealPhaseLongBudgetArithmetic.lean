@@ -43,6 +43,28 @@ theorem Real.logarithmicPhase_three_twenty_targets_le_sixty
         exact congrArg (fun z : ℝ => z * E) hforty_twenty
   exact le_of_eq hthree_sum
 
+/-- Three target units are bounded by ten target units for a nonnegative
+target. -/
+theorem Real.logarithmicPhase_three_target_le_ten
+    {E : ℝ}
+    (hE : 0 ≤ E) :
+    3 * E ≤ 10 * E := by
+  have hthree_le_ten : (3 : ℝ) ≤ 10 := by
+    have hseven_nonneg : 0 ≤ (7 : ℝ) :=
+      Nat.cast_nonneg 7
+    calc
+      (3 : ℝ) ≤ 3 + 7 :=
+        le_add_of_nonneg_right hseven_nonneg
+      _ = 10 := by
+        have hnat : (3 + 7 : ℕ) = 10 :=
+          rfl
+        exact Eq.trans
+          (Nat.cast_add 3 7).symm
+          (Eq.trans
+            (congrArg (fun n : ℕ => (n : ℝ)) hnat)
+            Nat.cast_ofNat)
+  exact mul_le_mul_of_nonneg_right hthree_le_ten hE
+
 /-- The stationary and endpoint packet budgets assemble into the widened long
 target. -/
 theorem Real.logarithmicPhase_twenty_sixty_targets_le_eighty
