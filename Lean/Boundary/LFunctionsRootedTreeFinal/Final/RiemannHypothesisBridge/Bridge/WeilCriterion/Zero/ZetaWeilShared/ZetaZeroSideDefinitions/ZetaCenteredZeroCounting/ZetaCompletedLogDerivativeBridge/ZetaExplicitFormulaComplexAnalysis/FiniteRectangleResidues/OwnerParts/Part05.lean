@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part04
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.CorrectionPoleBoundaryPrimitives
 
 /-!
 # Explicit-formula finite rectangle residues
@@ -23,10 +24,19 @@ theorem explicitFormulaRectangle_half_add_sub_half (z : ℂ) :
     (1 / 2 : ℂ) + (z - (1 / 2 : ℂ)) = z := by
   calc
     (1 / 2 : ℂ) + (z - (1 / 2 : ℂ)) =
-        z + (1 / 2 : ℂ) - (1 / 2 : ℂ) := by
-      exact add_sub_comm (1 / 2 : ℂ) z (1 / 2 : ℂ)
+        (1 / 2 : ℂ) + (z + -(1 / 2 : ℂ)) := by
+      exact congrArg (fun w : ℂ => (1 / 2 : ℂ) + w)
+        (sub_eq_add_neg z (1 / 2 : ℂ))
+    _ = ((1 / 2 : ℂ) + z) + -(1 / 2 : ℂ) := by
+      exact (add_assoc (1 / 2 : ℂ) z (-(1 / 2 : ℂ))).symm
+    _ = (z + (1 / 2 : ℂ)) + -(1 / 2 : ℂ) := by
+      exact congrArg (fun w : ℂ => w + -(1 / 2 : ℂ)) (add_comm (1 / 2 : ℂ) z)
+    _ = z + ((1 / 2 : ℂ) + -(1 / 2 : ℂ)) := by
+      exact add_assoc z (1 / 2 : ℂ) (-(1 / 2 : ℂ))
+    _ = z + 0 := by
+      exact congrArg (fun w : ℂ => z + w) (add_neg_cancel (1 / 2 : ℂ))
     _ = z := by
-      exact add_sub_cancel_right z (1 / 2 : ℂ)
+      exact add_zero z
 
 /-- Compatibility sink for consumers that still state the completed-zero residue with the
 named zero-side summand. -/

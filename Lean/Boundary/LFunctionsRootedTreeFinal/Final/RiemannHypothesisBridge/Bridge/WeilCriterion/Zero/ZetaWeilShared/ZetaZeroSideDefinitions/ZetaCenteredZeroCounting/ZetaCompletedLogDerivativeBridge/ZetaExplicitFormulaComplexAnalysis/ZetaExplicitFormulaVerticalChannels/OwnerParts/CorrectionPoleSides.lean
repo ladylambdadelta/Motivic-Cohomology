@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.BasicChannels
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.CorrectionPoleBoundaryPrimitives
 
 namespace Boundary
 namespace LFunctions
@@ -85,90 +86,6 @@ theorem zetaCompletedExplicitFormulaCorrectionContribution_eq_centeredPolePhi
       (1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ))) *
         zetaCompletedExplicitFormulaPhi f 0 := by
   exact zetaCompletedExplicitFormulaCorrectionContribution_eq f
-
-/-- The right-face pole-correction vertical integral with the completed-pole kernel
-written explicitly. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionRightPoleVerticalIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
-    (-1 / zetaCompletedExplicitFormulaRightPath (F.rectangle T) t -
-        1 / (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1)) *
-      zetaCompletedExplicitFormulaPhi f
-        (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1 / 2)
-
-/-- The left-face pole-correction vertical integral with the completed-pole kernel
-written explicitly. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
-    (-1 / zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t -
-        1 / (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1)) *
-      zetaCompletedExplicitFormulaPhi f
-        (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1 / 2)
-
-/-- The `s = 0` summand of the right-face pole-correction vertical integral. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
-    (-1 / zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) *
-      zetaCompletedExplicitFormulaPhi f
-        (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1 / 2)
-
-/-- The `s = 1` summand of the right-face pole-correction vertical integral. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
-    (-1 / (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1)) *
-      zetaCompletedExplicitFormulaPhi f
-        (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1 / 2)
-
-/-- The `s = 0` summand of the left-face pole-correction vertical integral. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
-    (-1 / zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t) *
-      zetaCompletedExplicitFormulaPhi f
-        (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1 / 2)
-
-/-- The `s = 1` summand of the left-face pole-correction vertical integral. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
-    (-1 / (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1)) *
-      zetaCompletedExplicitFormulaPhi f
-        (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1 / 2)
-
-/-- The `s = 0` summand on the top horizontal side. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionTopZeroPoleHorizontalIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ x in Set.uIcc F.c (1 - F.c),
-    (-1 / zetaCompletedExplicitFormulaTopPath (F.rectangle T) x) *
-      zetaCompletedExplicitFormulaPhi f
-        (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1 / 2)
-
-/-- The `s = 0` summand on the bottom horizontal side. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ x in Set.uIcc F.c (1 - F.c),
-    (-1 / zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x) *
-      zetaCompletedExplicitFormulaPhi f
-        (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1 / 2)
-
-/-- The `s = 1` summand on the top horizontal side. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ x in Set.uIcc F.c (1 - F.c),
-    (-1 / (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1)) *
-      zetaCompletedExplicitFormulaPhi f
-        (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1 / 2)
-
-/-- The `s = 1` summand on the bottom horizontal side. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ x in Set.uIcc F.c (1 - F.c),
-    (-1 / (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1)) *
-      zetaCompletedExplicitFormulaPhi f
-        (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1 / 2)
 
 /-- The right-face `s = 1` correction integrand is the isolated kernel evaluated
 on the right path. -/
@@ -305,48 +222,6 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryInt
       exact congrArg (fun x : ℂ => R * Complex.I - L * Complex.I + x - BT) hU
     _ = R * Complex.I - L * Complex.I + U - B := by
       exact congrArg (fun x : ℂ => R * Complex.I - L * Complex.I + U - x) hB
-
-/-- The isolated `s = 0` correction kernel as a function of the contour variable. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionZeroPoleKernel
-    (f : ZetaAdmissibleFunction) (z : ℂ) : ℂ :=
-  (-1 / z) * zetaCompletedExplicitFormulaPhi f (z - 1 / 2)
-
-/-- The tangent-weighted right side of the isolated `s = 0` correction contour. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionRightZeroPoleTangentIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
-    zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f
-      (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) * Complex.I
-
-/-- The tangent-weighted left side of the isolated `s = 0` correction contour. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionLeftZeroPoleTangentIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
-    zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f
-      (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t) * Complex.I
-
-/-- The tangent-weighted top side of the isolated `s = 0` correction contour. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionTopZeroPoleTangentIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ x in Set.uIcc F.c (1 - F.c),
-    zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f
-      (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x)
-
-/-- The tangent-weighted bottom side of the isolated `s = 0` correction contour. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionBottomZeroPoleTangentIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ x in Set.uIcc F.c (1 - F.c),
-    zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f
-      (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x)
-
-/-- The genuine tangent-weighted rectangle contour integral for the isolated
-`s = 0` correction kernel. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  zetaCompletedExplicitFormulaCorrectionRightZeroPoleTangentIntegral f F T -
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleTangentIntegral f F T +
-      zetaCompletedExplicitFormulaCorrectionTopZeroPoleTangentIntegral f F T -
-        zetaCompletedExplicitFormulaCorrectionBottomZeroPoleTangentIntegral f F T
 
 /-- The tangent-weighted isolated `s = 0` rectangle boundary integral unfolds to
 its four oriented sides. -/
@@ -494,22 +369,6 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIn
       exact congrArg (fun x : ℂ => R * Complex.I - L * Complex.I + x - BT) hU
     _ = R * Complex.I - L * Complex.I + U - B := by
       exact congrArg (fun x : ℂ => R * Complex.I - L * Complex.I + U - x) hB
-
-/-- The oriented finite-rectangle boundary integral for the `s = 0` correction pole. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionZeroPoleRectangleBoundaryIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral f F T -
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral f F T +
-      zetaCompletedExplicitFormulaCorrectionTopZeroPoleHorizontalIntegral f F T -
-        zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegral f F T
-
-/-- The oriented finite-rectangle boundary integral for the `s = 1` correction pole. -/
-noncomputable def zetaCompletedExplicitFormulaCorrectionOnePoleRectangleBoundaryIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral f F T -
-    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral f F T +
-      zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral f F T -
-        zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T
 
 /-- The `s = 0` finite-rectangle single-pole boundary integral unfolds to its four
 oriented sides. -/
