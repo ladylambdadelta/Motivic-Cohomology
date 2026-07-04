@@ -109,6 +109,70 @@ theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_Icc_end
     Complex.logarithmicPhaseRealPhase_long_packet_budget_of_Icc_endpoint_bounds
       t ht ht_nonneg ha hab hstationary hleftIcc hfarIcc
 
+/-- Positive long-branch real-phase estimate from the stationary budget and
+explicit first-derivative data on endpoint subintervals. -/
+theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_endpoint_firstDerivative_data
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (_hab_strict : a < b)
+    (_hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (_hlong_endpoint :
+      (((b + 1 : ℕ) : ℝ) / ‖t‖) <
+        (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hstationary :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+    (hleft_reduced :
+      ∀ {r : ℕ},
+        a ≤ r →
+        r ≤ b →
+          Complex.realPhase_reducedIntegerIncrementMonotoneOn
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a r)
+    (hleft_sep :
+      ∀ {r : ℕ},
+        a ≤ r →
+        r ≤ b →
+          Complex.realPhase_integerIncrementSeparatedOn
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a r
+            (‖t‖ / ((r + 1 : ℕ) : ℝ)))
+    (hfar_reduced :
+      ∀ {c r : ℕ},
+        a ≤ c →
+        c ≤ r →
+        r ≤ b →
+          Complex.realPhase_reducedIntegerIncrementMonotoneOn
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            c r)
+    (hfar_sep :
+      ∀ {c r : ℕ},
+        a ≤ c →
+        c ≤ r →
+        r ≤ b →
+          Complex.realPhase_integerIncrementSeparatedOn
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            c r
+            (‖t‖ / ((r + 1 : ℕ) : ℝ))) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_long_packet_budget_of_endpoint_firstDerivative_data
+      t ht ht_nonneg ha hab hstationary
+      hleft_reduced hleft_sep hfar_reduced hfar_sep
+
 end
 
 end LFunctions
