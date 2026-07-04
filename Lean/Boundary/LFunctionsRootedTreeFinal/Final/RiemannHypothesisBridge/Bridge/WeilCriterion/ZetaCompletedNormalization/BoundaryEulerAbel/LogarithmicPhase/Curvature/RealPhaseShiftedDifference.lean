@@ -424,6 +424,136 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_lowerParameter_pos
       (mul_pos ht_pos hBB_inv_pos)
       hh_pos
 
+/-- Shifted correlation sum appearing in Weyl differencing for the logarithmic
+real phase. -/
+def Complex.logarithmicPhaseRealPhase_shiftedCorrelation
+    (t : ℝ)
+    (h a b : ℕ) : ℂ :=
+  Complex.realPhase_secondDerivative_vdc_shiftedCorrelation
+    (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) h a b
+
+/-- Trivial cardinality bound for a shifted logarithmic correlation. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelation_norm_le_card
+    (t : ℝ)
+    (h a b : ℕ) :
+    ‖Complex.logarithmicPhaseRealPhase_shiftedCorrelation t h a b‖ ≤
+      ((Finset.Icc a (b - h)).card : ℝ) := by
+  exact
+    Complex.realPhase_secondDerivative_vdc_shiftedCorrelation_norm_le_card
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      h a b
+
+/-- Finite first-derivative estimate for a shifted correlation packet, with
+the actual Kusmin-Landau hypotheses exposed. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelation_bound_of_firstDerivative_data
+    (t : ℝ)
+    {a b h : ℕ}
+    {lam : ℝ}
+    (ha : 1 ≤ a)
+    (habh : a ≤ b - h)
+    (hlam_pos : 0 < lam)
+    (hderiv_antitone :
+      AntitoneOn
+        (fun x : ℝ =>
+          ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x‖)
+        (Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ)))
+    (hderiv_lower :
+      ∀ x : ℝ,
+        x ∈ Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ) →
+          lam ≤
+            ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x‖)
+    (hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h))
+    (hred_mono :
+      Complex.realPhase_reducedIntegerIncrementMonotoneOn
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h))
+    (hsep :
+      Complex.realPhase_integerIncrementSeparatedOn
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h) lam) :
+    ‖Complex.logarithmicPhaseRealPhase_shiftedCorrelation t h a b‖ ≤
+      4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ := by
+  exact
+    Complex.realPhase_secondDerivative_vdc_shiftedCorrelation_bound_of_firstDerivative_data
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      ha habh hlam_pos hderiv_antitone hderiv_lower
+      hinc_mono hred_mono hsep
+
+/-- Shifted-correlation bound where the derivative lower bound is supplied by
+the positive-curvature growth of the parent logarithmic phase. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelation_bound_of_growth_and_firstDerivative_data
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b h : ℕ}
+    (ha : 1 ≤ a)
+    (hpos : 1 ≤ h)
+    (hh : h ≤ b - a)
+    (habh : a ≤ b - h)
+    (hderiv_growth :
+      ∀ u v : ℝ,
+        u ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        v ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        u ≤ v →
+          (‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              (v - u) ≤
+            deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) v -
+            deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) u))
+    (hderiv_antitone :
+      AntitoneOn
+        (fun x : ℝ =>
+          ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x‖)
+        (Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ)))
+    (hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h))
+    (hred_mono :
+      Complex.realPhase_reducedIntegerIncrementMonotoneOn
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h))
+    (hsep :
+      Complex.realPhase_integerIncrementSeparatedOn
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h)
+        (‖t‖ *
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))⁻¹) *
+          ((h : ℕ) : ℝ))) :
+    ‖Complex.logarithmicPhaseRealPhase_shiftedCorrelation t h a b‖ ≤
+      4 *
+          ((‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              ((h : ℕ) : ℝ))⁻¹ +
+            1) +
+        4 * Real.pi *
+          (‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              ((h : ℕ) : ℝ))⁻¹ := by
+  let lam : ℝ :=
+    ‖t‖ *
+        ((((b + 1 : ℕ) : ℝ) *
+          (((b + 1 : ℕ) : ℝ)))⁻¹) *
+      ((h : ℕ) : ℝ)
+  have hlam_pos : 0 < lam :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_lowerParameter_pos
+      t ht hpos
+  have hderiv_lower :
+      ∀ x : ℝ,
+        x ∈ Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ) →
+          lam ≤
+            ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x‖ :=
+    fun x hx =>
+      Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_lower_on_shifted_Icc
+        t ha hh hx hderiv_growth
+  exact
+    Complex.realPhase_secondDerivative_vdc_shiftedCorrelation_bound_of_curvatureScale_data
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      ht ha hpos habh hderiv_antitone hderiv_lower
+      hinc_mono hred_mono hsep
+
 end
 
 end LFunctions
