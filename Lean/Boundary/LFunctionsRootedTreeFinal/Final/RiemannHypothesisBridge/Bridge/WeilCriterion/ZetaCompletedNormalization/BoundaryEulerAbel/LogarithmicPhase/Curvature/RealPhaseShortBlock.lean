@@ -102,6 +102,56 @@ theorem Complex.logarithmicPhaseRealPhase_short_endpoint_block_bound
       (Real.logarithmicPhase_endpoint_sqrt_target_nonneg t ht b)
   exact le_trans hbase hwiden
 
+/-- A real-phase block estimate for `-t` transports to the corresponding
+estimate for `t`, since the two block sums have the same norm. -/
+theorem Complex.logarithmicPhaseRealPhase_block_bound_of_neg_parameter_bound
+    (t : ℝ)
+    {a b : ℕ}
+    (hneg :
+      ‖∑ n ∈ Finset.Icc a b,
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase (-t) n : ℂ))‖ ≤
+        80 * ((((b + 1 : ℕ) : ℝ) / ‖-t‖ + Real.sqrt (1 + ‖-t‖)))) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  have hneg_norm : ‖-t‖ = ‖t‖ :=
+    norm_neg t
+  have htarget_eq :
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖-t‖ + Real.sqrt (1 + ‖-t‖))) =
+        80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+    congrArg
+      (fun r : ℝ =>
+        80 * ((((b + 1 : ℕ) : ℝ) / r + Real.sqrt (1 + r))))
+      hneg_norm
+  have hnorm_eq :
+      ‖∑ n ∈ Finset.Icc a b,
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase (-t) n : ℂ))‖ =
+      ‖∑ n ∈ Finset.Icc a b,
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ :=
+    Complex.logarithmicPhaseRealPhase_block_norm_neg_parameter_eq t a b
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤ 80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+      hnorm_eq
+      (Eq.subst
+        (motive := fun right : ℝ =>
+          ‖∑ n ∈ Finset.Icc a b,
+            Complex.exp
+              (Complex.I *
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase (-t) n : ℂ))‖ ≤
+            right)
+        htarget_eq
+        hneg)
+
 end
 
 end LFunctions
