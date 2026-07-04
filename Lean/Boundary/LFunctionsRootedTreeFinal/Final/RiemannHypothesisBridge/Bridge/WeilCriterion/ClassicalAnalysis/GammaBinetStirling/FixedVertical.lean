@@ -277,7 +277,9 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_compact
       exact (not_le_of_gt hσ) hσ_nonpos
     have hline_cont :
         ContinuousAt (fun u : ℝ => (σ : ℂ) + u * Complex.I) t := by
-      fun_prop
+      exact
+        (continuous_const.add
+          (Complex.continuous_ofReal.mul continuous_const)).continuousAt
     have hgamma_at :
         ContinuousAt Complex.Gamma ((σ : ℂ) + (t : ℂ) * Complex.I) :=
       (Complex.differentiableAt_Gamma
@@ -336,7 +338,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble
   · exact lt_of_lt_of_le hCtail_pos (le_max_left Ctail Ccompact)
   · intro t
     match tail_split_dec T t with
-    | Or.inl ht_tail =>
+    | isTrue ht_tail =>
       have htail_bound :
           ‖Complex.Gamma (σ + t * Complex.I)‖ ≤
             Ctail * (1 + ‖t‖) ^ m :=
@@ -348,7 +350,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble
       exact
         le_trans htail_bound
           (mul_le_mul_of_nonneg_right hC_le hpow_nonneg)
-    | Or.inr ht_tail =>
+    | isFalse ht_tail =>
       have ht_compact : ‖t‖ ≤ T :=
         le_of_not_ge ht_tail
       have hcompact_bound :
@@ -532,7 +534,9 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_compact
       exact
         have hline_cont :
             ContinuousAt (fun u : ℝ => (σ : ℂ) + u * Complex.I) t := by
-          fun_prop
+          exact
+            (continuous_const.add
+              (Complex.continuous_ofReal.mul continuous_const)).continuousAt
         have hgamma_at :
             ContinuousAt Complex.Gamma ((σ : ℂ) + (t : ℂ) * Complex.I) :=
           (Complex.differentiableAt_Gamma
@@ -594,7 +598,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_assemble
   · exact lt_of_lt_of_le hCtail_pos (le_max_left Ctail Ccompact)
   · intro t
     match tail_split_dec T t with
-    | Or.inl ht_tail =>
+    | isTrue ht_tail =>
       have htail_bound :
           ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤
             Ctail * Real.exp (A * ‖t‖) :=
@@ -606,7 +610,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_assemble
       exact
         le_trans htail_bound
           (mul_le_mul_of_nonneg_right hC_le hexp_nonneg)
-    | Or.inr ht_tail =>
+    | isFalse ht_tail =>
       have ht_compact : ‖t‖ ≤ T :=
         le_of_not_ge ht_tail
       have hcompact_bound :
