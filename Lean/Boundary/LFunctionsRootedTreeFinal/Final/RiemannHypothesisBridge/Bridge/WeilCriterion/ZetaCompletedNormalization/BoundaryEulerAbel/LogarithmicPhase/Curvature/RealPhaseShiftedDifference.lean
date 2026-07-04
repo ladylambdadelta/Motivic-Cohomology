@@ -202,6 +202,228 @@ theorem Real.add_nat_mem_parent_Icc_of_mem_shifted_Icc
       (Nat.cast_shifted_endpoint_add_le_parent_endpoint hh)
   exact And.intro hleft hright
 
+/-- Derivative lower bound for a shifted logarithmic phase difference in the
+positive-frequency branch. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_of_growth
+    (t : ℝ)
+    {a b h : ℕ}
+    {x : ℝ}
+    (ha : 1 ≤ a)
+    (hx : x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ))
+    (hx_shift :
+      x + h ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ))
+    (hderiv_growth :
+      ∀ u v : ℝ,
+        u ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        v ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        u ≤ v →
+          (‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              (v - u) ≤
+            deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) v -
+            deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) u)) :
+    (‖t‖ *
+        ((((b + 1 : ℕ) : ℝ) *
+          (((b + 1 : ℕ) : ℝ)))⁻¹) *
+        ((h : ℕ) : ℝ) ≤
+      deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x) := by
+  have ha_pos : (0 : ℝ) < (a : ℝ) :=
+    Nat.cast_pos.mpr (Nat.lt_of_succ_le ha)
+  have hx_pos : 0 < x :=
+    lt_of_lt_of_le ha_pos hx.1
+  have hh_nonneg : (0 : ℝ) ≤ ((h : ℕ) : ℝ) :=
+    Nat.cast_nonneg h
+  have hx_le_shift : x ≤ x + h :=
+    le_add_of_nonneg_right hh_nonneg
+  have hgrowth :
+      (‖t‖ *
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))⁻¹) *
+          ((x + h) - x) ≤
+        deriv
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) (x + h) -
+        deriv
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x) :=
+    hderiv_growth x (x + h) hx hx_shift hx_le_shift
+  have hdiff :
+      (x + h) - x = ((h : ℕ) : ℝ) := by
+    exact add_sub_cancel_left x ((h : ℕ) : ℝ)
+  have hderiv_eq :
+      deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x =
+        deriv
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) (x + h) -
+        deriv
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_eq t hx_pos
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤ deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x)
+      (congrArg
+        (fun r : ℝ =>
+          ‖t‖ *
+            ((((b + 1 : ℕ) : ℝ) *
+              (((b + 1 : ℕ) : ℝ)))⁻¹) *
+            r)
+        hdiff)
+      (Eq.subst
+        (motive := fun right : ℝ =>
+          ‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              ((x + h) - x) ≤ right)
+        hderiv_eq.symm
+        hgrowth)
+
+/-- Integer-index form of the shifted-difference derivative lower bound on a
+shifted-correlation packet. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_of_growth_at_nat
+    (t : ℝ)
+    {a b h n : ℕ}
+    (ha : 1 ≤ a)
+    (hh : h ≤ b - a)
+    (hn : n ∈ Finset.Icc a (b - h))
+    (hderiv_growth :
+      ∀ u v : ℝ,
+        u ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        v ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        u ≤ v →
+          (‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              (v - u) ≤
+            deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) v -
+            deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) u)) :
+    (‖t‖ *
+        ((((b + 1 : ℕ) : ℝ) *
+          (((b + 1 : ℕ) : ℝ)))⁻¹) *
+        ((h : ℕ) : ℝ) ≤
+      deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n) := by
+  have hn_parent :
+      (n : ℝ) ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) :=
+    Nat.cast_mem_parent_Icc_of_mem_shifted_Icc hn
+  have hn_shift_parent :
+      ((n : ℝ) + h) ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) :=
+    Nat.cast_add_mem_parent_Icc_of_mem_shifted_Icc hh hn
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_of_growth
+      t ha hn_parent hn_shift_parent hderiv_growth
+
+/-- Real-interval form of the shifted-difference derivative lower bound on a
+shifted-correlation packet. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_on_shifted_Icc
+    (t : ℝ)
+    {a b h : ℕ}
+    (ha : 1 ≤ a)
+    (hh : h ≤ b - a)
+    {x : ℝ}
+    (hx : x ∈ Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ))
+    (hderiv_growth :
+      ∀ u v : ℝ,
+        u ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        v ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        u ≤ v →
+          (‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              (v - u) ≤
+            deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) v -
+            deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) u)) :
+    (‖t‖ *
+        ((((b + 1 : ℕ) : ℝ) *
+          (((b + 1 : ℕ) : ℝ)))⁻¹) *
+        ((h : ℕ) : ℝ) ≤
+      deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x) := by
+  have hx_parent :
+      x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) :=
+    Real.mem_parent_Icc_of_mem_shifted_Icc hx
+  have hx_shift_parent :
+      x + h ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) :=
+    Real.add_nat_mem_parent_Icc_of_mem_shifted_Icc hh hx
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_of_growth
+      t ha hx_parent hx_shift_parent hderiv_growth
+
+/-- Normed real-interval form of the shifted-difference derivative lower
+bound. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_lower_on_shifted_Icc
+    (t : ℝ)
+    {a b h : ℕ}
+    (ha : 1 ≤ a)
+    (hh : h ≤ b - a)
+    {x : ℝ}
+    (hx : x ∈ Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ))
+    (hderiv_growth :
+      ∀ u v : ℝ,
+        u ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        v ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        u ≤ v →
+          (‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              (v - u) ≤
+            deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) v -
+            deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) u)) :
+    (‖t‖ *
+        ((((b + 1 : ℕ) : ℝ) *
+          (((b + 1 : ℕ) : ℝ)))⁻¹) *
+        ((h : ℕ) : ℝ) ≤
+      ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x‖) := by
+  have hlower :
+      (‖t‖ *
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))⁻¹) *
+          ((h : ℕ) : ℝ) ≤
+        deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x) :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_on_shifted_Icc
+      t ha hh hx hderiv_growth
+  exact
+    le_trans hlower
+      (le_abs_self
+        (deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x))
+
+/-- The shifted-difference lower-derivative scale is positive for nonzero
+shift and nonzero logarithmic frequency. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_lowerParameter_pos
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {b h : ℕ}
+    (hpos : 1 ≤ h) :
+    0 <
+      ‖t‖ *
+        ((((b + 1 : ℕ) : ℝ) *
+          (((b + 1 : ℕ) : ℝ)))⁻¹) *
+        ((h : ℕ) : ℝ) := by
+  have ht_pos : 0 < ‖t‖ :=
+    lt_of_lt_of_le zero_lt_one ht
+  have hB_pos : 0 < (((b + 1 : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr (Nat.succ_pos b)
+  have hBB_pos :
+      0 <
+        (((b + 1 : ℕ) : ℝ) *
+          (((b + 1 : ℕ) : ℝ))) :=
+    mul_pos hB_pos hB_pos
+  have hBB_inv_pos :
+      0 <
+        ((((b + 1 : ℕ) : ℝ) *
+          (((b + 1 : ℕ) : ℝ)))⁻¹) :=
+    inv_pos.mpr hBB_pos
+  have hh_pos : 0 < ((h : ℕ) : ℝ) :=
+    Nat.cast_pos.mpr (Nat.lt_of_succ_le hpos)
+  exact
+    mul_pos
+      (mul_pos ht_pos hBB_inv_pos)
+      hh_pos
+
 end
 
 end LFunctions
