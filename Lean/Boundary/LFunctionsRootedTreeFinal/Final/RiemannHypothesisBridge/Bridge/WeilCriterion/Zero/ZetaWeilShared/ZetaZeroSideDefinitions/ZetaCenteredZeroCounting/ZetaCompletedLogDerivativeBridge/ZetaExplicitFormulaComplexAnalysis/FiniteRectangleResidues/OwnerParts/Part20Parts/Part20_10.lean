@@ -41,13 +41,13 @@ theorem explicitFormulaRectangleYAdjacentEndpointPairOuter_rightIntegralSum_eq_f
         f ((-T, T), F.c) := by
   let ys : List ℝ := explicitFormulaRectangleSortedYEndpoints T ρ
   let n : ℕ := ys.length - 1
-  let a : ℕ → ℝ := explicitFormulaRectangleSortedYEndpointAt T ρ
+  let endpoint : ℕ → ℝ := explicitFormulaRectangleSortedYEndpointAt T ρ
   have hfirst :
-      a 0 = -T := by
+      endpoint 0 = -T := by
     have h0 : 0 < ys.length :=
       explicitFormulaRectangleSortedYEndpoints_length_pos T ρ
     calc
-      a 0 =
+      endpoint 0 =
           ys.get ⟨0, h0⟩ := by
         exact explicitFormulaRectangleSortedYEndpointAt_of_lt T ρ h0
       _ = -T := by
@@ -55,14 +55,14 @@ theorem explicitFormulaRectangleYAdjacentEndpointPairOuter_rightIntegralSum_eq_f
           explicitFormulaRectangleSortedYEndpoints_first_eq_outerLower
             F hT_nonneg hρ hclosed
   have hlast :
-      a n = T := by
+      endpoint n = T := by
     have hlast_lt :
         ys.length - 1 < ys.length :=
       Nat.sub_lt
         (explicitFormulaRectangleSortedYEndpoints_length_pos T ρ)
         Nat.zero_lt_one
     calc
-      a n =
+      endpoint n =
           ys.get ⟨ys.length - 1, hlast_lt⟩ := by
         exact explicitFormulaRectangleSortedYEndpointAt_of_lt T ρ hlast_lt
       _ = T := by
@@ -70,56 +70,121 @@ theorem explicitFormulaRectangleYAdjacentEndpointPairOuter_rightIntegralSum_eq_f
           explicitFormulaRectangleSortedYEndpoints_last_eq_outerUpper
             F hT_nonneg hρ hclosed
   have htelescope :
-      explicitFormulaRectangleListSum
-          (fun i : Fin n =>
-            Complex.I •
-              ∫ y : ℝ in a i.1..a (i.1 + 1),
+        explicitFormulaRectangleListSum
+            (fun i : Fin n =>
+              Complex.I •
+                ∫ y : ℝ in (endpoint i.1)..(endpoint (i.1 + 1)),
                 zetaCompletedExplicitFormulaContourIntegrand f
                   ((F.c : ℂ) + y * Complex.I))
           (List.ofFn (fun i : Fin n => i)) =
-        Complex.I •
-          ∫ y : ℝ in a 0..a n,
-            zetaCompletedExplicitFormulaContourIntegrand f
-              ((F.c : ℂ) + y * Complex.I) :=
+          Complex.I •
+            ∫ y : ℝ in (endpoint 0)..(endpoint n),
+              zetaCompletedExplicitFormulaContourIntegrand f
+                ((F.c : ℂ) + y * Complex.I) :=
     explicitFormulaRectangleListSum_ofFn_verticalIntegral_adjacent
-      f F.c a hint
+        f F.c endpoint hint
+  have hindexed :
+        explicitFormulaRectangleListSum
+            (fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
+              explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+                f ((ypair.y₀, ypair.y₁), F.c))
+            (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
+          explicitFormulaRectangleListSum
+            (fun i : Fin n =>
+              Complex.I •
+                ∫ y : ℝ in (endpoint i.1)..(endpoint (i.1 + 1)),
+                  zetaCompletedExplicitFormulaContourIntegrand f
+                    ((F.c : ℂ) + y * Complex.I))
+            (List.ofFn (fun i : Fin n => i)) := by
+      let pairAt : Fin n → ExplicitFormulaRectangleYAdjacentEndpointPair T ρ :=
+        fun i => explicitFormulaRectangleYAdjacentEndpointPairAt T ρ i
+      let edgeIntegral : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ → ℂ :=
+        fun ypair =>
+          explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+            f ((ypair.y₀, ypair.y₁), F.c)
+      have hfrom :
+          explicitFormulaRectangleListSum edgeIntegral
+              (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
+            explicitFormulaRectangleListSum edgeIntegral (List.ofFn pairAt) := by
+        exact
+          congrArg
+            (fun xs : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ρ) =>
+              explicitFormulaRectangleListSum edgeIntegral xs)
+            (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints_eq_ofFn_pairAt T ρ)
+      have hcomp :
+          explicitFormulaRectangleListSum edgeIntegral (List.ofFn pairAt) =
+            explicitFormulaRectangleListSum
+              (fun i : Fin n => edgeIntegral (pairAt i))
+              (List.ofFn (fun i : Fin n => i)) :=
+        explicitFormulaRectangleListSum_ofFn_comp pairAt edgeIntegral
+      have hcoords :
+          explicitFormulaRectangleListSum
+              (fun i : Fin n => edgeIntegral (pairAt i))
+              (List.ofFn (fun i : Fin n => i)) =
+            explicitFormulaRectangleListSum
+              (fun i : Fin n =>
+                Complex.I •
+                  ∫ y : ℝ in (endpoint i.1)..(endpoint (i.1 + 1)),
+                    zetaCompletedExplicitFormulaContourIntegrand f
+                      ((F.c : ℂ) + y * Complex.I))
+              (List.ofFn (fun i : Fin n => i)) := by
+        exact
+          congrArg
+            (fun g : Fin n → ℂ =>
+              explicitFormulaRectangleListSum g (List.ofFn (fun i : Fin n => i)))
+            (funext
+              (fun i =>
+                calc
+                  edgeIntegral (pairAt i) =
+                      explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+                        f ((endpoint i.1, endpoint (i.1 + 1)), F.c) := by
+                    exact
+                      congrArg
+                        (fun endpoints : ℝ × ℝ =>
+                          explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+                            f (endpoints, F.c))
+                        (Prod.ext
+                          (explicitFormulaRectangleYAdjacentEndpointPairAt_y₀ T ρ i)
+                          (explicitFormulaRectangleYAdjacentEndpointPairAt_y₁ T ρ i))
+                  _ =
+                      Complex.I •
+                        ∫ y : ℝ in (endpoint i.1)..(endpoint (i.1 + 1)),
+                          zetaCompletedExplicitFormulaContourIntegrand f
+                            ((F.c : ℂ) + y * Complex.I) := by
+                    exact Eq.refl _))
+      exact Eq.trans hfrom (Eq.trans hcomp hcoords)
   calc
     explicitFormulaRectangleListSum
-        (fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
-          explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+          (fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
+            explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
             f ((ypair.y₀, ypair.y₁), F.c))
         (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
-        explicitFormulaRectangleListSum
-          (fun i : Fin n =>
-            Complex.I •
-              ∫ y : ℝ in a i.1..a (i.1 + 1),
-                zetaCompletedExplicitFormulaContourIntegrand f
-                  ((F.c : ℂ) + y * Complex.I))
-          (List.ofFn (fun i : Fin n => i)) := by
-      rfl
+          explicitFormulaRectangleListSum
+            (fun i : Fin n =>
+              Complex.I •
+                ∫ y : ℝ in (endpoint i.1)..(endpoint (i.1 + 1)),
+                  zetaCompletedExplicitFormulaContourIntegrand f
+                    ((F.c : ℂ) + y * Complex.I))
+            (List.ofFn (fun i : Fin n => i)) := by
+        exact hindexed
     _ =
         Complex.I •
-          ∫ y : ℝ in a 0..a n,
+          ∫ y : ℝ in (endpoint 0)..(endpoint n),
             zetaCompletedExplicitFormulaContourIntegrand f
               ((F.c : ℂ) + y * Complex.I) := by
       exact htelescope
     _ =
-        Complex.I •
-          ∫ y : ℝ in (-T)..T,
-            zetaCompletedExplicitFormulaContourIntegrand f
-              ((F.c : ℂ) + y * Complex.I) := by
-      exact
-        congrArg
-          (fun endpoints : ℝ × ℝ =>
-            Complex.I •
-              ∫ y : ℝ in endpoints.1..endpoints.2,
-                zetaCompletedExplicitFormulaContourIntegrand f
-                  ((F.c : ℂ) + y * Complex.I))
-          (Prod.ext hfirst hlast)
+        explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+          f ((endpoint 0, endpoint n), F.c) := by
+      exact Eq.refl _
     _ =
         explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
           f ((-T, T), F.c) := by
-      rfl
+      exact
+        congrArg
+          (fun endpoints : ℝ × ℝ =>
+            explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral f (endpoints, F.c))
+          (Prod.ext hfirst hlast)
 
 /-- The sorted vertical subdivision assembles to a full left vertical endpoint-data edge
 once interval-integrability on the sorted adjacent subintervals is supplied. -/
@@ -142,13 +207,13 @@ theorem explicitFormulaRectangleYAdjacentEndpointPairOuter_leftIntegralSum_eq_fu
         f ((-T, T), 1 - F.c) := by
   let ys : List ℝ := explicitFormulaRectangleSortedYEndpoints T ρ
   let n : ℕ := ys.length - 1
-  let a : ℕ → ℝ := explicitFormulaRectangleSortedYEndpointAt T ρ
+  let endpoint : ℕ → ℝ := explicitFormulaRectangleSortedYEndpointAt T ρ
   have hfirst :
-      a 0 = -T := by
+      endpoint 0 = -T := by
     have h0 : 0 < ys.length :=
       explicitFormulaRectangleSortedYEndpoints_length_pos T ρ
     calc
-      a 0 =
+      endpoint 0 =
           ys.get ⟨0, h0⟩ := by
         exact explicitFormulaRectangleSortedYEndpointAt_of_lt T ρ h0
       _ = -T := by
@@ -156,14 +221,14 @@ theorem explicitFormulaRectangleYAdjacentEndpointPairOuter_leftIntegralSum_eq_fu
           explicitFormulaRectangleSortedYEndpoints_first_eq_outerLower
             F hT_nonneg hρ hclosed
   have hlast :
-      a n = T := by
+      endpoint n = T := by
     have hlast_lt :
         ys.length - 1 < ys.length :=
       Nat.sub_lt
         (explicitFormulaRectangleSortedYEndpoints_length_pos T ρ)
         Nat.zero_lt_one
     calc
-      a n =
+      endpoint n =
           ys.get ⟨ys.length - 1, hlast_lt⟩ := by
         exact explicitFormulaRectangleSortedYEndpointAt_of_lt T ρ hlast_lt
       _ = T := by
@@ -174,53 +239,118 @@ theorem explicitFormulaRectangleYAdjacentEndpointPairOuter_leftIntegralSum_eq_fu
       explicitFormulaRectangleListSum
           (fun i : Fin n =>
             Complex.I •
-              ∫ y : ℝ in a i.1..a (i.1 + 1),
+              ∫ y : ℝ in (endpoint i.1)..(endpoint (i.1 + 1)),
                 zetaCompletedExplicitFormulaContourIntegrand f
                   (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
           (List.ofFn (fun i : Fin n => i)) =
         Complex.I •
-          ∫ y : ℝ in a 0..a n,
+          ∫ y : ℝ in (endpoint 0)..(endpoint n),
             zetaCompletedExplicitFormulaContourIntegrand f
               (((1 - F.c : ℝ) : ℂ) + y * Complex.I) :=
-    explicitFormulaRectangleListSum_ofFn_verticalIntegral_adjacent
-      f (1 - F.c) a hint
+      explicitFormulaRectangleListSum_ofFn_verticalIntegral_adjacent
+        f (1 - F.c) endpoint hint
+  have hindexed :
+        explicitFormulaRectangleListSum
+            (fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
+              explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
+                f ((ypair.y₀, ypair.y₁), 1 - F.c))
+            (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
+          explicitFormulaRectangleListSum
+            (fun i : Fin n =>
+              Complex.I •
+                ∫ y : ℝ in (endpoint i.1)..(endpoint (i.1 + 1)),
+                  zetaCompletedExplicitFormulaContourIntegrand f
+                    (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
+            (List.ofFn (fun i : Fin n => i)) := by
+      let pairAt : Fin n → ExplicitFormulaRectangleYAdjacentEndpointPair T ρ :=
+        fun i => explicitFormulaRectangleYAdjacentEndpointPairAt T ρ i
+      let edgeIntegral : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ → ℂ :=
+        fun ypair =>
+          explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
+            f ((ypair.y₀, ypair.y₁), 1 - F.c)
+      have hfrom :
+          explicitFormulaRectangleListSum edgeIntegral
+              (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
+            explicitFormulaRectangleListSum edgeIntegral (List.ofFn pairAt) := by
+        exact
+          congrArg
+            (fun xs : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ρ) =>
+              explicitFormulaRectangleListSum edgeIntegral xs)
+            (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints_eq_ofFn_pairAt T ρ)
+      have hcomp :
+          explicitFormulaRectangleListSum edgeIntegral (List.ofFn pairAt) =
+            explicitFormulaRectangleListSum
+              (fun i : Fin n => edgeIntegral (pairAt i))
+              (List.ofFn (fun i : Fin n => i)) :=
+        explicitFormulaRectangleListSum_ofFn_comp pairAt edgeIntegral
+      have hcoords :
+          explicitFormulaRectangleListSum
+              (fun i : Fin n => edgeIntegral (pairAt i))
+              (List.ofFn (fun i : Fin n => i)) =
+            explicitFormulaRectangleListSum
+              (fun i : Fin n =>
+                Complex.I •
+                  ∫ y : ℝ in (endpoint i.1)..(endpoint (i.1 + 1)),
+                    zetaCompletedExplicitFormulaContourIntegrand f
+                      (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
+              (List.ofFn (fun i : Fin n => i)) := by
+        exact
+          congrArg
+            (fun g : Fin n → ℂ =>
+              explicitFormulaRectangleListSum g (List.ofFn (fun i : Fin n => i)))
+            (funext
+              (fun i =>
+                calc
+                  edgeIntegral (pairAt i) =
+                      explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
+                        f ((endpoint i.1, endpoint (i.1 + 1)), 1 - F.c) := by
+                    exact
+                      congrArg
+                        (fun endpoints : ℝ × ℝ =>
+                          explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
+                            f (endpoints, 1 - F.c))
+                        (Prod.ext
+                          (explicitFormulaRectangleYAdjacentEndpointPairAt_y₀ T ρ i)
+                          (explicitFormulaRectangleYAdjacentEndpointPairAt_y₁ T ρ i))
+                  _ =
+                      Complex.I •
+                        ∫ y : ℝ in (endpoint i.1)..(endpoint (i.1 + 1)),
+                          zetaCompletedExplicitFormulaContourIntegrand f
+                            (((1 - F.c : ℝ) : ℂ) + y * Complex.I) := by
+                    exact Eq.refl _))
+      exact Eq.trans hfrom (Eq.trans hcomp hcoords)
   calc
     explicitFormulaRectangleListSum
         (fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
           explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
-            f ((ypair.y₀, ypair.y₁), 1 - F.c))
-        (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
+          f ((ypair.y₀, ypair.y₁), 1 - F.c))
+      (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
         explicitFormulaRectangleListSum
           (fun i : Fin n =>
             Complex.I •
-              ∫ y : ℝ in a i.1..a (i.1 + 1),
+              ∫ y : ℝ in (endpoint i.1)..(endpoint (i.1 + 1)),
                 zetaCompletedExplicitFormulaContourIntegrand f
                   (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
           (List.ofFn (fun i : Fin n => i)) := by
-      rfl
+      exact hindexed
     _ =
         Complex.I •
-          ∫ y : ℝ in a 0..a n,
+          ∫ y : ℝ in (endpoint 0)..(endpoint n),
             zetaCompletedExplicitFormulaContourIntegrand f
               (((1 - F.c : ℝ) : ℂ) + y * Complex.I) := by
       exact htelescope
     _ =
-        Complex.I •
-          ∫ y : ℝ in (-T)..T,
-            zetaCompletedExplicitFormulaContourIntegrand f
-              (((1 - F.c : ℝ) : ℂ) + y * Complex.I) := by
-      exact
-        congrArg
-          (fun endpoints : ℝ × ℝ =>
-            Complex.I •
-              ∫ y : ℝ in endpoints.1..endpoints.2,
-                zetaCompletedExplicitFormulaContourIntegrand f
-                  (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
-          (Prod.ext hfirst hlast)
+        explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
+          f ((endpoint 0, endpoint n), 1 - F.c) := by
+      exact Eq.refl _
     _ =
         explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
           f ((-T, T), 1 - F.c) := by
-      rfl
+      exact
+        congrArg
+          (fun endpoints : ℝ × ℝ =>
+            explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral f (endpoints, 1 - F.c))
+          (Prod.ext hfirst hlast)
 
 /-- The sorted vertical subdivision assembles to the full right outer endpoint-data
 edge. -/
@@ -591,13 +721,13 @@ theorem explicitFormulaRectangleVerticalHoleRightSliceContributionSum_eq_holeRig
         ∑ a in S,
           explicitFormulaRectangleBoxRightEdgeIntegral f
             (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ρ a) := by
-      exact Finset.sum_congr rfl
+      exact Finset.sum_congr (Eq.refl S)
         (fun a ha =>
-          explicitFormulaRectangleYAdjacentEndpointPairSubspanRawHole_rightIntegralSum_eq_rawBoxRight
-            f F hT_nonneg hρ hclosed hsep ha (hrightHole a ha))
+          explicitFormulaRectangleYAdjacentEndpointPairSubspanRawHole_rightIntegralSum_eq_rawBoxRight_of_integrable
+            f F hT_nonneg hρ hclosed ha (hrightHole a ha))
     _ =
         explicitFormulaRectangleRawInscribedSquareEndpointDataBoxRightEdgeFinsetSum f T ρ := by
-      rfl
+      exact Eq.refl _
 
 /-- The left raw-hole vertical slices over the sorted vertical subdivision assemble to
 the grouped left sides of the raw square holes. -/
@@ -665,13 +795,27 @@ theorem explicitFormulaRectangleVerticalHoleLeftSliceContributionSum_eq_holeLeft
         ∑ a in S,
           explicitFormulaRectangleBoxLeftEdgeIntegral f
             (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ρ a) := by
-      exact Finset.sum_congr rfl
+      exact Finset.sum_congr (Eq.refl S)
         (fun a ha =>
-          explicitFormulaRectangleYAdjacentEndpointPairSubspanRawHole_leftIntegralSum_eq_rawBoxLeft
-            f F hT_nonneg hρ hclosed hsep ha (hleftHole a ha))
+          explicitFormulaRectangleYAdjacentEndpointPairSubspanRawHole_leftIntegralSum_eq_rawBoxLeft_of_integrable
+            f F hT_nonneg hρ hclosed ha (hleftHole a ha))
     _ =
         explicitFormulaRectangleRawInscribedSquareEndpointDataBoxLeftEdgeFinsetSum f T ρ := by
-      rfl
+      exact Eq.refl _
+
+/-- A selected difference is the difference of the selected terms. -/
+theorem explicitFormulaRectangle_selectedSub_eq_selected_right_sub_selected_left
+    {P : Prop} (d : Decidable P) (R L : ℂ) :
+    letI : Decidable P := d
+    (if _h : P then R - L else 0) =
+      (if _h : P then R else 0) - (if _h : P then L else 0) := by
+  match d with
+  | isTrue hP =>
+      show R - L = R - L
+      exact Eq.refl _
+  | isFalse hP =>
+      show (0 : ℂ) = 0 - 0
+      exact (sub_zero (0 : ℂ)).symm
 
 /-- A raw-hole vertical slice is the right raw-hole slice minus the left raw-hole slice
 at the same sorted vertical span. -/
@@ -724,13 +868,20 @@ theorem explicitFormulaRectangleVerticalHoleSliceContribution_eq_right_sub_left
               explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral f
                 ((ypair.y₀, ypair.y₁),
                   (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re)
-            else
-              0) := by
-    intro a
-    by_cases hspan :
-        explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a
-    · rfl
-    · exact (sub_zero (0 : ℂ)).symm
+              else
+                0) := by
+      intro a
+      exact
+        explicitFormulaRectangle_selectedSub_eq_selected_right_sub_selected_left
+          (inferInstance :
+            Decidable
+              (explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a))
+          (explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral f
+            ((ypair.y₀, ypair.y₁),
+              (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re))
+          (explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral f
+            ((ypair.y₀, ypair.y₁),
+              (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re))
   calc
     explicitFormulaRectangleVerticalHoleSliceContribution f T ρ ypair =
         ∑ a in explicitFormulaRectangleRawSingularCoordinates T,
@@ -748,9 +899,9 @@ theorem explicitFormulaRectangleVerticalHoleSliceContribution_eq_right_sub_left
               explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral f
                 ((ypair.y₀, ypair.y₁),
                   (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re)
-            else
-              0)) := by
-      exact Finset.sum_congr rfl (fun a _ha => hpoint a)
+              else
+                0)) := by
+        exact Finset.sum_congr (Eq.refl _) (fun a _ha => hpoint a)
     _ =
         (∑ a in explicitFormulaRectangleRawSingularCoordinates T,
           if _hspan :
@@ -772,7 +923,7 @@ theorem explicitFormulaRectangleVerticalHoleSliceContribution_eq_right_sub_left
               0) := by
       exact Finset.sum_sub_distrib
 
-/-- A fixed-column selected vertical contribution is its selected right-edge scan minus
+/- A fixed-column selected vertical contribution is its selected right-edge scan minus
 its selected left-edge scan. -/
 
 end ZetaAdmissibleFunction
