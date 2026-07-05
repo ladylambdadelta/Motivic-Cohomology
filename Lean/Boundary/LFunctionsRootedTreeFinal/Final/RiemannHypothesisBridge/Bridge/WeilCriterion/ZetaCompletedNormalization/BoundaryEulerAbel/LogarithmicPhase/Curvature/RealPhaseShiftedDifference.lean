@@ -362,6 +362,28 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_of_growt
     Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_of_growth
       t ha hn_parent hn_shift_parent hderiv_growth
 
+/-- Integer-index shifted-difference derivative lower bound in the
+positive-frequency branch. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_of_nonneg_at_nat
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b h n : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hh : h ≤ b - a)
+    (hn : n ∈ Finset.Icc a (b - h)) :
+    (‖t‖ *
+        ((((b + 1 : ℕ) : ℝ) *
+          (((b + 1 : ℕ) : ℝ)))⁻¹) *
+        ((h : ℕ) : ℝ) ≤
+      deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_of_growth_at_nat
+      t ha hh hn
+      (Complex.logarithmicPhaseRealPhase_deriv_growth_on_integer_block
+        t ht ht_nonneg ha hab)
+
 /-- Real-interval form of the shifted-difference derivative lower bound on a
 shifted-correlation packet. -/
 theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_on_shifted_Icc
@@ -398,6 +420,29 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_on_shift
   exact
     Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_of_growth
       t ha hx_parent hx_shift_parent hderiv_growth
+
+/-- Real-interval shifted-difference derivative lower bound in the
+positive-frequency branch. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_on_shifted_Icc_of_nonneg
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b h : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hh : h ≤ b - a)
+    {x : ℝ}
+    (hx : x ∈ Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ)) :
+    (‖t‖ *
+        ((((b + 1 : ℕ) : ℝ) *
+          (((b + 1 : ℕ) : ℝ)))⁻¹) *
+        ((h : ℕ) : ℝ) ≤
+      deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_on_shifted_Icc
+      t ha hh hx
+      (Complex.logarithmicPhaseRealPhase_deriv_growth_on_integer_block
+        t ht ht_nonneg ha hab)
 
 /-- Normed real-interval form of the shifted-difference derivative lower
 bound. -/
@@ -438,6 +483,29 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_lower_on_
     le_trans hlower
       (le_abs_self
         (deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x))
+
+/-- Normed shifted-difference derivative lower bound in the positive-frequency
+branch. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_lower_on_shifted_Icc_of_nonneg
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b h : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hh : h ≤ b - a)
+    {x : ℝ}
+    (hx : x ∈ Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ)) :
+    (‖t‖ *
+        ((((b + 1 : ℕ) : ℝ) *
+          (((b + 1 : ℕ) : ℝ)))⁻¹) *
+        ((h : ℕ) : ℝ) ≤
+      ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x‖) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_lower_on_shifted_Icc
+      t ha hh hx
+      (Complex.logarithmicPhaseRealPhase_deriv_growth_on_integer_block
+        t ht ht_nonneg ha hab)
 
 /-- The shifted-difference lower-derivative scale is positive for nonzero
 shift and nonzero logarithmic frequency. -/
