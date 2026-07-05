@@ -18,12 +18,24 @@ noncomputable section
 def zetaZeroOrbitSpectralSampleFinset (ρ : ℂ) : Finset ℂ :=
   (zetaZeroOrbitFinset ρ).image zetaCenteredZero
 
+/-- The finite spectral sample set attached to the uncentered zero-side
+contribution coordinates of a zero orbit. -/
+def zetaZeroOrbitContributionSpectralSampleFinset (ρ : ℂ) : Finset ℂ :=
+  zetaZeroOrbitFinset ρ
+
 /-- Membership in the centered zero orbit gives membership of the centered coordinate in the
 finite spectral sample set. -/
 theorem zetaCenteredZero_mem_zeroOrbitSpectralSampleFinset
     (ρ η : ℂ) (hη : η ∈ zetaZeroOrbitFinset ρ) :
     zetaCenteredZero η ∈ zetaZeroOrbitSpectralSampleFinset ρ := by
   exact Finset.mem_image.mpr ⟨η, hη, rfl⟩
+
+/-- Membership in the zero orbit gives membership in the uncentered
+zero-side contribution sample set. -/
+theorem zetaZeroOrbit_mem_contributionSpectralSampleFinset
+    (ρ η : ℂ) (hη : η ∈ zetaZeroOrbitFinset ρ) :
+    η ∈ zetaZeroOrbitContributionSpectralSampleFinset ρ := by
+  exact hη
 
 /-- The finite spectral interpolation layer supplies an autocorrelation probe whose
 spectral samples are one on the centered zero orbit. -/
@@ -40,6 +52,22 @@ theorem exists_zeroOrbit_autocorrelation_unitSpectralSamples
       exact ⟨f, fun η hη =>
         hf (zetaCenteredZero η)
           (zetaCenteredZero_mem_zeroOrbitSpectralSampleFinset ρ η hη)⟩
+
+/-- The finite spectral interpolation layer supplies an autocorrelation probe
+whose uncentered spectral samples are one on the zero-side contribution orbit. -/
+theorem exists_zeroOrbit_autocorrelation_unitContributionSpectralSamples
+    (ρ : ℂ) :
+    ∃ f : ZetaAdmissibleFunction,
+      ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ →
+        zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+          η = 1 := by
+  match
+    ZetaAdmissibleFunction.exists_autocorrelation_spectralEval_one_on_finset
+      (zetaZeroOrbitContributionSpectralSampleFinset ρ) with
+  | ⟨f, hf⟩ =>
+      exact ⟨f, fun η hη =>
+        hf η
+          (zetaZeroOrbit_mem_contributionSpectralSampleFinset ρ η hη)⟩
 
 /-- A nonzero real part prevents a zero from colliding with its reflected orbit face. -/
 theorem zetaZeroOrbit_self_ne_neg_of_re_ne_zero
@@ -221,7 +249,7 @@ theorem zetaZeroOrbitContributionRe_lt_zero_of_unitSpectralSamples
     (φ : ZetaAdmissibleFunction)
     (hsample :
       ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ →
-        zetaSpectralEval φ (zetaCenteredZero η) = 1) :
+        zetaSpectralEval φ η = 1) :
     zetaZeroOrbitContributionRe ρ φ < 0 := by
   exact Eq.subst
     (motive := fun x : ℝ => x < 0)
@@ -243,7 +271,7 @@ theorem exists_zeroOrbit_autocorrelation_finiteSpectralSeparator_owner
     ∃ f : ZetaAdmissibleFunction,
       zetaZeroOrbitContributionRe ρ
           (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
-  match exists_zeroOrbit_autocorrelation_unitSpectralSamples ρ with
+  match exists_zeroOrbit_autocorrelation_unitContributionSpectralSamples ρ with
   | ⟨f, hsample⟩ =>
       exact ⟨f,
         zetaZeroOrbitContributionRe_lt_zero_of_unitSpectralSamples
