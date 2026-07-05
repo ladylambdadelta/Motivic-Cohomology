@@ -130,6 +130,75 @@ theorem Complex.logarithmicPhaseRealPhase_block_norm_le_weylEnvelope_curvatureMa
         hderiv_antitone hinc_mono hred_mono hsep)
   exact le_trans hweyl hmajorant
 
+/-- Logarithmic Weyl-envelope bound in the positive-frequency branch, with the
+parent derivative-growth premise discharged from the curvature owner theorem. -/
+theorem Complex.logarithmicPhaseRealPhase_block_norm_le_weylEnvelope_curvatureMajorants_of_nonneg
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hderiv_antitone :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          AntitoneOn
+            (fun x : ℝ =>
+              ‖deriv
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h) x‖)
+            (Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ)))
+    (hinc_mono :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          Complex.realPhase_integerIncrementMonotoneOn
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h))
+    (hred_mono :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          Complex.realPhase_reducedIntegerIncrementMonotoneOn
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h))
+    (hsep :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          Complex.realPhase_integerIncrementSeparatedOn
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h)
+            (‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              (h : ℝ))) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      Real.secondDerivativeVdc_weylEnvelopeMajorant a b
+        (Real.secondDerivativeVdc_weylShiftLength ‖t‖)
+        (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
+          Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_block_norm_le_weylEnvelope_curvatureMajorants
+      t ht ha hab hlong_sqrt
+      (Complex.logarithmicPhaseRealPhase_deriv_growth_on_integer_block
+        t ht ht_nonneg ha hab)
+      hderiv_antitone hinc_mono hred_mono hsep
+
 end
 
 end LFunctions
