@@ -90,6 +90,42 @@ theorem Complex.logarithmicPhaseRealPhase_weylShift_deriv_norm_eq_of_nonneg
     Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_eq_on_shifted_Icc_of_nonneg
       t ht ht_nonneg ha hab hpos hh_gap hx
 
+/-- On every canonical Weyl shift in the positive long branch, the shifted
+derivative norm is antitone on its shifted interval. -/
+theorem Complex.logarithmicPhaseRealPhase_weylShift_deriv_norm_antitoneOn_of_nonneg
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ))) :
+    ∀ h : ℕ,
+      h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+        AntitoneOn
+          (fun x : ℝ =>
+            ‖deriv
+              (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                h) x‖)
+          (Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ)) := by
+  have hgap :
+      Real.secondDerivativeVdc_weylShiftLength ‖t‖ ≤ b - a :=
+    Nat.secondDerivativeVdc_weylShiftLength_le_block_gap_of_sqrt_long
+      ht hlong_sqrt
+  intro h hh
+  have hpos : 1 ≤ h :=
+    Complex.realPhase_secondDerivative_vdc_shiftRange_pos hh
+  have hh_gap : h ≤ b - a :=
+    le_trans
+      (Complex.realPhase_secondDerivative_vdc_shiftRange_le hh)
+      hgap
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_antitoneOn_shifted_Icc_of_nonneg
+      t ht ht_nonneg ha hab hpos hh_gap
+
 /-- Logarithmic specialization of the shifted-correlation envelope majorant at
 the canonical Weyl length. -/
 theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelationEnvelope_le_curvatureMajorants
