@@ -16,6 +16,43 @@ noncomputable section
 
 open scoped Topology
 
+/-- A bound for the stationary packet-family sample union transfers directly
+to the stationary packet contribution. -/
+theorem Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_of_familyUnion
+    (t : ℝ)
+    {a b : ℕ}
+    {M : ℝ}
+    (hfamily :
+      ‖∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b
+          (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b),
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+        M) :
+    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+      M := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  have hnorm :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum φ a b m‖ =
+      ‖∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+          φ a b
+          (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b),
+        Complex.exp (Complex.I * (φ n : ℂ))‖ :=
+    Complex.logarithmicPhaseRealPhase_stationaryPacketFamilyUnion_norm_eq
+      t a b
+  exact
+    Eq.subst
+      (motive := fun left : ℝ => left ≤ M)
+      hnorm.symm
+      hfamily
+
 /-- Stationary packet-family sample sums inherit a closed-subinterval
 twentieth-budget bound through the stationary interval reconstruction. -/
 theorem Complex.logarithmicPhaseRealPhase_stationaryPacketFamilyUnion_le_twentyTarget_of_Icc_bounds
@@ -109,6 +146,55 @@ theorem Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_twenty
       hnorm.symm
       (Complex.logarithmicPhaseRealPhase_stationaryPacketFamilyUnion_le_twentyTarget_of_Icc_bounds
         t ht ht_nonneg ha hab hIcc)
+
+/-- A tenth-budget stationary sample-union estimate gives a twentieth-budget
+stationary packet contribution estimate. -/
+theorem Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_twentyTarget_of_familyUnion_ten
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (hfamily :
+      ‖∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b
+          (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b),
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+        10 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+      20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  let E : ℝ :=
+    (((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))
+  have hpacket :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+        10 * E :=
+    Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_of_familyUnion
+      t hfamily
+  have hten_le_twenty : 10 * E ≤ 20 * E := by
+    have hconst : (10 : ℝ) ≤ 20 := by
+      have hten_nonneg : 0 ≤ (10 : ℝ) :=
+        Nat.cast_nonneg 10
+      calc
+        (10 : ℝ) ≤ 10 + 10 :=
+          le_add_of_nonneg_right hten_nonneg
+        _ = 20 := by
+          have hnat : (10 + 10 : ℕ) = 20 :=
+            rfl
+          exact Eq.trans
+            (Nat.cast_add 10 10).symm
+            (Eq.trans
+              (congrArg (fun n : ℕ => (n : ℝ)) hnat)
+              Nat.cast_ofNat)
+    exact mul_le_mul_of_nonneg_right hconst
+      (Real.logarithmicPhase_endpoint_sqrt_target_nonneg t ht b)
+  exact le_trans hpacket hten_le_twenty
 
 end
 
