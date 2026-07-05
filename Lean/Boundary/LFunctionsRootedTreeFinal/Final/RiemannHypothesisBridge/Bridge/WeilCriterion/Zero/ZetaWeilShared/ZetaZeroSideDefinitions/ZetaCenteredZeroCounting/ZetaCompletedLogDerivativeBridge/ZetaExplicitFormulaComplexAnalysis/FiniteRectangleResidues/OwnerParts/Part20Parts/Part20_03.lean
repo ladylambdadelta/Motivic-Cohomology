@@ -135,7 +135,7 @@ theorem explicitFormulaRectangleSortedYEndpoints_first_eq_outerLower
       (explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints_mem_lower T ρ)
   have hle_min :
       -T ≤ S.min' hS_nonempty :=
-    S.le_min' (-T)
+    S.le_min' hS_nonempty (-T)
       (fun y hy =>
         (explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints_mem_vertical_Icc_of_closedRadiusControls
           F T ρ hT_nonneg (le_of_lt hρ) hclosed hy).1)
@@ -167,7 +167,7 @@ theorem explicitFormulaRectangleSortedYEndpoints_last_eq_outerUpper
     ⟨T, explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints_mem_upper T ρ⟩
   have hmax_le :
       S.max' hS_nonempty ≤ T :=
-    S.max'_le T
+    S.max'_le hS_nonempty T
       (fun y hy =>
         (explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints_mem_vertical_Icc_of_closedRadiusControls
           F T ρ hT_nonneg (le_of_lt hρ) hclosed hy).2)
@@ -204,7 +204,7 @@ theorem explicitFormulaRectangleSortedXEndpoints_first_eq_outerLeft
   have horder : 1 - F.c ≤ F.c :=
     le_of_lt (lt_trans F.one_sub_c_neg F.c_pos)
   have hspan :
-      [[F.c, 1 - F.c]] = Set.Icc (1 - F.c) F.c :=
+      Set.uIcc F.c (1 - F.c) = Set.Icc (1 - F.c) F.c :=
     Set.uIcc_of_ge horder
   have hmin_le :
       S.min' hS_nonempty ≤ 1 - F.c :=
@@ -212,10 +212,10 @@ theorem explicitFormulaRectangleSortedXEndpoints_first_eq_outerLeft
       (explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints_mem_right F T ρ)
   have hle_min :
       1 - F.c ≤ S.min' hS_nonempty :=
-    S.le_min' (1 - F.c)
+    S.le_min' hS_nonempty (1 - F.c)
       (fun x hx =>
         have hx_span :
-            x ∈ [[F.c, 1 - F.c]] :=
+            x ∈ Set.uIcc F.c (1 - F.c) :=
           explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints_mem_horizontal_uIcc_of_closedRadiusControls
             F T ρ (le_of_lt hρ) hclosed hx
         have hx_Icc :
@@ -254,14 +254,14 @@ theorem explicitFormulaRectangleSortedXEndpoints_last_eq_outerRight
   have horder : 1 - F.c ≤ F.c :=
     le_of_lt (lt_trans F.one_sub_c_neg F.c_pos)
   have hspan :
-      [[F.c, 1 - F.c]] = Set.Icc (1 - F.c) F.c :=
+      Set.uIcc F.c (1 - F.c) = Set.Icc (1 - F.c) F.c :=
     Set.uIcc_of_ge horder
   have hmax_le :
       S.max' hS_nonempty ≤ F.c :=
-    S.max'_le F.c
+    S.max'_le hS_nonempty F.c
       (fun x hx =>
         have hx_span :
-            x ∈ [[F.c, 1 - F.c]] :=
+            x ∈ Set.uIcc F.c (1 - F.c) :=
           explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints_mem_horizontal_uIcc_of_closedRadiusControls
             F T ρ (le_of_lt hρ) hclosed hx
         have hx_Icc :
@@ -308,8 +308,7 @@ theorem explicitFormulaRectangle_rightEndpointDataIntegrand_eq_rightPath
     zetaCompletedExplicitFormulaContourIntegrand f (F.c + y * Complex.I) =
       zetaCompletedExplicitFormulaContourIntegrand f
         (zetaCompletedExplicitFormulaRightPath (F.rectangle T) y) :=
-  rfl
-
+  Eq.refl _
 /-- The left endpoint-data vertical integrand is the named left path integrand after
 unfolding the contour-family rectangle. -/
 theorem explicitFormulaRectangle_leftEndpointDataIntegrand_eq_leftPath
@@ -317,15 +316,14 @@ theorem explicitFormulaRectangle_leftEndpointDataIntegrand_eq_leftPath
     zetaCompletedExplicitFormulaContourIntegrand f ((1 - F.c) + y * Complex.I) =
       zetaCompletedExplicitFormulaContourIntegrand f
         (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) y) :=
-  rfl
-
+  Eq.refl _
 /-- Left multiplication by the tangent vector `I`, as scalar multiplication, is right
 multiplication by `I` for complex-valued line integrals. -/
 theorem explicitFormulaRectangle_complexI_smul_eq_mul_right (z : ℂ) :
     Complex.I • z = z * Complex.I := by
   calc
     Complex.I • z = Complex.I * z := by
-      exact smul_eq_mul Complex.I z
+      exact Algebra.id.smul_eq_mul Complex.I z
     _ = z * Complex.I := by
       exact mul_comm Complex.I z
 
@@ -338,21 +336,22 @@ theorem explicitFormulaRectangleOuterRightEndpointDataEdgeIntegral_eq_rightLineI
         f ((-T, T), F.c) =
       Complex.I • zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) := by
   let φ : ℝ → ℂ :=
-    fun y : ℝ => zetaCompletedExplicitFormulaContourIntegrand f (F.c + y * Complex.I)
+    fun y : ℝ => zetaCompletedExplicitFormulaContourIntegrand f
+      ((F.c : ℂ) + (y : ℂ) * Complex.I)
   have hIcc :
       (∫ y in Set.Icc (-T) T, φ y) =
         ∫ y : ℝ in -T..T, φ y :=
     zetaExplicitFormulaSinglePole_setIntegral_Icc_eq_intervalIntegral_of_le
-      φ (neg_nonpos.mpr hT_nonneg)
+      φ (explicitFormulaRectangle_verticalEndpointOrder_of_nonneg hT_nonneg)
   have hline :
       zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) =
         ∫ y in Set.Icc (-T) T, φ y := by
-    rfl
+    exact Eq.refl _
   calc
     explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
         f ((-T, T), F.c) =
         Complex.I • (∫ y : ℝ in -T..T, φ y) := by
-      exact rfl
+      exact Eq.refl _
     _ = Complex.I • (∫ y in Set.Icc (-T) T, φ y) := by
       exact congrArg (fun z : ℂ => Complex.I • z) hIcc.symm
     _ = Complex.I • zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) := by
@@ -367,21 +366,50 @@ theorem explicitFormulaRectangleOuterLeftEndpointDataEdgeIntegral_eq_leftLineInt
         f ((-T, T), 1 - F.c) =
       Complex.I • zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) := by
   let φ : ℝ → ℂ :=
-    fun y : ℝ => zetaCompletedExplicitFormulaContourIntegrand f ((1 - F.c) + y * Complex.I)
+    fun y : ℝ => zetaCompletedExplicitFormulaContourIntegrand f
+      (((1 - F.c : ℝ) : ℂ) + (y : ℂ) * Complex.I)
   have hIcc :
       (∫ y in Set.Icc (-T) T, φ y) =
         ∫ y : ℝ in -T..T, φ y :=
     zetaExplicitFormulaSinglePole_setIntegral_Icc_eq_intervalIntegral_of_le
-      φ (neg_nonpos.mpr hT_nonneg)
+      φ (explicitFormulaRectangle_verticalEndpointOrder_of_nonneg hT_nonneg)
   have hline :
       zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) =
         ∫ y in Set.Icc (-T) T, φ y := by
-    rfl
+    let ψ : ℝ → ℂ :=
+      fun y : ℝ =>
+        zetaCompletedExplicitFormulaContourIntegrand f
+          (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) y)
+    have hpoint :
+        ∀ y : ℝ, ψ y = φ y := by
+      intro y
+      have hbase :
+          ((1 : ℂ) - (F.c : ℂ)) = ((1 - F.c : ℝ) : ℂ) :=
+        (Complex.ofReal_sub 1 F.c).symm
+      have hcoord :
+          zetaCompletedExplicitFormulaLeftPath (F.rectangle T) y =
+            (((1 - F.c : ℝ) : ℂ) + (y : ℂ) * Complex.I) := by
+        calc
+          zetaCompletedExplicitFormulaLeftPath (F.rectangle T) y =
+              ((1 : ℂ) - (F.c : ℂ)) + (y : ℂ) * Complex.I := by
+            exact zetaExplicitFormulaOnePole_leftPath_eq_coordinate F T y
+          _ = ((1 - F.c : ℝ) : ℂ) + (y : ℂ) * Complex.I := by
+            exact congrArg (fun z : ℂ => z + (y : ℂ) * Complex.I) hbase
+      exact congrArg
+        (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+        hcoord
+    calc
+      zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) =
+          ∫ y in Set.Icc (-T) T, ψ y := by
+        exact Eq.refl _
+      _ = ∫ y in Set.Icc (-T) T, φ y := by
+        exact MeasureTheory.setIntegral_congr_fun measurableSet_Icc
+          (fun y _hy => hpoint y)
   calc
     explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
         f ((-T, T), 1 - F.c) =
         Complex.I • (∫ y : ℝ in -T..T, φ y) := by
-      exact rfl
+      exact Eq.refl _
     _ = Complex.I • (∫ y in Set.Icc (-T) T, φ y) := by
       exact congrArg (fun z : ℂ => Complex.I • z) hIcc.symm
     _ = Complex.I • zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) := by
@@ -395,7 +423,8 @@ theorem explicitFormulaRectangleOuterBottomEndpointDataEdgeIntegral_eq_neg_botto
         f ((F.c, 1 - F.c), -T) =
       -(zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T)) := by
   let φ : ℝ → ℂ :=
-    fun x : ℝ => zetaCompletedExplicitFormulaContourIntegrand f (x + (-T) * Complex.I)
+    fun x : ℝ => zetaCompletedExplicitFormulaContourIntegrand f
+      ((x : ℂ) + ((-T : ℝ) : ℂ) * Complex.I)
   let ψ : ℝ → ℂ :=
     fun x : ℝ =>
       zetaCompletedExplicitFormulaContourIntegrand f
@@ -432,14 +461,14 @@ theorem explicitFormulaRectangleOuterBottomEndpointDataEdgeIntegral_eq_neg_botto
     calc
       zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) =
           ∫ x in Set.uIcc F.c (1 - F.c), ψ x := by
-        rfl
+        exact Eq.refl _
       _ = ∫ x in Set.Icc (1 - F.c) F.c, φ x := hset
       _ = ∫ x : ℝ in (1 - F.c)..F.c, φ x := hinterval
   calc
     explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral
         f ((F.c, 1 - F.c), -T) =
         ∫ x : ℝ in F.c..(1 - F.c), φ x := by
-      exact rfl
+      exact Eq.refl _
     _ = -(∫ x : ℝ in (1 - F.c)..F.c, φ x) := by
       exact intervalIntegral.integral_symm (1 - F.c) F.c
     _ = -(zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T)) := by
@@ -453,7 +482,8 @@ theorem explicitFormulaRectangleOuterTopEndpointDataEdgeIntegral_eq_neg_topLineI
         f ((F.c, 1 - F.c), T) =
       -(zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T)) := by
   let φ : ℝ → ℂ :=
-    fun x : ℝ => zetaCompletedExplicitFormulaContourIntegrand f (x + T * Complex.I)
+    fun x : ℝ => zetaCompletedExplicitFormulaContourIntegrand f
+      ((x : ℂ) + (T : ℂ) * Complex.I)
   let ψ : ℝ → ℂ :=
     fun x : ℝ =>
       zetaCompletedExplicitFormulaContourIntegrand f
@@ -490,14 +520,14 @@ theorem explicitFormulaRectangleOuterTopEndpointDataEdgeIntegral_eq_neg_topLineI
     calc
       zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) =
           ∫ x in Set.uIcc F.c (1 - F.c), ψ x := by
-        rfl
+        exact Eq.refl _
       _ = ∫ x in Set.Icc (1 - F.c) F.c, φ x := hset
       _ = ∫ x : ℝ in (1 - F.c)..F.c, φ x := hinterval
   calc
     explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral
         f ((F.c, 1 - F.c), T) =
         ∫ x : ℝ in F.c..(1 - F.c), φ x := by
-      exact rfl
+      exact Eq.refl _
     _ = -(∫ x : ℝ in (1 - F.c)..F.c, φ x) := by
       exact intervalIntegral.integral_symm (1 - F.c) F.c
     _ = -(zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T)) := by
@@ -512,7 +542,8 @@ theorem explicitFormulaRectangleOuterBottomEndpointDataEdgeIntegral_forward_eq_b
         f ((1 - F.c, F.c), -T) =
       zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) := by
   let φ : ℝ → ℂ :=
-    fun x : ℝ => zetaCompletedExplicitFormulaContourIntegrand f (x + (-T) * Complex.I)
+    fun x : ℝ => zetaCompletedExplicitFormulaContourIntegrand f
+      ((x : ℂ) + ((-T : ℝ) : ℂ) * Complex.I)
   let ψ : ℝ → ℂ :=
     fun x : ℝ =>
       zetaCompletedExplicitFormulaContourIntegrand f
@@ -549,14 +580,14 @@ theorem explicitFormulaRectangleOuterBottomEndpointDataEdgeIntegral_forward_eq_b
     calc
       zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) =
           ∫ x in Set.uIcc F.c (1 - F.c), ψ x := by
-        rfl
+        exact Eq.refl _
       _ = ∫ x in Set.Icc (1 - F.c) F.c, φ x := hset
       _ = ∫ x : ℝ in (1 - F.c)..F.c, φ x := hinterval
   calc
     explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral
         f ((1 - F.c, F.c), -T) =
         ∫ x : ℝ in (1 - F.c)..F.c, φ x := by
-      exact rfl
+      exact Eq.refl _
     _ = zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) := by
       exact hline.symm
 
@@ -568,7 +599,8 @@ theorem explicitFormulaRectangleOuterTopEndpointDataEdgeIntegral_forward_eq_topL
         f ((1 - F.c, F.c), T) =
       zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) := by
   let φ : ℝ → ℂ :=
-    fun x : ℝ => zetaCompletedExplicitFormulaContourIntegrand f (x + T * Complex.I)
+    fun x : ℝ => zetaCompletedExplicitFormulaContourIntegrand f
+      ((x : ℂ) + (T : ℂ) * Complex.I)
   let ψ : ℝ → ℂ :=
     fun x : ℝ =>
       zetaCompletedExplicitFormulaContourIntegrand f
@@ -605,19 +637,16 @@ theorem explicitFormulaRectangleOuterTopEndpointDataEdgeIntegral_forward_eq_topL
     calc
       zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) =
           ∫ x in Set.uIcc F.c (1 - F.c), ψ x := by
-        rfl
+        exact Eq.refl _
       _ = ∫ x in Set.Icc (1 - F.c) F.c, φ x := hset
       _ = ∫ x : ℝ in (1 - F.c)..F.c, φ x := hinterval
   calc
     explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral
         f ((1 - F.c, F.c), T) =
         ∫ x : ℝ in (1 - F.c)..F.c, φ x := by
-      exact rfl
+      exact Eq.refl _
     _ = zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) := by
       exact hline.symm
-
-/-- Bottom horizontal coordinate labels selected from one fixed horizontal adjacent-pair
-row, with the same coordinate-omission filter as the selected cell list. -/
 
 end ZetaAdmissibleFunction
 
