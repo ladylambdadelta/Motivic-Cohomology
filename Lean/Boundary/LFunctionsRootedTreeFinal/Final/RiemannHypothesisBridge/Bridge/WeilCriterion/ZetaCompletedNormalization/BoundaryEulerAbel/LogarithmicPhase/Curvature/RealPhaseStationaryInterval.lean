@@ -404,6 +404,70 @@ theorem Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_index_low
     exact hpoint.1
   exact Real.neg_div_le_of_le_div_neg ha_pos hden_pos hleft
 
+/-- A stationary packet frequency is bounded above by the right endpoint
+reciprocal frequency. -/
+theorem Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_index_upper
+    (t : ℝ)
+    {a b : ℕ}
+    {m : ℤ}
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b) :
+    (m : ℝ) ≤ -(‖t‖ / (((b + 1 : ℕ) : ℝ))) := by
+  have hm_neg :
+      m < 0 :=
+    Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_index_neg
+      t hm
+  have hpoint :
+      Complex.logarithmicPhaseRealPhase_stationaryPoint t m ∈
+        Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) :=
+    Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_point_mem_Icc
+      t hm
+  have hden_pos : 0 < -(m : ℝ) :=
+    Int.neg_cast_pos_of_lt_zero hm_neg
+  have hright_pos : 0 < (((b + 1 : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr (Nat.succ_pos b)
+  have hdiv_le :
+      ‖t‖ / (-(m : ℝ)) ≤ (((b + 1 : ℕ) : ℝ)) :=
+    hpoint.2
+  have hmul :
+      ‖t‖ ≤ (((b + 1 : ℕ) : ℝ)) * (-(m : ℝ)) :=
+    (div_le_iff₀ hden_pos).mp hdiv_le
+  have hright_div :
+      ‖t‖ / (((b + 1 : ℕ) : ℝ)) ≤ -(m : ℝ) :=
+    (div_le_iff₀ hright_pos).mpr
+      (Eq.subst
+        (motive := fun right : ℝ => ‖t‖ ≤ right)
+        (mul_comm (((b + 1 : ℕ) : ℝ)) (-(m : ℝ)))
+        hmul)
+  have hflip :
+      - (-(m : ℝ)) ≤ -(‖t‖ / (((b + 1 : ℕ) : ℝ))) :=
+    neg_le_neg hright_div
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤ -(‖t‖ / (((b + 1 : ℕ) : ℝ))))
+      (neg_neg (m : ℝ))
+      hflip
+
+/-- Stationary packet frequencies lie in the reciprocal image interval of the
+ambient block. -/
+theorem Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_mem_reciprocalInterval
+    (t : ℝ)
+    {a b : ℕ}
+    {m : ℤ}
+    (ha : 1 ≤ a)
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b) :
+    (m : ℝ) ∈
+      Set.Icc
+        (-(‖t‖ / (a : ℝ)))
+        (-(‖t‖ / (((b + 1 : ℕ) : ℝ)))) :=
+  And.intro
+    (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_index_lower
+      t ha hm)
+    (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_index_upper
+      t hm)
+
 end
 
 end LFunctions
