@@ -540,6 +540,141 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_lowerParameter_pos
       (mul_pos ht_pos hBB_inv_pos)
       hh_pos
 
+/-- The adjacent increment of a shifted difference is the difference of the
+two adjacent increments of the underlying phase. -/
+theorem Complex.realPhase_secondDerivative_vdc_shiftedDifference_integerIncrement_eq
+    (φ : ℝ → ℝ)
+    (h n : ℕ) :
+    Complex.realPhase_integerIncrement
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference φ h) n =
+      Complex.realPhase_integerIncrement φ (n + h) -
+        Complex.realPhase_integerIncrement φ n := by
+  have hsucc_add :
+      (((n + 1 : ℕ) : ℝ) + h) = (((n + h + 1 : ℕ) : ℝ)) := by
+    calc
+      (((n + 1 : ℕ) : ℝ) + h) =
+          (((n + 1 + h : ℕ) : ℝ)) := by
+        exact (Nat.cast_add (n + 1) h).symm
+      _ = (((n + h + 1 : ℕ) : ℝ)) := by
+        exact congrArg (fun m : ℕ => (m : ℝ)) (Nat.add_right_comm n 1 h)
+  have hn_add :
+      ((n : ℝ) + h) = (((n + h : ℕ) : ℝ)) := by
+    exact (Nat.cast_add n h).symm
+  have hsubtract_four_terms :
+      (φ (n + h + 1 : ℕ) - φ (n + 1 : ℕ)) -
+          (φ (n + h : ℕ) - φ n) =
+        (φ (n + h + 1 : ℕ) - φ (n + h : ℕ)) -
+          (φ (n + 1 : ℕ) - φ n) := by
+    let A : ℝ := φ (n + h + 1 : ℕ)
+    let B : ℝ := φ (n + 1 : ℕ)
+    let C : ℝ := φ (n + h : ℕ)
+    let D : ℝ := φ n
+    have hleft₁ :
+        (A - B) - (C - D) = (A + -B) + (-(C + -D)) := by
+      calc
+        (A - B) - (C - D) = (A + -B) - (C - D) :=
+          congrArg (fun r : ℝ => r - (C - D)) (sub_eq_add_neg A B)
+        _ = (A + -B) - (C + -D) :=
+          congrArg (fun r : ℝ => (A + -B) - r) (sub_eq_add_neg C D)
+        _ = (A + -B) + (-(C + -D)) :=
+          sub_eq_add_neg (A + -B) (C + -D)
+    have hneg_C_D :
+        -(C + -D) = -C + D := by
+      calc
+        -(C + -D) = -C + -(-D) :=
+          neg_add C (-D)
+        _ = -C + D :=
+          congrArg (fun r : ℝ => -C + r) (neg_neg D)
+    have hleft₂ :
+        (A + -B) + (-(C + -D)) =
+          (A + -C) + (-B + D) := by
+      calc
+        (A + -B) + (-(C + -D)) =
+            (A + -B) + (-C + D) :=
+          congrArg (fun r : ℝ => (A + -B) + r) hneg_C_D
+        _ = A + -B + -C + D :=
+          (add_assoc (A + -B) (-C) D).symm
+        _ = A + (-B + -C) + D :=
+          congrArg (fun r : ℝ => r + D) (add_assoc A (-B) (-C))
+        _ = A + (-C + -B) + D :=
+          congrArg (fun r : ℝ => A + r + D) (add_comm (-B) (-C))
+        _ = A + -C + -B + D :=
+          congrArg (fun r : ℝ => r + D) (add_assoc A (-C) (-B)).symm
+        _ = (A + -C) + (-B + D) :=
+          add_assoc (A + -C) (-B) D
+    have hright₁ :
+        (A + -C) + (-B + D) =
+          (A - C) - (B - D) := by
+      calc
+        (A + -C) + (-B + D) =
+            (A - C) + (-B + D) :=
+          congrArg (fun r : ℝ => r + (-B + D)) (sub_eq_add_neg A C).symm
+        _ = (A - C) + -(B + -D) := by
+          have hneg_B_D : -(B + -D) = -B + D := by
+            calc
+              -(B + -D) = -B + -(-D) :=
+                neg_add B (-D)
+              _ = -B + D :=
+                congrArg (fun r : ℝ => -B + r) (neg_neg D)
+          exact
+            congrArg (fun r : ℝ => (A - C) + r) hneg_B_D.symm
+        _ = (A - C) - (B + -D) :=
+          (sub_eq_add_neg (A - C) (B + -D)).symm
+        _ = (A - C) - (B - D) :=
+          congrArg (fun r : ℝ => (A - C) - r) (sub_eq_add_neg B D).symm
+    exact Eq.trans hleft₁ (Eq.trans hleft₂ hright₁)
+  calc
+    Complex.realPhase_integerIncrement
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference φ h) n =
+        (φ (((n + 1 : ℕ) : ℝ) + h) - φ (n + 1 : ℕ)) -
+          (φ ((n : ℝ) + h) - φ n) := by
+      rfl
+    _ =
+        (φ (n + h + 1 : ℕ) - φ (n + 1 : ℕ)) -
+          (φ (n + h : ℕ) - φ n) := by
+      exact
+        Eq.subst
+          (motive := fun r : ℝ =>
+            (φ (((n + 1 : ℕ) : ℝ) + h) - φ (n + 1 : ℕ)) -
+              (φ ((n : ℝ) + h) - φ n) =
+            (φ (n + h + 1 : ℕ) - φ (n + 1 : ℕ)) -
+              (φ r - φ n))
+          hn_add
+          (Eq.subst
+            (motive := fun r : ℝ =>
+              (φ (((n + 1 : ℕ) : ℝ) + h) - φ (n + 1 : ℕ)) -
+                (φ ((n : ℝ) + h) - φ n) =
+              (φ r - φ (n + 1 : ℕ)) -
+                (φ ((n : ℝ) + h) - φ n))
+            hsucc_add
+            rfl)
+    _ =
+        (φ (n + h + 1 : ℕ) - φ (n + h : ℕ)) -
+          (φ (n + 1 : ℕ) - φ n) := by
+      exact hsubtract_four_terms
+    _ =
+        Complex.realPhase_integerIncrement φ (n + h) -
+          Complex.realPhase_integerIncrement φ n := by
+      rfl
+
+/-- Concrete logarithmic shifted adjacent increments are second differences
+of the logarithmic adjacent increment profile. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_eq
+    (t : ℝ)
+    (h n : ℕ) :
+    Complex.realPhase_integerIncrement
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n =
+      Complex.realPhase_integerIncrement
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          (n + h) -
+        Complex.realPhase_integerIncrement
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          n := by
+  exact
+    Complex.realPhase_secondDerivative_vdc_shiftedDifference_integerIncrement_eq
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      h n
+
 /-- Shifted correlation sum appearing in Weyl differencing for the logarithmic
 real phase. -/
 def Complex.logarithmicPhaseRealPhase_shiftedCorrelation
