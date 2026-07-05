@@ -22,8 +22,6 @@ namespace ZetaAdmissibleFunction
 ## Part20 06: SelectedContributionScans
 -/
 
-attribute [local instance] Classical.propDecidable
-
 /-- Endpoint data owned by a selected adjacent-pair cell. -/
 noncomputable def explicitFormulaRectangleSelectedAdjacentEndpointData
     {F : ExplicitFormulaContourFamily} {T ε : ℝ}
@@ -434,7 +432,7 @@ theorem explicitFormulaRectangleSelectedHorizontalEndpointDataContribution_fixed
           (explicitFormulaRectangleSelectedTopEdgeCoordinatesOfFixedX
             xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε))) =
         0 - 0 := by
-      rfl
+      exact Eq.refl _
     _ = 0 := by
       exact sub_self 0
 
@@ -458,8 +456,8 @@ theorem explicitFormulaRectangleSelectedFixedX_bottomScan_eq_endpointDataBottomE
           (explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
             (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
               xpair ypairs))
-  | [] =>
-      rfl
+  | [] => by
+      exact Eq.refl _
   | ypair :: rest =>
       if homit :
           explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
@@ -509,7 +507,7 @@ theorem explicitFormulaRectangleSelectedFixedX_bottomScan_eq_endpointDataBottomE
                       else
                         0)
                     rest := by
-                rfl
+                exact Eq.refl _
               _ =
                 explicitFormulaRectangleRegularGridCellEndpointDataBottomEdge f
                   (explicitFormulaRectangleSelectedAdjacentEndpointData xpair ypair homit) +
@@ -627,7 +625,7 @@ theorem explicitFormulaRectangleSelectedFixedX_bottomScan_eq_endpointDataBottomE
                       else
                         0)
                     rest := by
-                rfl
+                exact Eq.refl _
               _ =
                 0 +
                   explicitFormulaRectangleListSum
@@ -722,8 +720,8 @@ theorem explicitFormulaRectangleSelectedFixedX_topScan_eq_endpointDataTopEdgeSum
           (explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
             (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
               xpair ypairs))
-  | [] =>
-      rfl
+  | [] => by
+      exact Eq.refl _
   | ypair :: rest =>
       if homit :
           explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
@@ -773,7 +771,7 @@ theorem explicitFormulaRectangleSelectedFixedX_topScan_eq_endpointDataTopEdgeSum
                       else
                         0)
                     rest := by
-                rfl
+                exact Eq.refl _
               _ =
                 explicitFormulaRectangleRegularGridCellEndpointDataTopEdge f
                   (explicitFormulaRectangleSelectedAdjacentEndpointData xpair ypair homit) +
@@ -891,7 +889,7 @@ theorem explicitFormulaRectangleSelectedFixedX_topScan_eq_endpointDataTopEdgeSum
                       else
                         0)
                     rest := by
-                rfl
+                exact Eq.refl _
               _ =
                 0 +
                   explicitFormulaRectangleListSum
@@ -1123,7 +1121,7 @@ theorem explicitFormulaRectangleEndpointDataBoxBoundarySum_eq_edgeSums
         explicitFormulaRectangleEndpointDataBoxBoundarySum f
             ([] : List ExplicitFormulaRectangleEndpointDataBoxEdge) =
             0 := by
-          rfl
+          exact Eq.refl _
         _ = 0 + 0 := by
           exact (add_zero 0).symm
         _ = (0 - 0) + 0 := by
@@ -1139,7 +1137,7 @@ theorem explicitFormulaRectangleEndpointDataBoxBoundarySum_eq_edgeSums
                     ([] : List ExplicitFormulaRectangleEndpointDataBoxEdge) -
                   explicitFormulaRectangleBoxLeftEdgeIntegralSum f
                     ([] : List ExplicitFormulaRectangleEndpointDataBoxEdge)) := by
-          rfl
+          exact Eq.refl _
   | edge :: rest =>
       let headHorizontal : ℂ :=
         explicitFormulaRectangleBoxBottomEdgeIntegral f edge -
@@ -1189,7 +1187,7 @@ theorem explicitFormulaRectangleEndpointDataBoxBoundarySum_eq_edgeSums
                 (explicitFormulaRectangleEndpointDataBoxLowerCorner edge)
                 (explicitFormulaRectangleEndpointDataBoxUpperCorner edge) +
               explicitFormulaRectangleEndpointDataBoxBoundarySum f rest := by
-          rfl
+          exact Eq.refl _
         _ = (headHorizontal + headVertical) +
               explicitFormulaRectangleEndpointDataBoxBoundarySum f rest := by
           exact congrArg
@@ -1596,7 +1594,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesHorizontalContribution
           (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfFixedX
             xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε))) =
         0 - 0 := by
-      rfl
+      exact Eq.refl _
     _ = 0 := by
       exact sub_self 0
 
@@ -1621,7 +1619,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesVerticalContribution_f
           (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfFixedX
             xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε))) =
         0 - 0 := by
-      rfl
+      exact Eq.refl _
     _ = 0 := by
       exact sub_self 0
 
@@ -1645,7 +1643,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesHorizontalContribution
           (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists
             ([] : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ε)) ypairs) =
         0 - 0 := by
-      rfl
+      exact Eq.refl _
     _ = 0 := by
       exact sub_self 0
 
@@ -1669,7 +1667,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesVerticalContribution_p
           (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists
             ([] : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ε)) ypairs) =
         0 - 0 := by
-      rfl
+      exact Eq.refl _
     _ = 0 := by
       exact sub_self 0
 
@@ -2032,8 +2030,7 @@ theorem explicitFormulaRectangleEndpointDataBoxEdgeSums_neg_group
     _ = -((bottom - top) + (right - left)) := by
       exact (neg_add (bottom - top) (right - left)).symm
     _ = -(bottom - top + (right - left)) := by
-      rfl
-
+      exact Eq.refl _
 /-- Side-specific constructor for the raw-edge-sum exposed-boundary collapse.  Once the
 selected bottom/top/right/left box-side sums have been identified with their exposed
 outer-minus-hole values, the combined four-side identity follows by algebraic
@@ -2164,10 +2161,9 @@ theorem explicitFormulaRectangleTangentContour_eq_orientedOuterSideSums
     _ = (R - L + U) - B := by
       exact (sub_eq_add_neg (R - L + U) B).symm
     _ = R - L + U - B := by
-      rfl
+      exact Eq.refl _
     _ = zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) := by
-      rfl
-
+      exact Eq.refl _
 /-- Box-coordinate horizontal contribution over the sorted selected grid is the
 corresponding endpoint-data horizontal contribution. -/
 theorem explicitFormulaRectangleSelectedBoxEdgeCoordinates_horizontalContribution_eq_selectedEndpointData
@@ -2547,7 +2543,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataHorizontalContribution_pairL
             (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfPairLists
               ([] : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ε)) ypairs)) =
         0 - 0 := by
-      rfl
+      exact Eq.refl _
     _ = 0 := by
       exact sub_self 0
 
@@ -2576,7 +2572,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalContribution_pairLis
             (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfPairLists
               ([] : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ε)) ypairs)) =
         0 - 0 := by
-      rfl
+      exact Eq.refl _
     _ = 0 := by
       exact sub_self 0
 
@@ -3185,7 +3181,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataHorizontalContribution_fixed
             (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
               xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε)))) =
         0 - 0 := by
-      rfl
+      exact Eq.refl _
     _ = 0 := by
       exact sub_self 0
 
@@ -3214,7 +3210,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalContribution_fixedX_
             (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
               xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε)))) =
         0 - 0 := by
-      rfl
+      exact Eq.refl _
     _ = 0 := by
       exact sub_self 0
 
