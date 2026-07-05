@@ -22,29 +22,29 @@ theorem Nat.one_le_two_for_abelTail : (1 : ℕ) ≤ 2 :=
 theorem Nat.two_le_seventy_four_for_abelTail : (2 : ℕ) ≤ 74 :=
   Nat.succ_le_succ (Nat.succ_le_succ (Nat.zero_le 72))
 
-theorem Nat.thirty_eight_le_seventy_four_for_abelTail : (38 : ℕ) ≤ 74 :=
-  Nat.le.intro (show 38 + 36 = 74 from rfl)
+theorem Nat.thirty_nine_le_seventy_four_for_abelTail : (39 : ℕ) ≤ 74 :=
+  Nat.le.intro (show 39 + 35 = 74 from rfl)
 
-theorem Nat.seventy_two_le_seventy_four_for_abelTail : (72 : ℕ) ≤ 74 :=
-  Nat.le.intro (show 72 + 2 = 74 from rfl)
+theorem Nat.seventy_four_le_seventy_four_for_abelTail : (74 : ℕ) ≤ 74 :=
+  Nat.le_refl 74
 
-theorem Real.thirty_six_add_thirty_six_eq_seventy_two_for_abelTail :
-    (36 : ℝ) + 36 = 72 := by
-  have hnat : (36 : ℕ) + 36 = 72 :=
+theorem Real.thirty_seven_add_thirty_seven_eq_seventy_four_for_abelTail :
+    (37 : ℝ) + 37 = 74 := by
+  have hnat : (37 : ℕ) + 37 = 74 :=
     rfl
   have hcast :
-      (((36 : ℕ) + 36 : ℕ) : ℝ) = (72 : ℝ) :=
+      (((37 : ℕ) + 37 : ℕ) : ℝ) = (74 : ℝ) :=
     congrArg (fun n : ℕ => (n : ℝ)) hnat
-  exact Eq.trans (Nat.cast_add 36 36).symm hcast
+  exact Eq.trans (Nat.cast_add 37 37).symm hcast
 
-theorem Real.two_add_thirty_six_eq_thirty_eight_for_abelTail :
-    (2 : ℝ) + 36 = 38 := by
-  have hnat : (2 : ℕ) + 36 = 38 :=
+theorem Real.two_add_thirty_seven_eq_thirty_nine_for_abelTail :
+    (2 : ℝ) + 37 = 39 := by
+  have hnat : (2 : ℕ) + 37 = 39 :=
     rfl
   have hcast :
-      (((2 : ℕ) + 36 : ℕ) : ℝ) = (38 : ℝ) :=
+      (((2 : ℕ) + 37 : ℕ) : ℝ) = (39 : ℝ) :=
     congrArg (fun n : ℕ => (n : ℝ)) hnat
-  exact Eq.trans (Nat.cast_add 2 36).symm hcast
+  exact Eq.trans (Nat.cast_add 2 37).symm hcast
 
 /-- The boundary-line Dirichlet monomial is the reciprocal weight times the
 logarithmic oscillator. -/
@@ -148,7 +148,7 @@ theorem Complex.boundaryLineOnePointRealParam_reciprocalWeightedTail_bound_of_ph
               ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
           have hconstant :
               boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
-                36 * Real.log (2 + ‖t‖) :=
+                37 * Real.log (2 + ‖t‖) :=
             boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant_le_log t ht
           have htwo_log_le :
               2 * Real.log (2 + ‖t‖) ≤ 74 * Real.log (2 + ‖t‖) := by
@@ -157,33 +157,33 @@ theorem Complex.boundaryLineOnePointRealParam_reciprocalWeightedTail_bound_of_ph
             have htwo_le : (2 : ℝ) ≤ 74 := by
               exact Nat.cast_le.mpr Nat.two_le_seventy_four_for_abelTail
             exact mul_le_mul_of_nonneg_right htwo_le hlog_nonneg
-          have hseventy_two_log_le :
-              72 * Real.log (2 + ‖t‖) ≤ 74 * Real.log (2 + ‖t‖) := by
+          have hseventy_four_log_le :
+              74 * Real.log (2 + ‖t‖) ≤ 74 * Real.log (2 + ‖t‖) := by
             have hlog_nonneg : 0 ≤ Real.log (2 + ‖t‖) := by
               exact le_trans zero_le_one (one_le_log_two_add_norm_of_one_le_norm ht)
-            have hle : (72 : ℝ) ≤ 74 := by
-              exact Nat.cast_le.mpr Nat.seventy_two_le_seventy_four_for_abelTail
+            have hle : (74 : ℝ) ≤ 74 := by
+              exact Nat.cast_le.mpr Nat.seventy_four_le_seventy_four_for_abelTail
             exact mul_le_mul_of_nonneg_right hle hlog_nonneg
-          have hthirty_eight_log_le :
-              38 * Real.log (2 + ‖t‖) ≤ 74 * Real.log (2 + ‖t‖) := by
+          have hthirty_nine_log_le :
+              39 * Real.log (2 + ‖t‖) ≤ 74 * Real.log (2 + ‖t‖) := by
             have hlog_nonneg : 0 ≤ Real.log (2 + ‖t‖) := by
               exact le_trans zero_le_one (one_le_log_two_add_norm_of_one_le_norm ht)
-            have hle : (38 : ℝ) ≤ 74 := by
-              exact Nat.cast_le.mpr Nat.thirty_eight_le_seventy_four_for_abelTail
+            have hle : (39 : ℝ) ≤ 74 := by
+              exact Nat.cast_le.mpr Nat.thirty_nine_le_seventy_four_for_abelTail
             exact mul_le_mul_of_nonneg_right hle hlog_nonneg
           match (inferInstance : Decidable (M ≤ C)) with
-          | Or.inl hMcut =>
+          | isTrue hMcut =>
               have hpre :
                   ‖∑ n ∈ Finset.Ioc N M, f n‖ ≤
                     2 * Real.log (2 + ‖t‖) :=
                 boundaryLineOnePointRealParam_logarithmicPhase_preCutoff_finiteTail_norm_le
                   t ht hN hMcut
               exact le_trans hpre htwo_log_le
-          | Or.inr hMcut =>
+          | isFalse hMcut =>
               have hC_le_M : C ≤ M :=
                 Nat.le_of_not_ge hMcut
               match (inferInstance : Decidable (C ≤ N)) with
-              | Or.inl hC_le_N =>
+              | isTrue hC_le_N =>
                   have hsplit :
                       (∑ n ∈ Finset.Ioc N M, f n) =
                         (∑ n ∈ Finset.Ioc C M, f n) -
@@ -224,28 +224,28 @@ theorem Complex.boundaryLineOnePointRealParam_reciprocalWeightedTail_bound_of_ph
                       (norm_sub_le (∑ n ∈ Finset.Ioc C M, f n) (∑ n ∈ Finset.Ioc C N, f n))
                       (add_le_add hM_tail hN_tail)
                   have htwo_constants :
-                      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
+                        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
                           boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
-                        72 * Real.log (2 + ‖t‖) := by
+                        74 * Real.log (2 + ‖t‖) := by
                     have hadd :
                         boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
                             boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
-                          36 * Real.log (2 + ‖t‖) +
-                            36 * Real.log (2 + ‖t‖) :=
+                          37 * Real.log (2 + ‖t‖) +
+                            37 * Real.log (2 + ‖t‖) :=
                       add_le_add hconstant hconstant
                     have hsum :
-                        36 * Real.log (2 + ‖t‖) +
-                            36 * Real.log (2 + ‖t‖) =
-                          72 * Real.log (2 + ‖t‖) := by
+                        37 * Real.log (2 + ‖t‖) +
+                            37 * Real.log (2 + ‖t‖) =
+                          74 * Real.log (2 + ‖t‖) := by
                       calc
-                        36 * Real.log (2 + ‖t‖) +
-                            36 * Real.log (2 + ‖t‖) =
-                          (36 + 36) * Real.log (2 + ‖t‖) :=
-                            (add_mul 36 36 (Real.log (2 + ‖t‖))).symm
-                        _ = 72 * Real.log (2 + ‖t‖) := by
+                        37 * Real.log (2 + ‖t‖) +
+                            37 * Real.log (2 + ‖t‖) =
+                          (37 + 37) * Real.log (2 + ‖t‖) :=
+                            (add_mul 37 37 (Real.log (2 + ‖t‖))).symm
+                        _ = 74 * Real.log (2 + ‖t‖) := by
                           exact congrArg
                             (fun c : ℝ => c * Real.log (2 + ‖t‖))
-                            Real.thirty_six_add_thirty_six_eq_seventy_two_for_abelTail
+                            Real.thirty_seven_add_thirty_seven_eq_seventy_four_for_abelTail
                     exact Eq.subst
                       (motive := fun r : ℝ =>
                         boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
@@ -255,8 +255,8 @@ theorem Complex.boundaryLineOnePointRealParam_reciprocalWeightedTail_bound_of_ph
                   exact Eq.subst
                     (motive := fun z : ℂ => ‖z‖ ≤ 74 * Real.log (2 + ‖t‖))
                     hsplit.symm
-                    (le_trans htriangle (le_trans htwo_constants hseventy_two_log_le))
-              | Or.inr hC_le_N =>
+                    (le_trans htriangle (le_trans htwo_constants hseventy_four_log_le))
+              | isFalse hC_le_N =>
                   have hN_le_C : N ≤ C :=
                     Nat.le_of_not_ge hC_le_N
                   have hsplit_union :
@@ -310,26 +310,26 @@ theorem Complex.boundaryLineOnePointRealParam_reciprocalWeightedTail_bound_of_ph
                   have hsum_bound :
                       2 * Real.log (2 + ‖t‖) +
                           boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
-                        38 * Real.log (2 + ‖t‖) := by
+                        39 * Real.log (2 + ‖t‖) := by
                     have hraw :
                         2 * Real.log (2 + ‖t‖) +
                             boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
                           2 * Real.log (2 + ‖t‖) +
-                            36 * Real.log (2 + ‖t‖) :=
+                            37 * Real.log (2 + ‖t‖) :=
                       add_le_add_left hconstant (2 * Real.log (2 + ‖t‖))
                     have hsum :
                         2 * Real.log (2 + ‖t‖) +
-                            36 * Real.log (2 + ‖t‖) =
-                          38 * Real.log (2 + ‖t‖) := by
+                            37 * Real.log (2 + ‖t‖) =
+                          39 * Real.log (2 + ‖t‖) := by
                       calc
                         2 * Real.log (2 + ‖t‖) +
-                            36 * Real.log (2 + ‖t‖) =
-                          (2 + 36) * Real.log (2 + ‖t‖) :=
-                            (add_mul 2 36 (Real.log (2 + ‖t‖))).symm
-                        _ = 38 * Real.log (2 + ‖t‖) := by
+                            37 * Real.log (2 + ‖t‖) =
+                          (2 + 37) * Real.log (2 + ‖t‖) :=
+                            (add_mul 2 37 (Real.log (2 + ‖t‖))).symm
+                        _ = 39 * Real.log (2 + ‖t‖) := by
                           exact congrArg
                             (fun c : ℝ => c * Real.log (2 + ‖t‖))
-                            Real.two_add_thirty_six_eq_thirty_eight_for_abelTail
+                            Real.two_add_thirty_seven_eq_thirty_nine_for_abelTail
                     exact Eq.subst
                       (motive := fun r : ℝ =>
                         2 * Real.log (2 + ‖t‖) +
@@ -339,7 +339,7 @@ theorem Complex.boundaryLineOnePointRealParam_reciprocalWeightedTail_bound_of_ph
                   exact Eq.subst
                     (motive := fun z : ℂ => ‖z‖ ≤ 74 * Real.log (2 + ‖t‖))
                     hsplit_sum.symm
-                    (le_trans htriangle (le_trans hsum_bound hthirty_eight_log_le))))
+                    (le_trans htriangle (le_trans hsum_bound hthirty_nine_log_le))))
 
 /-- Blockwise finite partial summation for reciprocal weights applied to the
 logarithmic phase.
