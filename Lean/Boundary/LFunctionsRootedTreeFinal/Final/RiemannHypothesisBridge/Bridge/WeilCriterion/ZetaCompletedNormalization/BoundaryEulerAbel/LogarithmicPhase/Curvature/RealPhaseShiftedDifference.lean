@@ -91,6 +91,53 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_eq
     hleft.sub hright
   exact hsub.deriv
 
+/-- In the nonnegative branch, the shifted logarithmic derivative is the
+difference of the positive reciprocal profile at the two endpoints. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_eq_norm_div_sub
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {h : ℕ}
+    {x : ℝ}
+    (hx : 0 < x) :
+    deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x =
+      ‖t‖ / x - ‖t‖ / (x + h) := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  have hh_nonneg : (0 : ℝ) ≤ ((h : ℕ) : ℝ) :=
+    Nat.cast_nonneg h
+  have hx_shift_pos : 0 < x + h :=
+    lt_of_lt_of_le hx (le_add_of_nonneg_right hh_nonneg)
+  have hshifted :
+      deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x =
+        deriv φ (x + h) - deriv φ x :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_eq
+      t hx
+  have hright_endpoint :
+      deriv φ (x + h) =
+        -(‖t‖ / (x + h)) :=
+    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div_parenthesized
+      t ht_nonneg hx_shift_pos
+  have hleft_endpoint :
+      deriv φ x =
+        -(‖t‖ / x) :=
+    Complex.logarithmicPhaseRealPhase_deriv_eq_neg_norm_div_parenthesized
+      t ht_nonneg hx
+  have hendpoint_sub :
+      deriv φ (x + h) - deriv φ x =
+        ‖t‖ / x - ‖t‖ / (x + h) := by
+    exact
+      Eq.subst
+        (motive := fun left : ℝ =>
+          left - deriv φ x = ‖t‖ / x - ‖t‖ / (x + h))
+        hright_endpoint.symm
+        (Eq.subst
+          (motive := fun right : ℝ =>
+            -(‖t‖ / (x + h)) - right =
+              ‖t‖ / x - ‖t‖ / (x + h))
+          hleft_endpoint.symm
+          (neg_sub_neg (‖t‖ / (x + h)) (‖t‖ / x)))
+  exact Eq.trans hshifted hendpoint_sub
+
 /-- A summation index in the shifted-correlation range lies in the parent
 real block. -/
 theorem Nat.cast_mem_parent_Icc_of_mem_shifted_Icc
