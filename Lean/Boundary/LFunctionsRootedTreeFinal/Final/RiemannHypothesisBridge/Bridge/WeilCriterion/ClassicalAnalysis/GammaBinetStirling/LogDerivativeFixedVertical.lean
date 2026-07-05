@@ -269,8 +269,13 @@ theorem Complex.logDeriv_Gamma_add_one
       logDeriv Complex.Gamma s + 1 / s := by
   have hs_add_not_pole : ∀ n : ℕ, s + 1 ≠ -n := by
     intro n hs_add
-    have hcast : (((n + 1 : ℕ) : ℂ)) = (n : ℂ) + 1 :=
+    have hcast_nat :
+        (((n + 1 : ℕ) : ℂ)) = (n : ℂ) + ((1 : ℕ) : ℂ) :=
       Nat.cast_add n 1
+    have hone_nat : (((1 : ℕ) : ℂ)) = (1 : ℂ) :=
+      Nat.cast_one
+    have hcast : (((n + 1 : ℕ) : ℂ)) = (n : ℂ) + (1 : ℂ) :=
+      hcast_nat.trans (congrArg (fun x : ℂ => (n : ℂ) + x) hone_nat)
     have hs_neg_succ : s = -(n + 1 : ℕ) := by
       calc
         s = -(n : ℂ) - 1 := by
@@ -291,7 +296,8 @@ theorem Complex.logDeriv_Gamma_add_one
   have hshift_diff :
       DifferentiableAt ℂ (fun z : ℂ => Complex.Gamma (z + 1)) s := by
     have htrans : DifferentiableAt ℂ (fun z : ℂ => z + 1) s :=
-      differentiableAt_id.add differentiableAt_const
+      DifferentiableAt.add differentiableAt_id
+        (differentiableAt_const (1 : ℂ))
     exact hdiff_add.comp s htrans
   have hmul_diff :
       DifferentiableAt ℂ (fun z : ℂ => z * Complex.Gamma z) s :=
@@ -371,103 +377,6 @@ theorem Complex.Gamma_logDerivative_add_one
       exact congrArg (fun z : ℂ => z + 1 / s)
         (logDeriv_apply Complex.Gamma s)
 
-/-- One-step fixed-line shift for Gamma logarithmic-derivative bounds, in a
-form that consumes an arbitrary bound on the shifted line. -/
-theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_shift_one_bound
-    {σ B : ℝ}
-    (hσ_ne_zero : σ ≠ 0)
-    (hnot_pole :
-      ∀ t : ℝ, ∀ n : ℕ,
-        (σ + t * Complex.I : ℂ) ≠ -n)
-    (hshift_bound :
-      ∀ t : ℝ,
-        ‖deriv Complex.Gamma ((σ + 1) + t * Complex.I) /
-            Complex.Gamma ((σ + 1) + t * Complex.I)‖ ≤
-          B * (1 + ‖t‖)) :
-    ∀ t : ℝ,
-      ‖deriv Complex.Gamma (σ + t * Complex.I) /
-          Complex.Gamma (σ + t * Complex.I)‖ ≤
-        (B + |σ|⁻¹) * (1 + ‖t‖) := by
-  intro t
-  let s : ℂ := σ + t * Complex.I
-  have hline_shift :
-      s + 1 = ((σ + 1) + t * Complex.I : ℂ) := by
-    calc
-      s + 1 = ((σ : ℂ) + t * Complex.I) + 1 := by
-        exact congrArg (fun z : ℂ => z + 1) rfl
-      _ = ((σ : ℂ) + 1) + t * Complex.I := by
-        exact (add_right_comm (σ : ℂ) (t * Complex.I) 1).symm
-      _ = ((σ + 1) + t * Complex.I : ℂ) := by
-        exact congrArg (fun z : ℂ => z + t * Complex.I)
-          (Complex.ofReal_add σ 1).symm
-  have hshift_here :
-      ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ ≤
-        B * (1 + ‖t‖) := by
-    exact
-      Eq.subst
-        (motive := fun z : ℂ =>
-          ‖deriv Complex.Gamma z / Complex.Gamma z‖ ≤
-            B * (1 + ‖t‖))
-        hline_shift.symm
-        (hshift_bound t)
-  have hs0 : s ≠ 0 := by
-    intro hs0_eq
-    have hre :
-        s.re = (0 : ℂ).re :=
-      congrArg Complex.re hs0_eq
-    have hs_re : s.re = σ :=
-      Complex.fixedRealPartLine_re σ t
-    have hzero_re : (0 : ℂ).re = (0 : ℝ) :=
-      Complex.zero_re
-    exact hσ_ne_zero (hs_re.symm.trans (hre.trans hzero_re))
-  have hrec :
-      deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1) =
-        deriv Complex.Gamma s / Complex.Gamma s + 1 / s :=
-    Complex.Gamma_logDerivative_add_one (s := s) hs0 (hnot_pole t)
-  have hsolve :
-      deriv Complex.Gamma s / Complex.Gamma s =
-        deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1) - 1 / s :=
-    (eq_sub_iff_add_eq).mpr hrec.symm
-  have htriangle :
-      ‖deriv Complex.Gamma s / Complex.Gamma s‖ ≤
-        ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ +
-          ‖1 / s‖ := by
-    exact
-      Eq.subst
-        (motive := fun z : ℂ =>
-          ‖z‖ ≤
-            ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ +
-              ‖1 / s‖)
-        hsolve.symm
-        (norm_sub_le
-          (deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1))
-          (1 / s))
-  have hinv_bound :
-      ‖1 / s‖ ≤ |σ|⁻¹ * (1 + ‖t‖) := by
-    have hone_div :
-        ‖1 / s‖ = ‖s⁻¹‖ := by
-      exact congrArg norm (one_div s)
-    have hraw :
-        ‖((σ + t * Complex.I : ℂ)⁻¹)‖ ≤
-          |σ|⁻¹ * (1 + ‖t‖) :=
-      Complex.fixedRealPartLine_inv_norm_le_abs_re_inv_mul_one_add_norm
-        hσ_ne_zero t
-    exact
-      Eq.subst
-        (motive := fun x : ℝ => x ≤ |σ|⁻¹ * (1 + ‖t‖))
-        hone_div.symm
-        hraw
-  have hsum :
-      ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ +
-          ‖1 / s‖ ≤
-        B * (1 + ‖t‖) + |σ|⁻¹ * (1 + ‖t‖) :=
-    add_le_add hshift_here hinv_bound
-  have hfactor :
-      B * (1 + ‖t‖) + |σ|⁻¹ * (1 + ‖t‖) =
-        (B + |σ|⁻¹) * (1 + ‖t‖) :=
-    (add_mul B |σ|⁻¹ (1 + ‖t‖)).symm
-  exact htriangle.trans (hsum.trans_eq hfactor)
-
 /-- Avoidance of the ordinary Gamma pole locus on a fixed vertical line implies
 that the fixed real part is nonzero. -/
 theorem Complex.fixedRealPartLine_realPart_ne_zero_of_ne_Gamma_zero_locus
@@ -494,7 +403,11 @@ theorem Complex.fixedRealPartLine_realPart_ne_zero_of_ne_Gamma_zero_locus
       _ = 0 := zero_add 0
   have hzero_neg :
       (0 : ℂ) = -(0 : ℕ) := by
-    exact neg_zero.symm
+    have hcast : (((0 : ℕ) : ℂ)) = (0 : ℂ) :=
+      Nat.cast_zero
+    have hneg_cast : -(((0 : ℕ) : ℂ)) = -((0 : ℂ)) :=
+      congrArg Neg.neg hcast
+    exact (hneg_cast.trans (neg_zero : -((0 : ℂ)) = 0)).symm
   exact (hnot_pole 0 0) (hline_zero.trans hzero_neg)
 
 /-- One-step shifted Binet main term for the Gamma logarithmic derivative on a
@@ -529,7 +442,7 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_shiftOne_main_add_remai
       Complex.GammaLogDerivativeFixedVerticalShiftOneMain σ t +
         Complex.GammaLogDerivativeFixedVerticalShiftOneRemainder σ t := by
   let s : ℂ := σ + t * Complex.I
-  let shifted : ℂ := (σ + 1 + t * Complex.I : ℂ)
+  let shifted : ℂ := ((σ + 1 : ℝ) + t * Complex.I : ℂ)
   have hs0 : s ≠ 0 := by
     have hσ_ne_zero : σ ≠ 0 :=
       Complex.fixedRealPartLine_realPart_ne_zero_of_ne_Gamma_zero_locus
@@ -547,25 +460,25 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_shiftOne_main_add_remai
       s + 1 = ((σ : ℂ) + t * Complex.I) + 1 := by
         exact Eq.refl _
       _ = ((σ : ℂ) + 1) + t * Complex.I := by
-        exact (add_right_comm (σ : ℂ) (t * Complex.I) 1).symm
+        exact add_right_comm (σ : ℂ) (t * Complex.I) 1
       _ = ((σ + 1 : ℝ) : ℂ) + t * Complex.I := by
+        have hone : (((1 : ℝ) : ℂ)) = (1 : ℂ) :=
+          rfl
+        have hreal :
+            ((σ : ℂ) + 1) = ((σ + 1 : ℝ) : ℂ) :=
+          (congrArg (fun z : ℂ => (σ : ℂ) + z) hone.symm).trans
+            (Complex.ofReal_add σ 1).symm
         exact congrArg (fun z : ℂ => z + t * Complex.I)
-          (Complex.ofReal_add σ 1).symm
+          hreal
       _ = shifted := by
-        exact Eq.refl _
+        exact rfl
   have hshift_decomp :
       deriv Complex.Gamma shifted / Complex.Gamma shifted =
         Complex.GammaLogDerivativeFixedVerticalMain (σ + 1) t +
           Complex.GammaLogDerivativeFixedVerticalRemainder (σ + 1) t := by
     exact
-      Eq.subst
-        (motive := fun z : ℂ =>
-          deriv Complex.Gamma z / Complex.Gamma z =
-            Complex.GammaLogDerivativeFixedVerticalMain (σ + 1) t +
-              Complex.GammaLogDerivativeFixedVerticalRemainder (σ + 1) t)
-        hline_shift
-        (Complex.Gamma_logDerivative_fixedRealPartLine_eq_main_add_remainder
-          hcoh hσ_shift_pos t)
+      Complex.Gamma_logDerivative_fixedRealPartLine_eq_main_add_remainder
+        hcoh hσ_shift_pos t
   have hrec :
       deriv Complex.Gamma shifted / Complex.Gamma shifted =
         deriv Complex.Gamma s / Complex.Gamma s + 1 / s := by
@@ -631,17 +544,24 @@ theorem Complex.fixedRealPartLine_shift_nat_ne_Gamma_zero_locus
       (σ + t * Complex.I : ℂ) =
           ((σ : ℂ) + t * Complex.I) := by
         exact Eq.refl _
-      _ = (((σ : ℂ) + (k : ℂ)) + t * Complex.I) - (k : ℂ) := by
+      _ = (((σ : ℂ) + t * Complex.I) + (k : ℂ)) - (k : ℂ) := by
         exact
           (add_sub_cancel_right
             ((σ : ℂ) + t * Complex.I)
-            (k : ℂ)).symm.trans
-            (congrArg (fun z : ℂ => z - (k : ℂ))
-              (add_right_comm (σ : ℂ) (t * Complex.I) (k : ℂ)).symm)
+            (k : ℂ)).symm
+      _ = (((σ : ℂ) + (k : ℂ)) + t * Complex.I) - (k : ℂ) := by
+        exact
+          congrArg (fun z : ℂ => z - (k : ℂ))
+            (add_right_comm (σ : ℂ) (t * Complex.I) (k : ℂ))
       _ = (σ + (k : ℝ) + t * Complex.I : ℂ) - (k : ℂ) := by
+        have hk : (((k : ℝ) : ℂ)) = (k : ℂ) :=
+          rfl
+        have hreal :
+            ((σ : ℂ) + (k : ℂ)) = (σ : ℂ) + ((k : ℝ) : ℂ) :=
+          congrArg (fun z : ℂ => (σ : ℂ) + z) hk.symm
         exact congrArg (fun z : ℂ => z - (k : ℂ))
           (congrArg (fun z : ℂ => z + t * Complex.I)
-            (Complex.ofReal_add σ k).symm)
+            hreal)
   have hneg_sub :
       (-(n : ℂ)) - (k : ℂ) = -((n + k : ℕ) : ℂ) := by
     have hcast :
@@ -691,9 +611,14 @@ by the successor. -/
 theorem Complex.real_add_one_add_nat_eq_add_succ
     (σ : ℝ) (N : ℕ) :
     σ + ((N + 1 : ℕ) : ℝ) = (σ + 1) + (N : ℝ) := by
-  have hcast :
-      (((N + 1 : ℕ) : ℝ)) = (N : ℝ) + 1 :=
+  have hcast_nat :
+      (((N + 1 : ℕ) : ℝ)) = (N : ℝ) + ((1 : ℕ) : ℝ) :=
     Nat.cast_add N 1
+  have hone_nat : (((1 : ℕ) : ℝ)) = (1 : ℝ) :=
+    Nat.cast_one
+  have hcast :
+      (((N + 1 : ℕ) : ℝ)) = (N : ℝ) + (1 : ℝ) :=
+    hcast_nat.trans (congrArg (fun x : ℝ => (N : ℝ) + x) hone_nat)
   calc
     σ + ((N + 1 : ℕ) : ℝ) =
         σ + ((N : ℝ) + 1) := by
@@ -702,6 +627,37 @@ theorem Complex.real_add_one_add_nat_eq_add_succ
       exact (add_assoc σ (N : ℝ) 1).symm
     _ = (σ + 1) + (N : ℝ) := by
       exact add_right_comm σ (N : ℝ) 1
+
+/-- One-step pole avoidance on a fixed vertical line, in the canonical
+`(σ + 1 : ℝ)` real-part normal form. -/
+theorem Complex.fixedRealPartLine_shift_one_ne_Gamma_zero_locus
+    {σ : ℝ}
+    (hnot_pole :
+      ∀ t : ℝ, ∀ n : ℕ,
+        (σ + t * Complex.I : ℂ) ≠ -n) :
+    ∀ t : ℝ, ∀ n : ℕ,
+      ((σ + 1 : ℝ) + t * Complex.I : ℂ) ≠ -n := by
+  intro t n hshift
+  have hraw :
+      (σ + (1 : ℝ) + t * Complex.I : ℂ) ≠ -n :=
+    have hraw_nat :
+        (σ + ((1 : ℕ) : ℝ) + t * Complex.I : ℂ) ≠ -n :=
+      Complex.fixedRealPartLine_shift_nat_ne_Gamma_zero_locus
+        hnot_pole 1 t n
+    have hone_nat : (((1 : ℕ) : ℝ)) = (1 : ℝ) :=
+      Nat.cast_one
+    have hline_nat :
+        (σ + ((1 : ℕ) : ℝ) + t * Complex.I : ℂ) =
+          (σ + (1 : ℝ) + t * Complex.I : ℂ) := by
+      exact congrArg (fun x : ℝ => (σ + x + t * Complex.I : ℂ))
+        hone_nat
+    fun h => hraw_nat (hline_nat.trans h)
+  have hline :
+      (σ + (1 : ℝ) + t * Complex.I : ℂ) =
+        ((σ + 1 : ℝ) + t * Complex.I : ℂ) := by
+    exact congrArg (fun z : ℂ => z + t * Complex.I)
+      (Complex.ofReal_add σ 1).symm
+  exact hraw (hline.trans hshift)
 
 /-- Finite-shift Binet main term for the Gamma logarithmic derivative on a
 fixed vertical line.
@@ -793,8 +749,10 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_shiftNat_main_add_remai
   induction N generalizing σ with
   | zero =>
       have hσ_pos : 0 < σ := by
-        have hzero : σ + (0 : ℝ) = σ :=
-          add_zero σ
+        have hzero : σ + ((0 : ℕ) : ℝ) = σ := by
+          have hcast : (((0 : ℕ) : ℝ)) = (0 : ℝ) :=
+            Nat.cast_zero
+          exact (congrArg (fun x : ℝ => σ + x) hcast).trans (add_zero σ)
         exact
           Eq.subst
             (motive := fun x : ℝ => 0 < x)
@@ -813,7 +771,7 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_shiftNat_main_add_remai
           exact Eq.refl _
   | succ N ih =>
       let s : ℂ := σ + t * Complex.I
-      let shifted : ℂ := (σ + 1 + t * Complex.I : ℂ)
+      let shifted : ℂ := ((σ + 1 : ℝ) + t * Complex.I : ℂ)
       have htail_pos : 0 < (σ + 1) + (N : ℝ) := by
         have hrewrite :
             σ + ((N + 1 : ℕ) : ℝ) = (σ + 1) + (N : ℝ) :=
@@ -825,9 +783,9 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_shiftNat_main_add_remai
             hσ_shift_pos
       have htail_pole :
           ∀ t : ℝ, ∀ n : ℕ,
-            (σ + 1 + t * Complex.I : ℂ) ≠ -n :=
-        Complex.fixedRealPartLine_shift_nat_ne_Gamma_zero_locus
-          hnot_pole 1
+            ((σ + 1 : ℝ) + t * Complex.I : ℂ) ≠ -n :=
+        Complex.fixedRealPartLine_shift_one_ne_Gamma_zero_locus
+          hnot_pole
       have hs0 : s ≠ 0 := by
         have hσ_ne_zero : σ ≠ 0 :=
           Complex.fixedRealPartLine_realPart_ne_zero_of_ne_Gamma_zero_locus
@@ -845,28 +803,25 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_shiftNat_main_add_remai
           s + 1 = ((σ : ℂ) + t * Complex.I) + 1 := by
             exact Eq.refl _
           _ = ((σ : ℂ) + 1) + t * Complex.I := by
-            exact (add_right_comm (σ : ℂ) (t * Complex.I) 1).symm
+            exact add_right_comm (σ : ℂ) (t * Complex.I) 1
           _ = ((σ + 1 : ℝ) : ℂ) + t * Complex.I := by
+            have hone : (((1 : ℝ) : ℂ)) = (1 : ℂ) :=
+              rfl
+            have hreal :
+                ((σ : ℂ) + 1) = ((σ + 1 : ℝ) : ℂ) :=
+              (congrArg (fun z : ℂ => (σ : ℂ) + z) hone.symm).trans
+                (Complex.ofReal_add σ 1).symm
             exact congrArg (fun z : ℂ => z + t * Complex.I)
-              (Complex.ofReal_add σ 1).symm
+              hreal
           _ = shifted := by
-            exact Eq.refl _
+            exact rfl
       have hshift_decomp :
           deriv Complex.Gamma shifted / Complex.Gamma shifted =
             Complex.GammaLogDerivativeFixedVerticalShiftNatMain
               (σ + 1) N t +
               Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder
                 (σ + 1) N t := by
-        exact
-          Eq.subst
-            (motive := fun z : ℂ =>
-              deriv Complex.Gamma z / Complex.Gamma z =
-                Complex.GammaLogDerivativeFixedVerticalShiftNatMain
-                  (σ + 1) N t +
-                  Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder
-                    (σ + 1) N t)
-            hline_shift
-            (ih htail_pos htail_pole t)
+        exact ih htail_pos htail_pole
       have hrec :
           deriv Complex.Gamma shifted / Complex.Gamma shifted =
             deriv Complex.Gamma s / Complex.Gamma s + 1 / s := by
@@ -954,193 +909,6 @@ theorem Complex.GammaLogDerivativeFixedVerticalPositiveShiftNat_pos
         (Complex.GammaLogDerivativeFixedVerticalPositiveShiftNat σ : ℝ) :=
   Classical.choose_spec
     (Complex.exists_fixedRealPartLine_positive_shift_nat σ)
-
-/-- Finite fixed-line shift for Gamma logarithmic-derivative bounds.
-
-If some natural right-shift of the fixed real part is positive and the original
-vertical line avoids the ordinary Gamma pole locus, then the original line has
-linear growth for `Γ'/Γ`. -/
-theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_shift_nat
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
-    {σ : ℝ}
-    (N : ℕ)
-    (hσ_shift_pos : 0 < σ + (N : ℝ))
-    (hnot_pole :
-      ∀ t : ℝ, ∀ n : ℕ,
-        (σ + t * Complex.I : ℂ) ≠ -n) :
-    ∀ t : ℝ,
-      ‖deriv Complex.Gamma (σ + t * Complex.I) /
-          Complex.Gamma (σ + t * Complex.I)‖ ≤
-        Complex.GammaLogDerivativeFixedVerticalShiftConstant σ N *
-          (1 + ‖t‖) := by
-  induction N generalizing σ with
-  | zero =>
-      intro t
-      have hσ_pos : 0 < σ := by
-        have hzero : σ + (0 : ℝ) = σ :=
-          add_zero σ
-        exact
-          Eq.subst
-            (motive := fun x : ℝ => 0 < x)
-            hzero
-            hσ_shift_pos
-      have hpositive :
-          ‖deriv Complex.Gamma (σ + t * Complex.I) /
-              Complex.Gamma (σ + t * Complex.I)‖ ≤
-            Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant σ *
-              (1 + ‖t‖) :=
-        Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
-          hcoh hσ_pos t
-      exact hpositive
-  | succ N ih =>
-      intro t
-      have htail_pos : 0 < (σ + 1) + (N : ℝ) := by
-        have hrewrite :
-            σ + ((N + 1 : ℕ) : ℝ) = (σ + 1) + (N : ℝ) :=
-          Complex.real_add_one_add_nat_eq_add_succ σ N
-        exact
-          Eq.subst
-            (motive := fun x : ℝ => 0 < x)
-            hrewrite
-            hσ_shift_pos
-      have htail_pole :
-          ∀ t : ℝ, ∀ n : ℕ,
-            (σ + 1 + t * Complex.I : ℂ) ≠ -n :=
-        Complex.fixedRealPartLine_shift_nat_ne_Gamma_zero_locus
-          hnot_pole 1
-      have htail_bound :
-          ∀ t : ℝ,
-            ‖deriv Complex.Gamma ((σ + 1) + t * Complex.I) /
-                Complex.Gamma ((σ + 1) + t * Complex.I)‖ ≤
-              Complex.GammaLogDerivativeFixedVerticalShiftConstant (σ + 1) N *
-                (1 + ‖t‖) :=
-        ih htail_pos htail_pole
-      have hσ_ne_zero : σ ≠ 0 :=
-        Complex.fixedRealPartLine_realPart_ne_zero_of_ne_Gamma_zero_locus
-          hnot_pole
-      exact
-        Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_shift_one_bound
-          hσ_ne_zero hnot_pole htail_bound t
-
-/-- One-step fixed-line shift for Gamma logarithmic-derivative bounds.
-
-If the line of real part `σ + 1` is already controlled by Binet's positive
-half-plane estimate and the line of real part `σ` avoids Gamma poles, then the
-line of real part `σ` has the same linear growth, up to the reciprocal term
-from the Gamma recurrence. -/
-theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_shift_one
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
-    {σ : ℝ}
-    (hσ_shift_pos : 0 < σ + 1)
-    (hσ_ne_zero : σ ≠ 0)
-    (hnot_pole :
-      ∀ t : ℝ, ∀ n : ℕ,
-        (σ + t * Complex.I : ℂ) ≠ -n) :
-    ∀ t : ℝ,
-      ‖deriv Complex.Gamma (σ + t * Complex.I) /
-          Complex.Gamma (σ + t * Complex.I)‖ ≤
-        (((|Real.log (σ + 1)| + ((σ + 1) + 1) + Real.pi) +
-            1 / (σ + 1)) +
-          |‖(2 : ℂ)‖ *
-            ∫ u : ℝ in Set.Ioi (0 : ℝ),
-              (1 / (σ + 1) ^ 2) *
-                (u / (Real.exp ((2 : ℝ) * Real.pi * u) - 1))| +
-          |σ|⁻¹) *
-          (1 + ‖t‖) := by
-  intro t
-  let s : ℂ := σ + t * Complex.I
-  let τ : ℝ := σ + 1
-  let B : ℝ :=
-    (((|Real.log τ| + (τ + 1) + Real.pi) + 1 / τ) +
-      |‖(2 : ℂ)‖ *
-        ∫ u : ℝ in Set.Ioi (0 : ℝ),
-          (1 / τ ^ 2) *
-            (u / (Real.exp ((2 : ℝ) * Real.pi * u) - 1))|)
-  let R : ℝ := |σ|⁻¹
-  have hline_shift :
-      s + 1 = (τ + t * Complex.I : ℂ) := by
-    calc
-      s + 1 = ((σ : ℂ) + t * Complex.I) + 1 := by
-        exact congrArg (fun z : ℂ => z + 1) rfl
-      _ = ((σ : ℂ) + 1) + t * Complex.I := by
-        exact (add_right_comm (σ : ℂ) (t * Complex.I) 1).symm
-      _ = (τ + t * Complex.I : ℂ) := by
-        exact congrArg (fun z : ℂ => z + t * Complex.I)
-          (Complex.ofReal_add σ 1).symm
-  have hshift_bound :
-      ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ ≤
-        B * (1 + ‖t‖) := by
-    have hpositive :
-        ‖deriv Complex.Gamma (τ + t * Complex.I) /
-            Complex.Gamma (τ + t * Complex.I)‖ ≤
-          B * (1 + ‖t‖) :=
-      Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
-        hcoh hσ_shift_pos t
-    exact
-      Eq.subst
-        (motive := fun z : ℂ =>
-          ‖deriv Complex.Gamma z / Complex.Gamma z‖ ≤
-            B * (1 + ‖t‖))
-        hline_shift.symm
-        hpositive
-  have hrec :
-      deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1) =
-        deriv Complex.Gamma s / Complex.Gamma s + 1 / s :=
-    Complex.Gamma_logDerivative_add_one
-      (s := s)
-      (by
-        intro hs0
-        have hre :
-            s.re = (0 : ℂ).re :=
-          congrArg Complex.re hs0
-        have hs_re : s.re = σ :=
-          Complex.fixedRealPartLine_re σ t
-        have hzero_re : (0 : ℂ).re = (0 : ℝ) :=
-          Complex.zero_re
-        exact hσ_ne_zero (hs_re.symm.trans (hre.trans hzero_re)))
-      (hnot_pole t)
-  have hsolve :
-      deriv Complex.Gamma s / Complex.Gamma s =
-        deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1) - 1 / s :=
-    (eq_sub_iff_add_eq).mpr hrec.symm
-  have htriangle :
-      ‖deriv Complex.Gamma s / Complex.Gamma s‖ ≤
-        ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ +
-          ‖1 / s‖ := by
-    exact
-      Eq.subst
-        (motive := fun z : ℂ =>
-          ‖z‖ ≤
-            ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ +
-              ‖1 / s‖)
-        hsolve.symm
-        (norm_sub_le
-          (deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1))
-          (1 / s))
-  have hinv_bound :
-      ‖1 / s‖ ≤ R * (1 + ‖t‖) := by
-    have hone_div :
-        ‖1 / s‖ = ‖s⁻¹‖ := by
-      exact congrArg norm (one_div s)
-    have hraw :
-        ‖((σ + t * Complex.I : ℂ)⁻¹)‖ ≤ R * (1 + ‖t‖) :=
-      Complex.fixedRealPartLine_inv_norm_le_abs_re_inv_mul_one_add_norm
-        hσ_ne_zero t
-    exact
-      Eq.subst
-        (motive := fun x : ℝ => x ≤ R * (1 + ‖t‖))
-        hone_div.symm
-        hraw
-  have hsum :
-      ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ +
-          ‖1 / s‖ ≤
-        B * (1 + ‖t‖) + R * (1 + ‖t‖) :=
-    add_le_add hshift_bound hinv_bound
-  have hfactor :
-      B * (1 + ‖t‖) + R * (1 + ‖t‖) =
-        (B + R) * (1 + ‖t‖) :=
-    (add_mul B R (1 + ‖t‖)).symm
-  exact htriangle.trans (hsum.trans_eq hfactor)
 
 /-- The differentiated Binet remainder is uniformly bounded on any vertical
 region bounded away from the imaginary axis. -/
@@ -1296,7 +1064,9 @@ theorem Real.abs_log_le_fixedLower_linearUpper
   have hright : Real.log x ≤ (|Real.log σ| + A) * a := by
     exact hlog_upper.trans
       (hxA.trans
-        (mul_le_mul_of_nonneg_right habs_le_C (zero_le_one.trans ha_one)))
+        (mul_le_mul_of_nonneg_right
+          (le_add_of_nonneg_left (abs_nonneg (Real.log σ)))
+          (zero_le_one.trans ha_one)))
   exact abs_le.mpr ⟨hleft, hright⟩
 
 /-- The norm on a positive fixed-real-part vertical line is bounded below by
@@ -1718,6 +1488,307 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
       hpow
       hbound_pow
 
+/-- One-step fixed-line shift for Gamma logarithmic-derivative bounds, in a
+form that consumes an arbitrary bound on the shifted line. -/
+theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_shift_one_bound
+    {σ B : ℝ}
+    (hσ_ne_zero : σ ≠ 0)
+    (hnot_pole :
+      ∀ t : ℝ, ∀ n : ℕ,
+        (σ + t * Complex.I : ℂ) ≠ -n)
+    (hshift_bound :
+      ∀ t : ℝ,
+        ‖deriv Complex.Gamma ((σ + 1 : ℝ) + t * Complex.I) /
+            Complex.Gamma ((σ + 1 : ℝ) + t * Complex.I)‖ ≤
+          B * (1 + ‖t‖)) :
+    ∀ t : ℝ,
+      ‖deriv Complex.Gamma (σ + t * Complex.I) /
+          Complex.Gamma (σ + t * Complex.I)‖ ≤
+        (B + |σ|⁻¹) * (1 + ‖t‖) := by
+  intro t
+  let s : ℂ := σ + t * Complex.I
+  have hline_shift :
+      s + 1 = ((σ + 1 : ℝ) + t * Complex.I : ℂ) := by
+    calc
+      s + 1 = ((σ : ℂ) + t * Complex.I) + 1 := by
+        exact congrArg (fun z : ℂ => z + 1) rfl
+      _ = ((σ : ℂ) + 1) + t * Complex.I := by
+        exact add_right_comm (σ : ℂ) (t * Complex.I) 1
+      _ = ((σ + 1 : ℝ) + t * Complex.I : ℂ) := by
+        have hone : (((1 : ℝ) : ℂ)) = (1 : ℂ) :=
+          rfl
+        have hreal :
+            ((σ : ℂ) + 1) = ((σ + 1 : ℝ) : ℂ) :=
+          (congrArg (fun z : ℂ => (σ : ℂ) + z) hone.symm).trans
+            (Complex.ofReal_add σ 1).symm
+        exact congrArg (fun z : ℂ => z + t * Complex.I)
+          hreal
+  have hshift_here :
+      ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ ≤
+        B * (1 + ‖t‖) := by
+    exact
+      Eq.subst
+        (motive := fun z : ℂ =>
+          ‖deriv Complex.Gamma z / Complex.Gamma z‖ ≤
+            B * (1 + ‖t‖))
+        hline_shift.symm
+        (hshift_bound t)
+  have hs0 : s ≠ 0 := by
+    intro hs0_eq
+    have hre :
+        s.re = (0 : ℂ).re :=
+      congrArg Complex.re hs0_eq
+    have hs_re : s.re = σ :=
+      Complex.fixedRealPartLine_re σ t
+    have hzero_re : (0 : ℂ).re = (0 : ℝ) :=
+      Complex.zero_re
+    exact hσ_ne_zero (hs_re.symm.trans (hre.trans hzero_re))
+  have hrec :
+      deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1) =
+        deriv Complex.Gamma s / Complex.Gamma s + 1 / s :=
+    Complex.Gamma_logDerivative_add_one (s := s) hs0 (hnot_pole t)
+  have hsolve :
+      deriv Complex.Gamma s / Complex.Gamma s =
+        deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1) - 1 / s :=
+    (eq_sub_iff_add_eq).mpr hrec.symm
+  have htriangle :
+      ‖deriv Complex.Gamma s / Complex.Gamma s‖ ≤
+        ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ +
+          ‖1 / s‖ := by
+    exact
+      Eq.subst
+        (motive := fun z : ℂ =>
+          ‖z‖ ≤
+            ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ +
+              ‖1 / s‖)
+        hsolve.symm
+        (norm_sub_le
+          (deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1))
+          (1 / s))
+  have hinv_bound :
+      ‖1 / s‖ ≤ |σ|⁻¹ * (1 + ‖t‖) := by
+    have hone_div :
+        ‖1 / s‖ = ‖s⁻¹‖ := by
+      exact congrArg norm (one_div s)
+    have hraw :
+        ‖((σ + t * Complex.I : ℂ)⁻¹)‖ ≤
+          |σ|⁻¹ * (1 + ‖t‖) :=
+      Complex.fixedRealPartLine_inv_norm_le_abs_re_inv_mul_one_add_norm
+        hσ_ne_zero t
+    exact
+      Eq.subst
+        (motive := fun x : ℝ => x ≤ |σ|⁻¹ * (1 + ‖t‖))
+        hone_div.symm
+        hraw
+  have hsum :
+      ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ +
+          ‖1 / s‖ ≤
+        B * (1 + ‖t‖) + |σ|⁻¹ * (1 + ‖t‖) :=
+    add_le_add hshift_here hinv_bound
+  have hfactor :
+      B * (1 + ‖t‖) + |σ|⁻¹ * (1 + ‖t‖) =
+        (B + |σ|⁻¹) * (1 + ‖t‖) :=
+    (add_mul B |σ|⁻¹ (1 + ‖t‖)).symm
+  exact htriangle.trans (hsum.trans_eq hfactor)
+
+
+/-- Finite fixed-line shift for Gamma logarithmic-derivative bounds.
+
+If some natural right-shift of the fixed real part is positive and the original
+vertical line avoids the ordinary Gamma pole locus, then the original line has
+linear growth for `Γ'/Γ`. -/
+theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_shift_nat
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    {σ : ℝ}
+    (N : ℕ)
+    (hσ_shift_pos : 0 < σ + (N : ℝ))
+    (hnot_pole :
+      ∀ t : ℝ, ∀ n : ℕ,
+        (σ + t * Complex.I : ℂ) ≠ -n) :
+    ∀ t : ℝ,
+      ‖deriv Complex.Gamma (σ + t * Complex.I) /
+          Complex.Gamma (σ + t * Complex.I)‖ ≤
+        Complex.GammaLogDerivativeFixedVerticalShiftConstant σ N *
+          (1 + ‖t‖) := by
+  induction N generalizing σ with
+  | zero =>
+      intro t
+      have hσ_pos : 0 < σ := by
+        have hzero : σ + ((0 : ℕ) : ℝ) = σ := by
+          have hcast : (((0 : ℕ) : ℝ)) = (0 : ℝ) :=
+            Nat.cast_zero
+          exact (congrArg (fun x : ℝ => σ + x) hcast).trans (add_zero σ)
+        exact
+          Eq.subst
+            (motive := fun x : ℝ => 0 < x)
+            hzero
+            hσ_shift_pos
+      have hpositive :
+          ‖deriv Complex.Gamma (σ + t * Complex.I) /
+              Complex.Gamma (σ + t * Complex.I)‖ ≤
+            Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant σ *
+              (1 + ‖t‖) :=
+        Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
+          hcoh hσ_pos t
+      exact hpositive
+  | succ N ih =>
+      intro t
+      have htail_pos : 0 < (σ + 1) + (N : ℝ) := by
+        have hrewrite :
+            σ + ((N + 1 : ℕ) : ℝ) = (σ + 1) + (N : ℝ) :=
+          Complex.real_add_one_add_nat_eq_add_succ σ N
+        exact
+          Eq.subst
+            (motive := fun x : ℝ => 0 < x)
+            hrewrite
+            hσ_shift_pos
+      have htail_pole :
+          ∀ t : ℝ, ∀ n : ℕ,
+            ((σ + 1 : ℝ) + t * Complex.I : ℂ) ≠ -n :=
+        Complex.fixedRealPartLine_shift_one_ne_Gamma_zero_locus
+          hnot_pole
+      have htail_bound :
+          ∀ t : ℝ,
+            ‖deriv Complex.Gamma ((σ + 1 : ℝ) + t * Complex.I) /
+                Complex.Gamma ((σ + 1 : ℝ) + t * Complex.I)‖ ≤
+              Complex.GammaLogDerivativeFixedVerticalShiftConstant (σ + 1) N *
+                (1 + ‖t‖) :=
+        ih htail_pos htail_pole
+      have hσ_ne_zero : σ ≠ 0 :=
+        Complex.fixedRealPartLine_realPart_ne_zero_of_ne_Gamma_zero_locus
+          hnot_pole
+      exact
+        Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_shift_one_bound
+          hσ_ne_zero hnot_pole htail_bound t
+
+
+/-- One-step fixed-line shift for Gamma logarithmic-derivative bounds.
+
+If the line of real part `σ + 1` is already controlled by Binet's positive
+half-plane estimate and the line of real part `σ` avoids Gamma poles, then the
+line of real part `σ` has the same linear growth, up to the reciprocal term
+from the Gamma recurrence. -/
+theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_shift_one
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    {σ : ℝ}
+    (hσ_shift_pos : 0 < σ + 1)
+    (hσ_ne_zero : σ ≠ 0)
+    (hnot_pole :
+      ∀ t : ℝ, ∀ n : ℕ,
+        (σ + t * Complex.I : ℂ) ≠ -n) :
+    ∀ t : ℝ,
+      ‖deriv Complex.Gamma (σ + t * Complex.I) /
+          Complex.Gamma (σ + t * Complex.I)‖ ≤
+        (((|Real.log (σ + 1)| + ((σ + 1) + 1) + Real.pi) +
+            1 / (σ + 1)) +
+          |‖(2 : ℂ)‖ *
+            ∫ u : ℝ in Set.Ioi (0 : ℝ),
+              (1 / (σ + 1) ^ 2) *
+                (u / (Real.exp ((2 : ℝ) * Real.pi * u) - 1))| +
+          |σ|⁻¹) *
+          (1 + ‖t‖) := by
+  intro t
+  let s : ℂ := σ + t * Complex.I
+  let τ : ℝ := σ + 1
+  let B : ℝ :=
+    (((|Real.log τ| + (τ + 1) + Real.pi) + 1 / τ) +
+      |‖(2 : ℂ)‖ *
+        ∫ u : ℝ in Set.Ioi (0 : ℝ),
+          (1 / τ ^ 2) *
+            (u / (Real.exp ((2 : ℝ) * Real.pi * u) - 1))|)
+  let R : ℝ := |σ|⁻¹
+  have hline_shift :
+      s + 1 = (τ + t * Complex.I : ℂ) := by
+    calc
+      s + 1 = ((σ : ℂ) + t * Complex.I) + 1 := by
+        exact congrArg (fun z : ℂ => z + 1) rfl
+      _ = ((σ : ℂ) + 1) + t * Complex.I := by
+        exact add_right_comm (σ : ℂ) (t * Complex.I) 1
+      _ = (τ + t * Complex.I : ℂ) := by
+        have hone : (((1 : ℝ) : ℂ)) = (1 : ℂ) :=
+          rfl
+        have hreal :
+            ((σ : ℂ) + 1) = (τ : ℂ) :=
+          (congrArg (fun z : ℂ => (σ : ℂ) + z) hone.symm).trans
+            (Complex.ofReal_add σ 1).symm
+        exact congrArg (fun z : ℂ => z + t * Complex.I)
+          hreal
+  have hshift_bound :
+      ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ ≤
+        B * (1 + ‖t‖) := by
+    have hpositive :
+        ‖deriv Complex.Gamma (τ + t * Complex.I) /
+            Complex.Gamma (τ + t * Complex.I)‖ ≤
+          B * (1 + ‖t‖) :=
+      Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
+        hcoh hσ_shift_pos t
+    exact
+      Eq.subst
+        (motive := fun z : ℂ =>
+          ‖deriv Complex.Gamma z / Complex.Gamma z‖ ≤
+            B * (1 + ‖t‖))
+        hline_shift.symm
+        hpositive
+  have hrec :
+      deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1) =
+        deriv Complex.Gamma s / Complex.Gamma s + 1 / s :=
+    Complex.Gamma_logDerivative_add_one
+      (s := s)
+      (by
+        intro hs0
+        have hre :
+            s.re = (0 : ℂ).re :=
+          congrArg Complex.re hs0
+        have hs_re : s.re = σ :=
+          Complex.fixedRealPartLine_re σ t
+        have hzero_re : (0 : ℂ).re = (0 : ℝ) :=
+          Complex.zero_re
+        exact hσ_ne_zero (hs_re.symm.trans (hre.trans hzero_re)))
+      (hnot_pole t)
+  have hsolve :
+      deriv Complex.Gamma s / Complex.Gamma s =
+        deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1) - 1 / s :=
+    (eq_sub_iff_add_eq).mpr hrec.symm
+  have htriangle :
+      ‖deriv Complex.Gamma s / Complex.Gamma s‖ ≤
+        ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ +
+          ‖1 / s‖ := by
+    exact
+      Eq.subst
+        (motive := fun z : ℂ =>
+          ‖z‖ ≤
+            ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ +
+              ‖1 / s‖)
+        hsolve.symm
+        (norm_sub_le
+          (deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1))
+          (1 / s))
+  have hinv_bound :
+      ‖1 / s‖ ≤ R * (1 + ‖t‖) := by
+    have hone_div :
+        ‖1 / s‖ = ‖s⁻¹‖ := by
+      exact congrArg norm (one_div s)
+    have hraw :
+        ‖((σ + t * Complex.I : ℂ)⁻¹)‖ ≤ R * (1 + ‖t‖) :=
+      Complex.fixedRealPartLine_inv_norm_le_abs_re_inv_mul_one_add_norm
+        hσ_ne_zero t
+    exact
+      Eq.subst
+        (motive := fun x : ℝ => x ≤ R * (1 + ‖t‖))
+        hone_div.symm
+        hraw
+  have hsum :
+      ‖deriv Complex.Gamma (s + 1) / Complex.Gamma (s + 1)‖ +
+          ‖1 / s‖ ≤
+        B * (1 + ‖t‖) + R * (1 + ‖t‖) :=
+    add_le_add hshift_bound hinv_bound
+  have hfactor :
+      B * (1 + ‖t‖) + R * (1 + ‖t‖) =
+        (B + R) * (1 + ‖t‖) :=
+    (add_mul B R (1 + ‖t‖)).symm
+  exact htriangle.trans (hsum.trans_eq hfactor)
+
+
 /-- Linear-growth constant for the finite-shift Binet main term. -/
 noncomputable def Complex.GammaLogDerivativeFixedVerticalShiftNatMainLinearConstant
     (σ : ℝ) : ℕ → ℝ
@@ -1752,8 +1823,10 @@ theorem Complex.GammaLogDerivativeFixedVerticalShiftNatMainLinearConstant_nonneg
           Complex.GammaLogDerivativeFixedVerticalShiftNatMainLinearConstant
             σ N
   | 0, hσ => by
-      have hzero : σ + (0 : ℝ) = σ :=
-        add_zero σ
+      have hzero : σ + ((0 : ℕ) : ℝ) = σ := by
+        have hcast : (((0 : ℕ) : ℝ)) = (0 : ℝ) :=
+          Nat.cast_zero
+        exact (congrArg (fun x : ℝ => σ + x) hcast).trans (add_zero σ)
       have hσ_pos : 0 < σ :=
         Eq.subst
           (motive := fun x : ℝ => 0 < x)
@@ -1830,8 +1903,10 @@ theorem Complex.GammaLogDerivativeFixedVerticalShiftNatMain_linear_bound
   | zero =>
       intro t
       have hσ_pos : 0 < σ := by
-        have hzero : σ + (0 : ℝ) = σ :=
-          add_zero σ
+        have hzero : σ + ((0 : ℕ) : ℝ) = σ := by
+          have hcast : (((0 : ℕ) : ℝ)) = (0 : ℝ) :=
+            Nat.cast_zero
+          exact (congrArg (fun x : ℝ => σ + x) hcast).trans (add_zero σ)
         exact
           Eq.subst
             (motive := fun x : ℝ => 0 < x)
@@ -1852,9 +1927,9 @@ theorem Complex.GammaLogDerivativeFixedVerticalShiftNatMain_linear_bound
             hσ_shift_pos
       have htail_pole :
           ∀ t : ℝ, ∀ n : ℕ,
-            (σ + 1 + t * Complex.I : ℂ) ≠ -n :=
-        Complex.fixedRealPartLine_shift_nat_ne_Gamma_zero_locus
-          hnot_pole 1
+            ((σ + 1 : ℝ) + t * Complex.I : ℂ) ≠ -n :=
+        Complex.fixedRealPartLine_shift_one_ne_Gamma_zero_locus
+          hnot_pole
       have hshift_main :
           ‖Complex.GammaLogDerivativeFixedVerticalShiftNatMain
               (σ + 1) N t‖ ≤
@@ -1929,8 +2004,10 @@ theorem Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder_linear_bound
   | zero =>
       intro t
       have hσ_pos : 0 < σ := by
-        have hzero : σ + (0 : ℝ) = σ :=
-          add_zero σ
+        have hzero : σ + ((0 : ℕ) : ℝ) = σ := by
+          have hcast : (((0 : ℕ) : ℝ)) = (0 : ℝ) :=
+            Nat.cast_zero
+          exact (congrArg (fun x : ℝ => σ + x) hcast).trans (add_zero σ)
         exact
           Eq.subst
             (motive := fun x : ℝ => 0 < x)
@@ -1952,9 +2029,9 @@ theorem Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder_linear_bound
             hσ_shift_pos
       have htail_pole :
           ∀ t : ℝ, ∀ n : ℕ,
-            (σ + 1 + t * Complex.I : ℂ) ≠ -n :=
-        Complex.fixedRealPartLine_shift_nat_ne_Gamma_zero_locus
-          hnot_pole 1
+            ((σ + 1 : ℝ) + t * Complex.I : ℂ) ≠ -n :=
+        Complex.fixedRealPartLine_shift_one_ne_Gamma_zero_locus
+          hnot_pole
       exact ih htail_pos htail_pole t
 
 end
