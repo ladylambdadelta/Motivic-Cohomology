@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseCore
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseCurvatureLower
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.SecondDerivativeVdc
 
 /-!
@@ -600,6 +601,55 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelation_bound_of_growth_and
       (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
       ht ha hpos habh hderiv_antitone hderiv_lower
       hinc_mono hred_mono hsep
+
+/-- Shifted-correlation bound in the positive-frequency branch, with parent
+derivative growth discharged from the curvature owner theorem. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelation_bound_of_nonneg_firstDerivative_data
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b h : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hpos : 1 ≤ h)
+    (hh : h ≤ b - a)
+    (habh : a ≤ b - h)
+    (hderiv_antitone :
+      AntitoneOn
+        (fun x : ℝ =>
+          ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x‖)
+        (Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ)))
+    (hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h))
+    (hred_mono :
+      Complex.realPhase_reducedIntegerIncrementMonotoneOn
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h))
+    (hsep :
+      Complex.realPhase_integerIncrementSeparatedOn
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h)
+        (‖t‖ *
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))⁻¹) *
+          ((h : ℕ) : ℝ))) :
+    ‖Complex.logarithmicPhaseRealPhase_shiftedCorrelation t h a b‖ ≤
+      4 *
+          ((‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              ((h : ℕ) : ℝ))⁻¹ +
+            1) +
+        4 * Real.pi *
+          (‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              ((h : ℕ) : ℝ))⁻¹ := by
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedCorrelation_bound_of_growth_and_firstDerivative_data
+      t ht ha hpos hh habh
+      (Complex.logarithmicPhaseRealPhase_deriv_growth_on_integer_block
+        t ht ht_nonneg ha hab)
+      hderiv_antitone hinc_mono hred_mono hsep
 
 end
 
