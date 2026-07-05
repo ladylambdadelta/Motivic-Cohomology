@@ -347,6 +347,63 @@ theorem Complex.logarithmicPhaseRealPhase_stationaryPacketFamilyUnion_eq_bounded
         t ht ht_nonneg ha hn hl hk_block hnk hkl
   exact Finset.exists_eq_Ico_of_subset_Icc_intervalConvex hab hS_block hconvex
 
+/-- Reciprocal-frequency transport from a left endpoint bound to a lower
+integer-frequency bound. -/
+theorem Real.neg_div_le_of_le_div_neg
+    {A T M : ℝ}
+    (hA_pos : 0 < A)
+    (hden_pos : 0 < -M)
+    (hleft : A ≤ T / (-M)) :
+    -(T / A) ≤ M := by
+  have hprod :
+      A * (-M) ≤ T :=
+    (le_div_iff₀ hden_pos).mp hleft
+  have hprod_comm :
+      (-M) * A ≤ T :=
+    Eq.subst
+      (motive := fun left : ℝ => left ≤ T)
+      (mul_comm A (-M))
+      hprod
+  have hneg_le :
+      -M ≤ T / A :=
+    (le_div_iff₀ hA_pos).mpr hprod_comm
+  have hflipped :
+      -(T / A) ≤ -(-M) :=
+    neg_le_neg hneg_le
+  exact
+    Eq.subst
+      (motive := fun right : ℝ => -(T / A) ≤ right)
+      (neg_neg M)
+      hflipped
+
+/-- A stationary packet frequency is bounded below by the left endpoint
+reciprocal frequency. -/
+theorem Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_index_lower
+    (t : ℝ)
+    {a b : ℕ}
+    {m : ℤ}
+    (ha : 1 ≤ a)
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b) :
+    -(‖t‖ / (a : ℝ)) ≤ (m : ℝ) := by
+  have hm_neg :
+      m < 0 :=
+    Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_index_neg
+      t hm
+  have hpoint :
+      Complex.logarithmicPhaseRealPhase_stationaryPoint t m ∈
+        Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) :=
+    Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_point_mem_Icc
+      t hm
+  have hden_pos : 0 < -(m : ℝ) :=
+    Int.neg_cast_pos_of_lt_zero hm_neg
+  have ha_pos : 0 < (a : ℝ) :=
+    Nat.cast_pos.mpr (Nat.lt_of_succ_le ha)
+  have hleft :
+      (a : ℝ) ≤ ‖t‖ / (-(m : ℝ)) := by
+    exact hpoint.1
+  exact Real.neg_div_le_of_le_div_neg ha_pos hden_pos hleft
+
 end
 
 end LFunctions
