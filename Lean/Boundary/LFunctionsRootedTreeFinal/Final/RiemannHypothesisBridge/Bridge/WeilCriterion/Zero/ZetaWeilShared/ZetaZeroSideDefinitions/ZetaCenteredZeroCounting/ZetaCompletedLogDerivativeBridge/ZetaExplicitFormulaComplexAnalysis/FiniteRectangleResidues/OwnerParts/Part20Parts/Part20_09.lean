@@ -30,6 +30,21 @@ def explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole
   (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im ≤ ypair.y₀ ∧
     ypair.y₁ ≤ (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im
 
+/-- The raw-hole vertical subspan predicate is decidable because it is a conjunction of
+real coordinate inequalities. -/
+instance explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole_decidable
+    {T : ℝ}
+    (ρ : ℝ)
+    (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ)
+    (a : ℂ) :
+    Decidable
+      (explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a) :=
+  show
+    Decidable
+      ((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im ≤ ypair.y₀ ∧
+        ypair.y₁ ≤ (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im)
+  from inferInstance
+
 /-- The shifted vertical endpoint coordinates in the raw-hole block lie between the
 raw lower and upper vertical coordinates. -/
 theorem explicitFormulaRectangleRawHoleYShiftedEndpointCoordinates_subspan
@@ -1079,7 +1094,7 @@ theorem explicitFormulaRectangleYAdjacentEndpointPairSubspanRawHole_leftIntegral
     explicitFormulaRectangleYAdjacentEndpointPairSubspanRawHole_leftIntegralSum_eq_rawBoxLeft_of_integrable
       f F hT_nonneg hρ hclosed ha hint
 
-/-- The sorted vertical subdivision assembles to a full right vertical endpoint-data edge
+/- The sorted vertical subdivision assembles to a full right vertical endpoint-data edge
 once interval-integrability on the sorted adjacent subintervals is supplied. -/
 
 end ZetaAdmissibleFunction
