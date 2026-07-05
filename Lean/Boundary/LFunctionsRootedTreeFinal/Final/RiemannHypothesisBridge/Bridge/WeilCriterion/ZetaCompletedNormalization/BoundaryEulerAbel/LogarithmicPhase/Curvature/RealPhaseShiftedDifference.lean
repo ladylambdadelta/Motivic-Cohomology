@@ -540,6 +540,58 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_lowerParameter_pos
       (mul_pos ht_pos hBB_inv_pos)
       hh_pos
 
+/-- In the positive-frequency branch with nonzero shift, the shifted
+logarithmic derivative is nonnegative on the shifted correlation interval. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_nonneg_on_shifted_Icc_of_nonneg
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b h : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hpos : 1 ≤ h)
+    (hh : h ≤ b - a)
+    {x : ℝ}
+    (hx : x ∈ Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ)) :
+    0 ≤ deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x := by
+  have hparameter_pos :
+      0 <
+        ‖t‖ *
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))⁻¹) *
+          ((h : ℕ) : ℝ) :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_lowerParameter_pos
+      t ht hpos
+  have hlower :
+      ‖t‖ *
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))⁻¹) *
+          ((h : ℕ) : ℝ) ≤
+        deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_lower_on_shifted_Icc_of_nonneg
+      t ht ht_nonneg ha hab hh hx
+  exact le_trans hparameter_pos.le hlower
+
+/-- On the positive-frequency shifted interval, the norm of the shifted
+derivative is the derivative itself. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_eq_on_shifted_Icc_of_nonneg
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b h : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hpos : 1 ≤ h)
+    (hh : h ≤ b - a)
+    {x : ℝ}
+    (hx : x ∈ Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ)) :
+    ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x‖ =
+      deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x := by
+  exact
+    Real.norm_of_nonneg
+      (Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_nonneg_on_shifted_Icc_of_nonneg
+        t ht ht_nonneg ha hab hpos hh hx)
+
 /-- The adjacent increment of a shifted difference is the difference of the
 two adjacent increments of the underlying phase. -/
 theorem Complex.realPhase_secondDerivative_vdc_shiftedDifference_integerIncrement_eq
