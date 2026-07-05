@@ -666,6 +666,108 @@ theorem Real.shifted_reciprocal_gap_antitoneOn_Ioi
         (div_eq_mul_inv (T * ((h : ℕ) : ℝ)) (x * (x + h))).symm
         hmul)
 
+/-- In the positive-frequency branch, the shifted derivative norm is antitone
+on the shifted correlation interval. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_antitoneOn_shifted_Icc_of_nonneg
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b h : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hpos : 1 ≤ h)
+    (hh : h ≤ b - a) :
+    AntitoneOn
+      (fun x : ℝ =>
+        ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x‖)
+      (Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ)) := by
+  have hgap_antitone :
+      AntitoneOn
+        (fun x : ℝ => (‖t‖ * ((h : ℕ) : ℝ)) / (x * (x + h)))
+        (Set.Ioi 0) :=
+    Real.shifted_reciprocal_gap_antitoneOn_Ioi
+      ‖t‖ h (norm_nonneg t)
+  intro x hx y hy hxy
+  have ha_pos : (0 : ℝ) < (a : ℝ) :=
+    Nat.cast_pos.mpr (Nat.lt_of_succ_le ha)
+  have hx_pos : 0 < x :=
+    lt_of_lt_of_le ha_pos hx.1
+  have hy_pos : 0 < y :=
+    lt_of_lt_of_le ha_pos hy.1
+  have hh_nonneg : (0 : ℝ) ≤ ((h : ℕ) : ℝ) :=
+    Nat.cast_nonneg h
+  have hx_shift_pos : 0 < x + h :=
+    lt_of_lt_of_le hx_pos (le_add_of_nonneg_right hh_nonneg)
+  have hy_shift_pos : 0 < y + h :=
+    lt_of_lt_of_le hy_pos (le_add_of_nonneg_right hh_nonneg)
+  have hnorm_x :
+      ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x‖ =
+        deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_eq_on_shifted_Icc_of_nonneg
+      t ht ht_nonneg ha hab hpos hh hx
+  have hnorm_y :
+      ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) y‖ =
+        deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) y :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_eq_on_shifted_Icc_of_nonneg
+      t ht ht_nonneg ha hab hpos hh hy
+  have hderiv_x :
+      deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x =
+        ‖t‖ / x - ‖t‖ / (x + h) :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_eq_norm_div_sub
+      t ht_nonneg hx_pos
+  have hderiv_y :
+      deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) y =
+        ‖t‖ / y - ‖t‖ / (y + h) :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_eq_norm_div_sub
+      t ht_nonneg hy_pos
+  have hgap_x :
+      ‖t‖ / x - ‖t‖ / (x + h) =
+        (‖t‖ * ((h : ℕ) : ℝ)) / (x * (x + h)) :=
+    Real.shifted_reciprocal_gap_eq_mul_div
+      ‖t‖ x ((h : ℕ) : ℝ)
+      (ne_of_gt hx_pos)
+      (ne_of_gt hx_shift_pos)
+  have hgap_y :
+      ‖t‖ / y - ‖t‖ / (y + h) =
+        (‖t‖ * ((h : ℕ) : ℝ)) / (y * (y + h)) :=
+    Real.shifted_reciprocal_gap_eq_mul_div
+      ‖t‖ y ((h : ℕ) : ℝ)
+      (ne_of_gt hy_pos)
+      (ne_of_gt hy_shift_pos)
+  have hgap_le :
+      (‖t‖ * ((h : ℕ) : ℝ)) / (y * (y + h)) ≤
+        (‖t‖ * ((h : ℕ) : ℝ)) / (x * (x + h)) :=
+    hgap_antitone hx_pos hy_pos hxy
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤
+          ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x‖)
+      hnorm_y.symm
+      (Eq.subst
+        (motive := fun left : ℝ =>
+          left ≤
+            ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x‖)
+        hderiv_y.symm
+        (Eq.subst
+          (motive := fun left : ℝ =>
+            left ≤
+              ‖deriv (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) x‖)
+          hgap_y.symm
+          (Eq.subst
+            (motive := fun right : ℝ =>
+              (‖t‖ * ((h : ℕ) : ℝ)) / (y * (y + h)) ≤ right)
+            hnorm_x.symm
+            (Eq.subst
+              (motive := fun right : ℝ =>
+                (‖t‖ * ((h : ℕ) : ℝ)) / (y * (y + h)) ≤ right)
+              hderiv_x.symm
+              (Eq.subst
+                (motive := fun right : ℝ =>
+                  (‖t‖ * ((h : ℕ) : ℝ)) / (y * (y + h)) ≤ right)
+                hgap_x.symm
+                hgap_le)))))
+
 /-- The adjacent increment of a shifted difference is the difference of the
 two adjacent increments of the underlying phase. -/
 theorem Complex.realPhase_secondDerivative_vdc_shiftedDifference_integerIncrement_eq
