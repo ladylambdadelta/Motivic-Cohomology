@@ -47,7 +47,7 @@ theorem finiteRectangleSubdivisionEndpointBoundary_finsetEdgeAlgebra
     calc
       (∑ a in S, (bottom a - top a)) =
           (∑ a in S, (bottom a + -top a)) := by
-        exact Finset.sum_congr rfl
+        exact Finset.sum_congr (Eq.refl _)
           (fun a _ha => sub_eq_add_neg (bottom a) (top a))
       _ =
           (∑ a in S, bottom a) +
@@ -69,7 +69,7 @@ theorem finiteRectangleSubdivisionEndpointBoundary_finsetEdgeAlgebra
     calc
       (∑ a in S, (right a - left a)) =
           (∑ a in S, (right a + -left a)) := by
-        exact Finset.sum_congr rfl
+        exact Finset.sum_congr (Eq.refl _)
           (fun a _ha => sub_eq_add_neg (right a) (left a))
       _ =
           (∑ a in S, right a) +
@@ -100,8 +100,14 @@ theorem finiteRectangleSubdivisionEndpointBoundary_finsetEdgeAlgebra
     _ =
       (∑ a in S, bottom a) - (∑ a in S, top a) +
         ((∑ a in S, right a) - (∑ a in S, left a)) := by
-      rfl
-
+      let hB : B = ∑ a in S, bottom a := Eq.refl B
+      let hU : U = ∑ a in S, top a := Eq.refl U
+      let hR : R = ∑ a in S, right a := Eq.refl R
+      let hL : L = ∑ a in S, left a := Eq.refl L
+      exact
+        congrArg₂ HAdd.hAdd
+          (congrArg₂ HSub.hSub hB hU)
+          (congrArg₂ HSub.hSub hR hL)
 /-- Coordinate box of one endpoint-data cell: horizontal endpoints together with vertical
 endpoints.  Unlike a single side label, this keeps enough endpoint data for every side
 integral to be definitionally identical to the existing cell-edge definitions. -/
@@ -174,8 +180,7 @@ theorem explicitFormulaRectangleRegularGridCellEndpointDataBottomEdge_eq_boxInte
     (d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε) :
     explicitFormulaRectangleRegularGridCellEndpointDataBottomEdge f d =
       explicitFormulaRectangleBoxBottomEdgeIntegral f d.boxEdgeCoordinates := by
-  rfl
-
+  exact Eq.refl _
 /-- A cell top edge is the top integral of its full box label. -/
 theorem explicitFormulaRectangleRegularGridCellEndpointDataTopEdge_eq_boxIntegral
     {F : ExplicitFormulaContourFamily} {T ε : ℝ}
@@ -183,8 +188,7 @@ theorem explicitFormulaRectangleRegularGridCellEndpointDataTopEdge_eq_boxIntegra
     (d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε) :
     explicitFormulaRectangleRegularGridCellEndpointDataTopEdge f d =
       explicitFormulaRectangleBoxTopEdgeIntegral f d.boxEdgeCoordinates := by
-  rfl
-
+  exact Eq.refl _
 /-- A cell right edge is the right integral of its full box label. -/
 theorem explicitFormulaRectangleRegularGridCellEndpointDataRightEdge_eq_boxIntegral
     {F : ExplicitFormulaContourFamily} {T ε : ℝ}
@@ -192,8 +196,7 @@ theorem explicitFormulaRectangleRegularGridCellEndpointDataRightEdge_eq_boxInteg
     (d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε) :
     explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f d =
       explicitFormulaRectangleBoxRightEdgeIntegral f d.boxEdgeCoordinates := by
-  rfl
-
+  exact Eq.refl _
 /-- A cell left edge is the left integral of its full box label. -/
 theorem explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge_eq_boxIntegral
     {F : ExplicitFormulaContourFamily} {T ε : ℝ}
@@ -201,8 +204,7 @@ theorem explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge_eq_boxIntegr
     (d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε) :
     explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f d =
       explicitFormulaRectangleBoxLeftEdgeIntegral f d.boxEdgeCoordinates := by
-  rfl
-
+  exact Eq.refl _
 /-- The four oriented side integrals of a full endpoint-data box reassemble as the
 standard finite-rectangle cell boundary integral between its lower-left and upper-right
 corners. -/
@@ -217,18 +219,48 @@ theorem explicitFormulaRectangleEndpointDataBoxBoundary_eq_cellBoundary
         (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
         (explicitFormulaRectangleEndpointDataBoxLowerCorner edge)
         (explicitFormulaRectangleEndpointDataBoxUpperCorner edge) := by
-  rfl
+  let A : ℂ := explicitFormulaRectangleBoxBottomEdgeIntegral f edge
+  let B : ℂ := explicitFormulaRectangleBoxTopEdgeIntegral f edge
+  let C : ℂ := explicitFormulaRectangleBoxRightEdgeIntegral f edge
+  let D : ℂ := explicitFormulaRectangleBoxLeftEdgeIntegral f edge
+  calc
+    explicitFormulaRectangleBoxBottomEdgeIntegral f edge -
+        explicitFormulaRectangleBoxTopEdgeIntegral f edge +
+          (explicitFormulaRectangleBoxRightEdgeIntegral f edge -
+            explicitFormulaRectangleBoxLeftEdgeIntegral f edge) =
+        (A - B) + (C + -D) := by
+      exact congrArg
+        (fun z : ℂ => (A - B) + z)
+        (sub_eq_add_neg C D)
+    _ = ((A - B) + C) + -D := by
+      exact (add_assoc (A - B) C (-D)).symm
+    _ = (A - B + C) - D := by
+      exact (sub_eq_add_neg (A - B + C) D).symm
+    _ =
+        finiteRectangleSubdivisionCellBoundaryIntegral
+          (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+          (explicitFormulaRectangleEndpointDataBoxLowerCorner edge)
+          (explicitFormulaRectangleEndpointDataBoxUpperCorner edge) := by
+      exact Eq.refl _
+noncomputable def explicitFormulaRectangleHorizontalRealEndpointIntegral
+    (f : ZetaAdmissibleFunction) (x₀ x₁ y : ℝ) : ℂ :=
+  ∫ x : ℝ in x₀..x₁,
+    zetaCompletedExplicitFormulaContourIntegrand f
+      (x + (y : ℂ) * Complex.I)
+
+noncomputable def explicitFormulaRectangleVerticalRealEndpointIntegral
+    (f : ZetaAdmissibleFunction) (y₀ y₁ x : ℝ) : ℂ :=
+  Complex.I •
+    ∫ y : ℝ in y₀..y₁,
+      zetaCompletedExplicitFormulaContourIntegrand f
+        ((x : ℂ) + y * Complex.I)
 
 /-- Integral carried by a bottom-oriented horizontal endpoint-data edge label.  The
 definition deliberately matches `...BottomEdge` after taking `bottomEdgeCoordinates`. -/
 noncomputable def explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral
     (f : ZetaAdmissibleFunction)
     (edge : ExplicitFormulaRectangleHorizontalEndpointDataEdge) : ℂ :=
-  ∫ x : ℝ in
-      ((edge.1.1 : ℂ) + (edge.2 : ℂ) * Complex.I).re..
-        ((edge.1.2 : ℂ) + (edge.2 : ℂ) * Complex.I).re,
-    zetaCompletedExplicitFormulaContourIntegrand f
-      (x + ((edge.1.1 : ℂ) + (edge.2 : ℂ) * Complex.I).im * Complex.I)
+  explicitFormulaRectangleHorizontalRealEndpointIntegral f edge.1.1 edge.1.2 edge.2
 
 /-- Integral carried by a top-oriented horizontal endpoint-data edge label.  The
 definition records the coordinate label; equality with `...TopEdge` additionally uses
@@ -236,11 +268,7 @@ the fact that `x + yi` has imaginary coordinate `y`. -/
 noncomputable def explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral
     (f : ZetaAdmissibleFunction)
     (edge : ExplicitFormulaRectangleHorizontalEndpointDataEdge) : ℂ :=
-  ∫ x : ℝ in
-      ((edge.1.1 : ℂ) + (edge.2 : ℂ) * Complex.I).re..
-        ((edge.1.2 : ℂ) + (edge.2 : ℂ) * Complex.I).re,
-    zetaCompletedExplicitFormulaContourIntegrand f
-      (x + ((edge.1.2 : ℂ) + (edge.2 : ℂ) * Complex.I).im * Complex.I)
+  explicitFormulaRectangleHorizontalRealEndpointIntegral f edge.1.1 edge.1.2 edge.2
 
 /-- Integral carried by a right-oriented vertical endpoint-data edge label.  The
 definition records the coordinate label; equality with `...RightEdge` additionally uses
@@ -248,12 +276,7 @@ the fact that `x + yi` has imaginary coordinate `y`. -/
 noncomputable def explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
     (f : ZetaAdmissibleFunction)
     (edge : ExplicitFormulaRectangleVerticalEndpointDataEdge) : ℂ :=
-  Complex.I •
-    ∫ y : ℝ in
-      ((edge.2 : ℂ) + (edge.1.1 : ℂ) * Complex.I).im..
-        ((edge.2 : ℂ) + (edge.1.2 : ℂ) * Complex.I).im,
-      zetaCompletedExplicitFormulaContourIntegrand f
-        (((edge.2 : ℂ) + (edge.1.2 : ℂ) * Complex.I).re + y * Complex.I)
+  explicitFormulaRectangleVerticalRealEndpointIntegral f edge.1.1 edge.1.2 edge.2
 
 /-- Integral carried by a left-oriented vertical endpoint-data edge label.  The definition
 records the coordinate label; equality with `...LeftEdge` additionally uses the fact that
@@ -261,12 +284,7 @@ records the coordinate label; equality with `...LeftEdge` additionally uses the 
 noncomputable def explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
     (f : ZetaAdmissibleFunction)
     (edge : ExplicitFormulaRectangleVerticalEndpointDataEdge) : ℂ :=
-  Complex.I •
-    ∫ y : ℝ in
-      ((edge.2 : ℂ) + (edge.1.1 : ℂ) * Complex.I).im..
-        ((edge.2 : ℂ) + (edge.1.2 : ℂ) * Complex.I).im,
-      zetaCompletedExplicitFormulaContourIntegrand f
-        (((edge.2 : ℂ) + (edge.1.1 : ℂ) * Complex.I).re + y * Complex.I)
+  explicitFormulaRectangleVerticalRealEndpointIntegral f edge.1.1 edge.1.2 edge.2
 
 /-- A cell bottom edge is the bottom-oriented integral of its bottom coordinate label. -/
 theorem explicitFormulaRectangleRegularGridCellEndpointDataBottomEdge_eq_coordinateIntegral
@@ -276,8 +294,59 @@ theorem explicitFormulaRectangleRegularGridCellEndpointDataBottomEdge_eq_coordin
     explicitFormulaRectangleRegularGridCellEndpointDataBottomEdge f d =
       explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral
         f d.bottomEdgeCoordinates := by
-  rfl
-
+  cases d with
+  | mk x₀ x₁ y₀ y₁ hx₀mem hx₁mem hy₀mem hy₁mem
+      hx_order hy_order hx_adj hy_adj homit =>
+  have hx₀ : (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).re) = x₀ :=
+    ofReal_add_mul_I_re x₀ y₀
+  have hx₁ : (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re) = x₁ :=
+    ofReal_add_mul_I_re x₁ y₁
+  have hy₀ : (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).im) = y₀ :=
+    ofReal_add_mul_I_im x₀ y₀
+  calc
+    explicitFormulaRectangleRegularGridCellEndpointDataBottomEdge f
+        ⟨x₀, x₁, y₀, y₁, hx₀mem, hx₁mem, hy₀mem, hy₁mem,
+          hx_order, hy_order, hx_adj, hy_adj, homit⟩ =
+        explicitFormulaRectangleHorizontalRealEndpointIntegral f
+          (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).re)
+          (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re)
+          (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).im) := by
+      exact Eq.refl _
+    _ =
+        explicitFormulaRectangleHorizontalRealEndpointIntegral f x₀ x₁ y₀ := by
+      calc
+        explicitFormulaRectangleHorizontalRealEndpointIntegral f
+            (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).re)
+            (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re)
+            (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).im) =
+            explicitFormulaRectangleHorizontalRealEndpointIntegral f
+              x₀
+              (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re)
+              (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).im) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleHorizontalRealEndpointIntegral f t
+                (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re)
+                (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).im))
+            hx₀
+        _ =
+            explicitFormulaRectangleHorizontalRealEndpointIntegral f
+              x₀ x₁
+              (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).im) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleHorizontalRealEndpointIntegral f x₀ t
+                (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).im))
+            hx₁
+        _ =
+            explicitFormulaRectangleHorizontalRealEndpointIntegral f x₀ x₁ y₀ := by
+          exact congrArg
+            (fun t : ℝ => explicitFormulaRectangleHorizontalRealEndpointIntegral f x₀ x₁ t)
+            hy₀
+    _ =
+        explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral
+          f ((x₀, x₁), y₀) := by
+      exact Eq.refl _
 /-- A cell top edge is the top-oriented integral of its top coordinate label. -/
 theorem explicitFormulaRectangleRegularGridCellEndpointDataTopEdge_eq_coordinateIntegral
     {F : ExplicitFormulaContourFamily} {T ε : ℝ}
@@ -286,8 +355,59 @@ theorem explicitFormulaRectangleRegularGridCellEndpointDataTopEdge_eq_coordinate
     explicitFormulaRectangleRegularGridCellEndpointDataTopEdge f d =
       explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral
         f d.topEdgeCoordinates := by
-  rfl
-
+  cases d with
+  | mk x₀ x₁ y₀ y₁ hx₀mem hx₁mem hy₀mem hy₁mem
+      hx_order hy_order hx_adj hy_adj homit =>
+  have hx₀ : (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).re) = x₀ :=
+    ofReal_add_mul_I_re x₀ y₀
+  have hx₁ : (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re) = x₁ :=
+    ofReal_add_mul_I_re x₁ y₁
+  have hy₁ : (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im) = y₁ :=
+    ofReal_add_mul_I_im x₁ y₁
+  calc
+    explicitFormulaRectangleRegularGridCellEndpointDataTopEdge f
+        ⟨x₀, x₁, y₀, y₁, hx₀mem, hx₁mem, hy₀mem, hy₁mem,
+          hx_order, hy_order, hx_adj, hy_adj, homit⟩ =
+        explicitFormulaRectangleHorizontalRealEndpointIntegral f
+          (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).re)
+          (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re)
+          (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im) := by
+      exact Eq.refl _
+    _ =
+        explicitFormulaRectangleHorizontalRealEndpointIntegral f x₀ x₁ y₁ := by
+      calc
+        explicitFormulaRectangleHorizontalRealEndpointIntegral f
+            (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).re)
+            (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re)
+            (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im) =
+            explicitFormulaRectangleHorizontalRealEndpointIntegral f
+              x₀
+              (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re)
+              (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleHorizontalRealEndpointIntegral f t
+                (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re)
+                (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im))
+            hx₀
+        _ =
+            explicitFormulaRectangleHorizontalRealEndpointIntegral f
+              x₀ x₁
+              (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleHorizontalRealEndpointIntegral f x₀ t
+                (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im))
+            hx₁
+        _ =
+            explicitFormulaRectangleHorizontalRealEndpointIntegral f x₀ x₁ y₁ := by
+          exact congrArg
+            (fun t : ℝ => explicitFormulaRectangleHorizontalRealEndpointIntegral f x₀ x₁ t)
+            hy₁
+    _ =
+        explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral
+          f ((x₀, x₁), y₁) := by
+      exact Eq.refl _
 /-- A cell right edge is the right-oriented integral of its right coordinate label. -/
 theorem explicitFormulaRectangleRegularGridCellEndpointDataRightEdge_eq_coordinateIntegral
     {F : ExplicitFormulaContourFamily} {T ε : ℝ}
@@ -296,8 +416,59 @@ theorem explicitFormulaRectangleRegularGridCellEndpointDataRightEdge_eq_coordina
     explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f d =
       explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
         f d.rightEdgeCoordinates := by
-  rfl
-
+  cases d with
+  | mk x₀ x₁ y₀ y₁ hx₀mem hx₁mem hy₀mem hy₁mem
+      hx_order hy_order hx_adj hy_adj homit =>
+  have hy₀ : (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).im) = y₀ :=
+    ofReal_add_mul_I_im x₀ y₀
+  have hy₁ : (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im) = y₁ :=
+    ofReal_add_mul_I_im x₁ y₁
+  have hx₁ : (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re) = x₁ :=
+    ofReal_add_mul_I_re x₁ y₁
+  calc
+    explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
+        ⟨x₀, x₁, y₀, y₁, hx₀mem, hx₁mem, hy₀mem, hy₁mem,
+          hx_order, hy_order, hx_adj, hy_adj, homit⟩ =
+        explicitFormulaRectangleVerticalRealEndpointIntegral f
+          (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).im)
+          (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im)
+          (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re) := by
+      exact Eq.refl _
+    _ =
+        explicitFormulaRectangleVerticalRealEndpointIntegral f y₀ y₁ x₁ := by
+      calc
+        explicitFormulaRectangleVerticalRealEndpointIntegral f
+            (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).im)
+            (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im)
+            (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re) =
+            explicitFormulaRectangleVerticalRealEndpointIntegral f
+              y₀
+              (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im)
+              (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleVerticalRealEndpointIntegral f t
+                (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im)
+                (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re))
+            hy₀
+        _ =
+            explicitFormulaRectangleVerticalRealEndpointIntegral f
+              y₀ y₁
+              (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleVerticalRealEndpointIntegral f y₀ t
+                (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).re))
+            hy₁
+        _ =
+            explicitFormulaRectangleVerticalRealEndpointIntegral f y₀ y₁ x₁ := by
+          exact congrArg
+            (fun t : ℝ => explicitFormulaRectangleVerticalRealEndpointIntegral f y₀ y₁ t)
+            hx₁
+    _ =
+        explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+          f ((y₀, y₁), x₁) := by
+      exact Eq.refl _
 /-- A cell left edge is the left-oriented integral of its left coordinate label. -/
 theorem explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge_eq_coordinateIntegral
     {F : ExplicitFormulaContourFamily} {T ε : ℝ}
@@ -306,81 +477,73 @@ theorem explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge_eq_coordinat
     explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f d =
       explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
         f d.leftEdgeCoordinates := by
-  rfl
-
+  cases d with
+  | mk x₀ x₁ y₀ y₁ hx₀mem hx₁mem hy₀mem hy₁mem
+      hx_order hy_order hx_adj hy_adj homit =>
+  have hy₀ : (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).im) = y₀ :=
+    ofReal_add_mul_I_im x₀ y₀
+  have hy₁ : (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im) = y₁ :=
+    ofReal_add_mul_I_im x₁ y₁
+  have hx₀ : (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).re) = x₀ :=
+    ofReal_add_mul_I_re x₀ y₀
+  calc
+    explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
+        ⟨x₀, x₁, y₀, y₁, hx₀mem, hx₁mem, hy₀mem, hy₁mem,
+          hx_order, hy_order, hx_adj, hy_adj, homit⟩ =
+        explicitFormulaRectangleVerticalRealEndpointIntegral f
+          (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).im)
+          (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im)
+          (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).re) := by
+      exact Eq.refl _
+    _ =
+        explicitFormulaRectangleVerticalRealEndpointIntegral f y₀ y₁ x₀ := by
+      calc
+        explicitFormulaRectangleVerticalRealEndpointIntegral f
+            (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).im)
+            (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im)
+            (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).re) =
+            explicitFormulaRectangleVerticalRealEndpointIntegral f
+              y₀
+              (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im)
+              (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).re) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleVerticalRealEndpointIntegral f t
+                (((x₁ : ℂ) + (y₁ : ℂ) * Complex.I).im)
+                (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).re))
+            hy₀
+        _ =
+            explicitFormulaRectangleVerticalRealEndpointIntegral f
+              y₀ y₁
+              (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).re) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleVerticalRealEndpointIntegral f y₀ t
+                (((x₀ : ℂ) + (y₀ : ℂ) * Complex.I).re))
+            hy₁
+        _ =
+            explicitFormulaRectangleVerticalRealEndpointIntegral f y₀ y₁ x₀ := by
+          exact congrArg
+            (fun t : ℝ => explicitFormulaRectangleVerticalRealEndpointIntegral f y₀ y₁ t)
+            hx₀
+    _ =
+        explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
+          f ((y₀, y₁), x₀) := by
+      exact Eq.refl _
 /-- Right and left vertical coordinate labels at the same vertical line carry the same
 coordinate integral. -/
 theorem explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral_eq_left_sameCoordinate
     (f : ZetaAdmissibleFunction) (y₀ y₁ x : ℝ) :
     explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral f ((y₀, y₁), x) =
       explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral f ((y₀, y₁), x) := by
-  have hx_right : (((x : ℂ) + (y₁ : ℂ) * Complex.I).re) = x :=
-    ofReal_add_mul_I_re x y₁
-  have hx_left : (((x : ℂ) + (y₀ : ℂ) * Complex.I).re) = x :=
-    ofReal_add_mul_I_re x y₀
-  have hy₀ : (((x : ℂ) + (y₀ : ℂ) * Complex.I).im) = y₀ :=
-    ofReal_add_mul_I_im x y₀
-  have hy₁ : (((x : ℂ) + (y₁ : ℂ) * Complex.I).im) = y₁ :=
-    ofReal_add_mul_I_im x y₁
-  calc
-    explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral f ((y₀, y₁), x) =
-        Complex.I •
-          ∫ y : ℝ in y₀..y₁,
-            zetaCompletedExplicitFormulaContourIntegrand f
-              (x + y * Complex.I) := by
-      exact congrArg
-        (fun data : ℝ × ℝ × ℝ =>
-          Complex.I •
-            ∫ y : ℝ in data.1..data.2.1,
-              zetaCompletedExplicitFormulaContourIntegrand f
-                (data.2.2 + y * Complex.I))
-        (Prod.ext hy₀ (Prod.ext hy₁ hx_right))
-    _ =
-        explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral f ((y₀, y₁), x) := by
-      exact
-        (congrArg
-          (fun data : ℝ × ℝ × ℝ =>
-            Complex.I •
-              ∫ y : ℝ in data.1..data.2.1,
-                zetaCompletedExplicitFormulaContourIntegrand f
-                  (data.2.2 + y * Complex.I))
-          (Prod.ext hy₀ (Prod.ext hy₁ hx_left))).symm
-
+  exact Eq.refl _
 /-- Bottom and top horizontal coordinate labels at the same horizontal line carry the
 same coordinate integral. -/
 theorem explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral_eq_top_sameCoordinate
     (f : ZetaAdmissibleFunction) (x₀ x₁ y : ℝ) :
     explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f ((x₀, x₁), y) =
       explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f ((x₀, x₁), y) := by
-  have hx₀ : (((x₀ : ℂ) + (y : ℂ) * Complex.I).re) = x₀ :=
-    ofReal_add_mul_I_re x₀ y
-  have hx₁ : (((x₁ : ℂ) + (y : ℂ) * Complex.I).re) = x₁ :=
-    ofReal_add_mul_I_re x₁ y
-  have hy_bottom : (((x₀ : ℂ) + (y : ℂ) * Complex.I).im) = y :=
-    ofReal_add_mul_I_im x₀ y
-  have hy_top : (((x₁ : ℂ) + (y : ℂ) * Complex.I).im) = y :=
-    ofReal_add_mul_I_im x₁ y
-  calc
-    explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f ((x₀, x₁), y) =
-        ∫ x : ℝ in x₀..x₁,
-          zetaCompletedExplicitFormulaContourIntegrand f
-            (x + (y : ℂ) * Complex.I) := by
-      exact congrArg
-        (fun data : ℝ × ℝ × ℝ =>
-          ∫ x : ℝ in data.1..data.2.1,
-            zetaCompletedExplicitFormulaContourIntegrand f
-              (x + (data.2.2 : ℂ) * Complex.I))
-        (Prod.ext hx₀ (Prod.ext hx₁ hy_bottom))
-    _ =
-        explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f ((x₀, x₁), y) := by
-      exact
-        (congrArg
-          (fun data : ℝ × ℝ × ℝ =>
-            ∫ x : ℝ in data.1..data.2.1,
-              zetaCompletedExplicitFormulaContourIntegrand f
-                (x + (data.2.2 : ℂ) * Complex.I))
-          (Prod.ext hx₀ (Prod.ext hx₁ hy_top))).symm
-
+  exact Eq.refl _
 /-- Sum of bottom-oriented horizontal endpoint-data edge-label integrals. -/
 noncomputable def explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegralSum
     (f : ZetaAdmissibleFunction) :
@@ -486,7 +649,7 @@ theorem explicitFormulaRectangleEndpointDataBoxBoundarySum_append
               (explicitFormulaRectangleEndpointDataBoxLowerCorner edge)
               (explicitFormulaRectangleEndpointDataBoxUpperCorner edge) +
             explicitFormulaRectangleEndpointDataBoxBoundarySum f (rest ++ ys) := by
-          rfl
+          exact Eq.refl _
         _ =
           finiteRectangleSubdivisionCellBoundaryIntegral
               (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -535,7 +698,7 @@ theorem explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegralSum_appe
           explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f edge +
             explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegralSum f
               (rest ++ ys) := by
-          rfl
+          exact Eq.refl _
         _ =
           explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f edge +
             (explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegralSum f rest +
@@ -572,7 +735,7 @@ theorem explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegralSum_append
           explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f edge +
             explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegralSum f
               (rest ++ ys) := by
-          rfl
+          exact Eq.refl _
         _ =
           explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f edge +
             (explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegralSum f rest +
@@ -609,7 +772,7 @@ theorem explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegralSum_append
           explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral f edge +
             explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegralSum f
               (rest ++ ys) := by
-          rfl
+          exact Eq.refl _
         _ =
           explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral f edge +
             (explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegralSum f rest +
@@ -646,7 +809,7 @@ theorem explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegralSum_append
           explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral f edge +
             explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegralSum f
               (rest ++ ys) := by
-          rfl
+          exact Eq.refl _
         _ =
           explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral f edge +
             (explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegralSum f rest +
@@ -681,7 +844,7 @@ theorem explicitFormulaRectangleBoxBottomEdgeIntegralSum_append
         explicitFormulaRectangleBoxBottomEdgeIntegralSum f ((edge :: rest) ++ ys) =
           explicitFormulaRectangleBoxBottomEdgeIntegral f edge +
             explicitFormulaRectangleBoxBottomEdgeIntegralSum f (rest ++ ys) := by
-          rfl
+          exact Eq.refl _
         _ =
           explicitFormulaRectangleBoxBottomEdgeIntegral f edge +
             (explicitFormulaRectangleBoxBottomEdgeIntegralSum f rest +
@@ -715,7 +878,7 @@ theorem explicitFormulaRectangleBoxTopEdgeIntegralSum_append
         explicitFormulaRectangleBoxTopEdgeIntegralSum f ((edge :: rest) ++ ys) =
           explicitFormulaRectangleBoxTopEdgeIntegral f edge +
             explicitFormulaRectangleBoxTopEdgeIntegralSum f (rest ++ ys) := by
-          rfl
+          exact Eq.refl _
         _ =
           explicitFormulaRectangleBoxTopEdgeIntegral f edge +
             (explicitFormulaRectangleBoxTopEdgeIntegralSum f rest +
@@ -749,7 +912,7 @@ theorem explicitFormulaRectangleBoxRightEdgeIntegralSum_append
         explicitFormulaRectangleBoxRightEdgeIntegralSum f ((edge :: rest) ++ ys) =
           explicitFormulaRectangleBoxRightEdgeIntegral f edge +
             explicitFormulaRectangleBoxRightEdgeIntegralSum f (rest ++ ys) := by
-          rfl
+          exact Eq.refl _
         _ =
           explicitFormulaRectangleBoxRightEdgeIntegral f edge +
             (explicitFormulaRectangleBoxRightEdgeIntegralSum f rest +
@@ -783,7 +946,7 @@ theorem explicitFormulaRectangleBoxLeftEdgeIntegralSum_append
         explicitFormulaRectangleBoxLeftEdgeIntegralSum f ((edge :: rest) ++ ys) =
           explicitFormulaRectangleBoxLeftEdgeIntegral f edge +
             explicitFormulaRectangleBoxLeftEdgeIntegralSum f (rest ++ ys) := by
-          rfl
+          exact Eq.refl _
         _ =
           explicitFormulaRectangleBoxLeftEdgeIntegral f edge +
             (explicitFormulaRectangleBoxLeftEdgeIntegralSum f rest +
@@ -812,13 +975,13 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum_eq_bottomHo
           (data.map
             (fun d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
               d.bottomEdgeCoordinates))
-  | [] => rfl
+  | [] => Eq.refl _
   | d :: rest =>
       calc
         explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum f (d :: rest) =
             explicitFormulaRectangleRegularGridCellEndpointDataBottomEdge f d +
               explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum f rest := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral
                 f d.bottomEdgeCoordinates +
@@ -848,8 +1011,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum_eq_bottomHo
               ((d :: rest).map
                 (fun e : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
                   e.bottomEdgeCoordinates)) := by
-          rfl
-
+          exact Eq.refl _
 /-- The top-edge sum over endpoint data is exactly the sum over the corresponding
 top horizontal coordinate labels. -/
 theorem explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum_eq_topHorizontalEdgeIntegralSum
@@ -861,13 +1023,13 @@ theorem explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum_eq_topHorizont
           (data.map
             (fun d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
               d.topEdgeCoordinates))
-  | [] => rfl
+  | [] => Eq.refl _
   | d :: rest =>
       calc
         explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum f (d :: rest) =
             explicitFormulaRectangleRegularGridCellEndpointDataTopEdge f d +
               explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum f rest := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral
                 f d.topEdgeCoordinates +
@@ -897,8 +1059,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum_eq_topHorizont
               ((d :: rest).map
                 (fun e : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
                   e.topEdgeCoordinates)) := by
-          rfl
-
+          exact Eq.refl _
 /-- The right-edge sum over endpoint data is exactly the sum over the corresponding
 right vertical coordinate labels. -/
 theorem explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum_eq_rightVerticalEdgeIntegralSum
@@ -910,13 +1071,13 @@ theorem explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum_eq_rightVert
           (data.map
             (fun d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
               d.rightEdgeCoordinates))
-  | [] => rfl
+  | [] => Eq.refl _
   | d :: rest =>
       calc
         explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f (d :: rest) =
             explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f d +
               explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f rest := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
                 f d.rightEdgeCoordinates +
@@ -946,8 +1107,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum_eq_rightVert
               ((d :: rest).map
                 (fun e : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
                   e.rightEdgeCoordinates)) := by
-          rfl
-
+          exact Eq.refl _
 /-- The left-edge sum over endpoint data is exactly the sum over the corresponding
 left vertical coordinate labels. -/
 theorem explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum_eq_leftVerticalEdgeIntegralSum
@@ -959,13 +1119,13 @@ theorem explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum_eq_leftVertic
           (data.map
             (fun d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
               d.leftEdgeCoordinates))
-  | [] => rfl
+  | [] => Eq.refl _
   | d :: rest =>
       calc
         explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f (d :: rest) =
             explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f d +
               explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f rest := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
                 f d.leftEdgeCoordinates +
@@ -995,8 +1155,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum_eq_leftVertic
               ((d :: rest).map
                 (fun e : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
                   e.leftEdgeCoordinates)) := by
-          rfl
-
+          exact Eq.refl _
 /-- The bottom-edge sum over endpoint data is exactly the sum over the corresponding
 endpoint-data box labels. -/
 theorem explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum_eq_boxBottomEdgeIntegralSum
@@ -1008,13 +1167,13 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum_eq_boxBotto
           (data.map
             (fun d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
               d.boxEdgeCoordinates))
-  | [] => rfl
+  | [] => Eq.refl _
   | d :: rest =>
       calc
         explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum f (d :: rest) =
             explicitFormulaRectangleRegularGridCellEndpointDataBottomEdge f d +
               explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum f rest := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleBoxBottomEdgeIntegral f d.boxEdgeCoordinates +
               explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum f rest := by
@@ -1041,8 +1200,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum_eq_boxBotto
               ((d :: rest).map
                 (fun e : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
                   e.boxEdgeCoordinates)) := by
-          rfl
-
+          exact Eq.refl _
 /-- The top-edge sum over endpoint data is exactly the sum over the corresponding
 endpoint-data box labels. -/
 theorem explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum_eq_boxTopEdgeIntegralSum
@@ -1054,13 +1212,13 @@ theorem explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum_eq_boxTopEdgeI
           (data.map
             (fun d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
               d.boxEdgeCoordinates))
-  | [] => rfl
+  | [] => Eq.refl _
   | d :: rest =>
       calc
         explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum f (d :: rest) =
             explicitFormulaRectangleRegularGridCellEndpointDataTopEdge f d +
               explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum f rest := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleBoxTopEdgeIntegral f d.boxEdgeCoordinates +
               explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum f rest := by
@@ -1087,8 +1245,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum_eq_boxTopEdgeI
               ((d :: rest).map
                 (fun e : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
                   e.boxEdgeCoordinates)) := by
-          rfl
-
+          exact Eq.refl _
 /-- The right-edge sum over endpoint data is exactly the sum over the corresponding
 endpoint-data box labels. -/
 theorem explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum_eq_boxRightEdgeIntegralSum
@@ -1100,13 +1257,13 @@ theorem explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum_eq_boxRightE
           (data.map
             (fun d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
               d.boxEdgeCoordinates))
-  | [] => rfl
+  | [] => Eq.refl _
   | d :: rest =>
       calc
         explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f (d :: rest) =
             explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f d +
               explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f rest := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleBoxRightEdgeIntegral f d.boxEdgeCoordinates +
               explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f rest := by
@@ -1133,8 +1290,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum_eq_boxRightE
               ((d :: rest).map
                 (fun e : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
                   e.boxEdgeCoordinates)) := by
-          rfl
-
+          exact Eq.refl _
 /-- The left-edge sum over endpoint data is exactly the sum over the corresponding
 endpoint-data box labels. -/
 theorem explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum_eq_boxLeftEdgeIntegralSum
@@ -1146,13 +1302,13 @@ theorem explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum_eq_boxLeftEdg
           (data.map
             (fun d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
               d.boxEdgeCoordinates))
-  | [] => rfl
+  | [] => Eq.refl _
   | d :: rest =>
       calc
         explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f (d :: rest) =
             explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f d +
               explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f rest := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleBoxLeftEdgeIntegral f d.boxEdgeCoordinates +
               explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f rest := by
@@ -1179,8 +1335,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum_eq_boxLeftEdg
               ((d :: rest).map
                 (fun e : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
                   e.boxEdgeCoordinates)) := by
-          rfl
-
+          exact Eq.refl _
 /-- Endpoint-data boundary sums are box-boundary sums over the mapped full-box labels. -/
 theorem explicitFormulaRectangleRegularGridEndpointDataBoundarySum_eq_boxBoundarySum
     {F : ExplicitFormulaContourFamily} {T ε : ℝ}
@@ -1191,13 +1346,13 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBoundarySum_eq_boxBoundar
           (data.map
             (fun d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
               d.boxEdgeCoordinates))
-  | [] => rfl
+  | [] => Eq.refl _
   | d :: rest =>
       calc
         explicitFormulaRectangleRegularGridEndpointDataBoundarySum f (d :: rest) =
             explicitFormulaRectangleRegularGridCellEndpointDataBoundary f d +
               explicitFormulaRectangleRegularGridEndpointDataBoundarySum f rest := by
-          rfl
+          exact Eq.refl _
         _ =
             finiteRectangleSubdivisionCellBoundaryIntegral
                 (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -1210,7 +1365,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBoundarySum_eq_boxBoundar
                   (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
                   (explicitFormulaRectangleEndpointDataBoxLowerCorner d.boxEdgeCoordinates)
                   (explicitFormulaRectangleEndpointDataBoxUpperCorner d.boxEdgeCoordinates) := by
-            rfl
+            exact Eq.refl _
           exact congrArg
             (fun z : ℂ => z + explicitFormulaRectangleRegularGridEndpointDataBoundarySum f rest)
             hcell
@@ -1236,12 +1391,8 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBoundarySum_eq_boxBoundar
               ((d :: rest).map
                 (fun e : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
                   e.boxEdgeCoordinates)) := by
-          rfl
-
-/-- Full-box label for the outer rectangle of the contour family at height `T`. -/
-
+          exact Eq.refl _
 end ZetaAdmissibleFunction
-
 end
 end LFunctions
 end Boundary
