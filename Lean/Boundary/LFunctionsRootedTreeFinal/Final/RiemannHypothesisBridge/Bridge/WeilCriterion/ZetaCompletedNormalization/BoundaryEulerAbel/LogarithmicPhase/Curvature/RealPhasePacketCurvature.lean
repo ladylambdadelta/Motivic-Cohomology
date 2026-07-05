@@ -352,6 +352,54 @@ theorem Complex.logarithmicPhaseRealPhase_nonempty_packetSum_le_curvatureScale_a
     (Complex.logarithmicPhaseRealPhase_nonempty_derivPacket_card_le_curvatureScale_add_one
       t ht hp ha hab hderiv_growth)
 
+/-- Closed cardinality bound for a nonempty logarithmic derivative packet in
+the positive-frequency branch. -/
+theorem Complex.logarithmicPhaseRealPhase_nonempty_derivPacket_card_le_curvatureScale_add_one_of_nonneg
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    {m : ℤ}
+    (hp :
+      (Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b m).Nonempty)
+    (ha : 1 ≤ a)
+    (hab : a ≤ b) :
+    ((Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b m).card : ℝ) ≤
+      ((((b + 1 : ℕ) : ℝ) * (((b + 1 : ℕ) : ℝ))) / ‖t‖ + 1) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_nonempty_derivPacket_card_le_curvatureScale_add_one
+      t ht hp ha hab
+      (Complex.logarithmicPhaseRealPhase_deriv_growth_on_integer_block
+        t ht ht_nonneg ha hab)
+
+/-- Closed packet-sum bound for a nonempty logarithmic derivative packet in
+the positive-frequency branch. -/
+theorem Complex.logarithmicPhaseRealPhase_nonempty_packetSum_le_curvatureScale_add_one_of_nonneg
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    {m : ℤ}
+    (hp :
+      (Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b m).Nonempty)
+    (ha : 1 ≤ a)
+    (hab : a ≤ b) :
+    ‖Complex.realPhase_secondDerivative_vdc_packetSum
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      a b m‖ ≤
+      ((((b + 1 : ℕ) : ℝ) * (((b + 1 : ℕ) : ℝ))) / ‖t‖ + 1) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_nonempty_packetSum_le_curvatureScale_add_one
+      t ht hp ha hab
+      (Complex.logarithmicPhaseRealPhase_deriv_growth_on_integer_block
+        t ht ht_nonneg ha hab)
+
 /-- An active logarithmic derivative packet is nonempty. -/
 theorem Complex.logarithmicPhaseRealPhase_activeDerivPacket_nonempty
     (t : ℝ)
