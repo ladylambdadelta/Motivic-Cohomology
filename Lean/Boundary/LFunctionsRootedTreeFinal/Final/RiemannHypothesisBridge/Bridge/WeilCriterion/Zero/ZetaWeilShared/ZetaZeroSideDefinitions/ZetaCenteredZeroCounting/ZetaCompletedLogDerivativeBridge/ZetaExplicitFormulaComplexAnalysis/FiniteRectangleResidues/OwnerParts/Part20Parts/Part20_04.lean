@@ -44,8 +44,11 @@ theorem explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
           ExplicitFormulaRectangleRegularAdjacentEndpointPairCell F T ε) ::
         explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
           xpair rest := by
-  unfold explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
-  exact dif_pos homit
+  exact
+    Eq.trans
+      (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX_cons_eq
+        xpair ypair rest)
+      (dif_pos homit)
 
 /-- The selected adjacent-cell row skips the head vertical pair in the rejected
 coordinate-omission branch. -/
@@ -60,46 +63,11 @@ theorem explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
         xpair (ypair :: rest) =
       explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
         xpair rest := by
-  unfold explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
-  exact dif_neg homit
-
-/-- Coordinate omission is decidable because the raw singular coordinate set is finite
-and each coordinate interval exclusion is decidable in the linear order on `ℝ`. -/
-instance explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission_decidable
-    {F : ExplicitFormulaContourFamily} {T ε : ℝ}
-    (xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ε)
-    (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε) :
-    Decidable
-      (explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair) := by
-  let S : Finset ℂ := explicitFormulaRectangleRawSingularCoordinates T
-  let P : ℂ → Prop :=
-    fun a : ℂ =>
-      a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-        a.im ∉ Set.uIcc ypair.y₀ ypair.y₁
-  have hdep :
-      Decidable (∀ a : ℂ, ∀ h : a ∈ S, P a) :=
-    @Finset.decidableDforallFinset ℂ S
-      (fun a _ha => P a)
-      (fun a ha =>
-        letI : Decidable (a.re ∈ Set.uIcc xpair.x₀ xpair.x₁) :=
-          decidable_of_iff
-            ((xpair.x₀ ≤ a.re ∧ a.re ≤ xpair.x₁) ∨
-              (xpair.x₁ ≤ a.re ∧ a.re ≤ xpair.x₀))
-            (Set.mem_uIcc.symm)
-        letI : Decidable (a.im ∈ Set.uIcc ypair.y₀ ypair.y₁) :=
-          decidable_of_iff
-            ((ypair.y₀ ≤ a.im ∧ a.im ≤ ypair.y₁) ∨
-              (ypair.y₁ ≤ a.im ∧ a.im ≤ ypair.y₀))
-            (Set.mem_uIcc.symm)
-        inferInstance)
-  letI : Decidable (∀ a : ℂ, ∀ h : a ∈ S, P a) := hdep
-  show Decidable (∀ a : ℂ, a ∈ S → P a)
   exact
-    decidable_of_iff
-      (∀ a : ℂ, ∀ h : a ∈ S, P a)
-      (Iff.intro
-        (fun h a ha => h a ha)
-        (fun h a ha => h a ha))
+    Eq.trans
+      (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX_cons_eq
+        xpair ypair rest)
+      (dif_neg homit)
 
 def explicitFormulaRectangleSelectedBottomEdgeCoordinatesOfFixedX
     {F : ExplicitFormulaContourFamily} {T ε : ℝ}
