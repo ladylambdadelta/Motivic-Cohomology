@@ -592,6 +592,80 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_eq_on_shi
       (Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_nonneg_on_shifted_Icc_of_nonneg
         t ht ht_nonneg ha hab hpos hh hx)
 
+/-- The shifted reciprocal gap is the product-denominator reciprocal gap. -/
+theorem Real.shifted_reciprocal_gap_eq_mul_div
+    (T x h : ℝ)
+    (hx : x ≠ 0)
+    (hxh : x + h ≠ 0) :
+    T / x - T / (x + h) = (T * h) / (x * (x + h)) := by
+  have hdiv :
+      T / x - T / (x + h) =
+        (T * (x + h) - x * T) / (x * (x + h)) :=
+    div_sub_div T T hx hxh
+  have hnum :
+      T * (x + h) - x * T = T * h := by
+    calc
+      T * (x + h) - x * T =
+          (T * x + T * h) - x * T := by
+        exact congrArg (fun r : ℝ => r - x * T) (mul_add T x h)
+      _ = (T * x + T * h) - T * x := by
+        exact congrArg (fun r : ℝ => (T * x + T * h) - r) (mul_comm x T)
+      _ = T * h :=
+        add_sub_cancel_left (T * x) (T * h)
+  exact
+    Eq.trans hdiv
+      (congrArg (fun r : ℝ => r / (x * (x + h))) hnum)
+
+/-- On the positive half-line, the nonnegative shifted reciprocal gap is
+antitone in the base point. -/
+theorem Real.shifted_reciprocal_gap_antitoneOn_Ioi
+    (T : ℝ)
+    (h : ℕ)
+    (hT : 0 ≤ T) :
+    AntitoneOn
+      (fun x : ℝ => (T * ((h : ℕ) : ℝ)) / (x * (x + h)))
+      (Set.Ioi 0) := by
+  intro x hx y hy hxy
+  have hx_pos : 0 < x :=
+    hx
+  have hy_pos : 0 < y :=
+    hy
+  have hh_nonneg : (0 : ℝ) ≤ ((h : ℕ) : ℝ) :=
+    Nat.cast_nonneg h
+  have hx_shift_pos : 0 < x + h :=
+    lt_of_lt_of_le hx_pos (le_add_of_nonneg_right hh_nonneg)
+  have hy_shift_pos : 0 < y + h :=
+    lt_of_lt_of_le hy_pos (le_add_of_nonneg_right hh_nonneg)
+  have hshift_le : x + h ≤ y + h :=
+    add_le_add_right hxy ((h : ℕ) : ℝ)
+  have hden_le : x * (x + h) ≤ y * (y + h) :=
+    mul_le_mul
+      hxy
+      hshift_le
+      hx_shift_pos.le
+      hy_pos.le
+  have hxden_pos : 0 < x * (x + h) :=
+    mul_pos hx_pos hx_shift_pos
+  have hrecip :
+      (y * (y + h))⁻¹ ≤ (x * (x + h))⁻¹ :=
+    inv_anti₀ hxden_pos hden_le
+  have hscale_nonneg : 0 ≤ T * ((h : ℕ) : ℝ) :=
+    mul_nonneg hT hh_nonneg
+  have hmul :
+      (T * ((h : ℕ) : ℝ)) * (y * (y + h))⁻¹ ≤
+        (T * ((h : ℕ) : ℝ)) * (x * (x + h))⁻¹ :=
+    mul_le_mul_of_nonneg_left hrecip hscale_nonneg
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤ (T * ((h : ℕ) : ℝ)) / (x * (x + h)))
+      (div_eq_mul_inv (T * ((h : ℕ) : ℝ)) (y * (y + h))).symm
+      (Eq.subst
+        (motive := fun right : ℝ =>
+          (T * ((h : ℕ) : ℝ)) * (y * (y + h))⁻¹ ≤ right)
+        (div_eq_mul_inv (T * ((h : ℕ) : ℝ)) (x * (x + h))).symm
+        hmul)
+
 /-- The adjacent increment of a shifted difference is the difference of the
 two adjacent increments of the underlying phase. -/
 theorem Complex.realPhase_secondDerivative_vdc_shiftedDifference_integerIncrement_eq
