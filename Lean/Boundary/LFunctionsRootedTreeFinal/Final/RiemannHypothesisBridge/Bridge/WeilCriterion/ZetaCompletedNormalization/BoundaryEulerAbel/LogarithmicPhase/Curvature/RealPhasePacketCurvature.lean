@@ -1,3 +1,4 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseCurvatureLower
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseShiftedDifference
 
 /-!
@@ -416,6 +417,31 @@ theorem Complex.logarithmicPhaseRealPhase_active_packetSum_le_curvatureScale_add
       t ht
       (Complex.logarithmicPhaseRealPhase_activeDerivPacket_nonempty t hm)
       ha hab hderiv_growth
+
+/-- Closed reciprocal-curvature-scale packet-sum bound over active logarithmic
+derivative packets in the positive-frequency branch. -/
+theorem Complex.logarithmicPhaseRealPhase_active_packetSum_le_curvatureScale_add_one_of_nonneg
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    {m : ℤ}
+    (hm :
+      m ∈
+        Complex.realPhase_secondDerivative_vdc_activeDerivPackets
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b)
+    (ha : 1 ≤ a)
+    (hab : a ≤ b) :
+    ‖Complex.realPhase_secondDerivative_vdc_packetSum
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      a b m‖ ≤
+      ((((b + 1 : ℕ) : ℝ) * (((b + 1 : ℕ) : ℝ))) / ‖t‖ + 1) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_active_packetSum_le_curvatureScale_add_one
+      t ht hm ha hab
+      (Complex.logarithmicPhaseRealPhase_deriv_growth_on_integer_block
+        t ht ht_nonneg ha hab)
 
 end
 
