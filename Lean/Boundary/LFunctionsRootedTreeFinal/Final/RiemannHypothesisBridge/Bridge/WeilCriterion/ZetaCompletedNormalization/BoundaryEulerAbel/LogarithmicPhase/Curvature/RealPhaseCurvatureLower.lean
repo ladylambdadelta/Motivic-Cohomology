@@ -86,6 +86,35 @@ theorem Complex.logarithmicPhaseRealPhase_secondDerivative_curvature_lower
       hnorm_second.symm
       hscale
 
+/-- Concrete first-derivative growth on a positive logarithmic real-phase
+block, obtained from the owner curvature lower bound. -/
+theorem Complex.logarithmicPhaseRealPhase_deriv_growth_on_integer_block
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b) :
+    ∀ x y : ℝ,
+      x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        y ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+          x ≤ y →
+            (‖t‖ *
+                ((((b + 1 : ℕ) : ℝ) *
+                  (((b + 1 : ℕ) : ℝ)))⁻¹) *
+                (y - x) ≤
+              deriv
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) y -
+              deriv
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x) := by
+  intro x y hx hy hxy
+  exact
+    Complex.logarithmicPhaseRealPhase_deriv_growth_of_nonneg_curvature_integer_block
+      t ht_nonneg ha
+      (Complex.logarithmicPhaseRealPhase_secondDerivative_curvature_lower
+        t ht ha hab)
+      hx hy hxy
+
 end
 
 end LFunctions
