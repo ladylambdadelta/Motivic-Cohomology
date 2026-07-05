@@ -22,8 +22,6 @@ namespace ZetaAdmissibleFunction
 ## Part20 07: RowColumnContributionDefinitions
 -/
 
-attribute [local instance] Classical.propDecidable
-
 /-- Endpoint data owned by a selected fixed-vertical adjacent-pair cell. -/
 noncomputable def explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
     {F : ExplicitFormulaContourFamily} {T ε : ℝ}
@@ -146,7 +144,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataHorizontalContribution_pairL
                 f xpair ypairs +
               (explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum f remaining -
                 explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum f remaining) := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleSelectedEndpointDataHorizontalRowContribution
                 f xpair ypairs +
@@ -160,8 +158,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataHorizontalContribution_pairL
         _ =
             explicitFormulaRectangleSelectedEndpointDataHorizontalRowContributionSum
               f (xpair :: rest) ypairs := by
-          rfl
-
+          exact Eq.refl _
 /-- Vertical selected endpoint-data contribution is the recursive sum of its fixed-row
 vertical contributions. -/
 theorem explicitFormulaRectangleSelectedEndpointDataVerticalContribution_pairLists_eq_rowSum
@@ -217,7 +214,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalContribution_pairLis
                 f xpair ypairs +
               (explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f remaining -
                 explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f remaining) := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleSelectedEndpointDataVerticalRowContribution
                 f xpair ypairs +
@@ -231,8 +228,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalContribution_pairLis
         _ =
             explicitFormulaRectangleSelectedEndpointDataVerticalRowContributionSum
               f (xpair :: rest) ypairs := by
-          rfl
-
+          exact Eq.refl _
 /-- Selected adjacent-pair cells over a fixed vertical adjacent-pair, scanning a horizontal
 adjacent-pair source list.  This is the column-oriented view needed for vertical
 edge cancellation. -/
@@ -344,7 +340,7 @@ theorem explicitFormulaRectangleSelectedRightEdgeCoordinatesOfFixedY_integralSum
               0)
           xpairs
   | [] => by
-      rfl
+      exact Eq.refl _
   | xpair :: rest => by
       if homit :
           explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
@@ -369,7 +365,7 @@ theorem explicitFormulaRectangleSelectedRightEdgeCoordinatesOfFixedY_integralSum
                 f ((ypair.y₀, ypair.y₁), xpair.x₁) +
               explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegralSum f
                 (explicitFormulaRectangleSelectedRightEdgeCoordinatesOfFixedY rest ypair) := by
-            rfl
+            exact Eq.refl _
           _ =
             explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
                 f ((ypair.y₀, ypair.y₁), xpair.x₁) +
@@ -440,7 +436,7 @@ theorem explicitFormulaRectangleSelectedRightEdgeCoordinatesOfFixedY_integralSum
                 else
                   0)
               (xpair :: rest) := by
-            rfl
+            exact Eq.refl _
       else
         have hcoords :
             explicitFormulaRectangleSelectedRightEdgeCoordinatesOfFixedY (xpair :: rest) ypair =
@@ -533,8 +529,7 @@ theorem explicitFormulaRectangleSelectedRightEdgeCoordinatesOfFixedY_integralSum
                   else
                     0)
                 (xpair :: rest) := by
-            rfl
-
+            exact Eq.refl _
 /-- Selected left coordinate labels over a fixed vertical span are an ordinary filtered
 recursive sum. -/
 theorem explicitFormulaRectangleSelectedLeftEdgeCoordinatesOfFixedY_integralSum_eq_listSum
@@ -554,7 +549,7 @@ theorem explicitFormulaRectangleSelectedLeftEdgeCoordinatesOfFixedY_integralSum_
               0)
           xpairs
   | [] => by
-      rfl
+      exact Eq.refl _
   | xpair :: rest => by
       if homit :
           explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
@@ -579,7 +574,7 @@ theorem explicitFormulaRectangleSelectedLeftEdgeCoordinatesOfFixedY_integralSum_
                 f ((ypair.y₀, ypair.y₁), xpair.x₀) +
               explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegralSum f
                 (explicitFormulaRectangleSelectedLeftEdgeCoordinatesOfFixedY rest ypair) := by
-            rfl
+            exact Eq.refl _
           _ =
             explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
                 f ((ypair.y₀, ypair.y₁), xpair.x₀) +
@@ -650,7 +645,7 @@ theorem explicitFormulaRectangleSelectedLeftEdgeCoordinatesOfFixedY_integralSum_
                 else
                   0)
               (xpair :: rest) := by
-            rfl
+            exact Eq.refl _
       else
         have hcoords :
             explicitFormulaRectangleSelectedLeftEdgeCoordinatesOfFixedY (xpair :: rest) ypair =
@@ -743,8 +738,7 @@ theorem explicitFormulaRectangleSelectedLeftEdgeCoordinatesOfFixedY_integralSum_
                   else
                     0)
                 (xpair :: rest) := by
-            rfl
-
+            exact Eq.refl _
 /-- The selected endpoint-data list for one fixed vertical column has exactly the
 selected right vertical coordinate labels. -/
 theorem explicitFormulaRectangleSelectedEndpointDataFixedY_rightEdgeCoordinates
@@ -757,7 +751,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataFixedY_rightEdgeCoordinates
           (fun d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
             d.rightEdgeCoordinates) =
         explicitFormulaRectangleSelectedRightEdgeCoordinatesOfFixedY xpairs ypair
-  | [], ypair => rfl
+  | [], ypair => Eq.refl _
   | xpair :: rest, ypair =>
       if homit :
           explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
@@ -857,7 +851,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataFixedY_leftEdgeCoordinates
           (fun d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
             d.leftEdgeCoordinates) =
         explicitFormulaRectangleSelectedLeftEdgeCoordinatesOfFixedY xpairs ypair
-  | [], ypair => rfl
+  | [], ypair => Eq.refl _
   | xpair :: rest, ypair =>
       if homit :
           explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
@@ -965,7 +959,7 @@ theorem explicitFormulaRectangleSelectedFixedY_rightScan_eq_endpointDataRightEdg
           (explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
             (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedY
               xpairs ypair))
-  | [], ypair => rfl
+  | [], ypair => Eq.refl _
   | xpair :: rest, ypair =>
       if homit :
           explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
@@ -995,7 +989,7 @@ theorem explicitFormulaRectangleSelectedFixedY_rightScan_eq_endpointDataRightEdg
               (fun data : List (ExplicitFormulaRectangleRegularGridCellEndpointData F T ε) =>
                 explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f data)
               hdata)
-            rfl
+            (Eq.refl _)
         calc
           explicitFormulaRectangleListSum
               (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ε =>
@@ -1053,7 +1047,7 @@ theorem explicitFormulaRectangleSelectedFixedY_rightScan_eq_endpointDataRightEdg
                         else
                           0)
                       rest by
-                rfl)
+                exact Eq.refl _)
               (congrArg
                 (fun z : ℂ =>
                   z +
@@ -1164,7 +1158,7 @@ theorem explicitFormulaRectangleSelectedFixedY_rightScan_eq_endpointDataRightEdg
                         else
                           0)
                       rest by
-                rfl)
+                exact Eq.refl _)
               (congrArg
                 (fun z : ℂ =>
                   z +
@@ -1224,7 +1218,7 @@ theorem explicitFormulaRectangleSelectedFixedY_leftScan_eq_endpointDataLeftEdgeS
           (explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
             (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedY
               xpairs ypair))
-  | [], ypair => rfl
+  | [], ypair => Eq.refl _
   | xpair :: rest, ypair =>
       if homit :
           explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
@@ -1254,7 +1248,7 @@ theorem explicitFormulaRectangleSelectedFixedY_leftScan_eq_endpointDataLeftEdgeS
               (fun data : List (ExplicitFormulaRectangleRegularGridCellEndpointData F T ε) =>
                 explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f data)
               hdata)
-            rfl
+            (Eq.refl _)
         calc
           (let leftScan : ExplicitFormulaRectangleXAdjacentEndpointPair F T ε → ℂ :=
             fun xpair =>
@@ -1312,7 +1306,7 @@ theorem explicitFormulaRectangleSelectedFixedY_leftScan_eq_endpointDataLeftEdgeS
                         else
                           0;
                      explicitFormulaRectangleListSum leftScan rest) by
-                rfl)
+                exact Eq.refl _)
               (congrArg
                 (fun z : ℂ =>
                   z +
@@ -1423,7 +1417,7 @@ theorem explicitFormulaRectangleSelectedFixedY_leftScan_eq_endpointDataLeftEdgeS
                         else
                           0;
                      explicitFormulaRectangleListSum leftScan rest) by
-                rfl)
+                exact Eq.refl _)
               (congrArg
                 (fun z : ℂ =>
                   z +
@@ -1629,7 +1623,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalContribution_fixedY_
           (fun data : List (ExplicitFormulaRectangleRegularGridCellEndpointData F T ε) =>
             explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f data)
           hdata)
-        rfl
+        (Eq.refl _)
     have hleft :
         explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f column =
           explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f head +
@@ -1639,7 +1633,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalContribution_fixedY_
           (fun data : List (ExplicitFormulaRectangleRegularGridCellEndpointData F T ε) =>
             explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f data)
           hdata)
-        rfl
+        (Eq.refl _)
     calc
       explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f column -
           explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f column =
@@ -1797,7 +1791,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalContribution_fixedY_
             (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedY
               ([] : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ε)) ypair)) =
       0 - 0 := by
-      rfl
+      exact Eq.refl _
     _ = 0 := by
       exact sub_self 0
 
@@ -1882,8 +1876,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContributionSu
         f xpairs ypair +
         explicitFormulaRectangleSelectedEndpointDataVerticalColumnContributionSum
           f xpairs rest := by
-  rfl
-
+  exact Eq.refl _
 /-- Recursive fixed-column contribution sum over an empty vertical adjacent-pair source
 list is zero. -/
 theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContributionSum_nil
@@ -1894,8 +1887,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContributionSu
         (F := F) (T := T) (ε := ε)
         f xpairs ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε)) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- The selected vertical contribution of a single crossed adjacent-pair cell.  If the
 cell is omitted by the raw singular coordinate filter, the contribution is zero; if it is
 selected, it is the right-minus-left contribution of that endpoint datum. -/
@@ -1937,7 +1929,7 @@ theorem explicitFormulaRectangleColumnMajorDoubleSum_nil_left
     ∀ ys : List β,
       explicitFormulaRectangleColumnMajorDoubleSum g ([] : List α) ys = 0
   | [] => by
-      rfl
+      exact Eq.refl _
   | y :: ys => by
       have htail :
           explicitFormulaRectangleColumnMajorDoubleSum g ([] : List α) ys = 0 :=
@@ -1946,9 +1938,9 @@ theorem explicitFormulaRectangleColumnMajorDoubleSum_nil_left
         explicitFormulaRectangleColumnMajorDoubleSum g ([] : List α) (y :: ys) =
             explicitFormulaRectangleListSum (fun x : α => g x y) [] +
               explicitFormulaRectangleColumnMajorDoubleSum g ([] : List α) ys := by
-          rfl
+          exact Eq.refl _
         _ = 0 + explicitFormulaRectangleColumnMajorDoubleSum g ([] : List α) ys := by
-          rfl
+          exact Eq.refl _
         _ = 0 + 0 := by
           exact congrArg (fun z : ℂ => 0 + z) htail
         _ = 0 := by
@@ -1965,14 +1957,14 @@ theorem explicitFormulaRectangleListSum_append
       calc
         explicitFormulaRectangleListSum g ([] ++ ys) =
             explicitFormulaRectangleListSum g ys := by
-          rfl
+          exact Eq.refl _
         _ =
             0 + explicitFormulaRectangleListSum g ys := by
           exact (zero_add (explicitFormulaRectangleListSum g ys)).symm
         _ =
             explicitFormulaRectangleListSum g [] +
               explicitFormulaRectangleListSum g ys := by
-          rfl
+          exact Eq.refl _
   | x :: xs, ys => by
       have ih :
           explicitFormulaRectangleListSum g (xs ++ ys) =
@@ -1982,7 +1974,7 @@ theorem explicitFormulaRectangleListSum_append
       calc
         explicitFormulaRectangleListSum g ((x :: xs) ++ ys) =
             g x + explicitFormulaRectangleListSum g (xs ++ ys) := by
-          rfl
+          exact Eq.refl _
         _ =
             g x +
               (explicitFormulaRectangleListSum g xs +
@@ -1998,8 +1990,7 @@ theorem explicitFormulaRectangleListSum_append
         _ =
             explicitFormulaRectangleListSum g (x :: xs) +
               explicitFormulaRectangleListSum g ys := by
-          rfl
-
+          exact Eq.refl _
 /-- The local recursive list sum is the ordinary additive list sum after mapping the
 summand. -/
 theorem explicitFormulaRectangleListSum_eq_map_sum
@@ -2007,7 +1998,7 @@ theorem explicitFormulaRectangleListSum_eq_map_sum
     ∀ xs : List α,
       explicitFormulaRectangleListSum g xs = (xs.map g).sum
   | [] => by
-      rfl
+      exact Eq.refl _
   | x :: xs => by
       have ih :
           explicitFormulaRectangleListSum g xs = (xs.map g).sum :=
@@ -2015,12 +2006,11 @@ theorem explicitFormulaRectangleListSum_eq_map_sum
       calc
         explicitFormulaRectangleListSum g (x :: xs) =
             g x + explicitFormulaRectangleListSum g xs := by
-          rfl
+          exact Eq.refl _
         _ = g x + (xs.map g).sum := by
           exact congrArg (fun z : ℂ => g x + z) ih
         _ = ((x :: xs).map g).sum := by
-          rfl
-
+          exact Eq.refl _
 /-- The local recursive list sum over a `List.ofFn` is the corresponding finite sum over
 the finite index type. -/
 theorem explicitFormulaRectangleListSum_ofFn
@@ -2046,7 +2036,7 @@ theorem explicitFormulaRectangle_consecutiveForwardDifferences_sum_range
   | zero =>
       calc
         (∑ k in Finset.range 0, (edge (k + 1) - edge k)) = 0 := by
-          rfl
+          exact Eq.refl _
         _ = edge 0 - edge 0 := by
           exact (sub_self (edge 0)).symm
   | succ n ih =>
@@ -2148,7 +2138,7 @@ theorem explicitFormulaRectangleListSum_ofFn_consecutiveForwardDifferences_shift
       (fun i =>
         congrArg₂ HSub.hSub
           (congrArg edge (Nat.add_assoc lo i.1 1).symm)
-          rfl)
+          (Eq.refl _))
   calc
     explicitFormulaRectangleListSum
         (fun i : Fin n => edge (lo + (i.1 + 1)) - edge (lo + i.1))
@@ -2163,8 +2153,7 @@ theorem explicitFormulaRectangleListSum_ofFn_consecutiveForwardDifferences_shift
     _ = shifted n - shifted 0 := by
       exact hbase
     _ = edge (lo + n) - edge lo := by
-      rfl
-
+      exact Eq.refl _
 /-- Recursive `List.ofFn` sums telescope backward consecutive endpoint differences after
 a fixed index shift. -/
 theorem explicitFormulaRectangleListSum_ofFn_consecutiveBackwardDifferences_shift
@@ -2186,7 +2175,7 @@ theorem explicitFormulaRectangleListSum_ofFn_consecutiveBackwardDifferences_shif
     exact funext
       (fun i =>
         congrArg₂ HSub.hSub
-          rfl
+          (Eq.refl _)
           (congrArg edge (Nat.add_assoc lo i.1 1).symm))
   calc
     explicitFormulaRectangleListSum
@@ -2202,8 +2191,7 @@ theorem explicitFormulaRectangleListSum_ofFn_consecutiveBackwardDifferences_shif
     _ = shifted 0 - shifted n := by
       exact hbase
     _ = edge lo - edge (lo + n) := by
-      rfl
-
+      exact Eq.refl _
 /-- Finite reindexing for a contiguous block of indices inside a finite index type.
 This is the remaining purely finite-combinatorial sink behind the raw-hole subspan
 classification: all indices outside the block contribute zero, and indices inside the
@@ -2229,7 +2217,7 @@ theorem explicitFormulaRectangleFinSum_contiguousBlock_ite_eq_shifted
     calc
       (∑ j : Fin n, if P j then g j else 0) =
           ∑ j in (Finset.univ : Finset (Fin n)), if P j then g j else 0 := by
-        rfl
+        exact Eq.refl _
       _ =
           (∑ j in (Finset.univ : Finset (Fin n)).filter P, g j) +
             ∑ j in (Finset.univ : Finset (Fin n)).filter (fun j => ¬ P j), 0 := by
@@ -2251,7 +2239,7 @@ theorem explicitFormulaRectangleFinSum_contiguousBlock_ite_eq_shifted
     calc
       (∑ i : Fin span, gShift i) =
           ∑ i in (Finset.univ : Finset (Fin span)), gShift i := by
-        rfl
+        exact Eq.refl _
       _ =
           ∑ j in (Finset.univ.filter P), g j := by
         exact
@@ -2340,7 +2328,7 @@ theorem explicitFormulaRectangleListSum_smul
         explicitFormulaRectangleListSum (fun x : α => c • g x) (x :: rest) =
             c • g x +
               explicitFormulaRectangleListSum (fun x : α => c • g x) rest := by
-          rfl
+          exact Eq.refl _
         _ =
             c • g x + c • explicitFormulaRectangleListSum g rest := by
           exact congrArg (fun z : ℂ => c • g x + z) htail
@@ -2349,8 +2337,7 @@ theorem explicitFormulaRectangleListSum_smul
           exact (smul_add c (g x) (explicitFormulaRectangleListSum g rest)).symm
         _ =
             c • explicitFormulaRectangleListSum g (x :: rest) := by
-          rfl
-
+          exact Eq.refl _
 /-- Interval-integrability data needed to telescope a fixed vertical line over a finite
 adjacent endpoint subdivision.  This is the analytic input for the vertical side
 assembly lemmas; the finite geometry supplies the endpoint list and first/last endpoints. -/
@@ -3035,8 +3022,7 @@ theorem explicitFormulaRectangleRawHoleYSubrangeVerticalIntegralSum_eq_coordinat
         explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral f
           (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im,
               (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im), x) := by
-      rfl
-
+      exact Eq.refl _
 /-- The shifted vertical subrange over a raw-hole side telescopes to that raw-hole
 left-oriented vertical coordinate integral. -/
 theorem explicitFormulaRectangleRawHoleYSubrangeLeftVerticalIntegralSum_eq_coordinate
@@ -3183,8 +3169,7 @@ theorem explicitFormulaRectangleRawHoleYSubrangeLeftVerticalIntegralSum_eq_coord
         explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral f
           (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im,
               (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im), x) := by
-      rfl
-
+      exact Eq.refl _
 /-- The shifted horizontal subrange over a raw-hole side telescopes to that raw-hole
 horizontal coordinate integral. -/
 theorem explicitFormulaRectangleRawHoleXSubrangeHorizontalIntegralSum_eq_coordinate
@@ -3294,8 +3279,7 @@ theorem explicitFormulaRectangleRawHoleXSubrangeHorizontalIntegralSum_eq_coordin
         explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f
           (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re,
               (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re), y) := by
-      rfl
-
+      exact Eq.refl _
 /-- The shifted horizontal subrange over a raw-hole side telescopes to that raw-hole
 top-oriented horizontal coordinate integral. -/
 theorem explicitFormulaRectangleRawHoleXSubrangeTopHorizontalIntegralSum_eq_coordinate
@@ -3401,8 +3385,7 @@ theorem explicitFormulaRectangleRawHoleXSubrangeTopHorizontalIntegralSum_eq_coor
         explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f
           (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re,
               (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re), y) := by
-      rfl
-
+      exact Eq.refl _
 /-- A horizontal affine edge parameter is continuous on every closed interval. -/
 theorem explicitFormulaRectangle_horizontalEdgeParameter_continuousOn
     (y a b : ℝ) :
@@ -3779,7 +3762,7 @@ theorem explicitFormulaRectangleListSum_finset_sum
             (∑ b in S, g x b) +
               explicitFormulaRectangleListSum
                 (fun x : α => ∑ b in S, g x b) rest := by
-          rfl
+          exact Eq.refl _
         _ =
             (∑ b in S, g x b) +
               (∑ b in S, explicitFormulaRectangleListSum (fun x : α => g x b) rest) := by
@@ -3796,7 +3779,7 @@ theorem explicitFormulaRectangleListSum_finset_sum
         _ =
             ∑ b in S,
               explicitFormulaRectangleListSum (fun x : α => g x b) (x :: rest) := by
-          exact Finset.sum_congr rfl (fun b _hb => rfl)
+          exact Finset.sum_congr (Eq.refl _) (fun b _hb => Eq.refl _)
 
 /-- Recursive list sums of fixed scalar multiples of adjacent interval integrals assemble
 to the same scalar multiple of the whole endpoint-span integral. -/
@@ -3846,7 +3829,7 @@ theorem explicitFormulaRectangleListSum_congr
         explicitFormulaRectangleListSum g xs =
           explicitFormulaRectangleListSum h xs
   | [], _hpoint => by
-      rfl
+      exact Eq.refl _
   | x :: rest, hpoint => by
       have hhead : g x = h x :=
         hpoint x (List.mem_cons_self x rest)
@@ -3859,7 +3842,7 @@ theorem explicitFormulaRectangleListSum_congr
       calc
         explicitFormulaRectangleListSum g (x :: rest) =
             g x + explicitFormulaRectangleListSum g rest := by
-          rfl
+          exact Eq.refl _
         _ = h x + explicitFormulaRectangleListSum g rest := by
           exact congrArg
             (fun z : ℂ => z + explicitFormulaRectangleListSum g rest)
@@ -3869,8 +3852,7 @@ theorem explicitFormulaRectangleListSum_congr
             (fun z : ℂ => h x + z)
             htail
         _ = explicitFormulaRectangleListSum h (x :: rest) := by
-          rfl
-
+          exact Eq.refl _
 /-- If every summand on a source list is zero, the local recursive list sum is zero. -/
 theorem explicitFormulaRectangleListSum_eq_zero_of_forall_mem_eq_zero
     {α : Type} (g : α → ℂ) :
@@ -3878,7 +3860,7 @@ theorem explicitFormulaRectangleListSum_eq_zero_of_forall_mem_eq_zero
       (∀ x : α, x ∈ xs → g x = 0) →
         explicitFormulaRectangleListSum g xs = 0
   | [], _hzero => by
-      rfl
+      exact Eq.refl _
   | x :: rest, hzero => by
       have hhead : g x = 0 :=
         hzero x (List.mem_cons_self x rest)
@@ -3890,7 +3872,7 @@ theorem explicitFormulaRectangleListSum_eq_zero_of_forall_mem_eq_zero
       calc
         explicitFormulaRectangleListSum g (x :: rest) =
             g x + explicitFormulaRectangleListSum g rest := by
-          rfl
+          exact Eq.refl _
         _ = 0 + explicitFormulaRectangleListSum g rest := by
           exact congrArg
             (fun z : ℂ => z + explicitFormulaRectangleListSum g rest)
@@ -3951,7 +3933,7 @@ theorem explicitFormulaRectangleListSum_eq_single_of_nodup
                 (if p x then w else 0) +
                   explicitFormulaRectangleListSum
                     (fun y : α => if p y then w else 0) rest := by
-              rfl
+              exact Eq.refl _
             _ = w +
                   explicitFormulaRectangleListSum
                     (fun y : α => if p y then w else 0) rest := by
@@ -3992,7 +3974,7 @@ theorem explicitFormulaRectangleListSum_eq_single_of_nodup
                 (if p x then w else 0) +
                   explicitFormulaRectangleListSum
                     (fun y : α => if p y then w else 0) rest := by
-              rfl
+              exact Eq.refl _
             _ = 0 +
                   explicitFormulaRectangleListSum
                     (fun y : α => if p y then w else 0) rest := by
@@ -4037,11 +4019,11 @@ theorem explicitFormulaRectangleRowMajorDoubleSum_eq_columnMajorDoubleSum
       explicitFormulaRectangleRowMajorDoubleSum g xs.1 xs.2 =
         explicitFormulaRectangleColumnMajorDoubleSum g xs.1 xs.2
   | ([], []) => by
-      rfl
+      exact Eq.refl _
   | ([], y :: ys) => by
       calc
         explicitFormulaRectangleRowMajorDoubleSum g [] (y :: ys) = 0 := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleColumnMajorDoubleSum g [] (y :: ys) := by
           exact (explicitFormulaRectangleColumnMajorDoubleSum_nil_left g (y :: ys)).symm
@@ -4054,18 +4036,18 @@ theorem explicitFormulaRectangleRowMajorDoubleSum_eq_columnMajorDoubleSum
         explicitFormulaRectangleRowMajorDoubleSum g (x :: xs) [] =
             explicitFormulaRectangleListSum (fun y : β => g x y) [] +
               explicitFormulaRectangleRowMajorDoubleSum g xs [] := by
-          rfl
+          exact Eq.refl _
         _ = 0 + explicitFormulaRectangleRowMajorDoubleSum g xs [] := by
-          rfl
+          exact Eq.refl _
         _ = explicitFormulaRectangleRowMajorDoubleSum g xs [] := by
           exact zero_add (explicitFormulaRectangleRowMajorDoubleSum g xs [])
         _ = explicitFormulaRectangleColumnMajorDoubleSum g xs [] := by
           exact ih
         _ = 0 := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleColumnMajorDoubleSum g (x :: xs) [] := by
-          rfl
+          exact Eq.refl _
   | (x :: xs, y :: ys) => by
       have ih_tail :
           explicitFormulaRectangleRowMajorDoubleSum g xs ys =
@@ -4091,7 +4073,7 @@ theorem explicitFormulaRectangleRowMajorDoubleSum_eq_columnMajorDoubleSum
             (g x y +
                 explicitFormulaRectangleListSum (fun y' : β => g x y') ys) +
               explicitFormulaRectangleRowMajorDoubleSum g xs (y :: ys) := by
-          rfl
+          exact Eq.refl _
         _ =
             (g x y +
                 explicitFormulaRectangleListSum (fun y' : β => g x y') ys) +
@@ -4106,7 +4088,7 @@ theorem explicitFormulaRectangleRowMajorDoubleSum_eq_columnMajorDoubleSum
                 explicitFormulaRectangleListSum (fun y' : β => g x y') ys) +
               (explicitFormulaRectangleListSum (fun x' : α => g x' y) xs +
                 explicitFormulaRectangleColumnMajorDoubleSum g xs ys) := by
-          rfl
+          exact Eq.refl _
         _ =
             (g x y +
                 explicitFormulaRectangleListSum (fun x' : α => g x' y) xs) +
@@ -4162,7 +4144,7 @@ theorem explicitFormulaRectangleRowMajorDoubleSum_eq_columnMajorDoubleSum
             (g x y +
                 explicitFormulaRectangleListSum (fun x' : α => g x' y) xs) +
               explicitFormulaRectangleRowMajorDoubleSum g (x :: xs) ys := by
-          rfl
+          exact Eq.refl _
         _ =
             (g x y +
                 explicitFormulaRectangleListSum (fun x' : α => g x' y) xs) +
@@ -4174,8 +4156,7 @@ theorem explicitFormulaRectangleRowMajorDoubleSum_eq_columnMajorDoubleSum
             ih_col_tail
         _ =
             explicitFormulaRectangleColumnMajorDoubleSum g (x :: xs) (y :: ys) := by
-          rfl
-
+          exact Eq.refl _
 /-- The selected horizontal contribution of a single crossed adjacent-pair cell. If the
 cell is omitted by the raw singular coordinate filter, the contribution is zero; if it is
 selected, it is the bottom-minus-top contribution of that endpoint datum. -/
@@ -4393,8 +4374,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataHorizontalRowContribution_eq
                 explicitFormulaRectangleSelectedEndpointDataHorizontalCellContribution
                   f xpair ypair)
               (ypair :: rest) := by
-          rfl
-
+          exact Eq.refl _
 /-- The recursive fixed-row horizontal contribution sum is the row-major double sum of
 selected single-cell horizontal contributions. -/
 theorem explicitFormulaRectangleSelectedEndpointDataHorizontalRowContributionSum_eq_rowMajorDoubleSum
@@ -4411,7 +4391,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataHorizontalRowContributionSum
                   f xpair ypair)
             xpairs ypairs
   | [], ypairs => by
-      rfl
+      exact Eq.refl _
   | xpair :: rest, ypairs => by
       have hrow :
           explicitFormulaRectangleSelectedEndpointDataHorizontalRowContribution
@@ -4441,7 +4421,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataHorizontalRowContributionSum
                 f xpair ypairs +
               explicitFormulaRectangleSelectedEndpointDataHorizontalRowContributionSum
                 f rest ypairs := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleListSum
               (fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε =>
@@ -4483,8 +4463,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataHorizontalRowContributionSum
                   explicitFormulaRectangleSelectedEndpointDataHorizontalCellContribution
                     f xpair ypair)
               (xpair :: rest) ypairs := by
-          rfl
-
+          exact Eq.refl _
 /-- Vertical row contribution is zero over an empty vertical adjacent-pair source list. -/
 theorem explicitFormulaRectangleSelectedEndpointDataVerticalRowContribution_nil
     {F : ExplicitFormulaContourFamily} {T ε : ℝ}
@@ -4685,8 +4664,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalRowContribution_eq_l
                 explicitFormulaRectangleSelectedEndpointDataVerticalCellContribution
                   f xpair ypair)
               (ypair :: rest) := by
-          rfl
-
+          exact Eq.refl _
 /-- Fixed-column vertical contribution is the recursive generic list sum of selected
 single-cell vertical contributions along the horizontal adjacent-pair source list. -/
 theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_eq_listSum
@@ -4847,8 +4825,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_e
                 explicitFormulaRectangleSelectedEndpointDataVerticalCellContribution
                   f xpair ypair)
               (xpair :: rest) := by
-          rfl
-
+          exact Eq.refl _
 /-- The recursive fixed-row vertical contribution sum is the row-major double sum of
 selected single-cell vertical contributions. -/
 theorem explicitFormulaRectangleSelectedEndpointDataVerticalRowContributionSum_eq_rowMajorDoubleSum
@@ -4865,7 +4842,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalRowContributionSum_e
                   f xpair ypair)
             xpairs ypairs
   | [], ypairs => by
-      rfl
+      exact Eq.refl _
   | xpair :: rest, ypairs => by
       have hrow :
           explicitFormulaRectangleSelectedEndpointDataVerticalRowContribution
@@ -4895,7 +4872,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalRowContributionSum_e
                 f xpair ypairs +
               explicitFormulaRectangleSelectedEndpointDataVerticalRowContributionSum
                 f rest ypairs := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleListSum
               (fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε =>
@@ -4937,8 +4914,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalRowContributionSum_e
                   explicitFormulaRectangleSelectedEndpointDataVerticalCellContribution
                     f xpair ypair)
               (xpair :: rest) ypairs := by
-          rfl
-
+          exact Eq.refl _
 /-- The recursive fixed-column vertical contribution sum is the column-major double sum of
 selected single-cell vertical contributions. -/
 theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContributionSum_eq_columnMajorDoubleSum
@@ -4955,7 +4931,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContributionSu
                 f xpair ypair)
           xpairs ypairs
   | [] => by
-      rfl
+      exact Eq.refl _
   | ypair :: rest => by
       have hcolumn :
           explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution
@@ -4985,7 +4961,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContributionSu
                 f xpairs ypair +
               explicitFormulaRectangleSelectedEndpointDataVerticalColumnContributionSum
                 f xpairs rest := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleListSum
               (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ε =>
@@ -5027,8 +5003,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContributionSu
                   explicitFormulaRectangleSelectedEndpointDataVerticalCellContribution
                     f xpair ypair)
               xpairs (ypair :: rest) := by
-          rfl
-
+          exact Eq.refl _
 /-- The recursive fixed-row vertical contribution sum equals the recursive fixed-column
 vertical contribution sum.  Both enumerate the same selected crossed cells, but in
 opposite orders; this is the finite Fubini reindexing needed before column telescoping. -/
@@ -5759,8 +5734,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContribution_
                 explicitFormulaRectangleSelectedBoxCoordinatesHorizontalCellContribution
                   f xpair ypair)
               (ypair :: rest) := by
-          rfl
-
+          exact Eq.refl _
 /-- Fixed-row vertical box contribution is the recursive list sum of selected vertical
 one-cell contributions. -/
 theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContribution_eq_listSum
@@ -5824,8 +5798,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContribution_eq
                 explicitFormulaRectangleSelectedBoxCoordinatesVerticalCellContribution
                   f xpair ypair)
               (ypair :: rest) := by
-          rfl
-
+          exact Eq.refl _
 /-- Recursive sum of horizontal grouped selected box-coordinate row contributions. -/
 noncomputable def explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContributionSum
     {F : ExplicitFormulaContourFamily} {T ρ : ℝ}
@@ -5921,7 +5894,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesHorizontalContribution_eq_
                 (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists rest ypairs) -
               explicitFormulaRectangleBoxTopEdgeIntegralSum f
                 (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists rest ypairs)) := by
-          rfl
+          exact Eq.refl _
         _ =
           explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContribution
               f xpair ypairs +
@@ -5935,8 +5908,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesHorizontalContribution_eq_
         _ =
           explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContributionSum
             f (xpair :: rest) ypairs := by
-          rfl
-
+          exact Eq.refl _
 /-- The direct grouped vertical box-coordinate sum over selected pair lists is the
 recursive sum of fixed-row grouped vertical contributions. -/
 theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalContribution_eq_rowSum
@@ -6006,7 +5978,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalContribution_eq_ro
                 (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists rest ypairs) -
               explicitFormulaRectangleBoxLeftEdgeIntegralSum f
                 (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists rest ypairs)) := by
-          rfl
+          exact Eq.refl _
         _ =
           explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContribution
               f xpair ypairs +
@@ -6020,8 +5992,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalContribution_eq_ro
         _ =
           explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum
             f (xpair :: rest) ypairs := by
-          rfl
-
+          exact Eq.refl _
 /-- The recursive horizontal box-coordinate row contribution sum is the row-major double
 sum of selected horizontal one-cell box-coordinate contributions. -/
 theorem explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContributionSum_eq_rowMajorDoubleSum
@@ -6038,7 +6009,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContributionS
                   f xpair ypair)
             xpairs ypairs
   | [], ypairs => by
-      rfl
+      exact Eq.refl _
   | xpair :: rest, ypairs => by
       have hrow :
           explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContribution
@@ -6068,7 +6039,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContributionS
                 f xpair ypairs +
               explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContributionSum
                 f rest ypairs := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleListSum
               (fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
@@ -6110,8 +6081,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContributionS
                   explicitFormulaRectangleSelectedBoxCoordinatesHorizontalCellContribution
                     f xpair ypair)
               (xpair :: rest) ypairs := by
-          rfl
-
+          exact Eq.refl _
 /-- The recursive vertical box-coordinate row contribution sum is the row-major double
 sum of selected vertical one-cell box-coordinate contributions. -/
 theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum_eq_rowMajorDoubleSum
@@ -6128,7 +6098,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum
                   f xpair ypair)
             xpairs ypairs
   | [], ypairs => by
-      rfl
+      exact Eq.refl _
   | xpair :: rest, ypairs => by
       have hrow :
           explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContribution
@@ -6158,7 +6128,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum
                 f xpair ypairs +
               explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum
                 f rest ypairs := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleListSum
               (fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
@@ -6200,8 +6170,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum
                   explicitFormulaRectangleSelectedBoxCoordinatesVerticalCellContribution
                     f xpair ypair)
               (xpair :: rest) ypairs := by
-          rfl
-
+          exact Eq.refl _
 /-- Oriented outer horizontal side contribution in the selected box-coordinate
 normalization. -/
 noncomputable def explicitFormulaRectangleSelectedBoxCoordinatesHorizontalOuterSideSum
@@ -6342,11 +6311,11 @@ theorem explicitFormulaRectangleListSum_sub
   | [] => by
       calc
         explicitFormulaRectangleListSum (fun x : α => left x - right x) [] = 0 := by
-          rfl
+          exact Eq.refl _
         _ = 0 - 0 := by
           exact (sub_self 0).symm
         _ = explicitFormulaRectangleListSum left [] - explicitFormulaRectangleListSum right [] := by
-          rfl
+          exact Eq.refl _
   | x :: rest => by
       have htail :
           explicitFormulaRectangleListSum (fun x : α => left x - right x) rest =
@@ -6357,7 +6326,7 @@ theorem explicitFormulaRectangleListSum_sub
         explicitFormulaRectangleListSum (fun x : α => left x - right x) (x :: rest) =
             (left x - right x) +
               explicitFormulaRectangleListSum (fun x : α => left x - right x) rest := by
-          rfl
+          exact Eq.refl _
         _ =
             (left x - right x) +
               (explicitFormulaRectangleListSum left rest -
@@ -6375,15 +6344,14 @@ theorem explicitFormulaRectangleListSum_sub
         _ =
             explicitFormulaRectangleListSum left (x :: rest) -
               explicitFormulaRectangleListSum right (x :: rest) := by
-          rfl
-
+          exact Eq.refl _
 /-- Recursive list sum of the constant zero function is zero. -/
 theorem explicitFormulaRectangleListSum_zero
     {α : Type} :
     ∀ xs : List α,
       explicitFormulaRectangleListSum (fun _x : α => (0 : ℂ)) xs = 0
   | [] => by
-      rfl
+      exact Eq.refl _
   | x :: rest => by
       have htail :
           explicitFormulaRectangleListSum (fun _x : α => (0 : ℂ)) rest = 0 :=
@@ -6391,7 +6359,7 @@ theorem explicitFormulaRectangleListSum_zero
       calc
         explicitFormulaRectangleListSum (fun _x : α => (0 : ℂ)) (x :: rest) =
             0 + explicitFormulaRectangleListSum (fun _x : α => (0 : ℂ)) rest := by
-          rfl
+          exact Eq.refl _
         _ = 0 + 0 := by
           exact congrArg (fun z : ℂ => 0 + z) htail
         _ = 0 := by
@@ -6424,11 +6392,11 @@ theorem explicitFormulaRectangleListSum_select_add_reject
           explicitFormulaRectangleListSum
             (fun x : α => if _h : P x then 0 else g x) [] =
             0 + 0 := by
-          rfl
+          exact Eq.refl _
         _ = 0 := by
           exact zero_add 0
         _ = explicitFormulaRectangleListSum g [] := by
-          rfl
+          exact Eq.refl _
   | x :: rest => by
       have htail :
           explicitFormulaRectangleListSum
@@ -6449,7 +6417,7 @@ theorem explicitFormulaRectangleListSum_select_add_reject
                 ((if _h : P x then 0 else g x) +
                   explicitFormulaRectangleListSum
                     (fun x : α => if _h : P x then 0 else g x) rest) := by
-            rfl
+            exact Eq.refl _
           _ =
               (g x +
                   explicitFormulaRectangleListSum
@@ -6512,7 +6480,7 @@ theorem explicitFormulaRectangleListSum_select_add_reject
           _ = g x + explicitFormulaRectangleListSum g rest := by
             exact congrArg (fun z : ℂ => g x + z) htail
           _ = explicitFormulaRectangleListSum g (x :: rest) := by
-            rfl
+            exact Eq.refl _
       else
         calc
           explicitFormulaRectangleListSum
@@ -6525,7 +6493,7 @@ theorem explicitFormulaRectangleListSum_select_add_reject
                 ((if _h : P x then 0 else g x) +
                   explicitFormulaRectangleListSum
                     (fun x : α => if _h : P x then 0 else g x) rest) := by
-            rfl
+            exact Eq.refl _
           _ =
               (0 +
                   explicitFormulaRectangleListSum
@@ -6628,8 +6596,7 @@ theorem explicitFormulaRectangleListSum_select_add_reject
           _ = g x + explicitFormulaRectangleListSum g rest := by
             exact congrArg (fun z : ℂ => g x + z) htail
           _ = explicitFormulaRectangleListSum g (x :: rest) := by
-            rfl
-
+            exact Eq.refl _
 /-- The selected part of a recursive list sum is the total sum minus the rejected part. -/
 theorem explicitFormulaRectangleListSum_select_eq_total_sub_reject
     {α : Type} (P : α → Prop) [DecidablePred P] (g : α → ℂ)
