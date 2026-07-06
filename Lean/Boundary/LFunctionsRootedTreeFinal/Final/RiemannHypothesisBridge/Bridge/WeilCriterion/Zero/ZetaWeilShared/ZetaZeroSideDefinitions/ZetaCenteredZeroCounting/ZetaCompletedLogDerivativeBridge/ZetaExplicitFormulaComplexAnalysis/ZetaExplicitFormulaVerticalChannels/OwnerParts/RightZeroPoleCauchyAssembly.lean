@@ -41,15 +41,15 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleRectangleBoundaryIntegral_
       atTop
       (𝓝 K) := by
   have hevent :
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionZeroPoleRectangleBoundaryIntegral
-          f F (h.height_schedule.height u)) =
-       ᶠ[atTop]
-      (fun _u : ℝ => K) := by
+      Filter.EventuallyEq atTop
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleRectangleBoundaryIntegral
+            f F (h.height_schedule.height u))
+        (fun _u : ℝ => K) := by
     exact h.height_schedule.eventually_height_pos.mono
       (fun u hu =>
         hpositive (h.height_schedule.height u) hu)
-  exact hevent.tendsto_iff.2 tendsto_const_nhds
+  exact Tendsto.congr' hevent.symm tendsto_const_nhds
 
 /-- A positive-height finite Cauchy equality for the `s = 0` rectangle boundary
 gives the scheduled centered boundary-residue limit. -/
@@ -166,15 +166,14 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tend
     have hC : C = R - L + H :=
       zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledRectangleBoundaryIntegral_eq_vertical_add_horizontal
         f F h u
-    change R = (L - H) + C
-    exact rightSide_eq_left_sub_horizontal_add_boundary_of_boundary_eq R L H C hC
+    have htarget : R = (L - H) + C :=
+      rightSide_eq_left_sub_horizontal_add_boundary_of_boundary_eq R L H C hC
+    exact htarget
   have htarget :
       (0 - 0 : ℂ) + K = K := by
     calc
-      (0 - 0 : ℂ) + K = (0 + -0 : ℂ) + K := by
-        exact congrArg (fun z : ℂ => z + K) (sub_eq_add_neg 0 0)
-      _ = (0 : ℂ) + K := by
-        exact congrArg (fun z : ℂ => (0 + z : ℂ) + K) (neg_zero : -(0 : ℂ) = 0)
+      (0 - 0 : ℂ) + K = (0 : ℂ) + K := by
+        exact congrArg (fun z : ℂ => z + K) (sub_self (0 : ℂ))
       _ = K := by
         exact zero_add K
   exact Eq.subst
@@ -319,10 +318,8 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tend
   have htarget :
       (0 - 0 : ℂ) + B = B := by
     calc
-      (0 - 0 : ℂ) + B = (0 + -0 : ℂ) + B := by
-        exact congrArg (fun z : ℂ => z + B) (sub_eq_add_neg 0 0)
-      _ = (0 : ℂ) + B := by
-        exact congrArg (fun z : ℂ => (0 + z : ℂ) + B) (neg_zero : -(0 : ℂ) = 0)
+      (0 - 0 : ℂ) + B = (0 : ℂ) + B := by
+        exact congrArg (fun z : ℂ => z + B) (sub_self (0 : ℂ))
       _ = B := by
         exact zero_add B
   have hrightI :

@@ -61,7 +61,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_eq_ri
       C * Complex.I = (R * Complex.I - L * Complex.I + H) * Complex.I := by
         exact congrArg (fun x : ℂ => x * Complex.I) hC
       _ = ((R * Complex.I - L * Complex.I) + H) * Complex.I := by
-        rfl
+        exact Eq.refl _
       _ = (R * Complex.I - L * Complex.I) * Complex.I + H * Complex.I := by
         exact add_mul (R * Complex.I - L * Complex.I) H Complex.I
       _ = ((R * Complex.I) + -(L * Complex.I)) * Complex.I + H * Complex.I := by
@@ -117,7 +117,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_eq_ri
           (fun x : ℂ => (-R + x) + H * Complex.I)
           (neg_neg L)
       _ = -R + L + H * Complex.I := by
-        rfl
+        exact Eq.refl _
   have hsolve :
       L = R + C * Complex.I - H * Complex.I := by
     have hstep :
@@ -179,9 +179,10 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentBoundaryDefect_eq_l
         R + C * Complex.I - H * Complex.I :=
     zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_eq_right_add_tangentBoundary_mul_I_sub_horizontal_mul_I_ownerZeroPoleAlgebra
       f F h u
-  change R + C * Complex.I = L + H * Complex.I
-  calc
-    R + C * Complex.I = (R + C * Complex.I - H * Complex.I) + H * Complex.I := by
+  have htarget : R + C * Complex.I = L + H * Complex.I := by
+    have hcancel :
+        R + C * Complex.I =
+          (R + C * Complex.I - H * Complex.I) + H * Complex.I := by
       calc
         R + C * Complex.I =
             (R + C * Complex.I) + 0 := by
@@ -199,8 +200,12 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentBoundaryDefect_eq_l
           exact congrArg
             (fun x : ℂ => x + H * Complex.I)
             (sub_eq_add_neg (R + C * Complex.I) (H * Complex.I)).symm
-    _ = L + H * Complex.I := by
-      exact congrArg (fun x : ℂ => x + H * Complex.I) hleft.symm
+    calc
+      R + C * Complex.I =
+          (R + C * Complex.I - H * Complex.I) + H * Complex.I := hcancel
+      _ = L + H * Complex.I := by
+        exact congrArg (fun x : ℂ => x + H * Complex.I) hleft.symm
+  exact htarget
 
 /-- Parameterized transport from tangent-boundary defect convergence and
 horizontal decay to the scheduled left zero-pole face.  The horizontal theorem
@@ -319,18 +324,19 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIn
     have hD : D = L + H :=
       zetaCompletedExplicitFormulaCorrectionZeroPoleTangentBoundaryDefect_eq_left_add_horizontal_mul_I_ownerZeroPoleAlgebra
         f F h u
-    change D - H = L
-    calc
-      D - H = (L + H) - H := by
-        exact congrArg (fun x : ℂ => x - H) hD
-      _ = (L + H) + -H := by
-        exact sub_eq_add_neg (L + H) H
-      _ = L + (H + -H) := by
-        exact add_assoc L H (-H)
-      _ = L + 0 := by
-        exact congrArg (fun x : ℂ => L + x) (add_neg_cancel H)
-      _ = L := by
-        exact add_zero L
+    have htarget : D - H = L := by
+      calc
+        D - H = (L + H) - H := by
+          exact congrArg (fun x : ℂ => x - H) hD
+        _ = (L + H) + -H := by
+          exact sub_eq_add_neg (L + H) H
+        _ = L + (H + -H) := by
+          exact add_assoc L H (-H)
+        _ = L + 0 := by
+          exact congrArg (fun x : ℂ => L + x) (add_neg_cancel H)
+        _ = L := by
+          exact add_zero L
+    exact htarget
   exact Eq.subst
     (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
     hpointwise
@@ -376,10 +382,10 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIn
       atTop
       (𝓝 0) := by
   have hstandardI_event :
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
-          f F (h.height_schedule.height u) * Complex.I) =
-       ᶠ[atTop]
+      Filter.EventuallyEq atTop
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+            f F (h.height_schedule.height u) * Complex.I)
         (fun _u : ℝ => B * Complex.I) := by
     exact hstandard.mono
       (fun u hu =>
@@ -391,7 +397,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIn
             f F (h.height_schedule.height u) * Complex.I)
         atTop
         (𝓝 (B * Complex.I)) :=
-    hstandardI_event.tendsto_iff.2 tendsto_const_nhds
+    Tendsto.congr' hstandardI_event.symm tendsto_const_nhds
   have horientationI_raw :
       Tendsto
         (fun u : ℝ =>
