@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseLongBudget
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseLongWeylTarget
 
 /-!
 # Real-phase positive long branch
@@ -56,6 +57,81 @@ theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_tail_bu
   exact
     Complex.logarithmicPhaseRealPhase_long_packet_budget_of_tail_budgets
       t ht ht_nonneg ha hab hstationary hleft hfar
+
+/-- Positive long-branch real-phase estimate from the Weyl target, with
+reduced-increment monotonicity supplied by fixed integer branch strips and
+separation supplied by all-integer resonance-window avoidance. -/
+theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_integer_strip_resonanceWindow
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (_hab_strict : a < b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (_hlong_endpoint :
+      (((b + 1 : ℕ) : ℝ) / ‖t‖) <
+        (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (K : ℕ → ℤ)
+    (hstrip :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico a (b - h) →
+              Complex.realPhase_integerIncrement
+                  (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                    (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                    h)
+                  n -
+                  (2 * Real.pi * ((K h : ℤ) : ℝ)) ∈
+                Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+    (S : ℕ → ℤ → Finset ℕ)
+    (hS :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ k : ℤ,
+            ∀ m : ℕ,
+              m ∈ S h k ↔
+                m ∈ Finset.Ico a (b - h) ∧
+                  ‖Complex.realPhase_integerIncrement
+                      (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                        h)
+                      m -
+                    (2 * Real.pi * (k : ℝ))‖ <
+                    (‖t‖ *
+                      ((((b + 1 : ℕ) : ℝ) *
+                        (((b + 1 : ℕ) : ℝ)))⁻¹) *
+                      (h : ℝ)))
+    (havoid :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ k : ℤ,
+            ∀ n : ℕ,
+              n ∈ Finset.Ico a (b - h) →
+                n ∉ S h k)
+    (hweyl_target :
+      Real.secondDerivativeVdc_weylEnvelopeMajorant a b
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖)
+          (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
+            Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h) ≤
+        80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+          Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_nonneg_of_integer_strip_resonanceWindow
+      t ht ht_nonneg ha hab hlong_sqrt K hstrip S hS havoid hweyl_target
 
 /-- Positive long-branch real-phase estimate from the stationary budget and
 closed-subinterval endpoint budgets. -/
