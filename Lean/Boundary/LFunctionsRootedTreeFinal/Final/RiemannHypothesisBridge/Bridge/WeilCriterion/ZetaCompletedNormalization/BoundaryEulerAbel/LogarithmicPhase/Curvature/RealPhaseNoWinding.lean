@@ -377,6 +377,148 @@ theorem Complex.realPhase_reducedIntegerIncrementMonotoneOn_of_raw_principal
               hm_eq.symm
               hraw))
 
+/-- Integer scalar multiplication by the real period `2π` is the usual real
+integer multiple. -/
+theorem Real.zsmul_two_pi_eq_two_pi_mul_int
+    (k : ℤ) :
+    k • ((2 * Real.pi) : ℝ) = 2 * Real.pi * (k : ℝ) := by
+  calc
+    k • ((2 * Real.pi) : ℝ) = (k : ℝ) * (2 * Real.pi) :=
+      zsmul_eq_mul (2 * Real.pi) k
+    _ = 2 * Real.pi * (k : ℝ) :=
+      mul_comm (k : ℝ) (2 * Real.pi)
+
+/-- If a raw increment lies in an arbitrary `2π`-translate of the principal
+interval, reduction subtracts exactly that translate. -/
+theorem Complex.realPhase_reducedIntegerIncrement_eq_raw_sub_int_twoPi_of_mem_strip
+    (φ : ℝ → ℝ)
+    {n : ℕ}
+    {k : ℤ}
+    (hstrip :
+      Complex.realPhase_integerIncrement φ n -
+          (2 * Real.pi * (k : ℝ)) ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi))) :
+    Complex.realPhase_reducedIntegerIncrement φ n =
+      Complex.realPhase_integerIncrement φ n -
+        (2 * Real.pi * (k : ℝ)) := by
+  let θ : ℝ := Complex.realPhase_integerIncrement φ n
+  let p : ℝ := 2 * Real.pi
+  have hzsmul :
+      k • p = 2 * Real.pi * (k : ℝ) :=
+    Real.zsmul_two_pi_eq_two_pi_mul_int k
+  have hstrip_zsmul :
+      θ - k • p ∈ Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+    Eq.subst
+      (motive := fun r : ℝ =>
+        θ - r ∈ Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+      hzsmul.symm
+      hstrip
+  have hperiod :
+      toIocMod Real.two_pi_pos (-Real.pi) (θ - k • p) =
+        toIocMod Real.two_pi_pos (-Real.pi) θ :=
+    toIocMod_sub_zsmul Real.two_pi_pos (-Real.pi) θ k
+  have hself :
+      toIocMod Real.two_pi_pos (-Real.pi) (θ - k • p) =
+        θ - k • p :=
+    (toIocMod_eq_self Real.two_pi_pos).mpr hstrip_zsmul
+  have hred_zsmul :
+      Complex.realPhase_reducedIntegerIncrement φ n =
+        θ - k • p := by
+    unfold Complex.realPhase_reducedIntegerIncrement θ p
+    exact Eq.trans hperiod.symm hself
+  have htarget :
+      θ - k • p =
+        Complex.realPhase_integerIncrement φ n -
+          (2 * Real.pi * (k : ℝ)) :=
+    congrArg (fun r : ℝ => θ - r) hzsmul
+  exact Eq.trans hred_zsmul htarget
+
+/-- Raw monotonicity transfers to reduced monotonicity on any fixed
+integer translate of the principal branch. -/
+theorem Complex.realPhase_reducedIntegerIncrementMonotoneOn_of_raw_integer_strip
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {k : ℤ}
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hstrip :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          Complex.realPhase_integerIncrement φ n -
+              (2 * Real.pi * (k : ℝ)) ∈
+            Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi))) :
+    Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b := by
+  match hinc_mono with
+  | Or.inl hmono =>
+      exact Or.inl
+        (fun m hm n hn hmn =>
+          have hm_eq :
+              Complex.realPhase_reducedIntegerIncrement φ m =
+                Complex.realPhase_integerIncrement φ m -
+                  (2 * Real.pi * (k : ℝ)) :=
+            Complex.realPhase_reducedIntegerIncrement_eq_raw_sub_int_twoPi_of_mem_strip
+              φ (hstrip m hm)
+          have hn_eq :
+              Complex.realPhase_reducedIntegerIncrement φ n =
+                Complex.realPhase_integerIncrement φ n -
+                  (2 * Real.pi * (k : ℝ)) :=
+            Complex.realPhase_reducedIntegerIncrement_eq_raw_sub_int_twoPi_of_mem_strip
+              φ (hstrip n hn)
+          have hraw :
+              Complex.realPhase_integerIncrement φ m ≤
+                Complex.realPhase_integerIncrement φ n :=
+            hmono hm hn hmn
+          have hsub :
+              Complex.realPhase_integerIncrement φ m -
+                  (2 * Real.pi * (k : ℝ)) ≤
+                Complex.realPhase_integerIncrement φ n -
+                  (2 * Real.pi * (k : ℝ)) :=
+            sub_le_sub_right hraw (2 * Real.pi * (k : ℝ))
+          Eq.subst
+            (motive := fun left : ℝ =>
+              left ≤ Complex.realPhase_reducedIntegerIncrement φ n)
+            hm_eq.symm
+            (Eq.subst
+              (motive := fun right : ℝ =>
+                Complex.realPhase_integerIncrement φ m -
+                    (2 * Real.pi * (k : ℝ)) ≤ right)
+              hn_eq.symm
+              hsub))
+  | Or.inr hanti =>
+      exact Or.inr
+        (fun m hm n hn hmn =>
+          have hm_eq :
+              Complex.realPhase_reducedIntegerIncrement φ m =
+                Complex.realPhase_integerIncrement φ m -
+                  (2 * Real.pi * (k : ℝ)) :=
+            Complex.realPhase_reducedIntegerIncrement_eq_raw_sub_int_twoPi_of_mem_strip
+              φ (hstrip m hm)
+          have hn_eq :
+              Complex.realPhase_reducedIntegerIncrement φ n =
+                Complex.realPhase_integerIncrement φ n -
+                  (2 * Real.pi * (k : ℝ)) :=
+            Complex.realPhase_reducedIntegerIncrement_eq_raw_sub_int_twoPi_of_mem_strip
+              φ (hstrip n hn)
+          have hraw :
+              Complex.realPhase_integerIncrement φ n ≤
+                Complex.realPhase_integerIncrement φ m :=
+            hanti hm hn hmn
+          have hsub :
+              Complex.realPhase_integerIncrement φ n -
+                  (2 * Real.pi * (k : ℝ)) ≤
+                Complex.realPhase_integerIncrement φ m -
+                  (2 * Real.pi * (k : ℝ)) :=
+            sub_le_sub_right hraw (2 * Real.pi * (k : ℝ))
+          Eq.subst
+            (motive := fun left : ℝ =>
+              left ≤ Complex.realPhase_reducedIntegerIncrement φ m)
+            hn_eq.symm
+            (Eq.subst
+              (motive := fun right : ℝ =>
+                Complex.realPhase_integerIncrement φ n -
+                    (2 * Real.pi * (k : ℝ)) ≤ right)
+              hm_eq.symm
+              hsub))
+
 end
 
 end LFunctions
