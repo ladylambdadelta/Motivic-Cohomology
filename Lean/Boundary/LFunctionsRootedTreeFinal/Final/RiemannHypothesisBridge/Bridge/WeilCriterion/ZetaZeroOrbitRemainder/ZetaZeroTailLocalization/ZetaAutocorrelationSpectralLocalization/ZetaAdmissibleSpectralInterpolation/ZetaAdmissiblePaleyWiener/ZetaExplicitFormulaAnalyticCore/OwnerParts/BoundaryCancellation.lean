@@ -103,10 +103,8 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_hasSum_zero
     fun ι : ZetaPrimePowerIndex =>
       zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f
   have hu : Summable u := by
-    unfold u
     exact horiented
   have hv : Summable v := by
-    unfold v
     exact horiented.star.congr
       (fun ι : ZetaPrimePowerIndex =>
         zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_star_eq_opposite
@@ -129,8 +127,6 @@ theorem zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_hasSum_zero
     have hcancel :=
       zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_boxSum_tendsto_zero_boundaryCancellation
         f hledger
-    unfold u
-    unfold v
     exact hcancel
   have htsum_zero :
       (∑' ι : ZetaPrimePowerIndex, (u ι + v ι)) = 0 :=
@@ -163,16 +159,12 @@ theorem zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate_ha
       zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f
   have hsum :
       HasSum (fun ι : ZetaPrimePowerIndex => u ι + v ι) 0 := by
-    unfold u
-    unfold v
     exact
       zetaCompletedPrimePowerAutocorrelation_oriented_add_opposite_hasSum_zero_boundaryCancellation
         f hledger horiented
   have hu : Summable u := by
-    unfold u
     exact horiented
   have hv : Summable v := by
-    unfold v
     exact horiented.star.congr
       (fun ι : ZetaPrimePowerIndex =>
         zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_star_eq_opposite
@@ -242,8 +234,6 @@ theorem zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate_ha
             (-(∑' ι : ZetaPrimePowerIndex, u ι))))
         hpoint
         hadded)
-  unfold v at hv_sum
-  unfold u at hv_sum
   exact hv_sum
 
 /-- The conjugated oriented-cross coordinate series sums to the negative completed boundary
@@ -346,8 +336,6 @@ theorem zetaCompletedPrimePowerAutocorrelationOrientedCrossBoxRealPart_tendsto_z
           zetaCompletedPrimePowerAutocorrelationOrientedCrossBoxSum N f)
         Filter.atTop
         (nhds z) := by
-    unfold zetaCompletedPrimePowerAutocorrelationOrientedCrossBoxSum
-    unfold z
     exact hsummable.hasSum.comp ZetaPrimePowerIndex.box_tendsto_atTop
   have hboxRe :
       Filter.Tendsto
@@ -357,7 +345,6 @@ theorem zetaCompletedPrimePowerAutocorrelationOrientedCrossBoxRealPart_tendsto_z
         (nhds (Complex.re z)) := by
     exact Complex.continuous_re.tendsto z |>.comp hbox
   have hre : Complex.re z = 0 := by
-    unfold z
     exact
       zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_tsum_re_eq_zero_boundaryCancellation
         f hledger horiented
@@ -396,7 +383,6 @@ theorem zetaCompletedPrimePowerAutocorrelationOrientedCrossBoxSum_tendsto_tsum
         (fun ι : ZetaPrimePowerIndex =>
           zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) :=
     horiented
-  unfold zetaCompletedPrimePowerAutocorrelationOrientedCrossBoxSum
   exact hsummable.hasSum.comp ZetaPrimePowerIndex.box_tendsto_atTop
 
 /-- The real parts of rectangular oriented-cross windows tend to zero. -/
@@ -423,7 +409,6 @@ theorem zetaCompletedPrimePowerAutocorrelationOrientedCrossBoxSum_re_tendsto_zer
           zetaCompletedPrimePowerAutocorrelationOrientedCrossBoxSum N f)
         Filter.atTop
         (nhds z) := by
-    unfold z
     exact zetaCompletedPrimePowerAutocorrelationOrientedCrossBoxSum_tendsto_tsum f horiented
   have hboxRe :
       Filter.Tendsto
