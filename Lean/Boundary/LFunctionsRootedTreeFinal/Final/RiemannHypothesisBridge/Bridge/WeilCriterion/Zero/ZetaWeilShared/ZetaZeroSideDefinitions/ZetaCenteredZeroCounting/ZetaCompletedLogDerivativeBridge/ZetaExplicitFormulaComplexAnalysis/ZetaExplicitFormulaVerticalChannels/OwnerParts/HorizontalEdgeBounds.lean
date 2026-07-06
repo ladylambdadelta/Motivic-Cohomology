@@ -876,7 +876,7 @@ theorem zetaCompletedExplicitFormulaCorrectionTopZeroPoleHorizontalIntegrand_nor
       ‖a * b‖ = ‖a‖ * ‖b‖ := by
         exact norm_mul a b
       _ ≤ 1 * ‖b‖ := by
-        exact mul_le_mul_right (norm_nonneg b) hinv
+        exact mul_le_mul_of_nonneg_right hinv (norm_nonneg b)
       _ = ‖b‖ := by
         exact one_mul ‖b‖
   have hstrip :
@@ -933,7 +933,7 @@ theorem zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegrand_
       ‖a * b‖ = ‖a‖ * ‖b‖ := by
         exact norm_mul a b
       _ ≤ 1 * ‖b‖ := by
-        exact mul_le_mul_right (norm_nonneg b) hinv
+        exact mul_le_mul_of_nonneg_right hinv (norm_nonneg b)
       _ = ‖b‖ := by
         exact one_mul ‖b‖
   have hstrip :
