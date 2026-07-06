@@ -273,7 +273,15 @@ theorem boundaryLineOnePointRealParam_finite_dirichlet_truncation_norm_le_harmon
     have hcast :
         (∑ n ∈ Finset.Icc (1 : ℕ) N, (((n : ℚ)⁻¹ : ℚ) : ℝ)) =
           (harmonic N : ℝ) := by
-      exact_mod_cast hrat
+      have hsum_cast :
+          (((∑ n ∈ Finset.Icc (1 : ℕ) N, ((n : ℚ)⁻¹ : ℚ)) : ℚ) : ℝ) =
+            ∑ n ∈ Finset.Icc (1 : ℕ) N, (((n : ℚ)⁻¹ : ℚ) : ℝ) := by
+        exact Rat.cast_sum (Finset.Icc (1 : ℕ) N) (fun n : ℕ => ((n : ℚ)⁻¹ : ℚ))
+      have hrat_cast :
+          (((∑ n ∈ Finset.Icc (1 : ℕ) N, ((n : ℚ)⁻¹ : ℚ)) : ℚ) : ℝ) =
+            (harmonic N : ℝ) :=
+        congrArg (fun q : ℚ => (q : ℝ)) hrat
+      exact Eq.trans hsum_cast.symm hrat_cast
     calc
       (∑ n ∈ Finset.Icc (1 : ℕ) N, (1 / (n : ℝ))) =
           ∑ n ∈ Finset.Icc (1 : ℕ) N, (((n : ℚ)⁻¹ : ℚ) : ℝ) := by
@@ -331,14 +339,14 @@ theorem one_le_log_two_add_norm_of_one_le_norm
         (motive := fun x : ℝ => (27182818286 : ℝ) ≤ x)
         hprod
         hcast
-    have hd9_le_three_q :
-        @OfScientific.ofScientific ℚ Rat.instOfScientific 27182818286 true 10 ≤ 3 := by
-      native_decide
     have hd9_le_three : (2.7182818286 : ℝ) ≤ 3 := by
-      change
-        ((@OfScientific.ofScientific ℚ Rat.instOfScientific 27182818286 true 10 : ℚ) : ℝ) ≤
-          3
-      exact_mod_cast hd9_le_three_q
+      have hq :
+          (OfScientific.ofScientific 27182818286 true 10 : ℚ) ≤ 3 := by
+        native_decide
+      exact Eq.subst
+        (motive := fun x : ℝ => x ≤ 3)
+        (Rat.cast_ofScientific (K := ℝ) 27182818286 true 10)
+        (Rat.cast_le.mpr hq)
     exact le_trans hexp_le_d9 hd9_le_three
   have hexp_one_le : Real.exp (1 : ℝ) ≤ 2 + ‖t‖ :=
     le_trans hexp_one_le_three hthree_le
@@ -432,8 +440,8 @@ theorem boundaryLineOnePointRealParam_dirichletTerm_eq_inv_mul_oscillation
     exact Nat.cast_ne_zero.mpr (Nat.ne_of_gt hn)
   have hpoint :
       boundaryLineOnePointRealParam t = 1 + (t : ℂ) * Complex.I := by
-    apply Complex.ext
-    · have hre_rhs : (1 + (t : ℂ) * Complex.I).re = 1 := by
+    have hre : (boundaryLineOnePointRealParam t).re = (1 + (t : ℂ) * Complex.I).re := by
+      have hre_rhs : (1 + (t : ℂ) * Complex.I).re = 1 := by
         calc
           (1 + (t : ℂ) * Complex.I).re =
               (1 : ℂ).re + ((t : ℂ) * Complex.I).re := by
@@ -464,10 +472,11 @@ theorem boundaryLineOnePointRealParam_dirichletTerm_eq_inv_mul_oscillation
               _ = 1 + 0 := by
                     exact congrArg (fun x : ℝ => 1 + x) (sub_self 0)
               _ = 1 := add_zero 1
-      · calc
-          (boundaryLineOnePointRealParam t).re = 1 := boundaryLineOnePointRealParam_re t
-          _ = (1 + (t : ℂ) * Complex.I).re := hre_rhs.symm
-    · have him_rhs : (1 + (t : ℂ) * Complex.I).im = t := by
+      calc
+        (boundaryLineOnePointRealParam t).re = 1 := boundaryLineOnePointRealParam_re t
+        _ = (1 + (t : ℂ) * Complex.I).re := hre_rhs.symm
+    have him : (boundaryLineOnePointRealParam t).im = (1 + (t : ℂ) * Complex.I).im := by
+      have him_rhs : (1 + (t : ℂ) * Complex.I).im = t := by
         calc
           (1 + (t : ℂ) * Complex.I).im =
               (1 : ℂ).im + ((t : ℂ) * Complex.I).im := by
@@ -498,9 +507,10 @@ theorem boundaryLineOnePointRealParam_dirichletTerm_eq_inv_mul_oscillation
               _ = 0 + t := by
                     exact congrArg (fun x : ℝ => 0 + x) (add_zero t)
               _ = t := zero_add t
-      · calc
-          (boundaryLineOnePointRealParam t).im = t := boundaryLineOnePointRealParam_im t
-          _ = (1 + (t : ℂ) * Complex.I).im := him_rhs.symm
+      calc
+        (boundaryLineOnePointRealParam t).im = t := boundaryLineOnePointRealParam_im t
+        _ = (1 + (t : ℂ) * Complex.I).im := him_rhs.symm
+    exact Complex.ext hre him
   have hpow_add :
       (n : ℂ) ^ boundaryLineOnePointRealParam t =
         (n : ℂ) ^ (1 : ℂ) * (n : ℂ) ^ ((t : ℂ) * Complex.I) := by
@@ -624,9 +634,16 @@ theorem boundaryLineOnePointRealParam_cutoff_inv_le_one
   have hcutoff_pos : 0 < ⌊2 + ‖t‖⌋₊ :=
     boundaryLineOnePointRealParam_cutoff_pos t
   have hone_le_cutoff_nat : 1 ≤ ⌊2 + ‖t‖⌋₊ :=
-    Nat.succ_le_of_lt hcutoff_pos
+    Nat.succ_le_iff.mpr hcutoff_pos
   have hone_le_cutoff_real : (1 : ℝ) ≤ (⌊2 + ‖t‖⌋₊ : ℝ) := by
-    exact_mod_cast hone_le_cutoff_nat
+    have hcast :
+        ((1 : ℕ) : ℝ) ≤ (⌊2 + ‖t‖⌋₊ : ℝ) :=
+      Nat.cast_le.mpr hone_le_cutoff_nat
+    exact
+      Eq.subst
+        (motive := fun r : ℝ => r ≤ (⌊2 + ‖t‖⌋₊ : ℝ))
+        Nat.cast_one
+        hcast
   calc
     (1 : ℝ) / (⌊2 + ‖t‖⌋₊ : ℝ) =
         ((⌊2 + ‖t‖⌋₊ : ℝ)⁻¹ : ℝ) := by
