@@ -18,6 +18,7 @@ open Filter
 open LSeries ArithmeticFunction
 open MeasureTheory
 open scoped ArithmeticFunction
+open scoped LSeries.notation
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
@@ -40,7 +41,7 @@ theorem explicitFormulaPrimeLogDerivative_rightPath_eq_vonMangoldt_LSeries
     (F : ExplicitFormulaContourFamily) (T t : ℝ) :
     explicitFormulaPrimeLogDerivative
         (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) =
-      L ↗Λ (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) := by
+      (L ↗Λ) (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) := by
   have hre :
       (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t).re = F.c := by
     exact Eq.trans
@@ -66,7 +67,7 @@ theorem zetaCompletedExplicitFormulaPrimeRightIntegrand_eq_vonMangoldt_LSeries
         (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) *
       zetaCompletedExplicitFormulaPhi f
         (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1 / 2) =
-    L ↗Λ (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) *
+    (L ↗Λ) (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) *
       zetaCompletedExplicitFormulaPhi f
         (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1 / 2) := by
   exact congrArg
@@ -86,7 +87,7 @@ theorem zetaCompletedExplicitFormulaPrimeRightIntegral_eq_vonMangoldt_LSeries
         zetaCompletedExplicitFormulaPhi f
           (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1 / 2)) =
     ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
-      L ↗Λ (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) *
+      (L ↗Λ) (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) *
         zetaCompletedExplicitFormulaPhi f
           (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1 / 2) := by
   exact MeasureTheory.setIntegral_congr_fun
@@ -101,7 +102,7 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_eq_rightVonMangoldtInte
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
     zetaCompletedExplicitFormulaPrimeVerticalChannel f F T =
       (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
-        L ↗Λ (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) *
+        (L ↗Λ) (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) *
           zetaCompletedExplicitFormulaPhi f
             (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1 / 2)) -
         ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
@@ -126,7 +127,7 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_eq_rightVonMangoldtInte
       rfl
     _ =
         (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
-          L ↗Λ (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) *
+          (L ↗Λ) (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) *
             zetaCompletedExplicitFormulaPhi f
               (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1 / 2)) -
           leftIntegral := by
@@ -544,8 +545,10 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightVerticalIntegrableOn_ownerCo
             explicitFormulaArchimedeanLogDerivative
               (zetaCompletedExplicitFormulaRightPath (F.rectangle T) x))
           t :=
-      (explicitFormulaArchimedeanLogDerivative_continuousAt_of_regular
-        s hs0 hs1 hΛ hΓ).comp t hpath
+      ContinuousAt.comp'
+        (explicitFormulaArchimedeanLogDerivative_continuousAt_of_regular
+          s hs0 hs1 hΛ hΓ)
+        hpath
     have hphi :
         ContinuousAt
           (fun x : ℝ =>
@@ -608,8 +611,10 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftVerticalIntegrableOn_ownerCom
             explicitFormulaArchimedeanLogDerivative
               (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) x))
           t :=
-      (explicitFormulaArchimedeanLogDerivative_continuousAt_of_regular
-        s hs0 hs1 hΛ hΓ).comp t hpath
+      ContinuousAt.comp'
+        (explicitFormulaArchimedeanLogDerivative_continuousAt_of_regular
+          s hs0 hs1 hΛ hΓ)
+        hpath
     have hphi :
         ContinuousAt
           (fun x : ℝ =>
