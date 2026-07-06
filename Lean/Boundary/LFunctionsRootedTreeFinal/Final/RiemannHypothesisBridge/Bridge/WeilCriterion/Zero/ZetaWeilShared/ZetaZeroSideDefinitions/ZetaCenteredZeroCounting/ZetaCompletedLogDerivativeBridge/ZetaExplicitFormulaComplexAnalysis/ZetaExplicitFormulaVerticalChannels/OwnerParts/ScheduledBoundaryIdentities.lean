@@ -320,6 +320,18 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eq_le
         exact congrArg Neg.neg hI_mul_I
       _ = (1 : ℂ) := by
         exact neg_neg (1 : ℂ)
+  have hneg_I_mul_I : -(Complex.I * Complex.I) = (1 : ℂ) := by
+    calc
+      -(Complex.I * Complex.I) = -(-(1 : ℂ)) := by
+        exact congrArg Neg.neg hI_mul_I
+      _ = (1 : ℂ) := by
+        exact neg_neg (1 : ℂ)
+  have hI_mul_negI : Complex.I * (-Complex.I) = (1 : ℂ) := by
+    calc
+      Complex.I * (-Complex.I) = -(Complex.I * Complex.I) := by
+        exact mul_neg Complex.I Complex.I
+      _ = (1 : ℂ) := by
+        exact hneg_I_mul_I
   have hC_mul_negI :
       C * (-Complex.I) = R - L + H * (-Complex.I) := by
     calc
@@ -359,7 +371,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eq_le
             H * (-Complex.I) := by
         exact congrArg
           (fun x : ℂ => (R * x + (-(L * Complex.I)) * (-Complex.I)) + H * (-Complex.I))
-          hnegI_mul_I
+          hneg_I_mul_I
       _ =
           (R +
               (-(L * Complex.I)) * (-Complex.I)) +
@@ -385,7 +397,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eq_le
           (R + -(L * (1 : ℂ))) + H * (-Complex.I) := by
         exact congrArg
           (fun x : ℂ => (R + -(L * x)) + H * (-Complex.I))
-          hnegI_mul_I
+          hI_mul_negI
       _ = (R + -L) + H * (-Complex.I) := by
         exact congrArg
           (fun x : ℂ => (R + -x) + H * (-Complex.I))
@@ -412,7 +424,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eq_le
           exact add_zero (R - L)
     calc
       R = L + (R - L) := by
-        exact (add_sub_cancel'_right L R).symm
+        exact (add_sub_cancel L R).symm
       _ = L + (C * (-Complex.I) - H * (-Complex.I)) := by
         exact congrArg (fun x : ℂ => L + x) hstep.symm
       _ = L + C * (-Complex.I) - H * (-Complex.I) := by
