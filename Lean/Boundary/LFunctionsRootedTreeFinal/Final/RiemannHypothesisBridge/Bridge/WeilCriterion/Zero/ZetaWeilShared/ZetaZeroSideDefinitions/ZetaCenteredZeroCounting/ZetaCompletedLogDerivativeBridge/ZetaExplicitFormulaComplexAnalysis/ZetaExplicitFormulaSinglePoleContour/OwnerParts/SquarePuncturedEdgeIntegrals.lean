@@ -24,7 +24,7 @@ namespace ZetaAdmissibleFunction
 /-- Outer bottom edge of the one-pole rectangle in standard orientation. -/
 noncomputable def zetaExplicitFormulaOnePoleOuterBottomEdge
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)
+  ∫ x : ℝ in (1 - F.c)..F.c, g (x + Complex.ofReal (-T) * Complex.I)
 
 /-- Outer top edge of the one-pole rectangle, before the standard boundary sign. -/
 noncomputable def zetaExplicitFormulaOnePoleOuterTopEdge
@@ -39,12 +39,12 @@ noncomputable def zetaExplicitFormulaOnePoleOuterRightEdge
 /-- Outer left vertical edge of the one-pole rectangle with tangent factor. -/
 noncomputable def zetaExplicitFormulaOnePoleOuterLeftEdge
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  Complex.I • (∫ y : ℝ in -T..T, g ((1 - F.c) + y * Complex.I))
+  Complex.I • (∫ y : ℝ in -T..T, g (Complex.ofReal (1 - F.c) + y * Complex.I))
 
 /-- Inner square bottom edge around the pole `1`. -/
 noncomputable def zetaExplicitFormulaOnePoleInnerBottomEdge
     (g : ℂ → ℂ) (R : ℝ) : ℂ :=
-  ∫ x : ℝ in (1 - R)..(1 + R), g (x + (-R) * Complex.I)
+  ∫ x : ℝ in (1 - R)..(1 + R), g (x + Complex.ofReal (-R) * Complex.I)
 
 /-- Inner square top edge around the pole `1`, before the standard boundary sign. -/
 noncomputable def zetaExplicitFormulaOnePoleInnerTopEdge
@@ -54,22 +54,22 @@ noncomputable def zetaExplicitFormulaOnePoleInnerTopEdge
 /-- Inner square right vertical edge around the pole `1` with tangent factor. -/
 noncomputable def zetaExplicitFormulaOnePoleInnerRightEdge
     (g : ℂ → ℂ) (R : ℝ) : ℂ :=
-  Complex.I • (∫ y : ℝ in -R..R, g ((1 + R) + y * Complex.I))
+  Complex.I • (∫ y : ℝ in -R..R, g (Complex.ofReal (1 + R) + y * Complex.I))
 
 /-- Inner square left vertical edge around the pole `1` with tangent factor. -/
 noncomputable def zetaExplicitFormulaOnePoleInnerLeftEdge
     (g : ℂ → ℂ) (R : ℝ) : ℂ :=
-  Complex.I • (∫ y : ℝ in -R..R, g ((1 - R) + y * Complex.I))
+  Complex.I • (∫ y : ℝ in -R..R, g (Complex.ofReal (1 - R) + y * Complex.I))
 
 /-- Bottom exposed left horizontal segment at the lower side of the puncture. -/
 noncomputable def zetaExplicitFormulaOnePoleBottomLeftSegment
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (R : ℝ) : ℂ :=
-  ∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (-R) * Complex.I)
+  ∫ x : ℝ in (1 - F.c)..(1 - R), g (x + Complex.ofReal (-R) * Complex.I)
 
 /-- Bottom exposed right horizontal segment at the lower side of the puncture. -/
 noncomputable def zetaExplicitFormulaOnePoleBottomRightSegment
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (R : ℝ) : ℂ :=
-  ∫ x : ℝ in (1 + R)..F.c, g (x + (-R) * Complex.I)
+  ∫ x : ℝ in (1 + R)..F.c, g (x + Complex.ofReal (-R) * Complex.I)
 
 /-- Top exposed left horizontal segment at the upper side of the puncture. -/
 noncomputable def zetaExplicitFormulaOnePoleTopLeftSegment
@@ -99,17 +99,174 @@ noncomputable def zetaExplicitFormulaOnePoleRightTopSegment
 /-- Left outer vertical bottom segment with tangent factor. -/
 noncomputable def zetaExplicitFormulaOnePoleLeftBottomSegment
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ) : ℂ :=
-  Complex.I • (∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I))
+  Complex.I • (∫ y : ℝ in -T..(-R), g (Complex.ofReal (1 - F.c) + y * Complex.I))
 
 /-- Left outer vertical middle segment with tangent factor. -/
 noncomputable def zetaExplicitFormulaOnePoleLeftMiddleSegment
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (R : ℝ) : ℂ :=
-  Complex.I • (∫ y : ℝ in -R..R, g ((1 - F.c) + y * Complex.I))
+  Complex.I • (∫ y : ℝ in -R..R, g (Complex.ofReal (1 - F.c) + y * Complex.I))
 
 /-- Left outer vertical top segment with tangent factor. -/
 noncomputable def zetaExplicitFormulaOnePoleLeftTopSegment
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ) : ℂ :=
-  Complex.I • (∫ y : ℝ in R..T, g ((1 - F.c) + y * Complex.I))
+  Complex.I • (∫ y : ℝ in R..T, g (Complex.ofReal (1 - F.c) + y * Complex.I))
+
+/-- The bottom puncture-height edge split, stated in the named edge vocabulary. -/
+theorem zetaExplicitFormulaOnePole_bottomPunctureHorizontal_full_eq_namedSegments
+    (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (R : ℝ)
+    (hleft :
+      IntervalIntegrable
+        (fun x : ℝ => g (x + (↑(-R) : ℂ) * Complex.I))
+        volume (1 - F.c) (1 - R))
+    (hinner :
+      IntervalIntegrable
+        (fun x : ℝ => g (x + (↑(-R) : ℂ) * Complex.I))
+        volume (1 - R) (1 + R))
+    (hright :
+      IntervalIntegrable
+        (fun x : ℝ => g (x + (↑(-R) : ℂ) * Complex.I))
+        volume (1 + R) F.c) :
+    (∫ x : ℝ in (1 - F.c)..F.c, g (x + (↑(-R) : ℂ) * Complex.I)) =
+      (zetaExplicitFormulaOnePoleBottomLeftSegment g F R +
+        zetaExplicitFormulaOnePoleInnerBottomEdge g R) +
+          zetaExplicitFormulaOnePoleBottomRightSegment g F R := by
+  unfold zetaExplicitFormulaOnePoleBottomLeftSegment
+  unfold zetaExplicitFormulaOnePoleInnerBottomEdge
+  unfold zetaExplicitFormulaOnePoleBottomRightSegment
+  exact
+    zetaExplicitFormulaOnePole_bottomPunctureHorizontal_full_eq_segments
+      g F R hleft hinner hright
+
+/-- The top puncture-height edge split, stated in the named edge vocabulary. -/
+theorem zetaExplicitFormulaOnePole_topPunctureHorizontal_full_eq_namedSegments
+    (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (R : ℝ)
+    (hleft :
+      IntervalIntegrable
+        (fun x : ℝ => g (x + R * Complex.I))
+        volume (1 - F.c) (1 - R))
+    (hinner :
+      IntervalIntegrable
+        (fun x : ℝ => g (x + R * Complex.I))
+        volume (1 - R) (1 + R))
+    (hright :
+      IntervalIntegrable
+        (fun x : ℝ => g (x + R * Complex.I))
+        volume (1 + R) F.c) :
+    (∫ x : ℝ in (1 - F.c)..F.c, g (x + R * Complex.I)) =
+      (zetaExplicitFormulaOnePoleTopLeftSegment g F R +
+        zetaExplicitFormulaOnePoleInnerTopEdge g R) +
+          zetaExplicitFormulaOnePoleTopRightSegment g F R := by
+  unfold zetaExplicitFormulaOnePoleTopLeftSegment
+  unfold zetaExplicitFormulaOnePoleInnerTopEdge
+  unfold zetaExplicitFormulaOnePoleTopRightSegment
+  exact
+    zetaExplicitFormulaOnePole_topPunctureHorizontal_full_eq_segments
+      g F R hleft hinner hright
+
+/-- Scalar distribution turns the right vertical split into named tangent
+segments. -/
+theorem zetaExplicitFormulaOnePole_rightOuterVertical_full_eq_namedSegments
+    (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ)
+    (hbottom :
+      IntervalIntegrable
+        (fun y : ℝ => g (F.c + y * Complex.I)) volume (-T) (-R))
+    (hmiddle :
+      IntervalIntegrable
+        (fun y : ℝ => g (F.c + y * Complex.I)) volume (-R) R)
+    (htop :
+      IntervalIntegrable
+        (fun y : ℝ => g (F.c + y * Complex.I)) volume R T) :
+    zetaExplicitFormulaOnePoleOuterRightEdge g F T =
+      (zetaExplicitFormulaOnePoleRightBottomSegment g F T R +
+        zetaExplicitFormulaOnePoleRightMiddleSegment g F R) +
+          zetaExplicitFormulaOnePoleRightTopSegment g F T R := by
+  unfold zetaExplicitFormulaOnePoleOuterRightEdge
+  unfold zetaExplicitFormulaOnePoleRightBottomSegment
+  unfold zetaExplicitFormulaOnePoleRightMiddleSegment
+  unfold zetaExplicitFormulaOnePoleRightTopSegment
+  have hsplit :
+      Complex.I • (∫ y : ℝ in -T..T, g (F.c + y * Complex.I)) =
+        Complex.I •
+          (((∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) +
+            (∫ y : ℝ in -R..R, g (F.c + y * Complex.I))) +
+              (∫ y : ℝ in R..T, g (F.c + y * Complex.I))) :=
+    zetaExplicitFormulaOnePole_rightOuterVertical_full_eq_segments
+      g F T R hbottom hmiddle htop
+  have hdistribute :
+      Complex.I •
+          (((∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) +
+            (∫ y : ℝ in -R..R, g (F.c + y * Complex.I))) +
+              (∫ y : ℝ in R..T, g (F.c + y * Complex.I))) =
+        (Complex.I • (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) +
+          Complex.I • (∫ y : ℝ in -R..R, g (F.c + y * Complex.I))) +
+            Complex.I • (∫ y : ℝ in R..T, g (F.c + y * Complex.I)) := by
+    exact Eq.trans
+      (smul_add Complex.I
+        ((∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) +
+          (∫ y : ℝ in -R..R, g (F.c + y * Complex.I)))
+        (∫ y : ℝ in R..T, g (F.c + y * Complex.I)))
+      (congrArg
+        (fun z : ℂ =>
+          z + Complex.I • (∫ y : ℝ in R..T, g (F.c + y * Complex.I)))
+        (smul_add Complex.I
+          (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I))
+          (∫ y : ℝ in -R..R, g (F.c + y * Complex.I))))
+  exact Eq.trans hsplit hdistribute
+
+/-- Scalar distribution turns the left vertical split into named tangent
+segments. -/
+theorem zetaExplicitFormulaOnePole_leftOuterVertical_full_eq_namedSegments
+    (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ)
+    (hbottom :
+      IntervalIntegrable
+        (fun y : ℝ => g ((↑(1 - F.c) : ℂ) + y * Complex.I)) volume (-T) (-R))
+    (hmiddle :
+      IntervalIntegrable
+        (fun y : ℝ => g ((↑(1 - F.c) : ℂ) + y * Complex.I)) volume (-R) R)
+    (htop :
+      IntervalIntegrable
+        (fun y : ℝ => g ((↑(1 - F.c) : ℂ) + y * Complex.I)) volume R T) :
+    zetaExplicitFormulaOnePoleOuterLeftEdge g F T =
+      (zetaExplicitFormulaOnePoleLeftBottomSegment g F T R +
+        zetaExplicitFormulaOnePoleLeftMiddleSegment g F R) +
+          zetaExplicitFormulaOnePoleLeftTopSegment g F T R := by
+  unfold zetaExplicitFormulaOnePoleOuterLeftEdge
+  unfold zetaExplicitFormulaOnePoleLeftBottomSegment
+  unfold zetaExplicitFormulaOnePoleLeftMiddleSegment
+  unfold zetaExplicitFormulaOnePoleLeftTopSegment
+  have hsplit :
+      Complex.I •
+          (∫ y : ℝ in -T..T, g ((↑(1 - F.c) : ℂ) + y * Complex.I)) =
+        Complex.I •
+          (((∫ y : ℝ in -T..(-R), g ((↑(1 - F.c) : ℂ) + y * Complex.I)) +
+            (∫ y : ℝ in -R..R, g ((↑(1 - F.c) : ℂ) + y * Complex.I))) +
+              (∫ y : ℝ in R..T, g ((↑(1 - F.c) : ℂ) + y * Complex.I))) :=
+    zetaExplicitFormulaOnePole_leftOuterVertical_full_eq_segments
+      g F T R hbottom hmiddle htop
+  have hdistribute :
+      Complex.I •
+          (((∫ y : ℝ in -T..(-R), g ((↑(1 - F.c) : ℂ) + y * Complex.I)) +
+            (∫ y : ℝ in -R..R, g ((↑(1 - F.c) : ℂ) + y * Complex.I))) +
+              (∫ y : ℝ in R..T, g ((↑(1 - F.c) : ℂ) + y * Complex.I))) =
+        (Complex.I •
+            (∫ y : ℝ in -T..(-R), g ((↑(1 - F.c) : ℂ) + y * Complex.I)) +
+          Complex.I •
+            (∫ y : ℝ in -R..R, g ((↑(1 - F.c) : ℂ) + y * Complex.I))) +
+            Complex.I •
+              (∫ y : ℝ in R..T, g ((↑(1 - F.c) : ℂ) + y * Complex.I)) := by
+    exact Eq.trans
+      (smul_add Complex.I
+        ((∫ y : ℝ in -T..(-R), g ((↑(1 - F.c) : ℂ) + y * Complex.I)) +
+          (∫ y : ℝ in -R..R, g ((↑(1 - F.c) : ℂ) + y * Complex.I)))
+        (∫ y : ℝ in R..T, g ((↑(1 - F.c) : ℂ) + y * Complex.I)))
+      (congrArg
+        (fun z : ℂ =>
+          z + Complex.I •
+            (∫ y : ℝ in R..T, g ((↑(1 - F.c) : ℂ) + y * Complex.I)))
+        (smul_add Complex.I
+          (∫ y : ℝ in -T..(-R), g ((↑(1 - F.c) : ℂ) + y * Complex.I))
+          (∫ y : ℝ in -R..R, g ((↑(1 - F.c) : ℂ) + y * Complex.I))))
+  exact Eq.trans hsplit hdistribute
 
 /-- The outer standard boundary in named edge-integral form. -/
 theorem zetaExplicitFormulaOnePoleOuterStandardBoundaryCoordinateIntegral_eq_namedEdges
@@ -119,7 +276,24 @@ theorem zetaExplicitFormulaOnePoleOuterStandardBoundaryCoordinateIntegral_eq_nam
         zetaExplicitFormulaOnePoleOuterTopEdge g F T +
           (zetaExplicitFormulaOnePoleOuterRightEdge g F T -
             zetaExplicitFormulaOnePoleOuterLeftEdge g F T) := by
-  rfl
+  calc
+    zetaExplicitFormulaOnePoleOuterStandardBoundaryCoordinateIntegral g F T =
+        zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+          g (1 - F.c) F.c (-T) T := by
+      exact zetaExplicitFormulaOnePoleOuterStandardBoundaryCoordinateIntegral_eq
+        g F T
+    _ =
+        zetaExplicitFormulaOnePoleOuterBottomEdge g F T -
+          zetaExplicitFormulaOnePoleOuterTopEdge g F T +
+            (zetaExplicitFormulaOnePoleOuterRightEdge g F T -
+              zetaExplicitFormulaOnePoleOuterLeftEdge g F T) := by
+      unfold zetaExplicitFormulaOnePoleOuterBottomEdge
+      unfold zetaExplicitFormulaOnePoleOuterTopEdge
+      unfold zetaExplicitFormulaOnePoleOuterRightEdge
+      unfold zetaExplicitFormulaOnePoleOuterLeftEdge
+      exact
+        zetaExplicitFormulaOnePole_standardRectangleBoundaryCoordinateIntegral_eq_four_edges
+          g (1 - F.c) F.c (-T) T
 
 /-- The inner square boundary in named edge-integral form. -/
 theorem zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral_eq_namedEdges
@@ -129,7 +303,23 @@ theorem zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral_eq_namedEdges
         zetaExplicitFormulaOnePoleInnerTopEdge g R +
           (zetaExplicitFormulaOnePoleInnerRightEdge g R -
             zetaExplicitFormulaOnePoleInnerLeftEdge g R) := by
-  rfl
+  calc
+    zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral g R =
+        zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+          g (1 - R) (1 + R) (-R) R := by
+      exact zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral_eq g R
+    _ =
+        zetaExplicitFormulaOnePoleInnerBottomEdge g R -
+          zetaExplicitFormulaOnePoleInnerTopEdge g R +
+            (zetaExplicitFormulaOnePoleInnerRightEdge g R -
+              zetaExplicitFormulaOnePoleInnerLeftEdge g R) := by
+      unfold zetaExplicitFormulaOnePoleInnerBottomEdge
+      unfold zetaExplicitFormulaOnePoleInnerTopEdge
+      unfold zetaExplicitFormulaOnePoleInnerRightEdge
+      unfold zetaExplicitFormulaOnePoleInnerLeftEdge
+      exact
+        zetaExplicitFormulaOnePole_standardRectangleBoundaryCoordinateIntegral_eq_four_edges
+          g (1 - R) (1 + R) (-R) R
 
 /-- Named exposed boundary normal form for the square-punctured rectangle. -/
 noncomputable def zetaExplicitFormulaOnePoleNamedSquareExposedBoundary
@@ -196,7 +386,54 @@ theorem zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral_eq_na
           zetaExplicitFormulaOnePoleInnerTopEdge g R +
             (zetaExplicitFormulaOnePoleInnerRightEdge g R -
               zetaExplicitFormulaOnePoleInnerLeftEdge g R)) := by
-  rfl
+  have houter :
+      zetaExplicitFormulaOnePoleOuterStandardBoundaryCoordinateIntegral g F T =
+        zetaExplicitFormulaOnePoleOuterBottomEdge g F T -
+          zetaExplicitFormulaOnePoleOuterTopEdge g F T +
+            (zetaExplicitFormulaOnePoleOuterRightEdge g F T -
+              zetaExplicitFormulaOnePoleOuterLeftEdge g F T) :=
+    zetaExplicitFormulaOnePoleOuterStandardBoundaryCoordinateIntegral_eq_namedEdges
+      g F T
+  have hinner :
+      zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral g R =
+        zetaExplicitFormulaOnePoleInnerBottomEdge g R -
+          zetaExplicitFormulaOnePoleInnerTopEdge g R +
+            (zetaExplicitFormulaOnePoleInnerRightEdge g R -
+              zetaExplicitFormulaOnePoleInnerLeftEdge g R) :=
+    zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral_eq_namedEdges
+      g R
+  calc
+    zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral g F T R =
+        zetaExplicitFormulaOnePoleOuterStandardBoundaryCoordinateIntegral g F T -
+          zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral g R := by
+      exact zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral_eq
+        g F T R
+    _ =
+        (zetaExplicitFormulaOnePoleOuterBottomEdge g F T -
+            zetaExplicitFormulaOnePoleOuterTopEdge g F T +
+              (zetaExplicitFormulaOnePoleOuterRightEdge g F T -
+                zetaExplicitFormulaOnePoleOuterLeftEdge g F T)) -
+          zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral g R := by
+      exact congrArg
+        (fun z : ℂ =>
+          z - zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral g R)
+        houter
+    _ =
+        (zetaExplicitFormulaOnePoleOuterBottomEdge g F T -
+            zetaExplicitFormulaOnePoleOuterTopEdge g F T +
+              (zetaExplicitFormulaOnePoleOuterRightEdge g F T -
+                zetaExplicitFormulaOnePoleOuterLeftEdge g F T)) -
+          (zetaExplicitFormulaOnePoleInnerBottomEdge g R -
+            zetaExplicitFormulaOnePoleInnerTopEdge g R +
+              (zetaExplicitFormulaOnePoleInnerRightEdge g R -
+                zetaExplicitFormulaOnePoleInnerLeftEdge g R)) := by
+      exact congrArg
+        (fun z : ℂ =>
+          (zetaExplicitFormulaOnePoleOuterBottomEdge g F T -
+              zetaExplicitFormulaOnePoleOuterTopEdge g F T +
+                (zetaExplicitFormulaOnePoleOuterRightEdge g F T -
+                  zetaExplicitFormulaOnePoleOuterLeftEdge g F T)) - z)
+        hinner
 
 /-- The square-punctured boundary in named exposed-edge form. -/
 theorem zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral_eq_namedExposedEdges
@@ -213,9 +450,16 @@ theorem zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral_eq_na
   let innerLeft : ℂ := zetaExplicitFormulaOnePoleInnerLeftEdge g R
   have hboundary :
       zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral g F T R =
-        (outerBottom - outerTop + (outerRight - outerLeft)) -
-          (innerBottom - innerTop + (innerRight - innerLeft)) := by
-    rfl
+        (zetaExplicitFormulaOnePoleOuterBottomEdge g F T -
+            zetaExplicitFormulaOnePoleOuterTopEdge g F T +
+              (zetaExplicitFormulaOnePoleOuterRightEdge g F T -
+                zetaExplicitFormulaOnePoleOuterLeftEdge g F T)) -
+          (zetaExplicitFormulaOnePoleInnerBottomEdge g R -
+            zetaExplicitFormulaOnePoleInnerTopEdge g R +
+              (zetaExplicitFormulaOnePoleInnerRightEdge g R -
+                zetaExplicitFormulaOnePoleInnerLeftEdge g R)) := by
+    exact zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral_eq_namedEdges
+      g F T R
   have halgebra :
       (outerBottom - outerTop + (outerRight - outerLeft)) -
           (innerBottom - innerTop + (innerRight - innerLeft)) =
@@ -226,8 +470,18 @@ theorem zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral_eq_na
       innerBottom innerTop innerRight innerLeft
   calc
     zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral g F T R =
+        (zetaExplicitFormulaOnePoleOuterBottomEdge g F T -
+            zetaExplicitFormulaOnePoleOuterTopEdge g F T +
+              (zetaExplicitFormulaOnePoleOuterRightEdge g F T -
+                zetaExplicitFormulaOnePoleOuterLeftEdge g F T)) -
+          (zetaExplicitFormulaOnePoleInnerBottomEdge g R -
+            zetaExplicitFormulaOnePoleInnerTopEdge g R +
+              (zetaExplicitFormulaOnePoleInnerRightEdge g R -
+                zetaExplicitFormulaOnePoleInnerLeftEdge g R)) := hboundary
+    _ =
         (outerBottom - outerTop + (outerRight - outerLeft)) -
-          (innerBottom - innerTop + (innerRight - innerLeft)) := hboundary
+          (innerBottom - innerTop + (innerRight - innerLeft)) := by
+      exact Eq.refl _
     _ =
         (outerBottom + -innerBottom) - (outerTop + -innerTop) +
           ((outerRight + -innerRight) - (outerLeft + -innerLeft)) := halgebra
@@ -240,7 +494,7 @@ theorem zetaExplicitFormulaOnePoleSquarePuncturedRectangleBoundaryIntegral_eq_na
             -zetaExplicitFormulaOnePoleInnerRightEdge g R) -
           (zetaExplicitFormulaOnePoleOuterLeftEdge g F T +
             -zetaExplicitFormulaOnePoleInnerLeftEdge g R)) := by
-      rfl
+      exact Eq.refl _
 
 /-- Replacing the right and left outer vertical edges in the named exposed
 boundary by their three-segment forms gives the vertical-split normal form. -/
@@ -268,7 +522,7 @@ theorem zetaExplicitFormulaOnePoleNamedSquareExposedBoundary_eq_verticalSplit
               -zetaExplicitFormulaOnePoleInnerRightEdge g R) -
             (zetaExplicitFormulaOnePoleOuterLeftEdge g F T +
               -zetaExplicitFormulaOnePoleInnerLeftEdge g R)) := by
-      rfl
+      exact Eq.refl _
     _ =
         (zetaExplicitFormulaOnePoleOuterBottomEdge g F T +
             -zetaExplicitFormulaOnePoleInnerBottomEdge g R) -
@@ -316,14 +570,14 @@ theorem zetaExplicitFormulaOnePoleNamedSquareExposedBoundary_eq_verticalSplit
               (z + -zetaExplicitFormulaOnePoleInnerLeftEdge g R)))
         hleft
     _ = zetaExplicitFormulaOnePoleNamedVerticalSplitExposedBoundary g F T R := by
-      rfl
+      exact Eq.refl _
 
 /-- The four-cell boundary sum in named, unsplit full-edge form. -/
 theorem zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum_eq_namedGroupedEdges
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ) :
     zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum g F T R =
       (zetaExplicitFormulaOnePoleOuterBottomEdge g F T -
-          (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) +
+          (∫ x : ℝ in (1 - F.c)..F.c, g (x + (↑(-R) : ℂ) * Complex.I)) +
           zetaExplicitFormulaOnePoleRightBottomSegment g F T R -
             zetaExplicitFormulaOnePoleLeftBottomSegment g F T R) +
         ((∫ x : ℝ in (1 - F.c)..F.c, g (x + R * Complex.I)) -
@@ -338,6 +592,20 @@ theorem zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum_eq_named
               zetaExplicitFormulaOnePoleTopRightSegment g F R +
               zetaExplicitFormulaOnePoleRightMiddleSegment g F R -
                 zetaExplicitFormulaOnePoleInnerRightEdge g R) := by
+  unfold zetaExplicitFormulaOnePoleOuterBottomEdge
+  unfold zetaExplicitFormulaOnePoleOuterTopEdge
+  unfold zetaExplicitFormulaOnePoleBottomLeftSegment
+  unfold zetaExplicitFormulaOnePoleBottomRightSegment
+  unfold zetaExplicitFormulaOnePoleTopLeftSegment
+  unfold zetaExplicitFormulaOnePoleTopRightSegment
+  unfold zetaExplicitFormulaOnePoleRightBottomSegment
+  unfold zetaExplicitFormulaOnePoleRightMiddleSegment
+  unfold zetaExplicitFormulaOnePoleRightTopSegment
+  unfold zetaExplicitFormulaOnePoleLeftBottomSegment
+  unfold zetaExplicitFormulaOnePoleLeftMiddleSegment
+  unfold zetaExplicitFormulaOnePoleLeftTopSegment
+  unfold zetaExplicitFormulaOnePoleInnerRightEdge
+  unfold zetaExplicitFormulaOnePoleInnerLeftEdge
   exact zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum_eq_groupedEdges
     g F T R
 
@@ -346,7 +614,7 @@ horizontal full edges have been split into left, inner, and right pieces. -/
 theorem zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum_eq_namedSplitHorizontalEdges
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ)
     (hbottom :
-      (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) =
+      (∫ x : ℝ in (1 - F.c)..F.c, g (x + (↑(-R) : ℂ) * Complex.I)) =
         (zetaExplicitFormulaOnePoleBottomLeftSegment g F R +
           zetaExplicitFormulaOnePoleInnerBottomEdge g R) +
             zetaExplicitFormulaOnePoleBottomRightSegment g F R)
@@ -357,16 +625,37 @@ theorem zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum_eq_named
             zetaExplicitFormulaOnePoleTopRightSegment g F R) :
     zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum g F T R =
       zetaExplicitFormulaOnePoleNamedFourCellSplitBoundary g F T R := by
+  have hbottom_raw :
+      (∫ x : ℝ in (1 - F.c)..F.c, g (x + (↑(-R) : ℂ) * Complex.I)) =
+        ((∫ x : ℝ in (1 - F.c)..(1 - R),
+            g (x + (↑(-R) : ℂ) * Complex.I)) +
+          (∫ x : ℝ in (1 - R)..(1 + R),
+            g (x + (↑(-R) : ℂ) * Complex.I))) +
+            (∫ x : ℝ in (1 + R)..F.c,
+              g (x + (↑(-R) : ℂ) * Complex.I)) := by
+    unfold zetaExplicitFormulaOnePoleBottomLeftSegment at hbottom
+    unfold zetaExplicitFormulaOnePoleInnerBottomEdge at hbottom
+    unfold zetaExplicitFormulaOnePoleBottomRightSegment at hbottom
+    exact hbottom
+  have htop_raw :
+      (∫ x : ℝ in (1 - F.c)..F.c, g (x + R * Complex.I)) =
+        ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + R * Complex.I)) +
+          (∫ x : ℝ in (1 - R)..(1 + R), g (x + R * Complex.I))) +
+            (∫ x : ℝ in (1 + R)..F.c, g (x + R * Complex.I)) := by
+    unfold zetaExplicitFormulaOnePoleTopLeftSegment at htop
+    unfold zetaExplicitFormulaOnePoleInnerTopEdge at htop
+    unfold zetaExplicitFormulaOnePoleTopRightSegment at htop
+    exact htop
   have hsplit :
       zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum g F T R =
-        ((∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)) -
-          (((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (-R) * Complex.I)) +
-            (∫ x : ℝ in (1 - R)..(1 + R), g (x + (-R) * Complex.I))) +
-              (∫ x : ℝ in (1 + R)..F.c, g (x + (-R) * Complex.I))) +
+        ((∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)) -
+          (((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (↑(-R) : ℂ) * Complex.I)) +
+            (∫ x : ℝ in (1 - R)..(1 + R), g (x + (↑(-R) : ℂ) * Complex.I))) +
+              (∫ x : ℝ in (1 + R)..F.c, g (x + (↑(-R) : ℂ) * Complex.I))) +
             Complex.I •
               (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) -
               Complex.I •
-                (∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I))) +
+                (∫ y : ℝ in -T..(-R), g ((↑(1 - F.c) : ℂ) + y * Complex.I))) +
           (((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + R * Complex.I)) +
             (∫ x : ℝ in (1 - R)..(1 + R), g (x + R * Complex.I))) +
               (∫ x : ℝ in (1 + R)..F.c, g (x + R * Complex.I)) -
@@ -374,31 +663,31 @@ theorem zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum_eq_named
               Complex.I •
                 (∫ y : ℝ in R..T, g (F.c + y * Complex.I)) -
                 Complex.I •
-                  (∫ y : ℝ in R..T, g ((1 - F.c) + y * Complex.I))) +
-            ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (-R) * Complex.I)) -
+                  (∫ y : ℝ in R..T, g ((↑(1 - F.c) : ℂ) + y * Complex.I))) +
+            ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (↑(-R) : ℂ) * Complex.I)) -
               (∫ x : ℝ in (1 - F.c)..(1 - R), g (x + R * Complex.I)) +
                 Complex.I •
-                  (∫ y : ℝ in -R..R, g ((1 - R) + y * Complex.I)) -
+                  (∫ y : ℝ in -R..R, g (((1 - R : ℝ) : ℂ) + y * Complex.I)) -
                   Complex.I •
-                    (∫ y : ℝ in -R..R, g ((1 - F.c) + y * Complex.I))) +
-              ((∫ x : ℝ in (1 + R)..F.c, g (x + (-R) * Complex.I)) -
+                    (∫ y : ℝ in -R..R, g ((↑(1 - F.c) : ℂ) + y * Complex.I))) +
+              ((∫ x : ℝ in (1 + R)..F.c, g (x + (↑(-R) : ℂ) * Complex.I)) -
                 (∫ x : ℝ in (1 + R)..F.c, g (x + R * Complex.I)) +
                   Complex.I •
                     (∫ y : ℝ in -R..R, g (F.c + y * Complex.I)) -
                     Complex.I •
-                      (∫ y : ℝ in -R..R, g ((1 + R) + y * Complex.I))) :=
+                      (∫ y : ℝ in -R..R, g (((1 + R : ℝ) : ℂ) + y * Complex.I))) :=
     zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum_eq_splitHorizontalEdges
-      g F T R hbottom htop
+      g F T R hbottom_raw htop_raw
   calc
     zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum g F T R =
-        ((∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)) -
-          (((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (-R) * Complex.I)) +
-            (∫ x : ℝ in (1 - R)..(1 + R), g (x + (-R) * Complex.I))) +
-              (∫ x : ℝ in (1 + R)..F.c, g (x + (-R) * Complex.I))) +
+        ((∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)) -
+          (((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (↑(-R) : ℂ) * Complex.I)) +
+            (∫ x : ℝ in (1 - R)..(1 + R), g (x + (↑(-R) : ℂ) * Complex.I))) +
+              (∫ x : ℝ in (1 + R)..F.c, g (x + (↑(-R) : ℂ) * Complex.I))) +
             Complex.I •
               (∫ y : ℝ in -T..(-R), g (F.c + y * Complex.I)) -
               Complex.I •
-                (∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I))) +
+                (∫ y : ℝ in -T..(-R), g ((↑(1 - F.c) : ℂ) + y * Complex.I))) +
           (((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + R * Complex.I)) +
             (∫ x : ℝ in (1 - R)..(1 + R), g (x + R * Complex.I))) +
               (∫ x : ℝ in (1 + R)..F.c, g (x + R * Complex.I)) -
@@ -406,19 +695,19 @@ theorem zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum_eq_named
               Complex.I •
                 (∫ y : ℝ in R..T, g (F.c + y * Complex.I)) -
                 Complex.I •
-                  (∫ y : ℝ in R..T, g ((1 - F.c) + y * Complex.I))) +
-            ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (-R) * Complex.I)) -
+                  (∫ y : ℝ in R..T, g ((↑(1 - F.c) : ℂ) + y * Complex.I))) +
+            ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (↑(-R) : ℂ) * Complex.I)) -
               (∫ x : ℝ in (1 - F.c)..(1 - R), g (x + R * Complex.I)) +
                 Complex.I •
-                  (∫ y : ℝ in -R..R, g ((1 - R) + y * Complex.I)) -
+                  (∫ y : ℝ in -R..R, g (((1 - R : ℝ) : ℂ) + y * Complex.I)) -
                   Complex.I •
-                    (∫ y : ℝ in -R..R, g ((1 - F.c) + y * Complex.I))) +
-              ((∫ x : ℝ in (1 + R)..F.c, g (x + (-R) * Complex.I)) -
+                    (∫ y : ℝ in -R..R, g ((↑(1 - F.c) : ℂ) + y * Complex.I))) +
+              ((∫ x : ℝ in (1 + R)..F.c, g (x + (↑(-R) : ℂ) * Complex.I)) -
                 (∫ x : ℝ in (1 + R)..F.c, g (x + R * Complex.I)) +
                   Complex.I •
                     (∫ y : ℝ in -R..R, g (F.c + y * Complex.I)) -
                     Complex.I •
-                      (∫ y : ℝ in -R..R, g ((1 + R) + y * Complex.I))) :=
+                      (∫ y : ℝ in -R..R, g (((1 + R : ℝ) : ℂ) + y * Complex.I))) :=
       hsplit
     _ =
       (zetaExplicitFormulaOnePoleOuterBottomEdge g F T -
@@ -439,9 +728,25 @@ theorem zetaExplicitFormulaOnePoleFourCellPuncturedRectangleBoundarySum_eq_named
               zetaExplicitFormulaOnePoleLeftMiddleSegment g F R) +
             (zetaExplicitFormulaOnePoleBottomRightSegment g F R -
               zetaExplicitFormulaOnePoleTopRightSegment g F R +
-              zetaExplicitFormulaOnePoleRightMiddleSegment g F R -
+                zetaExplicitFormulaOnePoleRightMiddleSegment g F R -
                 zetaExplicitFormulaOnePoleInnerRightEdge g R) := by
-      rfl
+      unfold zetaExplicitFormulaOnePoleOuterBottomEdge
+      unfold zetaExplicitFormulaOnePoleOuterTopEdge
+      unfold zetaExplicitFormulaOnePoleBottomLeftSegment
+      unfold zetaExplicitFormulaOnePoleBottomRightSegment
+      unfold zetaExplicitFormulaOnePoleTopLeftSegment
+      unfold zetaExplicitFormulaOnePoleTopRightSegment
+      unfold zetaExplicitFormulaOnePoleRightBottomSegment
+      unfold zetaExplicitFormulaOnePoleRightMiddleSegment
+      unfold zetaExplicitFormulaOnePoleRightTopSegment
+      unfold zetaExplicitFormulaOnePoleLeftBottomSegment
+      unfold zetaExplicitFormulaOnePoleLeftMiddleSegment
+      unfold zetaExplicitFormulaOnePoleLeftTopSegment
+      unfold zetaExplicitFormulaOnePoleInnerBottomEdge
+      unfold zetaExplicitFormulaOnePoleInnerTopEdge
+      unfold zetaExplicitFormulaOnePoleInnerRightEdge
+      unfold zetaExplicitFormulaOnePoleInnerLeftEdge
+      exact Eq.refl _
 
 /-- The named split four-cell boundary is the named vertical-split exposed
 square-punctured boundary. -/
@@ -473,7 +778,7 @@ split into their cell segments. -/
 theorem zetaExplicitFormulaOnePoleSquarePuncturedBoundary_eq_fourCellBoundary_of_edgeSplits
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ)
     (hbottom :
-      (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) =
+      (∫ x : ℝ in (1 - F.c)..F.c, g (x + (↑(-R) : ℂ) * Complex.I)) =
         (zetaExplicitFormulaOnePoleBottomLeftSegment g F R +
           zetaExplicitFormulaOnePoleInnerBottomEdge g R) +
             zetaExplicitFormulaOnePoleBottomRightSegment g F R)
@@ -546,7 +851,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalSquarePuncturedBo
     fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z
   have hR_pos : 0 < R :=
     zetaCompletedExplicitFormulaCorrectionOnePole_punctureRadius_pos_of_pos_height
-      F T hT
+      F hT
   have hR_ne : R ≠ 0 :=
     ne_of_gt hR_pos
   have hnegR_ne : -R ≠ 0 := by
@@ -561,7 +866,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalSquarePuncturedBo
     exact (ne_of_gt F.c_pos) hc_zero
   have hbottom_left :
       IntervalIntegrable
-        (fun x : ℝ => g (x + (-R) * Complex.I))
+        (fun x : ℝ => g (x + (↑(-R) : ℂ) * Complex.I))
         volume (1 - F.c) (1 - R) := by
     exact
       zetaCompletedExplicitFormulaCorrectionOnePoleKernel_horizontal_intervalIntegrable_of_avoids_pole
@@ -576,7 +881,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalSquarePuncturedBo
                       x (-R) hnegR_ne)))
   have hbottom_inner :
       IntervalIntegrable
-        (fun x : ℝ => g (x + (-R) * Complex.I))
+        (fun x : ℝ => g (x + (↑(-R) : ℂ) * Complex.I))
         volume (1 - R) (1 + R) := by
     exact
       zetaCompletedExplicitFormulaCorrectionOnePoleKernel_horizontal_intervalIntegrable_of_avoids_pole
@@ -591,7 +896,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalSquarePuncturedBo
                       x (-R) hnegR_ne)))
   have hbottom_right :
       IntervalIntegrable
-        (fun x : ℝ => g (x + (-R) * Complex.I))
+        (fun x : ℝ => g (x + (↑(-R) : ℂ) * Complex.I))
         volume (1 + R) F.c := by
     exact
       zetaCompletedExplicitFormulaCorrectionOnePoleKernel_horizontal_intervalIntegrable_of_avoids_pole
@@ -696,7 +1001,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalSquarePuncturedBo
                       F.c y hright_re_ne)))
   have hleft_bottom :
       IntervalIntegrable
-        (fun y : ℝ => g ((1 - F.c) + y * Complex.I))
+        (fun y : ℝ => g ((↑(1 - F.c) : ℂ) + y * Complex.I))
         volume (-T) (-R) := by
     exact
       zetaCompletedExplicitFormulaCorrectionOnePoleKernel_vertical_intervalIntegrable_of_avoids_pole
@@ -711,7 +1016,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalSquarePuncturedBo
                       (1 - F.c) y hleft_re_ne)))
   have hleft_middle :
       IntervalIntegrable
-        (fun y : ℝ => g ((1 - F.c) + y * Complex.I))
+        (fun y : ℝ => g ((↑(1 - F.c) : ℂ) + y * Complex.I))
         volume (-R) R := by
     exact
       zetaCompletedExplicitFormulaCorrectionOnePoleKernel_vertical_intervalIntegrable_of_avoids_pole
@@ -726,7 +1031,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalSquarePuncturedBo
                       (1 - F.c) y hleft_re_ne)))
   have hleft_top :
       IntervalIntegrable
-        (fun y : ℝ => g ((1 - F.c) + y * Complex.I))
+        (fun y : ℝ => g ((↑(1 - F.c) : ℂ) + y * Complex.I))
         volume R T := by
     exact
       zetaCompletedExplicitFormulaCorrectionOnePoleKernel_vertical_intervalIntegrable_of_avoids_pole
@@ -740,33 +1045,33 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalSquarePuncturedBo
                     (zetaExplicitFormulaOnePole_verticalAffine_sub_one_ne_zero_of_re_ne_one
                       (1 - F.c) y hleft_re_ne)))
   have hbottom :
-      (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) =
+      (∫ x : ℝ in (1 - F.c)..F.c, g (x + (↑(-R) : ℂ) * Complex.I)) =
         (zetaExplicitFormulaOnePoleBottomLeftSegment g F R +
           zetaExplicitFormulaOnePoleInnerBottomEdge g R) +
             zetaExplicitFormulaOnePoleBottomRightSegment g F R :=
-    zetaCompletedExplicitFormulaCorrectionOnePole_bottomPunctureHorizontal_full_eq_segments_canonicalRadius
-      f F T hbottom_left hbottom_inner hbottom_right
+    zetaExplicitFormulaOnePole_bottomPunctureHorizontal_full_eq_namedSegments
+      g F R hbottom_left hbottom_inner hbottom_right
   have htop :
       (∫ x : ℝ in (1 - F.c)..F.c, g (x + R * Complex.I)) =
         (zetaExplicitFormulaOnePoleTopLeftSegment g F R +
           zetaExplicitFormulaOnePoleInnerTopEdge g R) +
             zetaExplicitFormulaOnePoleTopRightSegment g F R :=
-    zetaCompletedExplicitFormulaCorrectionOnePole_topPunctureHorizontal_full_eq_segments_canonicalRadius
-      f F T htop_left htop_inner htop_right
+    zetaExplicitFormulaOnePole_topPunctureHorizontal_full_eq_namedSegments
+      g F R htop_left htop_inner htop_right
   have hright :
       zetaExplicitFormulaOnePoleOuterRightEdge g F T =
         (zetaExplicitFormulaOnePoleRightBottomSegment g F T R +
           zetaExplicitFormulaOnePoleRightMiddleSegment g F R) +
             zetaExplicitFormulaOnePoleRightTopSegment g F T R :=
-    zetaCompletedExplicitFormulaCorrectionOnePole_rightOuterVertical_full_eq_segments_canonicalRadius
-      f F T hright_bottom hright_middle hright_top
+    zetaExplicitFormulaOnePole_rightOuterVertical_full_eq_namedSegments
+      g F T R hright_bottom hright_middle hright_top
   have hleft :
       zetaExplicitFormulaOnePoleOuterLeftEdge g F T =
         (zetaExplicitFormulaOnePoleLeftBottomSegment g F T R +
           zetaExplicitFormulaOnePoleLeftMiddleSegment g F R) +
             zetaExplicitFormulaOnePoleLeftTopSegment g F T R :=
-    zetaCompletedExplicitFormulaCorrectionOnePole_leftOuterVertical_full_eq_segments_canonicalRadius
-      f F T hleft_bottom hleft_middle hleft_top
+    zetaExplicitFormulaOnePole_leftOuterVertical_full_eq_namedSegments
+      g F T R hleft_bottom hleft_middle hleft_top
   exact
     zetaExplicitFormulaOnePoleSquarePuncturedBoundary_eq_fourCellBoundary_of_edgeSplits
       g F T R hbottom htop hright hleft
