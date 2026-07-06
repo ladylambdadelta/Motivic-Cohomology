@@ -385,6 +385,33 @@ theorem Complex.realPhase_integerIncrementSeparatedOn_of_resonanceWindow_avoidan
         Complex.realPhase_integerIncrement_zero_lattice_closest_of_mem_principal
           φ (hprincipal n hn) k)
 
+/-- Avoidance of the resonance window around every integer lattice center
+supplies the standard separated-increment hypothesis without any principal
+interval or no-winding assumption. -/
+theorem Complex.realPhase_integerIncrementSeparatedOn_of_resonanceWindow_family_avoidance
+    (φ : ℝ → ℝ)
+    {a b c d : ℕ}
+    {lam : ℝ}
+    (S : ℤ → Finset ℕ)
+    (hS :
+      ∀ k : ℤ,
+        ∀ m : ℕ,
+          m ∈ S k ↔
+            m ∈ Finset.Ico a b ∧
+              ‖Complex.realPhase_integerIncrement φ m -
+                  (2 * Real.pi * (k : ℝ))‖ < lam)
+    (hsub : Finset.Ico c d ⊆ Finset.Ico a b)
+    (havoid :
+      ∀ k : ℤ,
+        ∀ n : ℕ,
+          n ∈ Finset.Ico c d →
+            n ∉ S k) :
+    Complex.realPhase_integerIncrementSeparatedOn φ c d lam := by
+  intro n hn k
+  exact
+    Complex.realPhase_integerIncrement_separated_from_resonance_of_not_mem_window
+      φ (S k) (hS k) (hsub hn) (havoid k n hn)
+
 end
 
 end LFunctions
