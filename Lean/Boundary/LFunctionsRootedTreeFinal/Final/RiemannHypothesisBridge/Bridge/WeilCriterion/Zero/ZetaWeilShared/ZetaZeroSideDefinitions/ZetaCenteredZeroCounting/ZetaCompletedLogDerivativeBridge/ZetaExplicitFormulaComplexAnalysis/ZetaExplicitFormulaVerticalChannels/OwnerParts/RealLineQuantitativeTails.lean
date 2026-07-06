@@ -61,14 +61,11 @@ inverse-quadratic form used by contour estimates. -/
 theorem realLine_one_add_norm_zpow_four_compl_Icc_tail_eventually_le_inverseQuadratic :
     ∃ C : ℝ,
       0 < C ∧
-        ∀ᶠ T in atTop,
-          ∫ t in (Set.Icc (-T) T)ᶜ,
+        ∀ᶠ T in (atTop : Filter ℝ),
+          ∫ t : ℝ in (Set.Icc (-T) T)ᶜ,
               (1 + ‖t‖) ^ (-(4 : ℤ))
             ≤ C * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
-  match realLineFourthOrderWeight_compl_Icc_tail_eventually_le_inverseQuadratic with
-  | ⟨C, hC_pos, hC_eventual⟩ =>
-      refine ⟨C, hC_pos, ?_⟩
-      exact hC_eventual
+  exact realLineFourthOrderWeight_compl_Icc_tail_eventually_le_inverseQuadratic
 
 /-- If the whole-line integral is zero, the integral over a measurable set is
 the negative of the integral over its complement. -/
@@ -186,17 +183,7 @@ theorem realLine_integrable_one_add_norm_zpow_four :
     Integrable
       (fun t : ℝ => (1 + ‖t‖) ^ (-(4 : ℤ)))
       (volume : Measure ℝ) := by
-  have hbase :
-      Integrable
-        (fun t : ℝ => (1 + ‖t‖) ^ (-(4 : ℝ)))
-        (volume : Measure ℝ) :=
-    integrable_one_add_norm (E := ℝ) (μ := volume)
-      (show (finrank ℝ ℝ : ℝ) < (4 : ℝ) from one_lt_ofNat)
-  exact
-    hbase.congr
-      (Eventually.of_forall
-        (fun t =>
-          (realLine_one_add_norm_zpow_four_eq_rpow_four t).symm))
+  exact realLineFourthOrderWeight_integrable
 
 /-- Pointwise domination by a nonnegative fourth-order majorant integrates over
 any measurable tail. -/
@@ -276,7 +263,7 @@ theorem realLine_intervalIntegral_eventually_inverseQuadratic_of_integral_zero_n
         ‖φ t‖ ≤ A * (1 + ‖t‖) ^ (-(4 : ℤ))) :
     ∃ M : ℝ,
       0 < M ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ T in (atTop : Filter ℝ),
           ‖∫ t in Set.Icc (-T) T, φ t‖
             ≤ M * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
   match realLine_one_add_norm_zpow_four_compl_Icc_tail_eventually_le_inverseQuadratic with
@@ -287,27 +274,27 @@ theorem realLine_intervalIntegral_eventually_inverseQuadratic_of_integral_zero_n
           mul_nonneg hA_nonneg (le_of_lt hCpos)
         exact add_pos_of_nonneg_of_pos hAC_nonneg zero_lt_one
       have hscaled :
-          ∀ᶠ T in atTop,
+          ∀ᶠ T in (atTop : Filter ℝ),
             A *
-                ∫ t in (Set.Icc (-T) T)ᶜ,
+                ∫ t : ℝ in (Set.Icc (-T) T)ᶜ,
                   (1 + ‖t‖) ^ (-(4 : ℤ))
               ≤ (A * C) * (1 + ‖T‖) ^ (-(2 : ℤ)) :=
         hC.mono
           (fun T hT =>
             let q : ℝ := (1 + ‖T‖) ^ (-(2 : ℤ))
             have htail :
-                ∫ t in (Set.Icc (-T) T)ᶜ,
+                ∫ t : ℝ in (Set.Icc (-T) T)ᶜ,
                     (1 + ‖t‖) ^ (-(4 : ℤ))
                   ≤ C * q := hT
             have hmul :
                 A *
-                    ∫ t in (Set.Icc (-T) T)ᶜ,
+                    ∫ t : ℝ in (Set.Icc (-T) T)ᶜ,
                       (1 + ‖t‖) ^ (-(4 : ℤ))
                   ≤ A * (C * q) :=
               mul_le_mul_of_nonneg_left htail hA_nonneg
             hmul.trans_eq (mul_assoc A C q).symm)
       have hfinal :
-          ∀ᶠ T in atTop,
+          ∀ᶠ T in (atTop : Filter ℝ),
             ‖∫ t in Set.Icc (-T) T, φ t‖
               ≤ M * (1 + ‖T‖) ^ (-(2 : ℤ)) :=
         hscaled.mono
@@ -316,7 +303,7 @@ theorem realLine_intervalIntegral_eventually_inverseQuadratic_of_integral_zero_n
             have hinterval :
                 ‖∫ t in Set.Icc (-T) T, φ t‖
                   ≤ A *
-                    ∫ t in (Set.Icc (-T) T)ᶜ,
+                    ∫ t : ℝ in (Set.Icc (-T) T)ᶜ,
                       (1 + ‖t‖) ^ (-(4 : ℤ)) :=
               realLine_intervalIntegral_norm_le_scaled_compl_zpow_four_of_integral_zero_norm_le
                 φ hφ_integrable hzero A hA_nonneg hmajorant T
@@ -345,7 +332,7 @@ theorem realLine_intervalIntegral_eventually_inverseQuadratic_of_integral_value_
         ‖φ t‖ ≤ A * (1 + ‖t‖) ^ (-(4 : ℤ))) :
     ∃ M : ℝ,
       0 < M ∧
-        ∀ᶠ T in atTop,
+        ∀ᶠ T in (atTop : Filter ℝ),
           ‖(∫ t in Set.Icc (-T) T, φ t) - v‖
             ≤ M * (1 + ‖T‖) ^ (-(2 : ℤ)) := by
   match realLine_one_add_norm_zpow_four_compl_Icc_tail_eventually_le_inverseQuadratic with
@@ -356,27 +343,27 @@ theorem realLine_intervalIntegral_eventually_inverseQuadratic_of_integral_value_
           mul_nonneg hA_nonneg (le_of_lt hCpos)
         exact add_pos_of_nonneg_of_pos hAC_nonneg zero_lt_one
       have hscaled :
-          ∀ᶠ T in atTop,
+          ∀ᶠ T in (atTop : Filter ℝ),
             A *
-                ∫ t in (Set.Icc (-T) T)ᶜ,
+                ∫ t : ℝ in (Set.Icc (-T) T)ᶜ,
                   (1 + ‖t‖) ^ (-(4 : ℤ))
               ≤ (A * C) * (1 + ‖T‖) ^ (-(2 : ℤ)) :=
         hC.mono
           (fun T hT =>
             let q : ℝ := (1 + ‖T‖) ^ (-(2 : ℤ))
             have htail :
-                ∫ t in (Set.Icc (-T) T)ᶜ,
+                ∫ t : ℝ in (Set.Icc (-T) T)ᶜ,
                     (1 + ‖t‖) ^ (-(4 : ℤ))
                   ≤ C * q := hT
             have hmul :
                 A *
-                    ∫ t in (Set.Icc (-T) T)ᶜ,
+                    ∫ t : ℝ in (Set.Icc (-T) T)ᶜ,
                       (1 + ‖t‖) ^ (-(4 : ℤ))
                   ≤ A * (C * q) :=
               mul_le_mul_of_nonneg_left htail hA_nonneg
             hmul.trans_eq (mul_assoc A C q).symm)
       have hfinal :
-          ∀ᶠ T in atTop,
+          ∀ᶠ T in (atTop : Filter ℝ),
             ‖(∫ t in Set.Icc (-T) T, φ t) - v‖
               ≤ M * (1 + ‖T‖) ^ (-(2 : ℤ)) :=
         hscaled.mono
@@ -385,7 +372,7 @@ theorem realLine_intervalIntegral_eventually_inverseQuadratic_of_integral_value_
             have hinterval :
                 ‖(∫ t in Set.Icc (-T) T, φ t) - v‖
                   ≤ A *
-                    ∫ t in (Set.Icc (-T) T)ᶜ,
+                    ∫ t : ℝ in (Set.Icc (-T) T)ᶜ,
                       (1 + ‖t‖) ^ (-(4 : ℤ)) := by
               have hnorm :
                   ‖(∫ t in Set.Icc (-T) T, φ t) - v‖
@@ -395,7 +382,7 @@ theorem realLine_intervalIntegral_eventually_inverseQuadratic_of_integral_value_
               have htail :
                   ∫ t in (Set.Icc (-T) T)ᶜ, ‖φ t‖
                     ≤ A *
-                      ∫ t in (Set.Icc (-T) T)ᶜ,
+                      ∫ t : ℝ in (Set.Icc (-T) T)ᶜ,
                         (1 + ‖t‖) ^ (-(4 : ℤ)) :=
                 realLine_setIntegral_norm_le_scaled_zpow_four_of_norm_le
                   φ hφ_integrable A hA_nonneg hmajorant
