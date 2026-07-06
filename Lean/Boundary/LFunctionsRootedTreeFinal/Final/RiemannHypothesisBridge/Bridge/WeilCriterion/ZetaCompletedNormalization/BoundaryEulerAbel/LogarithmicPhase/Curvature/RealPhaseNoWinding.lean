@@ -233,6 +233,70 @@ theorem Complex.realPhase_integerIncrement_zero_lattice_closest_of_mem_principal
       ‖Complex.realPhase_integerIncrement φ n - (2 * Real.pi * (k : ℝ))‖ :=
   Real.periodicPrincipalAngle_zero_twoPi_distance_le_intDistance hprincipal k
 
+/-- A nonnegative angle bounded by `π` lies in the periodic principal interval
+`(-π, -π + 2π]`. -/
+theorem Real.mem_periodicPrincipalAngle_of_nonneg_le_pi
+    {θ : ℝ}
+    (hθ_nonneg : 0 ≤ θ)
+    (hθ_le_pi : θ ≤ Real.pi) :
+    θ ∈ Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) := by
+  have hleft : -Real.pi < θ := by
+    have hneg_pi_lt_zero : -Real.pi < 0 := by
+      exact neg_neg_of_pos Real.pi_pos
+    exact lt_of_lt_of_le hneg_pi_lt_zero hθ_nonneg
+  have hupper : Real.pi = -Real.pi + (2 * Real.pi) := by
+    calc
+      Real.pi = 0 + Real.pi :=
+        (zero_add Real.pi).symm
+      _ = (-Real.pi + Real.pi) + Real.pi :=
+        congrArg (fun r : ℝ => r + Real.pi) (neg_add_cancel Real.pi).symm
+      _ = -Real.pi + (Real.pi + Real.pi) :=
+        add_assoc (-Real.pi) Real.pi Real.pi
+      _ = -Real.pi + (2 * Real.pi) :=
+        congrArg (fun r : ℝ => -Real.pi + r) (two_mul Real.pi).symm
+  have hright : θ ≤ -Real.pi + (2 * Real.pi) :=
+    Eq.subst
+      (motive := fun r : ℝ => θ ≤ r)
+      hupper
+      hθ_le_pi
+  exact And.intro hleft hright
+
+/-- Nonnegative raw increments bounded by `π` have no winding. -/
+theorem Complex.realPhase_integerIncrement_mem_principal_of_nonneg_le_pi
+    (φ : ℝ → ℝ)
+    {n : ℕ}
+    (hinc_nonneg : 0 ≤ Complex.realPhase_integerIncrement φ n)
+    (hinc_le_pi : Complex.realPhase_integerIncrement φ n ≤ Real.pi) :
+    Complex.realPhase_integerIncrement φ n ∈
+      Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+  Real.mem_periodicPrincipalAngle_of_nonneg_le_pi hinc_nonneg hinc_le_pi
+
+/-- Positive-frequency shifted logarithmic increments with the sharp `π`
+upper bound lie in the principal interval. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_mem_principal_of_gap_pi
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b h n : ℕ}
+    (ha : 1 ≤ a)
+    (hn : n ∈ Finset.Ico a (b - h))
+    (hinc_le_pi :
+      Complex.realPhase_integerIncrement
+          (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n ≤
+        Real.pi) :
+    Complex.realPhase_integerIncrement
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n ∈
+      Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) := by
+  have hn_bounds : a ≤ n ∧ n < b - h :=
+    Finset.mem_Ico.mp hn
+  have hn_one : 1 ≤ n :=
+    le_trans ha hn_bounds.1
+  exact
+    Complex.realPhase_integerIncrement_mem_principal_of_nonneg_le_pi
+      (Complex.logarithmicPhaseRealPhase_shiftedDifference t h)
+      (Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_nonneg
+        t ht_nonneg hn_one)
+      hinc_le_pi
+
 /-- If a raw adjacent increment already lies in the principal `toIocMod`
 interval, then reduction does not change it. -/
 theorem Complex.realPhase_reducedIntegerIncrement_eq_raw_of_mem_principal

@@ -347,6 +347,74 @@ theorem Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_n
       t ht ht_nonneg ha hab hlong_sqrt
       hinc_mono hred_mono hsep hweyl_target
 
+/-- Positive-frequency long Weyl-target wrapper with no-winding discharged from
+pointwise `π` bounds on the shifted logarithmic increments. -/
+theorem Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_nonneg_of_gap_pi_sep
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hgap_pi :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico a (b - h) →
+              Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ≤ Real.pi)
+    (hsep :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          Complex.realPhase_integerIncrementSeparatedOn
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h)
+            (‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              (h : ℝ)))
+    (hweyl_target :
+      Real.secondDerivativeVdc_weylEnvelopeMajorant a b
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖)
+          (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
+            Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h) ≤
+        80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+          Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
+  have hprincipal :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico a (b - h) →
+              Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ∈ Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+    fun h hmem n hn =>
+      Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_mem_principal_of_gap_pi
+        t ht_nonneg ha hn
+        (hgap_pi h hmem n hn)
+  exact
+    Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_nonneg_of_principal_sep
+      t ht ht_nonneg ha hab hlong_sqrt hprincipal hsep hweyl_target
+
 end
 
 end LFunctions

@@ -446,6 +446,91 @@ theorem Complex.logarithmicPhaseRealPhase_parentFixedWidthGap_eq_mul_logGap
           (Real.log ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ))))
           (Real.log ((((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))))
 
+/-- The fixed-width logarithmic gap is nonnegative. -/
+theorem Real.logarithmicPhase_fixedWidthLogGap_nonneg
+    {h n : ℕ}
+    (hn : 1 ≤ n) :
+    0 ≤
+      Real.log ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ))) -
+        Real.log ((((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))) := by
+  have hgap_eq :
+      Real.log ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ))) -
+          Real.log ((((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))) =
+        Real.log
+          ((1 : ℝ) + (h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) :=
+    Real.logarithmicPhase_fixedWidthLogGap_eq hn
+  have hden_pos :
+      0 < ((n * (n + h + 1) : ℕ) : ℝ) :=
+    Real.logarithmicPhase_fixedWidthGapDenominator_pos hn
+  have hquot_nonneg :
+      0 ≤ (h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ) :=
+    div_nonneg (Nat.cast_nonneg h) (le_of_lt hden_pos)
+  have hfactor_one :
+      (1 : ℝ) ≤
+        (1 : ℝ) + (h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ) :=
+    le_add_of_nonneg_right hquot_nonneg
+  have hlog_nonneg :
+      0 ≤
+        Real.log
+          ((1 : ℝ) + (h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) :=
+    Real.log_nonneg hfactor_one
+  exact
+    Eq.subst
+      (motive := fun r : ℝ => 0 ≤ r)
+      hgap_eq.symm
+      hlog_nonneg
+
+/-- Positive-frequency shifted logarithmic increments are nonnegative. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_nonneg
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {h n : ℕ}
+    (hn : 1 ≤ n) :
+    0 ≤
+      Complex.realPhase_integerIncrement
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n := by
+  have hshift :
+      Complex.realPhase_integerIncrement
+          (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n =
+        Complex.realPhase_integerIncrement
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            (n + h) -
+          Complex.realPhase_integerIncrement
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            n :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_eq t h n
+  have hparent :
+      Complex.realPhase_integerIncrement
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          (n + h) -
+        Complex.realPhase_integerIncrement
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          n =
+        t *
+          (Real.log ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ))) -
+            Real.log ((((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ)))) :=
+    Complex.logarithmicPhaseRealPhase_parentFixedWidthGap_eq_mul_logGap
+      t hn
+  have hgap_nonneg :
+      0 ≤
+        Real.log ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ))) -
+          Real.log ((((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))) :=
+    Real.logarithmicPhase_fixedWidthLogGap_nonneg hn
+  have hmul_nonneg :
+      0 ≤
+        t *
+          (Real.log ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ))) -
+            Real.log ((((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ)))) :=
+    mul_nonneg ht_nonneg hgap_nonneg
+  exact
+    Eq.subst
+      (motive := fun left : ℝ => 0 ≤ left)
+      hshift.symm
+      (Eq.subst
+        (motive := fun right : ℝ => 0 ≤ right)
+        hparent.symm
+        hmul_nonneg)
+
 /-- In the nonnegative branch, fixed-width parent increment gaps are
 antitone on integer subblocks. -/
 theorem Complex.logarithmicPhaseRealPhase_parentFixedWidthGap_antitoneOn
