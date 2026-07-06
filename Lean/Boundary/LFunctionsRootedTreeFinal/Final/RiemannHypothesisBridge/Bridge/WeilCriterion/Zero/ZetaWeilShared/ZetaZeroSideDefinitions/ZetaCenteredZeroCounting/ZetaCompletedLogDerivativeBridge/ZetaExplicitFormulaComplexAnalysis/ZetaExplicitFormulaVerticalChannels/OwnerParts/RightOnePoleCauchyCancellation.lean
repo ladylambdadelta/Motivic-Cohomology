@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.RightOnePoleBoundaryIdentities
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleHorizontalEdgeBounds
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ProjectionPrimitives
 
 namespace Boundary
 namespace LFunctions
@@ -340,7 +341,10 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIn
     ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
       f F h u‖
   have hD : Tendsto D atTop (𝓝 0) :=
-    htangent.norm
+    Eq.subst
+      (motive := fun z : ℝ => Tendsto D atTop (𝓝 z))
+      (norm_zero : ‖(0 : ℂ)‖ = 0)
+      htangent.norm
   have hH_complex :
       Tendsto
         (fun u : ℝ =>
@@ -351,7 +355,10 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIn
     zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference_tendsto_zero
       f F h
   have hH : Tendsto H atTop (𝓝 0) :=
-    hH_complex.norm
+    Eq.subst
+      (motive := fun z : ℝ => Tendsto H atTop (𝓝 z))
+      (norm_zero : ‖(0 : ℂ)‖ = 0)
+      hH_complex.norm
   have hsum : Tendsto (fun u : ℝ => D u + H u) atTop (𝓝 (0 + 0)) :=
     hD.add hH
   have hsum_zero : Tendsto (fun u : ℝ => D u + H u) atTop (𝓝 0) :=
@@ -408,31 +415,13 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
         zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
           f F h u) := by
     funext u
-    rfl
+    exact Eq.refl _
   exact
     Eq.subst
       (motive := fun φ : ℝ → ℂ =>
         Tendsto φ atTop (𝓝 0))
       hfun.symm
       hsched
-
-/-- A positive-height finite standard-residue theorem supplies the corresponding
-scheduled `s = 1` standard boundary value eventually. -/
-theorem zetaCompletedExplicitFormulaCorrectionOnePole_eventually_standardBoundaryResidueValue_of_positiveHeight
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (B : ℂ)
-    (hpositive :
-      ∀ T : ℝ,
-        0 < T →
-          zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral
-            f F T = B) :
-    ∀ᶠ u in atTop,
-      zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral
-        f F (h.height_schedule.height u) = B := by
-  exact h.height_schedule.eventually_height_pos.mono
-    (fun u hu =>
-      hpositive (h.height_schedule.height u) hu)
 
 /-- Pointwise orientation identity comparing the scheduled tangent boundary
 with the standard rectangle-Cauchy boundary.  The discrepancy is exactly two
@@ -485,33 +474,44 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledTangentRectangleBo
               f F (h.height_schedule.height u) -
             zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral
               f F (h.height_schedule.height u) := by
-        rfl
+        exact Eq.refl _
       _ = U - D := by
         exact congrArg₂ HSub.hSub hU.symm hD.symm
   have hS : S = D - U + R - L := by
+    let U' : ℂ :=
+      ∫ x in Set.Icc (1 - F.c) F.c,
+        zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+          (zetaCompletedExplicitFormulaTopPath
+            (F.rectangle (h.height_schedule.height u)) x)
+    let D' : ℂ :=
+      ∫ x in Set.Icc (1 - F.c) F.c,
+        zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+          (zetaCompletedExplicitFormulaBottomPath
+            (F.rectangle (h.height_schedule.height u)) x)
+    have hU_Icc : U = U' := by
+      exact zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral_eq_Icc
+        f F (h.height_schedule.height u)
+    have hD_Icc : D = D' := by
+      exact zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral_eq_Icc
+        f F (h.height_schedule.height u)
     calc
-      S =
-          (∫ x in Set.Icc (1 - F.c) F.c,
-            zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-              (zetaCompletedExplicitFormulaBottomPath
-                (F.rectangle (h.height_schedule.height u)) x)) -
-            (∫ x in Set.Icc (1 - F.c) F.c,
-              zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-                (zetaCompletedExplicitFormulaTopPath
-                  (F.rectangle (h.height_schedule.height u)) x)) +
-            R - L := by
-        rfl
+      S = D' - U' + R - L := by
+        exact Eq.refl _
+      _ = D - U' + R - L := by
+        exact congrArg
+          (fun x : ℂ => x - U' + R - L)
+          hD_Icc.symm
       _ = D - U + R - L := by
         exact congrArg
-          (fun z : ℂ => z + R - L)
-          (congrArg₂ HSub.hSub hD.symm hU.symm)
+          (fun x : ℂ => D - x + R - L)
+          hU_Icc.symm
   let A : ℂ := R - L
   have htangent_AH : R - L + U - D = A + H := by
     calc
       R - L + U - D = (R - L) + (U - D) := by
-        exact (add_sub_assoc (R - L) U D).symm
+        exact add_sub_assoc (R - L) U D
       _ = A + (U - D) := by
-        rfl
+        exact Eq.refl _
       _ = A + H := by
         exact congrArg (fun z : ℂ => A + z) hH.symm
   have hstandard_AH : S = A - H := by
@@ -522,19 +522,20 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledTangentRectangleBo
           explicitFormula_standardBoundary_horizontal_algebra
             R L U D
       _ = A - (U - D) := by
-        rfl
+        exact Eq.refl _
       _ = A - H := by
         exact congrArg (fun z : ℂ => A - z) hH.symm
-  change R - L + U - D = S + (H + H)
-  calc
-    R - L + U - D = A + H := htangent_AH
-    _ = (A - H) + (H + H) := by
-      exact
-        zetaCompletedExplicitFormulaCorrectionOnePole_orientationDefect_horizontal_add_algebra A H
-    _ = S + (H + H) := by
-      exact congrArg
-        (fun z : ℂ => z + (H + H))
-        hstandard_AH.symm
+  exact
+    show R - L + U - D = S + (H + H) from
+      calc
+        R - L + U - D = A + H := htangent_AH
+        _ = (A - H) + (H + H) := by
+          exact
+            zetaCompletedExplicitFormulaCorrectionOnePole_orientationDefect_horizontal_add_algebra A H
+        _ = S + (H + H) := by
+          exact congrArg
+            (fun z : ℂ => z + (H + H))
+            hstandard_AH.symm
 
 /-- The scheduled tangent-boundary value has the same limit as the standard
 finite boundary value, because the only orientation discrepancy is the
@@ -682,33 +683,44 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryInt
                 f F (h.height_schedule.height u) -
               zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral
                 f F (h.height_schedule.height u) := by
-          rfl
+          exact Eq.refl _
         _ = U - D := by
           exact congrArg₂ HSub.hSub hU.symm hD.symm
     have hS : S = D - U + R - L := by
+      let U' : ℂ :=
+        ∫ x in Set.Icc (1 - F.c) F.c,
+          zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+            (zetaCompletedExplicitFormulaTopPath
+              (F.rectangle (h.height_schedule.height u)) x)
+      let D' : ℂ :=
+        ∫ x in Set.Icc (1 - F.c) F.c,
+          zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+            (zetaCompletedExplicitFormulaBottomPath
+              (F.rectangle (h.height_schedule.height u)) x)
+      have hU_Icc : U = U' := by
+        exact zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral_eq_Icc
+          f F (h.height_schedule.height u)
+      have hD_Icc : D = D' := by
+        exact zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral_eq_Icc
+          f F (h.height_schedule.height u)
       calc
-        S =
-            (∫ x in Set.Icc (1 - F.c) F.c,
-              zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-                (zetaCompletedExplicitFormulaBottomPath
-                  (F.rectangle (h.height_schedule.height u)) x)) -
-              (∫ x in Set.Icc (1 - F.c) F.c,
-                zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-                  (zetaCompletedExplicitFormulaTopPath
-                    (F.rectangle (h.height_schedule.height u)) x)) +
-              R - L := by
-          rfl
+        S = D' - U' + R - L := by
+          exact Eq.refl _
+        _ = D - U' + R - L := by
+          exact congrArg
+            (fun x : ℂ => x - U' + R - L)
+            hD_Icc.symm
         _ = D - U + R - L := by
           exact congrArg
-            (fun z : ℂ => z + R - L)
-            (congrArg₂ HSub.hSub hD.symm hU.symm)
+            (fun x : ℂ => D - x + R - L)
+            hU_Icc.symm
     let A : ℂ := R - L
     have htangent_AH : R - L + U - D = A + H := by
       calc
         R - L + U - D = (R - L) + (U - D) := by
-          exact (add_sub_assoc (R - L) U D).symm
+          exact add_sub_assoc (R - L) U D
         _ = A + (U - D) := by
-          rfl
+          exact Eq.refl _
         _ = A + H := by
           exact congrArg (fun z : ℂ => A + z) hH.symm
     have hstandard_AH : S = A - H := by
@@ -719,19 +731,20 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryInt
             explicitFormula_standardBoundary_horizontal_algebra
               R L U D
         _ = A - (U - D) := by
-          rfl
+          exact Eq.refl _
         _ = A - H := by
           exact congrArg (fun z : ℂ => A - z) hH.symm
-    change R - L + U - D = S + (H + H)
-    calc
-      R - L + U - D = A + H := htangent_AH
-      _ = (A - H) + (H + H) := by
-        exact
-          zetaCompletedExplicitFormulaCorrectionOnePole_orientationDefect_horizontal_add_algebra A H
-      _ = S + (H + H) := by
-        exact congrArg
-          (fun z : ℂ => z + (H + H))
-          hstandard_AH.symm
+    exact
+      show R - L + U - D = S + (H + H) from
+        calc
+          R - L + U - D = A + H := htangent_AH
+          _ = (A - H) + (H + H) := by
+            exact
+              zetaCompletedExplicitFormulaCorrectionOnePole_orientationDefect_horizontal_add_algebra A H
+          _ = S + (H + H) := by
+            exact congrArg
+              (fun z : ℂ => z + (H + H))
+              hstandard_AH.symm
   exact
     Eq.subst
       (motive := fun φ : ℝ → ℂ =>
@@ -840,11 +853,20 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
       (𝓝 0) := by
   exact
     zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_zero_of_tangentBoundaryDefect
-      f F h
-      (zetaCompletedExplicitFormulaCorrectionOnePoleTangentBoundaryDefect_tendsto_zero_of_standardBoundaryResidue
-        f F h A B hcancel hleft
-        ((zetaCompletedExplicitFormulaCorrectionOnePole_eventually_standardBoundaryResidueValue_of_positiveHeight
-          f F h B hpositive).tendsto_iff.2 tendsto_const_nhds))
+        f F h
+        (zetaCompletedExplicitFormulaCorrectionOnePoleTangentBoundaryDefect_tendsto_zero_of_standardBoundaryResidue
+          f F h A B hcancel hleft
+          (let heq :
+              Filter.EventuallyEq atTop
+                (fun _u : ℝ => B)
+                (fun u : ℝ =>
+                  zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral
+                    f F (h.height_schedule.height u)) := by
+                exact
+                  (zetaCompletedExplicitFormulaCorrectionOnePole_eventually_standardBoundaryResidueValue_of_positiveHeight
+                    f F h B hpositive).mono
+                    (fun _u hu => hu.symm)
+            Tendsto.congr' heq tendsto_const_nhds))
 
 /-- Positive-height projection-boundary residue transport for the right
 one-pole value.  This is the nonzero projection form of the Cauchy transport:
@@ -879,10 +901,19 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
         (fun u : ℝ =>
           zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral
             f F (h.height_schedule.height u))
-        atTop
-        (𝓝 B) :=
-    ((zetaCompletedExplicitFormulaCorrectionOnePole_eventually_standardBoundaryResidueValue_of_positiveHeight
-      f F h B hpositive).tendsto_iff.2 tendsto_const_nhds)
+          atTop
+          (𝓝 B) :=
+      let heq :
+          Filter.EventuallyEq atTop
+            (fun _u : ℝ => B)
+            (fun u : ℝ =>
+              zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral
+                f F (h.height_schedule.height u)) := by
+            exact
+              (zetaCompletedExplicitFormulaCorrectionOnePole_eventually_standardBoundaryResidueValue_of_positiveHeight
+                f F h B hpositive).mono
+                (fun _u hu => hu.symm)
+      Tendsto.congr' heq tendsto_const_nhds
   have htangent :
       Tendsto
         (fun u : ℝ =>
@@ -916,9 +947,16 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
           (B * Complex.I + P) + -(B * Complex.I) := by
         exact sub_eq_add_neg (B * Complex.I + P) (B * Complex.I)
       _ = P + (B * Complex.I + -(B * Complex.I)) := by
-        exact add_right_comm (B * Complex.I) P (-(B * Complex.I))
+        calc
+          (B * Complex.I + P) + -(B * Complex.I) =
+              P + (B * Complex.I) + -(B * Complex.I) := by
+            exact congrArg
+              (fun z : ℂ => z + -(B * Complex.I))
+              (add_comm (B * Complex.I) P)
+          _ = P + (B * Complex.I + -(B * Complex.I)) := by
+            exact add_assoc P (B * Complex.I) (-(B * Complex.I))
       _ = P + 0 := by
-        exact congrArg (fun z : ℂ => P + z) (add_right_neg (B * Complex.I))
+        exact congrArg (fun z : ℂ => P + z) (add_neg_cancel (B * Complex.I))
       _ = P := by
         exact add_zero P
   have hdefect :
@@ -968,7 +1006,16 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
             f F h u‖)
         atTop
         (𝓝 0) :=
-    hhorizontal_complex.norm
+    Eq.subst
+      (motive := fun z : ℝ =>
+        Tendsto
+          (fun u : ℝ =>
+            ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
+              f F h u‖)
+          atTop
+          (𝓝 z))
+      (norm_zero : ‖(0 : ℂ)‖ = 0)
+      hhorizontal_complex.norm
   have hsum_zero :
       Tendsto
         (fun u : ℝ =>
@@ -1021,6 +1068,32 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
     exact
       zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral_sub_projection_norm_le_tangentBoundaryProjectionDefect_add_horizontal
         f F h u P
+  have hbound_squeeze :
+      ∀ᶠ u in atTop,
+        ‖‖zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
+            f F h u - P‖‖
+          ≤
+          ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+              f F (h.height_schedule.height u) -
+            zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+              f F (h.height_schedule.height u) * Complex.I - P‖ +
+          ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
+            f F h u‖ :=
+    Filter.Eventually.of_forall
+      (fun u : ℝ =>
+        Eq.subst
+          (motive := fun z : ℝ =>
+            z ≤
+              ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
+                  f F (h.height_schedule.height u) -
+                zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
+                  f F (h.height_schedule.height u) * Complex.I - P‖ +
+              ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
+                f F h u‖)
+          (norm_norm
+            (zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
+              f F h u - P)).symm
+          (hbound u))
   have hnorm_zero :
       Tendsto
         (fun u : ℝ =>
@@ -1028,7 +1101,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
               f F h u - P‖)
         atTop
         (𝓝 0) :=
-    squeeze_zero_norm' hbound hsum
+    squeeze_zero_norm' hbound_squeeze hsum
   have hsched :
       Tendsto
         (fun u : ℝ =>
@@ -1045,7 +1118,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
         zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
           f F h u) := by
     funext u
-    rfl
+    exact Eq.refl _
   exact
     Eq.subst
       (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 P))
