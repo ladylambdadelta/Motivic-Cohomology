@@ -596,16 +596,6 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_localResidueCoordinateTarg
       -zetaCompletedExplicitFormulaPhi f (1 / 2) :=
   (zetaCompletedExplicitFormulaCorrectionOnePole_localResidueValue f).symm
 
-/-- In the pole-enclosing geometry, the unordered horizontal span is the
-left-to-right closed interval used by a standard rectangle boundary. -/
-theorem zetaCompletedExplicitFormulaCorrectionPoleHorizontal_uIcc_eq_Icc
-    (F : ExplicitFormulaContourFamily) :
-    Set.uIcc F.c (1 - F.c) = Set.Icc (1 - F.c) F.c := by
-  have hleft_le_right : 1 - F.c ≤ F.c :=
-    le_of_lt
-      (lt_trans F.one_sub_c_neg F.c_pos)
-  exact Set.uIcc_of_ge hleft_le_right
-
 /-- The top tangent edge of the isolated `s = 0` correction contour can be read
 over the left-to-right horizontal interval. -/
 theorem zetaCompletedExplicitFormulaCorrectionTopZeroPoleTangentIntegral_eq_Icc

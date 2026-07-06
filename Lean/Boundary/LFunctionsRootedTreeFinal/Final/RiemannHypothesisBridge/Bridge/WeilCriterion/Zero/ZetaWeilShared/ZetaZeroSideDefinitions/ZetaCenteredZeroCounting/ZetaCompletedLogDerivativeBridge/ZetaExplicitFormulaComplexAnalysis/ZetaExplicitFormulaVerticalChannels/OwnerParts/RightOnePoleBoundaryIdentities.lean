@@ -48,7 +48,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledRectangleBoundaryI
   change C = R - L + H
   calc
     C = R - L + U - B := by
-      rfl
+      exact Eq.refl _
     _ = (R - L + U) + -B := by
       exact sub_eq_add_neg (R - L + U) B
     _ = R - L + (U + -B) := by
@@ -56,8 +56,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledRectangleBoundaryI
     _ = R - L + (U - B) := by
       exact congrArg (fun x : ℂ => R - L + x) (sub_eq_add_neg U B).symm
     _ = R - L + H := by
-      rfl
-
+      exact Eq.refl _
 /-- Solve the lower-owner scheduled `s = 1` rectangle identity for the right
 vertical face. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eq_left_sub_horizontal_add_boundary_ownerRightOnePoleBoundary
@@ -119,12 +118,12 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledTangentRectangleBo
     zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral_eq_verticalTangent_add_horizontal
       f F T
   have hH : H = U - B := by
-    rfl
+    exact Eq.refl _
   calc
     zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
         f F (h.height_schedule.height u) =
         zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral f F T := by
-      rfl
+      exact Eq.refl _
     _ = R * Complex.I - L * Complex.I + U - B := htangent
     _ = R * Complex.I - L * Complex.I + (U - B) := by
       calc
@@ -191,33 +190,46 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledTangentRectangleBo
               f F (h.height_schedule.height u) -
             zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral
               f F (h.height_schedule.height u) := by
-        rfl
+        exact zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference_eq
+          f F h u
       _ = U - D := by
         exact congrArg₂ HSub.hSub hU.symm hD.symm
   have hS : S = D - U + R - L := by
+    let U' : ℂ :=
+      ∫ x in Set.Icc (1 - F.c) F.c,
+        zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+          (zetaCompletedExplicitFormulaTopPath
+            (F.rectangle (h.height_schedule.height u)) x)
+    let D' : ℂ :=
+      ∫ x in Set.Icc (1 - F.c) F.c,
+        zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+          (zetaCompletedExplicitFormulaBottomPath
+            (F.rectangle (h.height_schedule.height u)) x)
+    have hU_Icc : U = U' := by
+      exact zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral_eq_Icc
+        f F (h.height_schedule.height u)
+    have hD_Icc : D = D' := by
+      exact zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral_eq_Icc
+        f F (h.height_schedule.height u)
     calc
-      S =
-          (∫ x in Set.Icc (1 - F.c) F.c,
-            zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-              (zetaCompletedExplicitFormulaBottomPath
-                (F.rectangle (h.height_schedule.height u)) x)) -
-            (∫ x in Set.Icc (1 - F.c) F.c,
-              zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-                (zetaCompletedExplicitFormulaTopPath
-                  (F.rectangle (h.height_schedule.height u)) x)) +
-            R - L := by
-        rfl
+      S = D' - U' + R - L := by
+        exact zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral_eq
+          f F (h.height_schedule.height u)
+      _ = D - U' + R - L := by
+        exact congrArg
+          (fun x : ℂ => x - U' + R - L)
+          hD_Icc.symm
       _ = D - U + R - L := by
         exact congrArg
-          (fun z : ℂ => z + R - L)
-          (congrArg₂ HSub.hSub hD.symm hU.symm)
+          (fun x : ℂ => D - x + R - L)
+          hU_Icc.symm
   let A : ℂ := R - L
   have htangent_AH : R - L + U - D = A + H := by
     calc
       R - L + U - D = (R - L) + (U - D) := by
-        exact (add_sub_assoc (R - L) U D).symm
+        exact add_sub_assoc (R - L) U D
       _ = A + (U - D) := by
-        rfl
+        exact Eq.refl _
       _ = A + H := by
         exact congrArg (fun z : ℂ => A + z) hH.symm
   have hstandard_AH : S = A - H := by
@@ -228,7 +240,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledTangentRectangleBo
           explicitFormula_standardBoundary_horizontal_algebra
             R L U D
       _ = A - (U - D) := by
-        rfl
+        exact Eq.refl _
       _ = A - H := by
         exact congrArg (fun z : ℂ => A - z) hH.symm
   change R - L + U - D = S + (H + H)
@@ -280,13 +292,25 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eq_le
         exact congrArg Neg.neg hI_mul_I
       _ = (1 : ℂ) := by
         exact neg_neg (1 : ℂ)
+  have hneg_I_mul_I : -(Complex.I * Complex.I) = (1 : ℂ) := by
+    calc
+      -(Complex.I * Complex.I) = -(-(1 : ℂ)) := by
+        exact congrArg Neg.neg hI_mul_I
+      _ = (1 : ℂ) := by
+        exact neg_neg (1 : ℂ)
+  have hI_mul_negI : Complex.I * (-Complex.I) = (1 : ℂ) := by
+    calc
+      Complex.I * (-Complex.I) = -(Complex.I * Complex.I) := by
+        exact mul_neg Complex.I Complex.I
+      _ = (1 : ℂ) := by
+        exact hneg_I_mul_I
   have hC_mul_negI :
       C * (-Complex.I) = R - L + H * (-Complex.I) := by
     calc
       C * (-Complex.I) = (R * Complex.I - L * Complex.I + H) * (-Complex.I) := by
         exact congrArg (fun x : ℂ => x * (-Complex.I)) hC
       _ = ((R * Complex.I - L * Complex.I) + H) * (-Complex.I) := by
-        rfl
+        exact Eq.refl _
       _ = (R * Complex.I - L * Complex.I) * (-Complex.I) + H * (-Complex.I) := by
         exact add_mul (R * Complex.I - L * Complex.I) H (-Complex.I)
       _ = ((R * Complex.I) + -(L * Complex.I)) * (-Complex.I) + H * (-Complex.I) := by
@@ -319,7 +343,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eq_le
             H * (-Complex.I) := by
         exact congrArg
           (fun x : ℂ => (R * x + (-(L * Complex.I)) * (-Complex.I)) + H * (-Complex.I))
-          hnegI_mul_I
+          hneg_I_mul_I
       _ =
           (R +
               (-(L * Complex.I)) * (-Complex.I)) +
@@ -345,7 +369,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eq_le
           (R + -(L * (1 : ℂ))) + H * (-Complex.I) := by
         exact congrArg
           (fun x : ℂ => (R + -(L * x)) + H * (-Complex.I))
-          hnegI_mul_I
+          hI_mul_negI
       _ = (R + -L) + H * (-Complex.I) := by
         exact congrArg
           (fun x : ℂ => (R + -x) + H * (-Complex.I))
@@ -372,7 +396,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_eq_le
           exact add_zero (R - L)
     calc
       R = L + (R - L) := by
-        exact (add_sub_cancel'_right L R).symm
+        exact (add_sub_cancel L R).symm
       _ = L + (C * (-Complex.I) - H * (-Complex.I)) := by
         exact congrArg (fun x : ℂ => L + x) hstep.symm
       _ = L + C * (-Complex.I) - H * (-Complex.I) := by
@@ -428,7 +452,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIn
       R =
         zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
           f F (h.height_schedule.height u) := by
-    rfl
+    exact Eq.refl _
   have hvertical :
       zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
           f F (h.height_schedule.height u) =
@@ -495,7 +519,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIn
       R =
         zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
           f F (h.height_schedule.height u) := by
-    rfl
+    exact Eq.refl _
   have hvertical :
       zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
           f F (h.height_schedule.height u) =
@@ -587,7 +611,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIn
       R =
         zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
           f F (h.height_schedule.height u) := by
-    rfl
+    exact Eq.refl _
   have hvertical :
       zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
           f F (h.height_schedule.height u) =
@@ -610,7 +634,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIn
     le_trans hnorm_add hsum_left
   have htarget_assoc :
       (‖L‖ + ‖H‖) + ‖C‖ = ‖L‖ + ‖H‖ + ‖C‖ := by
-    rfl
+    exact Eq.refl _
   have hR_norm :
       ‖R‖ = ‖L - H + C‖ :=
     congrArg norm hR
@@ -653,7 +677,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIn
       R =
         zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
           f F (h.height_schedule.height u) := by
-    rfl
+    exact Eq.refl _
   have hvertical :
       zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
           f F (h.height_schedule.height u) =

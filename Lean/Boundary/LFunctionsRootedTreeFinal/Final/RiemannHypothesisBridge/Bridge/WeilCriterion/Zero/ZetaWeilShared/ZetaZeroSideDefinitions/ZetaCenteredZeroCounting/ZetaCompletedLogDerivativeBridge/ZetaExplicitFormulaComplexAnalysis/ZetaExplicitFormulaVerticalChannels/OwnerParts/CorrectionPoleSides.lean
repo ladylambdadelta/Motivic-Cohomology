@@ -87,91 +87,15 @@ theorem zetaCompletedExplicitFormulaCorrectionContribution_eq_centeredPolePhi
         zetaCompletedExplicitFormulaPhi f 0 := by
   exact zetaCompletedExplicitFormulaCorrectionContribution_eq f
 
-/-- The right-face `s = 1` correction integrand is the isolated kernel evaluated
-on the right path. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleIntegrand_eq_kernel
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T t : ℝ) :
-    (-1 / (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1)) *
-        zetaCompletedExplicitFormulaPhi f
-          (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1 / 2) =
-      zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-        (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) :=
-  rfl
-
-/-- The left-face `s = 1` correction integrand is the isolated kernel evaluated
-on the left path. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleIntegrand_eq_kernel
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T t : ℝ) :
-    (-1 / (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1)) *
-        zetaCompletedExplicitFormulaPhi f
-          (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1 / 2) =
-      zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-        (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t) :=
-  rfl
-
-/-- The top-edge `s = 1` correction integrand is the isolated kernel evaluated
-on the top path. -/
-theorem zetaCompletedExplicitFormulaCorrectionTopOnePoleIntegrand_eq_kernel
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T x : ℝ) :
-    (-1 / (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1)) *
-        zetaCompletedExplicitFormulaPhi f
-          (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1 / 2) =
-      zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-        (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x) :=
-  rfl
-
-/-- The bottom-edge `s = 1` correction integrand is the isolated kernel evaluated
-on the bottom path. -/
-theorem zetaCompletedExplicitFormulaCorrectionBottomOnePoleIntegrand_eq_kernel
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T x : ℝ) :
-    (-1 / (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1)) *
-        zetaCompletedExplicitFormulaPhi f
-          (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1 / 2) =
-      zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-        (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x) :=
-  rfl
-
-/-- The tangent-weighted right-side integral is the old real-side integral
-multiplied by the vertical tangent `I`. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral_eq_vertical_mul_I
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral f F T =
-      zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral f F T * Complex.I := by
-  exact
-    integral_smul_const
-      (fun t : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-          (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t))
-      Complex.I
-
-/-- The tangent-weighted left-side integral is the old real-side integral
-multiplied by the vertical tangent `I`. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral_eq_vertical_mul_I
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
-    zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral f F T =
-      zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral f F T * Complex.I := by
-  exact
-    integral_smul_const
-      (fun t : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-          (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t))
-      Complex.I
-
-/-- The tangent-weighted top side is definitionally the old top horizontal
-integral, since the top parametrization has tangent `1`. -/
-theorem zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral_eq_horizontal
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
-    zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral f F T =
-      zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral f F T :=
-  rfl
-
-/-- The tangent-weighted bottom side is definitionally the old bottom horizontal
-integral before the final boundary orientation sign is applied. -/
-theorem zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral_eq_horizontal
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
-    zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral f F T =
-      zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T :=
-  rfl
+/-- In the pole-enclosing geometry, the unordered horizontal span is the
+left-to-right closed interval used by a standard rectangle boundary. -/
+theorem zetaCompletedExplicitFormulaCorrectionPoleHorizontal_uIcc_eq_Icc
+    (F : ExplicitFormulaContourFamily) :
+    Set.uIcc F.c (1 - F.c) = Set.Icc (1 - F.c) F.c := by
+  have hleft_le_right : 1 - F.c ≤ F.c :=
+    le_of_lt
+      (lt_trans F.one_sub_c_neg F.c_pos)
+  exact Set.uIcc_of_ge hleft_le_right
 
 /-- The tangent-weighted isolated `s = 0` rectangle boundary integral unfolds to
 its four oriented sides. -/
@@ -181,9 +105,8 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIn
       zetaCompletedExplicitFormulaCorrectionRightZeroPoleTangentIntegral f F T -
         zetaCompletedExplicitFormulaCorrectionLeftZeroPoleTangentIntegral f F T +
           zetaCompletedExplicitFormulaCorrectionTopZeroPoleTangentIntegral f F T -
-            zetaCompletedExplicitFormulaCorrectionBottomZeroPoleTangentIntegral f F T :=
-  rfl
-
+            zetaCompletedExplicitFormulaCorrectionBottomZeroPoleTangentIntegral f F T := by
+  exact Eq.refl _
 /-- The right-face `s = 0` correction integrand is the isolated kernel evaluated
 on the right path. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleIntegrand_eq_kernel
@@ -192,9 +115,8 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleIntegrand_eq_kernel
         zetaCompletedExplicitFormulaPhi f
           (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1 / 2) =
       zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f
-        (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) :=
-  rfl
-
+        (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t) := by
+  exact Eq.refl _
 /-- The left-face `s = 0` correction integrand is the isolated kernel evaluated
 on the left path. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleIntegrand_eq_kernel
@@ -203,9 +125,8 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleIntegrand_eq_kernel
         zetaCompletedExplicitFormulaPhi f
           (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1 / 2) =
       zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f
-        (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t) :=
-  rfl
-
+        (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t) := by
+  exact Eq.refl _
 /-- The top-edge `s = 0` correction integrand is the isolated kernel evaluated
 on the top path. -/
 theorem zetaCompletedExplicitFormulaCorrectionTopZeroPoleIntegrand_eq_kernel
@@ -214,9 +135,8 @@ theorem zetaCompletedExplicitFormulaCorrectionTopZeroPoleIntegrand_eq_kernel
         zetaCompletedExplicitFormulaPhi f
           (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x - 1 / 2) =
       zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f
-        (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x) :=
-  rfl
-
+        (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x) := by
+  exact Eq.refl _
 /-- The bottom-edge `s = 0` correction integrand is the isolated kernel evaluated
 on the bottom path. -/
 theorem zetaCompletedExplicitFormulaCorrectionBottomZeroPoleIntegrand_eq_kernel
@@ -225,9 +145,8 @@ theorem zetaCompletedExplicitFormulaCorrectionBottomZeroPoleIntegrand_eq_kernel
         zetaCompletedExplicitFormulaPhi f
           (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x - 1 / 2) =
       zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f
-        (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x) :=
-  rfl
-
+        (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x) := by
+  exact Eq.refl _
 /-- The tangent-weighted right-side `s = 0` integral is the old real-side
 integral multiplied by the vertical tangent `I`. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleTangentIntegral_eq_vertical_mul_I
@@ -259,17 +178,15 @@ horizontal integral. -/
 theorem zetaCompletedExplicitFormulaCorrectionTopZeroPoleTangentIntegral_eq_horizontal
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
     zetaCompletedExplicitFormulaCorrectionTopZeroPoleTangentIntegral f F T =
-      zetaCompletedExplicitFormulaCorrectionTopZeroPoleHorizontalIntegral f F T :=
-  rfl
-
+      zetaCompletedExplicitFormulaCorrectionTopZeroPoleHorizontalIntegral f F T := by
+  exact Eq.refl _
 /-- The tangent-weighted bottom `s = 0` side is definitionally the old bottom
 horizontal integral before the final boundary orientation sign is applied. -/
 theorem zetaCompletedExplicitFormulaCorrectionBottomZeroPoleTangentIntegral_eq_horizontal
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
     zetaCompletedExplicitFormulaCorrectionBottomZeroPoleTangentIntegral f F T =
-      zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegral f F T :=
-  rfl
-
+      zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegral f F T := by
+  exact Eq.refl _
 /-- The `s = 0` finite-rectangle single-pole boundary integral unfolds to its four
 oriented sides. -/
 theorem zetaCompletedExplicitFormulaCorrectionZeroPoleRectangleBoundaryIntegral_eq_fourSides
@@ -278,9 +195,8 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleRectangleBoundaryIntegral_
       zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral f F T -
         zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral f F T +
           zetaCompletedExplicitFormulaCorrectionTopZeroPoleHorizontalIntegral f F T -
-            zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegral f F T :=
-  rfl
-
+            zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegral f F T := by
+  exact Eq.refl _
 /-- The `s = 1` finite-rectangle single-pole boundary integral unfolds to its four
 oriented sides. -/
 theorem zetaCompletedExplicitFormulaCorrectionOnePoleRectangleBoundaryIntegral_eq_fourSides
@@ -289,9 +205,8 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleRectangleBoundaryIntegral_e
       zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral f F T -
         zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral f F T +
           zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral f F T -
-            zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T :=
-  rfl
-
+            zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T := by
+  exact Eq.refl _
 /-- The scheduled `s = 0` single-pole rectangle boundary integral is the four-side
 identity at the scheduled height. -/
 theorem zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledRectangleBoundaryIntegral_eq_fourSides
@@ -306,9 +221,8 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledRectangleBoundary
           zetaCompletedExplicitFormulaCorrectionTopZeroPoleHorizontalIntegral
             f F (h.height_schedule.height u) -
             zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegral
-              f F (h.height_schedule.height u) :=
-  rfl
-
+              f F (h.height_schedule.height u) := by
+  exact Eq.refl _
 /-- The scheduled `s = 1` single-pole rectangle boundary integral is the four-side
 identity at the scheduled height. -/
 theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledRectangleBoundaryIntegral_eq_fourSides
@@ -323,9 +237,8 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledRectangleBoundaryI
           zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral
             f F (h.height_schedule.height u) -
             zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral
-              f F (h.height_schedule.height u) :=
-  rfl
-
+              f F (h.height_schedule.height u) := by
+  exact Eq.refl _
 /-- Additive algebra for isolating the left side from an oriented rectangle boundary
 identity `C = R - L + H`. -/
 theorem leftSide_eq_right_add_horizontal_sub_boundary_of_boundary_eq
@@ -538,7 +451,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleCoefficient_norm_le
       _ = ‖1 / z‖ := by
         exact hnorm_neg
       _ = ‖(1 : ℂ) / z‖ := by
-        rfl
+        exact Eq.refl _
       _ = ‖(1 : ℂ)‖ / ‖z‖ := by
         exact hnorm_div
       _ = 1 / ‖z‖ := by
@@ -845,7 +758,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightVerticalIntegrableOn
           ((Complex.continuous_ofReal.comp continuous_id).mul continuous_const)).continuousAt
     have hboundary :
         s ∈ explicitFormulaContourFamilyBoundary F T := by
-      exact Or.inl ⟨t, ht, rfl⟩
+      exact Or.inl ⟨t, ht, Eq.refl _⟩
     have hs0 : s ≠ 0 :=
       explicitFormulaContourSingularPoint.ne_zero_of_not
         (fun hsingular => havoid s hsingular hboundary)
@@ -911,7 +824,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftVerticalIntegrableOn
           ((Complex.continuous_ofReal.comp continuous_id).mul continuous_const)).continuousAt
     have hboundary :
         s ∈ explicitFormulaContourFamilyBoundary F T := by
-      exact Or.inr (Or.inl ⟨t, ht, rfl⟩)
+      exact Or.inr (Or.inl ⟨t, ht, Eq.refl _⟩)
     have hs0 : s ≠ 0 :=
       explicitFormulaContourSingularPoint.ne_zero_of_not
         (fun hsingular => havoid s hsingular hboundary)
@@ -1202,8 +1115,7 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionVerticalChannel_eq_arc
     _ =
       zetaCompletedExplicitFormulaArchimedeanVerticalChannel f F T +
         zetaCompletedExplicitFormulaCorrectionVerticalChannel f F T := by
-      rfl
-
+      exact Eq.refl _
 /-- Local integrability of the right-face `s = 0` correction-pole summand on a
 finite scheduled height interval. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegrableOn
