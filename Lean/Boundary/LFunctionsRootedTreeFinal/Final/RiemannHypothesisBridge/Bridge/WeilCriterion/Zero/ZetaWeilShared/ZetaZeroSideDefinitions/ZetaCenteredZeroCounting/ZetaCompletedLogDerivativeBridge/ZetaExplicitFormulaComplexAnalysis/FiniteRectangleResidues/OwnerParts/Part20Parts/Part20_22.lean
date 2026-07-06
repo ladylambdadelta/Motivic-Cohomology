@@ -22,7 +22,7 @@ namespace ZetaAdmissibleFunction
 ## Part20 22: FinalSubdivisionConstructors
 -/
 
-theorem explicitFormulaRectangleSelectedEndpointData_edgeAccounting_closedRadiusControls
+theorem explicitFormulaRectangleRawHoleSelectedEndpointData_edgeAccounting_closedRadiusControls
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     {T ε : ℝ} (hT_nonneg : 0 ≤ T) (hε : 0 < ε)
     (hclosed :
@@ -64,13 +64,17 @@ theorem explicitFormulaRectangleSelectedEndpointData_edgeAccounting_closedRadius
             b ∈ explicitFormulaRectangleRawSingularCoordinates T →
               a ≠ b → ε + ε < dist a b) :
     explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum f
-        (explicitFormulaRectangleSelectedEndpointData F T (ε / 2)) -
+        (explicitFormulaRectangleRawHoleSelectedEndpointData F T (ε / 2)
+          (finiteRectangle_halfRadius_pos hε)) -
       explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum f
-        (explicitFormulaRectangleSelectedEndpointData F T (ε / 2)) +
+        (explicitFormulaRectangleRawHoleSelectedEndpointData F T (ε / 2)
+          (finiteRectangle_halfRadius_pos hε)) +
         (explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f
-            (explicitFormulaRectangleSelectedEndpointData F T (ε / 2)) -
+            (explicitFormulaRectangleRawHoleSelectedEndpointData F T (ε / 2)
+              (finiteRectangle_halfRadius_pos hε)) -
           explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f
-            (explicitFormulaRectangleSelectedEndpointData F T (ε / 2))) =
+            (explicitFormulaRectangleRawHoleSelectedEndpointData F T (ε / 2)
+              (finiteRectangle_halfRadius_pos hε))) =
       (zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) -
           zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) +
           (zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) * Complex.I -
@@ -80,9 +84,9 @@ theorem explicitFormulaRectangleSelectedEndpointData_edgeAccounting_closedRadius
             (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
             (explicitFormulaRectangleRawInscribedSquareLowerCorner (ε / 2) a)
             (explicitFormulaRectangleRawInscribedSquareUpperCorner (ε / 2) a) :=
-  explicitFormulaRectangleSelectedEndpointData_edgeAccounting_of_tangentBoxBoundary
-    f F T (ε / 2)
-    (explicitFormulaRectangleSelectedEndpointData_tangentBoxBoundary_closedRadiusControls
+  explicitFormulaRectangleRawHoleSelectedEndpointData_edgeAccounting_of_tangentBoxBoundary
+    f F T (ε / 2) (finiteRectangle_halfRadius_pos hε)
+    (explicitFormulaRectangleRawHoleSelectedEndpointData_tangentBoxBoundary_closedRadiusControls
       f F hT_nonneg hε hclosed hbottom htop hbottomHole htopHole hright hleft hrightHole hleftHole hsep)
 
 /-- Selected endpoint-data edge accounting over a cons horizontal adjacent-pair list
@@ -144,7 +148,7 @@ theorem explicitFormulaRectangleSelectedEndpointData_edgeAccounting_pairLists_co
           xpair ypairs ++
           explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfPairLists
             rest ypairs := by
-    rfl
+    exact Eq.refl _
   have hmap :
       explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
           (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
@@ -334,8 +338,8 @@ theorem explicitFormulaRectangleRegularGridEndpointData_edgeAccounting_adjacentP
             ypair ∈ ypairs →
               ∀ a : ℂ,
                 a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                  a.re ∉ [[xpair'.x₀, xpair'.x₁]] ∨
-                    a.im ∉ [[ypair.y₀, ypair.y₁]]) :
+                  a.re ∉ Set.uIcc xpair'.x₀ xpair'.x₁ ∨
+                    a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) :
     let firstRow : List (ExplicitFormulaRectangleRegularGridCellEndpointData F T ε) :=
       explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
         (explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
@@ -506,13 +510,25 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBoundarySum_eq_edgeSums_l
   | nil =>
       calc
         explicitFormulaRectangleRegularGridEndpointDataBoundarySum f [] = 0 := by
-          rfl
+          exact Eq.refl _
         _ =
           explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum f [] -
             explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum f [] +
               (explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f [] -
                 explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f []) := by
-          rfl
+          have hsub : (0 : ℂ) - 0 = 0 :=
+            sub_self 0
+          calc
+            (0 : ℂ) = 0 + 0 := by
+              exact (zero_add 0).symm
+            _ = (0 - 0) + (0 - 0) := by
+              exact congrArg₂ HAdd.hAdd hsub.symm hsub.symm
+            _ =
+                explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum f [] -
+                  explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum f [] +
+                    (explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f [] -
+                      explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f []) := by
+              exact Eq.refl _
   | cons d rest ih =>
       let b : ℂ := explicitFormulaRectangleRegularGridCellEndpointDataBottomEdge f d
       let t : ℂ := explicitFormulaRectangleRegularGridCellEndpointDataTopEdge f d
@@ -554,8 +570,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBoundarySum_eq_edgeSums_l
             explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum f (d :: rest) +
               (explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f (d :: rest) -
                 explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f (d :: rest)) := by
-          rfl
-
+          exact Eq.refl _
 /-- Endpoint-data edge-sum algebra for the punctured subdivision target: once the grouped
 bottom, top, and vertical edge sums have been proved to assemble to the tangent outer
 rectangle boundary minus the finite inscribed-square hole boundary sum, the endpoint-data
@@ -771,7 +786,7 @@ theorem explicitFormulaRectangle_regularGridEndpointDataSubdivision_hgrid_of_col
                                       (explicitFormulaRectangleRawInscribedSquareLowerCorner
                                         (ε / 2) a)
                                       (explicitFormulaRectangleRawInscribedSquareUpperCorner
-                                        (ε / 2) a))) :
+                                        (ε / 2) a)) :
     ∀ ε : ℝ,
       0 < ε →
         (∀ a : ℂ,
@@ -893,7 +908,7 @@ theorem explicitFormulaRectangle_regularGridEndpointDataSubdivision_hgrid_of_edg
             explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum f data,
             explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f data,
             explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f data,
-            rfl, rfl, rfl, rfl, hedge⟩
+            Eq.refl _, Eq.refl _, Eq.refl _, Eq.refl _, hedge⟩
   exact
     explicitFormulaRectangle_regularGridEndpointDataSubdivision_hgrid_of_collapsedEdges
       f F T hcollapsed
@@ -942,7 +957,7 @@ theorem explicitFormulaRectangle_regularGridEndpointDataSubdivision_hgridWithCel
                                       F T (ε / 2),
                                     d ∈ data →
                                       explicitFormulaRectangleRegularGridCellEndpointDataBoundary
-                                        f d = 0))) :
+                                        f d = 0)) :
     ∀ ε : ℝ,
       0 < ε →
         (∀ a : ℂ,
