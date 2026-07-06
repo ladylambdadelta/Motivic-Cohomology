@@ -88,14 +88,99 @@ theorem zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_core
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaContourIntegral f
           (F.rectangle (h.height_schedule.height u))) =
-        (fun u : ℝ =>
+      (fun u : ℝ =>
           explicitFormulaCompletedZeroHeightWindowResidueSum f
               (h.height_schedule.height u) +
             explicitFormulaFamilyResidueWindowError f F
               (h.height_schedule.height u)) := by
-    funext u
-    exact zetaCompletedExplicitFormulaContourIntegral_eq_heightWindowResidueSum_add_error
-      f F (h.height_schedule.height u)
+    exact funext
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaContourIntegral_eq_heightWindowResidueSum_add_error
+          f F (h.height_schedule.height u))
+  exact Eq.subst
+    (motive := fun u : ℝ → ℂ =>
+      Tendsto u atTop (𝓝 (zetaCompletedZeroSideComplex f)))
+    hpointwise.symm
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun u : ℝ =>
+            explicitFormulaCompletedZeroHeightWindowResidueSum f
+                (h.height_schedule.height u) +
+              explicitFormulaFamilyResidueWindowError f F
+                (h.height_schedule.height u))
+          atTop
+          (𝓝 z))
+      htarget
+      hsum)
+
+/-- Core contour-residue assembly theorem using the analytic package's scheduled
+horizontal carrier. -/
+theorem zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_of_scheduledCarrier_core_ownerContourResidueTheorem
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (N : ℕ)
+    (hfinite :
+      ∀ u : ℝ,
+        zetaCompletedExplicitFormulaContourIntegral f
+            (F.rectangle (h.height_schedule.height u)) =
+          explicitFormulaCompletedZeroHeightWindowResidueSum f
+            (h.height_schedule.height u))
+    (hsum :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          zetaZeroSideContribution (ρ : ℂ) f)) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaContourIntegral f
+          (F.rectangle (h.height_schedule.height u)))
+      atTop
+      (𝓝 (zetaCompletedZeroSideComplex f)) := by
+  have hwindow :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaCompletedZeroHeightWindowResidueSum f
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedZeroSideComplex f)) :=
+    (explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroSideComplex_ownerZeroLimit f hsum).comp
+      h.height_schedule.cofinal
+  have herror :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaFamilyResidueWindowError f F
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 0) :=
+    explicitFormulaFamilyResidueWindowError_tendsto_zero_of_scheduledCarrier_core_ownerResidueCalculus
+      f F h N hfinite
+  have hsum :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaCompletedZeroHeightWindowResidueSum f
+              (h.height_schedule.height u) +
+            explicitFormulaFamilyResidueWindowError f F
+              (h.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedZeroSideComplex f + 0)) :=
+    hwindow.add herror
+  have htarget :
+      zetaCompletedZeroSideComplex f + 0 =
+        zetaCompletedZeroSideComplex f :=
+    add_zero _
+  have hpointwise :
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaContourIntegral f
+          (F.rectangle (h.height_schedule.height u))) =
+      (fun u : ℝ =>
+          explicitFormulaCompletedZeroHeightWindowResidueSum f
+              (h.height_schedule.height u) +
+            explicitFormulaFamilyResidueWindowError f F
+              (h.height_schedule.height u)) := by
+    exact funext
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaContourIntegral_eq_heightWindowResidueSum_add_error
+          f F (h.height_schedule.height u))
   exact Eq.subst
     (motive := fun u : ℝ → ℂ =>
       Tendsto u atTop (𝓝 (zetaCompletedZeroSideComplex f)))
@@ -171,11 +256,9 @@ theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_of_scheduledCarrier
           (h.height_schedule.height u))
       atTop
       (𝓝 0) := by
-  match h.scheduled_horizontalFamilyZeroExcisedStrip with
-  | ⟨E, hTopMem, hBottomMem⟩ =>
-      exact
-        explicitFormulaFamilyResidueWindowError_tendsto_zero_ownerResidueCalculus
-          f F h E hTopMem hBottomMem N hfinite
+  exact
+    explicitFormulaFamilyResidueWindowError_tendsto_zero_of_scheduledCarrier_core_ownerResidueCalculus
+      f F.toContourFamily h N hfinite
 
 /-- The completed-zeta rectangle residue calculus reconstructs the complex zero-side
 residue sum from the limiting contour integral. -/
@@ -241,11 +324,13 @@ theorem zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_of_s
           (F.toContourFamily.rectangle (h.height_schedule.height u)))
       atTop
       (𝓝 (zetaCompletedZeroSideComplex f)) := by
-  match h.scheduled_horizontalFamilyZeroExcisedStrip with
-  | ⟨E, hTopMem, hBottomMem⟩ =>
-      exact
-        zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_ownerResidueCalculus
-          f F h E hTopMem hBottomMem N hfinite hsum
+  exact
+    zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_of_scheduledCarrier_core_ownerContourResidueTheorem
+      f F.toContourFamily
+      h
+      N
+      hfinite
+      hsum
 
 end ZetaAdmissibleFunction
 

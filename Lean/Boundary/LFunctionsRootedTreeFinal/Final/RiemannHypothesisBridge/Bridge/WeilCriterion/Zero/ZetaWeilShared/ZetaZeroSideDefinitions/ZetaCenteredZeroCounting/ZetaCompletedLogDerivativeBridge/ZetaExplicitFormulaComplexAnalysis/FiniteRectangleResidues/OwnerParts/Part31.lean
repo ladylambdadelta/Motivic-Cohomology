@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part34
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ProjectionCore
 
 /-!
 # Explicit-formula finite rectangle residues
@@ -85,18 +86,18 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
           ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
             (szero ε ρ).Countable)
-    (hzero_continuous :
-      ∀ ε : ℝ,
-        ContinuousOn
-          (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z)
-          (Metric.closedBall (0 : ℂ) (ε / 2) \ {(0 : ℂ)}))
+      (hzero_continuous :
+        ∀ ε : ℝ,
+          ContinuousOn
+            (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z)
+            (Metric.closedBall (0 : ℂ) (ε / 2) \ {(0 : ℂ)}))
     (hzero_differentiable :
       ∀ ε : ℝ,
         ∀ z : ℂ,
           z ∈ (Metric.ball (0 : ℂ) (ε / 2) \ {(0 : ℂ)}) \ s0 ε →
-            DifferentiableAt ℂ
-              (fun w : ℂ => w * zetaCompletedExplicitFormulaContourIntegrand f w)
-              z)
+              DifferentiableAt ℂ
+                (fun w : ℂ => (w - 0) * zetaCompletedExplicitFormulaContourIntegrand f w)
+                z)
     (hone_continuous :
       ∀ ε : ℝ,
         ContinuousOn
@@ -317,6 +318,40 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
         ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
+    (hside :
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T) →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              ∀ b : ℂ,
+                b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                  a ≠ b → ε + ε < dist a b) →
+            explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) (-T) ∧
+              explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) T ∧
+                (∀ a : ℂ,
+                  a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                    explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                      (explicitFormulaRectangleRawInscribedSquareLowerCorner (ε / 2) a).im) ∧
+                  (∀ a : ℂ,
+                    a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                        (explicitFormulaRectangleRawInscribedSquareUpperCorner (ε / 2) a).im) ∧
+                    explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) F.c ∧
+                      explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) (1 - F.c) ∧
+                        (∀ a : ℂ,
+                          a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                            explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2)
+                              (explicitFormulaRectangleRawInscribedSquareUpperCorner
+                                (ε / 2) a).re) ∧
+                          (∀ a : ℂ,
+                            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                              explicitFormulaRectangleSortedYVerticalSideIntegrable f T
+                                (ε / 2)
+                                (explicitFormulaRectangleRawInscribedSquareLowerCorner
+                                  (ε / 2) a).re))
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
@@ -334,7 +369,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
       (fun a ha =>
         explicitFormulaRectangleRawSingularCoordinates_localInterior_ball F hT hinterior ha)
       (explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral_eq_zero_ownerGridSubdivision
-        f F h hT hinterior hboundary)
+        f F h hT hinterior hboundary hside)
       hlocal
 
 /-- The finite Cauchy-residue theorem for the tangent completed contour integral, after
@@ -354,6 +389,40 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
         ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
+    (hside :
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T) →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              ∀ b : ℂ,
+                b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                  a ≠ b → ε + ε < dist a b) →
+            explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) (-T) ∧
+              explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) T ∧
+                (∀ a : ℂ,
+                  a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                    explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                      (explicitFormulaRectangleRawInscribedSquareLowerCorner (ε / 2) a).im) ∧
+                  (∀ a : ℂ,
+                    a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                        (explicitFormulaRectangleRawInscribedSquareUpperCorner (ε / 2) a).im) ∧
+                    explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) F.c ∧
+                      explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) (1 - F.c) ∧
+                        (∀ a : ℂ,
+                          a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                            explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2)
+                              (explicitFormulaRectangleRawInscribedSquareUpperCorner
+                                (ε / 2) a).re) ∧
+                          (∀ a : ℂ,
+                            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                              explicitFormulaRectangleSortedYVerticalSideIntegrable f T
+                                (ε / 2)
+                                (explicitFormulaRectangleRawInscribedSquareLowerCorner
+                                  (ε / 2) a).re))
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
@@ -367,7 +436,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
         explicitFormulaRectangle_poleCorrectedResidueSum f T := by
   exact
     zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCorrectedResidueSum_of_boundaryRegular_interiorPoles_ownerCauchyResidueTheorem
-      f F h T hT hboundary hinterior hlocal
+      f F h T hT hboundary hinterior hside hlocal
 
 /-- The tangent finite Cauchy-residue theorem applied to the avoided rectangle.  The raw
 completed integrand includes the completed-zeta pole residues at `0` and `1`. -/
@@ -381,6 +450,40 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
         ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
+    (hside :
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T) →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              ∀ b : ℂ,
+                b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                  a ≠ b → ε + ε < dist a b) →
+            explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) (-T) ∧
+              explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) T ∧
+                (∀ a : ℂ,
+                  a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                    explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                      (explicitFormulaRectangleRawInscribedSquareLowerCorner (ε / 2) a).im) ∧
+                  (∀ a : ℂ,
+                    a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                        (explicitFormulaRectangleRawInscribedSquareUpperCorner (ε / 2) a).im) ∧
+                    explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) F.c ∧
+                      explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) (1 - F.c) ∧
+                        (∀ a : ℂ,
+                          a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                            explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2)
+                              (explicitFormulaRectangleRawInscribedSquareUpperCorner
+                                (ε / 2) a).re) ∧
+                          (∀ a : ℂ,
+                            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                              explicitFormulaRectangleSortedYVerticalSideIntegrable f T
+                                (ε / 2)
+                                (explicitFormulaRectangleRawInscribedSquareLowerCorner
+                                  (ε / 2) a).re))
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
@@ -401,7 +504,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
       f F h T havoid
   exact
     zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCorrectedResidueSum_of_boundaryRegular_windowResidues_ownerFiniteCauchyResidueTheorem
-      f F h T hT hboundary hinterior hlocal
+      f F h T hT hboundary hinterior hside hlocal
 
 /-- Pointwise tangent finite Cauchy-residue theorem for an avoided rectangle.
 
@@ -419,6 +522,40 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
         ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
+    (hside :
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T) →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              ∀ b : ℂ,
+                b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                  a ≠ b → ε + ε < dist a b) →
+            explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) (-T) ∧
+              explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) T ∧
+                (∀ a : ℂ,
+                  a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                    explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                      (explicitFormulaRectangleRawInscribedSquareLowerCorner (ε / 2) a).im) ∧
+                  (∀ a : ℂ,
+                    a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                        (explicitFormulaRectangleRawInscribedSquareUpperCorner (ε / 2) a).im) ∧
+                    explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) F.c ∧
+                      explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) (1 - F.c) ∧
+                        (∀ a : ℂ,
+                          a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                            explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2)
+                              (explicitFormulaRectangleRawInscribedSquareUpperCorner
+                                (ε / 2) a).re) ∧
+                          (∀ a : ℂ,
+                            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                              explicitFormulaRectangleSortedYVerticalSideIntegrable f T
+                                (ε / 2)
+                                (explicitFormulaRectangleRawInscribedSquareLowerCorner
+                                  (ε / 2) a).re))
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
@@ -435,7 +572,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
         (2 * ↑Real.pi * Complex.I : ℂ) •
           explicitFormulaRectangle_poleCorrectedResidueSum f T :=
     zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCorrectedResidueSum_of_avoidsBoundary_ownerFiniteCauchyResidueTheorem
-      f F h T hT havoid hinterior hlocal
+      f F h T hT havoid hinterior hside hlocal
   exact hresidue
 
 /-- Scheduled transport wrapper for an already-proved project-contour finite residue
@@ -494,10 +631,10 @@ theorem explicitFormulaScheduledRectangleResidueEqualityError_eq_zero_of_heightW
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ)
     (hfinite :
-      zetaCompletedExplicitFormulaContourIntegral f
-          (F.rectangle (h.height_schedule.height u)) =
-        explicitFormulaCompletedZeroHeightWindowResidueSum f
-          (h.height_schedule.height u)) :
+    zetaCompletedExplicitFormulaContourIntegral f
+        (F.rectangle (h.height_schedule.height u)) =
+      explicitFormulaCompletedZeroHeightWindowResidueSum f
+        (h.height_schedule.height u)) :
     explicitFormulaScheduledRectangleResidueEqualityError f F h u = 0 := by
   change
     zetaCompletedExplicitFormulaContourIntegral f
@@ -570,8 +707,9 @@ theorem explicitFormulaScheduledRectangleResidueEqualityError_tendsto_zero_of_av
       (fun u : ℝ =>
         explicitFormulaScheduledRectangleResidueEqualityError f F h u) =
         (fun _u : ℝ => (0 : ℂ)) := by
-    funext u
-    exact explicitFormulaScheduledRectangleResidueEqualityError_eq_zero f F h u (hfinite u)
+    exact funext
+      (fun u : ℝ =>
+        explicitFormulaScheduledRectangleResidueEqualityError_eq_zero f F h u (hfinite u))
   exact Eq.subst
     (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
     hpointwise.symm
