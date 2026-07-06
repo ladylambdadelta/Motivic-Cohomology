@@ -58,18 +58,22 @@ def ExplicitFormulaAffineKernelMajorantPackage.of_exists
           AEStronglyMeasurable φ (volume : Measure ℝ) ∧
           ∀ᵐ t ∂(volume : Measure ℝ), ‖φ t‖ ≤ majorant t) :
     ExplicitFormulaAffineKernelMajorantPackage φ :=
-  match h with
-  | ⟨majorant, hmajorant, hmeas, hbound⟩ =>
-      { majorant := majorant
-        integrable_majorant := hmajorant
-        stronglyMeasurable_kernel := hmeas
-        norm_le_majorant := hbound }
+  let majorant : ℝ → ℝ := Classical.choose h
+  let hspec :
+      Integrable majorant (volume : Measure ℝ) ∧
+        AEStronglyMeasurable φ (volume : Measure ℝ) ∧
+          ∀ᵐ t ∂(volume : Measure ℝ), ‖φ t‖ ≤ majorant t :=
+    Classical.choose_spec h
+  { majorant := majorant
+    integrable_majorant := hspec.left
+    stronglyMeasurable_kernel := hspec.right.left
+    norm_le_majorant := hspec.right.right }
 
 /-- The zero kernel has the zero integrable majorant. -/
 def ExplicitFormulaAffineKernelMajorantPackage.zero :
     ExplicitFormulaAffineKernelMajorantPackage (fun _ : ℝ => (0 : ℂ)) :=
   { majorant := fun _ : ℝ => 0
-    integrable_majorant := integrable_zero
+    integrable_majorant := integrable_zero ℝ ℝ (volume : Measure ℝ)
     stronglyMeasurable_kernel :=
       aestronglyMeasurable_const
     norm_le_majorant :=
