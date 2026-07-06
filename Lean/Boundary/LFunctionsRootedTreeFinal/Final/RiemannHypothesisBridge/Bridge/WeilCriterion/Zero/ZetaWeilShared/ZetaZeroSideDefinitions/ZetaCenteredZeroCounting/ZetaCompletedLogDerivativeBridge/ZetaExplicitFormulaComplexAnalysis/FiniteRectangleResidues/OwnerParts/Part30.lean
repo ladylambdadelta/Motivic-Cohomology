@@ -165,7 +165,8 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
   exact
     zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCorrectedResidueSum_of_radiusLocalInterior_and_finiteHoleCauchy
       f F h T hT hinterior
-      (explicitFormulaRectangleRawSingularCoordinates_localInterior_ball F hT hinterior)
+      (fun a ha =>
+        explicitFormulaRectangleRawSingularCoordinates_localInterior_ball F hT hinterior ha)
       hfiniteHoleCauchy
       hlocal
 
