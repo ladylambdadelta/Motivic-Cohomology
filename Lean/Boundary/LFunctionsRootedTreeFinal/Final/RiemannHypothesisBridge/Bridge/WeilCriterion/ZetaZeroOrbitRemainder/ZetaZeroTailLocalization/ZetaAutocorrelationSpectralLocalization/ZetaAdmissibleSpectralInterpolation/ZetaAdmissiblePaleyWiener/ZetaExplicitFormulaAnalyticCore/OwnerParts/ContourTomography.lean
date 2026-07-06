@@ -65,7 +65,6 @@ theorem zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate_tsu
   let symm : ZetaPrimePowerIndex → ℂ :=
     fun ι : ZetaPrimePowerIndex => u ι + star (u ι)
   have hu : Summable u := by
-    unfold u
     exact horiented
   have hstar :
       (∑' ι : ZetaPrimePowerIndex, star (u ι)) =
@@ -79,7 +78,6 @@ theorem zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate_tsu
         (∑' ι : ZetaPrimePowerIndex, symm ι) =
           (∑' ι : ZetaPrimePowerIndex, u ι) +
             (∑' ι : ZetaPrimePowerIndex, star (u ι)) := by
-      unfold symm
       exact tsum_add hu hu.star
     exact hsum_add.trans
       (congrArg
@@ -88,9 +86,6 @@ theorem zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate_tsu
   have hpaired_eq_neg_symm :
       paired = fun ι : ZetaPrimePowerIndex => -symm ι := by
     funext ι
-    unfold paired
-    unfold symm
-    unfold u
     exact
       zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate_eq_neg_symmetrizedCross
         ι f
@@ -140,7 +135,6 @@ theorem zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate_tsu
       (∑' ι : ZetaPrimePowerIndex,
           zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate ι f) =
         -(z + star z) := by
-    unfold z
     exact
       zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate_tsum_eq_neg_oriented_add_star
         f horiented
@@ -244,7 +238,6 @@ theorem zetaCompletedPrimePowerSpectralSampleCoordinate_summable_convolutionAuto
       zetaCompletedExplicitFormulaPrimePowerSpectralSampleCoordinate ι
         (ZetaAdmissibleFunction.convolutionAutocorrelation f)
   have hu : Summable u := by
-    unfold u
     exact horiented
   have hstar : Summable (fun ι : ZetaPrimePowerIndex => star (u ι)) :=
     hu.star
@@ -254,8 +247,6 @@ theorem zetaCompletedPrimePowerSpectralSampleCoordinate_summable_convolutionAuto
   have hsymm_point :
       (fun ι : ZetaPrimePowerIndex => u ι + star (u ι)) = symm := by
     funext ι
-    unfold u
-    unfold symm
     rfl
   have hsymm : Summable symm :=
     Eq.subst
@@ -267,8 +258,6 @@ theorem zetaCompletedPrimePowerSpectralSampleCoordinate_summable_convolutionAuto
   have hpaired_point :
       paired = (fun ι : ZetaPrimePowerIndex => -symm ι) := by
     funext ι
-    unfold paired
-    unfold symm
     exact
       zetaCompletedPrimePowerAutocorrelationPairedSpectralSampleCoordinate_eq_neg_symmetrizedCross
         ι f
@@ -279,12 +268,9 @@ theorem zetaCompletedPrimePowerSpectralSampleCoordinate_summable_convolutionAuto
       hpaired_neg
   have hspectral_point : spectral = paired := by
     funext ι
-    unfold spectral
-    unfold paired
     exact
       zetaCompletedExplicitFormulaPrimePowerSpectralSampleCoordinate_convolutionAutocorrelation_eq_paired
         ι f
-  unfold spectral at hspectral_point
   exact Eq.subst
     (motive := fun v : ZetaPrimePowerIndex → ℂ => Summable v)
     hspectral_point.symm
