@@ -292,6 +292,70 @@ theorem Complex.realPhase_integerIncrement_separated_from_resonance_of_not_mem_w
     exact hn_not_mem hn_mem
   exact le_of_not_gt hn_not_lt
 
+/-- A subblock avoiding an extensionally specified resonant window is pointwise
+separated from the corresponding resonance center. -/
+theorem Complex.realPhase_integerIncrement_separated_from_resonance_on_subblock
+    (φ : ℝ → ℝ)
+    {a b c d : ℕ}
+    {resonance lam : ℝ}
+    (S : Finset ℕ)
+    (hS :
+      ∀ m : ℕ,
+        m ∈ S ↔
+          m ∈ Finset.Ico a b ∧
+            ‖Complex.realPhase_integerIncrement φ m - resonance‖ < lam)
+    (hsub : Finset.Ico c d ⊆ Finset.Ico a b)
+    (havoid : ∀ n : ℕ, n ∈ Finset.Ico c d → n ∉ S) :
+    ∀ n : ℕ,
+      n ∈ Finset.Ico c d →
+        lam ≤ ‖Complex.realPhase_integerIncrement φ n - resonance‖ := by
+  intro n hn
+  exact
+    Complex.realPhase_integerIncrement_separated_from_resonance_of_not_mem_window
+      φ S hS (hsub hn) (havoid n hn)
+
+/-- A subblock avoiding the resonant window supplies the standard separated
+increment hypothesis on that subblock. -/
+theorem Complex.realPhase_integerIncrementSeparatedOn_of_resonanceWindow_avoidance
+    (φ : ℝ → ℝ)
+    {a b c d : ℕ}
+    {resonance lam : ℝ}
+    (S : Finset ℕ)
+    (hresonance_eq :
+      resonance = 2 * Real.pi * (0 : ℝ))
+    (hS :
+      ∀ m : ℕ,
+        m ∈ S ↔
+          m ∈ Finset.Ico a b ∧
+            ‖Complex.realPhase_integerIncrement φ m - resonance‖ < lam)
+    (hsub : Finset.Ico c d ⊆ Finset.Ico a b)
+    (havoid : ∀ n : ℕ, n ∈ Finset.Ico c d → n ∉ S)
+    (honly_zero :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico c d →
+          ∀ k : ℤ,
+            ‖Complex.realPhase_integerIncrement φ n -
+                (2 * Real.pi * (0 : ℝ))‖ ≤
+              ‖Complex.realPhase_integerIncrement φ n -
+                (2 * Real.pi * (k : ℝ))‖) :
+    Complex.realPhase_integerIncrementSeparatedOn φ c d lam := by
+  intro n hn k
+  have hzero_sep :
+      lam ≤
+        ‖Complex.realPhase_integerIncrement φ n -
+          (2 * Real.pi * (0 : ℝ))‖ := by
+    have hres_sep :
+        lam ≤ ‖Complex.realPhase_integerIncrement φ n - resonance‖ :=
+      Complex.realPhase_integerIncrement_separated_from_resonance_on_subblock
+        φ S hS hsub havoid n hn
+    exact
+      Eq.subst
+        (motive := fun r : ℝ =>
+          lam ≤ ‖Complex.realPhase_integerIncrement φ n - r‖)
+        hresonance_eq
+        hres_sep
+  exact le_trans hzero_sep (honly_zero n hn k)
+
 end
 
 end LFunctions
