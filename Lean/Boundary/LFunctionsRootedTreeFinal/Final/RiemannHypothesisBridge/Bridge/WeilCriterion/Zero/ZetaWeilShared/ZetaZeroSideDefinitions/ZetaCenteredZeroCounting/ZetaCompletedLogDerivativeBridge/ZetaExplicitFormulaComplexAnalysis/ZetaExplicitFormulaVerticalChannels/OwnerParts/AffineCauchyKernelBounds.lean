@@ -53,7 +53,7 @@ theorem zetaCompletedExplicitFormulaRightAffineLine_zeroPoleCoefficient_norm_le
   have hrecip : 1 / ‖z‖ ≤ 1 / F.c :=
     one_div_le_one_div_of_le hpos hle_norm
   have hneg_div : -1 / z = -(1 / z) :=
-    (neg_div z (1 : ℂ)).symm
+    neg_div z (1 : ℂ)
   have hnorm_neg : ‖-(1 / z)‖ = ‖1 / z‖ :=
     norm_neg (1 / z)
   have hnorm_div : ‖(1 : ℂ) / z‖ = ‖(1 : ℂ)‖ / ‖z‖ :=
@@ -118,7 +118,7 @@ theorem zetaCompletedExplicitFormulaLeftAffineLine_zeroPoleCoefficient_norm_le
   have hrecip : 1 / ‖z‖ ≤ 1 / (-(1 - F.c)) :=
     one_div_le_one_div_of_le hpos hle_norm
   have hneg_div : -1 / z = -(1 / z) :=
-    (neg_div z (1 : ℂ)).symm
+    neg_div z (1 : ℂ)
   have hnorm_neg : ‖-(1 / z)‖ = ‖1 / z‖ :=
     norm_neg (1 / z)
   have hnorm_div : ‖(1 : ℂ) / z‖ = ‖(1 : ℂ)‖ / ‖z‖ :=

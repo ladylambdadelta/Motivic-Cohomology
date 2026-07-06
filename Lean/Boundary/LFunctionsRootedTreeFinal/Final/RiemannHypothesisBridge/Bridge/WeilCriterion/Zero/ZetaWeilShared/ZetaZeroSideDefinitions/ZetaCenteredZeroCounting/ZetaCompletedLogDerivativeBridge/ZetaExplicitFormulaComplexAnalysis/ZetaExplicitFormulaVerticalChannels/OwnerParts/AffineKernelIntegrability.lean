@@ -64,7 +64,7 @@ theorem explicitFormulaAffineKernel_ae_eq_of_eq_off_singleton
     measure_singleton a
   have hcompl : {a}ᶜ ∈ ae (volume : Measure ℝ) :=
     compl_mem_ae_iff.mpr hnull
-  exact hcompl.mono
+  exact Filter.mem_of_superset hcompl
     (fun t ht =>
       hφψ t
         (fun hta : t = a =>
@@ -95,7 +95,7 @@ theorem explicitFormulaAffineKernel_integrable_of_pointwise_majorant_off_singlet
     compl_mem_ae_iff.mpr hnull
   have hae_bound :
       ∀ᵐ t ∂(volume : Measure ℝ), ‖φ t‖ ≤ majorant t :=
-    hcompl.mono
+    Filter.mem_of_superset hcompl
       (fun t ht =>
         hbound t
           (fun hta : t = a =>

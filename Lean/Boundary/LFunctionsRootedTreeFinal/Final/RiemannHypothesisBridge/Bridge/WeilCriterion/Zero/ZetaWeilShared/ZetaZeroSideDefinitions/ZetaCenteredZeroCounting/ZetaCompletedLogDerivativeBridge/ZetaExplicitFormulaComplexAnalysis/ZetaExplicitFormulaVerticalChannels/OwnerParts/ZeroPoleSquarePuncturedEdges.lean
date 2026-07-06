@@ -25,7 +25,7 @@ namespace ZetaAdmissibleFunction
 /-- Outer bottom edge of the zero-pole rectangle in standard orientation. -/
 noncomputable def zetaExplicitFormulaZeroPoleOuterBottomEdge
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  ∫ x : ℝ in (1 - F.c)..F.c, g (x + (-T) * Complex.I)
+  ∫ x : ℝ in (1 - F.c)..F.c, g (x + ((-T : ℝ) : ℂ) * Complex.I)
 
 /-- Outer top edge of the zero-pole rectangle, before the standard boundary sign. -/
 noncomputable def zetaExplicitFormulaZeroPoleOuterTopEdge
@@ -40,12 +40,12 @@ noncomputable def zetaExplicitFormulaZeroPoleOuterRightEdge
 /-- Outer left vertical edge of the zero-pole rectangle with tangent factor. -/
 noncomputable def zetaExplicitFormulaZeroPoleOuterLeftEdge
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  Complex.I • (∫ y : ℝ in -T..T, g ((1 - F.c) + y * Complex.I))
+  Complex.I • (∫ y : ℝ in -T..T, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
 
 /-- Inner square bottom edge around the pole `0`. -/
 noncomputable def zetaExplicitFormulaZeroPoleInnerBottomEdge
     (g : ℂ → ℂ) (R : ℝ) : ℂ :=
-  ∫ x : ℝ in (-R)..R, g (x + (-R) * Complex.I)
+  ∫ x : ℝ in (-R)..R, g (x + ((-R : ℝ) : ℂ) * Complex.I)
 
 /-- Inner square top edge around the pole `0`, before the standard boundary sign. -/
 noncomputable def zetaExplicitFormulaZeroPoleInnerTopEdge
@@ -60,7 +60,7 @@ noncomputable def zetaExplicitFormulaZeroPoleInnerRightEdge
 /-- Inner square left vertical edge around the pole `0` with tangent factor. -/
 noncomputable def zetaExplicitFormulaZeroPoleInnerLeftEdge
     (g : ℂ → ℂ) (R : ℝ) : ℂ :=
-  Complex.I • (∫ y : ℝ in -R..R, g ((-R) + y * Complex.I))
+  Complex.I • (∫ y : ℝ in -R..R, g (((-R : ℝ) : ℂ) + y * Complex.I))
 
 /-- Named exposed boundary normal form for the zero-pole square-punctured
 rectangle. -/
@@ -83,7 +83,24 @@ theorem zetaExplicitFormulaZeroPoleOuterStandardBoundaryCoordinateIntegral_eq_na
         zetaExplicitFormulaZeroPoleOuterTopEdge g F T +
           (zetaExplicitFormulaZeroPoleOuterRightEdge g F T -
             zetaExplicitFormulaZeroPoleOuterLeftEdge g F T) := by
-  rfl
+  calc
+    zetaExplicitFormulaZeroPoleOuterStandardBoundaryCoordinateIntegral g F T =
+        zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+          g (1 - F.c) F.c (-T) T := by
+      exact zetaExplicitFormulaZeroPoleOuterStandardBoundaryCoordinateIntegral_eq
+        g F T
+    _ =
+        zetaExplicitFormulaZeroPoleOuterBottomEdge g F T -
+          zetaExplicitFormulaZeroPoleOuterTopEdge g F T +
+            (zetaExplicitFormulaZeroPoleOuterRightEdge g F T -
+              zetaExplicitFormulaZeroPoleOuterLeftEdge g F T) := by
+      unfold zetaExplicitFormulaZeroPoleOuterBottomEdge
+      unfold zetaExplicitFormulaZeroPoleOuterTopEdge
+      unfold zetaExplicitFormulaZeroPoleOuterRightEdge
+      unfold zetaExplicitFormulaZeroPoleOuterLeftEdge
+      exact
+        zetaExplicitFormulaOnePole_standardRectangleBoundaryCoordinateIntegral_eq_four_edges
+          g (1 - F.c) F.c (-T) T
 
 /-- The zero-pole inner square boundary in named edge-integral form. -/
 theorem zetaExplicitFormulaZeroPoleInnerSquareBoundaryIntegral_eq_namedEdges
@@ -93,7 +110,23 @@ theorem zetaExplicitFormulaZeroPoleInnerSquareBoundaryIntegral_eq_namedEdges
         zetaExplicitFormulaZeroPoleInnerTopEdge g R +
           (zetaExplicitFormulaZeroPoleInnerRightEdge g R -
             zetaExplicitFormulaZeroPoleInnerLeftEdge g R) := by
-  rfl
+  calc
+    zetaExplicitFormulaZeroPoleInnerSquareBoundaryIntegral g R =
+        zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+          g (-R) R (-R) R := by
+      exact zetaExplicitFormulaZeroPoleInnerSquareBoundaryIntegral_eq g R
+    _ =
+        zetaExplicitFormulaZeroPoleInnerBottomEdge g R -
+          zetaExplicitFormulaZeroPoleInnerTopEdge g R +
+            (zetaExplicitFormulaZeroPoleInnerRightEdge g R -
+              zetaExplicitFormulaZeroPoleInnerLeftEdge g R) := by
+      unfold zetaExplicitFormulaZeroPoleInnerBottomEdge
+      unfold zetaExplicitFormulaZeroPoleInnerTopEdge
+      unfold zetaExplicitFormulaZeroPoleInnerRightEdge
+      unfold zetaExplicitFormulaZeroPoleInnerLeftEdge
+      exact
+        zetaExplicitFormulaOnePole_standardRectangleBoundaryCoordinateIntegral_eq_four_edges
+          g (-R) R (-R) R
 
 /-- The zero-pole square-punctured boundary in named outer and inner edge form. -/
 theorem zetaExplicitFormulaZeroPoleSquarePuncturedRectangleBoundaryIntegral_eq_namedEdges
@@ -107,7 +140,39 @@ theorem zetaExplicitFormulaZeroPoleSquarePuncturedRectangleBoundaryIntegral_eq_n
           zetaExplicitFormulaZeroPoleInnerTopEdge g R +
             (zetaExplicitFormulaZeroPoleInnerRightEdge g R -
               zetaExplicitFormulaZeroPoleInnerLeftEdge g R)) := by
-  rfl
+  let outerEdges : ℂ :=
+    zetaExplicitFormulaZeroPoleOuterBottomEdge g F T -
+      zetaExplicitFormulaZeroPoleOuterTopEdge g F T +
+        (zetaExplicitFormulaZeroPoleOuterRightEdge g F T -
+          zetaExplicitFormulaZeroPoleOuterLeftEdge g F T)
+  let innerEdges : ℂ :=
+    zetaExplicitFormulaZeroPoleInnerBottomEdge g R -
+      zetaExplicitFormulaZeroPoleInnerTopEdge g R +
+        (zetaExplicitFormulaZeroPoleInnerRightEdge g R -
+          zetaExplicitFormulaZeroPoleInnerLeftEdge g R)
+  have houter :
+      zetaExplicitFormulaZeroPoleOuterStandardBoundaryCoordinateIntegral g F T =
+        outerEdges :=
+    zetaExplicitFormulaZeroPoleOuterStandardBoundaryCoordinateIntegral_eq_namedEdges
+      g F T
+  have hinner :
+      zetaExplicitFormulaZeroPoleInnerSquareBoundaryIntegral g R =
+        innerEdges :=
+    zetaExplicitFormulaZeroPoleInnerSquareBoundaryIntegral_eq_namedEdges
+      g R
+  calc
+    zetaExplicitFormulaZeroPoleSquarePuncturedRectangleBoundaryIntegral g F T R =
+        zetaExplicitFormulaZeroPoleOuterStandardBoundaryCoordinateIntegral g F T -
+          zetaExplicitFormulaZeroPoleInnerSquareBoundaryIntegral g R := by
+      exact zetaExplicitFormulaZeroPoleSquarePuncturedRectangleBoundaryIntegral_eq
+        g F T R
+    _ = outerEdges -
+          zetaExplicitFormulaZeroPoleInnerSquareBoundaryIntegral g R := by
+      exact congrArg
+        (fun z : ℂ => z - zetaExplicitFormulaZeroPoleInnerSquareBoundaryIntegral g R)
+        houter
+    _ = outerEdges - innerEdges := by
+      exact congrArg (fun z : ℂ => outerEdges - z) hinner
 
 /-- The zero-pole square-punctured boundary in named exposed-edge form. -/
 theorem zetaExplicitFormulaZeroPoleSquarePuncturedRectangleBoundaryIntegral_eq_namedExposedEdges
@@ -126,7 +191,8 @@ theorem zetaExplicitFormulaZeroPoleSquarePuncturedRectangleBoundaryIntegral_eq_n
       zetaExplicitFormulaZeroPoleSquarePuncturedRectangleBoundaryIntegral g F T R =
         (outerBottom - outerTop + (outerRight - outerLeft)) -
           (innerBottom - innerTop + (innerRight - innerLeft)) := by
-    rfl
+    exact zetaExplicitFormulaZeroPoleSquarePuncturedRectangleBoundaryIntegral_eq_namedEdges
+      g F T R
   have halgebra :
       (outerBottom - outerTop + (outerRight - outerLeft)) -
           (innerBottom - innerTop + (innerRight - innerLeft)) =
