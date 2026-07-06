@@ -136,26 +136,26 @@ multiplied by the vertical tangent `I`. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral_eq_vertical_mul_I
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
     zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral f F T =
-      zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral f F T * Complex.I :=
-  integral_smul_const
-    (μ := volume.restrict (Set.Icc (-(F.rectangle T).T) (F.rectangle T).T))
-    (fun t : ℝ =>
-      zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-        (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t))
-    Complex.I
+      zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral f F T * Complex.I := by
+  exact
+    integral_smul_const
+      (fun t : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+          (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t))
+      Complex.I
 
 /-- The tangent-weighted left-side integral is the old real-side integral
 multiplied by the vertical tangent `I`. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral_eq_vertical_mul_I
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
     zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral f F T =
-      zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral f F T * Complex.I :=
-  integral_smul_const
-    (μ := volume.restrict (Set.Icc (-(F.rectangle T).T) (F.rectangle T).T))
-    (fun t : ℝ =>
-      zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-        (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t))
-    Complex.I
+      zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral f F T * Complex.I := by
+  exact
+    integral_smul_const
+      (fun t : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+          (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t))
+      Complex.I
 
 /-- The tangent-weighted top side is definitionally the old top horizontal
 integral, since the top parametrization has tangent `1`. -/
@@ -172,56 +172,6 @@ theorem zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral_eq_ho
     zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral f F T =
       zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T :=
   rfl
-
-/-- The genuine `s = 1` contour boundary unfolds to the old four real-side
-integrals with the missing vertical tangent factors restored. -/
-theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral_eq_verticalTangent_add_horizontal
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
-    zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral f F T =
-      zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral f F T * Complex.I -
-        zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral f F T * Complex.I +
-          zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral f F T -
-            zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T := by
-  let RT : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral f F T
-  let LT : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral f F T
-  let TT : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral f F T
-  let BT : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral f F T
-  let R : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral f F T
-  let L : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral f F T
-  let U : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral f F T
-  let B : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T
-  have hR : RT = R * Complex.I :=
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral_eq_vertical_mul_I
-      f F T
-  have hL : LT = L * Complex.I :=
-    zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral_eq_vertical_mul_I
-      f F T
-  have hU : TT = U :=
-    zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral_eq_horizontal
-      f F T
-  have hB : BT = B :=
-    zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral_eq_horizontal
-      f F T
-  calc
-    zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral f F T =
-        RT - LT + TT - BT := by
-      rfl
-    _ = R * Complex.I - LT + TT - BT := by
-      exact congrArg (fun x : ℂ => x - LT + TT - BT) hR
-    _ = R * Complex.I - L * Complex.I + TT - BT := by
-      exact congrArg (fun x : ℂ => R * Complex.I - x + TT - BT) hL
-    _ = R * Complex.I - L * Complex.I + U - BT := by
-      exact congrArg (fun x : ℂ => R * Complex.I - L * Complex.I + x - BT) hU
-    _ = R * Complex.I - L * Complex.I + U - B := by
-      exact congrArg (fun x : ℂ => R * Complex.I - L * Complex.I + U - x) hB
 
 /-- The tangent-weighted isolated `s = 0` rectangle boundary integral unfolds to
 its four oriented sides. -/
@@ -283,26 +233,26 @@ integral multiplied by the vertical tangent `I`. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleTangentIntegral_eq_vertical_mul_I
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
     zetaCompletedExplicitFormulaCorrectionRightZeroPoleTangentIntegral f F T =
-      zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral f F T * Complex.I :=
-  integral_smul_const
-    (μ := volume.restrict (Set.Icc (-(F.rectangle T).T) (F.rectangle T).T))
-    (fun t : ℝ =>
-      zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f
-        (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t))
-    Complex.I
+      zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral f F T * Complex.I := by
+  exact
+    integral_smul_const
+      (fun t : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f
+          (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t))
+      Complex.I
 
 /-- The tangent-weighted left-side `s = 0` integral is the old real-side
 integral multiplied by the vertical tangent `I`. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleTangentIntegral_eq_vertical_mul_I
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
     zetaCompletedExplicitFormulaCorrectionLeftZeroPoleTangentIntegral f F T =
-      zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral f F T * Complex.I :=
-  integral_smul_const
-    (μ := volume.restrict (Set.Icc (-(F.rectangle T).T) (F.rectangle T).T))
-    (fun t : ℝ =>
-      zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f
-        (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t))
-    Complex.I
+      zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral f F T * Complex.I := by
+  exact
+    integral_smul_const
+      (fun t : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f
+          (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t))
+      Complex.I
 
 /-- The tangent-weighted top `s = 0` side is definitionally the old top
 horizontal integral. -/
@@ -319,56 +269,6 @@ theorem zetaCompletedExplicitFormulaCorrectionBottomZeroPoleTangentIntegral_eq_h
     zetaCompletedExplicitFormulaCorrectionBottomZeroPoleTangentIntegral f F T =
       zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegral f F T :=
   rfl
-
-/-- The genuine `s = 0` contour boundary unfolds to the old four real-side
-integrals with the missing vertical tangent factors restored. -/
-theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral_eq_verticalTangent_add_horizontal
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
-    zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral f F T =
-      zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral f F T * Complex.I -
-        zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral f F T * Complex.I +
-          zetaCompletedExplicitFormulaCorrectionTopZeroPoleHorizontalIntegral f F T -
-            zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegral f F T := by
-  let RT : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleTangentIntegral f F T
-  let LT : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleTangentIntegral f F T
-  let TT : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionTopZeroPoleTangentIntegral f F T
-  let BT : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionBottomZeroPoleTangentIntegral f F T
-  let R : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral f F T
-  let L : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral f F T
-  let U : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionTopZeroPoleHorizontalIntegral f F T
-  let B : ℂ :=
-    zetaCompletedExplicitFormulaCorrectionBottomZeroPoleHorizontalIntegral f F T
-  have hR : RT = R * Complex.I :=
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleTangentIntegral_eq_vertical_mul_I
-      f F T
-  have hL : LT = L * Complex.I :=
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleTangentIntegral_eq_vertical_mul_I
-      f F T
-  have hU : TT = U :=
-    zetaCompletedExplicitFormulaCorrectionTopZeroPoleTangentIntegral_eq_horizontal
-      f F T
-  have hB : BT = B :=
-    zetaCompletedExplicitFormulaCorrectionBottomZeroPoleTangentIntegral_eq_horizontal
-      f F T
-  calc
-    zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral f F T =
-        RT - LT + TT - BT := by
-      rfl
-    _ = R * Complex.I - LT + TT - BT := by
-      exact congrArg (fun x : ℂ => x - LT + TT - BT) hR
-    _ = R * Complex.I - L * Complex.I + TT - BT := by
-      exact congrArg (fun x : ℂ => R * Complex.I - x + TT - BT) hL
-    _ = R * Complex.I - L * Complex.I + U - BT := by
-      exact congrArg (fun x : ℂ => R * Complex.I - L * Complex.I + x - BT) hU
-    _ = R * Complex.I - L * Complex.I + U - B := by
-      exact congrArg (fun x : ℂ => R * Complex.I - L * Complex.I + U - x) hB
 
 /-- The `s = 0` finite-rectangle single-pole boundary integral unfolds to its four
 oriented sides. -/
@@ -440,17 +340,17 @@ theorem leftSide_eq_right_add_horizontal_sub_boundary_of_boundary_eq
       _ = (L + (R + -L)) + H := by
         exact (add_assoc L (R + -L) H).symm
       _ = ((L + R) + -L) + H := by
-        exact congrArg (fun x : ℂ => x + H) (add_assoc L R (-L))
+        exact congrArg (fun x : ℂ => x + H) (add_assoc L R (-L)).symm
       _ = ((R + L) + -L) + H := by
         exact congrArg (fun x : ℂ => (x + -L) + H) (add_comm L R)
       _ = (R + (L + -L)) + H := by
-        exact congrArg (fun x : ℂ => x + H) (add_assoc R L (-L)).symm
+        exact congrArg (fun x : ℂ => x + H) (add_assoc R L (-L))
       _ = (R + 0) + H := by
-        exact congrArg (fun x : ℂ => (R + x) + H) (add_right_neg L)
+        exact congrArg (fun x : ℂ => (R + x) + H) (add_neg_cancel L)
       _ = R + H := by
         exact congrArg (fun x : ℂ => x + H) (add_zero R)
   exact
-    (eq_sub_iff_add_eq.mpr hsum).symm
+    eq_sub_iff_add_eq.mpr hsum
 
 /-- Additive algebra for isolating the right side from an oriented rectangle boundary
 identity `C = R - L + H`. -/
@@ -459,8 +359,10 @@ theorem rightSide_eq_left_sub_horizontal_add_boundary_of_boundary_eq
     R = L - H + C := by
   have hsum : R + H = C + L := by
     calc
-      R + H = R + (L + -L + H) := by
-        exact congrArg (fun x : ℂ => R + (x + H)) (add_right_neg L).symm
+      R + H = R + (0 + H) := by
+        exact congrArg (fun x : ℂ => R + x) (zero_add H).symm
+      _ = R + (L + -L + H) := by
+        exact congrArg (fun x : ℂ => R + (x + H)) (add_neg_cancel L).symm
       _ = R + (L + (-L + H)) := by
         exact congrArg (fun x : ℂ => R + x) (add_assoc L (-L) H)
       _ = (R + L) + (-L + H) := by
@@ -478,7 +380,7 @@ theorem rightSide_eq_left_sub_horizontal_add_boundary_of_boundary_eq
       _ = C + L := by
         exact add_comm L C
   have hright : R = C + L - H := by
-    exact (eq_sub_iff_add_eq.mpr hsum).symm
+    exact eq_sub_iff_add_eq.mpr hsum
   calc
     R = C + L - H := by
       exact hright
@@ -621,7 +523,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleCoefficient_norm_le
   have hrecip : 1 / ‖z‖ ≤ 1 / (F.c - 1) :=
     one_div_le_one_div_of_le hpos hle_norm
   have hneg_div : -1 / z = -(1 / z) :=
-    (neg_div z (1 : ℂ)).symm
+    neg_div z (1 : ℂ)
   have hnorm_neg : ‖-(1 / z)‖ = ‖1 / z‖ :=
     norm_neg (1 / z)
   have hnorm_div : ‖(1 : ℂ) / z‖ = ‖(1 : ℂ)‖ / ‖z‖ :=
@@ -657,6 +559,12 @@ theorem zetaCompletedExplicitFormulaLeftPath_shift_re_mem_strip_bounds
   have hre :
       (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1 / 2 : ℂ).re =
         (1 - F.c) - 1 / 2 := by
+    have hhalf_re : (1 / 2 : ℂ).re = (1 / 2 : ℝ) := by
+      calc
+        (1 / 2 : ℂ).re = (((1 / 2 : ℝ) : ℂ)).re := by
+          exact congrArg Complex.re (Complex.ofReal_div (1 : ℝ) 2).symm
+        _ = (1 / 2 : ℝ) := by
+          exact Complex.ofReal_re (1 / 2)
     calc
       (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1 / 2 : ℂ).re =
           (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t).re -
@@ -669,7 +577,7 @@ theorem zetaCompletedExplicitFormulaLeftPath_shift_re_mem_strip_bounds
           (fun x : ℝ => x - (1 / 2 : ℂ).re)
           (zetaCompletedExplicitFormulaLeftPath_re (F.rectangle T) t)
       _ = (1 - F.c) - 1 / 2 := by
-        exact congrArg (fun x : ℝ => (1 - F.c) - x) Complex.ofReal_re
+        exact congrArg (fun x : ℝ => (1 - F.c) - x) hhalf_re
   constructor
   · have hmin : min F.c (1 - F.c) ≤ 1 - F.c :=
       min_le_right F.c (1 - F.c)
@@ -689,6 +597,12 @@ theorem zetaCompletedExplicitFormulaLeftPath_shift_im_norm
       ‖t‖ := by
   have him :
       (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1 / 2 : ℂ).im = t := by
+    have hhalf_im : (1 / 2 : ℂ).im = (0 : ℝ) := by
+      calc
+        (1 / 2 : ℂ).im = (((1 / 2 : ℝ) : ℂ)).im := by
+          exact congrArg Complex.im (Complex.ofReal_div (1 : ℝ) 2).symm
+        _ = (0 : ℝ) := by
+          exact Complex.ofReal_im (1 / 2)
     calc
       (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1 / 2 : ℂ).im =
           (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t).im -
@@ -701,7 +615,7 @@ theorem zetaCompletedExplicitFormulaLeftPath_shift_im_norm
           (fun x : ℝ => x - (1 / 2 : ℂ).im)
           (zetaCompletedExplicitFormulaLeftPath_im (F.rectangle T) t)
       _ = t - 0 := by
-        exact congrArg (fun x : ℝ => t - x) Complex.ofReal_im
+        exact congrArg (fun x : ℝ => t - x) hhalf_im
       _ = t := by
         exact sub_zero t
   exact congrArg (fun x : ℝ => ‖x‖) him
@@ -950,8 +864,10 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightVerticalIntegrableOn
             explicitFormulaArchimedeanLogDerivative
               (zetaCompletedExplicitFormulaRightPath (F.rectangle T) x))
           t :=
-      (explicitFormulaArchimedeanLogDerivative_continuousAt_of_regular
-        s hs0 hs1 hΛ hΓ).comp t hpath
+      ContinuousAt.comp'
+        (explicitFormulaArchimedeanLogDerivative_continuousAt_of_regular
+          s hs0 hs1 hΛ hΓ)
+        hpath
     have hphi :
         ContinuousAt
           (fun x : ℝ =>
@@ -1014,8 +930,10 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftVerticalIntegrableOn
             explicitFormulaArchimedeanLogDerivative
               (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) x))
           t :=
-      (explicitFormulaArchimedeanLogDerivative_continuousAt_of_regular
-        s hs0 hs1 hΛ hΓ).comp t hpath
+      ContinuousAt.comp'
+        (explicitFormulaArchimedeanLogDerivative_continuousAt_of_regular
+          s hs0 hs1 hΛ hΓ)
+        hpath
     have hphi :
         ContinuousAt
           (fun x : ℝ =>
