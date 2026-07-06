@@ -175,7 +175,7 @@ theorem finiteRectangle_outerBoundary_tendsto_deletedCircleBoundarySum_of_punctu
       Tendsto (fun i : ι => outer i - deletedCircleSum i) l (𝓝 0) := by
     exact hcauchy.congr'
       (Filter.Eventually.of_forall
-        (fun i => (hdecomp i).symm))
+        (fun i => hdecomp i))
   exact
     finiteRectangleResidueAccounting_tendsto_of_puncturedCauchy_and_deletedBoundary
       outer deletedCircleSum residueSum hcauchy' hdeleted
@@ -295,7 +295,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
         (2 * ↑Real.pi * Complex.I : ℂ) • explicitFormulaRectangle_onePoleResidue f)
     (hcompleted :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
           deletedCircle (completedZeroResidueCoordinate ρ) =
             (2 * ↑Real.pi * Complex.I : ℂ) •
               explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ)) :
@@ -303,49 +303,49 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
       (2 * ↑Real.pi * Complex.I : ℂ) •
         explicitFormulaRectangle_poleCorrectedResidueSum f T := by
   let c : ℂ := (2 * ↑Real.pi * Complex.I : ℂ)
+  have hc_ne : c ≠ 0 :=
+    finiteRectangle_twoPiI_ne_zero
   let normalizedDeletedCircle : ℂ → ℂ := fun z : ℂ => c⁻¹ • deletedCircle z
   have hzero_normalized :
       normalizedDeletedCircle 0 = explicitFormulaRectangle_zeroPoleResidue f := by
     calc
       normalizedDeletedCircle 0 = c⁻¹ • deletedCircle 0 := by
-        rfl
+        exact Eq.refl _
       _ = c⁻¹ • (c • explicitFormulaRectangle_zeroPoleResidue f) := by
         exact congrArg (fun x : ℂ => c⁻¹ • x) hzero
       _ = (c⁻¹ * c) • explicitFormulaRectangle_zeroPoleResidue f := by
-        exact (smul_smul c⁻¹ c (explicitFormulaRectangle_zeroPoleResidue f)).symm
-      _ = 1 • explicitFormulaRectangle_zeroPoleResidue f := by
+        exact smul_smul c⁻¹ c (explicitFormulaRectangle_zeroPoleResidue f)
+      _ = (1 : ℂ) • explicitFormulaRectangle_zeroPoleResidue f := by
         exact congrArg
           (fun x : ℂ => x • explicitFormulaRectangle_zeroPoleResidue f)
-          (inv_mul_cancel
-            (finiteRectangle_twoPiI_ne_zero))
+          (inv_mul_cancel₀ hc_ne)
       _ = explicitFormulaRectangle_zeroPoleResidue f := by
         exact one_smul ℂ (explicitFormulaRectangle_zeroPoleResidue f)
   have hone_normalized :
       normalizedDeletedCircle 1 = explicitFormulaRectangle_onePoleResidue f := by
     calc
       normalizedDeletedCircle 1 = c⁻¹ • deletedCircle 1 := by
-        rfl
+        exact Eq.refl _
       _ = c⁻¹ • (c • explicitFormulaRectangle_onePoleResidue f) := by
         exact congrArg (fun x : ℂ => c⁻¹ • x) hone
       _ = (c⁻¹ * c) • explicitFormulaRectangle_onePoleResidue f := by
-        exact (smul_smul c⁻¹ c (explicitFormulaRectangle_onePoleResidue f)).symm
-      _ = 1 • explicitFormulaRectangle_onePoleResidue f := by
+        exact smul_smul c⁻¹ c (explicitFormulaRectangle_onePoleResidue f)
+      _ = (1 : ℂ) • explicitFormulaRectangle_onePoleResidue f := by
         exact congrArg
           (fun x : ℂ => x • explicitFormulaRectangle_onePoleResidue f)
-          (inv_mul_cancel
-            (finiteRectangle_twoPiI_ne_zero))
+          (inv_mul_cancel₀ hc_ne)
       _ = explicitFormulaRectangle_onePoleResidue f := by
         exact one_smul ℂ (explicitFormulaRectangle_onePoleResidue f)
   have hcompleted_normalized :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
           normalizedDeletedCircle (completedZeroResidueCoordinate ρ) =
             explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ) := by
     intro ρ hρ
     calc
       normalizedDeletedCircle (completedZeroResidueCoordinate ρ) =
           c⁻¹ • deletedCircle (completedZeroResidueCoordinate ρ) := by
-        rfl
+        exact Eq.refl _
       _ = c⁻¹ •
             (c •
               explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ)) := by
@@ -355,15 +355,15 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
       _ = (c⁻¹ * c) •
             explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ) := by
         exact
-          (smul_smul c⁻¹ c
+          smul_smul c⁻¹ c
             (explicitFormulaZeroResidue f
-              (explicitFormulaZeroDataOfCompletedZero ρ))).symm
-      _ = 1 • explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ) := by
+              (explicitFormulaZeroDataOfCompletedZero ρ))
+      _ = (1 : ℂ) •
+            explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ) := by
         exact congrArg
           (fun x : ℂ =>
             x • explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))
-          (inv_mul_cancel
-            (finiteRectangle_twoPiI_ne_zero))
+          (inv_mul_cancel₀ hc_ne)
       _ = explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ) := by
         exact one_smul ℂ
           (explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))
@@ -378,36 +378,34 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
           (explicitFormulaRectangleRawSingularCoordinates T) deletedCircle =
         c • explicitFormulaRectangleRawSingularIndexedResidueSum f T := by
     let S : Finset ℂ := explicitFormulaRectangleRawSingularCoordinates T
-    have hc_ne : c ≠ 0 :=
-      finiteRectangle_twoPiI_ne_zero
     have hpoint :
         ∀ z : ℂ, z ∈ S → deletedCircle z = c • normalizedDeletedCircle z := by
       intro z _hz
       calc
-        deletedCircle z = 1 • deletedCircle z := by
+        deletedCircle z = (1 : ℂ) • deletedCircle z := by
           exact (one_smul ℂ (deletedCircle z)).symm
         _ = (c * c⁻¹) • deletedCircle z := by
           exact congrArg
             (fun x : ℂ => x • deletedCircle z)
-            (mul_inv_cancel hc_ne).symm
+            (mul_inv_cancel₀ hc_ne).symm
         _ = c • (c⁻¹ • deletedCircle z) := by
-          exact smul_smul c c⁻¹ (deletedCircle z)
+          exact (smul_smul c c⁻¹ (deletedCircle z)).symm
         _ = c • normalizedDeletedCircle z := by
-          rfl
+          exact Eq.refl _
     calc
       finiteRectangleDeletedCircleBoundarySum
           (explicitFormulaRectangleRawSingularCoordinates T) deletedCircle =
           ∑ z in S, deletedCircle z := by
-        rfl
+        exact Eq.refl _
       _ = ∑ z in S, c • normalizedDeletedCircle z := by
-        exact Finset.sum_congr rfl hpoint
+        exact Finset.sum_congr (Eq.refl _) hpoint
       _ = c • ∑ z in S, normalizedDeletedCircle z := by
         exact (Finset.smul_sum).symm
       _ = c •
           finiteRectangleDeletedCircleBoundarySum
             (explicitFormulaRectangleRawSingularCoordinates T)
             normalizedDeletedCircle := by
-        rfl
+        exact Eq.refl _
       _ = c • explicitFormulaRectangleRawSingularIndexedResidueSum f T := by
         exact congrArg (fun x : ℂ => c • x) hnormalized_deleted
   exact
@@ -434,7 +432,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
         (2 * ↑Real.pi * Complex.I : ℂ) • explicitFormulaRectangle_onePoleResidue f)
     (hcompleted :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
           explicitFormulaRectangleRawDeletedCircleBoundary f ε
               (completedZeroResidueCoordinate ρ) =
             (2 * ↑Real.pi * Complex.I : ℂ) •
@@ -462,16 +460,16 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
     (hcauchy :
       explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral
         f F T ε = 0)
-    (hzero_continuous :
-      ContinuousOn
-        (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z)
-        (Metric.closedBall (0 : ℂ) ε \ {(0 : ℂ)}))
+      (hzero_continuous :
+        ContinuousOn
+          (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z)
+          (Metric.closedBall (0 : ℂ) ε \ {(0 : ℂ)}))
     (hzero_differentiable :
       ∀ z : ℂ,
         z ∈ (Metric.ball (0 : ℂ) ε \ {(0 : ℂ)}) \ s0 →
-          DifferentiableAt ℂ
-            (fun w : ℂ => w * zetaCompletedExplicitFormulaContourIntegrand f w)
-            z)
+            DifferentiableAt ℂ
+              (fun w : ℂ => (w - 0) * zetaCompletedExplicitFormulaContourIntegrand f w)
+              z)
     (hone_continuous :
       ContinuousOn
         (fun z : ℂ => (z - 1) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -484,7 +482,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
             z)
     (hcompleted :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
           explicitFormulaRectangleRawDeletedCircleBoundary f ε
               (completedZeroResidueCoordinate ρ) =
             (2 * ↑Real.pi * Complex.I : ℂ) •
@@ -524,16 +522,16 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
     (hcauchy :
       explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral
         f F T ε = 0)
-    (hzero_continuous :
-      ContinuousOn
-        (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z)
-        (Metric.closedBall (0 : ℂ) ε \ {(0 : ℂ)}))
+      (hzero_continuous :
+        ContinuousOn
+          (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z)
+          (Metric.closedBall (0 : ℂ) ε \ {(0 : ℂ)}))
     (hzero_differentiable :
       ∀ z : ℂ,
         z ∈ (Metric.ball (0 : ℂ) ε \ {(0 : ℂ)}) \ s0 →
-          DifferentiableAt ℂ
-            (fun w : ℂ => w * zetaCompletedExplicitFormulaContourIntegrand f w)
-            z)
+            DifferentiableAt ℂ
+              (fun w : ℂ => (w - 0) * zetaCompletedExplicitFormulaContourIntegrand f w)
+              z)
     (hone_continuous :
       ContinuousOn
         (fun z : ℂ => (z - 1) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -555,7 +553,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
               {completedZeroResidueCoordinate ρ}))
     (hcompleted_differentiable :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
           ∀ z : ℂ,
             z ∈ (Metric.ball (completedZeroResidueCoordinate ρ) ε \
                 {completedZeroResidueCoordinate ρ}) \ szero ρ →
@@ -636,7 +634,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
   let s : Set ℂ := completedZetaContourIntegrandSingularSet
   have hs : s.Countable :=
     completedZetaContourIntegrandSingularSet_countable
-  have hzeroReg :
+  have hzeroRawReg :
       ContinuousOn
           (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z)
           (Metric.closedBall (0 : ℂ) ε \ {(0 : ℂ)}) ∧
@@ -647,6 +645,36 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
               z) :=
     explicitFormulaRectangle_zeroPole_rawDeletedCircle_regular_of_closedRadiusGeometry
       f F h hT hε_pos hinterior hgeometry s
+  have hzero_coeff :
+      (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z) =
+        (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z) := by
+    funext z
+    exact
+      congrArg
+        (fun x : ℂ => x * zetaCompletedExplicitFormulaContourIntegrand f z)
+        (Eq.symm (sub_zero z))
+  have hzeroReg :
+      ContinuousOn
+          (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z)
+          (Metric.closedBall (0 : ℂ) ε \ {(0 : ℂ)}) ∧
+        (∀ z : ℂ,
+          z ∈ (Metric.ball (0 : ℂ) ε \ {(0 : ℂ)}) \ s →
+            DifferentiableAt ℂ
+              (fun w : ℂ => (w - 0) * zetaCompletedExplicitFormulaContourIntegrand f w)
+              z) :=
+    And.intro
+      (Eq.subst
+        (motive := fun g : ℂ → ℂ =>
+          ContinuousOn g (Metric.closedBall (0 : ℂ) ε \ {(0 : ℂ)}))
+        hzero_coeff
+        hzeroRawReg.left)
+      (Eq.subst
+        (motive := fun g : ℂ → ℂ =>
+          ∀ z : ℂ,
+            z ∈ (Metric.ball (0 : ℂ) ε \ {(0 : ℂ)}) \ s →
+              DifferentiableAt ℂ g z)
+        hzero_coeff
+        hzeroRawReg.right)
   have honeReg :
       ContinuousOn
           (fun z : ℂ => (z - 1) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -682,7 +710,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
     zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCorrectedResidueSum_of_finiteRadiusPuncturedBoundary_and_localRegularity
       f F T ε h.phi_control hε_pos
       s s hs hs
-      (fun _ _ => s)
+      (fun _ => s)
       (fun ρ hρ => hs)
       hcauchy
       hzeroReg.1 hzeroReg.2
