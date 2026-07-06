@@ -1,6 +1,8 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part34
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.CorrectionPoleSides
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OrientationAlgebra
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ScheduledHorizontalDifferences
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleHorizontalEdgeBounds
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleContourPrimitives
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleFourCellContour
 
@@ -433,8 +435,8 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPole_finiteSquareBoundaryInteg
         (fun z : ℂ =>
           (z - (0 : ℂ)) *
             zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f z)
-        (([[(0 : ℂ).re - R, (0 : ℂ).re + R]] ×ℂ
-          [[(0 : ℂ).im - R, (0 : ℂ).im + R]]) \
+        ((Set.uIcc ((0 : ℂ).re - R) ((0 : ℂ).re + R) ×ℂ
+          Set.uIcc ((0 : ℂ).im - R) ((0 : ℂ).im + R)) \
             ({(0 : ℂ)} : Set ℂ)) := by
     have hcoeff :
         (fun z : ℂ =>
@@ -450,14 +452,14 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPole_finiteSquareBoundaryInteg
       Eq.subst
         (motive := fun φ : ℂ → ℂ =>
           ContinuousOn φ
-            (([[(0 : ℂ).re - R, (0 : ℂ).re + R]] ×ℂ
-              [[(0 : ℂ).im - R, (0 : ℂ).im + R]]) \
+            ((Set.uIcc ((0 : ℂ).re - R) ((0 : ℂ).re + R) ×ℂ
+              Set.uIcc ((0 : ℂ).im - R) ((0 : ℂ).im + R)) \
                 ({(0 : ℂ)} : Set ℂ)))
         hcoeff.symm
         (zetaCompletedExplicitFormulaCorrectionZeroPole_deletedCoefficient_continuousOn_deletedSet
           f hPhi
-          ([[ (0 : ℂ).re - R, (0 : ℂ).re + R ]] ×ℂ
-            [[ (0 : ℂ).im - R, (0 : ℂ).im + R ]]))
+          (Set.uIcc ((0 : ℂ).re - R) ((0 : ℂ).re + R) ×ℂ
+            Set.uIcc ((0 : ℂ).im - R) ((0 : ℂ).im + R)))
   have hdifferentiable :
       ∀ z : ℂ,
         z ∈
@@ -536,7 +538,7 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPole_finiteSquareBoundaryInteg
     _ = (2 * (Real.pi : ℂ) * Complex.I) *
           (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))) := by
       exact
-        smul_eq_mul
+        Algebra.smul_def
           (2 * (Real.pi : ℂ) * Complex.I)
           (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))
 
@@ -1154,11 +1156,47 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledOrientationDefect
   let P : ℂ := zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral f F T
   let S : ℂ := zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral f F T
   let H : ℂ := zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference f F h u
+  let U' : ℂ :=
+    ∫ x in Set.Icc (1 - F.c) F.c,
+      zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f
+        (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x)
+  let B' : ℂ :=
+    ∫ x in Set.Icc (1 - F.c) F.c,
+      zetaCompletedExplicitFormulaCorrectionZeroPoleKernel f
+        (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x)
   have hP : P = R - L + U - B :=
-    zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral_eq_verticalTangent_add_horizontal
+    zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral_eq_fourSides
       f F T
+  have hU : U = U' := by
+    calc
+      U =
+          zetaCompletedExplicitFormulaCorrectionTopZeroPoleTangentIntegral f F T := by
+        exact
+          (zetaCompletedExplicitFormulaCorrectionTopZeroPoleTangentIntegral_eq_horizontal
+            f F T).symm
+      _ = U' := by
+        exact
+          zetaCompletedExplicitFormulaCorrectionTopZeroPoleTangentIntegral_eq_Icc
+            f F T
+  have hB : B = B' := by
+    calc
+      B =
+          zetaCompletedExplicitFormulaCorrectionBottomZeroPoleTangentIntegral f F T := by
+        exact
+          (zetaCompletedExplicitFormulaCorrectionBottomZeroPoleTangentIntegral_eq_horizontal
+            f F T).symm
+      _ = B' := by
+        exact
+          zetaCompletedExplicitFormulaCorrectionBottomZeroPoleTangentIntegral_eq_Icc
+            f F T
   have hS : S = B - U + R - L := by
-    rfl
+    calc
+      S = B' - U' + R - L := by
+        rfl
+      _ = B - U' + R - L := by
+        exact congrArg (fun x : ℂ => x - U' + R - L) hB.symm
+      _ = B - U + R - L := by
+        exact congrArg (fun x : ℂ => B - x + R - L) hU.symm
   have hH : H = U - B := by
     rfl
   let A : ℂ := R - L
@@ -1166,7 +1204,7 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledOrientationDefect
     calc
       P = R - L + U - B := hP
       _ = (R - L) + (U - B) := by
-        exact (add_sub_assoc (R - L) U B).symm
+        exact add_sub_assoc (R - L) U B
       _ = A + (U - B) := by
         rfl
       _ = A + H := by
@@ -1224,7 +1262,7 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentOrientationDefect_t
             f F h u)
         atTop
         (𝓝 0) :=
-    zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_tendsto_zero
+    zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_tendsto_zero_ownerZeroPoleHorizontal
       f F h
   have hsum :
       Tendsto
