@@ -34,8 +34,8 @@ theorem real_symmetric_bilinear_psd_left_radical_of_self_zero
     [Decidable (B t d = 0)] :
     B d t = 0 := by
   match (inferInstance : Decidable (B t d = 0)) with
-  | Or.inl htd => exact (B_symm d t).trans htd
-  | Or.inr htd =>
+  | isTrue htd => exact (B_symm d t).trans htd
+  | isFalse htd =>
     let b : ℝ := B t t
     let c : ℝ := B t d
     let r : ℝ := -((b + 1) / (2 * c))
