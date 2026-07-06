@@ -747,6 +747,105 @@ theorem Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_n
     Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_nonneg_of_reduced_sep
       t ht ht_nonneg ha hab hlong_sqrt hred_mono hsep hweyl_target
 
+/-- Positive-frequency long Weyl-target wrapper with reduced monotonicity
+discharged by fixed integer branch strips and separation discharged by
+avoidance of all integer-centered resonance windows. -/
+theorem Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_nonneg_of_integer_strip_resonanceWindow
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (K : ℕ → ℤ)
+    (hstrip :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico a (b - h) →
+              Complex.realPhase_integerIncrement
+                  (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                    (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                    h)
+                  n -
+                  (2 * Real.pi * ((K h : ℤ) : ℝ)) ∈
+                Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+    (S : ℕ → ℤ → Finset ℕ)
+    (hS :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ k : ℤ,
+            ∀ m : ℕ,
+              m ∈ S h k ↔
+                m ∈ Finset.Ico a (b - h) ∧
+                  ‖Complex.realPhase_integerIncrement
+                      (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                        h)
+                      m -
+                    (2 * Real.pi * (k : ℝ))‖ <
+                    (‖t‖ *
+                      ((((b + 1 : ℕ) : ℝ) *
+                        (((b + 1 : ℕ) : ℝ)))⁻¹) *
+                      (h : ℝ)))
+    (havoid :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ k : ℤ,
+            ∀ n : ℕ,
+              n ∈ Finset.Ico a (b - h) →
+                n ∉ S h k)
+    (hweyl_target :
+      Real.secondDerivativeVdc_weylEnvelopeMajorant a b
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖)
+          (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
+            Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h) ≤
+        80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+          Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
+  have hinc_mono :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          Complex.realPhase_integerIncrementMonotoneOn
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h) :=
+    fun h _hmem =>
+      Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrementMonotoneOn_of_nonneg
+        t ht_nonneg ha
+  have hred_mono :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          Complex.realPhase_reducedIntegerIncrementMonotoneOn
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h) :=
+    fun h hmem =>
+      Complex.realPhase_reducedIntegerIncrementMonotoneOn_of_raw_integer_strip
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          h)
+        (hinc_mono h hmem)
+        (hstrip h hmem)
+  exact
+    Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_nonneg_of_integer_resonanceWindow
+      t ht ht_nonneg ha hab hlong_sqrt hred_mono S hS havoid hweyl_target
+
 /-- Positive-frequency long Weyl-target wrapper with no-winding discharged
 from scaled reciprocal arithmetic and separation discharged from resonance
 window avoidance. -/
