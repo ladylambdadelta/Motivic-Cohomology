@@ -23,20 +23,20 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_zeroPole_eq_twoPiI_smul
     (f : ZetaAdmissibleFunction)
     {R : ℝ} (hR : 0 < R)
     (s : Set ℂ) (hs : s.Countable)
-    (hcontinuous :
-      ContinuousOn
-        (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z)
-        (Metric.closedBall (0 : ℂ) R \ {(0 : ℂ)}))
+      (hcontinuous :
+        ContinuousOn
+          (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z)
+          (Metric.closedBall (0 : ℂ) R \ {(0 : ℂ)}))
     (hdifferentiable :
       ∀ z : ℂ,
         z ∈ (Metric.ball (0 : ℂ) R \ {(0 : ℂ)}) \ s →
-          DifferentiableAt ℂ
-            (fun w : ℂ => w * zetaCompletedExplicitFormulaContourIntegrand f w)
-            z)
-    (hlocal :
-      Tendsto
-        (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z)
-        (𝓝[≠] (0 : ℂ))
+            DifferentiableAt ℂ
+              (fun w : ℂ => (w - 0) * zetaCompletedExplicitFormulaContourIntegrand f w)
+              z)
+      (hlocal :
+        Tendsto
+          (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z)
+          (𝓝[≠] (0 : ℂ))
         (𝓝 (explicitFormulaRectangle_zeroPoleResidue f))) :
     explicitFormulaRectangleRawDeletedCircleBoundary f R 0 =
       (2 * ↑Real.pi * Complex.I : ℂ) •
@@ -81,21 +81,44 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_zeroPole_eq_twoPiI_smul
     (s : Set ℂ) (hs : s.Countable)
     (hcontinuous :
       ContinuousOn
-        (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z)
+        (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z)
         (Metric.closedBall (0 : ℂ) R \ {(0 : ℂ)}))
     (hdifferentiable :
       ∀ z : ℂ,
         z ∈ (Metric.ball (0 : ℂ) R \ {(0 : ℂ)}) \ s →
           DifferentiableAt ℂ
-            (fun w : ℂ => w * zetaCompletedExplicitFormulaContourIntegrand f w)
+            (fun w : ℂ => (w - 0) * zetaCompletedExplicitFormulaContourIntegrand f w)
             z) :
     explicitFormulaRectangleRawDeletedCircleBoundary f R 0 =
       (2 * ↑Real.pi * Complex.I : ℂ) •
         explicitFormulaRectangle_zeroPoleResidue f := by
+  have hlocal_raw :
+      Tendsto
+        (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z)
+        (𝓝[≠] (0 : ℂ))
+        (𝓝 (explicitFormulaRectangle_zeroPoleResidue f)) :=
+    explicitFormulaRectangle_zeroPole_localResidue_tendsto_rawCompleted f hPhi
+  have hcoeff :
+      (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z) =
+        (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z) := by
+    funext z
+    exact congrArg
+      (fun x : ℂ => x * zetaCompletedExplicitFormulaContourIntegrand f z)
+      (sub_zero z).symm
+  have hlocal_shifted :
+      Tendsto
+        (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z)
+        (𝓝[≠] (0 : ℂ))
+        (𝓝 (explicitFormulaRectangle_zeroPoleResidue f)) :=
+    Eq.subst
+      (motive := fun φ : ℂ → ℂ =>
+        Tendsto φ (𝓝[≠] (0 : ℂ)) (𝓝 (explicitFormulaRectangle_zeroPoleResidue f)))
+      hcoeff
+      hlocal_raw
   exact
     explicitFormulaRectangleRawDeletedCircleBoundary_zeroPole_eq_twoPiI_smul_residue
       f hR s hs hcontinuous hdifferentiable
-      (explicitFormulaRectangle_zeroPole_localResidue_tendsto_rawCompleted f hPhi)
+      hlocal_shifted
 
 /-- The raw deleted-circle boundary at `1` has the expected `2πi` pole-residue value
 once the local regularity on the deleted disk is supplied.  The pole coefficient itself is
@@ -177,16 +200,16 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_twoPiI_smul_residue_
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
           (szero ρ).Countable)
-    (hzero_continuous :
-      ContinuousOn
-        (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z)
-        (Metric.closedBall (0 : ℂ) R \ {(0 : ℂ)}))
+      (hzero_continuous :
+        ContinuousOn
+          (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z)
+          (Metric.closedBall (0 : ℂ) R \ {(0 : ℂ)}))
     (hzero_differentiable :
       ∀ z : ℂ,
         z ∈ (Metric.ball (0 : ℂ) R \ {(0 : ℂ)}) \ s0 →
-          DifferentiableAt ℂ
-            (fun w : ℂ => w * zetaCompletedExplicitFormulaContourIntegrand f w)
-            z)
+            DifferentiableAt ℂ
+              (fun w : ℂ => (w - 0) * zetaCompletedExplicitFormulaContourIntegrand f w)
+              z)
     (hone_continuous :
       ContinuousOn
         (fun z : ℂ => (z - 1) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -208,7 +231,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_twoPiI_smul_residue_
               {completedZeroResidueCoordinate ρ}))
     (hcompleted_differentiable :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
           ∀ z : ℂ,
             z ∈ (Metric.ball (completedZeroResidueCoordinate ρ) R \
                 {completedZeroResidueCoordinate ρ}) \ szero ρ →
@@ -237,7 +260,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_twoPiI_smul_residue_
           (2 * ↑Real.pi * Complex.I : ℂ) •
             explicitFormulaRectangle_onePoleResidue f) ∨
       (∃ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∃ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∃ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
           completedZeroResidueCoordinate ρ = a ∧
             explicitFormulaRectangleRawDeletedCircleBoundary f R a =
               (2 * ↑Real.pi * Complex.I : ℂ) •
@@ -336,7 +359,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_commonValue_on_rawSi
           explicitFormulaRectangle_onePoleResidue f)
     (hvalue_completed :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
           value (completedZeroResidueCoordinate ρ) =
             (2 * ↑Real.pi * Complex.I : ℂ) •
               explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))
@@ -346,16 +369,16 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_commonValue_on_rawSi
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
           (szero ρ).Countable)
-    (hzero_continuous :
-      ContinuousOn
-        (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z)
-        (Metric.closedBall (0 : ℂ) R \ {(0 : ℂ)}))
+      (hzero_continuous :
+        ContinuousOn
+          (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z)
+          (Metric.closedBall (0 : ℂ) R \ {(0 : ℂ)}))
     (hzero_differentiable :
       ∀ z : ℂ,
         z ∈ (Metric.ball (0 : ℂ) R \ {(0 : ℂ)}) \ s0 →
-          DifferentiableAt ℂ
-            (fun w : ℂ => w * zetaCompletedExplicitFormulaContourIntegrand f w)
-            z)
+            DifferentiableAt ℂ
+              (fun w : ℂ => (w - 0) * zetaCompletedExplicitFormulaContourIntegrand f w)
+              z)
     (hone_continuous :
       ContinuousOn
         (fun z : ℂ => (z - 1) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -377,7 +400,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_commonValue_on_rawSi
               {completedZeroResidueCoordinate ρ}))
     (hcompleted_differentiable :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
           ∀ z : ℂ,
             z ∈ (Metric.ball (completedZeroResidueCoordinate ρ) R \
                 {completedZeroResidueCoordinate ρ}) \ szero ρ →
@@ -485,7 +508,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_half_eq_commonValue_on_
     (hvalue_completed :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+          ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
             value ε (completedZeroResidueCoordinate ρ) =
               (2 * ↑Real.pi * Complex.I : ℂ) •
                 explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))
@@ -498,18 +521,18 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_half_eq_commonValue_on_
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
           ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
             (szero ε ρ).Countable)
-    (hzero_continuous :
-      ∀ ε : ℝ,
-        ContinuousOn
-          (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z)
-          (Metric.closedBall (0 : ℂ) (ε / 2) \ {(0 : ℂ)}))
+      (hzero_continuous :
+        ∀ ε : ℝ,
+          ContinuousOn
+            (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z)
+            (Metric.closedBall (0 : ℂ) (ε / 2) \ {(0 : ℂ)}))
     (hzero_differentiable :
       ∀ ε : ℝ,
         ∀ z : ℂ,
           z ∈ (Metric.ball (0 : ℂ) (ε / 2) \ {(0 : ℂ)}) \ s0 ε →
-            DifferentiableAt ℂ
-              (fun w : ℂ => w * zetaCompletedExplicitFormulaContourIntegrand f w)
-              z)
+              DifferentiableAt ℂ
+                (fun w : ℂ => (w - 0) * zetaCompletedExplicitFormulaContourIntegrand f w)
+                z)
     (hone_continuous :
       ∀ ε : ℝ,
         ContinuousOn
@@ -535,7 +558,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_half_eq_commonValue_on_
     (hcompleted_differentiable :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+          ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
             ∀ z : ℂ,
               z ∈ (Metric.ball (completedZeroResidueCoordinate ρ) (ε / 2) \
                   {completedZeroResidueCoordinate ρ}) \ szero ε ρ →
@@ -610,7 +633,7 @@ theorem explicitFormulaRectangleRawDeletedSquareBoundarySum_eq
       finiteRectangleDeletedCircleBoundarySum
         (explicitFormulaRectangleRawSingularCoordinates T)
         (explicitFormulaRectangleRawDeletedSquareBoundary f ε) := by
-  rfl
+  exact Eq.refl _
 
 /-- The finite raw deleted-square boundary sum is the finite sum of the
 corresponding square subdivision-cell boundaries over the raw singular-coordinate
@@ -635,7 +658,7 @@ theorem explicitFormulaRectangleRawDeletedSquareBoundarySum_eq_cellBoundarySum
           (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
           (finiteRectangleSquareLowerCorner a ε)
           (finiteRectangleSquareUpperCorner a ε) := by
-      exact Finset.sum_congr rfl
+      exact Finset.sum_congr (Eq.refl _)
         (fun a _ha =>
           explicitFormulaRectangleRawDeletedSquareBoundary_eq_cellBoundary f ε a)
 
