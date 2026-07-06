@@ -66,8 +66,9 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernelInterval_e
         0 ≤
           h.phi_control.verticalStripRapidDecayConstant
             (F.c - (1 / 2 : ℝ)) (F.c - (1 / 2 : ℝ)) 4 :=
-      h.phi_control.verticalStripRapidDecayConstant_nonneg
-        (F.c - (1 / 2 : ℝ)) (F.c - (1 / 2 : ℝ)) 4
+      le_of_lt
+        (h.phi_control.verticalStripRapidDecayConstant_pos
+          (F.c - (1 / 2 : ℝ)) (F.c - (1 / 2 : ℝ)) 4)
     exact mul_nonneg hcoeff_nonneg hdecay_nonneg
   have hmajorant :
       ∀ t : ℝ,
