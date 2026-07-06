@@ -29,17 +29,17 @@ theorem explicitFormulaRectangleRawDeletedSquareBoundarySum_half_eq_rawInscribed
         finiteRectangleDeletedCircleBoundarySum
           (explicitFormulaRectangleRawSingularCoordinates T)
           (explicitFormulaRectangleRawDeletedSquareBoundary f (ε / 2)) := by
-      rfl
+      exact Eq.refl _
     _ =
         finiteRectangleDeletedCircleBoundarySum
           (explicitFormulaRectangleRawSingularCoordinates T)
           (explicitFormulaRectangleRawInscribedSquareBoundary f ε) := by
-      exact Finset.sum_congr rfl
+      exact Finset.sum_congr (Eq.refl _)
         (fun a _ha =>
           explicitFormulaRectangleRawDeletedSquareBoundary_half_eq_rawInscribedSquareBoundary
             f ε a)
     _ = explicitFormulaRectangleRawInscribedSquareBoundarySum f T ε := by
-      rfl
+      exact Eq.refl _
 
 /-- The raw inscribed-square boundary sum at circular radius `ε` is the raw
 deleted-square boundary sum at half-width `ε / 2`. -/
@@ -56,10 +56,10 @@ inscribed-square boundary function. -/
 theorem explicitFormulaRectangleRawInscribedSquareBoundarySum_eq
     (f : ZetaAdmissibleFunction) (T ε : ℝ) :
     explicitFormulaRectangleRawInscribedSquareBoundarySum f T ε =
-      finiteRectangleDeletedCircleBoundarySum
-        (explicitFormulaRectangleRawSingularCoordinates T)
-        (explicitFormulaRectangleRawInscribedSquareBoundary f ε) := by
-  rfl
+        finiteRectangleDeletedCircleBoundarySum
+          (explicitFormulaRectangleRawSingularCoordinates T)
+          (explicitFormulaRectangleRawInscribedSquareBoundary f ε) := by
+  exact Eq.refl _
 
 /-- The finite raw inscribed-square boundary sum is the finite sum of the corresponding
 subdivision-cell boundaries over the raw singular-coordinate carrier. -/
@@ -76,24 +76,16 @@ theorem explicitFormulaRectangleRawInscribedSquareBoundarySum_eq_cellBoundarySum
         finiteRectangleDeletedCircleBoundarySum
           (explicitFormulaRectangleRawSingularCoordinates T)
           (explicitFormulaRectangleRawInscribedSquareBoundary f ε) := by
-      rfl
+      exact Eq.refl _
     _ =
       ∑ a in explicitFormulaRectangleRawSingularCoordinates T,
           finiteRectangleSubdivisionCellBoundaryIntegral
             (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
             (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a)
             (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a) := by
-      exact Finset.sum_congr rfl
+      exact Finset.sum_congr (Eq.refl _)
         (fun a _ha =>
           explicitFormulaRectangleRawInscribedSquareBoundary_eq_cellBoundary f ε a)
-
-/-- The oriented boundary integral of a finite punctured rectangle in the residue
-normalization used in this owner file.  The outer rectangle is counterclockwise; each
-deleted circle is recorded with positive residue orientation and therefore subtracted from
-the punctured-domain boundary. -/
-noncomputable def finiteRectanglePuncturedBoundaryIntegral
-    (S : Finset ℂ) (outer : ℂ) (deletedCircle : ℂ → ℂ) : ℂ :=
-  outer - finiteRectangleDeletedCircleBoundarySum S deletedCircle
 
 /-- The finite punctured-rectangle boundary decomposes into the outer boundary minus the
 positively oriented deleted-circle boundary sum. -/
@@ -101,7 +93,7 @@ theorem finiteRectanglePuncturedBoundaryIntegral_eq_outer_sub_deletedCircleBound
     (S : Finset ℂ) (outer : ℂ) (deletedCircle : ℂ → ℂ) :
     finiteRectanglePuncturedBoundaryIntegral S outer deletedCircle =
       outer - finiteRectangleDeletedCircleBoundarySum S deletedCircle := by
-  rfl
+  exact Eq.refl _
 
 /-- If two deleted-boundary choices have the same finite deleted-boundary sum, then
 vanishing of the punctured-boundary integral for one choice transports to the other. -/
@@ -136,7 +128,7 @@ theorem finiteRectangleDeletedCircleBoundarySum_eq_of_forall_mem
       ∀ a : ℂ, a ∈ S → deletedBoundary₁ a = deletedBoundary₂ a) :
     finiteRectangleDeletedCircleBoundarySum S deletedBoundary₁ =
       finiteRectangleDeletedCircleBoundarySum S deletedBoundary₂ := by
-  exact Finset.sum_congr rfl hpoint
+  exact Finset.sum_congr (Eq.refl _) hpoint
 
 /-- Pointwise circle-to-inscribed-square deleted-boundary transport gives equality of the
 finite deleted-boundary sums over the raw singular-coordinate carrier. -/
@@ -154,7 +146,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundarySum_eq_rawInscribedSquar
         finiteRectangleDeletedCircleBoundarySum
           (explicitFormulaRectangleRawSingularCoordinates T)
           (explicitFormulaRectangleRawDeletedCircleBoundary f ε) := by
-      rfl
+      exact Eq.refl _
     _ =
         finiteRectangleDeletedCircleBoundarySum
           (explicitFormulaRectangleRawSingularCoordinates T)
@@ -166,7 +158,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundarySum_eq_rawInscribedSquar
           (explicitFormulaRectangleRawInscribedSquareBoundary f ε)
           hdeleted
     _ = explicitFormulaRectangleRawInscribedSquareBoundarySum f T ε := by
-      rfl
+      exact Eq.refl _
 
 /-- Finite-sum form of the corrected half-radius circle-to-inscribed-square transport.
 The geometric input is the pointwise deformation from the half-radius circle to the
@@ -221,7 +213,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundarySum_eq_rawDeletedSquareB
         finiteRectangleDeletedCircleBoundarySum
           (explicitFormulaRectangleRawSingularCoordinates T)
           (explicitFormulaRectangleRawDeletedCircleBoundary f ε) := by
-      rfl
+      exact Eq.refl _
     _ =
         finiteRectangleDeletedCircleBoundarySum
           (explicitFormulaRectangleRawSingularCoordinates T)
@@ -233,7 +225,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundarySum_eq_rawDeletedSquareB
           (explicitFormulaRectangleRawDeletedSquareBoundary f ε)
           hdeleted
     _ = explicitFormulaRectangleRawDeletedSquareBoundarySum f T ε := by
-      rfl
+      exact Eq.refl _
 
 /-- Pointwise circle-to-half-width deleted-square transport identifies the raw
 deleted-circle boundary sum with the inscribed-square boundary sum. -/
@@ -364,7 +356,7 @@ theorem explicitFormulaRectanglePuncturedBoundaryIntegral_eq_contour_sub_deleted
     explicitFormulaRectanglePuncturedBoundaryIntegral f F T S deletedCircle =
       zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) -
         finiteRectangleDeletedCircleBoundarySum S deletedCircle := by
-  rfl
+  exact Eq.refl _
 
 /-- If the completed explicit-formula finite punctured rectangle has zero boundary
 integral, then the project outer rectangle contour equals the finite deleted-circle
@@ -383,40 +375,6 @@ theorem zetaCompletedExplicitFormulaContourIntegral_eq_deletedCircleBoundarySum_
       deletedCircle
       hcauchy
 
-/-- The punctured-boundary integral for the completed explicit-formula rectangle in the
-tangent-weighted contour normalization used by Cauchy-Goursat. -/
-noncomputable def explicitFormulaRectangleTangentPuncturedBoundaryIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ)
-    (S : Finset ℂ) (deletedCircle : ℂ → ℂ) : ℂ :=
-  finiteRectanglePuncturedBoundaryIntegral S
-    (zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T))
-    deletedCircle
-
-/-- The finite-radius tangent punctured-boundary integral for the completed explicit
-formula, using the actual deleted-circle boundary integrals of the raw integrand. -/
-noncomputable def explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T ε : ℝ) : ℂ :=
-  explicitFormulaRectangleTangentPuncturedBoundaryIntegral f F T
-    (explicitFormulaRectangleRawSingularCoordinates T)
-    (explicitFormulaRectangleRawDeletedCircleBoundary f ε)
-
-/-- The finite-radius tangent square-punctured boundary for the completed explicit
-formula, using square deleted-boundary integrals of the raw integrand. -/
-noncomputable def explicitFormulaRectangleTangentFiniteRadiusSquarePuncturedBoundaryIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T ε : ℝ) : ℂ :=
-  explicitFormulaRectangleTangentPuncturedBoundaryIntegral f F T
-    (explicitFormulaRectangleRawSingularCoordinates T)
-    (explicitFormulaRectangleRawDeletedSquareBoundary f ε)
-
-/-- The finite-radius tangent inscribed-square-punctured boundary for the completed
-explicit formula, using half-width `ε / 2` square deleted-boundary integrals of the raw
-integrand. -/
-noncomputable def explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBoundaryIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T ε : ℝ) : ℂ :=
-  explicitFormulaRectangleTangentPuncturedBoundaryIntegral f F T
-    (explicitFormulaRectangleRawSingularCoordinates T)
-    (explicitFormulaRectangleRawInscribedSquareBoundary f ε)
-
 /-- The tangent punctured-boundary integral unfolds to the tangent outer rectangle contour
 minus the finite deleted-circle boundary sum. -/
 theorem explicitFormulaRectangleTangentPuncturedBoundaryIntegral_eq_tangentContour_sub_deletedCircleBoundarySum
@@ -425,7 +383,7 @@ theorem explicitFormulaRectangleTangentPuncturedBoundaryIntegral_eq_tangentConto
     explicitFormulaRectangleTangentPuncturedBoundaryIntegral f F T S deletedCircle =
       zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) -
         finiteRectangleDeletedCircleBoundarySum S deletedCircle := by
-  rfl
+  exact Eq.refl _
 
 /-- The finite-radius tangent punctured-boundary integral unfolds to the tangent outer
 rectangle contour minus the actual raw deleted-circle boundary sum. -/
@@ -434,7 +392,7 @@ theorem explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral_eq_
     explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral f F T ε =
       zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) -
         explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε := by
-  rfl
+  exact Eq.refl _
 
 /-- The finite-radius tangent square-punctured boundary unfolds to the tangent outer
 rectangle contour minus the raw deleted-square boundary sum. -/
@@ -443,7 +401,7 @@ theorem explicitFormulaRectangleTangentFiniteRadiusSquarePuncturedBoundaryIntegr
     explicitFormulaRectangleTangentFiniteRadiusSquarePuncturedBoundaryIntegral f F T ε =
       zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) -
         explicitFormulaRectangleRawDeletedSquareBoundarySum f T ε := by
-  rfl
+  exact Eq.refl _
 
 /-- The finite-radius tangent square-punctured boundary unfolds to the tangent
 outer rectangle contour minus the finite sum of the corresponding raw deleted-square
@@ -485,7 +443,7 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
     explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBoundaryIntegral f F T ε =
       zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) -
         explicitFormulaRectangleRawInscribedSquareBoundarySum f T ε := by
-  rfl
+  exact Eq.refl _
 
 /-- A square-punctured boundary at square half-width `ε / 2` is the same finite boundary
 expression as the inscribed-square-punctured boundary at circular radius `ε`. -/
