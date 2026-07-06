@@ -114,12 +114,8 @@ theorem zetaExplicitFormulaOnePole_canonicalBottomCell_avoids_one_of_pos_height
     (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T) :
     ∀ z : ℂ,
       z ∈
-          ([[ ((1 - F.c) + (-T) * Complex.I).re,
-               (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-                  Complex.I).re ]] ×ℂ
-            [[ ((1 - F.c) + (-T) * Complex.I).im,
-               (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-                  Complex.I).im ]]) →
+          (Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re ×ℂ
+            Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im) →
         z - 1 ≠ 0 := by
   intro z hz
   have hR_pos :
@@ -127,31 +123,26 @@ theorem zetaExplicitFormulaOnePole_canonicalBottomCell_avoids_one_of_pos_height
     zetaCompletedExplicitFormulaCorrectionOnePole_punctureRadius_pos_of_pos_height
       F hT
   have hbottom_left :
-      ((1 - F.c : ℝ) + (-T : ℝ) * Complex.I).im < 0 := by
+      (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im < 0 := by
     calc
-      ((1 - F.c : ℝ) + (-T : ℝ) * Complex.I).im = -T :=
+      (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im = -T :=
         zetaExplicitFormulaOnePole_horizontalAffine_im (1 - F.c) (-T)
       _ < 0 := neg_lt_zero.mpr hT
   have hbottom_right :
-      (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-          Complex.I).im < 0 := by
+      ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im < 0 := by
     calc
-      (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-          Complex.I).im =
+      ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im =
           -(zetaExplicitFormulaOnePolePunctureRadius F T) :=
         zetaExplicitFormulaOnePole_horizontalAffine_im
           F.c (-(zetaExplicitFormulaOnePolePunctureRadius F T))
       _ < 0 := neg_lt_zero.mpr hR_pos
   have him_mem :
       z.im ∈
-        [[ ((1 - F.c) + (-T) * Complex.I).im,
-           (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-              Complex.I).im ]] :=
+        Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im :=
     (Complex.mem_reProdIm.mp hz).2
   have him_sup_lt :
-      (((1 - F.c) + (-T) * Complex.I).im ⊔
-        (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-          Complex.I).im) < 0 :=
+      ((((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im ⊔
+        ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im) < 0 :=
     sup_lt_iff.mpr (And.intro hbottom_left hbottom_right)
   have him_lt_zero : z.im < 0 :=
     lt_of_le_of_lt him_mem.2 him_sup_lt
@@ -163,14 +154,8 @@ theorem zetaExplicitFormulaOnePole_canonicalTopCell_avoids_one_of_pos_height
     (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T) :
     ∀ z : ℂ,
       z ∈
-          ([[ ((1 - F.c) +
-                  (zetaExplicitFormulaOnePolePunctureRadius F T) *
-                    Complex.I).re,
-               (F.c + T * Complex.I).re ]] ×ℂ
-            [[ ((1 - F.c) +
-                  (zetaExplicitFormulaOnePolePunctureRadius F T) *
-                    Complex.I).im,
-               (F.c + T * Complex.I).im ]]) →
+          (Set.uIcc (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ((F.c : ℂ) + (T : ℂ) * Complex.I).re ×ℂ
+            Set.uIcc (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im ((F.c : ℂ) + (T : ℂ) * Complex.I).im) →
         z - 1 ≠ 0 := by
   intro z hz
   have hR_pos :
@@ -178,36 +163,29 @@ theorem zetaExplicitFormulaOnePole_canonicalTopCell_avoids_one_of_pos_height
     zetaCompletedExplicitFormulaCorrectionOnePole_punctureRadius_pos_of_pos_height
       F hT
   have htop_left :
-      ((1 - F.c : ℝ) +
-          (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im >
+      (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im >
         0 := by
     calc
       0 < zetaExplicitFormulaOnePolePunctureRadius F T := hR_pos
       _ =
-          ((1 - F.c : ℝ) +
-            (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im := by
+          (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im := by
         exact
           (zetaExplicitFormulaOnePole_horizontalAffine_im
             (1 - F.c) (zetaExplicitFormulaOnePolePunctureRadius F T)).symm
   have htop_right :
-      (F.c + T * Complex.I).im > 0 := by
+      ((F.c : ℂ) + (T : ℂ) * Complex.I).im > 0 := by
     calc
       0 < T := hT
-      _ = (F.c + T * Complex.I).im := by
+      _ = ((F.c : ℂ) + (T : ℂ) * Complex.I).im := by
         exact (zetaExplicitFormulaOnePole_horizontalAffine_im F.c T).symm
   have him_mem :
       z.im ∈
-        [[ ((1 - F.c) +
-              (zetaExplicitFormulaOnePolePunctureRadius F T) *
-                Complex.I).im,
-           (F.c + T * Complex.I).im ]] :=
+        Set.uIcc (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im ((F.c : ℂ) + (T : ℂ) * Complex.I).im :=
     (Complex.mem_reProdIm.mp hz).2
   have him_inf_pos :
       0 <
-        (((1 - F.c) +
-            (zetaExplicitFormulaOnePolePunctureRadius F T) *
-              Complex.I).im ⊓
-          (F.c + T * Complex.I).im) :=
+        ((((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im ⊓
+          ((F.c : ℂ) + (T : ℂ) * Complex.I).im) :=
     lt_inf_iff.mpr (And.intro htop_left htop_right)
   have hzero_lt_im : 0 < z.im :=
     lt_of_lt_of_le him_inf_pos him_mem.1
@@ -219,18 +197,8 @@ theorem zetaExplicitFormulaOnePole_canonicalLeftCell_avoids_one_of_pos_height
     (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T) :
     ∀ z : ℂ,
       z ∈
-          ([[ ((1 - F.c) +
-                  (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-                    Complex.I).re,
-               ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                  (zetaExplicitFormulaOnePolePunctureRadius F T) *
-                    Complex.I).re ]] ×ℂ
-            [[ ((1 - F.c) +
-                  (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-                    Complex.I).im,
-               ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                  (zetaExplicitFormulaOnePolePunctureRadius F T) *
-                    Complex.I).im ]]) →
+          (Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ×ℂ
+            Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im) →
         z - 1 ≠ 0 := by
   intro z hz
   have hR_pos :
@@ -240,24 +208,16 @@ theorem zetaExplicitFormulaOnePole_canonicalLeftCell_avoids_one_of_pos_height
   have hc_pos : 0 < F.c :=
     lt_trans zero_lt_one F.c_gt_one
   have hleft_lower :
-      ((1 - F.c : ℝ) +
-          (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-            Complex.I).re < 1 := by
+      (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re < 1 := by
     calc
-      ((1 - F.c : ℝ) +
-          (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-            Complex.I).re = 1 - F.c :=
+      (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re = 1 - F.c :=
         zetaExplicitFormulaOnePole_verticalAffine_re
           (1 - F.c) (-(zetaExplicitFormulaOnePolePunctureRadius F T))
       _ < 1 := sub_lt_self 1 hc_pos
   have hleft_upper :
-      ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-          (zetaExplicitFormulaOnePolePunctureRadius F T) *
-            Complex.I).re < 1 := by
+      (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re < 1 := by
     calc
-      ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-          (zetaExplicitFormulaOnePolePunctureRadius F T) *
-            Complex.I).re =
+      (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re =
           1 - zetaExplicitFormulaOnePolePunctureRadius F T :=
         zetaExplicitFormulaOnePole_verticalAffine_re
           (1 - zetaExplicitFormulaOnePolePunctureRadius F T)
@@ -265,20 +225,11 @@ theorem zetaExplicitFormulaOnePole_canonicalLeftCell_avoids_one_of_pos_height
       _ < 1 := sub_lt_self 1 hR_pos
   have hre_mem :
       z.re ∈
-        [[ ((1 - F.c) +
-              (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-                Complex.I).re,
-           ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-              (zetaExplicitFormulaOnePolePunctureRadius F T) *
-                Complex.I).re ]] :=
+        Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re :=
     (Complex.mem_reProdIm.mp hz).1
   have hre_sup_lt :
-      (((1 - F.c) +
-          (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-            Complex.I).re ⊔
-        ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-          (zetaExplicitFormulaOnePolePunctureRadius F T) *
-            Complex.I).re) < 1 :=
+      ((((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re ⊔
+        (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re) < 1 :=
     sup_lt_iff.mpr (And.intro hleft_lower hleft_upper)
   have hre_lt_one : z.re < 1 :=
     lt_of_le_of_lt hre_mem.2 hre_sup_lt
@@ -290,18 +241,8 @@ theorem zetaExplicitFormulaOnePole_canonicalRightCell_avoids_one_of_pos_height
     (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T) :
     ∀ z : ℂ,
       z ∈
-          ([[ ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                  (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-                    Complex.I).re,
-               (F.c +
-                  (zetaExplicitFormulaOnePolePunctureRadius F T) *
-                    Complex.I).re ]] ×ℂ
-            [[ ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                  (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-                    Complex.I).im,
-               (F.c +
-                  (zetaExplicitFormulaOnePolePunctureRadius F T) *
-                    Complex.I).im ]]) →
+          (Set.uIcc (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ×ℂ
+            Set.uIcc (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im) →
         z - 1 ≠ 0 := by
   intro z hz
   have hR_pos :
@@ -310,47 +251,34 @@ theorem zetaExplicitFormulaOnePole_canonicalRightCell_avoids_one_of_pos_height
       F hT
   have hright_lower :
       1 <
-        ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-          (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-            Complex.I).re := by
+        (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re := by
     calc
       1 < 1 + zetaExplicitFormulaOnePolePunctureRadius F T :=
         lt_add_of_pos_right 1 hR_pos
       _ =
-          ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-            (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-              Complex.I).re := by
+          (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re := by
         exact
           (zetaExplicitFormulaOnePole_verticalAffine_re
             (1 + zetaExplicitFormulaOnePolePunctureRadius F T)
             (-(zetaExplicitFormulaOnePolePunctureRadius F T))).symm
   have hright_upper :
       1 <
-        (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) *
-          Complex.I).re := by
+        ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re := by
     calc
       1 < F.c := F.c_gt_one
       _ =
-          (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) *
-            Complex.I).re := by
+          ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re := by
         exact
           (zetaExplicitFormulaOnePole_verticalAffine_re
             F.c (zetaExplicitFormulaOnePolePunctureRadius F T)).symm
   have hre_mem :
       z.re ∈
-        [[ ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-              (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-                Complex.I).re,
-           (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) *
-              Complex.I).re ]] :=
+        Set.uIcc (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re :=
     (Complex.mem_reProdIm.mp hz).1
   have hre_inf_gt :
       1 <
-        (((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-            (-(zetaExplicitFormulaOnePolePunctureRadius F T)) *
-              Complex.I).re ⊓
-          (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) *
-            Complex.I).re) :=
+        ((((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re ⊓
+          ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re) :=
     lt_inf_iff.mpr (And.intro hright_lower hright_upper)
   have hone_lt_re : 1 < z.re :=
     lt_of_lt_of_le hre_inf_gt hre_mem.1
@@ -363,92 +291,84 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_fourCellBoundary_eq_zero_o
     (HcBottom :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 - F.c) + (-T) * Complex.I).re,
-             (F.c + (-R) * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (-T) * Complex.I).im,
-             (F.c + (-R) * Complex.I).im ]]))
+        (Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im))
     (HdBottom :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (-T) * Complex.I).re
-                  (F.c + (-R) * Complex.I).re)
-                (max ((1 - F.c) + (-T) * Complex.I).re
-                  (F.c + (-R) * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (-T) * Complex.I).im
-                  (F.c + (-R) * Complex.I).im)
-                (max ((1 - F.c) + (-T) * Complex.I).im
-                  (F.c + (-R) * Complex.I).im) \ ({(1 : ℂ)} : Set ℂ) →
+                (min (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im) \ ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
             x)
     (HcTop :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 - F.c) + R * Complex.I).re,
-             (F.c + T * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + R * Complex.I).im,
-             (F.c + T * Complex.I).im ]]))
+        (Set.uIcc (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).re ((F.c : ℂ) + (T : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).im ((F.c : ℂ) + (T : ℂ) * Complex.I).im))
     (HdTop :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + R * Complex.I).re
-                  (F.c + T * Complex.I).re)
-                (max ((1 - F.c) + R * Complex.I).re
-                  (F.c + T * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + R * Complex.I).im
-                  (F.c + T * Complex.I).im)
-                (max ((1 - F.c) + R * Complex.I).im
-                  (F.c + T * Complex.I).im) \ ({(1 : ℂ)} : Set ℂ) →
+                (min (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + (R : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).im) \ ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
             x)
     (HcLeft :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 - F.c) + (-R) * Complex.I).re,
-             ((1 - R) + R * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (-R) * Complex.I).im,
-             ((1 - R) + R * Complex.I).im ]]))
+        (Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).im))
     (HdLeft :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (-R) * Complex.I).re
-                  ((1 - R) + R * Complex.I).re)
-                (max ((1 - F.c) + (-R) * Complex.I).re
-                  ((1 - R) + R * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re
+                  (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re
+                  (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (-R) * Complex.I).im
-                  ((1 - R) + R * Complex.I).im)
-                (max ((1 - F.c) + (-R) * Complex.I).im
-                  ((1 - R) + R * Complex.I).im) \ ({(1 : ℂ)} : Set ℂ) →
+                (min (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im
+                  (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im
+                  (((1 - R : ℝ) : ℂ) + (R : ℂ) * Complex.I).im) \ ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
             x)
     (HcRight :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 + R) + (-R) * Complex.I).re,
-             (F.c + R * Complex.I).re ]] ×ℂ
-          [[ ((1 + R) + (-R) * Complex.I).im,
-             (F.c + R * Complex.I).im ]]))
+        (Set.uIcc (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re ((F.c : ℂ) + (R : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im ((F.c : ℂ) + (R : ℂ) * Complex.I).im))
     (HdRight :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 + R) + (-R) * Complex.I).re
-                  (F.c + R * Complex.I).re)
-                (max ((1 + R) + (-R) * Complex.I).re
-                  (F.c + R * Complex.I).re) ×ℂ
+                (min (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (R : ℂ) * Complex.I).re)
+                (max (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (R : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 + R) + (-R) * Complex.I).im
-                  (F.c + R * Complex.I).im)
-                (max ((1 + R) + (-R) * Complex.I).im
-                  (F.c + R * Complex.I).im) \ ({(1 : ℂ)} : Set ℂ) →
+                (min (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (R : ℂ) * Complex.I).im)
+                (max (((1 + R : ℝ) : ℂ) + ((-R : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (R : ℂ) * Complex.I).im) \ ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
             x) :
@@ -476,23 +396,21 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_fourCellBoundary_eq_zero_o
     (HcBottom :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 - F.c) + (-T) * Complex.I).re,
-             (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (-T) * Complex.I).im,
-             (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im ]]))
+        (Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im))
     (HdBottom :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (-T) * Complex.I).re
-                  (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re)
-                (max ((1 - F.c) + (-T) * Complex.I).re
-                  (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (-T) * Complex.I).im
-                  (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im)
-                (max ((1 - F.c) + (-T) * Complex.I).im
-                  (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im) \
+                (min (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im) \
                   ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
@@ -500,52 +418,42 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_fourCellBoundary_eq_zero_o
     (HcTop :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re,
-             (F.c + T * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im,
-             (F.c + T * Complex.I).im ]]))
+        (Set.uIcc (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ((F.c : ℂ) + (T : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im ((F.c : ℂ) + (T : ℂ) * Complex.I).im))
     (HdTop :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re
-                  (F.c + T * Complex.I).re)
-                (max ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re
-                  (F.c + T * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im
-                  (F.c + T * Complex.I).im)
-                (max ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im
-                  (F.c + T * Complex.I).im) \ ({(1 : ℂ)} : Set ℂ) →
+                (min (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).im) \ ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
             x)
     (HcLeft :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re,
-             ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im,
-             ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im ]]))
+        (Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im))
     (HdLeft :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re
-                  ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re)
-                (max ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re
-                  ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re
+                  (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re
+                  (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im
-                  ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im)
-                (max ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im
-                  ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im) \
+                (min (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im
+                  (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im
+                  (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im) \
                   ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
@@ -553,29 +461,21 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_fourCellBoundary_eq_zero_o
     (HcRight :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re,
-             (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re ]] ×ℂ
-          [[ ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im,
-             (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im ]]))
+        (Set.uIcc (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im))
     (HdRight :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re
-                  (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re)
-                (max ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re
-                  (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re) ×ℂ
+                (min (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re)
+                (max (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im
-                  (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im)
-                (max ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im
-                  (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im) \
+                (min (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im)
+                (max (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im) \
                   ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
@@ -605,23 +505,21 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIn
     (HcBottom :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 - F.c) + (-T) * Complex.I).re,
-             (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (-T) * Complex.I).im,
-             (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im ]]))
+        (Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im))
     (HdBottom :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (-T) * Complex.I).re
-                  (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re)
-                (max ((1 - F.c) + (-T) * Complex.I).re
-                  (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (-T) * Complex.I).im
-                  (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im)
-                (max ((1 - F.c) + (-T) * Complex.I).im
-                  (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im) \
+                (min (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im) \
                   ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
@@ -629,52 +527,42 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIn
     (HcTop :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re,
-             (F.c + T * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im,
-             (F.c + T * Complex.I).im ]]))
+        (Set.uIcc (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ((F.c : ℂ) + (T : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im ((F.c : ℂ) + (T : ℂ) * Complex.I).im))
     (HdTop :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re
-                  (F.c + T * Complex.I).re)
-                (max ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re
-                  (F.c + T * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im
-                  (F.c + T * Complex.I).im)
-                (max ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im
-                  (F.c + T * Complex.I).im) \ ({(1 : ℂ)} : Set ℂ) →
+                (min (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).im) \ ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
             x)
     (HcLeft :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re,
-             ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im,
-             ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im ]]))
+        (Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im))
     (HdLeft :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re
-                  ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re)
-                (max ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re
-                  ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re
+                  (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re
+                  (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im
-                  ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im)
-                (max ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im
-                  ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im) \
+                (min (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im
+                  (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im
+                  (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im) \
                   ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
@@ -682,29 +570,21 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIn
     (HcRight :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re,
-             (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re ]] ×ℂ
-          [[ ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im,
-             (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im ]]))
+        (Set.uIcc (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im))
     (HdRight :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re
-                  (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re)
-                (max ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re
-                  (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re) ×ℂ
+                (min (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re)
+                (max (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im
-                  (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im)
-                (max ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im
-                  (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im) \
+                (min (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im)
+                (max (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im) \
                   ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
@@ -744,31 +624,27 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalFourCellBoundary_
   have HcBottom :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 - F.c) + (-T) * Complex.I).re,
-             (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (-T) * Complex.I).im,
-             (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im ]]) :=
+        (Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im) :=
     zetaCompletedExplicitFormulaCorrectionOnePoleKernel_continuousOn_of_avoids_pole
       f h.phi_control
-      ([[ ((1 - F.c) + (-T) * Complex.I).re,
-           (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re ]] ×ℂ
-        [[ ((1 - F.c) + (-T) * Complex.I).im,
-           (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im ]])
+      (Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re ×ℂ
+        Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im)
       (zetaExplicitFormulaOnePole_canonicalBottomCell_avoids_one_of_pos_height
         F hT)
   have HdBottom :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (-T) * Complex.I).re
-                  (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re)
-                (max ((1 - F.c) + (-T) * Complex.I).re
-                  (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (-T) * Complex.I).im
-                  (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im)
-                (max ((1 - F.c) + (-T) * Complex.I).im
-                  (F.c + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im) \
+                (min (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-T : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im) \
                   ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
@@ -780,31 +656,27 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalFourCellBoundary_
   have HcTop :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re,
-             (F.c + T * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im,
-             (F.c + T * Complex.I).im ]]) :=
+        (Set.uIcc (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ((F.c : ℂ) + (T : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im ((F.c : ℂ) + (T : ℂ) * Complex.I).im) :=
     zetaCompletedExplicitFormulaCorrectionOnePoleKernel_continuousOn_of_avoids_pole
       f h.phi_control
-      ([[ ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re,
-           (F.c + T * Complex.I).re ]] ×ℂ
-        [[ ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im,
-           (F.c + T * Complex.I).im ]])
+      (Set.uIcc (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ((F.c : ℂ) + (T : ℂ) * Complex.I).re ×ℂ
+        Set.uIcc (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im ((F.c : ℂ) + (T : ℂ) * Complex.I).im)
       (zetaExplicitFormulaOnePole_canonicalTopCell_avoids_one_of_pos_height
         F hT)
   have HdTop :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re
-                  (F.c + T * Complex.I).re)
-                (max ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re
-                  (F.c + T * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im
-                  (F.c + T * Complex.I).im)
-                (max ((1 - F.c) + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im
-                  (F.c + T * Complex.I).im) \ ({(1 : ℂ)} : Set ℂ) →
+                (min (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (T : ℂ) * Complex.I).im) \ ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
             x := by
@@ -815,39 +687,27 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalFourCellBoundary_
   have HcLeft :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re,
-             ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re ]] ×ℂ
-          [[ ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im,
-             ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im ]]) :=
+        (Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im) :=
     zetaCompletedExplicitFormulaCorrectionOnePoleKernel_continuousOn_of_avoids_pole
       f h.phi_control
-      ([[ ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re,
-           ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-              (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re ]] ×ℂ
-        [[ ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im,
-           ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-              (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im ]])
+      (Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ×ℂ
+        Set.uIcc (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im)
       (zetaExplicitFormulaOnePole_canonicalLeftCell_avoids_one_of_pos_height
         F hT)
   have HdLeft :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re
-                  ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re)
-                (max ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re
-                  ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re) ×ℂ
+                (min (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re
+                  (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re
+                  (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im
-                  ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im)
-                (max ((1 - F.c) + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im
-                  ((1 - zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im) \
+                (min (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im
+                  (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im)
+                (max (((1 - F.c : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im
+                  (((1 - zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im) \
                   ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
@@ -859,39 +719,27 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalFourCellBoundary_
   have HcRight :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        ([[ ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re,
-             (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re ]] ×ℂ
-          [[ ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im,
-             (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im ]]) :=
+        (Set.uIcc (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ×ℂ
+          Set.uIcc (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im) :=
     zetaCompletedExplicitFormulaCorrectionOnePoleKernel_continuousOn_of_avoids_pole
       f h.phi_control
-      ([[ ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-              (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re,
-           (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re ]] ×ℂ
-        [[ ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-              (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im,
-           (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im ]])
+      (Set.uIcc (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re ×ℂ
+        Set.uIcc (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im)
       (zetaExplicitFormulaOnePole_canonicalRightCell_avoids_one_of_pos_height
         F hT)
   have HdRight :
       ∀ x : ℂ,
         x ∈
             Set.Ioo
-                (min ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re
-                  (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re)
-                (max ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).re
-                  (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).re) ×ℂ
+                (min (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re)
+                (max (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).re
+                  ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).re) ×ℂ
               Set.Ioo
-                (min ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im
-                  (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im)
-                (max ((1 + zetaExplicitFormulaOnePolePunctureRadius F T) +
-                    (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I).im
-                  (F.c + (zetaExplicitFormulaOnePolePunctureRadius F T) * Complex.I).im) \
+                (min (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im)
+                (max (((1 + zetaExplicitFormulaOnePolePunctureRadius F T : ℝ) : ℂ) + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I).im
+                  ((F.c : ℂ) + (zetaExplicitFormulaOnePolePunctureRadius F T : ℂ) * Complex.I).im) \
                   ({(1 : ℂ)} : Set ℂ) →
           DifferentiableAt ℂ
             (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
