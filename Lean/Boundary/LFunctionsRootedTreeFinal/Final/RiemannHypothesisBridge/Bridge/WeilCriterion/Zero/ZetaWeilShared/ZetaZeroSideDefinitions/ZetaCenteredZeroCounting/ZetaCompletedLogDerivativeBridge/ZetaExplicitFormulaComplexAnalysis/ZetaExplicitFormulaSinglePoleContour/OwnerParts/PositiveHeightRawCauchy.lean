@@ -34,13 +34,83 @@ theorem zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral_eq_finiteRectangle
     (g : ℂ → ℂ) (R : ℝ) :
     zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral g R =
       finiteRectangleSquareBoundaryIntegral g (1 : ℂ) R := by
+  have hone_re :
+      (1 : ℂ).re = (1 : ℝ) :=
+    Complex.ofReal_re 1
+  have hone_im :
+      (1 : ℂ).im = (0 : ℝ) :=
+    Complex.ofReal_im 1
+  let E : ℝ → ℝ → ℝ → ℂ :=
+    fun u bottom top =>
+      (∫ x : ℝ in (u - R)..(u + R),
+          g (x + (((bottom : ℝ) : ℂ) * Complex.I))) -
+        (∫ x : ℝ in (u - R)..(u + R),
+          g (x + (((top : ℝ) : ℂ) * Complex.I))) +
+          Complex.I •
+            (∫ y : ℝ in bottom..top,
+              g (((u + R : ℝ) : ℂ) + y * Complex.I)) -
+            Complex.I •
+              (∫ y : ℝ in bottom..top,
+                g (((u - R : ℝ) : ℂ) + y * Complex.I))
+  have hcoordinate_base :
+      zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+          g (1 - R) (1 + R) (-R) R =
+        E 1 (-R) R :=
+    Eq.refl _
+  have hcenter_re :
+      E 1 (-R) R = E (1 : ℂ).re (-R) R :=
+    congrArg (fun u : ℝ => E u (-R) R) hone_re.symm
+  have hbottom :
+      -R = (1 : ℂ).im - R :=
+    Eq.trans (zero_sub R).symm
+      (congrArg (fun v : ℝ => v - R) hone_im.symm)
+  have htop :
+      R = (1 : ℂ).im + R :=
+    Eq.trans (zero_add R).symm
+      (congrArg (fun v : ℝ => v + R) hone_im.symm)
+  have hcenter_bottom :
+      E (1 : ℂ).re (-R) R =
+        E (1 : ℂ).re ((1 : ℂ).im - R) R :=
+    congrArg (fun bottom : ℝ => E (1 : ℂ).re bottom R) hbottom
+  have hcenter_top :
+      E (1 : ℂ).re ((1 : ℂ).im - R) R =
+        E (1 : ℂ).re ((1 : ℂ).im - R) ((1 : ℂ).im + R) :=
+    congrArg
+      (fun top : ℝ => E (1 : ℂ).re ((1 : ℂ).im - R) top)
+      htop
+  have hcoordinate :
+      zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
+          g (1 - R) (1 + R) (-R) R =
+        (∫ x : ℝ in ((1 : ℂ).re - R)..((1 : ℂ).re + R),
+            g (x + ((((1 : ℂ).im - R : ℝ) : ℂ) * Complex.I))) -
+          (∫ x : ℝ in ((1 : ℂ).re - R)..((1 : ℂ).re + R),
+            g (x + ((((1 : ℂ).im + R : ℝ) : ℂ) * Complex.I))) +
+            Complex.I •
+              (∫ y : ℝ in ((1 : ℂ).im - R)..((1 : ℂ).im + R),
+                g (((((1 : ℂ).re + R : ℝ) : ℂ)) + y * Complex.I)) -
+              Complex.I •
+                (∫ y : ℝ in ((1 : ℂ).im - R)..((1 : ℂ).im + R),
+                  g (((((1 : ℂ).re - R : ℝ) : ℂ)) + y * Complex.I)) :=
+    Eq.trans hcoordinate_base
+      (Eq.trans hcenter_re (Eq.trans hcenter_bottom hcenter_top))
   calc
     zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral g R =
         zetaExplicitFormulaSinglePoleStandardRectangleBoundaryCoordinateIntegral
           g (1 - R) (1 + R) (-R) R := by
       exact zetaExplicitFormulaOnePoleInnerSquareBoundaryIntegral_eq g R
-    _ = finiteRectangleSquareBoundaryIntegral g (1 : ℂ) R := by
-      exact (finiteRectangleSquareBoundaryIntegral_eq g (1 : ℂ) R).symm
+    _ =
+        (∫ x : ℝ in ((1 : ℂ).re - R)..((1 : ℂ).re + R),
+            g (x + ((((1 : ℂ).im - R : ℝ) : ℂ) * Complex.I))) -
+          (∫ x : ℝ in ((1 : ℂ).re - R)..((1 : ℂ).re + R),
+            g (x + ((((1 : ℂ).im + R : ℝ) : ℂ) * Complex.I))) +
+            Complex.I •
+              (∫ y : ℝ in ((1 : ℂ).im - R)..((1 : ℂ).im + R),
+                g (((((1 : ℂ).re + R : ℝ) : ℂ)) + y * Complex.I)) -
+              Complex.I •
+                (∫ y : ℝ in ((1 : ℂ).im - R)..((1 : ℂ).im + R),
+                  g (((((1 : ℂ).re - R : ℝ) : ℂ)) + y * Complex.I)) := hcoordinate
+    _ = finiteRectangleSquareBoundaryIntegral g (1 : ℂ) R :=
+      (finiteRectangleSquareBoundaryIntegral_eq g (1 : ℂ) R).symm
 
 /-- The residue coefficient `(z - 1) g(z)` of the one-pole correction kernel is
 continuous on every set with the pole removed. -/
@@ -326,17 +396,21 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalInnerSquareBounda
         (fun z : ℂ =>
           (z - (1 : ℂ)) *
             zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
-        (([[(1 : ℂ).re - zetaExplicitFormulaOnePolePunctureRadius F T,
-            (1 : ℂ).re + zetaExplicitFormulaOnePolePunctureRadius F T]] ×ℂ
-          [[(1 : ℂ).im - zetaExplicitFormulaOnePolePunctureRadius F T,
-            (1 : ℂ).im + zetaExplicitFormulaOnePolePunctureRadius F T]]) \
+        ((Set.uIcc
+            ((1 : ℂ).re - zetaExplicitFormulaOnePolePunctureRadius F T)
+            ((1 : ℂ).re + zetaExplicitFormulaOnePolePunctureRadius F T) ×ℂ
+          Set.uIcc
+            ((1 : ℂ).im - zetaExplicitFormulaOnePolePunctureRadius F T)
+            ((1 : ℂ).im + zetaExplicitFormulaOnePolePunctureRadius F T)) \
             ({(1 : ℂ)} : Set ℂ)) :=
     zetaCompletedExplicitFormulaCorrectionOnePole_deletedCoefficient_continuousOn_deletedSet
       f h.phi_control
-      ([[ (1 : ℂ).re - zetaExplicitFormulaOnePolePunctureRadius F T,
-          (1 : ℂ).re + zetaExplicitFormulaOnePolePunctureRadius F T ]] ×ℂ
-        [[ (1 : ℂ).im - zetaExplicitFormulaOnePolePunctureRadius F T,
-          (1 : ℂ).im + zetaExplicitFormulaOnePolePunctureRadius F T ]])
+      (Set.uIcc
+        ((1 : ℂ).re - zetaExplicitFormulaOnePolePunctureRadius F T)
+        ((1 : ℂ).re + zetaExplicitFormulaOnePolePunctureRadius F T) ×ℂ
+        Set.uIcc
+          ((1 : ℂ).im - zetaExplicitFormulaOnePolePunctureRadius F T)
+          ((1 : ℂ).im + zetaExplicitFormulaOnePolePunctureRadius F T))
   have hdifferentiable :
       ∀ z : ℂ,
         z ∈
@@ -386,7 +460,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_canonicalInnerSquareBounda
     _ = (2 * (Real.pi : ℂ) * Complex.I) *
           (-zetaCompletedExplicitFormulaPhi f (1 / 2)) := by
       exact
-        smul_eq_mul
+        Algebra.id.smul_eq_mul
           (2 * (Real.pi : ℂ) * Complex.I)
           (-zetaCompletedExplicitFormulaPhi f (1 / 2))
 
