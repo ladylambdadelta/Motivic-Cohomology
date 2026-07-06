@@ -100,43 +100,6 @@ noncomputable def zetaCompletedPrimeTwoFaceGNSMatrixCoefficient
   -zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
     (ZetaAdmissibleFunction.convolutionAutocorrelation f)
 
-/-- Completed autocorrelation prime-power spectral-sample cancellation.
-
-This is the spectral-sample sink beneath the completed two-face/GNS matrix cancellation:
-the completed prime-power spectral sample has zero real scalar on autocorrelation probes. -/
-theorem zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution_convolutionAutocorrelation_re_eq_zero_boundaryCancellation
-    (f : ZetaAdmissibleFunction) :
-    Complex.re
-      (zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f)) = 0 := by
-  unfold zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
-  exact
-    zetaCompletedPrimePowerSpectralSampleCoordinateTsum_convolutionAutocorrelation_re_eq_zero_boundaryCancellation
-      f
-
-/-- The completed two-face/GNS matrix coefficient has zero real scalar once the
-autocorrelation prime-power spectral sample cancels. -/
-theorem zetaCompletedPrimeTwoFaceGNSMatrixCoefficient_re_eq_zero_of_spectralSampleBoundaryCancellation
-    (f : ZetaAdmissibleFunction) :
-    Complex.re (zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) = 0 := by
-  let S : ℂ :=
-    zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-  have hS : Complex.re S = 0 := by
-    unfold S
-    exact
-      zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution_convolutionAutocorrelation_re_eq_zero_boundaryCancellation
-        f
-  unfold zetaCompletedPrimeTwoFaceGNSMatrixCoefficient
-  change Complex.re (-S) = 0
-  calc
-    Complex.re (-S) = -Complex.re S := by
-      exact Complex.neg_re S
-    _ = -0 := by
-      exact congrArg Neg.neg hS
-    _ = 0 := by
-      exact neg_zero
-
 /-- The completed prime two-face boundary coefficient over the owner prime-power index type.
 
 The GNS matrix coefficient is the positive symmetrized cross term in the defect-square
@@ -996,6 +959,52 @@ theorem summable_zetaCompletedPrimeTwoFaceGNSOrientedCoordinate_of_spectralMajor
         norm_zetaCompletedPrimeTwoFaceGNSOrientedCoordinate_le_spectralMajorant
           ι f)
 
+/-- Spectral-majorant summability transports to the analytic oriented cross coordinate. -/
+theorem zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_summable_of_spectralMajorant
+    (f : ZetaAdmissibleFunction)
+    (hmajorant :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f)) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) := by
+  have hgns :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeTwoFaceGNSOrientedCoordinate ι f) :=
+    summable_zetaCompletedPrimeTwoFaceGNSOrientedCoordinate_of_spectralMajorant
+      f hmajorant
+  exact hgns.congr
+    (fun ι : ZetaPrimePowerIndex =>
+      zetaCompletedPrimeTwoFaceGNSOrientedCoordinate_eq_weightedSeedPair ι f)
+
+/-- Spectral-majorant summability transports to the opposite analytic cross coordinate. -/
+theorem zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate_summable_of_spectralMajorant
+    (f : ZetaAdmissibleFunction)
+    (hmajorant :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f)) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        zetaCompletedPrimePowerAutocorrelationOppositeOrientedCrossCoordinate ι f) := by
+  have horiented :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) :=
+    zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_summable_of_spectralMajorant
+      f hmajorant
+  have hstar :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          star
+            (zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)) :=
+    horiented.star
+  exact hstar.congr
+    (fun ι : ZetaPrimePowerIndex =>
+      zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_star_eq_opposite ι f)
+
 /-- Summability of the spectral majorant implies summability of the completed diagonal-debt
 coordinates. -/
 theorem summable_zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate_of_spectralMajorant
@@ -1110,12 +1119,15 @@ theorem zetaCompletedPrimeDefectKernelPositiveRealWindow_tendsto_coordinateTsum_
         (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.window N, u ι) := by
     exact funext
       (fun N : ℕ => by
-        unfold zetaCompletedPrimeDefectKernelPositiveRealWindow
-        unfold zetaCompletedPrimeDefectKernelPositiveWindow
-        exact Complex.re_sum
-          (ZetaPrimePowerIndex.window N)
-          (fun ι : ZetaPrimePowerIndex =>
-            zetaCompletedPrimeDefectKernelPositiveCoordinate ι f))
+        calc
+          zetaCompletedPrimeDefectKernelPositiveRealWindow N f =
+              Complex.re (zetaCompletedPrimeDefectKernelPositiveWindow N f) := by
+            exact Eq.refl _
+          _ = ∑ ι in ZetaPrimePowerIndex.window N, u ι := by
+            exact Complex.re_sum
+              (ZetaPrimePowerIndex.window N)
+              (fun ι : ZetaPrimePowerIndex =>
+                zetaCompletedPrimeDefectKernelPositiveCoordinate ι f))
   have hlimit :
       Tendsto
         (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.window N, u ι)
@@ -1178,12 +1190,15 @@ theorem zetaCompletedPrimeDefectKernelDiagonalDebtRealWindow_tendsto_coordinateT
         (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.window N, u ι) := by
     exact funext
       (fun N : ℕ => by
-        unfold zetaCompletedPrimeDefectKernelDiagonalDebtRealWindow
-        unfold zetaCompletedPrimeDefectKernelDiagonalDebtWindow
-        exact Complex.re_sum
-          (ZetaPrimePowerIndex.window N)
-          (fun ι : ZetaPrimePowerIndex =>
-            zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f))
+        calc
+          zetaCompletedPrimeDefectKernelDiagonalDebtRealWindow N f =
+              Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtWindow N f) := by
+            exact Eq.refl _
+          _ = ∑ ι in ZetaPrimePowerIndex.window N, u ι := by
+            exact Complex.re_sum
+              (ZetaPrimePowerIndex.window N)
+              (fun ι : ZetaPrimePowerIndex =>
+                zetaCompletedPrimeDefectKernelDiagonalDebtCoordinate ι f))
   have hlimit :
       Tendsto
         (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.window N, u ι)
@@ -1361,11 +1376,11 @@ theorem zetaCompletedPrimeDefectKernelPositiveWindow_add_twoFaceWindow_eq_diagon
           (g := fun ι : ZetaPrimePowerIndex => star (C ι))).symm)
     _ =
         Finset.sum s (fun ι : ZetaPrimePowerIndex => P ι + (C ι + star (C ι))) := by
-      exact Finset.sum_congr rfl
+      exact Finset.sum_congr (Eq.refl s)
         (fun (ι : ZetaPrimePowerIndex) (_ : ι ∈ s) =>
           add_assoc (P ι) (C ι) (star (C ι)))
     _ = ∑ ι in s, D ι := by
-      exact Finset.sum_congr rfl
+      exact Finset.sum_congr (Eq.refl s)
         (fun (ι : ZetaPrimePowerIndex) (_ : ι ∈ s) =>
           zetaCompletedPrimeDefectKernelPositiveCoordinate_add_twoFace_eq_diagonalDebtCoordinate
             ι f)
@@ -1506,7 +1521,7 @@ theorem zetaCompletedPrimeDefectKernelPositiveCoordinateTsum_add_twoFace_eq_diag
         zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f =
         (∑' ι : ZetaPrimePowerIndex, P ι) +
           zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f := by
-      rfl
+      exact Eq.refl _
     _ =
         (∑' ι : ZetaPrimePowerIndex, P ι) +
           (∑' ι : ZetaPrimePowerIndex, T ι) := by
@@ -1524,7 +1539,7 @@ theorem zetaCompletedPrimeDefectKernelPositiveCoordinateTsum_eq_positiveCoordina
     zetaCompletedPrimeDefectKernelPositiveCoordinateTsum f =
       ∑' ι : ZetaPrimePowerIndex,
         zetaCompletedPrimeDefectKernelPositiveCoordinate ι f := by
-  rfl
+  exact Eq.refl _
 
 /-- The finite completed prime defect-square expansion passes to the completed prime-power
 realization.
@@ -1582,7 +1597,7 @@ theorem zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe_eq_completedPrime
     calc
       completedPrimeDefectKernelPositiveChannel f + Complex.re T =
           Complex.re Powner + Complex.re T := by
-        rfl
+        exact Eq.refl _
       _ = Complex.re (Powner + T) := by
         exact (Complex.add_re Powner T).symm
       _ = Complex.re Downer := by
@@ -1631,7 +1646,7 @@ theorem zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe_eq_completedPrime
   calc
     zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f =
         Complex.re Pcoord := by
-      rfl
+      exact Eq.refl _
     _ =
         (Complex.re Pcoord + Complex.re T) + -Complex.re T := by
       exact hleft.symm
@@ -1678,7 +1693,7 @@ theorem zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe_eq_completedPrime
         _ =
             zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f +
               Complex.re T := by
-          rfl
+          exact Eq.refl _
     have howner_re :
         Complex.re Downer =
           completedPrimeDefectKernelPositiveChannel f + Complex.re T := by
@@ -1689,11 +1704,11 @@ theorem zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe_eq_completedPrime
           exact Complex.add_re Powner T
         _ =
             completedPrimeDefectKernelPositiveChannel f + Complex.re T := by
-          rfl
+          exact Eq.refl _
     calc
       Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f) =
           Complex.re Dcoord := by
-        rfl
+        exact Eq.refl _
       _ =
           zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe f +
             Complex.re T := by
@@ -1704,7 +1719,7 @@ theorem zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe_eq_completedPrime
       _ = Complex.re Downer := by
         exact howner_re.symm
       _ = Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by
-        rfl
+        exact Eq.refl _
   · intro hdiagonal
     exact
       zetaCompletedPrimeDefectKernelPositiveCoordinateTsumRe_eq_completedPrimeDefectKernelPositiveChannel_of_diagonalDebtCoordinateTsum_re
@@ -1752,7 +1767,6 @@ theorem zetaCompletedPrimeDefectKernelDiagonalDebt_re_eq_zero_of_twoFace_re_eq
   let Tf : ℂ := zetaPrimeTwoFaceGNSMatrixCoefficient f
   let Tc : ℂ := zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f
   have hfinite : Complex.re Df = 0 := by
-    unfold Df
     exact zetaPrimeDefectKernelDiagonalDebt_re_eq_zero_of_completedLowerWeightNormalization
       f
   have hre :
@@ -1766,11 +1780,11 @@ theorem zetaCompletedPrimeDefectKernelDiagonalDebt_re_eq_zero_of_twoFace_re_eq
         exact congrArg (fun x : ℝ => x + Complex.re Tc)
           (Complex.sub_re Df Tf)
       _ = Complex.re Df - Complex.re Tf + Complex.re Tc := by
-        rfl
+        exact Eq.refl _
   calc
     Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
         Complex.re (Df - Tf + Tc) := by
-      rfl
+      exact Eq.refl _
     _ = Complex.re Df - Complex.re Tf + Complex.re Tc := by
       exact hre
     _ = 0 - Complex.re Tf + Complex.re Tc := by
