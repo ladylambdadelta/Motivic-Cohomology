@@ -18,6 +18,61 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- A regular-grid subdivision at half radius gives the half-radius inscribed-square
+punctured-boundary Cauchy zero.  Closed-radius controls supply the closed-cell boundary
+location and open-cell interior hypotheses for every proof-carrying regular grid cell. -/
+theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBoundaryIntegral_eq_zero_of_regularGridHalfRadius_subdivision_closedRadiusControls
+    {F : ExplicitFormulaContourFamily} {T ε : ℝ}
+    (cells : Finset (ExplicitFormulaRectangleRegularGridCell F T (ε / 2)))
+    (f : ZetaAdmissibleFunction)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hT : 0 < T) (hε : 0 < ε)
+    (hinterior :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+          completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
+            completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
+    (hboundary :
+      ∀ z : ℂ,
+        z ∈ explicitFormulaContourFamilyBoundary F T →
+          ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
+            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (hclosed :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T)
+    (hsubdivision :
+      explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBoundaryIntegral
+          f F T (ε / 2) =
+        ∑ c in cells,
+          finiteRectangleSubdivisionCellBoundaryIntegral
+            (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+            c.lower c.upper) :
+    explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBoundaryIntegral
+      f F T (ε / 2) = 0 := by
+  have hcell_location :
+      ∀ c : ExplicitFormulaRectangleRegularGridCell F T (ε / 2), c ∈ cells →
+        ∀ z : ℂ,
+          z ∈ (Set.uIcc c.lower.re c.upper.re ×ℂ
+            Set.uIcc c.lower.im c.upper.im) →
+            z ∈ explicitFormulaContourFamilyInterior F T ∨
+              z ∈ explicitFormulaContourFamilyBoundary F T :=
+    explicitFormulaRectangleRegularGridCellFamily_closedCell_location_of_halfRadius_closedRadiusControls
+      cells hT hε hclosed
+  have hcell_open_interior :
+      ∀ c : ExplicitFormulaRectangleRegularGridCell F T (ε / 2), c ∈ cells →
+        ∀ z : ℂ,
+          z ∈ Set.Ioo (min c.lower.re c.upper.re)
+                (max c.lower.re c.upper.re) ×ℂ
+              Set.Ioo (min c.lower.im c.upper.im)
+                (max c.lower.im c.upper.im) →
+            z ∈ explicitFormulaContourFamilyInterior F T :=
+    explicitFormulaRectangleRegularGridCellFamily_openCell_interior_of_halfRadius_closedRadiusControls
+      cells hT hε hclosed
+  exact
+    explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBoundaryIntegral_eq_zero_of_regularGridCellSubtype
+      cells f h hT hinterior hboundary hsubdivision hcell_location hcell_open_interior
+
 /-- Algebraic form of the inscribed-square subdivision target: once the tangent outer
 rectangle contour minus the finite inscribed-square hole boundaries has been identified
 with a finite sum of regular subdivision-cell boundaries, the public inscribed-square
@@ -359,8 +414,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
             (lower c) (upper c))
     (hcell_closed :
       ∀ c : ι, c ∈ cells →
-        ([[ (lower c).re, (upper c).re ]] ×ℂ
-          [[ (lower c).im, (upper c).im ]]) ⊆
+        (Set.uIcc (lower c).re (upper c).re ×ℂ
+          Set.uIcc (lower c).im (upper c).im) ⊆
           finiteRectanglePuncturedDomain
             (explicitFormulaContourFamilyInterior F T)
             (explicitFormulaRectangleRawSingularCoordinates T)
@@ -524,7 +579,8 @@ theorem explicitFormulaRectangleTangentHalfRadiusPuncturedBoundaryIntegral_eq_ze
     (hcell_location :
       ∀ c : ExplicitFormulaRectangleRegularGridCell F T (ε / 2), c ∈ cells →
         ∀ z : ℂ,
-          z ∈ ([[ c.lower.re, c.upper.re ]] ×ℂ [[ c.lower.im, c.upper.im ]]) →
+          z ∈ (Set.uIcc c.lower.re c.upper.re ×ℂ
+            Set.uIcc c.lower.im c.upper.im) →
             z ∈ explicitFormulaContourFamilyInterior F T ∨
               z ∈ explicitFormulaContourFamilyBoundary F T)
     (hcell_open_interior :
@@ -593,7 +649,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral_eq_
     (hcell_location :
       ∀ c : ExplicitFormulaRectangleRegularGridCell F T (ε / 2), c ∈ cells →
         ∀ z : ℂ,
-          z ∈ ([[ c.lower.re, c.upper.re ]] ×ℂ [[ c.lower.im, c.upper.im ]]) →
+          z ∈ (Set.uIcc c.lower.re c.upper.re ×ℂ
+            Set.uIcc c.lower.im c.upper.im) →
             z ∈ explicitFormulaContourFamilyInterior F T ∨
               z ∈ explicitFormulaContourFamilyBoundary F T)
     (hcell_open_interior :
