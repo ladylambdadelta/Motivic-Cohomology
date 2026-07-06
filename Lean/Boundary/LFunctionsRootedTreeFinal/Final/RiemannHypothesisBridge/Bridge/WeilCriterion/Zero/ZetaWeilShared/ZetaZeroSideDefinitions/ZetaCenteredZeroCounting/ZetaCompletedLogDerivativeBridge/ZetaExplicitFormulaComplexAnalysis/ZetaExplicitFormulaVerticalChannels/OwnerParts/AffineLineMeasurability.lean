@@ -19,6 +19,7 @@ open Filter
 open LSeries ArithmeticFunction
 open MeasureTheory
 open scoped ArithmeticFunction
+open scoped LSeries.notation
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
@@ -474,7 +475,7 @@ theorem zetaCompletedExplicitFormulaPrimeLogDerivative_leftAffineLine_aestrongly
 prime logarithmic derivative. -/
 theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_eq_logDerivative
     (F : ExplicitFormulaContourFamily) (t : ℝ) :
-    L ↗Λ (zetaCompletedExplicitFormulaRightAffineLine F t) =
+    (L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t) =
       explicitFormulaPrimeLogDerivative
         (zetaCompletedExplicitFormulaRightAffineLine F t) :=
   (explicitFormulaPrimeLogDerivative_eq_vonMangoldt_LSeries_of_one_lt_re
@@ -485,7 +486,7 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_eq_logDerivative
 theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_aestronglyMeasurable
     (F : ExplicitFormulaContourFamily) :
     AEStronglyMeasurable
-      (fun t : ℝ => L ↗Λ (zetaCompletedExplicitFormulaRightAffineLine F t))
+      (fun t : ℝ => (L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t))
       (volume : Measure ℝ) := by
   have hlog :
       AEStronglyMeasurable
@@ -595,7 +596,7 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_terms_complex_su
 fixed right affine line. -/
 theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_norm_le_bound
     (F : ExplicitFormulaContourFamily) (t : ℝ) :
-    ‖L ↗Λ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤
+    ‖(L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤
       zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactorBound F := by
   let s : ℂ := zetaCompletedExplicitFormulaRightAffineLine F t
   have hsumm :
@@ -604,7 +605,7 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_norm_le_bound
       (s := s)
       (zetaCompletedExplicitFormulaRightAffineLine_one_lt_re F t)).norm
   have hnorm :
-      ‖L ↗Λ s‖ ≤ ∑' n : ℕ, ‖LSeries.term (↗Λ) s n‖ :=
+      ‖(L ↗Λ) s‖ ≤ ∑' n : ℕ, ‖LSeries.term (↗Λ) s n‖ :=
     norm_tsum_le_tsum_norm hsumm
   have hterms :
       (fun n : ℕ => ‖LSeries.term (↗Λ) s n‖) =
@@ -658,12 +659,18 @@ theorem zetaCompletedExplicitFormulaInverseGammaLogDeriv_rightAffineLine_continu
           deriv (fun w : ℂ => (Gammaℝ w)⁻¹) z / (Gammaℝ z)⁻¹) := by
     funext z
     exact inverseGammaCompletionLogDeriv_eq z
-  exact
+  have hline :
+      ContinuousAt (fun t : ℝ => zetaCompletedExplicitFormulaRightAffineLine F t) t :=
+    (zetaCompletedExplicitFormulaRightAffineLine_continuous F).continuousAt
+  have houter :
+      ContinuousAt
+        (fun z : ℂ => inverseGammaCompletionLogDeriv z)
+        (zetaCompletedExplicitFormulaRightAffineLine F t) :=
     (Eq.subst
       (motive := fun φ : ℂ → ℂ => ContinuousAt φ s)
       hdef.symm
-      hquot).comp
-        ((zetaCompletedExplicitFormulaRightAffineLine_continuous F).continuousAt)
+      hquot)
+  exact houter.comp hline
 
 /-- Strong measurability of the inverse-Gamma logarithmic-derivative factor on
 the right affine line. -/
@@ -888,12 +895,18 @@ theorem zetaCompletedExplicitFormulaInverseGammaLogDeriv_leftAffineLine_continuo
           deriv (fun w : ℂ => (Gammaℝ w)⁻¹) z / (Gammaℝ z)⁻¹) := by
     funext z
     exact inverseGammaCompletionLogDeriv_eq z
-  exact
+  have hline :
+      ContinuousAt (fun t : ℝ => zetaCompletedExplicitFormulaLeftAffineLine F t) t :=
+    (zetaCompletedExplicitFormulaLeftAffineLine_continuous F).continuousAt
+  have houter :
+      ContinuousAt
+        (fun z : ℂ => inverseGammaCompletionLogDeriv z)
+        (zetaCompletedExplicitFormulaLeftAffineLine F t) :=
     (Eq.subst
       (motive := fun φ : ℂ → ℂ => ContinuousAt φ s)
       hdef.symm
-      hquot).comp
-        ((zetaCompletedExplicitFormulaLeftAffineLine_continuous F).continuousAt)
+      hquot)
+  exact houter.comp hline
 
 /-- Under the parameter-level Gamma-regularity condition, the inverse-Gamma
 logarithmic-derivative factor on the left affine line is strongly measurable. -/

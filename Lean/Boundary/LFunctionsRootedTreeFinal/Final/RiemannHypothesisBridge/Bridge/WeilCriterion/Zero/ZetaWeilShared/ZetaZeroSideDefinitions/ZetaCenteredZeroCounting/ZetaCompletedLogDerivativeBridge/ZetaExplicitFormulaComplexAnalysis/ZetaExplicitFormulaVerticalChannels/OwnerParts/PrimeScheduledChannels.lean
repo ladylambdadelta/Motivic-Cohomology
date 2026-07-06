@@ -19,6 +19,7 @@ open Filter
 open LSeries ArithmeticFunction
 open MeasureTheory
 open scoped ArithmeticFunction
+open scoped LSeries.notation
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
@@ -102,7 +103,7 @@ noncomputable def zetaCompletedExplicitFormulaPrimeScheduledRightVonMangoldtInte
   ∫ t in Set.Icc
       (-(F.rectangle (h.height_schedule.height u)).T)
       (F.rectangle (h.height_schedule.height u)).T,
-    L ↗Λ
+    (L ↗Λ)
         (zetaCompletedExplicitFormulaRightPath
           (F.rectangle (h.height_schedule.height u)) t) *
       zetaCompletedExplicitFormulaPhi f
@@ -131,19 +132,19 @@ theorem zetaCompletedExplicitFormulaPrimeScheduledRightVonMangoldtIntegral_eq_af
       ∫ t in Set.Icc
           (-(F.rectangle (h.height_schedule.height u)).T)
           (F.rectangle (h.height_schedule.height u)).T,
-        L ↗Λ ((F.c : ℂ) + t * Complex.I) *
+        (L ↗Λ) ((F.c : ℂ) + t * Complex.I) *
           zetaCompletedExplicitFormulaPhi f
             (((F.c : ℂ) - (1 / 2 : ℂ)) + t * Complex.I) := by
   have hfun :
       (fun t : ℝ =>
-        L ↗Λ
+        (L ↗Λ)
             (zetaCompletedExplicitFormulaRightPath
               (F.rectangle (h.height_schedule.height u)) t) *
           zetaCompletedExplicitFormulaPhi f
             (zetaCompletedExplicitFormulaRightPath
               (F.rectangle (h.height_schedule.height u)) t - 1 / 2)) =
       (fun t : ℝ =>
-        L ↗Λ ((F.c : ℂ) + t * Complex.I) *
+        (L ↗Λ) ((F.c : ℂ) + t * Complex.I) *
           zetaCompletedExplicitFormulaPhi f
             (((F.c : ℂ) - (1 / 2 : ℂ)) + t * Complex.I)) := by
     funext t
@@ -160,29 +161,29 @@ theorem zetaCompletedExplicitFormulaPrimeScheduledRightVonMangoldtIntegral_eq_af
       zetaCompletedExplicitFormulaPrime_shiftedRightPath_eq_affineLine
         F (h.height_schedule.height u) t
     calc
-      L ↗Λ
+      (L ↗Λ)
           (zetaCompletedExplicitFormulaRightPath
             (F.rectangle (h.height_schedule.height u)) t) *
         zetaCompletedExplicitFormulaPhi f
           (zetaCompletedExplicitFormulaRightPath
             (F.rectangle (h.height_schedule.height u)) t - 1 / 2) =
-          L ↗Λ ((F.c : ℂ) + t * Complex.I) *
+          (L ↗Λ) ((F.c : ℂ) + t * Complex.I) *
             zetaCompletedExplicitFormulaPhi f
               (zetaCompletedExplicitFormulaRightPath
                 (F.rectangle (h.height_schedule.height u)) t - 1 / 2) := by
         exact congrArg
           (fun z : ℂ =>
-            L ↗Λ z *
+            (L ↗Λ) z *
               zetaCompletedExplicitFormulaPhi f
                 (zetaCompletedExplicitFormulaRightPath
                   (F.rectangle (h.height_schedule.height u)) t - 1 / 2))
           hpath
-      _ = L ↗Λ ((F.c : ℂ) + t * Complex.I) *
+      _ = (L ↗Λ) ((F.c : ℂ) + t * Complex.I) *
             zetaCompletedExplicitFormulaPhi f
               (((F.c : ℂ) - (1 / 2 : ℂ)) + t * Complex.I) := by
         exact congrArg
           (fun z : ℂ =>
-            L ↗Λ ((F.c : ℂ) + t * Complex.I) *
+            (L ↗Λ) ((F.c : ℂ) + t * Complex.I) *
               zetaCompletedExplicitFormulaPhi f z)
           hshift
   exact congrArg
@@ -274,8 +275,74 @@ theorem zetaCompletedExplicitFormulaPrimeScheduledRightVonMangoldtIntegral_eq_af
           (-(F.rectangle (h.height_schedule.height u)).T)
           (F.rectangle (h.height_schedule.height u)).T,
         zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel f F t :=
-  zetaCompletedExplicitFormulaPrimeScheduledRightVonMangoldtIntegral_eq_affineLineIntegral
-    f F h u
+  Eq.trans
+    (zetaCompletedExplicitFormulaPrimeScheduledRightVonMangoldtIntegral_eq_affineLineIntegral
+      f F h u)
+    (congrArg
+      (fun φ : ℝ → ℂ =>
+        ∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+          φ t)
+      (by
+        funext t
+        have hs :
+            (1 : ℝ) <
+              (zetaCompletedExplicitFormulaRightAffineLine F t).re := by
+          exact Eq.subst
+            (motive := fun x : ℝ => (1 : ℝ) < x)
+            (zetaCompletedExplicitFormulaRightAffineLine_re F t).symm
+            F.c_gt_one
+        have hprime :
+            explicitFormulaPrimeLogDerivative
+                (zetaCompletedExplicitFormulaRightAffineLine F t) =
+              (L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t) :=
+          explicitFormulaPrimeLogDerivative_eq_vonMangoldt_LSeries_of_one_lt_re
+            (zetaCompletedExplicitFormulaRightAffineLine F t) hs
+        have hline :
+            (L ↗Λ) ((F.c : ℂ) + t * Complex.I) =
+              (L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t) := by
+          exact congrArg
+            (fun z : ℂ => (L ↗Λ) z)
+            (zetaCompletedExplicitFormulaRightAffineLine_eq F t).symm
+        have hcenter :
+            (((F.c : ℂ) - (1 / 2 : ℂ)) + t * Complex.I) =
+              zetaCompletedExplicitFormulaRightCenteredAffineLine F t := by
+          exact
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine_eq F t).symm
+        calc
+          (L ↗Λ) ((F.c : ℂ) + t * Complex.I) *
+              zetaCompletedExplicitFormulaPhi f
+                (((F.c : ℂ) - (1 / 2 : ℂ)) + t * Complex.I)
+            = (L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t) *
+                zetaCompletedExplicitFormulaPhi f
+                  (((F.c : ℂ) - (1 / 2 : ℂ)) + t * Complex.I) := by
+              exact congrArg
+                (fun z : ℂ =>
+                  z * zetaCompletedExplicitFormulaPhi f
+                    (((F.c : ℂ) - (1 / 2 : ℂ)) + t * Complex.I))
+                hline
+          _ = (L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t) *
+                zetaCompletedExplicitFormulaPhi f
+                  (zetaCompletedExplicitFormulaRightCenteredAffineLine F t) := by
+              exact congrArg
+                (fun z : ℂ =>
+                  (L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t) *
+                    zetaCompletedExplicitFormulaPhi f z)
+                hcenter
+          _ =
+              explicitFormulaPrimeLogDerivative
+                  (zetaCompletedExplicitFormulaRightAffineLine F t) *
+                zetaCompletedExplicitFormulaPhi f
+                  (zetaCompletedExplicitFormulaRightCenteredAffineLine F t) := by
+              exact congrArg
+                (fun z : ℂ =>
+                  z * zetaCompletedExplicitFormulaPhi f
+                    (zetaCompletedExplicitFormulaRightCenteredAffineLine F t))
+                hprime.symm
+          _ = zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel
+                f F t := by
+              rfl))
 
 /-- The right inverse-Gamma completion line integral in scheduled affine
 normal form. -/
