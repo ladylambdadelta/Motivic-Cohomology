@@ -903,6 +903,149 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_eq
       (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
       h n
 
+/-- Raw increment monotonicity for a shifted logarithmic difference follows from
+monotonicity of the fixed-width gap in the parent adjacent-increment profile. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrementMonotoneOn_of_parentGap_monotone
+    (t : ℝ)
+    {a b h : ℕ}
+    (hgap :
+      MonotoneOn
+        (fun n : ℕ =>
+          Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              (n + h) -
+            Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              n)
+        (Finset.Ico a (b - h) : Set ℕ)) :
+    Complex.realPhase_integerIncrementMonotoneOn
+      (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h) := by
+  exact Or.inl
+    (fun m hm n hn hmn =>
+      have hmn_gap :
+          Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              (m + h) -
+            Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              m ≤
+          Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              (n + h) -
+            Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              n :=
+        hgap hm hn hmn
+      have hm_eq :
+          Complex.realPhase_integerIncrement
+              (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) m =
+            Complex.realPhase_integerIncrement
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                (m + h) -
+              Complex.realPhase_integerIncrement
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                m :=
+        Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_eq
+          t h m
+      have hn_eq :
+          Complex.realPhase_integerIncrement
+              (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n =
+            Complex.realPhase_integerIncrement
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                (n + h) -
+              Complex.realPhase_integerIncrement
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                n :=
+        Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_eq
+          t h n
+      Eq.subst
+        (motive := fun left : ℝ =>
+          left ≤
+            Complex.realPhase_integerIncrement
+              (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n)
+        hm_eq.symm
+        (Eq.subst
+          (motive := fun right : ℝ =>
+            Complex.realPhase_integerIncrement
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                (m + h) -
+              Complex.realPhase_integerIncrement
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                m ≤ right)
+          hn_eq.symm
+          hmn_gap))
+
+/-- Antitonicity version of the shifted-increment monotonicity reduction. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrementMonotoneOn_of_parentGap_antitone
+    (t : ℝ)
+    {a b h : ℕ}
+    (hgap :
+      AntitoneOn
+        (fun n : ℕ =>
+          Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              (n + h) -
+            Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              n)
+        (Finset.Ico a (b - h) : Set ℕ)) :
+    Complex.realPhase_integerIncrementMonotoneOn
+      (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h) := by
+  exact Or.inr
+    (fun m hm n hn hmn =>
+      have hmn_gap :
+          Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              (n + h) -
+            Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              n ≤
+          Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              (m + h) -
+            Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              m :=
+        hgap hm hn hmn
+      have hm_eq :
+          Complex.realPhase_integerIncrement
+              (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) m =
+            Complex.realPhase_integerIncrement
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                (m + h) -
+              Complex.realPhase_integerIncrement
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                m :=
+        Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_eq
+          t h m
+      have hn_eq :
+          Complex.realPhase_integerIncrement
+              (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n =
+            Complex.realPhase_integerIncrement
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                (n + h) -
+              Complex.realPhase_integerIncrement
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                n :=
+        Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_eq
+          t h n
+      Eq.subst
+        (motive := fun left : ℝ =>
+          left ≤
+            Complex.realPhase_integerIncrement
+              (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) m)
+        hn_eq.symm
+        (Eq.subst
+          (motive := fun right : ℝ =>
+            Complex.realPhase_integerIncrement
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                (n + h) -
+              Complex.realPhase_integerIncrement
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                n ≤ right)
+          hm_eq.symm
+          hmn_gap))
+
 /-- Shifted correlation sum appearing in Weyl differencing for the logarithmic
 real phase. -/
 def Complex.logarithmicPhaseRealPhase_shiftedCorrelation
