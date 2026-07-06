@@ -78,7 +78,8 @@ theorem explicitFormulaOnePole_tangentDefect_eventual_inverseQuadratic_of_compon
       have hfactor :
           ML * q + MB * q = (ML + MB) * q :=
         (add_mul ML MB q).symm
-      exact hnorm.trans (hsum.trans_eq hfactor))
+      by
+        exact hnorm.trans (hsum.trans_eq hfactor))
 
 /-- Rate transport for the actual scheduled one-pole tangent defect. -/
 theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentBoundaryDefect_eventual_inverseQuadratic_of_component_rates
@@ -181,7 +182,8 @@ theorem explicitFormula_tangentBoundary_eventual_inverseQuadratic_of_standard_an
             exact congrArg (fun z : ℝ => MS * q + z) hfactor_inner
           _ = (MS + (MH + MH)) * q := by
             exact (add_mul MS (MH + MH) q).symm
-      exact hnorm.trans (hsum.trans_eq hfactor))
+      by
+        exact hnorm.trans (hsum.trans_eq hfactor))
 
 end ZetaAdmissibleFunction
 

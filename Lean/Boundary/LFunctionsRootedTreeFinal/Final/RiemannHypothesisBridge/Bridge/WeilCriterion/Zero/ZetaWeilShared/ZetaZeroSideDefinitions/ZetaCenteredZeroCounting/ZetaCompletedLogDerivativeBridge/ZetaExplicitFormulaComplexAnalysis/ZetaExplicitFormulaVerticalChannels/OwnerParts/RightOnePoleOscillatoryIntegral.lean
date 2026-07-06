@@ -135,13 +135,14 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_rawFixedLineInterval_
             exact congrArg
               (fun φ : ℝ → ℂ => ∫ t in Set.Icc (-T) T, φ t)
               hphi
-          exact
-            Eq.subst
-              (motive := fun z : ℂ =>
-                ‖z - zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f c‖
-                  ≤ MR * (1 + ‖T‖) ^ (-(2 : ℤ)))
-              hintegral.symm
-              hu)
+          by
+            exact
+              Eq.subst
+                (motive := fun z : ℂ =>
+                  ‖z - zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f c‖
+                    ≤ MR * (1 + ‖T‖) ^ (-(2 : ℤ)))
+                hintegral.symm
+                hu)
 
 /-- Transport the raw fixed-line right one-pole estimate to the scheduled
 right-path integral. -/
@@ -238,13 +239,14 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIn
                 exact congrArg
                   (fun φ : ℝ → ℂ => ∫ t in Set.Icc (-T) T, φ t)
                   hline
-          exact
-            Eq.subst
-              (motive := fun z : ℂ =>
-                ‖z - zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c‖
-                  ≤ MR * (1 + ‖T‖) ^ (-(2 : ℤ)))
-              hintegral.symm
-              hu)
+          by
+            exact
+              Eq.subst
+                (motive := fun z : ℂ =>
+                  ‖z - zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c‖
+                    ≤ MR * (1 + ‖T‖) ^ (-(2 : ℤ)))
+                hintegral.symm
+                hu)
 
 /-- Direct Cauchy/Laplace projection estimate for the scheduled right `s = 1`
 correction face.
