@@ -45,54 +45,50 @@ theorem dual_dual (a : HodgeNumberProfile) : dual (dual a) = a :=
 theorem tateTwist_zero (a : HodgeNumberProfile) : tateTwist 0 a = a :=
   Hodge.twistProfile_zero a
 
-theorem directSum_comm (a b : HodgeNumberProfile) : directSum a b = directSum b a := by
-  funext pq
-  exact Nat.add_comm _ _
+theorem directSum_comm (a b : HodgeNumberProfile) : directSum a b = directSum b a :=
+  funext (fun pq => Nat.add_comm (a pq) (b pq))
 
 theorem directSum_assoc (a b c : HodgeNumberProfile) :
-    directSum (directSum a b) c = directSum a (directSum b c) := by
-  funext pq
-  exact Nat.add_assoc _ _ _
+    directSum (directSum a b) c = directSum a (directSum b c) :=
+  funext (fun pq => Nat.add_assoc (a pq) (b pq) (c pq))
 
-theorem directSum_zero (a : HodgeNumberProfile) : directSum a 0 = a := by
-  funext pq
-  exact Nat.add_zero _
+theorem directSum_zero (a : HodgeNumberProfile) : directSum a 0 = a :=
+  funext (fun pq => Nat.add_zero (a pq))
 
-theorem zero_directSum (a : HodgeNumberProfile) : directSum 0 a = a := by
-  funext pq
-  exact zero_add _
+theorem zero_directSum (a : HodgeNumberProfile) : directSum 0 a = a :=
+  funext (fun pq => zero_add (a pq))
 
 theorem dual_directSum (a b : HodgeNumberProfile) :
-    dual (directSum a b) = directSum (dual a) (dual b) := by
-  funext pq
-  rfl
+    dual (directSum a b) = directSum (dual a) (dual b) :=
+  funext (fun _ => rfl)
 
 theorem tateTwist_directSum (n : ℤ) (a b : HodgeNumberProfile) :
-    tateTwist n (directSum a b) = directSum (tateTwist n a) (tateTwist n b) := by
-  funext pq
-  rfl
+    tateTwist n (directSum a b) = directSum (tateTwist n a) (tateTwist n b) :=
+  funext (fun _ => rfl)
 
 theorem dual_tateTwist (n : ℤ) (a : HodgeNumberProfile) :
-    dual (tateTwist n a) = tateTwist (-n) (dual a) := by
-  funext pq
-  rcases pq with ⟨p, q⟩
-  have hp : -p + n = -(p + -n) := by
-    exact (Eq.trans (congrArg (fun t : ℤ => -p + t) (Eq.symm (neg_neg n)))
-      (Eq.symm (neg_add p (-n))))
-  have hq : -q + n = -(q + -n) := by
-    exact (Eq.trans (congrArg (fun t : ℤ => -q + t) (Eq.symm (neg_neg n)))
-      (Eq.symm (neg_add q (-n))))
-  exact congrArg a (Prod.ext hp hq)
+    dual (tateTwist n a) = tateTwist (-n) (dual a) :=
+  funext
+    (fun pq =>
+      match pq with
+      | (p, q) =>
+          let hp : -p + n = -(p + -n) :=
+            Eq.trans (congrArg (fun t : ℤ => -p + t) (Eq.symm (neg_neg n)))
+              (Eq.symm (neg_add p (-n)))
+          let hq : -q + n = -(q + -n) :=
+            Eq.trans (congrArg (fun t : ℤ => -q + t) (Eq.symm (neg_neg n)))
+              (Eq.symm (neg_add q (-n)))
+          congrArg a (Prod.ext hp hq))
 
 theorem tateTwist_dual (n : ℤ) (a : HodgeNumberProfile) :
-    tateTwist n (dual a) = dual (tateTwist (-n) a) := by
-  funext pq
-  rcases pq with ⟨p, q⟩
-  have hp : -(p + n) = -p + -n := by
-    exact neg_add p n
-  have hq : -(q + n) = -q + -n := by
-    exact neg_add q n
-  exact congrArg a (Prod.ext hp hq)
+    tateTwist n (dual a) = dual (tateTwist (-n) a) :=
+  funext
+    (fun pq =>
+      match pq with
+      | (p, q) =>
+          let hp : -(p + n) = -p + -n := neg_add p n
+          let hq : -(q + n) = -q + -n := neg_add q n
+          congrArg a (Prod.ext hp hq))
 
 /-! ### Boundary-level profile transport
 
@@ -122,13 +118,10 @@ theorem rankProfile_ofLinearEquiv (H : PureHodgeStructure)
 theorem rankProfile_tateTwist_product (H G : PureHodgeStructure) (hweight : H.weight = G.weight)
     (n : ℤ) :
     ((H.product G hweight).tateTwist n).rankProfile =
-      tateTwist n (directSum H.rankProfile G.rankProfile) := by
-  calc
-    ((H.product G hweight).tateTwist n).rankProfile =
-        tateTwist n ((H.product G hweight).rankProfile) := by
-      exact Hodge.PureHodgeStructure.rankProfile_tateTwist (H.product G hweight) n
-    _ = tateTwist n (directSum H.rankProfile G.rankProfile) := by
-      exact congrArg (tateTwist n) (Hodge.PureHodgeStructure.rankProfile_product H G hweight)
+      tateTwist n (directSum H.rankProfile G.rankProfile) :=
+  Eq.trans
+    (Hodge.PureHodgeStructure.rankProfile_tateTwist (H.product G hweight) n)
+    (congrArg (tateTwist n) (Hodge.PureHodgeStructure.rankProfile_product H G hweight))
 
 end Pure
 
