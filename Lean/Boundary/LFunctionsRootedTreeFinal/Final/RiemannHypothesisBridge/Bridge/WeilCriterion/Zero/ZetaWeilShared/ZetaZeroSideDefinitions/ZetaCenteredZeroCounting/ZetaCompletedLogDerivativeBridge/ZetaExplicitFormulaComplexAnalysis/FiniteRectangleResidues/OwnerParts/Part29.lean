@@ -313,9 +313,12 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
         exact Eq.refl _
       _ = c⁻¹ • (c • explicitFormulaRectangle_zeroPoleResidue f) := by
         exact congrArg (fun x : ℂ => c⁻¹ • x) hzero
-      _ = (c⁻¹ * c) • explicitFormulaRectangle_zeroPoleResidue f := by
+      _ = ((c⁻¹ * c : ℂ) • explicitFormulaRectangle_zeroPoleResidue f : ℂ) := by
+        show
+          c⁻¹ • (c • explicitFormulaRectangle_zeroPoleResidue f) =
+            ((c⁻¹ * c : ℂ) • explicitFormulaRectangle_zeroPoleResidue f : ℂ)
         exact smul_smul c⁻¹ c (explicitFormulaRectangle_zeroPoleResidue f)
-      _ = (1 : ℂ) • explicitFormulaRectangle_zeroPoleResidue f := by
+      _ = ((1 : ℂ) • explicitFormulaRectangle_zeroPoleResidue f : ℂ) := by
         exact congrArg
           (fun x : ℂ => x • explicitFormulaRectangle_zeroPoleResidue f)
           (inv_mul_cancel₀ hc_ne)
@@ -328,9 +331,12 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
         exact Eq.refl _
       _ = c⁻¹ • (c • explicitFormulaRectangle_onePoleResidue f) := by
         exact congrArg (fun x : ℂ => c⁻¹ • x) hone
-      _ = (c⁻¹ * c) • explicitFormulaRectangle_onePoleResidue f := by
+      _ = ((c⁻¹ * c : ℂ) • explicitFormulaRectangle_onePoleResidue f : ℂ) := by
+        show
+          c⁻¹ • (c • explicitFormulaRectangle_onePoleResidue f) =
+            ((c⁻¹ * c : ℂ) • explicitFormulaRectangle_onePoleResidue f : ℂ)
         exact smul_smul c⁻¹ c (explicitFormulaRectangle_onePoleResidue f)
-      _ = (1 : ℂ) • explicitFormulaRectangle_onePoleResidue f := by
+      _ = ((1 : ℂ) • explicitFormulaRectangle_onePoleResidue f : ℂ) := by
         exact congrArg
           (fun x : ℂ => x • explicitFormulaRectangle_onePoleResidue f)
           (inv_mul_cancel₀ hc_ne)
@@ -352,14 +358,20 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
         exact congrArg
           (fun x : ℂ => c⁻¹ • x)
           (hcompleted ρ hρ)
-      _ = (c⁻¹ * c) •
-            explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ) := by
+      _ = ((c⁻¹ * c : ℂ) •
+            explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ) : ℂ) := by
+        show
+          c⁻¹ •
+              (c •
+                explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ)) =
+            ((c⁻¹ * c : ℂ) •
+              explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ) : ℂ)
         exact
           smul_smul c⁻¹ c
             (explicitFormulaZeroResidue f
               (explicitFormulaZeroDataOfCompletedZero ρ))
-      _ = (1 : ℂ) •
-            explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ) := by
+      _ = ((1 : ℂ) •
+            explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ) : ℂ) := by
         exact congrArg
           (fun x : ℂ =>
             x • explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))
@@ -382,13 +394,16 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
         ∀ z : ℂ, z ∈ S → deletedCircle z = c • normalizedDeletedCircle z := by
       intro z _hz
       calc
-        deletedCircle z = (1 : ℂ) • deletedCircle z := by
+        deletedCircle z = ((1 : ℂ) • deletedCircle z : ℂ) := by
           exact (one_smul ℂ (deletedCircle z)).symm
-        _ = (c * c⁻¹) • deletedCircle z := by
+        _ = ((c * c⁻¹ : ℂ) • deletedCircle z : ℂ) := by
           exact congrArg
             (fun x : ℂ => x • deletedCircle z)
             (mul_inv_cancel₀ hc_ne).symm
         _ = c • (c⁻¹ • deletedCircle z) := by
+          show
+            ((c * c⁻¹ : ℂ) • deletedCircle z : ℂ) =
+              c • (c⁻¹ • deletedCircle z)
           exact (smul_smul c c⁻¹ (deletedCircle z)).symm
         _ = c • normalizedDeletedCircle z := by
           exact Eq.refl _
