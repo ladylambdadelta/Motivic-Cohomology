@@ -127,11 +127,11 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_norm_le_
     zetaCompletedExplicitFormulaPhi_rightCenteredAffineLine_decay_bound f F h N t
   have hphi_bound_nonneg : 0 ≤ C * weight :=
     (norm_nonneg phi).trans hphi
-  have hcauchy_nonneg : 0 ≤ ‖cauchy‖ :=
-    norm_nonneg cauchy
+  have hcauchy_bound_nonneg : 0 ≤ (1 : ℝ) / F.c :=
+    (norm_nonneg cauchy).trans hcauchy
   have hprod :
       ‖cauchy‖ * ‖phi‖ ≤ ((1 : ℝ) / F.c) * (C * weight) :=
-    mul_le_mul hcauchy hphi hphi_bound_nonneg hcauchy_nonneg
+    mul_le_mul hcauchy hphi (norm_nonneg phi) hcauchy_bound_nonneg
   have hmajorant_assoc :
       ((1 : ℝ) / F.c) * (C * weight) =
         ((1 : ℝ) / F.c) * C * weight :=
@@ -168,11 +168,11 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_norm_le_m
     zetaCompletedExplicitFormulaPhi_leftCenteredAffineLine_decay_bound f F h N t
   have hphi_bound_nonneg : 0 ≤ C * weight :=
     (norm_nonneg phi).trans hphi
-  have hcauchy_nonneg : 0 ≤ ‖cauchy‖ :=
-    norm_nonneg cauchy
+  have hcauchy_bound_nonneg : 0 ≤ (1 : ℝ) / (-(1 - F.c)) :=
+    (norm_nonneg cauchy).trans hcauchy
   have hprod :
       ‖cauchy‖ * ‖phi‖ ≤ ((1 : ℝ) / (-(1 - F.c))) * (C * weight) :=
-    mul_le_mul hcauchy hphi hphi_bound_nonneg hcauchy_nonneg
+    mul_le_mul hcauchy hphi (norm_nonneg phi) hcauchy_bound_nonneg
   have hmajorant_assoc :
       ((1 : ℝ) / (-(1 - F.c))) * (C * weight) =
         ((1 : ℝ) / (-(1 - F.c))) * C * weight :=
@@ -195,7 +195,11 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernelMajorant_
   have hpow :
       (1 + ‖t‖) ^ (-(2 : ℤ)) =
         (1 + ‖t‖) ^ (-(2 : ℝ)) :=
-    (Real.rpow_intCast (1 + ‖t‖) (-(2 : ℤ))).symm
+    have hexp : ((-2 : ℤ) : ℝ) = -(2 : ℝ) :=
+      Int.cast_negOfNat 2
+    Eq.trans
+      (Real.rpow_intCast (1 + ‖t‖) (-(2 : ℤ))).symm
+      (congrArg (fun r : ℝ => (1 + ‖t‖) ^ r) hexp)
   exact congrArg
     (fun x : ℝ =>
       ((1 : ℝ) / F.c) *
@@ -219,7 +223,11 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernelMajorant_t
   have hpow :
       (1 + ‖t‖) ^ (-(2 : ℤ)) =
         (1 + ‖t‖) ^ (-(2 : ℝ)) :=
-    (Real.rpow_intCast (1 + ‖t‖) (-(2 : ℤ))).symm
+    have hexp : ((-2 : ℤ) : ℝ) = -(2 : ℝ) :=
+      Int.cast_negOfNat 2
+    Eq.trans
+      (Real.rpow_intCast (1 + ‖t‖) (-(2 : ℤ))).symm
+      (congrArg (fun r : ℝ => (1 + ‖t‖) ^ r) hexp)
   exact congrArg
     (fun x : ℝ =>
       ((1 : ℝ) / (-(1 - F.c))) *
@@ -242,11 +250,11 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernelMajorant_
   let C : ℝ :=
     h.phi_control.verticalStripRapidDecayConstant
       (F.c - (1 / 2 : ℝ)) (F.c - (1 / 2 : ℝ)) 2
-  have hfinrank : finrank ℝ ℝ = 1 :=
+  have hfinrank : Module.finrank ℝ ℝ = 1 :=
     Module.finrank_self ℝ
-  have hfinrank_cast : ((finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
-    congrArg (fun n : ℕ => (n : ℝ)) hfinrank
-  have hdim : (finrank ℝ ℝ : ℝ) < 2 :=
+  have hfinrank_cast : ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
+    Eq.trans (congrArg (fun n : ℕ => (n : ℝ)) hfinrank) Nat.cast_one
+  have hdim : (Module.finrank ℝ ℝ : ℝ) < 2 :=
     Eq.subst
       (motive := fun x : ℝ => x < 2)
       hfinrank_cast.symm
@@ -255,20 +263,22 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernelMajorant_
       Integrable
         (fun t : ℝ => (1 + ‖t‖) ^ (-(2 : ℝ)))
         (volume : Measure ℝ) :=
-    integrable_one_add_norm (E := ℝ) (μ := volume) hdim
+    integrable_one_add_norm (E := ℝ) hdim
   have hscaled :
       Integrable
-        (fun t : ℝ => A * C * (1 + ‖t‖) ^ (-(2 : ℝ)))
+        (fun t : ℝ => A * (C * (1 + ‖t‖) ^ (-(2 : ℝ))))
         (volume : Measure ℝ) :=
     (hbase.const_mul C).const_mul A
   have hfun :
       (fun t : ℝ =>
         zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernelMajorant
           f F h 2 t) =
-      (fun t : ℝ => A * C * (1 + ‖t‖) ^ (-(2 : ℝ))) := by
+      (fun t : ℝ => A * (C * (1 + ‖t‖) ^ (-(2 : ℝ)))) := by
     funext t
-    exact zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernelMajorant_two_eq_rpow
-      f F h t
+    exact Eq.trans
+      (zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernelMajorant_two_eq_rpow
+        f F h t)
+      (mul_assoc A C ((1 + ‖t‖) ^ (-(2 : ℝ))))
   exact Eq.subst
     (motive := fun φ : ℝ → ℝ => Integrable φ (volume : Measure ℝ))
     hfun.symm
@@ -288,11 +298,11 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernelMajorant_t
     h.phi_control.verticalStripRapidDecayConstant
       ((1 : ℝ) - F.c - (1 / 2 : ℝ))
       ((1 : ℝ) - F.c - (1 / 2 : ℝ)) 2
-  have hfinrank : finrank ℝ ℝ = 1 :=
+  have hfinrank : Module.finrank ℝ ℝ = 1 :=
     Module.finrank_self ℝ
-  have hfinrank_cast : ((finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
-    congrArg (fun n : ℕ => (n : ℝ)) hfinrank
-  have hdim : (finrank ℝ ℝ : ℝ) < 2 :=
+  have hfinrank_cast : ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
+    Eq.trans (congrArg (fun n : ℕ => (n : ℝ)) hfinrank) Nat.cast_one
+  have hdim : (Module.finrank ℝ ℝ : ℝ) < 2 :=
     Eq.subst
       (motive := fun x : ℝ => x < 2)
       hfinrank_cast.symm
@@ -301,20 +311,22 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernelMajorant_t
       Integrable
         (fun t : ℝ => (1 + ‖t‖) ^ (-(2 : ℝ)))
         (volume : Measure ℝ) :=
-    integrable_one_add_norm (E := ℝ) (μ := volume) hdim
+    integrable_one_add_norm (E := ℝ) hdim
   have hscaled :
       Integrable
-        (fun t : ℝ => A * C * (1 + ‖t‖) ^ (-(2 : ℝ)))
+        (fun t : ℝ => A * (C * (1 + ‖t‖) ^ (-(2 : ℝ))))
         (volume : Measure ℝ) :=
     (hbase.const_mul C).const_mul A
   have hfun :
       (fun t : ℝ =>
         zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernelMajorant
           f F h 2 t) =
-      (fun t : ℝ => A * C * (1 + ‖t‖) ^ (-(2 : ℝ))) := by
+      (fun t : ℝ => A * (C * (1 + ‖t‖) ^ (-(2 : ℝ)))) := by
     funext t
-    exact zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernelMajorant_two_eq_rpow
-      f F h t
+    exact Eq.trans
+      (zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernelMajorant_two_eq_rpow
+        f F h t)
+      (mul_assoc A C ((1 + ‖t‖) ^ (-(2 : ℝ))))
   exact Eq.subst
     (motive := fun φ : ℝ → ℝ => Integrable φ (volume : Measure ℝ))
     hfun.symm
