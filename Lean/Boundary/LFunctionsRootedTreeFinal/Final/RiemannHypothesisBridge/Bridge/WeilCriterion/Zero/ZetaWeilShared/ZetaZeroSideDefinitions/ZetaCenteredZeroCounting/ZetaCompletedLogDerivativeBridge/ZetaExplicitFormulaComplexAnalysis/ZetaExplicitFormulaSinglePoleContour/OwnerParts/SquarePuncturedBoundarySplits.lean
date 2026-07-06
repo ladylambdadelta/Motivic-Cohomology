@@ -30,17 +30,17 @@ theorem zetaExplicitFormulaOnePole_bottomPunctureHorizontal_full_eq_segments
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (R : ℝ)
     (hleft :
       IntervalIntegrable
-        (fun x : ℝ => g (x + (-R) * Complex.I)) volume (1 - F.c) (1 - R))
+        (fun x : ℝ => g (x + (↑(-R) : ℂ) * Complex.I)) volume (1 - F.c) (1 - R))
     (hinner :
       IntervalIntegrable
-        (fun x : ℝ => g (x + (-R) * Complex.I)) volume (1 - R) (1 + R))
+        (fun x : ℝ => g (x + (↑(-R) : ℂ) * Complex.I)) volume (1 - R) (1 + R))
     (hright :
       IntervalIntegrable
-        (fun x : ℝ => g (x + (-R) * Complex.I)) volume (1 + R) F.c) :
-    (∫ x : ℝ in (1 - F.c)..F.c, g (x + (-R) * Complex.I)) =
-      ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (-R) * Complex.I)) +
-        (∫ x : ℝ in (1 - R)..(1 + R), g (x + (-R) * Complex.I))) +
-          (∫ x : ℝ in (1 + R)..F.c, g (x + (-R) * Complex.I)) :=
+        (fun x : ℝ => g (x + (↑(-R) : ℂ) * Complex.I)) volume (1 + R) F.c) :
+    (∫ x : ℝ in (1 - F.c)..F.c, g (x + (↑(-R) : ℂ) * Complex.I)) =
+      ((∫ x : ℝ in (1 - F.c)..(1 - R), g (x + (↑(-R) : ℂ) * Complex.I)) +
+        (∫ x : ℝ in (1 - R)..(1 + R), g (x + (↑(-R) : ℂ) * Complex.I))) +
+          (∫ x : ℝ in (1 + R)..F.c, g (x + (↑(-R) : ℂ) * Complex.I)) :=
   (zetaExplicitFormulaOnePole_bottomPunctureHorizontal_threeSegments
     g F R hleft hinner hright).symm
 
@@ -91,18 +91,18 @@ theorem zetaExplicitFormulaOnePole_leftOuterVertical_full_eq_segments
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T R : ℝ)
     (hbottom :
       IntervalIntegrable
-        (fun y : ℝ => g ((1 - F.c) + y * Complex.I)) volume (-T) (-R))
+        (fun y : ℝ => g ((↑(1 - F.c) : ℂ) + y * Complex.I)) volume (-T) (-R))
     (hmiddle :
       IntervalIntegrable
-        (fun y : ℝ => g ((1 - F.c) + y * Complex.I)) volume (-R) R)
+        (fun y : ℝ => g ((↑(1 - F.c) : ℂ) + y * Complex.I)) volume (-R) R)
     (htop :
       IntervalIntegrable
-        (fun y : ℝ => g ((1 - F.c) + y * Complex.I)) volume R T) :
-    Complex.I • (∫ y : ℝ in -T..T, g ((1 - F.c) + y * Complex.I)) =
+        (fun y : ℝ => g ((↑(1 - F.c) : ℂ) + y * Complex.I)) volume R T) :
+    Complex.I • (∫ y : ℝ in -T..T, g ((↑(1 - F.c) : ℂ) + y * Complex.I)) =
       Complex.I •
-        (((∫ y : ℝ in -T..(-R), g ((1 - F.c) + y * Complex.I)) +
-          (∫ y : ℝ in -R..R, g ((1 - F.c) + y * Complex.I))) +
-            (∫ y : ℝ in R..T, g ((1 - F.c) + y * Complex.I))) :=
+        (((∫ y : ℝ in -T..(-R), g ((↑(1 - F.c) : ℂ) + y * Complex.I)) +
+          (∫ y : ℝ in -R..R, g ((↑(1 - F.c) : ℂ) + y * Complex.I))) +
+            (∫ y : ℝ in R..T, g ((↑(1 - F.c) : ℂ) + y * Complex.I))) :=
   (zetaExplicitFormulaOnePole_leftOuterVertical_eq_threeSegments
     g F T R hbottom hmiddle htop).symm
 
@@ -113,32 +113,32 @@ theorem zetaExplicitFormulaOnePole_bottomPunctureHorizontal_full_eq_segments_can
     (hleft :
       IntervalIntegrable
         (fun x : ℝ =>
-          g (x + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I))
+          g (x + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I))
         volume (1 - F.c) (1 - zetaExplicitFormulaOnePolePunctureRadius F T))
     (hinner :
       IntervalIntegrable
         (fun x : ℝ =>
-          g (x + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I))
+          g (x + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I))
         volume
           (1 - zetaExplicitFormulaOnePolePunctureRadius F T)
           (1 + zetaExplicitFormulaOnePolePunctureRadius F T))
     (hright :
       IntervalIntegrable
         (fun x : ℝ =>
-          g (x + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I))
+          g (x + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I))
         volume (1 + zetaExplicitFormulaOnePolePunctureRadius F T) F.c) :
     (∫ x : ℝ in (1 - F.c)..F.c,
-        g (x + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I)) =
+        g (x + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I)) =
       ((∫ x : ℝ in
           (1 - F.c)..(1 - zetaExplicitFormulaOnePolePunctureRadius F T),
-          g (x + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I)) +
+          g (x + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I)) +
         (∫ x : ℝ in
           (1 - zetaExplicitFormulaOnePolePunctureRadius F T)..
             (1 + zetaExplicitFormulaOnePolePunctureRadius F T),
-          g (x + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I))) +
+          g (x + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I))) +
           (∫ x : ℝ in
             (1 + zetaExplicitFormulaOnePolePunctureRadius F T)..F.c,
-            g (x + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I)) :=
+            g (x + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I)) :=
   zetaExplicitFormulaOnePole_bottomPunctureHorizontal_full_eq_segments
     g F (zetaExplicitFormulaOnePolePunctureRadius F T)
     hleft hinner hright
@@ -220,30 +220,30 @@ theorem zetaExplicitFormulaOnePole_leftOuterVertical_full_eq_segments_canonicalR
     (g : ℂ → ℂ) (F : ExplicitFormulaContourFamily) (T : ℝ)
     (hbottom :
       IntervalIntegrable
-        (fun y : ℝ => g ((1 - F.c) + y * Complex.I))
+        (fun y : ℝ => g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
         volume (-T) (-(zetaExplicitFormulaOnePolePunctureRadius F T)))
     (hmiddle :
       IntervalIntegrable
-        (fun y : ℝ => g ((1 - F.c) + y * Complex.I))
+        (fun y : ℝ => g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
         volume
           (-(zetaExplicitFormulaOnePolePunctureRadius F T))
           (zetaExplicitFormulaOnePolePunctureRadius F T))
     (htop :
       IntervalIntegrable
-        (fun y : ℝ => g ((1 - F.c) + y * Complex.I))
+        (fun y : ℝ => g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
         volume (zetaExplicitFormulaOnePolePunctureRadius F T) T) :
-    Complex.I • (∫ y : ℝ in -T..T, g ((1 - F.c) + y * Complex.I)) =
+    Complex.I • (∫ y : ℝ in -T..T, g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) =
       Complex.I •
         (((∫ y : ℝ in
             -T..(-(zetaExplicitFormulaOnePolePunctureRadius F T)),
-            g ((1 - F.c) + y * Complex.I)) +
+            g (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) +
           (∫ y : ℝ in
             (-(zetaExplicitFormulaOnePolePunctureRadius F T))..
               (zetaExplicitFormulaOnePolePunctureRadius F T),
-            g ((1 - F.c) + y * Complex.I))) +
+            g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
             (∫ y : ℝ in
               (zetaExplicitFormulaOnePolePunctureRadius F T)..T,
-              g ((1 - F.c) + y * Complex.I))) :=
+              g (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) :=
   zetaExplicitFormulaOnePole_leftOuterVertical_full_eq_segments
     g F T (zetaExplicitFormulaOnePolePunctureRadius F T)
     hbottom hmiddle htop
@@ -257,13 +257,13 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_bottomPunctureHorizontal_f
       IntervalIntegrable
         (fun x : ℝ =>
           zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-            (x + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I))
+            (x + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I))
         volume (1 - F.c) (1 - zetaExplicitFormulaOnePolePunctureRadius F T))
     (hinner :
       IntervalIntegrable
         (fun x : ℝ =>
           zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-            (x + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I))
+            (x + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I))
         volume
           (1 - zetaExplicitFormulaOnePolePunctureRadius F T)
           (1 + zetaExplicitFormulaOnePolePunctureRadius F T))
@@ -271,24 +271,24 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_bottomPunctureHorizontal_f
       IntervalIntegrable
         (fun x : ℝ =>
           zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-            (x + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I))
+            (x + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I))
         volume (1 + zetaExplicitFormulaOnePolePunctureRadius F T) F.c) :
     (∫ x : ℝ in (1 - F.c)..F.c,
         zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-          (x + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I)) =
+          (x + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I)) =
       ((∫ x : ℝ in
           (1 - F.c)..(1 - zetaExplicitFormulaOnePolePunctureRadius F T),
           zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-            (x + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I)) +
+            (x + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I)) +
         (∫ x : ℝ in
           (1 - zetaExplicitFormulaOnePolePunctureRadius F T)..
             (1 + zetaExplicitFormulaOnePolePunctureRadius F T),
           zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-            (x + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I))) +
+            (x + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I))) +
           (∫ x : ℝ in
             (1 + zetaExplicitFormulaOnePolePunctureRadius F T)..F.c,
             zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-              (x + (-(zetaExplicitFormulaOnePolePunctureRadius F T)) * Complex.I)) :=
+              (x + ((-(zetaExplicitFormulaOnePolePunctureRadius F T) : ℝ) : ℂ) * Complex.I)) :=
   zetaExplicitFormulaOnePole_bottomPunctureHorizontal_full_eq_segments_canonicalRadius
     (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
     F T hleft hinner hright
@@ -394,13 +394,13 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_leftOuterVertical_full_eq_
       IntervalIntegrable
         (fun y : ℝ =>
           zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-            ((1 - F.c) + y * Complex.I))
+            (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
         volume (-T) (-(zetaExplicitFormulaOnePolePunctureRadius F T)))
     (hmiddle :
       IntervalIntegrable
         (fun y : ℝ =>
           zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-            ((1 - F.c) + y * Complex.I))
+            (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
         volume
           (-(zetaExplicitFormulaOnePolePunctureRadius F T))
           (zetaExplicitFormulaOnePolePunctureRadius F T))
@@ -408,120 +408,29 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePole_leftOuterVertical_full_eq_
       IntervalIntegrable
         (fun y : ℝ =>
           zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-            ((1 - F.c) + y * Complex.I))
+            (((1 - F.c : ℝ) : ℂ) + y * Complex.I))
         volume (zetaExplicitFormulaOnePolePunctureRadius F T) T) :
     Complex.I •
         (∫ y : ℝ in -T..T,
           zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-            ((1 - F.c) + y * Complex.I)) =
+            (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) =
       Complex.I •
         (((∫ y : ℝ in
             -T..(-(zetaExplicitFormulaOnePolePunctureRadius F T)),
             zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-              ((1 - F.c) + y * Complex.I)) +
+              (((1 - F.c : ℝ) : ℂ) + y * Complex.I)) +
           (∫ y : ℝ in
             (-(zetaExplicitFormulaOnePolePunctureRadius F T))..
               (zetaExplicitFormulaOnePolePunctureRadius F T),
             zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-              ((1 - F.c) + y * Complex.I))) +
+              (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) +
             (∫ y : ℝ in
               (zetaExplicitFormulaOnePolePunctureRadius F T)..T,
               zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
-                ((1 - F.c) + y * Complex.I))) :=
+                (((1 - F.c : ℝ) : ℂ) + y * Complex.I))) :=
   zetaExplicitFormulaOnePole_leftOuterVertical_full_eq_segments_canonicalRadius
     (fun z : ℂ => zetaCompletedExplicitFormulaCorrectionOnePoleKernel f z)
     F T hbottom hmiddle htop
-
-/-- The horizontal affine coordinate `x + y I` has imaginary part `y`. -/
-theorem zetaExplicitFormulaOnePole_horizontalAffine_im
-    (x y : ℝ) :
-    ((x : ℂ) + (y : ℂ) * Complex.I).im = y := by
-  calc
-    ((x : ℂ) + (y : ℂ) * Complex.I).im =
-        (x : ℂ).im + ((y : ℂ) * Complex.I).im := by
-      exact Complex.add_im (x : ℂ) ((y : ℂ) * Complex.I)
-    _ = 0 + ((y : ℂ) * Complex.I).im := by
-      exact congrArg
-        (fun r : ℝ => r + ((y : ℂ) * Complex.I).im)
-        (Complex.ofReal_im x)
-    _ = 0 + (y : ℂ).re := by
-      exact congrArg (fun r : ℝ => 0 + r) (Complex.mul_I_im (y : ℂ))
-    _ = 0 + y := by
-      exact congrArg (fun r : ℝ => 0 + r) (Complex.ofReal_re y)
-    _ = y := by
-      exact zero_add y
-
-/-- A horizontal affine point at nonzero height is not the pole `1`. -/
-theorem zetaExplicitFormulaOnePole_horizontalAffine_ne_one_of_height_ne_zero
-    (x y : ℝ) (hy : y ≠ 0) :
-    (x : ℂ) + (y : ℂ) * Complex.I ≠ 1 := by
-  intro hpoint
-  have him_eq :
-      ((x : ℂ) + (y : ℂ) * Complex.I).im = (1 : ℂ).im :=
-    congrArg Complex.im hpoint
-  have hy_zero : y = 0 := by
-    calc
-      y = ((x : ℂ) + (y : ℂ) * Complex.I).im := by
-        exact (zetaExplicitFormulaOnePole_horizontalAffine_im x y).symm
-      _ = (1 : ℂ).im := him_eq
-      _ = 0 := Complex.ofReal_im (1 : ℝ)
-  exact hy hy_zero
-
-/-- A horizontal affine point at nonzero height avoids the denominator
-`z - 1`. -/
-theorem zetaExplicitFormulaOnePole_horizontalAffine_sub_one_ne_zero_of_height_ne_zero
-    (x y : ℝ) (hy : y ≠ 0) :
-    ((x : ℂ) + (y : ℂ) * Complex.I) - 1 ≠ 0 :=
-  sub_ne_zero.mpr
-    (zetaExplicitFormulaOnePole_horizontalAffine_ne_one_of_height_ne_zero
-      x y hy)
-
-/-- The vertical affine coordinate `x + y I` has real part `x`. -/
-theorem zetaExplicitFormulaOnePole_verticalAffine_re
-    (x y : ℝ) :
-    ((x : ℂ) + (y : ℂ) * Complex.I).re = x := by
-  calc
-    ((x : ℂ) + (y : ℂ) * Complex.I).re =
-        (x : ℂ).re + ((y : ℂ) * Complex.I).re := by
-      exact Complex.add_re (x : ℂ) ((y : ℂ) * Complex.I)
-    _ = x + ((y : ℂ) * Complex.I).re := by
-      exact congrArg
-        (fun r : ℝ => r + ((y : ℂ) * Complex.I).re)
-        (Complex.ofReal_re x)
-    _ = x + (-(y : ℂ).im) := by
-      exact congrArg (fun r : ℝ => x + r) (Complex.mul_I_re (y : ℂ))
-    _ = x + (-0) := by
-      exact congrArg (fun r : ℝ => x + (-r)) (Complex.ofReal_im y)
-    _ = x + 0 := by
-      exact congrArg (fun r : ℝ => x + r) (neg_zero)
-    _ = x := by
-      exact add_zero x
-
-/-- A vertical affine point with real part different from `1` is not the pole
-`1`. -/
-theorem zetaExplicitFormulaOnePole_verticalAffine_ne_one_of_re_ne_one
-    (x y : ℝ) (hx : x ≠ 1) :
-    (x : ℂ) + (y : ℂ) * Complex.I ≠ 1 := by
-  intro hpoint
-  have hre_eq :
-      ((x : ℂ) + (y : ℂ) * Complex.I).re = (1 : ℂ).re :=
-    congrArg Complex.re hpoint
-  have hx_one : x = 1 := by
-    calc
-      x = ((x : ℂ) + (y : ℂ) * Complex.I).re := by
-        exact (zetaExplicitFormulaOnePole_verticalAffine_re x y).symm
-      _ = (1 : ℂ).re := hre_eq
-      _ = 1 := Complex.ofReal_re (1 : ℝ)
-  exact hx hx_one
-
-/-- A vertical affine point whose real coordinate is not `1` avoids the
-denominator `z - 1`. -/
-theorem zetaExplicitFormulaOnePole_verticalAffine_sub_one_ne_zero_of_re_ne_one
-    (x y : ℝ) (hx : x ≠ 1) :
-    ((x : ℂ) + (y : ℂ) * Complex.I) - 1 ≠ 0 :=
-  sub_ne_zero.mpr
-    (zetaExplicitFormulaOnePole_verticalAffine_ne_one_of_re_ne_one
-      x y hx)
 
 end ZetaAdmissibleFunction
 
