@@ -521,7 +521,7 @@ theorem explicitFormulaRectangle_finiteHoleCauchy_of_regularGridEndpointDataSubd
     (hvalue_completed :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+          ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
             value ε (completedZeroResidueCoordinate ρ) =
               (2 * ↑Real.pi * Complex.I : ℂ) •
                 explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))
@@ -534,18 +534,18 @@ theorem explicitFormulaRectangle_finiteHoleCauchy_of_regularGridEndpointDataSubd
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
           ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
             (szero ε ρ).Countable)
-    (hzero_continuous :
-      ∀ ε : ℝ,
-        ContinuousOn
-          (fun z : ℂ => z * zetaCompletedExplicitFormulaContourIntegrand f z)
-          (Metric.closedBall (0 : ℂ) (ε / 2) \ {(0 : ℂ)}))
+      (hzero_continuous :
+        ∀ ε : ℝ,
+          ContinuousOn
+            (fun z : ℂ => (z - 0) * zetaCompletedExplicitFormulaContourIntegrand f z)
+            (Metric.closedBall (0 : ℂ) (ε / 2) \ {(0 : ℂ)}))
     (hzero_differentiable :
       ∀ ε : ℝ,
         ∀ z : ℂ,
           z ∈ (Metric.ball (0 : ℂ) (ε / 2) \ {(0 : ℂ)}) \ s0 ε →
-            DifferentiableAt ℂ
-              (fun w : ℂ => w * zetaCompletedExplicitFormulaContourIntegrand f w)
-              z)
+              DifferentiableAt ℂ
+                (fun w : ℂ => (w - 0) * zetaCompletedExplicitFormulaContourIntegrand f w)
+                z)
     (hone_continuous :
       ∀ ε : ℝ,
         ContinuousOn
@@ -571,7 +571,7 @@ theorem explicitFormulaRectangle_finiteHoleCauchy_of_regularGridEndpointDataSubd
     (hcompleted_differentiable :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+          ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
             ∀ z : ℂ,
               z ∈ (Metric.ball (completedZeroResidueCoordinate ρ) (ε / 2) \
                   {completedZeroResidueCoordinate ρ}) \ szero ε ρ →
