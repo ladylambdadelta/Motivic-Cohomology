@@ -2126,13 +2126,11 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinates_edgeSums_tangentBound
           (b - u + (r - l)) := by
       exact congrArg (fun z : ℂ => z - (b - u + (r - l))) houter
 
-/-- The correctly oriented outer side values assemble to the tangent rectangle contour.
-The horizontal values are negated because the selected sorted subdivision sums horizontal
-intervals left-to-right, while the tangent contour contribution is top minus bottom. -/
+/-- The correctly oriented outer side values assemble to the tangent rectangle contour. -/
 theorem explicitFormulaRectangleTangentContour_eq_orientedOuterSideSums
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
-    (-(zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T))) -
-        (-(zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T))) +
+    zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) -
+        zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) +
           (zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) * Complex.I -
             zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) * Complex.I) =
       zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) := by
@@ -2141,29 +2139,9 @@ theorem explicitFormulaRectangleTangentContour_eq_orientedOuterSideSums
   let U : ℂ := zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T)
   let B : ℂ := zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T)
   calc
-    (-B) - (-U) + (R - L) =
-        ((-B) + -(-U)) + (R - L) := by
-      exact congrArg (fun z : ℂ => z + (R - L)) (sub_eq_add_neg (-B) (-U))
-    _ = ((-B) + U) + (R - L) := by
-      exact congrArg
-        (fun z : ℂ => ((-B) + z) + (R - L))
-        (neg_neg U)
-    _ = (U + (-B)) + (R - L) := by
-      exact congrArg (fun z : ℂ => z + (R - L)) (add_comm (-B) U)
-    _ = (U - B) + (R - L) := by
-      exact congrArg (fun z : ℂ => z + (R - L)) (sub_eq_add_neg U B).symm
-    _ = (R - L) + (U - B) := by
-      exact add_comm (U - B) (R - L)
-    _ = (R - L) + (U + -B) := by
-      exact congrArg (fun z : ℂ => (R - L) + z) (sub_eq_add_neg U B)
-    _ = ((R - L) + U) + -B := by
-      exact (add_assoc (R - L) U (-B)).symm
-    _ = (R - L + U) - B := by
-      exact (sub_eq_add_neg (R - L + U) B).symm
-    _ = R - L + U - B := by
-      exact Eq.refl _
-    _ = zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) := by
-      exact Eq.refl _
+    B - U + (R - L) =
+        zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) := by
+      exact (zetaCompletedExplicitFormulaTangentContourIntegral_eq f (F.rectangle T)).symm
 /-- Box-coordinate horizontal contribution over the sorted selected grid is the
 corresponding endpoint-data horizontal contribution. -/
 theorem explicitFormulaRectangleSelectedBoxEdgeCoordinates_horizontalContribution_eq_selectedEndpointData
