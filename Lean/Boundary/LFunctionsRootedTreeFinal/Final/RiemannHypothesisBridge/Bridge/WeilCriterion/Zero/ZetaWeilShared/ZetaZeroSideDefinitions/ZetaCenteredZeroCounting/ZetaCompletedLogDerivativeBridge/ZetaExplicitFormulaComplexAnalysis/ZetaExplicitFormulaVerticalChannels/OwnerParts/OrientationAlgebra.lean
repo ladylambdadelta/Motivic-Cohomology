@@ -81,6 +81,21 @@ theorem explicitFormula_tangent_four_side_split
       exact congrArg (fun z : ℂ => R - L + z)
         (sub_eq_add_neg T B).symm
 
+/-- Reorder the standard rectangle convention from horizontal-first to
+vertical-first grouping. -/
+theorem explicitFormula_standardBoundary_verticalFirst_noExcision
+    (A C H : ℂ) :
+    H + (A - C) = A - C + H :=
+  add_comm H (A - C)
+
+/-- Reorder the standard rectangle convention from horizontal-first to
+vertical-first grouping, preserving a following excision subtraction. -/
+theorem explicitFormula_standardBoundary_verticalFirst
+    (A C H E : ℂ) :
+    (H + (A - C)) - E = (A - C + H) - E := by
+  exact congrArg (fun z : ℂ => z - E)
+    (explicitFormula_standardBoundary_verticalFirst_noExcision A C H)
+
 /-- Additive algebra for regrouping a tangent-oriented rectangle boundary so
 the left vertical side is isolated first.
 
