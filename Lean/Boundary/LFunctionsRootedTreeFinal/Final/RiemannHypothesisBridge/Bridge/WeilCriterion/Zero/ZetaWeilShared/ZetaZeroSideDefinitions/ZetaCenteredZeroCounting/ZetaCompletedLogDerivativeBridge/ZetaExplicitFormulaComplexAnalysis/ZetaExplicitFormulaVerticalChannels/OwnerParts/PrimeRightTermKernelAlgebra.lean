@@ -17,6 +17,7 @@ open Complex
 open LSeries ArithmeticFunction
 open MeasureTheory
 open scoped ArithmeticFunction
+open scoped LSeries.notation
 
 namespace ZetaAdmissibleFunction
 
@@ -105,7 +106,7 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_integral_zer
       (congrArg
         (fun φ : ℝ → ℂ => ∫ t : ℝ, φ t)
         hfun)
-      (integral_zero (α := ℝ) (E := ℂ))
+      (integral_zero (α := ℝ) (G := ℂ))
 
 /-- The norm of a right von Mangoldt term kernel factors into the norm of the
 Dirichlet term and the norm of the test-transform factor. -/
