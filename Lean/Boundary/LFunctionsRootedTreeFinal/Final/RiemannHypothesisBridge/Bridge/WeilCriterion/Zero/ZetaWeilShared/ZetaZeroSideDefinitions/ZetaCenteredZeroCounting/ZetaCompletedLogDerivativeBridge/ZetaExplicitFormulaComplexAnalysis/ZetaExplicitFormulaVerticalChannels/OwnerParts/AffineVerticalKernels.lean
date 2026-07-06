@@ -42,7 +42,7 @@ noncomputable def zetaCompletedExplicitFormulaLeftCenteredAffineLine
 /-- Right-face von Mangoldt kernel on the affine line. -/
 noncomputable def zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (t : ℝ) : ℂ :=
-  L ↗Λ (zetaCompletedExplicitFormulaRightAffineLine F t) *
+  explicitFormulaPrimeLogDerivative (zetaCompletedExplicitFormulaRightAffineLine F t) *
     zetaCompletedExplicitFormulaPhi f (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)
 
 /-- Left-face prime logarithmic-derivative kernel on the affine line. -/
@@ -286,7 +286,13 @@ theorem zetaCompletedExplicitFormulaArchimedeanDifferenceAffineKernel_eq_inverse
         A := by
       exact Eq.refl _
     _ = (A + C) - C := by
-      exact (add_sub_cancel A C).symm
+      calc
+        A = A + 0 := by
+          exact (add_zero A).symm
+        _ = A + (C - C) := by
+          exact congrArg (fun z : ℂ => A + z) (sub_self C).symm
+        _ = A + C - C := by
+          exact (add_sub_assoc A C C).symm
     _ = G - C := by
       exact congrArg (fun z : ℂ => z - C) hG.symm
     _ =
@@ -434,25 +440,25 @@ theorem zetaCompletedExplicitFormulaRightAffineLine_eq
     (F : ExplicitFormulaContourFamily) (t : ℝ) :
     zetaCompletedExplicitFormulaRightAffineLine F t =
       (F.c : ℂ) + t * Complex.I :=
-  rfl
+  Eq.refl _
 
 theorem zetaCompletedExplicitFormulaRightCenteredAffineLine_eq
     (F : ExplicitFormulaContourFamily) (t : ℝ) :
     zetaCompletedExplicitFormulaRightCenteredAffineLine F t =
       ((F.c : ℂ) - (1 / 2 : ℂ)) + t * Complex.I :=
-  rfl
+  Eq.refl _
 
 theorem zetaCompletedExplicitFormulaLeftAffineLine_eq
     (F : ExplicitFormulaContourFamily) (t : ℝ) :
     zetaCompletedExplicitFormulaLeftAffineLine F t =
       ((1 : ℂ) - (F.c : ℂ)) + t * Complex.I :=
-  rfl
+  Eq.refl _
 
 theorem zetaCompletedExplicitFormulaLeftCenteredAffineLine_eq
     (F : ExplicitFormulaContourFamily) (t : ℝ) :
     zetaCompletedExplicitFormulaLeftCenteredAffineLine F t =
       ((1 : ℂ) - (F.c : ℂ) - (1 / 2 : ℂ)) + t * Complex.I :=
-  rfl
+  Eq.refl _
 
 /-- A real multiple of `I` has zero real part. -/
 theorem zetaCompletedExplicitFormula_real_mul_I_re_zero (t : ℝ) :
@@ -469,6 +475,25 @@ theorem zetaCompletedExplicitFormula_real_mul_I_im (t : ℝ) :
   Eq.trans
     (Complex.mul_I_im (t : ℂ))
     (Complex.ofReal_re t)
+
+/-- The complex scalar `1 / 2` is the real half embedded in `ℂ`. -/
+theorem zetaCompletedExplicitFormula_complex_half_eq_ofReal_half :
+    (1 / 2 : ℂ) = ((1 / 2 : ℝ) : ℂ) :=
+  (Complex.ofReal_div (1 : ℝ) (2 : ℝ)).symm
+
+/-- Real coordinate of the complex half. -/
+theorem zetaCompletedExplicitFormula_complex_half_re :
+    (1 / 2 : ℂ).re = (1 / 2 : ℝ) :=
+  Eq.trans
+    (congrArg Complex.re zetaCompletedExplicitFormula_complex_half_eq_ofReal_half)
+    (Complex.ofReal_re (1 / 2 : ℝ))
+
+/-- Imaginary coordinate of the complex half. -/
+theorem zetaCompletedExplicitFormula_complex_half_im :
+    (1 / 2 : ℂ).im = 0 :=
+  Eq.trans
+    (congrArg Complex.im zetaCompletedExplicitFormula_complex_half_eq_ofReal_half)
+    (Complex.ofReal_im (1 / 2 : ℝ))
 
 /-- The right affine line has fixed real part `F.c`. -/
 theorem zetaCompletedExplicitFormulaRightAffineLine_re
@@ -525,7 +550,7 @@ theorem zetaCompletedExplicitFormulaRightCenteredAffineLine_re
       exact congrArg (fun x : ℝ => x + 0)
         (congrArg₂ HSub.hSub
           (Complex.ofReal_re F.c)
-          (Complex.ofReal_re (1 / 2 : ℝ)))
+          zetaCompletedExplicitFormula_complex_half_re)
     _ = F.c - (1 / 2 : ℝ) := add_zero (F.c - (1 / 2 : ℝ))
 
 /-- The shifted right affine line has imaginary part `t`. -/
@@ -548,7 +573,7 @@ theorem zetaCompletedExplicitFormulaRightCenteredAffineLine_im
       exact congrArg (fun x : ℝ => x + t)
         (congrArg₂ HSub.hSub
           (Complex.ofReal_im F.c)
-          (Complex.ofReal_im (1 / 2 : ℝ)))
+          zetaCompletedExplicitFormula_complex_half_im)
     _ = 0 + t := by
       exact congrArg (fun x : ℝ => x + t) (sub_self (0 : ℝ))
     _ = t := zero_add t
@@ -728,59 +753,61 @@ theorem zetaCompletedExplicitFormulaLeftAffineLine_eq_one_sub_rightAffineLine
     (F : ExplicitFormulaContourFamily) (t : ℝ) :
     zetaCompletedExplicitFormulaLeftAffineLine F t =
       1 - zetaCompletedExplicitFormulaRightAffineLine F (-t) := by
-  apply Complex.ext
-  · have hleft :
+  exact Complex.ext
+    (by
+      have hleft :
         (zetaCompletedExplicitFormulaLeftAffineLine F t).re =
           (1 : ℝ) - F.c :=
-      zetaCompletedExplicitFormulaLeftAffineLine_re F t
-    have hright :
+        zetaCompletedExplicitFormulaLeftAffineLine_re F t
+      have hright :
         (zetaCompletedExplicitFormulaRightAffineLine F (-t)).re = F.c :=
-      zetaCompletedExplicitFormulaRightAffineLine_re F (-t)
-    have hreflected :
+        zetaCompletedExplicitFormulaRightAffineLine_re F (-t)
+      have hreflected :
         (1 - zetaCompletedExplicitFormulaRightAffineLine F (-t)).re =
           (1 : ℝ) - F.c := by
-      calc
-        (1 - zetaCompletedExplicitFormulaRightAffineLine F (-t)).re =
-            (1 : ℂ).re -
-              (zetaCompletedExplicitFormulaRightAffineLine F (-t)).re := by
-          exact Complex.sub_re
-            (1 : ℂ)
-            (zetaCompletedExplicitFormulaRightAffineLine F (-t))
-        _ = (1 : ℝ) -
-              (zetaCompletedExplicitFormulaRightAffineLine F (-t)).re := by
-          exact congrArg
-            (fun x : ℝ =>
-              x - (zetaCompletedExplicitFormulaRightAffineLine F (-t)).re)
-            (Complex.ofReal_re (1 : ℝ))
-        _ = (1 : ℝ) - F.c := by
-          exact congrArg (fun x : ℝ => (1 : ℝ) - x) hright
-    exact hleft.trans hreflected.symm
-  · have hleft :
+        calc
+          (1 - zetaCompletedExplicitFormulaRightAffineLine F (-t)).re =
+              (1 : ℂ).re -
+                (zetaCompletedExplicitFormulaRightAffineLine F (-t)).re := by
+            exact Complex.sub_re
+              (1 : ℂ)
+              (zetaCompletedExplicitFormulaRightAffineLine F (-t))
+          _ = (1 : ℝ) -
+                (zetaCompletedExplicitFormulaRightAffineLine F (-t)).re := by
+            exact congrArg
+              (fun x : ℝ =>
+                x - (zetaCompletedExplicitFormulaRightAffineLine F (-t)).re)
+              (Complex.ofReal_re (1 : ℝ))
+          _ = (1 : ℝ) - F.c := by
+            exact congrArg (fun x : ℝ => (1 : ℝ) - x) hright
+      exact hleft.trans hreflected.symm)
+    (by
+      have hleft :
         (zetaCompletedExplicitFormulaLeftAffineLine F t).im = t :=
-      zetaCompletedExplicitFormulaLeftAffineLine_im F t
-    have hright :
+        zetaCompletedExplicitFormulaLeftAffineLine_im F t
+      have hright :
         (zetaCompletedExplicitFormulaRightAffineLine F (-t)).im = -t :=
-      zetaCompletedExplicitFormulaRightAffineLine_im F (-t)
-    have hreflected :
+        zetaCompletedExplicitFormulaRightAffineLine_im F (-t)
+      have hreflected :
         (1 - zetaCompletedExplicitFormulaRightAffineLine F (-t)).im = t := by
-      calc
-        (1 - zetaCompletedExplicitFormulaRightAffineLine F (-t)).im =
-            (1 : ℂ).im -
-              (zetaCompletedExplicitFormulaRightAffineLine F (-t)).im := by
-          exact Complex.sub_im
-            (1 : ℂ)
-            (zetaCompletedExplicitFormulaRightAffineLine F (-t))
-        _ = (0 : ℝ) -
-              (zetaCompletedExplicitFormulaRightAffineLine F (-t)).im := by
-          exact congrArg
-            (fun x : ℝ =>
-              x - (zetaCompletedExplicitFormulaRightAffineLine F (-t)).im)
-            (Complex.ofReal_im (1 : ℝ))
-        _ = (0 : ℝ) - (-t) := by
-          exact congrArg (fun x : ℝ => (0 : ℝ) - x) hright
-        _ = -(-t) := zero_sub (-t)
-        _ = t := neg_neg t
-    exact hleft.trans hreflected.symm
+        calc
+          (1 - zetaCompletedExplicitFormulaRightAffineLine F (-t)).im =
+              (1 : ℂ).im -
+                (zetaCompletedExplicitFormulaRightAffineLine F (-t)).im := by
+            exact Complex.sub_im
+              (1 : ℂ)
+              (zetaCompletedExplicitFormulaRightAffineLine F (-t))
+          _ = (0 : ℝ) -
+                (zetaCompletedExplicitFormulaRightAffineLine F (-t)).im := by
+            exact congrArg
+              (fun x : ℝ =>
+                x - (zetaCompletedExplicitFormulaRightAffineLine F (-t)).im)
+              (Complex.ofReal_im (1 : ℝ))
+          _ = (0 : ℝ) - (-t) := by
+            exact congrArg (fun x : ℝ => (0 : ℝ) - x) hright
+          _ = -(-t) := zero_sub (-t)
+          _ = t := neg_neg t
+      exact hleft.trans hreflected.symm)
 
 /-- Away from height `0`, the left affine line cannot meet the completed
 `Gammaℝ` nonpositive-even locus. -/
@@ -835,18 +862,49 @@ theorem zetaCompletedExplicitFormulaLeftAffineLine_ne_Gammaℝ_zero_locus_of_gam
     ∀ n : ℕ,
       zetaCompletedExplicitFormulaLeftAffineLine F t ≠
         -(2 * (n : ℂ)) := by
-  by_cases ht : t = 0
-  · intro n
-    exact
-      Eq.subst
-        (motive := fun u : ℝ =>
-          zetaCompletedExplicitFormulaLeftAffineLine F u ≠
-            -(2 * (n : ℂ)))
-        ht.symm
-        (hregular n)
-  · exact
-      zetaCompletedExplicitFormulaLeftAffineLine_ne_Gammaℝ_zero_locus_of_ne_zero_height
-        F ht
+  intro n hline
+  have him :
+      (zetaCompletedExplicitFormulaLeftAffineLine F t).im =
+        (-(2 * (n : ℂ))).im :=
+    congrArg Complex.im hline
+  have hline_im :
+      (zetaCompletedExplicitFormulaLeftAffineLine F t).im = t :=
+    zetaCompletedExplicitFormulaLeftAffineLine_im F t
+  have hright_im :
+      (-(2 * (n : ℂ))).im = 0 := by
+    calc
+      (-(2 * (n : ℂ))).im = -((2 * (n : ℂ)).im) := by
+        exact Complex.neg_im (2 * (n : ℂ))
+      _ = -(((2 : ℂ).re * (n : ℂ).im) +
+            ((2 : ℂ).im * (n : ℂ).re)) := by
+        exact congrArg Neg.neg (Complex.mul_im (2 : ℂ) (n : ℂ))
+      _ = -(((2 : ℝ) * 0) + (0 * (n : ℝ))) := by
+        exact congrArg Neg.neg
+          (congrArg₂ HAdd.hAdd
+            (congrArg₂ HMul.hMul
+              (Complex.ofReal_re (2 : ℝ))
+              (Complex.ofReal_im (n : ℝ)))
+            (congrArg₂ HMul.hMul
+              (Complex.ofReal_im (2 : ℝ))
+              (Complex.ofReal_re (n : ℝ))))
+      _ = -(0 + 0) := by
+        exact congrArg Neg.neg
+          (congrArg₂ HAdd.hAdd
+            (mul_zero (2 : ℝ))
+            (zero_mul (n : ℝ)))
+      _ = -0 := by
+        exact congrArg Neg.neg (zero_add (0 : ℝ))
+      _ = 0 := neg_zero
+  have ht_zero : t = 0 :=
+    hline_im.symm.trans (him.trans hright_im)
+  exact
+    (Eq.subst
+      (motive := fun u : ℝ =>
+        zetaCompletedExplicitFormulaLeftAffineLine F u ≠
+          -(2 * (n : ℂ)))
+      ht_zero.symm
+      (hregular n))
+    hline
 
 /-- Under the parameter-level left-line regularity condition, the completed
 `Gammaℝ` factor is nonzero on the entire left affine line. -/
@@ -899,8 +957,7 @@ theorem zetaCompletedExplicitFormulaLeftAffineLine_half_ne_Gamma_zero_locus_of_g
     exact hdouble.trans (congrArg (fun z : ℂ => 2 * z) hhalf)
   have htarget :
       2 * (-(n : ℂ)) = -(2 * (n : ℂ)) := by
-    exact (mul_neg (2 : ℂ) (n : ℂ)).trans
-      (congrArg Neg.neg (mul_comm (2 : ℂ) (n : ℂ)).symm)
+    exact mul_neg (2 : ℂ) (n : ℂ)
   exact
     (zetaCompletedExplicitFormulaLeftAffineLine_ne_Gammaℝ_zero_locus_of_gammaRegular
       F hregular t n)
@@ -926,8 +983,7 @@ theorem zetaCompletedExplicitFormulaLeftAffineLine_half_ne_Gamma_zero_locus_of_n
     exact hdouble.trans (congrArg (fun z : ℂ => 2 * z) hhalf)
   have htarget :
       2 * (-(n : ℂ)) = -(2 * (n : ℂ)) := by
-    exact (mul_neg (2 : ℂ) (n : ℂ)).trans
-      (congrArg Neg.neg (mul_comm (2 : ℂ) (n : ℂ)).symm)
+    exact mul_neg (2 : ℂ) (n : ℂ)
   exact
     (zetaCompletedExplicitFormulaLeftAffineLine_ne_Gammaℝ_zero_locus_of_ne_zero_height
       F ht n)
@@ -962,7 +1018,7 @@ theorem zetaCompletedExplicitFormulaLeftCenteredAffineLine_re
           (congrArg₂ HSub.hSub
             (Complex.ofReal_re (1 : ℝ))
             (Complex.ofReal_re F.c))
-          (Complex.ofReal_re (1 / 2 : ℝ)))
+          zetaCompletedExplicitFormula_complex_half_re)
     _ = (1 : ℝ) - F.c - (1 / 2 : ℝ) :=
       add_zero ((1 : ℝ) - F.c - (1 / 2 : ℝ))
 
@@ -1014,7 +1070,7 @@ theorem zetaCompletedExplicitFormulaLeftCenteredAffineLine_im
           (congrArg₂ HSub.hSub
             (Complex.ofReal_im (1 : ℝ))
             (Complex.ofReal_im F.c))
-          (Complex.ofReal_im (1 / 2 : ℝ)))
+          zetaCompletedExplicitFormula_complex_half_im)
     _ = (0 - 0) + t := by
       exact congrArg (fun x : ℝ => x + t) (sub_zero (0 - 0))
     _ = 0 + t := by
@@ -1027,8 +1083,10 @@ theorem zetaCompletedExplicitFormulaLeftCenteredAffineLine_eq_neg_rightCenteredA
     (F : ExplicitFormulaContourFamily) (t : ℝ) :
     zetaCompletedExplicitFormulaLeftCenteredAffineLine F t =
       - zetaCompletedExplicitFormulaRightCenteredAffineLine F (-t) := by
-  apply Complex.ext
-  · have hleft :
+  have hre :
+      (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t).re =
+        (-zetaCompletedExplicitFormulaRightCenteredAffineLine F (-t)).re := by
+    have hleft :
         (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t).re =
           (1 : ℝ) - F.c - (1 / 2 : ℝ) :=
       zetaCompletedExplicitFormulaLeftCenteredAffineLine_re F t
@@ -1058,7 +1116,10 @@ theorem zetaCompletedExplicitFormulaLeftCenteredAffineLine_eq_neg_rightCenteredA
         _ = -(F.c - (1 / 2 : ℝ)) := by
           exact congrArg Neg.neg hright
     exact hleft.trans (htarget.trans hneg_re.symm)
-  · have hleft :
+  have him :
+      (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t).im =
+        (-zetaCompletedExplicitFormulaRightCenteredAffineLine F (-t)).im := by
+    have hleft :
         (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t).im = t :=
       zetaCompletedExplicitFormulaLeftCenteredAffineLine_im F t
     have hright :
@@ -1076,6 +1137,7 @@ theorem zetaCompletedExplicitFormulaLeftCenteredAffineLine_eq_neg_rightCenteredA
           exact congrArg Neg.neg hright
         _ = t := neg_neg t
     exact hleft.trans hneg_im.symm
+  exact Complex.ext hre him
 
 /-- The left affine line is the shifted-left affine line plus `1 / 2`. -/
 theorem zetaCompletedExplicitFormulaLeftAffineLine_eq_leftCentered_add_half
@@ -1083,8 +1145,11 @@ theorem zetaCompletedExplicitFormulaLeftAffineLine_eq_leftCentered_add_half
     zetaCompletedExplicitFormulaLeftAffineLine F t =
       zetaCompletedExplicitFormulaLeftCenteredAffineLine F t +
         (1 / 2 : ℂ) := by
-  apply Complex.ext
-  · have hleft :
+  have hre :
+      (zetaCompletedExplicitFormulaLeftAffineLine F t).re =
+        (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t +
+          (1 / 2 : ℂ)).re := by
+    have hleft :
         (zetaCompletedExplicitFormulaLeftAffineLine F t).re =
           (1 : ℝ) - F.c :=
       zetaCompletedExplicitFormulaLeftAffineLine_re F t
@@ -1100,18 +1165,22 @@ theorem zetaCompletedExplicitFormulaLeftAffineLine_eq_leftCentered_add_half
         (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t +
             (1 / 2 : ℂ)).re =
             (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t).re +
-              (1 / 2 : ℂ).re := by
+              ((1 / 2 : ℂ).re) := by
           exact Complex.add_re
             (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t)
             (1 / 2 : ℂ)
         _ = ((1 : ℝ) - F.c - (1 / 2 : ℝ)) + (1 / 2 : ℝ) := by
           exact congrArg₂ HAdd.hAdd
             hcenter
-            (Complex.ofReal_re (1 / 2 : ℝ))
+            zetaCompletedExplicitFormula_complex_half_re
         _ = (1 : ℝ) - F.c := by
           exact sub_add_cancel ((1 : ℝ) - F.c) (1 / 2 : ℝ)
     exact hleft.trans hadd_re.symm
-  · have hleft :
+  have him :
+      (zetaCompletedExplicitFormulaLeftAffineLine F t).im =
+        (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t +
+          (1 / 2 : ℂ)).im := by
+    have hleft :
         (zetaCompletedExplicitFormulaLeftAffineLine F t).im = t :=
       zetaCompletedExplicitFormulaLeftAffineLine_im F t
     have hcenter :
@@ -1125,16 +1194,17 @@ theorem zetaCompletedExplicitFormulaLeftAffineLine_eq_leftCentered_add_half
         (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t +
             (1 / 2 : ℂ)).im =
             (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t).im +
-              (1 / 2 : ℂ).im := by
+              ((1 / 2 : ℂ).im) := by
           exact Complex.add_im
             (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t)
             (1 / 2 : ℂ)
         _ = t + 0 := by
           exact congrArg₂ HAdd.hAdd
             hcenter
-            (Complex.ofReal_im (1 / 2 : ℝ))
+            zetaCompletedExplicitFormula_complex_half_im
         _ = t := add_zero t
     exact hleft.trans hadd_im.symm
+  exact Complex.ext hre him
 
 /-- Uncentered affine line functional-equation relation: left affine line at t
 equals one minus right affine line at -t, establishing the critical-line
@@ -1143,23 +1213,7 @@ theorem zetaCompletedExplicitFormulaLeftAffineLine_eq_one_sub_rightAffineLine_of
     (F : ExplicitFormulaContourFamily) (t : ℝ) :
     zetaCompletedExplicitFormulaLeftAffineLine F t =
     (1 : ℂ) - zetaCompletedExplicitFormulaRightAffineLine F (-t) := by
-  have hleft_def :
-      zetaCompletedExplicitFormulaLeftAffineLine F t =
-      ((1 : ℂ) - (F.c : ℂ)) + t * Complex.I := by rfl
-  have hright_neg_def :
-      zetaCompletedExplicitFormulaRightAffineLine F (-t) =
-      (F.c : ℂ) + (-t) * Complex.I := by rfl
-  have hneg_mul : (-t : ℝ) * Complex.I = -(t * Complex.I) := by
-    exact neg_mul_eq_mul_neg (-t : ℝ) Complex.I
-  calc
-    zetaCompletedExplicitFormulaLeftAffineLine F t =
-        ((1 : ℂ) - (F.c : ℂ)) + t * Complex.I := hleft_def
-    _ = (1 : ℂ) - ((F.c : ℂ) - t * Complex.I) := by
-      exact sub_eq_add_neg ((1 : ℂ) - (F.c : ℂ)) (-t * Complex.I) |>.symm
-    _ = (1 : ℂ) - ((F.c : ℂ) + (-t) * Complex.I) := by
-      exact congrArg ((1 : ℂ) - ·) (congrArg ((F.c : ℂ) + ·) hneg_mul.symm)
-    _ = (1 : ℂ) - zetaCompletedExplicitFormulaRightAffineLine F (-t) := by
-      exact congrArg ((1 : ℂ) - ·) hright_neg_def.symm
+  exact zetaCompletedExplicitFormulaLeftAffineLine_eq_one_sub_rightAffineLine F t
 
 /-- Centered affine line negation under reflection: left centered affine line
 at t equals minus right centered affine line at -t, the negation symmetry for
@@ -1168,44 +1222,7 @@ theorem zetaCompletedExplicitFormulaLeftCenteredAffineLine_eq_neg_rightCenteredA
     (F : ExplicitFormulaContourFamily) (t : ℝ) :
     zetaCompletedExplicitFormulaLeftCenteredAffineLine F t =
     -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-t)) := by
-  have hleft_def :
-      zetaCompletedExplicitFormulaLeftCenteredAffineLine F t =
-      ((1 : ℂ) - (F.c : ℂ) - (1 / 2 : ℂ)) + t * Complex.I := by rfl
-  have hright_neg_def :
-      zetaCompletedExplicitFormulaRightCenteredAffineLine F (-t) =
-      ((F.c : ℂ) - (1 / 2 : ℂ)) + (-t) * Complex.I := by rfl
-  have hneg_mul : (-t : ℝ) * Complex.I = -(t * Complex.I) := by
-    exact neg_mul_eq_mul_neg (-t : ℝ) Complex.I
-  have hneg_right :
-      -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-t)) =
-      -(((F.c : ℂ) - (1 / 2 : ℂ)) + (-t) * Complex.I) := by
-    exact congrArg Neg.neg hright_neg_def
-  calc
-    zetaCompletedExplicitFormulaLeftCenteredAffineLine F t =
-        ((1 : ℂ) - (F.c : ℂ) - (1 / 2 : ℂ)) + t * Complex.I := hleft_def
-    _ = ((1 / 2 : ℂ) - (F.c : ℂ)) + t * Complex.I := by
-      have hone_sub_half : (1 : ℂ) - (1 / 2 : ℂ) = (1 / 2 : ℂ) := by
-        exact eq_sub_of_add_eq (add_halves (1 : ℂ)).symm
-      have hreal_part :
-          (1 : ℂ) - (F.c : ℂ) - (1 / 2 : ℂ) =
-            (1 / 2 : ℂ) - (F.c : ℂ) := by
-        calc
-          (1 : ℂ) - (F.c : ℂ) - (1 / 2 : ℂ) =
-              (1 : ℂ) - (1 / 2 : ℂ) - (F.c : ℂ) := by
-            exact sub_right_comm (1 : ℂ) (F.c : ℂ) (1 / 2 : ℂ)
-          _ = (1 / 2 : ℂ) - (F.c : ℂ) := by
-            exact congrArg (fun z : ℂ => z - (F.c : ℂ)) hone_sub_half
-      exact congrArg₂ HAdd.hAdd
-        hreal_part
-        rfl
-    _ = -(((F.c : ℂ) - (1 / 2 : ℂ)) - t * Complex.I) := by
-      exact show ((1 / 2 : ℂ) - (F.c : ℂ)) + t * Complex.I =
-          -(((F.c : ℂ) - (1 / 2 : ℂ)) - t * Complex.I) by
-        exact sub_eq_neg_add ((1 / 2 : ℂ) - (F.c : ℂ)) (-(t * Complex.I)) |>.symm
-    _ = -(((F.c : ℂ) - (1 / 2 : ℂ)) + (-t) * Complex.I) := by
-      exact congrArg Neg.neg (congrArg (((F.c : ℂ) - (1 / 2 : ℂ)) + ·) hneg_mul.symm)
-    _ = -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-t)) := by
-      exact hneg_right.symm
+  exact zetaCompletedExplicitFormulaLeftCenteredAffineLine_eq_neg_rightCenteredAffineLine F t
 
 end ZetaAdmissibleFunction
 
