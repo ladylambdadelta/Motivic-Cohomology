@@ -36,7 +36,7 @@ theorem explicitFormulaRectangleRegularGridCellBoundary_ofAdjacentEndpoints
     (homit :
       ∀ a : ℂ,
         a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-          a.re ∉ [[x₀, x₁]] ∨ a.im ∉ [[y₀, y₁]]) :
+          a.re ∉ Set.uIcc x₀ x₁ ∨ a.im ∉ Set.uIcc y₀ y₁) :
     finiteRectangleSubdivisionCellBoundaryIntegral
         (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
         (explicitFormulaRectangleRegularGridCellOfAdjacentEndpoints
@@ -91,7 +91,8 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
     (hcell_location :
       ∀ c : ExplicitFormulaRectangleRegularGridCell F T ε, c ∈ cells →
         ∀ z : ℂ,
-          z ∈ ([[ c.lower.re, c.upper.re ]] ×ℂ [[ c.lower.im, c.upper.im ]]) →
+          z ∈ (Set.uIcc c.lower.re c.upper.re ×ℂ
+            Set.uIcc c.lower.im c.upper.im) →
             z ∈ explicitFormulaContourFamilyInterior F T ∨
               z ∈ explicitFormulaContourFamilyBoundary F T)
     (hcell_open_interior :
@@ -109,10 +110,10 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
     (fun c : ExplicitFormulaRectangleRegularGridCell F T ε => c.lower)
     (fun c : ExplicitFormulaRectangleRegularGridCell F T ε => c.upper)
     f F h hT hinterior hboundary hsubdivision hcell_location
-    (fun c _hc z hz _hzInterior =>
+    (fun c _hc _z hz _hzInterior =>
       c.closedCell_not_mem_rawSingularCoordinates hz)
     hcell_open_interior
-    (fun c _hc z hz =>
+    (fun c _hc _z hz =>
       c.openCell_not_mem_rawSingularCoordinates hz)
 
 /-- Cauchy-Goursat zero for an inscribed-square-punctured rectangle from a finite family
@@ -142,10 +143,10 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
         c ∈ cells →
           ∀ z : ℂ,
             z ∈
-              ([[ (explicitFormulaRectangleGridCellLower c).re,
-                (explicitFormulaRectangleGridCellUpper c).re ]] ×ℂ
-                  [[ (explicitFormulaRectangleGridCellLower c).im,
-                    (explicitFormulaRectangleGridCellUpper c).im ]]) →
+              (Set.uIcc (explicitFormulaRectangleGridCellLower c).re
+                (explicitFormulaRectangleGridCellUpper c).re ×ℂ
+                  Set.uIcc (explicitFormulaRectangleGridCellLower c).im
+                    (explicitFormulaRectangleGridCellUpper c).im) →
               z ∈ explicitFormulaContourFamilyInterior F T)
     (hregular :
       ∀ c : ExplicitFormulaRectangleGridCellIndex,
@@ -158,7 +159,7 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
     explicitFormulaRectangleGridCellLower
     explicitFormulaRectangleGridCellUpper
     f F h hT hinterior hsubdivision hcell_interior
-    (fun c hc z hz =>
+    (fun c hc _z hz =>
       explicitFormulaRectangleGridCellRegularComplement_not_mem_rawSingularCoordinates
         F T ε c (hregular c hc) hz)
 
@@ -169,7 +170,7 @@ theorem explicitFormulaRectangleRawDeletedSquareBoundary_eq
     explicitFormulaRectangleRawDeletedSquareBoundary f ε a =
       finiteRectangleSquareBoundaryIntegral
         (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z) a ε := by
-  rfl
+  exact Eq.refl _
 
 /-- The raw deleted-square boundary is the subdivision-cell boundary of its
 standard square lower-left and upper-right corners. -/
@@ -201,7 +202,7 @@ theorem explicitFormulaRectangleRawInscribedSquareBoundary_eq
     explicitFormulaRectangleRawInscribedSquareBoundary f ε a =
       finiteRectangleSquareBoundaryIntegral
         (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z) a (ε / 2) := by
-  rfl
+  exact Eq.refl _
 
 /-- The raw inscribed-square boundary is the subdivision-cell boundary of its named
 lower-left and upper-right corners. -/
@@ -212,7 +213,7 @@ theorem explicitFormulaRectangleRawInscribedSquareBoundary_eq_cellBoundary
         (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
         (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a)
         (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a) := by
-  rfl
+  exact Eq.refl _
 
 /-- The raw inscribed-square boundary is the subdivision-cell boundary of the ordinary
 deleted square at half-width `ε / 2`. -/
@@ -265,7 +266,7 @@ theorem explicitFormulaRectangleRawDeletedSquareBoundary_half_eq_rawInscribedSqu
         (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
         (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a)
         (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a) := by
-      rfl
+      exact Eq.refl _
 
 /-- The inscribed-square boundary at circular radius `ε` is the deleted-square boundary
 whose square half-width is `ε / 2`. -/
@@ -273,7 +274,7 @@ theorem explicitFormulaRectangleRawInscribedSquareBoundary_eq_rawDeletedSquareBo
     (f : ZetaAdmissibleFunction) (ε : ℝ) (a : ℂ) :
     explicitFormulaRectangleRawInscribedSquareBoundary f ε a =
       explicitFormulaRectangleRawDeletedSquareBoundary f (ε / 2) a := by
-  rfl
+  exact Eq.refl _
 
 /-- The deleted-square boundary at half-width `ε / 2` is the inscribed-square boundary at
 circular radius `ε`. -/
