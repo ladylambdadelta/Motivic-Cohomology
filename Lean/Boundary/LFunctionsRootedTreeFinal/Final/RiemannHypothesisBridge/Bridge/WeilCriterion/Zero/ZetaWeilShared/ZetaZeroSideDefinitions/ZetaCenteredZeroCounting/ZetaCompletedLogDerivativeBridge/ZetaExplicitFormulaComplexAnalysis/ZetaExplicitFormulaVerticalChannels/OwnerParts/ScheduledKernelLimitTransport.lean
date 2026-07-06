@@ -30,7 +30,7 @@ theorem explicitFormulaScheduledScalar_tendsto_of_eventually_eq
     (hkernel : Tendsto kernel atTop (𝓝 target))
     (hpoint : ∀ᶠ u in atTop, scheduled u = kernel u) :
     Tendsto scheduled atTop (𝓝 target) :=
-  hkernel.congr' hpoint.symm
+  hkernel.congr' (hpoint.mono (fun _u hu => hu.symm))
 
 /-- Transport a scheduled scalar limit across a pointwise equality. -/
 theorem explicitFormulaScheduledScalar_tendsto_of_forall_eq

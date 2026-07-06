@@ -44,7 +44,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegrand_eq_a
   have hcoeff :
       -1 / (zetaCompletedExplicitFormulaRightAffineLine F t - 1) =
         -(1 / (zetaCompletedExplicitFormulaRightAffineLine F t - 1)) :=
-    (neg_div (zetaCompletedExplicitFormulaRightAffineLine F t - 1) (1 : ℂ)).symm
+    neg_div (zetaCompletedExplicitFormulaRightAffineLine F t - 1) (1 : ℂ)
   calc
     (-1 / (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t - 1)) *
         zetaCompletedExplicitFormulaPhi f
@@ -97,7 +97,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegrand_eq_af
   have hcoeff :
       -1 / (zetaCompletedExplicitFormulaLeftAffineLine F t - 1) =
         -(1 / (zetaCompletedExplicitFormulaLeftAffineLine F t - 1)) :=
-    (neg_div (zetaCompletedExplicitFormulaLeftAffineLine F t - 1) (1 : ℂ)).symm
+    neg_div (zetaCompletedExplicitFormulaLeftAffineLine F t - 1) (1 : ℂ)
   calc
     (-1 / (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t - 1)) *
         zetaCompletedExplicitFormulaPhi f
