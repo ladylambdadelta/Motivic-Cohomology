@@ -416,6 +416,41 @@ theorem Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_n
     Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_nonneg_of_principal_sep
       t ht ht_nonneg ha hab hlong_sqrt hprincipal hsep hweyl_target
 
+/-- A family of scaled rational fixed-width gap estimates supplies the
+pointwise `π` bounds needed for no-winding of every shifted logarithmic
+increment in the Weyl shift range. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_gap_pi_of_scaled_reciprocal_family
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hscaled_pi :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico a (b - h) →
+              t * ((h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) ≤
+                Real.pi) :
+    ∀ h : ℕ,
+      h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+        ∀ n : ℕ,
+          n ∈ Finset.Ico a (b - h) →
+            Complex.realPhase_integerIncrement
+              (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                h)
+              n ≤ Real.pi := by
+  intro h hmem n hn
+  have hn_bounds : a ≤ n ∧ n < b - h :=
+    Finset.mem_Ico.mp hn
+  have hn_one : 1 ≤ n :=
+    le_trans ha hn_bounds.1
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_le_pi_of_scaled_reciprocal
+      t ht_nonneg hn_one (hscaled_pi h hmem n hn)
+
 /-- Resonance-window avoidance plus the pointwise `π` gap bound supplies the
 shifted separation input for the positive-frequency long Weyl target. -/
 theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_sep_of_gap_pi_resonanceWindow_avoidance
@@ -575,6 +610,82 @@ theorem Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_n
   exact
     Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_nonneg_of_gap_pi_sep
       t ht ht_nonneg ha hab hlong_sqrt hgap_pi hsep hweyl_target
+
+/-- Positive-frequency long Weyl-target wrapper with no-winding discharged
+from scaled reciprocal arithmetic and separation discharged from resonance
+window avoidance. -/
+theorem Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_nonneg_of_scaled_reciprocal_resonanceWindow
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hscaled_pi :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico a (b - h) →
+              t * ((h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) ≤
+                Real.pi)
+    (S : ℕ → Finset ℕ)
+    (hS :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ m : ℕ,
+            m ∈ S h ↔
+              m ∈ Finset.Ico a (b - h) ∧
+                ‖Complex.realPhase_integerIncrement
+                    (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                      h)
+                    m -
+                  (2 * Real.pi * (0 : ℝ))‖ <
+                  (‖t‖ *
+                    ((((b + 1 : ℕ) : ℝ) *
+                      (((b + 1 : ℕ) : ℝ)))⁻¹) *
+                    (h : ℝ)))
+    (havoid :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico a (b - h) →
+              n ∉ S h)
+    (hweyl_target :
+      Real.secondDerivativeVdc_weylEnvelopeMajorant a b
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖)
+          (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
+            Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h) ≤
+        80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+          Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
+  have hgap_pi :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico a (b - h) →
+              Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ≤ Real.pi :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_gap_pi_of_scaled_reciprocal_family
+      t ht_nonneg ha hscaled_pi
+  exact
+    Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_nonneg_of_gap_pi_resonanceWindow
+      t ht ht_nonneg ha hab hlong_sqrt hgap_pi S hS havoid hweyl_target
 
 end
 
