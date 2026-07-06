@@ -36,7 +36,6 @@ def daggerClosedSpectralSampleFinset
 theorem mem_daggerClosedSpectralSampleFinset_self
     (S : Finset ℂ) (z : ℂ) (hz : z ∈ S) :
     z ∈ daggerClosedSpectralSampleFinset S := by
-  unfold daggerClosedSpectralSampleFinset
   exact Finset.mem_union.mpr (Or.inl hz)
 
 /-- The dagger-reflection of a sample belongs to the dagger-closed finite spectral sample
@@ -44,8 +43,6 @@ set. -/
 theorem mem_daggerClosedSpectralSampleFinset_reflection
     (S : Finset ℂ) (z : ℂ) (hz : z ∈ S) :
     -star z ∈ daggerClosedSpectralSampleFinset S := by
-  unfold daggerClosedSpectralSampleFinset
-  unfold daggerReflectedSpectralSampleFinset
   exact Finset.mem_union.mpr
     (Or.inr (Finset.mem_image.mpr ⟨z, hz, rfl⟩))
 
