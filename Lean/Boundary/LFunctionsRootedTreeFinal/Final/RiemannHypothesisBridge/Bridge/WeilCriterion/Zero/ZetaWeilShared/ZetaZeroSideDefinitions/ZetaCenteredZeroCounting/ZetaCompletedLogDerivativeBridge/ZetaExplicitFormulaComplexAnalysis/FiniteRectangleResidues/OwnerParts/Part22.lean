@@ -30,11 +30,12 @@ theorem ExplicitFormulaRectangleRegularGridCell.closedCell_mem_interior_or_bound
         a ∈ explicitFormulaRectangleRawSingularCoordinates T →
           Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T)
     {z : ℂ}
-    (hz : z ∈ ([[ c.lower.re, c.upper.re ]] ×ℂ [[ c.lower.im, c.upper.im ]])) :
+    (hz : z ∈ (Set.uIcc c.lower.re c.upper.re ×ℂ
+      Set.uIcc c.lower.im c.upper.im)) :
     z ∈ explicitFormulaContourFamilyInterior F T ∨
       z ∈ explicitFormulaContourFamilyBoundary F T := by
   have hbox :
-      z ∈ ([[F.c, 1 - F.c]] ×ℂ Set.Icc (-T) T) :=
+      z ∈ (Set.uIcc F.c (1 - F.c) ×ℂ Set.Icc (-T) T) :=
     c.closedCell_subset_outerClosedCell_of_closedRadiusControls
       hT_nonneg hε hclosed hz
   exact
@@ -52,7 +53,8 @@ theorem ExplicitFormulaRectangleRegularGridCell.closedCell_mem_interior_or_bound
         a ∈ explicitFormulaRectangleRawSingularCoordinates T →
           Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T)
     {z : ℂ}
-    (hz : z ∈ ([[ c.lower.re, c.upper.re ]] ×ℂ [[ c.lower.im, c.upper.im ]])) :
+    (hz : z ∈ (Set.uIcc c.lower.re c.upper.re ×ℂ
+      Set.uIcc c.lower.im c.upper.im)) :
     z ∈ explicitFormulaContourFamilyInterior F T ∨
       z ∈ explicitFormulaContourFamilyBoundary F T :=
   c.closedCell_mem_interior_or_boundary_of_closedRadiusControls
@@ -97,7 +99,8 @@ theorem ExplicitFormulaRectangleRegularGridCell.closedCell_location_and_offRaw_o
         a ∈ explicitFormulaRectangleRawSingularCoordinates T →
           Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T)
     {z : ℂ}
-    (hz : z ∈ ([[ c.lower.re, c.upper.re ]] ×ℂ [[ c.lower.im, c.upper.im ]])) :
+    (hz : z ∈ (Set.uIcc c.lower.re c.upper.re ×ℂ
+      Set.uIcc c.lower.im c.upper.im)) :
     (z ∈ explicitFormulaContourFamilyInterior F T ∨
         z ∈ explicitFormulaContourFamilyBoundary F T) ∧
       z ∉ explicitFormulaRectangleRawSingularCoordinates T :=
@@ -118,11 +121,11 @@ theorem explicitFormulaRectangleRegularGridCellFamily_closedCell_location_of_hal
           Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T) :
     ∀ c : ExplicitFormulaRectangleRegularGridCell F T (ε / 2), c ∈ cells →
       ∀ z : ℂ,
-        z ∈ ([[ c.lower.re, c.upper.re ]] ×ℂ
-          [[ c.lower.im, c.upper.im ]]) →
+        z ∈ (Set.uIcc c.lower.re c.upper.re ×ℂ
+          Set.uIcc c.lower.im c.upper.im) →
           z ∈ explicitFormulaContourFamilyInterior F T ∨
             z ∈ explicitFormulaContourFamilyBoundary F T :=
-  fun c _hc z hz =>
+  fun c _hc _z hz =>
     c.closedCell_mem_interior_or_boundary_of_halfRadius_closedRadiusControls
       hT hε hclosed hz
 
@@ -138,12 +141,12 @@ theorem explicitFormulaRectangleRegularGridCellFamily_closedCell_location_and_of
           Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T) :
     ∀ c : ExplicitFormulaRectangleRegularGridCell F T (ε / 2), c ∈ cells →
       ∀ z : ℂ,
-        z ∈ ([[ c.lower.re, c.upper.re ]] ×ℂ
-          [[ c.lower.im, c.upper.im ]]) →
+        z ∈ (Set.uIcc c.lower.re c.upper.re ×ℂ
+          Set.uIcc c.lower.im c.upper.im) →
           (z ∈ explicitFormulaContourFamilyInterior F T ∨
               z ∈ explicitFormulaContourFamilyBoundary F T) ∧
             z ∉ explicitFormulaRectangleRawSingularCoordinates T :=
-  fun c _hc z hz =>
+  fun c _hc _z hz =>
     c.closedCell_location_and_offRaw_of_halfRadius_closedRadiusControls
       hT hε hclosed hz
 
@@ -164,7 +167,7 @@ theorem explicitFormulaRectangleRegularGridCellFamily_openCell_interior_of_halfR
             Set.Ioo (min c.lower.im c.upper.im)
               (max c.lower.im c.upper.im) →
           z ∈ explicitFormulaContourFamilyInterior F T :=
-  fun c _hc z hz =>
+  fun c _hc _z hz =>
     c.openCell_mem_interior_of_halfRadius_closedRadiusControls
       hT hε hclosed hz
 
@@ -175,10 +178,10 @@ theorem explicitFormulaRectangleRegularGridCellFamily_closedCell_offRaw_of_halfR
     (cells : Finset (ExplicitFormulaRectangleRegularGridCell F T (ε / 2))) :
     ∀ c : ExplicitFormulaRectangleRegularGridCell F T (ε / 2), c ∈ cells →
       ∀ z : ℂ,
-        z ∈ ([[ c.lower.re, c.upper.re ]] ×ℂ
-          [[ c.lower.im, c.upper.im ]]) →
+        z ∈ (Set.uIcc c.lower.re c.upper.re ×ℂ
+          Set.uIcc c.lower.im c.upper.im) →
           z ∉ explicitFormulaRectangleRawSingularCoordinates T :=
-  fun c _hc z hz =>
+  fun c _hc _z hz =>
     c.closedCell_not_mem_rawSingularCoordinates hz
 
 /-- Every open cell in a finite family of half-radius regular grid cells avoids the raw
@@ -193,7 +196,7 @@ theorem explicitFormulaRectangleRegularGridCellFamily_openCell_offRaw_of_halfRad
             Set.Ioo (min c.lower.im c.upper.im)
               (max c.lower.im c.upper.im) →
           z ∉ explicitFormulaRectangleRawSingularCoordinates T :=
-  fun c _hc z hz =>
+  fun c _hc _z hz =>
     c.openCell_not_mem_rawSingularCoordinates hz
 
 /-- Closed-radius controls give both open-cell interior membership and raw-singular
@@ -252,10 +255,12 @@ theorem ExplicitFormulaRectangleRegularGridCell.boundaryIntegral_eq_zero_of_half
   have Hc :
       ContinuousOn
         (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-        ([[ c.lower.re, c.upper.re ]] ×ℂ [[ c.lower.im, c.upper.im ]]) :=
+        (Set.uIcc c.lower.re c.upper.re ×ℂ
+          Set.uIcc c.lower.im c.upper.im) :=
     explicitFormulaRectangleInteriorOrBoundaryOffRawSingular_continuousOn
       f F h hT hinterior hboundary
-      ([[ c.lower.re, c.upper.re ]] ×ℂ [[ c.lower.im, c.upper.im ]])
+      (Set.uIcc c.lower.re c.upper.re ×ℂ
+        Set.uIcc c.lower.im c.upper.im)
       (fun z hz =>
         c.closedCell_mem_interior_or_boundary_of_halfRadius_closedRadiusControls
           hT hε hclosed hz)
@@ -410,8 +415,8 @@ theorem ExplicitFormulaRectangleRegularGridCell.omitsRaw
     (c : ExplicitFormulaRectangleRegularGridCell F T ε) :
     ∀ a : ℂ,
       a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-        a.re ∉ [[ c.cell.1.1, c.cell.1.2 ]] ∨
-          a.im ∉ [[ c.cell.2.1, c.cell.2.2 ]] :=
+        a.re ∉ Set.uIcc c.cell.1.1 c.cell.1.2 ∨
+          a.im ∉ Set.uIcc c.cell.2.1 c.cell.2.2 :=
   c.regular.2
 
 /-- A selected regular grid cell has strictly increasing real coordinates after
@@ -457,8 +462,8 @@ theorem ExplicitFormulaRectangleRegularGridCell.omitsRaw_lower_upper
     (c : ExplicitFormulaRectangleRegularGridCell F T ε) :
     ∀ a : ℂ,
       a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-        a.re ∉ [[ c.lower.re, c.upper.re ]] ∨
-          a.im ∉ [[ c.lower.im, c.upper.im ]] := by
+        a.re ∉ Set.uIcc c.lower.re c.upper.re ∨
+          a.im ∉ Set.uIcc c.lower.im c.upper.im := by
   intro a ha
   exact explicitFormulaRectangleGridCell_coordinateOmission_transport c.cell a (c.omitsRaw a ha)
 
@@ -470,158 +475,9 @@ theorem explicitFormulaRectangleRegularGridCellFamily_omitsRaw_lower_upper
     ∀ c : ExplicitFormulaRectangleRegularGridCell F T ε, c ∈ cells →
       ∀ a : ℂ,
         a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-          a.re ∉ [[ c.lower.re, c.upper.re ]] ∨
-            a.im ∉ [[ c.lower.im, c.upper.im ]] :=
+          a.re ∉ Set.uIcc c.lower.re c.upper.re ∨
+            a.im ∉ Set.uIcc c.lower.im c.upper.im :=
   fun c _hc a ha => c.omitsRaw_lower_upper a ha
-
-/-- The finite boundary sum over a selected family of proof-carrying regular grid cells. -/
-noncomputable def explicitFormulaRectangleRegularGridCellBoundarySum
-    {F : ExplicitFormulaContourFamily} {T ε : ℝ}
-    (f : ZetaAdmissibleFunction)
-    (cells : Finset (ExplicitFormulaRectangleRegularGridCell F T ε)) : ℂ :=
-  ∑ c in cells,
-    finiteRectangleSubdivisionCellBoundaryIntegral
-      (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-      c.lower c.upper
-
-/-- The regular-grid-cell boundary sum unfolds to the finite sum of the associated
-subdivision-cell boundaries. -/
-theorem explicitFormulaRectangleRegularGridCellBoundarySum_eq
-    {F : ExplicitFormulaContourFamily} {T ε : ℝ}
-    (f : ZetaAdmissibleFunction)
-    (cells : Finset (ExplicitFormulaRectangleRegularGridCell F T ε)) :
-    explicitFormulaRectangleRegularGridCellBoundarySum f cells =
-      ∑ c in cells,
-        finiteRectangleSubdivisionCellBoundaryIntegral
-          (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-          c.lower c.upper := by
-  rfl
-
-/-- Fold the unfolded regular-grid-cell boundary sum back to its named owner
-normalization. -/
-theorem explicitFormulaRectangleRegularGridCellBoundarySum_sum_eq
-    {F : ExplicitFormulaContourFamily} {T ε : ℝ}
-    (f : ZetaAdmissibleFunction)
-    (cells : Finset (ExplicitFormulaRectangleRegularGridCell F T ε)) :
-    (∑ c in cells,
-        finiteRectangleSubdivisionCellBoundaryIntegral
-          (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-          c.lower c.upper) =
-      explicitFormulaRectangleRegularGridCellBoundarySum f cells :=
-  (explicitFormulaRectangleRegularGridCellBoundarySum_eq f cells).symm
-
-/-- Transport an equality to the named regular-grid-cell boundary sum into the unfolded
-finite subdivision-cell sum. -/
-theorem explicitFormulaRectangleRegularGridCellBoundarySum_unfold_right
-    {F : ExplicitFormulaContourFamily} {T ε : ℝ}
-    (f : ZetaAdmissibleFunction)
-    (cells : Finset (ExplicitFormulaRectangleRegularGridCell F T ε))
-    {X : ℂ}
-    (h : X = explicitFormulaRectangleRegularGridCellBoundarySum f cells) :
-    X =
-      ∑ c in cells,
-        finiteRectangleSubdivisionCellBoundaryIntegral
-          (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-          c.lower c.upper :=
-  Eq.trans h (explicitFormulaRectangleRegularGridCellBoundarySum_eq f cells)
-
-/-- Transport an equality to the unfolded finite subdivision-cell sum into the named
-regular-grid-cell boundary-sum normalization. -/
-theorem explicitFormulaRectangleRegularGridCellBoundarySum_fold_right
-    {F : ExplicitFormulaContourFamily} {T ε : ℝ}
-    (f : ZetaAdmissibleFunction)
-    (cells : Finset (ExplicitFormulaRectangleRegularGridCell F T ε))
-    {X : ℂ}
-    (h :
-      X =
-        ∑ c in cells,
-          finiteRectangleSubdivisionCellBoundaryIntegral
-            (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-            c.lower c.upper) :
-    X = explicitFormulaRectangleRegularGridCellBoundarySum f cells :=
-  Eq.trans h (explicitFormulaRectangleRegularGridCellBoundarySum_sum_eq f cells)
-
-/-- Pointwise equality of the selected regular-grid cell boundary integrals gives equality
-after summing over the finite selected cell family. -/
-theorem explicitFormulaRectangleRegularGridCellBoundarySum_eq_sum_of_forall_mem
-    {F : ExplicitFormulaContourFamily} {T ε : ℝ}
-    (f : ZetaAdmissibleFunction)
-    (cells : Finset (ExplicitFormulaRectangleRegularGridCell F T ε))
-    (B : ExplicitFormulaRectangleRegularGridCell F T ε → ℂ)
-    (hB :
-      ∀ c : ExplicitFormulaRectangleRegularGridCell F T ε, c ∈ cells →
-        finiteRectangleSubdivisionCellBoundaryIntegral
-          (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-          c.lower c.upper = B c) :
-    explicitFormulaRectangleRegularGridCellBoundarySum f cells =
-      ∑ c in cells, B c := by
-  exact Eq.trans
-    (explicitFormulaRectangleRegularGridCellBoundarySum_eq f cells)
-    (Finset.sum_congr rfl hB)
-
-/-- Pointwise equality of a supplied boundary function with the selected regular-grid cell
-boundary integrals folds the supplied finite sum back to the named boundary-sum owner. -/
-theorem explicitFormulaRectangleRegularGridCellBoundarySum_sum_eq_of_forall_mem
-    {F : ExplicitFormulaContourFamily} {T ε : ℝ}
-    (f : ZetaAdmissibleFunction)
-    (cells : Finset (ExplicitFormulaRectangleRegularGridCell F T ε))
-    (B : ExplicitFormulaRectangleRegularGridCell F T ε → ℂ)
-    (hB :
-      ∀ c : ExplicitFormulaRectangleRegularGridCell F T ε, c ∈ cells →
-        B c =
-          finiteRectangleSubdivisionCellBoundaryIntegral
-            (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-            c.lower c.upper) :
-    (∑ c in cells, B c) =
-      explicitFormulaRectangleRegularGridCellBoundarySum f cells := by
-  have hsum :
-      (∑ c in cells, B c) =
-        ∑ c in cells,
-          finiteRectangleSubdivisionCellBoundaryIntegral
-            (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-            c.lower c.upper :=
-    Finset.sum_congr rfl hB
-  exact Eq.trans hsum (explicitFormulaRectangleRegularGridCellBoundarySum_sum_eq f cells)
-
-/-- Transport an equality from a supplied boundary-function finite sum to the named
-regular-grid-cell boundary-sum owner normalization. -/
-theorem explicitFormulaRectangleRegularGridCellBoundarySum_fold_supplied_right
-    {F : ExplicitFormulaContourFamily} {T ε : ℝ}
-    (f : ZetaAdmissibleFunction)
-    (cells : Finset (ExplicitFormulaRectangleRegularGridCell F T ε))
-    (B : ExplicitFormulaRectangleRegularGridCell F T ε → ℂ)
-    {X : ℂ}
-    (h :
-      X = ∑ c in cells, B c)
-    (hB :
-      ∀ c : ExplicitFormulaRectangleRegularGridCell F T ε, c ∈ cells →
-        B c =
-          finiteRectangleSubdivisionCellBoundaryIntegral
-            (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-            c.lower c.upper) :
-    X = explicitFormulaRectangleRegularGridCellBoundarySum f cells :=
-  Eq.trans h
-    (explicitFormulaRectangleRegularGridCellBoundarySum_sum_eq_of_forall_mem
-      f cells B hB)
-
-/-- Transport an equality from the named regular-grid-cell boundary-sum owner
-normalization to a supplied boundary-function finite sum. -/
-theorem explicitFormulaRectangleRegularGridCellBoundarySum_unfold_supplied_right
-    {F : ExplicitFormulaContourFamily} {T ε : ℝ}
-    (f : ZetaAdmissibleFunction)
-    (cells : Finset (ExplicitFormulaRectangleRegularGridCell F T ε))
-    (B : ExplicitFormulaRectangleRegularGridCell F T ε → ℂ)
-    {X : ℂ}
-    (h : X = explicitFormulaRectangleRegularGridCellBoundarySum f cells)
-    (hB :
-      ∀ c : ExplicitFormulaRectangleRegularGridCell F T ε, c ∈ cells →
-        finiteRectangleSubdivisionCellBoundaryIntegral
-          (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
-          c.lower c.upper = B c) :
-    X = ∑ c in cells, B c :=
-  Eq.trans h
-    (explicitFormulaRectangleRegularGridCellBoundarySum_eq_sum_of_forall_mem
-      f cells B hB)
 
 end ZetaAdmissibleFunction
 
