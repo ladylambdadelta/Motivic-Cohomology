@@ -492,18 +492,13 @@ theorem zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_summable_b
             zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)
         Filter.atTop
         (nhds z) ∧
-      Complex.re z = 0 := by
-  have hsummable :
-      Summable
-        (fun ι : ZetaPrimePowerIndex =>
-          zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f) :=
-    horiented
-  obtain ⟨z, hbox, hre⟩ :=
-    zetaCompletedPrimePowerAutocorrelationOrientedCrossBoxSum_tendsto_realPart_zero
-      f hledger horiented
-  refine ⟨z, hsummable, ?_, hre⟩
-  unfold zetaCompletedPrimePowerAutocorrelationOrientedCrossBoxSum at hbox
-  exact hbox
+      Complex.re z = 0 :=
+  ⟨∑' ι : ZetaPrimePowerIndex,
+      zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f,
+    horiented,
+    horiented.hasSum.comp ZetaPrimePowerIndex.box_tendsto_atTop,
+    zetaCompletedPrimePowerAutocorrelation_oriented_tsum_re_eq_zero_residueLedger_core
+      f hledger horiented⟩
 
 /-- The finite-window oriented cross sums determine the completed `HasSum` value with zero
 real part. -/
@@ -519,34 +514,12 @@ theorem zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_hasSum_rea
         (fun ι : ZetaPrimePowerIndex =>
           zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)
         z ∧
-      Complex.re z = 0 := by
-  let u : ZetaPrimePowerIndex → ℂ :=
-    fun ι : ZetaPrimePowerIndex =>
-      zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f
-  obtain ⟨z, hsummable, hbox, hre⟩ :=
-    zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_summable_boxLimit_realPart_zero
-      f hledger horiented
-  have hbox_tsum :
-      Filter.Tendsto
-        (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.box N, u ι)
-        Filter.atTop
-        (nhds (∑' ι : ZetaPrimePowerIndex, u ι)) := by
-    exact hsummable.hasSum.comp ZetaPrimePowerIndex.box_tendsto_atTop
-  have hbox_u :
-      Filter.Tendsto
-        (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.box N, u ι)
-        Filter.atTop
-        (nhds z) := by
-    unfold u
-    exact hbox
-  have htsum_eq_z :
-      (∑' ι : ZetaPrimePowerIndex, u ι) = z :=
-    tendsto_nhds_unique hbox_tsum hbox_u
-  refine ⟨z, ?_, hre⟩
-  exact Eq.subst
-    (motive := fun w : ℂ => HasSum u w)
-    htsum_eq_z
-    hsummable.hasSum
+      Complex.re z = 0 :=
+  ⟨∑' ι : ZetaPrimePowerIndex,
+      zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f,
+    horiented.hasSum,
+    zetaCompletedPrimePowerAutocorrelation_oriented_tsum_re_eq_zero_residueLedger_core
+      f hledger horiented⟩
 
 /-- The oriented autocorrelation cross series has a completed boundary sum with zero real
 part. -/
@@ -562,10 +535,9 @@ theorem zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_hasSum_rea
         (fun ι : ZetaPrimePowerIndex =>
           zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)
         z ∧
-      Complex.re z = 0 := by
-  exact
-    zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_hasSum_realPart_zero_of_windowLimit
-      f hledger horiented
+      Complex.re z = 0 :=
+  zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_hasSum_realPart_zero_of_windowLimit
+    f hledger horiented
 
 /-- The oriented autocorrelation cross series has purely imaginary completed boundary sum. -/
 theorem zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_hasSum_pureImaginary_boundaryCancellation
