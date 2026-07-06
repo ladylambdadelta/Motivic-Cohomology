@@ -55,16 +55,38 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPole_canonicalBottomCellBounda
     exact
       zetaCompletedExplicitFormulaCorrectionZeroPoleKernel_differentiableAt_of_not_mem_singleton
         f h.phi_control hx.2
-  exact
-    show
+  have hdef :
+      zetaExplicitFormulaZeroPoleBottomPunctureCellBoundaryIntegral
+        (zetaCompletedExplicitFormulaCorrectionZeroPoleKernelFn f)
+        F T R =
       zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral
         (zetaCompletedExplicitFormulaCorrectionZeroPoleKernelFn f)
         ((1 - F.c : ℝ) + (-T : ℝ) * Complex.I)
-        (F.c + (-R : ℝ) * Complex.I) = 0 from
-      zetaCompletedExplicitFormulaCorrectionZeroPole_cellBoundary_eq_zero_of_regularity
+        (F.c + (-R : ℝ) * Complex.I) :=
+    have hleft_re :
+        (1 : ℂ) - (F.c : ℂ) = ((1 - F.c : ℝ) : ℂ) :=
+      (Complex.ofReal_sub 1 F.c).symm
+    have hnegT :
+        (-(T : ℂ)) * Complex.I = ((-T : ℝ) : ℂ) * Complex.I :=
+      congrArg (fun z : ℂ => z * Complex.I) (Complex.ofReal_neg T).symm
+    have hnegR :
+        (-(R : ℂ)) * Complex.I = ((-R : ℝ) : ℂ) * Complex.I :=
+      congrArg (fun z : ℂ => z * Complex.I) (Complex.ofReal_neg R).symm
+    congrArg₂
+      (fun z w : ℂ =>
+        zetaExplicitFormulaSinglePoleSubdivisionCellBoundaryIntegral
+          (zetaCompletedExplicitFormulaCorrectionZeroPoleKernelFn f)
+          z w)
+      (congrArg₂ HAdd.hAdd hleft_re hnegT)
+      (congrArg₂ HAdd.hAdd (Eq.refl (F.c : ℂ)) hnegR)
+  exact
+    Eq.subst
+      (motive := fun z : ℂ => z = 0)
+      hdef.symm
+      (zetaCompletedExplicitFormulaCorrectionZeroPole_cellBoundary_eq_zero_of_regularity
         f ((1 - F.c : ℝ) + (-T : ℝ) * Complex.I)
           (F.c + (-R : ℝ) * Complex.I)
-        HcBottom HdBottom
+        HcBottom HdBottom)
 
 end ZetaAdmissibleFunction
 
