@@ -93,7 +93,19 @@ theorem explicitFormulaScheduledComponent_tendsto_of_total_add_remainder
   have hlimit :
       (componentBoundary + remainderBoundary) - remainderBoundary =
         componentBoundary := by
-    exact add_sub_cancel componentBoundary remainderBoundary
+    calc
+      (componentBoundary + remainderBoundary) - remainderBoundary =
+          (componentBoundary + remainderBoundary) + -remainderBoundary := by
+        exact sub_eq_add_neg
+          (componentBoundary + remainderBoundary) remainderBoundary
+      _ = componentBoundary + (remainderBoundary + -remainderBoundary) := by
+        exact add_assoc componentBoundary remainderBoundary (-remainderBoundary)
+      _ = componentBoundary + 0 := by
+        exact congrArg
+          (fun z : ℂ => componentBoundary + z)
+          (add_neg_cancel remainderBoundary)
+      _ = componentBoundary := by
+        exact add_zero componentBoundary
   have htotal_sub_component :
       Tendsto (fun u : ℝ => total u - remainder u)
         atTop
@@ -110,7 +122,19 @@ theorem explicitFormulaScheduledComponent_tendsto_of_total_add_remainder
       hdecomp u
     calc
       component u = (component u + remainder u) - remainder u := by
-        exact (add_sub_cancel (component u) (remainder u)).symm
+        calc
+          component u =
+              component u + 0 := by
+            exact (add_zero (component u)).symm
+          _ = component u + (remainder u + -remainder u) := by
+            exact congrArg
+              (fun z : ℂ => component u + z)
+              (add_neg_cancel (remainder u)).symm
+          _ = (component u + remainder u) + -remainder u := by
+            exact (add_assoc (component u) (remainder u) (-(remainder u))).symm
+          _ = (component u + remainder u) - remainder u := by
+            exact (sub_eq_add_neg
+              (component u + remainder u) (remainder u)).symm
       _ = total u - remainder u := by
         exact congrArg (fun z : ℂ => z - remainder u) hu.symm
   exact
