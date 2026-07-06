@@ -65,6 +65,28 @@ theorem Real.logarithmicPhase_three_target_le_ten
             Nat.cast_ofNat)
   exact mul_le_mul_of_nonneg_right hthree_le_ten hE
 
+/-- Ten target units are bounded by twenty target units for a nonnegative
+target. -/
+theorem Real.logarithmicPhase_ten_target_le_twenty
+    {E : ℝ}
+    (hE : 0 ≤ E) :
+    10 * E ≤ 20 * E := by
+  have hten_le_twenty : (10 : ℝ) ≤ 20 := by
+    have hten_nonneg : 0 ≤ (10 : ℝ) :=
+      Nat.cast_nonneg 10
+    calc
+      (10 : ℝ) ≤ 10 + 10 :=
+        le_add_of_nonneg_right hten_nonneg
+      _ = 20 := by
+        have hnat : (10 + 10 : ℕ) = 20 :=
+          rfl
+        exact Eq.trans
+          (Nat.cast_add 10 10).symm
+          (Eq.trans
+            (congrArg (fun n : ℕ => (n : ℝ)) hnat)
+            Nat.cast_ofNat)
+  exact mul_le_mul_of_nonneg_right hten_le_twenty hE
+
 /-- The stationary and endpoint packet budgets assemble into the widened long
 target. -/
 theorem Real.logarithmicPhase_twenty_sixty_targets_le_eighty
