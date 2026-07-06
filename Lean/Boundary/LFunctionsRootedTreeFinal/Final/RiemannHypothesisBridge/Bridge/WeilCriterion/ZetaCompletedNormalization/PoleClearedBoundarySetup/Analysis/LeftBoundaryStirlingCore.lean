@@ -444,21 +444,21 @@ theorem norm_leftBoundary_denominator_piFactor_eq_one
 vertical line. -/
 theorem leftBoundary_denominator_piFactor_ne_zero
     (t : ℝ) :
-    ((π : ℂ) ^ (-((t : ℂ) * Complex.I) / 2 : ℂ)) ≠ 0 := by
-  intro hzero
-  have hnorm_zero :
-      ‖((π : ℂ) ^ (-((t : ℂ) * Complex.I) / 2 : ℂ))‖ = 0 := by
-    calc
-      ‖((π : ℂ) ^ (-((t : ℂ) * Complex.I) / 2 : ℂ))‖ = ‖(0 : ℂ)‖ := by
-        exact congrArg norm hzero
-      _ = 0 := by
-        exact norm_zero
-  have hone_zero : (1 : ℝ) = 0 := by
-    calc
-      (1 : ℝ) = ‖((π : ℂ) ^ (-((t : ℂ) * Complex.I) / 2 : ℂ))‖ := by
-        exact (norm_leftBoundary_denominator_piFactor_eq_one t).symm
-      _ = 0 := hnorm_zero
-  exact one_ne_zero hone_zero
+    ((π : ℂ) ^ (-((t : ℂ) * Complex.I) / 2 : ℂ)) ≠ 0 :=
+  fun hzero =>
+    let hnorm_zero :
+        ‖((π : ℂ) ^ (-((t : ℂ) * Complex.I) / 2 : ℂ))‖ = 0 := by
+      calc
+        ‖((π : ℂ) ^ (-((t : ℂ) * Complex.I) / 2 : ℂ))‖ = ‖(0 : ℂ)‖ := by
+          exact congrArg norm hzero
+        _ = 0 := by
+          exact norm_zero
+    let hone_zero : (1 : ℝ) = 0 := by
+      calc
+        (1 : ℝ) = ‖((π : ℂ) ^ (-((t : ℂ) * Complex.I) / 2 : ℂ))‖ := by
+          exact (norm_leftBoundary_denominator_piFactor_eq_one t).symm
+        _ = 0 := hnorm_zero
+    one_ne_zero hone_zero
 
 /-- Attach the numerator `π`-normalization to the canonical vertical `Complex.Gamma`
 Stirling estimate. -/
@@ -518,44 +518,42 @@ theorem twoSidedVerticalComplexGammaStirling_leftBoundary_denominator_inv_bound_
         1 ≤ ‖t‖ →
         ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ ≤
           B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖) := by
-  rcases hcore with ⟨B, hB_pos, hB⟩
-  refine ⟨B, hB_pos, ?_⟩
-  intro t ht
-  let P : ℂ := (π : ℂ) ^ (-((t : ℂ) * Complex.I) / 2 : ℂ)
-  let G : ℂ := Complex.Gamma (((t : ℂ) * Complex.I) / 2)
-  have hP_ne : P ≠ 0 :=
-    leftBoundary_denominator_piFactor_ne_zero t
-  have hP_norm_one : ‖P‖ = (1 : ℝ) :=
-    norm_leftBoundary_denominator_piFactor_eq_one t
-  have hraw :
-      ‖G⁻¹‖ ≤ B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖) :=
-    hB t ht
-  have hnorm_eq :
-      ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ =
-        ‖G⁻¹‖ := by
-    calc
-      ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ =
-          ‖(P * G)⁻¹‖ := by
-        rfl
-      _ = ‖G⁻¹ * P⁻¹‖ := by
-        exact congrArg norm (mul_inv_rev P G)
-      _ = ‖P⁻¹ * G⁻¹‖ := by
-        exact congrArg norm (mul_comm G⁻¹ P⁻¹)
-      _ = ‖P⁻¹‖ * ‖G⁻¹‖ := by
-        exact norm_mul P⁻¹ G⁻¹
-      _ = ‖P‖⁻¹ * ‖G⁻¹‖ := by
-        exact congrArg (fun x : ℝ => x * ‖G⁻¹‖) (norm_inv P)
-      _ = 1⁻¹ * ‖G⁻¹‖ := by
-        exact congrArg (fun x : ℝ => x⁻¹ * ‖G⁻¹‖) hP_norm_one
-      _ = 1 * ‖G⁻¹‖ := by
-        exact congrArg (fun x : ℝ => x * ‖G⁻¹‖) (inv_one : (1 : ℝ)⁻¹ = 1)
-      _ = ‖G⁻¹‖ := by
-        exact one_mul ‖G⁻¹‖
-  exact Eq.subst
-    (motive := fun x : ℝ =>
-      x ≤ B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖))
-    hnorm_eq.symm
-    hraw
+  exact match hcore with
+    | ⟨B, hB_pos, hB⟩ =>
+      ⟨B, hB_pos, fun t ht =>
+        let P : ℂ := (π : ℂ) ^ (-((t : ℂ) * Complex.I) / 2 : ℂ)
+        let G : ℂ := Complex.Gamma (((t : ℂ) * Complex.I) / 2)
+        have hP_norm_one : ‖P‖ = (1 : ℝ) :=
+          norm_leftBoundary_denominator_piFactor_eq_one t
+        have hraw :
+            ‖G⁻¹‖ ≤ B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖) :=
+          hB t ht
+        have hnorm_eq :
+            ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ =
+              ‖G⁻¹‖ := by
+          calc
+            ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ =
+                ‖(P * G)⁻¹‖ := by
+              rfl
+            _ = ‖G⁻¹ * P⁻¹‖ := by
+              exact congrArg norm (mul_inv_rev P G)
+            _ = ‖P⁻¹ * G⁻¹‖ := by
+              exact congrArg norm (mul_comm G⁻¹ P⁻¹)
+            _ = ‖P⁻¹‖ * ‖G⁻¹‖ := by
+              exact norm_mul P⁻¹ G⁻¹
+            _ = ‖P‖⁻¹ * ‖G⁻¹‖ := by
+              exact congrArg (fun x : ℝ => x * ‖G⁻¹‖) (norm_inv P)
+            _ = 1⁻¹ * ‖G⁻¹‖ := by
+              exact congrArg (fun x : ℝ => x⁻¹ * ‖G⁻¹‖) hP_norm_one
+            _ = 1 * ‖G⁻¹‖ := by
+              exact congrArg (fun x : ℝ => x * ‖G⁻¹‖) (inv_one : (1 : ℝ)⁻¹ = 1)
+            _ = ‖G⁻¹‖ := by
+              exact one_mul ‖G⁻¹‖
+        Eq.subst
+          (motive := fun x : ℝ =>
+            x ≤ B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖))
+          hnorm_eq.symm
+          hraw⟩
 
 /-- Vertical Stirling upper bound for the named numerator in the unfolded left-boundary
 Gamma quotient.
