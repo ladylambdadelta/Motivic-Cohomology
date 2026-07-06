@@ -1,5 +1,6 @@
 import Mathlib.Analysis.MellinInversion
 import Mathlib.Analysis.Fourier.AddCircle
+import Mathlib.Analysis.Complex.Basic
 
 /-!
 # Conjugate-Symmetric Transforms
@@ -38,7 +39,7 @@ theorem conjugateSymmetric_neg_real_axis
     M (-(r : ℂ)) = star (M (r : ℂ)) := by
   have hpoint : M (-star (r : ℂ)) = star (M (r : ℂ)) := hM (r : ℂ)
   have harg : -star (r : ℂ) = -(r : ℂ) :=
-    congrArg Neg.neg (Complex.star_ofReal r)
+    congrArg Neg.neg (Complex.conj_ofReal r)
   exact Eq.subst
     (motive := fun z : ℂ => M z = star (M (r : ℂ)))
     harg
@@ -52,7 +53,7 @@ theorem conjugateSymmetric_neg_real_axis_im
     conjugateSymmetric_neg_real_axis hM r
   exact Eq.trans
     (congrArg Complex.im hvalue)
-    (Complex.star_im (M (r : ℂ)))
+    (Complex.conj_im (M (r : ℂ)))
 
 /-- Composition preservation of conjugate symmetry (product of symmetric transforms). -/
 theorem conjugateSymmetric_mul
@@ -61,11 +62,14 @@ theorem conjugateSymmetric_mul
   intro s
   calc
     (fun s => M₁ s * M₂ s) (-star s)
-        = M₁ (-star s) * M₂ (-star s) := by rfl
+        = M₁ (-star s) * M₂ (-star s) := by
+          exact Eq.refl _
       _ = star (M₁ s) * star (M₂ s) := by
           exact congrArg₂ HMul.hMul (h₁ s) (h₂ s)
       _ = star (M₁ s * M₂ s) := by
-          exact (star_mul (M₁ s) (M₂ s)).symm
+          exact Eq.trans
+            (mul_comm (star (M₁ s)) (star (M₂ s)))
+            (star_mul (M₁ s) (M₂ s)).symm
 
 /-- Scalar multiple of a conjugate-symmetric transform (when scalar is real). -/
 theorem conjugateSymmetric_smul_real
@@ -74,17 +78,23 @@ theorem conjugateSymmetric_smul_real
   intro s
   calc
     (fun s => (c : ℂ) * M s) (-star s)
-        = (c : ℂ) * M (-star s) := by rfl
+        = (c : ℂ) * M (-star s) := by
+          exact Eq.refl _
       _ = (c : ℂ) * star (M s) := by
           exact congrArg (fun z : ℂ => (c : ℂ) * z) (hM s)
       _ = star ((c : ℂ) * M s) := by
-          exact Eq.trans
-            (congrArg (fun z : ℂ => z * star (M s)) (Complex.star_ofReal c).symm)
-            (star_mul (c : ℂ) (M s)).symm
+          calc
+            (c : ℂ) * star (M s) = star (M s) * (c : ℂ) := by
+              exact mul_comm (c : ℂ) (star (M s))
+            _ = star (M s) * star (c : ℂ) := by
+              exact congrArg (fun z : ℂ => star (M s) * z)
+                (Complex.conj_ofReal c).symm
+            _ = star ((c : ℂ) * M s) := by
+              exact (star_mul (c : ℂ) (M s)).symm
 
 /-- Conjugate-symmetric transforms are determined by values on upper half-plane. -/
 theorem conjugateSymmetric_determined_by_upper_half
-    {M : ℂ → ℂ} (hM : IsConjugateSymmetric M) (s : ℂ) (hs : 0 < s.im) :
+    {M : ℂ → ℂ} (hM : IsConjugateSymmetric M) (s : ℂ) (_ : 0 < s.im) :
     M (-star s) = star (M s) := by
   exact hM s
 
