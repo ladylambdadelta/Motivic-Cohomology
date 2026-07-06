@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseShiftedDifference
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseNoWinding
 
 /-!
 # Real-phase resonance partition support
@@ -355,6 +355,35 @@ theorem Complex.realPhase_integerIncrementSeparatedOn_of_resonanceWindow_avoidan
         hresonance_eq
         hres_sep
   exact le_trans hzero_sep (honly_zero n hn k)
+
+/-- A subblock avoiding the resonant window supplies separated increments when
+principal-interval control makes the zero lattice center the closest center. -/
+theorem Complex.realPhase_integerIncrementSeparatedOn_of_resonanceWindow_avoidance_principal
+    (φ : ℝ → ℝ)
+    {a b c d : ℕ}
+    {resonance lam : ℝ}
+    (S : Finset ℕ)
+    (hresonance_eq :
+      resonance = 2 * Real.pi * (0 : ℝ))
+    (hS :
+      ∀ m : ℕ,
+        m ∈ S ↔
+          m ∈ Finset.Ico a b ∧
+            ‖Complex.realPhase_integerIncrement φ m - resonance‖ < lam)
+    (hsub : Finset.Ico c d ⊆ Finset.Ico a b)
+    (havoid : ∀ n : ℕ, n ∈ Finset.Ico c d → n ∉ S)
+    (hprincipal :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico c d →
+          Complex.realPhase_integerIncrement φ n ∈
+            Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi))) :
+    Complex.realPhase_integerIncrementSeparatedOn φ c d lam := by
+  exact
+    Complex.realPhase_integerIncrementSeparatedOn_of_resonanceWindow_avoidance
+      φ S hresonance_eq hS hsub havoid
+      (fun n hn k =>
+        Complex.realPhase_integerIncrement_zero_lattice_closest_of_mem_principal
+          φ (hprincipal n hn) k)
 
 end
 

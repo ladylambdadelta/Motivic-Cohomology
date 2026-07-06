@@ -193,6 +193,46 @@ theorem Real.principalAngle_zero_twoPi_distance_le_intDistance
           (le_trans hθ_abs_le_pi
             (Real.principalAngle_negInt_twoPi_distance_ge_pi hθ q))
 
+/-- The periodic principal interval `(-π, -π + 2π]` has the same zero-lattice
+closest-point property as `(-π, π]`. -/
+theorem Real.periodicPrincipalAngle_zero_twoPi_distance_le_intDistance
+    {θ : ℝ}
+    (hθ : θ ∈ Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+    (k : ℤ) :
+    ‖θ - (2 * Real.pi * (0 : ℝ))‖ ≤
+      ‖θ - (2 * Real.pi * (k : ℝ))‖ := by
+  have hupper : -Real.pi + (2 * Real.pi) = Real.pi := by
+    calc
+      -Real.pi + (2 * Real.pi) = -Real.pi + (Real.pi + Real.pi) :=
+        congrArg (fun r : ℝ => -Real.pi + r) (two_mul Real.pi)
+      _ = (-Real.pi + Real.pi) + Real.pi :=
+        (add_assoc (-Real.pi) Real.pi Real.pi).symm
+      _ = 0 + Real.pi :=
+        congrArg (fun r : ℝ => r + Real.pi) (neg_add_cancel Real.pi)
+      _ = Real.pi :=
+        zero_add Real.pi
+  have hθ_pi : θ ∈ Set.Ioc (-Real.pi) Real.pi :=
+    And.intro hθ.1
+      (Eq.subst
+        (motive := fun r : ℝ => θ ≤ r)
+        hupper
+        hθ.2)
+  exact
+    Real.principalAngle_zero_twoPi_distance_le_intDistance hθ_pi k
+
+/-- Principal-interval control of a raw increment makes the zero `2πℤ`
+lattice point closest to that increment. -/
+theorem Complex.realPhase_integerIncrement_zero_lattice_closest_of_mem_principal
+    (φ : ℝ → ℝ)
+    {n : ℕ}
+    (hprincipal :
+      Complex.realPhase_integerIncrement φ n ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+    (k : ℤ) :
+    ‖Complex.realPhase_integerIncrement φ n - (2 * Real.pi * (0 : ℝ))‖ ≤
+      ‖Complex.realPhase_integerIncrement φ n - (2 * Real.pi * (k : ℝ))‖ :=
+  Real.periodicPrincipalAngle_zero_twoPi_distance_le_intDistance hprincipal k
+
 /-- If a raw adjacent increment already lies in the principal `toIocMod`
 interval, then reduction does not change it. -/
 theorem Complex.realPhase_reducedIntegerIncrement_eq_raw_of_mem_principal

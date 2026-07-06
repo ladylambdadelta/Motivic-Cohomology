@@ -159,7 +159,9 @@ This is the remaining analytic tail-remainder estimate after support reduction a
 finite-window remainder naming. -/
 theorem finitePrimeContourTransportTomographicErrorRemainderMajorant_tendsto_zero_core
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ =>
         finitePrimeContourTransportTomographicErrorRemainderMajorant N f)
@@ -173,6 +175,8 @@ theorem finitePrimeContourTransportTomographicErrorRemainderMajorant_tendsto_zer
     finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_norm_tendsto_zero_ownerTailEstimate
       S
       f
+      hPhi
+      hLog
   have hfun :
       (fun N : ℕ =>
           finitePrimeContourTransportTomographicErrorRemainderMajorant N f) =
@@ -200,13 +204,17 @@ This is the remaining analytic tail-remainder estimate after support reduction a
 finite-window remainder naming. -/
 theorem finitePrimeContourTransportTomographicErrorRemainderMajorant_tendsto_zero
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ =>
         finitePrimeContourTransportTomographicErrorRemainderMajorant N f)
       atTop
       (𝓝 0) := by
-  exact finitePrimeContourTransportTomographicErrorRemainderMajorant_tendsto_zero_core S f
+  exact
+    finitePrimeContourTransportTomographicErrorRemainderMajorant_tendsto_zero_core
+      S f hPhi hLog
 
 /-- Norm convergence of the finite tomographic residual remainder.
 
@@ -214,7 +222,9 @@ This is the remaining analytic tail estimate after support reduction and the poi
 remainder bound: the finite tomographic residual has norm tending to zero. -/
 theorem finitePrimeContourTransportTomographicError_norm_tendsto_zero_ownerContourTailEstimate
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ => ‖finitePrimeContourTransportTomographicError N f‖)
       atTop
@@ -225,7 +235,8 @@ theorem finitePrimeContourTransportTomographicError_norm_tendsto_zero_ownerConto
           finitePrimeContourTransportTomographicErrorRemainderMajorant N f)
         atTop
         (𝓝 0) :=
-    finitePrimeContourTransportTomographicErrorRemainderMajorant_tendsto_zero S f
+    finitePrimeContourTransportTomographicErrorRemainderMajorant_tendsto_zero
+      S f hPhi hLog
   have hfun :
       (fun N : ℕ => ‖finitePrimeContourTransportTomographicError N f‖) =
         (fun N : ℕ =>
@@ -243,7 +254,9 @@ theorem finitePrimeContourTransportTomographicError_norm_tendsto_zero_ownerConto
 This is a wrapper over the norm-remainder tail estimate. -/
 theorem finitePrimeContourTransportTomographicError_tendsto_zero_ownerContourTailEstimate
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ => finitePrimeContourTransportTomographicError N f)
       atTop
@@ -256,6 +269,8 @@ theorem finitePrimeContourTransportTomographicError_tendsto_zero_ownerContourTai
     finitePrimeContourTransportTomographicError_norm_tendsto_zero_ownerContourTailEstimate
       S
       f
+      hPhi
+      hLog
   have hbound :
       ∀ᶠ N in atTop,
         ‖finitePrimeContourTransportTomographicError N f‖ ≤
@@ -268,7 +283,9 @@ theorem finitePrimeContourTransportTomographicError_tendsto_zero_ownerContourTai
 This is the boxed-remainder wrapper over the finite tomographic residual estimate. -/
 theorem finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_tendsto_zero
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ => finitePrimeHorizontalResidueCoordinateShadowBoxRemainder N f)
       atTop
@@ -281,6 +298,8 @@ theorem finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_tendsto_zero
     finitePrimeContourTransportTomographicError_tendsto_zero_ownerContourTailEstimate
       S
       f
+      hPhi
+      hLog
   have hfun :
       (fun N : ℕ => finitePrimeHorizontalResidueCoordinateShadowBoxRemainder N f) =
         (fun N : ℕ => finitePrimeContourTransportTomographicError N f) := by
@@ -298,7 +317,9 @@ This is only the unfolded expression form of
 `finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_tendsto_zero`. -/
 theorem finitePrimeHorizontalResidueCoordinateShadow_boxRemainder_tendsto_zero
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ =>
         (∑ ι in ZetaPrimePowerIndex.box N,
@@ -311,7 +332,8 @@ theorem finitePrimeHorizontalResidueCoordinateShadow_boxRemainder_tendsto_zero
         (fun N : ℕ => finitePrimeHorizontalResidueCoordinateShadowBoxRemainder N f)
         atTop
         (𝓝 0) :=
-    finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_tendsto_zero S f
+    finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_tendsto_zero
+      S f hPhi hLog
   have hfun :
       (fun N : ℕ =>
         (∑ ι in ZetaPrimePowerIndex.box N,
@@ -332,7 +354,9 @@ coordinate-remainder tail is a residual finite-window error tending to zero.  Th
 tail-localization theorem below is only a named wrapper over this estimate. -/
 theorem completedPrimeContourTransportCoordinateRemainderTail_remainderEstimate_tendsto_zero
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
       atTop
@@ -342,7 +366,8 @@ theorem completedPrimeContourTransportCoordinateRemainderTail_remainderEstimate_
         (fun N : ℕ => finitePrimeHorizontalResidueCoordinateShadowBoxRemainder N f)
         atTop
         (𝓝 0) :=
-    finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_tendsto_zero S f
+    finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_tendsto_zero
+      S f hPhi hLog
   have hfun :
       (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f) =
         (fun N : ℕ => finitePrimeHorizontalResidueCoordinateShadowBoxRemainder N f) := by
@@ -362,7 +387,9 @@ window-minus-shadow statement below is only this theorem transported through the
 of `completedPrimeContourTransportCoordinateRemainderTail`. -/
 theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_ownerContourTailLocalization
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
       atTop
@@ -371,6 +398,8 @@ theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_owner
     completedPrimeContourTransportCoordinateRemainderTail_remainderEstimate_tendsto_zero
       S
       f
+      hPhi
+      hLog
 
 /-- The prime coordinate-remainder tail vanishes after finite-window renormalization.
 
@@ -380,7 +409,9 @@ shows that the finite coordinate-shadow window and the horizontal residue shadow
 a term tending to zero. -/
 theorem finitePrimeHorizontalResidueCoordinateShadow_window_sub_residueShadow_tendsto_zero
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ =>
         (∑ ι in ZetaPrimePowerIndex.window N,
@@ -396,6 +427,8 @@ theorem finitePrimeHorizontalResidueCoordinateShadow_window_sub_residueShadow_te
     completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_ownerContourTailLocalization
       S
       f
+      hPhi
+      hLog
   have hfun :
       (fun N : ℕ =>
         (∑ ι in ZetaPrimePowerIndex.window N,
@@ -412,7 +445,9 @@ theorem finitePrimeHorizontalResidueCoordinateShadow_window_sub_residueShadow_te
 /-- The prime coordinate-remainder tail vanishes after finite-window renormalization. -/
 theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
       atTop
@@ -421,6 +456,8 @@ theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero
     completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_ownerContourTailLocalization
       S
       f
+      hPhi
+      hLog
 
 /-- Completed prime contour normalization-to-heart transport.
 
@@ -428,7 +465,9 @@ The scheduled finite-window contour normalization lands in the two-face/GNS orde
 scalar, and the omitted prime tail vanishes in the same reconstructed channel. -/
 theorem completedPrimeContourNormalizationToHeart_transport
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     completedPrimeContourRealizedFiniteWindowPairing f =
         completedPrimeContourGNSHeartScalar f ∧
       Tendsto
@@ -437,19 +476,24 @@ theorem completedPrimeContourNormalizationToHeart_transport
         (𝓝 0) := by
   exact
     ⟨completedPrimeContourRealizedFiniteWindowPairing_eq_GNSHeartScalar S f,
-      completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero S f⟩
+      completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero
+        S f hPhi hLog⟩
 
 /-- Prime tail convergence after finite-window contour normalization.
 
 This is the renormalization/tail link in the normalization-to-heart chain. -/
 theorem completedPrimeContourPrimeTailRenormalization_tendsto_zero
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
       atTop
       (𝓝 0) := by
-  exact completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero S f
+  exact
+    completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero
+      S f hPhi hLog
 
 /-- Completed finite-window contour normalization lands in the GNS/ordered-heart scalar.
 
@@ -472,7 +516,9 @@ the GNS/ordered-heart scalar, and that the omitted prime tail vanishes after the
 finite-window transport. -/
 theorem completedPrimeFiniteWindowGNSContourReconstruction_twoFaceComparison_and_tailConvergence
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     completedPrimeContourRealizedFiniteWindowPairing f =
         completedPrimeContourGNSHeartScalar f ∧
       Tendsto
@@ -481,7 +527,8 @@ theorem completedPrimeFiniteWindowGNSContourReconstruction_twoFaceComparison_and
         (𝓝 0) := by
   exact
     ⟨completedPrimeFiniteWindowContourNormalization_eq_GNSHeartScalar S f,
-      completedPrimeContourPrimeTailRenormalization_tendsto_zero S f⟩
+      completedPrimeContourPrimeTailRenormalization_tendsto_zero
+        S f hPhi hLog⟩
 
 /-- Completed prime finite-window/GNS contour realization at the two-face coefficient.
 
@@ -490,7 +537,9 @@ is the real two-face/GNS coefficient, and the omitted prime tail vanishes after
 finite-window transport. -/
 theorem completedPrimeFiniteWindowGNSContourRealization_gnsCoordinateComparison_and_primeTail
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     completedPrimeContourRealizedFiniteWindowPairing f =
         completedPrimeContourGNSHeartScalar f ∧
       Tendsto
@@ -501,6 +550,8 @@ theorem completedPrimeFiniteWindowGNSContourRealization_gnsCoordinateComparison_
     completedPrimeFiniteWindowGNSContourReconstruction_twoFaceComparison_and_tailConvergence
       S
       f
+      hPhi
+      hLog
 
 /-- Completed prime finite-window/GNS coordinate comparison with the two-face coefficient. -/
 theorem completedPrimeFiniteWindowGNSContourRealization_gnsCoordinateComparison
@@ -513,12 +564,16 @@ theorem completedPrimeFiniteWindowGNSContourRealization_gnsCoordinateComparison
 /-- The omitted prime tail vanishes after finite-window/GNS contour transport. -/
 theorem completedPrimeFiniteWindowGNSContourRealization_primeTail_tendsto_after_finiteWindowTransport
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
       (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
       atTop
       (𝓝 0) := by
-  exact completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero S f
+  exact
+    completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero
+      S f hPhi hLog
 
 /-- Completed prime finite-window/GNS contour realization, in construction form.
 
@@ -527,7 +582,9 @@ and the omitted coordinate-remainder tails vanish in the same completed realizat
 is the single construction theorem for the prime finite-window/GNS-to-raw-contour bridge. -/
 theorem completedPrimeFiniteWindowGNSContourRealization_identifies_rawSpectral_and_tail_tendsto
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     completedPrimeContourRealizedFiniteWindowPairing f =
         completedPrimeContourRealizedTimeDistributionPairing
           (convolutionAutocorrelation f) ∧
@@ -552,6 +609,8 @@ theorem completedPrimeFiniteWindowGNSContourRealization_identifies_rawSpectral_a
     completedPrimeFiniteWindowGNSContourRealization_primeTail_tendsto_after_finiteWindowTransport
       S
       f
+      hPhi
+      hLog
   exact ⟨hgns.trans hraw.symm, htail⟩
 
 /-- Completed prime finite-window/GNS contour realization.
@@ -563,7 +622,9 @@ under the historical horizontal-decay owner name consumed by the finite-window t
 layer. -/
 theorem completedPrimeContourFiniteWindowGNSRealization_ownerHorizontalDecay
     (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     completedPrimeContourRealizedFiniteWindowPairing f =
         completedPrimeContourRealizedTimeDistributionPairing
           (convolutionAutocorrelation f) ∧
@@ -575,6 +636,8 @@ theorem completedPrimeContourFiniteWindowGNSRealization_ownerHorizontalDecay
     completedPrimeFiniteWindowGNSContourRealization_identifies_rawSpectral_and_tail_tendsto
       S
       f
+      hPhi
+      hLog
 
 
 end ZetaAdmissibleFunction
