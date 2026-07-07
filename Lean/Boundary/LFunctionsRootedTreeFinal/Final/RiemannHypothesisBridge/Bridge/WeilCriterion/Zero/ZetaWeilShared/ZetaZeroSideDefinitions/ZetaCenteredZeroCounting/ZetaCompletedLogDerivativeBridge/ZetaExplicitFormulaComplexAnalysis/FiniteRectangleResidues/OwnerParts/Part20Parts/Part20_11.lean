@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part20Parts.Part20_10
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part20Parts.Part20_14
 
 /-!
 # Explicit-formula finite rectangle residues
@@ -22,6 +22,254 @@ namespace ZetaAdmissibleFunction
 ## Part20 11: VerticalRejectedAndSelectedScan
 -/
 
+/-- The proof-carrying regular adjacent endpoint-pair cell determined by a horizontal
+adjacent pair, a vertical adjacent pair, and the coordinate-omission proof. -/
+def explicitFormulaRectangleRegularAdjacentEndpointPairCellOfOmission
+    {F : ExplicitFormulaContourFamily} {T ρ : ℝ}
+    (xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ)
+    (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ)
+    (homit : explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair) :
+    ExplicitFormulaRectangleRegularAdjacentEndpointPairCell F T ρ :=
+  { xpair := xpair
+    ypair := ypair
+    homit := homit }
+
+instance explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission_decidable_part20_11
+    {F : ExplicitFormulaContourFamily} {T ρ : ℝ}
+    (xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ)
+    (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ) :
+    Decidable (explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair) := by
+  let S : Finset ℂ := explicitFormulaRectangleRawSingularCoordinates T
+  let P : ℂ → Prop :=
+    fun a : ℂ =>
+      ¬
+        (explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a ∧
+          explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a)
+  have hdep :
+      Decidable (∀ a : ℂ, ∀ h : a ∈ S, P a) :=
+    @Finset.decidableDforallFinset ℂ S
+      (fun a _ha => P a)
+      (fun a _ha => inferInstance)
+  letI : Decidable (∀ a : ℂ, ∀ h : a ∈ S, P a) := hdep
+  show Decidable (∀ a : ℂ, a ∈ S → P a)
+  exact
+    decidable_of_iff
+      (∀ a : ℂ, ∀ h : a ∈ S, P a)
+      (Iff.intro
+        (fun h a ha => h a ha)
+        (fun h a ha => h a ha))
+
+/-- A crossed adjacent-pair subspan lies in the named raw closed square at its
+lower-left grid corner. -/
+theorem explicitFormulaRectangleRawHoleSubspans_lowerLeft_mem_closedCell
+    {F : ExplicitFormulaContourFamily} {T ρ : ℝ}
+    {xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ}
+    {ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ}
+    {a : ℂ}
+    (hx : explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a)
+    (hy : explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a) :
+    ({ re := xpair.x₀, im := ypair.y₀ } : ℂ) ∈
+      explicitFormulaRectangleRawInscribedSquareClosedCell ρ a := by
+  have hxmem :
+      ({ re := xpair.x₀, im := ypair.y₀ } : ℂ).re ∈
+        Set.uIcc
+          (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re := by
+    exact Set.mem_uIcc.mpr
+      (Or.inl
+        (And.intro hx.1
+          (le_trans (le_of_lt xpair.hx_order) hx.2)))
+  have hymem :
+      ({ re := xpair.x₀, im := ypair.y₀ } : ℂ).im ∈
+        Set.uIcc
+          (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im := by
+    exact Set.mem_uIcc.mpr
+      (Or.inl
+        (And.intro hy.1
+          (le_trans (le_of_lt ypair.hy_order) hy.2)))
+  exact And.intro hxmem hymem
+
+/-- A crossed adjacent-pair subspan can belong to at most one raw square under the
+strict closed-radius separation controls. -/
+theorem explicitFormulaRectangleRawHoleSubspans_not_ne_of_pairwiseSeparated
+    {F : ExplicitFormulaContourFamily} {T ρ : ℝ} (hρ : 0 < ρ)
+    (hsep :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          ∀ b : ℂ,
+            b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              a ≠ b → ρ + ρ < dist a b)
+    {xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ}
+    {ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ}
+    {a b : ℂ}
+    (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
+    (hb : b ∈ explicitFormulaRectangleRawSingularCoordinates T)
+    (hxa : explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a)
+    (hya : explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a)
+    (hxb : explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair b)
+    (hyb : explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair b) :
+    a ≠ b → False := by
+  intro hab
+  let z : ℂ := { re := xpair.x₀, im := ypair.y₀ }
+  have hz_a :
+      z ∈ explicitFormulaRectangleRawInscribedSquareClosedCell ρ a :=
+    explicitFormulaRectangleRawHoleSubspans_lowerLeft_mem_closedCell hxa hya
+  have hz_b :
+      z ∈ explicitFormulaRectangleRawInscribedSquareClosedCell ρ b :=
+    explicitFormulaRectangleRawHoleSubspans_lowerLeft_mem_closedCell hxb hyb
+  have hballs :
+      ∀ c : ℂ,
+        c ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          ∀ d : ℂ,
+            d ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              c ≠ d →
+                Disjoint (Metric.closedBall c ρ) (Metric.closedBall d ρ) := by
+    intro c hc d hd hcd
+    exact Metric.closedBall_disjoint_closedBall (hsep c hc d hd hcd)
+  have hdisj :
+      Disjoint
+        (explicitFormulaRectangleRawInscribedSquareClosedCell ρ a)
+        (explicitFormulaRectangleRawInscribedSquareClosedCell ρ b) :=
+    explicitFormulaRectangleRawInscribedSquareClosedCell_pairwiseDisjoint_of_closedRadiusControls
+      T ρ (le_of_lt hρ) hballs a ha b hb hab
+  exact (Set.disjoint_left.mp hdisj) hz_a hz_b
+
+/-- A rejected endpoint-data cell is counted by exactly the raw square containing its
+crossed horizontal and vertical adjacent spans. -/
+theorem explicitFormulaRectangleRejectedRawHoleOmission_eq_rawHoleSubspanFinsetSum
+    {F : ExplicitFormulaContourFamily} {T ρ : ℝ} (hρ : 0 < ρ)
+    (hsep :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          ∀ b : ℂ,
+            b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              a ≠ b → ρ + ρ < dist a b)
+    (xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ)
+    (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ)
+    (g : ℂ)
+    [Decidable (explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair)]
+    [DecidablePred
+      (fun a : ℂ =>
+        explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a ∧
+          explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a)] :
+    (if _homit :
+        explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+      0
+    else
+      g) =
+      ∑ a in explicitFormulaRectangleRawSingularCoordinates T,
+        if _hspan :
+            explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a ∧
+              explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a then
+          g
+        else
+          0 := by
+  let S : Finset ℂ := explicitFormulaRectangleRawSingularCoordinates T
+  let Q : ℂ → Prop :=
+    fun a =>
+      explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a ∧
+        explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a
+  match inferInstanceAs
+      (Decidable (explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair)) with
+  | isTrue homit =>
+      have hzero :
+          (∑ a in S, if _hspan : Q a then g else 0) = 0 := by
+        exact Finset.sum_eq_zero
+          (fun a ha =>
+            match inferInstanceAs (Decidable (Q a)) with
+            | isTrue hspan =>
+                False.elim (homit a ha hspan)
+            | isFalse hspan =>
+                if_neg hspan)
+      calc
+        (if _homit :
+            explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+          0
+        else
+          g) = 0 := by
+          exact if_pos homit
+        _ = ∑ a in S, if _hspan : Q a then g else 0 := by
+          exact hzero.symm
+  | isFalse homit =>
+      have hnot_forall : ¬ ∀ a : ℂ, a ∈ S → ¬ Q a := homit
+      have hfilter_ne :
+          (S.filter Q) ≠ ∅ := by
+        intro hfilter_empty
+        have hforall : ∀ a : ℂ, a ∈ S → ¬ Q a := by
+          intro a ha hqa
+          have hafilter : a ∈ S.filter Q :=
+            Finset.mem_filter.mpr (And.intro ha hqa)
+          have haempty : a ∈ (∅ : Finset ℂ) := by
+            exact Eq.mp (congrArg (fun U : Finset ℂ => a ∈ U) hfilter_empty) hafilter
+          exact Finset.not_mem_empty a haempty
+        exact hnot_forall hforall
+      have hfilter_nonempty : (S.filter Q).Nonempty :=
+        Finset.nonempty_iff_ne_empty.mpr hfilter_ne
+      obtain ⟨a, hafilter⟩ := hfilter_nonempty.exists_mem
+      have ha : a ∈ S := (Finset.mem_filter.mp hafilter).1
+      have hqa : Q a := (Finset.mem_filter.mp hafilter).2
+      have hsum :
+          (∑ b in S, if _hspan : Q b then g else 0) = g := by
+        exact Eq.trans
+          (Finset.sum_eq_single a
+            (fun b hb hba =>
+              match inferInstanceAs (Decidable (Q b)) with
+              | isTrue hqb =>
+                  have hnot_ne : b ≠ a → False :=
+                    fun hne =>
+                      explicitFormulaRectangleRawHoleSubspans_not_ne_of_pairwiseSeparated
+                        hρ hsep hb ha hqb.1 hqb.2 hqa.1 hqa.2 hne
+                  False.elim (hnot_ne hba)
+              | isFalse hqb =>
+                  if_neg hqb)
+            (fun ha_not_mem =>
+              False.elim (ha_not_mem ha)))
+          (if_pos hqa)
+      calc
+        (if _homit :
+            explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+          0
+        else
+          g) = g := by
+          exact if_neg homit
+        _ = ∑ a in S, if _hspan : Q a then g else 0 := by
+          exact hsum.symm
+
+/-- A rejected endpoint-data cell's paired contribution is counted by the unique raw
+square containing its crossed spans. -/
+theorem explicitFormulaRectangleRejectedRawHoleOmission_pairContribution_eq_rawHoleSubspanFinsetSum
+    {F : ExplicitFormulaContourFamily} {T ρ : ℝ} (hρ : 0 < ρ)
+    (hsep :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          ∀ b : ℂ,
+            b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              a ≠ b → ρ + ρ < dist a b)
+    (xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ)
+    (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ)
+    (lower upper : ℂ)
+    [Decidable (explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair)]
+    [DecidablePred
+      (fun a : ℂ =>
+        explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a ∧
+          explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a)] :
+    (if _homit :
+        explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+      0
+    else
+      lower - upper) =
+      ∑ a in explicitFormulaRectangleRawSingularCoordinates T,
+        if _hspan :
+            explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a ∧
+              explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a then
+          lower - upper
+        else
+          0 := by
+  exact
+    explicitFormulaRectangleRejectedRawHoleOmission_eq_rawHoleSubspanFinsetSum
+      hρ hsep xpair ypair (lower - upper)
+
 theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_eq_rightScan_sub_leftScan
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     {T ρ : ℝ}
@@ -35,20 +283,8 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_e
           if homit :
               explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
             explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
-              ({ x₀ := xpair.x₀
-                x₁ := xpair.x₁
-                y₀ := ypair.y₀
-                y₁ := ypair.y₁
-                hx₀ := xpair.hx₀
-                hx₁ := xpair.hx₁
-                hy₀ := ypair.hy₀
-                hy₁ := ypair.hy₁
-                hx_order := xpair.hx_order
-                hy_order := ypair.hy_order
-                hx_adj := xpair.hx_adj
-                hy_adj := ypair.hy_adj
-                homit := homit } :
-                  ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
+              (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                xpair ypair homit)
           else
             0)
         (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ) -
@@ -57,20 +293,8 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_e
           if homit :
               explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
             explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
-              ({ x₀ := xpair.x₀
-                x₁ := xpair.x₁
-                y₀ := ypair.y₀
-                y₁ := ypair.y₁
-                hx₀ := xpair.hx₀
-                hx₁ := xpair.hx₁
-                hy₀ := ypair.hy₀
-                hy₁ := ypair.hy₁
-                hx_order := xpair.hx_order
-                hy_order := ypair.hy_order
-                hx_adj := xpair.hx_adj
-                hy_adj := ypair.hy_adj
-                homit := homit } :
-                  ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
+              (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                xpair ypair homit)
           else
             0)
         (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ) := by
@@ -81,20 +305,8 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_e
       if homit :
           explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
         explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
-          ({ x₀ := xpair.x₀
-            x₁ := xpair.x₁
-            y₀ := ypair.y₀
-            y₁ := ypair.y₁
-            hx₀ := xpair.hx₀
-            hx₁ := xpair.hx₁
-            hy₀ := ypair.hy₀
-            hy₁ := ypair.hy₁
-            hx_order := xpair.hx_order
-            hy_order := ypair.hy_order
-            hx_adj := xpair.hx_adj
-            hy_adj := ypair.hy_adj
-            homit := homit } :
-              ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
+          (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+            xpair ypair homit)
       else
         0
   let leftScan : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ → ℂ :=
@@ -102,20 +314,8 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_e
       if homit :
           explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
         explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
-          ({ x₀ := xpair.x₀
-            x₁ := xpair.x₁
-            y₀ := ypair.y₀
-            y₁ := ypair.y₁
-            hx₀ := xpair.hx₀
-            hx₁ := xpair.hx₁
-            hy₀ := ypair.hy₀
-            hy₁ := ypair.hy₁
-            hx_order := xpair.hx_order
-            hy_order := ypair.hy_order
-            hx_adj := xpair.hx_adj
-            hy_adj := ypair.hy_adj
-            homit := homit } :
-              ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
+          (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+            xpair ypair homit)
       else
         0
   have hcolumn :
@@ -133,10 +333,122 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_e
             f xpair ypair =
           rightScan xpair - leftScan xpair := by
     intro xpair
-    by_cases homit :
-        explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair
-    · rfl
-    · exact (sub_zero (0 : ℂ)).symm
+    match inferInstanceAs
+        (Decidable
+          (explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair)) with
+    | isTrue homit =>
+        have hright :
+            explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
+                (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                  xpair ypair homit) =
+              (if homit' :
+                  explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
+                explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
+                  (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                    xpair ypair homit')
+              else
+                0) :=
+          by
+            have hdif :
+                (if homit' :
+                    explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
+                  explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
+                    (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                      xpair ypair homit')
+                else
+                  0) =
+                  explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
+                    (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                      xpair ypair homit) := by
+              exact dif_pos homit
+            exact hdif.symm
+        have hleft :
+            explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
+                (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                  xpair ypair homit) =
+              (if homit' :
+                  explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
+                explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
+                  (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                    xpair ypair homit')
+              else
+                0) :=
+          by
+            have hdif :
+                (if homit' :
+                    explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
+                  explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
+                    (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                      xpair ypair homit')
+                else
+                  0) =
+                  explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
+                    (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                      xpair ypair homit) := by
+              exact dif_pos homit
+            exact hdif.symm
+        calc
+          explicitFormulaRectangleSelectedEndpointDataVerticalCellContribution
+              f xpair ypair =
+              explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
+                (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                  xpair ypair homit) -
+                explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
+                  (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                    xpair ypair homit) := by
+            exact dif_pos homit
+          _ = rightScan xpair - leftScan xpair := by
+            exact congrArg₂ HSub.hSub hright hleft
+    | isFalse homit =>
+        have hright :
+            0 =
+              (if homit' :
+                  explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
+                explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
+                  (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                    xpair ypair homit')
+              else
+                0) :=
+          by
+            have hdif :
+                (if homit' :
+                    explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
+                  explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
+                    (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                      xpair ypair homit')
+                else
+                  0) =
+                  0 := by
+              exact dif_neg homit
+            exact hdif.symm
+        have hleft :
+            0 =
+              (if homit' :
+                  explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
+                explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
+                  (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                    xpair ypair homit')
+              else
+                0) :=
+          by
+            have hdif :
+                (if homit' :
+                    explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
+                  explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
+                    (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+                      xpair ypair homit')
+                else
+                  0) =
+                  0 := by
+              exact dif_neg homit
+            exact hdif.symm
+        calc
+          explicitFormulaRectangleSelectedEndpointDataVerticalCellContribution
+              f xpair ypair = 0 := by
+            exact dif_neg homit
+          _ = rightScan xpair - leftScan xpair := by
+            exact Eq.trans (sub_zero (0 : ℂ)).symm
+              (congrArg₂ HSub.hSub hright hleft)
   have hreplace :
       explicitFormulaRectangleListSum
           (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
@@ -197,20 +509,8 @@ theorem explicitFormulaRectangleSelectedVerticalEdgeCoordinatesOfFixedY_integral
         if homit :
             explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
           explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
-            ({ x₀ := xpair.x₀
-              x₁ := xpair.x₁
-              y₀ := ypair.y₀
-              y₁ := ypair.y₁
-              hx₀ := xpair.hx₀
-              hx₁ := xpair.hx₁
-              hy₀ := ypair.hy₀
-              hy₁ := ypair.hy₁
-              hx_order := xpair.hx_order
-              hy_order := ypair.hy_order
-              hx_adj := xpair.hx_adj
-              hy_adj := ypair.hy_adj
-              homit := homit } :
-                ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
+            (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+              xpair ypair homit)
         else
           0)
       xpairs
@@ -220,20 +520,8 @@ theorem explicitFormulaRectangleSelectedVerticalEdgeCoordinatesOfFixedY_integral
         if homit :
             explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
           explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
-            ({ x₀ := xpair.x₀
-              x₁ := xpair.x₁
-              y₀ := ypair.y₀
-              y₁ := ypair.y₁
-              hx₀ := xpair.hx₀
-              hx₁ := xpair.hx₁
-              hy₀ := ypair.hy₀
-              hy₁ := ypair.hy₁
-              hx_order := xpair.hx_order
-              hy_order := ypair.hy_order
-              hx_adj := xpair.hx_adj
-              hy_adj := ypair.hy_adj
-              homit := homit } :
-                ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
+            (explicitFormulaRectangleSelectedFixedYAdjacentEndpointData
+              xpair ypair homit)
         else
           0)
       xpairs
@@ -292,7 +580,7 @@ theorem explicitFormulaRectangleRejectedEndpointDataVerticalColumnScanSub_eq_hol
     explicitFormulaRectangleListSum
         (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
           if _homit :
-              explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
+              explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
             0
           else
             explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
@@ -337,7 +625,7 @@ theorem explicitFormulaRectangleRejectedEndpointDataVerticalColumnScanSub_eq_hol
       explicitFormulaRectangleListSum
           (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
             if _homit :
-                explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
+                explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
               0
             else
               contribution xpair)
@@ -351,12 +639,12 @@ theorem explicitFormulaRectangleRejectedEndpointDataVerticalColumnScanSub_eq_hol
         explicitFormulaRectangleListSum g xpairs)
       (funext
         (fun xpair =>
-          explicitFormulaRectangleRejectedCoordinateOmission_pairContribution_eq_rawHoleSubspanFinsetSum
+          explicitFormulaRectangleRejectedRawHoleOmission_pairContribution_eq_rawHoleSubspanFinsetSum
             hρ hsep xpair ypair
             (explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
               f ((ypair.y₀, ypair.y₁), xpair.x₁))
             (explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
-              f ((ypair.y₀, ypair.y₁), xpair.x₀)))
+              f ((ypair.y₀, ypair.y₁), xpair.x₀))))
   have hcommute :
       explicitFormulaRectangleListSum
           (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
@@ -389,12 +677,13 @@ theorem explicitFormulaRectangleRejectedEndpointDataVerticalColumnScanSub_eq_hol
                   (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re)
           else
             0 := by
-    exact Finset.sum_congr rfl
-      (fun a ha =>
-        by
-          by_cases hy :
-              explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a
-          · let xOnly : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ → ℂ :=
+    exact Finset.sum_congr (Eq.refl S)
+      (fun a ha => by
+          match inferInstanceAs
+              (Decidable
+                (explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a)) with
+          | isTrue hy =>
+            let xOnly : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ → ℂ :=
               fun xpair =>
                 if _hx :
                     explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a then
@@ -413,15 +702,18 @@ theorem explicitFormulaRectangleRejectedEndpointDataVerticalColumnScanSub_eq_hol
                 (funext
                   (fun xpair =>
                     by
-                      by_cases hx :
-                          explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole
-                            ρ xpair a
-                      · calc
+                      match inferInstanceAs
+                          (Decidable
+                            (explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole
+                              ρ xpair a)) with
+                      | isTrue hx =>
+                        calc
                           rawContribution a xpair = contribution xpair := by
                             exact if_pos (And.intro hx hy)
                           _ = xOnly xpair := by
                             exact (if_pos hx).symm
-                      · have hnot :
+                      | isFalse hx =>
+                        have hnot :
                             ¬
                               (explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole
                                   ρ xpair a ∧
@@ -470,7 +762,8 @@ theorem explicitFormulaRectangleRejectedEndpointDataVerticalColumnScanSub_eq_hol
                   else
                     0) := by
                 exact (if_pos hy).symm
-          · have hzero :
+          | isFalse hy =>
+            have hzero :
                 explicitFormulaRectangleListSum
                     (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
                       rawContribution a xpair)
@@ -571,10 +864,22 @@ theorem explicitFormulaRectangleRejectedEndpointDataVerticalColumnScanSub_eq_hol
               else
                 0) := by
       intro a
-      by_cases hy :
-          explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a
-      · rfl
-      · exact (sub_zero (0 : ℂ)).symm
+      match inferInstanceAs
+          (Decidable
+            (explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a)) with
+      | isTrue hy =>
+          exact
+            Eq.trans (if_pos hy)
+              (congrArg₂ HSub.hSub
+                (if_pos hy).symm
+                (if_pos hy).symm)
+      | isFalse hy =>
+          exact
+            Eq.trans (if_neg hy)
+              (Eq.trans (sub_zero (0 : ℂ)).symm
+                (congrArg₂ HSub.hSub
+                  (if_neg hy).symm
+                  (if_neg hy).symm))
     calc
       (∑ a in S,
           if _hspan :
@@ -602,7 +907,7 @@ theorem explicitFormulaRectangleRejectedEndpointDataVerticalColumnScanSub_eq_hol
                     (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re)
               else
                 0)) := by
-        exact Finset.sum_congr rfl (fun a _ha => hpoint a)
+        exact Finset.sum_congr (Eq.refl S) (fun a _ha => hpoint a)
       _ =
         (∑ a in S,
           if _hspan :
@@ -625,7 +930,7 @@ theorem explicitFormulaRectangleRejectedEndpointDataVerticalColumnScanSub_eq_hol
     explicitFormulaRectangleListSum
         (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
           if _homit :
-              explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
+              explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
             0
           else
             explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
@@ -696,45 +1001,19 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnScanSub_eq_out
     (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ) :
     (explicitFormulaRectangleListSum
         (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-          if homit :
-              explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
-            explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
-              ({ x₀ := xpair.x₀
-                x₁ := xpair.x₁
-                y₀ := ypair.y₀
-                y₁ := ypair.y₁
-                hx₀ := xpair.hx₀
-                hx₁ := xpair.hx₁
-                hy₀ := ypair.hy₀
-                hy₁ := ypair.hy₁
-                hx_order := xpair.hx_order
-                hy_order := ypair.hy_order
-                hx_adj := xpair.hx_adj
-                hy_adj := ypair.hy_adj
-                homit := homit } :
-                  ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
+          if _homit :
+              explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+            explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+              f ((ypair.y₀, ypair.y₁), xpair.x₁)
           else
             0)
         (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)) -
       (explicitFormulaRectangleListSum
         (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-          if homit :
-              explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
-            explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
-              ({ x₀ := xpair.x₀
-                x₁ := xpair.x₁
-                y₀ := ypair.y₀
-                y₁ := ypair.y₁
-                hx₀ := xpair.hx₀
-                hx₁ := xpair.hx₁
-                hy₀ := ypair.hy₀
-                hy₁ := ypair.hy₁
-                hx_order := xpair.hx_order
-                hy_order := ypair.hy_order
-                hx_adj := xpair.hx_adj
-                hy_adj := ypair.hy_adj
-                homit := homit } :
-                  ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
+          if _homit :
+              explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+            explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
+              f ((ypair.y₀, ypair.y₁), xpair.x₀)
           else
             0)
         (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)) =
@@ -761,7 +1040,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnScanSub_eq_out
   let xpairs : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ) :=
     explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ
   let P : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ → Prop :=
-    fun xpair => explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair
+    fun xpair => explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair
   let rightCoord : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ → ℂ :=
     fun xpair =>
       explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
@@ -773,125 +1052,23 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnScanSub_eq_out
   have hcell_right :
       explicitFormulaRectangleListSum
           (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-            if homit :
-                explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
-              explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
-                ({ x₀ := xpair.x₀
-                  x₁ := xpair.x₁
-                  y₀ := ypair.y₀
-                  y₁ := ypair.y₁
-                  hx₀ := xpair.hx₀
-                  hx₁ := xpair.hx₁
-                  hy₀ := ypair.hy₀
-                  hy₁ := ypair.hy₁
-                  hx_order := xpair.hx_order
-                  hy_order := ypair.hy_order
-                  hx_adj := xpair.hx_adj
-                  hy_adj := ypair.hy_adj
-                  homit := homit } :
-                    ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
-            else
-              0)
+            if _homit : P xpair then rightCoord xpair else 0)
           xpairs =
         explicitFormulaRectangleListSum
           (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
             if _homit : P xpair then rightCoord xpair else 0)
-          xpairs := by
-    calc
-      explicitFormulaRectangleListSum
-          (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-            if homit :
-                explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
-              explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
-                ({ x₀ := xpair.x₀
-                  x₁ := xpair.x₁
-                  y₀ := ypair.y₀
-                  y₁ := ypair.y₁
-                  hx₀ := xpair.hx₀
-                  hx₁ := xpair.hx₁
-                  hy₀ := ypair.hy₀
-                  hy₁ := ypair.hy₁
-                  hx_order := xpair.hx_order
-                  hy_order := ypair.hy_order
-                  hx_adj := xpair.hx_adj
-                  hy_adj := ypair.hy_adj
-                  homit := homit } :
-                    ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
-            else
-              0)
-          xpairs =
-          explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegralSum f
-            (explicitFormulaRectangleSelectedRightEdgeCoordinatesOfFixedY xpairs ypair) := by
-        exact explicitFormulaRectangleSelectedFixedY_rightScan_eq_coordinateIntegralSum
-          f xpairs ypair
-      _ =
-          explicitFormulaRectangleListSum
-            (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-              if _homit : P xpair then rightCoord xpair else 0)
-            xpairs := by
-        exact explicitFormulaRectangleSelectedRightEdgeCoordinatesOfFixedY_integralSum_eq_listSum
-          f ypair xpairs
+          xpairs :=
+    Eq.refl _
   have hcell_left :
       explicitFormulaRectangleListSum
           (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-            if homit :
-                explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
-              explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
-                ({ x₀ := xpair.x₀
-                  x₁ := xpair.x₁
-                  y₀ := ypair.y₀
-                  y₁ := ypair.y₁
-                  hx₀ := xpair.hx₀
-                  hx₁ := xpair.hx₁
-                  hy₀ := ypair.hy₀
-                  hy₁ := ypair.hy₁
-                  hx_order := xpair.hx_order
-                  hy_order := ypair.hy_order
-                  hx_adj := xpair.hx_adj
-                  hy_adj := ypair.hy_adj
-                  homit := homit } :
-                    ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
-            else
-              0)
+            if _homit : P xpair then leftCoord xpair else 0)
           xpairs =
         explicitFormulaRectangleListSum
           (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
             if _homit : P xpair then leftCoord xpair else 0)
-          xpairs := by
-    calc
-      explicitFormulaRectangleListSum
-          (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-            if homit :
-                explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
-              explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
-                ({ x₀ := xpair.x₀
-                  x₁ := xpair.x₁
-                  y₀ := ypair.y₀
-                  y₁ := ypair.y₁
-                  hx₀ := xpair.hx₀
-                  hx₁ := xpair.hx₁
-                  hy₀ := ypair.hy₀
-                  hy₁ := ypair.hy₁
-                  hx_order := xpair.hx_order
-                  hy_order := ypair.hy_order
-                  hx_adj := xpair.hx_adj
-                  hy_adj := ypair.hy_adj
-                  homit := homit } :
-                    ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
-            else
-              0)
-          xpairs =
-          explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegralSum f
-            (explicitFormulaRectangleSelectedLeftEdgeCoordinatesOfFixedY xpairs ypair) := by
-        exact explicitFormulaRectangleSelectedFixedY_leftScan_eq_coordinateIntegralSum
-          f xpairs ypair
-      _ =
-          explicitFormulaRectangleListSum
-            (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-              if _homit : P xpair then leftCoord xpair else 0)
-            xpairs := by
-        exact explicitFormulaRectangleSelectedLeftEdgeCoordinatesOfFixedY_integralSum_eq_listSum
-          f ypair xpairs
+          xpairs :=
+    Eq.refl _
   have hselected :
       explicitFormulaRectangleListSum
           (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
@@ -980,9 +1157,22 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnScanSub_eq_out
         exact funext
           (fun xpair =>
             by
-              by_cases homit : P xpair
-              · rfl
-              · rfl)
+            match inferInstanceAs (Decidable (P xpair)) with
+            | isTrue homit =>
+                calc
+                  rejectRight xpair - rejectLeft xpair = 0 - 0 := by
+                    exact congrArg₂ HSub.hSub (if_pos homit) (if_pos homit)
+                  _ = 0 := by
+                    exact sub_zero (0 : ℂ)
+                  _ = (if _homit : P xpair then 0 else rightCoord xpair - leftCoord xpair) := by
+                    exact (if_pos homit).symm
+            | isFalse homit =>
+                calc
+                  rejectRight xpair - rejectLeft xpair =
+                      rightCoord xpair - leftCoord xpair := by
+                    exact congrArg₂ HSub.hSub (if_neg homit) (if_neg homit)
+                  _ = (if _homit : P xpair then 0 else rightCoord xpair - leftCoord xpair) := by
+                    exact (if_neg homit).symm)
       exact Eq.trans hsub
         (congrArg
           (fun g : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ → ℂ =>
@@ -1024,45 +1214,15 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnScanSub_eq_out
   calc
     (explicitFormulaRectangleListSum
         (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-          if homit :
-              explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
-            explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
-              ({ x₀ := xpair.x₀
-                x₁ := xpair.x₁
-                y₀ := ypair.y₀
-                y₁ := ypair.y₁
-                hx₀ := xpair.hx₀
-                hx₁ := xpair.hx₁
-                hy₀ := ypair.hy₀
-                hy₁ := ypair.hy₁
-                hx_order := xpair.hx_order
-                hy_order := ypair.hy_order
-                hx_adj := xpair.hx_adj
-                hy_adj := ypair.hy_adj
-                homit := homit } :
-                  ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
+          if _homit : P xpair then
+            rightCoord xpair
           else
             0)
         xpairs) -
       (explicitFormulaRectangleListSum
         (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-          if homit :
-              explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
-            explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
-              ({ x₀ := xpair.x₀
-                x₁ := xpair.x₁
-                y₀ := ypair.y₀
-                y₁ := ypair.y₁
-                hx₀ := xpair.hx₀
-                hx₁ := xpair.hx₁
-                hy₀ := ypair.hy₀
-                hy₁ := ypair.hy₁
-                hx_order := xpair.hx_order
-                hy_order := ypair.hy_order
-                hx_adj := xpair.hx_adj
-                hy_adj := ypair.hy_adj
-                homit := homit } :
-                  ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
+          if _homit : P xpair then
+            leftCoord xpair
           else
             0)
         xpairs) =
@@ -1158,10 +1318,24 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_e
             b ∈ explicitFormulaRectangleRawSingularCoordinates T →
               a ≠ b → ρ + ρ < dist a b)
     (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ) :
-    explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution
-        f
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        ypair =
+    explicitFormulaRectangleListSum
+        (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
+          if _homit :
+              explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+            explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+              f ((ypair.y₀, ypair.y₁), xpair.x₁)
+          else
+            0)
+        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ) -
+      explicitFormulaRectangleListSum
+        (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
+          if _homit :
+              explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+            explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
+              f ((ypair.y₀, ypair.y₁), xpair.x₀)
+          else
+            0)
+        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ) =
       explicitFormulaRectangleVerticalOuterSliceContribution f F T ypair -
         explicitFormulaRectangleVerticalHoleSliceContribution f T ρ ypair := by
   let xpairs : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ) :=
@@ -1193,55 +1367,23 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_e
   let rightScan : ℂ :=
     explicitFormulaRectangleListSum
       (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-        if homit :
-            explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
-          explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f
-            ({ x₀ := xpair.x₀
-              x₁ := xpair.x₁
-              y₀ := ypair.y₀
-              y₁ := ypair.y₁
-              hx₀ := xpair.hx₀
-              hx₁ := xpair.hx₁
-              hy₀ := ypair.hy₀
-              hy₁ := ypair.hy₁
-              hx_order := xpair.hx_order
-              hy_order := ypair.hy_order
-              hx_adj := xpair.hx_adj
-              hy_adj := ypair.hy_adj
-              homit := homit } :
-                ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
+        if _homit :
+            explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+          explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+            f ((ypair.y₀, ypair.y₁), xpair.x₁)
         else
           0)
       xpairs
   let leftScan : ℂ :=
     explicitFormulaRectangleListSum
       (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-        if homit :
-            explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
-          explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f
-            ({ x₀ := xpair.x₀
-              x₁ := xpair.x₁
-              y₀ := ypair.y₀
-              y₁ := ypair.y₁
-              hx₀ := xpair.hx₀
-              hx₁ := xpair.hx₁
-              hy₀ := ypair.hy₀
-              hy₁ := ypair.hy₁
-              hx_order := xpair.hx_order
-              hy_order := ypair.hy_order
-              hx_adj := xpair.hx_adj
-              hy_adj := ypair.hy_adj
-              homit := homit } :
-                ExplicitFormulaRectangleRegularGridCellEndpointData F T ρ)
+        if _homit :
+            explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+          explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
+            f ((ypair.y₀, ypair.y₁), xpair.x₀)
         else
           0)
       xpairs
-  have hcolumn :
-      explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution
-          f xpairs ypair =
-        rightScan - leftScan :=
-    explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_eq_rightScan_sub_leftScan
-      f F ypair
   have hscan :
       rightScan - leftScan =
         (outerRight - outerLeft) - (holeRight - holeLeft) :=
@@ -1250,16 +1392,15 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_e
   have houter :
       explicitFormulaRectangleVerticalOuterSliceContribution f F T ypair =
         outerRight - outerLeft := by
-    rfl
+    exact Eq.refl _
   have hhole :
       explicitFormulaRectangleVerticalHoleSliceContribution f T ρ ypair =
         holeRight - holeLeft :=
     explicitFormulaRectangleVerticalHoleSliceContribution_eq_right_sub_left f T ρ ypair
   calc
-    explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution
-        f xpairs ypair =
+    rightScan - leftScan =
         rightScan - leftScan := by
-      exact hcolumn
+      exact Eq.refl _
     _ = (outerRight - outerLeft) - (holeRight - holeLeft) := by
       exact hscan
     _ =
@@ -1290,20 +1431,29 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_e
             b ∈ explicitFormulaRectangleRawSingularCoordinates T →
               a ≠ b → ρ + ρ < dist a b)
     (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ) :
-    explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution
-        f
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        ypair =
+    explicitFormulaRectangleListSum
+        (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
+          if _homit :
+              explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+            explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+              f ((ypair.y₀, ypair.y₁), xpair.x₁)
+          else
+            0)
+        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ) -
+      explicitFormulaRectangleListSum
+        (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
+          if _homit :
+              explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+            explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
+              f ((ypair.y₀, ypair.y₁), xpair.x₀)
+          else
+            0)
+        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ) =
       explicitFormulaRectangleVerticalOuterSliceContribution f F T ypair -
         explicitFormulaRectangleVerticalHoleSliceContribution f T ρ ypair := by
   exact
     explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_eq_outerSlice_sub_holeSlice_of_coordinateOmissionPartition
       f F hT_nonneg hρ hclosed hsep ypair
-
-/-- Coordinate-label version of the fixed-column vertical exposure statement.  The
-selected vertical labels in one horizontal slice telescope as a pair: selected right
-minus selected left equals the outer right-minus-left slice with the raw hole
-right-minus-left slices removed. -/
 
 end ZetaAdmissibleFunction
 
