@@ -71,7 +71,7 @@ theorem explicitFormulaRectangleOuterEndpointDataBox_lowerCorner
     explicitFormulaRectangleEndpointDataBoxLowerCorner
         (explicitFormulaRectangleOuterEndpointDataBox F T) =
       explicitFormulaRectangleOuterLowerCorner F T := by
-  rfl
+  exact Eq.refl _
 
 /-- The upper corner of the outer endpoint-data box is the named outer upper corner. -/
 theorem explicitFormulaRectangleOuterEndpointDataBox_upperCorner
@@ -79,7 +79,7 @@ theorem explicitFormulaRectangleOuterEndpointDataBox_upperCorner
     explicitFormulaRectangleEndpointDataBoxUpperCorner
         (explicitFormulaRectangleOuterEndpointDataBox F T) =
       explicitFormulaRectangleOuterUpperCorner F T := by
-  rfl
+  exact Eq.refl _
 
 /-- The lower corner of a raw inscribed-square endpoint-data box is the named raw lower
 corner. -/
@@ -261,7 +261,7 @@ theorem explicitFormulaRectangleRawInscribedSquareEndpointDataBox_halfRadius_coo
                     (explicitFormulaRectangleRawInscribedSquareUpperCorner (ε / 2) b).im)) := by
   exact
     explicitFormulaRectangleRawInscribedSquareEndpointDataBox_coordinateOmission_false
-      (half_nonneg (le_of_lt hε)) ha
+      (div_nonneg (le_of_lt hε) zero_le_two) ha
 
 /-- The boundary of the outer endpoint-data box is the named outer Cauchy cell boundary. -/
 theorem explicitFormulaRectangleOuterEndpointDataBox_boundary_eq_outerCauchy
@@ -278,7 +278,7 @@ theorem explicitFormulaRectangleOuterEndpointDataBox_boundary_eq_outerCauchy
           (explicitFormulaRectangleOuterEndpointDataBox F T))
         (explicitFormulaRectangleEndpointDataBoxUpperCorner
           (explicitFormulaRectangleOuterEndpointDataBox F T)) + 0 := by
-      rfl
+      exact Eq.refl _
     _ =
       finiteRectangleSubdivisionCellBoundaryIntegral
         (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -306,7 +306,7 @@ theorem explicitFormulaRectangleOuterEndpointDataBox_boundary_eq_outerCauchy
             z + 0)
         (explicitFormulaRectangleOuterEndpointDataBox_upperCorner F T)
     _ = explicitFormulaRectangleOuterCauchyCellBoundary f F T + 0 := by
-      rfl
+      exact Eq.refl _
     _ = explicitFormulaRectangleOuterCauchyCellBoundary f F T := by
       exact add_zero (explicitFormulaRectangleOuterCauchyCellBoundary f F T)
 
@@ -329,7 +329,7 @@ theorem explicitFormulaRectangleRawInscribedSquareEndpointDataBox_boundary_eq_ce
           (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ε a))
         (explicitFormulaRectangleEndpointDataBoxUpperCorner
           (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ε a)) + 0 := by
-      rfl
+      exact Eq.refl _
     _ =
       finiteRectangleSubdivisionCellBoundaryIntegral
         (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -414,7 +414,7 @@ theorem explicitFormulaRectangleRawInscribedSquareEndpointDataBoxBoundaryFinsetS
           (explicitFormulaRectangleRawInscribedSquareLowerCorner ε a)
           (explicitFormulaRectangleRawInscribedSquareUpperCorner ε a) := by
   exact
-    Finset.sum_congr rfl
+    Finset.sum_congr (Eq.refl _)
       (fun a _ha =>
         explicitFormulaRectangleRawInscribedSquareEndpointDataBox_boundary_eq_cellBoundary
           f ε a)
@@ -452,9 +452,41 @@ theorem explicitFormulaRectangleRawInscribedSquareEndpointDataBoxBoundaryFinsetS
                   explicitFormulaRectangleBoxLeftEdgeIntegral f
                     (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ε a)) := by
     intro a _ha
-    exact
-      explicitFormulaRectangleEndpointDataBoxBoundarySum_eq_edgeSums
-        f [explicitFormulaRectangleRawInscribedSquareEndpointDataBox ε a]
+    let edge : ExplicitFormulaRectangleEndpointDataBoxEdge :=
+      explicitFormulaRectangleRawInscribedSquareEndpointDataBox ε a
+    have hcell :
+        finiteRectangleSubdivisionCellBoundaryIntegral
+            (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+            (explicitFormulaRectangleEndpointDataBoxLowerCorner edge)
+            (explicitFormulaRectangleEndpointDataBoxUpperCorner edge) =
+          explicitFormulaRectangleBoxBottomEdgeIntegral f edge -
+            explicitFormulaRectangleBoxTopEdgeIntegral f edge +
+              (explicitFormulaRectangleBoxRightEdgeIntegral f edge -
+                explicitFormulaRectangleBoxLeftEdgeIntegral f edge) :=
+      (explicitFormulaRectangleEndpointDataBoxBoundary_eq_cellBoundary f edge).symm
+    calc
+      explicitFormulaRectangleEndpointDataBoxBoundarySum f [edge] =
+          finiteRectangleSubdivisionCellBoundaryIntegral
+              (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+              (explicitFormulaRectangleEndpointDataBoxLowerCorner edge)
+              (explicitFormulaRectangleEndpointDataBoxUpperCorner edge) + 0 := by
+        exact Eq.refl _
+      _ =
+          (explicitFormulaRectangleBoxBottomEdgeIntegral f edge -
+            explicitFormulaRectangleBoxTopEdgeIntegral f edge +
+              (explicitFormulaRectangleBoxRightEdgeIntegral f edge -
+                explicitFormulaRectangleBoxLeftEdgeIntegral f edge)) + 0 := by
+        exact congrArg (fun z : ℂ => z + 0) hcell
+      _ =
+          explicitFormulaRectangleBoxBottomEdgeIntegral f edge -
+            explicitFormulaRectangleBoxTopEdgeIntegral f edge +
+              (explicitFormulaRectangleBoxRightEdgeIntegral f edge -
+                explicitFormulaRectangleBoxLeftEdgeIntegral f edge) := by
+        exact add_zero
+          (explicitFormulaRectangleBoxBottomEdgeIntegral f edge -
+            explicitFormulaRectangleBoxTopEdgeIntegral f edge +
+              (explicitFormulaRectangleBoxRightEdgeIntegral f edge -
+                explicitFormulaRectangleBoxLeftEdgeIntegral f edge))
   calc
     explicitFormulaRectangleRawInscribedSquareEndpointDataBoxBoundaryFinsetSum f T ε =
         ∑ a in S,
@@ -466,7 +498,7 @@ theorem explicitFormulaRectangleRawInscribedSquareEndpointDataBoxBoundaryFinsetS
                     (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ε a) -
                   explicitFormulaRectangleBoxLeftEdgeIntegral f
                     (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ε a))) := by
-      exact Finset.sum_congr rfl hpoint
+      exact Finset.sum_congr (Eq.refl _) hpoint
     _ =
         (∑ a in S,
           explicitFormulaRectangleBoxBottomEdgeIntegral f
@@ -501,7 +533,7 @@ theorem explicitFormulaRectangleRawInscribedSquareEndpointDataBoxBoundaryFinsetS
             (explicitFormulaRectangleRawInscribedSquareEndpointDataBoxRightEdgeFinsetSum f T ε -
               explicitFormulaRectangleRawInscribedSquareEndpointDataBoxLeftEdgeFinsetSum
                 f T ε) := by
-      rfl
+      exact Eq.refl _
 
 /-- The bottom side of a raw endpoint-data box is the corresponding horizontal
 coordinate-label integral. -/
@@ -513,7 +545,60 @@ theorem explicitFormulaRectangleRawInscribedSquareEndpointDataBox_bottomEdgeInte
         (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re,
             (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re),
           (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im) := by
-  rfl
+  let lo : ℂ := explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a
+  let hi : ℂ := explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a
+  have hx₀ : (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).re) = lo.re :=
+    ofReal_add_mul_I_re lo.re lo.im
+  have hx₁ : (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re) = hi.re :=
+    ofReal_add_mul_I_re hi.re hi.im
+  have hy₀ : (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).im) = lo.im :=
+    ofReal_add_mul_I_im lo.re lo.im
+  calc
+    explicitFormulaRectangleBoxBottomEdgeIntegral f
+        (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ρ a) =
+        explicitFormulaRectangleHorizontalRealEndpointIntegral f
+          (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).re)
+          (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re)
+          (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).im) := by
+      exact Eq.refl _
+    _ =
+        explicitFormulaRectangleHorizontalRealEndpointIntegral f lo.re hi.re lo.im := by
+      calc
+        explicitFormulaRectangleHorizontalRealEndpointIntegral f
+            (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).re)
+            (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re)
+            (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).im) =
+            explicitFormulaRectangleHorizontalRealEndpointIntegral f
+              lo.re
+              (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re)
+              (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).im) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleHorizontalRealEndpointIntegral f t
+                (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re)
+                (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).im))
+            hx₀
+        _ =
+            explicitFormulaRectangleHorizontalRealEndpointIntegral f
+              lo.re hi.re
+              (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).im) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleHorizontalRealEndpointIntegral f lo.re t
+                (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).im))
+            hx₁
+        _ =
+            explicitFormulaRectangleHorizontalRealEndpointIntegral f lo.re hi.re lo.im := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleHorizontalRealEndpointIntegral f lo.re hi.re t)
+            hy₀
+    _ =
+        explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f
+          (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re,
+              (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re),
+            (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im) := by
+      exact Eq.refl _
 
 /-- The top side of a raw endpoint-data box is the corresponding horizontal
 coordinate-label integral. -/
@@ -525,7 +610,60 @@ theorem explicitFormulaRectangleRawInscribedSquareEndpointDataBox_topEdgeIntegra
         (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re,
             (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re),
           (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im) := by
-  rfl
+  let lo : ℂ := explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a
+  let hi : ℂ := explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a
+  have hx₀ : (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).re) = lo.re :=
+    ofReal_add_mul_I_re lo.re lo.im
+  have hx₁ : (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re) = hi.re :=
+    ofReal_add_mul_I_re hi.re hi.im
+  have hy₁ : (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im) = hi.im :=
+    ofReal_add_mul_I_im hi.re hi.im
+  calc
+    explicitFormulaRectangleBoxTopEdgeIntegral f
+        (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ρ a) =
+        explicitFormulaRectangleHorizontalRealEndpointIntegral f
+          (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).re)
+          (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re)
+          (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im) := by
+      exact Eq.refl _
+    _ =
+        explicitFormulaRectangleHorizontalRealEndpointIntegral f lo.re hi.re hi.im := by
+      calc
+        explicitFormulaRectangleHorizontalRealEndpointIntegral f
+            (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).re)
+            (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re)
+            (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im) =
+            explicitFormulaRectangleHorizontalRealEndpointIntegral f
+              lo.re
+              (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re)
+              (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleHorizontalRealEndpointIntegral f t
+                (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re)
+                (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im))
+            hx₀
+        _ =
+            explicitFormulaRectangleHorizontalRealEndpointIntegral f
+              lo.re hi.re
+              (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleHorizontalRealEndpointIntegral f lo.re t
+                (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im))
+            hx₁
+        _ =
+            explicitFormulaRectangleHorizontalRealEndpointIntegral f lo.re hi.re hi.im := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleHorizontalRealEndpointIntegral f lo.re hi.re t)
+            hy₁
+    _ =
+        explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f
+          (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re,
+              (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re),
+            (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im) := by
+      exact Eq.refl _
 
 /-- The right side of a raw endpoint-data box is the corresponding vertical
 coordinate-label integral. -/
@@ -537,7 +675,60 @@ theorem explicitFormulaRectangleRawInscribedSquareEndpointDataBox_rightEdgeInteg
         (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im,
             (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im),
           (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re) := by
-  rfl
+  let lo : ℂ := explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a
+  let hi : ℂ := explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a
+  have hy₀ : (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).im) = lo.im :=
+    ofReal_add_mul_I_im lo.re lo.im
+  have hy₁ : (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im) = hi.im :=
+    ofReal_add_mul_I_im hi.re hi.im
+  have hx₁ : (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re) = hi.re :=
+    ofReal_add_mul_I_re hi.re hi.im
+  calc
+    explicitFormulaRectangleBoxRightEdgeIntegral f
+        (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ρ a) =
+        explicitFormulaRectangleVerticalRealEndpointIntegral f
+          (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).im)
+          (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im)
+          (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re) := by
+      exact Eq.refl _
+    _ =
+        explicitFormulaRectangleVerticalRealEndpointIntegral f lo.im hi.im hi.re := by
+      calc
+        explicitFormulaRectangleVerticalRealEndpointIntegral f
+            (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).im)
+            (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im)
+            (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re) =
+            explicitFormulaRectangleVerticalRealEndpointIntegral f
+              lo.im
+              (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im)
+              (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleVerticalRealEndpointIntegral f t
+                (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im)
+                (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re))
+            hy₀
+        _ =
+            explicitFormulaRectangleVerticalRealEndpointIntegral f
+              lo.im hi.im
+              (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleVerticalRealEndpointIntegral f lo.im t
+                (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).re))
+            hy₁
+        _ =
+            explicitFormulaRectangleVerticalRealEndpointIntegral f lo.im hi.im hi.re := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleVerticalRealEndpointIntegral f lo.im hi.im t)
+            hx₁
+    _ =
+        explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral f
+          (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im,
+              (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im),
+            (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re) := by
+      exact Eq.refl _
 
 /-- The left side of a raw endpoint-data box is the corresponding vertical
 coordinate-label integral. -/
@@ -549,10 +740,60 @@ theorem explicitFormulaRectangleRawInscribedSquareEndpointDataBox_leftEdgeIntegr
         (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im,
             (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im),
           (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re) := by
-  rfl
-
-/-- The outer left horizontal coordinate is present in the sorted horizontal endpoint
-list. -/
+  let lo : ℂ := explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a
+  let hi : ℂ := explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a
+  have hy₀ : (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).im) = lo.im :=
+    ofReal_add_mul_I_im lo.re lo.im
+  have hy₁ : (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im) = hi.im :=
+    ofReal_add_mul_I_im hi.re hi.im
+  have hx₀ : (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).re) = lo.re :=
+    ofReal_add_mul_I_re lo.re lo.im
+  calc
+    explicitFormulaRectangleBoxLeftEdgeIntegral f
+        (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ρ a) =
+        explicitFormulaRectangleVerticalRealEndpointIntegral f
+          (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).im)
+          (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im)
+          (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).re) := by
+      exact Eq.refl _
+    _ =
+        explicitFormulaRectangleVerticalRealEndpointIntegral f lo.im hi.im lo.re := by
+      calc
+        explicitFormulaRectangleVerticalRealEndpointIntegral f
+            (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).im)
+            (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im)
+            (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).re) =
+            explicitFormulaRectangleVerticalRealEndpointIntegral f
+              lo.im
+              (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im)
+              (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).re) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleVerticalRealEndpointIntegral f t
+                (((hi.re : ℂ) + (hi.im : ℂ) * Complex.I).im)
+                (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).re))
+            hy₀
+        _ =
+            explicitFormulaRectangleVerticalRealEndpointIntegral f
+              lo.im hi.im
+              (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).re) := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleVerticalRealEndpointIntegral f lo.im t
+                (((lo.re : ℂ) + (lo.im : ℂ) * Complex.I).re))
+            hy₁
+        _ =
+            explicitFormulaRectangleVerticalRealEndpointIntegral f lo.im hi.im lo.re := by
+          exact congrArg
+            (fun t : ℝ =>
+              explicitFormulaRectangleVerticalRealEndpointIntegral f lo.im hi.im t)
+            hx₀
+    _ =
+        explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral f
+          (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im,
+              (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im),
+            (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re) := by
+      exact Eq.refl _
 
 end ZetaAdmissibleFunction
 

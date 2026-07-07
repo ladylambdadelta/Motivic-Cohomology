@@ -22,8 +22,6 @@ namespace ZetaAdmissibleFunction
 ## Part20 05: SelectedEndpointDataRecursions
 -/
 
-attribute [local instance] Classical.propDecidable
-
 theorem explicitFormulaRectangleSelectedEndpointData_boxEdgeCoordinates_eq_sortedPairLists
     (F : ExplicitFormulaContourFamily) (T ε : ℝ) :
     (explicitFormulaRectangleSelectedEndpointData F T ε).map
@@ -390,7 +388,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum_selectedFix
       xpair ypair rest
       (explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum f)
       (explicitFormulaRectangleRegularGridCellEndpointDataBottomEdge f)
-      (fun d tail => rfl)
+      (fun d tail => Eq.refl _)
 
 /-- The selected fixed-horizontal row top-edge sum follows the coordinate-omission
 filter at the head vertical adjacent pair. -/
@@ -425,7 +423,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum_selectedFixedX
       xpair ypair rest
       (explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum f)
       (explicitFormulaRectangleRegularGridCellEndpointDataTopEdge f)
-      (fun d tail => rfl)
+      (fun d tail => Eq.refl _)
 
 /-- The selected fixed-horizontal row right-edge sum follows the coordinate-omission
 filter at the head vertical adjacent pair. -/
@@ -460,7 +458,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum_selectedFixe
       xpair ypair rest
       (explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum f)
       (explicitFormulaRectangleRegularGridCellEndpointDataRightEdge f)
-      (fun d tail => rfl)
+      (fun d tail => Eq.refl _)
 
 /-- The selected fixed-horizontal row left-edge sum follows the coordinate-omission
 filter at the head vertical adjacent pair. -/
@@ -495,7 +493,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum_selectedFixed
       xpair ypair rest
       (explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum f)
       (explicitFormulaRectangleRegularGridCellEndpointDataLeftEdge f)
-      (fun d tail => rfl)
+      (fun d tail => Eq.refl _)
 
 /-- The selected fixed-horizontal row box-boundary sum follows the coordinate-omission
 filter at the head vertical adjacent pair. -/
@@ -547,7 +545,7 @@ theorem explicitFormulaRectangleEndpointDataBoxBoundarySum_selectedFixedX_cons
           (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
           (explicitFormulaRectangleEndpointDataBoxLowerCorner d.boxEdgeCoordinates)
           (explicitFormulaRectangleEndpointDataBoxUpperCorner d.boxEdgeCoordinates))
-      (fun d tail => rfl)
+      (fun d tail => Eq.refl _)
 
 /-- The selected fixed-horizontal row is empty over the empty vertical-pair list. -/
 theorem explicitFormulaRectangleSelectedEndpointDataFixedX_nil
@@ -557,8 +555,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataFixedX_nil
         (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
           xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε))) =
       ([] : List (ExplicitFormulaRectangleRegularGridCellEndpointData F T ε)) := by
-  rfl
-
+  exact Eq.refl _
 /-- The selected fixed-horizontal row has zero bottom-edge sum over an empty vertical-pair
 source list. -/
 theorem explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum_selectedFixedX_nil
@@ -570,8 +567,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum_selectedFix
           (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
             xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε)))) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- The selected fixed-horizontal row has zero top-edge sum over an empty vertical-pair
 source list. -/
 theorem explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum_selectedFixedX_nil
@@ -583,8 +579,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum_selectedFixedX
           (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
             xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε)))) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- The selected fixed-horizontal row has zero right-edge sum over an empty vertical-pair
 source list. -/
 theorem explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum_selectedFixedX_nil
@@ -596,8 +591,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum_selectedFixe
           (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
             xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε)))) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- The selected fixed-horizontal row has zero left-edge sum over an empty vertical-pair
 source list. -/
 theorem explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum_selectedFixedX_nil
@@ -609,8 +603,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum_selectedFixed
           (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
             xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε)))) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- The selected fixed-horizontal row has zero box-boundary sum over an empty vertical-pair
 source list. -/
 theorem explicitFormulaRectangleEndpointDataBoxBoundarySum_selectedFixedX_nil
@@ -624,8 +617,7 @@ theorem explicitFormulaRectangleEndpointDataBoxBoundarySum_selectedFixedX_nil
           (fun d : ExplicitFormulaRectangleRegularGridCellEndpointData F T ε =>
             d.boxEdgeCoordinates)) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- The selected bottom-edge sum over a cons horizontal adjacent-pair list splits into the
 selected row for the head pair plus the selected remaining rows. -/
 theorem explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum_selectedPairLists_cons
@@ -667,7 +659,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataBottomEdgeSum_selectedPai
           xpair ypairs ++
           explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfPairLists
             rest ypairs := by
-    rfl
+    exact Eq.refl _
   have hmap :
       explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
           (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
@@ -741,7 +733,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataTopEdgeSum_selectedPairLi
           xpair ypairs ++
           explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfPairLists
             rest ypairs := by
-    rfl
+    exact Eq.refl _
   have hmap :
       explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
           (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
@@ -815,7 +807,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataRightEdgeSum_selectedPair
           xpair ypairs ++
           explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfPairLists
             rest ypairs := by
-    rfl
+    exact Eq.refl _
   have hmap :
       explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
           (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
@@ -889,7 +881,7 @@ theorem explicitFormulaRectangleRegularGridEndpointDataLeftEdgeSum_selectedPairL
           xpair ypairs ++
           explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfPairLists
             rest ypairs := by
-    rfl
+    exact Eq.refl _
   have hmap :
       explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
           (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
@@ -931,8 +923,7 @@ theorem explicitFormulaRectangleSelectedEndpointData_eq_sortedPairLists
         (explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfPairLists
           (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ε)
             (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ε)) := by
-  rfl
-
+  exact Eq.refl _
 /-- The canonical selected endpoint-data list has exactly the selected bottom horizontal
 coordinate labels from the sorted adjacent endpoint-pair lists. -/
 theorem explicitFormulaRectangleSelectedEndpointData_bottomEdgeCoordinates_eq_sortedPairLists
@@ -1017,7 +1008,8 @@ theorem explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCel
         (fun c : ExplicitFormulaRectangleRegularAdjacentEndpointPairCell F T ε =>
           ((c.xpair.x₀, c.xpair.x₁), (c.ypair.y₀, c.ypair.y₁))) := by
   induction cells with
-  | nil => rfl
+  | nil =>
+      exact Eq.refl _
   | cons c rest ih =>
       exact
         congrArg
@@ -1140,7 +1132,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesBoundarySum_fixedX_con
           (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
           (explicitFormulaRectangleEndpointDataBoxLowerCorner box)
           (explicitFormulaRectangleEndpointDataBoxUpperCorner box))
-      (fun box tail => rfl)
+      (fun box tail => Eq.refl _)
 
 /-- Bottom side-sum over selected full box labels for one fixed horizontal row follows the
 coordinate-omission filter at the head vertical adjacent pair. -/
@@ -1167,7 +1159,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesBottomEdgeIntegralSum_
       xpair ypair rest
       (explicitFormulaRectangleBoxBottomEdgeIntegralSum f)
       (explicitFormulaRectangleBoxBottomEdgeIntegral f)
-      (fun box tail => rfl)
+      (fun box tail => Eq.refl _)
 
 /-- Top side-sum over selected full box labels for one fixed horizontal row follows the
 coordinate-omission filter at the head vertical adjacent pair. -/
@@ -1194,7 +1186,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesTopEdgeIntegralSum_fix
       xpair ypair rest
       (explicitFormulaRectangleBoxTopEdgeIntegralSum f)
       (explicitFormulaRectangleBoxTopEdgeIntegral f)
-      (fun box tail => rfl)
+      (fun box tail => Eq.refl _)
 
 /-- Right side-sum over selected full box labels for one fixed horizontal row follows the
 coordinate-omission filter at the head vertical adjacent pair. -/
@@ -1221,7 +1213,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesRightEdgeIntegralSum_f
       xpair ypair rest
       (explicitFormulaRectangleBoxRightEdgeIntegralSum f)
       (explicitFormulaRectangleBoxRightEdgeIntegral f)
-      (fun box tail => rfl)
+      (fun box tail => Eq.refl _)
 
 /-- Left side-sum over selected full box labels for one fixed horizontal row follows the
 coordinate-omission filter at the head vertical adjacent pair. -/
@@ -1248,7 +1240,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesLeftEdgeIntegralSum_fi
       xpair ypair rest
       (explicitFormulaRectangleBoxLeftEdgeIntegralSum f)
       (explicitFormulaRectangleBoxLeftEdgeIntegral f)
-      (fun box tail => rfl)
+      (fun box tail => Eq.refl _)
 
 /-- Box-boundary sum over selected full box labels for one fixed horizontal row is zero
 over the empty vertical adjacent-pair list. -/
@@ -1260,8 +1252,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesBoundarySum_fixedX_nil
         (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfFixedX
           xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε))) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- Bottom side-sum over selected full box labels for one fixed horizontal row is zero
 over the empty vertical adjacent-pair list. -/
 theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesBottomEdgeIntegralSum_fixedX_nil
@@ -1272,8 +1263,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesBottomEdgeIntegralSum_
         (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfFixedX
           xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε))) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- Top side-sum over selected full box labels for one fixed horizontal row is zero over
 the empty vertical adjacent-pair list. -/
 theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesTopEdgeIntegralSum_fixedX_nil
@@ -1284,8 +1274,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesTopEdgeIntegralSum_fix
         (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfFixedX
           xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε))) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- Right side-sum over selected full box labels for one fixed horizontal row is zero
 over the empty vertical adjacent-pair list. -/
 theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesRightEdgeIntegralSum_fixedX_nil
@@ -1296,8 +1285,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesRightEdgeIntegralSum_f
         (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfFixedX
           xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε))) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- Left side-sum over selected full box labels for one fixed horizontal row is zero over
 the empty vertical adjacent-pair list. -/
 theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesLeftEdgeIntegralSum_fixedX_nil
@@ -1308,8 +1296,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesLeftEdgeIntegralSum_fi
         (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfFixedX
           xpair ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε))) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- Box-boundary sum over selected full box labels for crossed adjacent-pair lists splits
 into the selected fixed-row boundary sum plus the remaining rows. -/
 theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesBoundarySum_pairLists_cons
@@ -1425,8 +1412,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesBoundarySum_pairLists_
         (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists
           ([] : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ε)) ypairs) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- Bottom side-sum over selected full box labels for an empty horizontal adjacent-pair
 list is zero. -/
 theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesBottomEdgeIntegralSum_pairLists_nil
@@ -1437,8 +1423,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesBottomEdgeIntegralSum_
         (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists
           ([] : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ε)) ypairs) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- Top side-sum over selected full box labels for an empty horizontal adjacent-pair list
 is zero. -/
 theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesTopEdgeIntegralSum_pairLists_nil
@@ -1449,8 +1434,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesTopEdgeIntegralSum_pai
         (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists
           ([] : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ε)) ypairs) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- Right side-sum over selected full box labels for an empty horizontal adjacent-pair
 list is zero. -/
 theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesRightEdgeIntegralSum_pairLists_nil
@@ -1461,8 +1445,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesRightEdgeIntegralSum_p
         (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists
           ([] : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ε)) ypairs) =
       0 := by
-  rfl
-
+  exact Eq.refl _
 /-- Left side-sum over selected full box labels for an empty horizontal adjacent-pair list
 is zero. -/
 theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesLeftEdgeIntegralSum_pairLists_nil
@@ -1473,9 +1456,7 @@ theorem explicitFormulaRectangleSelectedBoxEdgeCoordinatesLeftEdgeIntegralSum_pa
         (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists
           ([] : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ε)) ypairs) =
       0 := by
-  rfl
-
-
+  exact Eq.refl _
 end ZetaAdmissibleFunction
 
 end
