@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part20Parts.Part20_12
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part20Parts.Part20_10
 
 /-!
 # Explicit-formula finite rectangle residues
@@ -68,7 +68,7 @@ theorem explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints_eq_ofF
       List.ofFn
         (fun i : Fin ((explicitFormulaRectangleSortedXEndpoints F T ρ).length - 1) =>
           explicitFormulaRectangleXAdjacentEndpointPairAt F T ρ i) := by
-  rfl
+  exact Eq.refl _
 
 /-- Recursive sums over the sorted horizontal adjacent-pair list are finite sums over the
 named adjacent-pair generator. -/
@@ -113,7 +113,7 @@ theorem explicitFormulaRectangleXAdjacentEndpointPairAt_x₀
   calc
     (explicitFormulaRectangleXAdjacentEndpointPairAt F T ρ i).x₀ =
         xs.get ⟨i.1, hi_lt_len⟩ := by
-      rfl
+      exact Eq.refl _
     _ = explicitFormulaRectangleSortedXEndpointAt F T ρ i.1 := by
       exact (explicitFormulaRectangleSortedXEndpointAt_of_lt F T ρ hi_lt_len).symm
 
@@ -131,7 +131,7 @@ theorem explicitFormulaRectangleXAdjacentEndpointPairAt_x₁
   calc
     (explicitFormulaRectangleXAdjacentEndpointPairAt F T ρ i).x₁ =
         xs.get ⟨i.1 + 1, hi_succ_lt_len⟩ := by
-      rfl
+      exact Eq.refl _
     _ = explicitFormulaRectangleSortedXEndpointAt F T ρ (i.1 + 1) := by
       exact (explicitFormulaRectangleSortedXEndpointAt_of_lt F T ρ hi_succ_lt_len).symm
 
@@ -166,7 +166,22 @@ theorem explicitFormulaRectangleXAdjacentEndpointPair_totalRightVerticalListSum_
               f ((ypair.y₀, ypair.y₁),
                 (explicitFormulaRectangleXAdjacentEndpointPairAt F T ρ i).x₁))
           (List.ofFn (fun i : Fin n => i)) := by
-      rfl
+      exact
+        Eq.trans
+          (congrArg
+            (fun xs : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ) =>
+              explicitFormulaRectangleListSum
+                (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
+                  explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+                    f ((ypair.y₀, ypair.y₁), xpair.x₁))
+                xs)
+            (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints_eq_ofFn_pairAt
+              F T ρ))
+          (explicitFormulaRectangleListSum_ofFn_comp
+            (fun i : Fin n => explicitFormulaRectangleXAdjacentEndpointPairAt F T ρ i)
+            (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
+              explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+                f ((ypair.y₀, ypair.y₁), xpair.x₁)))
     _ =
         explicitFormulaRectangleListSum
           (fun i : Fin n =>
@@ -216,7 +231,22 @@ theorem explicitFormulaRectangleXAdjacentEndpointPair_totalLeftVerticalListSum_e
               f ((ypair.y₀, ypair.y₁),
                 (explicitFormulaRectangleXAdjacentEndpointPairAt F T ρ i).x₀))
           (List.ofFn (fun i : Fin n => i)) := by
-      rfl
+      exact
+        Eq.trans
+          (congrArg
+            (fun xs : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ) =>
+              explicitFormulaRectangleListSum
+                (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
+                  explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
+                    f ((ypair.y₀, ypair.y₁), xpair.x₀))
+                xs)
+            (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints_eq_ofFn_pairAt
+              F T ρ))
+          (explicitFormulaRectangleListSum_ofFn_comp
+            (fun i : Fin n => explicitFormulaRectangleXAdjacentEndpointPairAt F T ρ i)
+            (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
+              explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
+                f ((ypair.y₀, ypair.y₁), xpair.x₀)))
     _ =
         explicitFormulaRectangleListSum
           (fun i : Fin n =>
@@ -407,10 +437,6 @@ theorem explicitFormulaRectangleXAdjacentEndpointPair_totalVerticalScanSub_eq_ou
             f ((ypair.y₀, ypair.y₁), F.c) - z)
         (explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral_eq_left_sameCoordinate
           f ypair.y₀ ypair.y₁ (1 - F.c))
-
-/-- A sorted horizontal adjacent-pair subspan lies on the horizontal side of a raw
-inscribed-square hole.  This is a containment predicate because the global vertical
-subdivision can split one hole side into several adjacent subspans. -/
 
 end ZetaAdmissibleFunction
 
