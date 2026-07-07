@@ -41,28 +41,27 @@ theorem real_intervalIntegral_log_sq_derivative_density_eq_sub
   let F : ℝ → ℝ := fun x => (Real.log (2 + x)) ^ 2
   let G : ℝ → ℝ := fun x => 2 * Real.log (2 + x) / (2 + x)
   have hderiv :
-      ∀ x ∈ Set.uIcc a b, HasDerivAt F (G x) x := by
-    intro x hx
-    have hax : a ≤ x :=
-      real_left_le_of_mem_uIcc_of_le hab hx
-    have htwo_le_x : (2 : ℝ) ≤ x :=
-      le_trans ha hax
-    have hpos : (0 : ℝ) < 2 + x :=
-      add_pos_of_pos_of_nonneg zero_lt_two
-        (le_trans (show (0 : ℝ) ≤ 2 by exact le_of_lt zero_lt_two) htwo_le_x)
-    exact real_hasDerivAt_log_two_add_sq hpos
-  have hG_cont : ContinuousOn G (Set.uIcc a b) := by
-    intro x hx
-    have hax : a ≤ x :=
-      real_left_le_of_mem_uIcc_of_le hab hx
-    have htwo_le_x : (2 : ℝ) ≤ x :=
-      le_trans ha hax
-    have harg_ne : 2 + x ≠ 0 := by
-      have harg_pos : 0 < 2 + x :=
+      ∀ x ∈ Set.uIcc a b, HasDerivAt F (G x) x :=
+    fun x hx =>
+      have hax : a ≤ x :=
+        real_left_le_of_mem_uIcc_of_le hab hx
+      have htwo_le_x : (2 : ℝ) ≤ x :=
+        le_trans ha hax
+      have hpos : (0 : ℝ) < 2 + x :=
         add_pos_of_pos_of_nonneg zero_lt_two
-          (le_trans (le_of_lt zero_lt_two) htwo_le_x)
-      exact ne_of_gt harg_pos
-    exact
+          (le_trans (show (0 : ℝ) ≤ 2 by exact le_of_lt zero_lt_two) htwo_le_x)
+      real_hasDerivAt_log_two_add_sq hpos
+  have hG_cont : ContinuousOn G (Set.uIcc a b) :=
+    fun x hx =>
+      have hax : a ≤ x :=
+        real_left_le_of_mem_uIcc_of_le hab hx
+      have htwo_le_x : (2 : ℝ) ≤ x :=
+        le_trans ha hax
+      have harg_ne : 2 + x ≠ 0 := by
+        have harg_pos : 0 < 2 + x :=
+          add_pos_of_pos_of_nonneg zero_lt_two
+            (le_trans (le_of_lt zero_lt_two) htwo_le_x)
+        exact ne_of_gt harg_pos
       (scalarReciprocalDensity_logSqDerivativeDensity_continuousAt harg_ne).continuousWithinAt
   have hint : IntervalIntegrable G volume a b :=
     hG_cont.intervalIntegrable
@@ -106,26 +105,24 @@ theorem real_integral_Ioc_log_two_add_div_self_le_log_endpoint_sq_of_pointwise
       (Real.log (2 + b)) ^ 2 := by
   let f : ℝ → ℝ := fun x => Real.log (2 + x) / x
   let g : ℝ → ℝ := fun x => 2 * Real.log (2 + x) / (2 + x)
-  have hf_cont : ContinuousOn f (Set.Icc a b) := by
-    intro x hx
-    have hx_pos : x ≠ 0 :=
-      ne_of_gt (lt_of_lt_of_le zero_lt_two (le_trans ha hx.1))
-    have hlog_arg : 2 + x ≠ 0 := by
-      have harg_pos : 0 < 2 + x :=
-        add_pos_of_pos_of_nonneg zero_lt_two
-          (le_trans (le_of_lt zero_lt_two) (le_trans ha hx.1))
-      exact ne_of_gt harg_pos
-    exact
+  have hf_cont : ContinuousOn f (Set.Icc a b) :=
+    fun x hx =>
+      have hx_pos : x ≠ 0 :=
+        ne_of_gt (lt_of_lt_of_le zero_lt_two (le_trans ha hx.1))
+      have hlog_arg : 2 + x ≠ 0 := by
+        have harg_pos : 0 < 2 + x :=
+          add_pos_of_pos_of_nonneg zero_lt_two
+            (le_trans (le_of_lt zero_lt_two) (le_trans ha hx.1))
+        exact ne_of_gt harg_pos
       (scalarReciprocalDensity_logTwoAdd_div_self_continuousAt
         hx_pos hlog_arg).continuousWithinAt
-  have hg_cont : ContinuousOn g (Set.Icc a b) := by
-    intro x hx
-    have hlog_arg : 2 + x ≠ 0 := by
-      have harg_pos : 0 < 2 + x :=
-        add_pos_of_pos_of_nonneg zero_lt_two
-          (le_trans (le_of_lt zero_lt_two) (le_trans ha hx.1))
-      exact ne_of_gt harg_pos
-    exact
+  have hg_cont : ContinuousOn g (Set.Icc a b) :=
+    fun x hx =>
+      have hlog_arg : 2 + x ≠ 0 := by
+        have harg_pos : 0 < 2 + x :=
+          add_pos_of_pos_of_nonneg zero_lt_two
+            (le_trans (le_of_lt zero_lt_two) (le_trans ha hx.1))
+        exact ne_of_gt harg_pos
       (scalarReciprocalDensity_logSqDerivativeDensity_continuousAt
         hlog_arg).continuousWithinAt
   have hf : Integrable f (volume.restrict (Set.Ioc a b)) :=
@@ -190,80 +187,78 @@ theorem real_intervalIntegral_log_two_add_mul_inv_sq_eq_by_parts_core
   let u' : ℝ → ℝ := fun x => 1 / (2 + x)
   let v' : ℝ → ℝ := fun x => 1 / x ^ 2
   have hu :
-      ∀ x ∈ Set.uIcc (2 : ℝ) b, HasDerivAt u (u' x) x := by
-    intro x hx
-    have hleft : (2 : ℝ) ≤ x :=
-      real_left_le_of_mem_uIcc_of_le hb hx
-    have htwo_add_pos : 0 < 2 + x :=
-      add_pos_of_pos_of_nonneg zero_lt_two
-        (le_trans (le_of_lt zero_lt_two) hleft)
-    have hbase : HasDerivAt (fun y : ℝ => 2 + y) 1 x :=
-      (hasDerivAt_id x).const_add 2
-    have hlog :
-        HasDerivAt (fun y : ℝ => Real.log (2 + y)) ((2 + x)⁻¹) x :=
-      have hraw :
-          HasDerivAt (fun y : ℝ => Real.log (2 + y)) (((2 + x)⁻¹) * 1) x :=
-        (Real.hasDerivAt_log (ne_of_gt htwo_add_pos)).comp x hbase
-      have hcoeff :
-          ((2 + x)⁻¹) * (1 : ℝ) = (2 + x)⁻¹ :=
-        mul_one ((2 + x)⁻¹)
-      Eq.subst
-        (motive := fun D : ℝ =>
-          HasDerivAt (fun y : ℝ => Real.log (2 + y)) D x)
-        hcoeff
-        hraw
-    have hnormal : (2 + x)⁻¹ = 1 / (2 + x) :=
-      (one_div (2 + x)).symm
-    exact Eq.subst
-      (motive := fun D : ℝ => HasDerivAt u D x)
-      hnormal
-      hlog
-  have hv :
-      ∀ x ∈ Set.uIcc (2 : ℝ) b, HasDerivAt v (v' x) x := by
-    intro x hx
-    have hleft : (2 : ℝ) ≤ x :=
-      real_left_le_of_mem_uIcc_of_le hb hx
-    have hx_ne : x ≠ 0 :=
-      ne_of_gt (lt_of_lt_of_le zero_lt_two hleft)
-    have hinv :
-        HasDerivAt (fun y : ℝ => y⁻¹) (-(x ^ 2)⁻¹) x :=
-      hasDerivAt_inv hx_ne
-    have hneg :
-        HasDerivAt (fun y : ℝ => -(y⁻¹)) (- (-(x ^ 2)⁻¹)) x :=
-      hinv.neg
-    have hlocal :
-        v =ᶠ[𝓝 x] (fun y : ℝ => -(y⁻¹)) :=
-      Filter.Eventually.of_forall
-        (fun y : ℝ =>
-          congrArg Neg.neg (one_div y))
-    have hnormal : - (-(x ^ 2)⁻¹) = 1 / x ^ 2 := by
-      calc
-        - (-(x ^ 2)⁻¹) = (x ^ 2)⁻¹ := neg_neg ((x ^ 2)⁻¹)
-        _ = 1 / x ^ 2 := (one_div (x ^ 2)).symm
-    exact Eq.subst
-      (motive := fun D : ℝ => HasDerivAt v D x)
-      hnormal
-      (hneg.congr_of_eventuallyEq hlocal)
-  have hu'_cont : ContinuousOn u' (Set.uIcc (2 : ℝ) b) := by
-    intro x hx
-    have hleft : (2 : ℝ) ≤ x :=
-      real_left_le_of_mem_uIcc_of_le hb hx
-    have harg_ne : 2 + x ≠ 0 := by
-      have harg_pos : 0 < 2 + x :=
+      ∀ x ∈ Set.uIcc (2 : ℝ) b, HasDerivAt u (u' x) x :=
+    fun x hx =>
+      have hleft : (2 : ℝ) ≤ x :=
+        real_left_le_of_mem_uIcc_of_le hb hx
+      have htwo_add_pos : 0 < 2 + x :=
         add_pos_of_pos_of_nonneg zero_lt_two
           (le_trans (le_of_lt zero_lt_two) hleft)
-      exact ne_of_gt harg_pos
-    exact
+      have hbase : HasDerivAt (fun y : ℝ => 2 + y) 1 x :=
+        (hasDerivAt_id x).const_add 2
+      have hlog :
+          HasDerivAt (fun y : ℝ => Real.log (2 + y)) ((2 + x)⁻¹) x :=
+        have hraw :
+            HasDerivAt (fun y : ℝ => Real.log (2 + y)) (((2 + x)⁻¹) * 1) x :=
+          (Real.hasDerivAt_log (ne_of_gt htwo_add_pos)).comp x hbase
+        have hcoeff :
+            ((2 + x)⁻¹) * (1 : ℝ) = (2 + x)⁻¹ :=
+          mul_one ((2 + x)⁻¹)
+        Eq.subst
+          (motive := fun D : ℝ =>
+            HasDerivAt (fun y : ℝ => Real.log (2 + y)) D x)
+          hcoeff
+          hraw
+      have hnormal : (2 + x)⁻¹ = 1 / (2 + x) :=
+        (one_div (2 + x)).symm
+      Eq.subst
+        (motive := fun D : ℝ => HasDerivAt u D x)
+        hnormal
+        hlog
+  have hv :
+      ∀ x ∈ Set.uIcc (2 : ℝ) b, HasDerivAt v (v' x) x :=
+    fun x hx =>
+      have hleft : (2 : ℝ) ≤ x :=
+        real_left_le_of_mem_uIcc_of_le hb hx
+      have hx_ne : x ≠ 0 :=
+        ne_of_gt (lt_of_lt_of_le zero_lt_two hleft)
+      have hinv :
+          HasDerivAt (fun y : ℝ => y⁻¹) (-(x ^ 2)⁻¹) x :=
+        hasDerivAt_inv hx_ne
+      have hneg :
+          HasDerivAt (fun y : ℝ => -(y⁻¹)) (- (-(x ^ 2)⁻¹)) x :=
+        hinv.neg
+      have hlocal :
+          v =ᶠ[𝓝 x] (fun y : ℝ => -(y⁻¹)) :=
+        Filter.Eventually.of_forall
+          (fun y : ℝ =>
+            congrArg Neg.neg (one_div y))
+      have hnormal : - (-(x ^ 2)⁻¹) = 1 / x ^ 2 := by
+        calc
+          - (-(x ^ 2)⁻¹) = (x ^ 2)⁻¹ := neg_neg ((x ^ 2)⁻¹)
+          _ = 1 / x ^ 2 := (one_div (x ^ 2)).symm
+      Eq.subst
+        (motive := fun D : ℝ => HasDerivAt v D x)
+        hnormal
+        (hneg.congr_of_eventuallyEq hlocal)
+  have hu'_cont : ContinuousOn u' (Set.uIcc (2 : ℝ) b) :=
+    fun x hx =>
+      have hleft : (2 : ℝ) ≤ x :=
+        real_left_le_of_mem_uIcc_of_le hb hx
+      have harg_ne : 2 + x ≠ 0 := by
+        have harg_pos : 0 < 2 + x :=
+          add_pos_of_pos_of_nonneg zero_lt_two
+            (le_trans (le_of_lt zero_lt_two) hleft)
+        exact ne_of_gt harg_pos
       (continuousAt_const.div
         (continuousAt_const.add continuousAt_id)
         harg_ne).continuousWithinAt
-  have hv'_cont : ContinuousOn v' (Set.uIcc (2 : ℝ) b) := by
-    intro x hx
-    have hleft : (2 : ℝ) ≤ x :=
-      real_left_le_of_mem_uIcc_of_le hb hx
-    have hx_pos : x ≠ 0 :=
-      ne_of_gt (lt_of_lt_of_le zero_lt_two hleft)
-    exact
+  have hv'_cont : ContinuousOn v' (Set.uIcc (2 : ℝ) b) :=
+    fun x hx =>
+      have hleft : (2 : ℝ) ≤ x :=
+        real_left_le_of_mem_uIcc_of_le hb hx
+      have hx_pos : x ≠ 0 :=
+        ne_of_gt (lt_of_lt_of_le zero_lt_two hleft)
       (scalarReciprocalDensity_reciprocalSquare_continuousAt
         hx_pos).continuousWithinAt
   have hu_int : IntervalIntegrable u' volume (2 : ℝ) b :=
@@ -597,16 +592,16 @@ theorem real_intervalIntegral_one_div_mul_two_add_eq_half_sub_integral
         (fun x : ℝ => (1 : ℝ) / (x * (2 + x)))
         (fun x : ℝ =>
           (1 / 2 : ℝ) * ((1 : ℝ) / x - (1 : ℝ) / (2 + x)))
-        (Set.uIcc (2 : ℝ) b) := by
-    intro x hx
-    have hx_pos : 0 < x :=
-      lt_of_lt_of_le zero_lt_two
-        (real_left_le_of_mem_uIcc_of_le hb hx)
-    have hx_two_pos : 0 < 2 + x :=
-      add_pos_of_pos_of_nonneg zero_lt_two (le_of_lt hx_pos)
-    exact real_one_div_mul_two_add_eq_half_sub
-      (ne_of_gt hx_pos)
-      (ne_of_gt hx_two_pos)
+        (Set.uIcc (2 : ℝ) b) :=
+    fun x hx =>
+      have hx_pos : 0 < x :=
+        lt_of_lt_of_le zero_lt_two
+          (real_left_le_of_mem_uIcc_of_le hb hx)
+      have hx_two_pos : 0 < 2 + x :=
+        add_pos_of_pos_of_nonneg zero_lt_two (le_of_lt hx_pos)
+      real_one_div_mul_two_add_eq_half_sub
+        (ne_of_gt hx_pos)
+        (ne_of_gt hx_two_pos)
   have hcongr :
       ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) =
         ∫ x in (2 : ℝ)..b,
