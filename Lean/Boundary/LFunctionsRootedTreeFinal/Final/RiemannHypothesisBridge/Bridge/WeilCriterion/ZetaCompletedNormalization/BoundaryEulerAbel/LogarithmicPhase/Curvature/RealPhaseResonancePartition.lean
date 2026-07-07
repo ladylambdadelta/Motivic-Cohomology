@@ -367,6 +367,34 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_exis
     Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_exists
       t habh S hS hinc_mono
 
+/-- In the nonnegative-frequency branch, every finite resonant-index set for a
+shifted logarithmic difference is a half-open resonant window. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_exists_of_nonneg
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b h : ℕ}
+    {resonance lam : ℝ}
+    (ha : 1 ≤ a)
+    (habh : a ≤ b - h)
+    (S : Finset ℕ)
+    (hS :
+      ∀ n : ℕ,
+        n ∈ S ↔
+          n ∈ Finset.Ico a (b - h) ∧
+            ‖Complex.realPhase_integerIncrement
+                (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n -
+              resonance‖ < lam) :
+    ∃ c d : ℕ,
+      a ≤ c ∧ c ≤ d ∧ d ≤ b - h ∧ S = Finset.Ico c d := by
+  have hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h) :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrementMonotoneOn_of_nonneg
+      t ht_nonneg ha
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_exists
+      t habh S hS hinc_mono
+
 /-- Outside an extensionally specified resonant-index set, the adjacent
 increment is separated from that resonance. -/
 theorem Complex.realPhase_integerIncrement_separated_from_resonance_of_not_mem_window
