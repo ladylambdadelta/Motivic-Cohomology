@@ -16,6 +16,26 @@ noncomputable section
 
 open scoped Topology
 
+/-- The stationary packet-family sample count is the sum of the stationary
+derivative-packet counts. -/
+theorem Complex.logarithmicPhaseRealPhase_stationaryPacketFamilyUnion_card_eq_sum_cards
+    (t : ℝ)
+    (a b : ℕ) :
+    (Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      a b
+      (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b)).card =
+      ∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
+        (Complex.realPhase_secondDerivative_vdc_derivPacket
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m).card := by
+  exact
+    Complex.realPhase_secondDerivative_vdc_packetFamilyUnion_card_eq_sum_cards
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      (fun m hm =>
+        Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_mem_active
+          t hm)
+
 /-- A bound for the stationary packet-family sample union transfers directly
 to the stationary packet contribution. -/
 theorem Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_of_familyUnion
