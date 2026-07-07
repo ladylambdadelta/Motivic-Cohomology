@@ -116,7 +116,7 @@ theorem explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints_eq_ofF
       List.ofFn
         (fun i : Fin ((explicitFormulaRectangleSortedYEndpoints T ρ).length - 1) =>
           explicitFormulaRectangleYAdjacentEndpointPairAt T ρ i) := by
-  rfl
+  exact Eq.refl _
 
 /-- Recursive sums over a generated `List.ofFn` may be transported to the identity
 `List.ofFn` on the generator's index type. -/
@@ -183,7 +183,7 @@ theorem explicitFormulaRectangleYAdjacentEndpointPairAt_y₀
   calc
     (explicitFormulaRectangleYAdjacentEndpointPairAt T ρ i).y₀ =
         ys.get ⟨i.1, hi_lt_len⟩ := by
-      rfl
+      exact Eq.refl _
     _ = explicitFormulaRectangleSortedYEndpointAt T ρ i.1 := by
       exact (explicitFormulaRectangleSortedYEndpointAt_of_lt T ρ hi_lt_len).symm
 
@@ -200,7 +200,7 @@ theorem explicitFormulaRectangleYAdjacentEndpointPairAt_y₁
   calc
     (explicitFormulaRectangleYAdjacentEndpointPairAt T ρ i).y₁ =
         ys.get ⟨i.1 + 1, hi_succ_lt_len⟩ := by
-      rfl
+      exact Eq.refl _
     _ = explicitFormulaRectangleSortedYEndpointAt T ρ (i.1 + 1) := by
       exact (explicitFormulaRectangleSortedYEndpointAt_of_lt T ρ hi_succ_lt_len).symm
 
