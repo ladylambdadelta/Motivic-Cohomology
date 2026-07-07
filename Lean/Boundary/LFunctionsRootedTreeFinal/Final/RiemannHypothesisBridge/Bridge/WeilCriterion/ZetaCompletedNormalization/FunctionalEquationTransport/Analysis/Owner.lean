@@ -21,11 +21,12 @@ theorem Gammaℝ_ne_zero_of_ne_zero_norm_le_one
     {z : ℂ}
     (hz_ne_zero : z ≠ 0)
     (hz_norm : ‖z‖ ≤ 1) :
-    Complex.Gammaℝ z ≠ 0 := by
-  intro hGamma_zero
-  rcases Complex.Gammaℝ_eq_zero_iff.mp hGamma_zero with ⟨n, hz_eq⟩
-  cases n with
-  | zero =>
+    Complex.Gammaℝ z ≠ 0 :=
+  fun hGamma_zero =>
+  match Complex.Gammaℝ_eq_zero_iff.mp hGamma_zero with
+  | ⟨n, hz_eq⟩ =>
+    match n with
+    | Nat.zero =>
       have hz_zero : z = 0 := by
         have hmul_zero : (2 : ℂ) * ((0 : ℕ) : ℂ) = 0 := by
           calc
@@ -39,8 +40,8 @@ theorem Gammaℝ_ne_zero_of_ne_zero_norm_le_one
             exact congrArg Neg.neg hmul_zero
           _ = 0 := by
             exact neg_zero
-      exact hz_ne_zero hz_zero
-  | succ n =>
+      hz_ne_zero hz_zero
+    | Nat.succ n =>
       have hprod_re :
           (2 * ((Nat.succ n : ℕ) : ℂ)).re =
             (2 : ℝ) * (Nat.succ n : ℝ) := by
@@ -114,17 +115,17 @@ theorem Gammaℝ_ne_zero_of_ne_zero_norm_le_one
           (RCLike.abs_re_le_norm z)
       have htwo_le_one : (2 : ℝ) ≤ 1 :=
         le_trans htwo_le_norm hz_norm
-      exact not_lt_of_ge htwo_le_one one_lt_two
+      not_lt_of_ge htwo_le_one one_lt_two
 
 /-- In the punctured unit ball, `z / 2` avoids the poles of `Complex.Gamma`. -/
 theorem Gamma_half_ne_neg_nat_of_ne_zero_norm_le_one
     {z : ℂ}
     (hz_ne_zero : z ≠ 0)
     (hz_norm : ‖z‖ ≤ 1) :
-    ∀ m : ℕ, z / 2 ≠ -m := by
-  intro m hhalf
-  cases m with
-  | zero =>
+    ∀ m : ℕ, z / 2 ≠ -m :=
+  fun m hhalf =>
+  match m with
+  | Nat.zero =>
       have hz_div_zero : z / 2 = 0 := by
         calc
           z / 2 = -((0 : ℕ) : ℂ) := hhalf
@@ -134,8 +135,8 @@ theorem Gamma_half_ne_neg_nat_of_ne_zero_norm_le_one
             exact neg_zero
       have hz_zero : z = 0 := by
         exact div_eq_zero_iff.mp hz_div_zero |>.resolve_right two_ne_zero
-      exact hz_ne_zero hz_zero
-  | succ n =>
+      hz_ne_zero hz_zero
+  | Nat.succ n =>
       have hz_eq :
           z = -(2 * ((Nat.succ n : ℕ) : ℂ)) := by
         calc
@@ -152,7 +153,7 @@ theorem Gamma_half_ne_neg_nat_of_ne_zero_norm_le_one
                 exact congrArg Neg.neg (mul_comm (((Nat.succ n : ℕ) : ℂ)) 2)
       have hGamma_zero : Complex.Gammaℝ z = 0 :=
         Complex.Gammaℝ_eq_zero_iff.mpr ⟨Nat.succ n, hz_eq⟩
-      exact Gammaℝ_ne_zero_of_ne_zero_norm_le_one hz_ne_zero hz_norm hGamma_zero
+      Gammaℝ_ne_zero_of_ne_zero_norm_le_one hz_ne_zero hz_norm hGamma_zero
 
 /-- `Gammaℝ` is continuous in the punctured unit ball. -/
 theorem Gammaℝ_continuousAt_of_ne_zero_norm_le_one
@@ -181,8 +182,8 @@ theorem Gammaℝ_continuousAt_of_re_pos
     ContinuousAt Complex.Gammaℝ z := by
   have hGamma :
       ContinuousAt (fun w : ℂ => Complex.Gamma (w / 2)) z := by
-    have hpoles : ∀ m : ℕ, z / 2 ≠ -m := by
-      intro m hhalf
+    have hpoles : ∀ m : ℕ, z / 2 ≠ -m :=
+      fun m hhalf =>
       have hhalf_re_pos : 0 < (z / 2).re := by
         calc
           0 < z.re / 2 := div_pos hz_re two_pos
@@ -202,7 +203,7 @@ theorem Gammaℝ_continuousAt_of_re_pos
           (motive := fun w : ℂ => w.re ≤ 0)
           hhalf.symm
           hneg_re
-      exact not_le_of_gt hhalf_re_pos hhalf_re_nonpos
+      not_le_of_gt hhalf_re_pos hhalf_re_nonpos
     exact (Complex.differentiableAt_Gamma (z / 2) hpoles).continuousAt.comp
       (x := z)
       (continuousAt_id.div_const (2 : ℂ))
@@ -225,8 +226,17 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_eq_raw_on_n
   have hGamma_ne :
       Complex.Gammaℝ z ≠ 0 :=
     Gammaℝ_ne_zero_of_ne_zero_norm_le_one hz_ne_zero hz_mem.2
-  unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
-  exact Eq.trans (if_neg hz_ne_zero) (if_neg hGamma_ne)
+  have hdef :
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+        if z = 0 then
+          poleClearedRiemannZeta 0
+        else if Complex.Gammaℝ z = 0 then
+          poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z)
+        else
+          ((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) :=
+    rfl
+  exact Eq.trans hdef (Eq.trans (if_neg hz_ne_zero) (if_neg hGamma_ne))
 
 /-- The raw Gamma-ratio branch is continuous at nonzero points of the closed
 left half-unit ball. -/
@@ -240,14 +250,14 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_continu
         ((w - 1) / (((1 : ℂ) - w) - 1)) *
           (Complex.Gammaℝ ((1 : ℂ) - w) / Complex.Gammaℝ w))
       z := by
-  have hden_raw : (((1 : ℂ) - z) - 1) ≠ 0 := by
-    intro hden_zero
+  have hden_raw : (((1 : ℂ) - z) - 1) ≠ 0 :=
+    fun hden_zero =>
     have hneg_zero : -z = 0 := by
       exact Eq.trans
         (show -z = ((1 : ℂ) - z) - 1 by
           exact (sub_sub_cancel_left (1 : ℂ) z).symm)
         hden_zero
-    exact hz_ne_zero (neg_eq_zero.mp hneg_zero)
+    hz_ne_zero (neg_eq_zero.mp hneg_zero)
   have hGamma_z_ne :
       Complex.Gammaℝ z ≠ 0 :=
     Gammaℝ_ne_zero_of_ne_zero_norm_le_one hz_ne_zero hz_mem.2
@@ -402,8 +412,8 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_eq_poleClea
         have hz_mem :
             z ∈
               poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet := hz.2
-        by_cases hz_zero : z = 0
-        · have hM :
+        if hz_zero : z = 0 then
+          have hM :
               poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
                 poleClearedRiemannZeta 0 := by
             exact Eq.subst
@@ -412,8 +422,19 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_eq_poleClea
                   poleClearedRiemannZeta 0)
               hz_zero.symm
               (by
-                unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
-                exact if_pos rfl)
+                have hdef :
+                    poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0 =
+                      if (0 : ℂ) = 0 then
+                        poleClearedRiemannZeta 0
+                      else if Complex.Gammaℝ (0 : ℂ) = 0 then
+                        poleClearedRiemannZeta 0 /
+                          poleClearedRiemannZeta ((1 : ℂ) - (0 : ℂ))
+                      else
+                        (((0 : ℂ) - 1) / (((1 : ℂ) - (0 : ℂ)) - 1)) *
+                          (Complex.Gammaℝ ((1 : ℂ) - (0 : ℂ)) /
+                            Complex.Gammaℝ (0 : ℂ)) :=
+                  rfl
+                exact Eq.trans hdef (if_pos rfl))
           have hsub : (1 : ℂ) - z = 1 := by
             exact Eq.subst
               (motive := fun w : ℂ => (1 : ℂ) - w = 1)
@@ -436,17 +457,30 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_eq_poleClea
             _ = poleClearedRiemannZeta z /
                   poleClearedRiemannZeta ((1 : ℂ) - z) := by
               exact congrArg₂ HDiv.hDiv hnum.symm hden.symm
-        · have hidentity :
+        else
+          have hidentity :
               poleClearedRiemannZeta z =
                 poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
                   poleClearedRiemannZeta ((1 : ℂ) - z) := by
-              by_cases hGamma_zero : Complex.Gammaℝ z = 0
-              · have hM :
+            if hGamma_zero : Complex.Gammaℝ z = 0 then
+              have hM :
                   poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
                     poleClearedRiemannZeta z /
                       poleClearedRiemannZeta ((1 : ℂ) - z) := by
-                  unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
-                  exact Eq.trans (if_neg hz_zero) (if_pos hGamma_zero)
+                have hdef :
+                    poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+                      if z = 0 then
+                        poleClearedRiemannZeta 0
+                      else if Complex.Gammaℝ z = 0 then
+                        poleClearedRiemannZeta z /
+                          poleClearedRiemannZeta ((1 : ℂ) - z)
+                      else
+                        ((z - 1) / (((1 : ℂ) - z) - 1)) *
+                          (Complex.Gammaℝ ((1 : ℂ) - z) /
+                            Complex.Gammaℝ z) :=
+                  rfl
+                exact Eq.trans hdef (Eq.trans (if_neg hz_zero) (if_pos hGamma_zero))
+              exact
                 calc
                   poleClearedRiemannZeta z =
                       (poleClearedRiemannZeta z /
@@ -461,25 +495,38 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_eq_poleClea
                     exact congrArg
                       (fun w : ℂ => w * poleClearedRiemannZeta ((1 : ℂ) - z))
                       hM.symm
-              · have hM :
+            else
+              have hM :
                   poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
                     ((z - 1) / (((1 : ℂ) - z) - 1)) *
                       (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
-                  unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
-                  exact Eq.trans (if_neg hz_zero) (if_neg hGamma_zero)
-                have hquotient :
-                    riemannZeta z =
-                      riemannZeta ((1 : ℂ) - z) *
-                        Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z :=
-                  riemannZeta_completedFunctionalEquation_quotient_of_gamma_ne_zero
-                    hz_mem.1 hz_zero hGamma_zero
-                have hraw :
-                    poleClearedRiemannZeta z =
-                      (((z - 1) / (((1 : ℂ) - z) - 1)) *
-                          (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
-                        poleClearedRiemannZeta ((1 : ℂ) - z) :=
-                  poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_identity_of_zeta_quotient
-                    hz_mem.1 hz_zero hquotient
+                have hdef :
+                    poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+                      if z = 0 then
+                        poleClearedRiemannZeta 0
+                      else if Complex.Gammaℝ z = 0 then
+                        poleClearedRiemannZeta z /
+                          poleClearedRiemannZeta ((1 : ℂ) - z)
+                      else
+                        ((z - 1) / (((1 : ℂ) - z) - 1)) *
+                          (Complex.Gammaℝ ((1 : ℂ) - z) /
+                            Complex.Gammaℝ z) :=
+                  rfl
+                exact Eq.trans hdef (Eq.trans (if_neg hz_zero) (if_neg hGamma_zero))
+              have hquotient :
+                  riemannZeta z =
+                    riemannZeta ((1 : ℂ) - z) *
+                      Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z :=
+                riemannZeta_completedFunctionalEquation_quotient_of_gamma_ne_zero
+                  hz_mem.1 hz_zero hGamma_zero
+              have hraw :
+                  poleClearedRiemannZeta z =
+                    (((z - 1) / (((1 : ℂ) - z) - 1)) *
+                        (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+                      poleClearedRiemannZeta ((1 : ℂ) - z) :=
+                poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_identity_of_zeta_quotient
+                  hz_mem.1 hz_zero hquotient
+              exact
                 calc
                   poleClearedRiemannZeta z =
                       (((z - 1) / (((1 : ℂ) - z) - 1)) *
@@ -563,10 +610,21 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_continuousW
       poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0 =
         poleClearedRiemannZeta 0 / poleClearedRiemannZeta ((1 : ℂ) - (0 : ℂ)) := by
     have hM :
-        poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0 =
-          poleClearedRiemannZeta 0 := by
-      unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
-      exact if_pos rfl
+          poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0 =
+            poleClearedRiemannZeta 0 := by
+      have hdef :
+          poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0 =
+            if (0 : ℂ) = 0 then
+              poleClearedRiemannZeta 0
+            else if Complex.Gammaℝ (0 : ℂ) = 0 then
+              poleClearedRiemannZeta 0 /
+                poleClearedRiemannZeta ((1 : ℂ) - (0 : ℂ))
+            else
+              (((0 : ℂ) - 1) / (((1 : ℂ) - (0 : ℂ)) - 1)) *
+                (Complex.Gammaℝ ((1 : ℂ) - (0 : ℂ)) /
+                  Complex.Gammaℝ (0 : ℂ)) :=
+        rfl
+      exact Eq.trans hdef (if_pos rfl)
     have hden :
         poleClearedRiemannZeta ((1 : ℂ) - (0 : ℂ)) = 1 := by
       have hsub : (1 : ℂ) - (0 : ℂ) = 1 :=
@@ -590,7 +648,7 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_continuousW
 /-- Trivial-zero cancellation for the pole-cleared zeta factor at nonzero
 `Gammaℝ` zero faces in the left half-plane.
 
-This is the standard classical input: `Gammaℝ z = 0` means `z` is a
+This is the standard analytic input: `Gammaℝ z = 0` means `z` is a
 nonpositive even integer; after excluding `0`, these are exactly the negative
 even integers, where `ζ` has its trivial zeros.  The pole-cleared factor has no
 pole at such points, so it vanishes. -/
@@ -600,9 +658,10 @@ theorem poleClearedRiemannZeta_trivialZero_of_gammaZero_leftHalfPlane
     (hz_ne_zero : z ≠ 0)
     (hGamma_zero : Complex.Gammaℝ z = 0) :
     poleClearedRiemannZeta z = 0 := by
-  rcases Complex.Gammaℝ_eq_zero_iff.mp hGamma_zero with ⟨n, hz_eq⟩
-  cases n with
-  | zero =>
+  match Complex.Gammaℝ_eq_zero_iff.mp hGamma_zero with
+  | ⟨n, hz_eq⟩ =>
+    match n with
+    | Nat.zero =>
       have hz_zero : z = 0 := by
         have hmul_zero : (2 : ℂ) * ((0 : ℕ) : ℂ) = 0 := by
           calc
@@ -617,9 +676,9 @@ theorem poleClearedRiemannZeta_trivialZero_of_gammaZero_leftHalfPlane
           _ = 0 := by
             exact neg_zero
       exact False.elim (hz_ne_zero hz_zero)
-  | succ n =>
-      have hz_ne_one : z ≠ 1 := by
-        intro hz_one
+    | Nat.succ n =>
+      have hz_ne_one : z ≠ 1 :=
+        fun hz_one =>
         have hz_re_one : z.re = 1 := by
           calc
             z.re = (1 : ℂ).re := by
@@ -630,7 +689,7 @@ theorem poleClearedRiemannZeta_trivialZero_of_gammaZero_leftHalfPlane
           have hone_le_zre : (1 : ℝ) ≤ z.re :=
             le_of_eq hz_re_one.symm
           le_trans hone_le_zre hz_re
-        exact not_lt_of_ge hone_le_zero zero_lt_one
+        not_lt_of_ge hone_le_zero zero_lt_one
       have hpole :
           poleClearedRiemannZeta z = (z - 1) * riemannZeta z :=
         poleClearedRiemannZeta_eq_of_ne_one hz_ne_one
