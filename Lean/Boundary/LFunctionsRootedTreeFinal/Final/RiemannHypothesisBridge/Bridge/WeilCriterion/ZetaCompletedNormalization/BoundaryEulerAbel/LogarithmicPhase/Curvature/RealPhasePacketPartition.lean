@@ -251,6 +251,20 @@ theorem Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_mem_activ
         a b :=
   (Finset.mem_filter.mp hm).1
 
+/-- The stationary packet-index set is bounded by the full active
+derivative-packet index set. -/
+theorem Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_card_le_active
+    (t : ℝ)
+    (a b : ℕ) :
+    (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b).card ≤
+      (Complex.realPhase_secondDerivative_vdc_activeDerivPackets
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b).card := by
+  exact Finset.card_le_card
+    (fun m hm =>
+      Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_mem_active
+        t hm)
+
 /-- A stationary filtered packet has a negative derivative frequency. -/
 theorem Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_index_neg
     (t : ℝ)
