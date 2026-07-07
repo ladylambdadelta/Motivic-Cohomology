@@ -36,6 +36,23 @@ theorem Complex.logarithmicPhaseRealPhase_stationaryPacketFamilyUnion_card_eq_su
         Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_mem_active
           t hm)
 
+/-- The stationary packet-family sample count is bounded by the ambient
+integer block count. -/
+theorem Complex.logarithmicPhaseRealPhase_stationaryPacketFamilyUnion_card_le_block
+    (t : ℝ)
+    (a b : ℕ) :
+    (Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      a b
+      (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b)).card ≤
+      (Finset.Icc a b).card := by
+  exact
+    Complex.realPhase_secondDerivative_vdc_packetFamilyUnion_card_le_block
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      (fun m hm =>
+        Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_mem_active
+          t hm)
+
 /-- A bound for the stationary packet-family sample union transfers directly
 to the stationary packet contribution. -/
 theorem Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_of_familyUnion
