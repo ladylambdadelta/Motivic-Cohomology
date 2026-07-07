@@ -69,7 +69,7 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIn
     h.height_schedule.eventually_height_pos.mono
       (fun u hu =>
         zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral_eq_localTangentResidueValue_of_pos_height
-          f F h.phi_control hu)
+          f F h hu)
   have hstandard :
       Tendsto S atTop
         (𝓝

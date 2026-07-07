@@ -78,7 +78,7 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPole_eventually_standardBounda
   exact h.height_schedule.eventually_height_pos.mono
     (fun u hu =>
       zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral_eq_localTangentResidueValue_of_pos_height
-        f F h.phi_control hu)
+        f F h hu)
 
 /-- The scheduled orientation defect for the isolated `s = 0` tangent boundary
 tends to zero, using the owner horizontal-edge estimate. -/
@@ -186,7 +186,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduled
         (h.height_schedule.eventually_height_pos.mono
           (fun u hu =>
             zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral_eq_rawCauchy_of_pos_height
-              f F h.phi_control (T := h.height_schedule.height u) hu))
+              f F h (T := h.height_schedule.height u) hu))
         (zetaCompletedExplicitFormulaCorrectionZeroPoleTangentOrientationDefect_tendsto_zero_ownerLeftOffPoleCauchy
           f F h)
         (zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_tendsto_zero_ownerZeroPoleHorizontal
