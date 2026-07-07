@@ -40,7 +40,7 @@ theorem real_integral_Ioc_log_two_add_div_sq_adjacent_split
         ∫ x in (2 : ℝ)..b, f x :=
     (intervalIntegral.integral_of_le htwo_b).symm
   have hleft_cont : ContinuousOn f (Set.uIcc (2 : ℝ) a) := by
-    intro x hx
+    exact fun x hx =>
     have hx_left : (2 : ℝ) ≤ x :=
       real_left_le_of_mem_uIcc_of_le ha hx
     have hx_pos : x ≠ 0 :=
@@ -50,11 +50,10 @@ theorem real_integral_Ioc_log_two_add_div_sq_adjacent_split
         add_pos_of_pos_of_nonneg zero_lt_two
           (le_trans (le_of_lt zero_lt_two) hx_left)
       exact ne_of_gt harg_pos
-    exact
-      (scalarReciprocalDensity_logTwoAdd_div_square_continuousAt
-        hx_pos harg_ne).continuousWithinAt
+    (scalarReciprocalDensity_logTwoAdd_div_square_continuousAt
+      hx_pos harg_ne).continuousWithinAt
   have hright_cont : ContinuousOn f (Set.uIcc a b) := by
-    intro x hx
+    exact fun x hx =>
     have hx_left : a ≤ x :=
       real_left_le_of_mem_uIcc_of_le hab hx
     have hx_pos : x ≠ 0 :=
@@ -64,9 +63,8 @@ theorem real_integral_Ioc_log_two_add_div_sq_adjacent_split
         add_pos_of_pos_of_nonneg zero_lt_two
           (le_trans (le_of_lt zero_lt_two) (le_trans ha hx_left))
       exact ne_of_gt harg_pos
-    exact
-      (scalarReciprocalDensity_logTwoAdd_div_square_continuousAt
-        hx_pos harg_ne).continuousWithinAt
+    (scalarReciprocalDensity_logTwoAdd_div_square_continuousAt
+      hx_pos harg_ne).continuousWithinAt
   have hleft_interval : IntervalIntegrable f volume (2 : ℝ) a :=
     hleft_cont.intervalIntegrable
   have hright_interval : IntervalIntegrable f volume a b :=
@@ -409,7 +407,7 @@ theorem scalarReciprocalDensityMajorant_integral_split_le_components
     Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t)
   have hf_cont : ContinuousOn f
       (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
-    intro x hx
+    exact fun x hx =>
     have hx_pos : x ≠ 0 :=
       ne_of_gt (lt_of_lt_of_le hleft_pos hx.1)
     have harg_ne : 2 + x ≠ 0 := by
@@ -434,10 +432,10 @@ theorem scalarReciprocalDensityMajorant_integral_split_le_components
     have hlog :
         ContinuousAt (fun y : ℝ => Real.log (2 + y)) x :=
       scalarReciprocalDensity_logTwoAdd_continuousAt harg_ne
-    exact (hreciprocal.mul (hweighted.mul hlog)).continuousWithinAt
+    (hreciprocal.mul (hweighted.mul hlog)).continuousWithinAt
   have hg_cont : ContinuousOn g
       (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
-    intro x hx
+    exact fun x hx =>
     have hx_pos : x ≠ 0 :=
       ne_of_gt (lt_of_lt_of_le hleft_pos hx.1)
     have harg_ne : 2 + x ≠ 0 := by
@@ -463,7 +461,7 @@ theorem scalarReciprocalDensityMajorant_integral_split_le_components
               (Real.log (2 + y) / y ^ 2))
           x :=
       continuousAt_const.mul hright_base
-    exact (hleft.add hright).continuousWithinAt
+    (hleft.add hright).continuousWithinAt
   have hf : Integrable f (volume.restrict s) :=
     (ContinuousOn.integrableOn_Icc hf_cont).mono_set Set.Ioc_subset_Icc_self
   have hg : Integrable g (volume.restrict s) :=
@@ -505,8 +503,8 @@ theorem scalarReciprocalDensityMajorant_components_le_endpoint_bound
   have hleft_pos : 0 < (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) :=
     Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t)
   have hf_cont : ContinuousOn (fun x => 8 * f x)
-      (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
-    intro x hx
+      (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)) :=
+    fun x hx =>
     have hx_pos : x ≠ 0 :=
       ne_of_gt (lt_of_lt_of_le hleft_pos hx.1)
     have harg_ne : 2 + x ≠ 0 := by
@@ -514,13 +512,12 @@ theorem scalarReciprocalDensityMajorant_components_le_endpoint_bound
         add_pos_of_pos_of_nonneg zero_lt_two
           (le_of_lt (lt_of_lt_of_le hleft_pos hx.1))
       exact ne_of_gt harg_pos
-    exact
-      (continuousAt_const.mul
-        (scalarReciprocalDensity_logTwoAdd_div_self_continuousAt
-          hx_pos harg_ne)).continuousWithinAt
+    (continuousAt_const.mul
+      (scalarReciprocalDensity_logTwoAdd_div_self_continuousAt
+        hx_pos harg_ne)).continuousWithinAt
   have hg_cont : ContinuousOn (fun x => 8 * S * g x)
-      (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
-    intro x hx
+      (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)) :=
+    fun x hx =>
     have hx_pos : x ≠ 0 :=
       ne_of_gt (lt_of_lt_of_le hleft_pos hx.1)
     have harg_ne : 2 + x ≠ 0 := by
@@ -534,7 +531,7 @@ theorem scalarReciprocalDensityMajorant_components_le_endpoint_bound
           x :=
       scalarReciprocalDensity_logTwoAdd_div_square_continuousAt
         hx_pos harg_ne
-    exact (continuousAt_const.mul hbase).continuousWithinAt
+    (continuousAt_const.mul hbase).continuousWithinAt
   have hf : Integrable (fun x => 8 * f x) (volume.restrict s) :=
     (ContinuousOn.integrableOn_Icc hf_cont).mono_set Set.Ioc_subset_Icc_self
   have hg : Integrable (fun x => 8 * S * g x) (volume.restrict s) :=
