@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseIntervalReduction
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseLongBudgetArithmetic
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhasePacketCurvature
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhasePacketReconstruction
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseStationaryInterval
@@ -324,23 +325,11 @@ theorem Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_twenty
         10 * E :=
     Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_of_familyUnion
       t hfamily
-  have hten_le_twenty : 10 * E ≤ 20 * E := by
-    have hconst : (10 : ℝ) ≤ 20 := by
-      have hten_nonneg : 0 ≤ (10 : ℝ) :=
-        Nat.cast_nonneg 10
-      calc
-        (10 : ℝ) ≤ 10 + 10 :=
-          le_add_of_nonneg_right hten_nonneg
-        _ = 20 := by
-          have hnat : (10 + 10 : ℕ) = 20 :=
-            rfl
-          exact Eq.trans
-            (Nat.cast_add 10 10).symm
-            (Eq.trans
-              (congrArg (fun n : ℕ => (n : ℝ)) hnat)
-              Nat.cast_ofNat)
-    exact mul_le_mul_of_nonneg_right hconst
-      (Real.logarithmicPhase_endpoint_sqrt_target_nonneg t ht b)
+  have hE_nonneg :
+      0 ≤ E :=
+    Real.logarithmicPhase_endpoint_sqrt_target_nonneg t ht b
+  have hten_le_twenty : 10 * E ≤ 20 * E :=
+    Real.logarithmicPhase_ten_target_le_twenty hE_nonneg
   exact le_trans hpacket hten_le_twenty
 
 end
