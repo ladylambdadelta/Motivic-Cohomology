@@ -25,20 +25,24 @@ open Complex Filter MeasureTheory
 
 namespace LogSpaceConjugacy
 
+abbrev PositiveReal : Type := {x : ℝ // 0 < x}
+
 -- Helper lemmas for change-of-variables
 
 /-- Sublemma: The exponential map from ℝ to ℝ₊ (substitution t ↦ exp(t)) -/
-def expSubstitutionMap : ℝ → ℝ₊ := fun t => ⟨Real.exp t, Real.exp_pos t⟩
+def expSubstitutionMap : ℝ → PositiveReal := fun t => ⟨Real.exp t, Real.exp_pos t⟩
 
 /-- Sublemma: exp(t)^(s-1) * exp(t) = exp(t)^s via cpow_add -/
-lemma cpow_mul_one_eq_cpow_add (t : ℝ) (s : ℂ) (ht : (t : ℂ) ≠ 0) :
-    ((t : ℂ) ^ (s - 1)) * ((t : ℂ)) = (t : ℂ) ^ s := by
-  calc ((t : ℂ) ^ (s - 1)) * ((t : ℂ))
-      = ((t : ℂ) ^ (s - 1)) * ((t : ℂ) ^ 1) := by exact congr_arg (fun x => ((t : ℂ) ^ (s - 1)) * x) (cpow_one t).symm
-    _ = ((t : ℂ) ^ (s - 1 + 1)) := by apply cpow_add; exact ht
-    _ = ((t : ℂ) ^ s) := by
+lemma cpow_mul_one_eq_cpow_add (z : ℂ) (s : ℂ) (hz : z ≠ 0) :
+    (z ^ (s - 1)) * z = z ^ s := by
+  calc
+    (z ^ (s - 1)) * z = (z ^ (s - 1)) * (z ^ (1 : ℂ)) := by
+      exact congrArg (fun x : ℂ => (z ^ (s - 1)) * x) (cpow_one z).symm
+    _ = z ^ (s - 1 + 1) := by
+      exact (cpow_add (x := z) (s - 1) 1 hz).symm
+    _ = z ^ s := by
       have hsub_add : (s - 1 + 1 : ℂ) = s := sub_add_cancel s 1
-      exact congr_arg (fun x => (t : ℂ) ^ x) hsub_add
+      exact congrArg (fun x : ℂ => z ^ x) hsub_add
 
 /-- Helper: Real.log(Real.exp(t)) = t for all t -/
 lemma log_exp_eq_self (t : ℝ) : Real.log (Real.exp t) = t :=
@@ -46,19 +50,19 @@ lemma log_exp_eq_self (t : ℝ) : Real.log (Real.exp t) = t :=
 
 /-- Helper: exp(t) ≠ 0 for any t -/
 lemma exp_ne_zero' (t : ℝ) : (Real.exp t : ℂ) ≠ 0 :=
-  Complex.exp_ne_zero _
+  Complex.ofReal_ne_zero.mpr (Real.exp_ne_zero t)
 
 -- Core coordinate-change definitions
 
 /-- Lift a function on ℝ₊ to ℝ via exponential map: g(t) = f(exp(t)).
 This converts ℝ₊ functions to ℝ functions while preserving integrability structure.
 -/
-def toLogSpace (f : ℝ₊ → ℂ) : (ℝ → ℂ) := fun t => f ⟨Real.exp t, Real.exp_pos t⟩
+def toLogSpace (f : PositiveReal → ℂ) : ℝ → ℂ := fun t => f ⟨Real.exp t, Real.exp_pos t⟩
 
 /-- Project a function on ℝ back to ℝ₊ via logarithm: f(x) = g(log(x)).
 Inverse of toLogSpace for the positive-reals domain.
 -/
-def fromLogSpace (g : ℝ → ℂ) : (ℝ₊ → ℂ) := fun ⟨x, hx⟩ => g (Real.log x)
+def fromLogSpace (g : ℝ → ℂ) : PositiveReal → ℂ := fun x => g (Real.log x.1)
 
 /-- A function is conjugate-symmetric in log-space if g(t) = star(g(-t)) for all t ∈ ℝ.
 This is the natural conjugacy property on the full real line.
@@ -96,12 +100,12 @@ When x = exp(t), the Jacobian gives x^(s-1) dx = exp(t)^s dt
 lemma integral_exp_power_substitution_eq
     (t : ℝ) (s : ℂ) :
     ((Real.exp t : ℂ) ^ (s - 1)) * ((Real.exp t : ℂ)) = ((Real.exp t : ℂ) ^ s) :=
-  cpow_mul_one_eq_cpow_add t s (exp_ne_zero' t)
+  cpow_mul_one_eq_cpow_add (Real.exp t : ℂ) s (exp_ne_zero' t)
 
 /-- Sublemma: Logarithm cancels exponential in substitution
 Used to simplify exp(s * log(exp(t))) = exp(s * t)
 -/
-lemma mellin_log_exp_cancel (t : ℝ) (s : ℂ) :
+lemma mellin_log_exp_cancel (t : ℝ) (_s : ℂ) :
     (Real.log (Real.exp t) : ℂ) = t := by
   exact congrArg (fun x : ℝ => (x : ℂ)) (Real.log_exp t)
 
@@ -112,43 +116,39 @@ lemma isLogConjugateSymmetric_of_real_valued_even
     IsLogConjugateSymmetric g := by
   intro t
   have hstar : g (-t) = star (g (-t)) := by
-    apply Complex.ext
-    · exact (Complex.star_re (g (-t))).symm
-    · calc
+    exact
+      Complex.ext
+        (Complex.conj_re (g (-t))).symm
+        (calc
         (g (-t)).im = 0 := hg (-t)
         _ = -0 := Eq.symm (neg_zero : -(0 : ℝ) = 0)
         _ = -(g (-t)).im := congrArg Neg.neg (hg (-t)).symm
-        _ = (star (g (-t))).im := (Complex.star_im (g (-t))).symm
+        _ = (star (g (-t))).im := (Complex.conj_im (g (-t))).symm)
   exact Eq.trans (heven t) hstar
 
 /-- Sublemma: Conjugate equivalence in log-space conjugacy -/
 lemma star_eq_via_conjugacy
-    (g : ℝ → ℂ) (hg_conj : IsLogConjugateSymmetric g) (t : ℝ) :
-    star (star (g t)) = g t := (star_star _).symm
+    (g : ℝ → ℂ) (_hg_conj : IsLogConjugateSymmetric g) (t : ℝ) :
+    star (star (g t)) = g t := star_star (g t)
 
 /-- Sublemma: Conjugacy from negation equivalence -/
 lemma conj_from_neg_eq
     (g : ℝ → ℂ) (hg_conj : IsLogConjugateSymmetric g) (t : ℝ) :
     g t = star (g (-t)) := hg_conj t
 
-/-- Pointwise conjugation preserves integrability on positive reals. -/
-lemma integrableOn_conjugate_of_integrableOn_logSpace
-    (g : ℝ → ℂ)
-    (hg : IntegrableOn g (Set.Ioi 0)) :
-    IntegrableOn (fun t : ℝ => star (g t)) (Set.Ioi 0) := by
-  exact hg.conj
-
 /-- Sublemma: Simplify exp(s * log(exp(t))) = exp(s * t) -/
 lemma mellin_exp_log_simplify (s : ℂ) (t : ℝ) :
     Complex.exp (s * (Real.log (Real.exp t) : ℂ)) = Complex.exp (s * t) := by
-  congr 1
-  exact mellin_log_exp_cancel t s
+  exact
+    congrArg
+      Complex.exp
+      (congrArg (fun x : ℂ => s * x) (mellin_log_exp_cancel t s))
 
 /-- Sublemma: Exponentials are reciprocals under negation -/
 lemma exp_reciprocal_under_neg (t : ℝ) : Real.exp t * Real.exp (-t) = 1 := by
   calc Real.exp t * Real.exp (-t)
       = Real.exp (t + (-t)) := by exact (Real.exp_add t (-t)).symm
-    _ = Real.exp 0 := by exact congr_arg Real.exp (add_neg_self t)
+    _ = Real.exp 0 := by exact congrArg Real.exp (add_neg_cancel t)
     _ = 1 := Real.exp_zero
 
 /-- Conjugacy is preserved through log-space lift and projection.
@@ -156,14 +156,27 @@ If f: ℝ₊ → ℂ is conjugate-symmetric in the sense that f(-x) = star(f(x))
 then g(t) = f(exp(t)) satisfies IsLogConjugateSymmetric.
 -/
 lemma logSpace_conjugacy_from_extension
-    (f : ℝ₊ → ℂ) (hf : ∀ x y : ℝ₊, x.val * y.val = 1 → f y = star (f x)) :
+    (f : PositiveReal → ℂ) (hf : ∀ x y : PositiveReal, x.val * y.val = 1 → f y = star (f x)) :
     IsLogConjugateSymmetric (toLogSpace f) := by
   intro t
-  unfold toLogSpace IsLogConjugateSymmetric
-  have h_reciprocal := exp_reciprocal_under_neg t
-  exact hf ⟨Real.exp t, Real.exp_pos t⟩ ⟨Real.exp (-t), Real.exp_pos (-t)⟩ h_reciprocal
+  have h_reciprocal_forward := exp_reciprocal_under_neg t
+  have h_reciprocal_reverse :
+      Real.exp (-t) * Real.exp t = 1 :=
+    Eq.trans
+      (mul_comm (Real.exp (-t)) (Real.exp t))
+      h_reciprocal_forward
+  show
+    f ⟨Real.exp t, Real.exp_pos t⟩ =
+      star (f ⟨Real.exp (-t), Real.exp_pos (-t)⟩)
+  exact
+    (hf
+      ⟨Real.exp (-t), Real.exp_pos (-t)⟩
+      ⟨Real.exp t, Real.exp_pos t⟩
+      h_reciprocal_reverse)
 
 end LogSpaceConjugacy
+
+end
 
 end LFunctions
 end Boundary

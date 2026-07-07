@@ -51,9 +51,12 @@ lemma verticalContourDecomposition
     K (-star ((σ : ℂ) + t * I)) * φ (-star ((σ : ℂ) + t * I))
         = star (K ((σ : ℂ) + t * I)) *
             star (φ ((σ : ℂ) + t * I)) := by
-          exact congrArg₂ HMul.hMul h_K h_φ
+          exact congrArg₂ (fun x y : ℂ => x * y) h_K h_φ
     _ = star (K ((σ : ℂ) + t * I) * φ ((σ : ℂ) + t * I)) := by
-          exact (star_mul _ _).symm
+          exact
+            (star_mul'
+              (K ((σ : ℂ) + t * I))
+              (φ ((σ : ℂ) + t * I))).symm
 
 /-- Contour integrals of conjugate-symmetric kernels and transforms produce
 conjugate-symmetric contributions. -/
@@ -75,16 +78,17 @@ theorem contourIntegral_conjugateSymmetry
       star (K ((σ : ℂ) + t * I) * φ ((σ : ℂ) + t * I)) := h_decomp
 
   calc (∫ t : ℝ in Set.Icc (-T) T,
-        K (-star ((σ : ℂ) + t * I)) * φ (-star ((σ : ℂ) + t * I)) : ℂ)
+    K (-star ((σ : ℂ) + t * I)) * φ (-star ((σ : ℂ) + t * I)) : ℂ)
       = ∫ t : ℝ in Set.Icc (-T) T,
           star (K ((σ : ℂ) + t * I) * φ ((σ : ℂ) + t * I)) := by
-          apply integral_congr_ae
-          exact Filter.Eventually.of_forall h_integral
+          exact integral_congr_ae (Filter.Eventually.of_forall h_integral)
     _ = star (∫ t : ℝ in Set.Icc (-T) T,
         K ((σ : ℂ) + t * I) * φ ((σ : ℂ) + t * I)) := by
           exact integral_conj
 
 end ContourIntegralDecomposition
+
+end
 
 end LFunctions
 end Boundary

@@ -32,15 +32,15 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleRectangleBoundaryIntegral_
       atTop
       (𝓝 K) := by
   have hevent :
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionZeroPoleRectangleBoundaryIntegral
-          f F (h.height_schedule.height u)) =
-       ᶠ[atTop]
-      (fun _u : ℝ => K) := by
+      Filter.EventuallyEq atTop
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleRectangleBoundaryIntegral
+            f F (h.height_schedule.height u))
+        (fun _u : ℝ => K) := by
     exact h.height_schedule.eventually_height_pos.mono
       (fun u hu =>
         hpositive (h.height_schedule.height u) hu)
-  exact hevent.tendsto_iff.2 tendsto_const_nhds
+  exact (tendsto_congr' hevent).2 tendsto_const_nhds
 
 /-- Positive-height finite Cauchy equality for the `s = 0` rectangle boundary gives
 the scheduled centered boundary-residue limit. -/
@@ -161,10 +161,8 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tend
   have htarget :
       (0 - 0 : ℂ) + K = K := by
     calc
-      (0 - 0 : ℂ) + K = (0 + -0 : ℂ) + K := by
-        exact congrArg (fun z : ℂ => z + K) (sub_eq_add_neg 0 0)
-      _ = (0 : ℂ) + K := by
-        exact congrArg (fun z : ℂ => (0 + z : ℂ) + K) (neg_zero : -(0 : ℂ) = 0)
+      (0 - 0 : ℂ) + K = (0 : ℂ) + K := by
+        exact congrArg (fun z : ℂ => z + K) (sub_self (0 : ℂ))
       _ = K := by
         exact zero_add K
   exact Eq.subst
