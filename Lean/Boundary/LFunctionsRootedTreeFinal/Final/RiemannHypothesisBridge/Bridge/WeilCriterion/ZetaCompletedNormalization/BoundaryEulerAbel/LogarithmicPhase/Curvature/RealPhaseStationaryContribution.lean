@@ -332,6 +332,29 @@ theorem Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_twenty
     Real.logarithmicPhase_ten_target_le_twenty hE_nonneg
   exact le_trans hpacket hten_le_twenty
 
+/-- A twentieth-budget stationary sample-union estimate gives a
+twentieth-budget stationary packet contribution estimate. -/
+theorem Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_twentyTarget_of_familyUnion_twenty
+    (t : ℝ)
+    {a b : ℕ}
+    (hfamily :
+      ‖∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b
+          (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b),
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+      20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_of_familyUnion
+      t hfamily
+
 end
 
 end LFunctions
