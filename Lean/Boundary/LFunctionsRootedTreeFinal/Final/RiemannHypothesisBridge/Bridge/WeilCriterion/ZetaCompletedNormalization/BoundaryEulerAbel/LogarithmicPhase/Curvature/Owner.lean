@@ -265,6 +265,80 @@ theorem Complex.logarithmicPhase_curvature_integer_block_bound_of_stationaryFami
     Complex.logarithmicPhase_curvature_integer_block_bound_of_long_nonneg
       t ht ha hab hlong_nonneg
 
+/-- Concrete logarithmic curvature block estimate from uniform closed
+subinterval twentieth-budget estimates on every long positive subblock. -/
+theorem Complex.logarithmicPhase_curvature_integer_block_bound_of_Icc_bounds
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hIcc :
+      ∀ u : ℝ,
+        0 ≤ u →
+          1 ≤ ‖u‖ →
+            ∀ {c d : ℕ},
+              1 ≤ c →
+                c ≤ d →
+                  c < d →
+                    Real.sqrt (1 + ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    (((d + 1 : ℕ) : ℝ) / ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    ∀ {q r : ℕ},
+                      c ≤ q →
+                        q ≤ r →
+                          r ≤ d →
+                            ‖∑ n ∈ Finset.Icc q r,
+                              Complex.exp
+                                (Complex.I *
+                                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                                    u n : ℂ))‖ ≤
+                              20 * ((((d + 1 : ℕ) : ℝ) / ‖u‖ +
+                                Real.sqrt (1 + ‖u‖)))) :
+    ‖∑ n ∈ Finset.Icc a b,
+      ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
+  have hlong_nonneg :
+      ∀ u : ℝ,
+        0 ≤ u →
+          1 ≤ ‖u‖ →
+            ∀ {c d : ℕ},
+              1 ≤ c →
+                c ≤ d →
+                  c < d →
+                    Real.sqrt (1 + ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    (((d + 1 : ℕ) : ℝ) / ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    ‖∑ n ∈ Finset.Icc c d,
+                      Complex.exp
+                        (Complex.I *
+                          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                            u n : ℂ))‖ ≤
+                      80 * ((((d + 1 : ℕ) : ℝ) / ‖u‖ +
+                        Real.sqrt (1 + ‖u‖))) :=
+    fun u hu_nonneg hu_ht {c d} hc hd hcd_strict hlong_sqrt hlong_endpoint =>
+      Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_Icc_bounds
+        (t := u)
+        (ht_nonneg := hu_nonneg)
+        (ht := hu_ht)
+        (a := c)
+        (b := d)
+        (ha := hc)
+        (hab := hd)
+        (_hab_strict := hcd_strict)
+        (_hlong_sqrt := hlong_sqrt)
+        (_hlong_endpoint := hlong_endpoint)
+        (fun {q r} hcq hqr hrd =>
+          hIcc
+            u hu_nonneg hu_ht (c := c) (d := d)
+            hc hd hcd_strict hlong_sqrt hlong_endpoint hcq hqr hrd)
+  exact
+    Complex.logarithmicPhase_curvature_integer_block_bound_of_long_nonneg
+      t ht ha hab hlong_nonneg
+
 /-- Concrete logarithmic curvature block estimate from stationary-family
 control and endpoint first-derivative data on every long positive subblock. -/
 theorem Complex.logarithmicPhase_curvature_integer_block_bound_of_stationaryFamily_endpoint_firstDerivative_data
