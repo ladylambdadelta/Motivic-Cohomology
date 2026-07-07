@@ -108,6 +108,28 @@ theorem Complex.realPhase_secondDerivative_vdc_packetFamilyUnion_sum_eq_packetSu
       (Complex.realPhase_secondDerivative_vdc_packetFamily_pairwiseDisjoint
         φ hpackets)
 
+/-- The sample sum over an active packet-family union is bounded by the sample
+count of that union. -/
+theorem Complex.realPhase_secondDerivative_vdc_packetFamilyUnion_norm_le_card
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {packets : Finset ℤ} :
+    ‖∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b packets,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+      ((Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b packets).card :
+        ℝ) := by
+  have hunit :
+      ∀ n : ℕ,
+        n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b packets →
+          ‖Complex.exp (Complex.I * (φ n : ℂ))‖ ≤ 1 := by
+    intro n hn
+    exact le_of_eq (Complex.realPhase_exp_I_norm φ n)
+  exact
+    Complex.finite_sum_norm_le_card_of_norm_le_one
+      (Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b packets)
+      (fun n : ℕ => Complex.exp (Complex.I * (φ n : ℂ)))
+      hunit
+
 end
 
 end LFunctions
