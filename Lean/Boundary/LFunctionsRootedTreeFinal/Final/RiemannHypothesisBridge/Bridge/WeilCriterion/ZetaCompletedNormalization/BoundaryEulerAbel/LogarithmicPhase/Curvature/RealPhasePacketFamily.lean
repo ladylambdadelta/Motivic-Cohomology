@@ -38,6 +38,22 @@ theorem Complex.realPhase_secondDerivative_vdc_packetFamily_pairwiseDisjoint
     Complex.realPhase_secondDerivative_vdc_activeDerivPackets_pairwiseDisjoint
       φ a b m₁ (hpackets hm₁) m₂ (hpackets hm₂) hne
 
+/-- The sample count of a disjoint active packet family is the sum of its
+individual packet counts. -/
+theorem Complex.realPhase_secondDerivative_vdc_packetFamilyUnion_card_eq_sum_cards
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {packets : Finset ℤ}
+    (hpackets :
+      packets ⊆ Complex.realPhase_secondDerivative_vdc_activeDerivPackets φ a b) :
+    (Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b packets).card =
+      ∑ m ∈ packets,
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).card := by
+  exact
+    Finset.card_biUnion
+      (Complex.realPhase_secondDerivative_vdc_packetFamily_pairwiseDisjoint
+        φ hpackets)
+
 /-- The sum over a packet family expands exactly as the sample sum over its
 sample union. -/
 theorem Complex.realPhase_secondDerivative_vdc_packetFamilyUnion_sum_eq_packetSums
