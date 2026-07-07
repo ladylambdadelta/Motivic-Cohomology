@@ -130,6 +130,32 @@ theorem Complex.realPhase_secondDerivative_vdc_packetFamilyUnion_norm_le_card
       (fun n : ℕ => Complex.exp (Complex.I * (φ n : ℂ)))
       hunit
 
+/-- The sample sum over an active packet-family union is bounded by the
+ambient integer block count. -/
+theorem Complex.realPhase_secondDerivative_vdc_packetFamilyUnion_norm_le_block_card
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {packets : Finset ℤ}
+    (hpackets :
+      packets ⊆ Complex.realPhase_secondDerivative_vdc_activeDerivPackets φ a b) :
+    ‖∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b packets,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+      ((Finset.Icc a b).card : ℝ) := by
+  have hnorm :
+      ‖∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b packets,
+        Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+        ((Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+          φ a b packets).card : ℝ) :=
+    Complex.realPhase_secondDerivative_vdc_packetFamilyUnion_norm_le_card φ
+  have hcard :
+      ((Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+        φ a b packets).card : ℝ) ≤
+        ((Finset.Icc a b).card : ℝ) :=
+    Nat.cast_le.mpr
+      (Complex.realPhase_secondDerivative_vdc_packetFamilyUnion_card_le_block
+        φ hpackets)
+  exact le_trans hnorm hcard
+
 end
 
 end LFunctions
