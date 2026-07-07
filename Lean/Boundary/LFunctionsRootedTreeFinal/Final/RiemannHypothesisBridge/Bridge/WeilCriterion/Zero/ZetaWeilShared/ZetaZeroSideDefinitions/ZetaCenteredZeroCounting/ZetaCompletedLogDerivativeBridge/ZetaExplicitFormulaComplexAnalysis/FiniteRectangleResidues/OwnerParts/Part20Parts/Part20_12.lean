@@ -36,35 +36,29 @@ theorem explicitFormulaRectangleSelectedVerticalEdgeCoordinatesOfFixedY_integral
             b ∈ explicitFormulaRectangleRawSingularCoordinates T →
               a ≠ b → ρ + ρ < dist a b)
     (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ) :
-    explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegralSum f
-        (explicitFormulaRectangleSelectedRightEdgeCoordinatesOfFixedY
-          (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-          ypair) -
-      explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegralSum f
-        (explicitFormulaRectangleSelectedLeftEdgeCoordinatesOfFixedY
-          (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-          ypair) =
+    explicitFormulaRectangleListSum
+        (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
+          if _homit :
+              explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+            explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+              f ((ypair.y₀, ypair.y₁), xpair.x₁)
+          else
+            0)
+        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ) -
+      explicitFormulaRectangleListSum
+        (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
+          if _homit :
+              explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+            explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
+              f ((ypair.y₀, ypair.y₁), xpair.x₀)
+          else
+            0)
+        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ) =
       explicitFormulaRectangleVerticalOuterSliceContribution f F T ypair -
         explicitFormulaRectangleVerticalHoleSliceContribution f T ρ ypair := by
-  let xpairs : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ) :=
-    explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ
-  have hcoords :
-      explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegralSum f
-          (explicitFormulaRectangleSelectedRightEdgeCoordinatesOfFixedY xpairs ypair) -
-        explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegralSum f
-          (explicitFormulaRectangleSelectedLeftEdgeCoordinatesOfFixedY xpairs ypair) =
-        explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution
-          f xpairs ypair :=
-    explicitFormulaRectangleSelectedVerticalEdgeCoordinatesOfFixedY_integralSum_eq_columnContribution
-      f F ypair
-  have hcolumn :
-      explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution
-          f xpairs ypair =
-        explicitFormulaRectangleVerticalOuterSliceContribution f F T ypair -
-          explicitFormulaRectangleVerticalHoleSliceContribution f T ρ ypair :=
+  exact
     explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution_eq_outerSlice_sub_holeSlice
       f F hT_nonneg hρ hclosed hsep ypair
-  exact Eq.trans hcoords hcolumn
 
 /-- The local outer vertical slices over the sorted vertical subdivision assemble to the
 oriented outer vertical side sum. -/
@@ -109,7 +103,7 @@ theorem explicitFormulaRectangleVerticalOuterSliceContributionSum_eq_outerSideSu
         explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
           f ((ypair.y₀, ypair.y₁), 1 - F.c))
       ypairs
-  have hright :
+  have hrightEq :
       explicitFormulaRectangleListSum
           (fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
             explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
@@ -118,7 +112,7 @@ theorem explicitFormulaRectangleVerticalOuterSliceContributionSum_eq_outerSideSu
         zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) * Complex.I :=
     explicitFormulaRectangleVerticalOuterRightSliceContributionSum_eq_outerRightSide
       f F hT_nonneg hρ hclosed hright hleft
-  have hleft :
+  have hleftEq :
       explicitFormulaRectangleListSum
           (fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
             explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
@@ -158,17 +152,17 @@ theorem explicitFormulaRectangleVerticalOuterSliceContributionSum_eq_outerSideSu
                 explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
                   f ((ypair.y₀, ypair.y₁), 1 - F.c))
               ypairs)
-        hright
+        hrightEq
     _ =
         zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) * Complex.I -
           zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) * Complex.I := by
       exact congrArg
         (fun z : ℂ =>
           zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) * Complex.I - z)
-        hleft
+        hleftEq
     _ =
         explicitFormulaRectangleSelectedBoxCoordinatesVerticalOuterSideSum f F T := by
-      rfl
+      exact Eq.refl _
 
 /-- The local raw square-hole vertical slices over the sorted vertical subdivision
 assemble to the grouped raw square-hole vertical side sum. -/
@@ -291,7 +285,7 @@ theorem explicitFormulaRectangleVerticalHoleSliceContributionSum_eq_holeSideSum
         hleft
     _ =
         explicitFormulaRectangleSelectedBoxCoordinatesVerticalHoleSideSum f T ρ := by
-      rfl
+      exact Eq.refl _
 
 /-- The recursive vertical column-contribution sum is the recursive list sum over its
 fixed-column contributions. -/
@@ -308,7 +302,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContributionSu
               f xpairs ypair)
           ypairs
   | [] => by
-      rfl
+      exact Eq.refl _
   | ypair :: rest => by
       have htail :
           explicitFormulaRectangleSelectedEndpointDataVerticalColumnContributionSum
@@ -327,7 +321,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContributionSu
                 f xpairs ypair +
               explicitFormulaRectangleSelectedEndpointDataVerticalColumnContributionSum
                 f xpairs rest := by
-          rfl
+          exact Eq.refl _
         _ =
             explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution
                 f xpairs ypair +
@@ -347,9 +341,7 @@ theorem explicitFormulaRectangleSelectedEndpointDataVerticalColumnContributionSu
                 explicitFormulaRectangleSelectedEndpointDataVerticalColumnContribution
                   f xpairs ypair)
               (ypair :: rest) := by
-          rfl
-
-/-- Outer horizontal contribution carried by one sorted horizontal slice. -/
+          exact Eq.refl _
 
 end ZetaAdmissibleFunction
 
