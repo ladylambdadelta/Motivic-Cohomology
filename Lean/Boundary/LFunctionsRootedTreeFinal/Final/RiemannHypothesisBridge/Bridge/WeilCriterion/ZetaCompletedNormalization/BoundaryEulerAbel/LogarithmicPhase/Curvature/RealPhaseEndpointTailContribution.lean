@@ -278,6 +278,107 @@ theorem Complex.logarithmicPhaseRealPhase_endpointFarRightPacketContribution_le_
     Complex.logarithmicPhaseRealPhase_endpointFarRightPacketContribution_le_twentyTarget_of_pointwise
       t ht ht_nonneg ha hpoint
 
+/-- A left reciprocal-scale cut cardinality bound gives the full left
+endpoint-tail contribution bound. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointLeftPacketContribution_le_twentyTarget_of_scaleCut
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hscale :
+      (((Finset.Icc a b).filter
+        (fun n : ℕ =>
+          ‖t‖ / (a : ℝ) - (1 / 2 : ℝ) < ‖t‖ / (n : ℝ))).card :
+          ℝ) ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+      20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  have hcard :
+      ∀ m : ℤ,
+        m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b →
+          ((Complex.realPhase_secondDerivative_vdc_derivPacket
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b m).card : ℝ) ≤
+          20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+    fun m hm =>
+      have hpacket_nat :
+          (Complex.realPhase_secondDerivative_vdc_derivPacket
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b m).card ≤
+          ((Finset.Icc a b).filter
+            (fun n : ℕ =>
+              ‖t‖ / (a : ℝ) - (1 / 2 : ℝ) < ‖t‖ / (n : ℝ))).card :=
+        Complex.logarithmicPhaseRealPhase_endpointLeftDerivPacket_card_le_scaleCut
+          t ht ht_nonneg ha hm
+      have hpacket_real :
+          ((Complex.realPhase_secondDerivative_vdc_derivPacket
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b m).card : ℝ) ≤
+          (((Finset.Icc a b).filter
+            (fun n : ℕ =>
+              ‖t‖ / (a : ℝ) - (1 / 2 : ℝ) < ‖t‖ / (n : ℝ))).card : ℝ) :=
+        Nat.cast_le.mpr hpacket_nat
+      le_trans hpacket_real hscale
+  exact
+    Complex.logarithmicPhaseRealPhase_endpointLeftPacketContribution_le_twentyTarget_of_card
+      t ht ht_nonneg ha hcard
+
+/-- A far-right reciprocal-scale cut cardinality bound gives the full
+far-right endpoint-tail contribution bound. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointFarRightPacketContribution_le_twentyTarget_of_scaleCut
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hscale :
+      (((Finset.Icc a b).filter
+        (fun n : ℕ =>
+          ‖t‖ / (n : ℝ) <
+            ‖t‖ / (((b + 1 : ℕ) : ℝ)) + (1 / 2 : ℝ))).card :
+          ℝ) ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+      20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  have hcard :
+      ∀ m : ℤ,
+        m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b →
+          ((Complex.realPhase_secondDerivative_vdc_derivPacket
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b m).card : ℝ) ≤
+          20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+    fun m hm =>
+      have hpacket_nat :
+          (Complex.realPhase_secondDerivative_vdc_derivPacket
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b m).card ≤
+          ((Finset.Icc a b).filter
+            (fun n : ℕ =>
+              ‖t‖ / (n : ℝ) <
+                ‖t‖ / (((b + 1 : ℕ) : ℝ)) + (1 / 2 : ℝ))).card :=
+        Complex.logarithmicPhaseRealPhase_endpointFarRightDerivPacket_card_le_scaleCut
+          t ht_nonneg ha hm
+      have hpacket_real :
+          ((Complex.realPhase_secondDerivative_vdc_derivPacket
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b m).card : ℝ) ≤
+          (((Finset.Icc a b).filter
+            (fun n : ℕ =>
+              ‖t‖ / (n : ℝ) <
+                ‖t‖ / (((b + 1 : ℕ) : ℝ)) + (1 / 2 : ℝ))).card : ℝ) :=
+        Nat.cast_le.mpr hpacket_nat
+      le_trans hpacket_real hscale
+  exact
+    Complex.logarithmicPhaseRealPhase_endpointFarRightPacketContribution_le_twentyTarget_of_card
+      t ht ht_nonneg ha hcard
+
 /-- The left endpoint-tail contribution is controlled once every closed
 initial subinterval has the endpoint first-derivative budget. -/
 theorem Complex.logarithmicPhaseRealPhase_endpointLeftPacketContribution_le_twentyTarget_of_Icc_bounds
