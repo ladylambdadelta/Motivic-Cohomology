@@ -1,13 +1,12 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleLeftOffPoleAffineTransport
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleLeftOffPoleCauchyValue
 
 /-!
 # Left zero-pole off-pole affine value
 
-This file owns the off-pole affine value theorem for the left face of the
-isolated `s = 0` correction pole.  The analytic leaf is the scheduled
-Cauchy/Laplace value; the whole-line value is the corresponding exhaustion
-transport.
+This file owns the acyclic affine-window transport for the left face of the
+isolated `s = 0` correction pole.  The analytic Cauchy/Laplace leaf lives
+downstream; this file only turns that scheduled oscillatory value into the
+named affine-window and whole-line formulations.
 -/
 
 namespace Boundary
@@ -63,38 +62,6 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduled
       hfun
       hoscillatory
 
-/-- Compatibility wrapper: scheduled off-pole Cauchy/Laplace value of the left
-`s = 0` correction affine kernel.
-
-The analytic leaf is
-`zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_ownerLeftOffPoleCauchy`.
-This theorem only transports that scheduled oscillatory value to the named
-affine-kernel window formulation used by exhaustion wrappers. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_zero_ownerLeftOffPoleAffineValue
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    Tendsto
-      (fun u : ℝ =>
-        ∫ t in Set.Icc
-            (-(F.rectangle (h.height_schedule.height u)).T)
-            (F.rectangle (h.height_schedule.height u)).T,
-          zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F t)
-      atTop
-      (𝓝 0) := by
-  have hoscillatory :
-      Tendsto
-        (fun u : ℝ =>
-          zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral
-            f F h u)
-        atTop
-        (𝓝 0) := by
-    exact
-      zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_ownerLeftOffPoleCauchy
-        f F h
-  exact
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_zero_of_scheduledOscillatory_tendsto_zero_ownerLeftOffPoleAffineValue
-      f F h hoscillatory
-
 /-- Whole-line transport from a separately proved scheduled off-pole
 Cauchy/Laplace value. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_of_scheduled_tendsto_zero_ownerLeftOffPoleAffineValue
@@ -122,20 +89,6 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_
       (zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integrable_ownerBounds
         f F h)
       hscheduled
-
-/-- Owner whole-line value: the left `s = 0` correction affine kernel has zero
-integral, transported from the scheduled off-pole Cauchy/Laplace value. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_ownerLeftOffPoleAffineValue
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    (∫ t : ℝ,
-      zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F t) =
-      0 := by
-  exact
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_of_scheduled_tendsto_zero_ownerLeftOffPoleAffineValue
-      f F h
-      (zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_zero_ownerLeftOffPoleAffineValue
-        f F h)
 
 end ZetaAdmissibleFunction
 

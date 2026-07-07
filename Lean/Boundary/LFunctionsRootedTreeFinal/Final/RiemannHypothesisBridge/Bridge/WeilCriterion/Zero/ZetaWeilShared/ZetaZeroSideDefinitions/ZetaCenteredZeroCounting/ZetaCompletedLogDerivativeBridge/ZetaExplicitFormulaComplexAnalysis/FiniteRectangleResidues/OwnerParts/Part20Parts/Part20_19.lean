@@ -22,6 +22,56 @@ namespace ZetaAdmissibleFunction
 ## Part20 19: ExposedSideTargets
 -/
 
+def explicitFormulaRectangleRawHoleHorizontalEndpointDataSideSum
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (T ρ : ℝ) : ℂ :=
+  explicitFormulaRectangleListSum
+    (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
+      explicitFormulaRectangleListSum
+          (fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
+            if _homit :
+                explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+              explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral
+                f ((xpair.x₀, xpair.x₁), ypair.y₀)
+            else
+              0)
+          (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) -
+        explicitFormulaRectangleListSum
+          (fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
+            if _homit :
+                explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+              explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral
+                f ((xpair.x₀, xpair.x₁), ypair.y₁)
+            else
+              0)
+          (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ))
+    (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
+
+def explicitFormulaRectangleRawHoleVerticalEndpointDataSideSum
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (T ρ : ℝ) : ℂ :=
+  explicitFormulaRectangleListSum
+    (fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
+      explicitFormulaRectangleListSum
+          (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
+            if _homit :
+                explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+              explicitFormulaRectangleRightVerticalEndpointDataEdgeIntegral
+                f ((ypair.y₀, ypair.y₁), xpair.x₁)
+            else
+              0)
+          (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ) -
+        explicitFormulaRectangleListSum
+          (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
+            if _homit :
+                explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair then
+              explicitFormulaRectangleLeftVerticalEndpointDataEdgeIntegral
+                f ((ypair.y₀, ypair.y₁), xpair.x₀)
+            else
+              0)
+          (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ))
+    (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ)
+
 theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowMajorDoubleSum_eq_outer_sub_holes
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     {T ρ : ℝ} (hT_nonneg : 0 ≤ T) (hρ : 0 < ρ)
@@ -49,45 +99,12 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowMajorDoubleSum_
           ∀ b : ℂ,
             b ∈ explicitFormulaRectangleRawSingularCoordinates T →
               a ≠ b → ρ + ρ < dist a b) :
-    explicitFormulaRectangleRowMajorDoubleSum
-        (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-          fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
-            explicitFormulaRectangleSelectedBoxCoordinatesVerticalCellContribution
-              f xpair ypair)
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
+    explicitFormulaRectangleRawHoleVerticalEndpointDataSideSum f F T ρ =
       explicitFormulaRectangleSelectedBoxCoordinatesVerticalOuterSideSum f F T -
         explicitFormulaRectangleSelectedBoxCoordinatesVerticalHoleSideSum f T ρ := by
-  let xpairs : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ) :=
-    explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ
-  let ypairs : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ρ) :=
-    explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ
-  let boxes : List ExplicitFormulaRectangleEndpointDataBoxEdge :=
-    explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists xpairs ypairs
-  calc
-    explicitFormulaRectangleRowMajorDoubleSum
-        (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-          fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
-            explicitFormulaRectangleSelectedBoxCoordinatesVerticalCellContribution
-              f xpair ypair)
-        xpairs ypairs =
-        explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum
-          f xpairs ypairs := by
-      exact
-        (explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum_eq_rowMajorDoubleSum
-          f xpairs ypairs).symm
-    _ =
-        explicitFormulaRectangleBoxRightEdgeIntegralSum f boxes -
-          explicitFormulaRectangleBoxLeftEdgeIntegralSum f boxes := by
-      exact
-        (explicitFormulaRectangleSelectedBoxCoordinatesVerticalContribution_eq_rowSum
-          f xpairs ypairs).symm
-    _ =
-      explicitFormulaRectangleSelectedBoxCoordinatesVerticalOuterSideSum f F T -
-        explicitFormulaRectangleSelectedBoxCoordinatesVerticalHoleSideSum f T ρ := by
-      exact
-        explicitFormulaRectangleSelectedBoxCoordinatesVerticalContribution_eq_outer_sub_holes
-          f F hT_nonneg hρ hclosed hright hleft hrightHole hleftHole hsep
+  exact
+    explicitFormulaRectangleSelectedBoxCoordinatesVerticalContribution_eq_outer_sub_holes
+      f F hT_nonneg hρ hclosed hright hleft hrightHole hleftHole hsep
 
 /-- Row-major horizontal selected-cell box-coordinate sum collapses to the exposed
 horizontal side sum. -/
@@ -118,13 +135,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowMajorDoubleSu
           ∀ b : ℂ,
             b ∈ explicitFormulaRectangleRawSingularCoordinates T →
               a ≠ b → ρ + ρ < dist a b) :
-    explicitFormulaRectangleRowMajorDoubleSum
-        (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-          fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
-            explicitFormulaRectangleSelectedBoxCoordinatesHorizontalCellContribution
-              f xpair ypair)
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
+    explicitFormulaRectangleRawHoleHorizontalEndpointDataSideSum f F T ρ =
       explicitFormulaRectangleSelectedBoxCoordinatesHorizontalExposedSideSum f F T ρ := by
   exact
     explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowMajorDoubleSum_eq_outer_sub_holes
@@ -159,13 +170,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowMajorDoubleSum_
           ∀ b : ℂ,
             b ∈ explicitFormulaRectangleRawSingularCoordinates T →
               a ≠ b → ρ + ρ < dist a b) :
-    explicitFormulaRectangleRowMajorDoubleSum
-        (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-          fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
-            explicitFormulaRectangleSelectedBoxCoordinatesVerticalCellContribution
-              f xpair ypair)
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
+    explicitFormulaRectangleRawHoleVerticalEndpointDataSideSum f F T ρ =
       explicitFormulaRectangleSelectedBoxCoordinatesVerticalExposedSideSum f F T ρ := by
   exact
     explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowMajorDoubleSum_eq_outer_sub_holes
@@ -239,13 +244,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowMajorDoubleSu
           ∀ b : ℂ,
             b ∈ explicitFormulaRectangleRawSingularCoordinates T →
               a ≠ b → ρ + ρ < dist a b) :
-    explicitFormulaRectangleRowMajorDoubleSum
-        (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-          fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
-            explicitFormulaRectangleSelectedBoxCoordinatesHorizontalCellContribution
-              f xpair ypair)
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
+    explicitFormulaRectangleRawHoleHorizontalEndpointDataSideSum f F T ρ =
       (zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) -
         explicitFormulaRectangleRawInscribedSquareEndpointDataBoxBottomEdgeFinsetSum
           f T ρ) -
@@ -253,13 +252,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowMajorDoubleSu
           explicitFormulaRectangleRawInscribedSquareEndpointDataBoxTopEdgeFinsetSum
             f T ρ) := by
   calc
-    explicitFormulaRectangleRowMajorDoubleSum
-        (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-          fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
-            explicitFormulaRectangleSelectedBoxCoordinatesHorizontalCellContribution
-              f xpair ypair)
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
+    explicitFormulaRectangleRawHoleHorizontalEndpointDataSideSum f F T ρ =
         explicitFormulaRectangleSelectedBoxCoordinatesHorizontalExposedSideSum f F T ρ := by
       exact
         explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowMajorDoubleSum_eq_exposedSideSum
@@ -303,13 +296,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowMajorDoubleSum_
           ∀ b : ℂ,
             b ∈ explicitFormulaRectangleRawSingularCoordinates T →
               a ≠ b → ρ + ρ < dist a b) :
-    explicitFormulaRectangleRowMajorDoubleSum
-        (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-          fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
-            explicitFormulaRectangleSelectedBoxCoordinatesVerticalCellContribution
-              f xpair ypair)
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
+    explicitFormulaRectangleRawHoleVerticalEndpointDataSideSum f F T ρ =
       (zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) * Complex.I -
         explicitFormulaRectangleRawInscribedSquareEndpointDataBoxRightEdgeFinsetSum
           f T ρ) -
@@ -317,13 +304,7 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowMajorDoubleSum_
           explicitFormulaRectangleRawInscribedSquareEndpointDataBoxLeftEdgeFinsetSum
             f T ρ) := by
   calc
-    explicitFormulaRectangleRowMajorDoubleSum
-        (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-          fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
-            explicitFormulaRectangleSelectedBoxCoordinatesVerticalCellContribution
-              f xpair ypair)
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
+    explicitFormulaRectangleRawHoleVerticalEndpointDataSideSum f F T ρ =
         explicitFormulaRectangleSelectedBoxCoordinatesVerticalExposedSideSum f F T ρ := by
       exact
         explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowMajorDoubleSum_eq_exposedSideSum
@@ -367,43 +348,16 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContributionS
           ∀ b : ℂ,
             b ∈ explicitFormulaRectangleRawSingularCoordinates T →
               a ≠ b → ρ + ρ < dist a b) :
-    explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContributionSum
-        f
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
+    explicitFormulaRectangleRawHoleHorizontalEndpointDataSideSum f F T ρ =
       (zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) -
         explicitFormulaRectangleRawInscribedSquareEndpointDataBoxBottomEdgeFinsetSum
           f T ρ) -
         (zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
           explicitFormulaRectangleRawInscribedSquareEndpointDataBoxTopEdgeFinsetSum
             f T ρ) := by
-  calc
-    explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContributionSum
-        f
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
-        explicitFormulaRectangleRowMajorDoubleSum
-          (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-            fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
-              explicitFormulaRectangleSelectedBoxCoordinatesHorizontalCellContribution
-                f xpair ypair)
-          (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-          (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) := by
-      exact
-        explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContributionSum_eq_rowMajorDoubleSum
-          f
-          (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-          (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ)
-    _ =
-      (zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) -
-        explicitFormulaRectangleRawInscribedSquareEndpointDataBoxBottomEdgeFinsetSum
-          f T ρ) -
-        (zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
-          explicitFormulaRectangleRawInscribedSquareEndpointDataBoxTopEdgeFinsetSum
-            f T ρ) := by
-      exact
-        explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowMajorDoubleSum_core
-          f F hT_nonneg hρ hclosed hbottom htop hbottomHole htopHole hsep
+  exact
+    explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowMajorDoubleSum_core
+      f F hT_nonneg hρ hclosed hbottom htop hbottomHole htopHole hsep
 
 /-- Recursive vertical selected box-coordinate row-sum side collapse. -/
 theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum_core
@@ -433,43 +387,16 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum
           ∀ b : ℂ,
             b ∈ explicitFormulaRectangleRawSingularCoordinates T →
               a ≠ b → ρ + ρ < dist a b) :
-    explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum
-        f
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
+    explicitFormulaRectangleRawHoleVerticalEndpointDataSideSum f F T ρ =
       (zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) * Complex.I -
         explicitFormulaRectangleRawInscribedSquareEndpointDataBoxRightEdgeFinsetSum
           f T ρ) -
         (zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) * Complex.I -
           explicitFormulaRectangleRawInscribedSquareEndpointDataBoxLeftEdgeFinsetSum
             f T ρ) := by
-  calc
-    explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum
-        f
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) =
-        explicitFormulaRectangleRowMajorDoubleSum
-          (fun xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ =>
-            fun ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ =>
-              explicitFormulaRectangleSelectedBoxCoordinatesVerticalCellContribution
-                f xpair ypair)
-          (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-          (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ) := by
-      exact
-        explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum_eq_rowMajorDoubleSum
-          f
-          (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-          (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ)
-    _ =
-      (zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) * Complex.I -
-        explicitFormulaRectangleRawInscribedSquareEndpointDataBoxRightEdgeFinsetSum
-          f T ρ) -
-        (zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) * Complex.I -
-          explicitFormulaRectangleRawInscribedSquareEndpointDataBoxLeftEdgeFinsetSum
-            f T ρ) := by
-      exact
-        explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowMajorDoubleSum_core
-          f F hT_nonneg hρ hclosed hright hleft hrightHole hleftHole hsep
+  exact
+    explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowMajorDoubleSum_core
+      f F hT_nonneg hρ hclosed hright hleft hrightHole hleftHole hsep
 
 /-- Pure box-coordinate horizontal side-collapse for the sorted selected grid. -/
 theorem explicitFormulaRectangleSelectedBoxCoordinatesHorizontalSortedPairListsContribution_core
@@ -499,42 +426,16 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesHorizontalSortedPairListsC
           ∀ b : ℂ,
             b ∈ explicitFormulaRectangleRawSingularCoordinates T →
               a ≠ b → ρ + ρ < dist a b) :
-    let boxes : List ExplicitFormulaRectangleEndpointDataBoxEdge :=
-      explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ)
-    explicitFormulaRectangleBoxBottomEdgeIntegralSum f boxes -
-        explicitFormulaRectangleBoxTopEdgeIntegralSum f boxes =
+    explicitFormulaRectangleRawHoleHorizontalEndpointDataSideSum f F T ρ =
       (zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) -
         explicitFormulaRectangleRawInscribedSquareEndpointDataBoxBottomEdgeFinsetSum
           f T ρ) -
         (zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
           explicitFormulaRectangleRawInscribedSquareEndpointDataBoxTopEdgeFinsetSum
             f T ρ) := by
-  let xpairs : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ) :=
-    explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ
-  let ypairs : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ρ) :=
-    explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ
-  calc
-    explicitFormulaRectangleBoxBottomEdgeIntegralSum f
-        (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists xpairs ypairs) -
-        explicitFormulaRectangleBoxTopEdgeIntegralSum f
-          (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists xpairs ypairs) =
-        explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContributionSum
-          f xpairs ypairs := by
-      exact
-        explicitFormulaRectangleSelectedBoxCoordinatesHorizontalContribution_eq_rowSum
-          f xpairs ypairs
-    _ =
-      (zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) -
-        explicitFormulaRectangleRawInscribedSquareEndpointDataBoxBottomEdgeFinsetSum
-          f T ρ) -
-        (zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
-          explicitFormulaRectangleRawInscribedSquareEndpointDataBoxTopEdgeFinsetSum
-            f T ρ) := by
-      exact
-        explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContributionSum_core
-          f F hT_nonneg hρ hclosed hbottom htop hbottomHole htopHole hsep
+  exact
+    explicitFormulaRectangleSelectedBoxCoordinatesHorizontalRowContributionSum_core
+      f F hT_nonneg hρ hclosed hbottom htop hbottomHole htopHole hsep
 
 /-- Pure box-coordinate vertical side-collapse for the sorted selected grid. -/
 theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalSortedPairListsContribution_core
@@ -564,46 +465,16 @@ theorem explicitFormulaRectangleSelectedBoxCoordinatesVerticalSortedPairListsCon
           ∀ b : ℂ,
             b ∈ explicitFormulaRectangleRawSingularCoordinates T →
               a ≠ b → ρ + ρ < dist a b) :
-    let boxes : List ExplicitFormulaRectangleEndpointDataBoxEdge :=
-      explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists
-        (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ)
-        (explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ)
-    explicitFormulaRectangleBoxRightEdgeIntegralSum f boxes -
-        explicitFormulaRectangleBoxLeftEdgeIntegralSum f boxes =
+    explicitFormulaRectangleRawHoleVerticalEndpointDataSideSum f F T ρ =
       (zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) * Complex.I -
         explicitFormulaRectangleRawInscribedSquareEndpointDataBoxRightEdgeFinsetSum
           f T ρ) -
         (zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) * Complex.I -
           explicitFormulaRectangleRawInscribedSquareEndpointDataBoxLeftEdgeFinsetSum
             f T ρ) := by
-  let xpairs : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ) :=
-    explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ρ
-  let ypairs : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ρ) :=
-    explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ρ
-  calc
-    explicitFormulaRectangleBoxRightEdgeIntegralSum f
-        (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists xpairs ypairs) -
-        explicitFormulaRectangleBoxLeftEdgeIntegralSum f
-          (explicitFormulaRectangleSelectedBoxEdgeCoordinatesOfPairLists xpairs ypairs) =
-        explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum
-          f xpairs ypairs := by
-      exact
-        explicitFormulaRectangleSelectedBoxCoordinatesVerticalContribution_eq_rowSum
-          f xpairs ypairs
-    _ =
-      (zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) * Complex.I -
-        explicitFormulaRectangleRawInscribedSquareEndpointDataBoxRightEdgeFinsetSum
-          f T ρ) -
-        (zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) * Complex.I -
-          explicitFormulaRectangleRawInscribedSquareEndpointDataBoxLeftEdgeFinsetSum
-            f T ρ) := by
-      exact
-        explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum_core
-          f F hT_nonneg hρ hclosed hright hleft hrightHole hleftHole hsep
-
-/-- Endpoint-data horizontal side-collapse for the sorted selected grid after the
-recursive row contribution has been erased. -/
-
+  exact
+    explicitFormulaRectangleSelectedBoxCoordinatesVerticalRowContributionSum_core
+      f F hT_nonneg hρ hclosed hright hleft hrightHole hleftHole hsep
 end ZetaAdmissibleFunction
 
 end
