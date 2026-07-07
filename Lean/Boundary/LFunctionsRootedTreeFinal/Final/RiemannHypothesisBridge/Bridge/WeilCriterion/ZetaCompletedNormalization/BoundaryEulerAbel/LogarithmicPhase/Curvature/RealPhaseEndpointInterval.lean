@@ -654,6 +654,68 @@ theorem Complex.logarithmicPhaseRealPhase_endpointLeftPacketFamilyUnion_subset_s
           t ht ht_nonneg ha hm hn_packet
       exact Finset.mem_filter.mpr (And.intro hn_block hcut)
 
+/-- The left endpoint packet-family sample count is bounded by the
+corresponding reciprocal-scale cut. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointLeftPacketFamilyUnion_card_le_scaleCut
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a) :
+    (Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b
+        (Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b)).card ≤
+      ((Finset.Icc a b).filter
+        (fun n : ℕ =>
+          ‖t‖ / (a : ℝ) - (1 / 2 : ℝ) < ‖t‖ / (n : ℝ))).card := by
+  exact
+    Finset.card_le_card
+      (Complex.logarithmicPhaseRealPhase_endpointLeftPacketFamilyUnion_subset_scaleCut
+        t ht ht_nonneg ha)
+
+/-- Each left endpoint derivative packet has count bounded by the
+corresponding reciprocal-scale cut. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointLeftDerivPacket_card_le_scaleCut
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    {m : ℤ}
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b) :
+    (Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b m).card ≤
+      ((Finset.Icc a b).filter
+        (fun n : ℕ =>
+          ‖t‖ / (a : ℝ) - (1 / 2 : ℝ) < ‖t‖ / (n : ℝ))).card := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  let packets : Finset ℤ :=
+    Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b
+  let scaleCut : Finset ℕ :=
+    (Finset.Icc a b).filter
+      (fun n : ℕ =>
+        ‖t‖ / (a : ℝ) - (1 / 2 : ℝ) < ‖t‖ / (n : ℝ))
+  have hpacket_subset_union :
+      Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m ⊆
+        Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b packets := by
+    intro n hn
+    exact Finset.mem_biUnion.mpr
+      ⟨m, hm, hn⟩
+  have hpacket_card_le_union :
+      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).card ≤
+        (Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b packets).card :=
+    Finset.card_le_card hpacket_subset_union
+  have hunion_card_le_scale :
+      (Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b packets).card ≤
+        scaleCut.card :=
+    Complex.logarithmicPhaseRealPhase_endpointLeftPacketFamilyUnion_card_le_scaleCut
+      t ht ht_nonneg ha
+  exact le_trans hpacket_card_le_union hunion_card_le_scale
+
 /-- Far-right endpoint-tail packet indices lie above the right endpoint
 derivative frequency. -/
 theorem Complex.logarithmicPhaseRealPhase_endpointFarRightActive_rightEndpoint_lt_index
@@ -824,6 +886,69 @@ theorem Complex.logarithmicPhaseRealPhase_endpointFarRightPacketFamilyUnion_subs
         Complex.logarithmicPhaseRealPhase_endpointFarRightPacket_sample_scale_upper
           t ht_nonneg ha hm hn_packet
       exact Finset.mem_filter.mpr (And.intro hn_block hcut)
+
+/-- The far-right endpoint packet-family sample count is bounded by the
+corresponding reciprocal-scale cut. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointFarRightPacketFamilyUnion_card_le_scaleCut
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a) :
+    (Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b
+        (Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b)).card ≤
+      ((Finset.Icc a b).filter
+        (fun n : ℕ =>
+          ‖t‖ / (n : ℝ) <
+            ‖t‖ / (((b + 1 : ℕ) : ℝ)) + (1 / 2 : ℝ))).card := by
+  exact
+    Finset.card_le_card
+      (Complex.logarithmicPhaseRealPhase_endpointFarRightPacketFamilyUnion_subset_scaleCut
+        t ht_nonneg ha)
+
+/-- Each far-right endpoint derivative packet has count bounded by the
+corresponding reciprocal-scale cut. -/
+theorem Complex.logarithmicPhaseRealPhase_endpointFarRightDerivPacket_card_le_scaleCut
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    {m : ℤ}
+    (hm :
+      m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b) :
+    (Complex.realPhase_secondDerivative_vdc_derivPacket
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b m).card ≤
+      ((Finset.Icc a b).filter
+        (fun n : ℕ =>
+          ‖t‖ / (n : ℝ) <
+            ‖t‖ / (((b + 1 : ℕ) : ℝ)) + (1 / 2 : ℝ))).card := by
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  let packets : Finset ℤ :=
+    Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b
+  let scaleCut : Finset ℕ :=
+    (Finset.Icc a b).filter
+      (fun n : ℕ =>
+        ‖t‖ / (n : ℝ) <
+          ‖t‖ / (((b + 1 : ℕ) : ℝ)) + (1 / 2 : ℝ))
+  have hpacket_subset_union :
+      Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m ⊆
+        Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b packets := by
+    intro n hn
+    exact Finset.mem_biUnion.mpr
+      ⟨m, hm, hn⟩
+  have hpacket_card_le_union :
+      (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).card ≤
+        (Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b packets).card :=
+    Finset.card_le_card hpacket_subset_union
+  have hunion_card_le_scale :
+      (Complex.realPhase_secondDerivative_vdc_packetFamilyUnion φ a b packets).card ≤
+        scaleCut.card :=
+    Complex.logarithmicPhaseRealPhase_endpointFarRightPacketFamilyUnion_card_le_scaleCut
+      t ht_nonneg ha
+  exact le_trans hpacket_card_le_union hunion_card_le_scale
 
 end
 
