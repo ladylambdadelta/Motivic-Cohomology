@@ -98,6 +98,73 @@ theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_scaleCu
     Complex.logarithmicPhaseRealPhase_long_packet_budget_of_scaleCut_bounds
       t ht ht_nonneg ha hab hstationary hleftScale hfarScale
 
+/-- Positive long-branch real-phase estimate from the explicit Weyl-envelope
+radicand target and shifted-increment data. -/
+theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_weylEnvelope_radicand
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (_hab_strict : a < b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (_hlong_endpoint :
+      (((b + 1 : ℕ) : ℝ) / ‖t‖) <
+        (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hinc_mono :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          Complex.realPhase_integerIncrementMonotoneOn
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h))
+    (hred_mono :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          Complex.realPhase_reducedIntegerIncrementMonotoneOn
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h))
+    (hsep :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          Complex.realPhase_integerIncrementSeparatedOn
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h)
+            (‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              (h : ℝ)))
+    (hrad :
+      ((Real.secondDerivativeVdc_blockLength a b) +
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖ : ℝ)) *
+          (((Real.secondDerivativeVdc_blockLength a b) +
+              2 *
+                (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+                  (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
+                  Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h)) *
+            (((Real.secondDerivativeVdc_weylShiftLength ‖t‖ : ℕ) : ℝ)⁻¹)) ≤
+        (80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+          Real.sqrt (1 + ‖t‖)))) ^ 2) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_radicand_target_of_nonneg
+      t ht ht_nonneg ha hab hlong_sqrt hinc_mono hred_mono hsep hrad
+
 /-- Positive long-branch real-phase estimate from the Weyl target, with
 reduced-increment monotonicity supplied directly and separation supplied by
 all-integer resonance-window avoidance. -/
