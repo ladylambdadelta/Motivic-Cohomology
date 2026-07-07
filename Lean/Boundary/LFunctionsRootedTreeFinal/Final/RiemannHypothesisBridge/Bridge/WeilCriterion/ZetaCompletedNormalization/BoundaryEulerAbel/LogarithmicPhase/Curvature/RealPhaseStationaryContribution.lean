@@ -53,6 +53,27 @@ theorem Complex.logarithmicPhaseRealPhase_stationaryPacketFamilyUnion_card_le_bl
         Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_mem_active
           t hm)
 
+/-- The stationary packet-family sample sum is bounded by the stationary
+packet-family sample count. -/
+theorem Complex.logarithmicPhaseRealPhase_stationaryPacketFamilyUnion_norm_le_card
+    (t : ℝ)
+    (a b : ℕ) :
+    ‖∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b
+        (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b),
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      ((Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        a b
+        (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b)).card :
+        ℝ) := by
+  exact
+    Complex.realPhase_secondDerivative_vdc_packetFamilyUnion_norm_le_card
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+
 /-- A bound for the stationary packet-family sample union transfers directly
 to the stationary packet contribution. -/
 theorem Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_of_familyUnion
