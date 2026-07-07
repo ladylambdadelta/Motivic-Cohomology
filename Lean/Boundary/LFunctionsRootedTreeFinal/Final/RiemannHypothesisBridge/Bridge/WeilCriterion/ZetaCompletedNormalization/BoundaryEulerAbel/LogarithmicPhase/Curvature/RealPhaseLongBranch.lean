@@ -98,6 +98,59 @@ theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_scaleCu
     Complex.logarithmicPhaseRealPhase_long_packet_budget_of_scaleCut_bounds
       t ht ht_nonneg ha hab hstationary hleftScale hfarScale
 
+/-- Positive long-branch real-phase estimate from stationary sample-union
+control and endpoint reciprocal-scale cut cardinality bounds. -/
+theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_stationaryFamily_scaleCut_bounds
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (_hab_strict : a < b)
+    (_hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (_hlong_endpoint :
+      (((b + 1 : ℕ) : ℝ) / ‖t‖) <
+        (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hstationary_family :
+      ‖∑ n ∈ Complex.realPhase_secondDerivative_vdc_packetFamilyUnion
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b
+          (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b),
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+              t n : ℂ))‖ ≤
+        10 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+    (hleftScale :
+      (((Finset.Icc a b).filter
+        (fun n : ℕ => ‖t‖ / (a : ℝ) - (1 / 2 : ℝ) < ‖t‖ / (n : ℝ))).card : ℝ) ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+    (hfarScale :
+      (((Finset.Icc a b).filter
+        (fun n : ℕ =>
+          ‖t‖ / (n : ℝ) < ‖t‖ / (((b + 1 : ℕ) : ℝ)) + (1 / 2 : ℝ))).card : ℝ) ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
+  have hstationary :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+    Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_twentyTarget_of_familyUnion_ten
+      t ht hstationary_family
+  exact
+    Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_scaleCut_bounds
+      t ht_nonneg ht ha hab _hab_strict _hlong_sqrt _hlong_endpoint
+      hstationary hleftScale hfarScale
+
 /-- Positive long-branch real-phase estimate from the explicit Weyl-envelope
 radicand target and shifted-increment data. -/
 theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_weylEnvelope_radicand
