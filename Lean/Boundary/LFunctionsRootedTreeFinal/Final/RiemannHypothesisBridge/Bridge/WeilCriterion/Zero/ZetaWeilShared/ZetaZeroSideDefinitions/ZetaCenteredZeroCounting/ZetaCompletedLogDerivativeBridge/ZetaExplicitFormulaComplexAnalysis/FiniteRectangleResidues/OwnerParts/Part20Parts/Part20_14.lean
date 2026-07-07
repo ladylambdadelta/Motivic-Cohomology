@@ -22,264 +22,20 @@ namespace ZetaAdmissibleFunction
 ## Part20 14: XRawHoleSubspans
 -/
 
-def explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole
+/-- The raw-hole horizontal subspan predicate is decidable because it is a conjunction
+of real coordinate inequalities. -/
+instance explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole_decidable_part20_14
     {F : ExplicitFormulaContourFamily} {T : ℝ}
     (ρ : ℝ)
     (xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ)
-    (a : ℂ) : Prop :=
-  (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re ≤ xpair.x₀ ∧
-    xpair.x₁ ≤ (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re
-
-/-- The coordinate-omission predicate is exactly exclusion from every raw square when
-written in the horizontal and vertical subspan predicates owned by this file. -/
-theorem explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission_iff_not_rawHoleSubspans
-    {F : ExplicitFormulaContourFamily} {T ρ : ℝ}
-    (xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ)
-    (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ) :
-    explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair ↔
-      ∀ a : ℂ,
-        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-          ¬
-            (explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a ∧
-              explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a) :=
-  Iff.intro
-    (fun homit a ha hboth =>
-      homit a ha
-        (And.intro
-          hboth.left.left
-          (And.intro hboth.left.right hboth.right)))
-    (fun homit a ha hbox =>
-      homit a ha
-        (And.intro
-          (And.intro hbox.left hbox.right.left)
-          hbox.right.right))
-
-/-- If a vertical adjacent span lies inside a raw square, coordinate omission on that
-fixed vertical span is equivalent to horizontal non-containment in that square. -/
-theorem explicitFormulaRectangleCoordinateOmission_of_ySubspan
-    {F : ExplicitFormulaContourFamily} {T ρ : ℝ}
-    {xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ}
-    {ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ}
-    {a : ℂ}
-    (homit : explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair)
-    (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
-    (hy : explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a) :
-    ¬ explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a :=
-  fun hx =>
-    (explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission_iff_not_rawHoleSubspans
-      xpair ypair).mp homit a ha (And.intro hx hy)
-
-/-- If a horizontal adjacent span lies inside a raw square, coordinate omission on that
-fixed horizontal span is equivalent to vertical non-containment in that square. -/
-theorem explicitFormulaRectangleCoordinateOmission_of_xSubspan
-    {F : ExplicitFormulaContourFamily} {T ρ : ℝ}
-    {xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ}
-    {ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ}
-    {a : ℂ}
-    (homit : explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair)
-    (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
-    (hx : explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a) :
-    ¬ explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a :=
-  fun hy =>
-    (explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission_iff_not_rawHoleSubspans
-      xpair ypair).mp homit a ha (And.intro hx hy)
-
-/-- A crossed adjacent-pair subspan lies in the named raw closed square at its lower-left
-grid corner. -/
-theorem explicitFormulaRectangleRawHoleSubspans_lowerLeft_mem_closedCell
-    {F : ExplicitFormulaContourFamily} {T ρ : ℝ}
-    {xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ}
-    {ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ}
-    {a : ℂ}
-    (hx : explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a)
-    (hy : explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a) :
-    ({ re := xpair.x₀, im := ypair.y₀ } : ℂ) ∈
-      explicitFormulaRectangleRawInscribedSquareClosedCell ρ a := by
-  have hxmem :
-      ({ re := xpair.x₀, im := ypair.y₀ } : ℂ).re ∈
-        [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re,
-          (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re ]] := by
-    exact Set.mem_uIcc.mpr (Or.inl hx)
-  have hymem :
-      ({ re := xpair.x₀, im := ypair.y₀ } : ℂ).im ∈
-        [[ (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im,
-          (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im ]] := by
-    exact Set.mem_uIcc.mpr (Or.inl hy)
-  exact And.intro hxmem hymem
-
-/-- A crossed adjacent-pair subspan can belong to at most one raw square under the strict
-closed-radius separation controls.  The statement is constructive: it returns a contradiction
-from a proposed inequality of the two raw centers. -/
-theorem explicitFormulaRectangleRawHoleSubspans_not_ne_of_pairwiseSeparated
-    {F : ExplicitFormulaContourFamily} {T ρ : ℝ} (hρ : 0 < ρ)
-    (hsep :
-      ∀ a : ℂ,
-        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-          ∀ b : ℂ,
-            b ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              a ≠ b → ρ + ρ < dist a b)
-    {xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ}
-    {ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ}
-    {a b : ℂ}
-    (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
-    (hb : b ∈ explicitFormulaRectangleRawSingularCoordinates T)
-    (hxa : explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a)
-    (hya : explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a)
-    (hxb : explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair b)
-    (hyb : explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair b) :
-    a ≠ b → False := by
-  intro hab
-  let z : ℂ := { re := xpair.x₀, im := ypair.y₀ }
-  have hz_a :
-      z ∈ explicitFormulaRectangleRawInscribedSquareClosedCell ρ a :=
-    explicitFormulaRectangleRawHoleSubspans_lowerLeft_mem_closedCell hxa hya
-  have hz_b :
-      z ∈ explicitFormulaRectangleRawInscribedSquareClosedCell ρ b :=
-    explicitFormulaRectangleRawHoleSubspans_lowerLeft_mem_closedCell hxb hyb
-  have hballs :
-      ∀ c : ℂ,
-        c ∈ explicitFormulaRectangleRawSingularCoordinates T →
-          ∀ d : ℂ,
-            d ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              c ≠ d →
-                Disjoint (Metric.closedBall c ρ) (Metric.closedBall d ρ) := by
-    intro c hc d hd hcd
-    exact Metric.closedBall_disjoint_closedBall (hsep c hc d hd hcd)
-  have hdisj :
-      Disjoint
-        (explicitFormulaRectangleRawInscribedSquareClosedCell ρ a)
-        (explicitFormulaRectangleRawInscribedSquareClosedCell ρ b) :=
-    explicitFormulaRectangleRawInscribedSquareClosedCell_pairwiseDisjoint_of_closedRadiusControls
-      T ρ (le_of_lt hρ) hballs a ha b hb hab
-  exact (Set.disjoint_left.mp hdisj) hz_a hz_b
-
-/-- A rejected endpoint-data cell is counted by exactly the raw square containing its
-crossed horizontal and vertical adjacent spans. -/
-theorem explicitFormulaRectangleRejectedCoordinateOmission_eq_rawHoleSubspanFinsetSum
-    {F : ExplicitFormulaContourFamily} {T ρ : ℝ} (hρ : 0 < ρ)
-    (hsep :
-      ∀ a : ℂ,
-        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-          ∀ b : ℂ,
-            b ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              a ≠ b → ρ + ρ < dist a b)
-    (xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ)
-    (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ)
-    (g : ℂ) :
-    (if _homit :
-        explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
-      0
-    else
-      g) =
-      ∑ a in explicitFormulaRectangleRawSingularCoordinates T,
-        if _hspan :
-            explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a ∧
-              explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a then
-          g
-        else
-          0 := by
-  let S : Finset ℂ := explicitFormulaRectangleRawSingularCoordinates T
-  let Q : ℂ → Prop :=
-    fun a =>
-      explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a ∧
-        explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a
-  by_cases homit :
-      explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair
-  · have hzero :
-        (∑ a in S, if _hspan : Q a then g else 0) = 0 := by
-      exact Finset.sum_eq_zero
-        (fun a ha =>
-          by
-            by_cases hspan : Q a
-            · exact False.elim
-                ((explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission_iff_not_rawHoleSubspans
-                  xpair ypair).mp homit a ha hspan)
-            · rfl)
-    calc
-      (if _homit :
-          explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
-        0
-      else
-        g) = 0 := by
-        exact if_pos homit
-      _ = ∑ a in S, if _hspan : Q a then g else 0 := by
-        exact hzero.symm
-  · have hnot_forall :
-        ¬ ∀ a : ℂ, a ∈ S → ¬ Q a := by
-      intro hforall
-      exact homit
-        ((explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission_iff_not_rawHoleSubspans
-          xpair ypair).mpr hforall)
-    have hfilter_ne :
-        (S.filter Q) ≠ ∅ := by
-      intro hfilter_empty
-      have hforall : ∀ a : ℂ, a ∈ S → ¬ Q a := by
-        intro a ha hqa
-        have hafilter : a ∈ S.filter Q :=
-          Finset.mem_filter.mpr (And.intro ha hqa)
-        have haempty : a ∈ (∅ : Finset ℂ) := by
-          exact Eq.mp (congrArg (fun U : Finset ℂ => a ∈ U) hfilter_empty) hafilter
-        exact Finset.not_mem_empty a haempty
-      exact hnot_forall hforall
-    have hfilter_nonempty : (S.filter Q).Nonempty :=
-      Finset.nonempty_iff_ne_empty.mpr hfilter_ne
-    obtain ⟨a, hafilter⟩ := hfilter_nonempty.exists_mem
-    have ha : a ∈ S := (Finset.mem_filter.mp hafilter).1
-    have hqa : Q a := (Finset.mem_filter.mp hafilter).2
-    have hsum :
-        (∑ b in S, if _hspan : Q b then g else 0) = g := by
-      exact Finset.sum_eq_single a
-        (fun b hb hba =>
-          by
-            by_cases hqb : Q b
-            · have hnot_ne : b ≠ a → False :=
-                fun hne =>
-                  explicitFormulaRectangleRawHoleSubspans_not_ne_of_pairwiseSeparated
-                    hρ hsep hb ha hqb.1 hqb.2 hqa.1 hqa.2 hne
-              exact False.elim (hnot_ne hba)
-            · rfl)
-        (fun ha_not_mem =>
-          False.elim (ha_not_mem ha))
-        (by
-          exact if_pos hqa)
-    calc
-      (if _homit :
-          explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
-        0
-      else
-        g) = g := by
-        exact if_neg homit
-      _ = ∑ a in S, if _hspan : Q a then g else 0 := by
-        exact hsum.symm
-
-/-- A rejected endpoint-data cell's paired contribution is counted by the unique raw
-square containing its crossed spans. -/
-theorem explicitFormulaRectangleRejectedCoordinateOmission_pairContribution_eq_rawHoleSubspanFinsetSum
-    {F : ExplicitFormulaContourFamily} {T ρ : ℝ} (hρ : 0 < ρ)
-    (hsep :
-      ∀ a : ℂ,
-        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-          ∀ b : ℂ,
-            b ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              a ≠ b → ρ + ρ < dist a b)
-    (xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ)
-    (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ)
-    (lower upper : ℂ) :
-    (if _homit :
-        explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
-      0
-    else
-      lower - upper) =
-      ∑ a in explicitFormulaRectangleRawSingularCoordinates T,
-        if _hspan :
-            explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a ∧
-              explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a then
-          lower - upper
-        else
-          0 := by
-  exact
-    explicitFormulaRectangleRejectedCoordinateOmission_eq_rawHoleSubspanFinsetSum
-      hρ hsep xpair ypair (lower - upper)
+    (a : ℂ) :
+    Decidable
+      (explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a) :=
+  show
+    Decidable
+      ((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re ≤ xpair.x₀ ∧
+        xpair.x₁ ≤ (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re)
+  from inferInstance
 
 /-- The shifted horizontal endpoint coordinates in the raw-hole block lie between the
 raw left and right horizontal coordinates. -/
@@ -550,6 +306,97 @@ theorem explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole_pairAt_low
     Nat.add_sub_of_le
       (explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole_pairAt_lowerIndex_le
         ha j hspan)
+
+/-- The proof-carrying horizontal adjacent pair generated by the `i`th interval in the
+raw-hole horizontal block for `a`. -/
+noncomputable def explicitFormulaRectangleRawHoleXAdjacentEndpointPairAt
+    (F : ExplicitFormulaContourFamily) {T ρ : ℝ} (hρ : 0 < ρ)
+    (a : ℂ) (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
+    (i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a)) :
+    ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ :=
+  explicitFormulaRectangleXAdjacentEndpointPairAt F T ρ
+    ⟨explicitFormulaRectangleRawHoleXLowerIndex F T ρ a + i.1,
+      explicitFormulaRectangleRawHoleXLowerIndex_add_lt_sortedLength_sub_one
+        F T hρ ha i⟩
+
+/-- The generated raw-hole horizontal adjacent pair carries its own subspan proof. -/
+theorem explicitFormulaRectangleRawHoleXAdjacentEndpointPairAt_subspan
+    (F : ExplicitFormulaContourFamily) {T ρ : ℝ} (hρ : 0 < ρ)
+    (a : ℂ) (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
+    (i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a)) :
+    explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ
+      (explicitFormulaRectangleRawHoleXAdjacentEndpointPairAt F hρ a ha i) a := by
+  exact
+    explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole_pairAt_shifted
+      hρ ha i
+
+/-- Bottom edge contribution of the `i`th generated horizontal slice of the raw hole `a`. -/
+noncomputable def explicitFormulaRectangleRawHoleXBlockBottomSliceContribution
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    {T ρ : ℝ} (hρ : 0 < ρ)
+    (a : ℂ) (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
+    (i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a)) : ℂ :=
+  let xpair := explicitFormulaRectangleRawHoleXAdjacentEndpointPairAt F hρ a ha i
+  explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f
+    ((xpair.x₀, xpair.x₁),
+      (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im)
+
+/-- Top edge contribution of the `i`th generated horizontal slice of the raw hole `a`. -/
+noncomputable def explicitFormulaRectangleRawHoleXBlockTopSliceContribution
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    {T ρ : ℝ} (hρ : 0 < ρ)
+    (a : ℂ) (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
+    (i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a)) : ℂ :=
+  let xpair := explicitFormulaRectangleRawHoleXAdjacentEndpointPairAt F hρ a ha i
+  explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f
+    ((xpair.x₀, xpair.x₁),
+      (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im)
+
+/-- Bottom-minus-top contribution of the `i`th generated horizontal slice of the raw
+hole `a`. -/
+noncomputable def explicitFormulaRectangleRawHoleXBlockSliceContribution
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    {T ρ : ℝ} (hρ : 0 < ρ)
+    (a : ℂ) (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
+    (i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a)) : ℂ :=
+  explicitFormulaRectangleRawHoleXBlockBottomSliceContribution f F hρ a ha i -
+    explicitFormulaRectangleRawHoleXBlockTopSliceContribution f F hρ a ha i
+
+/-- Constructive bottom contribution of a raw hole, generated by its contiguous horizontal
+block rather than by a decidable predicate filter. -/
+noncomputable def explicitFormulaRectangleRawHoleXBlockBottomContribution
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    {T ρ : ℝ} (hρ : 0 < ρ)
+    (a : ℂ) (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T) : ℂ :=
+  explicitFormulaRectangleListSum
+    (fun i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a) =>
+      explicitFormulaRectangleRawHoleXBlockBottomSliceContribution f F hρ a ha i)
+    (List.ofFn
+      (fun i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a) => i))
+
+/-- Constructive top contribution of a raw hole, generated by its contiguous horizontal
+block rather than by a decidable predicate filter. -/
+noncomputable def explicitFormulaRectangleRawHoleXBlockTopContribution
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    {T ρ : ℝ} (hρ : 0 < ρ)
+    (a : ℂ) (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T) : ℂ :=
+  explicitFormulaRectangleListSum
+    (fun i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a) =>
+      explicitFormulaRectangleRawHoleXBlockTopSliceContribution f F hρ a ha i)
+    (List.ofFn
+      (fun i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a) => i))
+
+/-- Constructive bottom-minus-top contribution of a raw hole, generated by its contiguous
+horizontal block rather than by a decidable predicate filter. -/
+noncomputable def explicitFormulaRectangleRawHoleXBlockContribution
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    {T ρ : ℝ} (hρ : 0 < ρ)
+    (a : ℂ) (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T) : ℂ :=
+  explicitFormulaRectangleListSum
+    (fun i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a) =>
+      explicitFormulaRectangleRawHoleXBlockSliceContribution f F hρ a ha i)
+    (List.ofFn
+      (fun i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a) => i))
 
 /-- Raw square-hole horizontal contribution carried by one sorted horizontal slice. -/
 noncomputable def explicitFormulaRectangleHorizontalHoleSliceContribution
@@ -1005,6 +852,208 @@ theorem explicitFormulaRectangleXAdjacentEndpointPairSubspanRawHole_bottomIntegr
       f F T hρ ha y hint
   exact Eq.trans hfilter hsubrange
 
+/-- A generated bottom raw-hole horizontal block is the explicit endpoint-list sum over
+the generated contiguous x-subdivision. -/
+theorem explicitFormulaRectangleRawHoleXBlockBottomContribution_eq_generatedEndpointListSum
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    {T ρ : ℝ} (hρ : 0 < ρ)
+    {a : ℂ} (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T) :
+    explicitFormulaRectangleRawHoleXBlockBottomContribution f F hρ a ha =
+      explicitFormulaRectangleListSum
+        (fun i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a) =>
+          explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f
+            ((explicitFormulaRectangleSortedXEndpointAt F T ρ
+                (explicitFormulaRectangleRawHoleXLowerIndex F T ρ a + i.1),
+              explicitFormulaRectangleSortedXEndpointAt F T ρ
+                (explicitFormulaRectangleRawHoleXLowerIndex F T ρ a + (i.1 + 1))),
+              (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im))
+        (List.ofFn
+          (fun i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a) => i)) := by
+  let y : ℝ := (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im
+  let span : ℕ := explicitFormulaRectangleRawHoleXSpanLength F T ρ a
+  let lo : ℕ := explicitFormulaRectangleRawHoleXLowerIndex F T ρ a
+  exact congrArg
+    (fun g : Fin span → ℂ =>
+      explicitFormulaRectangleListSum g (List.ofFn (fun i : Fin span => i)))
+    (funext
+      (fun i =>
+        let xpair := explicitFormulaRectangleRawHoleXAdjacentEndpointPairAt F hρ a ha i
+        have hx₀ :
+            xpair.x₀ = explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + i.1) :=
+          explicitFormulaRectangleXAdjacentEndpointPairAt_x₀ F T ρ
+            ⟨lo + i.1,
+              explicitFormulaRectangleRawHoleXLowerIndex_add_lt_sortedLength_sub_one
+                F T hρ ha i⟩
+        have hx₁_base :
+            xpair.x₁ = explicitFormulaRectangleSortedXEndpointAt F T ρ ((lo + i.1) + 1) :=
+          explicitFormulaRectangleXAdjacentEndpointPairAt_x₁ F T ρ
+            ⟨lo + i.1,
+              explicitFormulaRectangleRawHoleXLowerIndex_add_lt_sortedLength_sub_one
+                F T hρ ha i⟩
+        have hx₁_index :
+            explicitFormulaRectangleSortedXEndpointAt F T ρ ((lo + i.1) + 1) =
+              explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + (i.1 + 1)) :=
+          congrArg
+            (fun k : ℕ => explicitFormulaRectangleSortedXEndpointAt F T ρ k)
+            (Nat.add_assoc lo i.1 1)
+        have hx₁ :
+            xpair.x₁ = explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + (i.1 + 1)) :=
+          Eq.trans hx₁_base hx₁_index
+        congrArg
+          (fun endpoints : ℝ × ℝ =>
+            explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f (endpoints, y))
+          (Prod.ext hx₀ hx₁)))
+
+/-- A generated top raw-hole horizontal block is the explicit endpoint-list sum over
+the generated contiguous x-subdivision. -/
+theorem explicitFormulaRectangleRawHoleXBlockTopContribution_eq_generatedEndpointListSum
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    {T ρ : ℝ} (hρ : 0 < ρ)
+    {a : ℂ} (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T) :
+    explicitFormulaRectangleRawHoleXBlockTopContribution f F hρ a ha =
+      explicitFormulaRectangleListSum
+        (fun i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a) =>
+          explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f
+            ((explicitFormulaRectangleSortedXEndpointAt F T ρ
+                (explicitFormulaRectangleRawHoleXLowerIndex F T ρ a + i.1),
+              explicitFormulaRectangleSortedXEndpointAt F T ρ
+                (explicitFormulaRectangleRawHoleXLowerIndex F T ρ a + (i.1 + 1))),
+              (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im))
+        (List.ofFn
+          (fun i : Fin (explicitFormulaRectangleRawHoleXSpanLength F T ρ a) => i)) := by
+  let y : ℝ := (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im
+  let span : ℕ := explicitFormulaRectangleRawHoleXSpanLength F T ρ a
+  let lo : ℕ := explicitFormulaRectangleRawHoleXLowerIndex F T ρ a
+  exact congrArg
+    (fun g : Fin span → ℂ =>
+      explicitFormulaRectangleListSum g (List.ofFn (fun i : Fin span => i)))
+    (funext
+      (fun i =>
+        let xpair := explicitFormulaRectangleRawHoleXAdjacentEndpointPairAt F hρ a ha i
+        have hx₀ :
+            xpair.x₀ = explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + i.1) :=
+          explicitFormulaRectangleXAdjacentEndpointPairAt_x₀ F T ρ
+            ⟨lo + i.1,
+              explicitFormulaRectangleRawHoleXLowerIndex_add_lt_sortedLength_sub_one
+                F T hρ ha i⟩
+        have hx₁_base :
+            xpair.x₁ = explicitFormulaRectangleSortedXEndpointAt F T ρ ((lo + i.1) + 1) :=
+          explicitFormulaRectangleXAdjacentEndpointPairAt_x₁ F T ρ
+            ⟨lo + i.1,
+              explicitFormulaRectangleRawHoleXLowerIndex_add_lt_sortedLength_sub_one
+                F T hρ ha i⟩
+        have hx₁_index :
+            explicitFormulaRectangleSortedXEndpointAt F T ρ ((lo + i.1) + 1) =
+              explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + (i.1 + 1)) :=
+          congrArg
+            (fun k : ℕ => explicitFormulaRectangleSortedXEndpointAt F T ρ k)
+            (Nat.add_assoc lo i.1 1)
+        have hx₁ :
+            xpair.x₁ = explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + (i.1 + 1)) :=
+          Eq.trans hx₁_base hx₁_index
+        congrArg
+          (fun endpoints : ℝ × ℝ =>
+            explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f (endpoints, y))
+          (Prod.ext hx₀ hx₁)))
+
+/-- Constructive bottom raw-hole horizontal side telescope over the generated raw-hole
+block, with no predicate-filtered adjacent-pair sum. -/
+theorem explicitFormulaRectangleRawHoleXBlockBottomContribution_eq_coordinate_of_integrable
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    {T ρ : ℝ} (hρ : 0 < ρ)
+    {a : ℂ} (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
+    (hint :
+      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T ρ
+        (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im) :
+    explicitFormulaRectangleRawHoleXBlockBottomContribution f F hρ a ha =
+      explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f
+        (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re,
+            (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re),
+          (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im) := by
+  let y : ℝ := (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im
+  let span : ℕ := explicitFormulaRectangleRawHoleXSpanLength F T ρ a
+  let lo : ℕ := explicitFormulaRectangleRawHoleXLowerIndex F T ρ a
+  have hgenerated :
+      explicitFormulaRectangleRawHoleXBlockBottomContribution f F hρ a ha =
+        explicitFormulaRectangleListSum
+          (fun i : Fin span =>
+            explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f
+              ((explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + i.1),
+                explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + (i.1 + 1))), y))
+          (List.ofFn (fun i : Fin span => i)) := by
+    exact congrArg
+      (fun g : Fin span → ℂ =>
+        explicitFormulaRectangleListSum g (List.ofFn (fun i : Fin span => i)))
+      (funext
+        (fun i =>
+          let xpair := explicitFormulaRectangleRawHoleXAdjacentEndpointPairAt F hρ a ha i
+          have hx₀ :
+              xpair.x₀ = explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + i.1) :=
+            explicitFormulaRectangleXAdjacentEndpointPairAt_x₀ F T ρ
+              ⟨lo + i.1,
+                explicitFormulaRectangleRawHoleXLowerIndex_add_lt_sortedLength_sub_one
+                  F T hρ ha i⟩
+          have hx₁_base :
+              xpair.x₁ = explicitFormulaRectangleSortedXEndpointAt F T ρ ((lo + i.1) + 1) :=
+            explicitFormulaRectangleXAdjacentEndpointPairAt_x₁ F T ρ
+              ⟨lo + i.1,
+                explicitFormulaRectangleRawHoleXLowerIndex_add_lt_sortedLength_sub_one
+                  F T hρ ha i⟩
+          have hx₁_index :
+              explicitFormulaRectangleSortedXEndpointAt F T ρ ((lo + i.1) + 1) =
+                explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + (i.1 + 1)) :=
+            congrArg
+              (fun k : ℕ => explicitFormulaRectangleSortedXEndpointAt F T ρ k)
+              (Nat.add_assoc lo i.1 1)
+          have hx₁ :
+              xpair.x₁ = explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + (i.1 + 1)) :=
+            Eq.trans hx₁_base hx₁_index
+          congrArg
+            (fun endpoints : ℝ × ℝ =>
+              explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f (endpoints, y))
+            (Prod.ext hx₀ hx₁)))
+  have hsubrange :
+      explicitFormulaRectangleListSum
+          (fun i : Fin span =>
+            explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f
+              ((explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + i.1),
+                explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + (i.1 + 1))), y))
+          (List.ofFn (fun i : Fin span => i)) =
+        explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f
+          (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re,
+              (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re), y) :=
+    explicitFormulaRectangleRawHoleXSubrangeHorizontalIntegralSum_eq_coordinate
+      f F T hρ ha y hint
+  exact Eq.trans hgenerated hsubrange
+
+/-- Constructive bottom raw-hole horizontal side telescope in raw endpoint-data box
+normalization. -/
+theorem explicitFormulaRectangleRawHoleXBlockBottomContribution_eq_rawBoxBottom_of_integrable
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    {T ρ : ℝ} (hρ : 0 < ρ)
+    {a : ℂ} (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
+    (hint :
+      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T ρ
+        (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im) :
+    explicitFormulaRectangleRawHoleXBlockBottomContribution f F hρ a ha =
+      explicitFormulaRectangleBoxBottomEdgeIntegral f
+        (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ρ a) := by
+  calc
+    explicitFormulaRectangleRawHoleXBlockBottomContribution f F hρ a ha =
+        explicitFormulaRectangleBottomHorizontalEndpointDataEdgeIntegral f
+          (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re,
+              (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re),
+            (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im) := by
+      exact
+        explicitFormulaRectangleRawHoleXBlockBottomContribution_eq_coordinate_of_integrable
+          f F hρ ha hint
+    _ =
+        explicitFormulaRectangleBoxBottomEdgeIntegral f
+          (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ρ a) := by
+      exact
+        (explicitFormulaRectangleRawInscribedSquareEndpointDataBox_bottomEdgeIntegral_eq_coordinate
+          f ρ a).symm
+
 /-- Bottom raw-hole horizontal side telescope expressed in the raw endpoint-data box
 normalization. -/
 theorem explicitFormulaRectangleXAdjacentEndpointPairSubspanRawHole_bottomIntegralSum_eq_rawBoxBottom_of_integrable
@@ -1124,6 +1173,104 @@ theorem explicitFormulaRectangleXAdjacentEndpointPairSubspanRawHole_topIntegralS
     explicitFormulaRectangleRawHoleXSubrangeTopHorizontalIntegralSum_eq_coordinate
       f F T hρ ha y hint
   exact Eq.trans hfilter hsubrange
+
+/-- Constructive top raw-hole horizontal side telescope over the generated raw-hole block,
+with no predicate-filtered adjacent-pair sum. -/
+theorem explicitFormulaRectangleRawHoleXBlockTopContribution_eq_coordinate_of_integrable
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    {T ρ : ℝ} (hρ : 0 < ρ)
+    {a : ℂ} (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
+    (hint :
+      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T ρ
+        (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im) :
+    explicitFormulaRectangleRawHoleXBlockTopContribution f F hρ a ha =
+      explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f
+        (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re,
+            (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re),
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im) := by
+  let y : ℝ := (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im
+  let span : ℕ := explicitFormulaRectangleRawHoleXSpanLength F T ρ a
+  let lo : ℕ := explicitFormulaRectangleRawHoleXLowerIndex F T ρ a
+  have hgenerated :
+      explicitFormulaRectangleRawHoleXBlockTopContribution f F hρ a ha =
+        explicitFormulaRectangleListSum
+          (fun i : Fin span =>
+            explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f
+              ((explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + i.1),
+                explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + (i.1 + 1))), y))
+          (List.ofFn (fun i : Fin span => i)) := by
+    exact congrArg
+      (fun g : Fin span → ℂ =>
+        explicitFormulaRectangleListSum g (List.ofFn (fun i : Fin span => i)))
+      (funext
+        (fun i =>
+          let xpair := explicitFormulaRectangleRawHoleXAdjacentEndpointPairAt F hρ a ha i
+          have hx₀ :
+              xpair.x₀ = explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + i.1) :=
+            explicitFormulaRectangleXAdjacentEndpointPairAt_x₀ F T ρ
+              ⟨lo + i.1,
+                explicitFormulaRectangleRawHoleXLowerIndex_add_lt_sortedLength_sub_one
+                  F T hρ ha i⟩
+          have hx₁_base :
+              xpair.x₁ = explicitFormulaRectangleSortedXEndpointAt F T ρ ((lo + i.1) + 1) :=
+            explicitFormulaRectangleXAdjacentEndpointPairAt_x₁ F T ρ
+              ⟨lo + i.1,
+                explicitFormulaRectangleRawHoleXLowerIndex_add_lt_sortedLength_sub_one
+                  F T hρ ha i⟩
+          have hx₁_index :
+              explicitFormulaRectangleSortedXEndpointAt F T ρ ((lo + i.1) + 1) =
+                explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + (i.1 + 1)) :=
+            congrArg
+              (fun k : ℕ => explicitFormulaRectangleSortedXEndpointAt F T ρ k)
+              (Nat.add_assoc lo i.1 1)
+          have hx₁ :
+              xpair.x₁ = explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + (i.1 + 1)) :=
+            Eq.trans hx₁_base hx₁_index
+          congrArg
+            (fun endpoints : ℝ × ℝ =>
+              explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f (endpoints, y))
+            (Prod.ext hx₀ hx₁)))
+  have hsubrange :
+      explicitFormulaRectangleListSum
+          (fun i : Fin span =>
+            explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f
+              ((explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + i.1),
+                explicitFormulaRectangleSortedXEndpointAt F T ρ (lo + (i.1 + 1))), y))
+          (List.ofFn (fun i : Fin span => i)) =
+        explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f
+          (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re,
+              (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re), y) :=
+    explicitFormulaRectangleRawHoleXSubrangeTopHorizontalIntegralSum_eq_coordinate
+      f F T hρ ha y hint
+  exact Eq.trans hgenerated hsubrange
+
+/-- Constructive top raw-hole horizontal side telescope in raw endpoint-data box
+normalization. -/
+theorem explicitFormulaRectangleRawHoleXBlockTopContribution_eq_rawBoxTop_of_integrable
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    {T ρ : ℝ} (hρ : 0 < ρ)
+    {a : ℂ} (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
+    (hint :
+      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T ρ
+        (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im) :
+    explicitFormulaRectangleRawHoleXBlockTopContribution f F hρ a ha =
+      explicitFormulaRectangleBoxTopEdgeIntegral f
+        (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ρ a) := by
+  calc
+    explicitFormulaRectangleRawHoleXBlockTopContribution f F hρ a ha =
+        explicitFormulaRectangleTopHorizontalEndpointDataEdgeIntegral f
+          (((explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re,
+              (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re),
+            (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im) := by
+      exact
+        explicitFormulaRectangleRawHoleXBlockTopContribution_eq_coordinate_of_integrable
+          f F hρ ha hint
+    _ =
+        explicitFormulaRectangleBoxTopEdgeIntegral f
+          (explicitFormulaRectangleRawInscribedSquareEndpointDataBox ρ a) := by
+      exact
+        (explicitFormulaRectangleRawInscribedSquareEndpointDataBox_topEdgeIntegral_eq_coordinate
+          f ρ a).symm
 
 /-- Top raw-hole horizontal side telescope expressed in the raw endpoint-data box
 normalization. -/
@@ -1302,9 +1449,6 @@ theorem explicitFormulaRectangleXAdjacentEndpointPairSubspanRawHole_topIntegralS
   exact
     explicitFormulaRectangleXAdjacentEndpointPairSubspanRawHole_topIntegralSum_eq_rawBoxTop_of_integrable
       f F hT_nonneg hρ hclosed ha hint
-
-/-- The sorted horizontal subdivision assembles to a full bottom endpoint-data edge once
-interval-integrability on the sorted adjacent subintervals is supplied. -/
 
 end ZetaAdmissibleFunction
 
