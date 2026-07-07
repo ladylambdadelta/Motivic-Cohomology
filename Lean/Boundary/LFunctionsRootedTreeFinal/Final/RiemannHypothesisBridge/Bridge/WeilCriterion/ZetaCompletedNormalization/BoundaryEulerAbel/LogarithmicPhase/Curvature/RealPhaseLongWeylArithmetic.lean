@@ -218,6 +218,84 @@ theorem Real.secondDerivativeVdc_shiftedCorrelationMajorant_sum_le_length_mul_en
     Complex.realPhase_secondDerivative_vdc_shiftRange_sum_const H M
   exact le_trans hsum (le_of_eq hconst)
 
+/-- The one-shift endpoint-scale majorant is nonnegative. -/
+theorem Real.secondDerivativeVdc_endpointScale_oneShiftMajorant_nonneg
+    {T : ℝ}
+    (hT : 1 ≤ T)
+    (b : ℕ) :
+    0 ≤
+      4 *
+          (((((b + 1 : ℕ) : ℝ) *
+              (((b + 1 : ℕ) : ℝ))) / T) +
+            1) +
+        4 * Real.pi *
+          ((((b + 1 : ℕ) : ℝ) *
+              (((b + 1 : ℕ) : ℝ))) / T) := by
+  let E : ℝ :=
+    ((((b + 1 : ℕ) : ℝ) * (((b + 1 : ℕ) : ℝ))) / T)
+  have hE_nonneg : 0 ≤ E := by
+    have hnum_nonneg :
+        0 ≤ (((b + 1 : ℕ) : ℝ) * (((b + 1 : ℕ) : ℝ))) :=
+      mul_nonneg
+        (Nat.cast_nonneg (b + 1))
+        (Nat.cast_nonneg (b + 1))
+    have hT_nonneg : 0 ≤ T :=
+      le_trans zero_le_one hT
+    exact div_nonneg hnum_nonneg hT_nonneg
+  have hfirst_inner_nonneg : 0 ≤ E + 1 :=
+    add_nonneg hE_nonneg zero_le_one
+  have hfirst_nonneg : 0 ≤ 4 * (E + 1) :=
+    mul_nonneg zero_le_four hfirst_inner_nonneg
+  have hfour_pi_nonneg : 0 ≤ 4 * Real.pi :=
+    mul_nonneg zero_le_four Real.pi_nonneg
+  have hsecond_nonneg : 0 ≤ 4 * Real.pi * E :=
+    mul_nonneg hfour_pi_nonneg hE_nonneg
+  exact add_nonneg hfirst_nonneg hsecond_nonneg
+
+/-- At the canonical Weyl shift length, the summed shifted-correlation
+majorants are bounded by the endpoint-plus-square-root target times the
+one-shift endpoint-scale majorant. -/
+theorem Real.secondDerivativeVdc_shiftedCorrelationMajorant_sum_weylShiftLength_le_target_mul_endpointScale
+    {T : ℝ}
+    (hT : 1 ≤ T)
+    (b : ℕ) :
+    (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+        (Real.secondDerivativeVdc_weylShiftLength T),
+      Real.secondDerivativeVdc_shiftedCorrelationMajorant T b h) ≤
+      (((b + 1 : ℕ) : ℝ) / T + Real.sqrt (1 + T)) *
+        (4 *
+            (((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ))) / T) +
+              1) +
+          4 * Real.pi *
+            ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ))) / T)) := by
+  let H : ℕ := Real.secondDerivativeVdc_weylShiftLength T
+  let M : ℝ :=
+    4 *
+        (((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ))) / T) +
+          1) +
+      4 * Real.pi *
+        ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ))) / T)
+  have hsum :
+      (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
+        Real.secondDerivativeVdc_shiftedCorrelationMajorant T b h) ≤
+        (H : ℝ) * M :=
+    Real.secondDerivativeVdc_shiftedCorrelationMajorant_sum_le_length_mul_endpointScale
+      hT b H
+  have hH_target :
+      (H : ℝ) ≤ (((b + 1 : ℕ) : ℝ) / T + Real.sqrt (1 + T)) :=
+    Real.secondDerivativeVdc_weylShiftLength_le_target (b := b) hT
+  have hM_nonneg : 0 ≤ M :=
+    Real.secondDerivativeVdc_endpointScale_oneShiftMajorant_nonneg hT b
+  have hmul :
+      (H : ℝ) * M ≤
+        (((b + 1 : ℕ) : ℝ) / T + Real.sqrt (1 + T)) * M :=
+    mul_le_mul_of_nonneg_right hH_target hM_nonneg
+  exact le_trans hsum hmul
+
 end
 
 end LFunctions
