@@ -305,6 +305,99 @@ theorem Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_n
       t ht ha hab hlong_sqrt hderiv_growth hderiv_antitone
       hinc_mono hred_mono hsep hweyl_target
 
+/-- Positive-frequency long Weyl-target wrapper with the parent curvature
+growth and shifted-derivative antitonicity discharged, leaving only the
+explicit Weyl-envelope radicand target. -/
+theorem Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_radicand_target_of_nonneg
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hinc_mono :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          Complex.realPhase_integerIncrementMonotoneOn
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h))
+    (hred_mono :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          Complex.realPhase_reducedIntegerIncrementMonotoneOn
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h))
+    (hsep :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          Complex.realPhase_integerIncrementSeparatedOn
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h)
+            (‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              (h : ℝ)))
+    (hrad :
+      ((Real.secondDerivativeVdc_blockLength a b) +
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖ : ℝ)) *
+          (((Real.secondDerivativeVdc_blockLength a b) +
+              2 *
+                (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+                  (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
+                  Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h)) *
+            (((Real.secondDerivativeVdc_weylShiftLength ‖t‖ : ℕ) : ℝ)⁻¹)) ≤
+        (80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+          Real.sqrt (1 + ‖t‖)))) ^ 2) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
+  have hderiv_growth :
+      ∀ u v : ℝ,
+        u ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        v ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        u ≤ v →
+          (‖t‖ *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) *
+              (v - u) ≤
+            deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) v -
+            deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) u) :=
+    Complex.logarithmicPhaseRealPhase_deriv_growth_on_integer_block
+      t ht ht_nonneg ha hab
+  have hderiv_antitone :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          AntitoneOn
+            (fun x : ℝ =>
+              ‖deriv
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h) x‖)
+            (Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ)) :=
+    Complex.logarithmicPhaseRealPhase_weylShift_deriv_norm_antitoneOn_of_nonneg
+      t ht ht_nonneg ha hab hlong_sqrt
+  exact
+    Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_radicand_target
+      t ht ha hab hlong_sqrt hderiv_growth hderiv_antitone
+      hinc_mono hred_mono hsep hrad
+
 /-- Positive-frequency long Weyl-target wrapper with raw shifted-increment
 monotonicity discharged by the fixed-width logarithmic gap theorem. -/
 theorem Complex.logarithmicPhaseRealPhase_long_bound_of_weylEnvelope_target_of_nonneg_of_reduced_sep
