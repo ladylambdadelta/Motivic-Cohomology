@@ -181,3 +181,6 @@ theorem fourierTransform_conjugacy
         hright_star))
 
 end FourierConjugacy
+end
+end LFunctions
+end Boundary
