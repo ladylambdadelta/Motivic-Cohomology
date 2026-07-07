@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseIntervalReduction
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhasePacketCurvature
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhasePacketReconstruction
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseStationaryInterval
 
@@ -130,6 +131,74 @@ theorem Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_of_fam
       (motive := fun left : ℝ => left ≤ M)
       hnorm.symm
       hfamily
+
+/-- Pointwise packet-sum control over stationary active packets controls the
+whole stationary packet contribution. -/
+theorem Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_of_pointwise
+    (t : ℝ)
+    {a b : ℕ}
+    {M : ℝ}
+    (hM : 0 ≤ M)
+    (hpoint :
+      ∀ m : ℤ,
+        m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b →
+          ‖Complex.realPhase_secondDerivative_vdc_packetSum
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b m‖ ≤
+          M) :
+    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+      ((Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b).card :
+        ℝ) * M := by
+  exact
+    Complex.finite_sum_norm_le_card_mul_of_norm_le
+      (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b)
+      (fun m : ℤ =>
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m)
+      hM
+      hpoint
+
+/-- Stationary packet contribution bound obtained from the active-packet
+reciprocal-curvature scale estimate. -/
+theorem Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_card_mul_curvatureScale_add_one_of_nonneg
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b) :
+    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+      ((Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b).card :
+        ℝ) *
+        ((((b + 1 : ℕ) : ℝ) * (((b + 1 : ℕ) : ℝ))) / ‖t‖ + 1) := by
+  have hscale_nonneg :
+      0 ≤
+        ((((b + 1 : ℕ) : ℝ) * (((b + 1 : ℕ) : ℝ))) / ‖t‖ + 1) := by
+    have hleft_nonneg :
+        0 ≤ ((((b + 1 : ℕ) : ℝ) * (((b + 1 : ℕ) : ℝ))) / ‖t‖) := by
+      have hnum_nonneg :
+          0 ≤ (((b + 1 : ℕ) : ℝ) * (((b + 1 : ℕ) : ℝ))) :=
+        mul_nonneg
+          (Nat.cast_nonneg (b + 1))
+          (Nat.cast_nonneg (b + 1))
+      exact div_nonneg hnum_nonneg (norm_nonneg t)
+    exact add_nonneg hleft_nonneg zero_le_one
+  exact
+    Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_le_of_pointwise
+      t hscale_nonneg
+      (fun m hm =>
+        Complex.logarithmicPhaseRealPhase_active_packetSum_le_curvatureScale_add_one_of_nonneg
+          t ht ht_nonneg
+          (Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets_mem_active
+            t hm)
+          ha hab)
 
 /-- Stationary packet-family sample sums inherit a closed-subinterval
 twentieth-budget bound through the stationary interval reconstruction. -/
