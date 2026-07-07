@@ -20,8 +20,10 @@ open Complex
 open Filter
 open LSeries ArithmeticFunction
 open MeasureTheory
+open Real
 open scoped ArithmeticFunction
 open scoped FourierTransform
+open scoped LSeries.notation
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
@@ -33,20 +35,20 @@ argument supplied by a nonzero natural index.  The analytic raw-line sampling
 theorem still has to identify the project `dt` integral with this Mellin
 inverse and track the `sqrt n` character normalization. -/
 theorem zetaCompletedExplicitFormulaDirectVerticalMellinInv_eq_fourierIntegralInv_primeNaturalCenter
-    (σ : ℝ) (G : ℂ → ℂ) {n : ℕ} (hn : n ≠ 0) :
-    zetaCompletedExplicitFormulaDirectVerticalMellinInv σ G n =
-      (n : ℂ) ^ (-σ : ℂ) •
-        𝓕⁻ (fun y : ℝ => G (σ + 2 * π * y * I))
+    (sigma : ℝ) (G : ℂ → ℂ) {n : ℕ} (hn : n ≠ 0) :
+    zetaCompletedExplicitFormulaDirectVerticalMellinInv sigma G n =
+      (n : ℂ) ^ (-sigma : ℂ) •
+        𝓕⁻ (fun y : ℝ => G (sigma + 2 * π * y * I))
           (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)) := by
   have hpositive : 0 < (n : ℝ) :=
     zetaCompletedExplicitFormulaPrimeNaturalCast_pos hn
   have hgeneric :
-      zetaCompletedExplicitFormulaDirectVerticalMellinInv σ G n =
-        (n : ℂ) ^ (-σ : ℂ) •
-          𝓕⁻ (fun y : ℝ => G (σ + 2 * π * y * I))
+      zetaCompletedExplicitFormulaDirectVerticalMellinInv sigma G n =
+        (n : ℂ) ^ (-sigma : ℂ) •
+          𝓕⁻ (fun y : ℝ => G (sigma + 2 * π * y * I))
             (-Real.log n) :=
     zetaCompletedExplicitFormulaDirectVerticalMellinInv_eq_fourierIntegralInv
-      σ G hpositive
+      sigma G hpositive
   have hcenter :
       -Real.log n =
         -(zetaCompletedExplicitFormulaPrimeNaturalCenter n) := by
@@ -54,9 +56,9 @@ theorem zetaCompletedExplicitFormulaDirectVerticalMellinInv_eq_fourierIntegralIn
       (zetaCompletedExplicitFormulaPrimeNaturalCenter_eq_log n).symm
   exact Eq.subst
     (motive := fun x : ℝ =>
-      zetaCompletedExplicitFormulaDirectVerticalMellinInv σ G n =
-        (n : ℂ) ^ (-σ : ℂ) •
-          𝓕⁻ (fun y : ℝ => G (σ + 2 * π * y * I)) x)
+      zetaCompletedExplicitFormulaDirectVerticalMellinInv sigma G n =
+        (n : ℂ) ^ (-sigma : ℂ) •
+          𝓕⁻ (fun y : ℝ => G (sigma + 2 * π * y * I)) x)
     hcenter
     hgeneric
 
@@ -89,12 +91,12 @@ theorem zetaCompletedExplicitFormulaDirectVerticalMellinIntegrand_eq_rightCenter
       rfl
     _ =
         (n : ℂ) ^
-            (-(((F.c : ℂ) - (1 / 2 : ℂ)) + t * I)) *
+            (-(((F.c : ℂ) - ((1 / 2 : ℝ) : ℂ)) + t * I)) *
           zetaCompletedExplicitFormulaPhi f
-            (((F.c : ℂ) - (1 / 2 : ℂ)) + t * I) := by
+            (((F.c : ℂ) - ((1 / 2 : ℝ) : ℂ)) + t * I) := by
       have hline :
           (((F.c - (1 / 2 : ℝ) : ℝ) : ℂ) + t * I) =
-            (((F.c : ℂ) - (1 / 2 : ℂ)) + t * I) := by
+            (((F.c : ℂ) - ((1 / 2 : ℝ) : ℂ)) + t * I) := by
         exact congrArg (fun z : ℂ => z + t * I)
           (Complex.ofReal_sub F.c (1 / 2 : ℝ))
       exact congrArg
@@ -106,10 +108,21 @@ theorem zetaCompletedExplicitFormulaDirectVerticalMellinIntegrand_eq_rightCenter
             (-(zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) *
           zetaCompletedExplicitFormulaPhi f
             (zetaCompletedExplicitFormulaRightCenteredAffineLine F t) := by
+      have hhalf : (1 / 2 : ℂ) = ((1 / 2 : ℝ) : ℂ) :=
+        (Complex.ofReal_div 1 2).symm
+      have hline_cast :
+          (((F.c : ℂ) - ((1 / 2 : ℝ) : ℂ)) + t * I) =
+            (((F.c : ℂ) - (1 / 2 : ℂ)) + t * I) :=
+        congrArg (fun z : ℂ => ((F.c : ℂ) - z) + t * I) hhalf.symm
+      have hcentered :
+          (((F.c : ℂ) - ((1 / 2 : ℝ) : ℂ)) + t * I) =
+            zetaCompletedExplicitFormulaRightCenteredAffineLine F t :=
+        Eq.trans hline_cast
+          (zetaCompletedExplicitFormulaRightCenteredAffineLine_eq F t).symm
       exact congrArg
         (fun z : ℂ =>
           (n : ℂ) ^ (-z) * zetaCompletedExplicitFormulaPhi f z)
-        (zetaCompletedExplicitFormulaRightCenteredAffineLine_eq F t).symm
+        hcentered
 
 /-- Whole-line integral form of the centered right-line Mellin integrand
 coordinate bridge. -/
@@ -227,11 +240,20 @@ theorem zetaCompletedExplicitFormulaPrimeNatural_rightAffineCharacter_eq_invSqrt
     zetaCompletedExplicitFormulaRightAffineLine_eq_rightCentered_add_half F t
   have hexponent :
       -(zetaCompletedExplicitFormulaRightAffineLine F t) =
-        (-(1 / 2 : ℂ)) + (-centered) := by
+        (-((1 / 2 : ℝ) : ℂ)) + (-centered) := by
+    have hhalf : (1 / 2 : ℂ) = ((1 / 2 : ℝ) : ℂ) :=
+      (Complex.ofReal_div 1 2).symm
     have hneg :
         -(centered + (1 / 2 : ℂ)) =
           (-centered) + (-(1 / 2 : ℂ)) :=
       neg_add centered (1 / 2 : ℂ)
+    have hneg_half :
+        (-(1 / 2 : ℂ)) = (-((1 / 2 : ℝ) : ℂ)) :=
+      congrArg Neg.neg hhalf
+    have hsum :
+        (-(1 / 2 : ℂ)) + (-centered) =
+          (-((1 / 2 : ℝ) : ℂ)) + (-centered) :=
+      congrArg (fun z : ℂ => z + (-centered)) hneg_half
     calc
       -(zetaCompletedExplicitFormulaRightAffineLine F t) =
           -(centered + (1 / 2 : ℂ)) := by
@@ -240,17 +262,19 @@ theorem zetaCompletedExplicitFormulaPrimeNatural_rightAffineCharacter_eq_invSqrt
         hneg
       _ = (-(1 / 2 : ℂ)) + (-centered) := by
         exact add_comm (-centered) (-(1 / 2 : ℂ))
+      _ = (-((1 / 2 : ℝ) : ℂ)) + (-centered) :=
+        hsum
   have hsplit :
-      (n : ℂ) ^ ((-(1 / 2 : ℂ)) + (-centered)) =
-        (n : ℂ) ^ (-(1 / 2 : ℂ)) *
+      (n : ℂ) ^ ((-((1 / 2 : ℝ) : ℂ)) + (-centered)) =
+        (n : ℂ) ^ (-((1 / 2 : ℝ) : ℂ)) *
           (n : ℂ) ^ (-centered) :=
-    Complex.cpow_add (-(1 / 2 : ℂ)) (-centered) hbase
+    Complex.cpow_add (-((1 / 2 : ℝ) : ℂ)) (-centered) hbase
   calc
     (n : ℂ) ^ (-(zetaCompletedExplicitFormulaRightAffineLine F t)) =
-        (n : ℂ) ^ ((-(1 / 2 : ℂ)) + (-centered)) := by
+        (n : ℂ) ^ ((-((1 / 2 : ℝ) : ℂ)) + (-centered)) := by
       exact congrArg (fun z : ℂ => (n : ℂ) ^ z) hexponent
     _ =
-        (n : ℂ) ^ (-(1 / 2 : ℂ)) *
+        (n : ℂ) ^ (-((1 / 2 : ℝ) : ℂ)) *
           (n : ℂ) ^ (-centered) :=
       hsplit
     _ =
@@ -520,20 +544,20 @@ theorem zetaCompletedExplicitFormulaDirectVerticalMellinInv_twoPi_smul_eq_twoPi_
       (2 * π : ℝ) •
         zetaCompletedTimeBoundaryValue f
           (zetaCompletedExplicitFormulaPrimeNaturalCenter n) := by
-  let σ : ℝ := F.c - (1 / 2 : ℝ)
+  let sigma : ℝ := F.c - (1 / 2 : ℝ)
   have hn_pos : 0 < (n : ℝ) :=
     zetaCompletedExplicitFormulaPrimeNaturalCast_pos hn
   have hsample :
-      zetaCompletedExplicitFormulaDirectVerticalMellinInv σ
+      zetaCompletedExplicitFormulaDirectVerticalMellinInv sigma
           (zetaCompletedExplicitFormulaPhi f)
           n =
         zetaCompletedTimeBoundaryValue f (Real.log n) :=
     zetaCompletedExplicitFormulaDirectVerticalMellinInv_eq_timeSample
-      f σ hn_pos
-      (zetaCompletedExplicitFormula_twistedTimeKernel_integrable f σ)
-      (zetaCompletedExplicitFormula_twistedTimeKernel_fourier_integrable f σ)
+      f sigma hn_pos
+      (zetaCompletedExplicitFormula_twistedTimeKernel_integrable f sigma)
+      (zetaCompletedExplicitFormula_twistedTimeKernel_fourier_integrable f sigma)
       (zetaCompletedExplicitFormula_twistedTimeKernel_continuousAt
-        f σ (Real.log n))
+        f sigma (Real.log n))
   have hcenter :
       Real.log n = zetaCompletedExplicitFormulaPrimeNaturalCenter n :=
     (zetaCompletedExplicitFormulaPrimeNaturalCenter_eq_log n).symm
@@ -564,20 +588,20 @@ theorem zetaCompletedExplicitFormulaDirectVerticalMellinInv_twoPi_smul_eq_twoPi_
       (2 * π : ℝ) •
         zetaCompletedTimeBoundaryValue f
           (zetaCompletedExplicitFormulaPrimeNaturalCenter n) := by
-  let σ : ℝ := F.c - (1 / 2 : ℝ)
+  let sigma : ℝ := F.c - (1 / 2 : ℝ)
   have hn_pos : 0 < (n : ℝ) :=
     zetaCompletedExplicitFormulaPrimeNaturalCast_pos hn
   have hsample :
-      zetaCompletedExplicitFormulaDirectVerticalMellinInv σ
+      zetaCompletedExplicitFormulaDirectVerticalMellinInv sigma
           (zetaCompletedExplicitFormulaPhi f)
           n =
         zetaCompletedTimeBoundaryValue f (Real.log n) :=
     zetaCompletedExplicitFormulaDirectVerticalMellinInv_eq_timeSample
-      f σ hn_pos
-      (zetaCompletedExplicitFormula_twistedTimeKernel_integrable f σ)
-      (zetaCompletedExplicitFormula_twistedTimeKernel_fourier_integrable f σ)
+      f sigma hn_pos
+      (zetaCompletedExplicitFormula_twistedTimeKernel_integrable f sigma)
+      (zetaCompletedExplicitFormula_twistedTimeKernel_fourier_integrable f sigma)
       (zetaCompletedExplicitFormula_twistedTimeKernel_continuousAt
-        f σ (Real.log n))
+        f sigma (Real.log n))
   have hcenter :
       Real.log n = zetaCompletedExplicitFormulaPrimeNaturalCenter n :=
     (zetaCompletedExplicitFormulaPrimeNaturalCenter_eq_log n).symm

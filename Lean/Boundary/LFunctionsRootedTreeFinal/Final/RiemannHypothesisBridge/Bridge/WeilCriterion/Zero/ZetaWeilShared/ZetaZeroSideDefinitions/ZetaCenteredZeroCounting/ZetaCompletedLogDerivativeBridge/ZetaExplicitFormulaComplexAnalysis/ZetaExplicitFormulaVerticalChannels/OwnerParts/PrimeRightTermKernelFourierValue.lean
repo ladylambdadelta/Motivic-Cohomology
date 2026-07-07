@@ -27,6 +27,7 @@ open Filter
 open LSeries ArithmeticFunction
 open MeasureTheory
 open scoped ArithmeticFunction
+open scoped LSeries.notation
 open scoped Topology
 
 namespace ZetaAdmissibleFunction

@@ -19,9 +19,26 @@ noncomputable section
 
 open Complex
 open MeasureTheory
+open Real
 open scoped FourierTransform
 
 namespace ZetaAdmissibleFunction
+
+lemma zetaCompletedExplicitFormula_two_pi_neg_cast (y : ℝ) :
+    (2 : ℂ) * (π : ℂ) * (-y : ℂ) =
+      ((2 * π * (-y) : ℝ) : ℂ) := by
+  have htwo_pi :
+      (2 : ℂ) * (π : ℂ) = ((2 * π : ℝ) : ℂ) :=
+    (Complex.ofReal_mul 2 π).symm
+  calc
+    (2 : ℂ) * (π : ℂ) * (-y : ℂ) =
+        ((2 * π : ℝ) : ℂ) * (-y : ℂ) := by
+      exact congrArg (fun z : ℂ => z * (-y : ℂ)) htwo_pi
+    _ = ((2 * π : ℝ) : ℂ) * ((-y : ℝ) : ℂ) := by
+      exact congrArg (fun z : ℂ => ((2 * π : ℝ) : ℂ) * z)
+        (Complex.ofReal_neg y).symm
+    _ = ((2 * π * (-y) : ℝ) : ℂ) :=
+      (Complex.ofReal_mul (2 * π) (-y)).symm
 
 /-- The Mellin-inversion time kernel is the Paley-Wiener horizontal twist. -/
 theorem zetaCompletedExplicitFormula_twistedTimeKernel_eq_horizontalTwist
@@ -84,9 +101,40 @@ theorem zetaCompletedExplicitFormula_twistedTimeKernel_fourier_eq_phi_reflected
     𝓕 (fun t : ℝ =>
         Complex.exp ((σ : ℂ) * (t : ℂ)) * f.toZetaTestFunction' t) y =
       zetaCompletedExplicitFormulaPhi f (σ + 2 * π * (-y) * I) := by
-  exact
-    (zetaCompletedExplicitFormulaPhi_verticalLine_eq_fourierIntegral_expTwist
-      f σ (-y)).symm
+  have howner :
+      zetaCompletedExplicitFormulaPhi f (σ + 2 * π * (-y) * I) =
+        𝓕 (fun t : ℝ =>
+          Complex.exp ((σ : ℂ) * (t : ℂ)) * f.toZetaTestFunction' t) (-(-y)) :=
+    have howner_raw :
+        zetaCompletedExplicitFormulaPhi f (σ + 2 * π * ((-y : ℝ) : ℂ) * I) =
+          𝓕 (fun t : ℝ =>
+            Complex.exp ((σ : ℂ) * (t : ℂ)) * f.toZetaTestFunction' t) (-(-y)) :=
+      zetaCompletedExplicitFormulaPhi_verticalLine_eq_fourierIntegral_expTwist
+        f σ (-y)
+    have harg :
+        σ + 2 * π * ((-y : ℝ) : ℂ) * I =
+          σ + 2 * π * (-y) * I := by
+      exact congrArg
+        (fun z : ℂ => (σ : ℂ) + 2 * (π : ℂ) * z * I)
+        (Complex.ofReal_neg y)
+    Eq.subst
+      (motive := fun z : ℂ =>
+        zetaCompletedExplicitFormulaPhi f z =
+          𝓕 (fun t : ℝ =>
+            Complex.exp ((σ : ℂ) * (t : ℂ)) * f.toZetaTestFunction' t) (-(-y)))
+      harg
+      howner_raw
+  have hfreq :
+      𝓕 (fun t : ℝ =>
+          Complex.exp ((σ : ℂ) * (t : ℂ)) * f.toZetaTestFunction' t) (-(-y)) =
+        𝓕 (fun t : ℝ =>
+          Complex.exp ((σ : ℂ) * (t : ℂ)) * f.toZetaTestFunction' t) y :=
+    congrArg
+      (fun u : ℝ =>
+        𝓕 (fun t : ℝ =>
+          Complex.exp ((σ : ℂ) * (t : ℂ)) * f.toZetaTestFunction' t) u)
+      (neg_neg y)
+  exact hfreq.symm.trans howner.symm
 
 /-- Re-coordinate the reflected vertical line used by the Fourier transform. -/
 theorem zetaCompletedExplicitFormula_reflectedVerticalLine_re
@@ -103,8 +151,17 @@ theorem zetaCompletedExplicitFormula_reflectedVerticalLine_re
       exact congrArg (fun r : ℝ => σ + r)
         (Complex.mul_I_re (2 * π * (-y) : ℂ))
     _ = σ + (-0) := by
+      have hcoef :
+          (2 : ℂ) * (π : ℂ) * (-y : ℂ) =
+            ((2 * π * (-y) : ℝ) : ℂ) :=
+        zetaCompletedExplicitFormula_two_pi_neg_cast y
+      have him :
+          (2 * π * (-y) : ℂ).im = 0 :=
+        Eq.trans
+          (congrArg Complex.im hcoef)
+          (Complex.ofReal_im (2 * π * (-y)))
       exact congrArg (fun r : ℝ => σ + (-r))
-        (Complex.ofReal_im (2 * π * (-y)))
+        him
     _ = σ + 0 := by
       exact congrArg (fun r : ℝ => σ + r) (neg_zero : -(0 : ℝ) = 0)
     _ = σ := by
@@ -125,7 +182,16 @@ theorem zetaCompletedExplicitFormula_reflectedVerticalLine_im
     _ = (2 * π * (-y) : ℂ).re := by
       exact Complex.mul_I_im (2 * π * (-y) : ℂ)
     _ = 2 * π * (-y) := by
-      exact Complex.ofReal_re (2 * π * (-y))
+      have hcoef :
+          (2 : ℂ) * (π : ℂ) * (-y : ℂ) =
+            ((2 * π * (-y) : ℝ) : ℂ) :=
+        zetaCompletedExplicitFormula_two_pi_neg_cast y
+      have hre :
+          (2 * π * (-y) : ℂ).re = 2 * π * (-y) :=
+        Eq.trans
+          (congrArg Complex.re hcoef)
+          (Complex.ofReal_re (2 * π * (-y)))
+      exact hre
     _ = y * (-(2 * π)) := by
       exact Eq.trans
         (mul_neg (2 * π) y)

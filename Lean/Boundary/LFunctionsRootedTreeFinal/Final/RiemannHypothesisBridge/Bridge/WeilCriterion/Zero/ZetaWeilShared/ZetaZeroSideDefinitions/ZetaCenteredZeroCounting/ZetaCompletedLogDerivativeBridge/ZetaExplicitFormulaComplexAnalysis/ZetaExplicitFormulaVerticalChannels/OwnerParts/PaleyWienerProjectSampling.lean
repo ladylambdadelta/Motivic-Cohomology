@@ -19,7 +19,9 @@ open Complex
 open Filter
 open LSeries ArithmeticFunction
 open MeasureTheory
+open Real
 open scoped ArithmeticFunction
+open scoped LSeries.notation
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
@@ -204,8 +206,8 @@ theorem zetaCompletedExplicitFormulaPhi_projectRightVonMangoldtMonomialRawIntegr
       (Eq.trans
         (zetaCompletedExplicitFormulaPhi_projectRightVonMangoldtMonomial_integral_eq_timeSample_ownerSamplingCore
           f F h hn)
-        (zetaCompletedExplicitFormulaPhi_projectRightVonMangoldtMonomialTimeSample_eq
-          f n).symm)
+        (zetaCompletedExplicitFormulaPhi_projectRightVonMangoldtMonomialTimeSample_of_ne_zero
+          f hn).symm)
 
 /-- Unconditional core analytic Paley-Wiener sampling statement in named
 raw-integral form. -/
@@ -223,8 +225,8 @@ theorem zetaCompletedExplicitFormulaPhi_projectRightVonMangoldtMonomialRawIntegr
       (Eq.trans
         (zetaCompletedExplicitFormulaPhi_projectRightVonMangoldtMonomial_integral_eq_timeSample_ownerSamplingCore_unconditional
           f F hn)
-        (zetaCompletedExplicitFormulaPhi_projectRightVonMangoldtMonomialTimeSample_eq
-          f n).symm)
+        (zetaCompletedExplicitFormulaPhi_projectRightVonMangoldtMonomialTimeSample_of_ne_zero
+          f hn).symm)
 
 /-- Reflected/opposite-centered project sampling reduces to the ordinary
 right-line sampling theorem applied to the reflected admissible probe. -/
