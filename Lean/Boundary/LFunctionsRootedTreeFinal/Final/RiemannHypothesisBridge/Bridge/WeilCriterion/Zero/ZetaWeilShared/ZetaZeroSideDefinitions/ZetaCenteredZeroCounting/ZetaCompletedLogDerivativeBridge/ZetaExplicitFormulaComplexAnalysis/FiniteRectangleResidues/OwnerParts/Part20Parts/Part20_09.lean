@@ -22,14 +22,6 @@ namespace ZetaAdmissibleFunction
 ## Part20 09: YRawHoleSubspans
 -/
 
-def explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole
-    {T : ℝ}
-    (ρ : ℝ)
-    (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ)
-    (a : ℂ) : Prop :=
-  (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im ≤ ypair.y₀ ∧
-    ypair.y₁ ≤ (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im
-
 /-- The raw-hole vertical subspan predicate is decidable because it is a conjunction of
 real coordinate inequalities. -/
 instance explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole_decidable
