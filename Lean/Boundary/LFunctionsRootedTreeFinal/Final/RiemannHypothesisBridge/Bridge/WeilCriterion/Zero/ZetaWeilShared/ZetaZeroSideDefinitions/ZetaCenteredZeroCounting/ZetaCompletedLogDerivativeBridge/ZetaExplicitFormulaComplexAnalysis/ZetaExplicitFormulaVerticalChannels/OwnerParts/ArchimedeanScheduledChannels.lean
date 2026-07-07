@@ -346,7 +346,7 @@ theorem zetaCompletedExplicitFormulaScheduledArchimedean_eq_inverseGammaCompleti
   change A = G - C
   calc
     A = A + C - C := by
-      exact (add_sub_cancel A C).symm
+      exact (add_sub_cancel_right A C).symm
     _ = G - C := by
       exact congrArg (fun z : ℂ => z - C) hdecomp.symm
 
