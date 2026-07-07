@@ -173,6 +173,46 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIn
         le_trans hu hmul)
   exact ⟨MB, hMBpos, hbound⟩
 
+/-- Limit form of the zero-pole tangent-boundary residue-tail estimate. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral_tendsto_localTangentResidue_ownerResidueTail
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
+          f F (h.height_schedule.height u))
+      atTop
+      (𝓝
+        ((2 * (Real.pi : ℂ) * Complex.I) *
+          (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))))) := by
+  let B : ℂ :=
+    (2 * (Real.pi : ℂ) * Complex.I) *
+      (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))
+  match
+    zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral_eventual_inverseQuadratic_of_standardResidue
+      f F h with
+  | ⟨MB, _hMBpos, hbound⟩ =>
+      have hmajorant :
+          Tendsto
+            (fun u : ℝ =>
+              MB *
+                (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^
+                  (-(2 : ℤ)))
+            atTop
+            (𝓝 0) :=
+        zetaCompletedExplicitFormulaCorrection_scheduledInverseQuadraticTailMajorant_tendsto_zero_ownerShared
+          F h.height_schedule MB
+      exact
+        tendsto_iff_norm_sub_tendsto_zero.2
+          (squeeze_zero'
+            (Eventually.of_forall
+              (fun u : ℝ =>
+                norm_nonneg
+                  (zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
+                    f F (h.height_schedule.height u) - B)))
+            hbound
+            hmajorant)
+
 end ZetaAdmissibleFunction
 
 end
