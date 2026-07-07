@@ -152,7 +152,14 @@ theorem zetaLaplaceTransform_rightZeroPoleProjectionKernel_verticalSlice_integra
           Complex.exp
             (Complex.I * (t : ℂ) * (x : ℂ)) *
         Complex.exp ((c : ℂ) * (x : ℂ)) := by
-  unfold zetaLaplaceTransform_rightZeroPoleProjectionKernel
+  change
+    φ x *
+        Complex.exp
+          ((((c : ℂ) - 1 / 2) + t * Complex.I) * (x : ℂ)) =
+      (φ x * Complex.exp (-(1 / 2 : ℂ) * (x : ℂ))) *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ)) *
+        Complex.exp ((c : ℂ) * (x : ℂ))
   calc
     φ x *
         Complex.exp
@@ -229,7 +236,14 @@ theorem zetaLaplaceTransform_rightZeroPoleProjectionKernel_verticalSlice_eq_four
           Complex.exp
             (Complex.I * (t : ℂ) * (x : ℂ)) *
           Complex.exp ((c : ℂ) * (x : ℂ)) := by
-  unfold zetaLaplaceTransform
+  change
+    (∫ x : ℝ,
+      φ x * Complex.exp ((((c : ℂ) - 1 / 2) + t * Complex.I) * (x : ℂ))) =
+      ∫ x : ℝ,
+        zetaLaplaceTransform_rightZeroPoleProjectionKernel φ x *
+          Complex.exp
+            (Complex.I * (t : ℂ) * (x : ℂ)) *
+          Complex.exp ((c : ℂ) * (x : ℂ))
   exact
     integral_congr_ae
       (Eventually.of_forall
@@ -340,9 +354,10 @@ theorem zetaLaplaceTransform_rightZeroPoleProjectionKernel_fullLineCauchyValue
                         Complex.exp (((cp - 1 : ℝ) : ℂ) * (x : ℂ))) := by
                 have hcp_sub :
                     ((cp - 1 : ℝ) : ℂ) = (c : ℂ) := by
-                  unfold cp
                   calc
-                    (((c + 1) - 1 : ℝ) : ℂ) = ((c + (1 - 1) : ℝ) : ℂ) := by
+                    ((cp - 1 : ℝ) : ℂ) = (((c + 1) - 1 : ℝ) : ℂ) := by
+                      exact rfl
+                    _ = ((c + (1 - 1) : ℝ) : ℂ) := by
                       exact congrArg (fun r : ℝ => (r : ℂ))
                         (add_sub_assoc c 1 1)
                     _ = ((c + 0 : ℝ) : ℂ) := by
@@ -387,6 +402,243 @@ theorem zetaLaplaceTransform_rightZeroPoleProjectionKernel_fullLineCauchyValue
         zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
           f.toZetaTestFunction' c := by
       exact rfl
+
+/-- Inverse-quadratic truncation control for the fixed right zero-pole Cauchy
+multiplier after its full-line Cauchy value has been identified. -/
+theorem zetaLaplaceTransform_rightZeroPoleProjectionKernel_truncationTail_inverseQuadratic
+    (f : LFunctions.ZetaAdmissibleFunction) (c : ℝ) (hc : 0 < c)
+    (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
+    ∃ MR : ℝ,
+      0 < MR ∧
+        ∀ᶠ u in atTop,
+          ‖(∫ t in Set.Icc (-(height u)) (height u),
+              (-1 / ((c : ℂ) + (t : ℂ) * Complex.I)) *
+                zetaLaplaceTransform f.toZetaTestFunction'
+                  (((c : ℂ) - 1 / 2) + t * Complex.I)) -
+            (∫ t : ℝ,
+              (-1 / ((c : ℂ) + (t : ℂ) * Complex.I)) *
+                zetaLaplaceTransform f.toZetaTestFunction'
+                  (((c : ℂ) - 1 / 2) + t * Complex.I))‖
+            ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
+  let cp : ℝ := c + 1
+  have hcp : 1 < cp :=
+    zetaLaplaceTransform_rightZeroPole_shiftedLine_gt_one c hc
+  have hden :
+      ∀ t : ℝ,
+        (((cp : ℂ) + (t : ℂ) * Complex.I) - 1) =
+          (c : ℂ) + (t : ℂ) * Complex.I := by
+    intro t
+    calc
+      (((cp : ℂ) + (t : ℂ) * Complex.I) - 1) =
+          ((cp : ℂ) - 1) + (t : ℂ) * Complex.I := by
+        exact add_sub_right_comm (cp : ℂ) ((t : ℂ) * Complex.I) (1 : ℂ)
+      _ = ((c + 1 : ℝ) : ℂ) - 1 + (t : ℂ) * Complex.I := by
+        exact rfl
+      _ = ((c : ℂ) + (1 : ℂ)) - 1 + (t : ℂ) * Complex.I := by
+        exact congrArg
+          (fun z : ℂ => z - 1 + (t : ℂ) * Complex.I)
+          (Complex.ofReal_add c 1)
+      _ = (c : ℂ) + (t : ℂ) * Complex.I := by
+        exact congrArg
+          (fun z : ℂ => z + (t : ℂ) * Complex.I)
+          (add_sub_cancel_right (c : ℂ) (1 : ℂ))
+  have hcp_sub :
+      ((cp - 1 : ℝ) : ℂ) = (c : ℂ) := by
+    calc
+      ((cp - 1 : ℝ) : ℂ) = (((c + 1) - 1 : ℝ) : ℂ) := by
+        exact rfl
+      _ = ((c + (1 - 1) : ℝ) : ℂ) := by
+        exact congrArg (fun r : ℝ => (r : ℂ))
+          (add_sub_assoc c 1 1)
+      _ = ((c + 0 : ℝ) : ℂ) := by
+        exact congrArg
+          (fun r : ℝ => ((c + r : ℝ) : ℂ))
+          (sub_self (1 : ℝ))
+      _ = (c : ℂ) := by
+        exact congrArg (fun r : ℝ => (r : ℂ)) (add_zero c)
+  match
+    fixedRightLine_fourierCauchy_truncationTail_inverseQuadratic
+      (zetaLaplaceTransform_rightZeroPoleProjectionKernel f.toZetaTestFunction')
+      (zetaLaplaceTransform_rightZeroPoleProjectionKernel_continuous
+        f.toZetaTestFunction')
+      (zetaLaplaceTransform_rightZeroPoleProjectionKernel_hasCompactSupport
+        f.toZetaTestFunction')
+      (zetaLaplaceTransform_rightZeroPoleProjectionKernel_contDiff_admissible f)
+      cp hcp height hcofinal
+  with
+  | ⟨MR, hMR_pos, hMR_eventual⟩ =>
+      exact ⟨MR, hMR_pos,
+        hMR_eventual.mono
+          (fun u hu =>
+            let hfinite :
+                (∫ t in Set.Icc (-(height u)) (height u),
+                    (-1 / ((c : ℂ) + (t : ℂ) * Complex.I)) *
+                      zetaLaplaceTransform f.toZetaTestFunction'
+                        (((c : ℂ) - 1 / 2) + t * Complex.I)) =
+                  (∫ t in Set.Icc (-(height u)) (height u),
+                    (-1 / (((cp : ℂ) + (t : ℂ) * Complex.I) - 1)) *
+                      (∫ x : ℝ,
+                        zetaLaplaceTransform_rightZeroPoleProjectionKernel
+                            f.toZetaTestFunction' x *
+                          Complex.exp
+                            (Complex.I * (t : ℂ) * (x : ℂ)) *
+                          Complex.exp (((cp - 1 : ℝ) : ℂ) * (x : ℂ)))) :=
+                setIntegral_congr_fun measurableSet_Icc
+                  (fun t _ht =>
+                    calc
+                      (-1 / ((c : ℂ) + (t : ℂ) * Complex.I)) *
+                          zetaLaplaceTransform f.toZetaTestFunction'
+                            (((c : ℂ) - 1 / 2) + t * Complex.I)
+                          =
+                          (-1 / (((cp : ℂ) + (t : ℂ) * Complex.I) - 1)) *
+                            zetaLaplaceTransform f.toZetaTestFunction'
+                              (((c : ℂ) - 1 / 2) + t * Complex.I) := by
+                        exact congrArg
+                          (fun z : ℂ =>
+                            (-1 / z) *
+                              zetaLaplaceTransform f.toZetaTestFunction'
+                                (((c : ℂ) - 1 / 2) + t * Complex.I))
+                          (hden t).symm
+                      _ =
+                          (-1 / (((cp : ℂ) + (t : ℂ) * Complex.I) - 1)) *
+                            (∫ x : ℝ,
+                              zetaLaplaceTransform_rightZeroPoleProjectionKernel
+                                  f.toZetaTestFunction' x *
+                                Complex.exp
+                                  (Complex.I * (t : ℂ) * (x : ℂ)) *
+                                Complex.exp (((cp - 1 : ℝ) : ℂ) * (x : ℂ))) := by
+                        exact congrArg
+                          (fun z : ℂ =>
+                            (-1 / (((cp : ℂ) + (t : ℂ) * Complex.I) - 1)) * z)
+                          ((zetaLaplaceTransform_rightZeroPoleProjectionKernel_verticalSlice_eq_fourier
+                            f.toZetaTestFunction' c t).trans
+                            (congrArg
+                              (fun a : ℂ =>
+                                ∫ x : ℝ,
+                                  zetaLaplaceTransform_rightZeroPoleProjectionKernel
+                                      f.toZetaTestFunction' x *
+                                    Complex.exp
+                                      (Complex.I * (t : ℂ) * (x : ℂ)) *
+                                    Complex.exp (a * (x : ℂ)))
+                              hcp_sub.symm)))
+            let hfull :
+                (∫ t : ℝ,
+                    (-1 / ((c : ℂ) + (t : ℂ) * Complex.I)) *
+                      zetaLaplaceTransform f.toZetaTestFunction'
+                        (((c : ℂ) - 1 / 2) + t * Complex.I)) =
+                  (∫ t : ℝ,
+                    (-1 / (((cp : ℂ) + (t : ℂ) * Complex.I) - 1)) *
+                      (∫ x : ℝ,
+                        zetaLaplaceTransform_rightZeroPoleProjectionKernel
+                            f.toZetaTestFunction' x *
+                          Complex.exp
+                            (Complex.I * (t : ℂ) * (x : ℂ)) *
+                          Complex.exp (((cp - 1 : ℝ) : ℂ) * (x : ℂ)))) :=
+                integral_congr_ae
+                  (Eventually.of_forall
+                    (fun t : ℝ =>
+                      calc
+                        (-1 / ((c : ℂ) + (t : ℂ) * Complex.I)) *
+                            zetaLaplaceTransform f.toZetaTestFunction'
+                              (((c : ℂ) - 1 / 2) + t * Complex.I)
+                            =
+                            (-1 / (((cp : ℂ) + (t : ℂ) * Complex.I) - 1)) *
+                              zetaLaplaceTransform f.toZetaTestFunction'
+                                (((c : ℂ) - 1 / 2) + t * Complex.I) := by
+                          exact congrArg
+                            (fun z : ℂ =>
+                              (-1 / z) *
+                                zetaLaplaceTransform f.toZetaTestFunction'
+                                  (((c : ℂ) - 1 / 2) + t * Complex.I))
+                            (hden t).symm
+                        _ =
+                            (-1 / (((cp : ℂ) + (t : ℂ) * Complex.I) - 1)) *
+                              (∫ x : ℝ,
+                                zetaLaplaceTransform_rightZeroPoleProjectionKernel
+                                    f.toZetaTestFunction' x *
+                                  Complex.exp
+                                    (Complex.I * (t : ℂ) * (x : ℂ)) *
+                                  Complex.exp (((cp - 1 : ℝ) : ℂ) * (x : ℂ))) := by
+                          exact congrArg
+                            (fun z : ℂ =>
+                              (-1 / (((cp : ℂ) + (t : ℂ) * Complex.I) - 1)) * z)
+                            ((zetaLaplaceTransform_rightZeroPoleProjectionKernel_verticalSlice_eq_fourier
+                              f.toZetaTestFunction' c t).trans
+                              (congrArg
+                                (fun a : ℂ =>
+                                  ∫ x : ℝ,
+                                    zetaLaplaceTransform_rightZeroPoleProjectionKernel
+                                        f.toZetaTestFunction' x *
+                                      Complex.exp
+                                        (Complex.I * (t : ℂ) * (x : ℂ)) *
+                                      Complex.exp (a * (x : ℂ)))
+                                hcp_sub.symm))))
+            Eq.subst
+              (motive := fun finiteValue : ℂ =>
+                ‖finiteValue -
+                  (∫ t : ℝ,
+                    (-1 / ((c : ℂ) + (t : ℂ) * Complex.I)) *
+                      zetaLaplaceTransform f.toZetaTestFunction'
+                        (((c : ℂ) - 1 / 2) + t * Complex.I))‖
+                  ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)))
+              hfinite.symm
+              (Eq.subst
+                (motive := fun fullValue : ℂ =>
+                  ‖(∫ t in Set.Icc (-(height u)) (height u),
+                      (-1 / (((cp : ℂ) + (t : ℂ) * Complex.I) - 1)) *
+                        (∫ x : ℝ,
+                          zetaLaplaceTransform_rightZeroPoleProjectionKernel
+                              f.toZetaTestFunction' x *
+                            Complex.exp
+                              (Complex.I * (t : ℂ) * (x : ℂ)) *
+                            Complex.exp (((cp - 1 : ℝ) : ℂ) * (x : ℂ)))) -
+                    fullValue‖
+                    ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)))
+                hfull.symm
+                hu))⟩
+
+/-- Fixed-line zero-pole Cauchy projection theorem with inverse-quadratic
+symmetric truncation control. -/
+theorem zetaLaplaceTransform_rightZeroPoleCauchyProjection_eventual_inverseQuadratic_to_value
+    (f : LFunctions.ZetaAdmissibleFunction) (c : ℝ) (hc : 0 < c)
+    (height : ℝ → ℝ) (hcofinal : Tendsto height atTop atTop) :
+    ∃ MR : ℝ,
+      0 < MR ∧
+        ∀ᶠ u in atTop,
+          ‖(∫ t in Set.Icc (-(height u)) (height u),
+              (-1 / ((c : ℂ) + (t : ℂ) * Complex.I)) *
+                zetaLaplaceTransform f.toZetaTestFunction'
+                  (((c : ℂ) - 1 / 2) + t * Complex.I)) -
+            zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+              f.toZetaTestFunction' c‖
+            ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)) := by
+  match
+    zetaLaplaceTransform_rightZeroPoleProjectionKernel_truncationTail_inverseQuadratic
+      f c hc height hcofinal
+  with
+  | ⟨MR, hMR_pos, hMR_eventual⟩ =>
+      exact ⟨MR, hMR_pos,
+        hMR_eventual.mono
+          (fun u hu =>
+            let hvalue :
+                (∫ t : ℝ,
+                    (-1 / ((c : ℂ) + (t : ℂ) * Complex.I)) *
+                      zetaLaplaceTransform f.toZetaTestFunction'
+                        (((c : ℂ) - 1 / 2) + t * Complex.I)) =
+                  zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+                    f.toZetaTestFunction' c :=
+                zetaLaplaceTransform_rightZeroPoleProjectionKernel_fullLineCauchyValue
+                  f c hc
+            Eq.subst
+              (motive := fun z : ℂ =>
+                ‖(∫ t in Set.Icc (-(height u)) (height u),
+                    (-1 / ((c : ℂ) + (t : ℂ) * Complex.I)) *
+                      zetaLaplaceTransform f.toZetaTestFunction'
+                        (((c : ℂ) - 1 / 2) + t * Complex.I)) -
+                  z‖
+                  ≤ MR * (1 + ‖height u‖) ^ (-(2 : ℤ)))
+              hvalue
+              hu)⟩
 
 end FixedLineCauchyProjection
 
