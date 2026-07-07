@@ -192,6 +192,59 @@ theorem Complex.logarithmicPhaseRealPhase_long_packet_budget_of_tail_budgets
     Complex.logarithmicPhaseRealPhase_long_packet_budget
       t hstationary hendpoint
 
+/-- Stationary budget plus endpoint reciprocal-scale cut cardinality bounds
+assemble into the long real-phase block estimate. -/
+theorem Complex.logarithmicPhaseRealPhase_long_packet_budget_of_scaleCut_bounds
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hstationary :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+    (hleftScale :
+      (((Finset.Icc a b).filter
+        (fun n : ℕ =>
+          ‖t‖ / (a : ℝ) - (1 / 2 : ℝ) < ‖t‖ / (n : ℝ))).card :
+          ℝ) ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
+    (hfarScale :
+      (((Finset.Icc a b).filter
+        (fun n : ℕ =>
+          ‖t‖ / (n : ℝ) <
+            ‖t‖ / (((b + 1 : ℕ) : ℝ)) + (1 / 2 : ℝ))).card :
+          ℝ) ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  have hleft :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+    Complex.logarithmicPhaseRealPhase_endpointLeftPacketContribution_le_twentyTarget_of_scaleCut
+      t ht ht_nonneg ha hleftScale
+  have hfar :
+      ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets t a b,
+        Complex.realPhase_secondDerivative_vdc_packetSum
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ ≤
+        20 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+    Complex.logarithmicPhaseRealPhase_endpointFarRightPacketContribution_le_twentyTarget_of_scaleCut
+      t ht ht_nonneg ha hfarScale
+  exact
+    Complex.logarithmicPhaseRealPhase_long_packet_budget_of_tail_budgets
+      t ht ht_nonneg ha hab hstationary hleft hfar
+
 /-- Stationary budget plus closed-subinterval endpoint budgets assemble into
 the long real-phase block estimate. -/
 theorem Complex.logarithmicPhaseRealPhase_long_packet_budget_of_Icc_endpoint_bounds
