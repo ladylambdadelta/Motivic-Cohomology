@@ -269,6 +269,104 @@ theorem Complex.realPhase_integerIncrement_resonanceWindow_exists
     Finset.exists_eq_Ico_of_subset_Ico_intervalConvex
       hab hS_block hconvex
 
+/-- A finite resonant-index set for a shifted logarithmic difference is a
+half-open resonant window, once the shifted adjacent increments are known to
+be monotone. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_exists
+    (t : ℝ)
+    {a b h : ℕ}
+    {resonance lam : ℝ}
+    (habh : a ≤ b - h)
+    (S : Finset ℕ)
+    (hS :
+      ∀ n : ℕ,
+        n ∈ S ↔
+          n ∈ Finset.Ico a (b - h) ∧
+            ‖Complex.realPhase_integerIncrement
+                (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n -
+              resonance‖ < lam)
+    (hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h)) :
+    ∃ c d : ℕ,
+      a ≤ c ∧ c ≤ d ∧ d ≤ b - h ∧ S = Finset.Ico c d := by
+  exact
+    Complex.realPhase_integerIncrement_resonanceWindow_exists
+      (Complex.logarithmicPhaseRealPhase_shiftedDifference t h)
+      habh S hS hinc_mono
+
+/-- A finite resonant-index set for a shifted logarithmic difference is a
+half-open resonant window when the fixed-width parent gap is monotone. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_exists_of_parentGap_monotone
+    (t : ℝ)
+    {a b h : ℕ}
+    {resonance lam : ℝ}
+    (habh : a ≤ b - h)
+    (S : Finset ℕ)
+    (hS :
+      ∀ n : ℕ,
+        n ∈ S ↔
+          n ∈ Finset.Ico a (b - h) ∧
+            ‖Complex.realPhase_integerIncrement
+                (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n -
+              resonance‖ < lam)
+    (hgap :
+      MonotoneOn
+        (fun n : ℕ =>
+          Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              (n + h) -
+            Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              n)
+        (Finset.Ico a (b - h) : Set ℕ)) :
+    ∃ c d : ℕ,
+      a ≤ c ∧ c ≤ d ∧ d ≤ b - h ∧ S = Finset.Ico c d := by
+  have hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h) :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrementMonotoneOn_of_parentGap_monotone
+      t hgap
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_exists
+      t habh S hS hinc_mono
+
+/-- A finite resonant-index set for a shifted logarithmic difference is a
+half-open resonant window when the fixed-width parent gap is antitone. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_exists_of_parentGap_antitone
+    (t : ℝ)
+    {a b h : ℕ}
+    {resonance lam : ℝ}
+    (habh : a ≤ b - h)
+    (S : Finset ℕ)
+    (hS :
+      ∀ n : ℕ,
+        n ∈ S ↔
+          n ∈ Finset.Ico a (b - h) ∧
+            ‖Complex.realPhase_integerIncrement
+                (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) n -
+              resonance‖ < lam)
+    (hgap :
+      AntitoneOn
+        (fun n : ℕ =>
+          Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              (n + h) -
+            Complex.realPhase_integerIncrement
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              n)
+        (Finset.Ico a (b - h) : Set ℕ)) :
+    ∃ c d : ℕ,
+      a ≤ c ∧ c ≤ d ∧ d ≤ b - h ∧ S = Finset.Ico c d := by
+  have hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h) :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrementMonotoneOn_of_parentGap_antitone
+      t hgap
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_exists
+      t habh S hS hinc_mono
+
 /-- Outside an extensionally specified resonant-index set, the adjacent
 increment is separated from that resonance. -/
 theorem Complex.realPhase_integerIncrement_separated_from_resonance_of_not_mem_window
