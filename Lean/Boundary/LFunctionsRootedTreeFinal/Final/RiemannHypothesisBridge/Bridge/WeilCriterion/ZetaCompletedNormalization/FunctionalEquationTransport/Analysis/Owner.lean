@@ -41,7 +41,7 @@ theorem Gammaℝ_ne_zero_of_ne_zero_norm_le_one
           _ = 0 := by
             exact neg_zero
       hz_ne_zero hz_zero
-    | Nat.succ n =>
+    | n + 1 =>
       have hprod_re :
           (2 * ((Nat.succ n : ℕ) : ℂ)).re =
             (2 : ℝ) * (Nat.succ n : ℝ) := by
@@ -136,7 +136,7 @@ theorem Gamma_half_ne_neg_nat_of_ne_zero_norm_le_one
       have hz_zero : z = 0 := by
         exact div_eq_zero_iff.mp hz_div_zero |>.resolve_right two_ne_zero
       hz_ne_zero hz_zero
-  | Nat.succ n =>
+  | n + 1 =>
       have hz_eq :
           z = -(2 * ((Nat.succ n : ℕ) : ℂ)) := by
         calc
@@ -676,7 +676,7 @@ theorem poleClearedRiemannZeta_trivialZero_of_gammaZero_leftHalfPlane
           _ = 0 := by
             exact neg_zero
       exact False.elim (hz_ne_zero hz_zero)
-    | Nat.succ n =>
+    | n + 1 =>
       have hz_ne_one : z ≠ 1 :=
         fun hz_one =>
         have hz_re_one : z.re = 1 := by
