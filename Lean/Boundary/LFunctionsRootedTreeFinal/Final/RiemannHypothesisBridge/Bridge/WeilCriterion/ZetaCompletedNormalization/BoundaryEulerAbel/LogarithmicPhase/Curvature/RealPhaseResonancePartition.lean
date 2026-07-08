@@ -291,6 +291,115 @@ theorem Complex.mem_realPhase_integerIncrementResonanceWindow_iff
         ‖Complex.realPhase_integerIncrement φ n - resonance‖ < lam := by
   exact Finset.mem_filter
 
+/-- The nonresonant complement of a canonical adjacent-increment resonance
+window inside a half-open natural block. -/
+def Complex.realPhase_integerIncrementResonanceWindowComplement
+    (φ : ℝ → ℝ)
+    (a b : ℕ)
+    (resonance lam : ℝ) : Finset ℕ :=
+  (Finset.Ico a b).filter
+    (fun n : ℕ =>
+      ¬ ‖Complex.realPhase_integerIncrement φ n - resonance‖ < lam)
+
+/-- Membership in the nonresonant complement is exactly block membership plus
+avoidance of the chosen resonance window. -/
+theorem Complex.mem_realPhase_integerIncrementResonanceWindowComplement_iff
+    (φ : ℝ → ℝ)
+    {a b n : ℕ}
+    {resonance lam : ℝ} :
+    n ∈ Complex.realPhase_integerIncrementResonanceWindowComplement
+        φ a b resonance lam ↔
+      n ∈ Finset.Ico a b ∧
+        ¬ ‖Complex.realPhase_integerIncrement φ n - resonance‖ < lam := by
+  exact Finset.mem_filter
+
+/-- The resonant window and its nonresonant complement split the ambient
+half-open natural block. -/
+theorem Complex.realPhase_integerIncrementResonanceWindow_union_complement
+    (φ : ℝ → ℝ)
+    (a b : ℕ)
+    (resonance lam : ℝ) :
+    Complex.realPhase_integerIncrementResonanceWindow φ a b resonance lam ∪
+        Complex.realPhase_integerIncrementResonanceWindowComplement
+          φ a b resonance lam =
+      Finset.Ico a b := by
+  exact Finset.filter_union_filter_neg_eq
+    (Finset.Ico a b)
+    (fun n : ℕ =>
+      ‖Complex.realPhase_integerIncrement φ n - resonance‖ < lam)
+
+/-- The resonant window and its nonresonant complement are disjoint. -/
+theorem Complex.realPhase_integerIncrementResonanceWindow_disjoint_complement
+    (φ : ℝ → ℝ)
+    (a b : ℕ)
+    (resonance lam : ℝ) :
+    Disjoint
+      (Complex.realPhase_integerIncrementResonanceWindow φ a b resonance lam)
+      (Complex.realPhase_integerIncrementResonanceWindowComplement
+        φ a b resonance lam) := by
+  exact Finset.disjoint_filter_filter_neg
+    (Finset.Ico a b)
+    (fun n : ℕ =>
+      ‖Complex.realPhase_integerIncrement φ n - resonance‖ < lam)
+
+/-- A sum over a half-open block splits into the resonant window contribution
+and the nonresonant complement contribution. -/
+theorem Complex.realPhase_integerIncrementResonanceWindow_sum_add_complement
+    (φ : ℝ → ℝ)
+    (a b : ℕ)
+    (resonance lam : ℝ)
+    (F : ℕ → ℂ) :
+    (∑ n ∈ Complex.realPhase_integerIncrementResonanceWindow
+          φ a b resonance lam, F n) +
+        (∑ n ∈
+          Complex.realPhase_integerIncrementResonanceWindowComplement
+            φ a b resonance lam, F n) =
+      ∑ n ∈ Finset.Ico a b, F n := by
+  exact
+    (Finset.sum_filter_add_sum_filter_not
+      (s := Finset.Ico a b)
+      (p := fun n : ℕ =>
+        ‖Complex.realPhase_integerIncrement φ n - resonance‖ < lam)
+      (f := F)).symm
+
+/-- Norm form of the resonant-window/nonresonant-complement split. -/
+theorem Complex.realPhase_integerIncrementResonanceWindow_sum_norm_le
+    (φ : ℝ → ℝ)
+    (a b : ℕ)
+    (resonance lam : ℝ)
+    (F : ℕ → ℂ) :
+    ‖∑ n ∈ Finset.Ico a b, F n‖ ≤
+      ‖∑ n ∈ Complex.realPhase_integerIncrementResonanceWindow
+          φ a b resonance lam, F n‖ +
+        ‖∑ n ∈
+          Complex.realPhase_integerIncrementResonanceWindowComplement
+            φ a b resonance lam, F n‖ := by
+  have hsum :
+      (∑ n ∈ Complex.realPhase_integerIncrementResonanceWindow
+          φ a b resonance lam, F n) +
+        (∑ n ∈
+          Complex.realPhase_integerIncrementResonanceWindowComplement
+            φ a b resonance lam, F n) =
+      ∑ n ∈ Finset.Ico a b, F n :=
+    Complex.realPhase_integerIncrementResonanceWindow_sum_add_complement
+      φ a b resonance lam F
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        ‖z‖ ≤
+          ‖∑ n ∈ Complex.realPhase_integerIncrementResonanceWindow
+              φ a b resonance lam, F n‖ +
+            ‖∑ n ∈
+              Complex.realPhase_integerIncrementResonanceWindowComplement
+                φ a b resonance lam, F n‖)
+      hsum
+      (norm_add_le
+        (∑ n ∈ Complex.realPhase_integerIncrementResonanceWindow
+          φ a b resonance lam, F n)
+        (∑ n ∈
+          Complex.realPhase_integerIncrementResonanceWindowComplement
+            φ a b resonance lam, F n))
+
 /-- The canonical resonant-index set for monotone adjacent increments is a
 half-open resonant window. -/
 theorem Complex.realPhase_integerIncrement_resonanceWindow_exists_canonical
@@ -752,6 +861,31 @@ theorem Complex.realPhase_integerIncrementSeparatedOn_of_resonanceWindow_family_
   exact
     Complex.realPhase_integerIncrement_separated_from_resonance_of_not_mem_window
       φ (S k) (hS k) (hsub hn) (havoid k n hn)
+
+/-- Avoidance of the canonical resonant window around every integer lattice
+center supplies the standard separated-increment hypothesis. -/
+theorem Complex.realPhase_integerIncrementSeparatedOn_of_canonical_resonanceWindow_family_avoidance
+    (φ : ℝ → ℝ)
+    {a b c d : ℕ}
+    {lam : ℝ}
+    (hsub : Finset.Ico c d ⊆ Finset.Ico a b)
+    (havoid :
+      ∀ k : ℤ,
+        ∀ n : ℕ,
+          n ∈ Finset.Ico c d →
+            n ∉ Complex.realPhase_integerIncrementResonanceWindow
+              φ a b (2 * Real.pi * (k : ℝ)) lam) :
+    Complex.realPhase_integerIncrementSeparatedOn φ c d lam := by
+  exact
+    Complex.realPhase_integerIncrementSeparatedOn_of_resonanceWindow_family_avoidance
+      φ
+      (fun k : ℤ =>
+        Complex.realPhase_integerIncrementResonanceWindow
+          φ a b (2 * Real.pi * (k : ℝ)) lam)
+      (fun k m =>
+        Complex.mem_realPhase_integerIncrementResonanceWindow_iff
+          φ)
+      hsub havoid
 
 end
 
