@@ -200,7 +200,10 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_rawDeletedCircleBoundar
       (𝓝 R) := by
   have hconstant : Tendsto (fun _ : ℝ => R) atTop (𝓝 R) :=
     tendsto_const_nhds
-  exact hconstant.congr' heventually.symm
+  exact
+    hconstant.congr'
+      (heventually.mono
+        (fun _ hu => hu.symm))
 
 /-- Eventual scheduled raw deleted-circle equality transports to the scheduled
 prime-left excision packet with the combined `-I` orientation. -/
@@ -349,7 +352,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundarySum_eq_twoPiI_smul_index
           explicitFormulaRectangle_onePoleResidue f)
     (hcompleted :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
           explicitFormulaRectangleRawDeletedCircleBoundary f ε
               (completedZeroResidueCoordinate ρ) =
             (2 * ↑Real.pi * Complex.I : ℂ) •
@@ -395,12 +398,11 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundarySum_eq_twoPiI_smul_index
     exact
       Finset.sum_image
         (s := W)
-        (f := fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        (f := fun z : ℂ => deletedCircle z)
+        (g := fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
           completedZeroResidueCoordinate ρ)
-        (g := fun z : ℂ => deletedCircle z)
         (fun ρ _hρ σ _hσ hcoord =>
-          congrArg deletedCircle
-            (completedZeroResidueCoordinate_injective hcoord))
+          completedZeroResidueCoordinate_injective hcoord)
   let Z : ℂ := explicitFormulaRectangle_zeroPoleResidue f
   let O : ℂ := explicitFormulaRectangle_onePoleResidue f
   let R : ℂ :=
@@ -485,7 +487,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundarySum_eq_twoPiI_mul_indexe
           explicitFormulaRectangle_onePoleResidue f)
     (hcompleted :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
           explicitFormulaRectangleRawDeletedCircleBoundary f ε
               (completedZeroResidueCoordinate ρ) =
             (2 * ↑Real.pi * Complex.I : ℂ) •
@@ -528,7 +530,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_eventually_rawDeletedCi
     (hcompleted :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ∀ hρ : ρ ∈
+          ∀ _hρ : ρ ∈
               explicitFormulaCompletedZeroHeightWindow
                 (h.height_schedule.height u),
             explicitFormulaRectangleRawDeletedCircleBoundary f (ε u)
@@ -592,7 +594,10 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_rawDeletedCircleBoundar
         atTop
         (𝓝 ((2 * ↑Real.pi * Complex.I : ℂ) * R)) :=
     tendsto_const_nhds.mul hresidue
-  exact hscaled.congr' heventually.symm
+  exact
+    hscaled.congr'
+      (heventually.mono
+        (fun _ hu => hu.symm))
 
 /-- Scheduled raw deleted-circle equality to the finite indexed residue sum
 transports through the prime-left excision orientation.
@@ -726,7 +731,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError_
     (hcompleted :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ∀ hρ : ρ ∈
+          ∀ _hρ : ρ ∈
               explicitFormulaCompletedZeroHeightWindow
                 (h.height_schedule.height u),
             explicitFormulaRectangleRawDeletedCircleBoundary f (ε u)
