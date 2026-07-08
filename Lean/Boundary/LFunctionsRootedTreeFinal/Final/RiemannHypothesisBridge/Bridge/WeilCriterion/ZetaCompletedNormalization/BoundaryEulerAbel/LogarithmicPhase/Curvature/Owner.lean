@@ -522,6 +522,116 @@ theorem Complex.logarithmicPhase_curvature_integer_block_bound_of_stationary_end
     Complex.logarithmicPhase_curvature_integer_block_bound_of_long_nonneg
       t ht ha hab hlong_nonneg
 
+/-- Concrete logarithmic curvature block estimate from closed stationary and
+three closed endpoint-tail packet budgets on every long positive subblock. -/
+theorem Complex.logarithmicPhase_curvature_integer_block_bound_of_tail_budgets
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hstationary :
+      ∀ u : ℝ,
+        0 ≤ u →
+          1 ≤ ‖u‖ →
+            ∀ {c d : ℕ},
+              1 ≤ c →
+                c ≤ d →
+                  c < d →
+                    Real.sqrt (1 + ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    (((d + 1 : ℕ) : ℝ) / ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_stationaryActiveDerivPackets u c d,
+                      Complex.realPhase_secondDerivative_vdc_packetSum
+                        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase u)
+                        c d m‖ ≤
+                      20 * ((((d + 1 : ℕ) : ℝ) / ‖u‖ +
+                        Real.sqrt (1 + ‖u‖))))
+    (hleft :
+      ∀ u : ℝ,
+        0 ≤ u →
+          1 ≤ ‖u‖ →
+            ∀ {c d : ℕ},
+              1 ≤ c →
+                c ≤ d →
+                  c < d →
+                    Real.sqrt (1 + ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    (((d + 1 : ℕ) : ℝ) / ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointLeftActiveDerivPackets u c d,
+                      Complex.realPhase_secondDerivative_vdc_packetSum
+                        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase u)
+                        c d m‖ ≤
+                      20 * ((((d + 1 : ℕ) : ℝ) / ‖u‖ +
+                        Real.sqrt (1 + ‖u‖))))
+    (hright :
+      ∀ u : ℝ,
+        0 ≤ u →
+          1 ≤ ‖u‖ →
+            ∀ {c d : ℕ},
+              1 ≤ c →
+                c ≤ d →
+                  c < d →
+                    Real.sqrt (1 + ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    (((d + 1 : ℕ) : ℝ) / ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    ‖∑ m ∈ Complex.logarithmicPhaseRealPhase_endpointFarRightActiveDerivPackets u c d,
+                      Complex.realPhase_secondDerivative_vdc_packetSum
+                        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase u)
+                        c d m‖ ≤
+                      20 * ((((d + 1 : ℕ) : ℝ) / ‖u‖ +
+                        Real.sqrt (1 + ‖u‖)))) :
+    ‖∑ n ∈ Finset.Icc a b,
+      ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
+  have hlong_nonneg :
+      ∀ u : ℝ,
+        0 ≤ u →
+          1 ≤ ‖u‖ →
+            ∀ {c d : ℕ},
+              1 ≤ c →
+                c ≤ d →
+                  c < d →
+                    Real.sqrt (1 + ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    (((d + 1 : ℕ) : ℝ) / ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    ‖∑ n ∈ Finset.Icc c d,
+                      Complex.exp
+                        (Complex.I *
+                          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                            u n : ℂ))‖ ≤
+                      80 * ((((d + 1 : ℕ) : ℝ) / ‖u‖ +
+                        Real.sqrt (1 + ‖u‖))) :=
+    fun u hu_nonneg hu_ht {c d} hc hd hcd_strict hlong_sqrt hlong_endpoint =>
+      Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_tail_budgets
+        (t := u)
+        (ht_nonneg := hu_nonneg)
+        (ht := hu_ht)
+        (a := c)
+        (b := d)
+        (ha := hc)
+        (hab := hd)
+        (_hab_strict := hcd_strict)
+        (_hlong_sqrt := hlong_sqrt)
+        (_hlong_endpoint := hlong_endpoint)
+        (hstationary
+          u hu_nonneg hu_ht (c := c) (d := d)
+          hc hd hcd_strict hlong_sqrt hlong_endpoint)
+        (hleft
+          u hu_nonneg hu_ht (c := c) (d := d)
+          hc hd hcd_strict hlong_sqrt hlong_endpoint)
+        (hright
+          u hu_nonneg hu_ht (c := c) (d := d)
+          hc hd hcd_strict hlong_sqrt hlong_endpoint)
+  exact
+    Complex.logarithmicPhase_curvature_integer_block_bound_of_long_nonneg
+      t ht ha hab hlong_nonneg
+
 /-- Concrete logarithmic curvature block estimate from uniform closed
 subinterval twentieth-budget estimates on every long positive subblock. -/
 theorem Complex.logarithmicPhase_curvature_integer_block_bound_of_Icc_bounds
