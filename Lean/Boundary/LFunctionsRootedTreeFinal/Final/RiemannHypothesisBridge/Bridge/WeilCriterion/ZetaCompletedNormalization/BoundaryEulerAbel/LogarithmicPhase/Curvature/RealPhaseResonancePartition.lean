@@ -987,6 +987,100 @@ theorem Complex.realPhase_integerIncrementPrincipalStrip_exists
     Finset.exists_eq_Ico_of_subset_Ico_intervalConvex
       hab hsubset hconvex
 
+/-- The intersection of a half-open subinterval with one principal strip is
+again a half-open interval. -/
+theorem Complex.realPhase_Ico_filter_principalStrip_exists
+    (φ : ℝ → ℝ)
+    (k : ℤ)
+    {a b c d : ℕ}
+    (hab : a ≤ b)
+    (hc : a ≤ c)
+    (hcd : c ≤ d)
+    (hd : d ≤ b)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b) :
+    ∃ u v : ℕ,
+      c ≤ u ∧ u ≤ v ∧ v ≤ d ∧
+        (Finset.Ico c d).filter
+            (fun n : ℕ =>
+              n ∈
+                Complex.realPhase_integerIncrementPrincipalStrip φ a b k) =
+          Finset.Ico u v := by
+  let S : Finset ℕ :=
+    (Finset.Ico c d).filter
+      (fun n : ℕ =>
+        n ∈ Complex.realPhase_integerIncrementPrincipalStrip φ a b k)
+  have hS_subset_cd : S ⊆ Finset.Ico c d := by
+    intro n hn
+    exact (Finset.mem_filter.mp hn).1
+  have hS_subset_ab : S ⊆ Finset.Ico a b := by
+    intro n hn
+    have hn_cd : n ∈ Finset.Ico c d :=
+      hS_subset_cd hn
+    have hn_bounds : c ≤ n ∧ n < d :=
+      Finset.mem_Ico.mp hn_cd
+    exact
+      Finset.mem_Ico.mpr
+        (And.intro
+          (le_trans hc hn_bounds.1)
+          (lt_of_lt_of_le hn_bounds.2 hd))
+  have hconvex :
+      ∀ i j r : ℕ,
+        i ∈ S →
+          r ∈ S →
+            j ∈ Finset.Ico c d →
+              i ≤ j →
+                j ≤ r →
+                  j ∈ S := by
+    intro i j r hi hr hj_cd hij hjr
+    have hi_data :
+        i ∈ Finset.Ico c d ∧
+          i ∈ Complex.realPhase_integerIncrementPrincipalStrip φ a b k :=
+      Finset.mem_filter.mp hi
+    have hr_data :
+        r ∈ Finset.Ico c d ∧
+          r ∈ Complex.realPhase_integerIncrementPrincipalStrip φ a b k :=
+      Finset.mem_filter.mp hr
+    have hj_cd_bounds : c ≤ j ∧ j < d :=
+      Finset.mem_Ico.mp hj_cd
+    have hj_ab :
+        j ∈ Finset.Ico a b :=
+      Finset.mem_Ico.mpr
+        (And.intro
+          (le_trans hc hj_cd_bounds.1)
+          (lt_of_lt_of_le hj_cd_bounds.2 hd))
+    have hi_strip_data :
+        i ∈ Finset.Ico a b ∧
+          Complex.realPhase_integerIncrement
+              (Complex.realPhase_integerLatticeShift φ k) i ∈
+            Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+      (Complex.mem_realPhase_integerIncrementPrincipalStrip_iff
+        φ).mp hi_data.2
+    have hr_strip_data :
+        r ∈ Finset.Ico a b ∧
+          Complex.realPhase_integerIncrement
+              (Complex.realPhase_integerLatticeShift φ k) r ∈
+            Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+      (Complex.mem_realPhase_integerIncrementPrincipalStrip_iff
+        φ).mp hr_data.2
+    have hj_principal :
+        Complex.realPhase_integerIncrement
+            (Complex.realPhase_integerLatticeShift φ k) j ∈
+          Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+      Complex.realPhase_integerIncrementPrincipalStrip_intervalConvex
+        φ k hinc_mono hi_strip_data.1 hj_ab hr_strip_data.1
+        hij hjr hi_strip_data.2 hr_strip_data.2
+    have hj_strip :
+        j ∈ Complex.realPhase_integerIncrementPrincipalStrip φ a b k :=
+      (Complex.mem_realPhase_integerIncrementPrincipalStrip_iff
+        φ).mpr
+        (And.intro hj_ab hj_principal)
+    exact Finset.mem_filter.mpr (And.intro hj_cd hj_strip)
+  exact
+    Finset.exists_eq_Ico_of_subset_Ico_intervalConvex
+      hcd
+      hS_subset_cd
+      hconvex
+
 /-- For a monotone real sequence, the set of indices lying within a fixed
 open distance from a fixed resonance center is interval-convex. -/
 theorem Real.monotoneOn_abs_sub_lt_intervalConvex
