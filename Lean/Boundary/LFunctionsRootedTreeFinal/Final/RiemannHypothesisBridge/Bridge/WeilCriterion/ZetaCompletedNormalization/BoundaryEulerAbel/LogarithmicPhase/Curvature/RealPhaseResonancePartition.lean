@@ -3004,6 +3004,56 @@ theorem Complex.realPhase_integerIncrementPrincipalStripFamilyUnion_subset_block
           (k := k)
           hn_strip
 
+/-- Principal strips indexed by distinct integer centers are pairwise
+disjoint inside any fixed sample block. -/
+theorem Complex.realPhase_integerIncrementPrincipalStrip_pairwise_disjoint
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    (K : Finset ℤ) :
+    ∀ k ∈ K,
+      ∀ l ∈ K,
+        k ≠ l →
+          Disjoint
+            (Complex.realPhase_integerIncrementPrincipalStrip φ a b k)
+            (Complex.realPhase_integerIncrementPrincipalStrip φ a b l) := by
+  intro k _hk l _hl hkl
+  exact
+    Complex.realPhase_integerIncrementPrincipalStrip_disjoint_of_ne
+      φ hkl
+
+/-- The cardinality of a finite principal-strip family is the sum of the
+cardinalities of the individual strips. -/
+theorem Complex.realPhase_integerIncrementPrincipalStripFamilyUnion_card_eq_sum_cards
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    (K : Finset ℤ) :
+    (Complex.realPhase_integerIncrementPrincipalStripFamilyUnion φ a b K).card =
+      ∑ k ∈ K,
+        (Complex.realPhase_integerIncrementPrincipalStrip φ a b k).card := by
+  exact
+    Finset.card_biUnion
+      (Complex.realPhase_integerIncrementPrincipalStrip_pairwise_disjoint
+        φ K)
+
+/-- Real-valued cardinality of a finite principal-strip family. -/
+theorem Complex.realPhase_integerIncrementPrincipalStripFamilyUnion_card_real_eq_sum_cards
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    (K : Finset ℤ) :
+    ((Complex.realPhase_integerIncrementPrincipalStripFamilyUnion φ a b K).card :
+        ℝ) =
+      ∑ k ∈ K,
+        ((Complex.realPhase_integerIncrementPrincipalStrip φ a b k).card : ℝ) := by
+  exact
+    Eq.trans
+      (congrArg
+        (fun n : ℕ => (n : ℝ))
+        (Complex.realPhase_integerIncrementPrincipalStripFamilyUnion_card_eq_sum_cards
+          φ K))
+      (Nat.cast_sum K
+        (fun k : ℤ =>
+          (Complex.realPhase_integerIncrementPrincipalStrip φ a b k).card))
+
 /-- A samplewise active-center interval is contained in the range-active
 interval when the sample increment lies in that range. -/
 theorem Complex.realPhase_integerIncrementSampleActiveCenters_subset_rangeActiveCenters
