@@ -641,6 +641,52 @@ theorem Complex.logarithmicPhaseRealPhase_parentFixedWidthGap_eq_mul_logGap
           (Real.log ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ))))
           (Real.log ((((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))))
 
+/-- Parent adjacent-increment fixed-width gaps are the nonnegative frequency
+times the normalized rational logarithmic gap. -/
+theorem Complex.logarithmicPhaseRealPhase_parentFixedWidthGap_eq_mul_logFactor
+    (t : ℝ)
+    {h n : ℕ}
+    (hn : 1 ≤ n) :
+    Complex.realPhase_integerIncrement
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        (n + h) -
+      Complex.realPhase_integerIncrement
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        n =
+      t *
+        Real.log
+          ((1 : ℝ) + (h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) := by
+  have hparent_logGap :
+      Complex.realPhase_integerIncrement
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          (n + h) -
+        Complex.realPhase_integerIncrement
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          n =
+        t *
+          (Real.log ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ))) -
+            Real.log ((((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ)))) :=
+    Complex.logarithmicPhaseRealPhase_parentFixedWidthGap_eq_mul_logGap
+      t hn
+  have hlogGap_eq :
+      Real.log ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ))) -
+          Real.log ((((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))) =
+        Real.log
+          ((1 : ℝ) + (h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) :=
+    Real.logarithmicPhase_fixedWidthLogGap_eq hn
+  have hmul_logGap :
+      t *
+          (Real.log ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ))) -
+            Real.log ((((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ)))) =
+        t *
+          Real.log
+            ((1 : ℝ) + (h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) :=
+    congrArg
+      (fun gap : ℝ => t * gap)
+      hlogGap_eq
+  exact
+    Eq.trans hparent_logGap hmul_logGap
+
 /-- The fixed-width logarithmic gap is nonnegative. -/
 theorem Real.logarithmicPhase_fixedWidthLogGap_nonneg
     {h n : ℕ}

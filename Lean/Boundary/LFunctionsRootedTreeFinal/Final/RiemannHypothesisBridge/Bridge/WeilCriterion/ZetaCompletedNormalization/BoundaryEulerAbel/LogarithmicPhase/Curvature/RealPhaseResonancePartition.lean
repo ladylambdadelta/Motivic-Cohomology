@@ -2603,6 +2603,235 @@ theorem Complex.mem_realPhase_integerIncrementRangeActiveCenters_of_divided_boun
     Finset.mem_Icc.mpr
       (And.intro hlower_padded hupper_padded)
 
+/-- Membership in a range-active center interval also follows from a closed
+lower divided bound; the left padding absorbs endpoint equality. -/
+theorem Complex.mem_realPhase_integerIncrementRangeActiveCenters_of_closed_lower_divided_bounds
+    {lo hi lam : ℝ}
+    {k : ℤ}
+    (hlower :
+      ((lo - lam) / (2 * Real.pi)) ≤ (k : ℝ))
+    (hupper :
+      (k : ℝ) ≤ ((hi + lam) / (2 * Real.pi))) :
+    k ∈ Complex.realPhase_integerIncrementRangeActiveCenters lo hi lam := by
+  let lower : ℝ := (lo - lam) / (2 * Real.pi)
+  let upper : ℝ := (hi + lam) / (2 * Real.pi)
+  have hk_lt_k_add_one : (k : ℝ) < (k : ℝ) + 1 :=
+    lt_add_of_pos_right (k : ℝ) zero_lt_one
+  have hlower_lt_k_add_one : lower < (k : ℝ) + 1 :=
+    lt_of_le_of_lt hlower hk_lt_k_add_one
+  have hlower_to_floor :
+      ⌊lower⌋ ≤ k :=
+    Int.floor_le_iff.mpr hlower_lt_k_add_one
+  have hlower_padded :
+      ⌊lower⌋ - 1 ≤ k :=
+    le_trans
+      (sub_le_self ⌊lower⌋ zero_le_one)
+      hlower_to_floor
+  have hupper_to_floor :
+      k ≤ ⌊upper⌋ :=
+    Int.le_floor.mpr hupper
+  have hupper_padded :
+      k ≤ ⌊upper⌋ + 1 :=
+    le_trans hupper_to_floor
+      (le_add_of_nonneg_right zero_le_one)
+  exact
+    Finset.mem_Icc.mpr
+      (And.intro hlower_padded hupper_padded)
+
+/-- An integer lattice representative that puts a sample increment in the
+principal branch belongs to the range-active center interval with radius `π`,
+provided the sample increment lies in the chosen range. -/
+theorem Complex.mem_realPhase_integerIncrementRangeActiveCenters_of_principal_in_range
+    {lo hi θ : ℝ}
+    {k : ℤ}
+    (hlo : lo ≤ θ)
+    (hhi : θ ≤ hi)
+    (hprincipal :
+      θ - (2 * Real.pi * (k : ℝ)) ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi))) :
+    k ∈ Complex.realPhase_integerIncrementRangeActiveCenters
+      lo hi Real.pi := by
+  let center : ℝ := 2 * Real.pi * (k : ℝ)
+  have hupper_principal_period :
+      θ - center ≤ -Real.pi + (2 * Real.pi) :=
+    hprincipal.2
+  have hupper_principal :
+      θ - center ≤ Real.pi := by
+    have hperiod :
+        -Real.pi + (2 * Real.pi) = Real.pi := by
+      calc
+        -Real.pi + (2 * Real.pi) =
+            -Real.pi + (Real.pi + Real.pi) := by
+          exact congrArg (fun r : ℝ => -Real.pi + r)
+            (two_mul Real.pi)
+        _ = (-Real.pi + Real.pi) + Real.pi :=
+          (add_assoc (-Real.pi) Real.pi Real.pi).symm
+        _ = 0 + Real.pi :=
+          congrArg (fun r : ℝ => r + Real.pi)
+            (neg_add_cancel Real.pi)
+        _ = Real.pi :=
+          zero_add Real.pi
+    exact
+      Eq.subst
+        (motive := fun upper : ℝ => θ - center ≤ upper)
+        hperiod
+        hupper_principal_period
+  have hcenter_lower : θ - Real.pi ≤ center :=
+    have htheta_le_pi_add_center : θ ≤ Real.pi + center :=
+      (sub_le_iff_le_add (a := θ) (b := center) (c := Real.pi)).mp
+        hupper_principal
+    have htheta_le_center_add_pi : θ ≤ center + Real.pi :=
+      Eq.subst
+        (motive := fun right : ℝ => θ ≤ right)
+        (add_comm Real.pi center)
+        htheta_le_pi_add_center
+    (sub_le_iff_le_add).mpr htheta_le_center_add_pi
+  have hlo_sub_le : lo - Real.pi ≤ θ - Real.pi :=
+    sub_le_sub_right hlo Real.pi
+  have hleft_range_mul : lo - Real.pi ≤ center :=
+    le_trans hlo_sub_le hcenter_lower
+  have hlower :
+      ((lo - Real.pi) / (2 * Real.pi)) ≤ (k : ℝ) :=
+    (div_le_iff₀' Real.two_pi_pos).mpr hleft_range_mul
+  have hlower_principal : -Real.pi < θ - center :=
+    hprincipal.1
+  have hcenter_upper : center < θ + Real.pi :=
+    have hneg_add_center_lt_theta : -Real.pi + center < θ :=
+      (lt_sub_iff_add_lt).mp hlower_principal
+    have hcenter_sub_pi_lt_theta : center - Real.pi < θ :=
+      Eq.subst
+        (motive := fun left : ℝ => left < θ)
+        (by
+          calc
+            center - Real.pi = center + -Real.pi :=
+              sub_eq_add_neg center Real.pi
+            _ = -Real.pi + center :=
+              add_comm center (-Real.pi)).symm
+        hneg_add_center_lt_theta
+    (sub_lt_iff_lt_add).mp hcenter_sub_pi_lt_theta
+  have hhi_add_le : θ + Real.pi ≤ hi + Real.pi :=
+    add_le_add_right hhi Real.pi
+  have hright_range_mul : center ≤ hi + Real.pi :=
+    le_trans (le_of_lt hcenter_upper) hhi_add_le
+  have hupper :
+      (k : ℝ) ≤ ((hi + Real.pi) / (2 * Real.pi)) :=
+    (le_div_iff₀' Real.two_pi_pos).mpr hright_range_mul
+  exact
+    Complex.mem_realPhase_integerIncrementRangeActiveCenters_of_closed_lower_divided_bounds
+      hlower hupper
+
+/-- A principal-strip sample whose raw increment lies in a fixed range has its
+strip center in the corresponding finite range-active family with radius
+`π`. -/
+theorem Complex.mem_realPhase_integerIncrementRangeActiveCenters_of_principalStrip_sample_in_range
+    (φ : ℝ → ℝ)
+    {a b n : ℕ}
+    {lo hi : ℝ}
+    {k : ℤ}
+    (hlo : lo ≤ Complex.realPhase_integerIncrement φ n)
+    (hhi : Complex.realPhase_integerIncrement φ n ≤ hi)
+    (hn :
+      n ∈ Complex.realPhase_integerIncrementPrincipalStrip φ a b k) :
+    k ∈ Complex.realPhase_integerIncrementRangeActiveCenters
+      lo hi Real.pi := by
+  have hprincipal_shift :
+      Complex.realPhase_integerIncrement
+          (Complex.realPhase_integerLatticeShift φ k) n ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+    Complex.realPhase_integerIncrementPrincipalStrip_principal φ hn
+  have hshift :
+      Complex.realPhase_integerIncrement
+          (Complex.realPhase_integerLatticeShift φ k) n =
+        Complex.realPhase_integerIncrement φ n -
+          (2 * Real.pi * (k : ℝ)) :=
+    Complex.realPhase_integerIncrement_integerLatticeShift_eq φ k n
+  have hprincipal_raw :
+      Complex.realPhase_integerIncrement φ n -
+          (2 * Real.pi * (k : ℝ)) ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+    Eq.subst
+      (motive := fun value : ℝ =>
+        value ∈ Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+      hshift
+      hprincipal_shift
+  exact
+    Complex.mem_realPhase_integerIncrementRangeActiveCenters_of_principal_in_range
+      hlo hhi hprincipal_raw
+
+/-- Finite union of principal strips indexed by a finite set of lattice
+centers. -/
+def Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+    (φ : ℝ → ℝ)
+    (a b : ℕ)
+    (K : Finset ℤ) : Finset ℕ :=
+  K.biUnion
+    (fun k : ℤ =>
+      Complex.realPhase_integerIncrementPrincipalStrip φ a b k)
+
+/-- Membership in a finite principal-strip union. -/
+theorem Complex.mem_realPhase_integerIncrementPrincipalStripFamilyUnion_iff
+    (φ : ℝ → ℝ)
+    {a b n : ℕ}
+    {K : Finset ℤ} :
+    n ∈ Complex.realPhase_integerIncrementPrincipalStripFamilyUnion φ a b K ↔
+      ∃ k : ℤ,
+        k ∈ K ∧
+          n ∈ Complex.realPhase_integerIncrementPrincipalStrip φ a b k := by
+  exact Finset.mem_biUnion
+
+/-- The range-active principal centers cover every sample whose raw increment
+lies in the chosen range. -/
+theorem Complex.mem_realPhase_integerIncrementPrincipalStripFamilyUnion_rangeActiveCenters_of_sample_in_range
+    (φ : ℝ → ℝ)
+    {a b n : ℕ}
+    {lo hi : ℝ}
+    (hn_block : n ∈ Finset.Ico a b)
+    (hlo : lo ≤ Complex.realPhase_integerIncrement φ n)
+    (hhi : Complex.realPhase_integerIncrement φ n ≤ hi) :
+    n ∈ Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+      φ a b
+      (Complex.realPhase_integerIncrementRangeActiveCenters lo hi Real.pi) := by
+  match Complex.realPhase_integerIncrement_exists_principal_latticeShift φ n with
+  | ⟨k, hk_principal⟩ =>
+      have hn_strip :
+          n ∈ Complex.realPhase_integerIncrementPrincipalStrip φ a b k :=
+        (Complex.mem_realPhase_integerIncrementPrincipalStrip_iff φ).mpr
+          (And.intro hn_block hk_principal)
+      have hk_active :
+          k ∈ Complex.realPhase_integerIncrementRangeActiveCenters
+            lo hi Real.pi :=
+        Complex.mem_realPhase_integerIncrementRangeActiveCenters_of_principalStrip_sample_in_range
+          φ hlo hhi hn_strip
+      exact
+        (Complex.mem_realPhase_integerIncrementPrincipalStripFamilyUnion_iff
+          φ).mpr
+          (Exists.intro k (And.intro hk_active hn_strip))
+
+/-- The principal-strip range-active cover is contained in the ambient
+half-open block. -/
+theorem Complex.realPhase_integerIncrementPrincipalStripFamilyUnion_subset_block
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {K : Finset ℤ} :
+    Complex.realPhase_integerIncrementPrincipalStripFamilyUnion φ a b K ⊆
+      Finset.Ico a b := by
+  intro n hn
+  have hmem :
+      ∃ k : ℤ,
+        k ∈ K ∧
+          n ∈ Complex.realPhase_integerIncrementPrincipalStrip φ a b k :=
+    (Complex.mem_realPhase_integerIncrementPrincipalStripFamilyUnion_iff
+      φ).mp hn
+  match hmem with
+  | ⟨k, _hk, hn_strip⟩ =>
+      exact
+        Complex.realPhase_integerIncrementPrincipalStrip_subset_block
+          (φ := φ)
+          (a := a)
+          (b := b)
+          (k := k)
+          hn_strip
+
 /-- A samplewise active-center interval is contained in the range-active
 interval when the sample increment lies in that range. -/
 theorem Complex.realPhase_integerIncrementSampleActiveCenters_subset_rangeActiveCenters
