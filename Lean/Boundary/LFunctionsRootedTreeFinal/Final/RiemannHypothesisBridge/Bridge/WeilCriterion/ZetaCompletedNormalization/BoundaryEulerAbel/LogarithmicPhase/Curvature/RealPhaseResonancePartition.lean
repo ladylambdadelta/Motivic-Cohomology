@@ -269,6 +269,50 @@ theorem Complex.realPhase_integerIncrement_resonanceWindow_exists
     Finset.exists_eq_Ico_of_subset_Ico_intervalConvex
       hab hS_block hconvex
 
+/-- The canonical finite resonant-index set for adjacent increments inside a
+half-open natural block. -/
+def Complex.realPhase_integerIncrementResonanceWindow
+    (φ : ℝ → ℝ)
+    (a b : ℕ)
+    (resonance lam : ℝ) : Finset ℕ :=
+  (Finset.Ico a b).filter
+    (fun n : ℕ =>
+      ‖Complex.realPhase_integerIncrement φ n - resonance‖ < lam)
+
+/-- Membership in the canonical resonant-index set is exactly block
+membership plus proximity to the chosen resonance center. -/
+theorem Complex.mem_realPhase_integerIncrementResonanceWindow_iff
+    (φ : ℝ → ℝ)
+    {a b n : ℕ}
+    {resonance lam : ℝ} :
+    n ∈ Complex.realPhase_integerIncrementResonanceWindow
+        φ a b resonance lam ↔
+      n ∈ Finset.Ico a b ∧
+        ‖Complex.realPhase_integerIncrement φ n - resonance‖ < lam := by
+  exact Finset.mem_filter
+
+/-- The canonical resonant-index set for monotone adjacent increments is a
+half-open resonant window. -/
+theorem Complex.realPhase_integerIncrement_resonanceWindow_exists_canonical
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {resonance lam : ℝ}
+    (hab : a ≤ b)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b) :
+    ∃ c d : ℕ,
+      a ≤ c ∧ c ≤ d ∧ d ≤ b ∧
+        Complex.realPhase_integerIncrementResonanceWindow
+          φ a b resonance lam = Finset.Ico c d := by
+  exact
+    Complex.realPhase_integerIncrement_resonanceWindow_exists
+      φ hab
+      (Complex.realPhase_integerIncrementResonanceWindow
+        φ a b resonance lam)
+      (fun n =>
+        Complex.mem_realPhase_integerIncrementResonanceWindow_iff
+          φ)
+      hinc_mono
+
 /-- A finite resonant-index set for a shifted logarithmic difference is a
 half-open resonant window, once the shifted adjacent increments are known to
 be monotone. -/
