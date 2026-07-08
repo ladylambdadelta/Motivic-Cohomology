@@ -863,6 +863,50 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_sep_of_integer_reson
       (fun n hn => hn)
       (havoid h hmem)
 
+/-- Avoidance of the canonical integer-centered resonance windows supplies
+the shifted separation input for the positive-frequency long Weyl target. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_sep_of_canonical_integer_resonanceWindow_avoidance
+    (t : ℝ)
+    {a b : ℕ}
+    (havoid :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ k : ℤ,
+            ∀ n : ℕ,
+              n ∈ Finset.Ico a (b - h) →
+                n ∉
+                  Complex.realPhase_integerIncrementResonanceWindow
+                    (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                      h)
+                    a (b - h)
+                    (2 * Real.pi * (k : ℝ))
+                    (‖t‖ *
+                      ((((b + 1 : ℕ) : ℝ) *
+                        (((b + 1 : ℕ) : ℝ)))⁻¹) *
+                      (h : ℝ))) :
+    ∀ h : ℕ,
+      h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+        Complex.realPhase_integerIncrementSeparatedOn
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h)
+          a (b - h)
+          (‖t‖ *
+            ((((b + 1 : ℕ) : ℝ) *
+              (((b + 1 : ℕ) : ℝ)))⁻¹) *
+            (h : ℝ)) := by
+  intro h hmem
+  exact
+    Complex.realPhase_integerIncrementSeparatedOn_of_canonical_resonanceWindow_family_avoidance
+      (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        h)
+      (fun n hn => hn)
+      (havoid h hmem)
+
 /-- Positive-frequency long Weyl-target wrapper with separation discharged by
 avoidance of all integer-centered resonance windows.  This is the no-winding
 free owner-level target for the long branch. -/
