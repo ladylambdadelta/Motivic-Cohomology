@@ -592,28 +592,50 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_eq_on_shi
       (Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_nonneg_on_shifted_Icc_of_nonneg
         t ht ht_nonneg ha hab hpos hh hx)
 
+/-- The numerator in the shifted reciprocal gap reduces to the shift term. -/
+theorem Real.shifted_reciprocal_gap_numerator_eq
+    (T x h : ℝ) :
+    T * (x + h) - x * T = T * h := by
+  have hdistrib :
+      T * (x + h) = T * x + T * h :=
+    mul_add T x h
+  have hcomm :
+      x * T = T * x :=
+    mul_comm x T
+  have hsub :
+      (T * x + T * h) - T * x = T * h :=
+    add_sub_cancel_left (T * x) (T * h)
+  exact
+    Eq.trans
+      (congrArg (fun r : ℝ => r - x * T) hdistrib)
+      (Eq.trans
+        (congrArg (fun r : ℝ => (T * x + T * h) - r) hcomm)
+        hsub)
+
+/-- The common-denominator form of the shifted reciprocal gap. -/
+theorem Real.shifted_reciprocal_gap_common_denominator_eq
+    (T x h : ℝ)
+    (hx : x ≠ 0)
+    (hxh : x + h ≠ 0) :
+    T / x - T / (x + h) =
+      (T * (x + h) - x * T) / (x * (x + h)) := by
+  exact div_sub_div T T hx hxh
+
 /-- The shifted reciprocal gap is the product-denominator reciprocal gap. -/
 theorem Real.shifted_reciprocal_gap_eq_mul_div
     (T x h : ℝ)
     (hx : x ≠ 0)
     (hxh : x + h ≠ 0) :
     T / x - T / (x + h) = (T * h) / (x * (x + h)) := by
-  have hdiv :
+  have hden :
       T / x - T / (x + h) =
         (T * (x + h) - x * T) / (x * (x + h)) :=
-    div_sub_div T T hx hxh
+    Real.shifted_reciprocal_gap_common_denominator_eq T x h hx hxh
   have hnum :
-      T * (x + h) - x * T = T * h := by
-    calc
-      T * (x + h) - x * T =
-          (T * x + T * h) - x * T := by
-        exact congrArg (fun r : ℝ => r - x * T) (mul_add T x h)
-      _ = (T * x + T * h) - T * x := by
-        exact congrArg (fun r : ℝ => (T * x + T * h) - r) (mul_comm x T)
-      _ = T * h :=
-        add_sub_cancel_left (T * x) (T * h)
+      T * (x + h) - x * T = T * h :=
+    Real.shifted_reciprocal_gap_numerator_eq T x h
   exact
-    Eq.trans hdiv
+    Eq.trans hden
       (congrArg (fun r : ℝ => r / (x * (x + h))) hnum)
 
 /-- On the positive half-line, the nonnegative shifted reciprocal gap is
