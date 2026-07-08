@@ -21,6 +21,8 @@ open scoped ArithmeticFunction
 
 namespace ZetaAdmissibleFunction
 
+set_option maxHeartbeats 5000000
+
 /-- A right-line bound for the ordinary `Gammaℝ` logarithmic derivative gives a
 right-line bound for the inverse-Gamma completion logarithmic derivative. -/
 theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLine_bound_of_Gammaℝ_logDeriv_bound_owner
@@ -28,8 +30,8 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLi
     (B : ℝ)
     (hGamma_bound :
       ∀ t : ℝ,
-        ‖deriv Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤
+        ‖deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤
           B * (1 + ‖t‖)) :
     ∀ t : ℝ,
       ‖inverseGammaCompletionLogDeriv
@@ -39,34 +41,34 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLi
   have hidentity :
       inverseGammaCompletionLogDeriv
           (zetaCompletedExplicitFormulaRightAffineLine F t) =
-        -deriv Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
-          Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) :=
+        -deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
+          Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) :=
     zetaCompletedExplicitFormulaInverseGammaLogDeriv_rightAffineLine_eq_neg_Gammaℝ_logDeriv
       F t
   have hnorm :
       ‖inverseGammaCompletionLogDeriv
           (zetaCompletedExplicitFormulaRightAffineLine F t)‖ =
-        ‖deriv Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
-          Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ := by
+        ‖deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
+          Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ := by
     calc
       ‖inverseGammaCompletionLogDeriv
           (zetaCompletedExplicitFormulaRightAffineLine F t)‖ =
-          ‖-deriv Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ := by
+          ‖-deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ := by
         exact congrArg norm hidentity
       _ =
-          ‖-(deriv Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t))‖ := by
+          ‖-(deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t))‖ := by
         exact congrArg norm
           (neg_div
-            (Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t))
-            (deriv Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t)))
+            (Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t))
+            (deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t)))
       _ =
-          ‖deriv Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ :=
+          ‖deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ :=
         norm_neg
-          (deriv Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t))
+          (deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t))
   exact
     Eq.subst
       (motive := fun x : ℝ => x ≤ B * (1 + ‖t‖))
@@ -102,8 +104,8 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLi
     add_nonneg hA_nonneg hB_nonneg
   have hGammaℝ_bound :
       ∀ t : ℝ,
-        ‖deriv Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤
+        ‖deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤
           C * (1 + ‖t‖) := by
     intro t
     let Q : ℂ :=
@@ -113,13 +115,13 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLi
         Complex.Gamma
           (zetaCompletedExplicitFormulaRightAffineLine F t / 2)
     have hdecomp :
-        deriv Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) =
+        deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) =
           Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ)) + Q :=
       zetaCompletedExplicitFormulaRightAffineLine_Gammaℝ_logDeriv_eq F t
     have hnorm_split :
-        ‖deriv Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤
+        ‖deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤
           A + ‖Q‖ := by
       have htriangle :
           ‖Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ)) + Q‖ ≤
@@ -165,24 +167,21 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLi
           ‖inverseGammaCompletionLogDeriv
               (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤
             B * (1 + ‖t‖) := by
-  let σ : ℝ := F.c / 2
-  let D : ℝ :=
-    (((|Real.log σ| + (σ + 1) + Real.pi) + 1 / σ) +
-      |‖(2 : ℂ)‖ *
-        ∫ u : ℝ in Set.Ioi (0 : ℝ),
-          (1 / σ ^ 2) *
-            (u / (Real.exp ((2 : ℝ) * Real.pi * u) - 1))|)
-  let B : ℝ := ‖(1 / 2 : ℂ)‖ * |D|
-  have hσ_pos : 0 < σ :=
+  let sigma := (F.c / 2 : ℝ)
+  let B : ℝ :=
+    ‖(1 / 2 : ℂ)‖ *
+      |Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma|
+  have hsigma_pos : 0 < sigma :=
     div_pos F.c_pos zero_lt_two
   have hB_nonneg : 0 ≤ B :=
     mul_nonneg
       (norm_nonneg (1 / 2 : ℂ))
-      (abs_nonneg D)
+      (abs_nonneg
+        (Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma))
   have hhalf_line :
       ∀ t : ℝ,
         zetaCompletedExplicitFormulaRightAffineLine F t / 2 =
-          (σ + (t / 2) * Complex.I : ℂ) := by
+          (sigma + ((t : ℂ) / 2) * Complex.I : ℂ) := by
     intro t
     calc
       zetaCompletedExplicitFormulaRightAffineLine F t / 2 =
@@ -191,19 +190,13 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLi
           (zetaCompletedExplicitFormulaRightAffineLine_eq F t)
       _ = ((F.c : ℂ) / 2) + (t * Complex.I) / 2 := by
         exact add_div ((F.c : ℂ)) (t * Complex.I) (2 : ℂ)
-      _ = (σ + (t / 2) * Complex.I : ℂ) := by
+      _ = (sigma + (t / 2) * Complex.I : ℂ) := by
         have hc :
-            ((F.c : ℂ) / 2) = (σ : ℂ) := by
-          exact Complex.ofReal_div F.c 2
+            ((F.c : ℂ) / 2) = (sigma : ℂ) := by
+          exact (Complex.ofReal_div F.c 2).symm
         have ht :
-            (t * Complex.I) / 2 = ((t / 2 : ℝ) : ℂ) * Complex.I := by
-          calc
-            (t * Complex.I) / 2 =
-                ((t : ℂ) / 2) * Complex.I := by
-              exact (div_mul_eq_mul_div (t : ℂ) Complex.I (2 : ℂ)).symm
-            _ = ((t / 2 : ℝ) : ℂ) * Complex.I := by
-              exact congrArg (fun z : ℂ => z * Complex.I)
-                (Complex.ofReal_div t 2)
+            (t * Complex.I) / 2 = ((t : ℂ) / 2) * Complex.I := by
+          exact mul_div_right_comm (t : ℂ) Complex.I (2 : ℂ)
         exact congrArg₂ HAdd.hAdd hc ht
   have hgamma_bound :
       ∀ t : ℝ,
@@ -216,22 +209,34 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLi
     intro t
     let z : ℂ := zetaCompletedExplicitFormulaRightAffineLine F t / 2
     let q : ℂ := deriv Complex.Gamma z / Complex.Gamma z
-    have hline : z = (σ + (t / 2) * Complex.I : ℂ) :=
-      hhalf_line t
-    have hfixed :
-        ‖deriv Complex.Gamma (σ + (t / 2) * Complex.I) /
-            Complex.Gamma (σ + (t / 2) * Complex.I)‖ ≤
-          D * (1 + ‖t / 2‖) :=
-      Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
-        hcoh hσ_pos (t / 2)
+    have hline :
+        z = (sigma + (((t / 2 : ℝ) : ℂ) * Complex.I) : ℂ) := by
+      have hraw :
+          z = (sigma + ((t : ℂ) / 2) * Complex.I : ℂ) :=
+        hhalf_line t
+      have hheight :
+          ((t : ℂ) / 2) = ((t / 2 : ℝ) : ℂ) :=
+        (Complex.ofReal_div t 2).symm
+      exact
+        hraw.trans
+          (congrArg
+            (fun x : ℂ => (sigma + x * Complex.I : ℂ))
+            hheight)
+    have hfixed :=
+      Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_positiveLineConstant
+        hcoh hsigma_pos (t / 2)
     have hfixed_abs :
-        ‖deriv Complex.Gamma (σ + (t / 2) * Complex.I) /
-            Complex.Gamma (σ + (t / 2) * Complex.I)‖ ≤
-          |D| * (1 + ‖t / 2‖) := by
+        ‖deriv Complex.Gamma (sigma + (((t / 2 : ℝ) : ℂ) * Complex.I)) /
+            Complex.Gamma (sigma + (((t / 2 : ℝ) : ℂ) * Complex.I))‖ ≤
+          |Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma| *
+            (1 + ‖t / 2‖) := by
       have hfactor_nonneg : 0 ≤ 1 + ‖t / 2‖ :=
         Real.zero_le_one_add_norm (t / 2)
-      have hD_le_abs : D ≤ |D| :=
-        le_abs_self D
+      have hD_le_abs :
+          Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma ≤
+            |Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma| :=
+        le_abs_self
+          (Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma)
       exact hfixed.trans
         (mul_le_mul_of_nonneg_right hD_le_abs hfactor_nonneg)
     have hsmall :
@@ -246,7 +251,7 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLi
               have htwo_nonneg : (0 : ℝ) ≤ 2 :=
                 zero_le_two
               have htwo_norm_eq : ‖(2 : ℝ)‖ = (2 : ℝ) :=
-                norm_of_nonneg htwo_nonneg
+                Real.norm_of_nonneg htwo_nonneg
               exact
                 Eq.subst
                   (motive := fun x : ℝ => (1 : ℝ) ≤ x)
@@ -255,16 +260,24 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLi
             exact div_le_self (norm_nonneg t) htwo_norm
       exact add_le_add_left hnorm 1
     have hfixed_big :
-        ‖deriv Complex.Gamma (σ + (t / 2) * Complex.I) /
-            Complex.Gamma (σ + (t / 2) * Complex.I)‖ ≤
-          |D| * (1 + ‖t‖) :=
+        ‖deriv Complex.Gamma (sigma + (((t / 2 : ℝ) : ℂ) * Complex.I)) /
+            Complex.Gamma (sigma + (((t / 2 : ℝ) : ℂ) * Complex.I))‖ ≤
+          |Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma| *
+            (1 + ‖t‖) :=
       hfixed_abs.trans
-        (mul_le_mul_of_nonneg_left hsmall (abs_nonneg D))
+        (mul_le_mul_of_nonneg_left hsmall
+          (abs_nonneg
+            (Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma)))
     have hq_bound :
-        ‖q‖ ≤ |D| * (1 + ‖t‖) := by
+        ‖q‖ ≤
+          |Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma| *
+            (1 + ‖t‖) := by
       exact
         Eq.subst
-          (motive := fun w : ℂ => ‖w‖ ≤ |D| * (1 + ‖t‖))
+          (motive := fun w : ℂ =>
+            ‖w‖ ≤
+              |Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma| *
+                (1 + ‖t‖))
           (congrArg
             (fun w : ℂ => deriv Complex.Gamma w / Complex.Gamma w)
             hline).symm
@@ -275,8 +288,8 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLi
       calc
         (deriv Complex.Gamma z * (1 / 2 : ℂ)) / Complex.Gamma z =
             (deriv Complex.Gamma z / Complex.Gamma z) * (1 / 2 : ℂ) := by
-          exact (mul_div_right_comm
-            (deriv Complex.Gamma z) (1 / 2 : ℂ) (Complex.Gamma z)).symm
+          exact mul_div_right_comm
+            (deriv Complex.Gamma z) (1 / 2 : ℂ) (Complex.Gamma z)
         _ = q * (1 / 2 : ℂ) := by
           exact Eq.refl _
     have hnorm_mul :
@@ -287,30 +300,69 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLi
         norm_mul q (1 / 2 : ℂ)
       have hprod :
           ‖q‖ * ‖(1 / 2 : ℂ)‖ ≤
-            (|D| * (1 + ‖t‖)) * ‖(1 / 2 : ℂ)‖ :=
+            (|Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma| *
+                (1 + ‖t‖)) * ‖(1 / 2 : ℂ)‖ :=
         mul_le_mul_of_nonneg_right hq_bound
           (norm_nonneg (1 / 2 : ℂ))
       have hcomm :
-          (|D| * (1 + ‖t‖)) * ‖(1 / 2 : ℂ)‖ =
+          (|Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma| *
+              (1 + ‖t‖)) * ‖(1 / 2 : ℂ)‖ =
             B * (1 + ‖t‖) := by
         calc
-          (|D| * (1 + ‖t‖)) * ‖(1 / 2 : ℂ)‖ =
-              (‖(1 / 2 : ℂ)‖ * |D|) * (1 + ‖t‖) := by
-            exact Eq.trans
-              (mul_assoc |D| (1 + ‖t‖) ‖(1 / 2 : ℂ)‖)
-              (congrArg (fun x : ℝ => x * (1 + ‖t‖))
-                (mul_comm |D| ‖(1 / 2 : ℂ)‖))
+          (|Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma| *
+              (1 + ‖t‖)) * ‖(1 / 2 : ℂ)‖ =
+              (‖(1 / 2 : ℂ)‖ *
+                |Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma|) *
+                  (1 + ‖t‖) := by
+            calc
+              (|Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma| *
+                  (1 + ‖t‖)) * ‖(1 / 2 : ℂ)‖ =
+                |Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma| *
+                  ((1 + ‖t‖) * ‖(1 / 2 : ℂ)‖) := by
+                exact mul_assoc
+                  |Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma|
+                  (1 + ‖t‖) ‖(1 / 2 : ℂ)‖
+              _ =
+                |Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma| *
+                  (‖(1 / 2 : ℂ)‖ * (1 + ‖t‖)) := by
+                exact congrArg
+                  (fun x : ℝ =>
+                    |Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma| * x)
+                  (mul_comm (1 + ‖t‖) ‖(1 / 2 : ℂ)‖)
+              _ =
+                (|Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma| *
+                    ‖(1 / 2 : ℂ)‖) * (1 + ‖t‖) := by
+                exact (mul_assoc
+                  |Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma|
+                  ‖(1 / 2 : ℂ)‖ (1 + ‖t‖)).symm
+              _ =
+                (‖(1 / 2 : ℂ)‖ *
+                  |Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma|) *
+                    (1 + ‖t‖) := by
+                exact congrArg (fun x : ℝ => x * (1 + ‖t‖))
+                  (mul_comm
+                    |Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant sigma|
+                    ‖(1 / 2 : ℂ)‖)
           _ = B * (1 + ‖t‖) := by
             exact Eq.refl _
-      exact
+      have hqmul_norm :
+          ‖q * (1 / 2 : ℂ)‖ ≤ B * (1 + ‖t‖) :=
         Eq.subst
           (motive := fun x : ℝ => x ≤ B * (1 + ‖t‖))
           hmul_norm.symm
           (hprod.trans_eq hcomm)
+      exact
+        Eq.subst
+          (motive := fun w : ℂ => ‖w‖ ≤ B * (1 + ‖t‖))
+          halgebra.symm
+          hqmul_norm
     exact
       Eq.subst
-        (motive := fun w : ℂ => ‖w‖ ≤ B * (1 + ‖t‖))
-        halgebra.symm
+        (motive := fun w : ℂ =>
+          ‖(deriv Complex.Gamma w * (1 / 2 : ℂ)) /
+              Complex.Gamma w‖ ≤
+            B * (1 + ‖t‖))
+        (show z = zetaCompletedExplicitFormulaRightAffineLine F t / 2 from rfl)
         hnorm_mul
   exact
     zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLine_bound_of_halfGamma_logDeriv_bound_owner
@@ -324,8 +376,8 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
     (B : ℝ)
     (hGamma_bound :
       ∀ t : ℝ,
-        ‖deriv Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
+        ‖deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
           B * (1 + ‖t‖)) :
     ∀ t : ℝ,
       ‖inverseGammaCompletionLogDeriv
@@ -335,34 +387,34 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
   have hidentity :
       inverseGammaCompletionLogDeriv
           (zetaCompletedExplicitFormulaLeftAffineLine F t) =
-        -deriv Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
-          Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) :=
+        -deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
+          Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) :=
     zetaCompletedExplicitFormulaInverseGammaLogDeriv_leftAffineLine_eq_neg_Gammaℝ_logDeriv_of_gammaRegular
       F hregular t
   have hnorm :
       ‖inverseGammaCompletionLogDeriv
           (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ =
-        ‖deriv Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
-          Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ := by
+        ‖deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
+          Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ := by
     calc
       ‖inverseGammaCompletionLogDeriv
           (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ =
-          ‖-deriv Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ := by
+          ‖-deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ := by
         exact congrArg norm hidentity
       _ =
-          ‖-(deriv Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t))‖ := by
+          ‖-(deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t))‖ := by
         exact congrArg norm
           (neg_div
-            (Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t))
-            (deriv Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t)))
+            (Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t))
+            (deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t)))
       _ =
-          ‖deriv Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ :=
+          ‖deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ :=
         norm_neg
-          (deriv Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t))
+          (deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t))
   exact
     Eq.subst
       (motive := fun x : ℝ => x ≤ B * (1 + ‖t‖))
@@ -399,8 +451,8 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
     add_nonneg hA_nonneg hB_nonneg
   have hGammaℝ_bound :
       ∀ t : ℝ,
-        ‖deriv Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
+        ‖deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
           C * (1 + ‖t‖) := by
     intro t
     let Q : ℂ :=
@@ -410,14 +462,14 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
         Complex.Gamma
           (zetaCompletedExplicitFormulaLeftAffineLine F t / 2)
     have hdecomp :
-        deriv Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) =
+        deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) =
           Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ)) + Q :=
       zetaCompletedExplicitFormulaLeftAffineLine_Gammaℝ_logDeriv_eq_of_gammaRegular
         F hregular t
     have hnorm_split :
-        ‖deriv Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
-            Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
+        ‖deriv Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t) /
+            Complex.Gammaℝ (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
           A + ‖Q‖ := by
       have htriangle :
           ‖Complex.log (Real.pi : ℂ) * (-(1 / 2 : ℂ)) + Q‖ ≤
@@ -466,18 +518,19 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
           ‖inverseGammaCompletionLogDeriv
               (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
             B * (1 + ‖t‖) := by
-  let σ : ℝ := (1 - F.c) / 2
-  let D : ℝ :=
-    Complex.GammaLogDerivativeFixedVerticalShiftConstant σ N
-  let B : ℝ := ‖(1 / 2 : ℂ)‖ * |D|
+  let sigma := ((1 - F.c) / 2 : ℝ)
+  let B : ℝ :=
+    ‖(1 / 2 : ℂ)‖ *
+      |Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N|
   have hB_nonneg : 0 ≤ B :=
     mul_nonneg
       (norm_nonneg (1 / 2 : ℂ))
-      (abs_nonneg D)
+      (abs_nonneg
+        (Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N))
   have hhalf_line :
       ∀ t : ℝ,
         zetaCompletedExplicitFormulaLeftAffineLine F t / 2 =
-          (σ + (t / 2) * Complex.I : ℂ) := by
+          (sigma + ((t : ℂ) / 2) * Complex.I : ℂ) := by
     intro t
     calc
       zetaCompletedExplicitFormulaLeftAffineLine F t / 2 =
@@ -486,55 +539,55 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
           (zetaCompletedExplicitFormulaLeftAffineLine_eq F t)
       _ = (((1 : ℂ) - (F.c : ℂ)) / 2) + (t * Complex.I) / 2 := by
         exact add_div (((1 : ℂ) - (F.c : ℂ))) (t * Complex.I) (2 : ℂ)
-      _ = (σ + (t / 2) * Complex.I : ℂ) := by
+      _ = (sigma + (t / 2) * Complex.I : ℂ) := by
         have hc :
-            (((1 : ℂ) - (F.c : ℂ)) / 2) = (σ : ℂ) := by
+            (((1 : ℂ) - (F.c : ℂ)) / 2) = (sigma : ℂ) := by
           calc
             (((1 : ℂ) - (F.c : ℂ)) / 2) =
                 (((1 - F.c : ℝ) : ℂ) / 2) := by
               exact congrArg (fun z : ℂ => z / 2)
                 (Complex.ofReal_sub 1 F.c).symm
             _ = (((1 - F.c) / 2 : ℝ) : ℂ) := by
-              exact Complex.ofReal_div (1 - F.c) 2
-            _ = (σ : ℂ) := by
+              exact (Complex.ofReal_div (1 - F.c) 2).symm
+            _ = (sigma : ℂ) := by
               exact Eq.refl _
         have ht :
-            (t * Complex.I) / 2 = ((t / 2 : ℝ) : ℂ) * Complex.I := by
-          calc
-            (t * Complex.I) / 2 =
-                ((t : ℂ) / 2) * Complex.I := by
-              exact (div_mul_eq_mul_div (t : ℂ) Complex.I (2 : ℂ)).symm
-            _ = ((t / 2 : ℝ) : ℂ) * Complex.I := by
-              exact congrArg (fun z : ℂ => z * Complex.I)
-                (Complex.ofReal_div t 2)
+            (t * Complex.I) / 2 = ((t : ℂ) / 2) * Complex.I := by
+          exact mul_div_right_comm (t : ℂ) Complex.I (2 : ℂ)
         exact congrArg₂ HAdd.hAdd hc ht
   have hnot_pole :
       ∀ u : ℝ, ∀ n : ℕ,
-        (σ + u * Complex.I : ℂ) ≠ -n := by
+        (sigma + u * Complex.I : ℂ) ≠ -n := by
     intro u n hpole
     have hline :
         zetaCompletedExplicitFormulaLeftAffineLine F (2 * u) / 2 =
-          (σ + u * Complex.I : ℂ) := by
+          (sigma + u * Complex.I : ℂ) := by
       have hraw :
           zetaCompletedExplicitFormulaLeftAffineLine F (2 * u) / 2 =
-            (σ + ((2 * u) / 2) * Complex.I : ℂ) :=
+            (sigma + (((2 * u : ℝ) : ℂ) / 2) * Complex.I : ℂ) :=
         hhalf_line (2 * u)
       have hheight :
           ((2 * u) / 2 : ℝ) = u := by
         exact mul_div_cancel_left₀ u
           (show (2 : ℝ) ≠ 0 from two_ne_zero)
+      have hheight_complex :
+          ((2 * u : ℝ) : ℂ) / 2 = (u : ℂ) := by
+        exact Eq.trans
+          (Complex.ofReal_div (2 * u) 2).symm
+          (congrArg (fun x : ℝ => (x : ℂ)) hheight)
       exact
         hraw.trans
-          (congrArg (fun x : ℝ => (σ + x * Complex.I : ℂ)) hheight)
+          (congrArg (fun x : ℂ => (sigma + x * Complex.I : ℂ)) hheight_complex)
     exact
       (zetaCompletedExplicitFormulaLeftAffineLine_half_ne_Gamma_zero_locus_of_gammaRegular
         F hregular (2 * u) n)
       (hline.trans hpole)
   have hfixed_bound :
       ∀ u : ℝ,
-        ‖deriv Complex.Gamma (σ + u * Complex.I) /
-            Complex.Gamma (σ + u * Complex.I)‖ ≤
-          D * (1 + ‖u‖) :=
+        ‖deriv Complex.Gamma (sigma + u * Complex.I) /
+            Complex.Gamma (sigma + u * Complex.I)‖ ≤
+          Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N *
+            (1 + ‖u‖) :=
     Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_shift_nat
       hcoh N hshift_pos hnot_pole
   have hgamma_bound :
@@ -548,21 +601,33 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
     intro t
     let z : ℂ := zetaCompletedExplicitFormulaLeftAffineLine F t / 2
     let q : ℂ := deriv Complex.Gamma z / Complex.Gamma z
-    have hline : z = (σ + (t / 2) * Complex.I : ℂ) :=
-      hhalf_line t
-    have hfixed :
-        ‖deriv Complex.Gamma (σ + (t / 2) * Complex.I) /
-            Complex.Gamma (σ + (t / 2) * Complex.I)‖ ≤
-          D * (1 + ‖t / 2‖) :=
+    have hline :
+        z = (sigma + (((t / 2 : ℝ) : ℂ) * Complex.I) : ℂ) := by
+      have hraw :
+          z = (sigma + ((t : ℂ) / 2) * Complex.I : ℂ) :=
+        hhalf_line t
+      have hheight :
+          ((t : ℂ) / 2) = ((t / 2 : ℝ) : ℂ) :=
+        (Complex.ofReal_div t 2).symm
+      exact
+        hraw.trans
+          (congrArg
+            (fun x : ℂ => (sigma + x * Complex.I : ℂ))
+            hheight)
+    have hfixed :=
       hfixed_bound (t / 2)
     have hfixed_abs :
-        ‖deriv Complex.Gamma (σ + (t / 2) * Complex.I) /
-            Complex.Gamma (σ + (t / 2) * Complex.I)‖ ≤
-          |D| * (1 + ‖t / 2‖) := by
+        ‖deriv Complex.Gamma (sigma + (((t / 2 : ℝ) : ℂ) * Complex.I)) /
+            Complex.Gamma (sigma + (((t / 2 : ℝ) : ℂ) * Complex.I))‖ ≤
+          |Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N| *
+            (1 + ‖t / 2‖) := by
       have hfactor_nonneg : 0 ≤ 1 + ‖t / 2‖ :=
         Real.zero_le_one_add_norm (t / 2)
-      have hD_le_abs : D ≤ |D| :=
-        le_abs_self D
+      have hD_le_abs :
+          Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N ≤
+            |Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N| :=
+        le_abs_self
+          (Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N)
       exact hfixed.trans
         (mul_le_mul_of_nonneg_right hD_le_abs hfactor_nonneg)
     have hsmall :
@@ -577,7 +642,7 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
               have htwo_nonneg : (0 : ℝ) ≤ 2 :=
                 zero_le_two
               have htwo_norm_eq : ‖(2 : ℝ)‖ = (2 : ℝ) :=
-                norm_of_nonneg htwo_nonneg
+                Real.norm_of_nonneg htwo_nonneg
               exact
                 Eq.subst
                   (motive := fun x : ℝ => (1 : ℝ) ≤ x)
@@ -586,16 +651,24 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
             exact div_le_self (norm_nonneg t) htwo_norm
       exact add_le_add_left hnorm 1
     have hfixed_big :
-        ‖deriv Complex.Gamma (σ + (t / 2) * Complex.I) /
-            Complex.Gamma (σ + (t / 2) * Complex.I)‖ ≤
-          |D| * (1 + ‖t‖) :=
+        ‖deriv Complex.Gamma (sigma + (((t / 2 : ℝ) : ℂ) * Complex.I)) /
+            Complex.Gamma (sigma + (((t / 2 : ℝ) : ℂ) * Complex.I))‖ ≤
+          |Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N| *
+            (1 + ‖t‖) :=
       hfixed_abs.trans
-        (mul_le_mul_of_nonneg_left hsmall (abs_nonneg D))
+        (mul_le_mul_of_nonneg_left hsmall
+          (abs_nonneg
+            (Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N)))
     have hq_bound :
-        ‖q‖ ≤ |D| * (1 + ‖t‖) := by
+        ‖q‖ ≤
+          |Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N| *
+            (1 + ‖t‖) := by
       exact
         Eq.subst
-          (motive := fun w : ℂ => ‖w‖ ≤ |D| * (1 + ‖t‖))
+          (motive := fun w : ℂ =>
+            ‖w‖ ≤
+              |Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N| *
+                (1 + ‖t‖))
           (congrArg
             (fun w : ℂ => deriv Complex.Gamma w / Complex.Gamma w)
             hline).symm
@@ -606,8 +679,8 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
       calc
         (deriv Complex.Gamma z * (1 / 2 : ℂ)) / Complex.Gamma z =
             (deriv Complex.Gamma z / Complex.Gamma z) * (1 / 2 : ℂ) := by
-          exact (mul_div_right_comm
-            (deriv Complex.Gamma z) (1 / 2 : ℂ) (Complex.Gamma z)).symm
+          exact mul_div_right_comm
+            (deriv Complex.Gamma z) (1 / 2 : ℂ) (Complex.Gamma z)
         _ = q * (1 / 2 : ℂ) := by
           exact Eq.refl _
     have hnorm_mul :
@@ -618,30 +691,69 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
         norm_mul q (1 / 2 : ℂ)
       have hprod :
           ‖q‖ * ‖(1 / 2 : ℂ)‖ ≤
-            (|D| * (1 + ‖t‖)) * ‖(1 / 2 : ℂ)‖ :=
+            (|Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N| *
+                (1 + ‖t‖)) * ‖(1 / 2 : ℂ)‖ :=
         mul_le_mul_of_nonneg_right hq_bound
           (norm_nonneg (1 / 2 : ℂ))
       have hcomm :
-          (|D| * (1 + ‖t‖)) * ‖(1 / 2 : ℂ)‖ =
+          (|Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N| *
+              (1 + ‖t‖)) * ‖(1 / 2 : ℂ)‖ =
             B * (1 + ‖t‖) := by
         calc
-          (|D| * (1 + ‖t‖)) * ‖(1 / 2 : ℂ)‖ =
-              (‖(1 / 2 : ℂ)‖ * |D|) * (1 + ‖t‖) := by
-            exact Eq.trans
-              (mul_assoc |D| (1 + ‖t‖) ‖(1 / 2 : ℂ)‖)
-              (congrArg (fun x : ℝ => x * (1 + ‖t‖))
-                (mul_comm |D| ‖(1 / 2 : ℂ)‖))
+          (|Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N| *
+              (1 + ‖t‖)) * ‖(1 / 2 : ℂ)‖ =
+              (‖(1 / 2 : ℂ)‖ *
+                |Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N|) *
+                  (1 + ‖t‖) := by
+            calc
+              (|Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N| *
+                  (1 + ‖t‖)) * ‖(1 / 2 : ℂ)‖ =
+                |Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N| *
+                  ((1 + ‖t‖) * ‖(1 / 2 : ℂ)‖) := by
+                exact mul_assoc
+                  |Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N|
+                  (1 + ‖t‖) ‖(1 / 2 : ℂ)‖
+              _ =
+                |Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N| *
+                  (‖(1 / 2 : ℂ)‖ * (1 + ‖t‖)) := by
+                exact congrArg
+                  (fun x : ℝ =>
+                    |Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N| * x)
+                  (mul_comm (1 + ‖t‖) ‖(1 / 2 : ℂ)‖)
+              _ =
+                (|Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N| *
+                    ‖(1 / 2 : ℂ)‖) * (1 + ‖t‖) := by
+                exact (mul_assoc
+                  |Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N|
+                  ‖(1 / 2 : ℂ)‖ (1 + ‖t‖)).symm
+              _ =
+                (‖(1 / 2 : ℂ)‖ *
+                  |Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N|) *
+                    (1 + ‖t‖) := by
+                exact congrArg (fun x : ℝ => x * (1 + ‖t‖))
+                  (mul_comm
+                    |Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N|
+                    ‖(1 / 2 : ℂ)‖)
           _ = B * (1 + ‖t‖) := by
             exact Eq.refl _
-      exact
+      have hqmul_norm :
+          ‖q * (1 / 2 : ℂ)‖ ≤ B * (1 + ‖t‖) :=
         Eq.subst
           (motive := fun x : ℝ => x ≤ B * (1 + ‖t‖))
           hmul_norm.symm
           (hprod.trans_eq hcomm)
+      exact
+        Eq.subst
+          (motive := fun w : ℂ => ‖w‖ ≤ B * (1 + ‖t‖))
+          halgebra.symm
+          hqmul_norm
     exact
       Eq.subst
-        (motive := fun w : ℂ => ‖w‖ ≤ B * (1 + ‖t‖))
-        halgebra.symm
+        (motive := fun w : ℂ =>
+          ‖(deriv Complex.Gamma w * (1 / 2 : ℂ)) /
+              Complex.Gamma w‖ ≤
+            B * (1 + ‖t‖))
+        (show z = zetaCompletedExplicitFormulaLeftAffineLine F t / 2 from rfl)
         hnorm_mul
   exact
     zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_halfGamma_logDeriv_bound_owner
@@ -660,27 +772,27 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
           ‖inverseGammaCompletionLogDeriv
               (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
             B * (1 + ‖t‖) := by
-  let σ : ℝ := (1 - F.c) / 2
-  match exists_nat_ge (1 - σ) with
+  let sigma := ((1 - F.c) / 2 : ℝ)
+  match exists_nat_ge (1 - sigma) with
   | ⟨N, hN⟩ =>
-      have hone_le_shift : 1 ≤ σ + (N : ℝ) := by
+      have hone_le_shift : 1 ≤ sigma + (N : ℝ) := by
         have hleft :
-            σ + (1 - σ) = (1 : ℝ) := by
+            sigma + (1 - sigma) = (1 : ℝ) := by
           calc
-            σ + (1 - σ) = σ + (1 + -σ) := by
-              exact congrArg (fun x : ℝ => σ + x) (sub_eq_add_neg 1 σ)
-            _ = (σ + 1) + -σ := by
-              exact (add_assoc σ 1 (-σ)).symm
-            _ = (σ + -σ) + 1 := by
-              exact add_right_comm σ 1 (-σ)
+            sigma + (1 - sigma) = sigma + (1 + -sigma) := by
+              exact congrArg (fun x : ℝ => sigma + x) (sub_eq_add_neg 1 sigma)
+            _ = (sigma + 1) + -sigma := by
+              exact (add_assoc sigma 1 (-sigma)).symm
+            _ = (sigma + -sigma) + 1 := by
+              exact add_right_comm sigma 1 (-sigma)
             _ = 0 + 1 := by
-              exact congrArg (fun x : ℝ => x + 1) (add_neg_cancel σ)
+              exact congrArg (fun x : ℝ => x + 1) (add_neg_cancel sigma)
             _ = 1 := zero_add 1
         calc
-          1 = σ + (1 - σ) := hleft.symm
-          _ ≤ σ + (N : ℝ) := by
-            exact add_le_add_left hN σ
-      have hshift_pos : 0 < σ + (N : ℝ) :=
+          1 = sigma + (1 - sigma) := hleft.symm
+          _ ≤ sigma + (N : ℝ) := by
+            exact add_le_add_left hN sigma
+      have hshift_pos : 0 < sigma + (N : ℝ) :=
         lt_of_lt_of_le zero_lt_one hone_le_shift
       exact
         zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinetCoherence_shift_owner

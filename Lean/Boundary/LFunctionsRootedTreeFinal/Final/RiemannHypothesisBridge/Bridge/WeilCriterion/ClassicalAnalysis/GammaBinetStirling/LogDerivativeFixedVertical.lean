@@ -1421,11 +1421,7 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
     ∀ t : ℝ,
       ‖deriv Complex.Gamma (σ + t * Complex.I) /
           Complex.Gamma (σ + t * Complex.I)‖ ≤
-        (((|Real.log σ| + (σ + 1) + Real.pi) + 1 / σ) +
-          |‖(2 : ℂ)‖ *
-            ∫ u : ℝ in Set.Ioi (0 : ℝ),
-              (1 / σ ^ 2) *
-                (u / (Real.exp ((2 : ℝ) * Real.pi * u) - 1))|) *
+        Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant σ *
           (1 + ‖t‖) := by
   let M : ℝ := (|Real.log σ| + (σ + 1) + Real.pi) + 1 / σ
   let R : ℝ :=
@@ -1479,7 +1475,10 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
   have hpow :
       (1 + ‖t‖) ^ (1 : ℕ) = (1 + ‖t‖ : ℝ) :=
     pow_one (1 + ‖t‖)
-  exact
+  have hlinear :
+      ‖deriv Complex.Gamma (σ + t * Complex.I) /
+          Complex.Gamma (σ + t * Complex.I)‖ ≤
+        (M + R) * (1 + ‖t‖) :=
     Eq.subst
       (motive := fun x : ℝ =>
         ‖deriv Complex.Gamma (σ + t * Complex.I) /
@@ -1487,6 +1486,34 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
           (M + R) * x)
       hpow
       hbound_pow
+  have hconstant :
+      M + R =
+        Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant σ :=
+    rfl
+  exact
+    Eq.subst
+      (motive := fun x : ℝ =>
+        ‖deriv Complex.Gamma (σ + t * Complex.I) /
+            Complex.Gamma (σ + t * Complex.I)‖ ≤
+          x * (1 + ‖t‖))
+      hconstant
+      hlinear
+
+/-- Fixed-positive-real-part logarithmic derivative of Gamma has linear growth
+on vertical lines, with the explicit majorant packaged as its owner constant. -/
+theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_positiveLineConstant
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    {σ : ℝ}
+    (hσ : 0 < σ) :
+    ∀ t : ℝ,
+      ‖deriv Complex.Gamma (σ + t * Complex.I) /
+          Complex.Gamma (σ + t * Complex.I)‖ ≤
+        Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant σ *
+          (1 + ‖t‖) := by
+  intro t
+  exact
+    Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
+      hcoh hσ t
 
 /-- One-step fixed-line shift for Gamma logarithmic-derivative bounds, in a
 form that consumes an arbitrary bound on the shifted line. -/
@@ -1628,7 +1655,7 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_shift_nat
               Complex.Gamma (σ + t * Complex.I)‖ ≤
             Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant σ *
               (1 + ‖t‖) :=
-        Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
+        Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_positiveLineConstant
           hcoh hσ_pos t
       exact hpositive
   | succ N ih =>
