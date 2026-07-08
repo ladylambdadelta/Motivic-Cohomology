@@ -1432,7 +1432,139 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_Ico_sum_norm_le_curv
           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
           h)
         hsep
-        (Finset.Ico_subset_Ico hac hdb))
+      (Finset.Ico_subset_Ico hac hdb))
+
+/-- A shifted-logarithmic interval assigned to an integer lattice center has
+the standard curvature-majorant bound after subtracting that lattice slope.
+The subtraction preserves all integer exponential samples, while the
+resonance-window avoidance supplies monotone separated increments for the
+shifted phase. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_Ico_sum_norm_le_curvatureMajorant_of_integerLatticeShift_gap
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b c d h : ℕ}
+    {lam : ℝ}
+    (k : ℤ)
+    (hc : 1 ≤ c)
+    (hpos : 1 ≤ h)
+    (hlam :
+      lam =
+        ‖t‖ *
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))⁻¹) *
+          (h : ℝ))
+    (hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          h)
+        a (b - h))
+    (hsub : Finset.Ico c d ⊆ Finset.Ico a (b - h))
+    (havoid :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico c d →
+          n ∉ Complex.realPhase_integerIncrementResonanceWindow
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h) (2 * Real.pi * (k : ℝ)) lam)
+    (hprincipal :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico c d →
+          Complex.realPhase_integerIncrement
+              (Complex.realPhase_integerLatticeShift
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                k)
+              n ∈
+            Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi))) :
+    ‖∑ n ∈ Finset.Ico c d,
+      Complex.exp
+        (Complex.I *
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h n : ℂ))‖ ≤
+      Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h := by
+  let ψ : ℝ → ℝ :=
+    Complex.realPhase_secondDerivative_vdc_shiftedDifference
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      h
+  let ψk : ℝ → ℝ :=
+    Complex.realPhase_integerLatticeShift ψ k
+  have hlam_pos_raw :
+      0 <
+        ‖t‖ *
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))⁻¹) *
+          (h : ℝ) :=
+    Real.secondDerivativeVdc_shiftedLowerParameter_pos ht hpos
+  have hlam_pos : 0 < lam :=
+    Eq.subst
+      (motive := fun r : ℝ => 0 < r)
+      hlam.symm
+      hlam_pos_raw
+  have hinputs :
+      Complex.realPhase_integerIncrementMonotoneOn ψk c d ∧
+        Complex.realPhase_reducedIntegerIncrementMonotoneOn ψk c d ∧
+        Complex.realPhase_integerIncrementSeparatedOn ψk c d lam :=
+    Complex.realPhase_integerLatticeShift_gap_finiteDifference_inputs
+      ψ k hinc_mono hsub havoid hprincipal
+  have hM_nonneg :
+      0 ≤ Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h :=
+    Real.secondDerivativeVdc_shiftedCorrelationMajorant_nonneg ht hpos
+  have hIcc :
+      ∀ {r : ℕ},
+        c ≤ r →
+          r + 1 = d →
+            ‖∑ n ∈ Finset.Icc c r,
+              Complex.exp (Complex.I * (ψ n : ℂ))‖ ≤
+              Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h := by
+    intro r hcr hrd
+    have hrd_le : r ≤ d :=
+      Eq.subst
+        (motive := fun right : ℕ => r ≤ right)
+        hrd
+        (Nat.le_succ r)
+    have hsubset_terminal : Finset.Ico c r ⊆ Finset.Ico c d :=
+      Finset.Ico_subset_Ico (le_refl c) hrd_le
+    have hmono_terminal :
+        Complex.realPhase_integerIncrementMonotoneOn ψk c r :=
+      Complex.realPhase_integerIncrementMonotoneOn.mono_Ico
+        ψk hinputs.1 hsubset_terminal
+    have hred_terminal :
+        Complex.realPhase_reducedIntegerIncrementMonotoneOn ψk c r :=
+      Complex.realPhase_reducedIntegerIncrementMonotoneOn.mono_Ico
+        ψk hinputs.2.1 hsubset_terminal
+    have hsep_terminal :
+        Complex.realPhase_integerIncrementSeparatedOn ψk c r lam :=
+      Complex.realPhase_integerIncrementSeparatedOn.mono_Ico
+        ψk hinputs.2.2 hsubset_terminal
+    have hsep_terminal_target :
+        Complex.realPhase_integerIncrementSeparatedOn ψk c r
+          (‖t‖ *
+            ((((b + 1 : ℕ) : ℝ) *
+              (((b + 1 : ℕ) : ℝ)))⁻¹) *
+            (h : ℝ)) :=
+      Eq.subst
+        (motive := fun value : ℝ =>
+          Complex.realPhase_integerIncrementSeparatedOn ψk c r value)
+        hlam
+        hsep_terminal
+    have hshift :
+        ‖∑ n ∈ Finset.Icc c r,
+          Complex.exp (Complex.I * (ψk n : ℂ))‖ ≤
+          Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h :=
+      Complex.realPhase_separatedIncrement_integer_block_bound
+        ψk hc hcr
+        (Real.secondDerivativeVdc_shiftedLowerParameter_pos ht hpos)
+        hmono_terminal hred_terminal hsep_terminal_target
+    exact
+      Complex.realPhase_sum_norm_le_of_integerLatticeShift_sum_norm_le
+        ψ k (Finset.Icc c r) hshift
+  exact
+    Complex.realPhase_Ico_sum_norm_le_of_terminal_Icc_bounds
+      ψ hM_nonneg hIcc
 
 /-- A shifted-logarithmic interval contained in the active resonance-family
 complement has the standard curvature-majorant bound.  The active-family
