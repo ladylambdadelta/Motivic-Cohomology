@@ -465,14 +465,16 @@ theorem Real.neg_mul_sub_neg_mul_swap
     _ = t * (A - B) :=
       (mul_sub t A B).symm
 
-/-- Difference of adjacent logarithmic ratios across a fixed width. -/
-theorem Real.logarithmicPhase_fixedWidthLogGap_eq
+/-- The fixed-width logarithmic difference is the logarithm of the quotient of
+the two adjacent ratios. -/
+theorem Real.logarithmicPhase_fixedWidthLogGap_eq_logRatioQuotient
     {h n : ℕ}
     (hn : 1 ≤ n) :
     Real.log ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ))) -
         Real.log ((((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))) =
       Real.log
-        ((1 : ℝ) + (h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) := by
+        ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ)) /
+          (((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))) := by
   have hn_pos_nat : 0 < n :=
     Nat.lt_of_succ_le hn
   have hn_h_pos_nat : 0 < n + h :=
@@ -498,14 +500,48 @@ theorem Real.logarithmicPhase_fixedWidthLogGap_eq
         Real.log ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ))) -
           Real.log ((((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))) :=
     Real.log_div hleft_ne hright_ne
+  exact hlog_div.symm
+
+/-- The quotient of adjacent fixed-width logarithmic ratios is the logarithm of
+the rational gap factor. -/
+theorem Real.logarithmicPhase_fixedWidthLogRatioQuotient_eq_logGapFactor
+    {h n : ℕ}
+    (hn : 1 ≤ n) :
+    Real.log
+        ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ)) /
+          (((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))) =
+      Real.log
+        ((1 : ℝ) + (h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) := by
   have hratio :
       ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ)) /
           (((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))) =
         (1 : ℝ) + (h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ) :=
     Real.logarithmicPhase_fixedWidthRatio_eq_gapFactor hn
-  exact
-    Eq.trans hlog_div.symm
-      (congrArg Real.log hratio)
+  exact congrArg Real.log hratio
+
+/-- Difference of adjacent logarithmic ratios across a fixed width. -/
+theorem Real.logarithmicPhase_fixedWidthLogGap_eq
+    {h n : ℕ}
+    (hn : 1 ≤ n) :
+    Real.log ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ))) -
+        Real.log ((((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))) =
+      Real.log
+        ((1 : ℝ) + (h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) := by
+  have hto_ratio :
+      Real.log ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ))) -
+          Real.log ((((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))) =
+        Real.log
+          ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ)) /
+            (((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))) :=
+    Real.logarithmicPhase_fixedWidthLogGap_eq_logRatioQuotient hn
+  have hratio_to_factor :
+      Real.log
+          ((((n + 1 : ℕ) : ℝ) / ((n : ℕ) : ℝ)) /
+            (((n + h + 1 : ℕ) : ℝ) / ((n + h : ℕ) : ℝ))) =
+        Real.log
+          ((1 : ℝ) + (h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) :=
+    Real.logarithmicPhase_fixedWidthLogRatioQuotient_eq_logGapFactor hn
+  exact Eq.trans hto_ratio hratio_to_factor
 
 /-- The fixed-width logarithmic gap is antitone in the left endpoint. -/
 theorem Real.logarithmicPhase_fixedWidthLogGap_antitone

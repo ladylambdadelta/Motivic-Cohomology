@@ -397,6 +397,195 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sub
       hblock_subset
       hrange
 
+/-- Every active-complement sample has a concrete integer principal branch in
+the finite range-active family.  This is the pointwise form of the all-integer
+resonance decomposition: the branch is selected from the raw increment range,
+not from a global no-winding assumption. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_exists_rangeActive_principalStrip
+    (t : ℝ)
+    {a b h n : ℕ}
+    {lam lo hi : ℝ}
+    (hrange :
+      ∀ m : ℕ,
+        m ∈ Finset.Ico a (b - h) →
+          lo ≤
+              Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                m ∧
+            Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                m ≤ hi)
+    (hn :
+      n ∈
+        Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+          t a b h lam) :
+    ∃ k : ℤ,
+      k ∈ Complex.realPhase_integerIncrementRangeActiveCenters lo hi Real.pi ∧
+        n ∈
+          Complex.realPhase_integerIncrementPrincipalStrip
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h) k := by
+  have hsubset :
+      Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+          t a b h lam ⊆
+        Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h)
+          a (b - h)
+          (Complex.realPhase_integerIncrementRangeActiveCenters
+            lo hi Real.pi) :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_subset_principalStripFamilyUnion_rangeActiveCenters
+      t hrange
+  exact
+    (Complex.mem_realPhase_integerIncrementPrincipalStripFamilyUnion_iff
+      (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        h)).mp
+      (hsubset hn)
+
+/-- The active-complement sample count is bounded by the finite
+range-active principal-strip family.  This is the counting side of the
+all-integer principal-branch covering. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_card_le_principalStripFamilyUnion_rangeActiveCenters
+    (t : ℝ)
+    {a b h : ℕ}
+    {lam lo hi : ℝ}
+    (hrange :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a (b - h) →
+          lo ≤
+              Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ∧
+            Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ≤ hi) :
+    (Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+      t a b h lam).card ≤
+      (Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          h)
+        a (b - h)
+        (Complex.realPhase_integerIncrementRangeActiveCenters
+          lo hi Real.pi)).card := by
+  exact
+    Finset.card_le_card
+      (Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_subset_principalStripFamilyUnion_rangeActiveCenters
+        t hrange)
+
+/-- Real-valued form of the finite all-integer principal-strip count for the
+active complement. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_card_real_le_principalStripFamilyUnion_rangeActiveCenters
+    (t : ℝ)
+    {a b h : ℕ}
+    {lam lo hi : ℝ}
+    (hrange :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a (b - h) →
+          lo ≤
+              Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ∧
+            Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ≤ hi) :
+    ((Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+      t a b h lam).card : ℝ) ≤
+      ((Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          h)
+        a (b - h)
+        (Complex.realPhase_integerIncrementRangeActiveCenters
+          lo hi Real.pi)).card : ℝ) := by
+  exact
+    Nat.cast_le.mpr
+      (Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_card_le_principalStripFamilyUnion_rangeActiveCenters
+        t hrange)
+
+/-- The active-complement count is bounded by the sum of the cardinalities of
+the range-active principal strips. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_card_real_le_sum_rangeActive_principalStrip_cards
+    (t : ℝ)
+    {a b h : ℕ}
+    {lam lo hi : ℝ}
+    (hrange :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a (b - h) →
+          lo ≤
+              Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ∧
+            Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ≤ hi) :
+    ((Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+      t a b h lam).card : ℝ) ≤
+      ∑ k ∈ Complex.realPhase_integerIncrementRangeActiveCenters lo hi Real.pi,
+        ((Complex.realPhase_integerIncrementPrincipalStrip
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h)
+          a (b - h) k).card : ℝ) := by
+  have hle_family :
+      ((Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+        t a b h lam).card : ℝ) ≤
+        ((Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h)
+          a (b - h)
+          (Complex.realPhase_integerIncrementRangeActiveCenters
+            lo hi Real.pi)).card : ℝ) :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_card_real_le_principalStripFamilyUnion_rangeActiveCenters
+      t hrange
+  have hfamily_eq :
+      ((Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h)
+          a (b - h)
+          (Complex.realPhase_integerIncrementRangeActiveCenters
+            lo hi Real.pi)).card : ℝ) =
+        ∑ k ∈ Complex.realPhase_integerIncrementRangeActiveCenters lo hi Real.pi,
+          ((Complex.realPhase_integerIncrementPrincipalStrip
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h) k).card : ℝ) :=
+    Complex.realPhase_integerIncrementPrincipalStripFamilyUnion_card_real_eq_sum_cards
+      (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        h)
+      (Complex.realPhase_integerIncrementRangeActiveCenters lo hi Real.pi)
+  exact
+    Eq.subst
+      (motive := fun right : ℝ =>
+        ((Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+          t a b h lam).card : ℝ) ≤ right)
+      hfamily_eq
+      hle_family
+
 /-- A disjoint half-open gap cover of the active-family complement gives the
 standard finite-gap complement estimate.  The active-family complement supplies
 the lattice separation on each gap; the supplied cover supplies only the
