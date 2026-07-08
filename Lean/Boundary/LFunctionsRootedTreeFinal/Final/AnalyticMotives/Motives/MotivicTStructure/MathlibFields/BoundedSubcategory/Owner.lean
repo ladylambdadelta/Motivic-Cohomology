@@ -16,6 +16,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.MotivicT
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.MotivicTStructure.MathlibFields.BoundedSubcategory.Shift.Functor.Zero.Naturality.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.MotivicTStructure.MathlibFields.BoundedSubcategory.Shift.Functor.Zero.Inclusion.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.MotivicTStructure.MathlibFields.BoundedSubcategory.DistinguishedTriangles.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.MotivicTStructure.MathlibFields.BoundedSubcategory.Orthogonality.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.MotivicTStructure.MathlibFields.TruncationTriangle.BoundedSubcategory.NullHomotopy.BoundedVertices.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.MotivicTStructure.MathlibFields.TruncationTriangle.BoundedSubcategory.NullHomotopy.BoundedMorphisms.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.MotivicTStructure.MathlibFields.TruncationTriangle.BoundedSubcategory.NullHomotopy.BoundedTriangle.Owner
@@ -27,5 +28,6 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.MotivicT
 This aggregate exposes the Mathlib-facing t-structure field calculus after
 restriction to the bounded stable analytic comparison source: monotonicity,
 preadditivity, zero object, ambient shift closure, induced bounded shifts,
-shift functoriality, and inclusion compatibility.
+shift functoriality, inclusion compatibility, distinguished triangles, and
+orthogonality.
 -/

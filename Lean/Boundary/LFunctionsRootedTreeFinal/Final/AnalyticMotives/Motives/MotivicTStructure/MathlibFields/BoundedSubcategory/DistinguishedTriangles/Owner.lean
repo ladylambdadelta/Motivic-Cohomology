@@ -182,6 +182,86 @@ theorem exists_distinguishedTriangle_zero_one_of_nullHomotopicIdentity
         package.upper_mem
         package.triangle_distinguished))
 
+/-- Null-homotopic cone identities produce the exact bounded-source
+truncation-triangle field shape: lower and upper bounded stable objects,
+adjacent `LE`/`GE` membership, bounded morphisms, and bounded distinguishedness.
+-/
+theorem exists_triangle_zero_one_of_nullHomotopicIdentity
+    (object : TraceAnalyticDMgmComparisonSource.BoundedStable)
+    (nullHomotopicIdentity :
+      ∀ {bound : Nat}
+        (complex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound),
+        ∃ hom :
+          ∀ i j,
+            (ComplexShape.up ℤ).Rel j i →
+              (CochainComplex.mappingCone
+                (TraceAnalyticMotivicTStructure
+                  .additiveNormalizedConeComparisonCochainMap
+                    0
+                    complex.complex)).X i ⟶
+                (CochainComplex.mappingCone
+                  (TraceAnalyticMotivicTStructure
+                    .additiveNormalizedConeComparisonCochainMap
+                      0
+                      complex.complex)).X j,
+          𝟙
+              (CochainComplex.mappingCone
+                (TraceAnalyticMotivicTStructure
+                  .additiveNormalizedConeComparisonCochainMap
+                    0
+                    complex.complex)) =
+            _root_.HomologicalComplex.nullHomotopicMap' hom) :
+    ∃ (lower upper : TraceAnalyticDMgmComparisonSource.BoundedStable)
+      (_ : TraceAnalyticDMgmComparisonSource.BoundedStable.mathlibLE 0 lower)
+      (_ : TraceAnalyticDMgmComparisonSource.BoundedStable.mathlibGE 1 upper)
+      (firstMap : lower ⟶ object)
+      (secondMap : object ⟶ upper)
+      (connectingMap : upper ⟶ lower⟦(1 : ℤ)⟧),
+      Triangle.mk firstMap secondMap connectingMap ∈
+        TraceAnalyticDMgmComparisonSource.BoundedStable.distinguishedTriangles :=
+  let package :=
+    TraceAnalyticDMgmComparisonSource.BoundedStable
+      .nullHomotopyBoundedTriangle object nullHomotopicIdentity
+  let fieldAtMiddle :
+      ∃ (lower upper : TraceAnalyticDMgmComparisonSource.BoundedStable)
+        (_ : TraceAnalyticDMgmComparisonSource.BoundedStable.mathlibLE 0 lower)
+        (_ : TraceAnalyticDMgmComparisonSource.BoundedStable.mathlibGE 1 upper)
+        (firstMap : lower ⟶ package.middle)
+        (secondMap : package.middle ⟶ upper)
+        (connectingMap : upper ⟶ lower⟦(1 : ℤ)⟧),
+        Triangle.mk firstMap secondMap connectingMap ∈
+          TraceAnalyticDMgmComparisonSource.BoundedStable
+            .distinguishedTriangles :=
+    Exists.intro
+      package.lower
+      (Exists.intro
+        package.upper
+        (Exists.intro
+          package.lower_mem
+          (Exists.intro
+            package.upper_mem
+            (Exists.intro
+              package.firstMap
+              (Exists.intro
+                package.secondMap
+                (Exists.intro
+                  package.connectingMap
+                  package.triangle_distinguished))))))
+  Eq.subst
+    (motive := fun candidate =>
+      ∃ (lower upper : TraceAnalyticDMgmComparisonSource.BoundedStable)
+        (_ : TraceAnalyticDMgmComparisonSource.BoundedStable.mathlibLE 0 lower)
+        (_ : TraceAnalyticDMgmComparisonSource.BoundedStable.mathlibGE 1 upper)
+        (firstMap : lower ⟶ candidate)
+        (secondMap : candidate ⟶ upper)
+        (connectingMap : upper ⟶ lower⟦(1 : ℤ)⟧),
+        Triangle.mk firstMap secondMap connectingMap ∈
+          TraceAnalyticDMgmComparisonSource.BoundedStable
+            .distinguishedTriangles)
+    package.middle_eq
+    fieldAtMiddle
+
 end BoundedStable
 end TraceAnalyticDMgmComparisonSource
 

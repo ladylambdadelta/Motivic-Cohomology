@@ -2195,6 +2195,17 @@ def Real.secondDerivativeVdc_weylEnvelopeMajorant
           2 * envelope) *
         ((H : ℝ)⁻¹)))
 
+/-- Weyl-differencing majorant retaining the exact weighted positive-shift
+autocorrelation mass before replacing every weight by the full shift length. -/
+def Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant
+    (a b H : ℕ)
+    (weightedMass : ℝ) : ℝ :=
+  Real.sqrt
+    (((Real.secondDerivativeVdc_blockLength a b) + (H : ℝ)) *
+      (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+          2 * weightedMass) *
+        (((H : ℝ) * (H : ℝ))⁻¹)))
+
 /-- The Weyl-envelope majorant is nonnegative. -/
 theorem Real.secondDerivativeVdc_weylEnvelopeMajorant_nonneg
     (a b H : ℕ)
@@ -2205,6 +2216,18 @@ theorem Real.secondDerivativeVdc_weylEnvelopeMajorant_nonneg
       (((Real.secondDerivativeVdc_blockLength a b) +
           2 * envelope) *
         ((H : ℝ)⁻¹)))
+
+/-- The weighted Weyl-envelope majorant is nonnegative. -/
+theorem Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant_nonneg
+    (a b H : ℕ)
+    (weightedMass : ℝ) :
+    0 ≤ Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant
+      a b H weightedMass := by
+  exact Real.sqrt_nonneg
+    (((Real.secondDerivativeVdc_blockLength a b) + (H : ℝ)) *
+      (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+          2 * weightedMass) *
+        (((H : ℝ) * (H : ℝ))⁻¹)))
 
 /-- The left factor in the Weyl-envelope majorant is nonnegative. -/
 theorem Real.secondDerivativeVdc_weylEnvelopeMajorant_leftFactor_nonneg
@@ -2273,6 +2296,156 @@ theorem Real.secondDerivativeVdc_weylEnvelopeMajorant_mono
       (Real.secondDerivativeVdc_weylEnvelopeMajorant_leftFactor_nonneg a b H)
   exact Real.sqrt_le_sqrt hproduct
 
+/-- The weighted Weyl-envelope majorant is monotone in the weighted
+positive-difference mass. -/
+theorem Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant_mono
+    {a b H : ℕ}
+    {weightedMass weightedMass' : ℝ}
+    (hH : 1 ≤ H)
+    (hmass : weightedMass ≤ weightedMass') :
+    Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant a b H weightedMass ≤
+      Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant
+        a b H weightedMass' := by
+  have htwo_mass :
+      2 * weightedMass ≤ 2 * weightedMass' :=
+    mul_le_mul_of_nonneg_left hmass zero_le_two
+  have hinner_left :
+      (H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+          2 * weightedMass ≤
+        (H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+          2 * weightedMass' :=
+    add_le_add_left htwo_mass
+      ((H : ℝ) * Real.secondDerivativeVdc_blockLength a b)
+  have hH_pos : 0 < (H : ℝ) :=
+    Nat.cast_pos.mpr (Nat.lt_of_succ_le hH)
+  have hHH_nonneg : 0 ≤ (H : ℝ) * (H : ℝ) :=
+    mul_nonneg (le_of_lt hH_pos) (le_of_lt hH_pos)
+  have hHH_inv_nonneg :
+      0 ≤ (((H : ℝ) * (H : ℝ))⁻¹) :=
+    inv_nonneg.mpr hHH_nonneg
+  have hinner :
+      ((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+          2 * weightedMass) *
+          (((H : ℝ) * (H : ℝ))⁻¹) ≤
+        ((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+          2 * weightedMass') *
+          (((H : ℝ) * (H : ℝ))⁻¹) :=
+    mul_le_mul_of_nonneg_right hinner_left hHH_inv_nonneg
+  have hproduct :
+      (Real.secondDerivativeVdc_blockLength a b + (H : ℝ)) *
+          (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+              2 * weightedMass) *
+            (((H : ℝ) * (H : ℝ))⁻¹)) ≤
+        (Real.secondDerivativeVdc_blockLength a b + (H : ℝ)) *
+          (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+              2 * weightedMass') *
+            (((H : ℝ) * (H : ℝ))⁻¹)) :=
+    mul_le_mul_of_nonneg_left
+      hinner
+      (Real.secondDerivativeVdc_weylEnvelopeMajorant_leftFactor_nonneg a b H)
+  exact Real.sqrt_le_sqrt hproduct
+
+/-- Substituting `H` times an unweighted envelope into the weighted Weyl
+majorant recovers the ordinary Weyl-envelope majorant. -/
+theorem Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant_H_mul_eq_weylEnvelope
+    {a b H : ℕ}
+    (hH : 1 ≤ H)
+    (envelope : ℝ) :
+    Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant a b H
+        ((H : ℝ) * envelope) =
+      Real.secondDerivativeVdc_weylEnvelopeMajorant a b H envelope := by
+  let h : ℝ := (H : ℝ)
+  let B : ℝ := Real.secondDerivativeVdc_blockLength a b
+  let E : ℝ := envelope
+  let A : ℝ := B + h
+  let C : ℝ := B + 2 * E
+  have hh_pos : 0 < h :=
+    Nat.cast_pos.mpr (Nat.lt_of_succ_le hH)
+  have hh_ne : h ≠ 0 :=
+    ne_of_gt hh_pos
+  have htwice :
+      2 * (h * E) = h * (2 * E) := by
+    calc
+      2 * (h * E) = (2 * h) * E :=
+        (mul_assoc 2 h E).symm
+      _ = (h * 2) * E := by
+        exact congrArg (fun r : ℝ => r * E) (mul_comm 2 h)
+      _ = h * (2 * E) :=
+        mul_assoc h 2 E
+  have hweighted_inner_num :
+      h * B + 2 * (h * E) = h * C := by
+    calc
+      h * B + 2 * (h * E) =
+          h * B + h * (2 * E) := by
+        exact congrArg (fun r : ℝ => h * B + r) htwice
+      _ = h * (B + 2 * E) :=
+        (mul_add h B (2 * E)).symm
+      _ = h * C :=
+        rfl
+  have hweighted_inner :
+      (h * B + 2 * (h * E)) * ((h * h)⁻¹) =
+        C * h⁻¹ := by
+    calc
+      (h * B + 2 * (h * E)) * ((h * h)⁻¹) =
+          (h * C) * ((h * h)⁻¹) := by
+        exact congrArg (fun r : ℝ => r * ((h * h)⁻¹)) hweighted_inner_num
+      _ = C * (h * ((h * h)⁻¹)) := by
+        calc
+          (h * C) * ((h * h)⁻¹) =
+              (C * h) * ((h * h)⁻¹) := by
+            exact congrArg (fun r : ℝ => r * ((h * h)⁻¹))
+              (mul_comm h C)
+          _ = C * (h * ((h * h)⁻¹)) :=
+            mul_assoc C h ((h * h)⁻¹)
+      _ = C * h⁻¹ := by
+        have hcancel :
+            h * ((h * h)⁻¹) = h⁻¹ := by
+          have hmul_inv :
+              (h * h)⁻¹ = h⁻¹ * h⁻¹ :=
+            mul_inv_rev h h
+          calc
+            h * ((h * h)⁻¹) =
+                h * (h⁻¹ * h⁻¹) := by
+              exact congrArg (fun r : ℝ => h * r) hmul_inv
+            _ = (h * h⁻¹) * h⁻¹ :=
+              (mul_assoc h h⁻¹ h⁻¹).symm
+            _ = 1 * h⁻¹ := by
+              exact congrArg (fun r : ℝ => r * h⁻¹)
+                (mul_inv_cancel₀ hh_ne)
+            _ = h⁻¹ :=
+              one_mul h⁻¹
+        exact congrArg (fun r : ℝ => C * r) hcancel
+  have hradicand :
+      A * ((h * B + 2 * (h * E)) * ((h * h)⁻¹)) =
+        A * (C * h⁻¹) :=
+    congrArg (fun r : ℝ => A * r) hweighted_inner
+  show
+    Real.sqrt (A * ((h * B + 2 * (h * E)) * ((h * h)⁻¹))) =
+      Real.sqrt (A * (C * h⁻¹))
+  exact congrArg Real.sqrt hradicand
+
+/-- A weighted Weyl-envelope majorant controlled by `H` times an envelope is
+bounded by the ordinary Weyl-envelope majorant for that envelope. -/
+theorem Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant_le_weylEnvelope_of_le_H_mul
+    {a b H : ℕ}
+    {weightedMass envelope : ℝ}
+    (hH : 1 ≤ H)
+    (hmass : weightedMass ≤ (H : ℝ) * envelope) :
+    Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant a b H weightedMass ≤
+      Real.secondDerivativeVdc_weylEnvelopeMajorant a b H envelope := by
+  have hmono :
+      Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant a b H weightedMass ≤
+        Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant a b H
+          ((H : ℝ) * envelope) :=
+    Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant_mono hH hmass
+  have heq :
+      Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant a b H
+          ((H : ℝ) * envelope) =
+        Real.secondDerivativeVdc_weylEnvelopeMajorant a b H envelope :=
+    Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant_H_mul_eq_weylEnvelope
+      hH envelope
+  exact le_trans hmono (le_of_eq heq)
+
 /-- Square-root elimination for the Weyl-envelope majorant. -/
 theorem Real.secondDerivativeVdc_weylEnvelopeMajorant_le_of_radicand_le_sq
     {a b H : ℕ}
@@ -2303,6 +2476,40 @@ theorem Real.secondDerivativeVdc_weylEnvelopeMajorant_le_of_radicand_le_sq
             (((Real.secondDerivativeVdc_blockLength a b) +
                 2 * envelope) *
               ((H : ℝ)⁻¹))) ≤ r)
+      hsqrt_sq
+      hsqrt_le
+
+/-- Square-root elimination for the weighted Weyl-envelope majorant. -/
+theorem Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant_le_of_radicand_le_sq
+    {a b H : ℕ}
+    {weightedMass M : ℝ}
+    (hM : 0 ≤ M)
+    (hrad :
+      ((Real.secondDerivativeVdc_blockLength a b) + (H : ℝ)) *
+          (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+              2 * weightedMass) *
+            (((H : ℝ) * (H : ℝ))⁻¹)) ≤
+        M ^ 2) :
+    Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant
+        a b H weightedMass ≤ M := by
+  have hsqrt_le :
+      Real.sqrt
+          (((Real.secondDerivativeVdc_blockLength a b) + (H : ℝ)) *
+            (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+                2 * weightedMass) *
+              (((H : ℝ) * (H : ℝ))⁻¹))) ≤
+        Real.sqrt (M ^ 2) :=
+    Real.sqrt_le_sqrt hrad
+  have hsqrt_sq : Real.sqrt (M ^ 2) = M :=
+    Real.sqrt_sq_eq_abs M |>.trans (abs_of_nonneg hM)
+  exact
+    Eq.subst
+      (motive := fun r : ℝ =>
+        Real.sqrt
+          (((Real.secondDerivativeVdc_blockLength a b) + (H : ℝ)) *
+            (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+                2 * weightedMass) *
+              (((H : ℝ) * (H : ℝ))⁻¹))) ≤ r)
       hsqrt_sq
       hsqrt_le
 
@@ -5359,6 +5566,75 @@ theorem Complex.realPhase_secondDerivative_vdc_weylAverage_predivision
     mul_le_mul hcard henergy henergy_nonneg hright_nonneg
   exact le_trans hleft_le hmul
 
+/-- The finite Weyl estimate before division by `H²`, retaining the exact
+weighted positive-difference mass. -/
+theorem Complex.realPhase_secondDerivative_vdc_weightedWeylAverage_predivision
+    (φ : ℝ → ℝ)
+    {a b H : ℕ}
+    (hH : 1 ≤ H)
+    (hH_block : H ≤ (Finset.Icc a b).card) :
+    ((H : ℝ) * (H : ℝ)) *
+        Complex.normSq
+          (Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b) ≤
+      (Real.secondDerivativeVdc_blockLength a b + (H : ℝ)) *
+        ((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+          2 *
+            Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+              φ a b H) := by
+  let base : Finset ℤ :=
+    Complex.realPhase_secondDerivative_vdc_weylTranslateBase a b H
+  let translate : ℤ → ℂ :=
+    fun m : ℤ =>
+      Complex.realPhase_secondDerivative_vdc_weylTranslateSum φ a b H m
+  let energy : ℝ :=
+    ∑ m ∈ base, Complex.normSq (translate m)
+  let block : ℝ := Real.secondDerivativeVdc_blockLength a b
+  let weightedMass : ℝ :=
+    Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+      φ a b H
+  have htotal_eq :
+      Complex.normSq (∑ m ∈ base, translate m) =
+        ((H : ℝ) * (H : ℝ)) *
+          Complex.normSq
+            (Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b) :=
+    Complex.realPhase_secondDerivative_vdc_weylTranslate_total_normSq_eq
+      φ hH hH_block
+  have htotal_le :
+      Complex.normSq (∑ m ∈ base, translate m) ≤
+        (base.card : ℝ) * energy :=
+    Complex.realPhase_secondDerivative_vdc_weylTranslate_total_normSq_le
+      φ
+  have hleft_le :
+      ((H : ℝ) * (H : ℝ)) *
+          Complex.normSq
+            (Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b) ≤
+        (base.card : ℝ) * energy :=
+    Eq.subst
+      (motive := fun left : ℝ => left ≤ (base.card : ℝ) * energy)
+      htotal_eq
+      htotal_le
+  have hcard :
+      (base.card : ℝ) ≤ block + (H : ℝ) :=
+    Complex.realPhase_secondDerivative_vdc_weylTranslateBase_card_le_block_add_H
+      hH hH_block
+  have henergy :
+      energy ≤ (H : ℝ) * block + 2 * weightedMass :=
+    Complex.realPhase_secondDerivative_vdc_weylTranslate_energy_le_diagonal_add_weighted
+      φ hH hH_block
+  have henergy_nonneg : 0 ≤ energy :=
+    Finset.sum_nonneg
+      (fun m hm =>
+        Complex.normSq_nonneg (translate m))
+  have hright_nonneg :
+      0 ≤ block + (H : ℝ) :=
+    Real.secondDerivativeVdc_weylEnvelopeMajorant_leftFactor_nonneg a b H
+  have hmul :
+      (base.card : ℝ) * energy ≤
+        (block + (H : ℝ)) *
+          ((H : ℝ) * block + 2 * weightedMass) :=
+    mul_le_mul hcard henergy henergy_nonneg hright_nonneg
+  exact le_trans hleft_le hmul
+
 /-- Positive averaging length permits division of the predivision Weyl
 estimate by `H²`. -/
 theorem Real.secondDerivativeVdc_weylAverage_division_arithmetic
@@ -5467,6 +5743,80 @@ theorem Real.secondDerivativeVdc_weylAverage_division_arithmetic
         hdiv)
   exact hresult
 
+/-- Positive averaging length permits division of the weighted predivision Weyl
+estimate by `H²`. -/
+theorem Real.secondDerivativeVdc_weightedWeylAverage_division_arithmetic
+    {H : ℕ}
+    {left blockLength weightedMass : ℝ}
+    (hH : 1 ≤ H)
+    (hpre :
+      ((H : ℝ) * (H : ℝ)) * left ≤
+        (blockLength + (H : ℝ)) *
+          ((H : ℝ) * blockLength + 2 * weightedMass)) :
+    left ≤
+      (blockLength + (H : ℝ)) *
+        (((H : ℝ) * blockLength + 2 * weightedMass) *
+          (((H : ℝ) * (H : ℝ))⁻¹)) := by
+  let h : ℝ := (H : ℝ)
+  let A : ℝ := blockLength + h
+  let D : ℝ := h * blockLength + 2 * weightedMass
+  have hh_pos : 0 < h :=
+    Nat.cast_pos.mpr (Nat.lt_of_succ_le hH)
+  have hhh_pos : 0 < h * h :=
+    mul_pos hh_pos hh_pos
+  have hhh_nonneg : 0 ≤ h * h :=
+    le_of_lt hhh_pos
+  have hhh_ne : h * h ≠ 0 :=
+    ne_of_gt hhh_pos
+  have hinv_nonneg : 0 ≤ (h * h)⁻¹ :=
+    inv_nonneg.mpr hhh_nonneg
+  have hpre_local :
+      (h * h) * left ≤ A * D :=
+    hpre
+  have hdiv :
+      ((h * h) * left) * ((h * h)⁻¹) ≤
+        (A * D) * ((h * h)⁻¹) :=
+    mul_le_mul_of_nonneg_right hpre_local hinv_nonneg
+  have hleft_cancel :
+      ((h * h) * left) * ((h * h)⁻¹) = left := by
+    calc
+      ((h * h) * left) * ((h * h)⁻¹) =
+          left * ((h * h) * ((h * h)⁻¹)) := by
+        calc
+          ((h * h) * left) * ((h * h)⁻¹) =
+              (h * h) * (left * ((h * h)⁻¹)) :=
+            mul_assoc (h * h) left ((h * h)⁻¹)
+          _ = left * ((h * h) * ((h * h)⁻¹)) := by
+            calc
+              (h * h) * (left * ((h * h)⁻¹)) =
+                  ((h * h) * left) * ((h * h)⁻¹) :=
+                (mul_assoc (h * h) left ((h * h)⁻¹)).symm
+              _ = (left * (h * h)) * ((h * h)⁻¹) := by
+                exact congrArg (fun r : ℝ => r * ((h * h)⁻¹))
+                  (mul_comm (h * h) left)
+              _ = left * ((h * h) * ((h * h)⁻¹)) :=
+                mul_assoc left (h * h) ((h * h)⁻¹)
+      _ = left * 1 := by
+        exact congrArg (fun r : ℝ => left * r)
+          (mul_inv_cancel₀ hhh_ne)
+      _ = left :=
+        mul_one left
+  have hright_assoc :
+      (A * D) * ((h * h)⁻¹) =
+        A * (D * ((h * h)⁻¹)) :=
+    mul_assoc A D ((h * h)⁻¹)
+  have hresult :
+      left ≤ A * (D * ((h * h)⁻¹)) :=
+    Eq.subst
+      (motive := fun lhs : ℝ => lhs ≤ A * (D * ((h * h)⁻¹)))
+      hleft_cancel
+      (Eq.subst
+        (motive := fun rhs : ℝ =>
+          ((h * h) * left) * ((h * h)⁻¹) ≤ rhs)
+        hright_assoc
+        hdiv)
+  exact hresult
+
 /-- Division of the Weyl average inequality by the positive averaging length. -/
 theorem Complex.realPhase_secondDerivative_vdc_weylAverage_division
     (φ : ℝ → ℝ)
@@ -5485,6 +5835,27 @@ theorem Complex.realPhase_secondDerivative_vdc_weylAverage_division
     Real.secondDerivativeVdc_weylAverage_division_arithmetic
       hH
         (Complex.realPhase_secondDerivative_vdc_weylAverage_predivision
+        φ hH hH_block)
+
+/-- Division of the weighted Weyl average inequality by the positive averaging
+length. -/
+theorem Complex.realPhase_secondDerivative_vdc_weightedWeylAverage_division
+    (φ : ℝ → ℝ)
+    {a b H : ℕ}
+    (hH : 1 ≤ H)
+    (hH_block : H ≤ (Finset.Icc a b).card) :
+    Complex.normSq
+        (Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b) ≤
+      (Real.secondDerivativeVdc_blockLength a b + (H : ℝ)) *
+        (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+            2 *
+              Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+                φ a b H) *
+          (((H : ℝ) * (H : ℝ))⁻¹)) := by
+  exact
+    Real.secondDerivativeVdc_weightedWeylAverage_division_arithmetic
+      hH
+        (Complex.realPhase_secondDerivative_vdc_weightedWeylAverage_predivision
         φ hH hH_block)
 
 /-- `normSq` expansion of the coefficient-block autocorrelation estimate.
@@ -5507,6 +5878,25 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficientBlock_normSq_le_autoco
           ((H : ℝ)⁻¹)) := by
   exact
     Complex.realPhase_secondDerivative_vdc_weylAverage_division
+      φ hH hH_block
+
+/-- `normSq` expansion of the coefficient-block autocorrelation estimate with
+the exact weighted positive-difference mass. -/
+theorem Complex.realPhase_secondDerivative_vdc_coefficientBlock_normSq_le_weightedAutocorrelation
+    (φ : ℝ → ℝ)
+    {a b H : ℕ}
+    (hH : 1 ≤ H)
+    (hH_block : H ≤ (Finset.Icc a b).card) :
+    Complex.normSq
+        (Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b) ≤
+      (Real.secondDerivativeVdc_blockLength a b + (H : ℝ)) *
+        (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+            2 *
+              Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+                φ a b H) *
+          (((H : ℝ) * (H : ℝ))⁻¹)) := by
+  exact
+    Complex.realPhase_secondDerivative_vdc_weightedWeylAverage_division
       φ hH hH_block
 
 /-- Autocorrelation form of the coefficient-block norm square.
@@ -5553,6 +5943,50 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficientBlock_norm_sq_le_autoc
                   Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope
                     φ a b H) *
               ((H : ℝ)⁻¹)))
+      hsq_eq.symm
+      hnormSq
+
+/-- Autocorrelation form of the coefficient-block norm square with the exact
+weighted positive-difference mass. -/
+theorem Complex.realPhase_secondDerivative_vdc_coefficientBlock_norm_sq_le_weightedAutocorrelation
+    (φ : ℝ → ℝ)
+    {a b H : ℕ}
+    (hH : 1 ≤ H)
+    (hH_block : H ≤ (Finset.Icc a b).card) :
+    ‖Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b‖ ^ 2 ≤
+      (Real.secondDerivativeVdc_blockLength a b + (H : ℝ)) *
+        (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+            2 *
+              Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+                φ a b H) *
+          (((H : ℝ) * (H : ℝ))⁻¹)) := by
+  have hnormSq :
+      Complex.normSq
+          (Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b) ≤
+        (Real.secondDerivativeVdc_blockLength a b + (H : ℝ)) *
+          (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+              2 *
+                Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+                  φ a b H) *
+            (((H : ℝ) * (H : ℝ))⁻¹)) :=
+    Complex.realPhase_secondDerivative_vdc_coefficientBlock_normSq_le_weightedAutocorrelation
+      φ hH hH_block
+  have hsq_eq :
+      ‖Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b‖ ^ 2 =
+        Complex.normSq
+          (Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b) :=
+    Complex.realPhase_secondDerivative_vdc_coefficientBlock_norm_sq_eq_normSq
+      φ a b
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤
+          (Real.secondDerivativeVdc_blockLength a b + (H : ℝ)) *
+            (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+                2 *
+                  Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+                    φ a b H) *
+              (((H : ℝ) * (H : ℝ))⁻¹)))
       hsq_eq.symm
       hnormSq
 
@@ -5604,6 +6038,35 @@ theorem Complex.realPhase_secondDerivative_vdc_norm_le_weylEnvelope_of_sq
             ((H : ℝ)⁻¹)))
   exact Real.le_sqrt_of_sq_le hsq
 
+/-- Square-root extraction from the weighted finite Weyl norm-square
+inequality. -/
+theorem Complex.realPhase_secondDerivative_vdc_norm_le_weightedWeylEnvelope_of_sq
+    (φ : ℝ → ℝ)
+    {a b H : ℕ}
+    (hH : 1 ≤ H)
+    (hsq :
+      ‖Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b‖ ^ 2 ≤
+        (Real.secondDerivativeVdc_blockLength a b + (H : ℝ)) *
+          (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+              2 *
+                Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+                  φ a b H) *
+            (((H : ℝ) * (H : ℝ))⁻¹))) :
+    ‖Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b‖ ≤
+      Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant a b H
+        (Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+          φ a b H) := by
+  show
+    ‖Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b‖ ≤
+      Real.sqrt
+        ((Real.secondDerivativeVdc_blockLength a b + (H : ℝ)) *
+          (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+              2 *
+                Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+                  φ a b H) *
+            (((H : ℝ) * (H : ℝ))⁻¹)))
+  exact Real.le_sqrt_of_sq_le hsq
+
 /-- Finite Weyl differencing for one coefficient block.
 
 This is the purely finite algebraic owner theorem behind the long
@@ -5630,6 +6093,31 @@ theorem Complex.realPhase_secondDerivative_vdc_coefficientBlock_norm_le_weylEnve
       φ hH hH_block
   exact
     Complex.realPhase_secondDerivative_vdc_norm_le_weylEnvelope_of_sq
+      φ hH hsq
+
+/-- Finite Weyl differencing for one coefficient block with the exact weighted
+positive-difference mass. -/
+theorem Complex.realPhase_secondDerivative_vdc_coefficientBlock_norm_le_weightedWeylEnvelope
+    (φ : ℝ → ℝ)
+    {a b H : ℕ}
+    (hH : 1 ≤ H)
+    (hH_block : H ≤ (Finset.Icc a b).card) :
+    ‖Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b‖ ≤
+      Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant a b H
+        (Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+          φ a b H) := by
+  have hsq :
+      ‖Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b‖ ^ 2 ≤
+        (Real.secondDerivativeVdc_blockLength a b + (H : ℝ)) *
+          (((H : ℝ) * Real.secondDerivativeVdc_blockLength a b +
+              2 *
+                Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+                  φ a b H) *
+            (((H : ℝ) * (H : ℝ))⁻¹)) :=
+    Complex.realPhase_secondDerivative_vdc_coefficientBlock_norm_sq_le_weightedAutocorrelation
+      φ hH hH_block
+  exact
+    Complex.realPhase_secondDerivative_vdc_norm_le_weightedWeylEnvelope_of_sq
       φ hH hsq
 
 /-- Original-sum form of the finite Weyl differencing inequality. -/
@@ -5660,6 +6148,40 @@ theorem Complex.realPhase_secondDerivative_vdc_original_sum_norm_le_weylEnvelope
         left ≤
           Real.secondDerivativeVdc_weylEnvelopeMajorant a b H
             (Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope φ a b H))
+      hnorm_eq
+      hblock
+
+/-- Original-sum form of the weighted finite Weyl differencing inequality. -/
+theorem Complex.realPhase_secondDerivative_vdc_original_sum_norm_le_weightedWeylEnvelope
+    (φ : ℝ → ℝ)
+    {a b H : ℕ}
+    (hH : 1 ≤ H)
+    (hH_block : H ≤ (Finset.Icc a b).card) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+      Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant a b H
+        (Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+          φ a b H) := by
+  have hblock :
+      ‖Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b‖ ≤
+        Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant a b H
+          (Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+            φ a b H) :=
+    Complex.realPhase_secondDerivative_vdc_coefficientBlock_norm_le_weightedWeylEnvelope
+      φ hH hH_block
+  have hnorm_eq :
+      ‖Complex.realPhase_secondDerivative_vdc_coefficientBlock φ a b‖ =
+      ‖∑ n ∈ Finset.Icc a b,
+        Complex.exp (Complex.I * (φ n : ℂ))‖ :=
+    Complex.realPhase_secondDerivative_vdc_coefficientBlock_norm_eq_original_sum_norm
+      φ a b
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤
+          Real.secondDerivativeVdc_weightedWeylEnvelopeMajorant a b H
+            (Complex.realPhase_secondDerivative_vdc_weylTranslatePositiveDifferenceMass
+              φ a b H))
       hnorm_eq
       hblock
 

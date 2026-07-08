@@ -27,7 +27,7 @@ theorem moduleCat_isIso_of_eq_iso_hom
     IsIso map :=
   Eq.ndrec
     (motive := fun hom => IsIso hom)
-    (inferInstance : IsIso iso.hom)
+    iso.isIso_hom
     hmap.symm
 
 /-- On a normalized lower-tail degree, equality of the first evaluated map

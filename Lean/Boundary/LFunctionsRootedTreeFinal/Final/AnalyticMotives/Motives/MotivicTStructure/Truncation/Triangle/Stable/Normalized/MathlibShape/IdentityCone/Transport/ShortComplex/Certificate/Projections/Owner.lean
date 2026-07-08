@@ -17,6 +17,66 @@ open CategoryTheory
 
 namespace TraceAnalyticMotivicTStructure
 
+/-- The named stable cochain-decomposition short complex has the expected
+vertices, maps, and zero composition. -/
+theorem stableCochainDecompositionShortComplex_shape
+    (cut : ℤ)
+    (complex : TraceAnalyticAdditiveCochainComplex)
+    [∀ degree, complex.HasHomology degree] :
+    (TraceAnalyticMotivicTStructure.stableCochainDecompositionShortComplex
+        cut
+        complex).X₁ =
+        TraceAnalyticDMgmComparisonSource.objectOf
+          (TraceAnalyticAdditiveHomotopyCategory.objectOf
+            (TraceAnalyticMotivicTStructure.additiveDecompositionTruncLE
+              cut
+              complex)) ∧
+      (TraceAnalyticMotivicTStructure.stableCochainDecompositionShortComplex
+        cut
+        complex).X₂ =
+        TraceAnalyticDMgmComparisonSource.objectOf
+          (TraceAnalyticAdditiveHomotopyCategory.objectOf complex) ∧
+        (TraceAnalyticMotivicTStructure.stableCochainDecompositionShortComplex
+          cut
+          complex).X₃ =
+          TraceAnalyticMotivicTStructure.stableTruncGE cut complex ∧
+          (TraceAnalyticMotivicTStructure.stableCochainDecompositionShortComplex
+            cut
+            complex).f =
+            TraceAnalyticDMgmComparisonSource.mapOf
+              (TraceAnalyticAdditiveHomotopyCategory.mapOf
+                (TraceAnalyticMotivicTStructure
+                  .additiveCochainDecompositionLowerMap cut complex)) ∧
+            (TraceAnalyticMotivicTStructure.stableCochainDecompositionShortComplex
+              cut
+              complex).g =
+              TraceAnalyticMotivicTStructure.stableTruncGEProjectionMap
+                cut
+                complex ∧
+              (TraceAnalyticMotivicTStructure.stableCochainDecompositionShortComplex
+                cut
+                complex).f ≫
+              (TraceAnalyticMotivicTStructure
+                .stableCochainDecompositionShortComplex cut complex).g =
+                0 :=
+  And.intro
+    (TraceAnalyticMotivicTStructure
+      .stableCochainDecompositionShortComplex_X₁ cut complex)
+    (And.intro
+      (TraceAnalyticMotivicTStructure
+        .stableCochainDecompositionShortComplex_X₂ cut complex)
+      (And.intro
+        (TraceAnalyticMotivicTStructure
+          .stableCochainDecompositionShortComplex_X₃ cut complex)
+        (And.intro
+          (TraceAnalyticMotivicTStructure
+            .stableCochainDecompositionShortComplex_f cut complex)
+          (And.intro
+            (TraceAnalyticMotivicTStructure
+              .stableCochainDecompositionShortComplex_g cut complex)
+            (TraceAnalyticMotivicTStructure
+              .stableCochainDecompositionShortComplex_zero cut complex))))
+
 /-- The shape part of the named stable cochain-decomposition short-complex
 certificate: vertices, maps, and zero composition. -/
 theorem stableCochainDecompositionShortComplex_certificate_shape_part
@@ -65,24 +125,10 @@ theorem stableCochainDecompositionShortComplex_certificate_shape_part
                   (TraceAnalyticMotivicTStructure
                     .stableCochainDecompositionShortComplex cut complex).g =
                 0 :=
-  let certificate :=
-    TraceAnalyticMotivicTStructure
-      .stableCochainDecompositionShortComplex_certificate_of_isIso_cochainMap
-        cut
-        complex
-        leftProbe
-        rightProbe
-  And.intro
-    certificate.left
-    (And.intro
-      certificate.right.left
-      (And.intro
-        certificate.right.right.left
-        (And.intro
-          certificate.right.right.right.left
-          (And.intro
-            certificate.right.right.right.right.left
-            certificate.right.right.right.right.right.left))))
+  TraceAnalyticMotivicTStructure
+    .stableCochainDecompositionShortComplex_shape
+      cut
+      complex
 
 /-- The paired exactness part of the named stable cochain-decomposition
 short-complex certificate. -/

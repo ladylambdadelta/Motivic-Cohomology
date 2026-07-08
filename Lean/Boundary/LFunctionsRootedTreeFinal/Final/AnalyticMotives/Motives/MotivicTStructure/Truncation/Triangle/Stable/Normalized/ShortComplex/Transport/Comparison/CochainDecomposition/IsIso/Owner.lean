@@ -52,7 +52,18 @@ theorem stableTransportedNormalizedLowerInclusionShortComplexToCochainDecomposit
             cut
             complex) :=
     extractedIso
-  inferInstance
+  let transportedIso :
+      IsIso
+        ((TraceAnalyticMotivicTStructure
+          .stableNormalizedLowerInclusionShortComplexIsoTransported
+            cut
+            complex).inv ≫
+          TraceAnalyticMotivicTStructure
+            .stableNormalizedLowerInclusionShortComplexToCochainDecomposition
+              cut
+              complex) :=
+    IsIso.comp_isIso
+  transportedIso
 
 /-- If the additive homotopy cone-to-upper comparison belongs to the Verdier
 inverted class, then the transported normalized comparison to the stable
@@ -89,7 +100,18 @@ theorem stableTransportedNormalizedLowerInclusionShortComplexToCochainDecomposit
             cut
             complex) :=
     extractedIso
-  inferInstance
+  let transportedIso :
+      IsIso
+        ((TraceAnalyticMotivicTStructure
+          .stableNormalizedLowerInclusionShortComplexIsoTransported
+            cut
+            complex).inv ≫
+          TraceAnalyticMotivicTStructure
+            .stableNormalizedLowerInclusionShortComplexToCochainDecomposition
+              cut
+              complex) :=
+    IsIso.comp_isIso
+  transportedIso
 
 /-- If the normalized cone-to-upper cochain map is an isomorphism, then the
 transported normalized comparison to the stable cochain-decomposition short
@@ -124,7 +146,18 @@ theorem stableTransportedNormalizedLowerInclusionShortComplexToCochainDecomposit
             cut
             complex) :=
     extractedIso
-  inferInstance
+  let transportedIso :
+      IsIso
+        ((TraceAnalyticMotivicTStructure
+          .stableNormalizedLowerInclusionShortComplexIsoTransported
+            cut
+            complex).inv ≫
+          TraceAnalyticMotivicTStructure
+            .stableNormalizedLowerInclusionShortComplexToCochainDecomposition
+              cut
+              complex) :=
+    IsIso.comp_isIso
+  transportedIso
 
 end TraceAnalyticMotivicTStructure
 

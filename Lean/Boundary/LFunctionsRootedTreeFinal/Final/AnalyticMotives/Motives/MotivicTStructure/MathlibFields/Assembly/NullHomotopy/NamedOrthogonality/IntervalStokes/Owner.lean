@@ -280,6 +280,202 @@ theorem tStructureOfNullHomotopicIdentityAndIntervalStokes_GE
       TraceAnalyticMotivicTStructure.tStructureGE :=
   rfl
 
+/-- The Interval-Stokes assembly supplies the concrete orthogonality field. -/
+theorem tStructureOfNullHomotopicIdentityAndIntervalStokes_zero'
+    (allBoundedStable :
+      ∀ object : TraceAnalyticDMgmComparisonSource,
+        TraceAnalyticDMgmComparisonSource.boundedStableObject object)
+    (homology :
+      ∀ {bound : Nat}
+        (complex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound),
+        ∀ degree, complex.complex.HasHomology degree)
+    (nullHomotopicIdentity :
+      ∀ {bound : Nat}
+        (complex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound),
+        ∃ hom :
+          ∀ i j,
+            (ComplexShape.up ℤ).Rel j i →
+              (CochainComplex.mappingCone
+                (TraceAnalyticMotivicTStructure
+                  .additiveNormalizedConeComparisonCochainMap
+                    0
+                    complex.complex)).X i ⟶
+                (CochainComplex.mappingCone
+                  (TraceAnalyticMotivicTStructure
+                    .additiveNormalizedConeComparisonCochainMap
+                      0
+                      complex.complex)).X j,
+          𝟙
+              (CochainComplex.mappingCone
+                (TraceAnalyticMotivicTStructure
+                  .additiveNormalizedConeComparisonCochainMap
+                    0
+                    complex.complex)) =
+            _root_.HomologicalComplex.nullHomotopicMap' hom)
+    (intervalStokes_zero :
+      ∀ {sourceBound targetBound : Nat}
+        (sourceComplex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy
+            sourceBound)
+        (sourceDegree : ℤ)
+        (targetComplex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy
+            targetBound)
+        (targetDegree : ℤ),
+        -0 ≤ sourceDegree →
+        targetDegree ≤ -1 →
+        (fraction :
+          TraceAnalyticStableNullSubcategory.invertedMorphisms.LeftFraction
+            (TraceAnalyticMotiveComparison
+              .sourceShiftedWeightBoundedHomotopyObject
+                sourceComplex
+                sourceDegree)
+            (TraceAnalyticMotiveComparison
+              .sourceShiftedWeightBoundedHomotopyObject
+                targetComplex
+                targetDegree)),
+        ∃ inputSource : QTraceExpression,
+          ∃ inputTarget : QTraceExpression,
+            ∃ source_eq :
+              fraction.Y' =
+                TraceLocalizationInput.intervalStokes_stableSource
+                  inputSource
+                  inputTarget,
+              fraction.f ≫
+                  (eqToHom source_eq ≫
+                    TraceLocalizationInput.intervalStokes_stableMap
+                      inputSource
+                      inputTarget) =
+                0)
+    {source target : TraceAnalyticDMgmComparisonSource}
+    (hom : source ⟶ target)
+    (source_mem :
+      TraceAnalyticMotivicTStructure.tStructureLE 0 source)
+    (target_mem :
+      TraceAnalyticMotivicTStructure.tStructureGE 1 target) :
+    (TraceAnalyticMotivicTStructure
+      .tStructureOfNullHomotopicIdentityAndIntervalStokes
+        allBoundedStable
+        homology
+        nullHomotopicIdentity
+        intervalStokes_zero).zero'
+          hom
+          source_mem
+          target_mem =
+      TraceAnalyticMotivicTStructure
+        .mathlib_zero_of_leftFraction_numerator_intervalStokes_postcomp_zero
+          intervalStokes_zero
+          hom
+          source_mem
+          target_mem :=
+  rfl
+
+/-- The Interval-Stokes assembly supplies the concrete
+`exists_triangle_zero_one` truncation field in Mathlib's field order. -/
+theorem tStructureOfNullHomotopicIdentityAndIntervalStokes_exists_triangle_zero_one
+    (allBoundedStable :
+      ∀ object : TraceAnalyticDMgmComparisonSource,
+        TraceAnalyticDMgmComparisonSource.boundedStableObject object)
+    (homology :
+      ∀ {bound : Nat}
+        (complex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound),
+        ∀ degree, complex.complex.HasHomology degree)
+    (nullHomotopicIdentity :
+      ∀ {bound : Nat}
+        (complex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound),
+        ∃ hom :
+          ∀ i j,
+            (ComplexShape.up ℤ).Rel j i →
+              (CochainComplex.mappingCone
+                (TraceAnalyticMotivicTStructure
+                  .additiveNormalizedConeComparisonCochainMap
+                    0
+                    complex.complex)).X i ⟶
+                (CochainComplex.mappingCone
+                  (TraceAnalyticMotivicTStructure
+                    .additiveNormalizedConeComparisonCochainMap
+                      0
+                      complex.complex)).X j,
+          𝟙
+              (CochainComplex.mappingCone
+                (TraceAnalyticMotivicTStructure
+                  .additiveNormalizedConeComparisonCochainMap
+                    0
+                    complex.complex)) =
+            _root_.HomologicalComplex.nullHomotopicMap' hom)
+    (intervalStokes_zero :
+      ∀ {sourceBound targetBound : Nat}
+        (sourceComplex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy
+            sourceBound)
+        (sourceDegree : ℤ)
+        (targetComplex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy
+            targetBound)
+        (targetDegree : ℤ),
+        -0 ≤ sourceDegree →
+        targetDegree ≤ -1 →
+        (fraction :
+          TraceAnalyticStableNullSubcategory.invertedMorphisms.LeftFraction
+            (TraceAnalyticMotiveComparison
+              .sourceShiftedWeightBoundedHomotopyObject
+                sourceComplex
+                sourceDegree)
+            (TraceAnalyticMotiveComparison
+              .sourceShiftedWeightBoundedHomotopyObject
+                targetComplex
+                targetDegree)),
+        ∃ inputSource : QTraceExpression,
+          ∃ inputTarget : QTraceExpression,
+            ∃ source_eq :
+              fraction.Y' =
+                TraceLocalizationInput.intervalStokes_stableSource
+                  inputSource
+                  inputTarget,
+              fraction.f ≫
+                  (eqToHom source_eq ≫
+                    TraceLocalizationInput.intervalStokes_stableMap
+                      inputSource
+                      inputTarget) =
+                0)
+    (object : TraceAnalyticDMgmComparisonSource) :
+    ∃ (lower upper : TraceAnalyticDMgmComparisonSource)
+      (_ :
+        (TraceAnalyticMotivicTStructure
+          .tStructureOfNullHomotopicIdentityAndIntervalStokes
+            allBoundedStable
+            homology
+            nullHomotopicIdentity
+            intervalStokes_zero).LE
+          0
+          lower)
+      (_ :
+        (TraceAnalyticMotivicTStructure
+          .tStructureOfNullHomotopicIdentityAndIntervalStokes
+            allBoundedStable
+            homology
+            nullHomotopicIdentity
+            intervalStokes_zero).GE
+          1
+          upper)
+      (firstMap : lower ⟶ object)
+      (secondMap : object ⟶ upper)
+      (connectingMap : upper ⟶ lower⟦(1 : ℤ)⟧),
+      Triangle.mk firstMap secondMap connectingMap ∈
+        TraceAnalyticDMgmComparisonSource.distinguishedTriangles :=
+  (TraceAnalyticMotivicTStructure
+    .tStructureOfNullHomotopicIdentityAndIntervalStokes
+      allBoundedStable
+      homology
+      nullHomotopicIdentity
+      intervalStokes_zero)
+    .exists_triangle_zero_one
+      object
+
 end TraceAnalyticMotivicTStructure
 
 end AnalyticMotives

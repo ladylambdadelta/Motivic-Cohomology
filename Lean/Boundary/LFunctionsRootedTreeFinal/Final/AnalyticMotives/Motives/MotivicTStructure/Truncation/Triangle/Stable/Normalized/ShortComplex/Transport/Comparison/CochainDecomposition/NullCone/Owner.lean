@@ -52,7 +52,18 @@ theorem stableTransportedNormalizedLowerInclusionShortComplexToCochainDecomposit
             cut
             complex) :=
     extractedIso
-  inferInstance
+  let transportedIso :
+      IsIso
+        ((TraceAnalyticMotivicTStructure
+          .stableNormalizedLowerInclusionShortComplexIsoTransported
+            cut
+            complex).inv ≫
+          TraceAnalyticMotivicTStructure
+            .stableNormalizedLowerInclusionShortComplexToCochainDecomposition
+              cut
+              complex) :=
+    IsIso.comp_isIso
+  transportedIso
 
 /-- Nullity of the named additive cone-comparison cone object implies the
 transported normalized short-complex comparison is an isomorphism. -/
@@ -88,7 +99,18 @@ theorem stableTransportedNormalizedLowerInclusionShortComplexToCochainDecomposit
             cut
             complex) :=
     extractedIso
-  inferInstance
+  let transportedIso :
+      IsIso
+        ((TraceAnalyticMotivicTStructure
+          .stableNormalizedLowerInclusionShortComplexIsoTransported
+            cut
+            complex).inv ≫
+          TraceAnalyticMotivicTStructure
+            .stableNormalizedLowerInclusionShortComplexToCochainDecomposition
+              cut
+              complex) :=
+    IsIso.comp_isIso
+  transportedIso
 
 /-- If the named additive cone-comparison cone object is the middle vertex of a
 distinguished extension of null objects, then the transported normalized
@@ -135,7 +157,18 @@ theorem stableTransportedNormalizedLowerInclusionShortComplexToCochainDecomposit
             cut
             complex) :=
     extractedIso
-  inferInstance
+  let transportedIso :
+      IsIso
+        ((TraceAnalyticMotivicTStructure
+          .stableNormalizedLowerInclusionShortComplexIsoTransported
+            cut
+            complex).inv ≫
+          TraceAnalyticMotivicTStructure
+            .stableNormalizedLowerInclusionShortComplexToCochainDecomposition
+              cut
+              complex) :=
+    IsIso.comp_isIso
+  transportedIso
 
 end TraceAnalyticMotivicTStructure
 

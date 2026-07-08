@@ -280,6 +280,202 @@ theorem tStructureOfNullHomotopicIdentityAndDescentChannel_GE
       TraceAnalyticMotivicTStructure.tStructureGE :=
   rfl
 
+/-- The descent-channel assembly supplies the concrete orthogonality field. -/
+theorem tStructureOfNullHomotopicIdentityAndDescentChannel_zero'
+    (allBoundedStable :
+      ∀ object : TraceAnalyticDMgmComparisonSource,
+        TraceAnalyticDMgmComparisonSource.boundedStableObject object)
+    (homology :
+      ∀ {bound : Nat}
+        (complex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound),
+        ∀ degree, complex.complex.HasHomology degree)
+    (nullHomotopicIdentity :
+      ∀ {bound : Nat}
+        (complex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound),
+        ∃ hom :
+          ∀ i j,
+            (ComplexShape.up ℤ).Rel j i →
+              (CochainComplex.mappingCone
+                (TraceAnalyticMotivicTStructure
+                  .additiveNormalizedConeComparisonCochainMap
+                    0
+                    complex.complex)).X i ⟶
+                (CochainComplex.mappingCone
+                  (TraceAnalyticMotivicTStructure
+                    .additiveNormalizedConeComparisonCochainMap
+                      0
+                      complex.complex)).X j,
+          𝟙
+              (CochainComplex.mappingCone
+                (TraceAnalyticMotivicTStructure
+                  .additiveNormalizedConeComparisonCochainMap
+                    0
+                    complex.complex)) =
+            _root_.HomologicalComplex.nullHomotopicMap' hom)
+    (descentChannel_zero :
+      ∀ {sourceBound targetBound : Nat}
+        (sourceComplex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy
+            sourceBound)
+        (sourceDegree : ℤ)
+        (targetComplex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy
+            targetBound)
+        (targetDegree : ℤ),
+        -0 ≤ sourceDegree →
+        targetDegree ≤ -1 →
+        (fraction :
+          TraceAnalyticStableNullSubcategory.invertedMorphisms.LeftFraction
+            (TraceAnalyticMotiveComparison
+              .sourceShiftedWeightBoundedHomotopyObject
+                sourceComplex
+                sourceDegree)
+            (TraceAnalyticMotiveComparison
+              .sourceShiftedWeightBoundedHomotopyObject
+                targetComplex
+                targetDegree)),
+        ∃ inputSource : QTraceExpression,
+          ∃ inputTarget : QTraceExpression,
+            ∃ source_eq :
+              fraction.Y' =
+                TraceLocalizationInput.descentChannel_stableSource
+                  inputSource
+                  inputTarget,
+              fraction.f ≫
+                  (eqToHom source_eq ≫
+                    TraceLocalizationInput.descentChannel_stableMap
+                      inputSource
+                      inputTarget) =
+                0)
+    {source target : TraceAnalyticDMgmComparisonSource}
+    (hom : source ⟶ target)
+    (source_mem :
+      TraceAnalyticMotivicTStructure.tStructureLE 0 source)
+    (target_mem :
+      TraceAnalyticMotivicTStructure.tStructureGE 1 target) :
+    (TraceAnalyticMotivicTStructure
+      .tStructureOfNullHomotopicIdentityAndDescentChannel
+        allBoundedStable
+        homology
+        nullHomotopicIdentity
+        descentChannel_zero).zero'
+          hom
+          source_mem
+          target_mem =
+      TraceAnalyticMotivicTStructure
+        .mathlib_zero_of_leftFraction_numerator_descentChannel_postcomp_zero
+          descentChannel_zero
+          hom
+          source_mem
+          target_mem :=
+  rfl
+
+/-- The descent-channel assembly supplies the concrete
+`exists_triangle_zero_one` truncation field in Mathlib's field order. -/
+theorem tStructureOfNullHomotopicIdentityAndDescentChannel_exists_triangle_zero_one
+    (allBoundedStable :
+      ∀ object : TraceAnalyticDMgmComparisonSource,
+        TraceAnalyticDMgmComparisonSource.boundedStableObject object)
+    (homology :
+      ∀ {bound : Nat}
+        (complex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound),
+        ∀ degree, complex.complex.HasHomology degree)
+    (nullHomotopicIdentity :
+      ∀ {bound : Nat}
+        (complex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound),
+        ∃ hom :
+          ∀ i j,
+            (ComplexShape.up ℤ).Rel j i →
+              (CochainComplex.mappingCone
+                (TraceAnalyticMotivicTStructure
+                  .additiveNormalizedConeComparisonCochainMap
+                    0
+                    complex.complex)).X i ⟶
+                (CochainComplex.mappingCone
+                  (TraceAnalyticMotivicTStructure
+                    .additiveNormalizedConeComparisonCochainMap
+                      0
+                      complex.complex)).X j,
+          𝟙
+              (CochainComplex.mappingCone
+                (TraceAnalyticMotivicTStructure
+                  .additiveNormalizedConeComparisonCochainMap
+                    0
+                    complex.complex)) =
+            _root_.HomologicalComplex.nullHomotopicMap' hom)
+    (descentChannel_zero :
+      ∀ {sourceBound targetBound : Nat}
+        (sourceComplex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy
+            sourceBound)
+        (sourceDegree : ℤ)
+        (targetComplex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy
+            targetBound)
+        (targetDegree : ℤ),
+        -0 ≤ sourceDegree →
+        targetDegree ≤ -1 →
+        (fraction :
+          TraceAnalyticStableNullSubcategory.invertedMorphisms.LeftFraction
+            (TraceAnalyticMotiveComparison
+              .sourceShiftedWeightBoundedHomotopyObject
+                sourceComplex
+                sourceDegree)
+            (TraceAnalyticMotiveComparison
+              .sourceShiftedWeightBoundedHomotopyObject
+                targetComplex
+                targetDegree)),
+        ∃ inputSource : QTraceExpression,
+          ∃ inputTarget : QTraceExpression,
+            ∃ source_eq :
+              fraction.Y' =
+                TraceLocalizationInput.descentChannel_stableSource
+                  inputSource
+                  inputTarget,
+              fraction.f ≫
+                  (eqToHom source_eq ≫
+                    TraceLocalizationInput.descentChannel_stableMap
+                      inputSource
+                      inputTarget) =
+                0)
+    (object : TraceAnalyticDMgmComparisonSource) :
+    ∃ (lower upper : TraceAnalyticDMgmComparisonSource)
+      (_ :
+        (TraceAnalyticMotivicTStructure
+          .tStructureOfNullHomotopicIdentityAndDescentChannel
+            allBoundedStable
+            homology
+            nullHomotopicIdentity
+            descentChannel_zero).LE
+          0
+          lower)
+      (_ :
+        (TraceAnalyticMotivicTStructure
+          .tStructureOfNullHomotopicIdentityAndDescentChannel
+            allBoundedStable
+            homology
+            nullHomotopicIdentity
+            descentChannel_zero).GE
+          1
+          upper)
+      (firstMap : lower ⟶ object)
+      (secondMap : object ⟶ upper)
+      (connectingMap : upper ⟶ lower⟦(1 : ℤ)⟧),
+      Triangle.mk firstMap secondMap connectingMap ∈
+        TraceAnalyticDMgmComparisonSource.distinguishedTriangles :=
+  (TraceAnalyticMotivicTStructure
+    .tStructureOfNullHomotopicIdentityAndDescentChannel
+      allBoundedStable
+      homology
+      nullHomotopicIdentity
+      descentChannel_zero)
+    .exists_triangle_zero_one
+      object
+
 end TraceAnalyticMotivicTStructure
 
 end AnalyticMotives

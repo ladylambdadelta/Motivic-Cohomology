@@ -83,7 +83,14 @@ theorem TraceAnalyticDerivedMotiveCategory.mapOf_isIso_of_quasiIso
     (hom : source ⟶ target)
     [QuasiIso hom] :
     IsIso (TraceAnalyticDerivedMotiveCategory.mapOf hom) :=
-  inferInstance
+  let qiso : QuasiIso hom := ‹QuasiIso hom›
+  CategoryTheory.Localization.inverts
+    DerivedCategory.Q
+    (HomologicalComplex.quasiIso
+      TraceAnalyticAdditiveAbelianEnvelope
+      (ComplexShape.up ℤ))
+    hom
+    qiso
 
 /-- Stable derived analytic motives inherit integer shifts from Mathlib's
 derived category. -/

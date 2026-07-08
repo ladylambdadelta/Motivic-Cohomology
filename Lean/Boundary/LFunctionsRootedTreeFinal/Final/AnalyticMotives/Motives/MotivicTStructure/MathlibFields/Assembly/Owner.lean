@@ -204,6 +204,74 @@ theorem tStructureOfGlobalAnalyticInputs_GE
       TraceAnalyticMotivicTStructure.tStructureGE :=
   rfl
 
+/-- The assembled Mathlib t-structure supplies the concrete orthogonality
+field from left-fraction localization-input postcomposition vanishing. -/
+theorem tStructureOfGlobalAnalyticInputs_zero'
+    (allBoundedStable :
+      ∀ object : TraceAnalyticDMgmComparisonSource,
+        TraceAnalyticDMgmComparisonSource.boundedStableObject object)
+    (homology :
+      ∀ {bound : Nat}
+        (complex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound),
+        ∀ degree, complex.complex.HasHomology degree)
+    (coneComparison :
+      ∀ {bound : Nat}
+        (complex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound),
+        IsIso
+          (TraceAnalyticMotivicTStructure
+            .additiveNormalizedConeComparisonCochainMap
+              0
+              complex.complex))
+    (leftFraction_numerator_localizationInput_postcomp_zero :
+      ∀ {sourceBound targetBound : Nat}
+        (sourceComplex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy
+            sourceBound)
+        (sourceDegree : ℤ)
+        (targetComplex :
+          TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy
+            targetBound)
+        (targetDegree : ℤ),
+        -0 ≤ sourceDegree →
+        targetDegree ≤ -1 →
+        (fraction :
+          TraceAnalyticStableNullSubcategory.invertedMorphisms.LeftFraction
+            (TraceAnalyticMotiveComparison
+              .sourceShiftedWeightBoundedHomotopyObject
+                sourceComplex
+                sourceDegree)
+            (TraceAnalyticMotiveComparison
+              .sourceShiftedWeightBoundedHomotopyObject
+                targetComplex
+                targetDegree)),
+        ∃ input : TraceLocalizationInput,
+          ∃ source_eq : fraction.Y' = input.stableSource,
+            fraction.f ≫ (eqToHom source_eq ≫ input.stableMap) = 0)
+    {source target : TraceAnalyticDMgmComparisonSource}
+    (hom : source ⟶ target)
+    (source_mem :
+      TraceAnalyticMotivicTStructure.tStructureLE 0 source)
+    (target_mem :
+      TraceAnalyticMotivicTStructure.tStructureGE 1 target) :
+    (TraceAnalyticMotivicTStructure
+      .tStructureOfGlobalAnalyticInputs
+        allBoundedStable
+        homology
+        coneComparison
+        leftFraction_numerator_localizationInput_postcomp_zero).zero'
+          hom
+          source_mem
+          target_mem =
+      TraceAnalyticMotivicTStructure
+        .tStructure_zero_of_leftFraction_numerator_localizationInput_postcomp_zero
+          leftFraction_numerator_localizationInput_postcomp_zero
+          hom
+          source_mem
+          target_mem :=
+  rfl
+
 /-- The assembled Mathlib t-structure supplies the concrete
 `exists_triangle_zero_one` truncation field in Mathlib's field order. -/
 theorem tStructureOfGlobalAnalyticInputs_exists_triangle_zero_one

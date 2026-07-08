@@ -1,10 +1,13 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Infinity.StableCategory.Core.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Infinity.StableCategory.Core.Construction.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Infinity.StableCategory.Core.HomotopyCategory.Summary.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Infinity.StableCategory.Core.StableInfinityStructure.Summary.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Infinity.StableCategory.Core.CategoricalStrength.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Infinity.StableCategory.Geometry.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Infinity.StableCategory.Stability.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Infinity.StableCategory.Stability.Certificate.Summary.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Infinity.StableCategory.Package.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Infinity.StableCategory.Projections.Summary.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Stabilization.AdditiveEnvelope.Homotopy.VerdierQuotient.Preadditive.Owner
 
 /-!
@@ -13,8 +16,9 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Stabiliz
 This file exposes projection theorems for the concrete stable-infinity package
 of analytic motives.  The package structure lives in
 `StableCategory/Core/Owner.lean`, and its concrete constructor lives in
-`StableCategory/Core/Construction/Owner.lean`; this file keeps the theorem
-surface below the line cap while preserving the public import path.
+`StableCategory/Core/Construction/Owner.lean`; structure and cofiber
+and exact-triangle projection files keep the theorem surface below the line
+cap while preserving the public import path.
 -/
 
 noncomputable section
@@ -341,96 +345,6 @@ theorem
   traceAnalyticStableInfinityCategory
     .contractibleTriangleFunctor_obj_distinguished
     object
-
-/-- The owner-level stable infinity category records the chosen cofiber
-object construction. -/
-theorem traceAnalyticStableInfinityCategory_cofiberObject
-    {source target : StableInfinityOwner.PresentedCategory}
-    (morphism : source ⟶ target) :
-    traceAnalyticStableInfinityCategory.cofiberObject morphism =
-      TraceAnalyticStableMotiveQuasicategory.cofiberObject morphism :=
-  rfl
-
-/-- The owner-level stable infinity category records the chosen map from the
-target to the cofiber object. -/
-theorem traceAnalyticStableInfinityCategory_cofiberCoconeMap
-    {source target : StableInfinityOwner.PresentedCategory}
-    (morphism : source ⟶ target) :
-    traceAnalyticStableInfinityCategory.cofiberCoconeMap morphism =
-      TraceAnalyticStableMotiveQuasicategory.cofiberCoconeMap morphism :=
-  rfl
-
-/-- The owner-level stable infinity category records the chosen cofiber
-boundary map. -/
-theorem traceAnalyticStableInfinityCategory_cofiberBoundary
-    {source target : StableInfinityOwner.PresentedCategory}
-    (morphism : source ⟶ target) :
-    traceAnalyticStableInfinityCategory.cofiberBoundary morphism =
-      TraceAnalyticStableMotiveQuasicategory.cofiberBoundary morphism :=
-  rfl
-
-/-- The owner-level stable infinity category records the chosen cofiber
-triangle. -/
-theorem traceAnalyticStableInfinityCategory_cofiberTriangle
-    {source target : StableInfinityOwner.PresentedCategory}
-    (morphism : source ⟶ target) :
-    traceAnalyticStableInfinityCategory.cofiberTriangle morphism =
-      TraceAnalyticStableMotiveQuasicategory.cofiberTriangle morphism :=
-  rfl
-
-/-- The owner-level stable infinity category records that the chosen cofiber
-triangle is distinguished. -/
-theorem traceAnalyticStableInfinityCategory_cofiberTriangle_distinguished
-    {source target : StableInfinityOwner.PresentedCategory}
-    (morphism : source ⟶ target) :
-    traceAnalyticStableInfinityCategory.cofiberTriangle morphism ∈
-      traceAnalyticStableInfinityCategory.distinguishedTriangles :=
-  traceAnalyticStableInfinityCategory.cofiberTriangle_distinguished morphism
-
-/-- The owner-level stable infinity category records the rotated chosen
-cofiber triangle. -/
-theorem traceAnalyticStableInfinityCategory_rotatedCofiberTriangle
-    {source target : StableInfinityOwner.PresentedCategory}
-    (morphism : source ⟶ target) :
-    traceAnalyticStableInfinityCategory.rotatedCofiberTriangle morphism =
-      TraceAnalyticStableMotiveQuasicategory.rotatedCofiberTriangle
-        morphism :=
-  rfl
-
-/-- The owner-level stable infinity category records that the rotated chosen
-cofiber triangle is distinguished. -/
-theorem
-    traceAnalyticStableInfinityCategory_rotatedCofiberTriangle_distinguished
-    {source target : StableInfinityOwner.PresentedCategory}
-    (morphism : source ⟶ target) :
-    traceAnalyticStableInfinityCategory.rotatedCofiberTriangle morphism ∈
-      traceAnalyticStableInfinityCategory.distinguishedTriangles :=
-  traceAnalyticStableInfinityCategory
-    .rotatedCofiberTriangle_distinguished
-    morphism
-
-/-- The owner-level stable infinity category records the inverse-rotated
-chosen cofiber triangle. -/
-theorem traceAnalyticStableInfinityCategory_invRotatedCofiberTriangle
-    {source target : StableInfinityOwner.PresentedCategory}
-    (morphism : source ⟶ target) :
-    traceAnalyticStableInfinityCategory.invRotatedCofiberTriangle
-        morphism =
-      TraceAnalyticStableMotiveQuasicategory.invRotatedCofiberTriangle
-        morphism :=
-  rfl
-
-/-- The owner-level stable infinity category records that the inverse-rotated
-chosen cofiber triangle is distinguished. -/
-theorem
-    traceAnalyticStableInfinityCategory_invRotatedCofiberTriangle_distinguished
-    {source target : StableInfinityOwner.PresentedCategory}
-    (morphism : source ⟶ target) :
-    traceAnalyticStableInfinityCategory.invRotatedCofiberTriangle morphism ∈
-      traceAnalyticStableInfinityCategory.distinguishedTriangles :=
-  traceAnalyticStableInfinityCategory
-    .invRotatedCofiberTriangle_distinguished
-    morphism
 
 /-- The owner-level stable infinity category records isomorphism-invariance
 of distinguished triangles. -/

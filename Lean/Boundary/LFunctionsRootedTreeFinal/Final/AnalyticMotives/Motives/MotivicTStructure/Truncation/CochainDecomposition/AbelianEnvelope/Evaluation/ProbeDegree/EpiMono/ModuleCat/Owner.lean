@@ -58,7 +58,7 @@ theorem moduleCat_mono_of_isIso
     (map : source ⟶ target)
     [IsIso map] :
     Mono map :=
-  inferInstance
+  IsIso.mono_of_iso map
 
 /-- An isomorphism of `ModuleCat Rat` objects is epic. -/
 theorem moduleCat_epi_of_isIso
@@ -66,7 +66,7 @@ theorem moduleCat_epi_of_isIso
     (map : source ⟶ target)
     [IsIso map] :
     Epi map :=
-  inferInstance
+  IsIso.epi_of_iso map
 
 /-- Injectivity of the first named probe-degree truncation map gives monicity
 of that map. -/
