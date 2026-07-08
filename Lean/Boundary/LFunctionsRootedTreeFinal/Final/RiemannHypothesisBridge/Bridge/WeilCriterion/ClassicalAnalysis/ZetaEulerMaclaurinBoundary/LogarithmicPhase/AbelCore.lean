@@ -78,6 +78,57 @@ theorem Complex.exp_mul_I_real_sub_int_two_pi_period_for_logarithmicPhase
     Complex.exp_periodic.sub_int_mul_eq k
   exact Eq.trans hleft (Eq.trans (congrArg Complex.exp hsub) hperiod)
 
+/-- Complex exponential period transport for real angles shifted by an integer
+multiple of `2π` times an integer sample. -/
+theorem Complex.exp_mul_I_real_sub_int_two_pi_mul_nat_period_for_logarithmicPhase
+    (θ : ℝ)
+    (k : ℤ)
+    (n : ℕ) :
+    Complex.exp
+        (((θ - (2 * Real.pi * (k : ℝ)) * (n : ℝ) : ℝ) : ℂ) *
+          Complex.I) =
+      Complex.exp ((θ : ℂ) * Complex.I) := by
+  let j : ℤ := k * (n : ℤ)
+  have hzsmul :
+      j • ((2 * Real.pi) : ℝ) =
+        (2 * Real.pi * (k : ℝ)) * (n : ℝ) := by
+    have hcast_nat_int :
+        (((n : ℤ) : ℝ)) = (n : ℝ) :=
+      Int.cast_natCast n
+    have hcast_j :
+        (j : ℝ) = (k : ℝ) * (n : ℝ) :=
+      Eq.trans
+        (Int.cast_mul k (n : ℤ))
+        (congrArg (fun r : ℝ => (k : ℝ) * r) hcast_nat_int)
+    calc
+      j • ((2 * Real.pi) : ℝ) = (j : ℝ) * (2 * Real.pi) :=
+        zsmul_eq_mul (2 * Real.pi) j
+      _ = ((k : ℝ) * (n : ℝ)) * (2 * Real.pi) := by
+        exact congrArg (fun r : ℝ => r * (2 * Real.pi)) hcast_j
+      _ = (2 * Real.pi * (k : ℝ)) * (n : ℝ) := by
+        calc
+          ((k : ℝ) * (n : ℝ)) * (2 * Real.pi) =
+              (2 * Real.pi) * ((k : ℝ) * (n : ℝ)) := by
+            exact mul_comm ((k : ℝ) * (n : ℝ)) (2 * Real.pi)
+          _ = ((2 * Real.pi) * (k : ℝ)) * (n : ℝ) := by
+            exact (mul_assoc (2 * Real.pi) (k : ℝ) (n : ℝ)).symm
+          _ = (2 * Real.pi * (k : ℝ)) * (n : ℝ) := by
+            exact Eq.refl ((2 * Real.pi * (k : ℝ)) * (n : ℝ))
+  have harg :
+      θ - j • ((2 * Real.pi) : ℝ) =
+        θ - (2 * Real.pi * (k : ℝ)) * (n : ℝ) :=
+    congrArg (fun r : ℝ => θ - r) hzsmul
+  have hperiod :
+      Complex.exp (((θ - j • (2 * Real.pi) : ℝ) : ℂ) * Complex.I) =
+        Complex.exp ((θ : ℂ) * Complex.I) :=
+    Complex.exp_mul_I_real_sub_int_two_pi_period_for_logarithmicPhase θ j
+  exact
+    Eq.trans
+      (congrArg
+        (fun r : ℝ => Complex.exp ((r : ℂ) * Complex.I))
+        harg.symm)
+      hperiod
+
 /-- Period transport for the chord denominator. -/
 theorem Complex.realPhase_geometricDenominator_norm_eq_toIocMod
     (θ : ℝ) :
@@ -173,7 +224,7 @@ the nearest `2πℤ` distance to `θ` is controlled by the chord length
 `|1 - exp(iθ)|`. -/
 theorem Complex.realPhase_twoPiSeparation_le_two_mul_geometricDenominator_norm
     {θ lam : ℝ}
-    (hlam_pos : 0 < lam)
+    (_hlam_pos : 0 < lam)
     (hsep : ∀ k : ℤ, lam ≤ ‖θ - (2 * Real.pi * (k : ℝ))‖) :
     lam ≤ 2 * ‖1 - Complex.exp (Complex.I * (θ : ℂ))‖ := by
   match Complex.realPhase_twoPi_integerDistance_le_two_mul_chord_norm θ with
