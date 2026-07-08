@@ -15,6 +15,224 @@ noncomputable section
 
 open scoped Topology
 
+/-- A disjoint half-open gap cover whose every gap is assigned an integer
+lattice shift gives the standard finite-gap complement estimate.  This is the
+summation step for the monotone-curvature resonance decomposition after each
+gap has been placed in its own principal branch. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum_norm_le_gapCount_mul_curvatureMajorant_of_integerLatticeShift_gaps
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b h : ℕ}
+    {lam : ℝ}
+    (gaps : Finset (ℕ × ℕ))
+    (center : ℕ × ℕ → ℤ)
+    (ha : 1 ≤ a)
+    (hpos : 1 ≤ h)
+    (hlam :
+      lam =
+        ‖t‖ *
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))⁻¹) *
+          (h : ℝ))
+    (hcover :
+      Complex.realPhase_IcoFamilyUnion gaps =
+        Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+          t a b h lam)
+    (hdisjoint :
+      ∀ p₁ ∈ gaps,
+        ∀ p₂ ∈ gaps,
+          p₁ ≠ p₂ →
+            Disjoint (Finset.Ico p₁.1 p₁.2) (Finset.Ico p₂.1 p₂.2))
+    (hgap_bounds :
+      ∀ p : ℕ × ℕ,
+        p ∈ gaps →
+          a ≤ p.1 ∧ p.2 ≤ b - h)
+    (hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          h)
+        a (b - h))
+    (havoid :
+      ∀ p : ℕ × ℕ,
+        p ∈ gaps →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico p.1 p.2 →
+              n ∉ Complex.realPhase_integerIncrementResonanceWindow
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                a (b - h) (2 * Real.pi * (center p : ℝ)) lam)
+    (hprincipal :
+      ∀ p : ℕ × ℕ,
+        p ∈ gaps →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico p.1 p.2 →
+              Complex.realPhase_integerIncrement
+                  (Complex.realPhase_integerLatticeShift
+                    (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                      h)
+                    (center p))
+                  n ∈
+                Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi))) :
+    ‖∑ n ∈
+      Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+        t a b h lam,
+      Complex.exp
+        (Complex.I *
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h n : ℂ))‖ ≤
+      ((gaps.card : ℝ) *
+        Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h) := by
+  let ψ : ℝ → ℝ :=
+    Complex.realPhase_secondDerivative_vdc_shiftedDifference
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      h
+  let F : ℕ → ℂ :=
+    fun n : ℕ => Complex.exp (Complex.I * (ψ n : ℂ))
+  have hgap :
+      ∀ p : ℕ × ℕ,
+        p ∈ gaps →
+          ‖∑ n ∈ Finset.Ico p.1 p.2, F n‖ ≤
+            Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h := by
+    intro p hp
+    have hp_bounds : a ≤ p.1 ∧ p.2 ≤ b - h :=
+      hgap_bounds p hp
+    have hsub : Finset.Ico p.1 p.2 ⊆ Finset.Ico a (b - h) :=
+      Finset.Ico_subset_Ico hp_bounds.1 hp_bounds.2
+    exact
+      Complex.logarithmicPhaseRealPhase_shiftedDifference_Ico_sum_norm_le_curvatureMajorant_of_integerLatticeShift_gap
+        (t := t) (ht := ht) (a := a) (b := b) (c := p.1) (d := p.2)
+        (h := h) (lam := lam)
+        (center p)
+        (le_trans ha hp_bounds.1)
+        hpos hlam hinc_mono hsub
+        (havoid p hp)
+        (hprincipal p hp)
+  exact
+    Complex.realPhase_sum_norm_le_card_mul_of_IcoFamily_cover
+      (Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+        t a b h lam)
+      gaps F hcover hdisjoint hgap
+
+/-- Active-complement membership discharges the avoidance of the resonance
+window for the integer lattice shift assigned to each gap.  The only remaining
+geometric input is principal-branch control for that assigned shift. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum_norm_le_gapCount_mul_curvatureMajorant_of_principal_integerLatticeShift_gaps
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b h : ℕ}
+    {lam : ℝ}
+    (gaps : Finset (ℕ × ℕ))
+    (center : ℕ × ℕ → ℤ)
+    (ha : 1 ≤ a)
+    (hpos : 1 ≤ h)
+    (hlam :
+      lam =
+        ‖t‖ *
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))⁻¹) *
+          (h : ℝ))
+    (hcover :
+      Complex.realPhase_IcoFamilyUnion gaps =
+        Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+          t a b h lam)
+    (hdisjoint :
+      ∀ p₁ ∈ gaps,
+        ∀ p₂ ∈ gaps,
+          p₁ ≠ p₂ →
+            Disjoint (Finset.Ico p₁.1 p₁.2) (Finset.Ico p₂.1 p₂.2))
+    (hgap_bounds :
+      ∀ p : ℕ × ℕ,
+        p ∈ gaps →
+          a ≤ p.1 ∧ p.2 ≤ b - h)
+    (hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          h)
+        a (b - h))
+    (hprincipal :
+      ∀ p : ℕ × ℕ,
+        p ∈ gaps →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico p.1 p.2 →
+              Complex.realPhase_integerIncrement
+                  (Complex.realPhase_integerLatticeShift
+                    (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                      h)
+                    (center p))
+                  n ∈
+                Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi))) :
+    ‖∑ n ∈
+      Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+        t a b h lam,
+      Complex.exp
+        (Complex.I *
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h n : ℂ))‖ ≤
+      ((gaps.card : ℝ) *
+        Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h) := by
+  have havoid :
+      ∀ p : ℕ × ℕ,
+        p ∈ gaps →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico p.1 p.2 →
+              n ∉ Complex.realPhase_integerIncrementResonanceWindow
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                a (b - h) (2 * Real.pi * (center p : ℝ)) lam := by
+    intro p hp n hn hn_window
+    have hn_union :
+        n ∈ Complex.realPhase_IcoFamilyUnion gaps :=
+      Finset.mem_biUnion.mpr
+        (Exists.intro p (And.intro hp hn))
+    have hn_complement :
+        n ∈
+          Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+            t a b h lam :=
+      Eq.subst
+        (motive := fun S : Finset ℕ => n ∈ S)
+        hcover
+        hn_union
+    have hsep :
+        lam ≤
+          ‖Complex.realPhase_integerIncrement
+              (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                h)
+              n -
+            (2 * Real.pi * (center p : ℝ))‖ :=
+      Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_separated
+        t hn_complement (center p)
+    have hlt :
+        ‖Complex.realPhase_integerIncrement
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            n -
+          (2 * Real.pi * (center p : ℝ))‖ < lam :=
+      (Complex.mem_realPhase_integerIncrementResonanceWindow_iff
+        (φ :=
+          Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h)
+        (a := a)
+        (b := b - h)
+        (n := n)
+        (resonance := 2 * Real.pi * (center p : ℝ))
+        (lam := lam)).mp hn_window |>.2
+    exact not_lt_of_ge hsep hlt
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum_norm_le_gapCount_mul_curvatureMajorant_of_integerLatticeShift_gaps
+      t ht gaps center ha hpos hlam hcover hdisjoint hgap_bounds
+      hinc_mono havoid hprincipal
+
 /-- A disjoint half-open gap cover of the active-family complement gives the
 standard finite-gap complement estimate.  The active-family complement supplies
 the lattice separation on each gap; the supplied cover supplies only the
