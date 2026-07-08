@@ -451,6 +451,46 @@ theorem Complex.realPhase_secondDerivative_vdc_logarithmic_resonanceWindow_famil
     Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_family_exists_of_nonneg
       t ht_nonneg ha habh S hS
 
+/-- Along the canonical Weyl shift range, every integer-centered resonant
+family for the concrete logarithmic VdC shifts is pointwise a half-open
+window in the nonnegative-frequency branch. -/
+theorem Complex.realPhase_secondDerivative_vdc_logarithmic_shiftRange_resonanceWindow_family_exists_of_nonneg
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    {lam : ℕ → ℝ}
+    (ha : 1 ≤ a)
+    (habh :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          a ≤ b - h)
+    (S : ℕ → ℤ → Finset ℕ)
+    (hS :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ k : ℤ,
+            ∀ n : ℕ,
+              n ∈ S h k ↔
+                n ∈ Finset.Ico a (b - h) ∧
+                  ‖Complex.realPhase_integerIncrement
+                      (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                        h)
+                      n -
+                    (2 * Real.pi * (k : ℝ))‖ < lam h) :
+    ∀ h : ℕ,
+      h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+        ∀ k : ℤ,
+          ∃ c d : ℕ,
+            a ≤ c ∧ c ≤ d ∧ d ≤ b - h ∧ S h k = Finset.Ico c d := by
+  intro h hmem k
+  exact
+    Complex.realPhase_secondDerivative_vdc_logarithmic_resonanceWindow_family_exists_of_nonneg
+      t ht_nonneg ha (habh h hmem) (S h) (hS h hmem) k
+
 /-- Outside an extensionally specified resonant-index set, the adjacent
 increment is separated from that resonance. -/
 theorem Complex.realPhase_integerIncrement_separated_from_resonance_of_not_mem_window
