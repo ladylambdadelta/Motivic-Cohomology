@@ -2203,16 +2203,24 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelationEnvelope_le_windowLe
         ((M h +
           (Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h +
             Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h)) + 1) := by
-  show
-    (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
-      (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
-        ‖Complex.logarithmicPhaseRealPhase_shiftedCorrelation t h a b‖) ≤
-      ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
-          (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
-        ((M h +
-          (Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h +
-            Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h)) + 1)
-  exact
+  have henvelope_eq :
+      Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖) =
+        ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
+          ‖Complex.logarithmicPhaseRealPhase_shiftedCorrelation t h a b‖ :=
+    rfl
+  have hsum_bound :
+      (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+        (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
+          ‖Complex.logarithmicPhaseRealPhase_shiftedCorrelation t h a b‖) ≤
+        ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
+          ((M h +
+            (Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h +
+              Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h)) + 1) :=
     Finset.sum_le_sum
       (fun h hmem =>
         let A : ℝ :=
@@ -2229,6 +2237,17 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelationEnvelope_le_windowLe
             (hderiv_antitone h hmem) (hderiv_lower h hmem)
             (hinc_mono h hmem) (hred_mono h hmem)
         hpoint)
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤
+          ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+              (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
+            ((M h +
+              (Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h +
+                Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h)) + 1))
+      henvelope_eq.symm
+      hsum_bound
 
 /-- Positive-frequency long Weyl-target estimate from canonical zero-centered
 resonance-window decompositions and a radicand bound for the resulting enlarged

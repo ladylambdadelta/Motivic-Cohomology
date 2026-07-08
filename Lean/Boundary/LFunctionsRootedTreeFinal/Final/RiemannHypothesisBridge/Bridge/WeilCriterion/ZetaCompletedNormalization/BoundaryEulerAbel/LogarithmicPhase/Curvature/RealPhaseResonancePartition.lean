@@ -2677,15 +2677,32 @@ theorem Complex.mem_realPhase_integerIncrementRangeActiveCenters_of_principal_in
         hperiod
         hupper_principal_period
   have hcenter_lower : θ - Real.pi ≤ center :=
+    have htheta_minus_center_add_center_le :
+        θ - center + center ≤ Real.pi + center :=
+      add_le_add_right hupper_principal center
     have htheta_le_pi_add_center : θ ≤ Real.pi + center :=
-      (sub_le_iff_le_add (a := θ) (b := center) (c := Real.pi)).mp
-        hupper_principal
-    have htheta_le_center_add_pi : θ ≤ center + Real.pi :=
       Eq.subst
-        (motive := fun right : ℝ => θ ≤ right)
-        (add_comm Real.pi center)
-        htheta_le_pi_add_center
-    (sub_le_iff_le_add).mpr htheta_le_center_add_pi
+        (motive := fun left : ℝ => left ≤ Real.pi + center)
+        (by
+          calc
+            θ - center + center = θ :=
+              sub_add_cancel θ center)
+        htheta_minus_center_add_center_le
+    have htheta_sub_pi_le_pi_add_center_sub_pi :
+        θ - Real.pi ≤ (Real.pi + center) - Real.pi :=
+      sub_le_sub_right htheta_le_pi_add_center Real.pi
+    have hright_eq : (Real.pi + center) - Real.pi = center := by
+      calc
+        (Real.pi + center) - Real.pi =
+            (center + Real.pi) - Real.pi := by
+          exact congrArg (fun r : ℝ => r - Real.pi)
+            (add_comm Real.pi center)
+        _ = center :=
+          add_sub_cancel_right center Real.pi
+    Eq.subst
+      (motive := fun right : ℝ => θ - Real.pi ≤ right)
+      hright_eq
+      htheta_sub_pi_le_pi_add_center_sub_pi
   have hlo_sub_le : lo - Real.pi ≤ θ - Real.pi :=
     sub_le_sub_right hlo Real.pi
   have hleft_range_mul : lo - Real.pi ≤ center :=
@@ -2697,18 +2714,29 @@ theorem Complex.mem_realPhase_integerIncrementRangeActiveCenters_of_principal_in
     hprincipal.1
   have hcenter_upper : center < θ + Real.pi :=
     have hneg_add_center_lt_theta : -Real.pi + center < θ :=
-      (lt_sub_iff_add_lt).mp hlower_principal
-    have hcenter_sub_pi_lt_theta : center - Real.pi < θ :=
-      Eq.subst
-        (motive := fun left : ℝ => left < θ)
-        (by
-          calc
-            center - Real.pi = center + -Real.pi :=
-              sub_eq_add_neg center Real.pi
-            _ = -Real.pi + center :=
-              add_comm center (-Real.pi)).symm
-        hneg_add_center_lt_theta
-    (sub_lt_iff_lt_add).mp hcenter_sub_pi_lt_theta
+      add_lt_of_lt_sub_right hlower_principal
+    have hneg_add_center_add_pi_lt_theta_add_pi :
+        (-Real.pi + center) + Real.pi < θ + Real.pi :=
+      add_lt_add_right hneg_add_center_lt_theta Real.pi
+    have hleft_eq : (-Real.pi + center) + Real.pi = center := by
+      calc
+        (-Real.pi + center) + Real.pi =
+            -Real.pi + (center + Real.pi) :=
+          add_assoc (-Real.pi) center Real.pi
+        _ = -Real.pi + (Real.pi + center) := by
+          exact congrArg (fun r : ℝ => -Real.pi + r)
+            (add_comm center Real.pi)
+        _ = (-Real.pi + Real.pi) + center :=
+          (add_assoc (-Real.pi) Real.pi center).symm
+        _ = 0 + center := by
+          exact congrArg (fun r : ℝ => r + center)
+            (neg_add_cancel Real.pi)
+        _ = center :=
+          zero_add center
+    Eq.subst
+      (motive := fun left : ℝ => left < θ + Real.pi)
+      hleft_eq
+      hneg_add_center_add_pi_lt_theta_add_pi
   have hhi_add_le : θ + Real.pi ≤ hi + Real.pi :=
     add_le_add_right hhi Real.pi
   have hright_range_mul : center ≤ hi + Real.pi :=
