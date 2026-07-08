@@ -74,10 +74,19 @@ theorem Complex.realPhase_integerIncrement_zero_resonanceWindow_eq_empty_of_lowe
                 Complex.realPhase_integerIncrement φ n ≤
                   ‖Complex.realPhase_integerIncrement φ n -
                     (2 * Real.pi * (0 : ℝ))‖ := by
+              have hsub_zero :
+                  Complex.realPhase_integerIncrement φ n - 0 =
+                    Complex.realPhase_integerIncrement φ n :=
+                sub_zero (Complex.realPhase_integerIncrement φ n)
               have hinc_le_abs_zero :
                   Complex.realPhase_integerIncrement φ n ≤
                     ‖Complex.realPhase_integerIncrement φ n - 0‖ := by
-                exact le_abs_self (Complex.realPhase_integerIncrement φ n)
+                exact
+                  Eq.subst
+                    (motive := fun right : ℝ =>
+                      Complex.realPhase_integerIncrement φ n ≤ ‖right‖)
+                    hsub_zero.symm
+                    (le_abs_self (Complex.realPhase_integerIncrement φ n))
               exact
                 Eq.subst
                   (motive := fun r : ℝ =>
@@ -227,6 +236,45 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_zero_resonanceWindow
       hradius_eq.symm
       hempty_t
 
+/-- In the positive-frequency branch, the canonical zero-centered shifted
+logarithmic resonance window is the empty half-open interval at the left
+endpoint. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_zero_resonanceWindow_eq_Ico_self_of_nonneg
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b h : ℕ}
+    (ha : 1 ≤ a) :
+    Complex.realPhase_integerIncrementResonanceWindow
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          h)
+        a (b - h) (2 * Real.pi * (0 : ℝ))
+        (‖t‖ *
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))⁻¹) *
+          (h : ℝ)) =
+      Finset.Ico a a := by
+  have hempty :
+      Complex.realPhase_integerIncrementResonanceWindow
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h)
+          a (b - h) (2 * Real.pi * (0 : ℝ))
+          (‖t‖ *
+            ((((b + 1 : ℕ) : ℝ) *
+              (((b + 1 : ℕ) : ℝ)))⁻¹) *
+            (h : ℝ)) =
+        ∅ :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_zero_resonanceWindow_eq_empty_of_nonneg
+      t ht_nonneg ha
+  have hIco_empty : Finset.Ico a a = (∅ : Finset ℕ) :=
+    Finset.eq_empty_iff_forall_not_mem.mpr
+      (fun n hn =>
+        have hn_bounds : a ≤ n ∧ n < a :=
+          Finset.mem_Ico.mp hn
+        not_lt_of_ge hn_bounds.1 hn_bounds.2)
+  exact Eq.trans hempty hIco_empty.symm
+
 /-- Any half-open interval representing the canonical zero-centered shifted
 logarithmic resonance window in the positive branch has zero length. -/
 theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_zero_resonanceWindow_Ico_length_le_zero_of_nonneg
@@ -292,6 +340,31 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_zero_resonanceWindow
   have hcast_zero : ((d - c : ℕ) : ℝ) = 0 :=
     Eq.trans (congrArg (fun m : ℕ => (m : ℝ)) hlen_zero) Nat.cast_zero
   exact le_of_eq hcast_zero
+
+/-- The canonical self half-open representative of the positive-branch
+zero-centered shifted logarithmic resonance window has zero length. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_zero_resonanceWindow_Ico_self_length_le_zero_of_nonneg
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b h : ℕ}
+    (ha : 1 ≤ a) :
+    ((a - a : ℕ) : ℝ) ≤ 0 := by
+  have hwindow :
+      Complex.realPhase_integerIncrementResonanceWindow
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h)
+          a (b - h) (2 * Real.pi * (0 : ℝ))
+          (‖t‖ *
+            ((((b + 1 : ℕ) : ℝ) *
+              (((b + 1 : ℕ) : ℝ)))⁻¹) *
+            (h : ℝ)) =
+        Finset.Ico a a :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_zero_resonanceWindow_eq_Ico_self_of_nonneg
+      t ht_nonneg ha
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_zero_resonanceWindow_Ico_length_le_zero_of_nonneg
+      t ht_nonneg ha hwindow
 
 end
 
