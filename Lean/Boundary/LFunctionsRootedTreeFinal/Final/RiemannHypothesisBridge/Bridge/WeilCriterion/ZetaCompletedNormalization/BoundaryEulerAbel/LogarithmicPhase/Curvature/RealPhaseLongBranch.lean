@@ -1,6 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseClosedBranch
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseLongWeylArithmetic
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseLongActiveWeyl
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseZeroResonanceWindowEmpty
 
 /-!
 # Real-phase positive long branch
@@ -775,6 +776,76 @@ theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_gap_pi_
       t ht_nonneg ht ha hab hab_strict hlong_sqrt hlong_endpoint cfun dfun M
       hc hcd hdb hgap_pi hwindow hlength_chosen hrad
 
+/-- Positive long-branch real-phase estimate from the positive-branch empty
+zero-centered resonance window and the enlarged-envelope radicand target. -/
+theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_gap_pi_zero_resonanceWindow_empty_radicand
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hab_strict : a < b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hlong_endpoint :
+      (((b + 1 : ℕ) : ℝ) / ‖t‖) <
+        (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hgap_pi :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico a (b - h) →
+              Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ≤ Real.pi)
+    (hrad :
+      ((Real.secondDerivativeVdc_blockLength a b) +
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖ : ℝ)) *
+          (((Real.secondDerivativeVdc_blockLength a b) +
+              2 *
+                (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+                  (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
+                  (((0 : ℝ) +
+                    (Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h +
+                      Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h)) +
+                    1))) *
+            (((Real.secondDerivativeVdc_weylShiftLength ‖t‖ : ℕ) : ℝ)⁻¹)) ≤
+        (80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+          Real.sqrt (1 + ‖t‖)))) ^ 2) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
+  have hlength :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ c d : ℕ,
+            Complex.realPhase_integerIncrementResonanceWindow
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                a (b - h) (2 * Real.pi * (0 : ℝ))
+                (‖t‖ *
+                  ((((b + 1 : ℕ) : ℝ) *
+                    (((b + 1 : ℕ) : ℝ)))⁻¹) *
+                  (h : ℝ)) =
+              Finset.Ico c d →
+            ((d - c : ℕ) : ℝ) ≤ (fun _ : ℕ => (0 : ℝ)) h :=
+    fun h _hmem c d hwindow =>
+      Complex.logarithmicPhaseRealPhase_shiftedDifference_zero_resonanceWindow_Ico_length_le_zero_of_nonneg
+        t ht_nonneg ha hwindow
+  exact
+    Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_gap_pi_canonical_zero_resonanceWindow_length_radicand
+      t ht_nonneg ht ha hab hab_strict hlong_sqrt hlong_endpoint
+      (fun _ : ℕ => (0 : ℝ)) hgap_pi hlength hrad
+
 /-- Positive long-branch real-phase estimate from the Weyl target, with
 reduced-increment monotonicity supplied directly and separation supplied by
 all-integer resonance-window avoidance. -/
@@ -1262,6 +1333,67 @@ theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_scaled_
     Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_scaled_reciprocal_resonanceWindow
       t ht_nonneg ht ha hab _hab_strict hlong_sqrt _hlong_endpoint
       hscaled_pi S hS havoid hweyl_target
+
+/-- Positive long-branch real-phase estimate from scaled-reciprocal
+no-winding, positive-branch empty zero-centered resonance windows, and the
+enlarged-envelope radicand target. -/
+theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_scaled_reciprocal_zero_resonanceWindow_empty_radicand
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hab_strict : a < b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hlong_endpoint :
+      (((b + 1 : ℕ) : ℝ) / ‖t‖) <
+        (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hscaled_pi :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico a (b - h) →
+              t * ((h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) ≤
+                Real.pi)
+    (hrad :
+      ((Real.secondDerivativeVdc_blockLength a b) +
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖ : ℝ)) *
+          (((Real.secondDerivativeVdc_blockLength a b) +
+              2 *
+                (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+                  (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
+                  (((0 : ℝ) +
+                    (Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h +
+                      Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h)) +
+                    1))) *
+            (((Real.secondDerivativeVdc_weylShiftLength ‖t‖ : ℕ) : ℝ)⁻¹)) ≤
+        (80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+          Real.sqrt (1 + ‖t‖)))) ^ 2) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
+  have hgap_pi :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico a (b - h) →
+              Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ≤ Real.pi :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_gap_pi_of_scaled_reciprocal_family
+      t ht_nonneg ha hscaled_pi
+  exact
+    Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_gap_pi_zero_resonanceWindow_empty_radicand
+      t ht_nonneg ht ha hab hab_strict hlong_sqrt hlong_endpoint hgap_pi hrad
 
 /-- Positive long-branch real-phase estimate from the Weyl target, with
 no-winding supplied directly as a shifted-increment `π` bound and separation

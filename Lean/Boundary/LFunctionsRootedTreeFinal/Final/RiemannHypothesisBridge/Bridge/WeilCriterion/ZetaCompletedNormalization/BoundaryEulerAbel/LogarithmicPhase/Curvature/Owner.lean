@@ -1458,6 +1458,207 @@ theorem Complex.logarithmicPhase_curvature_integer_block_bound_of_gap_pi_resonan
     Complex.logarithmicPhase_curvature_integer_block_bound_of_long_nonneg
       t ht ha hab hlong_nonneg
 
+/-- Concrete logarithmic curvature block estimate from direct shifted-increment
+`π` gap bounds, positive-branch empty zero-centered resonance windows, and the
+corresponding enlarged-envelope radicand target on every long positive
+subblock. -/
+theorem Complex.logarithmicPhase_curvature_integer_block_bound_of_gap_pi_zero_resonanceWindow_empty_radicand
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hgap_pi :
+      ∀ u : ℝ,
+        0 ≤ u →
+          1 ≤ ‖u‖ →
+            ∀ {c d : ℕ},
+              1 ≤ c →
+                c ≤ d →
+                  c < d →
+                    Real.sqrt (1 + ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    (((d + 1 : ℕ) : ℝ) / ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    ∀ h : ℕ,
+                      h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+                          (Real.secondDerivativeVdc_weylShiftLength ‖u‖) →
+                        ∀ n : ℕ,
+                          n ∈ Finset.Ico c (d - h) →
+                            Complex.realPhase_integerIncrement
+                              (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase u)
+                                h)
+                              n ≤ Real.pi)
+    (hrad :
+      ∀ u : ℝ,
+        0 ≤ u →
+          1 ≤ ‖u‖ →
+            ∀ {c d : ℕ},
+              1 ≤ c →
+                c ≤ d →
+                  c < d →
+                    Real.sqrt (1 + ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    (((d + 1 : ℕ) : ℝ) / ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    ((Real.secondDerivativeVdc_blockLength c d) +
+                        (Real.secondDerivativeVdc_weylShiftLength ‖u‖ : ℝ)) *
+                        (((Real.secondDerivativeVdc_blockLength c d) +
+                            2 *
+                              (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+                                (Real.secondDerivativeVdc_weylShiftLength ‖u‖),
+                                (((0 : ℝ) +
+                                  (Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖u‖ d h +
+                                    Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖u‖ d h)) +
+                                  1))) *
+                          (((Real.secondDerivativeVdc_weylShiftLength ‖u‖ : ℕ) : ℝ)⁻¹)) ≤
+                      (80 * ((((d + 1 : ℕ) : ℝ) / ‖u‖ +
+                        Real.sqrt (1 + ‖u‖)))) ^ 2) :
+    ‖∑ n ∈ Finset.Icc a b,
+      ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
+  have hlong_nonneg :
+      ∀ u : ℝ,
+        0 ≤ u →
+          1 ≤ ‖u‖ →
+            ∀ {c d : ℕ},
+              1 ≤ c →
+                c ≤ d →
+                  c < d →
+                    Real.sqrt (1 + ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    (((d + 1 : ℕ) : ℝ) / ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    ‖∑ n ∈ Finset.Icc c d,
+                      Complex.exp
+                        (Complex.I *
+                          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                            u n : ℂ))‖ ≤
+                      80 * ((((d + 1 : ℕ) : ℝ) / ‖u‖ +
+                        Real.sqrt (1 + ‖u‖))) :=
+    fun u hu_nonneg hu_ht {c d} hc hd hcd_strict hlong_sqrt hlong_endpoint =>
+      Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_gap_pi_zero_resonanceWindow_empty_radicand
+        (t := u)
+        (ht_nonneg := hu_nonneg)
+        (ht := hu_ht)
+        (a := c)
+        (b := d)
+        (ha := hc)
+        (hab := hd)
+        (hab_strict := hcd_strict)
+        (hlong_sqrt := hlong_sqrt)
+        (hlong_endpoint := hlong_endpoint)
+        (hgap_pi
+          u hu_nonneg hu_ht (c := c) (d := d)
+          hc hd hcd_strict hlong_sqrt hlong_endpoint)
+        (hrad
+          u hu_nonneg hu_ht (c := c) (d := d)
+          hc hd hcd_strict hlong_sqrt hlong_endpoint)
+  exact
+    Complex.logarithmicPhase_curvature_integer_block_bound_of_long_nonneg
+      t ht ha hab hlong_nonneg
+
+/-- Concrete logarithmic curvature block estimate from scaled-reciprocal
+no-winding, positive-branch empty zero-centered resonance windows, and the
+corresponding enlarged-envelope radicand target on every long positive
+subblock. -/
+theorem Complex.logarithmicPhase_curvature_integer_block_bound_of_scaled_reciprocal_zero_resonanceWindow_empty_radicand
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hscaled_pi :
+      ∀ u : ℝ,
+        0 ≤ u →
+          1 ≤ ‖u‖ →
+            ∀ {c d : ℕ},
+              1 ≤ c →
+                c ≤ d →
+                  c < d →
+                    Real.sqrt (1 + ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    (((d + 1 : ℕ) : ℝ) / ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    ∀ h : ℕ,
+                      h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+                          (Real.secondDerivativeVdc_weylShiftLength ‖u‖) →
+                        ∀ n : ℕ,
+                          n ∈ Finset.Ico c (d - h) →
+                            u * ((h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) ≤
+                              Real.pi)
+    (hrad :
+      ∀ u : ℝ,
+        0 ≤ u →
+          1 ≤ ‖u‖ →
+            ∀ {c d : ℕ},
+              1 ≤ c →
+                c ≤ d →
+                  c < d →
+                    Real.sqrt (1 + ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    (((d + 1 : ℕ) : ℝ) / ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    ((Real.secondDerivativeVdc_blockLength c d) +
+                        (Real.secondDerivativeVdc_weylShiftLength ‖u‖ : ℝ)) *
+                        (((Real.secondDerivativeVdc_blockLength c d) +
+                            2 *
+                              (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+                                (Real.secondDerivativeVdc_weylShiftLength ‖u‖),
+                                (((0 : ℝ) +
+                                  (Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖u‖ d h +
+                                    Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖u‖ d h)) +
+                                  1))) *
+                          (((Real.secondDerivativeVdc_weylShiftLength ‖u‖ : ℕ) : ℝ)⁻¹)) ≤
+                      (80 * ((((d + 1 : ℕ) : ℝ) / ‖u‖ +
+                        Real.sqrt (1 + ‖u‖)))) ^ 2) :
+    ‖∑ n ∈ Finset.Icc a b,
+      ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
+  have hlong_nonneg :
+      ∀ u : ℝ,
+        0 ≤ u →
+          1 ≤ ‖u‖ →
+            ∀ {c d : ℕ},
+              1 ≤ c →
+                c ≤ d →
+                  c < d →
+                    Real.sqrt (1 + ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    (((d + 1 : ℕ) : ℝ) / ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    ‖∑ n ∈ Finset.Icc c d,
+                      Complex.exp
+                        (Complex.I *
+                          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                            u n : ℂ))‖ ≤
+                      80 * ((((d + 1 : ℕ) : ℝ) / ‖u‖ +
+                        Real.sqrt (1 + ‖u‖))) :=
+    fun u hu_nonneg hu_ht {c d} hc hd hcd_strict hlong_sqrt hlong_endpoint =>
+      Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_scaled_reciprocal_zero_resonanceWindow_empty_radicand
+        (t := u)
+        (ht_nonneg := hu_nonneg)
+        (ht := hu_ht)
+        (a := c)
+        (b := d)
+        (ha := hc)
+        (hab := hd)
+        (hab_strict := hcd_strict)
+        (hlong_sqrt := hlong_sqrt)
+        (hlong_endpoint := hlong_endpoint)
+        (hscaled_pi
+          u hu_nonneg hu_ht (c := c) (d := d)
+          hc hd hcd_strict hlong_sqrt hlong_endpoint)
+        (hrad
+          u hu_nonneg hu_ht (c := c) (d := d)
+          hc hd hcd_strict hlong_sqrt hlong_endpoint)
+  exact
+    Complex.logarithmicPhase_curvature_integer_block_bound_of_long_nonneg
+      t ht ha hab hlong_nonneg
+
 /-- Concrete logarithmic curvature block estimate from stationary-family
 control and endpoint first-derivative data on every long positive subblock. -/
 theorem Complex.logarithmicPhase_curvature_integer_block_bound_of_stationaryFamily_endpoint_firstDerivative_data
