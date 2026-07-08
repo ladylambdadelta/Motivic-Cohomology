@@ -643,6 +643,78 @@ theorem Real.sub_two_pi_mul_int_mem_principal_unique
     ExistsUnique.unique hunique hk_add hl_add
   exact neg_injective hneg
 
+/-- A sample belongs to at most one integer principal strip. -/
+theorem Complex.realPhase_integerIncrementPrincipalStrip_center_unique
+    (φ : ℝ → ℝ)
+    {a b n : ℕ}
+    {k l : ℤ}
+    (hnk :
+      n ∈ Complex.realPhase_integerIncrementPrincipalStrip φ a b k)
+    (hnl :
+      n ∈ Complex.realPhase_integerIncrementPrincipalStrip φ a b l) :
+    k = l := by
+  have hk_shift :
+      Complex.realPhase_integerIncrement
+          (Complex.realPhase_integerLatticeShift φ k) n =
+        Complex.realPhase_integerIncrement φ n -
+          (2 * Real.pi * (k : ℝ)) :=
+    Complex.realPhase_integerIncrement_integerLatticeShift_eq φ k n
+  have hl_shift :
+      Complex.realPhase_integerIncrement
+          (Complex.realPhase_integerLatticeShift φ l) n =
+        Complex.realPhase_integerIncrement φ n -
+          (2 * Real.pi * (l : ℝ)) :=
+    Complex.realPhase_integerIncrement_integerLatticeShift_eq φ l n
+  have hk_principal_shift :
+      Complex.realPhase_integerIncrement
+          (Complex.realPhase_integerLatticeShift φ k) n ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+    Complex.realPhase_integerIncrementPrincipalStrip_principal φ hnk
+  have hl_principal_shift :
+      Complex.realPhase_integerIncrement
+          (Complex.realPhase_integerLatticeShift φ l) n ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+    Complex.realPhase_integerIncrementPrincipalStrip_principal φ hnl
+  have hk_principal :
+      Complex.realPhase_integerIncrement φ n -
+          (2 * Real.pi * (k : ℝ)) ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+    Eq.subst
+      (motive := fun value : ℝ =>
+        value ∈ Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+      hk_shift
+      hk_principal_shift
+  have hl_principal :
+      Complex.realPhase_integerIncrement φ n -
+          (2 * Real.pi * (l : ℝ)) ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+    Eq.subst
+      (motive := fun value : ℝ =>
+        value ∈ Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+      hl_shift
+      hl_principal_shift
+  exact
+    Real.sub_two_pi_mul_int_mem_principal_unique
+      hk_principal hl_principal
+
+/-- Different principal strips are disjoint at the sample level. -/
+theorem Complex.realPhase_integerIncrementPrincipalStrip_disjoint_of_ne
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {k l : ℤ}
+    (hkl : k ≠ l) :
+    Disjoint
+      (Complex.realPhase_integerIncrementPrincipalStrip φ a b k)
+      (Complex.realPhase_integerIncrementPrincipalStrip φ a b l) := by
+  exact
+    Finset.disjoint_left.mpr
+      (fun n hn_k hn_l =>
+        have hcenter :
+            k = l :=
+          Complex.realPhase_integerIncrementPrincipalStrip_center_unique
+            φ hn_k hn_l
+        hkl hcenter)
+
 /-- Every real angle has an integer lattice translate in the principal
 branch. -/
 theorem Real.exists_int_sub_two_pi_mul_mem_principal
