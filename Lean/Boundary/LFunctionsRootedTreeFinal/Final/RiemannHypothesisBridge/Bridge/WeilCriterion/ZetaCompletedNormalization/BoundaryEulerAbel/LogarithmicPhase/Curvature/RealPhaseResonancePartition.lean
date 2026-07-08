@@ -2975,9 +2975,59 @@ theorem Complex.mem_realPhase_integerIncrementPrincipalStripFamilyUnion_rangeAct
         Complex.mem_realPhase_integerIncrementRangeActiveCenters_of_principalStrip_sample_in_range
           φ hlo hhi hn_strip
       exact
-        (Complex.mem_realPhase_integerIncrementPrincipalStripFamilyUnion_iff
+          (Complex.mem_realPhase_integerIncrementPrincipalStripFamilyUnion_iff
           φ).mpr
           (Exists.intro k (And.intro hk_active hn_strip))
+
+/-- If every sample increment on a block lies in a fixed range, the
+corresponding finite family of integer principal strips covers the whole
+block. -/
+theorem Complex.realPhase_Ico_subset_integerIncrementPrincipalStripFamilyUnion_rangeActiveCenters
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {lo hi : ℝ}
+    (hrange :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          lo ≤ Complex.realPhase_integerIncrement φ n ∧
+            Complex.realPhase_integerIncrement φ n ≤ hi) :
+    Finset.Ico a b ⊆
+      Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+        φ a b
+        (Complex.realPhase_integerIncrementRangeActiveCenters
+          lo hi Real.pi) := by
+  intro n hn
+  have hn_range :
+      lo ≤ Complex.realPhase_integerIncrement φ n ∧
+        Complex.realPhase_integerIncrement φ n ≤ hi :=
+    hrange n hn
+  exact
+    Complex.mem_realPhase_integerIncrementPrincipalStripFamilyUnion_rangeActiveCenters_of_sample_in_range
+      φ hn hn_range.1 hn_range.2
+
+/-- Any finite subset of a range-controlled block is covered by the
+range-active family of integer principal strips. -/
+theorem Complex.finset_subset_integerIncrementPrincipalStripFamilyUnion_rangeActiveCenters
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {lo hi : ℝ}
+    {S : Finset ℕ}
+    (hS : S ⊆ Finset.Ico a b)
+    (hrange :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          lo ≤ Complex.realPhase_integerIncrement φ n ∧
+            Complex.realPhase_integerIncrement φ n ≤ hi) :
+    S ⊆
+      Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+        φ a b
+        (Complex.realPhase_integerIncrementRangeActiveCenters
+          lo hi Real.pi) := by
+  intro n hn
+  exact
+    Complex.realPhase_Ico_subset_integerIncrementPrincipalStripFamilyUnion_rangeActiveCenters
+      φ hrange
+      (hS hn)
 
 /-- The principal-strip range-active cover is contained in the ambient
 half-open block. -/
@@ -3053,6 +3103,47 @@ theorem Complex.realPhase_integerIncrementPrincipalStripFamilyUnion_card_real_eq
       (Nat.cast_sum K
         (fun k : ℤ =>
           (Complex.realPhase_integerIncrementPrincipalStrip φ a b k).card))
+
+/-- A uniform real-cardinality bound on every principal strip bounds the
+principal-strip family by the number of active centers times that bound. -/
+theorem Complex.realPhase_integerIncrementPrincipalStripFamilyUnion_card_real_le_card_mul
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    (K : Finset ℤ)
+    {W : ℝ}
+    (hstrip :
+      ∀ k : ℤ,
+        k ∈ K →
+          ((Complex.realPhase_integerIncrementPrincipalStrip φ a b k).card :
+            ℝ) ≤ W) :
+    ((Complex.realPhase_integerIncrementPrincipalStripFamilyUnion φ a b K).card :
+        ℝ) ≤
+      (K.card : ℝ) * W := by
+  have hfamily_eq :
+      ((Complex.realPhase_integerIncrementPrincipalStripFamilyUnion φ a b K).card :
+          ℝ) =
+        ∑ k ∈ K,
+          ((Complex.realPhase_integerIncrementPrincipalStrip φ a b k).card :
+            ℝ) :=
+    Complex.realPhase_integerIncrementPrincipalStripFamilyUnion_card_real_eq_sum_cards
+      φ K
+  have hsum_le :
+      (∑ k ∈ K,
+          ((Complex.realPhase_integerIncrementPrincipalStrip φ a b k).card :
+            ℝ)) ≤
+        ∑ k ∈ K, W :=
+    Finset.sum_le_sum
+      (fun k hk => hstrip k hk)
+  have hsum_const :
+      (∑ k ∈ K, W) = (K.card : ℝ) * W :=
+    Eq.trans
+      (Finset.sum_const W)
+      (nsmul_eq_mul K.card W)
+  exact
+    Eq.subst
+      (motive := fun left : ℝ => left ≤ (K.card : ℝ) * W)
+      hfamily_eq.symm
+      (le_trans hsum_le (le_of_eq hsum_const))
 
 /-- A samplewise active-center interval is contained in the range-active
 interval when the sample increment lies in that range. -/

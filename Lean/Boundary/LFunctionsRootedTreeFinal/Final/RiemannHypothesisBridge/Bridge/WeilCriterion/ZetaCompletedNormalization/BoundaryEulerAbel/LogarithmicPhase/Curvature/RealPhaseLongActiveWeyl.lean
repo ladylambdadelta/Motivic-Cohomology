@@ -350,6 +350,53 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum
             mul_le_mul_of_nonneg_right hcard_real hmajorant_nonneg
           exact le_trans hgap_bound hmul
 
+/-- Range control puts the active-resonance complement inside the finite
+family of integer principal strips for the shifted logarithmic phase. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_subset_principalStripFamilyUnion_rangeActiveCenters
+    (t : ℝ)
+    {a b h : ℕ}
+    {lam lo hi : ℝ}
+    (hrange :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a (b - h) →
+          lo ≤
+              Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ∧
+            Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ≤ hi) :
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+        t a b h lam ⊆
+      Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          h)
+        a (b - h)
+        (Complex.realPhase_integerIncrementRangeActiveCenters
+          lo hi Real.pi) := by
+  have hblock_subset :
+      Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+          t a b h lam ⊆
+        Finset.Ico a (b - h) := by
+    intro n hn
+    exact
+      (Complex.mem_realPhase_integerIncrementResonanceFamilyComplement_iff
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          h)).mp hn |>.1
+  exact
+    Complex.finset_subset_integerIncrementPrincipalStripFamilyUnion_rangeActiveCenters
+      (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        h)
+      hblock_subset
+      hrange
+
 /-- A disjoint half-open gap cover of the active-family complement gives the
 standard finite-gap complement estimate.  The active-family complement supplies
 the lattice separation on each gap; the supplied cover supplies only the
