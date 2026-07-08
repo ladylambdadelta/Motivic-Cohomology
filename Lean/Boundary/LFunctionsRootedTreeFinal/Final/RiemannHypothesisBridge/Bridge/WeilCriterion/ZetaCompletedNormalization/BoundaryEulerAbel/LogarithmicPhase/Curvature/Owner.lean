@@ -19,6 +19,122 @@ noncomputable section
 
 open scoped Filter Topology
 
+/-- In the long square-root branch, every canonical Weyl shift leaves a
+nonempty shifted endpoint block. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftRange_habh_of_sqrt_long
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (hab : a ≤ b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ))) :
+    ∀ h : ℕ,
+      h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+        a ≤ b - h := by
+  have hgap :
+      Real.secondDerivativeVdc_weylShiftLength ‖t‖ ≤ b - a :=
+    Nat.secondDerivativeVdc_weylShiftLength_le_block_gap_of_sqrt_long
+      ht hlong_sqrt
+  intro h hh
+  have hh_gap : h ≤ b - a :=
+    le_trans
+      (Complex.realPhase_secondDerivative_vdc_shiftRange_le hh)
+      hgap
+  have hha_le_b :
+      h + a ≤ b := by
+    have hstep :
+        h + a ≤ (b - a) + a :=
+      Nat.add_le_add_right hh_gap a
+    have hcancel :
+        (b - a) + a = b :=
+      Nat.sub_add_cancel hab
+    exact
+      Eq.subst
+        (motive := fun right : ℕ => h + a ≤ right)
+        hcancel
+        hstep
+  have hah_le_b :
+      a + h ≤ b :=
+    Eq.subst
+      (motive := fun left : ℕ => left ≤ b)
+      (Nat.add_comm h a)
+      hha_le_b
+  exact Nat.le_sub_of_add_le hah_le_b
+
+/-- Every canonical Weyl shift is positive, in the quantified shape required
+by the range-counted active-center owner theorem. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftRange_pos
+    (t : ℝ) :
+    ∀ h : ℕ,
+      h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+        1 ≤ h := by
+  intro h hh
+  exact Complex.realPhase_secondDerivative_vdc_shiftRange_pos hh
+
+/-- Shifted logarithmic derivative norms are antitone on every canonical Weyl
+shift interval in the positive long branch. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftRange_deriv_norm_antitone_of_nonneg
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ))) :
+    ∀ h : ℕ,
+      h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+        AntitoneOn
+          (fun x : ℝ =>
+            ‖deriv
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h) x‖)
+          (Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ)) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_weylShift_deriv_norm_antitoneOn_of_nonneg
+      t ht ht_nonneg ha hab hlong_sqrt
+
+/-- Shifted logarithmic derivative norms have the canonical curvature lower
+scale on every canonical Weyl shift interval in the positive long branch. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftRange_deriv_norm_lower_of_nonneg
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ))) :
+    ∀ h : ℕ,
+      h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+        ∀ x : ℝ,
+          x ∈ Set.Icc (a : ℝ) (((b - h) + 1 : ℕ) : ℝ) →
+            ‖t‖ *
+                ((((b + 1 : ℕ) : ℝ) *
+                  (((b + 1 : ℕ) : ℝ)))⁻¹) *
+                (h : ℝ) ≤
+              ‖deriv
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h) x‖ := by
+  have hgap :
+      Real.secondDerivativeVdc_weylShiftLength ‖t‖ ≤ b - a :=
+    Nat.secondDerivativeVdc_weylShiftLength_le_block_gap_of_sqrt_long
+      ht hlong_sqrt
+  intro h hh x hx
+  have hh_gap : h ≤ b - a :=
+    le_trans
+      (Complex.realPhase_secondDerivative_vdc_shiftRange_le hh)
+      hgap
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_lower_on_shifted_Icc_of_nonneg
+      t ht ht_nonneg ha hab hh_gap hx
+
 /-- A positive integer logarithmic-phase sample is the corresponding
 real-phase exponential sample. -/
 theorem Complex.logarithmicPhase_integer_sample_eq_realPhase_exp
