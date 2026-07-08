@@ -439,6 +439,30 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_exis
     Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_exists
       t habh S hS hinc_mono
 
+/-- In the nonnegative-frequency branch, the canonical resonant-index set for
+a shifted logarithmic difference is a half-open resonant window. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_exists_canonical_of_nonneg
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b h : ℕ}
+    {resonance lam : ℝ}
+    (ha : 1 ≤ a)
+    (habh : a ≤ b - h) :
+    ∃ c d : ℕ,
+      a ≤ c ∧ c ≤ d ∧ d ≤ b - h ∧
+        Complex.realPhase_integerIncrementResonanceWindow
+          (Complex.logarithmicPhaseRealPhase_shiftedDifference t h)
+          a (b - h) resonance lam = Finset.Ico c d := by
+  have hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.logarithmicPhaseRealPhase_shiftedDifference t h) a (b - h) :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrementMonotoneOn_of_nonneg
+      t ht_nonneg ha
+  exact
+    Complex.realPhase_integerIncrement_resonanceWindow_exists_canonical
+      (Complex.logarithmicPhaseRealPhase_shiftedDifference t h)
+      habh hinc_mono
+
 /-- A family of finite resonant-index sets for a shifted logarithmic
 difference consists pointwise of half-open resonant windows in the
 nonnegative-frequency branch. -/
@@ -494,6 +518,26 @@ theorem Complex.realPhase_secondDerivative_vdc_logarithmic_resonanceWindow_famil
   exact
     Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_family_exists_of_nonneg
       t ht_nonneg ha habh S hS
+
+/-- In the nonnegative-frequency branch, the canonical resonant-index set for
+the concrete logarithmic VdC shifted phase is a half-open resonant window. -/
+theorem Complex.realPhase_secondDerivative_vdc_logarithmic_resonanceWindow_exists_canonical_of_nonneg
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b h : ℕ}
+    {resonance lam : ℝ}
+    (ha : 1 ≤ a)
+    (habh : a ≤ b - h) :
+    ∃ c d : ℕ,
+      a ≤ c ∧ c ≤ d ∧ d ≤ b - h ∧
+        Complex.realPhase_integerIncrementResonanceWindow
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h)
+          a (b - h) resonance lam = Finset.Ico c d := by
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_resonanceWindow_exists_canonical_of_nonneg
+      t ht_nonneg ha habh
 
 /-- Along the canonical Weyl shift range, every integer-centered resonant
 family for the concrete logarithmic VdC shifts is pointwise a half-open
