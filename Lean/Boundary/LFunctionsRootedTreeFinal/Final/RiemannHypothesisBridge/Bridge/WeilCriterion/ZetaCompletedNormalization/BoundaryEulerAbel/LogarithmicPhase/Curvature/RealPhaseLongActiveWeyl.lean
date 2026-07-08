@@ -233,6 +233,123 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum
       t ht gaps center ha hpos hlam hcover hdisjoint hgap_bounds
       hinc_mono havoid hprincipal
 
+/-- A canonical active-complement gap cover, once each gap has been assigned
+its principal lattice branch, gives the usual active-center-count complement
+bound.  This is the counted summation form of the all-integer resonance
+decomposition; the branch assignment is the only input not supplied by the
+active-center cover itself. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum_norm_le_activeCenterCount_mul_curvatureMajorant_of_principal_gap_cover
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b h : ℕ}
+    {lam : ℝ}
+    (ha : 1 ≤ a)
+    (habh : a ≤ b - h)
+    (hpos : 1 ≤ h)
+    (hlam :
+      lam =
+        ‖t‖ *
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))⁻¹) *
+          (h : ℝ))
+    (hlam_pi : lam ≤ Real.pi)
+    (hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          h)
+        a (b - h))
+    (hprincipal_cover :
+      ∀ gaps : Finset (ℕ × ℕ),
+        Complex.realPhase_IcoFamilyUnion gaps =
+            Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+              t a b h lam →
+          (∀ p₁ : ℕ × ℕ,
+            p₁ ∈ gaps →
+              ∀ p₂ : ℕ × ℕ,
+                p₂ ∈ gaps →
+                  p₁ ≠ p₂ →
+                    Disjoint (Finset.Ico p₁.1 p₁.2)
+                      (Finset.Ico p₂.1 p₂.2)) →
+            Complex.realPhase_IcoFamilyBounded a (b - h) gaps →
+              ∃ center : ℕ × ℕ → ℤ,
+                ∀ p : ℕ × ℕ,
+                  p ∈ gaps →
+                    ∀ n : ℕ,
+                      n ∈ Finset.Ico p.1 p.2 →
+                        Complex.realPhase_integerIncrement
+                            (Complex.realPhase_integerLatticeShift
+                              (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                                h)
+                              (center p))
+                            n ∈
+                          Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi))) :
+    ‖∑ n ∈
+      Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+        t a b h lam,
+      Complex.exp
+        (Complex.I *
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h n : ℂ))‖ ≤
+      ((((Complex.logarithmicPhaseRealPhase_shiftedDifference_activeCenters
+        t a b h lam).card + 1 : ℕ) : ℝ) *
+        Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h) := by
+  have hcover_exists :
+      ∃ gaps : Finset (ℕ × ℕ),
+        Complex.realPhase_IcoFamilyUnion gaps =
+            Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+              t a b h lam ∧
+          (∀ p₁ : ℕ × ℕ,
+            p₁ ∈ gaps →
+              ∀ p₂ : ℕ × ℕ,
+                p₂ ∈ gaps →
+                  p₁ ≠ p₂ →
+                    Disjoint (Finset.Ico p₁.1 p₁.2)
+                      (Finset.Ico p₂.1 p₂.2)) ∧
+          Complex.realPhase_IcoFamilyIntervalConnected gaps ∧
+          Complex.realPhase_IcoFamilyBounded a (b - h) gaps ∧
+          gaps.card ≤
+            (Complex.logarithmicPhaseRealPhase_shiftedDifference_activeCenters
+              t a b h lam).card + 1 :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_exists_bounded_IcoFamily_cover_of_mono_of_le_pi
+      t habh hinc_mono hlam_pi
+  match hcover_exists with
+  | ⟨gaps, hcover, hdisjoint, _hconnected, hbounded, hcard⟩ =>
+      match hprincipal_cover gaps hcover hdisjoint hbounded with
+      | ⟨center, hprincipal⟩ =>
+          have hgap_bound :
+              ‖∑ n ∈
+                Complex.logarithmicPhaseRealPhase_shiftedDifference_activeResonanceComplement
+                  t a b h lam,
+                Complex.exp
+                  (Complex.I *
+                    (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                      h n : ℂ))‖ ≤
+                ((gaps.card : ℝ) *
+                  Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h) :=
+            Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum_norm_le_gapCount_mul_curvatureMajorant_of_principal_integerLatticeShift_gaps
+              t ht gaps center ha hpos hlam hcover hdisjoint hbounded
+              hinc_mono hprincipal
+          have hmajorant_nonneg :
+              0 ≤ Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h :=
+            Real.secondDerivativeVdc_shiftedCorrelationMajorant_nonneg ht hpos
+          have hcard_real :
+              (gaps.card : ℝ) ≤
+                (((Complex.logarithmicPhaseRealPhase_shiftedDifference_activeCenters
+                  t a b h lam).card + 1 : ℕ) : ℝ) :=
+            Nat.cast_le.mpr hcard
+          have hmul :
+              ((gaps.card : ℝ) *
+                  Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h) ≤
+                ((((Complex.logarithmicPhaseRealPhase_shiftedDifference_activeCenters
+                  t a b h lam).card + 1 : ℕ) : ℝ) *
+                  Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h) :=
+            mul_le_mul_of_nonneg_right hcard_real hmajorant_nonneg
+          exact le_trans hgap_bound hmul
+
 /-- A disjoint half-open gap cover of the active-family complement gives the
 standard finite-gap complement estimate.  The active-family complement supplies
 the lattice separation on each gap; the supplied cover supplies only the
