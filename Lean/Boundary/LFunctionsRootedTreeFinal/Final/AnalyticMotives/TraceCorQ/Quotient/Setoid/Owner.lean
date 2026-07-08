@@ -71,24 +71,24 @@ theorem TraceCorQQuotient.sound_permFormalSum
 /-- Adjacent opposite rational multiples of the same generator cancel in the quotient. -/
 theorem TraceCorQQuotient.sound_cancelAdjacentOpposite
     (ledger : TraceCorQRelationLedger)
-    (prefix suffix : TraceCorQFormalSum)
+    (leftContext suffix : TraceCorQFormalSum)
     (coefficient : Rat)
     (generator : TraceCorQGenerator) :
     TraceCorQQuotient.ofCandidate
       (TraceCorQQuotientInput.ofFormalSumLedger
-        (prefix ++
+        (leftContext ++
           (coefficient, generator) ::
             (-coefficient, generator) ::
               suffix)
         ledger) =
       TraceCorQQuotient.ofCandidate
         (TraceCorQQuotientInput.ofFormalSumLedger
-          (prefix ++ suffix)
+          (leftContext ++ suffix)
           ledger) :=
   TraceCorQQuotient.sound
     (TraceCorQQuotientRelation.cancelAdjacentOpposite
       ledger
-      prefix
+      leftContext
       suffix
       coefficient
       generator)
@@ -96,26 +96,26 @@ theorem TraceCorQQuotient.sound_cancelAdjacentOpposite
 /-- Adjacent rational multiples of the same generator combine in the quotient. -/
 theorem TraceCorQQuotient.sound_combineAdjacentSame
     (ledger : TraceCorQRelationLedger)
-    (prefix suffix : TraceCorQFormalSum)
+    (leftContext suffix : TraceCorQFormalSum)
     (leftCoefficient rightCoefficient : Rat)
     (generator : TraceCorQGenerator) :
     TraceCorQQuotient.ofCandidate
       (TraceCorQQuotientInput.ofFormalSumLedger
-        (prefix ++
+        (leftContext ++
           (leftCoefficient, generator) ::
             (rightCoefficient, generator) ::
               suffix)
         ledger) =
       TraceCorQQuotient.ofCandidate
         (TraceCorQQuotientInput.ofFormalSumLedger
-          (prefix ++
+          (leftContext ++
             (leftCoefficient + rightCoefficient, generator) ::
               suffix)
           ledger) :=
   TraceCorQQuotient.sound
     (TraceCorQQuotientRelation.combineAdjacentSame
       ledger
-      prefix
+      leftContext
       suffix
       leftCoefficient
       rightCoefficient

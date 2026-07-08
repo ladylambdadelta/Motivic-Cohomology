@@ -64,6 +64,15 @@ theorem completedZetaZeroPoleScheduledChannelRectangleCertificateLedger_imported
       1 + 0 :=
   rfl
 
+/-- The scheduled channel rectangle ledger exposes exactly the scheduled rectangle. -/
+theorem completedZetaZeroPoleScheduledChannelRectangleCertificateLedger_importedRectangles
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    (completedZetaZeroPoleScheduledChannelRectangleCertificateLedger
+      f F h u).importedRectangles =
+      [completedZetaZeroPoleScheduledChannelRectangle f F h u] ++ [] :=
+  rfl
+
 /-- The scheduled channel rectangle ledger carries no trace-bookkeeping atom. -/
 theorem completedZetaZeroPoleScheduledChannelRectangleCertificateLedger_traceBookkeepingCount
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
@@ -120,6 +129,19 @@ theorem completedZetaZeroPoleChannelPresentationWithScheduledRectangle_importedR
         (completedZetaZeroPoleScheduledChannelRectangleCertificateLedger
           f F h u).importedRectangleCount :=
   CertifiedResidueChannelPresentation.withAdditionalCertificates_importedRectangleCount
+    completedZetaZeroPoleChannelPresentation
+    (completedZetaZeroPoleScheduledChannelRectangleCertificateLedger f F h u)
+
+/-- The scheduled-rectangle channel presentation exposes original rectangles then the scheduled rectangle. -/
+theorem completedZetaZeroPoleChannelPresentationWithScheduledRectangle_importedRectangles
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    (completedZetaZeroPoleChannelPresentationWithScheduledRectangle
+      f F h u).importedRectangles =
+      completedZetaZeroPoleChannelPresentation.importedRectangles ++
+        (completedZetaZeroPoleScheduledChannelRectangleCertificateLedger
+          f F h u).importedRectangles :=
+  CertifiedResidueChannelPresentation.withAdditionalCertificates_importedRectangles
     completedZetaZeroPoleChannelPresentation
     (completedZetaZeroPoleScheduledChannelRectangleCertificateLedger f F h u)
 
@@ -210,6 +232,21 @@ theorem completedZetaZeroPoleChannelTransportWithScheduledRectangle_importedRect
           (completedZetaZeroPoleChannelTransportWithScheduledRectangle
             f F h u).pathCertificateLedger.importedRectangleCount) :=
   TraceTransport.importedRectangleCount_eq_source_target_path
+    (completedZetaZeroPoleChannelTransportWithScheduledRectangle
+      f F h u)
+
+/-- The scheduled-rectangle channel transport exposes source, target, and path rectangle lists. -/
+theorem completedZetaZeroPoleChannelTransportWithScheduledRectangle_importedRectangles_split
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    (completedZetaZeroPoleChannelTransportWithScheduledRectangle
+      f F h u).importedRectangles =
+      (completedZetaZeroPoleChannelPresentationWithScheduledRectangle
+        f F h u).importedRectangles ++
+        (completedZetaZeroPoleChannelOutput.importedRectangles ++
+          (completedZetaZeroPoleChannelTransportWithScheduledRectangle
+            f F h u).pathCertificateLedger.importedRectangles) :=
+  TraceTransport.importedRectangles_eq_source_target_path
     (completedZetaZeroPoleChannelTransportWithScheduledRectangle
       f F h u)
 

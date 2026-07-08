@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Generators.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.FormalSums.Core.Basic.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceRewrite.Relations.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceRewrite.Coherence.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.ResidueChannelPresentation.Certificates.Owner
@@ -8,7 +9,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.ResidueChannelPr
 
 This file owns the relations imposed on generated trace correspondences.
 
-The relations should come from analytic rewrite relations and higher
+The relation generators are backed by analytic rewrite relations and higher
 coherences: Stokes cancellation, residue-channel compatibility, refinement
 invariance, schedule exchange, weight drop, and Fubini coherence.
 -/
@@ -48,13 +49,19 @@ def TraceCorQRelationGenerator.ofCellSupport
 def TraceCorQRelationGenerator.certificateLedger
     (relation : TraceCorQRelationGenerator) :
     ResidueChannelCertificateLedger :=
-  ResidueChannelCertificateLedger.ofCoherenceCell relation.cell
+  ResidueChannelCertificateLedger.ofCertifiedCoherenceCell relation.cell
 
 /-- The imported finite-rectangle payload attached to a relation generator. -/
 def TraceCorQRelationGenerator.importedRectangleCount
     (relation : TraceCorQRelationGenerator) :
     Nat :=
   relation.certificateLedger.importedRectangleCount
+
+/-- The imported finite explicit-formula rectangles attached to a relation generator. -/
+def TraceCorQRelationGenerator.importedRectangles
+    (relation : TraceCorQRelationGenerator) :
+    List ZetaAdmissibleFunction.ExplicitFormulaRectangle :=
+  relation.certificateLedger.importedRectangles
 
 /-- The internal trace-bookkeeping payload attached to a relation generator. -/
 def TraceCorQRelationGenerator.traceBookkeepingCount
@@ -74,7 +81,7 @@ theorem TraceCorQRelationGenerator.ofCellSupport_certificateLedger
     (TraceCorQRelationGenerator.ofCellSupport
       cell
       support).certificateLedger =
-      ResidueChannelCertificateLedger.ofCoherenceCell cell :=
+      ResidueChannelCertificateLedger.ofCertifiedCoherenceCell cell :=
   rfl
 
 /-- A relation built from a cell carries no imported finite-rectangle payload. -/
@@ -83,8 +90,27 @@ theorem TraceCorQRelationGenerator.ofCellSupport_importedRectangleCount
     (TraceCorQRelationGenerator.ofCellSupport
       cell
       support).importedRectangleCount =
-      (ResidueChannelCertificateLedger.ofCoherenceCell cell).importedRectangleCount :=
+      (ResidueChannelCertificateLedger.ofCertifiedCoherenceCell
+        cell).importedRectangleCount :=
   rfl
+
+/-- A relation built from a cell exposes the imported rectangles of that cell certificate. -/
+theorem TraceCorQRelationGenerator.ofCellSupport_importedRectangles
+    (cell : TraceCoherenceCell) (support : TraceCorQFormalSum) :
+    (TraceCorQRelationGenerator.ofCellSupport
+      cell
+      support).importedRectangles =
+      (ResidueChannelCertificateLedger.ofCertifiedCoherenceCell
+        cell).importedRectangles :=
+  rfl
+
+/-- A relation generator's imported-rectangle count is the length of its rectangle list. -/
+theorem TraceCorQRelationGenerator.importedRectangleCount_eq_length_importedRectangles
+    (relation : TraceCorQRelationGenerator) :
+    relation.importedRectangleCount =
+      relation.importedRectangles.length :=
+  ResidueChannelCertificateLedger.importedRectangleCount_eq_length_importedRectangles
+    relation.certificateLedger
 
 /-- A relation built from a cell carries the bookkeeping payload of that cell certificate. -/
 theorem TraceCorQRelationGenerator.ofCellSupport_traceBookkeepingCount
@@ -92,7 +118,8 @@ theorem TraceCorQRelationGenerator.ofCellSupport_traceBookkeepingCount
     (TraceCorQRelationGenerator.ofCellSupport
       cell
       support).traceBookkeepingCount =
-      (ResidueChannelCertificateLedger.ofCoherenceCell cell).traceBookkeepingCount :=
+      (ResidueChannelCertificateLedger.ofCertifiedCoherenceCell
+        cell).traceBookkeepingCount :=
   rfl
 
 /-- A relation built from a cell carries the rewrite-step payload of that cell certificate. -/
@@ -101,7 +128,18 @@ theorem TraceCorQRelationGenerator.ofCellSupport_rewriteStepCount
     (TraceCorQRelationGenerator.ofCellSupport
       cell
       support).rewriteStepCount =
-      (ResidueChannelCertificateLedger.ofCoherenceCell cell).rewriteStepCount :=
+      (ResidueChannelCertificateLedger.ofCertifiedCoherenceCell
+        cell).rewriteStepCount :=
+  rfl
+
+/-- A relation generator certifies the source path, target path, and coherence cell. -/
+theorem TraceCorQRelationGenerator.certificateLedger_eq_paths_cell
+    (relation : TraceCorQRelationGenerator) :
+    relation.certificateLedger =
+      ResidueChannelCertificateAtom.rewritePath relation.cell.source ::
+        ResidueChannelCertificateAtom.rewritePath relation.cell.target ::
+          ResidueChannelCertificateAtom.coherenceCell relation.cell ::
+            ResidueChannelCertificateLedger.empty :=
   rfl
 
 end AnalyticMotives

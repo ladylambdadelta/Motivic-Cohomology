@@ -269,15 +269,41 @@ theorem finiteRectangleSubdivisionColumnBoundary_sum_range
     ∑ k in Finset.range n, (horizontal k - horizontal (k + 1))
   let R : ℂ := ∑ k in Finset.range n, right k
   let L : ℂ := ∑ k in Finset.range n, left k
+  have hcell_group :
+      (∑ k in Finset.range n,
+          (horizontal k - horizontal (k + 1) + right k - left k)) =
+        ∑ k in Finset.range n,
+          (horizontal k - horizontal (k + 1) + (right k - left k)) := by
+    exact Finset.sum_congr rfl
+      (fun k _hk =>
+        calc
+          horizontal k - horizontal (k + 1) + right k - left k =
+              (horizontal k - horizontal (k + 1) + right k) + -left k := by
+            exact sub_eq_add_neg
+              (horizontal k - horizontal (k + 1) + right k)
+              (left k)
+          _ = horizontal k - horizontal (k + 1) + (right k + -left k) := by
+            exact add_assoc (horizontal k - horizontal (k + 1)) (right k) (-left k)
+          _ = horizontal k - horizontal (k + 1) + (right k - left k) := by
+            exact congrArg
+              (fun z : ℂ => horizontal k - horizontal (k + 1) + z)
+              (sub_eq_add_neg (right k) (left k)).symm)
   have hsplit :
       (∑ k in Finset.range n,
           (horizontal k - horizontal (k + 1) + right k - left k)) =
         H + (∑ k in Finset.range n, (right k - left k)) := by
-    exact
-      Finset.sum_add_distrib
-        (s := Finset.range n)
-        (f := fun k : ℕ => horizontal k - horizontal (k + 1))
-        (g := fun k : ℕ => right k - left k)
+    calc
+      (∑ k in Finset.range n,
+          (horizontal k - horizontal (k + 1) + right k - left k)) =
+          ∑ k in Finset.range n,
+            (horizontal k - horizontal (k + 1) + (right k - left k)) := by
+        exact hcell_group
+      _ = H + (∑ k in Finset.range n, (right k - left k)) := by
+        exact
+          Finset.sum_add_distrib
+            (s := Finset.range n)
+            (f := fun k : ℕ => horizontal k - horizontal (k + 1))
+            (g := fun k : ℕ => right k - left k)
   have hright_left :
       (∑ k in Finset.range n, (right k - left k)) = R - L := by
     calc
@@ -316,10 +342,31 @@ theorem finiteRectangleSubdivisionColumnBoundary_sum_range
         horizontal 0 - horizontal n +
           (∑ k in Finset.range n, right k) -
             (∑ k in Finset.range n, left k) := by
-      exact
-        (sub_eq_add_neg
-          (horizontal 0 - horizontal n + R)
-          L).symm
+      calc
+        (horizontal 0 - horizontal n) + (R - L) =
+            (horizontal 0 - horizontal n) + (R + -L) := by
+          exact congrArg
+            (fun z : ℂ => (horizontal 0 - horizontal n) + z)
+            (sub_eq_add_neg R L)
+        _ = (horizontal 0 - horizontal n + R) + -L := by
+          exact (add_assoc (horizontal 0 - horizontal n) R (-L)).symm
+        _ = horizontal 0 - horizontal n + R - L := by
+          exact (sub_eq_add_neg (horizontal 0 - horizontal n + R) L).symm
+        _ =
+            horizontal 0 - horizontal n +
+              (∑ k in Finset.range n, right k) - L := by
+          exact congrArg
+            (fun z : ℂ => horizontal 0 - horizontal n + z - L)
+            rfl
+        _ =
+            horizontal 0 - horizontal n +
+              (∑ k in Finset.range n, right k) -
+                (∑ k in Finset.range n, left k) := by
+          exact congrArg
+            (fun z : ℂ =>
+              horizontal 0 - horizontal n +
+                (∑ k in Finset.range n, right k) - z)
+            rfl
 
 /-- A finite horizontal row of cell boundaries collapses to one row boundary once the
 bottom and top edge sums have already been split into the corresponding outer edges. -/

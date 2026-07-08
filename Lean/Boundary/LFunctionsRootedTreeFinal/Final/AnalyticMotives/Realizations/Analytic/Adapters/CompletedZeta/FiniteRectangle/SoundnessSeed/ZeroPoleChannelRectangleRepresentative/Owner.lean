@@ -69,6 +69,19 @@ theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomRepresentative
     (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomRepresentative
       f F h u)
 
+/-- The representative rectangle list is the typed formal-sum list plus the empty-ledger list. -/
+theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomRepresentative_importedRectangles
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomRepresentative
+      f F h u).importedRectangles =
+      (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomFormalSum
+        f F h u).importedRectangles ++
+        TraceCorQRelationLedger.empty.importedRectangles :=
+  TraceCorQHomRepresentative.importedRectangles_eq
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomRepresentative
+      f F h u)
+
 /-- The representative bookkeeping payload is the typed formal-sum payload plus empty-ledger payload. -/
 theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomRepresentative_traceBookkeepingCount
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
@@ -79,6 +92,19 @@ theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomRepresentative
         f F h u).traceBookkeepingCount +
         TraceCorQRelationLedger.empty.traceBookkeepingCount :=
   TraceCorQHomRepresentative.traceBookkeepingCount_eq
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomRepresentative
+      f F h u)
+
+/-- The representative rewrite-step payload is the typed formal-sum payload plus empty-ledger payload. -/
+theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomRepresentative_rewriteStepCount
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomRepresentative
+      f F h u).rewriteStepCount =
+      (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomFormalSum
+        f F h u).rewriteStepCount +
+        TraceCorQRelationLedger.empty.rewriteStepCount :=
+  TraceCorQHomRepresentative.rewriteStepCount_eq
     (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomRepresentative
       f F h u)
 
@@ -129,6 +155,16 @@ theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQCandidate_importe
         f F h u).importedRectangleCount :=
   rfl
 
+/-- The ambient candidate exposes the same finite-rectangle list as the representative. -/
+theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQCandidate_importedRectangles
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQCandidate
+      f F h u).importedRectangles =
+      (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomRepresentative
+        f F h u).importedRectangles :=
+  rfl
+
 /-- The ambient candidate keeps the same bookkeeping payload as the representative. -/
 theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQCandidate_traceBookkeepingCount
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
@@ -137,6 +173,16 @@ theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQCandidate_traceBo
       f F h u).traceBookkeepingCount =
       (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomRepresentative
         f F h u).traceBookkeepingCount :=
+  rfl
+
+/-- The ambient candidate keeps the same rewrite-step payload as the representative. -/
+theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQCandidate_rewriteStepCount
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQCandidate
+      f F h u).rewriteStepCount =
+      (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomRepresentative
+        f F h u).rewriteStepCount :=
   rfl
 
 end AnalyticMotives

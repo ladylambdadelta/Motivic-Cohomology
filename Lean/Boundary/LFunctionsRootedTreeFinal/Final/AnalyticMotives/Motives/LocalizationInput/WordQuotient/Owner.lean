@@ -49,12 +49,27 @@ def TraceLocalizationWordClass.ofWord
     TraceLocalizationWordClass source target :=
   Quotient.mk (TraceLocalizationWordSetoid source target) word
 
+/-- A represented word class remembers its chosen representative before quotienting. -/
+theorem TraceLocalizationWordClass.ofWord_eq_mk
+    {source target : TraceCorQObject}
+    (word : TraceLocalizationWord source target) :
+    TraceLocalizationWordClass.ofWord word =
+      Quotient.mk (TraceLocalizationWordSetoid source target) word :=
+  rfl
+
 /-- The identity formal localized word class. -/
 def TraceLocalizationWordClass.identity
     (object : TraceCorQObject) :
     TraceLocalizationWordClass object object :=
   TraceLocalizationWordClass.ofWord
     (TraceLocalizationWord.identity object)
+
+/-- The identity word-class representative has no atoms. -/
+theorem TraceLocalizationWordClass.identity_representative_atomCount
+    (object : TraceCorQObject) :
+    (TraceLocalizationWord.identity object).atomCount =
+      0 :=
+  rfl
 
 /-- The one-forward-input formal localized word class. -/
 def TraceLocalizationWordClass.ofInputForward
@@ -63,12 +78,26 @@ def TraceLocalizationWordClass.ofInputForward
   TraceLocalizationWordClass.ofWord
     (TraceLocalizationWord.ofInputForward input)
 
+/-- The forward-input word-class representative has one atom. -/
+theorem TraceLocalizationWordClass.ofInputForward_representative_atomCount
+    (input : TraceLocalizationInput) :
+    (TraceLocalizationWord.ofInputForward input).atomCount =
+      0 + 1 :=
+  rfl
+
 /-- The one-inverse-input formal localized word class. -/
 def TraceLocalizationWordClass.ofInputInverse
     (input : TraceLocalizationInput) :
     TraceLocalizationWordClass input.targetObject input.sourceObject :=
   TraceLocalizationWordClass.ofWord
     (TraceLocalizationWord.ofInputInverse input)
+
+/-- The inverse-input word-class representative has one atom. -/
+theorem TraceLocalizationWordClass.ofInputInverse_representative_atomCount
+    (input : TraceLocalizationInput) :
+    (TraceLocalizationWord.ofInputInverse input).atomCount =
+      0 + 1 :=
+  rfl
 
 /-- A generated word relation gives equality of word classes. -/
 theorem TraceLocalizationWordClass.sound

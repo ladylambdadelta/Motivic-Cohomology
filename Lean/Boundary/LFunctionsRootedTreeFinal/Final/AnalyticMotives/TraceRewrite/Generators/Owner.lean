@@ -1,3 +1,4 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceRewrite.Generators.Core.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceRewrite.Generators.Stokes.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceRewrite.Generators.Residue.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceRewrite.Generators.Channel.Owner
@@ -5,7 +6,6 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceRewrite.Gen
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceRewrite.Generators.Schedule.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceRewrite.Generators.WeightDrop.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceRewrite.Generators.Fubini.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceExpression.QLinear.Owner
 
 /-!
 # Analytic rewrite generators
@@ -18,76 +18,68 @@ namespace Boundary
 namespace LFunctions
 namespace AnalyticMotives
 
-/-- The concrete kind of a one-step analytic trace rewrite. -/
-inductive TraceRewriteKind where
-  | stokes
-  | residue
-  | channel
-  | refinement
-  | schedule
-  | weightDrop
-  | fubini
-  deriving DecidableEq, Repr
+/-- The generator root exposes Stokes generator kind. -/
+theorem TraceRewriteGenerators.stokes_kind
+    (source target : QTraceExpression) :
+    (TraceRewriteGenerator.stokes source target).kind =
+      TraceRewriteKind.stokes :=
+  TraceRewriteGenerator.stokes_kind
+    source
+    target
 
-/--
-A one-step generator in the higher-computadic trace calculus.
+/-- The generator root exposes residue generator kind. -/
+theorem TraceRewriteGenerators.residue_kind
+    (source target : QTraceExpression) :
+    (TraceRewriteGenerator.residue source target).kind =
+      TraceRewriteKind.residue :=
+  TraceRewriteGenerator.residue_kind
+    source
+    target
 
-This is concrete syntax: a generator has a kind, a source Q-linear trace
-expression, and a target Q-linear trace expression.  Analytic certificates that
-justify such generators live in the residue-channel presentation layer.
--/
-abbrev TraceRewriteGenerator :=
-  TraceRewriteKind × QTraceExpression × QTraceExpression
+/-- The generator root exposes channel generator kind. -/
+theorem TraceRewriteGenerators.channel_kind
+    (source target : QTraceExpression) :
+    (TraceRewriteGenerator.channel source target).kind =
+      TraceRewriteKind.channel :=
+  TraceRewriteGenerator.channel_kind
+    source
+    target
 
-/-- The kind of a rewrite generator. -/
-def TraceRewriteGenerator.kind (generator : TraceRewriteGenerator) :
-    TraceRewriteKind :=
-  generator.1
+/-- The generator root exposes refinement generator kind. -/
+theorem TraceRewriteGenerators.refinement_kind
+    (source target : QTraceExpression) :
+    (TraceRewriteGenerator.refinement source target).kind =
+      TraceRewriteKind.refinement :=
+  TraceRewriteGenerator.refinement_kind
+    source
+    target
 
-/-- The source expression of a rewrite generator. -/
-def TraceRewriteGenerator.source (generator : TraceRewriteGenerator) :
-    QTraceExpression :=
-  generator.2.1
+/-- The generator root exposes schedule generator kind. -/
+theorem TraceRewriteGenerators.schedule_kind
+    (source target : QTraceExpression) :
+    (TraceRewriteGenerator.schedule source target).kind =
+      TraceRewriteKind.schedule :=
+  TraceRewriteGenerator.schedule_kind
+    source
+    target
 
-/-- The target expression of a rewrite generator. -/
-def TraceRewriteGenerator.target (generator : TraceRewriteGenerator) :
-    QTraceExpression :=
-  generator.2.2
+/-- The generator root exposes weight-drop generator kind. -/
+theorem TraceRewriteGenerators.weightDrop_kind
+    (source target : QTraceExpression) :
+    (TraceRewriteGenerator.weightDrop source target).kind =
+      TraceRewriteKind.weightDrop :=
+  TraceRewriteGenerator.weightDrop_kind
+    source
+    target
 
-/-- A Stokes cancellation rewrite generator. -/
-def TraceRewriteGenerator.stokes
-    (source target : QTraceExpression) : TraceRewriteGenerator :=
-  (TraceRewriteKind.stokes, source, target)
-
-/-- A residue-extraction rewrite generator. -/
-def TraceRewriteGenerator.residue
-    (source target : QTraceExpression) : TraceRewriteGenerator :=
-  (TraceRewriteKind.residue, source, target)
-
-/-- A channel-decomposition rewrite generator. -/
-def TraceRewriteGenerator.channel
-    (source target : QTraceExpression) : TraceRewriteGenerator :=
-  (TraceRewriteKind.channel, source, target)
-
-/-- A refinement-invariance rewrite generator. -/
-def TraceRewriteGenerator.refinement
-    (source target : QTraceExpression) : TraceRewriteGenerator :=
-  (TraceRewriteKind.refinement, source, target)
-
-/-- A schedule-exchange rewrite generator. -/
-def TraceRewriteGenerator.schedule
-    (source target : QTraceExpression) : TraceRewriteGenerator :=
-  (TraceRewriteKind.schedule, source, target)
-
-/-- A weight-drop rewrite generator. -/
-def TraceRewriteGenerator.weightDrop
-    (source target : QTraceExpression) : TraceRewriteGenerator :=
-  (TraceRewriteKind.weightDrop, source, target)
-
-/-- A Fubini coherence rewrite generator. -/
-def TraceRewriteGenerator.fubini
-    (source target : QTraceExpression) : TraceRewriteGenerator :=
-  (TraceRewriteKind.fubini, source, target)
+/-- The generator root exposes Fubini generator kind. -/
+theorem TraceRewriteGenerators.fubini_kind
+    (source target : QTraceExpression) :
+    (TraceRewriteGenerator.fubini source target).kind =
+      TraceRewriteKind.fubini :=
+  TraceRewriteGenerator.fubini_kind
+    source
+    target
 
 end AnalyticMotives
 end LFunctions

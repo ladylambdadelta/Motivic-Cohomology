@@ -56,9 +56,18 @@ theorem TraceCorQHomRepresentative.comp_certificateLedger
         (ResidueChannelCertificateLedger.append
           left.ledger.certificateLedger
           right.ledger.certificateLedger) :=
-  TraceCorQQuotientCandidate.comp_certificateLedger
-    left.rawCandidate
-    right.rawCandidate
+  Eq.trans
+    (TraceCorQHomRepresentative.ofFormalSumLedger_certificateLedger
+      (TraceCorQHomFormalSum.comp left.formalSum right.formalSum)
+      (TraceCorQRelationLedger.append left.ledger right.ledger))
+    (congrArg₂
+      ResidueChannelCertificateLedger.append
+      (TraceCorQHomFormalSum.comp_certificateLedger
+        left.formalSum
+        right.formalSum)
+      (TraceCorQRelationLedger.append_certificateLedger
+        left.ledger
+        right.ledger))
 
 /-- Representative composition records composed formal and relation imported payload. -/
 theorem TraceCorQHomRepresentative.comp_importedRectangleCount
@@ -90,6 +99,39 @@ theorem TraceCorQHomRepresentative.comp_importedRectangleCount
           right.formalSum.raw).importedRectangleCount +
           count)
       (ResidueChannelCertificateLedger.append_importedRectangleCount
+        left.ledger.certificateLedger
+        right.ledger.certificateLedger))
+
+/-- Representative composition records composed formal and relation imported rectangles. -/
+theorem TraceCorQHomRepresentative.comp_importedRectangles
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomRepresentative source middle)
+    (right : TraceCorQHomRepresentative middle target) :
+    (TraceCorQHomRepresentative.comp left right).importedRectangles =
+      (TraceCorQFormalSum.comp
+        left.formalSum.raw
+        right.formalSum.raw).importedRectangles ++
+        (left.ledger.importedRectangles ++
+          right.ledger.importedRectangles) :=
+  Eq.trans
+    (Eq.trans
+      (congrArg
+        ResidueChannelCertificateLedger.importedRectangles
+        (TraceCorQHomRepresentative.comp_certificateLedger left right))
+      (ResidueChannelCertificateLedger.append_importedRectangles
+        (TraceCorQFormalSum.comp
+          left.formalSum.raw
+          right.formalSum.raw).certificateLedger
+        (ResidueChannelCertificateLedger.append
+          left.ledger.certificateLedger
+          right.ledger.certificateLedger)))
+    (congrArg
+      (fun rectangles =>
+        (TraceCorQFormalSum.comp
+          left.formalSum.raw
+          right.formalSum.raw).importedRectangles ++
+          rectangles)
+      (ResidueChannelCertificateLedger.append_importedRectangles
         left.ledger.certificateLedger
         right.ledger.certificateLedger))
 
@@ -126,6 +168,39 @@ theorem TraceCorQHomRepresentative.comp_traceBookkeepingCount
         left.ledger.certificateLedger
         right.ledger.certificateLedger))
 
+/-- Representative composition records composed formal and relation rewrite-step payload. -/
+theorem TraceCorQHomRepresentative.comp_rewriteStepCount
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomRepresentative source middle)
+    (right : TraceCorQHomRepresentative middle target) :
+    (TraceCorQHomRepresentative.comp left right).rewriteStepCount =
+      (TraceCorQFormalSum.comp
+        left.formalSum.raw
+        right.formalSum.raw).rewriteStepCount +
+        (left.ledger.rewriteStepCount +
+          right.ledger.rewriteStepCount) :=
+  Eq.trans
+    (Eq.trans
+      (congrArg
+        ResidueChannelCertificateLedger.rewriteStepCount
+        (TraceCorQHomRepresentative.comp_certificateLedger left right))
+      (ResidueChannelCertificateLedger.append_rewriteStepCount
+        (TraceCorQFormalSum.comp
+          left.formalSum.raw
+          right.formalSum.raw).certificateLedger
+        (ResidueChannelCertificateLedger.append
+          left.ledger.certificateLedger
+          right.ledger.certificateLedger)))
+    (congrArg
+      (fun count =>
+        (TraceCorQFormalSum.comp
+          left.formalSum.raw
+          right.formalSum.raw).rewriteStepCount +
+          count)
+      (ResidueChannelCertificateLedger.append_rewriteStepCount
+        left.ledger.certificateLedger
+        right.ledger.certificateLedger))
+
 /-- Representative composition is compatible with the typed hom relation. -/
 def TraceCorQHomRelation.compCongr
     {source middle target : TraceCorQObject}
@@ -141,21 +216,31 @@ def TraceCorQHomRelation.compCongr
       (TraceCorQRelationLedger.append
         left₁.rawCandidate.ledger
         right₁.rawCandidate.ledger)
-      (TraceCorQHomRepresentative.comp_rawCandidate_formalSum
-        left₁
-        right₁))
+      (Eq.trans
+        (TraceCorQHomRepresentative.comp_rawCandidate_formalSum
+          left₁
+          right₁)
+        (Eq.symm
+          (TraceCorQQuotientCandidate.comp_formalSum
+            left₁.rawCandidate
+            right₁.rawCandidate))))
     (TraceCorQQuotientRelation.trans
       (TraceCorQQuotientRelation.compCongr
         leftRelation
         rightRelation)
-      (TraceCorQQuotientRelation.symm
+        (TraceCorQQuotientRelation.symm
         (TraceCorQQuotientRelation.sameFormalSum
           (TraceCorQRelationLedger.append
             left₂.rawCandidate.ledger
             right₂.rawCandidate.ledger)
-          (TraceCorQHomRepresentative.comp_rawCandidate_formalSum
-            left₂
-            right₂))))
+          (Eq.trans
+            (TraceCorQHomRepresentative.comp_rawCandidate_formalSum
+              left₂
+              right₂)
+            (Eq.symm
+              (TraceCorQQuotientCandidate.comp_formalSum
+                left₂.rawCandidate
+                right₂.rawCandidate))))))
 
 /-- Composition of typed hom classes. -/
 def TraceCorQHom.comp
@@ -213,9 +298,14 @@ theorem TraceCorQHom.ambient_comp
             (TraceCorQRelationLedger.append
               leftRepresentative.rawCandidate.ledger
               rightRepresentative.rawCandidate.ledger)
-            (TraceCorQHomRepresentative.comp_rawCandidate_formalSum
-              leftRepresentative
-              rightRepresentative))
+            (Eq.trans
+              (TraceCorQHomRepresentative.comp_rawCandidate_formalSum
+                leftRepresentative
+                rightRepresentative)
+              (Eq.symm
+                (TraceCorQQuotientCandidate.comp_formalSum
+                  leftRepresentative.rawCandidate
+                  rightRepresentative.rawCandidate))))
           (Eq.symm
             (TraceCorQQuotient.comp_ofCandidate
               leftRepresentative.rawCandidate

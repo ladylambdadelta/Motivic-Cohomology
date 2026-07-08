@@ -60,11 +60,11 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_majorantPa
     B * C * (1 + ‖t‖) ^ (-(2 : ℤ))
   have hintegrable :
       Integrable majorant (volume : Measure ℝ) := by
-    have hfinrank : finrank ℝ ℝ = 1 :=
+    have hfinrank : Module.finrank ℝ ℝ = 1 :=
       Module.finrank_self ℝ
-    have hfinrank_cast : ((finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
+    have hfinrank_cast : ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
       congrArg (fun n : ℕ => (n : ℝ)) hfinrank
-    have hdim : (finrank ℝ ℝ : ℝ) < 2 :=
+    have hdim : (Module.finrank ℝ ℝ : ℝ) < 2 :=
       Eq.subst
         (motive := fun x : ℝ => x < 2)
         hfinrank_cast.symm
@@ -73,7 +73,7 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_majorantPa
         Integrable
           (fun t : ℝ => (1 + ‖t‖) ^ (-(2 : ℝ)))
           (volume : Measure ℝ) :=
-      integrable_one_add_norm (E := ℝ) (μ := volume) hdim
+      integrable_one_add_norm (E := ℝ) hdim
     have hscaled :
         Integrable
           (fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(2 : ℝ)))
@@ -94,7 +94,7 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_majorantPa
       hscaled
   have hfactor_meas :
       AEStronglyMeasurable
-        (fun t : ℝ => L ↗Λ (zetaCompletedExplicitFormulaRightAffineLine F t))
+        (fun t : ℝ => (L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t))
         (volume : Measure ℝ) :=
     zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_aestronglyMeasurable F
   have hphi_meas :
@@ -107,14 +107,14 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_majorantPa
       f F h
   have hbound :
       ∀ᵐ t ∂(volume : Measure ℝ),
-        ‖L ↗Λ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ *
+        ‖(L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t)‖ *
             ‖zetaCompletedExplicitFormulaPhi f
               (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)‖
           ≤ majorant t :=
     Filter.Eventually.of_forall
       (fun t : ℝ =>
         let factor : ℂ :=
-          L ↗Λ (zetaCompletedExplicitFormulaRightAffineLine F t)
+          (L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t)
         let phi : ℂ :=
           zetaCompletedExplicitFormulaPhi f
             (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)
@@ -462,20 +462,20 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantP
       ((1 : ℝ) - F.c - (1 / 2 : ℝ)) 4
   have hintegrable :
       Integrable majorant (volume : Measure ℝ) := by
-    have hfinrank : finrank ℝ ℝ = 1 :=
+    have hfinrank : Module.finrank ℝ ℝ = 1 :=
       Module.finrank_self ℝ
-    have hfinrank_cast : ((finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
+    have hfinrank_cast : ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
       congrArg (fun n : ℕ => (n : ℝ)) hfinrank
-    have hdim : (finrank ℝ ℝ : ℝ) < 3 :=
+    have hdim : (Module.finrank ℝ ℝ : ℝ) < 3 :=
       Eq.subst
         (motive := fun x : ℝ => x < 3)
         hfinrank_cast.symm
-        (one_lt_of_lt two_lt_three)
+        (lt_trans one_lt_two two_lt_three)
     have hbase :
         Integrable
           (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℝ)))
           (volume : Measure ℝ) :=
-      integrable_one_add_norm (E := ℝ) (μ := volume) hdim
+      integrable_one_add_norm (E := ℝ) hdim
     have hscaled :
         Integrable
           (fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(3 : ℝ)))

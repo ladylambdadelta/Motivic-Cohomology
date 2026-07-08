@@ -596,23 +596,23 @@ theorem boundaryLineOnePointRealParam_reciprocalDensity_preCutoff_mass_le
       harmonic ⌊2 + ‖t‖⌋₊ := by
   have hsubset :
       Finset.Ioc N M ⊆ Finset.Icc 1 ⌊2 + ‖t‖⌋₊ := by
-    intro n hn_mem
+    exact fun n hn_mem =>
     have hn_bounds := Finset.mem_Ioc.mp hn_mem
     have hn_one : 1 ≤ n :=
       le_trans hN (Nat.le_of_lt hn_bounds.1)
     have hn_cutoff : n ≤ ⌊2 + ‖t‖⌋₊ :=
       le_trans hn_bounds.2 hM
-    exact Finset.mem_Icc.mpr ⟨hn_one, hn_cutoff⟩
+    Finset.mem_Icc.mpr ⟨hn_one, hn_cutoff⟩
   have hnonneg :
       ∀ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
         n ∉ Finset.Ioc N M →
           (0 : ℝ) ≤ (1 : ℝ) / (n : ℝ) := by
-    intro n hn_mem _hn_not
+    exact fun n hn_mem _hn_not =>
     have hn_one : 1 ≤ n :=
       (Finset.mem_Icc.mp hn_mem).1
     have hn_pos_real : (0 : ℝ) < (n : ℝ) :=
       Nat.cast_pos.mpr (Nat.lt_of_succ_le hn_one)
-    exact div_nonneg zero_le_one (le_of_lt hn_pos_real)
+    div_nonneg zero_le_one (le_of_lt hn_pos_real)
   have hsum_subset :
       (∑ n ∈ Finset.Ioc N M, (1 : ℝ) / (n : ℝ)) ≤
         ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, (1 : ℝ) / (n : ℝ) :=

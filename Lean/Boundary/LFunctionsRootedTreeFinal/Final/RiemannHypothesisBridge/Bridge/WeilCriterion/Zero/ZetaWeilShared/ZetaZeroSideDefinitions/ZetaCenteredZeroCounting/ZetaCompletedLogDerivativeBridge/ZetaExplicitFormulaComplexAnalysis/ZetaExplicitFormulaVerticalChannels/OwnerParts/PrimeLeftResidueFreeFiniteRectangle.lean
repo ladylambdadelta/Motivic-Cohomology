@@ -43,7 +43,41 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_tangentPuncturedRectang
       ∀ z : ℂ,
         z ∈ explicitFormulaContourFamilyBoundary F T →
           ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
-            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z) :
+            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (hside :
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T) →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              ∀ b : ℂ,
+                b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                  a ≠ b → ε + ε < dist a b) →
+            explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) (-T) ∧
+              explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) T ∧
+                (∀ a : ℂ,
+                  a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                    explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                      (explicitFormulaRectangleRawInscribedSquareLowerCorner (ε / 2) a).im) ∧
+                  (∀ a : ℂ,
+                    a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                        (explicitFormulaRectangleRawInscribedSquareUpperCorner (ε / 2) a).im) ∧
+                    explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) F.c ∧
+                      explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) (1 - F.c) ∧
+                        (∀ a : ℂ,
+                          a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                            explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2)
+                              (explicitFormulaRectangleRawInscribedSquareUpperCorner
+                                (ε / 2) a).re) ∧
+                          (∀ a : ℂ,
+                            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                              explicitFormulaRectangleSortedYVerticalSideIntegrable f T
+                                (ε / 2)
+                                (explicitFormulaRectangleRawInscribedSquareLowerCorner
+                                  (ε / 2) a).re)) :
     ∀ ε : ℝ,
       0 < ε →
         (∀ a : ℂ,
@@ -57,7 +91,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_tangentPuncturedRectang
           explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral
             f F T ε = 0 :=
   explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral_eq_zero_ownerGridSubdivision
-    f F h hT hinterior hboundary
+    f F h hT hinterior hboundary hside
 
 /-- Finite-radius prime-left residue-free rectangle identity after unfolding
 the punctured boundary into the outer tangent rectangle and deleted-circle
@@ -78,7 +112,41 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_tangentContour_sub_rawD
       ∀ z : ℂ,
         z ∈ explicitFormulaContourFamilyBoundary F T →
           ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
-            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z) :
+            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (hside :
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T) →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              ∀ b : ℂ,
+                b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                  a ≠ b → ε + ε < dist a b) →
+            explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) (-T) ∧
+              explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) T ∧
+                (∀ a : ℂ,
+                  a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                    explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                      (explicitFormulaRectangleRawInscribedSquareLowerCorner (ε / 2) a).im) ∧
+                  (∀ a : ℂ,
+                    a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                        (explicitFormulaRectangleRawInscribedSquareUpperCorner (ε / 2) a).im) ∧
+                    explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) F.c ∧
+                      explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) (1 - F.c) ∧
+                        (∀ a : ℂ,
+                          a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                            explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2)
+                              (explicitFormulaRectangleRawInscribedSquareUpperCorner
+                                (ε / 2) a).re) ∧
+                          (∀ a : ℂ,
+                            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                              explicitFormulaRectangleSortedYVerticalSideIntegrable f T
+                                (ε / 2)
+                                (explicitFormulaRectangleRawInscribedSquareLowerCorner
+                                  (ε / 2) a).re)) :
     ∀ ε : ℝ,
       0 < ε →
         (∀ a : ℂ,
@@ -96,7 +164,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_tangentContour_sub_rawD
       explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral
         f F T ε = 0 :=
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_tangentPuncturedRectangleIntegral_eq_zero_ownerFiniteRectangle
-      f F h hT hinterior hboundary ε hε hclosed hsep
+      f F h hT hinterior hboundary hside ε hε hclosed hsep
   have hunfold :
       explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral
         f F T ε =
@@ -113,8 +181,8 @@ noncomputable def zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteHorizon
     ℂ :=
   (zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) *
       Complex.I) +
-    (zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
-      zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T))
+    (zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) -
+      zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T))
 
 /-- The finite deleted-circle excision error with the sign used by the
 left-window boundary sum. -/
@@ -141,7 +209,41 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_horizon
       ∀ z : ℂ,
         z ∈ explicitFormulaContourFamilyBoundary F T →
           ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
-            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z) :
+            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (hside :
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T) →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              ∀ b : ℂ,
+                b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                  a ≠ b → ε + ε < dist a b) →
+            explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) (-T) ∧
+              explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) T ∧
+                (∀ a : ℂ,
+                  a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                    explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                      (explicitFormulaRectangleRawInscribedSquareLowerCorner (ε / 2) a).im) ∧
+                  (∀ a : ℂ,
+                    a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                        (explicitFormulaRectangleRawInscribedSquareUpperCorner (ε / 2) a).im) ∧
+                    explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) F.c ∧
+                      explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) (1 - F.c) ∧
+                        (∀ a : ℂ,
+                          a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                            explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2)
+                              (explicitFormulaRectangleRawInscribedSquareUpperCorner
+                                (ε / 2) a).re) ∧
+                          (∀ a : ℂ,
+                            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                              explicitFormulaRectangleSortedYVerticalSideIntegrable f T
+                                (ε / 2)
+                                (explicitFormulaRectangleRawInscribedSquareLowerCorner
+                                  (ε / 2) a).re)) :
     ∀ ε : ℝ,
       0 < ε →
         (∀ a : ℂ,
@@ -156,9 +258,9 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_horizon
                 f (F.rectangle T) * Complex.I)) +
               ((zetaCompletedExplicitFormulaRightLineIntegral
                   f (F.rectangle T) * Complex.I) +
-                (zetaCompletedExplicitFormulaTopLineIntegral
+                (zetaCompletedExplicitFormulaBottomLineIntegral
                     f (F.rectangle T) -
-                  zetaCompletedExplicitFormulaBottomLineIntegral
+                  zetaCompletedExplicitFormulaTopLineIntegral
                     f (F.rectangle T))) -
             explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε = 0 := by
   intro ε hε hclosed hsep
@@ -166,63 +268,63 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_horizon
       zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) -
         explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε = 0 :=
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_tangentContour_sub_rawDeletedCircleBoundarySum_eq_zero_ownerFiniteRectangle
-      f F h hT hinterior hboundary ε hε hclosed hsep
+      f F h hT hinterior hboundary hside ε hε hclosed hsep
   have htangent :
       (zetaCompletedExplicitFormulaRightLineIntegral
           f (F.rectangle T) * Complex.I -
           zetaCompletedExplicitFormulaLeftLineIntegral
             f (F.rectangle T) * Complex.I +
-          (zetaCompletedExplicitFormulaTopLineIntegral
+          (zetaCompletedExplicitFormulaBottomLineIntegral
               f (F.rectangle T) -
-            zetaCompletedExplicitFormulaBottomLineIntegral
+            zetaCompletedExplicitFormulaTopLineIntegral
               f (F.rectangle T))) -
         explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε = 0 := by
     have hunfold :
         zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) =
-          zetaCompletedExplicitFormulaRightLineIntegral
-              f (F.rectangle T) * Complex.I -
-            zetaCompletedExplicitFormulaLeftLineIntegral
-              f (F.rectangle T) * Complex.I +
-            zetaCompletedExplicitFormulaTopLineIntegral
+          zetaCompletedExplicitFormulaBottomLineIntegral
               f (F.rectangle T) -
-            zetaCompletedExplicitFormulaBottomLineIntegral
-              f (F.rectangle T) :=
+            zetaCompletedExplicitFormulaTopLineIntegral
+              f (F.rectangle T) +
+              (zetaCompletedExplicitFormulaRightLineIntegral
+                  f (F.rectangle T) * Complex.I -
+                zetaCompletedExplicitFormulaLeftLineIntegral
+                  f (F.rectangle T) * Complex.I) :=
       zetaCompletedExplicitFormulaTangentContourIntegral_eq f (F.rectangle T)
     have hsplit :
-        zetaCompletedExplicitFormulaRightLineIntegral
-              f (F.rectangle T) * Complex.I -
-            zetaCompletedExplicitFormulaLeftLineIntegral
-              f (F.rectangle T) * Complex.I +
-            zetaCompletedExplicitFormulaTopLineIntegral
+        zetaCompletedExplicitFormulaBottomLineIntegral
               f (F.rectangle T) -
-            zetaCompletedExplicitFormulaBottomLineIntegral
-              f (F.rectangle T) =
+            zetaCompletedExplicitFormulaTopLineIntegral
+              f (F.rectangle T) +
+              (zetaCompletedExplicitFormulaRightLineIntegral
+                  f (F.rectangle T) * Complex.I -
+                zetaCompletedExplicitFormulaLeftLineIntegral
+                  f (F.rectangle T) * Complex.I) =
           zetaCompletedExplicitFormulaRightLineIntegral
               f (F.rectangle T) * Complex.I -
             zetaCompletedExplicitFormulaLeftLineIntegral
               f (F.rectangle T) * Complex.I +
-            (zetaCompletedExplicitFormulaTopLineIntegral
+            (zetaCompletedExplicitFormulaBottomLineIntegral
                 f (F.rectangle T) -
-              zetaCompletedExplicitFormulaBottomLineIntegral
+              zetaCompletedExplicitFormulaTopLineIntegral
                 f (F.rectangle T)) := by
-      exact explicitFormula_tangent_four_side_split
+      exact explicitFormula_standardBoundary_verticalFirst_noExcision
         (zetaCompletedExplicitFormulaRightLineIntegral
           f (F.rectangle T) * Complex.I)
         (zetaCompletedExplicitFormulaLeftLineIntegral
           f (F.rectangle T) * Complex.I)
-        (zetaCompletedExplicitFormulaTopLineIntegral
-          f (F.rectangle T))
         (zetaCompletedExplicitFormulaBottomLineIntegral
-          f (F.rectangle T))
+          f (F.rectangle T) -
+          zetaCompletedExplicitFormulaTopLineIntegral
+            f (F.rectangle T))
     have hreplace :
         zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) =
           zetaCompletedExplicitFormulaRightLineIntegral
               f (F.rectangle T) * Complex.I -
             zetaCompletedExplicitFormulaLeftLineIntegral
               f (F.rectangle T) * Complex.I +
-            (zetaCompletedExplicitFormulaTopLineIntegral
+            (zetaCompletedExplicitFormulaBottomLineIntegral
                 f (F.rectangle T) -
-              zetaCompletedExplicitFormulaBottomLineIntegral
+              zetaCompletedExplicitFormulaTopLineIntegral
                 f (F.rectangle T)) :=
       Eq.trans hunfold hsplit
     exact Eq.trans
@@ -237,9 +339,9 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_horizon
         f (F.rectangle T) * Complex.I)
       (zetaCompletedExplicitFormulaLeftLineIntegral
         f (F.rectangle T) * Complex.I)
-      (zetaCompletedExplicitFormulaTopLineIntegral
+      (zetaCompletedExplicitFormulaBottomLineIntegral
           f (F.rectangle T) -
-        zetaCompletedExplicitFormulaBottomLineIntegral
+        zetaCompletedExplicitFormulaTopLineIntegral
           f (F.rectangle T))
       (explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε)
       htangent
@@ -259,7 +361,41 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_finiteE
       ∀ z : ℂ,
         z ∈ explicitFormulaContourFamilyBoundary F T →
           ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
-            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z) :
+            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (hside :
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T) →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              ∀ b : ℂ,
+                b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                  a ≠ b → ε + ε < dist a b) →
+            explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) (-T) ∧
+              explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) T ∧
+                (∀ a : ℂ,
+                  a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                    explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                      (explicitFormulaRectangleRawInscribedSquareLowerCorner (ε / 2) a).im) ∧
+                  (∀ a : ℂ,
+                    a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                        (explicitFormulaRectangleRawInscribedSquareUpperCorner (ε / 2) a).im) ∧
+                    explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) F.c ∧
+                      explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) (1 - F.c) ∧
+                        (∀ a : ℂ,
+                          a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                            explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2)
+                              (explicitFormulaRectangleRawInscribedSquareUpperCorner
+                                (ε / 2) a).re) ∧
+                          (∀ a : ℂ,
+                            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                              explicitFormulaRectangleSortedYVerticalSideIntegrable f T
+                                (ε / 2)
+                                (explicitFormulaRectangleRawInscribedSquareLowerCorner
+                                  (ε / 2) a).re)) :
     ∀ ε : ℝ,
       0 < ε →
         (∀ a : ℂ,
@@ -282,30 +418,30 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_finiteE
             f (F.rectangle T) * Complex.I)) +
           ((zetaCompletedExplicitFormulaRightLineIntegral
               f (F.rectangle T) * Complex.I) +
-            (zetaCompletedExplicitFormulaTopLineIntegral
+            (zetaCompletedExplicitFormulaBottomLineIntegral
                 f (F.rectangle T) -
-              zetaCompletedExplicitFormulaBottomLineIntegral
+              zetaCompletedExplicitFormulaTopLineIntegral
                 f (F.rectangle T))) -
         explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε = 0 :=
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_horizontalRight_sub_excision_eq_zero_ownerFiniteRectangle
-      f F h hT hinterior hboundary ε hε hclosed hsep
+      f F h hT hinterior hboundary hside ε hε hclosed hsep
   have hconvert :
       (-(zetaCompletedExplicitFormulaLeftLineIntegral
             f (F.rectangle T) * Complex.I)) +
           ((zetaCompletedExplicitFormulaRightLineIntegral
               f (F.rectangle T) * Complex.I) +
-            (zetaCompletedExplicitFormulaTopLineIntegral
+            (zetaCompletedExplicitFormulaBottomLineIntegral
                 f (F.rectangle T) -
-              zetaCompletedExplicitFormulaBottomLineIntegral
+              zetaCompletedExplicitFormulaTopLineIntegral
                 f (F.rectangle T))) +
         (-explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε) =
       (-(zetaCompletedExplicitFormulaLeftLineIntegral
             f (F.rectangle T) * Complex.I)) +
           ((zetaCompletedExplicitFormulaRightLineIntegral
               f (F.rectangle T) * Complex.I) +
-            (zetaCompletedExplicitFormulaTopLineIntegral
+            (zetaCompletedExplicitFormulaBottomLineIntegral
                 f (F.rectangle T) -
-              zetaCompletedExplicitFormulaBottomLineIntegral
+              zetaCompletedExplicitFormulaTopLineIntegral
                 f (F.rectangle T))) -
         explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε :=
     (sub_eq_add_neg
@@ -313,9 +449,9 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_finiteE
             f (F.rectangle T) * Complex.I)) +
           ((zetaCompletedExplicitFormulaRightLineIntegral
               f (F.rectangle T) * Complex.I) +
-            (zetaCompletedExplicitFormulaTopLineIntegral
+            (zetaCompletedExplicitFormulaBottomLineIntegral
                 f (F.rectangle T) -
-              zetaCompletedExplicitFormulaBottomLineIntegral
+              zetaCompletedExplicitFormulaTopLineIntegral
                 f (F.rectangle T))))
       (explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε)).symm
   exact Eq.trans hconvert hsub
@@ -434,6 +570,40 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePri
         z ∈ explicitFormulaContourFamilyBoundary F T →
           ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
             DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (hside :
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T) →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              ∀ b : ℂ,
+                b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                  a ≠ b → ε + ε < dist a b) →
+            explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) (-T) ∧
+              explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) T ∧
+                (∀ a : ℂ,
+                  a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                    explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                      (explicitFormulaRectangleRawInscribedSquareLowerCorner (ε / 2) a).im) ∧
+                  (∀ a : ℂ,
+                    a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                        (explicitFormulaRectangleRawInscribedSquareUpperCorner (ε / 2) a).im) ∧
+                    explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) F.c ∧
+                      explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) (1 - F.c) ∧
+                        (∀ a : ℂ,
+                          a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                            explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2)
+                              (explicitFormulaRectangleRawInscribedSquareUpperCorner
+                                (ε / 2) a).re) ∧
+                          (∀ a : ℂ,
+                            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                              explicitFormulaRectangleSortedYVerticalSideIntegrable f T
+                                (ε / 2)
+                                (explicitFormulaRectangleRawInscribedSquareLowerCorner
+                                  (ε / 2) a).re))
     (hleft_decomp :
       zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) =
         (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
@@ -469,7 +639,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePri
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteExcisionError
             f T ε = 0 :=
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_finiteErrors_eq_zero_ownerFiniteRectangle
-      f F h hT hinterior hboundary ε hε hclosed hsep
+      f F h hT hinterior hboundary hside ε hε hclosed hsep
   exact
     explicitFormula_primeLeftBoundary_of_completedLeftBoundary
       (zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T))
@@ -505,6 +675,40 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeDifference_add_inv
         z ∈ explicitFormulaContourFamilyBoundary F T →
           ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
             DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (hside :
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T) →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              ∀ b : ℂ,
+                b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                  a ≠ b → ε + ε < dist a b) →
+            explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) (-T) ∧
+              explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) T ∧
+                (∀ a : ℂ,
+                  a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                    explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                      (explicitFormulaRectangleRawInscribedSquareLowerCorner (ε / 2) a).im) ∧
+                  (∀ a : ℂ,
+                    a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                        (explicitFormulaRectangleRawInscribedSquareUpperCorner (ε / 2) a).im) ∧
+                    explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) F.c ∧
+                      explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) (1 - F.c) ∧
+                        (∀ a : ℂ,
+                          a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                            explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2)
+                              (explicitFormulaRectangleRawInscribedSquareUpperCorner
+                                (ε / 2) a).re) ∧
+                          (∀ a : ℂ,
+                            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                              explicitFormulaRectangleSortedYVerticalSideIntegrable f T
+                                (ε / 2)
+                                (explicitFormulaRectangleRawInscribedSquareLowerCorner
+                                  (ε / 2) a).re))
     (hleft_decomp :
       zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) =
         (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
@@ -536,8 +740,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeDifference_add_inv
               ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
                 zetaCompletedExplicitFormulaInverseGammaRightAffineKernel f F t) +
               Complex.I *
-                (zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
-                  zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T))) +
+                (zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) -
+                  zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T))) +
             Complex.I *
               zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteExcisionError
                 f T ε = 0 := by
@@ -557,15 +761,15 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeDifference_add_inv
     ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
       zetaCompletedExplicitFormulaInverseGammaRightAffineKernel f F t
   let H : ℂ :=
-    zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
-      zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T)
+    zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) -
+      zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T)
   let E : ℂ :=
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteExcisionError
       f T ε
   have hcompleted_boundary :
       (-(C * Complex.I)) + (R * Complex.I + H) + E = 0 :=
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_finiteErrors_eq_zero_ownerFiniteRectangle
-      f F h hT hinterior hboundary ε hε hclosed hsep
+      f F h hT hinterior hboundary hside ε hε hclosed hsep
   have hsplit :
       (P - Q) + ((G - J) + Complex.I * H) + Complex.I * E = 0 :=
     explicitFormula_primeLeftBoundary_fullRightSplit_of_completedBoundary
@@ -588,6 +792,40 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePri
         z ∈ explicitFormulaContourFamilyBoundary F T →
           ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
             DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (hside :
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T) →
+          (∀ a : ℂ,
+            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              ∀ b : ℂ,
+                b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                  a ≠ b → ε + ε < dist a b) →
+            explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) (-T) ∧
+              explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2) T ∧
+                (∀ a : ℂ,
+                  a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                    explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                      (explicitFormulaRectangleRawInscribedSquareLowerCorner (ε / 2) a).im) ∧
+                  (∀ a : ℂ,
+                    a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                      explicitFormulaRectangleSortedXHorizontalSideIntegrable f F T (ε / 2)
+                        (explicitFormulaRectangleRawInscribedSquareUpperCorner (ε / 2) a).im) ∧
+                    explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) F.c ∧
+                      explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2) (1 - F.c) ∧
+                        (∀ a : ℂ,
+                          a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                            explicitFormulaRectangleSortedYVerticalSideIntegrable f T (ε / 2)
+                              (explicitFormulaRectangleRawInscribedSquareUpperCorner
+                                (ε / 2) a).re) ∧
+                          (∀ a : ℂ,
+                            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                              explicitFormulaRectangleSortedYVerticalSideIntegrable f T
+                                (ε / 2)
+                                (explicitFormulaRectangleRawInscribedSquareLowerCorner
+                                  (ε / 2) a).re))
     (hprime :
       IntegrableOn
         (zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F)
@@ -626,7 +864,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePri
       f F T hprime hinverseGamma
   exact
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePrimeErrors_eq_zero_of_leftIntegral_decomposition
-      f F h hT hinterior hboundary hleft_decomp
+      f F h hT hinterior hboundary hside hleft_decomp
 
 end ZetaAdmissibleFunction
 

@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.LocalizationInput.WordQuotient.Category.Inputs.ByKind.Isomorphisms.Cancellation.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.LocalizationInput.WordQuotient.Category.Inputs.ByKind.Representatives.Owner
 
 /-!
 # Descent localized arrows
@@ -49,6 +50,26 @@ theorem TraceDescentLocalization.channelIso_inv
       TraceLocalizationInput.descentChannelInverseArrow source target :=
   rfl
 
+/-- The descent-channel hom has a one-atom chosen representative. -/
+theorem TraceDescentLocalization.channelIso_hom_representative_atomCount
+    (source target : QTraceExpression) :
+    (TraceLocalizationWord.ofInputForward
+      (TraceLocalizationInput.descentChannel source target)).atomCount =
+      0 + 1 :=
+  TraceLocalizationInput.descentChannelForwardArrow_representative_atomCount
+    source
+    target
+
+/-- The descent-channel inverse has a one-atom chosen representative. -/
+theorem TraceDescentLocalization.channelIso_inv_representative_atomCount
+    (source target : QTraceExpression) :
+    (TraceLocalizationWord.ofInputInverse
+      (TraceLocalizationInput.descentChannel source target)).atomCount =
+      0 + 1 :=
+  TraceLocalizationInput.descentChannelInverseArrow_representative_atomCount
+    source
+    target
+
 /-- The hom of the descent-refinement isomorphism is the named refinement forward arrow. -/
 theorem TraceDescentLocalization.refinementIso_hom
     (source target : QTraceExpression) :
@@ -63,6 +84,26 @@ theorem TraceDescentLocalization.refinementIso_inv
       TraceLocalizationInput.descentRefinementInverseArrow source target :=
   rfl
 
+/-- The descent-refinement hom has a one-atom chosen representative. -/
+theorem TraceDescentLocalization.refinementIso_hom_representative_atomCount
+    (source target : QTraceExpression) :
+    (TraceLocalizationWord.ofInputForward
+      (TraceLocalizationInput.descentRefinement source target)).atomCount =
+      0 + 1 :=
+  TraceLocalizationInput.descentRefinementForwardArrow_representative_atomCount
+    source
+    target
+
+/-- The descent-refinement inverse has a one-atom chosen representative. -/
+theorem TraceDescentLocalization.refinementIso_inv_representative_atomCount
+    (source target : QTraceExpression) :
+    (TraceLocalizationWord.ofInputInverse
+      (TraceLocalizationInput.descentRefinement source target)).atomCount =
+      0 + 1 :=
+  TraceLocalizationInput.descentRefinementInverseArrow_representative_atomCount
+    source
+    target
+
 /-- The hom of the descent-schedule isomorphism is the named schedule forward arrow. -/
 theorem TraceDescentLocalization.scheduleIso_hom
     (source target : QTraceExpression) :
@@ -76,6 +117,26 @@ theorem TraceDescentLocalization.scheduleIso_inv
     (TraceDescentLocalization.scheduleIso source target).inv =
       TraceLocalizationInput.descentScheduleInverseArrow source target :=
   rfl
+
+/-- The descent-schedule hom has a one-atom chosen representative. -/
+theorem TraceDescentLocalization.scheduleIso_hom_representative_atomCount
+    (source target : QTraceExpression) :
+    (TraceLocalizationWord.ofInputForward
+      (TraceLocalizationInput.descentSchedule source target)).atomCount =
+      0 + 1 :=
+  TraceLocalizationInput.descentScheduleForwardArrow_representative_atomCount
+    source
+    target
+
+/-- The descent-schedule inverse has a one-atom chosen representative. -/
+theorem TraceDescentLocalization.scheduleIso_inv_representative_atomCount
+    (source target : QTraceExpression) :
+    (TraceLocalizationWord.ofInputInverse
+      (TraceLocalizationInput.descentSchedule source target)).atomCount =
+      0 + 1 :=
+  TraceLocalizationInput.descentScheduleInverseArrow_representative_atomCount
+    source
+    target
 
 /-- Descent-channel hom followed by inverse is identity. -/
 theorem TraceDescentLocalization.channelIso_hom_comp_inv
@@ -97,6 +158,32 @@ theorem TraceDescentLocalization.channelIso_inv_comp_hom
         (TraceLocalizationInput.descentChannel source target).targetObject :=
   TraceLocalizationInput.descentChannelLocalizedIso_inv_comp_hom source target
 
+/-- Descent-channel hom followed by inverse is categorical identity. -/
+theorem TraceDescentLocalization.channelIso_hom_comp_inv_eq_categoryIdentity
+    (source target : QTraceExpression) :
+    (TraceDescentLocalization.channelIso source target).hom ≫
+        (TraceDescentLocalization.channelIso source target).inv =
+      (𝟙 (TraceLocalizationInput.descentChannel source target).localizedSourceObject :
+        TraceLocalizedWordHom
+          (TraceLocalizationInput.descentChannel source target).localizedSourceObject
+          (TraceLocalizationInput.descentChannel source target).localizedSourceObject) :=
+  TraceLocalizationInput.descentChannelLocalizedIso_hom_comp_inv_eq_categoryIdentity
+    source
+    target
+
+/-- Descent-channel inverse followed by hom is categorical identity. -/
+theorem TraceDescentLocalization.channelIso_inv_comp_hom_eq_categoryIdentity
+    (source target : QTraceExpression) :
+    (TraceDescentLocalization.channelIso source target).inv ≫
+        (TraceDescentLocalization.channelIso source target).hom =
+      (𝟙 (TraceLocalizationInput.descentChannel source target).localizedTargetObject :
+        TraceLocalizedWordHom
+          (TraceLocalizationInput.descentChannel source target).localizedTargetObject
+          (TraceLocalizationInput.descentChannel source target).localizedTargetObject) :=
+  TraceLocalizationInput.descentChannelLocalizedIso_inv_comp_hom_eq_categoryIdentity
+    source
+    target
+
 /-- Descent-refinement hom followed by inverse is identity. -/
 theorem TraceDescentLocalization.refinementIso_hom_comp_inv
     (source target : QTraceExpression) :
@@ -117,6 +204,32 @@ theorem TraceDescentLocalization.refinementIso_inv_comp_hom
         (TraceLocalizationInput.descentRefinement source target).targetObject :=
   TraceLocalizationInput.descentRefinementLocalizedIso_inv_comp_hom source target
 
+/-- Descent-refinement hom followed by inverse is categorical identity. -/
+theorem TraceDescentLocalization.refinementIso_hom_comp_inv_eq_categoryIdentity
+    (source target : QTraceExpression) :
+    (TraceDescentLocalization.refinementIso source target).hom ≫
+        (TraceDescentLocalization.refinementIso source target).inv =
+      (𝟙 (TraceLocalizationInput.descentRefinement source target).localizedSourceObject :
+        TraceLocalizedWordHom
+          (TraceLocalizationInput.descentRefinement source target).localizedSourceObject
+          (TraceLocalizationInput.descentRefinement source target).localizedSourceObject) :=
+  TraceLocalizationInput.descentRefinementLocalizedIso_hom_comp_inv_eq_categoryIdentity
+    source
+    target
+
+/-- Descent-refinement inverse followed by hom is categorical identity. -/
+theorem TraceDescentLocalization.refinementIso_inv_comp_hom_eq_categoryIdentity
+    (source target : QTraceExpression) :
+    (TraceDescentLocalization.refinementIso source target).inv ≫
+        (TraceDescentLocalization.refinementIso source target).hom =
+      (𝟙 (TraceLocalizationInput.descentRefinement source target).localizedTargetObject :
+        TraceLocalizedWordHom
+          (TraceLocalizationInput.descentRefinement source target).localizedTargetObject
+          (TraceLocalizationInput.descentRefinement source target).localizedTargetObject) :=
+  TraceLocalizationInput.descentRefinementLocalizedIso_inv_comp_hom_eq_categoryIdentity
+    source
+    target
+
 /-- Descent-schedule hom followed by inverse is identity. -/
 theorem TraceDescentLocalization.scheduleIso_hom_comp_inv
     (source target : QTraceExpression) :
@@ -136,6 +249,32 @@ theorem TraceDescentLocalization.scheduleIso_inv_comp_hom
       TraceLocalizationWordClass.identity
         (TraceLocalizationInput.descentSchedule source target).targetObject :=
   TraceLocalizationInput.descentScheduleLocalizedIso_inv_comp_hom source target
+
+/-- Descent-schedule hom followed by inverse is categorical identity. -/
+theorem TraceDescentLocalization.scheduleIso_hom_comp_inv_eq_categoryIdentity
+    (source target : QTraceExpression) :
+    (TraceDescentLocalization.scheduleIso source target).hom ≫
+        (TraceDescentLocalization.scheduleIso source target).inv =
+      (𝟙 (TraceLocalizationInput.descentSchedule source target).localizedSourceObject :
+        TraceLocalizedWordHom
+          (TraceLocalizationInput.descentSchedule source target).localizedSourceObject
+          (TraceLocalizationInput.descentSchedule source target).localizedSourceObject) :=
+  TraceLocalizationInput.descentScheduleLocalizedIso_hom_comp_inv_eq_categoryIdentity
+    source
+    target
+
+/-- Descent-schedule inverse followed by hom is categorical identity. -/
+theorem TraceDescentLocalization.scheduleIso_inv_comp_hom_eq_categoryIdentity
+    (source target : QTraceExpression) :
+    (TraceDescentLocalization.scheduleIso source target).inv ≫
+        (TraceDescentLocalization.scheduleIso source target).hom =
+      (𝟙 (TraceLocalizationInput.descentSchedule source target).localizedTargetObject :
+        TraceLocalizedWordHom
+          (TraceLocalizationInput.descentSchedule source target).localizedTargetObject
+          (TraceLocalizationInput.descentSchedule source target).localizedTargetObject) :=
+  TraceLocalizationInput.descentScheduleLocalizedIso_inv_comp_hom_eq_categoryIdentity
+    source
+    target
 
 end AnalyticMotives
 end LFunctions

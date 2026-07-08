@@ -38,7 +38,7 @@ theorem zetaCompletedExplicitFormulaVerticalDifference_eq_boundarySum_add_bounda
     zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) -
       zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T)
   let B : ℂ := zetaCompletedExplicitFormulaBoundarySumAnalytic f
-  change V = B + (V - B)
+  show V = B + (V - B)
   calc
     V = V + 0 := by
       exact (add_zero V).symm
@@ -154,7 +154,7 @@ theorem zetaCompletedExplicitFormulaVerticalBoundaryRemainder_tendsto_zero_of_ve
               zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T)) -
             zetaCompletedExplicitFormulaBoundarySumAnalytic f) := by
     funext T
-    rfl
+    Eq.refl _
   exact Eq.subst
     (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
     hpointwise.symm
@@ -342,7 +342,7 @@ theorem zetaCompletedExplicitFormulaVerticalChannelSum_tendsto_boundarySum
           zetaCompletedExplicitFormulaArchimedeanContribution f +
             zetaCompletedExplicitFormulaCorrectionContribution f =
         zetaCompletedExplicitFormulaBoundarySumAnalytic f := by
-    rfl
+    Eq.refl _
   have hpointwise :
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaVerticalChannelSum f F.toContourFamily
@@ -355,7 +355,7 @@ theorem zetaCompletedExplicitFormulaVerticalChannelSum_tendsto_boundarySum
               zetaCompletedExplicitFormulaCorrectionVerticalChannel f F.toContourFamily
                 (h.height_schedule.height u)) := by
     funext u
-    rfl
+    Eq.refl _
   exact Eq.subst
     (motive := fun φ : ℝ → ℂ =>
       Tendsto φ atTop (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)))
@@ -395,7 +395,7 @@ theorem zetaCompletedExplicitFormulaVerticalIntegrand_eq_channelIntegrands_owner
       completedZetaNegLogDeriv s = P + A + C := by
     exact completedZetaNegLogDeriv_eq_explicitFormulaCompletedLogDerivative_ownerCompletedLogDerivativeDecomposition
       s
-  change completedZetaNegLogDeriv s * Φ = P * Φ + A * Φ + C * Φ
+  show completedZetaNegLogDeriv s * Φ = P * Φ + A * Φ + C * Φ
   calc
     completedZetaNegLogDeriv s * Φ = (P + A + C) * Φ := by
       exact congrArg (fun z : ℂ => z * Φ) hlog
@@ -404,7 +404,7 @@ theorem zetaCompletedExplicitFormulaVerticalIntegrand_eq_channelIntegrands_owner
     _ = (P * Φ + A * Φ) + C * Φ := by
       exact congrArg (fun z : ℂ => z + C * Φ) (add_mul P A Φ)
     _ = P * Φ + A * Φ + C * Φ := by
-      rfl
+      Eq.refl _
 
 /-- The completed vertical realization remainder after subtracting the realized channel
 packet from the completed vertical boundary object. -/
@@ -450,7 +450,7 @@ theorem complex_setIntegral_three_add_eq_sum_integrals
     _ = ((∫ t in S, P t) + ∫ t in S, A t) + ∫ t in S, C t := by
       exact congrArg (fun z : ℂ => z + ∫ t in S, C t) (integral_add hP hA)
     _ = (∫ t in S, P t) + (∫ t in S, A t) + (∫ t in S, C t) := by
-      rfl
+      Eq.refl _
 
 /-- Continuous complex-valued functions on a compact real interval are integrable on that
 interval.  This is the generic compact-regularity bridge used by the vertical channel
@@ -554,11 +554,11 @@ theorem explicitFormulaVerticalSidePath_mem_boundary_of_mem_image
       · exact Eq.subst
           (motive := fun w : ℂ => w ∈ explicitFormulaContourFamilyBoundary F T)
           hzt
-          (Or.inl ⟨t, ht, rfl⟩)
+          (Or.inl ⟨t, ht, Eq.refl _⟩)
       · exact Eq.subst
           (motive := fun w : ℂ => w ∈ explicitFormulaContourFamilyBoundary F T)
           hzt
-          (Or.inr (Or.inl ⟨t, ht, rfl⟩))
+          (Or.inr (Or.inl ⟨t, ht, Eq.refl _⟩))
 
 /-- The scheduled vertical side image avoids the pole at `0`. -/
 theorem explicitFormulaVerticalSidePath_image_ne_zero_of_avoidsSingularBoundary
@@ -720,7 +720,7 @@ theorem explicitFormulaCorrectionLogDerivative_continuousOn_of_avoidsBoundary
     hconst_neg_one.div hid hne0
   have hsecond : ContinuousOn (fun z : ℂ => (1 : ℂ) / (z - 1)) S :=
     hconst_one.div hsub_one hne1
-  change ContinuousOn (fun z : ℂ => -(1 : ℂ) / z - (1 : ℂ) / (z - 1)) S
+  show ContinuousOn (fun z : ℂ => -(1 : ℂ) / z - (1 : ℂ) / (z - 1)) S
   exact hfirst.sub hsecond
 
 /-- Channel log-derivative continuity on the scheduled vertical-edge image, with the
@@ -768,7 +768,7 @@ theorem explicitFormulaVerticalChannelIntegrand_continuousOn_ownerCompactRegular
       ContinuousOn
         (fun t : ℝ => explicitFormulaVerticalChannelLogDerivative channel (γ t))
         S := by
-    exact hlog_on_image.comp hγS (fun t ht => ⟨t, ht, rfl⟩)
+    exact hlog_on_image.comp hγS (fun t ht => ⟨t, ht, Eq.refl _⟩)
   have hphi_cont :
       Continuous
         (fun s : ℂ => zetaCompletedExplicitFormulaPhi f (s - 1 / 2)) :=
@@ -778,7 +778,7 @@ theorem explicitFormulaVerticalChannelIntegrand_continuousOn_ownerCompactRegular
         (fun t : ℝ => zetaCompletedExplicitFormulaPhi f (γ t - 1 / 2))
         S := by
     exact (hphi_cont.comp hγ).continuousOn
-  change
+  show
     ContinuousOn
       (fun t : ℝ =>
         explicitFormulaVerticalChannelLogDerivative channel (γ t) *
@@ -1576,7 +1576,7 @@ theorem zetaCompletedExplicitFormulaVerticalDifference_eq_channelSum_of_right_le
     _ = (RP - LP) + (RA - LA) + (RC - LC) := by
       exact complex_three_add_sub_three_add_eq RP RA RC LP LA LC
     _ = zetaCompletedExplicitFormulaVerticalChannelSum f F T := by
-      rfl
+      Eq.refl _
 
 /-- The completed log-derivative decomposition transported through the right and left
 vertical integrals gives the channel-sum identity at a fixed height. -/
@@ -1892,7 +1892,7 @@ theorem zetaCompletedExplicitFormulaVerticalBoundaryRemainder_tendsto_zero_owner
                 (F.toContourFamily.rectangle (h.height_schedule.height u))) -
             zetaCompletedExplicitFormulaBoundarySumAnalytic f) := by
     funext u
-    rfl
+    Eq.refl _
   exact Eq.subst
     (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
     hpointwise.symm
@@ -1953,7 +1953,7 @@ theorem zetaCompletedExplicitFormula_autocorrelation_contourFamily_leftEdge_lt_z
         -(1 / 2 : ℝ) := by
     calc
       1 - (zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c =
-          1 - ((1 / 2 : ℝ) + 1) := rfl
+          1 - ((1 / 2 : ℝ) + 1) := Eq.refl _
       _ = 1 - (1 + (1 / 2 : ℝ)) := by
         exact congrArg (fun x : ℝ => 1 - x) (add_comm (1 / 2 : ℝ) 1)
       _ = 1 - 1 - (1 / 2 : ℝ) := by
@@ -2092,7 +2092,7 @@ theorem negativeEven_complex_re_le_neg_two
     calc
       (((-2 : ℂ) * (((n + 1 : ℕ) : ℂ))).re : ℝ) =
           ((((-2 : ℝ) : ℂ) * (((n + 1 : ℕ) : ℝ) : ℂ)).re : ℝ) := by
-        rfl
+        Eq.refl _
       _ = ((((-2 : ℝ) * ((n + 1 : ℕ) : ℝ) : ℝ) : ℂ).re : ℝ) := by
         exact congrArg Complex.re (Complex.ofReal_mul (-2 : ℝ) ((n + 1 : ℕ) : ℝ))
       _ = (-2 : ℝ) * ((n + 1 : ℕ) : ℝ) := by
@@ -2160,7 +2160,7 @@ theorem zetaCompletedExplicitFormula_autocorrelation_leftPath_Gammaℝ_ne_zero
           -(1 / 2 : ℝ) := by
       calc
         1 - (zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c =
-            1 - ((1 / 2 : ℝ) + 1) := rfl
+            1 - ((1 / 2 : ℝ) + 1) := Eq.refl _
         _ = 1 - (1 + (1 / 2 : ℝ)) := by
           exact congrArg (fun x : ℝ => 1 - x) (add_comm (1 / 2 : ℝ) 1)
         _ = 1 - 1 - (1 / 2 : ℝ) := by
@@ -2228,7 +2228,7 @@ theorem zetaCompletedExplicitFormula_autocorrelation_leftPath_half_re_strip
           -(1 / 2 : ℝ) := by
       calc
         1 - (zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c =
-            1 - ((1 / 2 : ℝ) + 1) := rfl
+            1 - ((1 / 2 : ℝ) + 1) := Eq.refl _
         _ = 1 - (1 + (1 / 2 : ℝ)) := by
           exact congrArg (fun x : ℝ => 1 - x) (add_comm (1 / 2 : ℝ) 1)
         _ = 1 - 1 - (1 / 2 : ℝ) := by
@@ -2247,7 +2247,7 @@ theorem zetaCompletedExplicitFormula_autocorrelation_leftPath_half_re_strip
         exact neg_div (2 : ℝ) 2
       _ = -(1 : ℝ) := by
         exact congrArg Neg.neg (div_self (two_ne_zero : (2 : ℝ) ≠ 0))
-      _ = (-1 : ℝ) := rfl
+      _ = (-1 : ℝ) := Eq.refl _
   have hre_div :
       (z / 2).re = z.re / 2 :=
     RCLike.div_re_ofReal (z := z) (r := (2 : ℝ))
@@ -2434,7 +2434,7 @@ theorem zetaCompletedExplicitFormula_autocorrelation_verticallyRegularContourFam
     (f : ZetaAdmissibleFunction) :
     (zetaCompletedExplicitFormula_autocorrelation_verticallyRegularContourFamily f).toContourFamily =
       zetaCompletedExplicitFormula_autocorrelation_contourFamily f := by
-  rfl
+  Eq.refl _
 
 /-- Prime-channel transport remainder for the autocorrelation family. -/
 theorem zetaCompletedExplicitFormula_autocorrelation_primeVerticalChannelTransportRemainder_tendsto_zero

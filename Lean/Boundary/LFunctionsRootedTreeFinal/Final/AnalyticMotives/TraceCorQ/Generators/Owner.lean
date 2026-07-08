@@ -31,6 +31,12 @@ def TraceCorQGenerator.importedRectangleCount
     Nat :=
   TraceTransport.importedRectangleCount generator
 
+/-- The imported finite explicit-formula rectangles carried by a trace-correspondence generator. -/
+def TraceCorQGenerator.importedRectangles
+    (generator : TraceCorQGenerator) :
+    List ZetaAdmissibleFunction.ExplicitFormulaRectangle :=
+  TraceTransport.importedRectangles generator
+
 /-- The internal trace-bookkeeping payload carried by a trace-correspondence generator. -/
 def TraceCorQGenerator.traceBookkeepingCount
     (generator : TraceCorQGenerator) :
@@ -49,6 +55,21 @@ theorem TraceCorQGenerator.importedRectangleCount_eq_certificateLedger_count
     generator.importedRectangleCount =
       generator.certificateLedger.importedRectangleCount :=
   rfl
+
+/-- Generator imported rectangles are extracted from its analytic certificate ledger. -/
+theorem TraceCorQGenerator.importedRectangles_eq_certificateLedger_rectangles
+    (generator : TraceCorQGenerator) :
+    generator.importedRectangles =
+      generator.certificateLedger.importedRectangles :=
+  rfl
+
+/-- Generator imported-rectangle count is the length of its extracted rectangle list. -/
+theorem TraceCorQGenerator.importedRectangleCount_eq_length_importedRectangles
+    (generator : TraceCorQGenerator) :
+    generator.importedRectangleCount =
+      generator.importedRectangles.length :=
+  TraceTransport.importedRectangleCount_eq_length_importedRectangles
+    generator
 
 /-- Generator bookkeeping payload is the bookkeeping payload of its certificate ledger. -/
 theorem TraceCorQGenerator.traceBookkeepingCount_eq_certificateLedger_count
@@ -83,6 +104,15 @@ theorem TraceCorQGenerator.importedRectangleCount_eq_source_target_path
         (generator.target.importedRectangleCount +
           generator.pathCertificateLedger.importedRectangleCount) :=
   TraceTransport.importedRectangleCount_eq_source_target_path generator
+
+/-- Generator imported rectangles split into source, target, and path payload. -/
+theorem TraceCorQGenerator.importedRectangles_eq_source_target_path
+    (generator : TraceCorQGenerator) :
+    generator.importedRectangles =
+      generator.source.importedRectangles ++
+        (generator.target.importedRectangles ++
+          generator.pathCertificateLedger.importedRectangles) :=
+  TraceTransport.importedRectangles_eq_source_target_path generator
 
 /-- Generator bookkeeping payload splits into source, target, and path payload. -/
 theorem TraceCorQGenerator.traceBookkeepingCount_eq_source_target_path

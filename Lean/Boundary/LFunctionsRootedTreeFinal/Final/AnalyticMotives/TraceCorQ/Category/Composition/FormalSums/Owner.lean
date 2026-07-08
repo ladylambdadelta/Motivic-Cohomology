@@ -66,6 +66,17 @@ theorem TraceCorQHomTerm.compRight_importedRectangleCount
     ResidueChannelCertificateLedger.importedRectangleCount
     (TraceCorQHomTerm.compRight_certificateLedger left right)
 
+/-- Typed term-right composition exposes the raw term-right composition imported rectangles. -/
+theorem TraceCorQHomTerm.compRight_importedRectangles
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomTerm source middle)
+    (right : TraceCorQHomFormalSum middle target) :
+    (TraceCorQHomTerm.compRight left right).importedRectangles =
+      (TraceCorQTerm.compRight left.raw right.raw).importedRectangles :=
+  congrArg
+    ResidueChannelCertificateLedger.importedRectangles
+    (TraceCorQHomTerm.compRight_certificateLedger left right)
+
 /-- Typed term-right composition carries the raw term-right composition bookkeeping payload. -/
 theorem TraceCorQHomTerm.compRight_traceBookkeepingCount
     {source middle target : TraceCorQObject}
@@ -75,6 +86,17 @@ theorem TraceCorQHomTerm.compRight_traceBookkeepingCount
       (TraceCorQTerm.compRight left.raw right.raw).traceBookkeepingCount :=
   congrArg
     ResidueChannelCertificateLedger.traceBookkeepingCount
+    (TraceCorQHomTerm.compRight_certificateLedger left right)
+
+/-- Typed term-right composition carries the raw term-right composition rewrite-step payload. -/
+theorem TraceCorQHomTerm.compRight_rewriteStepCount
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomTerm source middle)
+    (right : TraceCorQHomFormalSum middle target) :
+    (TraceCorQHomTerm.compRight left right).rewriteStepCount =
+      (TraceCorQTerm.compRight left.raw right.raw).rewriteStepCount :=
+  congrArg
+    ResidueChannelCertificateLedger.rewriteStepCount
     (TraceCorQHomTerm.compRight_certificateLedger left right)
 
 /-- Raw forgetful map sends typed formal-sum composition to raw composition. -/
@@ -102,7 +124,9 @@ theorem TraceCorQHomFormalSum.comp_raw
             (fun headRaw =>
               TraceCorQFormalSum.add
                 headRaw
-                (TraceCorQFormalSum.comp leftTail.raw right.raw))
+                (TraceCorQFormalSum.comp
+                  (TraceCorQHomFormalSum.raw leftTail)
+                  right.raw))
             (TraceCorQHomTerm.compRight_raw leftTerm right)))
 
 /-- Typed formal-sum composition carries the raw formal composition certificate ledger. -/
@@ -127,6 +151,17 @@ theorem TraceCorQHomFormalSum.comp_importedRectangleCount
     ResidueChannelCertificateLedger.importedRectangleCount
     (TraceCorQHomFormalSum.comp_certificateLedger left right)
 
+/-- Typed formal-sum composition exposes the raw formal composition imported rectangles. -/
+theorem TraceCorQHomFormalSum.comp_importedRectangles
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomFormalSum source middle)
+    (right : TraceCorQHomFormalSum middle target) :
+    (TraceCorQHomFormalSum.comp left right).importedRectangles =
+      (TraceCorQFormalSum.comp left.raw right.raw).importedRectangles :=
+  congrArg
+    ResidueChannelCertificateLedger.importedRectangles
+    (TraceCorQHomFormalSum.comp_certificateLedger left right)
+
 /-- Typed formal-sum composition carries the raw formal composition bookkeeping payload. -/
 theorem TraceCorQHomFormalSum.comp_traceBookkeepingCount
     {source middle target : TraceCorQObject}
@@ -136,6 +171,17 @@ theorem TraceCorQHomFormalSum.comp_traceBookkeepingCount
       (TraceCorQFormalSum.comp left.raw right.raw).traceBookkeepingCount :=
   congrArg
     ResidueChannelCertificateLedger.traceBookkeepingCount
+    (TraceCorQHomFormalSum.comp_certificateLedger left right)
+
+/-- Typed formal-sum composition carries the raw formal composition rewrite-step payload. -/
+theorem TraceCorQHomFormalSum.comp_rewriteStepCount
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomFormalSum source middle)
+    (right : TraceCorQHomFormalSum middle target) :
+    (TraceCorQHomFormalSum.comp left right).rewriteStepCount =
+      (TraceCorQFormalSum.comp left.raw right.raw).rewriteStepCount :=
+  congrArg
+    ResidueChannelCertificateLedger.rewriteStepCount
     (TraceCorQHomFormalSum.comp_certificateLedger left right)
 
 end AnalyticMotives

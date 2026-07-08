@@ -123,6 +123,16 @@ theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomTerm_traceBook
         f F h u).traceBookkeepingCount :=
   rfl
 
+/-- The typed scheduled-rectangle channel term carries the generator rewrite-step payload. -/
+theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomTerm_rewriteStepCount
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomTerm
+      f F h u).rewriteStepCount =
+      (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
+        f F h u).rewriteStepCount :=
+  rfl
+
 /-- The scheduled-rectangle channel generator as a typed singleton formal sum. -/
 def completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomFormalSum
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
@@ -174,6 +184,19 @@ theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomFormalSum_impo
     (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomFormalSum_raw
       f F h u)
 
+/-- The typed singleton carries the same rectangle list as the raw scheduled singleton. -/
+theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomFormalSum_importedRectangles
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomFormalSum
+      f F h u).importedRectangles =
+      (completedZetaZeroPoleChannelScheduledRectangleTraceCorQFormalSum
+        f F h u).importedRectangles :=
+  congrArg
+    TraceCorQFormalSum.importedRectangles
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomFormalSum_raw
+      f F h u)
+
 /-- The typed singleton carries the same bookkeeping payload as the raw scheduled singleton. -/
 theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomFormalSum_traceBookkeepingCount
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
@@ -184,6 +207,19 @@ theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomFormalSum_trac
         f F h u).traceBookkeepingCount :=
   congrArg
     TraceCorQFormalSum.traceBookkeepingCount
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomFormalSum_raw
+      f F h u)
+
+/-- The typed singleton carries the same rewrite-step payload as the raw scheduled singleton. -/
+theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomFormalSum_rewriteStepCount
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomFormalSum
+      f F h u).rewriteStepCount =
+      (completedZetaZeroPoleChannelScheduledRectangleTraceCorQFormalSum
+        f F h u).rewriteStepCount :=
+  congrArg
+    TraceCorQFormalSum.rewriteStepCount
     (completedZetaZeroPoleChannelScheduledRectangleTraceCorQHomFormalSum_raw
       f F h u)
 

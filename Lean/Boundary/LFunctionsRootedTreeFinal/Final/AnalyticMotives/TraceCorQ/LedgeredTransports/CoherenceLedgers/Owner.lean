@@ -6,8 +6,8 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Ledger
 This file packages associativity and identity relation generators into finite
 relation ledgers.
 
-These ledgers are still pre-quotient data.  They record the generators that
-will later be imposed by a quotient construction.
+These ledgers are pre-quotient data.  They record the generators consumed by
+the quotient relation.
 -/
 
 namespace Boundary

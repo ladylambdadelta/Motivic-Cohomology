@@ -76,15 +76,15 @@ theorem finiteRectangleSquareBoundaryIntegral_sub_inv_eq_twoPiI_of_unscaledSideV
 center to the origin. -/
 theorem finiteRectangleSquareSubInvBottom_denominator_centered
     (a : ℂ) (R t : ℝ) :
-    ((((t + a.re : ℝ) : ℂ) + (a.im - R) * Complex.I) - a) =
+    ((((t + a.re : ℝ) : ℂ) + (((a.im - R : ℝ) : ℂ) * Complex.I)) - a) =
       (t : ℂ) - (R : ℂ) * Complex.I := by
   have hre :
-      (((((t + a.re : ℝ) : ℂ) + (a.im - R) * Complex.I) - a).re) =
+      (((((t + a.re : ℝ) : ℂ) + (((a.im - R : ℝ) : ℂ) * Complex.I)) - a).re) =
         (((t : ℂ) - (R : ℂ) * Complex.I).re) := by
     calc
-      (((((t + a.re : ℝ) : ℂ) + (a.im - R) * Complex.I) - a).re) =
-          ((((t + a.re : ℝ) : ℂ) + (a.im - R) * Complex.I).re) - a.re := by
-        exact Complex.sub_re (((t + a.re : ℝ) : ℂ) + (a.im - R) * Complex.I) a
+      (((((t + a.re : ℝ) : ℂ) + (((a.im - R : ℝ) : ℂ) * Complex.I)) - a).re) =
+          ((((t + a.re : ℝ) : ℂ) + (((a.im - R : ℝ) : ℂ) * Complex.I)).re) - a.re := by
+        exact Complex.sub_re (((t + a.re : ℝ) : ℂ) + (((a.im - R : ℝ) : ℂ) * Complex.I)) a
       _ = ((((t + a.re : ℝ) : ℂ).re) +
             (((a.im - R : ℝ) : ℂ) * Complex.I).re) - a.re := by
         exact congrArg
@@ -103,11 +103,11 @@ theorem finiteRectangleSquareSubInvBottom_denominator_centered
           (fun x : ℝ => ((t + a.re) + (-x)) - a.re)
           (Complex.ofReal_im (a.im - R))
       _ = ((t + a.re) + 0) - a.re := by
-        exact congrArg (fun x : ℝ => ((t + a.re) + x) - a.re) (neg_zero.symm)
+        exact congrArg (fun x : ℝ => ((t + a.re) + x) - a.re) neg_zero
       _ = (t + a.re) - a.re := by
         exact congrArg (fun x : ℝ => x - a.re) (add_zero (t + a.re))
       _ = t + (a.re - a.re) := by
-        exact (add_sub_assoc t a.re a.re).symm
+        exact add_sub_assoc t a.re a.re
       _ = t + 0 := by
         exact congrArg (fun x : ℝ => t + x) (sub_self a.re)
       _ = t := by
@@ -115,29 +115,30 @@ theorem finiteRectangleSquareSubInvBottom_denominator_centered
       _ = t - 0 := by
         exact (sub_zero t).symm
       _ = ((t : ℂ).re) - (((R : ℂ) * Complex.I).re) := by
-        exact
-          Eq.subst
-            (motive := fun u : ℝ => t - 0 = u - (((R : ℂ) * Complex.I).re))
-            (Complex.ofReal_re t).symm
-            (Eq.subst
-              (motive := fun v : ℝ => t - 0 = t - v)
-              (calc
-                (((R : ℂ) * Complex.I).re) = -((R : ℂ).im) := by
-                  exact Complex.mul_I_re (R : ℂ)
-                _ = -0 := by
-                  exact congrArg Neg.neg (Complex.ofReal_im R)
-                _ = 0 := by
-                  exact neg_zero)
-              rfl)
+        have ht : ((t : ℂ).re) = t :=
+          Complex.ofReal_re t
+        have hRre : (((R : ℂ) * Complex.I).re) = 0 := by
+          calc
+            (((R : ℂ) * Complex.I).re) = -((R : ℂ).im) := by
+              exact Complex.mul_I_re (R : ℂ)
+            _ = -0 := by
+              exact congrArg Neg.neg (Complex.ofReal_im R)
+            _ = 0 := by
+              exact neg_zero
+        calc
+          t - 0 = ((t : ℂ).re) - 0 := by
+            exact congrArg (fun u : ℝ => u - 0) ht.symm
+          _ = ((t : ℂ).re) - (((R : ℂ) * Complex.I).re) := by
+            exact congrArg (fun v : ℝ => ((t : ℂ).re) - v) hRre.symm
       _ = (((t : ℂ) - (R : ℂ) * Complex.I).re) := by
         exact (Complex.sub_re (t : ℂ) ((R : ℂ) * Complex.I)).symm
   have him :
-      (((((t + a.re : ℝ) : ℂ) + (a.im - R) * Complex.I) - a).im) =
+      (((((t + a.re : ℝ) : ℂ) + (((a.im - R : ℝ) : ℂ) * Complex.I)) - a).im) =
         (((t : ℂ) - (R : ℂ) * Complex.I).im) := by
     calc
-      (((((t + a.re : ℝ) : ℂ) + (a.im - R) * Complex.I) - a).im) =
-          ((((t + a.re : ℝ) : ℂ) + (a.im - R) * Complex.I).im) - a.im := by
-        exact Complex.sub_im (((t + a.re : ℝ) : ℂ) + (a.im - R) * Complex.I) a
+      (((((t + a.re : ℝ) : ℂ) + (((a.im - R : ℝ) : ℂ) * Complex.I)) - a).im) =
+          ((((t + a.re : ℝ) : ℂ) + (((a.im - R : ℝ) : ℂ) * Complex.I)).im) - a.im := by
+        exact Complex.sub_im (((t + a.re : ℝ) : ℂ) + (((a.im - R : ℝ) : ℂ) * Complex.I)) a
       _ = ((((t + a.re : ℝ) : ℂ).im) +
             (((a.im - R : ℝ) : ℂ) * Complex.I).im) - a.im := by
         exact congrArg
@@ -170,18 +171,19 @@ theorem finiteRectangleSquareSubInvBottom_denominator_centered
       _ = 0 - R := by
         exact (zero_sub R).symm
       _ = ((t : ℂ).im) - (((R : ℂ) * Complex.I).im) := by
-        exact
-          Eq.subst
-            (motive := fun u : ℝ => 0 - R = u - (((R : ℂ) * Complex.I).im))
-            (Complex.ofReal_im t).symm
-            (Eq.subst
-              (motive := fun v : ℝ => 0 - R = 0 - v)
-              (calc
-                (((R : ℂ) * Complex.I).im) = (R : ℂ).re := by
-                  exact Complex.mul_I_im (R : ℂ)
-                _ = R := by
-                  exact Complex.ofReal_re R)
-              rfl)
+        have ht : ((t : ℂ).im) = 0 :=
+          Complex.ofReal_im t
+        have hRim : (((R : ℂ) * Complex.I).im) = R := by
+          calc
+            (((R : ℂ) * Complex.I).im) = (R : ℂ).re := by
+              exact Complex.mul_I_im (R : ℂ)
+            _ = R := by
+              exact Complex.ofReal_re R
+        calc
+          0 - R = ((t : ℂ).im) - R := by
+            exact congrArg (fun u : ℝ => u - R) ht.symm
+          _ = ((t : ℂ).im) - (((R : ℂ) * Complex.I).im) := by
+            exact congrArg (fun v : ℝ => ((t : ℂ).im) - v) hRim.symm
       _ = (((t : ℂ) - (R : ℂ) * Complex.I).im) := by
         exact (Complex.sub_im (t : ℂ) ((R : ℂ) * Complex.I)).symm
   exact Complex.ext hre him
@@ -193,7 +195,7 @@ theorem finiteRectangleSquareSubInvBottomIntegral_eq_centered
     finiteRectangleSquareSubInvBottomIntegral a R =
       ∫ t : ℝ in (-R)..R, ((t : ℂ) - (R : ℂ) * Complex.I)⁻¹ := by
   let h : ℝ → ℂ :=
-    fun x : ℝ => (((x : ℂ) + (a.im - R) * Complex.I) - a)⁻¹
+    fun x : ℝ => (((x : ℂ) + (((a.im - R : ℝ) : ℂ) * Complex.I)) - a)⁻¹
   have hleft : a.re - R = -R + a.re := by
     calc
       a.re - R = a.re + -R := by
@@ -213,12 +215,12 @@ theorem finiteRectangleSquareSubInvBottomIntegral_eq_centered
       (motive := fun left : ℝ =>
         (∫ x : ℝ in left..(a.re + R), h x) =
           ∫ x : ℝ in (-R + a.re)..(R + a.re), h x)
-      hleft
+      hleft.symm
       (Eq.subst
         (motive := fun right : ℝ =>
           (∫ x : ℝ in (-R + a.re)..right, h x) =
             ∫ x : ℝ in (-R + a.re)..(R + a.re), h x)
-        hright
+        hright.symm
         rfl)
   have hpoint :
       (∫ t : ℝ in (-R)..R, h (t + a.re)) =
@@ -247,7 +249,7 @@ theorem finiteRectangleSquareSubInv_arctanKernel_neg_one_one_eq_pi_quarters :
   have hbase :
       (∫ u : ℝ in (-1)..1, (1 + u ^ 2)⁻¹) =
         Real.arctan 1 - Real.arctan (-1) :=
-    Real.integral_inv_one_add_sq
+    integral_inv_one_add_sq
   have hone : Real.arctan 1 = Real.pi / 4 :=
     Real.arctan_one
   have hneg_one : Real.arctan (-1) = -(Real.pi / 4) := by
@@ -270,19 +272,33 @@ theorem finiteRectangleSquareSubInv_arctanKernel_neg_one_one_eq_pi_quarters :
 /-- The two arctangent endpoint contributions fold to `π / 2`. -/
 theorem finiteRectangleSquareSubInv_pi_quarters_add_eq_half :
     Real.pi / 4 + Real.pi / 4 = Real.pi / 2 := by
+  have hfour : (4 : ℝ) = 2 * 2 := by
+    have hnat : (4 : ℕ) = 2 + 2 := by
+      exact rfl
+    calc
+      (4 : ℝ) = ((4 : ℕ) : ℝ) := by
+        exact rfl
+      _ = ((2 + 2 : ℕ) : ℝ) := by
+        exact congrArg (fun n : ℕ => (n : ℝ)) hnat
+      _ = (2 : ℝ) + (2 : ℝ) := by
+        exact Nat.cast_add 2 2
+      _ = 2 * 2 := by
+        exact (two_mul (2 : ℝ)).symm
   calc
     Real.pi / 4 + Real.pi / 4 =
         (Real.pi / 2) / 2 + (Real.pi / 2) / 2 := by
       exact congrArg₂ HAdd.hAdd
-        (div_div Real.pi 2 2).symm
-        (div_div Real.pi 2 2).symm
+        (Eq.trans (congrArg (fun x : ℝ => Real.pi / x) hfour)
+          (div_div Real.pi 2 2).symm)
+        (Eq.trans (congrArg (fun x : ℝ => Real.pi / x) hfour)
+          (div_div Real.pi 2 2).symm)
     _ = Real.pi / 2 := by
       exact add_halves (Real.pi / 2)
 
 /-- Complex-coerced form of the arctangent endpoint fold. -/
 theorem finiteRectangleSquareSubInv_pi_quarters_add_eq_half_complex :
     ((Real.pi / 4 + Real.pi / 4 : ℝ) : ℂ) =
-      (Real.pi / 2 : ℂ) := by
+      ((Real.pi / 2 : ℝ) : ℂ) := by
   exact congrArg (fun x : ℝ => (x : ℂ))
     finiteRectangleSquareSubInv_pi_quarters_add_eq_half
 
@@ -317,12 +333,12 @@ theorem finiteRectangleSquareSubInv_arctanKernel_scaled_comp_div
       (motive := fun left : ℝ =>
         (∫ u : ℝ in left..(R / R), (1 + u ^ 2)⁻¹) =
           ∫ u : ℝ in (-1)..1, (1 + u ^ 2)⁻¹)
-      hleft
+      hleft.symm
       (Eq.subst
         (motive := fun right : ℝ =>
           (∫ u : ℝ in (-1)..right, (1 + u ^ 2)⁻¹) =
             ∫ u : ℝ in (-1)..1, (1 + u ^ 2)⁻¹)
-        hright
+        hright.symm
         rfl)
   calc
     (∫ t : ℝ in (-R)..R, (1 + (t / R) ^ 2)⁻¹) =
@@ -370,8 +386,8 @@ theorem finiteRectangleSquareSubInv_arctanKernel_neg_one_one_eq_half :
 
 /-- Complex-coerced form of the universal arctangent kernel integral. -/
 theorem finiteRectangleSquareSubInv_arctanKernel_neg_one_one_eq_half_complex :
-    ((∫ u : ℝ in (-1)..1, (1 + u ^ 2)⁻¹) : ℂ) =
-      (Real.pi / 2 : ℂ) := by
+    ((show ℝ from ∫ u : ℝ in (-1)..1, ((1 + u ^ 2)⁻¹ : ℝ)) : ℂ) =
+      ((Real.pi / 2 : ℝ) : ℂ) := by
   exact congrArg (fun x : ℝ => (x : ℂ))
     finiteRectangleSquareSubInv_arctanKernel_neg_one_one_eq_half
 
@@ -382,7 +398,7 @@ whose closed rectangle lies in the regular region, and whose open rectangle is
 differentiable away from a countable exceptional set, contributes zero boundary. -/
 theorem finiteRectangleSubdivisionCellBoundaryIntegral_eq_zero_of_differentiable_on_off_countable
     (g : ℂ → ℂ) (z w : ℂ) (s : Set ℂ) (hs : s.Countable)
-    (Hc : ContinuousOn g ([[z.re, w.re]] ×ℂ [[z.im, w.im]]))
+    (Hc : ContinuousOn g (Set.uIcc z.re w.re ×ℂ Set.uIcc z.im w.im))
     (Hd :
       ∀ x : ℂ,
         x ∈
@@ -397,7 +413,7 @@ theorem finiteRectangleSubdivisionCellBoundaryIntegral_eq_zero_of_differentiable
 /-- Cauchy-Goursat for one subdivision cell with no exceptional set. -/
 theorem finiteRectangleSubdivisionCellBoundaryIntegral_eq_zero_of_differentiableOn
     (g : ℂ → ℂ) (z w : ℂ)
-    (Hc : ContinuousOn g ([[z.re, w.re]] ×ℂ [[z.im, w.im]]))
+    (Hc : ContinuousOn g (Set.uIcc z.re w.re ×ℂ Set.uIcc z.im w.im))
     (Hd :
       DifferentiableOn ℂ g
         (Set.Ioo (min z.re w.re) (max z.re w.re) ×ℂ
@@ -412,28 +428,32 @@ theorem finiteRectangleSubdivisionBoundarySum_eq_zero_of_cellBoundaries
     {ι : Type*} (cells : Finset ι) (cellBoundary : ι → ℂ)
     (hcell : ∀ c : ι, c ∈ cells → cellBoundary c = 0) :
     (∑ c in cells, cellBoundary c) = 0 := by
-  apply Finset.induction_on cells
-  · rfl
-  · intro a cells ha ih hcell_insert
-    have ha_zero : cellBoundary a = 0 :=
-      hcell_insert a (Finset.mem_insert_self a cells)
-    have hcells_zero :
-        (∑ c in cells, cellBoundary c) = 0 :=
-      ih
-        (fun c hc =>
-          hcell_insert c (Finset.mem_insert_of_mem hc))
-    calc
-      (∑ c in insert a cells, cellBoundary c) =
-          cellBoundary a + ∑ c in cells, cellBoundary c := by
-        exact Finset.sum_insert ha
-      _ = 0 + ∑ c in cells, cellBoundary c := by
-        exact congrArg
-          (fun x : ℂ => x + ∑ c in cells, cellBoundary c)
-          ha_zero
-      _ = 0 + 0 := by
-        exact congrArg (fun x : ℂ => 0 + x) hcells_zero
-      _ = 0 := by
-        exact zero_add 0
+  exact
+    Finset.cons_induction_on cells
+      (by
+        intro _hcell_empty
+        exact rfl)
+      (fun a cells ha ih hcell_cons =>
+        have ha_zero : cellBoundary a = 0 :=
+          hcell_cons a (Finset.mem_cons_self a cells)
+        have hcells_zero :
+            (∑ c in cells, cellBoundary c) = 0 :=
+          ih
+            (fun c hc =>
+              hcell_cons c (Finset.mem_cons_of_mem hc))
+        calc
+          (∑ c in Finset.cons a cells ha, cellBoundary c) =
+              cellBoundary a + ∑ c in cells, cellBoundary c := by
+            exact Finset.sum_cons ha
+          _ = 0 + ∑ c in cells, cellBoundary c := by
+            exact congrArg
+              (fun x : ℂ => x + ∑ c in cells, cellBoundary c)
+              ha_zero
+          _ = 0 + 0 := by
+            exact congrArg (fun x : ℂ => 0 + x) hcells_zero
+          _ = 0 := by
+            exact zero_add 0)
+      hcell
 
 /-- Two adjacent horizontal cell-edge contributions cancel the shared horizontal edge. -/
 theorem finiteRectangleSubdivisionSharedHorizontalEdges_cancel
@@ -544,12 +564,8 @@ theorem finiteRectangleSubdivisionTwoVerticalCells_boundaryAlgebra
         ((bottom - shared) + right₀ + -left₀) +
           ((shared - top) + right₁ + -left₁) := by
       exact congrArg₂ Add.add
-        (congrArg
-          (fun z : ℂ => z + -left₀)
-          (sub_eq_add_neg (bottom - shared + right₀) left₀))
-        (congrArg
-          (fun z : ℂ => z + -left₁)
-          (sub_eq_add_neg (shared - top + right₁) left₁))
+        (sub_eq_add_neg (bottom - shared + right₀) left₀)
+        (sub_eq_add_neg (shared - top + right₁) left₁)
     _ =
         (((bottom - shared) + (shared - top)) +
           (right₀ + right₁)) + (-left₀ + -left₁) := by
@@ -594,16 +610,12 @@ theorem finiteRectangleSubdivisionTwoHorizontalCells_boundaryAlgebra
         ((bottom₀ - top₀) + (Complex.I • shared) + -(Complex.I • left)) +
           ((bottom₁ - top₁) + (Complex.I • right) + -(Complex.I • shared)) := by
       exact congrArg₂ Add.add
-        (congrArg
-          (fun z : ℂ => z + -(Complex.I • left))
-          (sub_eq_add_neg
-            (bottom₀ - top₀ + (Complex.I • shared))
-            (Complex.I • left)))
-        (congrArg
-          (fun z : ℂ => z + -(Complex.I • shared))
-          (sub_eq_add_neg
-            (bottom₁ - top₁ + (Complex.I • right))
-            (Complex.I • shared)))
+        (sub_eq_add_neg
+          (bottom₀ - top₀ + (Complex.I • shared))
+          (Complex.I • left))
+        (sub_eq_add_neg
+          (bottom₁ - top₁ + (Complex.I • right))
+          (Complex.I • shared))
     _ =
         ((bottom₀ + bottom₁) + (-(top₀ + top₁))) +
           ((Complex.I • shared - Complex.I • left) +
@@ -703,10 +715,29 @@ theorem finiteRectangleSubdivisionTwoHorizontalCells_boundaryAlgebra
         _ =
             (bottom₀ + bottom₁) - (top₀ + top₁) +
               (Complex.I • right) - (Complex.I • left) := by
-          exact
-            (sub_eq_add_neg
-              ((bottom₀ + bottom₁) - (top₀ + top₁) + (Complex.I • right))
-              (Complex.I • left)).symm
+          calc
+            ((bottom₀ + bottom₁) - (top₀ + top₁)) +
+                (Complex.I • right - Complex.I • left) =
+                ((bottom₀ + bottom₁) - (top₀ + top₁)) +
+                  (Complex.I • right + -(Complex.I • left)) := by
+              exact congrArg
+                (fun z : ℂ => ((bottom₀ + bottom₁) - (top₀ + top₁)) + z)
+                (sub_eq_add_neg (Complex.I • right) (Complex.I • left))
+            _ =
+                ((bottom₀ + bottom₁) - (top₀ + top₁) +
+                  (Complex.I • right)) + -(Complex.I • left) := by
+              exact
+                (add_assoc
+                  ((bottom₀ + bottom₁) - (top₀ + top₁))
+                  (Complex.I • right)
+                  (-(Complex.I • left))).symm
+            _ =
+                (bottom₀ + bottom₁) - (top₀ + top₁) +
+                  (Complex.I • right) - (Complex.I • left) := by
+              exact
+                (sub_eq_add_neg
+                  ((bottom₀ + bottom₁) - (top₀ + top₁) + (Complex.I • right))
+                  (Complex.I • left)).symm
 
 end ZetaAdmissibleFunction
 

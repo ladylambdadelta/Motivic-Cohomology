@@ -428,20 +428,20 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedInverseGammaKernel_majoran
       ((1 : ℝ) - F.c - (1 / 2 : ℝ)) 4
   have hintegrable :
       Integrable majorant (volume : Measure ℝ) := by
-    have hfinrank : finrank ℝ ℝ = 1 :=
+    have hfinrank : Module.finrank ℝ ℝ = 1 :=
       Module.finrank_self ℝ
-    have hfinrank_cast : ((finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
+    have hfinrank_cast : ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
       congrArg (fun n : ℕ => (n : ℝ)) hfinrank
-    have hdim : (finrank ℝ ℝ : ℝ) < 3 :=
+    have hdim : (Module.finrank ℝ ℝ : ℝ) < 3 :=
       Eq.subst
         (motive := fun x : ℝ => x < 3)
         hfinrank_cast.symm
-        (one_lt_of_lt two_lt_three)
+        (lt_trans one_lt_two two_lt_three)
     have hbase :
         Integrable
           (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℝ)))
           (volume : Measure ℝ) :=
-      integrable_one_add_norm (E := ℝ) (μ := volume) hdim
+      integrable_one_add_norm (E := ℝ) hdim
     have hscaled :
         Integrable
           (fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(3 : ℝ)))
@@ -646,10 +646,10 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_eq_t
     fun n : ℕ => LSeries.term (↗Λ) s n
   let G : ℂ := inverseGammaCompletionLogDeriv s
   have hL_eq_tsum :
-      L ↗Λ s = ∑' n : ℕ, Lterm n := by
+      (L ↗Λ) s = ∑' n : ℕ, Lterm n := by
     rfl
   have hprime :
-      explicitFormulaPrimeLogDerivative s = L ↗Λ s :=
+      explicitFormulaPrimeLogDerivative s = (L ↗Λ) s :=
     (zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_eq_logDerivative
       F (-t)).symm
   have hprime_def :
@@ -668,7 +668,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedCompletedAffineKernel_eq_t
               (completedZetaNegLogDeriv s) G).symm
           _ = explicitFormulaPrimeLogDerivative s + G := by
             exact congrArg (fun z : ℂ => z + G) hprime_def.symm
-      _ = L ↗Λ s + G := by
+      _ = (L ↗Λ) s + G := by
         exact congrArg (fun z : ℂ => z + G) hprime
       _ = (∑' n : ℕ, Lterm n) + G := by
         exact congrArg (fun z : ℂ => z + G) hL_eq_tsum
@@ -1025,11 +1025,11 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedTermKernel_majorant_two_in
     B * C * (1 + ‖t‖) ^ (-(2 : ℤ))
   let majorantReal : ℝ → ℝ := fun t : ℝ =>
     B * C * (1 + ‖t‖) ^ (-(2 : ℝ))
-  have hfinrank : finrank ℝ ℝ = 1 :=
+  have hfinrank : Module.finrank ℝ ℝ = 1 :=
     Module.finrank_self ℝ
-  have hfinrank_cast : ((finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
+  have hfinrank_cast : ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
     congrArg (fun n : ℕ => (n : ℝ)) hfinrank
-  have hdim : (finrank ℝ ℝ : ℝ) < 2 :=
+  have hdim : (Module.finrank ℝ ℝ : ℝ) < 2 :=
     Eq.subst
       (motive := fun x : ℝ => x < 2)
       hfinrank_cast.symm
@@ -1038,7 +1038,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedTermKernel_majorant_two_in
       Integrable
         (fun t : ℝ => (1 + ‖t‖) ^ (-(2 : ℝ)))
         (volume : Measure ℝ) :=
-    integrable_one_add_norm (E := ℝ) (μ := volume) hdim
+    integrable_one_add_norm (E := ℝ) hdim
   have hreal : Integrable majorantReal (volume : Measure ℝ) :=
     (hbase.const_mul C).const_mul B
   have hint_eq_real : majorantInt = majorantReal := by

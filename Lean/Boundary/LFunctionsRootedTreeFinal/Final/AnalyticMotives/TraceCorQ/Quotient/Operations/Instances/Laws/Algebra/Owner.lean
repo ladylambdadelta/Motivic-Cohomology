@@ -3,6 +3,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Quotie
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Quotient.Operations.Neg.Laws.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Quotient.Operations.Smul.Laws.Derived.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Quotient.Operations.Sub.Laws.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Quotient.Operations.Sub.Laws.Rearrangement.Owner
 
 /-!
 # Standard-notation algebra laws for quotient trace correspondences
@@ -185,21 +186,21 @@ theorem TraceCorQQuotient.std_add_sub
     (left right tail : TraceCorQQuotient) :
     left + (right - tail) =
       left + right - tail :=
-  TraceCorQQuotient.add_sub left right tail
+  TraceCorQQuotient.add_sub_reassociate left right tail
 
 /-- Standard quotient subtraction distributes over addition on the right. -/
 theorem TraceCorQQuotient.std_sub_add
     (left right tail : TraceCorQQuotient) :
     left - right + tail =
       left + tail - right :=
-  TraceCorQQuotient.sub_add left right tail
+  TraceCorQQuotient.sub_add_reassociate left right tail
 
 /-- Standard quotient subtraction associates over a second subtraction. -/
 theorem TraceCorQQuotient.std_sub_sub
     (left right tail : TraceCorQQuotient) :
     left - right - tail =
       left - (right + tail) :=
-  TraceCorQQuotient.sub_sub left right tail
+  TraceCorQQuotient.sub_sub_reassociate left right tail
 
 /-- Standard quotient subtraction cancels a common right-hand subtrahend. -/
 theorem TraceCorQQuotient.std_sub_right_cancel

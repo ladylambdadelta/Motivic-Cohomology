@@ -28,9 +28,44 @@ abbrev ResidueChannelExpression :=
 abbrev ResidueChannelExpressionList :=
   List ResidueChannelExpression
 
+/-- Build one channel expression from its channel and Q-linear trace expression. -/
+def ResidueChannelExpression.mk
+    (channel : ResidueChannel)
+    (expression : QTraceExpression) :
+    ResidueChannelExpression :=
+  (channel, expression)
+
 /-- The empty channel-expression list. -/
 def ResidueChannelExpressionList.empty : ResidueChannelExpressionList :=
   []
+
+/-- Add one channel expression at the front of a channel-expression list. -/
+def ResidueChannelExpressionList.cons
+    (entry : ResidueChannelExpression)
+    (channels : ResidueChannelExpressionList) :
+    ResidueChannelExpressionList :=
+  entry :: channels
+
+/-- A channel expression built from a channel and expression is their pair. -/
+theorem ResidueChannelExpression.mk_eq_pair
+    (channel : ResidueChannel)
+    (expression : QTraceExpression) :
+    ResidueChannelExpression.mk channel expression =
+      (channel, expression) :=
+  rfl
+
+/-- The empty channel-expression list is the empty list. -/
+theorem ResidueChannelExpressionList.empty_eq_nil :
+    ResidueChannelExpressionList.empty = [] :=
+  rfl
+
+/-- Channel-expression list cons is list cons. -/
+theorem ResidueChannelExpressionList.cons_eq_cons
+    (entry : ResidueChannelExpression)
+    (channels : ResidueChannelExpressionList) :
+    ResidueChannelExpressionList.cons entry channels =
+      entry :: channels :=
+  rfl
 
 end AnalyticMotives
 end LFunctions

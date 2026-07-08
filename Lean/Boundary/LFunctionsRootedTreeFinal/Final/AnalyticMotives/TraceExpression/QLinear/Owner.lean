@@ -6,8 +6,8 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceExpression.
 
 This file owns the rational linear span of formal trace expressions.
 
-The intended object is the concrete Q-linear syntax on trace atoms.  This is
-where motivic rationalization first appears on the analytic side: as formal
+The object defined here is the concrete Q-linear syntax on trace atoms.  This
+is where motivic rationalization first appears on the analytic side: as formal
 Q-linear combinations of trace expressions and later trace transports.
 -/
 
@@ -39,6 +39,34 @@ def QTraceExpression.add (left right : QTraceExpression) : QTraceExpression :=
 def QTraceExpression.smul (coefficient : Rat) (expression : QTraceExpression) :
     QTraceExpression :=
   expression.map (fun term => (coefficient * term.1, term.2))
+
+/-- The zero Q-linear trace expression is the empty list. -/
+theorem QTraceExpression.zero_eq_nil :
+    QTraceExpression.zero = [] :=
+  rfl
+
+/-- A singleton Q-linear trace expression is the one-term list. -/
+theorem QTraceExpression.singleton_eq_cons
+    (coefficient : Rat)
+    (atom : TraceAtom) :
+    QTraceExpression.singleton coefficient atom =
+      (coefficient, atom) :: [] :=
+  rfl
+
+/-- Q-linear trace-expression addition is list concatenation. -/
+theorem QTraceExpression.add_eq_append
+    (left right : QTraceExpression) :
+    QTraceExpression.add left right =
+      left ++ right :=
+  rfl
+
+/-- Q-linear trace-expression scalar multiplication maps coefficients termwise. -/
+theorem QTraceExpression.smul_eq_map
+    (coefficient : Rat)
+    (expression : QTraceExpression) :
+    QTraceExpression.smul coefficient expression =
+      expression.map (fun term => (coefficient * term.1, term.2)) :=
+  rfl
 
 end AnalyticMotives
 end LFunctions

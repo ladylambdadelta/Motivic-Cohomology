@@ -18,7 +18,7 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-local instance explicitFormulaRectangleClassicalPropDecidable (p : Prop) : Decidable p :=
+instance explicitFormulaRectangleClassicalPropDecidable (p : Prop) : Decidable p :=
   Classical.propDecidable p
 
 /-- The finite grid-cell candidate carrier determined by the outer rectangle sides and the
@@ -460,23 +460,25 @@ theorem explicitFormulaRectangleSortedXEndpoints_noIntermediate_get_succ
       ((Nat.lt_sub_iff_add_lt (a := i.1) (b := 1) (c := xs.length)).mp i.2)⟩
   have hj_get : xs.get j = x :=
     List.indexOf_get (List.indexOf_lt_length.mpr hx_mem_xs)
-  by_cases hji : j ≤ i₀
-  · have hx_le_lower : x ≤ xs.get i₀ := by
-      calc
-        x = xs.get j := hj_get.symm
-        _ ≤ xs.get i₀ :=
-          (explicitFormulaRectangleSortedXEndpoints_sorted_le F T ε).rel_get_of_le hji
-    exact (not_lt_of_ge hx_le_lower) hx_lower
-  · have hi_lt_j : i₀ < j :=
-      lt_of_not_ge hji
-    have hi₁_le_j : i₁ ≤ j :=
-      Nat.succ_le_of_lt hi_lt_j
-    have hupper_le_x : xs.get i₁ ≤ x := by
-      calc
-        xs.get i₁ ≤ xs.get j :=
-          (explicitFormulaRectangleSortedXEndpoints_sorted_le F T ε).rel_get_of_le hi₁_le_j
-        _ = x := hj_get
-    exact (not_lt_of_ge hupper_le_x) hx_upper
+  match inferInstanceAs (Decidable (j ≤ i₀)) with
+  | isTrue hji =>
+      have hx_le_lower : x ≤ xs.get i₀ := by
+        calc
+          x = xs.get j := hj_get.symm
+          _ ≤ xs.get i₀ :=
+            (explicitFormulaRectangleSortedXEndpoints_sorted_le F T ε).rel_get_of_le hji
+      exact (not_lt_of_ge hx_le_lower) hx_lower
+  | isFalse hji =>
+      have hi_lt_j : i₀ < j :=
+        lt_of_not_ge hji
+      have hi₁_le_j : i₁ ≤ j :=
+        Nat.succ_le_of_lt hi_lt_j
+      have hupper_le_x : xs.get i₁ ≤ x := by
+        calc
+          xs.get i₁ ≤ xs.get j :=
+            (explicitFormulaRectangleSortedXEndpoints_sorted_le F T ε).rel_get_of_le hi₁_le_j
+          _ = x := hj_get
+      exact (not_lt_of_ge hupper_le_x) hx_upper
 
 /-- Adjacent indices in the sorted vertical endpoint carrier have no vertical endpoint
 strictly between them. -/
@@ -507,23 +509,25 @@ theorem explicitFormulaRectangleSortedYEndpoints_noIntermediate_get_succ
       ((Nat.lt_sub_iff_add_lt (a := i.1) (b := 1) (c := ys.length)).mp i.2)⟩
   have hj_get : ys.get j = y :=
     List.indexOf_get (List.indexOf_lt_length.mpr hy_mem_ys)
-  by_cases hji : j ≤ i₀
-  · have hy_le_lower : y ≤ ys.get i₀ := by
-      calc
-        y = ys.get j := hj_get.symm
-        _ ≤ ys.get i₀ :=
-          (explicitFormulaRectangleSortedYEndpoints_sorted_le T ε).rel_get_of_le hji
-    exact (not_lt_of_ge hy_le_lower) hy_lower
-  · have hi_lt_j : i₀ < j :=
-      lt_of_not_ge hji
-    have hi₁_le_j : i₁ ≤ j :=
-      Nat.succ_le_of_lt hi_lt_j
-    have hupper_le_y : ys.get i₁ ≤ y := by
-      calc
-        ys.get i₁ ≤ ys.get j :=
-          (explicitFormulaRectangleSortedYEndpoints_sorted_le T ε).rel_get_of_le hi₁_le_j
-        _ = y := hj_get
-    exact (not_lt_of_ge hupper_le_y) hy_upper
+  match inferInstanceAs (Decidable (j ≤ i₀)) with
+  | isTrue hji =>
+      have hy_le_lower : y ≤ ys.get i₀ := by
+        calc
+          y = ys.get j := hj_get.symm
+          _ ≤ ys.get i₀ :=
+            (explicitFormulaRectangleSortedYEndpoints_sorted_le T ε).rel_get_of_le hji
+      exact (not_lt_of_ge hy_le_lower) hy_lower
+  | isFalse hji =>
+      have hi_lt_j : i₀ < j :=
+        lt_of_not_ge hji
+      have hi₁_le_j : i₁ ≤ j :=
+        Nat.succ_le_of_lt hi_lt_j
+      have hupper_le_y : ys.get i₁ ≤ y := by
+        calc
+          ys.get i₁ ≤ ys.get j :=
+            (explicitFormulaRectangleSortedYEndpoints_sorted_le T ε).rel_get_of_le hi₁_le_j
+          _ = y := hj_get
+      exact (not_lt_of_ge hupper_le_y) hy_upper
 
 /-- Horizontal adjacent endpoint pairs obtained by taking consecutive entries of the
 sorted finite horizontal endpoint carrier. -/
@@ -951,6 +955,209 @@ theorem explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCel
     hnodup.map
       ExplicitFormulaRectangleRegularAdjacentEndpointPairCell.toEndpointData_injective
 
+/-- A horizontal adjacent-pair span lies inside the horizontal projection of a raw
+inscribed-square deletion box. -/
+def explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole
+    {F : ExplicitFormulaContourFamily} {T : ℝ}
+    (ρ : ℝ)
+    (xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ)
+    (a : ℂ) : Prop :=
+  (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re ≤ xpair.x₀ ∧
+    xpair.x₁ ≤ (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re
+
+/-- A vertical adjacent-pair span lies inside the vertical projection of a raw
+inscribed-square deletion box. -/
+def explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole
+    {T : ℝ}
+    (ρ : ℝ)
+    (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ)
+    (a : ℂ) : Prop :=
+  (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im ≤ ypair.y₀ ∧
+    ypair.y₁ ≤ (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im
+
+/-- A crossed adjacent endpoint-pair rectangle avoids every raw deletion box as a
+rectangle. -/
+def explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission
+    {F : ExplicitFormulaContourFamily} {T ρ : ℝ}
+    (xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ)
+    (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ) : Prop :=
+  ∀ a : ℂ,
+    a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+      ¬
+        (explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a ∧
+          explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a)
+
+theorem explicitFormulaRectangleRawInscribedSquareLowerCorner_re_lt_center_re
+    {ρ : ℝ} (hρ : 0 < ρ) (a : ℂ) :
+    (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re < a.re := by
+  calc
+    (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re =
+        (finiteRectangleSquareLowerCorner a (ρ / 2)).re := by
+      exact explicitFormulaRectangleRawInscribedSquareLowerCorner_re_eq_squareLowerCorner_half_re ρ a
+    _ = a.re - ρ / 2 := by
+      exact finiteRectangleSquareLowerCorner_re a (ρ / 2)
+    _ < a.re := by
+      exact sub_lt_self a.re (half_pos hρ)
+
+theorem explicitFormulaRectangleRawInscribedSquareCenter_re_lt_upperCorner_re
+    {ρ : ℝ} (hρ : 0 < ρ) (a : ℂ) :
+    a.re < (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re := by
+  calc
+    a.re < a.re + ρ / 2 := by
+      exact lt_add_of_pos_right a.re (half_pos hρ)
+    _ = (finiteRectangleSquareUpperCorner a (ρ / 2)).re := by
+      exact (finiteRectangleSquareUpperCorner_re a (ρ / 2)).symm
+    _ = (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re := by
+      exact (explicitFormulaRectangleRawInscribedSquareUpperCorner_re_eq_squareUpperCorner_half_re ρ a).symm
+
+theorem explicitFormulaRectangleRawInscribedSquareLowerCorner_im_lt_center_im
+    {ρ : ℝ} (hρ : 0 < ρ) (a : ℂ) :
+    (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im < a.im := by
+  calc
+    (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im =
+        (finiteRectangleSquareLowerCorner a (ρ / 2)).im := by
+      exact explicitFormulaRectangleRawInscribedSquareLowerCorner_im_eq_squareLowerCorner_half_im ρ a
+    _ = a.im - ρ / 2 := by
+      exact finiteRectangleSquareLowerCorner_im a (ρ / 2)
+    _ < a.im := by
+      exact sub_lt_self a.im (half_pos hρ)
+
+theorem explicitFormulaRectangleRawInscribedSquareCenter_im_lt_upperCorner_im
+    {ρ : ℝ} (hρ : 0 < ρ) (a : ℂ) :
+    a.im < (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im := by
+  calc
+    a.im < a.im + ρ / 2 := by
+      exact lt_add_of_pos_right a.im (half_pos hρ)
+    _ = (finiteRectangleSquareUpperCorner a (ρ / 2)).im := by
+      exact (finiteRectangleSquareUpperCorner_im a (ρ / 2)).symm
+    _ = (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im := by
+      exact (explicitFormulaRectangleRawInscribedSquareUpperCorner_im_eq_squareUpperCorner_half_im ρ a).symm
+
+theorem explicitFormulaRectangle_mem_uIcc_of_ordered
+    {lower upper x : ℝ}
+    (horder : lower < upper)
+    (hx : x ∈ Set.uIcc lower upper) :
+    lower ≤ x ∧ x ≤ upper := by
+  match Set.mem_uIcc.mp hx with
+  | Or.inl hordered => exact hordered
+  | Or.inr hreversed =>
+      have hupper_le_lower : upper ≤ lower :=
+        le_trans hreversed.1 hreversed.2
+      have hlower_lt_lower : lower < lower :=
+        lt_of_lt_of_le horder hupper_le_lower
+      exact False.elim (lt_irrefl lower hlower_lt_lower)
+
+theorem explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole_of_center_mem
+    {F : ExplicitFormulaContourFamily} {T ρ : ℝ}
+    (hρ : 0 < ρ)
+    (xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ)
+    {a : ℂ}
+    (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
+    (hcenter : a.re ∈ Set.uIcc xpair.x₀ xpair.x₁) :
+    explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a := by
+  have hlower_mem :
+      (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re ∈
+        explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints F T ρ :=
+    explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints_mem_holeLeft F T ρ ha
+  have hupper_mem :
+      (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re ∈
+        explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints F T ρ :=
+    explicitFormulaRectangleInscribedSquareSubdivisionXEndpoints_mem_holeRight F T ρ ha
+  have hlower_center :
+      (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re < a.re :=
+    explicitFormulaRectangleRawInscribedSquareLowerCorner_re_lt_center_re hρ a
+  have hcenter_upper :
+      a.re < (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re :=
+    explicitFormulaRectangleRawInscribedSquareCenter_re_lt_upperCorner_re hρ a
+  have hinterval : xpair.x₀ ≤ a.re ∧ a.re ≤ xpair.x₁ := by
+    exact explicitFormulaRectangle_mem_uIcc_of_ordered xpair.hx_order hcenter
+  have hlower_le_x₀ : (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re ≤ xpair.x₀ := by
+    exact le_of_not_gt
+      (fun hx₀_lt_lower =>
+        xpair.hx_adj
+          (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).re
+          hlower_mem
+          hx₀_lt_lower
+          (lt_of_lt_of_le hlower_center hinterval.2))
+  have hx₁_le_upper : xpair.x₁ ≤ (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re := by
+    exact le_of_not_gt
+      (fun hupper_lt_x₁ =>
+        xpair.hx_adj
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).re
+          hupper_mem
+          (lt_of_le_of_lt hinterval.1 hcenter_upper)
+          hupper_lt_x₁)
+  exact And.intro hlower_le_x₀ hx₁_le_upper
+
+theorem explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole_of_center_mem
+    {T ρ : ℝ}
+    (hρ : 0 < ρ)
+    (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ)
+    {a : ℂ}
+    (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T)
+    (hcenter : a.im ∈ Set.uIcc ypair.y₀ ypair.y₁) :
+    explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a := by
+  have hlower_mem :
+      (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im ∈
+        explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints T ρ :=
+    explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints_mem_holeBottom T ρ ha
+  have hupper_mem :
+      (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im ∈
+        explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints T ρ :=
+    explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints_mem_holeTop T ρ ha
+  have hlower_center :
+      (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im < a.im :=
+    explicitFormulaRectangleRawInscribedSquareLowerCorner_im_lt_center_im hρ a
+  have hcenter_upper :
+      a.im < (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im :=
+    explicitFormulaRectangleRawInscribedSquareCenter_im_lt_upperCorner_im hρ a
+  have hinterval : ypair.y₀ ≤ a.im ∧ a.im ≤ ypair.y₁ := by
+    exact explicitFormulaRectangle_mem_uIcc_of_ordered ypair.hy_order hcenter
+  have hlower_le_y₀ : (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im ≤ ypair.y₀ := by
+    exact le_of_not_gt
+      (fun hy₀_lt_lower =>
+        ypair.hy_adj
+          (explicitFormulaRectangleRawInscribedSquareLowerCorner ρ a).im
+          hlower_mem
+          hy₀_lt_lower
+          (lt_of_lt_of_le hlower_center hinterval.2))
+  have hy₁_le_upper : ypair.y₁ ≤ (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im := by
+    exact le_of_not_gt
+      (fun hupper_lt_y₁ =>
+        ypair.hy_adj
+          (explicitFormulaRectangleRawInscribedSquareUpperCorner ρ a).im
+          hupper_mem
+          (lt_of_le_of_lt hinterval.1 hcenter_upper)
+          hupper_lt_y₁)
+  exact And.intro hlower_le_y₀ hy₁_le_upper
+
+theorem explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission.centerOmission
+    {F : ExplicitFormulaContourFamily} {T ρ : ℝ} (hρ : 0 < ρ)
+    {xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ρ}
+    {ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ρ}
+    (homit : explicitFormulaRectangleAdjacentEndpointPairRawHoleOmission xpair ypair) :
+    ∀ a : ℂ,
+      a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+        a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
+          a.im ∉ Set.uIcc ypair.y₀ ypair.y₁ := by
+  intro a ha
+  match inferInstanceAs (Decidable (a.re ∈ Set.uIcc xpair.x₀ xpair.x₁)) with
+  | isTrue hxcenter =>
+      right
+      intro hycenter
+      have hxspan :
+          explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole ρ xpair a :=
+        explicitFormulaRectangleXAdjacentEndpointPairSubspanOfRawHole_of_center_mem
+          hρ xpair ha hxcenter
+      have hyspan :
+          explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole ρ ypair a :=
+        explicitFormulaRectangleYAdjacentEndpointPairSubspanOfRawHole_of_center_mem
+          hρ ypair ha hycenter
+      exact homit a ha (And.intro hxspan hyspan)
+  | isFalse hxcenter =>
+      left
+      exact hxcenter
+
 /-- The coordinate-omission predicate that selects genuine complement cells from crossed
 adjacent endpoint-pair rectangles.  A cell is retained exactly when it is not contained in
 any raw inscribed-square deletion box. -/
@@ -990,6 +1197,28 @@ noncomputable def explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCel
       else
         explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
           xpair rest
+
+/-- The fixed-horizontal selected adjacent-cell row is governed by the retained/skipped
+head vertical-pair branch. -/
+theorem explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX_cons_eq
+    {F : ExplicitFormulaContourFamily} {T ε : ℝ}
+    (xpair : ExplicitFormulaRectangleXAdjacentEndpointPair F T ε)
+    (ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε)
+    (rest : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε)) :
+    explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
+        xpair (ypair :: rest) =
+      (if homit :
+          explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair then
+        ({ xpair := xpair
+           ypair := ypair
+           homit := homit } :
+            ExplicitFormulaRectangleRegularAdjacentEndpointPairCell F T ε) ::
+          explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
+            xpair rest
+      else
+        explicitFormulaRectangleSelectedRegularAdjacentEndpointPairCellsOfFixedX
+          xpair rest) := by
+  exact Eq.refl _
 
 /-- Membership in a selected fixed-horizontal-pair row records membership of the carried
 vertical adjacent-pair in the source vertical-pair list. -/
@@ -1415,7 +1644,7 @@ theorem explicitFormulaRectangleSelectedEndpointData_coordinateOmission
 
 /-- For one horizontal adjacent endpoint pair, construct the proof-carrying regular cells
 obtained by crossing it with a concrete list of vertical adjacent endpoint pairs.  The
-raw-center omission proof is supplied for each listed vertical pair and stored in the
+raw-hole omission proof is supplied for each listed vertical pair and stored in the
 resulting cell record. -/
 def explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
     {F : ExplicitFormulaContourFamily} {T ε : ℝ}
@@ -1423,10 +1652,7 @@ def explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
     (ypairs : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε)) →
       (∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
         ypair ∈ ypairs →
-          ∀ a : ℂ,
-            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) →
+          explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair) →
         List (ExplicitFormulaRectangleRegularAdjacentEndpointPairCell F T ε)
   | [], _ => []
   | ypair :: rest, homit =>
@@ -1446,10 +1672,7 @@ theorem explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX_nil
       ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
         ypair ∈
           ([] : List (ExplicitFormulaRectangleYAdjacentEndpointPair T ε)) →
-          ∀ a : ℂ,
-            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) :
+          explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair) :
     explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
       xpair [] homit = [] := by
   rfl
@@ -1464,10 +1687,7 @@ theorem explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX_cons
     (homit :
       ∀ ypair' : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
         ypair' ∈ ypair :: rest →
-          ∀ a : ℂ,
-            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                a.im ∉ Set.uIcc ypair'.y₀ ypair'.y₁) :
+          explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair') :
     explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
         xpair (ypair :: rest) homit =
       { xpair := xpair
@@ -1488,10 +1708,7 @@ theorem explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX_mem_ypa
       (homit :
         ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
           ypair ∈ ypairs →
-            ∀ a : ℂ,
-              a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                  a.im ∉ Set.uIcc ypair.y₀ ypair.y₁)
+            explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair)
       (c : ExplicitFormulaRectangleRegularAdjacentEndpointPairCell F T ε),
         c ∈ explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
           xpair ypairs homit →
@@ -1550,10 +1767,7 @@ theorem explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX_mem_xpa
       (homit :
         ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
           ypair ∈ ypairs →
-            ∀ a : ℂ,
-              a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                  a.im ∉ Set.uIcc ypair.y₀ ypair.y₁)
+            explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair)
       (c : ExplicitFormulaRectangleRegularAdjacentEndpointPairCell F T ε),
         c ∈ explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
           xpair ypairs homit →
@@ -1611,10 +1825,7 @@ theorem explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX_nodup
       (homit :
         ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
           ypair ∈ ypairs →
-            ∀ a : ℂ,
-              a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                  a.im ∉ Set.uIcc ypair.y₀ ypair.y₁),
+            explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair),
         ypairs.Nodup →
           (explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
             xpair ypairs homit).Nodup
@@ -1667,10 +1878,7 @@ def explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfPairLists
           xpair ∈ xpairs →
             ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
               ypair ∈ ypairs →
-                ∀ a : ℂ,
-                  a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                    a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                      a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) →
+                explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair) →
           List (ExplicitFormulaRectangleRegularAdjacentEndpointPairCell F T ε)
   | [], _ypairs, _ => []
   | xpair :: rest, ypairs, homit =>
@@ -1693,10 +1901,7 @@ theorem explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfPairLists_nil
           ([] : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ε)) →
           ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
             ypair ∈ ypairs →
-              ∀ a : ℂ,
-                a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                  a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                    a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) :
+              explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair) :
     explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfPairLists
       [] ypairs homit = [] := by
   rfl
@@ -1714,10 +1919,7 @@ theorem explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfPairLists_cons
         xpair' ∈ xpair :: rest →
           ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
             ypair ∈ ypairs →
-              ∀ a : ℂ,
-                a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                  a.re ∉ Set.uIcc xpair'.x₀ xpair'.x₁ ∨
-                    a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) :
+              explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair' ypair) :
     explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfPairLists
         (xpair :: rest) ypairs homit =
       explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
@@ -1741,10 +1943,7 @@ theorem explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfPairLists_mem_
           xpair ∈ xpairs →
             ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
               ypair ∈ ypairs →
-                ∀ a : ℂ,
-                  a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                    a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                      a.im ∉ Set.uIcc ypair.y₀ ypair.y₁)
+                explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair)
       (c : ExplicitFormulaRectangleRegularAdjacentEndpointPairCell F T ε),
         c ∈ explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfPairLists
           xpairs ypairs homit →
@@ -1783,10 +1982,7 @@ theorem explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfPairLists_nodu
           xpair ∈ xpairs →
             ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
               ypair ∈ ypairs →
-                ∀ a : ℂ,
-                  a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                    a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                      a.im ∉ Set.uIcc ypair.y₀ ypair.y₁),
+                explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair),
         xpairs.Nodup →
           ypairs.Nodup →
             (explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfPairLists
@@ -1860,10 +2056,7 @@ def explicitFormulaRectangleEndpointDataListOfAdjacentEndpointPairLists
         xpair ∈ xpairs →
           ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
             ypair ∈ ypairs →
-              ∀ a : ℂ,
-                a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                  a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                    a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) :
+              explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair) :
     List (ExplicitFormulaRectangleRegularGridCellEndpointData F T ε) :=
   explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
     (explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfPairLists
@@ -1880,10 +2073,7 @@ theorem explicitFormulaRectangleEndpointDataListOfAdjacentEndpointPairLists_nodu
         xpair ∈ xpairs →
           ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
             ypair ∈ ypairs →
-              ∀ a : ℂ,
-                a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                  a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                    a.im ∉ Set.uIcc ypair.y₀ ypair.y₁)
+              explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair)
     (hxnodup : xpairs.Nodup) (hynodup : ypairs.Nodup) :
     (explicitFormulaRectangleEndpointDataListOfAdjacentEndpointPairLists
       xpairs ypairs homit).Nodup := by
@@ -1904,10 +2094,7 @@ noncomputable def explicitFormulaRectangleEndpointDataListOfSortedAdjacentEndpoi
         xpair ∈ explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ε →
           ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
             ypair ∈ explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ε →
-              ∀ a : ℂ,
-                a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                  a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                    a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) :
+              explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair) :
     List (ExplicitFormulaRectangleRegularGridCellEndpointData F T ε) :=
   explicitFormulaRectangleEndpointDataListOfAdjacentEndpointPairLists
     (explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ε)
@@ -1923,10 +2110,7 @@ theorem explicitFormulaRectangleEndpointDataListOfSortedAdjacentEndpointPairs_no
         xpair ∈ explicitFormulaRectangleXAdjacentEndpointPairsFromSortedEndpoints F T ε →
           ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
             ypair ∈ explicitFormulaRectangleYAdjacentEndpointPairsFromSortedEndpoints T ε →
-              ∀ a : ℂ,
-                a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                  a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                    a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) :
+              explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair) :
     (explicitFormulaRectangleEndpointDataListOfSortedAdjacentEndpointPairs
       (F := F) (T := T) (ε := ε) homit).Nodup := by
   exact
@@ -2064,10 +2248,7 @@ theorem explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCel
       (homit :
         ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
           ypair ∈ ypairs →
-            ∀ a : ℂ,
-              a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                  a.im ∉ Set.uIcc ypair.y₀ ypair.y₁),
+            explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair),
       (explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
         (explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
           xpair ypairs homit)).map
@@ -2093,10 +2274,7 @@ theorem explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCel
       (homit :
         ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
           ypair ∈ ypairs →
-            ∀ a : ℂ,
-              a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                  a.im ∉ Set.uIcc ypair.y₀ ypair.y₁),
+            explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair),
       (explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
         (explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
           xpair ypairs homit)).map
@@ -2122,10 +2300,7 @@ theorem explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCel
       (homit :
         ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
           ypair ∈ ypairs →
-            ∀ a : ℂ,
-              a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                  a.im ∉ Set.uIcc ypair.y₀ ypair.y₁),
+            explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair),
       (explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
         (explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
           xpair ypairs homit)).map
@@ -2151,10 +2326,7 @@ theorem explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCel
       (homit :
         ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
           ypair ∈ ypairs →
-            ∀ a : ℂ,
-              a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                  a.im ∉ Set.uIcc ypair.y₀ ypair.y₁),
+            explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair),
       (explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells
         (explicitFormulaRectangleRegularAdjacentEndpointPairCellsOfFixedX
           xpair ypairs homit)).map
@@ -2262,10 +2434,7 @@ theorem explicitFormulaRectangleEndpointDataListOfAdjacentEndpointPairLists_nil
           ([] : List (ExplicitFormulaRectangleXAdjacentEndpointPair F T ε)) →
           ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
             ypair ∈ ypairs →
-              ∀ a : ℂ,
-                a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                  a.re ∉ Set.uIcc xpair.x₀ xpair.x₁ ∨
-                    a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) :
+              explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair ypair) :
     explicitFormulaRectangleEndpointDataListOfAdjacentEndpointPairLists
       [] ypairs homit = [] := by
   rfl
@@ -2283,10 +2452,7 @@ theorem explicitFormulaRectangleEndpointDataListOfAdjacentEndpointPairLists_cons
         xpair' ∈ xpair :: rest →
           ∀ ypair : ExplicitFormulaRectangleYAdjacentEndpointPair T ε,
             ypair ∈ ypairs →
-              ∀ a : ℂ,
-                a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                  a.re ∉ Set.uIcc xpair'.x₀ xpair'.x₁ ∨
-                    a.im ∉ Set.uIcc ypair.y₀ ypair.y₁) :
+              explicitFormulaRectangleAdjacentEndpointPairCoordinateOmission xpair' ypair) :
     explicitFormulaRectangleEndpointDataListOfAdjacentEndpointPairLists
         (xpair :: rest) ypairs homit =
       explicitFormulaRectangleEndpointDataListOfRegularAdjacentEndpointPairCells

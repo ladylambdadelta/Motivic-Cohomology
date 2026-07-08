@@ -49,6 +49,34 @@ def TraceCorQHomRepresentative.certificateLedger
     ResidueChannelCertificateLedger :=
   representative.rawCandidate.certificateLedger
 
+/-- The imported finite-rectangle payload represented by a typed hom representative. -/
+def TraceCorQHomRepresentative.importedRectangleCount
+    {source target : TraceCorQObject}
+    (representative : TraceCorQHomRepresentative source target) :
+    Nat :=
+  representative.rawCandidate.importedRectangleCount
+
+/-- The imported finite explicit-formula rectangles represented by a typed hom representative. -/
+def TraceCorQHomRepresentative.importedRectangles
+    {source target : TraceCorQObject}
+    (representative : TraceCorQHomRepresentative source target) :
+    List ZetaAdmissibleFunction.ExplicitFormulaRectangle :=
+  representative.rawCandidate.importedRectangles
+
+/-- The internal trace-bookkeeping payload represented by a typed hom representative. -/
+def TraceCorQHomRepresentative.traceBookkeepingCount
+    {source target : TraceCorQObject}
+    (representative : TraceCorQHomRepresentative source target) :
+    Nat :=
+  representative.rawCandidate.traceBookkeepingCount
+
+/-- The explicit rewrite-step payload represented by a typed hom representative. -/
+def TraceCorQHomRepresentative.rewriteStepCount
+    {source target : TraceCorQObject}
+    (representative : TraceCorQHomRepresentative source target) :
+    Nat :=
+  representative.rawCandidate.rewriteStepCount
+
 /-- Build a typed hom representative from a formal sum and ledger. -/
 def TraceCorQHomRepresentative.ofFormalSumLedger
     {source target : TraceCorQObject}

@@ -38,10 +38,10 @@ tangent factors on the vertical sides. -/
 theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq
     (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
     zetaCompletedExplicitFormulaTangentContourIntegral f r =
-      zetaCompletedExplicitFormulaRightLineIntegral f r * Complex.I -
-        zetaCompletedExplicitFormulaLeftLineIntegral f r * Complex.I +
-        zetaCompletedExplicitFormulaTopLineIntegral f r -
-        zetaCompletedExplicitFormulaBottomLineIntegral f r := by
+      zetaCompletedExplicitFormulaBottomLineIntegral f r -
+        zetaCompletedExplicitFormulaTopLineIntegral f r +
+          (zetaCompletedExplicitFormulaRightLineIntegral f r * Complex.I -
+            zetaCompletedExplicitFormulaLeftLineIntegral f r * Complex.I) := by
   rfl
 
 /-- The pole-boundary contribution unfolds to the `0` and `1` principal-part boundary
@@ -472,11 +472,28 @@ def explicitFormulaCompletedZeroWindowCoordinates (T : ℝ) : Finset ℂ :=
   (explicitFormulaCompletedZeroHeightWindow T).image
     (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} => completedZeroResidueCoordinate ρ)
 
+/-- Every coordinate in the finite completed-zero carrier comes from a completed zero in
+the height window. -/
+theorem explicitFormulaCompletedZeroWindowCoordinates_exists_window_of_mem
+    (T : ℝ) {z : ℂ}
+    (hz : z ∈ explicitFormulaCompletedZeroWindowCoordinates T) :
+    ∃ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+      ρ ∈ explicitFormulaCompletedZeroHeightWindow T ∧
+        completedZeroResidueCoordinate ρ = z :=
+  Finset.mem_image.mp hz
+
 /-- The finite singular-coordinate carrier for the raw completed contour integrand:
 the completed-zero window coordinates together with the completed-zeta pole coordinates
 `0` and `1`. -/
 def explicitFormulaRectangleRawSingularCoordinates (T : ℝ) : Finset ℂ :=
   insert (0 : ℂ) (insert (1 : ℂ) (explicitFormulaCompletedZeroWindowCoordinates T))
+
+/-- Finite deleted-circle boundary contributions are recorded with positive residue
+orientation.  The punctured rectangle boundary therefore appears as outer boundary minus
+this deleted-circle sum. -/
+noncomputable def finiteRectangleDeletedCircleBoundarySum
+    (S : Finset ℂ) (deletedCircle : ℂ → ℂ) : ℂ :=
+  ∑ a in S, deletedCircle a
 
 /-- Indexed raw singularities of the completed contour integrand in a finite rectangle:
 the two completed-zeta pole coordinates and the finite completed-zero window.  This index
@@ -557,7 +574,7 @@ theorem finiteRectangleDeletedCircleBoundarySum_rawSingularCoordinates_eq_indexe
       deletedCircle 1 = explicitFormulaRectangle_onePoleResidue f)
     (hcompleted :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
           deletedCircle (completedZeroResidueCoordinate ρ) =
             explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ)) :
     finiteRectangleDeletedCircleBoundarySum
@@ -597,12 +614,11 @@ theorem finiteRectangleDeletedCircleBoundarySum_rawSingularCoordinates_eq_indexe
     exact
       Finset.sum_image
         (s := W)
-        (f := fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        (f := fun z : ℂ => deletedCircle z)
+        (g := fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
           completedZeroResidueCoordinate ρ)
-        (g := fun z : ℂ => deletedCircle z)
         (fun ρ _hρ σ _hσ hcoord =>
-          congrArg deletedCircle
-            (completedZeroResidueCoordinate_injective hcoord))
+          completedZeroResidueCoordinate_injective hcoord)
   have hcompleted_sum :
       (∑ ρ in W, deletedCircle (completedZeroResidueCoordinate ρ)) =
         ∑ ρ in W,

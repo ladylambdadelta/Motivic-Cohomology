@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleLeftOffPoleAffineValue
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleLeftOffPoleCauchyValue
 
 /-!
 # Left zero-pole off-pole decay
@@ -26,9 +27,9 @@ namespace ZetaAdmissibleFunction
 /-- Compatibility wrapper: scheduled off-pole Cauchy/Laplace value of the left
 `s = 0` correction affine kernel.
 
-The finite/scheduled contour estimate is owned upstream in
-`ZeroPoleLeftOffPoleAffineValue`, which in turn consumes the named Cauchy
-value leaf.  This file retains the historical decay-layer name for downstream
+The finite/scheduled contour estimate is owned by the named Cauchy value leaf;
+`ZeroPoleLeftOffPoleAffineValue` only transports it to the affine-window
+formulation.  This file retains the historical decay-layer name for downstream
 left-face consumers. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_zero_ownerLeftOffPoleDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
@@ -42,8 +43,10 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduled
       atTop
       (𝓝 0) := by
   exact
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_zero_ownerLeftOffPoleAffineValue
+    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_zero_of_scheduledOscillatory_tendsto_zero_ownerLeftOffPoleAffineValue
       f F h
+      (zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_ownerLeftOffPoleCauchy
+        f F h)
 
 /-- Transport form of the left `s = 0` off-pole value theorem.
 
@@ -75,10 +78,8 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_
 /-- Compatibility wrapper for the whole-line left `s = 0` correction affine
 kernel value.
 
-The analytic owner theorem is
-`zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_ownerLeftOffPoleAffineValue`
-in `ZeroPoleLeftOffPoleAffineValue.lean`.  This local name is kept for
-downstream consumers of the decay owner. -/
+The affine-window transport is owned in `ZeroPoleLeftOffPoleAffineValue.lean`;
+this local name is kept for downstream consumers of the decay owner. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_ownerLeftOffPoleDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :

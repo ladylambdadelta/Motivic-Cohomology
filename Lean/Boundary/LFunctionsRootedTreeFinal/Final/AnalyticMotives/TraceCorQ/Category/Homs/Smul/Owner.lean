@@ -46,6 +46,15 @@ theorem TraceCorQHomTerm.smul_importedRectangleCount
       term.importedRectangleCount :=
   rfl
 
+/-- Scaling a typed hom term preserves imported finite explicit-formula rectangles. -/
+theorem TraceCorQHomTerm.smul_importedRectangles
+    {source target : TraceCorQObject}
+    (coefficient : Rat)
+    (term : TraceCorQHomTerm source target) :
+    (TraceCorQHomTerm.smul coefficient term).importedRectangles =
+      term.importedRectangles :=
+  rfl
+
 /-- Scaling a typed hom term preserves internal trace-bookkeeping payload. -/
 theorem TraceCorQHomTerm.smul_traceBookkeepingCount
     {source target : TraceCorQObject}
@@ -117,9 +126,24 @@ theorem TraceCorQHomRepresentative.smul_certificateLedger
     (representative : TraceCorQHomRepresentative source target) :
     (TraceCorQHomRepresentative.smul coefficient representative).certificateLedger =
       representative.certificateLedger :=
-  TraceCorQQuotientCandidate.smul_certificateLedger
-    coefficient
-    representative.rawCandidate
+  Eq.trans
+    (TraceCorQHomRepresentative.ofFormalSumLedger_certificateLedger
+      (TraceCorQHomFormalSum.smul coefficient representative.formalSum)
+      representative.ledger)
+    (congrArg
+      (fun formalLedger =>
+        ResidueChannelCertificateLedger.append
+          formalLedger
+          representative.ledger.certificateLedger)
+      (Eq.trans
+        (congrArg
+          TraceCorQFormalSum.certificateLedger
+          (TraceCorQHomFormalSum.smul_raw
+            coefficient
+            representative.formalSum))
+        (TraceCorQFormalSum.smul_certificateLedger
+          coefficient
+          representative.formalSum.raw)))
 
 /-- Representative scalar multiplication preserves imported finite-rectangle payload. -/
 theorem TraceCorQHomRepresentative.smul_importedRectangleCount
@@ -130,6 +154,19 @@ theorem TraceCorQHomRepresentative.smul_importedRectangleCount
       representative.importedRectangleCount :=
   congrArg
     ResidueChannelCertificateLedger.importedRectangleCount
+    (TraceCorQHomRepresentative.smul_certificateLedger
+      coefficient
+      representative)
+
+/-- Representative scalar multiplication preserves imported finite explicit-formula rectangles. -/
+theorem TraceCorQHomRepresentative.smul_importedRectangles
+    {source target : TraceCorQObject}
+    (coefficient : Rat)
+    (representative : TraceCorQHomRepresentative source target) :
+    (TraceCorQHomRepresentative.smul coefficient representative).importedRectangles =
+      representative.importedRectangles :=
+  congrArg
+    ResidueChannelCertificateLedger.importedRectangles
     (TraceCorQHomRepresentative.smul_certificateLedger
       coefficient
       representative)
@@ -159,9 +196,14 @@ def TraceCorQHomRelation.smulRepresentative_to_candidateSmul
         representative.rawCandidate) :=
   TraceCorQQuotientRelation.sameFormalSum
     representative.rawCandidate.ledger
-    (TraceCorQHomRepresentative.smul_rawCandidate_formalSum
-      coefficient
-      representative)
+    (Eq.trans
+      (TraceCorQHomRepresentative.smul_rawCandidate_formalSum
+        coefficient
+        representative)
+      (Eq.symm
+        (TraceCorQQuotientCandidate.smul_formalSum
+          coefficient
+          representative.rawCandidate)))
 
 /-- Ambient candidate scaling is related back to the scaled representative. -/
 def TraceCorQHomRelation.candidateSmul_to_smulRepresentative

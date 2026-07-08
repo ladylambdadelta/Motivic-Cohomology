@@ -48,6 +48,13 @@ def TraceLocalizationInput.localizedIso
       input.localizedTargetObject :=
   input.localizedWordIso
 
+/-- The named localized isomorphism is the generic localized-word isomorphism. -/
+theorem TraceLocalizationInput.localizedIso_eq_localizedWordIso
+    (input : TraceLocalizationInput) :
+    TraceLocalizationInput.localizedIso input =
+      TraceLocalizationInput.localizedWordIso input :=
+  rfl
+
 /-- The named localized source object is the wrapped trace source object. -/
 theorem TraceLocalizationInput.localizedSourceObject_eq
     (input : TraceLocalizationInput) :
@@ -69,11 +76,55 @@ theorem TraceLocalizationInput.localizedForwardArrow_eq_forwardAtom
       (TraceLocalizationAtom.forward input).localizedArrow :=
   rfl
 
+/-- The named forward arrow is the forward input word class. -/
+theorem TraceLocalizationInput.localizedForwardArrow_eq_wordClass
+    (input : TraceLocalizationInput) :
+    input.localizedForwardArrow =
+      TraceLocalizationWordClass.ofInputForward input :=
+  rfl
+
+/-- The named forward arrow is represented by the one-forward-input word. -/
+theorem TraceLocalizationInput.localizedForwardArrow_eq_ofWord
+    (input : TraceLocalizationInput) :
+    input.localizedForwardArrow =
+      TraceLocalizationWordClass.ofWord
+        (TraceLocalizationWord.ofInputForward input) :=
+  rfl
+
+/-- The named forward arrow has a one-atom chosen representative. -/
+theorem TraceLocalizationInput.localizedForwardArrow_representative_atomCount
+    (input : TraceLocalizationInput) :
+    (TraceLocalizationWord.ofInputForward input).atomCount =
+      0 + 1 :=
+  rfl
+
 /-- The named inverse arrow is the inverse atom arrow. -/
 theorem TraceLocalizationInput.localizedInverseArrow_eq_inverseAtom
     (input : TraceLocalizationInput) :
     input.localizedInverseArrow =
       (TraceLocalizationAtom.inverse input).localizedArrow :=
+  rfl
+
+/-- The named inverse arrow is the inverse input word class. -/
+theorem TraceLocalizationInput.localizedInverseArrow_eq_wordClass
+    (input : TraceLocalizationInput) :
+    input.localizedInverseArrow =
+      TraceLocalizationWordClass.ofInputInverse input :=
+  rfl
+
+/-- The named inverse arrow is represented by the one-inverse-input word. -/
+theorem TraceLocalizationInput.localizedInverseArrow_eq_ofWord
+    (input : TraceLocalizationInput) :
+    input.localizedInverseArrow =
+      TraceLocalizationWordClass.ofWord
+        (TraceLocalizationWord.ofInputInverse input) :=
+  rfl
+
+/-- The named inverse arrow has a one-atom chosen representative. -/
+theorem TraceLocalizationInput.localizedInverseArrow_representative_atomCount
+    (input : TraceLocalizationInput) :
+    (TraceLocalizationWord.ofInputInverse input).atomCount =
+      0 + 1 :=
   rfl
 
 /-- The hom of the named localized isomorphism is the named forward arrow. -/
@@ -88,6 +139,28 @@ theorem TraceLocalizationInput.localizedIso_inv
     (input : TraceLocalizationInput) :
     (TraceLocalizationInput.localizedIso input).inv =
       input.localizedInverseArrow :=
+  rfl
+
+/-- The named isomorphism hom-inverse composite is the generic localized-word composite. -/
+theorem TraceLocalizationInput.localizedIso_hom_inv_eq_localizedWordIso_hom_inv
+    (input : TraceLocalizationInput) :
+    TraceLocalizationWordClass.comp
+        (TraceLocalizationInput.localizedIso input).hom
+        (TraceLocalizationInput.localizedIso input).inv =
+      TraceLocalizationWordClass.comp
+        (TraceLocalizationInput.localizedWordIso input).hom
+        (TraceLocalizationInput.localizedWordIso input).inv :=
+  rfl
+
+/-- The named isomorphism inverse-hom composite is the generic localized-word composite. -/
+theorem TraceLocalizationInput.localizedIso_inv_hom_eq_localizedWordIso_inv_hom
+    (input : TraceLocalizationInput) :
+    TraceLocalizationWordClass.comp
+        (TraceLocalizationInput.localizedIso input).inv
+        (TraceLocalizationInput.localizedIso input).hom =
+      TraceLocalizationWordClass.comp
+        (TraceLocalizationInput.localizedWordIso input).inv
+        (TraceLocalizationInput.localizedWordIso input).hom :=
   rfl
 
 end AnalyticMotives

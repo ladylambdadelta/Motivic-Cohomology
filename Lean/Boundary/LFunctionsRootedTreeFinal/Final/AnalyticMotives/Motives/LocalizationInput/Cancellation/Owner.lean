@@ -4,7 +4,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Localiza
 # Cancellation cells for formal localization words
 
 This file owns the formal cancellation cells that make localization-input
-atoms invertible in the later localized word calculus.
+atoms invertible in the localized word calculus.
 -/
 
 namespace Boundary
@@ -36,6 +36,15 @@ theorem TraceLocalizationWord.forwardThenInverse_eq_comp
         (TraceLocalizationWord.ofInputInverse input) :=
   rfl
 
+/-- Forward then inverse is a two-atom word before cancellation. -/
+theorem TraceLocalizationWord.forwardThenInverse_atomCount
+    (input : TraceLocalizationInput) :
+    (TraceLocalizationWord.forwardThenInverse input).atomCount =
+      (0 + 1) + (0 + 1) :=
+  TraceLocalizationWord.comp_atomCount
+    (TraceLocalizationWord.ofInputForward input)
+    (TraceLocalizationWord.ofInputInverse input)
+
 /-- Inverse then forward is the concatenation of the corresponding one-atom words. -/
 theorem TraceLocalizationWord.inverseThenForward_eq_comp
     (input : TraceLocalizationInput) :
@@ -43,6 +52,29 @@ theorem TraceLocalizationWord.inverseThenForward_eq_comp
       TraceLocalizationWord.comp
         (TraceLocalizationWord.ofInputInverse input)
         (TraceLocalizationWord.ofInputForward input) :=
+  rfl
+
+/-- Inverse then forward is a two-atom word before cancellation. -/
+theorem TraceLocalizationWord.inverseThenForward_atomCount
+    (input : TraceLocalizationInput) :
+    (TraceLocalizationWord.inverseThenForward input).atomCount =
+      (0 + 1) + (0 + 1) :=
+  TraceLocalizationWord.comp_atomCount
+    (TraceLocalizationWord.ofInputInverse input)
+    (TraceLocalizationWord.ofInputForward input)
+
+/-- The source identity word in forward-inverse cancellation has no atoms. -/
+theorem TraceLocalizationWord.forwardInverse_identity_atomCount
+    (input : TraceLocalizationInput) :
+    (TraceLocalizationWord.identity input.sourceObject).atomCount =
+      0 :=
+  rfl
+
+/-- The target identity word in inverse-forward cancellation has no atoms. -/
+theorem TraceLocalizationWord.inverseForward_identity_atomCount
+    (input : TraceLocalizationInput) :
+    (TraceLocalizationWord.identity input.targetObject).atomCount =
+      0 :=
   rfl
 
 /-- Primitive reduction cells in the formal localization word calculus. -/

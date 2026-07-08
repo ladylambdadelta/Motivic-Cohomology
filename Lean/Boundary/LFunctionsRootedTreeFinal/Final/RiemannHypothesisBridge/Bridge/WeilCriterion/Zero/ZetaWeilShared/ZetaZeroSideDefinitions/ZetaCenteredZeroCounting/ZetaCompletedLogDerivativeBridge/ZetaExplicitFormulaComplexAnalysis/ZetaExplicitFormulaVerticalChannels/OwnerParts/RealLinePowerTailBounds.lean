@@ -76,7 +76,7 @@ theorem realLineFourthOrderWeight_integrable :
       exact Eq.trans
         (congrArg (fun n : ℕ => (n : ℝ)) (Module.finrank_self ℝ))
         (Nat.cast_one)
-    integrable_one_add_norm (E := ℝ) (μ := volume)
+    integrable_one_add_norm (E := ℝ)
       (show (Module.finrank ℝ ℝ : ℝ) < (4 : ℝ) from
         lt_of_eq_of_lt hfinrank realLine_one_lt_four)
   exact

@@ -97,7 +97,7 @@ theorem TraceCorQHom.add_add_add_comp
         (fun head =>
           TraceCorQHom.add head (TraceCorQHom.comp fourth tail))
         (TraceCorQHom.add_add_comp first second third tail))
-      (TraceCorQHom.add_assoc_four_left
+      (TraceCorQHom.add_assoc_four_middle_left
         (TraceCorQHom.comp first tail)
         (TraceCorQHom.comp second tail)
         (TraceCorQHom.comp third tail)
@@ -218,7 +218,7 @@ theorem TraceCorQHom.comp_add_add_add
         (fun headClass =>
           TraceCorQHom.add headClass (TraceCorQHom.comp head fourth))
         (TraceCorQHom.comp_add_add head first second third))
-      (TraceCorQHom.add_assoc_four_left
+      (TraceCorQHom.add_assoc_four_middle_left
         (TraceCorQHom.comp head first)
         (TraceCorQHom.comp head second)
         (TraceCorQHom.comp head third)

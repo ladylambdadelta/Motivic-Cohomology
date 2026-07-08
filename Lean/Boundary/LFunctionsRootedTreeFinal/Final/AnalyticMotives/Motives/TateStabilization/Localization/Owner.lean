@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.LocalizationInput.WordQuotient.Category.Inputs.ByKind.Isomorphisms.Cancellation.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.LocalizationInput.WordQuotient.Category.Inputs.ByKind.Representatives.Owner
 
 /-!
 # Tate-stabilization localized arrows
@@ -33,6 +34,26 @@ theorem TraceTateStabilizationLocalization.weightDropIso_inv
       TraceLocalizationInput.tateWeightDropInverseArrow source target :=
   rfl
 
+/-- The Tate weight-drop hom has a one-atom chosen representative. -/
+theorem TraceTateStabilizationLocalization.weightDropIso_hom_representative_atomCount
+    (source target : QTraceExpression) :
+    (TraceLocalizationWord.ofInputForward
+      (TraceLocalizationInput.tateWeightDrop source target)).atomCount =
+      0 + 1 :=
+  TraceLocalizationInput.tateWeightDropForwardArrow_representative_atomCount
+    source
+    target
+
+/-- The Tate weight-drop inverse has a one-atom chosen representative. -/
+theorem TraceTateStabilizationLocalization.weightDropIso_inv_representative_atomCount
+    (source target : QTraceExpression) :
+    (TraceLocalizationWord.ofInputInverse
+      (TraceLocalizationInput.tateWeightDrop source target)).atomCount =
+      0 + 1 :=
+  TraceLocalizationInput.tateWeightDropInverseArrow_representative_atomCount
+    source
+    target
+
 /-- Tate weight-drop hom followed by inverse is identity. -/
 theorem TraceTateStabilizationLocalization.weightDropIso_hom_comp_inv
     (source target : QTraceExpression) :
@@ -52,6 +73,32 @@ theorem TraceTateStabilizationLocalization.weightDropIso_inv_comp_hom
       TraceLocalizationWordClass.identity
         (TraceLocalizationInput.tateWeightDrop source target).targetObject :=
   TraceLocalizationInput.tateWeightDropLocalizedIso_inv_comp_hom source target
+
+/-- Tate weight-drop hom followed by inverse is categorical identity. -/
+theorem TraceTateStabilizationLocalization.weightDropIso_hom_comp_inv_eq_categoryIdentity
+    (source target : QTraceExpression) :
+    (TraceTateStabilizationLocalization.weightDropIso source target).hom ≫
+        (TraceTateStabilizationLocalization.weightDropIso source target).inv =
+      (𝟙 (TraceLocalizationInput.tateWeightDrop source target).localizedSourceObject :
+        TraceLocalizedWordHom
+          (TraceLocalizationInput.tateWeightDrop source target).localizedSourceObject
+          (TraceLocalizationInput.tateWeightDrop source target).localizedSourceObject) :=
+  TraceLocalizationInput.tateWeightDropLocalizedIso_hom_comp_inv_eq_categoryIdentity
+    source
+    target
+
+/-- Tate weight-drop inverse followed by hom is categorical identity. -/
+theorem TraceTateStabilizationLocalization.weightDropIso_inv_comp_hom_eq_categoryIdentity
+    (source target : QTraceExpression) :
+    (TraceTateStabilizationLocalization.weightDropIso source target).inv ≫
+        (TraceTateStabilizationLocalization.weightDropIso source target).hom =
+      (𝟙 (TraceLocalizationInput.tateWeightDrop source target).localizedTargetObject :
+        TraceLocalizedWordHom
+          (TraceLocalizationInput.tateWeightDrop source target).localizedTargetObject
+          (TraceLocalizationInput.tateWeightDrop source target).localizedTargetObject) :=
+  TraceLocalizationInput.tateWeightDropLocalizedIso_inv_comp_hom_eq_categoryIdentity
+    source
+    target
 
 end AnalyticMotives
 end LFunctions

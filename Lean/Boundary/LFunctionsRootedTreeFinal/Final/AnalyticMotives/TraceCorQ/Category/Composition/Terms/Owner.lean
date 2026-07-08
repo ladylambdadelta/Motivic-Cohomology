@@ -38,6 +38,33 @@ theorem TraceCorQHomTerm.comp_raw
         TraceCorQGenerator.comp left.raw.2 right.raw.2) :=
   rfl
 
+/-- Typed term composition carries the raw term-composition rewrite-step payload. -/
+theorem TraceCorQHomTerm.comp_rewriteStepCount
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomTerm source middle)
+    (right : TraceCorQHomTerm middle target) :
+    (TraceCorQHomTerm.comp left right).rewriteStepCount =
+      (TraceCorQTerm.comp left.raw right.raw).rewriteStepCount :=
+  rfl
+
+/-- Typed term composition carries the raw term-composition imported payload. -/
+theorem TraceCorQHomTerm.comp_importedRectangleCount
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomTerm source middle)
+    (right : TraceCorQHomTerm middle target) :
+    (TraceCorQHomTerm.comp left right).importedRectangleCount =
+      (TraceCorQTerm.comp left.raw right.raw).importedRectangleCount :=
+  rfl
+
+/-- Typed term composition exposes the raw term-composition imported rectangles. -/
+theorem TraceCorQHomTerm.comp_importedRectangles
+    {source middle target : TraceCorQObject}
+    (left : TraceCorQHomTerm source middle)
+    (right : TraceCorQHomTerm middle target) :
+    (TraceCorQHomTerm.comp left right).importedRectangles =
+      (TraceCorQTerm.comp left.raw right.raw).importedRectangles :=
+  rfl
+
 end AnalyticMotives
 end LFunctions
 end Boundary

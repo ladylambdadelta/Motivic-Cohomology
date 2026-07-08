@@ -125,7 +125,7 @@ lemma completed_mellin_conjugateSymmetric
   -- So we're evaluating at conjugate points on vertical lines
 
   have h_point : σ + I * (s : ℂ) = (σ : ℂ) + I * s := by
-    rfl
+    exact Eq.refl _
 
   exact Eq.subst
     (motive := fun z : ℂ => (mellin φ (-star z) : ℂ) = star (mellin φ z))

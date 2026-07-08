@@ -271,6 +271,27 @@ theorem TraceCorQQuotient.comp_assoc_singleton_ofFormalSum_ofFormalSum
                     right))
                 (Eq.symm
                   (Eq.trans
+                    (congrArg
+                      (fun rightClass =>
+                        TraceCorQQuotient.comp
+                          (TraceCorQQuotient.singleton firstCoefficient first)
+                          rightClass)
+                      (Eq.trans
+                        (congrArg
+                          (fun middleClass =>
+                            TraceCorQQuotient.comp
+                              middleClass
+                              (TraceCorQQuotient.ofFormalSum right))
+                          (TraceCorQQuotient.ofFormalSum_cons
+                            middleCoefficient
+                            middleGenerator
+                            middleTail))
+                        (TraceCorQQuotient.add_comp
+                          (TraceCorQQuotient.singleton
+                            middleCoefficient
+                            middleGenerator)
+                          (TraceCorQQuotient.ofFormalSum middleTail)
+                          (TraceCorQQuotient.ofFormalSum right))))
                     (TraceCorQQuotient.comp_add
                       (TraceCorQQuotient.singleton firstCoefficient first)
                       (TraceCorQQuotient.comp
@@ -280,30 +301,7 @@ theorem TraceCorQQuotient.comp_assoc_singleton_ofFormalSum_ofFormalSum
                         (TraceCorQQuotient.ofFormalSum right))
                       (TraceCorQQuotient.comp
                         (TraceCorQQuotient.ofFormalSum middleTail)
-                        (TraceCorQQuotient.ofFormalSum right)))
-                    (congrArg
-                      (fun rightClass =>
-                        TraceCorQQuotient.comp
-                          (TraceCorQQuotient.singleton firstCoefficient first)
-                          rightClass)
-                      (Eq.symm
-                        (Eq.trans
-                          (TraceCorQQuotient.add_comp
-                            (TraceCorQQuotient.singleton
-                              middleCoefficient
-                              middleGenerator)
-                            (TraceCorQQuotient.ofFormalSum middleTail)
-                            (TraceCorQQuotient.ofFormalSum right))
-                          (congrArg
-                            (fun middleClass =>
-                              TraceCorQQuotient.comp
-                                middleClass
-                                (TraceCorQQuotient.ofFormalSum right))
-                            (Eq.symm
-                              (TraceCorQQuotient.ofFormalSum_cons
-                                middleCoefficient
-                                middleGenerator
-                                middleTail)))))))))))
+                        (TraceCorQQuotient.ofFormalSum right)))))))))
 
 end AnalyticMotives
 end LFunctions

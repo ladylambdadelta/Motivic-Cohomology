@@ -110,6 +110,22 @@ theorem TraceCorQQuotient.neg_singleton_add_singleton
         (TraceCorQRelationLedger.append
           TraceCorQRelationLedger.empty
           TraceCorQRelationLedger.empty)
+        (left :=
+          TraceCorQQuotientCandidate.add
+            (TraceCorQQuotient.singletonCandidate
+              (-coefficient)
+              generator
+              TraceCorQRelationLedger.empty)
+            (TraceCorQQuotient.singletonCandidate
+              coefficient
+              generator
+              TraceCorQRelationLedger.empty))
+        (right :=
+          TraceCorQQuotientInput.ofFormalSumLedger
+            [(-coefficient, generator), (- -coefficient, generator)]
+            (TraceCorQRelationLedger.append
+              TraceCorQRelationLedger.empty
+              TraceCorQRelationLedger.empty))
         (TraceCorQFormalSum.neg_singleton_add_singleton_cancel_source
           coefficient
           generator))
@@ -150,10 +166,10 @@ theorem TraceCorQQuotient.neg_ofFormalSum_add_ofFormalSum
   | [] =>
       Eq.trans
         (congrArg
-          (fun class =>
+          (fun candidateClass =>
             TraceCorQQuotient.add
-              (TraceCorQQuotient.neg class)
-              class)
+              (TraceCorQQuotient.neg candidateClass)
+              candidateClass)
           TraceCorQQuotient.ofFormalSum_nil)
         (Eq.trans
           (congrArg
@@ -166,10 +182,10 @@ theorem TraceCorQQuotient.neg_ofFormalSum_add_ofFormalSum
   | (coefficient, generator) :: tail =>
       Eq.trans
         (congrArg
-          (fun class =>
+          (fun candidateClass =>
             TraceCorQQuotient.add
-              (TraceCorQQuotient.neg class)
-              class)
+              (TraceCorQQuotient.neg candidateClass)
+              candidateClass)
           (TraceCorQQuotient.ofFormalSum_cons
             coefficient
             generator
@@ -232,10 +248,10 @@ theorem TraceCorQQuotient.neg_add_self
     (fun candidate =>
       Eq.trans
         (congrArg
-          (fun class =>
+          (fun candidateClass =>
             TraceCorQQuotient.add
-              (TraceCorQQuotient.neg class)
-              class)
+              (TraceCorQQuotient.neg candidateClass)
+              candidateClass)
           (TraceCorQQuotient.ofCandidate_eq_ofFormalSum candidate))
         (TraceCorQQuotient.neg_ofFormalSum_add_ofFormalSum
           candidate.formalSum))

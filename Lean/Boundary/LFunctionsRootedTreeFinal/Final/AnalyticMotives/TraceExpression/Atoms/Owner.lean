@@ -3,17 +3,14 @@
 
 This file owns the syntactic atoms for analytic trace expressions.
 
-The intended atoms are not arbitrary carriers.  They are the named analytic
-terms that appear in residue-channel rewriting:
+The atoms defined here are not arbitrary carriers.  They are the named
+analytic terms that appear in residue-channel rewriting:
 
 * boundary trace terms;
 * residue-ledger terms;
 * visible channel terms;
 * controlled defect and tail terms;
 * weight-truncated terms.
-
-The next implementation step is to define these atoms as a concrete grammar for
-analytic trace expressions, before any category or motive construction.
 -/
 
 namespace Boundary
@@ -85,6 +82,102 @@ def TraceAtom.stage : TraceAtom → TraceStageIndex
   | defect stage _ => stage
   | tail stage _ => stage
   | weightTruncation stage _ => stage
+
+/-- Boundary atoms have boundary role. -/
+theorem TraceAtom.role_boundary
+    (stage : TraceStageIndex)
+    (face : TraceFaceIndex) :
+    (TraceAtom.boundary stage face).role =
+      TraceAtomRole.boundary :=
+  rfl
+
+/-- Residue atoms have residue role. -/
+theorem TraceAtom.role_residue
+    (stage : TraceStageIndex)
+    (face : TraceFaceIndex) :
+    (TraceAtom.residue stage face).role =
+      TraceAtomRole.residue :=
+  rfl
+
+/-- Channel atoms have channel role. -/
+theorem TraceAtom.role_channel
+    (stage : TraceStageIndex)
+    (channel : TraceChannelIndex) :
+    (TraceAtom.channel stage channel).role =
+      TraceAtomRole.channel :=
+  rfl
+
+/-- Defect atoms have defect role. -/
+theorem TraceAtom.role_defect
+    (stage : TraceStageIndex)
+    (face : TraceFaceIndex) :
+    (TraceAtom.defect stage face).role =
+      TraceAtomRole.defect :=
+  rfl
+
+/-- Tail atoms have tail role. -/
+theorem TraceAtom.role_tail
+    (stage : TraceStageIndex)
+    (channel : TraceChannelIndex) :
+    (TraceAtom.tail stage channel).role =
+      TraceAtomRole.tail :=
+  rfl
+
+/-- Weight-truncation atoms have weight-truncation role. -/
+theorem TraceAtom.role_weightTruncation
+    (stage : TraceStageIndex)
+    (level : Nat) :
+    (TraceAtom.weightTruncation stage level).role =
+      TraceAtomRole.weightTruncation :=
+  rfl
+
+/-- Boundary atoms project to their stage. -/
+theorem TraceAtom.stage_boundary
+    (stage : TraceStageIndex)
+    (face : TraceFaceIndex) :
+    (TraceAtom.boundary stage face).stage =
+      stage :=
+  rfl
+
+/-- Residue atoms project to their stage. -/
+theorem TraceAtom.stage_residue
+    (stage : TraceStageIndex)
+    (face : TraceFaceIndex) :
+    (TraceAtom.residue stage face).stage =
+      stage :=
+  rfl
+
+/-- Channel atoms project to their stage. -/
+theorem TraceAtom.stage_channel
+    (stage : TraceStageIndex)
+    (channel : TraceChannelIndex) :
+    (TraceAtom.channel stage channel).stage =
+      stage :=
+  rfl
+
+/-- Defect atoms project to their stage. -/
+theorem TraceAtom.stage_defect
+    (stage : TraceStageIndex)
+    (face : TraceFaceIndex) :
+    (TraceAtom.defect stage face).stage =
+      stage :=
+  rfl
+
+/-- Tail atoms project to their stage. -/
+theorem TraceAtom.stage_tail
+    (stage : TraceStageIndex)
+    (channel : TraceChannelIndex) :
+    (TraceAtom.tail stage channel).stage =
+      stage :=
+  rfl
+
+/-- Weight-truncation atoms project to their stage. -/
+theorem TraceAtom.stage_weightTruncation
+    (stage : TraceStageIndex)
+    (level : Nat) :
+    (TraceAtom.weightTruncation stage level).stage =
+      stage :=
+  rfl
 
 end AnalyticMotives
 end LFunctions

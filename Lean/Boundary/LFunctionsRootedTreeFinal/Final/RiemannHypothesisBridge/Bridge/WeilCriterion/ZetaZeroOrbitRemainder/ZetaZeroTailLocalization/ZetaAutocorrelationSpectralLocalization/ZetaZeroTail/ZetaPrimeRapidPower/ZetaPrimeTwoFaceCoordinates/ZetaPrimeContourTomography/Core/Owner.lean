@@ -117,7 +117,7 @@ theorem real_residual_eq_tail_of_window_eq_of_add_eq
     _ = (H + -H) + T := by
       exact (add_assoc H (-H) T).symm
     _ = 0 + T := by
-      exact congrArg (fun x : ℝ => x + T) (add_right_neg H)
+      exact congrArg (fun x : ℝ => x + T) (add_neg_cancel H)
     _ = T := by
       exact zero_add T
 
@@ -129,7 +129,7 @@ theorem real_eq_reference_add_residual
     R = R + 0 := by
       exact (add_zero R).symm
     _ = R + (H + -H) := by
-      exact congrArg (fun x : ℝ => R + x) (add_right_neg H).symm
+      exact congrArg (fun x : ℝ => R + x) (add_neg_cancel H).symm
     _ = (R + H) + -H := by
       exact (add_assoc R H (-H)).symm
     _ = (H + R) + -H := by
@@ -153,7 +153,7 @@ theorem real_reference_add_complementary_residual
     _ = C + (T + -T) := by
       exact add_assoc C T (-T)
     _ = C + 0 := by
-      exact congrArg (fun x : ℝ => C + x) (add_right_neg T)
+      exact congrArg (fun x : ℝ => C + x) (add_neg_cancel T)
     _ = C := by
       exact add_zero C
 

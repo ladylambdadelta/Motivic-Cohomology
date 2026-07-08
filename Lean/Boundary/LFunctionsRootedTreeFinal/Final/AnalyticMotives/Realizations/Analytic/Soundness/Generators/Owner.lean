@@ -7,9 +7,9 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceRewrite.Gen
 This file owns the analytic soundness theorems for one-step computadic rewrite
 generators.
 
-Each theorem here should interpret one synthetic generator as an actual
-analytic identity: Stokes cancellation, residue extraction, channel
-decomposition, refinement, schedule exchange, weight drop, or Fubini.
+Each theorem here interprets one synthetic generator as an analytic identity:
+Stokes cancellation, residue extraction, channel decomposition, refinement,
+schedule exchange, weight drop, or Fubini.
 -/
 
 namespace Boundary

@@ -56,6 +56,13 @@ theorem completedZetaZeroPoleFiniteSquareRectangleCertificateLedger_importedRect
       1 + 0 :=
   rfl
 
+/-- The rectangle certificate ledger exposes exactly the finite-square rectangle. -/
+theorem completedZetaZeroPoleFiniteSquareRectangleCertificateLedger_importedRectangles
+    (R : ℝ) :
+    (completedZetaZeroPoleFiniteSquareRectangleCertificateLedger R).importedRectangles =
+      [completedZetaZeroPoleFiniteSquareRectangle R] ++ [] :=
+  rfl
+
 /-- The rectangle certificate ledger carries no trace-bookkeeping atom. -/
 theorem completedZetaZeroPoleFiniteSquareRectangleCertificateLedger_traceBookkeepingCount
     (R : ℝ) :
@@ -116,6 +123,16 @@ theorem completedZetaZeroPoleResiduePresentationWithRectangle_importedRectangleC
       completedZetaZeroPoleResiduePresentation.importedRectangleCount +
         (completedZetaZeroPoleFiniteSquareRectangleCertificateLedger R).importedRectangleCount :=
   CertifiedResidueChannelPresentation.withAdditionalCertificates_importedRectangleCount
+    completedZetaZeroPoleResiduePresentation
+    (completedZetaZeroPoleFiniteSquareRectangleCertificateLedger R)
+
+/-- The rectangle-certified residue presentation exposes original rectangles then the new rectangle. -/
+theorem completedZetaZeroPoleResiduePresentationWithRectangle_importedRectangles
+    (R : ℝ) :
+    (completedZetaZeroPoleResiduePresentationWithRectangle R).importedRectangles =
+      completedZetaZeroPoleResiduePresentation.importedRectangles ++
+        (completedZetaZeroPoleFiniteSquareRectangleCertificateLedger R).importedRectangles :=
+  CertifiedResidueChannelPresentation.withAdditionalCertificates_importedRectangles
     completedZetaZeroPoleResiduePresentation
     (completedZetaZeroPoleFiniteSquareRectangleCertificateLedger R)
 
@@ -205,6 +222,17 @@ theorem completedZetaZeroPoleResidueTransportWithRectangle_importedRectangleCoun
     (completedZetaZeroPoleResidueTransportWithRectangle R).importedRectangleCount =
       (completedZetaZeroPoleResidueTransportWithRectangle R).certificateLedger.importedRectangleCount :=
   rfl
+
+/-- The rectangle-certified transport exposes source, target, and path rectangle lists. -/
+theorem completedZetaZeroPoleResidueTransportWithRectangle_importedRectangles_split
+    (R : ℝ) :
+    (completedZetaZeroPoleResidueTransportWithRectangle R).importedRectangles =
+      (completedZetaZeroPoleResiduePresentationWithRectangle R).importedRectangles ++
+        (completedZetaZeroPoleResidueOutput.importedRectangles ++
+          (completedZetaZeroPoleResidueTransportWithRectangle
+            R).pathCertificateLedger.importedRectangles) :=
+  TraceTransport.importedRectangles_eq_source_target_path
+    (completedZetaZeroPoleResidueTransportWithRectangle R)
 
 end AnalyticMotives
 end LFunctions

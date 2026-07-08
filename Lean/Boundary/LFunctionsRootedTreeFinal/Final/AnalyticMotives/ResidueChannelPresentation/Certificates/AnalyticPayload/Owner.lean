@@ -1,10 +1,10 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.ResidueChannelPresentation.Certificates.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.ResidueChannelPresentation.Certificates.AnalyticPayload.Atoms.Owner
 
 /-!
 # Analytic payload of certificate ledgers
 
-This file separates imported analytic payload from internal trace-calculus
-bookkeeping inside a certificate ledger.
+This file lifts imported analytic payload and internal trace-calculus
+bookkeeping from certificate atoms to certificate ledgers.
 
 The current concrete imported analytic artifact is a finite explicit-formula
 rectangle from the RH lane.  Other atoms are still useful ledger atoms, but
@@ -16,88 +16,13 @@ namespace Boundary
 namespace LFunctions
 namespace AnalyticMotives
 
-/-- The number of imported finite-rectangle analytic artifacts carried by one atom. -/
-def ResidueChannelCertificateAtom.importedRectangleCount :
-    ResidueChannelCertificateAtom → Nat
-  | ResidueChannelCertificateAtom.sourceExpression _ => 0
-  | ResidueChannelCertificateAtom.residueLedger _ => 0
-  | ResidueChannelCertificateAtom.channelExpression _ => 0
-  | ResidueChannelCertificateAtom.channelList _ => 0
-  | ResidueChannelCertificateAtom.traceSchedule _ => 0
-  | ResidueChannelCertificateAtom.rewritePath _ => 0
-  | ResidueChannelCertificateAtom.coherenceCell _ => 0
-  | ResidueChannelCertificateAtom.explicitFormulaRectangle _ => 1
-
-/-- The number of internal trace-calculus bookkeeping atoms carried by one atom. -/
-def ResidueChannelCertificateAtom.traceBookkeepingCount :
-    ResidueChannelCertificateAtom → Nat
-  | ResidueChannelCertificateAtom.sourceExpression _ => 1
-  | ResidueChannelCertificateAtom.residueLedger _ => 1
-  | ResidueChannelCertificateAtom.channelExpression _ => 1
-  | ResidueChannelCertificateAtom.channelList _ => 1
-  | ResidueChannelCertificateAtom.traceSchedule _ => 1
-  | ResidueChannelCertificateAtom.rewritePath _ => 1
-  | ResidueChannelCertificateAtom.coherenceCell _ => 1
-  | ResidueChannelCertificateAtom.explicitFormulaRectangle _ => 0
-
-/-- The number of one-step rewrite generators explicitly carried by one atom. -/
-def ResidueChannelCertificateAtom.rewriteStepCount :
-    ResidueChannelCertificateAtom → Nat
-  | ResidueChannelCertificateAtom.sourceExpression _ => 0
-  | ResidueChannelCertificateAtom.residueLedger _ => 0
-  | ResidueChannelCertificateAtom.channelExpression _ => 0
-  | ResidueChannelCertificateAtom.channelList _ => 0
-  | ResidueChannelCertificateAtom.traceSchedule _ => 0
-  | ResidueChannelCertificateAtom.rewritePath path => path.stepCount
-  | ResidueChannelCertificateAtom.coherenceCell _ => 0
-  | ResidueChannelCertificateAtom.explicitFormulaRectangle _ => 0
-
-/-- A finite explicit-formula rectangle atom contributes one imported rectangle. -/
-theorem ResidueChannelCertificateAtom.explicitFormulaRectangle_importedRectangleCount
-    (rectangle :
-      ZetaAdmissibleFunction.ExplicitFormulaRectangle) :
-    (ResidueChannelCertificateAtom.explicitFormulaRectangle
-      rectangle).importedRectangleCount =
-      1 :=
-  rfl
-
-/-- A finite explicit-formula rectangle atom is not internal bookkeeping. -/
-theorem ResidueChannelCertificateAtom.explicitFormulaRectangle_traceBookkeepingCount
-    (rectangle :
-      ZetaAdmissibleFunction.ExplicitFormulaRectangle) :
-    (ResidueChannelCertificateAtom.explicitFormulaRectangle
-      rectangle).traceBookkeepingCount =
-      0 :=
-  rfl
-
-/-- A rewrite-path atom is internal trace bookkeeping. -/
-theorem ResidueChannelCertificateAtom.rewritePath_traceBookkeepingCount
-    (path : TraceRewritePath) :
-    (ResidueChannelCertificateAtom.rewritePath path).traceBookkeepingCount =
-      1 :=
-  rfl
-
-/-- A rewrite-path atom carries the one-step generator count of its path. -/
-theorem ResidueChannelCertificateAtom.rewritePath_rewriteStepCount
-    (path : TraceRewritePath) :
-    (ResidueChannelCertificateAtom.rewritePath path).rewriteStepCount =
-      path.stepCount :=
-  rfl
-
-/-- A rewrite-path atom carries no imported finite rectangle. -/
-theorem ResidueChannelCertificateAtom.rewritePath_importedRectangleCount
-    (path : TraceRewritePath) :
-    (ResidueChannelCertificateAtom.rewritePath path).importedRectangleCount =
-      0 :=
-  rfl
-
 /-- Count imported finite-rectangle analytic artifacts in a certificate ledger. -/
 def ResidueChannelCertificateLedger.importedRectangleCount :
     ResidueChannelCertificateLedger → Nat
   | [] => 0
   | atom :: tail =>
       atom.importedRectangleCount +
-        tail.importedRectangleCount
+        ResidueChannelCertificateLedger.importedRectangleCount tail
 
 /-- Count internal trace-calculus bookkeeping atoms in a certificate ledger. -/
 def ResidueChannelCertificateLedger.traceBookkeepingCount :
@@ -105,7 +30,7 @@ def ResidueChannelCertificateLedger.traceBookkeepingCount :
   | [] => 0
   | atom :: tail =>
       atom.traceBookkeepingCount +
-        tail.traceBookkeepingCount
+        ResidueChannelCertificateLedger.traceBookkeepingCount tail
 
 /-- Count one-step rewrite generators explicitly carried by a certificate ledger. -/
 def ResidueChannelCertificateLedger.rewriteStepCount :
@@ -113,12 +38,27 @@ def ResidueChannelCertificateLedger.rewriteStepCount :
   | [] => 0
   | atom :: tail =>
       atom.rewriteStepCount +
-        tail.rewriteStepCount
+        ResidueChannelCertificateLedger.rewriteStepCount tail
+
+/-- The imported finite explicit-formula rectangles carried by a certificate ledger. -/
+def ResidueChannelCertificateLedger.importedRectangles :
+    ResidueChannelCertificateLedger →
+      List ZetaAdmissibleFunction.ExplicitFormulaRectangle
+  | [] => []
+  | atom :: tail =>
+      atom.importedRectangles ++
+        ResidueChannelCertificateLedger.importedRectangles tail
 
 /-- The empty ledger carries no imported finite rectangles. -/
 theorem ResidueChannelCertificateLedger.empty_importedRectangleCount :
     ResidueChannelCertificateLedger.empty.importedRectangleCount =
       0 :=
+  rfl
+
+/-- The empty ledger exposes no imported finite explicit-formula rectangles. -/
+theorem ResidueChannelCertificateLedger.empty_importedRectangles :
+    ResidueChannelCertificateLedger.empty.importedRectangles =
+      [] :=
   rfl
 
 /-- The empty ledger carries no internal trace bookkeeping. -/
@@ -142,6 +82,17 @@ theorem ResidueChannelCertificateLedger.cons_importedRectangleCount
       ledger).importedRectangleCount =
       atom.importedRectangleCount +
         ledger.importedRectangleCount :=
+  rfl
+
+/-- A cons ledger exposes imported rectangles from the head followed by the tail. -/
+theorem ResidueChannelCertificateLedger.cons_importedRectangles
+    (atom : ResidueChannelCertificateAtom)
+    (ledger : ResidueChannelCertificateLedger) :
+    (ResidueChannelCertificateLedger.cons
+      atom
+      ledger).importedRectangles =
+      atom.importedRectangles ++
+        ledger.importedRectangles :=
   rfl
 
 /-- A cons ledger has bookkeeping count equal to head plus tail. -/
@@ -175,6 +126,15 @@ theorem ResidueChannelCertificateLedger.singleton_importedRectangleCount
         0 :=
   rfl
 
+/-- A singleton ledger exposes the imported rectangles of its atom. -/
+theorem ResidueChannelCertificateLedger.singleton_importedRectangles
+    (atom : ResidueChannelCertificateAtom) :
+    (ResidueChannelCertificateLedger.singleton
+      atom).importedRectangles =
+      atom.importedRectangles ++
+        [] :=
+  rfl
+
 /-- A singleton ledger has the bookkeeping count of its atom. -/
 theorem ResidueChannelCertificateLedger.singleton_traceBookkeepingCount
     (atom : ResidueChannelCertificateAtom) :
@@ -202,7 +162,10 @@ theorem ResidueChannelCertificateLedger.append_importedRectangleCount
       first.importedRectangleCount +
         second.importedRectangleCount :=
   match first with
-  | [] => rfl
+  | [] =>
+      Eq.symm
+        (Nat.zero_add
+          second.importedRectangleCount)
   | atom :: tail =>
       Eq.trans
         (congrArg
@@ -214,8 +177,58 @@ theorem ResidueChannelCertificateLedger.append_importedRectangleCount
         (Eq.symm
           (Nat.add_assoc
           atom.importedRectangleCount
-          tail.importedRectangleCount
+          (ResidueChannelCertificateLedger.importedRectangleCount tail)
             second.importedRectangleCount))
+
+/-- Appending ledgers concatenates their imported finite explicit-formula rectangles. -/
+theorem ResidueChannelCertificateLedger.append_importedRectangles
+    (first second : ResidueChannelCertificateLedger) :
+    (ResidueChannelCertificateLedger.append
+      first
+      second).importedRectangles =
+      first.importedRectangles ++
+        second.importedRectangles :=
+  match first with
+  | [] => rfl
+  | atom :: tail =>
+      Eq.trans
+        (congrArg
+          (fun rectangles =>
+            atom.importedRectangles ++ rectangles)
+          (ResidueChannelCertificateLedger.append_importedRectangles
+            tail
+            second))
+        (Eq.symm
+          (List.append_assoc
+            atom.importedRectangles
+            (ResidueChannelCertificateLedger.importedRectangles tail)
+            second.importedRectangles))
+
+/-- Imported-rectangle count is the length of the extracted rectangle list. -/
+theorem ResidueChannelCertificateLedger.importedRectangleCount_eq_length_importedRectangles
+    (ledger : ResidueChannelCertificateLedger) :
+    ledger.importedRectangleCount =
+      ledger.importedRectangles.length :=
+  match ledger with
+  | [] => rfl
+  | atom :: tail =>
+      Eq.trans
+        (congrArg
+          (fun count =>
+            count +
+              ResidueChannelCertificateLedger.importedRectangleCount tail)
+          (ResidueChannelCertificateAtom.importedRectangleCount_eq_length_importedRectangles
+            atom))
+        (Eq.trans
+          (congrArg
+            (fun count =>
+            atom.importedRectangles.length + count)
+            (ResidueChannelCertificateLedger.importedRectangleCount_eq_length_importedRectangles
+              tail))
+          (Eq.symm
+            (List.length_append
+              atom.importedRectangles
+              (ResidueChannelCertificateLedger.importedRectangles tail))))
 
 /-- Appending ledgers adds internal trace-bookkeeping counts. -/
 theorem ResidueChannelCertificateLedger.append_traceBookkeepingCount
@@ -226,7 +239,10 @@ theorem ResidueChannelCertificateLedger.append_traceBookkeepingCount
       first.traceBookkeepingCount +
         second.traceBookkeepingCount :=
   match first with
-  | [] => rfl
+  | [] =>
+      Eq.symm
+        (Nat.zero_add
+          second.traceBookkeepingCount)
   | atom :: tail =>
       Eq.trans
         (congrArg
@@ -238,7 +254,7 @@ theorem ResidueChannelCertificateLedger.append_traceBookkeepingCount
         (Eq.symm
           (Nat.add_assoc
           atom.traceBookkeepingCount
-          tail.traceBookkeepingCount
+          (ResidueChannelCertificateLedger.traceBookkeepingCount tail)
             second.traceBookkeepingCount))
 
 /-- Appending ledgers adds explicit rewrite-step counts. -/
@@ -250,7 +266,10 @@ theorem ResidueChannelCertificateLedger.append_rewriteStepCount
       first.rewriteStepCount +
         second.rewriteStepCount :=
   match first with
-  | [] => rfl
+  | [] =>
+      Eq.symm
+        (Nat.zero_add
+          second.rewriteStepCount)
   | atom :: tail =>
       Eq.trans
         (congrArg
@@ -262,7 +281,7 @@ theorem ResidueChannelCertificateLedger.append_rewriteStepCount
         (Eq.symm
           (Nat.add_assoc
           atom.rewriteStepCount
-          tail.rewriteStepCount
+          (ResidueChannelCertificateLedger.rewriteStepCount tail)
             second.rewriteStepCount))
 
 /-- The explicit-rectangle ledger carries exactly one imported rectangle. -/
@@ -272,6 +291,15 @@ theorem ResidueChannelCertificateLedger.ofExplicitFormulaRectangle_importedRecta
     (ResidueChannelCertificateLedger.ofExplicitFormulaRectangle
       rectangle).importedRectangleCount =
       1 + 0 :=
+  rfl
+
+/-- The explicit-rectangle ledger exposes exactly that imported rectangle. -/
+theorem ResidueChannelCertificateLedger.ofExplicitFormulaRectangle_importedRectangles
+    (rectangle :
+      ZetaAdmissibleFunction.ExplicitFormulaRectangle) :
+    (ResidueChannelCertificateLedger.ofExplicitFormulaRectangle
+      rectangle).importedRectangles =
+      [rectangle] ++ [] :=
   rfl
 
 /-- The explicit-rectangle ledger carries no internal bookkeeping atoms. -/
@@ -290,6 +318,70 @@ theorem ResidueChannelCertificateLedger.ofExplicitFormulaRectangle_rewriteStepCo
     (ResidueChannelCertificateLedger.ofExplicitFormulaRectangle
       rectangle).rewriteStepCount =
       0 + 0 :=
+  rfl
+
+/-- A rewrite-path certificate ledger carries no imported finite rectangles. -/
+theorem ResidueChannelCertificateLedger.ofRewritePath_importedRectangleCount
+    (path : TraceRewritePath) :
+    (ResidueChannelCertificateLedger.ofRewritePath
+      path).importedRectangleCount =
+      0 + 0 :=
+  rfl
+
+/-- A rewrite-path certificate ledger exposes no imported finite rectangles. -/
+theorem ResidueChannelCertificateLedger.ofRewritePath_importedRectangles
+    (path : TraceRewritePath) :
+    (ResidueChannelCertificateLedger.ofRewritePath
+      path).importedRectangles =
+      [] ++ [] :=
+  rfl
+
+/-- A rewrite-path certificate ledger is one internal bookkeeping atom. -/
+theorem ResidueChannelCertificateLedger.ofRewritePath_traceBookkeepingCount
+    (path : TraceRewritePath) :
+    (ResidueChannelCertificateLedger.ofRewritePath
+      path).traceBookkeepingCount =
+      1 + 0 :=
+  rfl
+
+/-- A rewrite-path certificate ledger counts the path's rewrite steps. -/
+theorem ResidueChannelCertificateLedger.ofRewritePath_rewriteStepCount
+    (path : TraceRewritePath) :
+    (ResidueChannelCertificateLedger.ofRewritePath
+      path).rewriteStepCount =
+      path.stepCount + 0 :=
+  rfl
+
+/-- A certified coherence-cell ledger carries no imported finite rectangles. -/
+theorem ResidueChannelCertificateLedger.ofCertifiedCoherenceCell_importedRectangleCount
+    (cell : TraceCoherenceCell) :
+    (ResidueChannelCertificateLedger.ofCertifiedCoherenceCell
+      cell).importedRectangleCount =
+      0 + (0 + (0 + 0)) :=
+  rfl
+
+/-- A certified coherence-cell ledger exposes no imported finite rectangles. -/
+theorem ResidueChannelCertificateLedger.ofCertifiedCoherenceCell_importedRectangles
+    (cell : TraceCoherenceCell) :
+    (ResidueChannelCertificateLedger.ofCertifiedCoherenceCell
+      cell).importedRectangles =
+      [] ++ ([] ++ ([] ++ [])) :=
+  rfl
+
+/-- A certified coherence-cell ledger counts source path, target path, and cell. -/
+theorem ResidueChannelCertificateLedger.ofCertifiedCoherenceCell_traceBookkeepingCount
+    (cell : TraceCoherenceCell) :
+    (ResidueChannelCertificateLedger.ofCertifiedCoherenceCell
+      cell).traceBookkeepingCount =
+      1 + (1 + (1 + 0)) :=
+  rfl
+
+/-- A certified coherence-cell ledger counts rewrite steps from both compared paths. -/
+theorem ResidueChannelCertificateLedger.ofCertifiedCoherenceCell_rewriteStepCount
+    (cell : TraceCoherenceCell) :
+    (ResidueChannelCertificateLedger.ofCertifiedCoherenceCell
+      cell).rewriteStepCount =
+      cell.source.stepCount + (cell.target.stepCount + (0 + 0)) :=
   rfl
 
 end AnalyticMotives

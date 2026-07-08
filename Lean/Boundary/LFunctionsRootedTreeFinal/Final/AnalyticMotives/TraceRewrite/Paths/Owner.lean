@@ -6,8 +6,8 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceRewrite.Gen
 This file owns finite paths in the higher-computadic trace calculus.
 
 A path is the syntactic trace of a computation: identity, one certified
-generator, or concatenation.  Analytic soundness is supplied later by
-residue-channel certificates.
+generator, or concatenation.  Residue-channel certificates record the analytic
+soundness payload attached to these paths.
 -/
 
 namespace Boundary
@@ -29,6 +29,48 @@ def TraceRewritePath.id (expression : QTraceExpression) : TraceRewritePath :=
 def TraceRewritePath.ofGenerator
     (generator : TraceRewriteGenerator) : TraceRewritePath :=
   TraceRewritePath.step generator
+
+/-- The one-step Stokes rewrite path. -/
+def TraceRewritePath.stokes
+    (source target : QTraceExpression) : TraceRewritePath :=
+  TraceRewritePath.ofGenerator
+    (TraceRewriteGenerator.stokes source target)
+
+/-- The one-step residue rewrite path. -/
+def TraceRewritePath.residue
+    (source target : QTraceExpression) : TraceRewritePath :=
+  TraceRewritePath.ofGenerator
+    (TraceRewriteGenerator.residue source target)
+
+/-- The one-step channel rewrite path. -/
+def TraceRewritePath.channel
+    (source target : QTraceExpression) : TraceRewritePath :=
+  TraceRewritePath.ofGenerator
+    (TraceRewriteGenerator.channel source target)
+
+/-- The one-step refinement rewrite path. -/
+def TraceRewritePath.refinement
+    (source target : QTraceExpression) : TraceRewritePath :=
+  TraceRewritePath.ofGenerator
+    (TraceRewriteGenerator.refinement source target)
+
+/-- The one-step schedule rewrite path. -/
+def TraceRewritePath.schedule
+    (source target : QTraceExpression) : TraceRewritePath :=
+  TraceRewritePath.ofGenerator
+    (TraceRewriteGenerator.schedule source target)
+
+/-- The one-step weight-drop rewrite path. -/
+def TraceRewritePath.weightDrop
+    (source target : QTraceExpression) : TraceRewritePath :=
+  TraceRewritePath.ofGenerator
+    (TraceRewriteGenerator.weightDrop source target)
+
+/-- The one-step Fubini rewrite path. -/
+def TraceRewritePath.fubini
+    (source target : QTraceExpression) : TraceRewritePath :=
+  TraceRewritePath.ofGenerator
+    (TraceRewriteGenerator.fubini source target)
 
 /-- Concatenate two rewrite paths. -/
 def TraceRewritePath.comp
@@ -100,6 +142,153 @@ theorem TraceRewritePath.ofGenerator_target
     (generator : TraceRewriteGenerator) :
     (TraceRewritePath.ofGenerator generator).target =
       generator.target :=
+  rfl
+
+/-- A one-step Stokes path has the supplied source. -/
+theorem TraceRewritePath.stokes_source
+    (source target : QTraceExpression) :
+    (TraceRewritePath.stokes source target).source =
+      source :=
+  rfl
+
+/-- A one-step Stokes path has the supplied target. -/
+theorem TraceRewritePath.stokes_target
+    (source target : QTraceExpression) :
+    (TraceRewritePath.stokes source target).target =
+      target :=
+  rfl
+
+/-- A one-step Stokes path has one rewrite step. -/
+theorem TraceRewritePath.stokes_stepCount
+    (source target : QTraceExpression) :
+    (TraceRewritePath.stokes source target).stepCount =
+      1 :=
+  rfl
+
+/-- A one-step residue path has the supplied source. -/
+theorem TraceRewritePath.residue_source
+    (source target : QTraceExpression) :
+    (TraceRewritePath.residue source target).source =
+      source :=
+  rfl
+
+/-- A one-step residue path has the supplied target. -/
+theorem TraceRewritePath.residue_target
+    (source target : QTraceExpression) :
+    (TraceRewritePath.residue source target).target =
+      target :=
+  rfl
+
+/-- A one-step residue path has one rewrite step. -/
+theorem TraceRewritePath.residue_stepCount
+    (source target : QTraceExpression) :
+    (TraceRewritePath.residue source target).stepCount =
+      1 :=
+  rfl
+
+/-- A one-step channel path has the supplied source. -/
+theorem TraceRewritePath.channel_source
+    (source target : QTraceExpression) :
+    (TraceRewritePath.channel source target).source =
+      source :=
+  rfl
+
+/-- A one-step channel path has the supplied target. -/
+theorem TraceRewritePath.channel_target
+    (source target : QTraceExpression) :
+    (TraceRewritePath.channel source target).target =
+      target :=
+  rfl
+
+/-- A one-step channel path has one rewrite step. -/
+theorem TraceRewritePath.channel_stepCount
+    (source target : QTraceExpression) :
+    (TraceRewritePath.channel source target).stepCount =
+      1 :=
+  rfl
+
+/-- A one-step refinement path has the supplied source. -/
+theorem TraceRewritePath.refinement_source
+    (source target : QTraceExpression) :
+    (TraceRewritePath.refinement source target).source =
+      source :=
+  rfl
+
+/-- A one-step refinement path has the supplied target. -/
+theorem TraceRewritePath.refinement_target
+    (source target : QTraceExpression) :
+    (TraceRewritePath.refinement source target).target =
+      target :=
+  rfl
+
+/-- A one-step refinement path has one rewrite step. -/
+theorem TraceRewritePath.refinement_stepCount
+    (source target : QTraceExpression) :
+    (TraceRewritePath.refinement source target).stepCount =
+      1 :=
+  rfl
+
+/-- A one-step schedule path has the supplied source. -/
+theorem TraceRewritePath.schedule_source
+    (source target : QTraceExpression) :
+    (TraceRewritePath.schedule source target).source =
+      source :=
+  rfl
+
+/-- A one-step schedule path has the supplied target. -/
+theorem TraceRewritePath.schedule_target
+    (source target : QTraceExpression) :
+    (TraceRewritePath.schedule source target).target =
+      target :=
+  rfl
+
+/-- A one-step schedule path has one rewrite step. -/
+theorem TraceRewritePath.schedule_stepCount
+    (source target : QTraceExpression) :
+    (TraceRewritePath.schedule source target).stepCount =
+      1 :=
+  rfl
+
+/-- A one-step weight-drop path has the supplied source. -/
+theorem TraceRewritePath.weightDrop_source
+    (source target : QTraceExpression) :
+    (TraceRewritePath.weightDrop source target).source =
+      source :=
+  rfl
+
+/-- A one-step weight-drop path has the supplied target. -/
+theorem TraceRewritePath.weightDrop_target
+    (source target : QTraceExpression) :
+    (TraceRewritePath.weightDrop source target).target =
+      target :=
+  rfl
+
+/-- A one-step weight-drop path has one rewrite step. -/
+theorem TraceRewritePath.weightDrop_stepCount
+    (source target : QTraceExpression) :
+    (TraceRewritePath.weightDrop source target).stepCount =
+      1 :=
+  rfl
+
+/-- A one-step Fubini path has the supplied source. -/
+theorem TraceRewritePath.fubini_source
+    (source target : QTraceExpression) :
+    (TraceRewritePath.fubini source target).source =
+      source :=
+  rfl
+
+/-- A one-step Fubini path has the supplied target. -/
+theorem TraceRewritePath.fubini_target
+    (source target : QTraceExpression) :
+    (TraceRewritePath.fubini source target).target =
+      target :=
+  rfl
+
+/-- A one-step Fubini path has one rewrite step. -/
+theorem TraceRewritePath.fubini_stepCount
+    (source target : QTraceExpression) :
+    (TraceRewritePath.fubini source target).stepCount =
+      1 :=
   rfl
 
 /-- The source of a concatenated path is the source of the first path. -/

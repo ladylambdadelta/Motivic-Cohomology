@@ -106,11 +106,20 @@ theorem TraceCorQQuotient.smul_add_four_left
           first
           second
           third))
-      (TraceCorQQuotient.add_assoc_four_left
-        (TraceCorQQuotient.smul coefficient first)
-        (TraceCorQQuotient.smul coefficient second)
-        (TraceCorQQuotient.smul coefficient third)
-        (TraceCorQQuotient.smul coefficient fourth)))
+      (Eq.trans
+        (TraceCorQQuotient.add_assoc
+          (TraceCorQQuotient.smul coefficient first)
+          (TraceCorQQuotient.add
+            (TraceCorQQuotient.smul coefficient second)
+            (TraceCorQQuotient.smul coefficient third))
+          (TraceCorQQuotient.smul coefficient fourth))
+        (congrArg
+          (TraceCorQQuotient.add
+            (TraceCorQQuotient.smul coefficient first))
+          (TraceCorQQuotient.add_assoc
+            (TraceCorQQuotient.smul coefficient second)
+            (TraceCorQQuotient.smul coefficient third)
+            (TraceCorQQuotient.smul coefficient fourth)))))
 
 /-- Distribute a scalar over a fully right-associated four-summand quotient sum. -/
 theorem TraceCorQQuotient.smul_add_four_right

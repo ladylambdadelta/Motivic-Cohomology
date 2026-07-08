@@ -23,7 +23,7 @@ theorem TraceCorQHom.std_zero_comp
       (0 : TraceCorQHom source middle)
       tail =
       (0 : TraceCorQHom source target) :=
-  TraceCorQHom.zero_comp source tail
+  TraceCorQHom.zero_comp tail
 
 /-- Standard typed composition annihilates a zero right input. -/
 theorem TraceCorQHom.std_comp_zero
@@ -33,7 +33,7 @@ theorem TraceCorQHom.std_comp_zero
       left
       (0 : TraceCorQHom middle target) =
       (0 : TraceCorQHom source target) :=
-  TraceCorQHom.comp_zero left target
+  TraceCorQHom.comp_zero left
 
 /-- Standard typed composition is left-distributive over standard addition. -/
 theorem TraceCorQHom.std_add_comp

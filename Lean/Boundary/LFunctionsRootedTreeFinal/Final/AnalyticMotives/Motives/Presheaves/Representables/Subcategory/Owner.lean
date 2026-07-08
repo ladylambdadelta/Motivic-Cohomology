@@ -1,6 +1,8 @@
 import Mathlib.CategoryTheory.FullSubcategory
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Presheaves.Representables.Owner
 
+open scoped CategoryTheory
+
 /-!
 # The full subcategory of representable trace presheaves
 

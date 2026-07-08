@@ -6,8 +6,9 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceRewrite.Pat
 
 This file owns analytic soundness for finite computadic rewrite paths.
 
-The proof should be by induction on the path syntax, using generator soundness
-for steps and transitivity of the concrete analytic equality for composition.
+Path soundness is organized by induction on the path syntax, using generator
+soundness for steps and transitivity of the concrete analytic equality for
+composition.
 -/
 
 namespace Boundary

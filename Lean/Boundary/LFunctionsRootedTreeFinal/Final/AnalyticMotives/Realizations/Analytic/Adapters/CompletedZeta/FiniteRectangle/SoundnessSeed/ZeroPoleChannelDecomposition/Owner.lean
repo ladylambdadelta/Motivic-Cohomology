@@ -59,6 +59,22 @@ theorem completedZetaZeroPoleLeftVerticalTrace_eq_channels
   zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_eq_right_add_horizontal_sub_boundary
     f F h u
 
+/-- The zero-pole channel target is the generic analytic channel decomposition. -/
+theorem completedZetaZeroPoleChannelTarget_eq_analyticChannelDecomposition
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    AnalyticTraceValue.channelDecomposition
+        (completedZetaZeroPoleRightVerticalTrace f F h u)
+        (completedZetaZeroPoleHorizontalTrace f F h u)
+        (completedZetaZeroPoleRectangleBoundaryTrace f F h u) =
+      completedZetaZeroPoleRightVerticalTrace f F h u +
+        completedZetaZeroPoleHorizontalTrace f F h u -
+        completedZetaZeroPoleRectangleBoundaryTrace f F h u :=
+  AnalyticTraceValue.channelDecomposition_eq
+    (completedZetaZeroPoleRightVerticalTrace f F h u)
+    (completedZetaZeroPoleHorizontalTrace f F h u)
+    (completedZetaZeroPoleRectangleBoundaryTrace f F h u)
+
 end AnalyticMotives
 end LFunctions
 end Boundary

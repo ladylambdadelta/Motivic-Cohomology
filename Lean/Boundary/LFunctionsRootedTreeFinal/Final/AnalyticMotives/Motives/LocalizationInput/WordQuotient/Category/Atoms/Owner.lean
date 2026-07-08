@@ -23,14 +23,35 @@ def TraceLocalizationAtom.localizedTargetObject
     TraceLocalizedWordObject :=
   TraceLocalizedWordObject.ofTraceObject atom.targetObject
 
+/-- The localized source object has the atom source as underlying object. -/
+theorem TraceLocalizationAtom.localizedSourceObject_underlying
+    (atom : TraceLocalizationAtom) :
+    atom.localizedSourceObject.underlying =
+      atom.sourceObject :=
+  rfl
+
+/-- The localized target object has the atom target as underlying object. -/
+theorem TraceLocalizationAtom.localizedTargetObject_underlying
+    (atom : TraceLocalizationAtom) :
+    atom.localizedTargetObject.underlying =
+      atom.targetObject :=
+  rfl
+
 /-- The one-atom arrow in the formal localized word category. -/
 def TraceLocalizationAtom.localizedArrow
     (atom : TraceLocalizationAtom) :
     TraceLocalizedWordHom
       atom.localizedSourceObject
       atom.localizedTargetObject :=
-  TraceLocalizationWordClass.ofWord
+    TraceLocalizationWordClass.ofWord
     (TraceLocalizationWord.ofAtom atom)
+
+/-- A localized atom arrow is represented by a one-atom word. -/
+theorem TraceLocalizationAtom.localizedArrow_representative_atomCount
+    (atom : TraceLocalizationAtom) :
+    (TraceLocalizationWord.ofAtom atom).atomCount =
+      0 + 1 :=
+  rfl
 
 /-- The localized source object of a forward atom is the input source object. -/
 theorem TraceLocalizationAtom.forward_localizedSourceObject

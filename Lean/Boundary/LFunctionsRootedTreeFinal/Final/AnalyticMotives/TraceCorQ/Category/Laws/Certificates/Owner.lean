@@ -35,6 +35,15 @@ def LedgeredTraceTransport.categoryShapeSupportWitnessImportedRectangleCount
     second
     third).importedRectangleCount
 
+/-- Imported finite rectangles of the concrete support-witness category-shape ledger. -/
+def LedgeredTraceTransport.categoryShapeSupportWitnessImportedRectangles
+    (first second third : LedgeredTraceTransport) :
+    List ZetaAdmissibleFunction.ExplicitFormulaRectangle :=
+  (LedgeredTraceTransport.categoryShapeSupportWitnessCertificateLedger
+    first
+    second
+    third).importedRectangles
+
 /-- Internal trace-bookkeeping payload of the concrete support-witness category-shape ledger. -/
 def LedgeredTraceTransport.categoryShapeSupportWitnessTraceBookkeepingCount
     (first second third : LedgeredTraceTransport) :
@@ -93,6 +102,41 @@ theorem LedgeredTraceTransport.categoryShapeSupportWitnessImportedRectangleCount
           third).importedRectangleCount +
           count)
       (ResidueChannelCertificateLedger.append_importedRectangleCount
+        (LedgeredTraceTransport.leftIdentitySupportWitness first).certificateLedger
+        (LedgeredTraceTransport.rightIdentitySupportWitness third).certificateLedger))
+
+/-- Support-witness category-shape imported rectangles are the three support witness rectangle lists. -/
+theorem LedgeredTraceTransport.categoryShapeSupportWitnessImportedRectangles_eq
+    (first second third : LedgeredTraceTransport) :
+    LedgeredTraceTransport.categoryShapeSupportWitnessImportedRectangles
+      first
+      second
+      third =
+      (LedgeredTraceTransport.associativitySupportWitness
+        first
+        second
+        third).importedRectangles ++
+        ((LedgeredTraceTransport.leftIdentitySupportWitness
+          first).importedRectangles ++
+          (LedgeredTraceTransport.rightIdentitySupportWitness
+            third).importedRectangles) :=
+  Eq.trans
+    (ResidueChannelCertificateLedger.append_importedRectangles
+      (LedgeredTraceTransport.associativitySupportWitness
+        first
+        second
+        third).certificateLedger
+      (ResidueChannelCertificateLedger.append
+        (LedgeredTraceTransport.leftIdentitySupportWitness first).certificateLedger
+        (LedgeredTraceTransport.rightIdentitySupportWitness third).certificateLedger))
+    (congrArg
+      (fun rectangles =>
+        (LedgeredTraceTransport.associativitySupportWitness
+          first
+          second
+          third).importedRectangles ++
+          rectangles)
+      (ResidueChannelCertificateLedger.append_importedRectangles
         (LedgeredTraceTransport.leftIdentitySupportWitness first).certificateLedger
         (LedgeredTraceTransport.rightIdentitySupportWitness third).certificateLedger))
 
@@ -238,6 +282,24 @@ theorem LedgeredTraceTransport.categoryShapeSupportWitnessImportedRectangleCount
         third :=
   congrArg
     ResidueChannelCertificateLedger.importedRectangleCount
+    (LedgeredTraceTransport.categoryShapeSupportWitnessCertificateLedger_normalized
+      first
+      second
+      third)
+
+/-- The concrete support-witness imported rectangles are the category-shape imported rectangles. -/
+theorem LedgeredTraceTransport.categoryShapeSupportWitnessImportedRectangles_normalized
+    (first second third : LedgeredTraceTransport) :
+    LedgeredTraceTransport.categoryShapeSupportWitnessImportedRectangles
+      first
+      second
+      third =
+      LedgeredTraceTransport.categoryShapeImportedRectangles
+        first
+        second
+        third :=
+  congrArg
+    ResidueChannelCertificateLedger.importedRectangles
     (LedgeredTraceTransport.categoryShapeSupportWitnessCertificateLedger_normalized
       first
       second

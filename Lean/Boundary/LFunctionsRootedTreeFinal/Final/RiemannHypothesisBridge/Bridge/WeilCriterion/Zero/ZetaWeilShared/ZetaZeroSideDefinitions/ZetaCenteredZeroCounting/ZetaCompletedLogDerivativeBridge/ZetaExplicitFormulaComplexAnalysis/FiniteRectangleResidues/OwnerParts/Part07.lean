@@ -40,7 +40,7 @@ deleted-disk union. -/
 theorem finiteRectangleDeletedDisks_ball_subset
     (S : Finset ℂ) (ε : ℝ) {a : ℂ} (ha : a ∈ S) :
     Metric.ball a ε ⊆ finiteRectangleDeletedDisks S ε :=
-  fun z hz => finiteRectangleDeletedDisks_mem_of_mem_ball S ε ha hz
+  fun _z hz => finiteRectangleDeletedDisks_mem_of_mem_ball S ε ha hz
 
 /-- If every deleted disk around a finite singular coordinate lies in a base domain, then
 the whole finite deleted-disk union lies in that domain. -/
@@ -48,7 +48,7 @@ theorem finiteRectangleDeletedDisks_subset_of_forall_ball_subset
     (R : Set ℂ) (S : Finset ℂ) (ε : ℝ)
     (hball : ∀ a : ℂ, a ∈ S → Metric.ball a ε ⊆ R) :
     finiteRectangleDeletedDisks S ε ⊆ R :=
-  fun z hz =>
+  fun _z hz =>
     Exists.elim hz
       (fun a ha => hball a ha.left ha.right)
 
@@ -59,41 +59,43 @@ theorem finiteRectangle_exists_uniform_ball_subset_of_finite
     (hlocal :
       ∀ a : ℂ, a ∈ S → ∃ r : ℝ, 0 < r ∧ Metric.ball a r ⊆ R) :
     ∃ ε : ℝ, 0 < ε ∧ ∀ a : ℂ, a ∈ S → Metric.ball a ε ⊆ R := by
-  apply Finset.induction_on S
-  · exact
-      Exists.intro (1 : ℝ)
-        (And.intro zero_lt_one
-          (fun a ha => False.elim (Finset.not_mem_empty a ha)))
-  · intro a S ha ih hlocal_insert
-    have hlocal_a : ∃ r : ℝ, 0 < r ∧ Metric.ball a r ⊆ R :=
-      hlocal_insert a (Finset.mem_insert_self a S)
-    have hlocal_S :
-        ∀ b : ℂ, b ∈ S → ∃ r : ℝ, 0 < r ∧ Metric.ball b r ⊆ R :=
-      fun b hb => hlocal_insert b (Finset.mem_insert_of_mem hb)
-    match hlocal_a with
-    | ⟨ra, hra_pos, hra_subset⟩ =>
-        match ih hlocal_S with
-        | ⟨εS, hεS_pos, hεS_subset⟩ =>
-            let ε : ℝ := min ra εS
-            have hε_pos : 0 < ε :=
-              lt_min hra_pos hεS_pos
-            have hε_le_ra : ε ≤ ra :=
-              min_le_left ra εS
-            have hε_le_εS : ε ≤ εS :=
-              min_le_right ra εS
-            exact Exists.intro ε
-              (And.intro hε_pos
-                (fun b hb =>
-                  match Finset.mem_insert.mp hb with
-                  | Or.inl hba =>
-                      Eq.subst
-                        (motive := fun x : ℂ => Metric.ball x ε ⊆ R)
-                        hba.symm
-                        (Set.Subset.trans (Metric.ball_subset_ball hε_le_ra) hra_subset)
-                  | Or.inr hbS =>
-                      Set.Subset.trans
-                        (Metric.ball_subset_ball hε_le_εS)
-                        (hεS_subset b hbS)))
+  exact
+    Finset.induction_on S
+      (fun _hlocal_empty =>
+        Exists.intro (1 : ℝ)
+          (And.intro zero_lt_one
+            (fun a ha => False.elim (Finset.not_mem_empty a ha))))
+      (fun a S ha ih hlocal_insert =>
+        have hlocal_a : ∃ r : ℝ, 0 < r ∧ Metric.ball a r ⊆ R :=
+          hlocal_insert a (Finset.mem_insert_self a S)
+        have hlocal_S :
+            ∀ b : ℂ, b ∈ S → ∃ r : ℝ, 0 < r ∧ Metric.ball b r ⊆ R :=
+          fun b hb => hlocal_insert b (Finset.mem_insert_of_mem hb)
+        match hlocal_a with
+        | ⟨ra, hra_pos, hra_subset⟩ =>
+            match ih hlocal_S with
+            | ⟨εS, hεS_pos, hεS_subset⟩ =>
+                let ε : ℝ := min ra εS
+                have hε_pos : 0 < ε :=
+                  lt_min hra_pos hεS_pos
+                have hε_le_ra : ε ≤ ra :=
+                  min_le_left ra εS
+                have hε_le_εS : ε ≤ εS :=
+                  min_le_right ra εS
+                Exists.intro ε
+                  (And.intro hε_pos
+                    (fun b hb =>
+                      match Finset.mem_insert.mp hb with
+                      | Or.inl hba =>
+                          Eq.subst
+                            (motive := fun x : ℂ => Metric.ball x ε ⊆ R)
+                            hba.symm
+                            (Set.Subset.trans (Metric.ball_subset_ball hε_le_ra) hra_subset)
+                      | Or.inr hbS =>
+                          Set.Subset.trans
+                            (Metric.ball_subset_ball hε_le_εS)
+                            (hεS_subset b hbS))))
+      hlocal
 
 /-- If a positive radius is at most half the distance between any two distinct points in a
 finite carrier, then the corresponding open balls are pairwise disjoint. -/
@@ -123,49 +125,51 @@ theorem finiteRectangle_pairwiseDisjoint_closedBalls_of_two_mul_lt_dist
 /-- A finite family of positive real bounds admits one positive number smaller
 than all of them. -/
 theorem finiteRectangle_exists_uniform_pos_lt_of_finite
-    {α : Type*} (S : Finset α) (d : α → ℝ)
+    {α : Type*} [DecidableEq α] (S : Finset α) (d : α → ℝ)
     (hpos : ∀ a : α, a ∈ S → 0 < d a) :
     ∃ ε : ℝ, 0 < ε ∧ ∀ a : α, a ∈ S → ε < d a := by
-  apply Finset.induction_on S
-  · exact
-      Exists.intro (1 : ℝ)
-        (And.intro zero_lt_one
-          (fun a ha => False.elim (Finset.not_mem_empty a ha)))
-  · intro a S ha ih hpos_insert
-    have ha_pos : 0 < d a :=
-      hpos_insert a (Finset.mem_insert_self a S)
-    have hS_pos : ∀ b : α, b ∈ S → 0 < d b :=
-      fun b hb => hpos_insert b (Finset.mem_insert_of_mem hb)
-    match ih hS_pos with
-    | ⟨δ, hδ_pos, hδ_lt⟩ =>
-        let ε : ℝ := min (d a / 2) δ
-        have hhalf_pos : 0 < d a / 2 :=
-          half_pos ha_pos
-        have hε_pos : 0 < ε :=
-          lt_min hhalf_pos hδ_pos
-        have hε_lt_da : ε < d a := by
-          have hε_le_half : ε ≤ d a / 2 :=
-            min_le_left (d a / 2) δ
-          have hhalf_lt : d a / 2 < d a := by
-            calc
-              d a / 2 < d a / 1 := by
-                exact div_lt_div_of_pos_left ha_pos zero_lt_one one_lt_two
-              _ = d a := by
-                exact div_one (d a)
-          exact lt_of_le_of_lt hε_le_half hhalf_lt
-        have hε_le_δ : ε ≤ δ :=
-          min_le_right (d a / 2) δ
-        exact Exists.intro ε
-          (And.intro hε_pos
-            (fun b hb =>
-              match Finset.mem_insert.mp hb with
-              | Or.inl hba =>
-                  Eq.subst
-                    (motive := fun x : α => ε < d x)
-                    hba.symm
-                    hε_lt_da
-              | Or.inr hbS =>
-                  lt_of_le_of_lt hε_le_δ (hδ_lt b hbS)))
+  exact
+    Finset.induction_on S
+      (fun _hpos_empty =>
+        Exists.intro (1 : ℝ)
+          (And.intro zero_lt_one
+            (fun a ha => False.elim (Finset.not_mem_empty a ha))))
+      (fun a S ha ih hpos_insert =>
+        have ha_pos : 0 < d a :=
+          hpos_insert a (Finset.mem_insert_self a S)
+        have hS_pos : ∀ b : α, b ∈ S → 0 < d b :=
+          fun b hb => hpos_insert b (Finset.mem_insert_of_mem hb)
+        match ih hS_pos with
+        | ⟨δ, hδ_pos, hδ_lt⟩ =>
+            let ε : ℝ := min (d a / 2) δ
+            have hhalf_pos : 0 < d a / 2 :=
+              half_pos ha_pos
+            have hε_pos : 0 < ε :=
+              lt_min hhalf_pos hδ_pos
+            have hε_lt_da : ε < d a := by
+              have hε_le_half : ε ≤ d a / 2 :=
+                min_le_left (d a / 2) δ
+              have hhalf_lt : d a / 2 < d a := by
+                calc
+                  d a / 2 < d a / 1 := by
+                    exact div_lt_div_of_pos_left ha_pos zero_lt_one one_lt_two
+                  _ = d a := by
+                    exact div_one (d a)
+              exact lt_of_le_of_lt hε_le_half hhalf_lt
+            have hε_le_δ : ε ≤ δ :=
+              min_le_right (d a / 2) δ
+            Exists.intro ε
+              (And.intro hε_pos
+                (fun b hb =>
+                  match Finset.mem_insert.mp hb with
+                  | Or.inl hba =>
+                      Eq.subst
+                        (motive := fun x : α => ε < d x)
+                        hba.symm
+                        hε_lt_da
+                  | Or.inr hbS =>
+                      lt_of_le_of_lt hε_le_δ (hδ_lt b hbS))))
+      hpos
 
 /-- Every finite set of complex points admits one positive radius whose doubled
 radius is strictly smaller than the distance between any two distinct listed
@@ -216,7 +220,13 @@ theorem finiteRectangle_exists_uniform_strict_pairwise_radius
                   dist a b / 2 + dist a b / 2 =
                       ((1 / 2 : ℝ) + (1 / 2 : ℝ)) * dist a b := by
                     have hleft : dist a b / 2 = (1 / 2 : ℝ) * dist a b := by
-                      exact (one_div_mul_eq_div (dist a b) 2).symm
+                      calc
+                        dist a b / 2 = dist a b * (2 : ℝ)⁻¹ := by
+                          exact div_eq_mul_inv (dist a b) 2
+                        _ = (2 : ℝ)⁻¹ * dist a b := by
+                          exact mul_comm (dist a b) (2 : ℝ)⁻¹
+                        _ = (1 / 2 : ℝ) * dist a b := by
+                          exact congrArg (fun r : ℝ => r * dist a b) (one_div 2).symm
                     calc
                       dist a b / 2 + dist a b / 2 =
                           (1 / 2 : ℝ) * dist a b + (1 / 2 : ℝ) * dist a b := by
@@ -228,7 +238,7 @@ theorem finiteRectangle_exists_uniform_strict_pairwise_radius
                       (show (1 / 2 : ℝ) + (1 / 2 : ℝ) = 1 by
                         exact add_halves 1)
                   _ = dist a b := by
-                    exact one_mul (dist a b))
+                    exact one_mul (dist a b)))
 
 /-- The raw deleted disks lie in the contour-family interior once each raw singular
 coordinate has its deleted disk contained in that interior. -/
@@ -244,9 +254,9 @@ theorem explicitFormulaRectangleRawDeletedDisks_subset_interior_of_forall_ball_s
   exact
     finiteRectangleDeletedDisks_subset_of_forall_ball_subset
       (explicitFormulaContourFamilyInterior F T)
-	      (explicitFormulaRectangleRawSingularCoordinates T)
-	      ε
-	      hball
+      (explicitFormulaRectangleRawSingularCoordinates T)
+      ε
+      hball
 
 /-- A finite raw singular-coordinate carrier admits one positive radius whose disks all lie
 in the rectangle interior, once each raw singular coordinate has some local interior disk.
@@ -332,7 +342,7 @@ theorem finiteRectangle_closedBall_subset_of_radius_le
 /-- A positive radius has nonnegative half-radius. -/
 theorem finiteRectangle_halfRadius_nonneg {ε : ℝ} (hε : 0 < ε) :
     0 ≤ ε / 2 :=
-  half_nonneg (le_of_lt hε)
+  div_nonneg (le_of_lt hε) zero_le_two
 
 /-- A positive radius has positive half-radius. -/
 theorem finiteRectangle_halfRadius_pos {ε : ℝ} (hε : 0 < ε) :
@@ -553,7 +563,7 @@ theorem finiteRectangleIndexedDeletedDisks_ball_subset
     {α : Type*} (S : Finset α) (center : α → ℂ) (ε : ℝ) {a : α}
     (ha : a ∈ S) :
     Metric.ball (center a) ε ⊆ finiteRectangleIndexedDeletedDisks S center ε :=
-  fun z hz => finiteRectangleIndexedDeletedDisks_mem_of_mem_ball S center ε ha hz
+  fun _z hz => finiteRectangleIndexedDeletedDisks_mem_of_mem_ball S center ε ha hz
 
 /-- If every indexed deleted disk lies in a base domain, then the indexed finite
 deleted-disk union lies in that domain. -/
@@ -561,7 +571,7 @@ theorem finiteRectangleIndexedDeletedDisks_subset_of_forall_ball_subset
     {α : Type*} (R : Set ℂ) (S : Finset α) (center : α → ℂ) (ε : ℝ)
     (hball : ∀ a : α, a ∈ S → Metric.ball (center a) ε ⊆ R) :
     finiteRectangleIndexedDeletedDisks S center ε ⊆ R :=
-  fun z hz =>
+  fun _z hz =>
     Exists.elim hz
       (fun a ha => hball a ha.left ha.right)
 
@@ -595,16 +605,6 @@ theorem explicitFormulaRectangleRawSingularCoordinates_completedZero_mem
   Finset.mem_insert_of_mem
     (Finset.mem_insert_of_mem
       (explicitFormulaCompletedZeroWindowCoordinates_mem_of_mem_window T hρ))
-
-/-- Every coordinate in the finite completed-zero carrier comes from a completed zero in
-the height window. -/
-theorem explicitFormulaCompletedZeroWindowCoordinates_exists_window_of_mem
-    (T : ℝ) {z : ℂ}
-    (hz : z ∈ explicitFormulaCompletedZeroWindowCoordinates T) :
-    ∃ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-      ρ ∈ explicitFormulaCompletedZeroHeightWindow T ∧
-        completedZeroResidueCoordinate ρ = z :=
-  Finset.mem_image.mp hz
 
 /-- Every raw singular coordinate is either one of the two completed-zeta pole coordinates
 or the residue coordinate of a completed zero in the finite height window. -/

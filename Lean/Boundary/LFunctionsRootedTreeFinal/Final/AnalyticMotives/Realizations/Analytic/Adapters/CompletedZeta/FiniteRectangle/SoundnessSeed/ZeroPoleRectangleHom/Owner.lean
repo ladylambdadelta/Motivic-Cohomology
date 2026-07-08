@@ -51,6 +51,13 @@ theorem completedZetaZeroPoleResidueRectangleTraceCorQHomTerm_generator
       completedZetaZeroPoleResidueRectangleTraceCorQGenerator R :=
   rfl
 
+/-- The typed rectangle-certified residue term carries the generator rewrite-step payload. -/
+theorem completedZetaZeroPoleResidueRectangleTraceCorQHomTerm_rewriteStepCount
+    (R : ℝ) :
+    (completedZetaZeroPoleResidueRectangleTraceCorQHomTerm R).rewriteStepCount =
+      (completedZetaZeroPoleResidueRectangleTraceCorQGenerator R).rewriteStepCount :=
+  rfl
+
 /-- The rectangle-certified residue generator as a typed singleton formal sum. -/
 def completedZetaZeroPoleResidueRectangleTraceCorQHomFormalSum
     (R : ℝ) :
@@ -79,6 +86,24 @@ theorem completedZetaZeroPoleResidueRectangleTraceCorQHomFormalSum_certificateLe
       (completedZetaZeroPoleResidueRectangleTraceCorQFormalSum R).certificateLedger :=
   congrArg
     TraceCorQFormalSum.certificateLedger
+    (completedZetaZeroPoleResidueRectangleTraceCorQHomFormalSum_raw R)
+
+/-- The typed singleton carries the same rectangle list as the raw rectangle-certified singleton. -/
+theorem completedZetaZeroPoleResidueRectangleTraceCorQHomFormalSum_importedRectangles
+    (R : ℝ) :
+    (completedZetaZeroPoleResidueRectangleTraceCorQHomFormalSum R).importedRectangles =
+      (completedZetaZeroPoleResidueRectangleTraceCorQFormalSum R).importedRectangles :=
+  congrArg
+    TraceCorQFormalSum.importedRectangles
+    (completedZetaZeroPoleResidueRectangleTraceCorQHomFormalSum_raw R)
+
+/-- The typed singleton carries the same rewrite-step payload as the raw rectangle singleton. -/
+theorem completedZetaZeroPoleResidueRectangleTraceCorQHomFormalSum_rewriteStepCount
+    (R : ℝ) :
+    (completedZetaZeroPoleResidueRectangleTraceCorQHomFormalSum R).rewriteStepCount =
+      (completedZetaZeroPoleResidueRectangleTraceCorQFormalSum R).rewriteStepCount :=
+  congrArg
+    TraceCorQFormalSum.rewriteStepCount
     (completedZetaZeroPoleResidueRectangleTraceCorQHomFormalSum_raw R)
 
 /-- The rectangle-certified residue typed hom class. -/

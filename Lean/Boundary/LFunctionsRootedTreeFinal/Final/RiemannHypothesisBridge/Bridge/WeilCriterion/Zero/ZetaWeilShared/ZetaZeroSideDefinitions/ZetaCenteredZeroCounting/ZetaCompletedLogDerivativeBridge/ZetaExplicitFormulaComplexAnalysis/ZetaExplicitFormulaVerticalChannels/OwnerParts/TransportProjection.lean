@@ -1,6 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ArchimedeanTransport
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLogDerivativeTransport
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part01
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ProjectionCore
 
 namespace Boundary
 namespace LFunctions
@@ -88,52 +89,6 @@ theorem zetaCompletedExplicitFormulaCorrectionVerticalChannel_eq_contribution_ad
       exact congrArg (fun x : ℂ => C + x) (sub_eq_add_neg V C).symm
 
 /-! ## Channel realization limit owners -/
-
-/-- The three scheduled vertical channel projections owned by this file. -/
-inductive ExplicitFormulaScheduledVerticalChannelProjection where
-  | prime
-  | archimedean
-  | correction
-
-/-- The realized vertical contour integral attached to a scheduled channel projection. -/
-noncomputable def explicitFormulaScheduledVerticalChannelProjectionIntegral
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ)
-    (channel : ExplicitFormulaScheduledVerticalChannelProjection) : ℂ :=
-  match channel with
-  | ExplicitFormulaScheduledVerticalChannelProjection.prime =>
-      zetaCompletedExplicitFormulaPrimeVerticalChannel f F T
-  | ExplicitFormulaScheduledVerticalChannelProjection.archimedean =>
-      zetaCompletedExplicitFormulaArchimedeanVerticalChannel f F T
-  | ExplicitFormulaScheduledVerticalChannelProjection.correction =>
-      zetaCompletedExplicitFormulaCorrectionVerticalChannel f F T
-
-/-- The boundary contribution attached to a scheduled channel projection. -/
-noncomputable def explicitFormulaScheduledVerticalChannelProjectionContribution
-    (f : ZetaAdmissibleFunction)
-    (channel : ExplicitFormulaScheduledVerticalChannelProjection) : ℂ :=
-  match channel with
-  | ExplicitFormulaScheduledVerticalChannelProjection.prime =>
-      zetaCompletedExplicitFormulaPrimeContribution f
-  | ExplicitFormulaScheduledVerticalChannelProjection.archimedean =>
-      zetaCompletedExplicitFormulaArchimedeanContribution f
-  | ExplicitFormulaScheduledVerticalChannelProjection.correction =>
-      zetaCompletedExplicitFormulaCorrectionStandardContourContribution f
-
-/-- The transport remainder attached to a scheduled vertical channel projection. -/
-noncomputable def explicitFormulaScheduledVerticalChannelProjectionTransportRemainder
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ)
-    (channel : ExplicitFormulaScheduledVerticalChannelProjection) : ℂ :=
-  explicitFormulaScheduledVerticalChannelProjectionIntegral f F T channel -
-    explicitFormulaScheduledVerticalChannelProjectionContribution f channel
-
-/-- The scheduled projected vertical-decomposition error is exactly the selected channel
-transport remainder already defined from the concrete vertical channel integrals. -/
-noncomputable def explicitFormulaScheduledProjectedVerticalDecompositionError
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ)
-    (channel : ExplicitFormulaScheduledVerticalChannelProjection) : ℂ :=
-  explicitFormulaScheduledVerticalChannelProjectionTransportRemainder
-    f F (h.height_schedule.height u) channel
 
 /-- The selected-channel projected vertical decomposition is definitionally the scheduled
 transport remainder at the chosen height. -/
@@ -373,15 +328,6 @@ theorem explicitFormulaScheduledRectangleContourIntegral_eq_residueSum
     _ = explicitFormulaScheduledRectangleResidueSum f F.toContourFamily h u := by
         rfl
 
-/-- The scheduled horizontal-side contribution of the rectangle. -/
-noncomputable def explicitFormulaScheduledHorizontalSideDifference
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) : ℂ :=
-  zetaCompletedExplicitFormulaTopLineIntegral f
-      (F.rectangle (h.height_schedule.height u)) -
-    zetaCompletedExplicitFormulaBottomLineIntegral f
-      (F.rectangle (h.height_schedule.height u))
-
 /-- The scheduled full vertical-side contribution of the rectangle. -/
 noncomputable def explicitFormulaScheduledCompletedVerticalSideDifference
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
@@ -427,19 +373,6 @@ theorem explicitFormulaScheduledRectangleContourIntegral_eq_vertical_add_horizon
     _ =
         explicitFormulaScheduledCompletedVerticalSideDifference f F h u +
           explicitFormulaScheduledHorizontalSideDifference f F h u := rfl
-
-/-- The horizontal-side decay target along the selected schedule.
-
-This is the horizontal estimate in the contour-integral-to-boundary path; it is
-recorded as a named step consumed by the selected-channel convergence primitive. -/
-def explicitFormulaScheduledHorizontalSideDifferenceTendstoZero
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily) : Prop :=
-    Tendsto
-      (fun u : ℝ =>
-        explicitFormulaScheduledHorizontalSideDifference f F.toContourFamily h u)
-      atTop
-      (𝓝 0)
 
 /-- The selected scheduled vertical contour realization. -/
 noncomputable def explicitFormulaSelectedScheduledVerticalChannel

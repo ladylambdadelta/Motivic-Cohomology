@@ -802,7 +802,6 @@ theorem finiteAutocorrelationFiberZeroAnnihilationSeedTarget_eq_of_mem_daggerClo
     (hz : z ∈ daggerClosedSpectralSampleFinset P) :
     finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z =
       zetaSpectralEval f₀ z := by
-  unfold finiteAutocorrelationFiberZeroAnnihilationSeedTarget
   exact dif_pos hz
 
 /-- Away from the dagger-closed fiber constraints, the finite annihilation target is zero. -/
@@ -812,7 +811,6 @@ theorem finiteAutocorrelationFiberZeroAnnihilationSeedTarget_eq_zero_of_not_mem_
     {z : ℂ}
     (hz : z ∉ daggerClosedSpectralSampleFinset P) :
     finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z = 0 := by
-  unfold finiteAutocorrelationFiberZeroAnnihilationSeedTarget
   exact dif_neg hz
 
 /-- A seed realizing the finite annihilation target preserves the autocorrelation spectral
@@ -1173,7 +1171,6 @@ theorem autocorrelationSpectralEvalFiberNonDaggerHeightWindow_daggerDisjoint
     ∀ ρ : ℂ, ρ ∈ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R →
       zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P := by
   intro ρ hρ
-  unfold autocorrelationSpectralEvalFiberNonDaggerHeightWindow at hρ
   match Finset.mem_image.mp hρ with
   | ⟨ρZero, hρZero, hρ_eq⟩ =>
       have hfilter :
@@ -1200,7 +1197,6 @@ theorem autocorrelationSpectralEvalFiberNonDaggerHeightWindow_mem_data
         ρZero ∈ completedZerosInCenteredHeightBall R ∧
           (ρZero : ℂ) ∉ S ∧
             zetaCenteredZero (ρZero : ℂ) ∉ daggerClosedSpectralSampleFinset P := by
-  unfold autocorrelationSpectralEvalFiberNonDaggerHeightWindow at hρ
   match Finset.mem_image.mp hρ with
   | ⟨ρZero, hρZero, hρ_eq⟩ =>
       have hfilter :
@@ -1315,7 +1311,6 @@ theorem exists_nonDaggerHeightWindow_cover_finite_completedZeros
           exact
             Finset.mem_filter.mpr
               ⟨htoFinset, hTS ρ hρ, hTdagger ρ hρ⟩
-        unfold autocorrelationSpectralEvalFiberNonDaggerHeightWindow
         exact
           Finset.mem_image.mpr
             ⟨ρZero, hfilter, rfl⟩

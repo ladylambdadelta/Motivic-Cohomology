@@ -14,6 +14,80 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- The tangent-weighted top `s = 1` side is the top horizontal integral in the
+vertical-channel notation. -/
+theorem zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral_eq_horizontal
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
+    zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral f F T =
+      zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral f F T := by
+  let G : ℝ → ℂ :=
+    fun x : ℝ =>
+      zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+        (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x)
+  have htangent :
+      zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral f F T =
+        ∫ x in Set.Icc (1 - F.c) F.c, G x :=
+    zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral_eq_Icc
+      f F T
+  have hhorizontal :
+      zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral f F T =
+        ∫ x in Set.Icc (1 - F.c) F.c, G x :=
+    Eq.trans
+      (show
+        zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral f F T =
+          ∫ x in Set.uIcc F.c (1 - F.c), G x from
+        Eq.refl _)
+      (congrArg
+        (fun s : Set ℝ => ∫ x in s, G x)
+        (zetaCompletedExplicitFormulaCorrectionPoleHorizontal_uIcc_eq_Icc F))
+  exact Eq.trans htangent hhorizontal.symm
+
+/-- The tangent-weighted bottom `s = 1` side is the bottom horizontal integral
+in the vertical-channel notation. -/
+theorem zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral_eq_horizontal
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
+    zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral f F T =
+      zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T := by
+  let G : ℝ → ℂ :=
+    fun x : ℝ =>
+      zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+        (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x)
+  have htangent :
+      zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral f F T =
+        ∫ x in Set.Icc (1 - F.c) F.c, G x :=
+    zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral_eq_Icc
+      f F T
+  have hhorizontal :
+      zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T =
+        ∫ x in Set.Icc (1 - F.c) F.c, G x :=
+    Eq.trans
+      (show
+        zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T =
+          ∫ x in Set.uIcc F.c (1 - F.c), G x from
+        Eq.refl _)
+      (congrArg
+        (fun s : Set ℝ => ∫ x in s, G x)
+        (zetaCompletedExplicitFormulaCorrectionPoleHorizontal_uIcc_eq_Icc F))
+  exact Eq.trans htangent hhorizontal.symm
+
+/-- A positive-height finite standard-residue theorem supplies the corresponding
+scheduled `s = 1` standard boundary value eventually. -/
+theorem zetaCompletedExplicitFormulaCorrectionOnePole_eventually_standardBoundaryResidueValue_of_positiveHeight
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (B : ℂ)
+    (hpositive :
+      ∀ T : ℝ,
+        0 < T →
+          zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral
+            f F T = B) :
+    ∀ᶠ u in atTop,
+      zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral
+        f F (h.height_schedule.height u) = B := by
+  exact h.height_schedule.eventually_height_pos.mono
+    (fun u hu =>
+      hpositive (h.height_schedule.height u) hu)
+
 /-- Lower-owner scheduled `s = 1` boundary identity used by the right one-pole
 oscillatory estimates. -/
 theorem zetaCompletedExplicitFormulaCorrectionOnePoleScheduledRectangleBoundaryIntegral_eq_vertical_add_horizontal_ownerRightOnePoleBoundary

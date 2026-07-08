@@ -1,47 +1,17 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Homs.RelationWitnesses.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Homs.Add.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Homs.RelationWitnesses.Add.Conversions.Owner
 
 /-!
 # Additive compatibility for typed hom relation witnesses
 
 This file lifts additive compatibility from proof-valued typed hom relations to
-data-bearing typed hom relation witnesses.
+data-bearing typed hom relation witnesses. Conversion witnesses between typed
+representative addition and ambient candidate addition are owned by the
+`Conversions` child.
 -/
 
 namespace Boundary
 namespace LFunctions
 namespace AnalyticMotives
-
-/-- Witness from representative addition to ambient candidate addition. -/
-def TraceCorQHomRelationWitness.addRepresentative_to_candidateAdd
-    {source target : TraceCorQObject}
-    (left right : TraceCorQHomRepresentative source target) :
-    TraceCorQRelationWitness
-      (TraceCorQHomRepresentative.add left right).rawCandidate
-      (TraceCorQQuotientCandidate.add
-        left.rawCandidate
-        right.rawCandidate) :=
-  TraceCorQRelationWitness.sameFormalSum
-    (TraceCorQRelationLedger.append
-      left.rawCandidate.ledger
-      right.rawCandidate.ledger)
-    (TraceCorQHomRepresentative.add_rawCandidate_formalSum
-      left
-      right)
-
-/-- Witness from ambient candidate addition back to representative addition. -/
-def TraceCorQHomRelationWitness.candidateAdd_to_addRepresentative
-    {source target : TraceCorQObject}
-    (left right : TraceCorQHomRepresentative source target) :
-    TraceCorQRelationWitness
-      (TraceCorQQuotientCandidate.add
-        left.rawCandidate
-        right.rawCandidate)
-      (TraceCorQHomRepresentative.add left right).rawCandidate :=
-  TraceCorQRelationWitness.symm
-    (TraceCorQHomRelationWitness.addRepresentative_to_candidateAdd
-      left
-      right)
 
 /-- Additive compatibility for data-bearing typed hom relation witnesses. -/
 def TraceCorQHomRelationWitness.addCongr
@@ -58,89 +28,9 @@ def TraceCorQHomRelationWitness.addCongr
       right₁)
     (TraceCorQRelationWitness.trans
       (TraceCorQRelationWitness.addCongr leftWitness rightWitness)
-      (TraceCorQHomRelationWitness.candidateAdd_to_addRepresentative
+    (TraceCorQHomRelationWitness.candidateAdd_to_addRepresentative
         left₂
         right₂))
-
-/-- Representative-to-candidate addition carries the appended representative ledger certificates. -/
-theorem TraceCorQHomRelationWitness.addRepresentative_to_candidateAdd_certificateLedger
-    {source target : TraceCorQObject}
-    (left right : TraceCorQHomRepresentative source target) :
-    (TraceCorQHomRelationWitness.addRepresentative_to_candidateAdd
-      left
-      right).certificateLedger =
-      ResidueChannelCertificateLedger.append
-        left.rawCandidate.ledger.certificateLedger
-        right.rawCandidate.ledger.certificateLedger :=
-  TraceCorQRelationLedger.append_certificateLedger
-    left.rawCandidate.ledger
-    right.rawCandidate.ledger
-
-/-- Representative-to-candidate addition carries appended representative ledger imported payload. -/
-theorem TraceCorQHomRelationWitness.addRepresentative_to_candidateAdd_importedRectangleCount
-    {source target : TraceCorQObject}
-    (left right : TraceCorQHomRepresentative source target) :
-    (TraceCorQHomRelationWitness.addRepresentative_to_candidateAdd
-      left
-      right).importedRectangleCount =
-      left.rawCandidate.ledger.importedRectangleCount +
-        right.rawCandidate.ledger.importedRectangleCount :=
-  TraceCorQRelationLedger.append_importedRectangleCount
-    left.rawCandidate.ledger
-    right.rawCandidate.ledger
-
-/-- Representative-to-candidate addition carries appended representative ledger bookkeeping payload. -/
-theorem TraceCorQHomRelationWitness.addRepresentative_to_candidateAdd_traceBookkeepingCount
-    {source target : TraceCorQObject}
-    (left right : TraceCorQHomRepresentative source target) :
-    (TraceCorQHomRelationWitness.addRepresentative_to_candidateAdd
-      left
-      right).traceBookkeepingCount =
-      left.rawCandidate.ledger.traceBookkeepingCount +
-        right.rawCandidate.ledger.traceBookkeepingCount :=
-  TraceCorQRelationLedger.append_traceBookkeepingCount
-    left.rawCandidate.ledger
-    right.rawCandidate.ledger
-
-/-- Candidate-to-representative addition carries the appended representative ledger certificates. -/
-theorem TraceCorQHomRelationWitness.candidateAdd_to_addRepresentative_certificateLedger
-    {source target : TraceCorQObject}
-    (left right : TraceCorQHomRepresentative source target) :
-    (TraceCorQHomRelationWitness.candidateAdd_to_addRepresentative
-      left
-      right).certificateLedger =
-      ResidueChannelCertificateLedger.append
-        left.rawCandidate.ledger.certificateLedger
-        right.rawCandidate.ledger.certificateLedger :=
-  TraceCorQRelationLedger.append_certificateLedger
-    left.rawCandidate.ledger
-    right.rawCandidate.ledger
-
-/-- Candidate-to-representative addition carries appended representative ledger imported payload. -/
-theorem TraceCorQHomRelationWitness.candidateAdd_to_addRepresentative_importedRectangleCount
-    {source target : TraceCorQObject}
-    (left right : TraceCorQHomRepresentative source target) :
-    (TraceCorQHomRelationWitness.candidateAdd_to_addRepresentative
-      left
-      right).importedRectangleCount =
-      left.rawCandidate.ledger.importedRectangleCount +
-        right.rawCandidate.ledger.importedRectangleCount :=
-  TraceCorQRelationLedger.append_importedRectangleCount
-    left.rawCandidate.ledger
-    right.rawCandidate.ledger
-
-/-- Candidate-to-representative addition carries appended representative ledger bookkeeping payload. -/
-theorem TraceCorQHomRelationWitness.candidateAdd_to_addRepresentative_traceBookkeepingCount
-    {source target : TraceCorQObject}
-    (left right : TraceCorQHomRepresentative source target) :
-    (TraceCorQHomRelationWitness.candidateAdd_to_addRepresentative
-      left
-      right).traceBookkeepingCount =
-      left.rawCandidate.ledger.traceBookkeepingCount +
-        right.rawCandidate.ledger.traceBookkeepingCount :=
-  TraceCorQRelationLedger.append_traceBookkeepingCount
-    left.rawCandidate.ledger
-    right.rawCandidate.ledger
 
 /-- Additive compatibility records endpoint certificates around the summed witness certificates. -/
 theorem TraceCorQHomRelationWitness.addCongr_certificateLedger
@@ -247,6 +137,61 @@ theorem TraceCorQHomRelationWitness.addCongr_importedRectangleCount
             left₂.rawCandidate.ledger.certificateLedger
             right₂.rawCandidate.ledger.certificateLedger))))
 
+/-- Additive compatibility records endpoint and witness imported rectangles. -/
+theorem TraceCorQHomRelationWitness.addCongr_importedRectangles
+    {source target : TraceCorQObject}
+    {left₁ left₂ right₁ right₂ : TraceCorQHomRepresentative source target}
+    (leftWitness : TraceCorQHomRelationWitness left₁ left₂)
+    (rightWitness : TraceCorQHomRelationWitness right₁ right₂) :
+    (TraceCorQHomRelationWitness.addCongr
+      leftWitness
+      rightWitness).importedRectangles =
+      (left₁.rawCandidate.ledger.importedRectangles ++
+        right₁.rawCandidate.ledger.importedRectangles) ++
+        ((leftWitness.importedRectangles ++
+          rightWitness.importedRectangles) ++
+          (left₂.rawCandidate.ledger.importedRectangles ++
+            right₂.rawCandidate.ledger.importedRectangles)) :=
+  Eq.trans
+    (Eq.trans
+      (congrArg
+        ResidueChannelCertificateLedger.importedRectangles
+        (TraceCorQHomRelationWitness.addCongr_certificateLedger
+          leftWitness
+          rightWitness))
+      (ResidueChannelCertificateLedger.append_importedRectangles
+        (ResidueChannelCertificateLedger.append
+          left₁.rawCandidate.ledger.certificateLedger
+          right₁.rawCandidate.ledger.certificateLedger)
+        (ResidueChannelCertificateLedger.append
+          (ResidueChannelCertificateLedger.append
+            leftWitness.certificateLedger
+            rightWitness.certificateLedger)
+          (ResidueChannelCertificateLedger.append
+            left₂.rawCandidate.ledger.certificateLedger
+            right₂.rawCandidate.ledger.certificateLedger))))
+    (congrArg₂
+      List.append
+      (ResidueChannelCertificateLedger.append_importedRectangles
+        left₁.rawCandidate.ledger.certificateLedger
+        right₁.rawCandidate.ledger.certificateLedger)
+      (Eq.trans
+        (ResidueChannelCertificateLedger.append_importedRectangles
+          (ResidueChannelCertificateLedger.append
+            leftWitness.certificateLedger
+            rightWitness.certificateLedger)
+          (ResidueChannelCertificateLedger.append
+            left₂.rawCandidate.ledger.certificateLedger
+            right₂.rawCandidate.ledger.certificateLedger))
+        (congrArg₂
+          List.append
+          (ResidueChannelCertificateLedger.append_importedRectangles
+            leftWitness.certificateLedger
+            rightWitness.certificateLedger)
+          (ResidueChannelCertificateLedger.append_importedRectangles
+            left₂.rawCandidate.ledger.certificateLedger
+            right₂.rawCandidate.ledger.certificateLedger))))
+
 /-- Additive compatibility records endpoint and witness internal trace-bookkeeping payload. -/
 theorem TraceCorQHomRelationWitness.addCongr_traceBookkeepingCount
     {source target : TraceCorQObject}
@@ -299,6 +244,61 @@ theorem TraceCorQHomRelationWitness.addCongr_traceBookkeepingCount
             leftWitness.certificateLedger
             rightWitness.certificateLedger)
           (ResidueChannelCertificateLedger.append_traceBookkeepingCount
+            left₂.rawCandidate.ledger.certificateLedger
+            right₂.rawCandidate.ledger.certificateLedger))))
+
+/-- Additive compatibility records endpoint and witness explicit rewrite-step payload. -/
+theorem TraceCorQHomRelationWitness.addCongr_rewriteStepCount
+    {source target : TraceCorQObject}
+    {left₁ left₂ right₁ right₂ : TraceCorQHomRepresentative source target}
+    (leftWitness : TraceCorQHomRelationWitness left₁ left₂)
+    (rightWitness : TraceCorQHomRelationWitness right₁ right₂) :
+    (TraceCorQHomRelationWitness.addCongr
+      leftWitness
+      rightWitness).rewriteStepCount =
+      (left₁.rawCandidate.ledger.rewriteStepCount +
+        right₁.rawCandidate.ledger.rewriteStepCount) +
+        ((leftWitness.rewriteStepCount +
+          rightWitness.rewriteStepCount) +
+          (left₂.rawCandidate.ledger.rewriteStepCount +
+            right₂.rawCandidate.ledger.rewriteStepCount)) :=
+  Eq.trans
+    (Eq.trans
+      (congrArg
+        ResidueChannelCertificateLedger.rewriteStepCount
+        (TraceCorQHomRelationWitness.addCongr_certificateLedger
+          leftWitness
+          rightWitness))
+      (ResidueChannelCertificateLedger.append_rewriteStepCount
+        (ResidueChannelCertificateLedger.append
+          left₁.rawCandidate.ledger.certificateLedger
+          right₁.rawCandidate.ledger.certificateLedger)
+        (ResidueChannelCertificateLedger.append
+          (ResidueChannelCertificateLedger.append
+            leftWitness.certificateLedger
+            rightWitness.certificateLedger)
+          (ResidueChannelCertificateLedger.append
+            left₂.rawCandidate.ledger.certificateLedger
+            right₂.rawCandidate.ledger.certificateLedger))))
+    (congrArg₂
+      Nat.add
+      (ResidueChannelCertificateLedger.append_rewriteStepCount
+        left₁.rawCandidate.ledger.certificateLedger
+        right₁.rawCandidate.ledger.certificateLedger)
+      (Eq.trans
+        (ResidueChannelCertificateLedger.append_rewriteStepCount
+          (ResidueChannelCertificateLedger.append
+            leftWitness.certificateLedger
+            rightWitness.certificateLedger)
+          (ResidueChannelCertificateLedger.append
+            left₂.rawCandidate.ledger.certificateLedger
+            right₂.rawCandidate.ledger.certificateLedger))
+        (congrArg₂
+          Nat.add
+          (ResidueChannelCertificateLedger.append_rewriteStepCount
+            leftWitness.certificateLedger
+            rightWitness.certificateLedger)
+          (ResidueChannelCertificateLedger.append_rewriteStepCount
             left₂.rawCandidate.ledger.certificateLedger
             right₂.rawCandidate.ledger.certificateLedger))))
 

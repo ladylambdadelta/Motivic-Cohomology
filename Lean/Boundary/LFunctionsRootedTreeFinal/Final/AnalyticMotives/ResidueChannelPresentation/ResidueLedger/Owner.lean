@@ -7,9 +7,9 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.ResidueChannelPr
 This file owns residue ledgers: the signed, Q-linear bookkeeping of residues
 created by contour deformation.
 
-Residue ledgers are the analytic source of the boundary terms that later become
-relations in the trace category.  They should be built from the residue theorem
-and contour calculus already present in `Final`.
+Residue ledgers are the analytic source of the boundary terms consumed by
+relations in the trace category.  They are the contour-calculus bookkeeping
+interface for residue-theorem input imported from `Final`.
 -/
 
 namespace Boundary
@@ -32,6 +32,19 @@ def ResidueLedger.empty : ResidueLedger :=
 def ResidueLedger.cons
     (entry : ResidueLedgerEntry) (ledger : ResidueLedger) : ResidueLedger :=
   entry :: ledger
+
+/-- The empty residue ledger is the empty list. -/
+theorem ResidueLedger.empty_eq_nil :
+    ResidueLedger.empty = [] :=
+  rfl
+
+/-- Ledger cons is list cons. -/
+theorem ResidueLedger.cons_eq_cons
+    (entry : ResidueLedgerEntry)
+    (ledger : ResidueLedger) :
+    ResidueLedger.cons entry ledger =
+      entry :: ledger :=
+  rfl
 
 end AnalyticMotives
 end LFunctions

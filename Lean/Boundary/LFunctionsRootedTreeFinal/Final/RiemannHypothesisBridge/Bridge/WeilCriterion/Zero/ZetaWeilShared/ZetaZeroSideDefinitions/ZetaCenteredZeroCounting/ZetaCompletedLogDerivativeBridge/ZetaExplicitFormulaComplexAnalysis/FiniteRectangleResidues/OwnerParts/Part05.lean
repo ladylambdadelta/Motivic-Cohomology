@@ -608,10 +608,10 @@ noncomputable def explicitFormulaRectangle_completedPoleTangentBoundaryContribut
 carry the tangent factor `I`, matching the boundary orientation in Cauchy-Goursat. -/
 noncomputable def zetaCompletedExplicitFormulaTangentContourIntegral
     (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) : ℂ :=
-  zetaCompletedExplicitFormulaRightLineIntegral f r * Complex.I -
-    zetaCompletedExplicitFormulaLeftLineIntegral f r * Complex.I +
-    zetaCompletedExplicitFormulaTopLineIntegral f r -
-    zetaCompletedExplicitFormulaBottomLineIntegral f r
+  zetaCompletedExplicitFormulaBottomLineIntegral f r -
+    zetaCompletedExplicitFormulaTopLineIntegral f r +
+      (zetaCompletedExplicitFormulaRightLineIntegral f r * Complex.I -
+        zetaCompletedExplicitFormulaLeftLineIntegral f r * Complex.I)
 
 /-- The defect between the tangent-weighted pole boundary contribution and the
 non-tangent explicit-formula side convention. -/

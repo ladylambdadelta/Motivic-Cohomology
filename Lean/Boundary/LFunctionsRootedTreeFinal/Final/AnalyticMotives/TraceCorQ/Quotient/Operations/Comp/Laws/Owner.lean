@@ -215,10 +215,19 @@ theorem TraceCorQQuotient.add_comp
                   leftCandidate.ledger
                   rightCandidate.ledger)
                 tailCandidate.ledger)
-              (TraceCorQQuotientCandidate.add_comp_formalSum
-                leftCandidate
-                rightCandidate
-                tailCandidate))
+              (Eq.trans
+                (TraceCorQQuotientCandidate.add_comp_formalSum
+                  leftCandidate
+                  rightCandidate
+                  tailCandidate)
+                (Eq.symm
+                  (TraceCorQQuotientCandidate.add_formalSum
+                    (TraceCorQQuotientCandidate.comp
+                      leftCandidate
+                      tailCandidate)
+                    (TraceCorQQuotientCandidate.comp
+                      rightCandidate
+                      tailCandidate)))))
             (Eq.trans
               (Eq.symm
                 (TraceCorQQuotient.add_ofCandidate
@@ -289,10 +298,19 @@ theorem TraceCorQQuotient.comp_add
                 (TraceCorQRelationLedger.append
                   rightCandidate.ledger
                   tailCandidate.ledger))
-              (TraceCorQQuotientCandidate.comp_add_formalSum_perm
+              ((TraceCorQQuotientCandidate.comp_add_formalSum_perm
                 leftCandidate
                 rightCandidate
-                tailCandidate))
+                tailCandidate).trans
+                (List.Perm.of_eq
+                  (Eq.symm
+                    (TraceCorQQuotientCandidate.add_formalSum
+                      (TraceCorQQuotientCandidate.comp
+                        leftCandidate
+                        rightCandidate)
+                      (TraceCorQQuotientCandidate.comp
+                        leftCandidate
+                        tailCandidate))))))
             (Eq.trans
               (Eq.symm
                 (TraceCorQQuotient.add_ofCandidate

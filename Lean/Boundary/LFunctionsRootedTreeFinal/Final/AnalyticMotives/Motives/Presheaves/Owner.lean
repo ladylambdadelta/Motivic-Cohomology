@@ -1,16 +1,19 @@
 import Mathlib.Algebra.Category.ModuleCat.Basic
+import Mathlib.CategoryTheory.Category.Basic
 import Mathlib.CategoryTheory.NatIso
 import Mathlib.CategoryTheory.Opposites
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Owner
+
+open scoped CategoryTheory
 
 /-!
 # Trace presheaves
 
 This file owns presheaves on the Q-linear trace-correspondence category.
 
-The motive category should be constructed from this analytic correspondence
-category by localization and stabilization, not by aliasing an existing
-geometric-motive definition.
+The motive category is built from this analytic correspondence category by
+localization and stabilization, not by aliasing an existing geometric-motive
+definition.
 -/
 
 namespace Boundary
@@ -19,7 +22,14 @@ namespace AnalyticMotives
 
 /-- Q-module-valued presheaves on the analytic trace-correspondence category. -/
 abbrev TraceCorQPresheaf :=
-  TraceCorQObjectᵒᵖ ⥤ ModuleCat Rat
+  (Opposite TraceCorQObject) ⥤ (ModuleCat Rat)
+
+/-- The opposite arrow associated to a concrete trace correspondence. -/
+def TraceCorQPresheaf.opHom
+    {source target : TraceCorQObject}
+    (morphism : TraceCorQHom source target) :
+    Opposite.op target ⟶ Opposite.op source :=
+  Quiver.Hom.op (show source ⟶ target from morphism)
 
 /-- The Q-module of sections of a trace presheaf on an object. -/
 def TraceCorQPresheaf.sections
@@ -34,7 +44,7 @@ def TraceCorQPresheaf.pullback
     {source target : TraceCorQObject}
     (morphism : TraceCorQHom source target) :
     presheaf.sections target ⟶ presheaf.sections source :=
-  presheaf.map morphism.op
+  presheaf.map (TraceCorQPresheaf.opHom morphism)
 
 /-- Sections are evaluation at the opposite object. -/
 theorem TraceCorQPresheaf.sections_eq_obj_op
@@ -50,14 +60,14 @@ theorem TraceCorQPresheaf.pullback_eq_map_op
     {source target : TraceCorQObject}
     (morphism : TraceCorQHom source target) :
     presheaf.pullback morphism =
-      presheaf.map morphism.op :=
+      presheaf.map (TraceCorQPresheaf.opHom morphism) :=
   rfl
 
 /-- Pullback along the identity trace correspondence is the identity on sections. -/
 theorem TraceCorQPresheaf.pullback_id
     (presheaf : TraceCorQPresheaf)
     (object : TraceCorQObject) :
-    presheaf.pullback (𝟙 object) =
+    presheaf.pullback (TraceCorQHom.id object) =
       𝟙 (presheaf.sections object) :=
   presheaf.map_id (Opposite.op object)
 
@@ -67,9 +77,11 @@ theorem TraceCorQPresheaf.pullback_comp
     {first second third : TraceCorQObject}
     (left : TraceCorQHom first second)
     (right : TraceCorQHom second third) :
-    presheaf.pullback (left ≫ right) =
+    presheaf.pullback (TraceCorQHom.comp left right) =
       presheaf.pullback right ≫ presheaf.pullback left :=
-  presheaf.map_comp right.op left.op
+  presheaf.map_comp
+    (TraceCorQPresheaf.opHom right)
+    (TraceCorQPresheaf.opHom left)
 
 /-- A morphism of Q-module-valued trace presheaves. -/
 abbrev TraceCorQPresheafHom
@@ -104,7 +116,8 @@ theorem TraceCorQPresheafHom.pullback_naturality
         presheafMorphism.component source =
       presheafMorphism.component target ≫
         targetPresheaf.pullback traceMorphism :=
-  presheafMorphism.naturality traceMorphism.op
+  presheafMorphism.naturality
+    (TraceCorQPresheaf.opHom traceMorphism)
 
 /-- An isomorphism of Q-module-valued trace presheaves. -/
 abbrev TraceCorQPresheafIso
@@ -131,7 +144,7 @@ theorem TraceCorQPresheafIso.component_eq_app_op
 /-- Evaluation of trace presheaves on one trace object. -/
 def TraceCorQPresheaf.evaluation
     (object : TraceCorQObject) :
-    TraceCorQPresheaf ⥤ ModuleCat Rat where
+    TraceCorQPresheaf ⥤ (ModuleCat Rat) where
   obj := fun presheaf => presheaf.sections object
   map := fun morphism => TraceCorQPresheafHom.component morphism object
   map_id := fun presheaf => rfl

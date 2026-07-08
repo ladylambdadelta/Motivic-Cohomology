@@ -52,12 +52,26 @@ def TraceCorQHomTerm.importedRectangleCount
     Nat :=
   term.certificateLedger.importedRectangleCount
 
+/-- The imported finite explicit-formula rectangles carried by a typed hom term. -/
+def TraceCorQHomTerm.importedRectangles
+    {source target : TraceCorQObject}
+    (term : TraceCorQHomTerm source target) :
+    List ZetaAdmissibleFunction.ExplicitFormulaRectangle :=
+  term.certificateLedger.importedRectangles
+
 /-- The internal trace-bookkeeping payload carried by a typed hom term. -/
 def TraceCorQHomTerm.traceBookkeepingCount
     {source target : TraceCorQObject}
     (term : TraceCorQHomTerm source target) :
     Nat :=
   term.certificateLedger.traceBookkeepingCount
+
+/-- The explicit rewrite-step payload carried by a typed hom term. -/
+def TraceCorQHomTerm.rewriteStepCount
+    {source target : TraceCorQObject}
+    (term : TraceCorQHomTerm source target) :
+    Nat :=
+  term.certificateLedger.rewriteStepCount
 
 /-- Build a typed hom term from a coefficient, generator, and endpoint equalities. -/
 def TraceCorQHomTerm.ofGenerator
@@ -120,6 +134,23 @@ theorem TraceCorQHomTerm.ofGenerator_importedRectangleCount
       generator.importedRectangleCount :=
   rfl
 
+/-- The imported rectangles of a built typed hom term are the generator rectangles. -/
+theorem TraceCorQHomTerm.ofGenerator_importedRectangles
+    (source target : TraceCorQObject)
+    (coefficient : Rat)
+    (generator : TraceCorQGenerator)
+    (source_eq : generator.source = source)
+    (target_eq : generator.target = target) :
+    (TraceCorQHomTerm.ofGenerator
+      source
+      target
+      coefficient
+      generator
+      source_eq
+      target_eq).importedRectangles =
+      generator.importedRectangles :=
+  rfl
+
 /-- The bookkeeping payload of a built typed hom term is the generator bookkeeping payload. -/
 theorem TraceCorQHomTerm.ofGenerator_traceBookkeepingCount
     (source target : TraceCorQObject)
@@ -136,6 +167,48 @@ theorem TraceCorQHomTerm.ofGenerator_traceBookkeepingCount
       target_eq).traceBookkeepingCount =
       generator.traceBookkeepingCount :=
   rfl
+
+/-- The rewrite-step payload of a built typed hom term is the generator rewrite-step payload. -/
+theorem TraceCorQHomTerm.ofGenerator_rewriteStepCount
+    (source target : TraceCorQObject)
+    (coefficient : Rat)
+    (generator : TraceCorQGenerator)
+    (source_eq : generator.source = source)
+    (target_eq : generator.target = target) :
+    (TraceCorQHomTerm.ofGenerator
+      source
+      target
+      coefficient
+      generator
+      source_eq
+      target_eq).rewriteStepCount =
+      generator.rewriteStepCount :=
+  rfl
+
+/-- A typed hom term has the same rewrite-step payload as its raw term. -/
+theorem TraceCorQHomTerm.rewriteStepCount_eq_raw
+    {source target : TraceCorQObject}
+    (term : TraceCorQHomTerm source target) :
+    term.rewriteStepCount =
+      term.raw.rewriteStepCount :=
+  rfl
+
+/-- A typed hom term has the same imported rectangles as its raw term. -/
+theorem TraceCorQHomTerm.importedRectangles_eq_raw
+    {source target : TraceCorQObject}
+    (term : TraceCorQHomTerm source target) :
+    term.importedRectangles =
+      term.raw.importedRectangles :=
+  rfl
+
+/-- A typed hom term's imported-rectangle count is the length of its rectangle list. -/
+theorem TraceCorQHomTerm.importedRectangleCount_eq_length_importedRectangles
+    {source target : TraceCorQObject}
+    (term : TraceCorQHomTerm source target) :
+    term.importedRectangleCount =
+      term.importedRectangles.length :=
+  ResidueChannelCertificateLedger.importedRectangleCount_eq_length_importedRectangles
+    term.certificateLedger
 
 /-- The source endpoint proof carried by a typed hom term. -/
 theorem TraceCorQHomTerm.generator_source

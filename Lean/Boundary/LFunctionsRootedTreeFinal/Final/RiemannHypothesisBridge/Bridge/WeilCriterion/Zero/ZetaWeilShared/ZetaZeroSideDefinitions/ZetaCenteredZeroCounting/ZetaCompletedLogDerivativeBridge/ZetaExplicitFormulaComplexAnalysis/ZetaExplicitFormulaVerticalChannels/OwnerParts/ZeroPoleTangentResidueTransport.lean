@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleTangentBoundaryAlgebra
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.RightOnePoleTangentCancellation
 
 namespace Boundary
 namespace LFunctions
@@ -166,10 +167,10 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentBoundaryDefect_tend
       atTop
       (𝓝 0) := by
   have hboundary_event :
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
-          f F (h.height_schedule.height u) * Complex.I) =
-       ᶠ[atTop]
+      Filter.EventuallyEq atTop
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u) * Complex.I)
         (fun _u : ℝ => B * Complex.I) := by
     exact hboundary.mono
       (fun u hC =>
@@ -181,7 +182,7 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentBoundaryDefect_tend
             f F (h.height_schedule.height u) * Complex.I)
         atTop
         (𝓝 (B * Complex.I)) :=
-    hboundary_event.tendsto_iff.2 tendsto_const_nhds
+    Tendsto.congr' hboundary_event.symm tendsto_const_nhds
   have hsum :
       Tendsto
         (fun u : ℝ =>

@@ -27,7 +27,7 @@ theorem TraceCorQQuotient.sub_smul
     (congrArg
       (fun coefficient =>
         TraceCorQQuotient.smul coefficient candidateClass)
-      (sub_eq_add_neg leftCoefficient rightCoefficient))
+      (_root_.sub_eq_add_neg leftCoefficient rightCoefficient))
     (Eq.trans
       (TraceCorQQuotient.add_smul
         leftCoefficient

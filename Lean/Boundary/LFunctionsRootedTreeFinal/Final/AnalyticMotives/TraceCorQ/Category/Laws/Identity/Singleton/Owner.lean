@@ -96,11 +96,12 @@ theorem TraceCorQHom.ambient_left_id_singleton
                 TraceCorQRelationLedger.empty
                 (congrArg
                   (fun object =>
-                    TraceCorQFormalSum.singleton
+                    (TraceCorQQuotient.singletonCandidate
                       coefficient
                       (TraceCorQGenerator.comp
                         (TraceCorQGenerator.id object)
-                        generator))
+                        generator)
+                      TraceCorQRelationLedger.empty).formalSum)
                   (Eq.symm source_eq)))
               (Eq.trans
                 (TraceCorQGenerator.leftIdentityWeightedSingletonQuotient_eq
@@ -190,11 +191,12 @@ theorem TraceCorQHom.ambient_right_id_singleton
                 TraceCorQRelationLedger.empty
                 (congrArg
                   (fun object =>
-                    TraceCorQFormalSum.singleton
+                    (TraceCorQQuotient.singletonCandidate
                       coefficient
                       (TraceCorQGenerator.comp
                         generator
-                        (TraceCorQGenerator.id object)))
+                        (TraceCorQGenerator.id object))
+                      TraceCorQRelationLedger.empty).formalSum)
                   (Eq.symm target_eq)))
               (Eq.trans
                 (TraceCorQGenerator.rightIdentityWeightedSingletonQuotient_eq

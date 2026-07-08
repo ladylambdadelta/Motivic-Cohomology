@@ -91,11 +91,20 @@ theorem TraceCorQQuotient.add_add_add_comp
         (fun head =>
           TraceCorQQuotient.add head (TraceCorQQuotient.comp fourth tail))
         (TraceCorQQuotient.add_add_comp first second third tail))
-      (TraceCorQQuotient.add_assoc_four_left
-        (TraceCorQQuotient.comp first tail)
-        (TraceCorQQuotient.comp second tail)
-        (TraceCorQQuotient.comp third tail)
-        (TraceCorQQuotient.comp fourth tail)))
+      (Eq.trans
+        (TraceCorQQuotient.add_assoc
+          (TraceCorQQuotient.comp first tail)
+          (TraceCorQQuotient.add
+            (TraceCorQQuotient.comp second tail)
+            (TraceCorQQuotient.comp third tail))
+          (TraceCorQQuotient.comp fourth tail))
+        (congrArg
+          (TraceCorQQuotient.add
+            (TraceCorQQuotient.comp first tail))
+          (TraceCorQQuotient.add_assoc
+            (TraceCorQQuotient.comp second tail)
+            (TraceCorQQuotient.comp third tail)
+            (TraceCorQQuotient.comp fourth tail)))))
 
 /-- Compose a fully right-associated four-summand quotient source sum on the right. -/
 theorem TraceCorQQuotient.add_add_add_comp_right
@@ -204,11 +213,20 @@ theorem TraceCorQQuotient.comp_add_add_add
         (fun headClass =>
           TraceCorQQuotient.add headClass (TraceCorQQuotient.comp head fourth))
         (TraceCorQQuotient.comp_add_add head first second third))
-      (TraceCorQQuotient.add_assoc_four_left
-        (TraceCorQQuotient.comp head first)
-        (TraceCorQQuotient.comp head second)
-        (TraceCorQQuotient.comp head third)
-        (TraceCorQQuotient.comp head fourth)))
+      (Eq.trans
+        (TraceCorQQuotient.add_assoc
+          (TraceCorQQuotient.comp head first)
+          (TraceCorQQuotient.add
+            (TraceCorQQuotient.comp head second)
+            (TraceCorQQuotient.comp head third))
+          (TraceCorQQuotient.comp head fourth))
+        (congrArg
+          (TraceCorQQuotient.add
+            (TraceCorQQuotient.comp head first))
+          (TraceCorQQuotient.add_assoc
+            (TraceCorQQuotient.comp head second)
+            (TraceCorQQuotient.comp head third)
+            (TraceCorQQuotient.comp head fourth)))))
 
 /-- Compose on a fully right-associated four-summand quotient target sum. -/
 theorem TraceCorQQuotient.comp_add_add_add_right

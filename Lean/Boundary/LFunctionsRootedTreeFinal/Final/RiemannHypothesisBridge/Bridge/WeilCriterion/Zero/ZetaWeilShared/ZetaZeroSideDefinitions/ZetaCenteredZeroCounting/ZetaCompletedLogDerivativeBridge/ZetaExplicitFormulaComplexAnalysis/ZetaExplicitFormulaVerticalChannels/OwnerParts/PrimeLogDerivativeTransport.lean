@@ -40,7 +40,7 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_of_rightVonMang
           ∫ t in Set.Icc
               (-(F.rectangle (h.height_schedule.height u)).T)
               (F.rectangle (h.height_schedule.height u)).T,
-            L ↗Λ
+            (L ↗Λ)
                 (zetaCompletedExplicitFormulaRightPath
                   (F.rectangle (h.height_schedule.height u)) t) *
               zetaCompletedExplicitFormulaPhi f
@@ -75,7 +75,7 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_of_rightVonMang
           (∫ t in Set.Icc
               (-(F.rectangle (h.height_schedule.height u)).T)
               (F.rectangle (h.height_schedule.height u)).T,
-            L ↗Λ
+            (L ↗Λ)
                 (zetaCompletedExplicitFormulaRightPath
                   (F.rectangle (h.height_schedule.height u)) t) *
               zetaCompletedExplicitFormulaPhi f
@@ -103,7 +103,7 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_of_rightVonMang
         (∫ t in Set.Icc
             (-(F.rectangle (h.height_schedule.height u)).T)
             (F.rectangle (h.height_schedule.height u)).T,
-          L ↗Λ
+          (L ↗Λ)
               (zetaCompletedExplicitFormulaRightPath
                 (F.rectangle (h.height_schedule.height u)) t) *
             zetaCompletedExplicitFormulaPhi f
@@ -132,7 +132,7 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_of_rightVonMang
             (∫ t in Set.Icc
                 (-(F.rectangle (h.height_schedule.height u)).T)
                 (F.rectangle (h.height_schedule.height u)).T,
-              L ↗Λ
+              (L ↗Λ)
                   (zetaCompletedExplicitFormulaRightPath
                     (F.rectangle (h.height_schedule.height u)) t) *
                 zetaCompletedExplicitFormulaPhi f

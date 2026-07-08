@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.LocalizationInput.WordQuotient.Category.Inputs.ByKind.Isomorphisms.Cancellation.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.LocalizationInput.WordQuotient.Category.Inputs.ByKind.Representatives.Owner
 
 /-!
 # Interval-homotopy localized arrows
@@ -41,6 +42,26 @@ theorem TraceIntervalHomotopyLocalization.stokesIso_inv
       TraceLocalizationInput.intervalStokesInverseArrow source target :=
   rfl
 
+/-- The interval-Stokes hom has a one-atom chosen representative. -/
+theorem TraceIntervalHomotopyLocalization.stokesIso_hom_representative_atomCount
+    (source target : QTraceExpression) :
+    (TraceLocalizationWord.ofInputForward
+      (TraceLocalizationInput.intervalStokes source target)).atomCount =
+      0 + 1 :=
+  TraceLocalizationInput.intervalStokesForwardArrow_representative_atomCount
+    source
+    target
+
+/-- The interval-Stokes inverse has a one-atom chosen representative. -/
+theorem TraceIntervalHomotopyLocalization.stokesIso_inv_representative_atomCount
+    (source target : QTraceExpression) :
+    (TraceLocalizationWord.ofInputInverse
+      (TraceLocalizationInput.intervalStokes source target)).atomCount =
+      0 + 1 :=
+  TraceLocalizationInput.intervalStokesInverseArrow_representative_atomCount
+    source
+    target
+
 /-- The hom of the interval-Fubini isomorphism is the named Fubini forward arrow. -/
 theorem TraceIntervalHomotopyLocalization.fubiniIso_hom
     (source target : QTraceExpression) :
@@ -54,6 +75,26 @@ theorem TraceIntervalHomotopyLocalization.fubiniIso_inv
     (TraceIntervalHomotopyLocalization.fubiniIso source target).inv =
       TraceLocalizationInput.intervalFubiniInverseArrow source target :=
   rfl
+
+/-- The interval-Fubini hom has a one-atom chosen representative. -/
+theorem TraceIntervalHomotopyLocalization.fubiniIso_hom_representative_atomCount
+    (source target : QTraceExpression) :
+    (TraceLocalizationWord.ofInputForward
+      (TraceLocalizationInput.intervalFubini source target)).atomCount =
+      0 + 1 :=
+  TraceLocalizationInput.intervalFubiniForwardArrow_representative_atomCount
+    source
+    target
+
+/-- The interval-Fubini inverse has a one-atom chosen representative. -/
+theorem TraceIntervalHomotopyLocalization.fubiniIso_inv_representative_atomCount
+    (source target : QTraceExpression) :
+    (TraceLocalizationWord.ofInputInverse
+      (TraceLocalizationInput.intervalFubini source target)).atomCount =
+      0 + 1 :=
+  TraceLocalizationInput.intervalFubiniInverseArrow_representative_atomCount
+    source
+    target
 
 /-- Interval-Stokes hom followed by inverse is identity. -/
 theorem TraceIntervalHomotopyLocalization.stokesIso_hom_comp_inv
@@ -75,6 +116,32 @@ theorem TraceIntervalHomotopyLocalization.stokesIso_inv_comp_hom
         (TraceLocalizationInput.intervalStokes source target).targetObject :=
   TraceLocalizationInput.intervalStokesLocalizedIso_inv_comp_hom source target
 
+/-- Interval-Stokes hom followed by inverse is categorical identity. -/
+theorem TraceIntervalHomotopyLocalization.stokesIso_hom_comp_inv_eq_categoryIdentity
+    (source target : QTraceExpression) :
+    (TraceIntervalHomotopyLocalization.stokesIso source target).hom ≫
+        (TraceIntervalHomotopyLocalization.stokesIso source target).inv =
+      (𝟙 (TraceLocalizationInput.intervalStokes source target).localizedSourceObject :
+        TraceLocalizedWordHom
+          (TraceLocalizationInput.intervalStokes source target).localizedSourceObject
+          (TraceLocalizationInput.intervalStokes source target).localizedSourceObject) :=
+  TraceLocalizationInput.intervalStokesLocalizedIso_hom_comp_inv_eq_categoryIdentity
+    source
+    target
+
+/-- Interval-Stokes inverse followed by hom is categorical identity. -/
+theorem TraceIntervalHomotopyLocalization.stokesIso_inv_comp_hom_eq_categoryIdentity
+    (source target : QTraceExpression) :
+    (TraceIntervalHomotopyLocalization.stokesIso source target).inv ≫
+        (TraceIntervalHomotopyLocalization.stokesIso source target).hom =
+      (𝟙 (TraceLocalizationInput.intervalStokes source target).localizedTargetObject :
+        TraceLocalizedWordHom
+          (TraceLocalizationInput.intervalStokes source target).localizedTargetObject
+          (TraceLocalizationInput.intervalStokes source target).localizedTargetObject) :=
+  TraceLocalizationInput.intervalStokesLocalizedIso_inv_comp_hom_eq_categoryIdentity
+    source
+    target
+
 /-- Interval-Fubini hom followed by inverse is identity. -/
 theorem TraceIntervalHomotopyLocalization.fubiniIso_hom_comp_inv
     (source target : QTraceExpression) :
@@ -94,6 +161,32 @@ theorem TraceIntervalHomotopyLocalization.fubiniIso_inv_comp_hom
       TraceLocalizationWordClass.identity
         (TraceLocalizationInput.intervalFubini source target).targetObject :=
   TraceLocalizationInput.intervalFubiniLocalizedIso_inv_comp_hom source target
+
+/-- Interval-Fubini hom followed by inverse is categorical identity. -/
+theorem TraceIntervalHomotopyLocalization.fubiniIso_hom_comp_inv_eq_categoryIdentity
+    (source target : QTraceExpression) :
+    (TraceIntervalHomotopyLocalization.fubiniIso source target).hom ≫
+        (TraceIntervalHomotopyLocalization.fubiniIso source target).inv =
+      (𝟙 (TraceLocalizationInput.intervalFubini source target).localizedSourceObject :
+        TraceLocalizedWordHom
+          (TraceLocalizationInput.intervalFubini source target).localizedSourceObject
+          (TraceLocalizationInput.intervalFubini source target).localizedSourceObject) :=
+  TraceLocalizationInput.intervalFubiniLocalizedIso_hom_comp_inv_eq_categoryIdentity
+    source
+    target
+
+/-- Interval-Fubini inverse followed by hom is categorical identity. -/
+theorem TraceIntervalHomotopyLocalization.fubiniIso_inv_comp_hom_eq_categoryIdentity
+    (source target : QTraceExpression) :
+    (TraceIntervalHomotopyLocalization.fubiniIso source target).inv ≫
+        (TraceIntervalHomotopyLocalization.fubiniIso source target).hom =
+      (𝟙 (TraceLocalizationInput.intervalFubini source target).localizedTargetObject :
+        TraceLocalizedWordHom
+          (TraceLocalizationInput.intervalFubini source target).localizedTargetObject
+          (TraceLocalizationInput.intervalFubini source target).localizedTargetObject) :=
+  TraceLocalizationInput.intervalFubiniLocalizedIso_inv_comp_hom_eq_categoryIdentity
+    source
+    target
 
 end AnalyticMotives
 end LFunctions

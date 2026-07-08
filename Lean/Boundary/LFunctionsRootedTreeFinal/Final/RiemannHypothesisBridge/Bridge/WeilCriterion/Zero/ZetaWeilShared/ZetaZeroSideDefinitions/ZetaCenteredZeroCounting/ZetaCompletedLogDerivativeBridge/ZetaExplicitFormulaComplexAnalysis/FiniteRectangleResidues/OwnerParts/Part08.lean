@@ -50,6 +50,56 @@ theorem explicitFormulaCompletedZeroWindowDeletedDisks_eq_coordinateDeletedDisks
                     hρ.right.symm
                     ha.right))))
 
+/-- A point in the punctured rectangle lies in the original rectangle domain. -/
+theorem finiteRectanglePuncturedDomain_mem_base
+    (R : Set ℂ) (S : Finset ℂ) (ε : ℝ) {z : ℂ}
+    (hz : z ∈ finiteRectanglePuncturedDomain R S ε) :
+    z ∈ R :=
+  hz.left
+
+/-- A point in the punctured rectangle lies outside the finite deleted-disk union. -/
+theorem finiteRectanglePuncturedDomain_not_mem_deletedDisks
+    (R : Set ℂ) (S : Finset ℂ) (ε : ℝ) {z : ℂ}
+    (hz : z ∈ finiteRectanglePuncturedDomain R S ε) :
+    z ∉ finiteRectangleDeletedDisks S ε :=
+  hz.right
+
+/-- A point in the punctured rectangle avoids every deleted disk centered at a listed
+singular coordinate. -/
+theorem finiteRectanglePuncturedDomain_not_mem_deletedBall
+    (R : Set ℂ) (S : Finset ℂ) (ε : ℝ) {a z : ℂ}
+    (hz : z ∈ finiteRectanglePuncturedDomain R S ε) (ha : a ∈ S) :
+    z ∉ Metric.ball a ε :=
+  fun hball =>
+    finiteRectanglePuncturedDomain_not_mem_deletedDisks R S ε hz
+      (finiteRectangleDeletedDisks_mem_of_mem_ball S ε ha hball)
+
+/-- A point in the indexed punctured rectangle lies in the original rectangle domain. -/
+theorem finiteRectangleIndexedPuncturedDomain_mem_base
+    {α : Type*} (R : Set ℂ) (S : Finset α) (center : α → ℂ) (ε : ℝ) {z : ℂ}
+    (hz : z ∈ finiteRectangleIndexedPuncturedDomain R S center ε) :
+    z ∈ R :=
+  hz.left
+
+/-- A point in the indexed punctured rectangle lies outside the indexed finite deleted-disk
+union. -/
+theorem finiteRectangleIndexedPuncturedDomain_not_mem_deletedDisks
+    {α : Type*} (R : Set ℂ) (S : Finset α) (center : α → ℂ) (ε : ℝ) {z : ℂ}
+    (hz : z ∈ finiteRectangleIndexedPuncturedDomain R S center ε) :
+    z ∉ finiteRectangleIndexedDeletedDisks S center ε :=
+  hz.right
+
+/-- A point in the indexed punctured rectangle avoids every indexed deleted disk centered
+at a listed singular coordinate. -/
+theorem finiteRectangleIndexedPuncturedDomain_not_mem_deletedBall
+    {α : Type*} (R : Set ℂ) (S : Finset α) (center : α → ℂ) (ε : ℝ)
+    {a : α} {z : ℂ}
+    (hz : z ∈ finiteRectangleIndexedPuncturedDomain R S center ε) (ha : a ∈ S) :
+    z ∉ Metric.ball (center a) ε :=
+  fun hball =>
+    finiteRectangleIndexedPuncturedDomain_not_mem_deletedDisks R S center ε hz
+      (finiteRectangleIndexedDeletedDisks_mem_of_mem_ball S center ε ha hball)
+
 /-- The completed-zero-window punctured interior can be read either from the indexed
 zero-window carrier or from the finite coordinate carrier. -/
 theorem explicitFormulaCompletedZeroWindowPuncturedInterior_eq_coordinatePuncturedDomain
@@ -67,14 +117,18 @@ theorem explicitFormulaCompletedZeroWindowPuncturedInterior_eq_coordinatePunctur
       And.intro hz.left
         (fun hdeleted =>
           hz.right
-            ((explicitFormulaCompletedZeroWindowDeletedDisks_eq_coordinateDeletedDisks T ε).symm ▸
+            (Eq.subst
+              (motive := fun S : Set ℂ => z ∈ S)
+              (explicitFormulaCompletedZeroWindowDeletedDisks_eq_coordinateDeletedDisks T ε).symm
               hdeleted))
   · intro hz
     exact
       And.intro hz.left
         (fun hdeleted =>
           hz.right
-            ((explicitFormulaCompletedZeroWindowDeletedDisks_eq_coordinateDeletedDisks T ε) ▸
+            (Eq.subst
+              (motive := fun S : Set ℂ => z ∈ S)
+              (explicitFormulaCompletedZeroWindowDeletedDisks_eq_coordinateDeletedDisks T ε)
               hdeleted))
 
 /-- Each coordinate in the finite completed-zero carrier is an interior singular coordinate
@@ -300,9 +354,9 @@ theorem explicitFormulaRectangleRawPuncturedInterior_not_mem_singularSet
       (explicitFormulaContourFamilyInterior F T)
       (explicitFormulaRectangleRawSingularCoordinates T)
       ε
-	      hz
-	      hzCarrier
-	      hzBall
+      hz
+      hzCarrier
+      hzBall
 
 /-- On a deleted disk around one raw singular coordinate, pairwise disjoint raw deleted
 disks exclude every other raw singularity.  Since the raw carrier is exactly the interior
@@ -612,9 +666,10 @@ theorem explicitFormulaRectangleRawPuncturedInterior_differentiableAt
       (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z := by
   exact
     completedZetaContourIntegrand_differentiableAt_off_singularSet
+      (f := f)
       h.phi_control
-	      (explicitFormulaRectangleRawPuncturedInterior_not_mem_singularSet
-	        F hT hε hinterior hz)
+      (explicitFormulaRectangleRawPuncturedInterior_not_mem_singularSet
+        F hT hε hinterior hz)
 
 /-- The completed contour integrand is continuous at every point of the raw
 finite-singularity punctured interior. -/

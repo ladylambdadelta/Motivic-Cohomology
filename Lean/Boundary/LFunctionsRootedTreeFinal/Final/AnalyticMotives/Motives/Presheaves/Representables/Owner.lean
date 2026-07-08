@@ -2,6 +2,8 @@ import Mathlib.CategoryTheory.Linear.Yoneda
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Presheaves.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Linear.Owner
 
+open scoped CategoryTheory
+
 /-!
 # Representable trace presheaves
 
@@ -27,12 +29,12 @@ def TraceCorQPresheaf.representable
 /-- The Q-linear representable embedding is full. -/
 instance TraceCorQPresheaf.yonedaFull :
     (TraceCorQPresheaf.yoneda).Full :=
-  CategoryTheory.full_linearYoneda
+  CategoryTheory.full_linearYoneda Rat TraceCorQObject
 
 /-- The Q-linear representable embedding is faithful. -/
 instance TraceCorQPresheaf.yonedaFaithful :
     (TraceCorQPresheaf.yoneda).Faithful :=
-  CategoryTheory.faithful_linearYoneda
+  CategoryTheory.faithful_linearYoneda Rat TraceCorQObject
 
 /-- The representable presheaf is the object part of linear Yoneda. -/
 theorem TraceCorQPresheaf.representable_eq_yoneda_obj

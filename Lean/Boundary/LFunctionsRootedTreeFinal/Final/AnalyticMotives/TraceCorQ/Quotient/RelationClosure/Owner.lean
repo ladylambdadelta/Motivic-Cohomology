@@ -27,14 +27,15 @@ inductive TraceCorQRelationClosure :
       (candidate : TraceCorQQuotientCandidate) :
       TraceCorQRelationClosure ledger candidate candidate
   | step (ledger : TraceCorQRelationLedger)
-      (relation : TraceCorQRelationGenerator)
-      (left right : TraceCorQQuotientCandidate) :
+      (relation : TraceCorQRelationGenerator) :
       TraceCorQRelationClosure
         (TraceCorQRelationLedger.append
           (TraceCorQRelationLedger.singleton relation)
           ledger)
-        left
-        right
+        (TraceCorQQuotientInput.ofFormalSumLedger
+          relation.support
+          (TraceCorQRelationLedger.singleton relation))
+        TraceCorQQuotientCandidate.empty
   | symm (ledger : TraceCorQRelationLedger)
       (left right : TraceCorQQuotientCandidate)
       (derivation :
@@ -88,34 +89,34 @@ inductive TraceCorQRelationClosure :
       (formalSum_perm : List.Perm left.formalSum right.formalSum) :
       TraceCorQRelationClosure ledger left right
   | cancelAdjacentOpposite (ledger : TraceCorQRelationLedger)
-      (prefix suffix : TraceCorQFormalSum)
+      (leftContext suffix : TraceCorQFormalSum)
       (coefficient : Rat)
       (generator : TraceCorQGenerator) :
       TraceCorQRelationClosure
         ledger
         (TraceCorQQuotientInput.ofFormalSumLedger
-          (prefix ++
+          (leftContext ++
             (coefficient, generator) ::
               (-coefficient, generator) ::
                 suffix)
           ledger)
         (TraceCorQQuotientInput.ofFormalSumLedger
-          (prefix ++ suffix)
+          (leftContext ++ suffix)
           ledger)
   | combineAdjacentSame (ledger : TraceCorQRelationLedger)
-      (prefix suffix : TraceCorQFormalSum)
+      (leftContext suffix : TraceCorQFormalSum)
       (leftCoefficient rightCoefficient : Rat)
       (generator : TraceCorQGenerator) :
       TraceCorQRelationClosure
         ledger
         (TraceCorQQuotientInput.ofFormalSumLedger
-          (prefix ++
+          (leftContext ++
             (leftCoefficient, generator) ::
               (rightCoefficient, generator) ::
                 suffix)
           ledger)
         (TraceCorQQuotientInput.ofFormalSumLedger
-          (prefix ++
+          (leftContext ++
             (leftCoefficient + rightCoefficient, generator) ::
               suffix)
           ledger)
@@ -130,15 +131,24 @@ def TraceCorQRelationClosure.reflDerivation
 /-- Single relation-generator derivation under a ledger extension. -/
 def TraceCorQRelationClosure.stepDerivation
     (ledger : TraceCorQRelationLedger)
-    (relation : TraceCorQRelationGenerator)
-    (left right : TraceCorQQuotientCandidate) :
+    (relation : TraceCorQRelationGenerator) :
     TraceCorQRelationClosure
       (TraceCorQRelationLedger.append
         (TraceCorQRelationLedger.singleton relation)
         ledger)
-      left
-      right :=
-  TraceCorQRelationClosure.step ledger relation left right
+      (TraceCorQQuotientInput.ofFormalSumLedger
+        relation.support
+        (TraceCorQRelationLedger.singleton relation))
+      TraceCorQQuotientCandidate.empty :=
+  TraceCorQRelationClosure.step ledger relation
+
+/-- A single relation-generator derivation is exactly the primitive step. -/
+theorem TraceCorQRelationClosure.stepDerivation_eq_step
+    (ledger : TraceCorQRelationLedger)
+    (relation : TraceCorQRelationGenerator) :
+    TraceCorQRelationClosure.stepDerivation ledger relation =
+      TraceCorQRelationClosure.step ledger relation :=
+  rfl
 
 /-- Symmetry for finite relation-closure derivations. -/
 def TraceCorQRelationClosure.symmDerivation
@@ -239,23 +249,23 @@ def TraceCorQRelationClosure.permFormalSumDerivation
 /-- Adjacent opposite rational multiples of the same generator cancel. -/
 def TraceCorQRelationClosure.cancelAdjacentOppositeDerivation
     (ledger : TraceCorQRelationLedger)
-    (prefix suffix : TraceCorQFormalSum)
+    (leftContext suffix : TraceCorQFormalSum)
     (coefficient : Rat)
     (generator : TraceCorQGenerator) :
     TraceCorQRelationClosure
       ledger
       (TraceCorQQuotientInput.ofFormalSumLedger
-        (prefix ++
+        (leftContext ++
           (coefficient, generator) ::
             (-coefficient, generator) ::
               suffix)
         ledger)
       (TraceCorQQuotientInput.ofFormalSumLedger
-        (prefix ++ suffix)
+        (leftContext ++ suffix)
         ledger) :=
   TraceCorQRelationClosure.cancelAdjacentOpposite
     ledger
-    prefix
+    leftContext
     suffix
     coefficient
     generator
@@ -263,25 +273,25 @@ def TraceCorQRelationClosure.cancelAdjacentOppositeDerivation
 /-- Adjacent rational multiples of the same generator combine. -/
 def TraceCorQRelationClosure.combineAdjacentSameDerivation
     (ledger : TraceCorQRelationLedger)
-    (prefix suffix : TraceCorQFormalSum)
+    (leftContext suffix : TraceCorQFormalSum)
     (leftCoefficient rightCoefficient : Rat)
     (generator : TraceCorQGenerator) :
     TraceCorQRelationClosure
       ledger
       (TraceCorQQuotientInput.ofFormalSumLedger
-        (prefix ++
+        (leftContext ++
           (leftCoefficient, generator) ::
             (rightCoefficient, generator) ::
               suffix)
         ledger)
       (TraceCorQQuotientInput.ofFormalSumLedger
-        (prefix ++
+        (leftContext ++
           (leftCoefficient + rightCoefficient, generator) ::
             suffix)
         ledger) :=
   TraceCorQRelationClosure.combineAdjacentSame
     ledger
-    prefix
+    leftContext
     suffix
     leftCoefficient
     rightCoefficient

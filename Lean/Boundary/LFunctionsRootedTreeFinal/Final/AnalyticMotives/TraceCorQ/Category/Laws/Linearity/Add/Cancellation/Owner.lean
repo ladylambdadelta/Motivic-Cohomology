@@ -65,7 +65,11 @@ theorem TraceCorQHom.sub_comp_eq_of_comp_add_eq
     (TraceCorQHom.comp left post)
     (TraceCorQHom.comp right post)
     (TraceCorQHom.comp delta post)
-    left_comp_eq_right_comp_add_delta_comp
+    (Eq.trans
+      left_comp_eq_right_comp_add_delta_comp
+      (TraceCorQHom.add_comm
+        (TraceCorQHom.comp right post)
+        (TraceCorQHom.comp delta post)))
 
 /-- Solve a precomposed additive decomposition as a subtraction. -/
 theorem TraceCorQHom.comp_sub_eq_of_comp_add_eq
@@ -85,7 +89,11 @@ theorem TraceCorQHom.comp_sub_eq_of_comp_add_eq
     (TraceCorQHom.comp pre left)
     (TraceCorQHom.comp pre right)
     (TraceCorQHom.comp pre delta)
-    pre_comp_left_eq_pre_comp_right_add_pre_comp_delta
+    (Eq.trans
+      pre_comp_left_eq_pre_comp_right_add_pre_comp_delta
+      (TraceCorQHom.add_comm
+        (TraceCorQHom.comp pre right)
+        (TraceCorQHom.comp pre delta)))
 
 end AnalyticMotives
 end LFunctions

@@ -65,7 +65,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_event
                     f F h u =
                   zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
                     f F (h.height_schedule.height u) from
-                  rfl)
+                  Eq.refl _)
                 hu)⟩
 
 /-- Quantitative tangent-boundary residue transport for the `s = 1` correction
@@ -145,14 +145,14 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryInt
         ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference f F h u‖
           ≤ MH *
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
-    change
-      ∀ᶠ u in atTop,
-        ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference f F h u‖
-          ≤ (C * L + C * L) *
-            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ))
     exact
-      zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference_eventually_norm_le_inverseQuadratic
-        f F h
+      show
+        ∀ᶠ u in atTop,
+          ‖zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference f F h u‖
+            ≤ (C * L + C * L) *
+              (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) from
+        zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference_eventually_norm_le_inverseQuadratic
+          f F h
   have hraw :
       ∀ᶠ u in atTop,
         ‖zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
@@ -275,7 +275,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventu
                           R - P + (C - B) * Complex.I := by
                         exact add_sub_right_comm R ((C - B) * Complex.I) P
                       _ = (R - P) + (C - B) * Complex.I := by
-                        rfl))
+                        exact Eq.refl _))
       have hsplit :
           ‖(R - P) + (C - B) * Complex.I - H * Complex.I‖
             ≤ (‖R - P‖ + ‖(C - B) * Complex.I‖) + ‖H * Complex.I‖ := by
@@ -336,13 +336,13 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventu
           _ = (MR + (MB + MH)) * q := by
             exact congrArg (fun x : ℝ => x * q) (add_assoc MR MB MH)
       have hnorm :
-          ‖L - B * Complex.I‖
+          ‖L - (B * Complex.I + P)‖
             ≤ (MR + (MB + MH)) * q :=
         Eq.subst
           (motive := fun z : ℂ =>
             ‖z‖ ≤ (MR + (MB + MH)) * q)
-          hleft_error.symm
-          (le_trans hsplit (le_trans hcomponent (le_of_eq hfactor)))
+        hleft_error.symm
+        (le_trans hsplit (le_trans hcomponent (le_of_eq hfactor)))
       hnorm)
 
 /-- Owner analytic leaf: quantitative left-face residue tail for the `s = 1`

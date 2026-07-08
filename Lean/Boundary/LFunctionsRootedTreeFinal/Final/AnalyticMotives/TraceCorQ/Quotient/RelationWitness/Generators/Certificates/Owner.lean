@@ -12,7 +12,7 @@ namespace Boundary
 namespace LFunctions
 namespace AnalyticMotives
 
-/-- The canonical support witness carries the generator's singleton certificates. -/
+/-- The canonical support witness carries the singleton relation-ledger certificates. -/
 theorem TraceCorQRelationGenerator.supportWitness_certificateLedger
     (relation : TraceCorQRelationGenerator) :
     (TraceCorQRelationGenerator.supportWitness relation).certificateLedger =
@@ -27,6 +27,28 @@ theorem TraceCorQRelationGenerator.supportWitness_certificateLedger_eq_generator
         relation.certificateLedger
         ResidueChannelCertificateLedger.empty :=
   TraceCorQRelationLedger.singleton_certificateLedger relation
+
+/-- The canonical support witness carries the certified coherence-cell ledger and empty tail. -/
+theorem TraceCorQRelationGenerator.supportWitness_certificateLedger_eq_certifiedCell
+    (relation : TraceCorQRelationGenerator) :
+    (TraceCorQRelationGenerator.supportWitness relation).certificateLedger =
+      ResidueChannelCertificateLedger.append
+        (ResidueChannelCertificateLedger.ofCertifiedCoherenceCell
+          relation.cell)
+        ResidueChannelCertificateLedger.empty :=
+  TraceCorQRelationGenerator.supportWitness_certificateLedger_eq_generator relation
+
+/-- The canonical support witness exposes the source path, target path, and coherence cell. -/
+theorem TraceCorQRelationGenerator.supportWitness_certificateLedger_eq_paths_cell
+    (relation : TraceCorQRelationGenerator) :
+    (TraceCorQRelationGenerator.supportWitness relation).certificateLedger =
+      ResidueChannelCertificateLedger.append
+        (ResidueChannelCertificateAtom.rewritePath relation.cell.source ::
+          ResidueChannelCertificateAtom.rewritePath relation.cell.target ::
+            ResidueChannelCertificateAtom.coherenceCell relation.cell ::
+              ResidueChannelCertificateLedger.empty)
+        ResidueChannelCertificateLedger.empty :=
+  rfl
 
 end AnalyticMotives
 end LFunctions

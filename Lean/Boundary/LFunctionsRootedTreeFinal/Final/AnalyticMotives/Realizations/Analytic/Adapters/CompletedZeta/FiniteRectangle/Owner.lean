@@ -22,6 +22,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Realizations.Ana
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Realizations.Analytic.Adapters.CompletedZeta.FiniteRectangle.SoundnessSeed.ZeroPoleChannelRectangleQuotient.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Realizations.Analytic.Adapters.CompletedZeta.FiniteRectangle.SoundnessSeed.ZeroPoleChannelRectangleTypedClass.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Realizations.Analytic.Adapters.CompletedZeta.FiniteRectangle.SoundnessSeed.ZeroPoleChannelRectanglePipeline.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Realizations.Analytic.Adapters.CompletedZeta.FiniteRectangle.SoundnessSeed.ZeroPoleChannelRectanglePipeline.Quotient.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Realizations.Analytic.Adapters.CompletedZeta.FiniteRectangle.SoundnessSeed.ZeroPoleTraceCorQ.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Realizations.Analytic.Adapters.CompletedZeta.FiniteRectangle.SoundnessSeed.ZeroPoleRectangleTraceCorQ.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Realizations.Analytic.Adapters.CompletedZeta.FiniteRectangle.SoundnessSeed.ZeroPoleRectangleHom.Owner
@@ -52,6 +53,74 @@ export back into the RH lane.
 namespace Boundary
 namespace LFunctions
 namespace AnalyticMotives
+
+/-- The finite-rectangle adapter exposes the zero-pole finite-square residue equality. -/
+theorem completedZetaFiniteRectangle.zeroPole_boundaryTrace_eq_residueTrace
+    (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
+    {R : ℝ} (hR : 0 < R) :
+    completedZetaZeroPoleFiniteSquareBoundaryTrace f R =
+      completedZetaZeroPoleFiniteSquareResidueTrace f :=
+  completedZetaZeroPoleFiniteSquareBoundaryTrace_eq_residueTrace
+    f
+    hPhi
+    hR
+
+/-- The finite-rectangle adapter exposes zero-pole residue-generator soundness. -/
+theorem completedZetaFiniteRectangle.zeroPole_residueGenerator_sound
+    (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
+    {R : ℝ} (hR : 0 < R) :
+    completedZetaZeroPoleFiniteSquareBoundaryTrace f R =
+      completedZetaZeroPoleFiniteSquareResidueTrace f :=
+  completedZetaZeroPoleFiniteSquareResidueGenerator_sound
+    f
+    hPhi
+    hR
+
+/-- The finite-rectangle adapter exposes zero-pole channel-generator soundness. -/
+theorem completedZetaFiniteRectangle.zeroPole_channelGenerator_sound
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    completedZetaZeroPoleLeftVerticalTrace f F h u =
+      completedZetaZeroPoleRightVerticalTrace f F h u +
+        completedZetaZeroPoleHorizontalTrace f F h u -
+        completedZetaZeroPoleRectangleBoundaryTrace f F h u :=
+  completedZetaZeroPoleChannelGenerator_sound
+    f
+    F
+    h
+    u
+
+/-- The finite-rectangle adapter exposes the rectangle-certified residue pipeline. -/
+theorem completedZetaFiniteRectangle.zeroPole_residueRectanglePipeline_sound
+    (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
+    {R : ℝ} (hR : 0 < R) :
+    completedZetaZeroPoleFiniteSquareBoundaryTrace f R =
+      completedZetaZeroPoleFiniteSquareResidueTrace f :=
+  completedZetaZeroPoleResidueRectanglePipeline_sound
+    f
+    hPhi
+    hR
+
+/-- The finite-rectangle adapter exposes the scheduled channel rectangle pipeline. -/
+theorem completedZetaFiniteRectangle.zeroPole_channelRectanglePipeline_sound
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    completedZetaZeroPoleLeftVerticalTrace f F h u =
+      completedZetaZeroPoleRightVerticalTrace f F h u +
+        completedZetaZeroPoleHorizontalTrace f F h u -
+        completedZetaZeroPoleRectangleBoundaryTrace f F h u :=
+  completedZetaZeroPoleChannelScheduledRectanglePipeline_sound
+    f
+    F
+    h
+    u
+
+/-- The finite-rectangle adapter exposes the first quotient relation from the analytic chain. -/
+theorem completedZetaFiniteRectangle.zeroPole_quotientClass_eq_empty :
+    TraceCorQQuotient.ofCandidate
+        completedZetaZeroPoleTraceCorQQuotientCandidate =
+      TraceCorQQuotient.ofCandidate TraceCorQQuotientCandidate.empty :=
+  completedZetaZeroPoleQuotientClass_eq_empty
 
 end AnalyticMotives
 end LFunctions

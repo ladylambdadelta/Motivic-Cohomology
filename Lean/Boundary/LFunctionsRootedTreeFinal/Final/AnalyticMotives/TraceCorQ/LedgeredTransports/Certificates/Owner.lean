@@ -1,132 +1,16 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.LedgeredTransports.CoherenceLedgers.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.LedgeredTransports.Certificates.Core.Owner
 
 /-!
-# Analytic certificate ledgers for ledgered transports
+# Analytic certificate-ledger facts for ledgered transports
 
-This file owns the analytic certificate ledgers attached to the category-shape
-coherence cells of ledgered trace transports.  Relation ledgers record what is
-imposed in the quotient; certificate ledgers record the analytic coherence
-cells justifying those relations.
+This file owns theorem facts about the analytic certificate ledgers attached to
+ledgered trace transports and their category-shape coherence cells.  The core
+certificate-ledger definitions live in the `Core` child file.
 -/
 
 namespace Boundary
 namespace LFunctions
 namespace AnalyticMotives
-
-/-- The analytic certificate ledger carried by the underlying raw transport. -/
-def LedgeredTraceTransport.transportCertificateLedger
-    (transport : LedgeredTraceTransport) :
-    ResidueChannelCertificateLedger :=
-  transport.transport.certificateLedger
-
-/-- The imported finite-rectangle payload carried by the underlying raw transport. -/
-def LedgeredTraceTransport.transportImportedRectangleCount
-    (transport : LedgeredTraceTransport) :
-    Nat :=
-  transport.transportCertificateLedger.importedRectangleCount
-
-/-- The internal trace-bookkeeping payload carried by the underlying raw transport. -/
-def LedgeredTraceTransport.transportTraceBookkeepingCount
-    (transport : LedgeredTraceTransport) :
-    Nat :=
-  transport.transportCertificateLedger.traceBookkeepingCount
-
-/-- The associativity coherence certificate ledger for three ledgered transports. -/
-def LedgeredTraceTransport.associativityCertificateLedger
-    (first second third : LedgeredTraceTransport) :
-    ResidueChannelCertificateLedger :=
-  ResidueChannelCertificateLedger.ofCoherenceCell
-    (LedgeredTraceTransport.compAssociativityCoherence
-      first second third)
-
-/-- The imported payload carried by the associativity coherence certificate. -/
-def LedgeredTraceTransport.associativityImportedRectangleCount
-    (first second third : LedgeredTraceTransport) :
-    Nat :=
-  (LedgeredTraceTransport.associativityCertificateLedger
-    first
-    second
-    third).importedRectangleCount
-
-/-- The bookkeeping payload carried by the associativity coherence certificate. -/
-def LedgeredTraceTransport.associativityTraceBookkeepingCount
-    (first second third : LedgeredTraceTransport) :
-    Nat :=
-  (LedgeredTraceTransport.associativityCertificateLedger
-    first
-    second
-    third).traceBookkeepingCount
-
-/-- The left-identity coherence certificate ledger for a ledgered transport. -/
-def LedgeredTraceTransport.leftIdentityCertificateLedger
-    (transport : LedgeredTraceTransport) :
-    ResidueChannelCertificateLedger :=
-  ResidueChannelCertificateLedger.ofCoherenceCell
-    (LedgeredTraceTransport.leftIdentityCoherence transport)
-
-/-- The imported payload carried by the left-identity coherence certificate. -/
-def LedgeredTraceTransport.leftIdentityImportedRectangleCount
-    (transport : LedgeredTraceTransport) :
-    Nat :=
-  (LedgeredTraceTransport.leftIdentityCertificateLedger
-    transport).importedRectangleCount
-
-/-- The bookkeeping payload carried by the left-identity coherence certificate. -/
-def LedgeredTraceTransport.leftIdentityTraceBookkeepingCount
-    (transport : LedgeredTraceTransport) :
-    Nat :=
-  (LedgeredTraceTransport.leftIdentityCertificateLedger
-    transport).traceBookkeepingCount
-
-/-- The right-identity coherence certificate ledger for a ledgered transport. -/
-def LedgeredTraceTransport.rightIdentityCertificateLedger
-    (transport : LedgeredTraceTransport) :
-    ResidueChannelCertificateLedger :=
-  ResidueChannelCertificateLedger.ofCoherenceCell
-    (LedgeredTraceTransport.rightIdentityCoherence transport)
-
-/-- The imported payload carried by the right-identity coherence certificate. -/
-def LedgeredTraceTransport.rightIdentityImportedRectangleCount
-    (transport : LedgeredTraceTransport) :
-    Nat :=
-  (LedgeredTraceTransport.rightIdentityCertificateLedger
-    transport).importedRectangleCount
-
-/-- The bookkeeping payload carried by the right-identity coherence certificate. -/
-def LedgeredTraceTransport.rightIdentityTraceBookkeepingCount
-    (transport : LedgeredTraceTransport) :
-    Nat :=
-  (LedgeredTraceTransport.rightIdentityCertificateLedger
-    transport).traceBookkeepingCount
-
-/-- The category-shape analytic certificate ledger for three ledgered transports. -/
-def LedgeredTraceTransport.categoryShapeCertificateLedger
-    (first second third : LedgeredTraceTransport) :
-    ResidueChannelCertificateLedger :=
-  ResidueChannelCertificateLedger.append
-    (LedgeredTraceTransport.associativityCertificateLedger
-      first second third)
-    (ResidueChannelCertificateLedger.append
-      (LedgeredTraceTransport.leftIdentityCertificateLedger first)
-      (LedgeredTraceTransport.rightIdentityCertificateLedger third))
-
-/-- The imported payload carried by the category-shape coherence ledger. -/
-def LedgeredTraceTransport.categoryShapeImportedRectangleCount
-    (first second third : LedgeredTraceTransport) :
-    Nat :=
-  (LedgeredTraceTransport.categoryShapeCertificateLedger
-    first
-    second
-    third).importedRectangleCount
-
-/-- The bookkeeping payload carried by the category-shape coherence ledger. -/
-def LedgeredTraceTransport.categoryShapeTraceBookkeepingCount
-    (first second third : LedgeredTraceTransport) :
-    Nat :=
-  (LedgeredTraceTransport.categoryShapeCertificateLedger
-    first
-    second
-    third).traceBookkeepingCount
 
 /-- A ledgered transport's transport certificate ledger is inherited from its raw transport. -/
 theorem LedgeredTraceTransport.transportCertificateLedger_eq
@@ -142,6 +26,13 @@ theorem LedgeredTraceTransport.transportImportedRectangleCount_eq
       transport.transport.importedRectangleCount :=
   rfl
 
+/-- The transport imported rectangles are inherited from its raw transport certificate ledger. -/
+theorem LedgeredTraceTransport.transportImportedRectangles_eq
+    (transport : LedgeredTraceTransport) :
+    transport.transportImportedRectangles =
+      transport.transport.importedRectangles :=
+  rfl
+
 /-- The transport bookkeeping payload is inherited from its raw transport certificate ledger. -/
 theorem LedgeredTraceTransport.transportTraceBookkeepingCount_eq
     (transport : LedgeredTraceTransport) :
@@ -149,30 +40,73 @@ theorem LedgeredTraceTransport.transportTraceBookkeepingCount_eq
       transport.transport.traceBookkeepingCount :=
   rfl
 
-/-- The associativity certificate ledger is the singleton coherence-cell ledger. -/
+/-- The associativity certificate ledger records both compared paths and the cell. -/
 theorem LedgeredTraceTransport.associativityCertificateLedger_eq
     (first second third : LedgeredTraceTransport) :
     LedgeredTraceTransport.associativityCertificateLedger
       first second third =
-      ResidueChannelCertificateLedger.ofCoherenceCell
+      ResidueChannelCertificateLedger.ofCertifiedCoherenceCell
         (LedgeredTraceTransport.compAssociativityCoherence
           first second third) :=
   rfl
 
-/-- The left-identity certificate ledger is the singleton coherence-cell ledger. -/
+/-- The left-identity certificate ledger records both compared paths and the cell. -/
 theorem LedgeredTraceTransport.leftIdentityCertificateLedger_eq
     (transport : LedgeredTraceTransport) :
     LedgeredTraceTransport.leftIdentityCertificateLedger transport =
-      ResidueChannelCertificateLedger.ofCoherenceCell
+      ResidueChannelCertificateLedger.ofCertifiedCoherenceCell
         (LedgeredTraceTransport.leftIdentityCoherence transport) :=
   rfl
 
-/-- The right-identity certificate ledger is the singleton coherence-cell ledger. -/
+/-- The right-identity certificate ledger records both compared paths and the cell. -/
 theorem LedgeredTraceTransport.rightIdentityCertificateLedger_eq
     (transport : LedgeredTraceTransport) :
     LedgeredTraceTransport.rightIdentityCertificateLedger transport =
-      ResidueChannelCertificateLedger.ofCoherenceCell
+      ResidueChannelCertificateLedger.ofCertifiedCoherenceCell
         (LedgeredTraceTransport.rightIdentityCoherence transport) :=
+  rfl
+
+/-- The associativity certificate ledger records the two triple-composition paths and cell. -/
+theorem LedgeredTraceTransport.associativityCertificateLedger_eq_paths_cell
+    (first second third : LedgeredTraceTransport) :
+    LedgeredTraceTransport.associativityCertificateLedger
+      first
+      second
+      third =
+      ResidueChannelCertificateAtom.rewritePath
+        ((first.comp second).comp third).path ::
+        ResidueChannelCertificateAtom.rewritePath
+          (first.comp (second.comp third)).path ::
+          ResidueChannelCertificateAtom.coherenceCell
+            (LedgeredTraceTransport.compAssociativityCoherence
+              first
+              second
+              third) ::
+            ResidueChannelCertificateLedger.empty :=
+  rfl
+
+/-- The left-identity certificate ledger records the identity-left path and original path. -/
+theorem LedgeredTraceTransport.leftIdentityCertificateLedger_eq_paths_cell
+    (transport : LedgeredTraceTransport) :
+    LedgeredTraceTransport.leftIdentityCertificateLedger transport =
+      ResidueChannelCertificateAtom.rewritePath
+        ((LedgeredTraceTransport.id transport.source).comp transport).path ::
+        ResidueChannelCertificateAtom.rewritePath transport.path ::
+          ResidueChannelCertificateAtom.coherenceCell
+            (LedgeredTraceTransport.leftIdentityCoherence transport) ::
+            ResidueChannelCertificateLedger.empty :=
+  rfl
+
+/-- The right-identity certificate ledger records the identity-right path and original path. -/
+theorem LedgeredTraceTransport.rightIdentityCertificateLedger_eq_paths_cell
+    (transport : LedgeredTraceTransport) :
+    LedgeredTraceTransport.rightIdentityCertificateLedger transport =
+      ResidueChannelCertificateAtom.rewritePath
+        (transport.comp (LedgeredTraceTransport.id transport.target)).path ::
+        ResidueChannelCertificateAtom.rewritePath transport.path ::
+          ResidueChannelCertificateAtom.coherenceCell
+            (LedgeredTraceTransport.rightIdentityCoherence transport) ::
+            ResidueChannelCertificateLedger.empty :=
   rfl
 
 /-- The category-shape certificate ledger is associativity followed by both identity cells. -/
@@ -218,6 +152,39 @@ theorem LedgeredTraceTransport.categoryShapeImportedRectangleCount_eq
           third +
           count)
       (ResidueChannelCertificateLedger.append_importedRectangleCount
+        (LedgeredTraceTransport.leftIdentityCertificateLedger first)
+        (LedgeredTraceTransport.rightIdentityCertificateLedger third)))
+
+/-- Category-shape imported rectangles are associativity followed by both identity rectangles. -/
+theorem LedgeredTraceTransport.categoryShapeImportedRectangles_eq
+    (first second third : LedgeredTraceTransport) :
+    LedgeredTraceTransport.categoryShapeImportedRectangles
+      first
+      second
+      third =
+      LedgeredTraceTransport.associativityImportedRectangles
+        first
+        second
+        third ++
+        (LedgeredTraceTransport.leftIdentityImportedRectangles first ++
+          LedgeredTraceTransport.rightIdentityImportedRectangles third) :=
+  Eq.trans
+    (ResidueChannelCertificateLedger.append_importedRectangles
+      (LedgeredTraceTransport.associativityCertificateLedger
+        first
+        second
+        third)
+      (ResidueChannelCertificateLedger.append
+        (LedgeredTraceTransport.leftIdentityCertificateLedger first)
+        (LedgeredTraceTransport.rightIdentityCertificateLedger third)))
+    (congrArg
+      (fun rectangles =>
+        LedgeredTraceTransport.associativityImportedRectangles
+          first
+          second
+          third ++
+          rectangles)
+      (ResidueChannelCertificateLedger.append_importedRectangles
         (LedgeredTraceTransport.leftIdentityCertificateLedger first)
         (LedgeredTraceTransport.rightIdentityCertificateLedger third)))
 

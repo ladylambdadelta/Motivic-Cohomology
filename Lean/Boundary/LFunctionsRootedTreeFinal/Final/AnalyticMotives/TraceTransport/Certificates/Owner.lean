@@ -1,119 +1,15 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceTransport.Composition.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceTransport.Certificates.Core.Owner
 
 /-!
 # Trace-transport certificate ledgers
 
-This file owns the analytic certificate ledger canonically attached to a raw
-trace transport.  The ledger records the source presentation certificates, the
-target presentation certificates, and the rewrite path carried by the
-transport.
+This file records identity and composition computations for the analytic
+certificate ledger canonically attached to a raw trace transport.
 -/
 
 namespace Boundary
 namespace LFunctions
 namespace AnalyticMotives
-
-/-- The path certificate ledger of a trace transport. -/
-def TraceTransport.pathCertificateLedger
-    (transport : TraceTransport) :
-    ResidueChannelCertificateLedger :=
-  ResidueChannelCertificateLedger.ofRewritePath transport.path
-
-/-- The canonical analytic certificate ledger carried by a trace transport. -/
-def TraceTransport.certificateLedger
-    (transport : TraceTransport) :
-    ResidueChannelCertificateLedger :=
-  ResidueChannelCertificateLedger.append
-    transport.source.certificateLedger
-    (ResidueChannelCertificateLedger.append
-      transport.target.certificateLedger
-      transport.pathCertificateLedger)
-
-/-- The imported finite-rectangle analytic payload carried by a trace transport. -/
-def TraceTransport.importedRectangleCount
-    (transport : TraceTransport) :
-    Nat :=
-  transport.certificateLedger.importedRectangleCount
-
-/-- The internal trace-bookkeeping payload carried by a trace transport. -/
-def TraceTransport.traceBookkeepingCount
-    (transport : TraceTransport) :
-    Nat :=
-  transport.certificateLedger.traceBookkeepingCount
-
-/-- The explicit rewrite-step payload carried by a trace transport. -/
-def TraceTransport.rewriteStepCount
-    (transport : TraceTransport) :
-    Nat :=
-  transport.certificateLedger.rewriteStepCount
-
-/-- A transport certificate ledger is source certificates, target certificates, then path certificates. -/
-theorem TraceTransport.certificateLedger_eq_source_target_path
-    (transport : TraceTransport) :
-    transport.certificateLedger =
-      ResidueChannelCertificateLedger.append
-        transport.source.certificateLedger
-        (ResidueChannelCertificateLedger.append
-          transport.target.certificateLedger
-          transport.pathCertificateLedger) :=
-  rfl
-
-/-- A transport's imported payload splits into source, target, and path payload. -/
-theorem TraceTransport.importedRectangleCount_eq_source_target_path
-    (transport : TraceTransport) :
-    transport.importedRectangleCount =
-      transport.source.importedRectangleCount +
-        (transport.target.importedRectangleCount +
-          transport.pathCertificateLedger.importedRectangleCount) :=
-  Eq.trans
-    (ResidueChannelCertificateLedger.append_importedRectangleCount
-      transport.source.certificateLedger
-      (ResidueChannelCertificateLedger.append
-        transport.target.certificateLedger
-        transport.pathCertificateLedger))
-    (congrArg
-      (fun count => transport.source.importedRectangleCount + count)
-      (ResidueChannelCertificateLedger.append_importedRectangleCount
-        transport.target.certificateLedger
-        transport.pathCertificateLedger))
-
-/-- A transport's bookkeeping payload splits into source, target, and path payload. -/
-theorem TraceTransport.traceBookkeepingCount_eq_source_target_path
-    (transport : TraceTransport) :
-    transport.traceBookkeepingCount =
-      transport.source.traceBookkeepingCount +
-        (transport.target.traceBookkeepingCount +
-          transport.pathCertificateLedger.traceBookkeepingCount) :=
-  Eq.trans
-    (ResidueChannelCertificateLedger.append_traceBookkeepingCount
-      transport.source.certificateLedger
-      (ResidueChannelCertificateLedger.append
-        transport.target.certificateLedger
-        transport.pathCertificateLedger))
-    (congrArg
-      (fun count => transport.source.traceBookkeepingCount + count)
-      (ResidueChannelCertificateLedger.append_traceBookkeepingCount
-        transport.target.certificateLedger
-        transport.pathCertificateLedger))
-
-/-- A transport's explicit rewrite-step payload splits into source, target, and path payload. -/
-theorem TraceTransport.rewriteStepCount_eq_source_target_path
-    (transport : TraceTransport) :
-    transport.rewriteStepCount =
-      transport.source.rewriteStepCount +
-        (transport.target.rewriteStepCount +
-          transport.pathCertificateLedger.rewriteStepCount) :=
-  Eq.trans
-    (ResidueChannelCertificateLedger.append_rewriteStepCount
-      transport.source.certificateLedger
-      (ResidueChannelCertificateLedger.append
-        transport.target.certificateLedger
-        transport.pathCertificateLedger))
-    (congrArg
-      (fun count => transport.source.rewriteStepCount + count)
-      (ResidueChannelCertificateLedger.append_rewriteStepCount
-        transport.target.certificateLedger
-        transport.pathCertificateLedger))
 
 /-- The identity transport's path certificate ledger is the singleton identity path certificate. -/
 theorem TraceTransport.id_pathCertificateLedger
@@ -121,6 +17,34 @@ theorem TraceTransport.id_pathCertificateLedger
     (TraceTransport.id object).pathCertificateLedger =
       ResidueChannelCertificateLedger.ofRewritePath
         (TraceRewritePath.id object.source) :=
+  rfl
+
+/-- The identity transport path certificate carries no imported finite rectangles. -/
+theorem TraceTransport.id_pathCertificateLedger_importedRectangleCount
+    (object : TraceTransportObject) :
+    (TraceTransport.id object).pathCertificateLedger.importedRectangleCount =
+      0 + 0 :=
+  rfl
+
+/-- The identity transport path certificate exposes no imported finite rectangles. -/
+theorem TraceTransport.id_pathCertificateLedger_importedRectangles
+    (object : TraceTransportObject) :
+    (TraceTransport.id object).pathCertificateLedger.importedRectangles =
+      [] ++ [] :=
+  rfl
+
+/-- The identity transport path certificate is one bookkeeping atom. -/
+theorem TraceTransport.id_pathCertificateLedger_traceBookkeepingCount
+    (object : TraceTransportObject) :
+    (TraceTransport.id object).pathCertificateLedger.traceBookkeepingCount =
+      1 + 0 :=
+  rfl
+
+/-- The identity transport path certificate has no rewrite steps. -/
+theorem TraceTransport.id_pathCertificateLedger_rewriteStepCount
+    (object : TraceTransportObject) :
+    (TraceTransport.id object).pathCertificateLedger.rewriteStepCount =
+      0 + 0 :=
   rfl
 
 /-- The identity transport's certificate ledger contains object certificates and the identity path. -/
@@ -153,6 +77,28 @@ theorem TraceTransport.id_importedRectangleCount
     (congrArg
       (fun count => object.importedRectangleCount + count)
       (ResidueChannelCertificateLedger.append_importedRectangleCount
+        object.certificateLedger
+        (ResidueChannelCertificateLedger.ofRewritePath
+          (TraceRewritePath.id object.source))))
+
+/-- The identity transport exposes the imported rectangles of the endpoint presentations. -/
+theorem TraceTransport.id_importedRectangles
+    (object : TraceTransportObject) :
+    (TraceTransport.id object).importedRectangles =
+      object.importedRectangles ++
+        (object.importedRectangles ++
+          (ResidueChannelCertificateLedger.ofRewritePath
+            (TraceRewritePath.id object.source)).importedRectangles) :=
+  Eq.trans
+    (ResidueChannelCertificateLedger.append_importedRectangles
+      object.certificateLedger
+      (ResidueChannelCertificateLedger.append
+        object.certificateLedger
+        (ResidueChannelCertificateLedger.ofRewritePath
+          (TraceRewritePath.id object.source))))
+    (congrArg
+      (fun rectangles => object.importedRectangles ++ rectangles)
+      (ResidueChannelCertificateLedger.append_importedRectangles
         object.certificateLedger
         (ResidueChannelCertificateLedger.ofRewritePath
           (TraceRewritePath.id object.source))))
@@ -209,6 +155,42 @@ theorem TraceTransport.comp_pathCertificateLedger
         (first.path.comp second.path) :=
   rfl
 
+/-- A composed transport path certificate carries no imported finite rectangles. -/
+theorem TraceTransport.comp_pathCertificateLedger_importedRectangleCount
+    (first second : TraceTransport) :
+    (TraceTransport.comp
+      first
+      second).pathCertificateLedger.importedRectangleCount =
+      0 + 0 :=
+  rfl
+
+/-- A composed transport path certificate exposes no imported finite rectangles. -/
+theorem TraceTransport.comp_pathCertificateLedger_importedRectangles
+    (first second : TraceTransport) :
+    (TraceTransport.comp
+      first
+      second).pathCertificateLedger.importedRectangles =
+      [] ++ [] :=
+  rfl
+
+/-- A composed transport path certificate is one bookkeeping atom. -/
+theorem TraceTransport.comp_pathCertificateLedger_traceBookkeepingCount
+    (first second : TraceTransport) :
+    (TraceTransport.comp
+      first
+      second).pathCertificateLedger.traceBookkeepingCount =
+      1 + 0 :=
+  rfl
+
+/-- A composed transport path certificate counts rewrite steps from both factors. -/
+theorem TraceTransport.comp_pathCertificateLedger_rewriteStepCount
+    (first second : TraceTransport) :
+    (TraceTransport.comp
+      first
+      second).pathCertificateLedger.rewriteStepCount =
+      first.path.stepCount + second.path.stepCount + 0 :=
+  rfl
+
 /-- The canonical certificate ledger of a composed transport follows its endpoints and path. -/
 theorem TraceTransport.comp_certificateLedger
     (first second : TraceTransport) :
@@ -239,6 +221,28 @@ theorem TraceTransport.comp_importedRectangleCount
     (congrArg
       (fun count => first.source.importedRectangleCount + count)
       (ResidueChannelCertificateLedger.append_importedRectangleCount
+        second.target.certificateLedger
+        (ResidueChannelCertificateLedger.ofRewritePath
+          (first.path.comp second.path))))
+
+/-- A composed transport exposes imported rectangles from its exposed endpoints and path. -/
+theorem TraceTransport.comp_importedRectangles
+    (first second : TraceTransport) :
+    (TraceTransport.comp first second).importedRectangles =
+      first.source.importedRectangles ++
+        (second.target.importedRectangles ++
+          (ResidueChannelCertificateLedger.ofRewritePath
+            (first.path.comp second.path)).importedRectangles) :=
+  Eq.trans
+    (ResidueChannelCertificateLedger.append_importedRectangles
+      first.source.certificateLedger
+      (ResidueChannelCertificateLedger.append
+        second.target.certificateLedger
+        (ResidueChannelCertificateLedger.ofRewritePath
+          (first.path.comp second.path))))
+    (congrArg
+      (fun rectangles => first.source.importedRectangles ++ rectangles)
+      (ResidueChannelCertificateLedger.append_importedRectangles
         second.target.certificateLedger
         (ResidueChannelCertificateLedger.ofRewritePath
           (first.path.comp second.path))))

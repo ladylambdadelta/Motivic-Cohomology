@@ -28,6 +28,9 @@ open Filter
 open LSeries ArithmeticFunction
 open MeasureTheory
 open scoped ArithmeticFunction
+open scoped ENNReal
+open scoped LSeries.notation
+open scoped NNReal
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
@@ -36,7 +39,7 @@ namespace ZetaAdmissibleFunction
 `LSeries.term` expansion. -/
 theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_eq_tsum_terms
     (F : ExplicitFormulaContourFamily) (t : ℝ) :
-    L ↗Λ (zetaCompletedExplicitFormulaRightAffineLine F t) =
+    (L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t) =
       ∑' n : ℕ,
         LSeries.term (↗Λ)
           (zetaCompletedExplicitFormulaRightAffineLine F t) n := by
@@ -53,12 +56,19 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_eq_tsum_te
         zetaCompletedExplicitFormulaPhi f
           (zetaCompletedExplicitFormulaRightCenteredAffineLine F t) := by
   exact
-    congrArg
-      (fun z : ℂ =>
-        z * zetaCompletedExplicitFormulaPhi f
-          (zetaCompletedExplicitFormulaRightCenteredAffineLine F t))
-      (zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_eq_tsum_terms
-        F t)
+    Eq.trans
+      (congrArg
+        (fun z : ℂ =>
+          z * zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t))
+        (zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_eq_logDerivative
+          F t).symm)
+      (congrArg
+        (fun z : ℂ =>
+          z * zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t))
+        (zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_eq_tsum_terms
+          F t))
 
 /-- Fixed-time summability of the right von Mangoldt term kernels. -/
 theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_summable
@@ -353,11 +363,13 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_majorant_two
     B * C * (1 + ‖t‖) ^ (-(2 : ℤ))
   let majorantReal : ℝ → ℝ := fun t : ℝ =>
     B * C * (1 + ‖t‖) ^ (-(2 : ℝ))
-  have hfinrank : finrank ℝ ℝ = 1 :=
+  have hfinrank : Module.finrank ℝ ℝ = 1 :=
     Module.finrank_self ℝ
-  have hfinrank_cast : ((finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
-    congrArg (fun n : ℕ => (n : ℝ)) hfinrank
-  have hdim : (finrank ℝ ℝ : ℝ) < 2 :=
+  have hfinrank_cast : ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
+    Eq.trans
+      (congrArg (fun n : ℕ => (n : ℝ)) hfinrank)
+      Nat.cast_one
+  have hdim : (Module.finrank ℝ ℝ : ℝ) < 2 :=
     Eq.subst
       (motive := fun x : ℝ => x < 2)
       hfinrank_cast.symm
@@ -366,15 +378,33 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_majorant_two
       Integrable
         (fun t : ℝ => (1 + ‖t‖) ^ (-(2 : ℝ)))
         (volume : Measure ℝ) :=
-    integrable_one_add_norm (E := ℝ) (μ := volume) hdim
-  have hreal : Integrable majorantReal (volume : Measure ℝ) :=
+    integrable_one_add_norm (E := ℝ) hdim
+  have hscaled :
+      Integrable
+        (fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(2 : ℝ))))
+        (volume : Measure ℝ) :=
     (hbase.const_mul C).const_mul B
+  have hscaled_eq_real :
+      (fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(2 : ℝ)))) =
+        majorantReal := by
+    funext t
+    exact (mul_assoc B C ((1 + ‖t‖) ^ (-(2 : ℝ)))).symm
+  have hreal : Integrable majorantReal (volume : Measure ℝ) :=
+    Eq.subst
+      (motive := fun φ : ℝ → ℝ => Integrable φ (volume : Measure ℝ))
+      hscaled_eq_real
+      hscaled
   have hint_eq_real : majorantInt = majorantReal := by
     funext t
+    have hexp :
+        ((-(2 : ℤ) : ℤ) : ℝ) = -(2 : ℝ) :=
+      Int.cast_neg 2
     have hpow :
         (1 + ‖t‖) ^ (-(2 : ℤ)) =
           (1 + ‖t‖) ^ (-(2 : ℝ)) :=
-      (Real.rpow_intCast (1 + ‖t‖) (-(2 : ℤ))).symm
+      Eq.trans
+        (Real.rpow_intCast (1 + ‖t‖) (-(2 : ℤ))).symm
+        (congrArg (fun r : ℝ => (1 + ‖t‖) ^ r) hexp)
     exact congrArg (fun x : ℝ => B * C * x) hpow
   have hint : Integrable majorantInt (volume : Measure ℝ) :=
     Eq.subst
@@ -437,8 +467,8 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_lintegral_no
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     (∑' n : ℕ,
       ∫⁻ t : ℝ,
-        ‖zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel
-          f F n t‖₊ ∂(volume : Measure ℝ))
+        (‖zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel
+          f F n t‖₊ : ℝ≥0∞) ∂(volume : Measure ℝ))
       ≤
     ∫⁻ t : ℝ,
       ENNReal.ofReal
@@ -479,7 +509,7 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_lintegral_no
         f F t
     have hcoe_terms :
         (fun n : ℕ => (‖kernel n t‖₊ : ℝ≥0∞)) =
-          (fun n : ℕ => ENNReal.ofReal (normSeries n)) := by
+          fun n : ℕ => ENNReal.ofReal (normSeries n) := by
       funext n
       exact (ofReal_norm_eq_coe_nnnorm (kernel n t)).symm
     have hcoe_tsum :
@@ -487,10 +517,8 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_lintegral_no
           ENNReal.ofReal (∑' n : ℕ, normSeries n) := by
       exact
         Eq.trans
-          (congrArg
-            (fun φ : ℕ → ℝ≥0∞ => ∑' n : ℕ, φ n)
-            hcoe_terms)
-          (ENNReal.ofReal_tsum_of_nonneg hnorm_nonneg hnorm_summable)
+          (congrArg tsum hcoe_terms)
+          (ENNReal.ofReal_tsum_of_nonneg hnorm_nonneg hnorm_summable).symm
     have hreal_bound :
         (∑' n : ℕ, normSeries n) ≤ majorant t := by
       have hbound :
@@ -534,8 +562,8 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_lintegral_no
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     (∑' n : ℕ,
       ∫⁻ t : ℝ,
-        ‖zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel
-          f F n t‖₊ ∂(volume : Measure ℝ)) ≠ ∞ := by
+        (‖zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel
+          f F n t‖₊ : ℝ≥0∞) ∂(volume : Measure ℝ)) ≠ ∞ := by
   let majorant : ℝ → ℝ := fun t : ℝ =>
     zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactorBound F *
       h.phi_control.verticalStripRapidDecayConstant
@@ -544,8 +572,8 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_lintegral_no
   have hle :
       (∑' n : ℕ,
         ∫⁻ t : ℝ,
-          ‖zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel
-            f F n t‖₊ ∂(volume : Measure ℝ))
+          (‖zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel
+            f F n t‖₊ : ℝ≥0∞) ∂(volume : Measure ℝ))
         ≤
       ∫⁻ t : ℝ, ENNReal.ofReal (majorant t) ∂(volume : Measure ℝ) :=
     zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_lintegral_norm_tsum_le_majorant_two_lintegral
@@ -652,8 +680,8 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_integral_e
   have hfinite :
       (∑' n : ℕ,
         ∫⁻ t : ℝ,
-          ‖zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel
-            f F n t‖₊ ∂(volume : Measure ℝ)) ≠ ∞ :=
+          (‖zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel
+            f F n t‖₊ : ℝ≥0∞) ∂(volume : Measure ℝ)) ≠ ∞ :=
     zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_lintegral_norm_tsum_ne_top
       f F h
   have hexchange :
@@ -852,14 +880,14 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_aestrongly
     AEStronglyMeasurable
       (zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel f F)
       (volume : Measure ℝ) :=
-  (zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_aestronglyMeasurable
-    F).mul
-    (zetaCompletedExplicitFormulaPhi_rightCenteredAffineLine_aestronglyMeasurable
-      f F h)
+  (zetaCompletedExplicitFormulaPrimeLogDerivative_rightAffineLine_continuous
+    F).aestronglyMeasurable.mul
+      (zetaCompletedExplicitFormulaPhi_rightCenteredAffineLine_aestronglyMeasurable
+        f F h)
 
 /-- Bundled owner-level majorant package for the right von Mangoldt affine
 kernel. -/
-theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_majorantPackage_ownerInversion
+def zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_majorantPackage_ownerInversion
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     ExplicitFormulaAffineKernelMajorantPackage
@@ -870,14 +898,16 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_majorantPa
     h.phi_control.verticalStripRapidDecayConstant
       (F.c - (1 / 2 : ℝ)) (F.c - (1 / 2 : ℝ)) 2
   let majorant : ℝ → ℝ := fun t : ℝ =>
-    B * C * (1 + ‖t‖) ^ (-(2 : ℤ))
+    B * (C * (1 + ‖t‖) ^ (-(2 : ℤ)))
   have hintegrable :
       Integrable majorant (volume : Measure ℝ) := by
-    have hfinrank : finrank ℝ ℝ = 1 :=
+    have hfinrank : Module.finrank ℝ ℝ = 1 :=
       Module.finrank_self ℝ
-    have hfinrank_cast : ((finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
-      congrArg (fun n : ℕ => (n : ℝ)) hfinrank
-    have hdim : (finrank ℝ ℝ : ℝ) < 2 :=
+    have hfinrank_cast : ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
+      Eq.trans
+        (congrArg (fun n : ℕ => (n : ℝ)) hfinrank)
+        Nat.cast_one
+    have hdim : (Module.finrank ℝ ℝ : ℝ) < 2 :=
       Eq.subst
         (motive := fun x : ℝ => x < 2)
         hfinrank_cast.symm
@@ -886,30 +916,38 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_majorantPa
         Integrable
           (fun t : ℝ => (1 + ‖t‖) ^ (-(2 : ℝ)))
           (volume : Measure ℝ) :=
-      integrable_one_add_norm (E := ℝ) (μ := volume) hdim
+      integrable_one_add_norm (E := ℝ) hdim
     have hscaled :
         Integrable
-          (fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(2 : ℝ)))
+          (fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(2 : ℝ))))
           (volume : Measure ℝ) :=
       (hbase.const_mul C).const_mul B
     have hfun :
         majorant =
-          (fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(2 : ℝ))) := by
+          (fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(2 : ℝ)))) := by
       funext t
+      have hexp :
+          ((-(2 : ℤ) : ℤ) : ℝ) = -(2 : ℝ) :=
+        Int.cast_neg 2
       have hpow :
           (1 + ‖t‖) ^ (-(2 : ℤ)) =
             (1 + ‖t‖) ^ (-(2 : ℝ)) :=
-        (Real.rpow_intCast (1 + ‖t‖) (-(2 : ℤ))).symm
-      exact congrArg (fun x : ℝ => B * C * x) hpow
+        Eq.trans
+          (Real.rpow_intCast (1 + ‖t‖) (-(2 : ℤ))).symm
+          (congrArg (fun r : ℝ => (1 + ‖t‖) ^ r) hexp)
+      exact congrArg (fun x : ℝ => B * (C * x)) hpow
     exact Eq.subst
       (motive := fun φ : ℝ → ℝ => Integrable φ (volume : Measure ℝ))
       hfun.symm
       hscaled
   have hfactor_meas :
       AEStronglyMeasurable
-        (fun t : ℝ => L ↗Λ (zetaCompletedExplicitFormulaRightAffineLine F t))
+        (fun t : ℝ =>
+          explicitFormulaPrimeLogDerivative
+            (zetaCompletedExplicitFormulaRightAffineLine F t))
         (volume : Measure ℝ) :=
-    zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_aestronglyMeasurable F
+    (zetaCompletedExplicitFormulaPrimeLogDerivative_rightAffineLine_continuous
+      F).aestronglyMeasurable
   have hphi_meas :
       AEStronglyMeasurable
         (fun t : ℝ =>
@@ -920,32 +958,49 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_majorantPa
       f F h
   have hbound :
       ∀ᵐ t ∂(volume : Measure ℝ),
-        ‖L ↗Λ (zetaCompletedExplicitFormulaRightAffineLine F t)‖ *
+        ‖explicitFormulaPrimeLogDerivative
+            (zetaCompletedExplicitFormulaRightAffineLine F t)‖ *
             ‖zetaCompletedExplicitFormulaPhi f
               (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)‖
           ≤ majorant t :=
     Filter.Eventually.of_forall
       (fun t : ℝ =>
         let factor : ℂ :=
-          L ↗Λ (zetaCompletedExplicitFormulaRightAffineLine F t)
+          explicitFormulaPrimeLogDerivative
+            (zetaCompletedExplicitFormulaRightAffineLine F t)
         let phi : ℂ :=
           zetaCompletedExplicitFormulaPhi f
             (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)
         let weight : ℝ := (1 + ‖t‖) ^ (-(2 : ℤ))
-        have hfactor : ‖factor‖ ≤ B :=
+        have hfactor_eq :
+            factor =
+              (L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t) :=
+          (zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_eq_logDerivative
+            F t).symm
+        have hfactor_norm_eq :
+            ‖factor‖ =
+              ‖(L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t)‖ :=
+          congrArg (fun z : ℂ => ‖z‖) hfactor_eq
+        have hfactor_L :
+            ‖(L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤ B :=
           zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_norm_le_bound
             F t
+        have hfactor : ‖factor‖ ≤ B :=
+          Eq.subst
+            (motive := fun x : ℝ => x ≤ B)
+            hfactor_norm_eq.symm
+            hfactor_L
         have hphi : ‖phi‖ ≤ C * weight :=
           zetaCompletedExplicitFormulaPhi_rightCenteredAffineLine_decay_bound
             f F h 2 t
-        have hphi_nonneg : 0 ≤ C * weight :=
-          (norm_nonneg phi).trans hphi
-        have hfactor_nonneg : 0 ≤ ‖factor‖ :=
-          norm_nonneg factor
+        have hphi_nonneg : 0 ≤ ‖phi‖ :=
+          norm_nonneg phi
+        have hB_nonneg : 0 ≤ B :=
+          zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactorBound_nonneg F
         have hprod : ‖factor‖ * ‖phi‖ ≤ B * (C * weight) :=
-          mul_le_mul hfactor hphi hphi_nonneg hfactor_nonneg
-        have hassoc : B * (C * weight) = B * C * weight :=
-          (mul_assoc B C weight).symm
+          mul_le_mul hfactor hphi hphi_nonneg hB_nonneg
+        have hassoc : B * (C * weight) = B * (C * weight) :=
+          Eq.refl _
         hprod.trans_eq hassoc)
   exact
     ExplicitFormulaAffineKernelMajorantPackage.of_mul_le

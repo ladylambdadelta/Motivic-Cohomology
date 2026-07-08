@@ -135,14 +135,6 @@ theorem TraceCorQQuotient.comp_assoc_ofFormalSum
                     right))
                 (Eq.symm
                   (Eq.trans
-                    (TraceCorQQuotient.add_comp
-                      (TraceCorQQuotient.singleton
-                        leftCoefficient
-                        leftGenerator)
-                      (TraceCorQQuotient.ofFormalSum leftTail)
-                      (TraceCorQQuotient.comp
-                        (TraceCorQQuotient.ofFormalSum middle)
-                        (TraceCorQQuotient.ofFormalSum right)))
                     (congrArg
                       (fun leftClass =>
                         TraceCorQQuotient.comp
@@ -150,11 +142,18 @@ theorem TraceCorQQuotient.comp_assoc_ofFormalSum
                           (TraceCorQQuotient.comp
                             (TraceCorQQuotient.ofFormalSum middle)
                             (TraceCorQQuotient.ofFormalSum right)))
-                      (Eq.symm
-                        (TraceCorQQuotient.ofFormalSum_cons
-                          leftCoefficient
-                          leftGenerator
-                          leftTail)))))))))
+                      (TraceCorQQuotient.ofFormalSum_cons
+                        leftCoefficient
+                        leftGenerator
+                        leftTail))
+                    (TraceCorQQuotient.add_comp
+                      (TraceCorQQuotient.singleton
+                        leftCoefficient
+                        leftGenerator)
+                      (TraceCorQQuotient.ofFormalSum leftTail)
+                      (TraceCorQQuotient.comp
+                        (TraceCorQQuotient.ofFormalSum middle)
+                        (TraceCorQQuotient.ofFormalSum right)))))))))
 
 /-- Quotient composition is associative. -/
 theorem TraceCorQQuotient.comp_assoc

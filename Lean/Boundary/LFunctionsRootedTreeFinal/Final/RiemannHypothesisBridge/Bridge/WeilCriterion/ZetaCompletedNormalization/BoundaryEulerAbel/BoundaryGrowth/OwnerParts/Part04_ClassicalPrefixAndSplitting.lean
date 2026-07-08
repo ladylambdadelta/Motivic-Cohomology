@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.BoundaryGrowth.OwnerParts.Part03_AbelWeightsAndClassicalTail
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseCanonicalPrefix
 
 /-!
 # Boundary growth owner part 4
@@ -13,6 +14,74 @@ noncomputable section
 
 open scoped Filter Topology
 local notation "π" => Real.pi
+
+theorem boundaryGrowth_real_three_add_one_eq_four :
+    ((3 : ℝ) + (1 : ℝ)) = 4 := by
+  calc
+    (3 : ℝ) + (1 : ℝ) =
+        ((3 : ℕ) : ℝ) + (1 : ℝ) := by
+      exact congrArg (fun y : ℝ => y + (1 : ℝ))
+        boundaryGrowth_natCast_three_eq_real_three.symm
+    _ = ((3 : ℕ) : ℝ) + ((1 : ℕ) : ℝ) := by
+      exact congrArg (fun y : ℝ => ((3 : ℕ) : ℝ) + y)
+        boundaryGrowth_natCast_one_eq_real_one.symm
+    _ = (((3 : ℕ) + 1 : ℕ) : ℝ) := by
+      exact (Nat.cast_add 3 1).symm
+    _ = ((4 : ℕ) : ℝ) := by
+      exact congrArg (fun n : ℕ => (n : ℝ)) (show ((3 : ℕ) + 1) = 4 from rfl)
+    _ = (4 : ℝ) := by
+      exact boundaryGrowth_natCast_four_eq_real_four
+
+theorem boundaryGrowth_real_four_add_one_eq_five :
+    ((4 : ℝ) + (1 : ℝ)) = 5 := by
+  calc
+    (4 : ℝ) + (1 : ℝ) =
+        ((4 : ℕ) : ℝ) + (1 : ℝ) := by
+      exact congrArg (fun y : ℝ => y + (1 : ℝ))
+        boundaryGrowth_natCast_four_eq_real_four.symm
+    _ = ((4 : ℕ) : ℝ) + ((1 : ℕ) : ℝ) := by
+      exact congrArg (fun y : ℝ => ((4 : ℕ) : ℝ) + y)
+        boundaryGrowth_natCast_one_eq_real_one.symm
+    _ = (((4 : ℕ) + 1 : ℕ) : ℝ) := by
+      exact (Nat.cast_add 4 1).symm
+    _ = ((5 : ℕ) : ℝ) := by
+      exact congrArg (fun n : ℕ => (n : ℝ)) (show ((4 : ℕ) + 1) = 5 from rfl)
+    _ = (5 : ℝ) := by
+      exact boundaryGrowth_natCast_five_eq_real_five
+
+theorem boundaryGrowth_real_two_add_four_eq_six :
+    ((2 : ℝ) + (4 : ℝ)) = 6 := by
+  calc
+    (2 : ℝ) + (4 : ℝ) =
+        ((2 : ℕ) : ℝ) + (4 : ℝ) := by
+      exact congrArg (fun y : ℝ => y + (4 : ℝ))
+        boundaryGrowth_natCast_two_eq_real_two.symm
+    _ = ((2 : ℕ) : ℝ) + ((4 : ℕ) : ℝ) := by
+      exact congrArg (fun y : ℝ => ((2 : ℕ) : ℝ) + y)
+        boundaryGrowth_natCast_four_eq_real_four.symm
+    _ = (((2 : ℕ) + 4 : ℕ) : ℝ) := by
+      exact (Nat.cast_add 2 4).symm
+    _ = ((6 : ℕ) : ℝ) := by
+      exact congrArg (fun n : ℕ => (n : ℝ)) (show ((2 : ℕ) + 4) = 6 from rfl)
+    _ = (6 : ℝ) := by
+      exact Nat.cast_ofNat
+
+theorem boundaryGrowth_real_eighty_mul_five_eq_fourhundred :
+    ((80 : ℝ) * (5 : ℝ)) = 400 := by
+  calc
+    (80 : ℝ) * (5 : ℝ) =
+        ((80 : ℕ) : ℝ) * (5 : ℝ) := by
+      exact congrArg (fun y : ℝ => y * (5 : ℝ))
+        boundaryGrowth_natCast_eighty_eq_real_eighty.symm
+    _ = ((80 : ℕ) : ℝ) * ((5 : ℕ) : ℝ) := by
+      exact congrArg (fun y : ℝ => ((80 : ℕ) : ℝ) * y)
+        boundaryGrowth_natCast_five_eq_real_five.symm
+    _ = (((80 : ℕ) * 5 : ℕ) : ℝ) := by
+      exact (Nat.cast_mul 80 5).symm
+    _ = ((400 : ℕ) : ℝ) := by
+      exact congrArg (fun n : ℕ => (n : ℝ)) (show ((80 : ℕ) * 5) = 400 from rfl)
+    _ = (400 : ℝ) := by
+      exact Nat.cast_ofNat
 
 /-- Triangle assembly for the four post-cutoff Euler-Maclaurin components. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_components_norm_le_of_component_bounds
@@ -107,10 +176,10 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_eulerMaclaurin
         (-boundaryLineOnePointRealParam t))
   let R : ℂ :=
     ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
-      ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-        (-boundaryLineOnePointRealParam t *
-          (((x : ℝ) : ℂ) ^
-            (-(boundaryLineOnePointRealParam t + 1))))
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+          (-boundaryLineOnePointRealParam t *
+            (((x : ℝ) : ℂ) ^
+              (-(boundaryLineOnePointRealParam t + 1)))))
   have hI : ‖I‖ ≤ (2 : ℝ) :=
     boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_mainIntegral_norm_le_two
       t ht hM
@@ -290,7 +359,10 @@ theorem boundaryLineOnePointRealParam_classicalPrefix_cutoff_linearScale_le_four
       (((C + 1 : ℕ) : ℝ) : ℝ) ≤ 3 + ‖t‖ := by
     have hcast_add :
         (((C + 1 : ℕ) : ℝ) : ℝ) = ((C : ℕ) : ℝ) + 1 :=
-      Nat.cast_add C 1
+      Eq.trans
+        (Nat.cast_add C 1)
+        (congrArg (fun r : ℝ => ((C : ℕ) : ℝ) + r)
+          boundaryGrowth_natCast_one_eq_real_one)
     calc
       (((C + 1 : ℕ) : ℝ) : ℝ) = ((C : ℕ) : ℝ) + 1 :=
         hcast_add
@@ -302,7 +374,7 @@ theorem boundaryLineOnePointRealParam_classicalPrefix_cutoff_linearScale_le_four
             exact add_right_comm (2 : ℝ) ‖t‖ 1
           _ = 3 + ‖t‖ := by
             exact congrArg (fun r : ℝ => r + ‖t‖)
-              (show (2 : ℝ) + 1 = 3 from rfl)
+              boundaryGrowth_real_two_add_one_eq_three
   have hthree_le_three_norm : (3 : ℝ) ≤ 3 * ‖t‖ := by
     calc
       (3 : ℝ) = 3 * (1 : ℝ) := by
@@ -314,11 +386,15 @@ theorem boundaryLineOnePointRealParam_classicalPrefix_cutoff_linearScale_le_four
     calc
       (3 : ℝ) + ‖t‖ ≤ 3 * ‖t‖ + ‖t‖ :=
         add_le_add_right hthree_le_three_norm ‖t‖
+      _ = 3 * ‖t‖ + 1 * ‖t‖ := by
+        exact congrArg (fun r : ℝ => 3 * ‖t‖ + r) (one_mul ‖t‖).symm
       _ = (3 + 1) * ‖t‖ := by
         exact (add_mul (3 : ℝ) 1 ‖t‖).symm
       _ = 4 * ‖t‖ := by
-        exact congrArg (fun r : ℝ => r * ‖t‖)
-          (show (3 : ℝ) + 1 = 4 from rfl)
+        have hthree_add_one :
+            (3 : ℝ) + 1 = 4 :=
+          boundaryGrowth_real_three_add_one_eq_four
+        exact congrArg (fun r : ℝ => r * ‖t‖) hthree_add_one
   have hnum_le : (((C + 1 : ℕ) : ℝ) : ℝ) ≤ 4 * ‖t‖ :=
     le_trans hC_add_one hthree_add_le
   have hdiv_le : (((C + 1 : ℕ) : ℝ) : ℝ) / ‖t‖ ≤ (4 * ‖t‖) / ‖t‖ :=
@@ -364,10 +440,18 @@ theorem boundaryLineOnePointRealParam_classicalPrefix_cutoff_vdcScale_le_five_sq
         4 * Real.sqrt (1 + ‖t‖) + Real.sqrt (1 + ‖t‖) :=
       add_le_add_right hlinear_sqrt (Real.sqrt (1 + ‖t‖))
     _ = (4 + 1) * Real.sqrt (1 + ‖t‖) := by
-      exact (add_mul (4 : ℝ) 1 (Real.sqrt (1 + ‖t‖))).symm
+      have hone_mul :
+          Real.sqrt (1 + ‖t‖) = 1 * Real.sqrt (1 + ‖t‖) :=
+        (one_mul (Real.sqrt (1 + ‖t‖))).symm
+      exact Eq.trans
+        (congrArg (fun r : ℝ => 4 * Real.sqrt (1 + ‖t‖) + r) hone_mul)
+        (add_mul (4 : ℝ) 1 (Real.sqrt (1 + ‖t‖))).symm
     _ = 5 * Real.sqrt (1 + ‖t‖) := by
+      have hfour_add_one :
+          (4 : ℝ) + 1 = 5 :=
+        boundaryGrowth_real_four_add_one_eq_five
       exact congrArg (fun r : ℝ => r * Real.sqrt (1 + ‖t‖))
-        (show (4 : ℝ) + 1 = 5 from rfl)
+        hfour_add_one
 
 /-- The raw adjacent logarithmic increments are monotone on the classical
 prefix block.  This isolates the non-modular part of the prefix cancellation
@@ -376,16 +460,14 @@ analysis. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhase_classicalPrefix_rawIncrementMonotoneOn
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
-    Complex.realPhase_integerIncrementMonotoneOn
-      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-      1 ⌊2 + ‖t‖⌋₊ := by
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        1 ⌊2 + ‖t‖⌋₊ := by
   have hcutoff_pos :
       0 < ⌊2 + ‖t‖⌋₊ := by
-    have htwo_pos : (0 : ℝ) < 2 :=
-      zero_lt_two
-    have harg_pos : (0 : ℝ) < 2 + ‖t‖ :=
-      lt_of_lt_of_le htwo_pos (le_add_of_nonneg_right (norm_nonneg t))
-    exact Nat.floor_pos.mpr harg_pos
+    have hone_le_arg : (1 : ℝ) ≤ 2 + ‖t‖ :=
+      one_le_two_add_norm t
+    exact Nat.floor_pos.mpr hone_le_arg
   have hcutoff_one : 1 ≤ ⌊2 + ‖t‖⌋₊ :=
     Nat.succ_le_of_lt hcutoff_pos
   exact
@@ -421,7 +503,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix
       (2 : ℝ) + ‖t‖ ≤ 2 + 4 :=
         add_le_add_left ht_four 2
       _ = 6 := by
-        exact show (2 : ℝ) + 4 = 6 from rfl
+        exact boundaryGrowth_real_two_add_four_eq_six
   have hC_le_six : C ≤ 6 := by
     have hfloor_mono :
         ⌊2 + ‖t‖⌋₊ ≤ ⌊(6 : ℝ)⌋₊ :=
@@ -443,7 +525,21 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix
   have hcard :
       ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t C‖ ≤
         ((C + 1 : ℕ) : ℝ) :=
-    logarithmicPhasePartialSum_norm_le_card t C
+    have hraw :
+        ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t C‖ ≤
+          ((C : ℕ) : ℝ) + 1 :=
+      logarithmicPhasePartialSum_norm_le_card t C
+    have htarget :
+        ((C : ℕ) : ℝ) + 1 = ((C + 1 : ℕ) : ℝ) :=
+      (Eq.trans
+        (Nat.cast_add C 1)
+        (congrArg (fun r : ℝ => ((C : ℕ) : ℝ) + r)
+          boundaryGrowth_natCast_one_eq_real_one)).symm
+    Eq.subst
+      (motive := fun r : ℝ =>
+        ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t C‖ ≤ r)
+      htarget
+      hraw
   have hsqrt_ge_one : (1 : ℝ) ≤ Real.sqrt (1 + ‖t‖) := by
     have hone_le_one_add : (1 : ℝ) ≤ 1 + ‖t‖ :=
       le_add_of_nonneg_right (norm_nonneg t)
@@ -465,7 +561,8 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix
     exact le_trans hbase (Real.log_le_log harg_pos harg_le)
   have hone_le_scale :
       (1 : ℝ) ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + C) :=
-    one_le_mul hsqrt_ge_one hlog_ge_one
+    mul_le_mul hsqrt_ge_one hlog_ge_one zero_le_one
+      (Real.sqrt_nonneg (1 + ‖t‖))
   have height_le_target :
       (8 : ℝ) ≤ 8 * Real.sqrt (1 + ‖t‖) * Real.log (2 + C) := by
     calc
@@ -487,9 +584,9 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_classicalPrefix_curvature
     (hx :
       x ∈ Set.Icc (1 : ℝ)
         (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ))) :
-    ((((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) *
-        (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ)))⁻¹ ≤
-      (x * x)⁻¹ := by
+      (((((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) *
+          (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ))))⁻¹) ≤
+        (x * x)⁻¹ := by
   let B : ℝ := (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ))
   have hx_pos : 0 < x :=
     lt_of_lt_of_le zero_lt_one hx.1
@@ -515,10 +612,10 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_classicalPrefix_curvature
     (hx :
       x ∈ Set.Icc (1 : ℝ)
         (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ))) :
-    ‖t‖ *
-        ((((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) *
-          (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ)))⁻¹ ≤
-      ‖t‖ * (x * x)⁻¹ := by
+      ‖t‖ *
+          (((((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) *
+            (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ))))⁻¹) ≤
+        ‖t‖ * (x * x)⁻¹ := by
   exact mul_le_mul_of_nonneg_left
     (boundaryLineOnePointRealParam_logarithmicPhase_classicalPrefix_curvatureDenominator_inv_le
       t hx)
@@ -534,10 +631,10 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_canonica
     (hx :
       x ∈ Set.Icc (1 : ℝ)
         (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ))) :
-    ‖t‖ *
-        ((((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) *
-          (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ)))⁻¹ ≤
-      ‖t‖ * (x * x)⁻¹ := by
+      ‖t‖ *
+          (((((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) *
+            (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ))))⁻¹) ≤
+        ‖t‖ * (x * x)⁻¹ := by
   exact
     boundaryLineOnePointRealParam_logarithmicPhase_classicalPrefix_curvatureScale_le
       t hx
@@ -563,93 +660,6 @@ theorem boundaryLineOnePointRealParam_classicalPrefix_cutoff_log_ge_one
   have harg_le : 2 + ‖t‖ ≤ 2 + C :=
     add_le_add_left hnorm_le_C 2
   exact le_trans hbase (Real.log_le_log harg_pos harg_le)
-
-/-- One-block second-derivative van der Corput estimate for the logarithmic
-phase on a sub-block of the canonical prefix.
-
-The right side records the two classical scales for `φ(x) = -t log x`: the
-endpoint first-derivative scale and the square-root curvature scale. -/
-theorem Complex.boundaryLineOnePointRealParam_logarithmicPhase_canonicalPrefix_curvatureSubblock_norm_le
-    (t : ℝ)
-    (ht : 1 ≤ ‖t‖)
-    {a b : ℕ}
-    (ha : 1 ≤ a)
-    (hb : b ≤ ⌊2 + ‖t‖⌋₊)
-    (hab : a ≤ b) :
-    ‖∑ n ∈ Finset.Icc a b,
-      ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
-        Real.sqrt (1 + ‖t‖))) := by
-  exact
-    Complex.logarithmicPhase_curvature_integer_block_bound
-      t ht ha hab
-
-/-- Assembly of the canonical prefix from the curvature-controlled sub-blocks.
-This is the dyadic bookkeeping layer after the resonance-safe block estimate
-has replaced the separated-increment first-derivative hypothesis. -/
-theorem Complex.boundaryLineOnePointRealParam_logarithmicPhase_canonicalPrefix_curvatureBlocks_assemble
-    (t : ℝ)
-    (ht : 1 ≤ ‖t‖)
-    (hblock :
-      ∀ {a b : ℕ},
-        1 ≤ a →
-          b ≤ ⌊2 + ‖t‖⌋₊ →
-            a ≤ b →
-              ‖∑ n ∈ Finset.Icc a b,
-                ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-                80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
-                  Real.sqrt (1 + ‖t‖)))) :
-    ‖Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum
-        t ⌊2 + ‖t‖⌋₊‖ ≤
-      80 * ((((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ +
-        Real.sqrt (1 + ‖t‖))) := by
-  let C : ℕ := ⌊2 + ‖t‖⌋₊
-  have hC_pos : 0 < C :=
-    boundaryLineOnePointRealParam_cutoff_pos t
-  have hone_le_C : 1 ≤ C :=
-    Nat.succ_le_of_lt hC_pos
-  have hblock_C :
-      ‖∑ n ∈ Finset.Icc 1 C,
-        ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-        80 * ((((C + 1 : ℕ) : ℝ) / ‖t‖ +
-          Real.sqrt (1 + ‖t‖))) :=
-    hblock (a := 1) (b := C)
-      (Nat.le_refl 1)
-      (Nat.le_refl C)
-      hone_le_C
-  have hphase :
-      Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum t C =
-        ∑ n ∈ Finset.Icc 1 C,
-          ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
-    Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_eq t C
-  exact
-    Eq.subst
-      (motive := fun z : ℂ =>
-        ‖z‖ ≤
-          80 * ((((C + 1 : ℕ) : ℝ) / ‖t‖ +
-            Real.sqrt (1 + ‖t‖))))
-      hphase.symm
-      hblock_C
-
-/-- Resonance-safe second-derivative block estimate for the logarithmic phase
-on the canonical prefix window.
-
-This is the owner replacement for the impossible separated-increment hypothesis:
-it does not ask the adjacent phase increments to avoid `2πℤ`, and instead uses
-the curvature scale of `x ↦ -t log x` on the containing real interval. -/
-theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonicalPrefix_curvatureBlock_norm_le
-    (t : ℝ)
-    (ht : 1 ≤ ‖t‖) :
-    ‖Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum
-        t ⌊2 + ‖t‖⌋₊‖ ≤
-      80 * ((((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ +
-        Real.sqrt (1 + ‖t‖))) := by
-  exact
-    Complex.boundaryLineOnePointRealParam_logarithmicPhase_canonicalPrefix_curvatureBlocks_assemble
-      t ht
-      (fun {a} {b} ha hb hab =>
-        Complex.boundaryLineOnePointRealParam_logarithmicPhase_canonicalPrefix_curvatureSubblock_norm_le
-          t ht ha hb hab)
 
 /-- Canonical-prefix van der Corput scale estimate for the positive-index
 logarithmic phase sum.
@@ -717,24 +727,31 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonic
       80 * (5 * Real.sqrt (1 + ‖t‖)) =
           (80 * 5 : ℝ) * Real.sqrt (1 + ‖t‖) :=
         (mul_assoc (80 : ℝ) 5 (Real.sqrt (1 + ‖t‖))).symm
-      _ = 400 * Real.sqrt (1 + ‖t‖) :=
-        rfl
+      _ = 400 * Real.sqrt (1 + ‖t‖) := by
+        exact congrArg (fun r : ℝ => r * Real.sqrt (1 + ‖t‖))
+          boundaryGrowth_real_eighty_mul_five_eq_fourhundred
   have hfourhundred_sqrt_le_target :
       400 * Real.sqrt (1 + ‖t‖) ≤
         400 * Real.sqrt (1 + ‖t‖) * Real.log (2 + ⌊2 + ‖t‖⌋₊) := by
-      calc
-        400 * Real.sqrt (1 + ‖t‖) =
-            400 * (Real.sqrt (1 + ‖t‖) * 1) := by
-          exact congrArg (fun r : ℝ => 400 * r)
+    calc
+      400 * Real.sqrt (1 + ‖t‖) =
+          400 * (Real.sqrt (1 + ‖t‖) * 1) := by
+        exact congrArg (fun r : ℝ => 400 * r)
+          (mul_one (Real.sqrt (1 + ‖t‖))).symm
+      _ ≤ 400 * (Real.sqrt (1 + ‖t‖) *
+          Real.log (2 + ⌊2 + ‖t‖⌋₊)) :=
+        mul_le_mul_of_nonneg_left
+          (Eq.subst
+            (motive := fun r : ℝ =>
+              r ≤ Real.sqrt (1 + ‖t‖) *
+                Real.log (2 + ⌊2 + ‖t‖⌋₊))
             (mul_one (Real.sqrt (1 + ‖t‖))).symm
-        _ ≤ 400 * (Real.sqrt (1 + ‖t‖) *
-            Real.log (2 + ⌊2 + ‖t‖⌋₊)) :=
-          mul_le_mul_of_nonneg_left hsqrt_le_sqrt_log
-            (show (0 : ℝ) ≤ 400 from Nat.cast_nonneg 400)
-        _ = 400 * Real.sqrt (1 + ‖t‖) *
-            Real.log (2 + ⌊2 + ‖t‖⌋₊) :=
-          (mul_assoc 400 (Real.sqrt (1 + ‖t‖))
-            (Real.log (2 + ⌊2 + ‖t‖⌋₊))).symm
+            hsqrt_le_sqrt_log)
+          (show (0 : ℝ) ≤ 400 from Nat.cast_nonneg 400)
+      _ = 400 * Real.sqrt (1 + ‖t‖) *
+          Real.log (2 + ⌊2 + ‖t‖⌋₊) :=
+        (mul_assoc 400 (Real.sqrt (1 + ‖t‖))
+          (Real.log (2 + ⌊2 + ‖t‖⌋₊))).symm
   exact le_trans hvdc
     (le_trans heighty_scale
       (le_trans (le_of_eq heighty_five) hfourhundred_sqrt_le_target))
@@ -795,17 +812,17 @@ theorem boundaryGrowth_Icc_zero_union_Ioc_eq_Icc
               have hzero_le_n : 0 ≤ n :=
                 Nat.zero_le n
               Finset.mem_Icc.mpr ⟨hzero_le_n, hn_tail_bounds.2⟩)
-        (fun hn_total =>
-          have hn_total_bounds : 0 ≤ n ∧ n ≤ M :=
-            Finset.mem_Icc.mp hn_total
-          match Nat.le_or_gt n C with
-          | Or.inl hn_le_C =>
-              have hn_prefix : n ∈ Finset.Icc 0 C :=
-                Finset.mem_Icc.mpr ⟨hn_total_bounds.1, hn_le_C⟩
-              Finset.mem_union.mpr (Or.inl hn_prefix)
-          | Or.inr hC_lt_n =>
-              have hn_tail : n ∈ Finset.Ioc C M :=
-                Finset.mem_Ioc.mpr ⟨hC_lt_n, hn_total_bounds.2⟩
+          (fun hn_total =>
+            have hn_total_bounds : 0 ≤ n ∧ n ≤ M :=
+              Finset.mem_Icc.mp hn_total
+            match Nat.le_or_gt n C with
+            | Or.inl hn_le_C =>
+                have hn_prefix : n ∈ Finset.Icc 0 C :=
+                  Finset.mem_Icc.mpr ⟨hn_total_bounds.1, hn_le_C⟩
+                Finset.mem_union.mpr (Or.inl hn_prefix)
+            | Or.inr hC_lt_n =>
+                have hn_tail : n ∈ Finset.Ioc C M :=
+                  Finset.mem_Ioc.mpr ⟨hC_lt_n, hn_total_bounds.2⟩
               Finset.mem_union.mpr (Or.inr hn_tail)))
 
 /-- Sum splitting for the finite prefix `[0, C]` and the open-right tail `(C, M]`. -/

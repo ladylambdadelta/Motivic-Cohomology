@@ -78,6 +78,21 @@ theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator_importe
     (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
       f F h u)
 
+/-- The scheduled-rectangle channel generator exposes source, target, and path rectangle lists. -/
+theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator_importedRectangles_split
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
+      f F h u).importedRectangles =
+      (completedZetaZeroPoleChannelPresentationWithScheduledRectangle
+        f F h u).importedRectangles ++
+        (completedZetaZeroPoleChannelOutput.importedRectangles ++
+          (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
+            f F h u).pathCertificateLedger.importedRectangles) :=
+  TraceCorQGenerator.importedRectangles_eq_source_target_path
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
+      f F h u)
+
 /-- The scheduled-rectangle channel generator keeps source, target, and path bookkeeping. -/
 theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator_traceBookkeepingCount_split
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
@@ -90,6 +105,21 @@ theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator_traceBo
           (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
             f F h u).pathCertificateLedger.traceBookkeepingCount) :=
   TraceCorQGenerator.traceBookkeepingCount_eq_source_target_path
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
+      f F h u)
+
+/-- The scheduled-rectangle channel generator keeps source, target, and path rewrite steps. -/
+theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator_rewriteStepCount_split
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
+      f F h u).rewriteStepCount =
+      (completedZetaZeroPoleChannelPresentationWithScheduledRectangle
+        f F h u).rewriteStepCount +
+        (completedZetaZeroPoleChannelOutput.rewriteStepCount +
+          (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
+            f F h u).pathCertificateLedger.rewriteStepCount) :=
+  TraceCorQGenerator.rewriteStepCount_eq_source_target_path
     (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
       f F h u)
 
@@ -145,6 +175,20 @@ theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQFormalSum_importe
           f F h u).importedRectangleCount + count)
       ResidueChannelCertificateLedger.empty_importedRectangleCount)
 
+/-- The scheduled-rectangle channel singleton exposes the generator rectangle list plus the empty tail. -/
+theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQFormalSum_importedRectangles
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQFormalSum
+      f F h u).importedRectangles =
+      (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
+        f F h u).importedRectangles ++
+        ResidueChannelCertificateLedger.empty.importedRectangles :=
+  TraceCorQFormalSum.singleton_importedRectangles
+    1
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
+      f F h u)
+
 /-- The scheduled-rectangle channel singleton keeps the generator bookkeeping plus zero. -/
 theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQFormalSum_traceBookkeepingCount
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
@@ -164,6 +208,26 @@ theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQFormalSum_traceBo
         (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
           f F h u).traceBookkeepingCount + count)
       ResidueChannelCertificateLedger.empty_traceBookkeepingCount)
+
+/-- The scheduled-rectangle channel singleton keeps the generator rewrite steps plus zero. -/
+theorem completedZetaZeroPoleChannelScheduledRectangleTraceCorQFormalSum_rewriteStepCount
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    (completedZetaZeroPoleChannelScheduledRectangleTraceCorQFormalSum
+      f F h u).rewriteStepCount =
+      (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
+        f F h u).rewriteStepCount +
+        0 :=
+  Eq.trans
+    (TraceCorQFormalSum.singleton_rewriteStepCount
+      1
+      (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
+        f F h u))
+    (congrArg
+      (fun count =>
+        (completedZetaZeroPoleChannelScheduledRectangleTraceCorQGenerator
+          f F h u).rewriteStepCount + count)
+      ResidueChannelCertificateLedger.empty_rewriteStepCount)
 
 end AnalyticMotives
 end LFunctions

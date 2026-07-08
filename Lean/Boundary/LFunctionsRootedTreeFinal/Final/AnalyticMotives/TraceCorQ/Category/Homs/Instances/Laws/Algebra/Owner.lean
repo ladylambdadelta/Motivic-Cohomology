@@ -3,6 +3,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Catego
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Homs.Neg.Laws.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Homs.Smul.Laws.Derived.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Homs.Sub.Laws.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.TraceCorQ.Category.Homs.Sub.Laws.Rearrangement.Owner
 
 /-!
 # Standard-notation algebra laws for typed trace-correspondence homs
@@ -205,7 +206,7 @@ theorem TraceCorQHom.std_add_sub
     (left right tail : TraceCorQHom source target) :
     left + (right - tail) =
       left + right - tail :=
-  TraceCorQHom.add_sub left right tail
+  TraceCorQHom.add_sub_reassociate left right tail
 
 /-- Standard typed hom subtraction distributes over addition on the right. -/
 theorem TraceCorQHom.std_sub_add
@@ -213,7 +214,7 @@ theorem TraceCorQHom.std_sub_add
     (left right tail : TraceCorQHom source target) :
     left - right + tail =
       left + tail - right :=
-  TraceCorQHom.sub_add left right tail
+  TraceCorQHom.sub_add_reassociate left right tail
 
 /-- Standard typed hom subtraction associates over a second subtraction. -/
 theorem TraceCorQHom.std_sub_sub
@@ -221,7 +222,7 @@ theorem TraceCorQHom.std_sub_sub
     (left right tail : TraceCorQHom source target) :
     left - right - tail =
       left - (right + tail) :=
-  TraceCorQHom.sub_sub left right tail
+  TraceCorQHom.sub_sub_reassociate left right tail
 
 /-- Standard typed hom subtraction cancels a common right-hand subtrahend. -/
 theorem TraceCorQHom.std_sub_right_cancel

@@ -155,7 +155,20 @@ theorem TraceCorQHom.ambient_left_id_ofFormalSum
                               (TraceCorQHomTerm.generator_source term)
                               (TraceCorQHomTerm.generator_target term)))
                           tailClass)
-                      (TraceCorQHom.ambient_left_id_ofFormalSum tail))
+                      (Eq.trans
+                        (Eq.symm
+                          (Eq.trans
+                            (TraceCorQHom.ambient_comp
+                              (TraceCorQHom.id source)
+                              (TraceCorQHom.ofFormalSum tail))
+                            (congrArg
+                              (fun leftClass =>
+                                TraceCorQQuotient.comp
+                                  leftClass
+                                  (TraceCorQHom.ambient
+                                    (TraceCorQHom.ofFormalSum tail)))
+                              (TraceCorQHom.ambient_id source))))
+                        (TraceCorQHom.ambient_left_id_ofFormalSum tail)))
                     (Eq.trans
                       (Eq.symm
                         (TraceCorQHom.ambient_add
@@ -172,7 +185,7 @@ theorem TraceCorQHom.ambient_left_id_ofFormalSum
                           TraceCorQHom.ambient
                           (Eq.symm
                             (TraceCorQHom.ofFormalSum_cons term tail)))
-                        rfl)))))))
+                        rfl))))))))
 
 /-- Right identity holds for a typed formal sum after forgetting to the ambient quotient. -/
 theorem TraceCorQHom.ambient_right_id_ofFormalSum
@@ -302,7 +315,20 @@ theorem TraceCorQHom.ambient_right_id_ofFormalSum
                               (TraceCorQHomTerm.generator_source term)
                               (TraceCorQHomTerm.generator_target term)))
                           tailClass)
-                      (TraceCorQHom.ambient_right_id_ofFormalSum tail))
+                      (Eq.trans
+                        (Eq.symm
+                          (Eq.trans
+                            (TraceCorQHom.ambient_comp
+                              (TraceCorQHom.ofFormalSum tail)
+                              (TraceCorQHom.id target))
+                            (congrArg
+                              (fun rightClass =>
+                                TraceCorQQuotient.comp
+                                  (TraceCorQHom.ambient
+                                    (TraceCorQHom.ofFormalSum tail))
+                                  rightClass)
+                              (TraceCorQHom.ambient_id target))))
+                        (TraceCorQHom.ambient_right_id_ofFormalSum tail)))
                     (Eq.trans
                       (Eq.symm
                         (TraceCorQHom.ambient_add
@@ -319,7 +345,7 @@ theorem TraceCorQHom.ambient_right_id_ofFormalSum
                           TraceCorQHom.ambient
                           (Eq.symm
                             (TraceCorQHom.ofFormalSum_cons term tail)))
-                        rfl)))))))
+                        rfl))))))))
 
 end AnalyticMotives
 end LFunctions

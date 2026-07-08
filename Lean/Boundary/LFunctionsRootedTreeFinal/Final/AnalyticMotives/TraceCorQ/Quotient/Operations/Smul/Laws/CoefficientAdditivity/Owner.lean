@@ -176,6 +176,16 @@ theorem TraceCorQQuotient.add_smul
               (Eq.symm
                 (Eq.trans
                   (congrArg
+                    (fun rightClass =>
+                      TraceCorQQuotient.add
+                        (TraceCorQQuotient.smul
+                          leftCoefficient
+                          (TraceCorQQuotient.ofCandidate candidate))
+                        rightClass)
+                    (TraceCorQQuotient.smul_ofCandidate_eq_ofFormalSum_smul
+                      rightCoefficient
+                      candidate))
+                  (congrArg
                     (fun leftClass =>
                       TraceCorQQuotient.add
                         leftClass
@@ -185,14 +195,6 @@ theorem TraceCorQQuotient.add_smul
                             candidate.formalSum)))
                     (TraceCorQQuotient.smul_ofCandidate_eq_ofFormalSum_smul
                       leftCoefficient
-                      candidate))
-                  (congrArg
-                    (TraceCorQQuotient.add
-                      (TraceCorQQuotient.smul
-                        leftCoefficient
-                        (TraceCorQQuotient.ofCandidate candidate)))
-                    (TraceCorQQuotient.smul_ofCandidate_eq_ofFormalSum_smul
-                      rightCoefficient
                       candidate))))))))
 
 end AnalyticMotives

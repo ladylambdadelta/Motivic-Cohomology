@@ -3,8 +3,8 @@ import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Generato
 /-!
 # Concrete localization inputs
 
-This file owns the concrete list syntax of generator maps that later
-localization and stabilization steps invert.
+This file owns the concrete list syntax of generator maps inverted by
+localization and stabilization steps.
 -/
 
 namespace Boundary
@@ -52,6 +52,126 @@ def TraceLocalizationInput.targetObject
     (input : TraceLocalizationInput) :
     TraceCorQObject :=
   CertifiedResidueChannelPresentation.ofSource input.targetExpression
+
+/-- The source object of a localization input has the input source expression. -/
+theorem TraceLocalizationInput.sourceObject_source
+    (input : TraceLocalizationInput) :
+    input.sourceObject.source =
+      input.sourceExpression :=
+  match input with
+  | descentChannel source target => rfl
+  | descentRefinement source target => rfl
+  | descentSchedule source target => rfl
+  | intervalStokes source target => rfl
+  | intervalFubini source target => rfl
+  | tateWeightDrop source target => rfl
+
+/-- The target object of a localization input has the input target expression. -/
+theorem TraceLocalizationInput.targetObject_source
+    (input : TraceLocalizationInput) :
+    input.targetObject.source =
+      input.targetExpression :=
+  match input with
+  | descentChannel source target => rfl
+  | descentRefinement source target => rfl
+  | descentSchedule source target => rfl
+  | intervalStokes source target => rfl
+  | intervalFubini source target => rfl
+  | tateWeightDrop source target => rfl
+
+/-- The source object carries the canonical component certificates for its source expression. -/
+theorem TraceLocalizationInput.sourceObject_certificateLedger
+    (input : TraceLocalizationInput) :
+    input.sourceObject.certificateLedger =
+      [
+        ResidueChannelCertificateAtom.sourceExpression input.sourceExpression,
+        ResidueChannelCertificateAtom.residueLedger ResidueLedger.empty,
+        ResidueChannelCertificateAtom.channelList ResidueChannelExpressionList.empty,
+        ResidueChannelCertificateAtom.traceSchedule TraceSchedule.empty
+      ] :=
+  match input with
+  | descentChannel source target => rfl
+  | descentRefinement source target => rfl
+  | descentSchedule source target => rfl
+  | intervalStokes source target => rfl
+  | intervalFubini source target => rfl
+  | tateWeightDrop source target => rfl
+
+/-- The target object carries the canonical component certificates for its target expression. -/
+theorem TraceLocalizationInput.targetObject_certificateLedger
+    (input : TraceLocalizationInput) :
+    input.targetObject.certificateLedger =
+      [
+        ResidueChannelCertificateAtom.sourceExpression input.targetExpression,
+        ResidueChannelCertificateAtom.residueLedger ResidueLedger.empty,
+        ResidueChannelCertificateAtom.channelList ResidueChannelExpressionList.empty,
+        ResidueChannelCertificateAtom.traceSchedule TraceSchedule.empty
+      ] :=
+  match input with
+  | descentChannel source target => rfl
+  | descentRefinement source target => rfl
+  | descentSchedule source target => rfl
+  | intervalStokes source target => rfl
+  | intervalFubini source target => rfl
+  | tateWeightDrop source target => rfl
+
+/-- The source object imported payload is counted by its canonical certificates. -/
+theorem TraceLocalizationInput.sourceObject_importedRectangleCount
+    (input : TraceLocalizationInput) :
+    input.sourceObject.importedRectangleCount =
+      input.sourceObject.certificateLedger.importedRectangleCount :=
+  rfl
+
+/-- The source object imported rectangles are extracted from its canonical certificates. -/
+theorem TraceLocalizationInput.sourceObject_importedRectangles
+    (input : TraceLocalizationInput) :
+    input.sourceObject.importedRectangles =
+      input.sourceObject.certificateLedger.importedRectangles :=
+  rfl
+
+/-- The source object imported count is the length of its rectangle list. -/
+theorem TraceLocalizationInput.sourceObject_importedRectangleCount_eq_length_importedRectangles
+    (input : TraceLocalizationInput) :
+    input.sourceObject.importedRectangleCount =
+      input.sourceObject.importedRectangles.length :=
+  TraceCorQObject.importedRectangleCount_eq_length_importedRectangles
+    input.sourceObject
+
+/-- The target object imported payload is counted by its canonical certificates. -/
+theorem TraceLocalizationInput.targetObject_importedRectangleCount
+    (input : TraceLocalizationInput) :
+    input.targetObject.importedRectangleCount =
+      input.targetObject.certificateLedger.importedRectangleCount :=
+  rfl
+
+/-- The target object imported rectangles are extracted from its canonical certificates. -/
+theorem TraceLocalizationInput.targetObject_importedRectangles
+    (input : TraceLocalizationInput) :
+    input.targetObject.importedRectangles =
+      input.targetObject.certificateLedger.importedRectangles :=
+  rfl
+
+/-- The target object imported count is the length of its rectangle list. -/
+theorem TraceLocalizationInput.targetObject_importedRectangleCount_eq_length_importedRectangles
+    (input : TraceLocalizationInput) :
+    input.targetObject.importedRectangleCount =
+      input.targetObject.importedRectangles.length :=
+  TraceCorQObject.importedRectangleCount_eq_length_importedRectangles
+    input.targetObject
+
+/-- The source object rewrite-step payload is counted by its canonical certificates. -/
+theorem TraceLocalizationInput.sourceObject_rewriteStepCount
+    (input : TraceLocalizationInput) :
+    input.sourceObject.rewriteStepCount =
+      input.sourceObject.certificateLedger.rewriteStepCount :=
+  rfl
+
+/-- The target object rewrite-step payload is counted by its canonical certificates. -/
+theorem TraceLocalizationInput.targetObject_rewriteStepCount
+    (input : TraceLocalizationInput) :
+    input.targetObject.rewriteStepCount =
+      input.targetObject.certificateLedger.rewriteStepCount :=
+  rfl
 
 /-- The representable source presheaf of a localization input. -/
 def TraceLocalizationInput.sourcePresheaf

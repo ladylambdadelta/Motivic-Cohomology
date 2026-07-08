@@ -34,7 +34,11 @@ theorem TraceCorQHom.sub_comp_eq_of_add_eq
           (fun leftHom =>
             TraceCorQHom.comp leftHom post)
           left_eq_right_add_delta)
-        (TraceCorQHom.add_comp right delta post)))
+        (Eq.trans
+          (TraceCorQHom.add_comp right delta post)
+          (TraceCorQHom.add_comm
+            (TraceCorQHom.comp right post)
+            (TraceCorQHom.comp delta post)))))
 
 /-- Compose on the left with a subtraction and solve from an additive decomposition. -/
 theorem TraceCorQHom.comp_sub_eq_of_add_eq
@@ -57,7 +61,11 @@ theorem TraceCorQHom.comp_sub_eq_of_add_eq
         (congrArg
           (TraceCorQHom.comp pre)
           left_eq_right_add_delta)
-        (TraceCorQHom.comp_add pre right delta)))
+        (Eq.trans
+          (TraceCorQHom.comp_add pre right delta)
+          (TraceCorQHom.add_comm
+            (TraceCorQHom.comp pre right)
+            (TraceCorQHom.comp pre delta)))))
 
 /-- Rebuild right-composed addition from a solved subtraction. -/
 theorem TraceCorQHom.add_comp_eq_of_sub_comp_eq

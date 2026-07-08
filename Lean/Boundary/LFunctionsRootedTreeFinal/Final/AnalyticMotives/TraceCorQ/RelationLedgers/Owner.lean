@@ -48,6 +48,12 @@ def TraceCorQRelationLedger.importedRectangleCount
     Nat :=
   ledger.certificateLedger.importedRectangleCount
 
+/-- The imported finite explicit-formula rectangles carried by a relation ledger. -/
+def TraceCorQRelationLedger.importedRectangles
+    (ledger : TraceCorQRelationLedger) :
+    List ZetaAdmissibleFunction.ExplicitFormulaRectangle :=
+  ledger.certificateLedger.importedRectangles
+
 /-- The internal trace-bookkeeping payload carried by a relation ledger. -/
 def TraceCorQRelationLedger.traceBookkeepingCount
     (ledger : TraceCorQRelationLedger) :
@@ -81,6 +87,12 @@ theorem TraceCorQRelationLedger.empty_importedRectangleCount :
       0 :=
   rfl
 
+/-- The empty relation ledger exposes no imported finite explicit-formula rectangles. -/
+theorem TraceCorQRelationLedger.empty_importedRectangles :
+    TraceCorQRelationLedger.empty.importedRectangles =
+      [] :=
+  rfl
+
 /-- The empty relation ledger carries no internal trace-bookkeeping payload. -/
 theorem TraceCorQRelationLedger.empty_traceBookkeepingCount :
     TraceCorQRelationLedger.empty.traceBookkeepingCount =
@@ -108,6 +120,14 @@ theorem TraceCorQRelationLedger.singleton_importedRectangleCount
     (TraceCorQRelationLedger.singleton relation).importedRectangleCount =
       relation.importedRectangleCount +
         0 :=
+  rfl
+
+/-- A singleton relation ledger exposes the relation's imported rectangles. -/
+theorem TraceCorQRelationLedger.singleton_importedRectangles
+    (relation : TraceCorQRelationGenerator) :
+    (TraceCorQRelationLedger.singleton relation).importedRectangles =
+      relation.importedRectangles ++
+        [] :=
   rfl
 
 /-- A singleton relation ledger carries the relation's internal trace-bookkeeping payload. -/
@@ -140,7 +160,7 @@ theorem TraceCorQRelationLedger.singleton_append
 theorem TraceCorQRelationLedger.cons_certificateLedger
     (relation : TraceCorQRelationGenerator)
     (ledger : TraceCorQRelationLedger) :
-    (relation :: ledger).certificateLedger =
+    TraceCorQRelationLedger.certificateLedger (relation :: ledger) =
       ResidueChannelCertificateLedger.append
         relation.certificateLedger
         ledger.certificateLedger :=
@@ -150,10 +170,21 @@ theorem TraceCorQRelationLedger.cons_certificateLedger
 theorem TraceCorQRelationLedger.cons_importedRectangleCount
     (relation : TraceCorQRelationGenerator)
     (ledger : TraceCorQRelationLedger) :
-    (relation :: ledger).importedRectangleCount =
+    TraceCorQRelationLedger.importedRectangleCount (relation :: ledger) =
       relation.importedRectangleCount +
         ledger.importedRectangleCount :=
   ResidueChannelCertificateLedger.append_importedRectangleCount
+    relation.certificateLedger
+    ledger.certificateLedger
+
+/-- The imported rectangles of a cons relation ledger are head rectangles followed by tail. -/
+theorem TraceCorQRelationLedger.cons_importedRectangles
+    (relation : TraceCorQRelationGenerator)
+    (ledger : TraceCorQRelationLedger) :
+    TraceCorQRelationLedger.importedRectangles (relation :: ledger) =
+      relation.importedRectangles ++
+        ledger.importedRectangles :=
+  ResidueChannelCertificateLedger.append_importedRectangles
     relation.certificateLedger
     ledger.certificateLedger
 
@@ -161,7 +192,7 @@ theorem TraceCorQRelationLedger.cons_importedRectangleCount
 theorem TraceCorQRelationLedger.cons_traceBookkeepingCount
     (relation : TraceCorQRelationGenerator)
     (ledger : TraceCorQRelationLedger) :
-    (relation :: ledger).traceBookkeepingCount =
+    TraceCorQRelationLedger.traceBookkeepingCount (relation :: ledger) =
       relation.traceBookkeepingCount +
         ledger.traceBookkeepingCount :=
   ResidueChannelCertificateLedger.append_traceBookkeepingCount
@@ -172,7 +203,7 @@ theorem TraceCorQRelationLedger.cons_traceBookkeepingCount
 theorem TraceCorQRelationLedger.cons_rewriteStepCount
     (relation : TraceCorQRelationGenerator)
     (ledger : TraceCorQRelationLedger) :
-    (relation :: ledger).rewriteStepCount =
+    TraceCorQRelationLedger.rewriteStepCount (relation :: ledger) =
       relation.rewriteStepCount +
         ledger.rewriteStepCount :=
   ResidueChannelCertificateLedger.append_rewriteStepCount
@@ -224,7 +255,7 @@ theorem TraceCorQRelationLedger.append_certificateLedger
         (Eq.symm
           (ResidueChannelCertificateLedger.append_assoc
             relation.certificateLedger
-            tail.certificateLedger
+            (TraceCorQRelationLedger.certificateLedger tail)
             second.certificateLedger))
 
 /-- Appending relation ledgers adds imported finite-rectangle payload. -/
@@ -240,6 +271,28 @@ theorem TraceCorQRelationLedger.append_importedRectangleCount
     (ResidueChannelCertificateLedger.append_importedRectangleCount
       first.certificateLedger
       second.certificateLedger)
+
+/-- Appending relation ledgers concatenates imported finite explicit-formula rectangles. -/
+theorem TraceCorQRelationLedger.append_importedRectangles
+    (first second : TraceCorQRelationLedger) :
+    (TraceCorQRelationLedger.append first second).importedRectangles =
+      first.importedRectangles ++
+        second.importedRectangles :=
+  Eq.trans
+    (congrArg
+      ResidueChannelCertificateLedger.importedRectangles
+      (TraceCorQRelationLedger.append_certificateLedger first second))
+    (ResidueChannelCertificateLedger.append_importedRectangles
+      first.certificateLedger
+      second.certificateLedger)
+
+/-- A relation ledger's imported-rectangle count is the length of its rectangle list. -/
+theorem TraceCorQRelationLedger.importedRectangleCount_eq_length_importedRectangles
+    (ledger : TraceCorQRelationLedger) :
+    ledger.importedRectangleCount =
+      ledger.importedRectangles.length :=
+  ResidueChannelCertificateLedger.importedRectangleCount_eq_length_importedRectangles
+    ledger.certificateLedger
 
 /-- Appending relation ledgers adds internal trace-bookkeeping payload. -/
 theorem TraceCorQRelationLedger.append_traceBookkeepingCount

@@ -40,12 +40,12 @@ theorem TraceLocalizationWordRelation.localizedArrow_inverseForward
 theorem TraceLocalizationWordRelation.localizedArrow_withPrefix
     {first second third : TraceCorQObject}
     {left right : TraceLocalizationWord second third}
-    (prefix : TraceLocalizationWord first second)
+    (prefixWord : TraceLocalizationWord first second)
     (relation : TraceLocalizationWordRelation left right) :
-    (TraceLocalizationWord.comp prefix left).localizedArrow =
-      (TraceLocalizationWord.comp prefix right).localizedArrow :=
+    (TraceLocalizationWord.comp prefixWord left).localizedArrow =
+      (TraceLocalizationWord.comp prefixWord right).localizedArrow :=
   TraceLocalizationWordRelation.localizedArrow_eq
-    (TraceLocalizationWordRelation.withPrefix prefix relation)
+    (TraceLocalizationWordRelation.withPrefix prefixWord relation)
 
 /-- A word relation remains an arrow equality before a fixed suffix word. -/
 theorem TraceLocalizationWordRelation.localizedArrow_withSuffix

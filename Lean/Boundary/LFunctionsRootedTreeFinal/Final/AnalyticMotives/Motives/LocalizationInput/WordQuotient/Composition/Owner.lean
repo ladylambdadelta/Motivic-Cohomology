@@ -50,6 +50,15 @@ theorem TraceLocalizationWordClass.comp_ofWord
         (TraceLocalizationWord.comp left right) :=
   rfl
 
+/-- The chosen representative of composed represented classes has additive atom count. -/
+theorem TraceLocalizationWordClass.comp_ofWord_representative_atomCount
+    {first second third : TraceCorQObject}
+    (left : TraceLocalizationWord first second)
+    (right : TraceLocalizationWord second third) :
+    (TraceLocalizationWord.comp left right).atomCount =
+      left.atomCount + right.atomCount :=
+  TraceLocalizationWord.comp_atomCount left right
+
 /-- Right identity for formal localized word-class composition. -/
 theorem TraceLocalizationWordClass.comp_identity_right
     {source target : TraceCorQObject}

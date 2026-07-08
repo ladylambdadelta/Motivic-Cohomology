@@ -119,7 +119,16 @@ theorem TraceCorQQuotient.add_comm
             (TraceCorQRelationLedger.append
               leftCandidate.ledger
               rightCandidate.ledger)
-            perm_append_comm)
+            ((List.Perm.of_eq
+              (TraceCorQQuotientCandidate.add_formalSum
+                leftCandidate
+                rightCandidate)).trans
+              (List.perm_append_comm.trans
+                (List.Perm.of_eq
+                  (Eq.symm
+                    (TraceCorQQuotientCandidate.add_formalSum
+                      rightCandidate
+                      leftCandidate))))))
           (Eq.symm
             (TraceCorQQuotient.add_ofCandidate
               rightCandidate

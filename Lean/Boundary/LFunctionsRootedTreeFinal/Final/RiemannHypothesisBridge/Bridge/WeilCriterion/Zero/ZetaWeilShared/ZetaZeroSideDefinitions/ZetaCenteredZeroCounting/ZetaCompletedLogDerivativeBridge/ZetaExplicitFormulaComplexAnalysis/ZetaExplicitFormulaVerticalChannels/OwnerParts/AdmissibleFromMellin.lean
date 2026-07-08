@@ -1,6 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ConjugateSymmetricTransforms
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.MellinConjugateLaws
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.MellinInversionConjugacy
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.AdmissibleConjugacyComposition
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.Owner
 
@@ -62,9 +61,8 @@ theorem admissibleFunction_primeCenter_reflectionDagger
 theorem zero_admissible_conjugateSymmetric :
     ∀ c : ℝ,
     (0 : ZetaAdmissibleFunction).toZetaTestFunction (-c) =
-    star ((0 : ZetaAdmissibleFunction).toZetaTestFunction c) := by
-  intro c
-  rfl
+    star ((0 : ZetaAdmissibleFunction).toZetaTestFunction c) :=
+  fun c => Eq.refl ((0 : ZetaAdmissibleFunction).toZetaTestFunction (-c))
 
 /-- Conjugate symmetry is preserved by scalar multiplication (real scalars). -/
 theorem scalar_multiple_conjugateSymmetric
@@ -76,9 +74,9 @@ theorem scalar_multiple_conjugateSymmetric
     star ((r • f).toZetaTestFunction c) := by
   have hf := admissibleFunction_conjugateSymmetric f hconj c
   have h_scalar_at_neg : (r • f).toZetaTestFunction (-c) = (r : ℂ) * f.toZetaTestFunction (-c) := by
-    exact rfl
+    exact Eq.refl ((r • f).toZetaTestFunction (-c))
   have h_scalar_at_c : (r • f).toZetaTestFunction c = (r : ℂ) * f.toZetaTestFunction c := by
-    exact rfl
+    exact Eq.refl ((r • f).toZetaTestFunction c)
   calc
     (r • f).toZetaTestFunction (-c)
         = (r : ℂ) * f.toZetaTestFunction (-c) := h_scalar_at_neg
@@ -101,12 +99,14 @@ theorem add_conjugateSymmetric
   have hg := admissibleFunction_conjugateSymmetric g hgconj c
   calc
     (f + g).toZetaTestFunction (-c)
-        = f.toZetaTestFunction (-c) + g.toZetaTestFunction (-c) := by rfl
+        = f.toZetaTestFunction (-c) + g.toZetaTestFunction (-c) :=
+          Eq.refl ((f + g).toZetaTestFunction (-c))
       _ = star (f.toZetaTestFunction c) + star (g.toZetaTestFunction c) := by
           exact congrArg₂ HAdd.hAdd hf hg
       _ = star (f.toZetaTestFunction c + g.toZetaTestFunction c) := by
           exact (star_add (f.toZetaTestFunction c) (g.toZetaTestFunction c)).symm
-      _ = star ((f + g).toZetaTestFunction c) := by rfl
+      _ = star ((f + g).toZetaTestFunction c) :=
+          congrArg star (Eq.refl ((f + g).toZetaTestFunction c)).symm
 
 end AdmissibleMellinTheory
 

@@ -27,6 +27,19 @@ def TraceSchedule.cons
     (kind : TraceRewriteKind) (schedule : TraceSchedule) : TraceSchedule :=
   kind :: schedule
 
+/-- The empty trace schedule is the empty list. -/
+theorem TraceSchedule.empty_eq_nil :
+    TraceSchedule.empty = [] :=
+  rfl
+
+/-- Trace-schedule cons is list cons. -/
+theorem TraceSchedule.cons_eq_cons
+    (kind : TraceRewriteKind)
+    (schedule : TraceSchedule) :
+    TraceSchedule.cons kind schedule =
+      kind :: schedule :=
+  rfl
+
 end AnalyticMotives
 end LFunctions
 end Boundary

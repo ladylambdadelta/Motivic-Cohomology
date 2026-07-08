@@ -8,8 +8,8 @@ boundary residue data to the ordinary right vertical channel.
 
 The point is not a pointwise equality between the non-tangent rectangle
 boundary and the tangent/standard boundary.  The vertical sides differ by the
-missing tangent factor `I`.  The existing RH-lane theorem handles the correct
-analytic transport at the scheduled-limit level.
+orientation factor `I`.  The existing RH-lane theorem handles the analytic
+transport at the scheduled-limit level.
 -/
 
 namespace Boundary
