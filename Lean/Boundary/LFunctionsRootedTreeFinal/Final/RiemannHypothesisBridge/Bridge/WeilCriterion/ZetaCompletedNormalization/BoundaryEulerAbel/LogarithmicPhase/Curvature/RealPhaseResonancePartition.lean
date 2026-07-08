@@ -571,6 +571,78 @@ theorem Complex.realPhase_integerIncrementPrincipalStrip_principal
     (Complex.mem_realPhase_integerIncrementPrincipalStrip_iff
       φ).mp hn |>.2
 
+/-- Negating an integer lattice shift by `2π` is the same as negating the
+corresponding real integer multiple. -/
+theorem Real.neg_zsmul_two_pi_eq_neg_two_pi_mul_int
+    (k : ℤ) :
+    (-k) • ((2 * Real.pi) : ℝ) =
+      -(2 * Real.pi * (k : ℝ)) := by
+  calc
+    (-k) • ((2 * Real.pi) : ℝ) =
+        ((-k : ℤ) : ℝ) * (2 * Real.pi) :=
+      zsmul_eq_mul (2 * Real.pi) (-k)
+    _ = (-(k : ℝ)) * (2 * Real.pi) :=
+      congrArg (fun r : ℝ => r * (2 * Real.pi)) (Int.cast_neg k)
+    _ = -((k : ℝ) * (2 * Real.pi)) :=
+      neg_mul (k : ℝ) (2 * Real.pi)
+    _ = -(2 * Real.pi * (k : ℝ)) :=
+      congrArg Neg.neg (mul_comm (k : ℝ) (2 * Real.pi))
+
+/-- The integer lattice translate that puts an angle in the principal
+`(-π, π]` branch is unique. -/
+theorem Real.sub_two_pi_mul_int_mem_principal_unique
+    {θ : ℝ}
+    {k l : ℤ}
+    (hk :
+      θ - (2 * Real.pi * (k : ℝ)) ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+    (hl :
+      θ - (2 * Real.pi * (l : ℝ)) ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi))) :
+    k = l := by
+  have hunique :
+      ∃! m : ℤ,
+        θ + m • ((2 * Real.pi) : ℝ) ∈
+          Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+    existsUnique_add_zsmul_mem_Ioc Real.two_pi_pos θ (-Real.pi)
+  have hk_add :
+      θ + (-k) • ((2 * Real.pi) : ℝ) ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) := by
+    have hk_eq :
+        θ + (-k) • ((2 * Real.pi) : ℝ) =
+          θ - (2 * Real.pi * (k : ℝ)) :=
+      Eq.trans
+        (congrArg
+          (fun r : ℝ => θ + r)
+          (Real.neg_zsmul_two_pi_eq_neg_two_pi_mul_int k))
+        (sub_eq_add_neg θ (2 * Real.pi * (k : ℝ))).symm
+    exact
+      Eq.subst
+        (motive := fun value : ℝ =>
+          value ∈ Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+        hk_eq.symm
+        hk
+  have hl_add :
+      θ + (-l) • ((2 * Real.pi) : ℝ) ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) := by
+    have hl_eq :
+        θ + (-l) • ((2 * Real.pi) : ℝ) =
+          θ - (2 * Real.pi * (l : ℝ)) :=
+      Eq.trans
+        (congrArg
+          (fun r : ℝ => θ + r)
+          (Real.neg_zsmul_two_pi_eq_neg_two_pi_mul_int l))
+        (sub_eq_add_neg θ (2 * Real.pi * (l : ℝ))).symm
+    exact
+      Eq.subst
+        (motive := fun value : ℝ =>
+          value ∈ Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+        hl_eq.symm
+        hl
+  have hneg : -k = -l :=
+    ExistsUnique.unique hunique hk_add hl_add
+  exact neg_injective hneg
+
 /-- Every real angle has an integer lattice translate in the principal
 branch. -/
 theorem Real.exists_int_sub_two_pi_mul_mem_principal
