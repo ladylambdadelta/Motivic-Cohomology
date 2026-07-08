@@ -2744,6 +2744,23 @@ def Complex.realPhase_integerIncrementActiveCenters
     (fun n : ℕ =>
       Complex.realPhase_integerIncrementSampleActiveCenters φ lam n)
 
+/-- Exact cardinal formula for one padded samplewise active-center interval. -/
+theorem Complex.realPhase_integerIncrementSampleActiveCenters_card_eq
+    (φ : ℝ → ℝ)
+    (lam : ℝ)
+    (n : ℕ) :
+    (Complex.realPhase_integerIncrementSampleActiveCenters φ lam n).card =
+      (⌊((Complex.realPhase_integerIncrement φ n + lam) /
+          (2 * Real.pi))⌋ + 1 + 1 -
+        (⌊((Complex.realPhase_integerIncrement φ n - lam) /
+          (2 * Real.pi))⌋ - 1)).toNat := by
+  exact
+    Int.card_Icc
+      (⌊((Complex.realPhase_integerIncrement φ n - lam) /
+        (2 * Real.pi))⌋ - 1)
+      (⌊((Complex.realPhase_integerIncrement φ n + lam) /
+        (2 * Real.pi))⌋ + 1)
+
 /-- A padded finite interval of integer centers determined by an a priori
 increment range `[lo, hi]`.  This is the counting-friendly active family for a
 monotone increment block. -/
