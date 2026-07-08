@@ -521,6 +521,191 @@ theorem Complex.realPhase_reducedIntegerIncrementMonotoneOn_integerLatticeShift_
         φ k hmono)
       hprincipal
 
+/-- Principal-branch strip for the adjacent increments after subtracting an
+integer lattice slope. -/
+def Complex.realPhase_integerIncrementPrincipalStrip
+    (φ : ℝ → ℝ)
+    (a b : ℕ)
+    (k : ℤ) : Finset ℕ :=
+  (Finset.Ico a b).filter
+    (fun n : ℕ =>
+      Complex.realPhase_integerIncrement
+          (Complex.realPhase_integerLatticeShift φ k) n ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+
+/-- Membership in an integer-lattice principal strip. -/
+theorem Complex.mem_realPhase_integerIncrementPrincipalStrip_iff
+    (φ : ℝ → ℝ)
+    {a b n : ℕ}
+    {k : ℤ} :
+    n ∈ Complex.realPhase_integerIncrementPrincipalStrip φ a b k ↔
+      n ∈ Finset.Ico a b ∧
+        Complex.realPhase_integerIncrement
+            (Complex.realPhase_integerLatticeShift φ k) n ∈
+          Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) := by
+  exact Finset.mem_filter
+
+/-- A principal strip is contained in its ambient half-open block. -/
+theorem Complex.realPhase_integerIncrementPrincipalStrip_subset_block
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {k : ℤ} :
+    Complex.realPhase_integerIncrementPrincipalStrip φ a b k ⊆
+      Finset.Ico a b := by
+  intro n hn
+  exact
+    (Complex.mem_realPhase_integerIncrementPrincipalStrip_iff
+      φ).mp hn |>.1
+
+/-- Points of a principal strip satisfy the principal-branch condition for its
+integer lattice shift. -/
+theorem Complex.realPhase_integerIncrementPrincipalStrip_principal
+    (φ : ℝ → ℝ)
+    {a b n : ℕ}
+    {k : ℤ}
+    (hn : n ∈ Complex.realPhase_integerIncrementPrincipalStrip φ a b k) :
+    Complex.realPhase_integerIncrement
+        (Complex.realPhase_integerLatticeShift φ k) n ∈
+      Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) := by
+  exact
+    (Complex.mem_realPhase_integerIncrementPrincipalStrip_iff
+      φ).mp hn |>.2
+
+/-- Every real angle has an integer lattice translate in the principal
+branch. -/
+theorem Real.exists_int_sub_two_pi_mul_mem_principal
+    (θ : ℝ) :
+    ∃ k : ℤ,
+      θ - (2 * Real.pi * (k : ℝ)) ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) := by
+  match Complex.realPhase_twoPi_toIocMod_integerDistance θ with
+  | ⟨k, hk⟩ =>
+      have hmod :
+          toIocMod Real.two_pi_pos (-Real.pi) θ ∈
+            Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+        real_mem_Ioc_pi_to_periodic_upper_for_logarithmicPhase
+          (real_toIocMod_mem_Ioc_pi_for_logarithmicPhase θ)
+      exact Exists.intro k
+        (Eq.subst
+          (motive := fun value : ℝ =>
+            value ∈ Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+          hk.symm
+          hmod)
+
+/-- Every sample increment has an integer lattice translate in the principal
+branch. -/
+theorem Complex.realPhase_integerIncrement_exists_principal_latticeShift
+    (φ : ℝ → ℝ)
+    (n : ℕ) :
+    ∃ k : ℤ,
+      Complex.realPhase_integerIncrement
+          (Complex.realPhase_integerLatticeShift φ k) n ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) := by
+  match
+    Real.exists_int_sub_two_pi_mul_mem_principal
+      (Complex.realPhase_integerIncrement φ n) with
+  | ⟨k, hk⟩ =>
+      have hshift :
+          Complex.realPhase_integerIncrement
+              (Complex.realPhase_integerLatticeShift φ k) n =
+            Complex.realPhase_integerIncrement φ n -
+              (2 * Real.pi * (k : ℝ)) :=
+        Complex.realPhase_integerIncrement_integerLatticeShift_eq φ k n
+      exact Exists.intro k
+        (Eq.subst
+          (motive := fun value : ℝ =>
+            value ∈ Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+          hshift.symm
+          hk)
+
+/-- For a monotone real sequence, membership in a fixed half-open interval is
+interval-convex. -/
+theorem Real.monotoneOn_mem_Ioc_intervalConvex
+    {f : ℕ → ℝ}
+    {a b i j k : ℕ}
+    {lower upper : ℝ}
+    (hmono : MonotoneOn f (Finset.Ico a b : Set ℕ))
+    (hi_mem : i ∈ Finset.Ico a b)
+    (hj_mem : j ∈ Finset.Ico a b)
+    (hk_mem : k ∈ Finset.Ico a b)
+    (hij : i ≤ j)
+    (hjk : j ≤ k)
+    (hi_interval : f i ∈ Set.Ioc lower upper)
+    (hk_interval : f k ∈ Set.Ioc lower upper) :
+    f j ∈ Set.Ioc lower upper := by
+  have hleft_le : f i ≤ f j :=
+    hmono hi_mem hj_mem hij
+  have hright_le : f j ≤ f k :=
+    hmono hj_mem hk_mem hjk
+  exact
+    And.intro
+      (lt_of_lt_of_le hi_interval.1 hleft_le)
+      (le_trans hright_le hk_interval.2)
+
+/-- For an antitone real sequence, membership in a fixed half-open interval is
+interval-convex. -/
+theorem Real.antitoneOn_mem_Ioc_intervalConvex
+    {f : ℕ → ℝ}
+    {a b i j k : ℕ}
+    {lower upper : ℝ}
+    (hanti : AntitoneOn f (Finset.Ico a b : Set ℕ))
+    (hi_mem : i ∈ Finset.Ico a b)
+    (hj_mem : j ∈ Finset.Ico a b)
+    (hk_mem : k ∈ Finset.Ico a b)
+    (hij : i ≤ j)
+    (hjk : j ≤ k)
+    (hi_interval : f i ∈ Set.Ioc lower upper)
+    (hk_interval : f k ∈ Set.Ioc lower upper) :
+    f j ∈ Set.Ioc lower upper := by
+  have hleft_le : f k ≤ f j :=
+    hanti hj_mem hk_mem hjk
+  have hright_le : f j ≤ f i :=
+    hanti hi_mem hj_mem hij
+  exact
+    And.intro
+      (lt_of_lt_of_le hk_interval.1 hleft_le)
+      (le_trans hright_le hi_interval.2)
+
+/-- Principal strips for a real phase with monotone adjacent increments are
+interval-convex inside the adjacent-increment index block. -/
+theorem Complex.realPhase_integerIncrementPrincipalStrip_intervalConvex
+    (φ : ℝ → ℝ)
+    (k₀ : ℤ)
+    {a b i j k : ℕ}
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hi_mem : i ∈ Finset.Ico a b)
+    (hj_mem : j ∈ Finset.Ico a b)
+    (hk_mem : k ∈ Finset.Ico a b)
+    (hij : i ≤ j)
+    (hjk : j ≤ k)
+    (hi_principal :
+      Complex.realPhase_integerIncrement
+          (Complex.realPhase_integerLatticeShift φ k₀) i ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
+    (hk_principal :
+      Complex.realPhase_integerIncrement
+          (Complex.realPhase_integerLatticeShift φ k₀) k ∈
+        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi))) :
+    Complex.realPhase_integerIncrement
+        (Complex.realPhase_integerLatticeShift φ k₀) j ∈
+      Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) := by
+  have hshift_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.realPhase_integerLatticeShift φ k₀) a b :=
+    Complex.realPhase_integerIncrementMonotoneOn_integerLatticeShift
+      φ k₀ hinc_mono
+  match hshift_mono with
+  | Or.inl hmono =>
+      exact
+        Real.monotoneOn_mem_Ioc_intervalConvex
+          hmono hi_mem hj_mem hk_mem hij hjk
+          hi_principal hk_principal
+  | Or.inr hanti =>
+      exact
+        Real.antitoneOn_mem_Ioc_intervalConvex
+          hanti hi_mem hj_mem hk_mem hij hjk
+          hi_principal hk_principal
+
 /-- A finite subset of a half-open natural interval that is interval-convex is
 itself a half-open interval. -/
 theorem Finset.exists_eq_Ico_of_subset_Ico_intervalConvex
@@ -602,6 +787,61 @@ theorem Finset.exists_eq_Ico_of_subset_Ico_intervalConvex
           (And.intro hc_bounds.1
             (And.intro hc_le_d
               (And.intro hd_right hS_eq))))
+
+/-- A finite principal-strip index set for monotone adjacent increments is a
+half-open interval. -/
+theorem Complex.realPhase_integerIncrementPrincipalStrip_exists
+    (φ : ℝ → ℝ)
+    (k : ℤ)
+    {a b : ℕ}
+    (hab : a ≤ b)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b) :
+    ∃ c d : ℕ,
+      a ≤ c ∧ c ≤ d ∧ d ≤ b ∧
+        Complex.realPhase_integerIncrementPrincipalStrip φ a b k =
+          Finset.Ico c d := by
+  have hsubset :
+      Complex.realPhase_integerIncrementPrincipalStrip φ a b k ⊆
+        Finset.Ico a b :=
+    Complex.realPhase_integerIncrementPrincipalStrip_subset_block φ
+  have hconvex :
+      ∀ i j r : ℕ,
+        i ∈ Complex.realPhase_integerIncrementPrincipalStrip φ a b k →
+          r ∈ Complex.realPhase_integerIncrementPrincipalStrip φ a b k →
+            j ∈ Finset.Ico a b →
+              i ≤ j →
+                j ≤ r →
+                  j ∈ Complex.realPhase_integerIncrementPrincipalStrip
+                    φ a b k := by
+    intro i j r hi hr hj hij hjr
+    have hi_data :
+        i ∈ Finset.Ico a b ∧
+          Complex.realPhase_integerIncrement
+              (Complex.realPhase_integerLatticeShift φ k) i ∈
+            Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+      (Complex.mem_realPhase_integerIncrementPrincipalStrip_iff
+        φ).mp hi
+    have hr_data :
+        r ∈ Finset.Ico a b ∧
+          Complex.realPhase_integerIncrement
+              (Complex.realPhase_integerLatticeShift φ k) r ∈
+            Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+      (Complex.mem_realPhase_integerIncrementPrincipalStrip_iff
+        φ).mp hr
+    have hj_principal :
+        Complex.realPhase_integerIncrement
+            (Complex.realPhase_integerLatticeShift φ k) j ∈
+          Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
+      Complex.realPhase_integerIncrementPrincipalStrip_intervalConvex
+        φ k hinc_mono hi_data.1 hj hr_data.1 hij hjr
+        hi_data.2 hr_data.2
+    exact
+      (Complex.mem_realPhase_integerIncrementPrincipalStrip_iff
+        φ).mpr
+        (And.intro hj hj_principal)
+  exact
+    Finset.exists_eq_Ico_of_subset_Ico_intervalConvex
+      hab hsubset hconvex
 
 /-- For a monotone real sequence, the set of indices lying within a fixed
 open distance from a fixed resonance center is interval-convex. -/
