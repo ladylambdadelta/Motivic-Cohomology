@@ -135,6 +135,58 @@ theorem Complex.logarithmicPhaseRealPhase_shiftRange_deriv_norm_lower_of_nonneg
     Complex.logarithmicPhaseRealPhase_shiftedDifference_deriv_norm_lower_on_shifted_Icc_of_nonneg
       t ht ht_nonneg ha hab hh_gap hx
 
+/-- Raw shifted-increment monotonicity is automatic in the positive
+logarithmic long branch, in the quantified shape required by the Weyl-envelope
+owner theorem. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftRange_integerIncrementMonotone_of_nonneg
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a) :
+    ∀ h : ℕ,
+      h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+        Complex.realPhase_integerIncrementMonotoneOn
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h)
+          a (b - h) := by
+  intro h _hh
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrementMonotoneOn_of_nonneg
+      t ht_nonneg ha
+
+/-- Once the shifted increments are known to remain on the principal branch,
+raw positive-branch monotonicity transports to reduced-increment monotonicity
+for every canonical Weyl shift. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftRange_reducedIntegerIncrementMonotone_of_gap_pi
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hgap_pi :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+            (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+          ∀ n : ℕ,
+            n ∈ Finset.Ico a (b - h) →
+              Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ≤ Real.pi) :
+    ∀ h : ℕ,
+      h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖) →
+        Complex.realPhase_reducedIntegerIncrementMonotoneOn
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h)
+          a (b - h) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_reduced_mono_of_gap_pi
+      t ht_nonneg ha hgap_pi
+
 /-- A positive integer logarithmic-phase sample is the corresponding
 real-phase exponential sample. -/
 theorem Complex.logarithmicPhase_integer_sample_eq_realPhase_exp
