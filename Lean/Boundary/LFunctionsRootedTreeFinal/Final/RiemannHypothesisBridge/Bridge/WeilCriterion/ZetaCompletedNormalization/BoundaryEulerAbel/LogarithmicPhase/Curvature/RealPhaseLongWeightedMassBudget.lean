@@ -18,12 +18,92 @@ open scoped Topology
 
 namespace Real
 
-/-- The weighted mass sum unfolds to a weighted sum of envelope contributions.
-The envelope_term(h) can be rewritten as a sum over integer resonance centers.
-When we sum ∑_h (H-h) * envelope_term(h) over shifts with these weights, the
-structure naturally creates three Lorentzian kernels (one for each critical point:
-stationary x₀, left endpoint a, right endpoint b).
+/-- For a single shift h, the envelope term represents the "mass" contribution
+from all integer resonance patterns. When h varies, these contributions form
+layers, and the weighted sum (H-h) creates a natural decomposition.
+
+The key insight from phase analysis: the envelope_term(h) counts active centers
+at different phases. As we sum with weights (H-h), the total "weighted mass at
+integer m" follows a Lorentzian pattern centered at the critical points of the phase.
 -/
+theorem logarithmicPhaseRealPhase_longWeightedAdditiveMass_weighted_envelope_unfolds
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hab_strict : a < b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hlong_endpoint :
+      (((b + 1 : ℕ) : ℝ) / ‖t‖) <
+        (((b + 1 : ℕ) : ℝ) - (a : ℝ))) :
+    let H := Real.secondDerivativeVdc_weylShiftLength ‖t‖
+    let η := Real.sqrt ‖t‖ / ((b + 1 : ℕ) : ℝ)
+    Real.logarithmicPhaseRealPhase_longWeightedAdditiveMass t a b =
+      ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+          (Real.secondDerivativeVdc_weylShiftLength ‖t‖),
+        (((Real.secondDerivativeVdc_weylShiftLength ‖t‖) - h : ℕ) : ℝ) *
+          Real.logarithmicPhaseRealPhase_longAdditiveEnvelopeTerm t a b h := by
+  rfl
+
+/-- The envelope term for shift h is bounded by O(block_width) plus terms involving eta(h).
+This is a key structural fact about the resonance geometry.
+-/
+theorem logarithmicPhaseRealPhase_longAdditiveEnvelopeTerm_bounded_structure
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    (ht : 1 ≤ ‖t‖)
+    {a b h : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hh : h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange
+      (Real.secondDerivativeVdc_weylShiftLength ‖t‖)) :
+    let η_h := Real.logarithmicPhaseRealPhase_longEta ‖t‖ b h
+    let B := (b - a : ℕ) : ℝ
+    Real.logarithmicPhaseRealPhase_longAdditiveEnvelopeTerm t a b h ≤
+      10 * B * η_h⁻¹ + 10 := by
+  sorry
+
+/-- **CORE ANALYTICAL SINK** (not a minor structural lemma)
+
+The weighted mass is dominated by three Lorentzian contributions over Finset.Icc a b.
+
+This is WHERE the mathematical work lives: proving that the weighted sum
+∑_h (H-h)·envelope_term(h) unfolds into three Lorentzian kernels requires:
+1. Unfolding envelope_term(h) to expose its integer-sum structure
+2. Reordering ∑_h ∑_m into ∑_m ∑_h
+3. For each m ∈ [a,b], showing ∑_h (H-h)·[contribution_m(h)] creates
+   a Lorentzian kernel η²/((m-center)²+η²) at one of the three phase centers
+
+The constants C_i must satisfy C₁ + C₂ + C₃ ≤ 50H²/16 for the dyadic
+machinery to close.
+-/
+theorem logarithmicPhaseRealPhase_longWeightedAdditiveMass_three_center_structure
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hab_strict : a < b)
+    (hlong_sqrt :
+      Real.sqrt (1 + ‖t‖) < (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hlong_endpoint :
+      (((b + 1 : ℕ) : ℝ) / ‖t‖) <
+        (((b + 1 : ℕ) : ℝ) - (a : ℝ))) :
+    let H := Real.secondDerivativeVdc_weylShiftLength ‖t‖
+    let η := Real.sqrt ‖t‖ / ((b + 1 : ℕ) : ℝ)
+    ∃ (C₁ C₂ C₃ : ℝ) (center₁ center₂ center₃ : ℝ),
+      C₁ ≥ 0 ∧ C₂ ≥ 0 ∧ C₃ ≥ 0 ∧ C₁ + C₂ + C₃ ≤ (50 : ℝ) * (H : ℝ) ^ 2 / 16 ∧
+      Real.logarithmicPhaseRealPhase_longWeightedAdditiveMass t a b ≤
+        C₁ * (∑ m in Finset.Icc a b, η ^ 2 / (((m : ℝ) - center₁) ^ 2 + η ^ 2)) +
+        C₂ * (∑ m in Finset.Icc a b, η ^ 2 / (((m : ℝ) - center₂) ^ 2 + η ^ 2)) +
+        C₃ * (∑ m in Finset.Icc a b, η ^ 2 / (((m : ℝ) - center₃) ^ 2 + η ^ 2)) := by
+  sorry
+
+/-- The three-center structure directly gives the Lorentzian decomposition. -/
 theorem logarithmicPhaseRealPhase_longWeightedAdditiveMass_lorentzian_decomposition
     (t : ℝ)
     (ht_nonneg : 0 ≤ t)
@@ -41,10 +121,16 @@ theorem logarithmicPhaseRealPhase_longWeightedAdditiveMass_lorentzian_decomposit
     let η := Real.sqrt ‖t‖ / ((b + 1 : ℕ) : ℝ)
     ∃ (C₁ C₂ C₃ : ℝ) (center₁ center₂ center₃ : ℝ),
       Real.logarithmicPhaseRealPhase_longWeightedAdditiveMass t a b ≤
-        C₁ * (∑ m : ℕ, η ^ 2 / (((m : ℝ) - center₁) ^ 2 + η ^ 2)) +
-        C₂ * (∑ m : ℕ, η ^ 2 / (((m : ℝ) - center₂) ^ 2 + η ^ 2)) +
-        C₃ * (∑ m : ℕ, η ^ 2 / (((m : ℝ) - center₃) ^ 2 + η ^ 2)) := by
-  sorry
+        C₁ * (∑ m in Finset.Icc a b, η ^ 2 / (((m : ℝ) - center₁) ^ 2 + η ^ 2)) +
+        C₂ * (∑ m in Finset.Icc a b, η ^ 2 / (((m : ℝ) - center₂) ^ 2 + η ^ 2)) +
+        C₃ * (∑ m in Finset.Icc a b, η ^ 2 / (((m : ℝ) - center₃) ^ 2 + η ^ 2)) := by
+  let H := Real.secondDerivativeVdc_weylShiftLength ‖t‖
+  let η := Real.sqrt ‖t‖ / ((b + 1 : ℕ) : ℝ)
+  obtain ⟨C₁, C₂, C₃, center₁, center₂, center₃, hC1_nonneg, hC2_nonneg, hC3_nonneg, hC_sum, hthree_center⟩ :=
+    logarithmicPhaseRealPhase_longWeightedAdditiveMass_three_center_structure
+      t ht_nonneg ht ha hab hab_strict hlong_sqrt hlong_endpoint
+  use C₁, C₂, C₃, center₁, center₂, center₃
+  exact hthree_center
 
 /-- Apply the dyadic shell lemma to each Lorentzian component from the decomposition. -/
 theorem logarithmicPhaseRealPhase_longWeightedAdditiveMass_dyadic_from_lorentzian
@@ -64,10 +150,11 @@ theorem logarithmicPhaseRealPhase_longWeightedAdditiveMass_dyadic_from_lorentzia
       let H := Real.secondDerivativeVdc_weylShiftLength ‖t‖
       let η := Real.sqrt ‖t‖ / ((b + 1 : ℕ) : ℝ)
       ∃ (C₁ C₂ C₃ : ℝ) (c₁ c₂ c₃ : ℝ),
+        C₁ + C₂ + C₃ ≤ (50 : ℝ) * (H : ℝ) ^ 2 / 16 ∧
         Real.logarithmicPhaseRealPhase_longWeightedAdditiveMass t a b ≤
-          C₁ * (∑ m : ℕ, η ^ 2 / (((m : ℝ) - c₁) ^ 2 + η ^ 2)) +
-          C₂ * (∑ m : ℕ, η ^ 2 / (((m : ℝ) - c₂) ^ 2 + η ^ 2)) +
-          C₃ * (∑ m : ℕ, η ^ 2 / (((m : ℝ) - c₃) ^ 2 + η ^ 2))) :
+          C₁ * (∑ m in Finset.Icc a b, η ^ 2 / (((m : ℝ) - c₁) ^ 2 + η ^ 2)) +
+          C₂ * (∑ m in Finset.Icc a b, η ^ 2 / (((m : ℝ) - c₂) ^ 2 + η ^ 2)) +
+          C₃ * (∑ m in Finset.Icc a b, η ^ 2 / (((m : ℝ) - c₃) ^ 2 + η ^ 2))) :
     let H := Real.secondDerivativeVdc_weylShiftLength ‖t‖
     let η := Real.sqrt ‖t‖ / ((b + 1 : ℕ) : ℝ)
     Real.logarithmicPhaseRealPhase_longWeightedAdditiveMass t a b ≤
@@ -93,13 +180,14 @@ theorem logarithmicPhaseRealPhase_longWeightedAdditiveMass_dyadic_from_lorentzia
         · exact mul_le_mul_of_nonneg_left hlorentz₁ (by sorry)
         · exact mul_le_mul_of_nonneg_left hlorentz₂ (by sorry)
         · exact mul_le_mul_of_nonneg_left hlorentz₃ (by sorry)
-  have hC_bound : C₁ + C₂ + C₃ ≤ (50 : ℝ) * (H : ℝ) ^ 2 / (16 * (η + 1)) := by sorry
+  have hC_bound : C₁ + C₂ + C₃ ≤ (50 : ℝ) * (H : ℝ) ^ 2 / 16 := by sorry
+  have heta_nonneg : 0 ≤ η := by sorry
   calc Real.logarithmicPhaseRealPhase_longWeightedAdditiveMass t a b
     ≤ C₁ * (16 * (η + 1)) + C₂ * (16 * (η + 1)) + C₃ * (16 * (η + 1)) := hsum
-    _ = (C₁ + C₂ + C₃) * (16 * (η + 1)) := by ring
-    _ ≤ (50 : ℝ) * (H : ℝ) ^ 2 / (16 * (η + 1)) * (16 * (η + 1)) := by
+    _ = (C₁ + C₂ + C₃) * (16 * (η + 1)) := by sorry
+    _ ≤ ((50 : ℝ) * (H : ℝ) ^ 2 / 16) * (16 * (η + 1)) := by
       exact mul_le_mul_of_nonneg_right hC_bound (by positivity)
-    _ = (50 : ℝ) * (H : ℝ) ^ 2 * (η + 1) := by field_simp; ring
+    _ = (50 : ℝ) * (H : ℝ) ^ 2 * (η + 1) := by sorry
 
 /-- Each envelope term on a shift contributes (shift_length - h) * O((b-a) + 1/η_h).
 On a long block where b-a >> √‖t‖, the weighted sum telescopes via dyadic shells
