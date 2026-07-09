@@ -12,6 +12,10 @@ namespace LFunctions
 
 noncomputable section
 
+/-- Compatibility name for singleton finsets in this lane. -/
+def Finset.singleton {α : Type*} [DecidableEq α] (a : α) : Finset α :=
+  insert a ∅
+
 /-- The real exponential attached to a scalar phase has unit norm. -/
 theorem Complex.realPhase_exp_I_norm
     (φ : ℝ → ℝ)
@@ -70,6 +74,178 @@ def Complex.realPhase_integerIncrement
     (φ : ℝ → ℝ)
     (n : ℕ) : ℝ :=
   φ (n + 1 : ℕ) - φ n
+
+/-- Remove an integer lattice slope from a real phase. On integer samples this
+does not change the associated unit complex exponential. -/
+def Complex.realPhase_integerLatticeShift
+    (φ : ℝ → ℝ)
+    (k : ℤ)
+    (x : ℝ) : ℝ :=
+  φ x - (2 * Real.pi * (k : ℝ)) * x
+
+/-- The sample union attached to a finite family of half-open integer
+intervals. -/
+def Complex.realPhase_IcoFamilyUnion
+    (gaps : Finset (ℕ × ℕ)) : Finset ℕ :=
+  gaps.biUnion (fun p : ℕ × ℕ => Finset.Ico p.1 p.2)
+
+/-- The singleton half-open interval family covers exactly that interval. -/
+theorem Complex.realPhase_IcoFamilyUnion_singleton
+    (a b : ℕ) :
+    Complex.realPhase_IcoFamilyUnion (Finset.singleton (a, b)) =
+      Finset.Ico a b := by
+  exact Finset.ext
+    (fun n =>
+      Iff.intro
+        (fun hn =>
+          have hmem :
+              ∃ p : ℕ × ℕ,
+                p ∈ Finset.singleton (a, b) ∧
+                  n ∈ Finset.Ico p.1 p.2 :=
+            Finset.mem_biUnion.mp hn
+          match hmem with
+          | ⟨p, hp, hn_p⟩ =>
+              have hp_eq : p = (a, b) :=
+                Finset.mem_singleton.mp hp
+              Eq.subst
+                (motive := fun q : ℕ × ℕ =>
+                  n ∈ Finset.Ico q.1 q.2)
+                hp_eq
+                hn_p)
+        (fun hn =>
+          Finset.mem_biUnion.mpr
+            ⟨(a, b), Finset.mem_singleton_self (a, b), hn⟩))
+
+/-- Adjacent increments of an integer-lattice shifted phase are translated by
+the chosen lattice frequency. -/
+theorem Complex.realPhase_integerIncrement_integerLatticeShift_eq
+    (φ : ℝ → ℝ)
+    (k : ℤ)
+    (n : ℕ) :
+    Complex.realPhase_integerIncrement
+        (Complex.realPhase_integerLatticeShift φ k) n =
+      Complex.realPhase_integerIncrement φ n -
+        (2 * Real.pi * (k : ℝ)) := by
+  let A : ℝ := 2 * Real.pi * (k : ℝ)
+  have hsucc_cast : ((n + 1 : ℕ) : ℝ) = (n : ℝ) + 1 :=
+    Eq.trans
+      (Nat.cast_add n 1)
+      (congrArg (fun r : ℝ => (n : ℝ) + r) (Nat.cast_one))
+  have hsucc_shift :
+      Complex.realPhase_integerLatticeShift φ k (n + 1 : ℕ) =
+        φ (n + 1 : ℕ) - A * ((n : ℝ) + 1) := by
+    unfold Complex.realPhase_integerLatticeShift A
+    exact congrArg
+      (fun x : ℝ => φ (n + 1 : ℕ) - (2 * Real.pi * (k : ℝ)) * x)
+      hsucc_cast
+  have hn_shift :
+      Complex.realPhase_integerLatticeShift φ k n =
+        φ n - A * (n : ℝ) := by
+    exact Eq.refl (Complex.realPhase_integerLatticeShift φ k n)
+  have hraw :
+      Complex.realPhase_integerIncrement
+          (Complex.realPhase_integerLatticeShift φ k) n =
+        (φ (n + 1 : ℕ) - A * ((n : ℝ) + 1)) -
+          (φ n - A * (n : ℝ)) := by
+    unfold Complex.realPhase_integerIncrement
+    exact
+      Eq.trans
+        (congrArg
+          (fun x : ℝ => x - Complex.realPhase_integerLatticeShift φ k n)
+          hsucc_shift)
+        (congrArg
+          (fun x : ℝ => (φ (n + 1 : ℕ) - A * ((n : ℝ) + 1)) - x)
+          hn_shift)
+  have hlinear :
+      A * ((n : ℝ) + 1) = A * (n : ℝ) + A := by
+    exact Eq.trans (mul_add A (n : ℝ) 1)
+      (congrArg (fun r : ℝ => A * (n : ℝ) + r) (mul_one A))
+  have hneg_linear :
+      -(A * ((n : ℝ) + 1)) =
+        -(A * (n : ℝ)) + -A := by
+    exact Eq.trans
+      (congrArg Neg.neg hlinear)
+      (neg_add (A * (n : ℝ)) A)
+  have harith :
+      (φ (n + 1 : ℕ) - A * ((n : ℝ) + 1)) -
+          (φ n - A * (n : ℝ)) =
+        (φ (n + 1 : ℕ) - φ n) - A := by
+    calc
+      (φ (n + 1 : ℕ) - A * ((n : ℝ) + 1)) -
+          (φ n - A * (n : ℝ)) =
+        (φ (n + 1 : ℕ) + -(A * ((n : ℝ) + 1))) +
+          (-(φ n) + A * (n : ℝ)) := by
+        have hright :
+            -(φ n - A * (n : ℝ)) = -(φ n) + A * (n : ℝ) := by
+          calc
+            -(φ n - A * (n : ℝ)) =
+                A * (n : ℝ) - φ n := by
+              exact neg_sub (φ n) (A * (n : ℝ))
+            _ = A * (n : ℝ) + -(φ n) := by
+              exact sub_eq_add_neg (A * (n : ℝ)) (φ n)
+            _ = -(φ n) + A * (n : ℝ) := by
+              exact add_comm (A * (n : ℝ)) (-(φ n))
+        exact congrArg₂ HAdd.hAdd
+          (sub_eq_add_neg (φ (n + 1 : ℕ)) (A * ((n : ℝ) + 1)))
+          hright
+      _ =
+        (φ (n + 1 : ℕ) + (-(A * (n : ℝ)) + -A)) +
+          (-(φ n) + A * (n : ℝ)) := by
+        exact congrArg
+          (fun r : ℝ => (φ (n + 1 : ℕ) + r) + (-(φ n) + A * (n : ℝ)))
+          hneg_linear
+      _ =
+        ((φ (n + 1 : ℕ) + -(φ n)) +
+          ((-(A * (n : ℝ)) + -A) + A * (n : ℝ))) := by
+        exact add_add_add_comm
+          (φ (n + 1 : ℕ))
+          (-(A * (n : ℝ)) + -A)
+          (-(φ n))
+          (A * (n : ℝ))
+      _ =
+        ((φ (n + 1 : ℕ) + -(φ n)) +
+          (-A + (-(A * (n : ℝ)) + A * (n : ℝ)))) := by
+        have hcomm :
+            (-(A * (n : ℝ)) + -A) + A * (n : ℝ) =
+              -A + (-(A * (n : ℝ)) + A * (n : ℝ)) := by
+          calc
+            (-(A * (n : ℝ)) + -A) + A * (n : ℝ) =
+                -(A * (n : ℝ)) + (-A + A * (n : ℝ)) := by
+              exact add_assoc (-(A * (n : ℝ))) (-A) (A * (n : ℝ))
+            _ = -(A * (n : ℝ)) + (A * (n : ℝ) + -A) := by
+              exact congrArg
+                (fun r : ℝ => -(A * (n : ℝ)) + r)
+                (add_comm (-A) (A * (n : ℝ)))
+            _ = (-(A * (n : ℝ)) + A * (n : ℝ)) + -A := by
+              exact (add_assoc (-(A * (n : ℝ))) (A * (n : ℝ)) (-A)).symm
+            _ = -A + (-(A * (n : ℝ)) + A * (n : ℝ)) := by
+              exact add_comm (-(A * (n : ℝ)) + A * (n : ℝ)) (-A)
+        exact congrArg
+          (fun r : ℝ => (φ (n + 1 : ℕ) + -(φ n)) + r)
+          hcomm
+      _ =
+        ((φ (n + 1 : ℕ) + -(φ n)) + (-A + 0)) := by
+        exact congrArg
+          (fun r : ℝ => (φ (n + 1 : ℕ) + -(φ n)) + (-A + r))
+          (neg_add_cancel (A * (n : ℝ)))
+      _ =
+        ((φ (n + 1 : ℕ) + -(φ n)) + -A) := by
+        exact congrArg
+          (fun r : ℝ => (φ (n + 1 : ℕ) + -(φ n)) + r)
+          (add_zero (-A))
+      _ =
+        (φ (n + 1 : ℕ) - φ n) + -A := by
+        exact congrArg
+          (fun r : ℝ => r + -A)
+          (sub_eq_add_neg (φ (n + 1 : ℕ)) (φ n)).symm
+      _ =
+        (φ (n + 1 : ℕ) - φ n) - A :=
+        (sub_eq_add_neg (φ (n + 1 : ℕ) - φ n) A).symm
+  exact
+    Eq.trans hraw
+      (Eq.trans harith
+        (congrArg (fun r : ℝ => r - A)
+          (Eq.refl (Complex.realPhase_integerIncrement φ n))))
 
 /-- Adjacent increments of the concrete logarithmic phase are logarithms of
 successive integer ratios.
@@ -347,6 +523,51 @@ def Complex.realPhase_reducedIntegerIncrementMonotoneOn
   AntitoneOn
     (fun n : ℕ => Complex.realPhase_reducedIntegerIncrement φ n)
     (Finset.Ico a b : Set ℕ)
+
+/-- Raw integer-increment monotonicity restricts to a half-open subblock. -/
+theorem Complex.realPhase_integerIncrementMonotoneOn.mono_Ico
+    (φ : ℝ → ℝ)
+    {a b c d : ℕ}
+    (hmono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hsub : Finset.Ico c d ⊆ Finset.Ico a b) :
+    Complex.realPhase_integerIncrementMonotoneOn φ c d := by
+  match hmono with
+  | Or.inl hmono_inc =>
+      exact Or.inl
+        (fun m hm n hn hmn =>
+          hmono_inc (hsub hm) (hsub hn) hmn)
+  | Or.inr hmono_dec =>
+      exact Or.inr
+        (fun m hm n hn hmn =>
+          hmono_dec (hsub hm) (hsub hn) hmn)
+
+/-- Reduced integer-increment monotonicity restricts to a half-open subblock. -/
+theorem Complex.realPhase_reducedIntegerIncrementMonotoneOn.mono_Ico
+    (φ : ℝ → ℝ)
+    {a b c d : ℕ}
+    (hmono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
+    (hsub : Finset.Ico c d ⊆ Finset.Ico a b) :
+    Complex.realPhase_reducedIntegerIncrementMonotoneOn φ c d := by
+  match hmono with
+  | Or.inl hmono_inc =>
+      exact Or.inl
+        (fun m hm n hn hmn =>
+          hmono_inc (hsub hm) (hsub hn) hmn)
+  | Or.inr hmono_dec =>
+      exact Or.inr
+        (fun m hm n hn hmn =>
+          hmono_dec (hsub hm) (hsub hn) hmn)
+
+/-- Integer-increment separation restricts to a half-open subblock. -/
+theorem Complex.realPhase_integerIncrementSeparatedOn.mono_Ico
+    (φ : ℝ → ℝ)
+    {a b c d : ℕ}
+    {lam : ℝ}
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam)
+    (hsub : Finset.Ico c d ⊆ Finset.Ico a b) :
+    Complex.realPhase_integerIncrementSeparatedOn φ c d lam := by
+  intro n hn k
+  exact hsep n (hsub hn) k
 
 /-- Endpoint control for a one-point exponential block. -/
 theorem Complex.realPhase_singleton_integer_block_bound

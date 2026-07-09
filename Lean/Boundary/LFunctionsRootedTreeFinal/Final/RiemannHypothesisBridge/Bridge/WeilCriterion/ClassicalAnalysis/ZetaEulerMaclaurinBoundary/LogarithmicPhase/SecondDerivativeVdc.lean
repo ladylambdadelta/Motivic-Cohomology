@@ -1205,6 +1205,43 @@ theorem Complex.realPhase_secondDerivative_vdc_derivPacket_deriv_sub_lt_one
       hedge
       hspan
 
+/-- The derivative values at any two samples in the same packet differ by
+less than one in absolute value. -/
+theorem Complex.realPhase_secondDerivative_vdc_derivPacket_deriv_sub_norm_lt_one
+    (φ : ℝ → ℝ)
+    {a b p q : ℕ}
+    {m : ℤ}
+    (hp : p ∈ Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m)
+    (hq : q ∈ Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m) :
+    ‖deriv φ q - deriv φ p‖ < 1 := by
+  have hupper :
+      deriv φ q - deriv φ p < 1 :=
+    Complex.realPhase_secondDerivative_vdc_derivPacket_deriv_sub_lt_one
+      φ hp hq
+  have hlower_oriented :
+      deriv φ p - deriv φ q < 1 :=
+    Complex.realPhase_secondDerivative_vdc_derivPacket_deriv_sub_lt_one
+      φ hq hp
+  have hneg_lower :
+      -1 < deriv φ q - deriv φ p := by
+    have hneg_lt :
+        -(1 : ℝ) < -(deriv φ p - deriv φ q) :=
+      neg_lt_neg hlower_oriented
+    exact lt_of_lt_of_eq hneg_lt
+      (neg_sub (deriv φ p) (deriv φ q))
+  have habs :
+      |deriv φ q - deriv φ p| < 1 :=
+    abs_lt.mpr (And.intro hneg_lower hupper)
+  have hnorm :
+      ‖deriv φ q - deriv φ p‖ =
+        |deriv φ q - deriv φ p| :=
+    Real.norm_eq_abs (deriv φ q - deriv φ p)
+  exact
+    Eq.subst
+      (motive := fun r : ℝ => r < 1)
+      hnorm.symm
+      habs
+
 /-- The integer frequency window index attached to one integer sample. -/
 def Complex.realPhase_secondDerivative_vdc_derivPacketIndex
     (φ : ℝ → ℝ)
@@ -7195,6 +7232,75 @@ theorem Complex.realPhase_secondDerivative_vdc_nonempty_derivPacket_endpoint_dat
               (And.intro hp_le_q
                 (And.intro hseparation
                   (And.intro hwindow hendpoint_card))))))))
+
+/-- Nonempty endpoint data for one derivative-frequency packet, with the
+packet derivative spread recorded in absolute-value form. -/
+theorem Complex.realPhase_secondDerivative_vdc_nonempty_derivPacket_endpoint_abs_data
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {T : ℝ}
+    {m : ℤ}
+    (hp :
+        (Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).Nonempty)
+    (hT : 1 ≤ T)
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hcont :
+      ContinuousOn (fun z : ℝ => deriv φ z)
+        (Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ)))
+    (hdiff :
+      DifferentiableOn ℝ (fun z : ℝ => deriv φ z)
+        (interior (Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ))))
+    (horientation :
+      (MonotoneOn (fun z : ℝ => deriv φ z)
+          (Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ)) ∧
+        ∀ z : ℝ,
+          z ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+            0 ≤ deriv (deriv φ) z) ∨
+      (AntitoneOn (fun z : ℝ => deriv φ z)
+          (Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ)) ∧
+        ∀ z : ℝ,
+          z ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+            deriv (deriv φ) z ≤ 0))
+    (hcurvature_lower :
+      ∀ z : ℝ,
+        z ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+          T *
+              ((((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ)))⁻¹) ≤
+            ‖deriv (deriv φ) z‖) :
+    ∃ p q : ℕ,
+      p ∈ Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m ∧
+      q ∈ Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m ∧
+      (p : ℝ) ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) ∧
+      (q : ℝ) ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) ∧
+      p ≤ q ∧
+      (T *
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))⁻¹) *
+          ((q : ℝ) - (p : ℝ)) ≤
+        ‖deriv φ (q : ℝ) - deriv φ (p : ℝ)‖ ∧
+      ‖deriv φ (q : ℝ) - deriv φ (p : ℝ)‖ < 1 ∧
+      ((Complex.realPhase_secondDerivative_vdc_derivPacket φ a b m).card : ℝ) ≤
+        (((q + 1 : ℕ) : ℝ) - (p : ℝ))) := by
+  match
+    Complex.realPhase_secondDerivative_vdc_nonempty_derivPacket_endpoint_data
+      φ hp hT ha hab hcont hdiff horientation hcurvature_lower with
+  | Exists.intro p hrest =>
+    match hrest with
+    | Exists.intro q hdata =>
+      exact Exists.intro p
+        (Exists.intro q
+          (And.intro hdata.1
+            (And.intro hdata.2.1
+              (And.intro hdata.2.2.1
+                (And.intro hdata.2.2.2.1
+                  (And.intro hdata.2.2.2.2.1
+                    (And.intro hdata.2.2.2.2.2.1
+                      (And.intro
+                        (Complex.realPhase_secondDerivative_vdc_derivPacket_deriv_sub_norm_lt_one
+                          φ hdata.1 hdata.2.1)
+                        hdata.2.2.2.2.2.2.2))))))))
 
 end
 

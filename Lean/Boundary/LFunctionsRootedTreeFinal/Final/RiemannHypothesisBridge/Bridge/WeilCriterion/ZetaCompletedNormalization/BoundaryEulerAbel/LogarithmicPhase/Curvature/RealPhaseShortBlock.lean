@@ -42,6 +42,30 @@ theorem Complex.logarithmicPhaseRealPhase_singleton_block_bound
       (Real.logarithmicPhase_endpoint_sqrt_target_nonneg t ht a)
   exact le_trans hbase hwiden
 
+/-- If the integer block cardinality is already below the widened curvature
+target, the logarithmic real-phase block satisfies the target by the trivial
+unit-norm estimate. -/
+theorem Complex.logarithmicPhaseRealPhase_card_le_eightyTarget_block_bound
+    (t : ℝ)
+    {a b : ℕ}
+    (hcard :
+      ((Finset.Icc a b).card : ℝ) ≤
+        80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)))) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+  have htrivial :
+      ‖∑ n ∈ Finset.Icc a b,
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+        ((Finset.Icc a b).card : ℝ) :=
+    Complex.realPhase_integer_block_bound_by_card
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+  exact le_trans htrivial hcard
+
 /-- If the block length is at most the square-root scale, the logarithmic
 real-phase block satisfies the widened curvature target. -/
 theorem Complex.logarithmicPhaseRealPhase_short_sqrt_block_bound

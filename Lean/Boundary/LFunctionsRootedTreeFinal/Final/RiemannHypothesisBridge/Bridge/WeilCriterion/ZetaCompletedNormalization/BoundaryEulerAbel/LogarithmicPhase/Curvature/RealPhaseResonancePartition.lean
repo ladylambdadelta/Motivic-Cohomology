@@ -12,18 +12,6 @@ namespace LFunctions
 
 noncomputable section
 
-/-- Compatibility name for singleton finsets in this file. -/
-def Finset.singleton {α : Type*} [DecidableEq α] (a : α) : Finset α :=
-  insert a ∅
-
-/-- Remove an integer lattice slope from a real phase.  On integer samples this
-does not change the associated unit complex exponential. -/
-def Complex.realPhase_integerLatticeShift
-    (φ : ℝ → ℝ)
-    (k : ℤ)
-    (x : ℝ) : ℝ :=
-  φ x - (2 * Real.pi * (k : ℝ)) * x
-
 /-- Exponential samples are invariant under removing an integer lattice slope. -/
 theorem Complex.realPhase_integerLatticeShift_exp_eq
     (φ : ℝ → ℝ)
@@ -112,137 +100,6 @@ theorem Complex.realPhase_sum_norm_le_of_integerLatticeShift_sum_norm_le
       (motive := fun r : ℝ => r ≤ M)
       hnorm
       hshift
-
-/-- Adjacent increments of an integer-lattice shifted phase are translated by
-the chosen lattice frequency. -/
-theorem Complex.realPhase_integerIncrement_integerLatticeShift_eq
-    (φ : ℝ → ℝ)
-    (k : ℤ)
-    (n : ℕ) :
-    Complex.realPhase_integerIncrement
-        (Complex.realPhase_integerLatticeShift φ k) n =
-      Complex.realPhase_integerIncrement φ n -
-        (2 * Real.pi * (k : ℝ)) := by
-  let A : ℝ := 2 * Real.pi * (k : ℝ)
-  have hsucc_cast : ((n + 1 : ℕ) : ℝ) = (n : ℝ) + 1 :=
-    Eq.trans
-      (Nat.cast_add n 1)
-      (congrArg (fun r : ℝ => (n : ℝ) + r) (Nat.cast_one))
-  have hsucc_shift :
-      Complex.realPhase_integerLatticeShift φ k (n + 1 : ℕ) =
-        φ (n + 1 : ℕ) - A * ((n : ℝ) + 1) := by
-    unfold Complex.realPhase_integerLatticeShift A
-    exact congrArg
-      (fun x : ℝ => φ (n + 1 : ℕ) - (2 * Real.pi * (k : ℝ)) * x)
-      hsucc_cast
-  have hn_shift :
-      Complex.realPhase_integerLatticeShift φ k n =
-        φ n - A * (n : ℝ) := by
-    exact Eq.refl (Complex.realPhase_integerLatticeShift φ k n)
-  have hraw :
-      Complex.realPhase_integerIncrement
-          (Complex.realPhase_integerLatticeShift φ k) n =
-        (φ (n + 1 : ℕ) - A * ((n : ℝ) + 1)) -
-          (φ n - A * (n : ℝ)) := by
-    unfold Complex.realPhase_integerIncrement
-    exact
-      Eq.trans
-        (congrArg
-          (fun x : ℝ => x - Complex.realPhase_integerLatticeShift φ k n)
-          hsucc_shift)
-        (congrArg
-          (fun x : ℝ => (φ (n + 1 : ℕ) - A * ((n : ℝ) + 1)) - x)
-          hn_shift)
-  have hlinear :
-      A * ((n : ℝ) + 1) = A * (n : ℝ) + A := by
-    exact Eq.trans (mul_add A (n : ℝ) 1)
-      (congrArg (fun r : ℝ => A * (n : ℝ) + r) (mul_one A))
-  have hneg_linear :
-      -(A * ((n : ℝ) + 1)) =
-        -(A * (n : ℝ)) + -A := by
-    exact Eq.trans
-      (congrArg Neg.neg hlinear)
-      (neg_add (A * (n : ℝ)) A)
-  have harith :
-      (φ (n + 1 : ℕ) - A * ((n : ℝ) + 1)) -
-          (φ n - A * (n : ℝ)) =
-        (φ (n + 1 : ℕ) - φ n) - A := by
-    calc
-      (φ (n + 1 : ℕ) - A * ((n : ℝ) + 1)) -
-          (φ n - A * (n : ℝ)) =
-        (φ (n + 1 : ℕ) + -(A * ((n : ℝ) + 1))) +
-          (-(φ n) + A * (n : ℝ)) := by
-        have hright :
-            -(φ n - A * (n : ℝ)) = -(φ n) + A * (n : ℝ) := by
-          calc
-            -(φ n - A * (n : ℝ)) =
-                A * (n : ℝ) - φ n := by
-              exact neg_sub (φ n) (A * (n : ℝ))
-            _ = A * (n : ℝ) + -(φ n) := by
-              exact sub_eq_add_neg (A * (n : ℝ)) (φ n)
-            _ = -(φ n) + A * (n : ℝ) := by
-              exact add_comm (A * (n : ℝ)) (-(φ n))
-        exact congrArg₂ HAdd.hAdd
-          (sub_eq_add_neg (φ (n + 1 : ℕ)) (A * ((n : ℝ) + 1)))
-          hright
-      _ =
-        (φ (n + 1 : ℕ) + (-(A * (n : ℝ)) + -A)) +
-          (-(φ n) + A * (n : ℝ)) := by
-        exact congrArg
-          (fun r : ℝ => (φ (n + 1 : ℕ) + r) + (-(φ n) + A * (n : ℝ)))
-          hneg_linear
-      _ =
-        ((φ (n + 1 : ℕ) + -(φ n)) +
-          ((-(A * (n : ℝ)) + -A) + A * (n : ℝ))) := by
-        exact add_add_add_comm
-          (φ (n + 1 : ℕ))
-          (-(A * (n : ℝ)) + -A)
-          (-(φ n))
-          (A * (n : ℝ))
-      _ =
-        ((φ (n + 1 : ℕ) + -(φ n)) +
-          (-A + (-(A * (n : ℝ)) + A * (n : ℝ)))) := by
-        have hcomm :
-            (-(A * (n : ℝ)) + -A) + A * (n : ℝ) =
-              -A + (-(A * (n : ℝ)) + A * (n : ℝ)) := by
-          calc
-            (-(A * (n : ℝ)) + -A) + A * (n : ℝ) =
-                -(A * (n : ℝ)) + (-A + A * (n : ℝ)) := by
-              exact add_assoc (-(A * (n : ℝ))) (-A) (A * (n : ℝ))
-            _ = -(A * (n : ℝ)) + (A * (n : ℝ) + -A) := by
-              exact congrArg
-                (fun r : ℝ => -(A * (n : ℝ)) + r)
-                (add_comm (-A) (A * (n : ℝ)))
-            _ = (-(A * (n : ℝ)) + A * (n : ℝ)) + -A := by
-              exact (add_assoc (-(A * (n : ℝ))) (A * (n : ℝ)) (-A)).symm
-            _ = -A + (-(A * (n : ℝ)) + A * (n : ℝ)) := by
-              exact add_comm (-(A * (n : ℝ)) + A * (n : ℝ)) (-A)
-        exact congrArg
-          (fun r : ℝ => (φ (n + 1 : ℕ) + -(φ n)) + r)
-          hcomm
-      _ =
-        ((φ (n + 1 : ℕ) + -(φ n)) + (-A + 0)) := by
-        exact congrArg
-          (fun r : ℝ => (φ (n + 1 : ℕ) + -(φ n)) + (-A + r))
-          (neg_add_cancel (A * (n : ℝ)))
-      _ =
-        ((φ (n + 1 : ℕ) + -(φ n)) + -A) := by
-        exact congrArg
-          (fun r : ℝ => (φ (n + 1 : ℕ) + -(φ n)) + r)
-          (add_zero (-A))
-      _ =
-        (φ (n + 1 : ℕ) - φ n) + -A := by
-        exact congrArg
-          (fun r : ℝ => r + -A)
-          (sub_eq_add_neg (φ (n + 1 : ℕ)) (φ n)).symm
-      _ =
-        (φ (n + 1 : ℕ) - φ n) - A :=
-        (sub_eq_add_neg (φ (n + 1 : ℕ) - φ n) A).symm
-  exact
-    Eq.trans hraw
-      (Eq.trans harith
-        (congrArg (fun r : ℝ => r - A)
-          (Eq.refl (Complex.realPhase_integerIncrement φ n))))
 
 /-- A `2πk`-centered resonance condition for a phase is exactly the
 zero-centered resonance condition for the integer-lattice shifted phase. -/
@@ -413,91 +270,6 @@ theorem Complex.realPhase_integerIncrementResonanceWindow_integerLatticeShift_ze
             (And.intro hdata.1
               ((Complex.realPhase_integerIncrement_integerLatticeShift_zero_resonance_iff
                 φ k n lam).mpr hdata.2))))
-
-/-- Raw integer-increment monotonicity is preserved by removing a fixed
-integer lattice slope. -/
-theorem Complex.realPhase_integerIncrementMonotoneOn_integerLatticeShift
-    (φ : ℝ → ℝ)
-    (k : ℤ)
-    {a b : ℕ}
-    (hmono : Complex.realPhase_integerIncrementMonotoneOn φ a b) :
-    Complex.realPhase_integerIncrementMonotoneOn
-      (Complex.realPhase_integerLatticeShift φ k) a b := by
-  match hmono with
-  | Or.inl hinc =>
-      exact Or.inl
-        (fun m hm n hn hmn =>
-          have hm_eq :
-              Complex.realPhase_integerIncrement
-                  (Complex.realPhase_integerLatticeShift φ k) m =
-                Complex.realPhase_integerIncrement φ m -
-                  (2 * Real.pi * (k : ℝ)) :=
-            Complex.realPhase_integerIncrement_integerLatticeShift_eq φ k m
-          have hn_eq :
-              Complex.realPhase_integerIncrement
-                  (Complex.realPhase_integerLatticeShift φ k) n =
-                Complex.realPhase_integerIncrement φ n -
-                  (2 * Real.pi * (k : ℝ)) :=
-            Complex.realPhase_integerIncrement_integerLatticeShift_eq φ k n
-          have hraw :
-              Complex.realPhase_integerIncrement φ m ≤
-                Complex.realPhase_integerIncrement φ n :=
-            hinc hm hn hmn
-          have hshift :
-              Complex.realPhase_integerIncrement φ m -
-                  (2 * Real.pi * (k : ℝ)) ≤
-                Complex.realPhase_integerIncrement φ n -
-                  (2 * Real.pi * (k : ℝ)) :=
-            sub_le_sub_right hraw (2 * Real.pi * (k : ℝ))
-          Eq.subst
-            (motive := fun left : ℝ =>
-              left ≤
-                Complex.realPhase_integerIncrement
-                  (Complex.realPhase_integerLatticeShift φ k) n)
-            hm_eq.symm
-            (Eq.subst
-              (motive := fun right : ℝ =>
-                Complex.realPhase_integerIncrement φ m -
-                    (2 * Real.pi * (k : ℝ)) ≤ right)
-              hn_eq.symm
-              hshift))
-  | Or.inr hdec =>
-      exact Or.inr
-        (fun m hm n hn hmn =>
-          have hm_eq :
-              Complex.realPhase_integerIncrement
-                  (Complex.realPhase_integerLatticeShift φ k) m =
-                Complex.realPhase_integerIncrement φ m -
-                  (2 * Real.pi * (k : ℝ)) :=
-            Complex.realPhase_integerIncrement_integerLatticeShift_eq φ k m
-          have hn_eq :
-              Complex.realPhase_integerIncrement
-                  (Complex.realPhase_integerLatticeShift φ k) n =
-                Complex.realPhase_integerIncrement φ n -
-                  (2 * Real.pi * (k : ℝ)) :=
-            Complex.realPhase_integerIncrement_integerLatticeShift_eq φ k n
-          have hraw :
-              Complex.realPhase_integerIncrement φ n ≤
-                Complex.realPhase_integerIncrement φ m :=
-            hdec hm hn hmn
-          have hshift :
-              Complex.realPhase_integerIncrement φ n -
-                  (2 * Real.pi * (k : ℝ)) ≤
-                Complex.realPhase_integerIncrement φ m -
-                  (2 * Real.pi * (k : ℝ)) :=
-            sub_le_sub_right hraw (2 * Real.pi * (k : ℝ))
-          Eq.subst
-            (motive := fun left : ℝ =>
-              left ≤
-                Complex.realPhase_integerIncrement
-                  (Complex.realPhase_integerLatticeShift φ k) m)
-            hn_eq.symm
-            (Eq.subst
-              (motive := fun right : ℝ =>
-                Complex.realPhase_integerIncrement φ n -
-                    (2 * Real.pi * (k : ℝ)) ≤ right)
-              hm_eq.symm
-              hshift))
 
 /-- Reduced increment monotonicity for an integer-lattice shifted phase follows
 from raw monotonicity and principal-branch control of the shifted increments. -/
@@ -714,27 +486,6 @@ theorem Complex.realPhase_integerIncrementPrincipalStrip_disjoint_of_ne
           Complex.realPhase_integerIncrementPrincipalStrip_center_unique
             φ hn_k hn_l
         hkl hcenter)
-
-/-- Every real angle has an integer lattice translate in the principal
-branch. -/
-theorem Real.exists_int_sub_two_pi_mul_mem_principal
-    (θ : ℝ) :
-    ∃ k : ℤ,
-      θ - (2 * Real.pi * (k : ℝ)) ∈
-        Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) := by
-  match Complex.realPhase_twoPi_toIocMod_integerDistance θ with
-  | ⟨k, hk⟩ =>
-      have hmod :
-          toIocMod Real.two_pi_pos (-Real.pi) θ ∈
-            Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
-        real_mem_Ioc_pi_to_periodic_upper_for_logarithmicPhase
-          (real_toIocMod_mem_Ioc_pi_for_logarithmicPhase θ)
-      exact Exists.intro k
-        (Eq.subst
-          (motive := fun value : ℝ =>
-            value ∈ Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)))
-          hk.symm
-          hmod)
 
 /-- Every sample increment has an integer lattice translate in the principal
 branch. -/
@@ -2781,6 +2532,318 @@ theorem Complex.realPhase_integerIncrementRangeActiveCenters_card_eq
       (⌊((lo - lam) / (2 * Real.pi))⌋ - 1)
       (⌊((hi + lam) / (2 * Real.pi))⌋ + 1)
 
+/-- Range-active integer centers are monotone under enlargement of the padded
+real increment range. -/
+theorem Complex.realPhase_integerIncrementRangeActiveCenters_subset_of_padded_bounds
+    {lo₁ hi₁ lam₁ lo₂ hi₂ lam₂ : ℝ}
+    (hleft : lo₂ - lam₂ ≤ lo₁ - lam₁)
+    (hright : hi₁ + lam₁ ≤ hi₂ + lam₂) :
+    Complex.realPhase_integerIncrementRangeActiveCenters lo₁ hi₁ lam₁ ⊆
+      Complex.realPhase_integerIncrementRangeActiveCenters lo₂ hi₂ lam₂ := by
+  intro k hk
+  have hk_bounds :
+      ⌊((lo₁ - lam₁) / (2 * Real.pi))⌋ - 1 ≤ k ∧
+        k ≤ ⌊((hi₁ + lam₁) / (2 * Real.pi))⌋ + 1 :=
+    Finset.mem_Icc.mp hk
+  have hleft_div :
+      ((lo₂ - lam₂) / (2 * Real.pi)) ≤
+        ((lo₁ - lam₁) / (2 * Real.pi)) :=
+    div_le_div_of_nonneg_right hleft (le_of_lt Real.two_pi_pos)
+  have hleft_floor :
+      ⌊((lo₂ - lam₂) / (2 * Real.pi))⌋ ≤
+        ⌊((lo₁ - lam₁) / (2 * Real.pi))⌋ :=
+    Int.floor_mono hleft_div
+  have hleft_floor_shift :
+      ⌊((lo₂ - lam₂) / (2 * Real.pi))⌋ - 1 ≤
+        ⌊((lo₁ - lam₁) / (2 * Real.pi))⌋ - 1 :=
+    sub_le_sub_right hleft_floor 1
+  have hleft_k :
+      ⌊((lo₂ - lam₂) / (2 * Real.pi))⌋ - 1 ≤ k :=
+    le_trans hleft_floor_shift hk_bounds.1
+  have hright_div :
+      ((hi₁ + lam₁) / (2 * Real.pi)) ≤
+        ((hi₂ + lam₂) / (2 * Real.pi)) :=
+    div_le_div_of_nonneg_right hright (le_of_lt Real.two_pi_pos)
+  have hright_floor :
+      ⌊((hi₁ + lam₁) / (2 * Real.pi))⌋ ≤
+        ⌊((hi₂ + lam₂) / (2 * Real.pi))⌋ :=
+    Int.floor_mono hright_div
+  have hright_floor_shift :
+      ⌊((hi₁ + lam₁) / (2 * Real.pi))⌋ + 1 ≤
+        ⌊((hi₂ + lam₂) / (2 * Real.pi))⌋ + 1 :=
+    add_le_add_right hright_floor 1
+  have hk_right :
+      k ≤ ⌊((hi₂ + lam₂) / (2 * Real.pi))⌋ + 1 :=
+    le_trans hk_bounds.2 hright_floor_shift
+  exact Finset.mem_Icc.mpr (And.intro hleft_k hk_right)
+
+/-- Real-valued cardinal monotonicity for range-active integer centers under
+enlargement of the padded real increment range. -/
+theorem Complex.realPhase_integerIncrementRangeActiveCenters_card_real_le_of_padded_bounds
+    {lo₁ hi₁ lam₁ lo₂ hi₂ lam₂ : ℝ}
+    (hleft : lo₂ - lam₂ ≤ lo₁ - lam₁)
+    (hright : hi₁ + lam₁ ≤ hi₂ + lam₂) :
+    ((Complex.realPhase_integerIncrementRangeActiveCenters lo₁ hi₁ lam₁).card :
+        ℝ) ≤
+      ((Complex.realPhase_integerIncrementRangeActiveCenters lo₂ hi₂ lam₂).card :
+        ℝ) :=
+  Nat.cast_le.mpr
+    (Finset.card_le_card
+      (Complex.realPhase_integerIncrementRangeActiveCenters_subset_of_padded_bounds
+        hleft hright))
+
+/-- A padded floor interval has real cardinality bounded by its real width
+plus the fixed padding introduced in the active-center construction. -/
+theorem Real.floor_padded_Icc_card_real_le_width_add_five
+    {A B : ℝ}
+    (hAB : A ≤ B) :
+    ((Finset.Icc (⌊A⌋ - 1) (⌊B⌋ + 1)).card : ℝ) ≤
+      B - A + 5 := by
+  let lower : ℤ := ⌊A⌋ - 1
+  let upper : ℤ := ⌊B⌋ + 1
+  let z : ℤ := upper + 1 - lower
+  have hfloor_mono : ⌊A⌋ ≤ ⌊B⌋ :=
+    Int.floor_mono hAB
+  have hz_nonneg : 0 ≤ z := by
+    have hlower_le_upper_one : lower ≤ upper + 1 := by
+      have hstep₁ : ⌊A⌋ - 1 ≤ ⌊A⌋ :=
+        sub_le_self ⌊A⌋ (Int.ofNat_nonneg 1)
+      have hstep₂ : ⌊A⌋ ≤ ⌊B⌋ + 1 :=
+        le_trans hfloor_mono (le_add_of_nonneg_right (Int.ofNat_nonneg 1))
+      have hstep₃ : ⌊B⌋ + 1 ≤ upper + 1 :=
+        le_add_of_nonneg_right (Int.ofNat_nonneg 1)
+      exact le_trans (le_trans hstep₁ hstep₂) hstep₃
+    exact sub_nonneg.mpr hlower_le_upper_one
+  have hcard_eq_nat :
+      (Finset.Icc lower upper).card = z.toNat := by
+    exact Int.card_Icc lower upper
+  have hcast_toNat :
+      ((z.toNat : ℕ) : ℝ) = (z : ℝ) := by
+    have hz_toNat_int : ((z.toNat : ℕ) : ℤ) = z := by
+      exact Int.toNat_of_nonneg hz_nonneg
+    have hz_toNat_real :
+        (((z.toNat : ℕ) : ℤ) : ℝ) = (z : ℝ) :=
+      congrArg (fun q : ℤ => (q : ℝ)) hz_toNat_int
+    have hnat_int_real :
+        (((z.toNat : ℕ) : ℤ) : ℝ) = ((z.toNat : ℕ) : ℝ) :=
+      Int.cast_natCast z.toNat
+    exact Eq.trans hnat_int_real.symm hz_toNat_real
+  have hcard_eq :
+      ((Finset.Icc lower upper).card : ℝ) = (z : ℝ) :=
+    Eq.trans
+      (congrArg (fun n : ℕ => ((n : ℕ) : ℝ)) hcard_eq_nat)
+      hcast_toNat
+  have hfloorB_le : ((⌊B⌋ : ℤ) : ℝ) ≤ B :=
+    Int.floor_le B
+  have hA_lt_floorA_add_one : A < ((⌊A⌋ : ℤ) : ℝ) + 1 :=
+    Int.lt_floor_add_one A
+  have hneg_floorA_le :
+      -((⌊A⌋ : ℤ) : ℝ) ≤ -A + 1 := by
+    have hsub_lt :
+        A - 1 < ((⌊A⌋ : ℤ) : ℝ) :=
+      sub_lt_iff_lt_add.mpr hA_lt_floorA_add_one
+    have hneg_le :
+        -((⌊A⌋ : ℤ) : ℝ) ≤ -(A - 1) :=
+      (neg_le_neg_iff).mpr (le_of_lt hsub_lt)
+    have hneg_sub : -(A - 1) = -A + 1 :=
+      Eq.trans (neg_sub A 1)
+        (Eq.trans (sub_eq_add_neg 1 A) (add_comm (1 : ℝ) (-A)))
+    exact
+      Eq.subst
+        (motive := fun right : ℝ => -((⌊A⌋ : ℤ) : ℝ) ≤ right)
+        hneg_sub
+        hneg_le
+  have hupper_one_le :
+      ((upper + 1 : ℤ) : ℝ) ≤ B + 2 := by
+    have hupper_cast :
+        ((upper + 1 : ℤ) : ℝ) =
+          (((⌊B⌋ : ℤ) : ℝ) + 1) + 1 := by
+      have hcast₁ :
+          ((upper + 1 : ℤ) : ℝ) = (upper : ℝ) + 1 :=
+        Eq.trans (Int.cast_add upper 1)
+          (congrArg (fun r : ℝ => (upper : ℝ) + r) Int.cast_one)
+      have hcast₂ :
+          (upper : ℝ) = ((⌊B⌋ : ℤ) : ℝ) + 1 :=
+        Eq.trans (Int.cast_add ⌊B⌋ 1)
+          (congrArg (fun r : ℝ => ((⌊B⌋ : ℤ) : ℝ) + r) Int.cast_one)
+      exact
+        Eq.trans hcast₁
+          (congrArg (fun r : ℝ => r + 1) hcast₂)
+    have hplus :
+        (((⌊B⌋ : ℤ) : ℝ) + 1) + 1 ≤ (B + 1) + 1 :=
+      add_le_add_right (add_le_add_right hfloorB_le 1) 1
+    have htarget : (B + 1) + 1 = B + 2 :=
+      Eq.trans (add_assoc B 1 1)
+        (congrArg (fun r : ℝ => B + r)
+          (show (1 : ℝ) + 1 = 2 from
+            have hnat : (1 + 1 : ℕ) = 2 :=
+              rfl
+            have hcast_sum :
+                (((1 + 1 : ℕ) : ℝ) = (1 : ℝ) + 1) :=
+              Eq.trans (Nat.cast_add 1 1)
+                (congrArg₂ Add.add Nat.cast_one Nat.cast_one)
+            have hcast_value :
+                (((1 + 1 : ℕ) : ℝ) = (2 : ℝ)) :=
+              Eq.trans
+                (congrArg (fun n : ℕ => (n : ℝ)) hnat)
+                Nat.cast_ofNat
+            Eq.trans hcast_sum.symm hcast_value))
+    exact
+      Eq.subst
+        (motive := fun left : ℝ => left ≤ B + 2)
+        hupper_cast.symm
+        (Eq.subst
+          (motive := fun right : ℝ => (((⌊B⌋ : ℤ) : ℝ) + 1) + 1 ≤ right)
+          htarget
+          hplus)
+  have hneg_lower_le :
+      -(lower : ℝ) ≤ -A + 2 := by
+    have hlower_cast :
+        (lower : ℝ) = ((⌊A⌋ : ℤ) : ℝ) - 1 :=
+      Eq.trans (Int.cast_sub ⌊A⌋ 1)
+        (congrArg (fun r : ℝ => ((⌊A⌋ : ℤ) : ℝ) - r) Int.cast_one)
+    have hneg_lower_eq :
+        -(lower : ℝ) = -(((⌊A⌋ : ℤ) : ℝ) - 1) :=
+      congrArg Neg.neg hlower_cast
+    have hneg_floor_shift :
+        -(((⌊A⌋ : ℤ) : ℝ) - 1) ≤ -A + 2 := by
+      have hneg_sub :
+          -(((⌊A⌋ : ℤ) : ℝ) - 1) =
+            -((⌊A⌋ : ℤ) : ℝ) + 1 :=
+        Eq.trans (neg_sub ((⌊A⌋ : ℤ) : ℝ) 1)
+          (Eq.trans (sub_eq_add_neg 1 ((⌊A⌋ : ℤ) : ℝ))
+            (add_comm (1 : ℝ) (-((⌊A⌋ : ℤ) : ℝ))))
+      have htarget :
+          (-A + 1) + 1 = -A + 2 := by
+        exact Eq.trans (add_assoc (-A) 1 1)
+          (congrArg (fun r : ℝ => -A + r)
+            (show (1 : ℝ) + 1 = 2 from
+              have hnat : (1 + 1 : ℕ) = 2 :=
+                rfl
+              have hcast_sum :
+                  (((1 + 1 : ℕ) : ℝ) = (1 : ℝ) + 1) :=
+                Eq.trans (Nat.cast_add 1 1)
+                  (congrArg₂ Add.add Nat.cast_one Nat.cast_one)
+              have hcast_value :
+                  (((1 + 1 : ℕ) : ℝ) = (2 : ℝ)) :=
+                Eq.trans
+                  (congrArg (fun n : ℕ => (n : ℝ)) hnat)
+                  Nat.cast_ofNat
+              Eq.trans hcast_sum.symm hcast_value))
+      have hfloor_plus :
+          -((⌊A⌋ : ℤ) : ℝ) + 1 ≤ -A + 2 :=
+        Eq.subst
+          (motive := fun right : ℝ =>
+            -((⌊A⌋ : ℤ) : ℝ) + 1 ≤ right)
+          htarget
+          (add_le_add_right hneg_floorA_le 1)
+      exact
+        Eq.subst
+          (motive := fun left : ℝ => left ≤ -A + 2)
+          hneg_sub.symm
+          hfloor_plus
+    exact
+      Eq.subst
+        (motive := fun left : ℝ => left ≤ -A + 2)
+        hneg_lower_eq.symm
+        hneg_floor_shift
+  have hz_le :
+      (z : ℝ) ≤ B - A + 5 := by
+    have hz_cast :
+        (z : ℝ) = ((upper + 1 : ℤ) : ℝ) - (lower : ℝ) :=
+      Int.cast_sub (upper + 1) lower
+    have hsum :
+        ((upper + 1 : ℤ) : ℝ) + -(lower : ℝ) ≤
+          (B + 2) + (-A + 2) :=
+      add_le_add hupper_one_le hneg_lower_le
+    have hleft :
+        ((upper + 1 : ℤ) : ℝ) - (lower : ℝ) =
+          ((upper + 1 : ℤ) : ℝ) + -(lower : ℝ) :=
+      sub_eq_add_neg ((upper + 1 : ℤ) : ℝ) (lower : ℝ)
+    have hright :
+        (B + 2) + (-A + 2) ≤ B - A + 5 := by
+      have hright_four :
+          (B + 2) + (-A + 2) = B - A + 4 := by
+        calc
+          (B + 2) + (-A + 2) =
+              (B + -A) + (2 + 2) :=
+            add_add_add_comm B 2 (-A) 2
+          _ = (B + -A) + 4 :=
+            congrArg (fun r : ℝ => (B + -A) + r)
+              (show (2 : ℝ) + 2 = 4 from
+                have hnat : (2 + 2 : ℕ) = 4 :=
+                  rfl
+                have hcast_sum :
+                    (((2 + 2 : ℕ) : ℝ) = (2 : ℝ) + 2) :=
+                  Eq.trans (Nat.cast_add 2 2)
+                    (congrArg₂ Add.add Nat.cast_ofNat Nat.cast_ofNat)
+                have hcast_value :
+                    (((2 + 2 : ℕ) : ℝ) = (4 : ℝ)) :=
+                  Eq.trans
+                    (congrArg (fun n : ℕ => (n : ℝ)) hnat)
+                    Nat.cast_ofNat
+                Eq.trans hcast_sum.symm hcast_value)
+          _ = B - A + 4 :=
+            congrArg (fun r : ℝ => r + 4) (sub_eq_add_neg B A).symm
+      have hfour_le_five : (4 : ℝ) ≤ 5 :=
+        Nat.cast_le.mpr (Nat.le_succ 4)
+      have hmono :
+          B - A + 4 ≤ B - A + 5 :=
+        add_le_add_left hfour_le_five (B - A)
+      exact
+        Eq.subst
+          (motive := fun left : ℝ => left ≤ B - A + 5)
+          hright_four.symm
+          hmono
+    exact
+      Eq.subst
+        (motive := fun left : ℝ => left ≤ B - A + 5)
+        hz_cast.symm
+        (Eq.subst
+          (motive := fun left : ℝ => left ≤ B - A + 5)
+          hleft.symm
+          (le_trans hsum hright))
+  have hwidth :
+      (z : ℝ) ≤ B - A + 5 := hz_le
+  have hcard_original :
+      ((Finset.Icc (⌊A⌋ - 1) (⌊B⌋ + 1)).card : ℝ) =
+        ((Finset.Icc lower upper).card : ℝ) :=
+    rfl
+  exact
+    Eq.subst
+      (motive := fun left : ℝ => left ≤ B - A + 5)
+      hcard_original.symm
+      (Eq.subst
+        (motive := fun left : ℝ => left ≤ B - A + 5)
+        hcard_eq.symm
+        hwidth)
+
+/-- Numeric count for range-active integer centers in terms of the padded
+real increment width. -/
+theorem Complex.realPhase_integerIncrementRangeActiveCenters_card_real_le_width_add_five
+    {lo hi lam : ℝ}
+    (hlohi : lo ≤ hi)
+    (hlam_nonneg : 0 ≤ lam) :
+    ((Complex.realPhase_integerIncrementRangeActiveCenters lo hi lam).card :
+        ℝ) ≤
+      ((hi + lam) / (2 * Real.pi)) -
+          ((lo - lam) / (2 * Real.pi)) + 5 := by
+  have hpadded :
+      (lo - lam) / (2 * Real.pi) ≤
+        (hi + lam) / (2 * Real.pi) := by
+    have hleft : lo - lam ≤ hi - lam :=
+      sub_le_sub_right hlohi lam
+    have hright : hi - lam ≤ hi + lam := by
+      have hneg_lam_le_lam : -lam ≤ lam :=
+        neg_le_self hlam_nonneg
+      exact add_le_add_left hneg_lam_le_lam hi
+    exact
+      div_le_div_of_nonneg_right
+        (le_trans hleft hright)
+        (le_of_lt Real.two_pi_pos)
+  exact
+    Real.floor_padded_Icc_card_real_le_width_add_five hpadded
+
 /-- Membership in the samplewise active-center interval follows from the
 corresponding divided lower and upper lattice bounds. -/
 theorem Complex.mem_realPhase_integerIncrementSampleActiveCenters_of_divided_bounds
@@ -3256,6 +3319,828 @@ theorem Complex.realPhase_integerIncrementPrincipalStripFamilyUnion_card_real_le
       hfamily_eq.symm
       (le_trans hsum_le (le_of_eq hsum_const))
 
+/-- Refining a disjoint half-open interval family by every integer principal
+strip gives another disjoint half-open interval family.  The new family covers
+exactly the old union restricted to the finite principal-strip family, and its
+cardinality is bounded by the product of the two finite family sizes. -/
+theorem Complex.realPhase_principalStrip_refinement_card_le
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    (hab : a ≤ b)
+    (gaps : Finset (ℕ × ℕ))
+    (K : Finset ℤ)
+    (hbounded :
+      ∀ p : ℕ × ℕ,
+        p ∈ gaps →
+          a ≤ p.1 ∧ p.2 ≤ b)
+    (hdisjoint :
+      ∀ p₁ : ℕ × ℕ,
+        p₁ ∈ gaps →
+          ∀ p₂ : ℕ × ℕ,
+            p₂ ∈ gaps →
+              p₁ ≠ p₂ →
+                Disjoint (Finset.Ico p₁.1 p₁.2)
+                  (Finset.Ico p₂.1 p₂.2))
+    (hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn φ a b) :
+    ∃ refined : Finset (ℕ × ℕ),
+      refined.card ≤ (gaps.attach.product K.attach).card ∧
+        Complex.realPhase_IcoFamilyUnion refined =
+          (Complex.realPhase_IcoFamilyUnion gaps).filter
+            (fun n : ℕ =>
+              n ∈
+                Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+                  φ a b K) ∧
+        (∀ q₁ : ℕ × ℕ,
+          q₁ ∈ refined →
+            ∀ q₂ : ℕ × ℕ,
+              q₂ ∈ refined →
+                q₁ ≠ q₂ →
+                  Disjoint (Finset.Ico q₁.1 q₁.2)
+                    (Finset.Ico q₂.1 q₂.2)) ∧
+        (∀ q : ℕ × ℕ,
+          q ∈ refined →
+            a ≤ q.1 ∧ q.2 ≤ b) ∧
+        ∀ q : ℕ × ℕ,
+          q ∈ refined →
+            ∃ p : ℕ × ℕ,
+              p ∈ gaps ∧
+                ∃ k : ℤ,
+                  k ∈ K ∧
+                    Finset.Ico q.1 q.2 =
+                      (Finset.Ico p.1 p.2).filter
+                        (fun n : ℕ =>
+                          n ∈
+                            Complex.realPhase_integerIncrementPrincipalStrip
+                              φ a b k) ∧
+                    Finset.Ico q.1 q.2 ⊆
+                      Complex.realPhase_integerIncrementPrincipalStrip
+                        φ a b k := by
+  let cell : ({p // p ∈ gaps} × {k // k ∈ K}) → ℕ × ℕ :=
+    fun pk =>
+      let p : ℕ × ℕ := pk.1.1
+      let k : ℤ := pk.2.1
+      if hp_ordered : p.1 ≤ p.2 then
+        let hcell :
+            ∃ u v : ℕ,
+              p.1 ≤ u ∧ u ≤ v ∧ v ≤ p.2 ∧
+                (Finset.Ico p.1 p.2).filter
+                    (fun n : ℕ =>
+                      n ∈
+                        Complex.realPhase_integerIncrementPrincipalStrip
+                          φ a b k) =
+                  Finset.Ico u v :=
+          Complex.realPhase_Ico_filter_principalStrip_exists
+            φ k hab
+            ((hbounded p pk.1.2).1)
+            hp_ordered
+            ((hbounded p pk.1.2).2)
+            hinc_mono
+        (Classical.choose hcell,
+          Classical.choose (Classical.choose_spec hcell))
+      else
+        (a, a)
+  let refined : Finset (ℕ × ℕ) :=
+    (gaps.attach.product K.attach).image cell
+  have hcard :
+      refined.card ≤ (gaps.attach.product K.attach).card :=
+    Finset.card_image_le
+  have hcell_filter :
+      ∀ pk : {p // p ∈ gaps} × {k // k ∈ K},
+        (Finset.Ico pk.1.1.1 pk.1.1.2).filter
+            (fun n : ℕ =>
+              n ∈
+                Complex.realPhase_integerIncrementPrincipalStrip
+                  φ a b pk.2.1) =
+          Finset.Ico (cell pk).1 (cell pk).2 := by
+    intro pk
+    let p : ℕ × ℕ := pk.1.1
+    let k : ℤ := pk.2.1
+    match Classical.em (p.1 ≤ p.2) with
+    | Or.inl hp_ordered =>
+        let hcell :
+            ∃ u v : ℕ,
+              p.1 ≤ u ∧ u ≤ v ∧ v ≤ p.2 ∧
+                (Finset.Ico p.1 p.2).filter
+                    (fun n : ℕ =>
+                      n ∈
+                        Complex.realPhase_integerIncrementPrincipalStrip
+                          φ a b k) =
+                  Finset.Ico u v :=
+          Complex.realPhase_Ico_filter_principalStrip_exists
+            φ k hab
+            ((hbounded p pk.1.2).1)
+            hp_ordered
+            ((hbounded p pk.1.2).2)
+            hinc_mono
+        have hfilter_eq :
+            (Finset.Ico p.1 p.2).filter
+                (fun n : ℕ =>
+                  n ∈
+                    Complex.realPhase_integerIncrementPrincipalStrip
+                      φ a b k) =
+              Finset.Ico (Classical.choose hcell)
+                (Classical.choose (Classical.choose_spec hcell)) :=
+          (Classical.choose_spec
+            (Classical.choose_spec hcell)).2.2.2
+        have hcell_eq :
+            cell pk =
+              (Classical.choose hcell,
+                Classical.choose (Classical.choose_spec hcell)) := by
+          exact dif_pos hp_ordered
+        exact
+          Eq.subst
+            (motive := fun r : ℕ × ℕ =>
+              (Finset.Ico p.1 p.2).filter
+                  (fun n : ℕ =>
+                    n ∈
+                      Complex.realPhase_integerIncrementPrincipalStrip
+                        φ a b k) =
+                Finset.Ico r.1 r.2)
+            hcell_eq.symm
+            hfilter_eq
+    | Or.inr hp_not_ordered =>
+        have hIco_empty :
+            ∀ n : ℕ, n ∉ Finset.Ico p.1 p.2 := by
+          intro n hn
+          have hn_bounds : p.1 ≤ n ∧ n < p.2 :=
+            Finset.mem_Ico.mp hn
+          exact hp_not_ordered
+            (Nat.le_trans hn_bounds.1 (Nat.le_of_lt hn_bounds.2))
+        have hfilter_empty :
+            (Finset.Ico p.1 p.2).filter
+                (fun n : ℕ =>
+                  n ∈
+                    Complex.realPhase_integerIncrementPrincipalStrip
+                      φ a b k) =
+              Finset.Ico a a := by
+          exact Finset.ext
+            (fun n =>
+              Iff.intro
+                (fun hn =>
+                  False.elim
+                    (hIco_empty n (Finset.mem_filter.mp hn).1))
+                (fun hn =>
+                  False.elim
+                    (not_lt_of_ge (Finset.mem_Ico.mp hn).1
+                      (Finset.mem_Ico.mp hn).2)))
+        have hcell_eq : cell pk = (a, a) := by
+          exact dif_neg hp_not_ordered
+        exact
+          Eq.subst
+            (motive := fun r : ℕ × ℕ =>
+              (Finset.Ico p.1 p.2).filter
+                  (fun n : ℕ =>
+                    n ∈
+                      Complex.realPhase_integerIncrementPrincipalStrip
+                        φ a b k) =
+                Finset.Ico r.1 r.2)
+            hcell_eq.symm
+            hfilter_empty
+  have hcell_bounded :
+      ∀ pk : {p // p ∈ gaps} × {k // k ∈ K},
+        a ≤ (cell pk).1 ∧ (cell pk).2 ≤ b := by
+    intro pk
+    let p : ℕ × ℕ := pk.1.1
+    let k : ℤ := pk.2.1
+    match Classical.em (p.1 ≤ p.2) with
+    | Or.inl hp_ordered =>
+        let hcell :
+            ∃ u v : ℕ,
+              p.1 ≤ u ∧ u ≤ v ∧ v ≤ p.2 ∧
+                (Finset.Ico p.1 p.2).filter
+                    (fun n : ℕ =>
+                      n ∈
+                        Complex.realPhase_integerIncrementPrincipalStrip
+                          φ a b k) =
+                  Finset.Ico u v :=
+          Complex.realPhase_Ico_filter_principalStrip_exists
+            φ k hab
+            ((hbounded p pk.1.2).1)
+            hp_ordered
+            ((hbounded p pk.1.2).2)
+            hinc_mono
+        have hspec :
+            p.1 ≤ Classical.choose hcell ∧
+              Classical.choose hcell ≤
+                Classical.choose (Classical.choose_spec hcell) ∧
+              Classical.choose (Classical.choose_spec hcell) ≤ p.2 ∧
+                (Finset.Ico p.1 p.2).filter
+                    (fun n : ℕ =>
+                      n ∈
+                        Complex.realPhase_integerIncrementPrincipalStrip
+                          φ a b k) =
+                  Finset.Ico (Classical.choose hcell)
+                    (Classical.choose (Classical.choose_spec hcell)) :=
+          Classical.choose_spec (Classical.choose_spec hcell)
+        have hcell_eq :
+            cell pk =
+              (Classical.choose hcell,
+                Classical.choose (Classical.choose_spec hcell)) := by
+          exact dif_pos hp_ordered
+        have hbounds :
+            a ≤ Classical.choose hcell ∧
+              Classical.choose (Classical.choose_spec hcell) ≤ b :=
+          And.intro
+            (Nat.le_trans (hbounded p pk.1.2).1 hspec.1)
+            (Nat.le_trans hspec.2.2.1 (hbounded p pk.1.2).2)
+        exact
+          Eq.subst
+            (motive := fun r : ℕ × ℕ => a ≤ r.1 ∧ r.2 ≤ b)
+            hcell_eq.symm
+            hbounds
+    | Or.inr hp_not_ordered =>
+        have hcell_eq : cell pk = (a, a) := by
+          exact dif_neg hp_not_ordered
+        exact
+          Eq.subst
+            (motive := fun r : ℕ × ℕ => a ≤ r.1 ∧ r.2 ≤ b)
+            hcell_eq.symm
+            (And.intro le_rfl hab)
+  have hprincipal :
+      ∀ q : ℕ × ℕ,
+        q ∈ refined →
+          ∃ p : ℕ × ℕ,
+            p ∈ gaps ∧
+              ∃ k : ℤ,
+                k ∈ K ∧
+                  Finset.Ico q.1 q.2 =
+                    (Finset.Ico p.1 p.2).filter
+                      (fun n : ℕ =>
+                        n ∈
+                          Complex.realPhase_integerIncrementPrincipalStrip
+                            φ a b k) ∧
+                  Finset.Ico q.1 q.2 ⊆
+                    Complex.realPhase_integerIncrementPrincipalStrip
+                      φ a b k := by
+    intro q hq
+    have hq_image :
+        ∃ pk : {p // p ∈ gaps} × {k // k ∈ K},
+          pk ∈ gaps.attach.product K.attach ∧ cell pk = q :=
+      Finset.mem_image.mp hq
+    match hq_image with
+    | ⟨pk, _hpk, hcell_eq_q⟩ =>
+        let p : ℕ × ℕ := pk.1.1
+        let k : ℤ := pk.2.1
+        have hfilter_cell :
+            (Finset.Ico p.1 p.2).filter
+                (fun n : ℕ =>
+                  n ∈
+                    Complex.realPhase_integerIncrementPrincipalStrip
+                      φ a b k) =
+              Finset.Ico (cell pk).1 (cell pk).2 :=
+          hcell_filter pk
+        have hq_eq : q = cell pk :=
+          hcell_eq_q.symm
+        have hIco_eq :
+            Finset.Ico q.1 q.2 =
+              (Finset.Ico p.1 p.2).filter
+                (fun n : ℕ =>
+                  n ∈
+                    Complex.realPhase_integerIncrementPrincipalStrip
+                      φ a b k) := by
+          exact
+            Eq.subst
+              (motive := fun r : ℕ × ℕ =>
+                Finset.Ico r.1 r.2 =
+                  (Finset.Ico p.1 p.2).filter
+                    (fun n : ℕ =>
+                      n ∈
+                        Complex.realPhase_integerIncrementPrincipalStrip
+                          φ a b k))
+              hq_eq.symm
+              hfilter_cell.symm
+        have hsubset :
+            Finset.Ico q.1 q.2 ⊆
+              Complex.realPhase_integerIncrementPrincipalStrip φ a b k := by
+          intro n hn
+          have hn_filter :
+              n ∈ (Finset.Ico p.1 p.2).filter
+                (fun m : ℕ =>
+                  m ∈
+                    Complex.realPhase_integerIncrementPrincipalStrip
+                      φ a b k) :=
+            Eq.subst
+              (motive := fun S : Finset ℕ => n ∈ S)
+              hIco_eq
+              hn
+          exact (Finset.mem_filter.mp hn_filter).2
+        exact
+          Exists.intro p
+            (And.intro pk.1.2
+              (Exists.intro k
+                (And.intro pk.2.2
+                  (And.intro hIco_eq hsubset))))
+  have hcover :
+      Complex.realPhase_IcoFamilyUnion refined =
+        (Complex.realPhase_IcoFamilyUnion gaps).filter
+          (fun n : ℕ =>
+            n ∈
+              Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+                φ a b K) := by
+    exact Finset.ext
+      (fun n =>
+        Iff.intro
+          (fun hn =>
+            have hn_refined :
+                ∃ q : ℕ × ℕ,
+                  q ∈ refined ∧ n ∈ Finset.Ico q.1 q.2 :=
+              Finset.mem_biUnion.mp hn
+            match hn_refined with
+            | ⟨q, hq, hnq⟩ =>
+                match hprincipal q hq with
+                | ⟨p, hp, k, hk, hq_filter, hq_subset⟩ =>
+                    have hn_filter :
+                        n ∈ (Finset.Ico p.1 p.2).filter
+                          (fun m : ℕ =>
+                            m ∈
+                              Complex.realPhase_integerIncrementPrincipalStrip
+                                φ a b k) :=
+                      Eq.subst
+                        (motive := fun S : Finset ℕ => n ∈ S)
+                        hq_filter
+                        hnq
+                    have hn_gap : n ∈ Complex.realPhase_IcoFamilyUnion gaps :=
+                      Finset.mem_biUnion.mpr
+                        (Exists.intro p
+                          (And.intro hp
+                            (Finset.mem_filter.mp hn_filter).1))
+                    have hn_family :
+                        n ∈
+                          Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+                            φ a b K :=
+                      (Complex.mem_realPhase_integerIncrementPrincipalStripFamilyUnion_iff
+                        φ).mpr
+                        (Exists.intro k
+                          (And.intro hk (hq_subset hnq)))
+                    Finset.mem_filter.mpr (And.intro hn_gap hn_family))
+          (fun hn =>
+            have hn_data :
+                n ∈ Complex.realPhase_IcoFamilyUnion gaps ∧
+                  n ∈
+                    Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+                      φ a b K :=
+              Finset.mem_filter.mp hn
+            have hn_gap :
+                ∃ p : ℕ × ℕ,
+                  p ∈ gaps ∧ n ∈ Finset.Ico p.1 p.2 :=
+              Finset.mem_biUnion.mp hn_data.1
+            have hn_family :
+                ∃ k : ℤ,
+                  k ∈ K ∧
+                    n ∈
+                      Complex.realPhase_integerIncrementPrincipalStrip
+                        φ a b k :=
+              (Complex.mem_realPhase_integerIncrementPrincipalStripFamilyUnion_iff
+                φ).mp hn_data.2
+            match hn_gap with
+            | ⟨p, hp, hnp⟩ =>
+                match hn_family with
+                | ⟨k, hk, hnk⟩ =>
+                    let pk : {p // p ∈ gaps} × {k // k ∈ K} :=
+                      (⟨p, hp⟩, ⟨k, hk⟩)
+                    let q : ℕ × ℕ := cell pk
+                    have hq_mem : q ∈ refined :=
+                      Finset.mem_image.mpr
+                        (Exists.intro pk
+                          (And.intro
+                            (Finset.mem_product.mpr
+                              (And.intro
+                                (Finset.mem_attach gaps (⟨p, hp⟩))
+                                (Finset.mem_attach K (⟨k, hk⟩))))
+                            rfl))
+                    have hfilter_eq :
+                        (Finset.Ico p.1 p.2).filter
+                            (fun m : ℕ =>
+                              m ∈
+                                Complex.realPhase_integerIncrementPrincipalStrip
+                                  φ a b k) =
+                          Finset.Ico q.1 q.2 :=
+                      hcell_filter pk
+                    have hn_filter :
+                        n ∈ (Finset.Ico p.1 p.2).filter
+                          (fun m : ℕ =>
+                            m ∈
+                              Complex.realPhase_integerIncrementPrincipalStrip
+                                φ a b k) :=
+                      Finset.mem_filter.mpr (And.intro hnp hnk)
+                    have hnq :
+                        n ∈ Finset.Ico q.1 q.2 :=
+                      Eq.subst
+                        (motive := fun S : Finset ℕ => n ∈ S)
+                        hfilter_eq
+                        hn_filter
+                    Finset.mem_biUnion.mpr
+                      (Exists.intro q (And.intro hq_mem hnq))))
+  have hrefined_bounded :
+      ∀ q : ℕ × ℕ,
+        q ∈ refined →
+          a ≤ q.1 ∧ q.2 ≤ b := by
+    intro q hq
+    have hq_image :
+        ∃ pk : {p // p ∈ gaps} × {k // k ∈ K},
+          pk ∈ gaps.attach.product K.attach ∧ cell pk = q :=
+      Finset.mem_image.mp hq
+    match hq_image with
+    | ⟨pk, _hpk, hcell_eq_q⟩ =>
+        exact
+          Eq.subst
+            (motive := fun r : ℕ × ℕ => a ≤ r.1 ∧ r.2 ≤ b)
+            hcell_eq_q
+            (hcell_bounded pk)
+  have hrefined_disjoint :
+      ∀ q₁ : ℕ × ℕ,
+        q₁ ∈ refined →
+          ∀ q₂ : ℕ × ℕ,
+            q₂ ∈ refined →
+              q₁ ≠ q₂ →
+                Disjoint (Finset.Ico q₁.1 q₁.2)
+                  (Finset.Ico q₂.1 q₂.2) := by
+    intro q₁ hq₁ q₂ hq₂ hq_ne
+    exact
+      Finset.disjoint_left.mpr
+        (fun n hn₁ hn₂ =>
+          have hq₁_image :
+              ∃ pk₁ : {p // p ∈ gaps} × {k // k ∈ K},
+                pk₁ ∈ gaps.attach.product K.attach ∧ cell pk₁ = q₁ :=
+            Finset.mem_image.mp hq₁
+          have hq₂_image :
+              ∃ pk₂ : {p // p ∈ gaps} × {k // k ∈ K},
+                pk₂ ∈ gaps.attach.product K.attach ∧ cell pk₂ = q₂ :=
+            Finset.mem_image.mp hq₂
+          match hq₁_image with
+          | ⟨pk₁, _hpk₁, hcell₁⟩ =>
+              match hq₂_image with
+              | ⟨pk₂, _hpk₂, hcell₂⟩ =>
+                  have hpk_ne : pk₁ ≠ pk₂ := by
+                    intro hpk_eq
+                    have hq_eq : q₁ = q₂ :=
+                      Eq.trans hcell₁.symm
+                        (Eq.trans (congrArg cell hpk_eq) hcell₂)
+                    exact hq_ne hq_eq
+                  let p₁ : ℕ × ℕ := pk₁.1.1
+                  let p₂ : ℕ × ℕ := pk₂.1.1
+                  let k₁ : ℤ := pk₁.2.1
+                  let k₂ : ℤ := pk₂.2.1
+                  have hq₁_eq :
+                      Finset.Ico q₁.1 q₁.2 =
+                        (Finset.Ico p₁.1 p₁.2).filter
+                          (fun m : ℕ =>
+                            m ∈
+                              Complex.realPhase_integerIncrementPrincipalStrip
+                                φ a b k₁) := by
+                    have hcell_filter₁ :
+                        (Finset.Ico p₁.1 p₁.2).filter
+                            (fun m : ℕ =>
+                              m ∈
+                                Complex.realPhase_integerIncrementPrincipalStrip
+                                  φ a b k₁) =
+                          Finset.Ico (cell pk₁).1 (cell pk₁).2 :=
+                      hcell_filter pk₁
+                    exact
+                      Eq.subst
+                        (motive := fun r : ℕ × ℕ =>
+                          Finset.Ico r.1 r.2 =
+                            (Finset.Ico p₁.1 p₁.2).filter
+                              (fun m : ℕ =>
+                                m ∈
+                                  Complex.realPhase_integerIncrementPrincipalStrip
+                                    φ a b k₁))
+                        hcell₁
+                        hcell_filter₁.symm
+                  have hq₂_eq :
+                      Finset.Ico q₂.1 q₂.2 =
+                        (Finset.Ico p₂.1 p₂.2).filter
+                          (fun m : ℕ =>
+                            m ∈
+                              Complex.realPhase_integerIncrementPrincipalStrip
+                                φ a b k₂) := by
+                    have hcell_filter₂ :
+                        (Finset.Ico p₂.1 p₂.2).filter
+                            (fun m : ℕ =>
+                              m ∈
+                                Complex.realPhase_integerIncrementPrincipalStrip
+                                  φ a b k₂) =
+                          Finset.Ico (cell pk₂).1 (cell pk₂).2 :=
+                      hcell_filter pk₂
+                    exact
+                      Eq.subst
+                        (motive := fun r : ℕ × ℕ =>
+                          Finset.Ico r.1 r.2 =
+                            (Finset.Ico p₂.1 p₂.2).filter
+                              (fun m : ℕ =>
+                                m ∈
+                                  Complex.realPhase_integerIncrementPrincipalStrip
+                                    φ a b k₂))
+                        hcell₂
+                        hcell_filter₂.symm
+                  have hn₁_filter :
+                      n ∈ (Finset.Ico p₁.1 p₁.2).filter
+                        (fun m : ℕ =>
+                          m ∈
+                            Complex.realPhase_integerIncrementPrincipalStrip
+                              φ a b k₁) :=
+                    Eq.subst
+                      (motive := fun S : Finset ℕ => n ∈ S)
+                      hq₁_eq
+                      hn₁
+                  have hn₂_filter :
+                      n ∈ (Finset.Ico p₂.1 p₂.2).filter
+                        (fun m : ℕ =>
+                          m ∈
+                            Complex.realPhase_integerIncrementPrincipalStrip
+                              φ a b k₂) :=
+                    Eq.subst
+                      (motive := fun S : Finset ℕ => n ∈ S)
+                      hq₂_eq
+                      hn₂
+                  match Classical.em (p₁ = p₂) with
+                  | Or.inr hp_ne =>
+                      have hgap_disjoint :
+                          Disjoint (Finset.Ico p₁.1 p₁.2)
+                            (Finset.Ico p₂.1 p₂.2) :=
+                        hdisjoint p₁ pk₁.1.2 p₂ pk₂.1.2 hp_ne
+                      (Finset.disjoint_left.mp hgap_disjoint)
+                        (Finset.mem_filter.mp hn₁_filter).1
+                        (Finset.mem_filter.mp hn₂_filter).1
+                  | Or.inl hp_eq =>
+                      match Classical.em (k₁ = k₂) with
+                      | Or.inr hk_ne =>
+                          have hstrip_disjoint :
+                              Disjoint
+                                (Complex.realPhase_integerIncrementPrincipalStrip
+                                  φ a b k₁)
+                                (Complex.realPhase_integerIncrementPrincipalStrip
+                                  φ a b k₂) :=
+                            Complex.realPhase_integerIncrementPrincipalStrip_disjoint_of_ne
+                              φ hk_ne
+                          (Finset.disjoint_left.mp hstrip_disjoint)
+                            (Finset.mem_filter.mp hn₁_filter).2
+                            (Finset.mem_filter.mp hn₂_filter).2
+                      | Or.inl hk_eq =>
+                          have hpk_eq : pk₁ = pk₂ := by
+                            have hp_sub : pk₁.1 = pk₂.1 :=
+                              Subtype.ext hp_eq
+                            have hk_sub : pk₁.2 = pk₂.2 :=
+                              Subtype.ext hk_eq
+                            exact Prod.ext hp_sub hk_sub
+                          hpk_ne hpk_eq)
+  exact
+    Exists.intro refined
+      (And.intro hcard
+        (And.intro hcover
+          (And.intro hrefined_disjoint
+            (And.intro hrefined_bounded hprincipal))))
+
+/-- Removing empty half-open intervals from an interval family does not change
+its union. -/
+theorem Complex.realPhase_IcoFamilyUnion_filter_nonempty_eq
+    (gaps : Finset (ℕ × ℕ)) :
+    Complex.realPhase_IcoFamilyUnion
+        (gaps.filter (fun p : ℕ × ℕ => p.1 < p.2)) =
+      Complex.realPhase_IcoFamilyUnion gaps := by
+  exact Finset.ext
+    (fun n =>
+      Iff.intro
+        (fun hn =>
+          have hmem :
+              ∃ p : ℕ × ℕ,
+                p ∈ gaps.filter (fun q : ℕ × ℕ => q.1 < q.2) ∧
+                  n ∈ Finset.Ico p.1 p.2 :=
+            Finset.mem_biUnion.mp hn
+          match hmem with
+          | ⟨p, hp, hnp⟩ =>
+              have hp_gap : p ∈ gaps :=
+                (Finset.mem_filter.mp hp).1
+              Finset.mem_biUnion.mpr
+                (Exists.intro p (And.intro hp_gap hnp)))
+        (fun hn =>
+          have hmem :
+              ∃ p : ℕ × ℕ,
+                p ∈ gaps ∧ n ∈ Finset.Ico p.1 p.2 :=
+            Finset.mem_biUnion.mp hn
+          match hmem with
+          | ⟨p, hp, hnp⟩ =>
+              have hp_bounds : p.1 ≤ n ∧ n < p.2 :=
+                Finset.mem_Ico.mp hnp
+              have hp_nonempty : p.1 < p.2 :=
+                lt_of_le_of_lt hp_bounds.1 hp_bounds.2
+              have hp_filter :
+                  p ∈ gaps.filter (fun q : ℕ × ℕ => q.1 < q.2) :=
+                Finset.mem_filter.mpr (And.intro hp hp_nonempty)
+              Finset.mem_biUnion.mpr
+                (Exists.intro p (And.intro hp_filter hnp))))
+
+/-- A disjoint bounded family of nonempty half-open intervals has no more
+members than the ambient block has integer samples. -/
+theorem Complex.realPhase_IcoFamily_filter_nonempty_card_le_block
+    {a b : ℕ}
+    (gaps : Finset (ℕ × ℕ))
+    (hbounded :
+      ∀ p : ℕ × ℕ,
+        p ∈ gaps →
+          a ≤ p.1 ∧ p.2 ≤ b)
+    (hdisjoint :
+      ∀ p₁ : ℕ × ℕ,
+        p₁ ∈ gaps →
+          ∀ p₂ : ℕ × ℕ,
+            p₂ ∈ gaps →
+              p₁ ≠ p₂ →
+                Disjoint (Finset.Ico p₁.1 p₁.2)
+                  (Finset.Ico p₂.1 p₂.2)) :
+    (gaps.filter (fun p : ℕ × ℕ => p.1 < p.2)).card ≤
+      (Finset.Ico a b).card := by
+  let nonemptyGaps : Finset (ℕ × ℕ) :=
+    gaps.filter (fun p : ℕ × ℕ => p.1 < p.2)
+  have hinj :
+      Set.InjOn Prod.fst (nonemptyGaps : Set (ℕ × ℕ)) := by
+    intro p hp q hq hpq_left
+    have hp_data :
+        p ∈ gaps ∧ p.1 < p.2 :=
+      Finset.mem_filter.mp hp
+    have hq_data :
+        q ∈ gaps ∧ q.1 < q.2 :=
+      Finset.mem_filter.mp hq
+    match Classical.em (p = q) with
+    | Or.inl hpq =>
+        exact hpq
+    | Or.inr hpq_ne =>
+        have hp_left_mem :
+            p.1 ∈ Finset.Ico p.1 p.2 :=
+          Finset.mem_Ico.mpr (And.intro le_rfl hp_data.2)
+        have hq_left_mem :
+            q.1 ∈ Finset.Ico q.1 q.2 :=
+          Finset.mem_Ico.mpr (And.intro le_rfl hq_data.2)
+        have hp_left_mem_q :
+            p.1 ∈ Finset.Ico q.1 q.2 :=
+          Eq.subst
+            (motive := fun left : ℕ => left ∈ Finset.Ico q.1 q.2)
+            hpq_left.symm
+            hq_left_mem
+        have hdis :
+            Disjoint (Finset.Ico p.1 p.2)
+              (Finset.Ico q.1 q.2) :=
+          hdisjoint p hp_data.1 q hq_data.1 hpq_ne
+        exact False.elim
+          ((Finset.disjoint_left.mp hdis)
+            hp_left_mem hp_left_mem_q)
+  have himage_subset :
+      nonemptyGaps.image Prod.fst ⊆ Finset.Ico a b := by
+    intro n hn
+    have hn_image :
+        ∃ p : ℕ × ℕ,
+          p ∈ nonemptyGaps ∧ Prod.fst p = n :=
+      Finset.mem_image.mp hn
+    match hn_image with
+    | ⟨p, hp, hpn⟩ =>
+        have hp_data :
+            p ∈ gaps ∧ p.1 < p.2 :=
+          Finset.mem_filter.mp hp
+        have hb : a ≤ p.1 ∧ p.2 ≤ b :=
+          hbounded p hp_data.1
+        have hp_left_mem :
+            p.1 ∈ Finset.Ico a b :=
+          Finset.mem_Ico.mpr
+            (And.intro hb.1 (lt_of_lt_of_le hp_data.2 hb.2))
+        exact Eq.subst
+          (motive := fun m : ℕ => m ∈ Finset.Ico a b)
+          hpn
+          hp_left_mem
+  have hcard_image :
+      (nonemptyGaps.image Prod.fst).card = nonemptyGaps.card :=
+    Finset.card_image_of_injOn hinj
+  have hle :
+      (nonemptyGaps.image Prod.fst).card ≤ (Finset.Ico a b).card :=
+    Finset.card_le_card himage_subset
+  exact
+    Eq.subst
+      (motive := fun n : ℕ => n ≤ (Finset.Ico a b).card)
+      hcard_image
+      hle
+
+/-- Nonempty principal-strip refinement of a bounded disjoint interval family.
+
+This is the counting form used by the monotone-curvature resonance
+decomposition: after empty refinement cells are discarded, the cover is
+unchanged and the number of intervals is bounded by the ambient block
+cardinality rather than by the Cartesian product of the two indexing families. -/
+theorem Complex.realPhase_principalStrip_nonempty_refinement_card_le_block
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    (hab : a ≤ b)
+    (gaps : Finset (ℕ × ℕ))
+    (K : Finset ℤ)
+    (hbounded :
+      ∀ p : ℕ × ℕ,
+        p ∈ gaps →
+          a ≤ p.1 ∧ p.2 ≤ b)
+    (hdisjoint :
+      ∀ p₁ : ℕ × ℕ,
+        p₁ ∈ gaps →
+          ∀ p₂ : ℕ × ℕ,
+            p₂ ∈ gaps →
+              p₁ ≠ p₂ →
+                Disjoint (Finset.Ico p₁.1 p₁.2)
+                  (Finset.Ico p₂.1 p₂.2))
+    (hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn φ a b) :
+    ∃ refined : Finset (ℕ × ℕ),
+      refined.card ≤ (Finset.Ico a b).card ∧
+        Complex.realPhase_IcoFamilyUnion refined =
+          (Complex.realPhase_IcoFamilyUnion gaps).filter
+            (fun n : ℕ =>
+              n ∈
+                Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+                  φ a b K) ∧
+        (∀ q₁ : ℕ × ℕ,
+          q₁ ∈ refined →
+            ∀ q₂ : ℕ × ℕ,
+              q₂ ∈ refined →
+                q₁ ≠ q₂ →
+                  Disjoint (Finset.Ico q₁.1 q₁.2)
+                    (Finset.Ico q₂.1 q₂.2)) ∧
+        (∀ q : ℕ × ℕ,
+          q ∈ refined →
+            a ≤ q.1 ∧ q.2 ≤ b) ∧
+        ∀ q : ℕ × ℕ,
+          q ∈ refined →
+            ∃ p : ℕ × ℕ,
+              p ∈ gaps ∧
+                ∃ k : ℤ,
+                  k ∈ K ∧
+                    Finset.Ico q.1 q.2 =
+                      (Finset.Ico p.1 p.2).filter
+                        (fun n : ℕ =>
+                          n ∈
+                            Complex.realPhase_integerIncrementPrincipalStrip
+                              φ a b k) ∧
+                    Finset.Ico q.1 q.2 ⊆
+                      Complex.realPhase_integerIncrementPrincipalStrip
+                        φ a b k := by
+  match
+    Complex.realPhase_principalStrip_refinement_card_le
+      φ hab gaps K hbounded hdisjoint hinc_mono with
+  | ⟨raw, _hraw_card, hraw_cover, hraw_disjoint, hraw_bounded,
+      hraw_principal⟩ =>
+      let refined : Finset (ℕ × ℕ) :=
+        raw.filter (fun q : ℕ × ℕ => q.1 < q.2)
+      have hrefined_cover :
+          Complex.realPhase_IcoFamilyUnion refined =
+            (Complex.realPhase_IcoFamilyUnion gaps).filter
+              (fun n : ℕ =>
+                n ∈
+                  Complex.realPhase_integerIncrementPrincipalStripFamilyUnion
+                    φ a b K) := by
+        exact Eq.trans
+          (Complex.realPhase_IcoFamilyUnion_filter_nonempty_eq raw)
+          hraw_cover
+      have hrefined_card :
+          refined.card ≤ (Finset.Ico a b).card := by
+        exact
+          Complex.realPhase_IcoFamily_filter_nonempty_card_le_block
+            raw hraw_bounded hraw_disjoint
+      have hrefined_disjoint :
+          ∀ q₁ : ℕ × ℕ,
+            q₁ ∈ refined →
+              ∀ q₂ : ℕ × ℕ,
+                q₂ ∈ refined →
+                  q₁ ≠ q₂ →
+                    Disjoint (Finset.Ico q₁.1 q₁.2)
+                      (Finset.Ico q₂.1 q₂.2) := by
+        intro q₁ hq₁ q₂ hq₂ hne
+        exact hraw_disjoint q₁ (Finset.mem_filter.mp hq₁).1
+          q₂ (Finset.mem_filter.mp hq₂).1 hne
+      have hrefined_bounded :
+          ∀ q : ℕ × ℕ,
+            q ∈ refined →
+              a ≤ q.1 ∧ q.2 ≤ b := by
+        intro q hq
+        exact hraw_bounded q (Finset.mem_filter.mp hq).1
+      have hrefined_principal :
+          ∀ q : ℕ × ℕ,
+            q ∈ refined →
+              ∃ p : ℕ × ℕ,
+                p ∈ gaps ∧
+                  ∃ k : ℤ,
+                    k ∈ K ∧
+                      Finset.Ico q.1 q.2 =
+                        (Finset.Ico p.1 p.2).filter
+                          (fun n : ℕ =>
+                            n ∈
+                              Complex.realPhase_integerIncrementPrincipalStrip
+                                φ a b k) ∧
+                      Finset.Ico q.1 q.2 ⊆
+                        Complex.realPhase_integerIncrementPrincipalStrip
+                          φ a b k := by
+        intro q hq
+        exact hraw_principal q (Finset.mem_filter.mp hq).1
+      exact
+        Exists.intro refined
+          (And.intro hrefined_card
+            (And.intro hrefined_cover
+              (And.intro hrefined_disjoint
+                (And.intro hrefined_bounded hrefined_principal))))
+
 /-- A samplewise active-center interval is contained in the range-active
 interval when the sample increment lies in that range. -/
 theorem Complex.realPhase_integerIncrementSampleActiveCenters_subset_rangeActiveCenters
@@ -3365,6 +4250,24 @@ theorem Complex.realPhase_integerIncrementActiveCenters_card_le_rangeActiveCente
   exact
     Finset.card_le_card
       (Complex.realPhase_integerIncrementActiveCenters_subset_rangeActiveCenters
+        φ hrange)
+
+/-- Real-valued cardinal form of the range-active containment for active
+centers. -/
+theorem Complex.realPhase_integerIncrementActiveCenters_card_real_le_rangeActiveCenters_card
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {lo hi lam : ℝ}
+    (hrange :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          lo ≤ Complex.realPhase_integerIncrement φ n ∧
+            Complex.realPhase_integerIncrement φ n ≤ hi) :
+    ((Complex.realPhase_integerIncrementActiveCenters φ a b lam).card : ℝ) ≤
+      ((Complex.realPhase_integerIncrementRangeActiveCenters lo hi lam).card : ℝ) := by
+  exact
+    Nat.cast_le.mpr
+      (Complex.realPhase_integerIncrementActiveCenters_card_le_rangeActiveCenters_card
         φ hrange)
 
 /-- A center active at one sample belongs to the finite active-center family
@@ -4141,40 +5044,6 @@ theorem Complex.realPhase_integerIncrementResonanceFamilyUnion_sum_norm_le
         (∑ n ∈
           Complex.realPhase_integerIncrementResonanceFamilyComplement
             φ a b lam K, F n))
-
-/-- The sample union attached to a finite family of half-open integer
-intervals. -/
-def Complex.realPhase_IcoFamilyUnion
-    (gaps : Finset (ℕ × ℕ)) : Finset ℕ :=
-  gaps.biUnion (fun p : ℕ × ℕ => Finset.Ico p.1 p.2)
-
-/-- The singleton half-open interval family covers exactly that interval. -/
-theorem Complex.realPhase_IcoFamilyUnion_singleton
-    (a b : ℕ) :
-    Complex.realPhase_IcoFamilyUnion (Finset.singleton (a, b)) =
-      Finset.Ico a b := by
-  exact Finset.ext
-    (fun n =>
-      Iff.intro
-        (fun hn =>
-          have hmem :
-              ∃ p : ℕ × ℕ,
-                p ∈ Finset.singleton (a, b) ∧
-                  n ∈ Finset.Ico p.1 p.2 :=
-            Finset.mem_biUnion.mp hn
-          match hmem with
-          | ⟨p, hp, hn_p⟩ =>
-              have hp_eq : p = (a, b) :=
-                Finset.mem_singleton.mp hp
-              Eq.subst
-                (motive := fun q : ℕ × ℕ =>
-                  n ∈ Finset.Ico q.1 q.2)
-                hp_eq
-                hn_p)
-        (fun hn =>
-          Finset.mem_biUnion.mpr
-            (Exists.intro (a, b)
-              (And.intro (Finset.mem_singleton_self (a, b)) hn))))
 
 /-- `Complex.realPhase_IcoFamilyUnion` form of the two-gap complement cover. -/
 theorem Complex.realPhase_IcoFamilyUnion_IcoTwoGapComplement_eq_filter_not_Ico
@@ -7508,6 +8377,54 @@ theorem Complex.realPhase_integerIncrementResonanceFamilyUnion_card_real_le_sum_
       (Complex.realPhase_integerIncrementResonanceFamilyUnion_card_le_sum_window_cards
         φ a b lam K)
 
+/-- The resonant-family union has cardinality at most the ambient half-open
+block. -/
+theorem Complex.realPhase_integerIncrementResonanceFamilyUnion_card_real_le_block
+    (φ : ℝ → ℝ)
+    (a b : ℕ)
+    (lam : ℝ)
+    (K : Finset ℤ) :
+    ((Complex.realPhase_integerIncrementResonanceFamilyUnion φ a b lam K).card :
+        ℝ) ≤
+      ((Finset.Ico a b).card : ℝ) := by
+  exact
+    Nat.cast_le.mpr
+      (Finset.card_le_card
+        (Complex.realPhase_integerIncrementResonanceFamilyUnion_subset_block
+          φ))
+
+/-- The resonant-family exponential sum is bounded by the ambient half-open
+block cardinality. -/
+theorem Complex.realPhase_integerIncrementResonanceFamilyUnion_sum_norm_le_block
+    (φ ψ : ℝ → ℝ)
+    (a b : ℕ)
+    (lam : ℝ)
+    (K : Finset ℤ) :
+    ‖∑ n ∈
+        Complex.realPhase_integerIncrementResonanceFamilyUnion φ a b lam K,
+        Complex.exp (Complex.I * (ψ n : ℂ))‖ ≤
+      ((Finset.Ico a b).card : ℝ) := by
+  have hunit :
+      ∀ n : ℕ,
+        n ∈ Complex.realPhase_integerIncrementResonanceFamilyUnion φ a b lam K →
+          ‖Complex.exp (Complex.I * (ψ n : ℂ))‖ ≤ 1 := by
+    intro n _hn
+    exact le_of_eq (Complex.realPhase_exp_I_norm ψ n)
+  have hcard_bound :
+      ‖∑ n ∈
+          Complex.realPhase_integerIncrementResonanceFamilyUnion φ a b lam K,
+          Complex.exp (Complex.I * (ψ n : ℂ))‖ ≤
+        ((Complex.realPhase_integerIncrementResonanceFamilyUnion
+          φ a b lam K).card : ℝ) :=
+    Complex.finite_sum_norm_le_card_of_norm_le_one
+      (Complex.realPhase_integerIncrementResonanceFamilyUnion φ a b lam K)
+      (fun n : ℕ => Complex.exp (Complex.I * (ψ n : ℂ)))
+      hunit
+  exact
+    le_trans hcard_bound
+      (Complex.realPhase_integerIncrementResonanceFamilyUnion_card_real_le_block
+        φ a b lam K)
+
 /-- The resonant-family exponential sum is bounded by the total cardinality
 of the integer-centered resonance windows. -/
 theorem Complex.realPhase_integerIncrementResonanceFamilyUnion_sum_norm_le_sum_window_cards
@@ -7806,6 +8723,55 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeCenters_card_l
         h)
       hrange
 
+/-- Real-valued cardinal form of the shifted-logarithmic range-active center
+count bound. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeCenters_card_real_le_rangeActiveCenters_card
+    (t : ℝ)
+    {a b h : ℕ}
+    {lo hi lam : ℝ}
+    (hrange :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a (b - h) →
+          lo ≤
+              Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ∧
+            Complex.realPhase_integerIncrement
+                (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  h)
+                n ≤ hi) :
+    ((Complex.logarithmicPhaseRealPhase_shiftedDifference_activeCenters
+        t a b h lam).card : ℝ) ≤
+      ((Complex.realPhase_integerIncrementRangeActiveCenters lo hi lam).card : ℝ) := by
+  exact
+    Nat.cast_le.mpr
+      (Complex.logarithmicPhaseRealPhase_shiftedDifference_activeCenters_card_le_rangeActiveCenters_card
+        t hrange)
+
+/-- The active integer centers for a positive-frequency shifted logarithmic
+difference are counted by the left-endpoint reciprocal increment range. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeCenters_card_real_le_left_scaled_reciprocal_range
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b h : ℕ}
+    {lam : ℝ}
+    (ha : 1 ≤ a) :
+    ((Complex.logarithmicPhaseRealPhase_shiftedDifference_activeCenters
+        t a b h lam).card : ℝ) ≤
+      ((Complex.realPhase_integerIncrementRangeActiveCenters
+        0
+        (t * ((h : ℝ) / ((a * (a + h + 1) : ℕ) : ℝ)))
+        lam).card : ℝ) := by
+  exact
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_activeCenters_card_real_le_rangeActiveCenters_card
+      t
+      (fun n hn =>
+        Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_mem_left_scaled_reciprocal_range
+          t ht_nonneg ha hn)
+
 /-- The active-center complement of a shifted logarithmic difference is
 separated from every integer lattice frequency. -/
 theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_separated
@@ -8031,77 +8997,6 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelation_norm_le_Ico_sum_nor
         h)
       habh
 
-/-- A half-open finite exponential sum is bounded by a terminal closed-interval
-bound, with the empty interval handled only from nonnegativity of the target. -/
-theorem Complex.realPhase_Ico_sum_norm_le_of_terminal_Icc_bounds
-    (φ : ℝ → ℝ)
-    {c d : ℕ}
-    {M : ℝ}
-    (hM_nonneg : 0 ≤ M)
-    (hIcc :
-      ∀ {r : ℕ},
-        c ≤ r →
-          r + 1 = d →
-            ‖∑ n ∈ Finset.Icc c r,
-              Complex.exp (Complex.I * (φ n : ℂ))‖ ≤ M) :
-    ‖∑ n ∈ Finset.Ico c d,
-      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤ M := by
-  match Nat.lt_or_ge c d with
-  | Or.inl hcd_strict =>
-      let r : ℕ := d - 1
-      have hd_pos : 0 < d :=
-        lt_of_le_of_lt (Nat.zero_le c) hcd_strict
-      have hd_pred_succ : r + 1 = d :=
-        Nat.succ_pred_eq_of_pos hd_pos
-      have hIco_succ : Finset.Ico c (r + 1) = Finset.Icc c r :=
-        Nat.Ico_succ_right c r
-      have hIco_eq : Finset.Ico c d = Finset.Icc c r :=
-        Eq.subst
-          (motive := fun right : ℕ => Finset.Ico c right = Finset.Icc c r)
-          hd_pred_succ
-          hIco_succ
-      have hcr : c ≤ r :=
-        Nat.le_pred_of_lt hcd_strict
-      have hclosed :
-          ‖∑ n ∈ Finset.Icc c r,
-            Complex.exp (Complex.I * (φ n : ℂ))‖ ≤ M :=
-        hIcc hcr hd_pred_succ
-      exact
-        Eq.subst
-          (motive := fun S : Finset ℕ =>
-            ‖∑ n ∈ S, Complex.exp (Complex.I * (φ n : ℂ))‖ ≤ M)
-          hIco_eq.symm
-          hclosed
-  | Or.inr hdc =>
-      have hIco_empty : Finset.Ico c d = (∅ : Finset ℕ) :=
-        Finset.eq_empty_iff_forall_not_mem.mpr
-          (fun n hn =>
-            have hn_bounds : c ≤ n ∧ n < d :=
-              Finset.mem_Ico.mp hn
-            have hd_le_n : d ≤ n :=
-              Nat.le_trans hdc hn_bounds.1
-            not_lt_of_ge hd_le_n hn_bounds.2)
-      have hsum_zero :
-          (∑ n ∈ Finset.Ico c d,
-            Complex.exp (Complex.I * (φ n : ℂ))) = 0 :=
-        Eq.trans
-          (congrArg
-            (fun S : Finset ℕ =>
-              ∑ n ∈ S, Complex.exp (Complex.I * (φ n : ℂ)))
-            hIco_empty)
-          Finset.sum_empty
-      have hzero_bound :
-          ‖(0 : ℂ)‖ ≤ M :=
-        Eq.subst
-          (motive := fun left : ℝ => left ≤ M)
-          (norm_zero : ‖(0 : ℂ)‖ = 0).symm
-          hM_nonneg
-      exact
-        Eq.subst
-          (motive := fun z : ℂ => ‖z‖ ≤ M)
-          hsum_zero.symm
-          hzero_bound
-
 /-- Shifted-logarithmic specialization of the terminal closed-interval
 reduction for half-open sums. -/
 theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_Ico_sum_norm_le_of_terminal_Icc_bounds
@@ -8277,6 +9172,41 @@ theorem Complex.realPhase_integerIncrementResonanceWindow_card_real_eq_of_eq_Ico
       (fun n : ℕ => (n : ℝ))
       (Complex.realPhase_integerIncrementResonanceWindow_card_eq_of_eq_Ico
         φ hwindow)
+
+/-- Endpoint bounds forced when a resonance window is identified as a nonempty
+half-open interval. -/
+theorem Complex.realPhase_integerIncrementResonanceWindow_endpoint_bounds_of_eq_Ico
+    (φ : ℝ → ℝ)
+    {a b c d : ℕ}
+    {resonance lam : ℝ}
+    (hwindow :
+      Complex.realPhase_integerIncrementResonanceWindow
+          φ a b resonance lam =
+        Finset.Ico c d)
+    (hcd : c < d) :
+    a ≤ c ∧ d ≤ b := by
+  have hsub :
+      Finset.Ico c d ⊆ Finset.Ico a b := by
+    intro n hn
+    have hn_window :
+        n ∈ Complex.realPhase_integerIncrementResonanceWindow
+          φ a b resonance lam :=
+      Eq.subst
+        (motive := fun S : Finset ℕ => n ∈ S)
+        hwindow.symm
+        hn
+    have hn_data :
+        n ∈ Finset.Ico a b ∧
+          ‖Complex.realPhase_integerIncrement φ n - resonance‖ < lam :=
+      (Complex.mem_realPhase_integerIncrementResonanceWindow_iff
+        (φ := φ)
+        (a := a)
+        (b := b)
+        (n := n)
+        (resonance := resonance)
+        (lam := lam)).mp hn_window
+    exact hn_data.1
+  exact Nat.Ico_endpoint_bounds_of_subset_of_nonempty hsub hcd
 
 /-- A zero-centered resonance window has length at most two once any two-step
 subinterval in the window has spread at least twice the window radius. -/
@@ -8978,51 +9908,6 @@ theorem Finset.Ico_right_subset_ambient_of_le
   exact
     Finset.mem_Ico.mpr
       (And.intro (le_trans had hn_bounds.1) hn_bounds.2)
-
-/-- Raw integer-increment monotonicity restricts to a half-open subblock. -/
-theorem Complex.realPhase_integerIncrementMonotoneOn.mono_Ico
-    (φ : ℝ → ℝ)
-    {a b c d : ℕ}
-    (hmono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
-    (hsub : Finset.Ico c d ⊆ Finset.Ico a b) :
-    Complex.realPhase_integerIncrementMonotoneOn φ c d := by
-  match hmono with
-  | Or.inl hmono_inc =>
-      exact Or.inl
-        (fun m hm n hn hmn =>
-          hmono_inc (hsub hm) (hsub hn) hmn)
-  | Or.inr hmono_dec =>
-      exact Or.inr
-        (fun m hm n hn hmn =>
-          hmono_dec (hsub hm) (hsub hn) hmn)
-
-/-- Reduced integer-increment monotonicity restricts to a half-open subblock. -/
-theorem Complex.realPhase_reducedIntegerIncrementMonotoneOn.mono_Ico
-    (φ : ℝ → ℝ)
-    {a b c d : ℕ}
-    (hmono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
-    (hsub : Finset.Ico c d ⊆ Finset.Ico a b) :
-    Complex.realPhase_reducedIntegerIncrementMonotoneOn φ c d := by
-  match hmono with
-  | Or.inl hmono_inc =>
-      exact Or.inl
-        (fun m hm n hn hmn =>
-          hmono_inc (hsub hm) (hsub hn) hmn)
-  | Or.inr hmono_dec =>
-      exact Or.inr
-        (fun m hm n hn hmn =>
-          hmono_dec (hsub hm) (hsub hn) hmn)
-
-/-- Integer-increment separation restricts to a half-open subblock. -/
-theorem Complex.realPhase_integerIncrementSeparatedOn.mono_Ico
-    (φ : ℝ → ℝ)
-    {a b c d : ℕ}
-    {lam : ℝ}
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam)
-    (hsub : Finset.Ico c d ⊆ Finset.Ico a b) :
-    Complex.realPhase_integerIncrementSeparatedOn φ c d lam := by
-  intro n hn k
-  exact hsep n (hsub hn) k
 
 /-- The left outside interval avoids a canonical resonance window identified
 as `[c,d)`. -/

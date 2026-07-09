@@ -250,6 +250,77 @@ theorem Complex.realPhase_geometricDenominator_inv_norm_bound
       (Complex.realPhase_twoPiSeparation_le_two_mul_geometricDenominator_norm
         hlam_pos hsep)
 
+/-- A half-open finite exponential sum is bounded by a terminal closed-interval
+bound, with the empty interval handled only from nonnegativity of the target. -/
+theorem Complex.realPhase_Ico_sum_norm_le_of_terminal_Icc_bounds
+    (φ : ℝ → ℝ)
+    {c d : ℕ}
+    {M : ℝ}
+    (hM_nonneg : 0 ≤ M)
+    (hIcc :
+      ∀ {r : ℕ},
+        c ≤ r →
+          r + 1 = d →
+            ‖∑ n ∈ Finset.Icc c r,
+              Complex.exp (Complex.I * (φ n : ℂ))‖ ≤ M) :
+    ‖∑ n ∈ Finset.Ico c d,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤ M := by
+  match Nat.lt_or_ge c d with
+  | Or.inl hcd_strict =>
+      let r : ℕ := d - 1
+      have hd_pos : 0 < d :=
+        lt_of_le_of_lt (Nat.zero_le c) hcd_strict
+      have hd_pred_succ : r + 1 = d :=
+        Nat.succ_pred_eq_of_pos hd_pos
+      have hIco_succ : Finset.Ico c (r + 1) = Finset.Icc c r :=
+        Nat.Ico_succ_right c r
+      have hIco_eq : Finset.Ico c d = Finset.Icc c r :=
+        Eq.subst
+          (motive := fun right : ℕ => Finset.Ico c right = Finset.Icc c r)
+          hd_pred_succ
+          hIco_succ
+      have hcr : c ≤ r :=
+        Nat.le_pred_of_lt hcd_strict
+      have hclosed :
+          ‖∑ n ∈ Finset.Icc c r,
+            Complex.exp (Complex.I * (φ n : ℂ))‖ ≤ M :=
+        hIcc hcr hd_pred_succ
+      exact
+        Eq.subst
+          (motive := fun S : Finset ℕ =>
+            ‖∑ n ∈ S, Complex.exp (Complex.I * (φ n : ℂ))‖ ≤ M)
+          hIco_eq.symm
+          hclosed
+  | Or.inr hdc =>
+      have hIco_empty : Finset.Ico c d = (∅ : Finset ℕ) :=
+        Finset.eq_empty_iff_forall_not_mem.mpr
+          (fun n hn =>
+            have hn_bounds : c ≤ n ∧ n < d :=
+              Finset.mem_Ico.mp hn
+            have hd_le_n : d ≤ n :=
+              Nat.le_trans hdc hn_bounds.1
+            not_lt_of_ge hd_le_n hn_bounds.2)
+      have hsum_zero :
+          (∑ n ∈ Finset.Ico c d,
+            Complex.exp (Complex.I * (φ n : ℂ))) = 0 :=
+        Eq.trans
+          (congrArg
+            (fun S : Finset ℕ =>
+              ∑ n ∈ S, Complex.exp (Complex.I * (φ n : ℂ)))
+            hIco_empty)
+          Finset.sum_empty
+      have hzero_bound :
+          ‖(0 : ℂ)‖ ≤ M :=
+        Eq.subst
+          (motive := fun left : ℝ => left ≤ M)
+          (norm_zero : ‖(0 : ℂ)‖ = 0).symm
+          hM_nonneg
+      exact
+        Eq.subst
+          (motive := fun z : ℂ => ‖z‖ ≤ M)
+          hsum_zero.symm
+          hzero_bound
+
 /-- Endpoint contribution in the finite monotone-increment Dirichlet test. -/
 theorem Complex.realPhase_monotoneIncrement_dirichlet_endpoint_bound
     {lam : ℝ}

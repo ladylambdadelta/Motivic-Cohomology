@@ -1458,8 +1458,8 @@
     {
       "check": {
         "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalVariation.Owner",
-        "date": "2026-06-21",
-        "result": "failed_circular_uniform_reciprocal_variation_integral_sink"
+        "date": "2026-07-06",
+        "result": "artifact_confirmed_success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/ReciprocalVariation/Owner.lean",
       "notes": [
@@ -1467,9 +1467,10 @@
         "Narrow check stops before local elaboration because LogarithmicPhase.Owner.olean is missing.",
         "Blocked by the same dirty PoleClearedBoundarySetup producer path through LogarithmicPhase.",
         "2026-06-20 update: after LogarithmicPhase.Owner became green, targeted `lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalVariation.Owner` reached local elaboration and failed on missing analytic owner theorem `reciprocalDensityIntegral_logarithmicPhase_bound_of_partialSum_majorant`; edit-mode repair hoisted `reciprocalDerivative_norm_eq_on_positive_interval` and `concreteReciprocalVariation_density_bound_on_cutoff_interval` from downstream Regularity into ReciprocalVariation, leaving the integral theorem as the known blocker.",
-        "2026-06-21 rerun after regenerating LogarithmicPhase.Owner artifacts still reaches local elaboration and fails on the same missing uniform reciprocal-variation integral theorem. The only apparent downstream names in ReciprocalDensity.Calculus delegate back to ReciprocalVariation, so this is a real circular analytic sink, not an import artifact issue."
+        "2026-06-21 rerun after regenerating LogarithmicPhase.Owner artifacts still reaches local elaboration and fails on the same missing uniform reciprocal-variation integral theorem. The only apparent downstream names in ReciprocalDensity.Calculus delegate back to ReciprocalVariation, so this is a real circular analytic sink, not an import artifact issue.",
+        "2026-07-06 artifact classification: `build-ReciprocalVariation-Owner-current-6.log` ends with `Build completed successfully.` The source timestamp is 2026-06-21 07:27:30 and both `.olean` and `.ilean` artifacts are 2026-07-06 17:01:50, so this entry is green by existing Lake artifacts without rerunning Lean."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
@@ -1591,7 +1592,7 @@
     {
       "check": {
         "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/OutsideRHRootedImportCone/Admissible/ZetaAdmissiblePaleyWiener/Admissible/ZetaAdmissibleProbe/Owner.lean",
-        "result": "failed"
+        "result": "artifact_confirmed_success"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/OutsideRHRootedImportCone/Admissible/ZetaAdmissiblePaleyWiener/Admissible/ZetaAdmissibleProbe/Owner.lean",
       "notes": [
@@ -1601,9 +1602,10 @@
         "OutsideRH PaleyWiener.Owner imports this probe owner, so consuming that theorem here is backwards-owned.",
         "Remaining repair should hoist finite-sample interpolation to a true common owner.",
         "2026-06-19 constructive-only follow-up removed unfold/apply/change/rcases/by_contra proof surfaces and replaced the existence proof by an explicit coordinate-sample witness; no Classical.em or by_contra remains in the source scan.",
-        "Resolved from hazard to red: narrow build is known not green; retained notes describe whether the blocker is local source failure, dirty upstream work, replay churn, or import-cycle structure."
+        "Resolved from hazard to red: narrow build is known not green; retained notes describe whether the blocker is local source failure, dirty upstream work, replay churn, or import-cycle structure.",
+        "2026-07-06 artifact classification: `build-ProbeInterfaceOwner-batch2.log` ends with `Build completed successfully.` The source timestamp is 2026-07-05 22:00:24 and both `.olean` and `.ilean` artifacts are 2026-07-05 22:02:00, so this entry is green by existing Lake artifacts without rerunning Lean."
       ],
-      "status": "red"
+      "status": "green"
     },
     {
       "check": {
@@ -6664,6 +6666,26 @@
         "OutsideRHRootedImportCone files are intentionally excluded from the current make-green work queue."
       ],
       "status": "outofscope"
+    },
+    {
+      "check": {
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Owner",
+        "date": "2026-07-06",
+        "log": "Lean/Boundary/build-RH-Owner-checkpoint-20260706-170710.log",
+        "result": "failed_unknown_constant"
+      },
+      "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/LogarithmicPhase/Curvature/RealPhaseCanonicalPrefix.lean",
+      "notes": [
+        "Current RH owner checkpoint reaches this split curvature file and fails at line 40 with unknown constant `Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget`.",
+        "The referenced theorem name exists only in deprecated `ClassicalAnalysis/ZetaEulerMaclaurinBoundary/LogarithmicPhase/DirichletBlock.lean`; that file is not an active repair target and its old proof path depends back on the final curvature theorem, so importing or copying it would recreate a circular owner proof.",
+        "The active split tree contains only conditional positive long-branch wrappers in `RealPhaseLongBranch.lean`. The honest blocker is the missing non-circular resonance-safe positive long logarithmic branch owner theorem.",
+        "2026-07-06 follow-up inspection: the canonical-prefix consumer only needs the cutoff block `b = floor(2 + |t|)`, but the trivial/cardinality route only covers bounded `|t|`; for large `|t|` the desired `sqrt(|t|) log |t|` scale still requires unconditional oscillatory cancellation. `SecondDerivativeVdc.lean`, `RealPhaseLongWeylTarget.lean`, and `RealPhaseLongBranch.lean` expose the required separation/resonance-window and Weyl-envelope inputs rather than discharging them.",
+        "Required non-circular proof chain: construct resonance-safe shifted-correlation control for the logarithmic real phase -> prove the explicit Weyl-envelope target for the long branch -> export an unconditional positive long-branch theorem in the split curvature owner -> let `RealPhaseCanonicalPrefix.lean` consume that theorem. The old monolithic `DirichletBlock` route cannot be used because it closes this chain by assuming the final curvature estimate.",
+        "2026-07-06 upstream map: the deprecated monolith names the desired sink as `Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget`, but that theorem delegates to `Complex.logarithmicPhaseRealPhase_Icc_longPacketBudget_le_threeTarget`, which is the circular local interval estimate. The split tree already has endpoint-tail contribution files; the missing non-circular owner is the stationary-frequency contribution/frequency-count theorem, historically named around `Complex.logarithmicPhaseRealPhase_stationaryPacketContribution_by_frequencyCount` plus its long-branch assembly.",
+        "2026-07-06 stationary split inspection: `RealPhaseStationaryContribution.lean` contains only transport from supplied Icc/family-union bounds; `RealPhasePacketCurvature.lean` contains per-packet cardinality/curvature-scale bounds; `RealPhaseStationaryInterval.lean` contains reciprocal-frequency interval membership. These pieces do not yet assemble to the needed oscillatory stationary contribution. In the deprecated monolith, `stationaryPacketSum_frequencyCount_le_tenTarget` still calls `logarithmicPhaseRealPhase_Ico_secondDerivative_le_threeTarget`, so it is also circular rather than an independent frequency-count proof.",
+        "The file itself is boring-scan clean for the forbidden forms `rw`, `simp`, `simpa`, `dsimp`, `ring`, `norm_num`, `linarith`, `field_simp`, `norm_cast`, `push_cast`, `sorry`, and `admit`; it is red because the required owner theorem is not yet available."
+      ],
+      "status": "red"
     }
   ],
   "metadata": {

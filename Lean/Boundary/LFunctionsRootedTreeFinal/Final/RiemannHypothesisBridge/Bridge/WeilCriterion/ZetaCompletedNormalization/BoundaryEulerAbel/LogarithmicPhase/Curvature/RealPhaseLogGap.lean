@@ -220,6 +220,357 @@ theorem Nat.logarithmicPhase_fixedWidthGapDenominator_gap_lower
         hsplit.symm
   exact le_trans hcore hbase
 
+/-- The right fixed-width denominator exceeds the left shifted denominator by
+at least one left endpoint factor. -/
+theorem Nat.logarithmicPhase_fixedWidthGapDenominator_left_factor_lower
+    {h m n : ℕ}
+    (hmn : m < n) :
+    (m + 1) * (m + h) + (m + 1) ≤
+      n * (n + h + 1) := by
+  have hm_succ_le_n : m + 1 ≤ n :=
+    Nat.succ_le_iff.mpr hmn
+  have hright_le :
+      m + h + 1 ≤ n + h + 1 :=
+    Nat.succ_le_succ
+      (Nat.add_le_add_right (le_of_lt hmn) h)
+  have hleft_eq :
+      (m + 1) * (m + h) + (m + 1) =
+        (m + 1) * (m + h + 1) := by
+    calc
+      (m + 1) * (m + h) + (m + 1) =
+          (m + 1) * (m + h) + (m + 1) * 1 := by
+        exact congrArg
+          (fun r : ℕ => (m + 1) * (m + h) + r)
+          (Nat.mul_one (m + 1)).symm
+      _ = (m + 1) * ((m + h) + 1) :=
+        (Nat.mul_add (m + 1) (m + h) 1).symm
+      _ = (m + 1) * (m + h + 1) :=
+        rfl
+  have hprod :
+      (m + 1) * (m + h + 1) ≤ n * (n + h + 1) :=
+    Nat.mul_le_mul hm_succ_le_n hright_le
+  exact
+    Eq.subst
+      (motive := fun left : ℕ => left ≤ n * (n + h + 1))
+      hleft_eq.symm
+      hprod
+
+/-- The right fixed-width denominator exceeds the left shifted denominator by
+the full integer span times the left endpoint factor. -/
+theorem Nat.logarithmicPhase_fixedWidthGapDenominator_span_left_factor_lower
+    {h m n : ℕ}
+    (hmn : m < n) :
+    (m + 1) * (m + h) + (n - m) * (m + 1) ≤
+      n * (n + h + 1) := by
+  have hs_pos : 1 ≤ n - m :=
+    Nat.succ_le_iff.mpr (Nat.zero_lt_sub_of_lt hmn)
+  have hm_le_n : m ≤ n :=
+    le_of_lt hmn
+  have hn_eq : n = m + (n - m) :=
+    (Nat.add_sub_of_le hm_le_n).symm
+  have hleft_expand :
+      (m + 1) * (m + h) + (n - m) * (m + 1) =
+        (m + 1) * (m + h + (n - m)) := by
+    calc
+      (m + 1) * (m + h) + (n - m) * (m + 1) =
+          (m + 1) * (m + h) + (m + 1) * (n - m) := by
+        exact congrArg
+          (fun r : ℕ => (m + 1) * (m + h) + r)
+          (Nat.mul_comm (n - m) (m + 1))
+      _ = (m + 1) * ((m + h) + (n - m)) :=
+        (Nat.mul_add (m + 1) (m + h) (n - m)).symm
+      _ = (m + 1) * (m + h + (n - m)) :=
+        rfl
+  have hleft_factor : m + 1 ≤ n :=
+    Nat.succ_le_iff.mpr hmn
+  have hright_factor :
+      m + h + (n - m) ≤ n + h + 1 := by
+    have hcomm :
+        m + h + (n - m) = n + h := by
+      calc
+        m + h + (n - m) =
+            m + (h + (n - m)) := by
+          exact Nat.add_assoc m h (n - m)
+        _ = m + ((n - m) + h) := by
+          exact congrArg
+            (fun r : ℕ => m + r)
+            (Nat.add_comm h (n - m))
+        _ = m + (n - m) + h := by
+          exact (Nat.add_assoc m (n - m) h).symm
+        _ = n + h := by
+          exact congrArg (fun r : ℕ => r + h) hn_eq.symm
+    exact
+      Eq.subst
+        (motive := fun left : ℕ => left ≤ n + h + 1)
+        hcomm.symm
+        (Nat.le_succ (n + h))
+  have hprod :
+      (m + 1) * (m + h + (n - m)) ≤
+        n * (n + h + 1) :=
+    Nat.mul_le_mul hleft_factor hright_factor
+  exact
+    Eq.subst
+      (motive := fun left : ℕ => left ≤ n * (n + h + 1))
+      hleft_expand.symm
+      hprod
+
+/-- Real form of the fixed-width denominator left-factor lower bound. -/
+theorem Real.logarithmicPhase_fixedWidthGapDenominator_left_factor_lower
+    {h m n : ℕ}
+    (hmn : m < n) :
+    (((m + 1) * (m + h) : ℕ) : ℝ) + ((m + 1 : ℕ) : ℝ) ≤
+      ((n * (n + h + 1) : ℕ) : ℝ) := by
+  have hnat :
+      (m + 1) * (m + h) + (m + 1) ≤
+        n * (n + h + 1) :=
+    Nat.logarithmicPhase_fixedWidthGapDenominator_left_factor_lower hmn
+  have hcast :
+      (((m + 1) * (m + h) + (m + 1) : ℕ) : ℝ) ≤
+        ((n * (n + h + 1) : ℕ) : ℝ) :=
+    Nat.cast_le.mpr hnat
+  have hleft_cast :
+      (((m + 1) * (m + h) + (m + 1) : ℕ) : ℝ) =
+        (((m + 1) * (m + h) : ℕ) : ℝ) + ((m + 1 : ℕ) : ℝ) :=
+    Nat.cast_add ((m + 1) * (m + h)) (m + 1)
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤ ((n * (n + h + 1) : ℕ) : ℝ))
+      hleft_cast
+      hcast
+
+/-- Real form of the fixed-width denominator span lower bound. -/
+theorem Real.logarithmicPhase_fixedWidthGapDenominator_span_left_factor_lower
+    {h c d : ℕ}
+    (hcd : c < d - 1) :
+    (((c + 1) * (c + h) : ℕ) : ℝ) +
+        (((d - 1) - c : ℕ) : ℝ) * ((c + 1 : ℕ) : ℝ) ≤
+      (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ) := by
+  have hnat :
+      (c + 1) * (c + h) + ((d - 1) - c) * (c + 1) ≤
+        (d - 1) * ((d - 1) + h + 1) :=
+    Nat.logarithmicPhase_fixedWidthGapDenominator_span_left_factor_lower
+      (h := h) hcd
+  have hcast :
+      (((c + 1) * (c + h) + ((d - 1) - c) * (c + 1) : ℕ) : ℝ) ≤
+        (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ) :=
+    Nat.cast_le.mpr hnat
+  have hsum_cast :
+      (((c + 1) * (c + h) + ((d - 1) - c) * (c + 1) : ℕ) : ℝ) =
+        (((c + 1) * (c + h) : ℕ) : ℝ) +
+          (((d - 1) - c : ℕ) : ℝ) * ((c + 1 : ℕ) : ℝ) := by
+    have hadd :
+        (((c + 1) * (c + h) + ((d - 1) - c) * (c + 1) : ℕ) : ℝ) =
+          (((c + 1) * (c + h) : ℕ) : ℝ) +
+            ((((d - 1) - c) * (c + 1) : ℕ) : ℝ) :=
+      Nat.cast_add ((c + 1) * (c + h)) (((d - 1) - c) * (c + 1))
+    have hmul :
+        ((((d - 1) - c) * (c + 1) : ℕ) : ℝ) =
+          (((d - 1) - c : ℕ) : ℝ) * ((c + 1 : ℕ) : ℝ) :=
+      Nat.cast_mul ((d - 1) - c) (c + 1)
+    exact
+      Eq.trans hadd
+        (congrArg
+          (fun r : ℝ => (((c + 1) * (c + h) : ℕ) : ℝ) + r)
+          hmul)
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤ (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ))
+      hsum_cast
+      hcast
+
+/-- The left shifted fixed-width denominator is bounded by the square of the
+ambient right endpoint once the sample lies in the shifted block. -/
+theorem Nat.logarithmicPhase_leftFixedWidthDenominator_le_endpointSquare
+    {b h c d : ℕ}
+    (hcd : c < d - 1)
+    (hdb : d ≤ b - h) :
+    (c + 1) * (c + h) ≤ (b + 1) * (b + 1) := by
+  have hc_succ_le_d_pred : c + 1 ≤ d - 1 :=
+    Nat.succ_le_iff.mpr hcd
+  have hd_pred_le_d : d - 1 ≤ d :=
+    Nat.pred_le d
+  have hc_succ_le_d : c + 1 ≤ d :=
+    le_trans hc_succ_le_d_pred hd_pred_le_d
+  have hd_le_b_succ : d ≤ b + 1 :=
+    le_trans hdb (le_trans (Nat.sub_le b h) (Nat.le_succ b))
+  have hc_succ_le_b_succ : c + 1 ≤ b + 1 :=
+    le_trans hc_succ_le_d hd_le_b_succ
+  have hc_lt_d : c < d :=
+    lt_of_lt_of_le hcd hd_pred_le_d
+  have hc_h_lt_d_h : c + h < d + h :=
+    Nat.add_lt_add_right hc_lt_d h
+  have hzero_lt_d_pred : 0 < d - 1 :=
+    lt_of_le_of_lt (Nat.zero_le c) hcd
+  have hone_lt_d : 1 < d :=
+    tsub_pos_iff_lt.mp hzero_lt_d_pred
+  have hone_le_sub : 1 ≤ b - h :=
+    le_of_lt (lt_of_lt_of_le hone_lt_d hdb)
+  have hsub_pos : 0 < b - h :=
+    lt_of_lt_of_le zero_lt_one hone_le_sub
+  have hh_le_b : h ≤ b :=
+    le_of_lt (tsub_pos_iff_lt.mp hsub_pos)
+  have hd_h_le_b : d + h ≤ b := by
+    exact Nat.add_le_of_le_sub hh_le_b hdb
+  have hc_h_le_b : c + h ≤ b :=
+    le_trans (Nat.le_of_lt hc_h_lt_d_h) hd_h_le_b
+  have hc_h_le_b_succ : c + h ≤ b + 1 :=
+    le_trans hc_h_le_b (Nat.le_succ b)
+  exact Nat.mul_le_mul hc_succ_le_b_succ hc_h_le_b_succ
+
+/-- The right shifted fixed-width denominator is bounded by the square of the
+ambient right endpoint once the right endpoint lies in the shifted block. -/
+theorem Nat.logarithmicPhase_rightFixedWidthDenominator_le_endpointSquare
+    {b h d : ℕ}
+    {c : ℕ}
+    (hcd : c < d - 1)
+    (hdb : d ≤ b - h) :
+    (d - 1) * ((d - 1) + h + 1) ≤ (b + 1) * (b + 1) := by
+  have hd_pred_le_d : d - 1 ≤ d :=
+    Nat.pred_le d
+  have hd_le_b_succ : d ≤ b + 1 :=
+    le_trans hdb (le_trans (Nat.sub_le b h) (Nat.le_succ b))
+  have hleft : d - 1 ≤ b + 1 :=
+    le_trans hd_pred_le_d hd_le_b_succ
+  have hzero_lt_d_pred : 0 < d - 1 :=
+    lt_of_le_of_lt (Nat.zero_le c) hcd
+  have hone_lt_d : 1 < d :=
+    tsub_pos_iff_lt.mp hzero_lt_d_pred
+  have hone_le_sub : 1 ≤ b - h :=
+    le_of_lt (lt_of_lt_of_le hone_lt_d hdb)
+  have hsub_pos : 0 < b - h :=
+    lt_of_lt_of_le zero_lt_one hone_le_sub
+  have hh_le_b : h ≤ b :=
+    le_of_lt (tsub_pos_iff_lt.mp hsub_pos)
+  have hd_h_le_b : d + h ≤ b := by
+    exact Nat.add_le_of_le_sub hh_le_b hdb
+  have hright_raw : (d - 1) + h + 1 ≤ d + h + 1 := by
+    have hpred_h : (d - 1) + h ≤ d + h :=
+      Nat.add_le_add_right hd_pred_le_d h
+    exact Nat.succ_le_succ hpred_h
+  have hd_h_succ_le_b_succ : d + h + 1 ≤ b + 1 :=
+    Nat.succ_le_succ hd_h_le_b
+  have hright : (d - 1) + h + 1 ≤ b + 1 :=
+    le_trans hright_raw hd_h_succ_le_b_succ
+  exact Nat.mul_le_mul hleft hright
+
+/-- Product bound for the two endpoint denominators with the left endpoint
+factor kept separate. -/
+theorem Nat.logarithmicPhase_endpointDenominator_product_le_leftFactor_endpointCube
+    {b h c d : ℕ}
+    (hcd : c < d - 1)
+    (hdb : d ≤ b - h) :
+    ((c + 1) * (c + h)) *
+        ((d - 1) * ((d - 1) + h + 1)) ≤
+      ((c + 1) * (b + 1)) * ((b + 1) * (b + 1)) := by
+  have hzero_lt_d_pred : 0 < d - 1 :=
+    lt_of_le_of_lt (Nat.zero_le c) hcd
+  have hone_lt_d : 1 < d :=
+    tsub_pos_iff_lt.mp hzero_lt_d_pred
+  have hone_le_sub : 1 ≤ b - h :=
+    le_of_lt (lt_of_lt_of_le hone_lt_d hdb)
+  have hsub_pos : 0 < b - h :=
+    lt_of_lt_of_le zero_lt_one hone_le_sub
+  have hh_le_b : h ≤ b :=
+    le_of_lt (tsub_pos_iff_lt.mp hsub_pos)
+  have hd_h_le_b : d + h ≤ b := by
+    exact Nat.add_le_of_le_sub hh_le_b hdb
+  have hd_pred_le_d : d - 1 ≤ d :=
+    Nat.pred_le d
+  have hc_lt_d : c < d :=
+    lt_of_lt_of_le hcd hd_pred_le_d
+  have hc_h_lt_d_h : c + h < d + h :=
+    Nat.add_lt_add_right hc_lt_d h
+  have hc_h_le_b : c + h ≤ b :=
+    le_trans (Nat.le_of_lt hc_h_lt_d_h) hd_h_le_b
+  have hc_h_le_b_succ : c + h ≤ b + 1 :=
+    le_trans hc_h_le_b (Nat.le_succ b)
+  have hleft :
+      (c + 1) * (c + h) ≤ (c + 1) * (b + 1) :=
+    Nat.mul_le_mul_left (c + 1) hc_h_le_b_succ
+  have hright :
+      (d - 1) * ((d - 1) + h + 1) ≤ (b + 1) * (b + 1) :=
+    Nat.logarithmicPhase_rightFixedWidthDenominator_le_endpointSquare
+      (c := c) hcd hdb
+  exact Nat.mul_le_mul hleft hright
+
+/-- Real form of the endpoint denominator product bound with the left endpoint
+factor kept separate. -/
+theorem Real.logarithmicPhase_endpointDenominator_product_le_leftFactor_endpointCube
+    {b h c d : ℕ}
+    (hcd : c < d - 1)
+    (hdb : d ≤ b - h) :
+    (((c + 1) * (c + h) : ℕ) : ℝ) *
+        (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ) ≤
+      (((c + 1) * (b + 1) : ℕ) : ℝ) *
+        (((b + 1) * (b + 1) : ℕ) : ℝ) := by
+  have hnat :
+      ((c + 1) * (c + h)) *
+          ((d - 1) * ((d - 1) + h + 1)) ≤
+        ((c + 1) * (b + 1)) * ((b + 1) * (b + 1)) :=
+    Nat.logarithmicPhase_endpointDenominator_product_le_leftFactor_endpointCube
+      hcd hdb
+  have hcast :
+      ((((c + 1) * (c + h)) *
+          ((d - 1) * ((d - 1) + h + 1)) : ℕ) : ℝ) ≤
+        ((((c + 1) * (b + 1)) * ((b + 1) * (b + 1)) : ℕ) : ℝ) :=
+    Nat.cast_le.mpr hnat
+  have hleft_cast :
+      ((((c + 1) * (c + h)) *
+          ((d - 1) * ((d - 1) + h + 1)) : ℕ) : ℝ) =
+        (((c + 1) * (c + h) : ℕ) : ℝ) *
+          (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ) :=
+    Nat.cast_mul ((c + 1) * (c + h))
+      ((d - 1) * ((d - 1) + h + 1))
+  have hright_cast :
+      ((((c + 1) * (b + 1)) * ((b + 1) * (b + 1)) : ℕ) : ℝ) =
+        (((c + 1) * (b + 1) : ℕ) : ℝ) *
+          (((b + 1) * (b + 1) : ℕ) : ℝ) :=
+    Nat.cast_mul ((c + 1) * (b + 1)) ((b + 1) * (b + 1))
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤
+          (((c + 1) * (b + 1) : ℕ) : ℝ) *
+            (((b + 1) * (b + 1) : ℕ) : ℝ))
+      hleft_cast
+      (Eq.subst
+        (motive := fun right : ℝ =>
+          ((((c + 1) * (c + h)) *
+              ((d - 1) * ((d - 1) + h + 1)) : ℕ) : ℝ) ≤ right)
+        hright_cast
+        hcast)
+
+/-- Positivity of the left endpoint denominator for a positive Weyl shift. -/
+theorem Real.logarithmicPhase_leftFixedWidthDenominator_pos
+    {h c : ℕ}
+    (hh : 1 ≤ h) :
+    0 < (((c + 1) * (c + h) : ℕ) : ℝ) := by
+  have hc_succ_pos : 0 < c + 1 :=
+    Nat.succ_pos c
+  have hh_pos : 0 < h :=
+    Nat.lt_of_succ_le hh
+  have hc_h_pos : 0 < c + h :=
+    lt_of_lt_of_le hh_pos (Nat.le_add_left h c)
+  have hprod_pos : 0 < (c + 1) * (c + h) :=
+    Nat.mul_pos hc_succ_pos hc_h_pos
+  exact Nat.cast_pos.mpr hprod_pos
+
+/-- Positivity of the right endpoint denominator for a nontrivial resonance
+window. -/
+theorem Real.logarithmicPhase_rightFixedWidthDenominator_pos
+    {h c d : ℕ}
+    (hcd : c < d - 1) :
+    0 < (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ) := by
+  have hzero_lt_d_pred : 0 < d - 1 :=
+    lt_of_le_of_lt (Nat.zero_le c) hcd
+  have hright_pos : 0 < (d - 1) + h + 1 :=
+    Nat.succ_pos ((d - 1) + h)
+  have hprod_pos : 0 < (d - 1) * ((d - 1) + h + 1) :=
+    Nat.mul_pos hzero_lt_d_pred hright_pos
+  exact Nat.cast_pos.mpr hprod_pos
+
 /-- A real reciprocal gap is bounded below by a numerator gap divided by a
 common square denominator bound.  This is the denominator-comparison core used
 for fixed-width logarithmic rational endpoint spreads. -/
@@ -278,6 +629,260 @@ theorem Real.reciprocal_gap_lower_of_denominator_gap_and_upper_bound
     le_trans hleft_den
       (le_trans hnum_den
         (le_of_eq hspread_eq.symm))
+
+/-- Product-bound form of the reciprocal-gap lower estimate.  This is the
+sharper form used when one endpoint factor is kept separate instead of being
+absorbed into a common square bound. -/
+theorem Real.reciprocal_gap_lower_of_denominator_gap_and_product_bound
+    {H A D P L : ℝ}
+    (hH_nonneg : 0 ≤ H)
+    (hA_pos : 0 < A)
+    (hD_pos : 0 < D)
+    (_hAD_order : A ≤ D)
+    (hgap : L ≤ D - A)
+    (hAD_le_P : A * D ≤ P)
+    (hL_nonneg : 0 ≤ L) :
+    H * L / P ≤ H / A - H / D := by
+  have hAD_pos : 0 < A * D :=
+    mul_pos hA_pos hD_pos
+  have hP_pos : 0 < P :=
+    lt_of_lt_of_le hAD_pos hAD_le_P
+  have hHL_nonneg : 0 ≤ H * L :=
+    mul_nonneg hH_nonneg hL_nonneg
+  have hnum_le :
+      H * L ≤ H * (D - A) :=
+    mul_le_mul_of_nonneg_left hgap hH_nonneg
+  have hleft_den :
+      H * L / P ≤ H * L / (A * D) :=
+    div_le_div_of_nonneg_left hHL_nonneg hAD_pos hAD_le_P
+  have hnum_den :
+      H * L / (A * D) ≤ H * (D - A) / (A * D) :=
+    div_le_div_of_nonneg_right hnum_le (le_of_lt hAD_pos)
+  have hspread_eq :
+      H / A - H / D = H * (D - A) / (A * D) := by
+    have hA_ne : A ≠ 0 :=
+      ne_of_gt hA_pos
+    have hD_ne : D ≠ 0 :=
+      ne_of_gt hD_pos
+    have hdiv :
+        H / A - H / D = (H * D - A * H) / (A * D) :=
+      div_sub_div H H hA_ne hD_ne
+    have hnum :
+        H * D - A * H = H * (D - A) := by
+      calc
+        H * D - A * H = H * D - H * A := by
+          exact congrArg (fun r : ℝ => H * D - r) (mul_comm A H)
+        _ = H * (D - A) := by
+          exact (mul_sub H D A).symm
+    exact
+      Eq.trans hdiv
+        (congrArg (fun r : ℝ => r / (A * D)) hnum)
+  exact
+    le_trans hleft_den
+      (le_trans hnum_den
+        (le_of_eq hspread_eq.symm))
+
+/-- Cancelling the kept left-endpoint factor in the cubic endpoint denominator
+normalization. -/
+theorem Real.logarithmicPhase_endpointFactor_cancel_cubic
+    {H L C B : ℝ}
+    (hC : C ≠ 0) :
+    H * (L * C) / ((C * B) * (B * B)) =
+      H * L / (B * (B * B)) := by
+  have hnum :
+      H * (L * C) = C * (H * L) := by
+    calc
+      H * (L * C) = H * (C * L) := by
+        exact congrArg (fun r : ℝ => H * r) (mul_comm L C)
+      _ = (H * C) * L := by
+        exact (mul_assoc H C L).symm
+      _ = (C * H) * L := by
+        exact congrArg (fun r : ℝ => r * L) (mul_comm H C)
+      _ = C * (H * L) := by
+        exact mul_assoc C H L
+  have hden :
+      (C * B) * (B * B) = C * (B * (B * B)) :=
+    mul_assoc C B (B * B)
+  calc
+    H * (L * C) / ((C * B) * (B * B)) =
+        C * (H * L) / ((C * B) * (B * B)) := by
+      exact congrArg
+        (fun r : ℝ => r / ((C * B) * (B * B)))
+        hnum
+    _ = C * (H * L) / (C * (B * (B * B))) := by
+      exact congrArg (fun r : ℝ => C * (H * L) / r) hden
+    _ = H * L / (B * (B * B)) := by
+      exact mul_div_mul_left (H * L) (B * (B * B)) hC
+
+/-- Cubic reciprocal endpoint-spread lower bound in product-normalized form. -/
+theorem Real.logarithmicPhase_cubic_endpoint_spread_le_mul_div_sub_mul_div
+    (T : ℝ)
+    (hT_nonneg : 0 ≤ T)
+    {b h c d : ℕ}
+    (hh : 1 ≤ h)
+    (hcd : c < d - 1)
+    (hdb : d ≤ b - h) :
+    (T * (h : ℝ) * (((d - 1) - c : ℕ) : ℝ) /
+        ((((b + 1 : ℕ) : ℝ) *
+          (((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))))) ≤
+      ((T * (h : ℝ)) /
+          (((c + 1) * (c + h) : ℕ) : ℝ) -
+        (T * (h : ℝ)) /
+          ↑(((d - 1) * ((d - 1) + h + 1) : ℕ))) := by
+  let A : ℝ := (((c + 1) * (c + h) : ℕ) : ℝ)
+  let D : ℝ := (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ)
+  let B : ℝ := ((b + 1 : ℕ) : ℝ)
+  let C : ℝ := ((c + 1 : ℕ) : ℝ)
+  let L : ℝ := (((d - 1) - c : ℕ) : ℝ)
+  let H : ℝ := T * (h : ℝ)
+  have hC_pos : 0 < C :=
+    Nat.cast_pos.mpr (Nat.succ_pos c)
+  have hC_ne : C ≠ 0 :=
+    ne_of_gt hC_pos
+  have hH_nonneg : 0 ≤ H :=
+    mul_nonneg hT_nonneg (Nat.cast_nonneg h)
+  have hA_pos : 0 < A :=
+    Real.logarithmicPhase_leftFixedWidthDenominator_pos hh
+  have hD_pos : 0 < D :=
+    Real.logarithmicPhase_rightFixedWidthDenominator_pos hcd
+  have hAD_order : A ≤ D := by
+    have hspan :
+        A + L * C ≤ D :=
+      Real.logarithmicPhase_fixedWidthGapDenominator_span_left_factor_lower
+        (h := h) hcd
+    have hLC_nonneg : 0 ≤ L * C :=
+      mul_nonneg (Nat.cast_nonneg ((d - 1) - c)) (le_of_lt hC_pos)
+    exact le_trans (le_add_of_nonneg_right hLC_nonneg) hspan
+  have hgap : L * C ≤ D - A := by
+    have hspan :
+        A + L * C ≤ D :=
+      Real.logarithmicPhase_fixedWidthGapDenominator_span_left_factor_lower
+        (h := h) hcd
+    have hspan_comm :
+        L * C + A ≤ D :=
+      Eq.subst
+        (motive := fun left : ℝ => left ≤ D)
+        (add_comm A (L * C))
+        hspan
+    exact (le_sub_iff_add_le).mpr hspan_comm
+  have hAD_le_P :
+      A * D ≤ (C * B) * (B * B) := by
+    have hprod :
+        A * D ≤
+          (((c + 1) * (b + 1) : ℕ) : ℝ) *
+            (((b + 1) * (b + 1) : ℕ) : ℝ) :=
+      Real.logarithmicPhase_endpointDenominator_product_le_leftFactor_endpointCube
+        (b := b) (h := h) hcd hdb
+    have hleft_factor :
+        (((c + 1) * (b + 1) : ℕ) : ℝ) = C * B :=
+      Nat.cast_mul (c + 1) (b + 1)
+    have hright_factor :
+        (((b + 1) * (b + 1) : ℕ) : ℝ) = B * B :=
+      Nat.cast_mul (b + 1) (b + 1)
+    exact
+      Eq.subst
+        (motive := fun right : ℝ => A * D ≤ (C * B) * right)
+        hright_factor
+        (Eq.subst
+          (motive := fun left : ℝ =>
+            A * D ≤ left * (((b + 1) * (b + 1) : ℕ) : ℝ))
+          hleft_factor
+          hprod)
+  have hLC_nonneg : 0 ≤ L * C :=
+    mul_nonneg (Nat.cast_nonneg ((d - 1) - c)) (le_of_lt hC_pos)
+  have hrecip :
+      H * (L * C) / ((C * B) * (B * B)) ≤ H / A - H / D :=
+    Real.reciprocal_gap_lower_of_denominator_gap_and_product_bound
+      hH_nonneg hA_pos hD_pos hAD_order hgap hAD_le_P hLC_nonneg
+  have hcancel :
+      H * (L * C) / ((C * B) * (B * B)) =
+        H * L / (B * (B * B)) :=
+    Real.logarithmicPhase_endpointFactor_cancel_cubic hC_ne
+  have hleft_eq :
+      T * (h : ℝ) * (((d - 1) - c : ℕ) : ℝ) /
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ) *
+              (((b + 1 : ℕ) : ℝ))))) =
+        H * L / (B * (B * B)) :=
+    rfl
+  exact
+    Eq.subst
+      (motive := fun left : ℝ => left ≤ H / A - H / D)
+      hleft_eq
+      (Eq.subst
+        (motive := fun left : ℝ => left ≤ H / A - H / D)
+        hcancel
+        hrecip)
+
+/-- Cubic reciprocal endpoint-spread lower bound in the logarithmic long-branch
+rational-spread shape. -/
+theorem Real.logarithmicPhase_cubic_endpoint_spread_le
+    (T : ℝ)
+    (hT_nonneg : 0 ≤ T)
+    {b h c d : ℕ}
+    (hh : 1 ≤ h)
+    (hcd : c < d - 1)
+    (hdb : d ≤ b - h) :
+    (T * (h : ℝ) * (((d - 1) - c : ℕ) : ℝ) /
+        ((((b + 1 : ℕ) : ℝ) *
+          (((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ)))))) ≤
+      T *
+        (((h : ℝ) / (((c + 1) * (c + h) : ℕ) : ℝ)) -
+          ((h : ℝ) /
+            ↑(((d - 1) * ((d - 1) + h + 1) : ℕ)))) := by
+  have hcore :
+      T * (h : ℝ) * (((d - 1) - c : ℕ) : ℝ) /
+          ((((b + 1 : ℕ) : ℝ) *
+            (((b + 1 : ℕ) : ℝ) *
+              (((b + 1 : ℕ) : ℝ))))) ≤
+        (T * (h : ℝ)) /
+            (((c + 1) * (c + h) : ℕ) : ℝ) -
+          (T * (h : ℝ)) /
+            (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ) :=
+    Real.logarithmicPhase_cubic_endpoint_spread_le_mul_div_sub_mul_div
+      T hT_nonneg hh hcd hdb
+  have hright_eq :
+      (T * (h : ℝ)) /
+            (((c + 1) * (c + h) : ℕ) : ℝ) -
+          (T * (h : ℝ)) /
+            (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ) =
+        T *
+          (((h : ℝ) / (((c + 1) * (c + h) : ℕ) : ℝ)) -
+            ((h : ℝ) /
+              (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ))) := by
+    calc
+      (T * (h : ℝ)) /
+            (((c + 1) * (c + h) : ℕ) : ℝ) -
+          (T * (h : ℝ)) /
+            (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ) =
+        T * ((h : ℝ) / (((c + 1) * (c + h) : ℕ) : ℝ)) -
+          T * ((h : ℝ) /
+            (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ)) := by
+        exact congrArg₂ Sub.sub
+          (mul_div_assoc T (h : ℝ)
+            (((c + 1) * (c + h) : ℕ) : ℝ))
+          (mul_div_assoc T (h : ℝ)
+            (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ))
+      _ =
+        T *
+          (((h : ℝ) / (((c + 1) * (c + h) : ℕ) : ℝ)) -
+            ((h : ℝ) /
+              (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ))) := by
+        exact (mul_sub T
+          ((h : ℝ) / (((c + 1) * (c + h) : ℕ) : ℝ))
+          ((h : ℝ) /
+            (((d - 1) * ((d - 1) + h + 1) : ℕ) : ℝ))).symm
+  exact
+    Eq.subst
+      (motive := fun right : ℝ =>
+        T * (h : ℝ) * (((d - 1) - c : ℕ) : ℝ) /
+            ((((b + 1 : ℕ) : ℝ) *
+              (((b + 1 : ℕ) : ℝ) *
+                (((b + 1 : ℕ) : ℝ))))) ≤ right)
+      hright_eq
+      hcore
 
 /-- The reciprocal rational factor `h / (n * (n+h+1))` is antitone in the
 left endpoint. -/
@@ -989,6 +1594,57 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_le_
           right ≤ t * ((h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)))
         hparent.symm
         hscaled)
+
+/-- Positive-frequency shifted logarithmic increments on a block lie in the
+range determined by the left endpoint reciprocal gap. -/
+theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_mem_left_scaled_reciprocal_range
+    (t : ℝ)
+    (ht_nonneg : 0 ≤ t)
+    {a b h n : ℕ}
+    (ha : 1 ≤ a)
+    (hn : n ∈ Finset.Ico a (b - h)) :
+    0 ≤
+        Complex.realPhase_integerIncrement
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h)
+          n ∧
+      Complex.realPhase_integerIncrement
+          (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            h)
+          n ≤
+        t * ((h : ℝ) / ((a * (a + h + 1) : ℕ) : ℝ)) := by
+  have hn_bounds : a ≤ n ∧ n < b - h :=
+    Finset.mem_Ico.mp hn
+  have hn_one : 1 ≤ n :=
+    le_trans ha hn_bounds.1
+  have hnonneg :
+      0 ≤
+        Complex.realPhase_integerIncrement
+          (Complex.logarithmicPhaseRealPhase_shiftedDifference t h)
+          n :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_nonneg
+      t ht_nonneg hn_one
+  have hpoint :
+      Complex.realPhase_integerIncrement
+          (Complex.logarithmicPhaseRealPhase_shiftedDifference t h)
+          n ≤
+        t * ((h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) :=
+    Complex.logarithmicPhaseRealPhase_shiftedDifference_integerIncrement_le_scaled_reciprocal
+      t ht_nonneg hn_one
+  have hrec :
+      ((h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) ≤
+        ((h : ℝ) / ((a * (a + h + 1) : ℕ) : ℝ)) :=
+    Real.logarithmicPhase_fixedWidthGapReciprocal_antitone
+      ha hn_bounds.1
+  have hscaled :
+      t * ((h : ℝ) / ((n * (n + h + 1) : ℕ) : ℝ)) ≤
+        t * ((h : ℝ) / ((a * (a + h + 1) : ℕ) : ℝ)) :=
+    mul_le_mul_of_nonneg_left hrec ht_nonneg
+  exact
+    And.intro hnonneg
+      (le_trans hpoint hscaled)
 
 /-- Positive-frequency shifted logarithmic increments are bounded below by
 the right normalized reciprocal fixed-width gap factor. -/
