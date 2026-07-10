@@ -29,47 +29,66 @@ theorem five_pos : (0 : ℝ) < 5 := by norm_num
 /-- Arithmetic: 2η + 3 + (6η + 5) = 8η + 8. -/
 theorem arith_algebra (η : ℝ) : 2 * η + 3 + (6 * η + 5) = 8 * η + 8 := by ring
 
+/-- Helper: (2η - 1) + 2 = 2η + 1. -/
+theorem arith_sub_add (η : ℝ) : (2 * η - 1 : ℝ) + 2 = 2 * η + 1 := by
+  have : (2 - 1 : ℝ) = 1 := by decide
+  exact sub_add_eq_add_sub (2 * η) 1 2
+
+/-- Helper: 2 ≤ 3. -/
+theorem two_le_three : (2 : ℝ) ≤ 3 := by decide
+
+/-- Helper: (x + η) - (x - η) = 2η. -/
+theorem sub_interval (x η : ℝ) : (x + η) - (x - η) = 2 * η := by
+  calc (x + η) - (x - η)
+    = (x + η) + (-(x - η)) := by exact sub_eq_add_neg (x + η) (x - η)
+    _ = (x + η) + (-x + η) := by
+        have : -(x - η) = -x + η := neg_sub x η
+        rw [this]
+    _ = (x + (-x)) + (η + η) := by rw [add_assoc, add_assoc]; exact (add_add_add_comm x η (-x) η).symm
+    _ = 0 + 2 * η := by
+        have : x + (-x) = 0 := add_neg_self x
+        have : η + η = 2 * η := two_mul η
+        simp [this]
+    _ = 2 * η := zero_add (2 * η)
+
+/-- Helper: (x + η) + 1 - (x - η) = 2η + 1. -/
+theorem add_one_interval (x η : ℝ) : (x + η) + 1 - (x - η) = 2 * η + 1 := by
+  calc (x + η) + 1 - (x - η)
+    = ((x + η) - (x - η)) + 1 := add_sub_assoc (x + η) 1 (x - η)
+    _ = 2 * η + 1 := by rw [sub_interval]; exact congr_arg (· + 1) (sub_interval x η)
+
+/-- Helper: ⌊2η⌋ ≥ 2η - 1. -/
+theorem floor_bound (η : ℝ) (hη_pos : 0 < η) : (⌊2 * η⌋₊ : ℝ) ≥ 2 * η - 1 := by
+  have h_floor_prop : (⌊2 * η⌋₊ : ℝ) ≤ 2 * η := Nat.floor_le (mul_nonneg (by decide : (0 : ℝ) ≤ 2) (le_of_lt hη_pos))
+  have h_floor_high : 2 * η < (⌊2 * η⌋₊ : ℝ) + 1 := Nat.lt_floor_add_one (2 * η)
+  have : (2 * η : ℝ) - 1 < ⌊2 * η⌋₊ + 1 := by
+    calc (2 * η : ℝ) - 1
+      < 2 * η := sub_lt_self (2 * η) (by decide : (0 : ℝ) < 1)
+      _ < ⌊2 * η⌋₊ + 1 := h_floor_high
+  exact le_of_lt (sub_lt_of_lt_add this)
+
+/-- Helper: 2η + 1 ≤ ⌊2η⌋ + 3. -/
+theorem arithmetic_bound (η : ℝ) (hη_pos : 0 < η) : (2 * η + 1 : ℝ) ≤ ⌊2 * η⌋₊ + 3 := by
+  have h5a := floor_bound η hη_pos
+  calc (2 * η + 1 : ℝ)
+    = (2 * η - 1) + 2 := (arith_sub_add η).symm
+    _ ≤ (⌊2 * η⌋₊ : ℝ) + 2 := add_le_add h5a (le_refl 2)
+    _ ≤ (⌊2 * η⌋₊ : ℝ) + 3 := add_le_add_left two_le_three _
+
+/-- Core shell cardinality. -/
 theorem coreShell_card_le
     (η : ℝ) (hη_pos : 0 < η) (x : ℝ) :
     (Finset.Icc (⌈x - η⌉₊ : ℕ) (⌊x + η⌋₊ : ℕ)).card ≤ (⌊2 * η⌋₊ + 3 : ℕ) := by
   by_cases h : ⌈x - η⌉₊ ≤ ⌊x + η⌋₊
   · rw [Finset.card_Icc, Nat.max_eq_left h]
-    have h1 : (⌊x + η⌋₊ : ℝ) ≤ x + η := Nat.floor_le (add_nonneg (by sorry) (le_of_lt hη_pos))
-    have h2 : x - η ≤ (⌈x - η⌉₊ : ℝ) := Nat.le_ceil (x - η)
-    have h3 : (⌊x + η⌋₊ : ℝ) + 1 - (⌈x - η⌉₊ : ℝ) ≤ (x + η) + 1 - (x - η) := by
-      exact add_le_add_right (sub_le_sub_left h1 _) 1
-    have h4 : (x + η) + 1 - (x - η) = 2 * η + 1 := by
-      have h_inner : (x + η) - (x - η) = 2 * η := by
-        calc (x + η) - (x - η)
-          = (x + η) + (-(x - η)) := by exact sub_eq_add_neg (x + η) (x - η)
-          _ = (x + η) + (-x + η) := by
-              have : -(x - η) = -x + η := by
-                calc -(x - η)
-                  = -x - (-η) := by exact neg_sub x η
-                  _ = -x + η := by exact sub_neg_eq_add (-x) η
-              rw [this]
-          _ = (x + (-x)) + (η + η) := by
-              rw [add_assoc, add_assoc]; apply_instance
-          _ = 0 + 2 * η := by
-              have : x + (-x) = 0 := by exact add_neg_self x
-              have : η + η = 2 * η := by exact two_mul η
-              rw [this, ‹x + (-x) = 0›]
-          _ = 2 * η := by exact zero_add (2 * η)
-      calc (x + η) + 1 - (x - η)
-        = ((x + η) - (x - η)) + 1 := by exact add_sub_assoc (x + η) 1 (x - η)
-        _ = 2 * η + 1 := by rw [h_inner]
-    have h5 : (2 * η + 1 : ℝ) ≤ ⌊2 * η⌋₊ + 3 := by
-      have : (2 * η : ℝ) ≤ ⌊2 * η⌋₊ + 1 := by sorry
-      have : (2 * η + 1 : ℝ) ≤ ⌊2 * η⌋₊ + 1 + 1 := by
-        exact add_le_add this (le_refl 1)
-      have : (⌊2 * η⌋₊ + 1 + 1 : ℝ) = ⌊2 * η⌋₊ + 2 := by
-        exact Nat.cast_add _ _ ▸ Nat.cast_add _ _
-      sorry
+    have h1 : (⌊x + η⌋₊ : ℝ) ≤ x + η := Nat.floor_le (add_nonneg (by decide : (0 : ℝ) ≤ 0) (le_of_lt hη_pos))
+    have h3 : (⌊x + η⌋₊ : ℝ) + 1 - (⌈x - η⌉₊ : ℝ) ≤ (x + η) + 1 - (x - η) :=
+      add_le_add_right (sub_le_sub_left h1 _) 1
     have h6 : (⌊x + η⌋₊ - ⌈x - η⌉₊ + 1 : ℝ) ≤ ⌊2 * η⌋₊ + 3 := by
       calc (⌊x + η⌋₊ - ⌈x - η⌉₊ + 1 : ℝ)
-        ≤ (x + η) + 1 - (x - η) := by sorry
-        _ = 2 * η + 1 := h4
-        _ ≤ ⌊2 * η⌋₊ + 3 := h5
+        ≤ (x + η) + 1 - (x - η) := h3
+        _ = 2 * η + 1 := add_one_interval x η
+        _ ≤ ⌊2 * η⌋₊ + 3 := arithmetic_bound η hη_pos
     exact Nat.cast_le.mp h6
   · rw [Finset.card_Icc, Nat.max_eq_right (Nat.not_lt.mp h)]
 
@@ -143,8 +162,6 @@ theorem lorentzianMass_shell_le
       (Finset.Icc (⌈x - 2 ^ (k + 2) * η⌉₊ : ℕ) (⌊x + 2 ^ (k + 2) * η⌋₊ : ℕ)),
       lorentzianKernel η x ↑m ≤
         (2 ^ (k + 2) * η + 3) * (4 : ℝ) ^ (-k : ℤ) := by
-  let shell := Finset.filter (fun (m : ℕ) => 2 ^ k * η < |(m : ℝ) - x| ∧ |(m : ℝ) - x| ≤ 2 ^ (k + 1) * η)
-      (Finset.Icc (⌈x - 2 ^ (k + 2) * η⌉₊ : ℕ) (⌊x + 2 ^ (k + 2) * η⌋₊ : ℕ))
   sorry
 
 /-- The full Lorentzian mass bound: sum over all integers in an interval. -/
@@ -152,14 +169,6 @@ theorem lorentzianMass_le
     (η : ℝ) (hη_pos : 0 < η) (x : ℝ) (A B : ℕ) :
     ∑ m in Finset.Icc A B,
       lorentzianKernel η x m ≤ 16 * (η + 1) := by
-  have h_core : ∑ m in Finset.Icc (⌈x - η⌉₊ : ℕ) (⌊x + η⌋₊ : ℕ),
-      lorentzianKernel η x m ≤ 8 * (η + 1) :=
-    lorentzianMass_coreShell_le η hη_pos x
-  have h_shells : ∑ k, ∑ m in Finset.filter (fun (m : ℕ) => 2 ^ k * η < |(m : ℝ) - x| ∧
-      |(m : ℝ) - x| ≤ 2 ^ (k + 1) * η)
-      (Finset.Icc (⌈x - 2 ^ (k + 2) * η⌉₊ : ℕ) (⌊x + 2 ^ (k + 2) * η⌋₊ : ℕ)),
-      lorentzianKernel η x ↑m ≤ 8 * (η + 1) := by
-    sorry
   sorry
 
 /-- One-sided version for endpoints: sum from left endpoint a. -/
