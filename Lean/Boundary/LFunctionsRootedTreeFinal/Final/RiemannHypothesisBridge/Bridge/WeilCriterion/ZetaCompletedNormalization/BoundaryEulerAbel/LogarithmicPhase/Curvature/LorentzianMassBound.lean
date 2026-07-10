@@ -1,6 +1,7 @@
 import Mathlib.Analysis.MeanInequalitiesPow
 import Mathlib.Analysis.SpecialFunctions.Sqrt
 import Mathlib.Data.Real.Basic
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.LorentzianKernelBounds
 
 /-!
 # Lorentzian mass bounds for integer sums
@@ -41,9 +42,7 @@ theorem lorentzianMass_coreShell_le
   have h_each_le_one : ∀ m ∈ Finset.Icc (⌈x - η⌉₊ : ℕ) (⌊x + η⌋₊ : ℕ),
       lorentzianKernel η x ↑m ≤ 1 := by
     intro m _
-    unfold lorentzianKernel
-    -- On core, |m - x| ≤ η, so (m-x)² ≤ η², so η²/((m-x)² + η²) ≤ 1
-    sorry
+    exact lorentzianKernel_le_one_on_core η hη_pos ↑m x
 
   -- Step 2: Cardinality of core shell is bounded
   have h_card : (Finset.Icc (⌈x - η⌉₊ : ℕ) (⌊x + η⌋₊ : ℕ)).card ≤ (⌊2 * η⌋₊ + 3 : ℕ) := by
