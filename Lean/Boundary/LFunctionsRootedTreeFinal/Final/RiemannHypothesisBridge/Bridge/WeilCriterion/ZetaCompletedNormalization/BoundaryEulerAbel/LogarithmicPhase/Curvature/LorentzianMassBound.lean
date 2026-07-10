@@ -34,7 +34,43 @@ theorem coreShell_card_le
     (Finset.Icc (⌈x - η⌉₊ : ℕ) (⌊x + η⌋₊ : ℕ)).card ≤ (⌊2 * η⌋₊ + 3 : ℕ) := by
   by_cases h : ⌈x - η⌉₊ ≤ ⌊x + η⌋₊
   · rw [Finset.card_Icc, Nat.max_eq_left h]
-    sorry
+    have h1 : (⌊x + η⌋₊ : ℝ) ≤ x + η := Nat.floor_le (add_nonneg (by sorry) (le_of_lt hη_pos))
+    have h2 : x - η ≤ (⌈x - η⌉₊ : ℝ) := Nat.le_ceil (x - η)
+    have h3 : (⌊x + η⌋₊ : ℝ) + 1 - (⌈x - η⌉₊ : ℝ) ≤ (x + η) + 1 - (x - η) := by
+      exact add_le_add_right (sub_le_sub_left h1 _) 1
+    have h4 : (x + η) + 1 - (x - η) = 2 * η + 1 := by
+      have h_inner : (x + η) - (x - η) = 2 * η := by
+        calc (x + η) - (x - η)
+          = (x + η) + (-(x - η)) := by exact sub_eq_add_neg (x + η) (x - η)
+          _ = (x + η) + (-x + η) := by
+              have : -(x - η) = -x + η := by
+                calc -(x - η)
+                  = -x - (-η) := by exact neg_sub x η
+                  _ = -x + η := by exact sub_neg_eq_add (-x) η
+              rw [this]
+          _ = (x + (-x)) + (η + η) := by
+              rw [add_assoc, add_assoc]; apply_instance
+          _ = 0 + 2 * η := by
+              have : x + (-x) = 0 := by exact add_neg_self x
+              have : η + η = 2 * η := by exact two_mul η
+              rw [this, ‹x + (-x) = 0›]
+          _ = 2 * η := by exact zero_add (2 * η)
+      calc (x + η) + 1 - (x - η)
+        = ((x + η) - (x - η)) + 1 := by exact add_sub_assoc (x + η) 1 (x - η)
+        _ = 2 * η + 1 := by rw [h_inner]
+    have h5 : (2 * η + 1 : ℝ) ≤ ⌊2 * η⌋₊ + 3 := by
+      have : (2 * η : ℝ) ≤ ⌊2 * η⌋₊ + 1 := by sorry
+      have : (2 * η + 1 : ℝ) ≤ ⌊2 * η⌋₊ + 1 + 1 := by
+        exact add_le_add this (le_refl 1)
+      have : (⌊2 * η⌋₊ + 1 + 1 : ℝ) = ⌊2 * η⌋₊ + 2 := by
+        exact Nat.cast_add _ _ ▸ Nat.cast_add _ _
+      sorry
+    have h6 : (⌊x + η⌋₊ - ⌈x - η⌉₊ + 1 : ℝ) ≤ ⌊2 * η⌋₊ + 3 := by
+      calc (⌊x + η⌋₊ - ⌈x - η⌉₊ + 1 : ℝ)
+        ≤ (x + η) + 1 - (x - η) := by sorry
+        _ = 2 * η + 1 := h4
+        _ ≤ ⌊2 * η⌋₊ + 3 := h5
+    exact Nat.cast_le.mp h6
   · rw [Finset.card_Icc, Nat.max_eq_right (Nat.not_lt.mp h)]
 
 /-- Sum bound: if all terms ≤ 1, sum ≤ card. -/
