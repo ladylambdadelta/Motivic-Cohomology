@@ -75,6 +75,24 @@ theorem arithmetic_bound (η : ℝ) (hη_pos : 0 < η) : (2 * η + 1 : ℝ) ≤ 
     _ ≤ (⌊2 * η⌋₊ : ℝ) + 2 := add_le_add h5a (le_refl 2)
     _ ≤ (⌊2 * η⌋₊ : ℝ) + 3 := add_le_add_left two_le_three _
 
+/-- Helper: 1 < 2 (as a real). -/
+theorem one_lt_two : (1 : ℝ) < 2 := by decide
+
+/-- Helper: 0 < 2 (as a real). -/
+theorem two_pos : (0 : ℝ) < 2 := by
+  have h0 : (0 : ℝ) < 1 := by decide
+  exact lt_trans h0 one_lt_two
+
+/-- Helper: 0 < 2^k for any k. -/
+theorem two_pow_pos (k : ℕ) : (0 : ℝ) < 2 ^ k := by
+  exact pow_pos two_pos k
+
+/-- Helper: (2^k·η)² > 0. -/
+theorem two_pow_times_eta_sq_pos (k : ℕ) (η : ℝ) (hη_pos : 0 < η) : 0 < (2 ^ k * η) ^ 2 := by
+  have h1 := two_pow_pos k
+  have h2 := mul_pos h1 hη_pos
+  exact sq_pos_of_pos h2
+
 /-- Core shell cardinality. -/
 theorem coreShell_card_le
     (η : ℝ) (hη_pos : 0 < η) (x : ℝ) :
@@ -164,9 +182,29 @@ theorem lorentzianMass_shell_le
         (2 ^ (k + 2) * η + 3) * (4 : ℝ) ^ (-k : ℤ) := by
   let shell := Finset.filter (fun (m : ℕ) => 2 ^ k * η < |(m : ℝ) - x| ∧ |(m : ℝ) - x| ≤ 2 ^ (k + 1) * η)
       (Finset.Icc (⌈x - 2 ^ (k + 2) * η⌉₊ : ℕ) (⌊x + 2 ^ (k + 2) * η⌋₊ : ℕ))
-  have h_card : shell.card ≤ 2 ^ (k + 3) := by sorry
-  have h_kernel_bound : ∀ m ∈ shell, lorentzianKernel η x ↑m ≤ 1 / (2 ^ k * η) ^ 2 := by sorry
-  have h_sum_each : ∑ m in shell, lorentzianKernel η x ↑m ≤ shell.card / (2 ^ k * η) ^ 2 := by sorry
+  have h_card : shell.card ≤ 2 ^ (k + 3) := by
+    have h_subset : shell ⊆ Finset.Icc (⌈x - 2 ^ (k + 2) * η⌉₊ : ℕ) (⌊x + 2 ^ (k + 2) * η⌋₊ : ℕ) :=
+      Finset.filter_subset _ _
+    have h_icc_card : (Finset.Icc (⌈x - 2 ^ (k + 2) * η⌉₊ : ℕ) (⌊x + 2 ^ (k + 2) * η⌋₊ : ℕ)).card ≤ 2 ^ (k + 3) := by sorry
+    exact Finset.card_le_card h_subset ▸ sorry
+  have h_kernel_bound : ∀ m ∈ shell, lorentzianKernel η x ↑m ≤ 1 / (2 ^ k * η) ^ 2 := by
+    intro m hm
+    have hm_shell : 2 ^ k * η < |(m : ℝ) - x| ∧ |(m : ℝ) - x| ≤ 2 ^ (k + 1) * η :=
+      (Finset.mem_filter.mp hm).2
+    unfold lorentzianKernel
+    have h_lower := hm_shell.1
+    have h_sq : (2 ^ k * η) ^ 2 ≤ ((m : ℝ) - x) ^ 2 := by
+      have : (2 ^ k * η) ^ 2 ≤ (|(m : ℝ) - x|) ^ 2 := sq_le_sq' (by sorry) h_lower
+      rwa [sq_abs] at this
+    rw [div_le_div_iff (by sorry : 0 < ((m : ℝ) - x) ^ 2 + η ^ 2) (by sorry : 0 < (2 ^ k * η) ^ 2)]
+    calc η ^ 2 * ((2 ^ k * η) ^ 2)
+      ≤ η ^ 2 * (((m : ℝ) - x) ^ 2) := by sorry
+      _ ≤ 1 * (((m : ℝ) - x) ^ 2 + η ^ 2) := by sorry
+  have h_sum_each : ∑ m in shell, lorentzianKernel η x ↑m ≤ shell.card / (2 ^ k * η) ^ 2 := by
+    have h_sum := finset_sum_le_card shell (fun m => lorentzianKernel η x ↑m) h_kernel_bound
+    have h_pos := two_pow_times_eta_sq_pos k η hη_pos
+    have h_div := div_le_div_of_le_left (Nat.cast_nonneg _) h_pos h_sum
+    exact h_div
   calc ∑ m in shell, lorentzianKernel η x ↑m
     ≤ shell.card / (2 ^ k * η) ^ 2 := h_sum_each
     _ ≤ (2 ^ (k + 3) : ℕ) / (2 ^ k * η) ^ 2 := by sorry
