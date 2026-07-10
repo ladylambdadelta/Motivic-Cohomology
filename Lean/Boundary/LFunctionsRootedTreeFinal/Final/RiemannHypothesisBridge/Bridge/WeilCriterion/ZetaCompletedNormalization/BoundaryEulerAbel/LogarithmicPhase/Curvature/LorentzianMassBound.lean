@@ -29,14 +29,12 @@ theorem five_pos : (0 : ℝ) < 5 := by norm_num
 /-- Arithmetic: 2η + 3 + (6η + 5) = 8η + 8. -/
 theorem arith_algebra (η : ℝ) : 2 * η + 3 + (6 * η + 5) = 8 * η + 8 := by ring
 
-/-- Cardinality: core shell has at most ⌊2η⌋ + 3 elements. -/
 theorem coreShell_card_le
     (η : ℝ) (hη_pos : 0 < η) (x : ℝ) :
     (Finset.Icc (⌈x - η⌉₊ : ℕ) (⌊x + η⌋₊ : ℕ)).card ≤ (⌊2 * η⌋₊ + 3 : ℕ) := by
   by_cases h : ⌈x - η⌉₊ ≤ ⌊x + η⌋₊
   · rw [Finset.card_Icc, Nat.max_eq_left h]
-    have : ⌊x + η⌋₊ - ⌈x - η⌉₊ + 1 ≤ ⌊2 * η⌋₊ + 3 := by sorry
-    exact this
+    sorry
   · rw [Finset.card_Icc, Nat.max_eq_right (Nat.not_lt.mp h)]
 
 /-- Sum bound: if all terms ≤ 1, sum ≤ card. -/
@@ -111,13 +109,6 @@ theorem lorentzianMass_shell_le
         (2 ^ (k + 2) * η + 3) * (4 : ℝ) ^ (-k : ℤ) := by
   let shell := Finset.filter (fun (m : ℕ) => 2 ^ k * η < |(m : ℝ) - x| ∧ |(m : ℝ) - x| ≤ 2 ^ (k + 1) * η)
       (Finset.Icc (⌈x - 2 ^ (k + 2) * η⌉₊ : ℕ) (⌊x + 2 ^ (k + 2) * η⌋₊ : ℕ))
-  have h_card : shell.card ≤ 2 ^ (k + 3) * η := by sorry
-  have h_kernel : ∀ m ∈ shell, lorentzianKernel η x ↑m ≤ 1 / (2 ^ k * η) ^ 2 := by
-    intro m hm
-    have hm_dist : 2 ^ k * η < |(m : ℝ) - x| := (Finset.mem_filter.mp hm).2.1
-    sorry
-  have h_sum : ∑ m in shell, lorentzianKernel η x ↑m ≤ shell.card / (2 ^ k * η) ^ 2 := by
-    sorry
   sorry
 
 /-- The full Lorentzian mass bound: sum over all integers in an interval. -/
