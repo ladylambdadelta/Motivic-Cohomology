@@ -20,24 +20,33 @@ noncomputable section
 
 namespace Real
 
-/-- Arithmetic: 0 < 6 via decision. -/
-theorem six_pos : (0 : ℝ) < 6 := by sorry
+/-- Arithmetic: 0 < 6. -/
+theorem six_pos : (0 : ℝ) < 6 := by norm_num
 
-/-- Arithmetic: 0 < 5 via decision. -/
-theorem five_pos : (0 : ℝ) < 5 := by sorry
+/-- Arithmetic: 0 < 5. -/
+theorem five_pos : (0 : ℝ) < 5 := by norm_num
 
-/-- Arithmetic: 2η + 3 + (6η + 5) = 8η + 8 via algebra. -/
-theorem arith_algebra (η : ℝ) : 2 * η + 3 + (6 * η + 5) = 8 * η + 8 := by sorry
+/-- Arithmetic: 2η + 3 + (6η + 5) = 8η + 8. -/
+theorem arith_algebra (η : ℝ) : 2 * η + 3 + (6 * η + 5) = 8 * η + 8 := by ring
 
 /-- Cardinality: core shell has at most ⌊2η⌋ + 3 elements. -/
 theorem coreShell_card_le
     (η : ℝ) (hη_pos : 0 < η) (x : ℝ) :
     (Finset.Icc (⌈x - η⌉₊ : ℕ) (⌊x + η⌋₊ : ℕ)).card ≤ (⌊2 * η⌋₊ + 3 : ℕ) := by
-  sorry
+  by_cases h : ⌈x - η⌉₊ ≤ ⌊x + η⌋₊
+  · rw [Finset.card_Icc, Nat.max_eq_left h]
+    have : ⌊x + η⌋₊ - ⌈x - η⌉₊ + 1 ≤ ⌊2 * η⌋₊ + 3 := by sorry
+    exact this
+  · rw [Finset.card_Icc, Nat.max_eq_right (Nat.not_lt.mp h)]
 
 /-- Sum bound: if all terms ≤ 1, sum ≤ card. -/
 theorem finset_sum_le_card {α : Type*} (s : Finset α) (f : α → ℝ) (h : ∀ a ∈ s, f a ≤ 1) :
-    ∑ a in s, f a ≤ (s.card : ℝ) := by sorry
+    ∑ a in s, f a ≤ (s.card : ℝ) := by
+  have h_sum := Finset.sum_le_sum h
+  have h_card : ∑ a in s, (1 : ℝ) = s.card := Finset.sum_const s 1
+  calc ∑ a in s, f a
+    ≤ ∑ a in s, (1 : ℝ) := h_sum
+    _ = (s.card : ℝ) := h_card
 
 /-- Arithmetic: 2η + 3 ≤ 8(η + 1) for η > 0. -/
 theorem two_eta_plus_three_le_eight_eta_plus_one (η : ℝ) (hη_pos : 0 < η) :
@@ -100,6 +109,15 @@ theorem lorentzianMass_shell_le
       (Finset.Icc (⌈x - 2 ^ (k + 2) * η⌉₊ : ℕ) (⌊x + 2 ^ (k + 2) * η⌋₊ : ℕ)),
       lorentzianKernel η x ↑m ≤
         (2 ^ (k + 2) * η + 3) * (4 : ℝ) ^ (-k : ℤ) := by
+  let shell := Finset.filter (fun (m : ℕ) => 2 ^ k * η < |(m : ℝ) - x| ∧ |(m : ℝ) - x| ≤ 2 ^ (k + 1) * η)
+      (Finset.Icc (⌈x - 2 ^ (k + 2) * η⌉₊ : ℕ) (⌊x + 2 ^ (k + 2) * η⌋₊ : ℕ))
+  have h_card : shell.card ≤ 2 ^ (k + 3) * η := by sorry
+  have h_kernel : ∀ m ∈ shell, lorentzianKernel η x ↑m ≤ 1 / (2 ^ k * η) ^ 2 := by
+    intro m hm
+    have hm_dist : 2 ^ k * η < |(m : ℝ) - x| := (Finset.mem_filter.mp hm).2.1
+    sorry
+  have h_sum : ∑ m in shell, lorentzianKernel η x ↑m ≤ shell.card / (2 ^ k * η) ^ 2 := by
+    sorry
   sorry
 
 /-- The full Lorentzian mass bound: sum over all integers in an interval. -/
@@ -107,6 +125,14 @@ theorem lorentzianMass_le
     (η : ℝ) (hη_pos : 0 < η) (x : ℝ) (A B : ℕ) :
     ∑ m in Finset.Icc A B,
       lorentzianKernel η x m ≤ 16 * (η + 1) := by
+  have h_core : ∑ m in Finset.Icc (⌈x - η⌉₊ : ℕ) (⌊x + η⌋₊ : ℕ),
+      lorentzianKernel η x m ≤ 8 * (η + 1) :=
+    lorentzianMass_coreShell_le η hη_pos x
+  have h_shells : ∑ k, ∑ m in Finset.filter (fun (m : ℕ) => 2 ^ k * η < |(m : ℝ) - x| ∧
+      |(m : ℝ) - x| ≤ 2 ^ (k + 1) * η)
+      (Finset.Icc (⌈x - 2 ^ (k + 2) * η⌉₊ : ℕ) (⌊x + 2 ^ (k + 2) * η⌋₊ : ℕ)),
+      lorentzianKernel η x ↑m ≤ 8 * (η + 1) := by
+    sorry
   sorry
 
 /-- One-sided version for endpoints: sum from left endpoint a. -/
