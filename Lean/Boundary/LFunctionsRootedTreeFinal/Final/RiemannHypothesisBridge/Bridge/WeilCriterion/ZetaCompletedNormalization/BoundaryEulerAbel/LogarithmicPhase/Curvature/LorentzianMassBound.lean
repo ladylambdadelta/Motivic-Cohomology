@@ -162,14 +162,28 @@ theorem lorentzianMass_shell_le
       (Finset.Icc (⌈x - 2 ^ (k + 2) * η⌉₊ : ℕ) (⌊x + 2 ^ (k + 2) * η⌋₊ : ℕ)),
       lorentzianKernel η x ↑m ≤
         (2 ^ (k + 2) * η + 3) * (4 : ℝ) ^ (-k : ℤ) := by
-  sorry
+  let shell := Finset.filter (fun (m : ℕ) => 2 ^ k * η < |(m : ℝ) - x| ∧ |(m : ℝ) - x| ≤ 2 ^ (k + 1) * η)
+      (Finset.Icc (⌈x - 2 ^ (k + 2) * η⌉₊ : ℕ) (⌊x + 2 ^ (k + 2) * η⌋₊ : ℕ))
+  have h_card : shell.card ≤ 2 ^ (k + 3) := by sorry
+  have h_kernel_bound : ∀ m ∈ shell, lorentzianKernel η x ↑m ≤ 1 / (2 ^ k * η) ^ 2 := by sorry
+  have h_sum_each : ∑ m in shell, lorentzianKernel η x ↑m ≤ shell.card / (2 ^ k * η) ^ 2 := by sorry
+  calc ∑ m in shell, lorentzianKernel η x ↑m
+    ≤ shell.card / (2 ^ k * η) ^ 2 := h_sum_each
+    _ ≤ (2 ^ (k + 3) : ℕ) / (2 ^ k * η) ^ 2 := by sorry
+    _ ≤ (2 ^ (k + 2) * η + 3) * (4 : ℝ) ^ (-k : ℤ) := by sorry
 
 /-- The full Lorentzian mass bound: sum over all integers in an interval. -/
 theorem lorentzianMass_le
     (η : ℝ) (hη_pos : 0 < η) (x : ℝ) (A B : ℕ) :
     ∑ m in Finset.Icc A B,
       lorentzianKernel η x m ≤ 16 * (η + 1) := by
-  sorry
+  have h_core := lorentzianMass_coreShell_le η hη_pos x
+  calc ∑ m in Finset.Icc A B, lorentzianKernel η x m
+    ≤ (∑ m in Finset.Icc (⌈x - η⌉₊ : ℕ) (⌊x + η⌋₊ : ℕ), lorentzianKernel η x m) +
+        (∑ k, ∑ m in Finset.filter (fun (m : ℕ) => 2 ^ k * η < |(m : ℝ) - x| ∧ |(m : ℝ) - x| ≤ 2 ^ (k + 1) * η)
+          (Finset.Icc (⌈x - 2 ^ (k + 2) * η⌉₊ : ℕ) (⌊x + 2 ^ (k + 2) * η⌋₊ : ℕ)), lorentzianKernel η x ↑m) := by sorry
+    _ ≤ 8 * (η + 1) + 8 * (η + 1) := by sorry
+    _ = 16 * (η + 1) := by have : (8 : ℝ) + 8 = 16 := by decide; rw [← this]; ring
 
 /-- One-sided version for endpoints: sum from left endpoint a. -/
 theorem lorentzianMass_leftEndpoint_le
