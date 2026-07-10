@@ -23,27 +23,30 @@ namespace Real
 def lorentzianKernel (η x m : ℝ) : ℝ :=
   η ^ 2 / (((m : ℝ) - x) ^ 2 + η ^ 2)
 
-/-- Core shell contribution: integers within distance η of x contribute ≤ η + 1
-times the normalization. The core shell contains at most 2η + 3 integers. -/
+/-- Pointwise domination: Lorentzian kernel is a decreasing function of distance. -/
+theorem lorentzianKernel_le_of_dist_le
+    (η : ℝ) (hη_pos : 0 < η) (m n x : ℝ) (h : |m - x| ≤ |n - x|) :
+    lorentzianKernel η x m ≥ lorentzianKernel η x n := by
+  sorry
+
+/-- Core shell contribution: integers within distance η of x. -/
 theorem lorentzianMass_coreShell_le
     (η : ℝ) (hη_pos : 0 < η) (x : ℝ) :
     ∑ m in Finset.Icc (⌈x - η⌉₊ : ℕ) (⌊x + η⌋₊ : ℕ),
       lorentzianKernel η x m ≤ 8 * (η + 1) := by
   sorry
 
-/-- Shell k contribution: integers at distance between 2^k η and 2^{k+1} η
-contribute ≤ 4^{-k} each, and there are at most 2^{k+2}η + 3 of them. -/
+/-- Shell k contribution: dyadic shells at different scales. -/
 theorem lorentzianMass_shell_le
     (η : ℝ) (hη_pos : 0 < η) (x : ℝ) (k : ℕ) :
     ∑ m in Finset.filter
-      (fun m => 2 ^ k * η < |m - x| ∧ |m - x| ≤ 2 ^ (k + 1) * η)
+      (fun (m : ℕ) => 2 ^ k * η < |(m : ℝ) - x| ∧ |(m : ℝ) - x| ≤ 2 ^ (k + 1) * η)
       (Finset.Icc (⌈x - 2 ^ (k + 2) * η⌉₊ : ℕ) (⌊x + 2 ^ (k + 2) * η⌋₊ : ℕ)),
-      lorentzianKernel η x m ≤
+      lorentzianKernel η x ↑m ≤
         (2 ^ (k + 2) * η + 3) * (4 : ℝ) ^ (-k : ℤ) := by
   sorry
 
-/-- The full Lorentzian mass bound: sum over all integers in an interval,
-dominating by dyadic shells. -/
+/-- The full Lorentzian mass bound: sum over all integers in an interval. -/
 theorem lorentzianMass_le
     (η : ℝ) (hη_pos : 0 < η) (x : ℝ) (A B : ℕ) :
     ∑ m in Finset.Icc A B,
@@ -54,21 +57,26 @@ theorem lorentzianMass_le
 theorem lorentzianMass_leftEndpoint_le
     (η : ℝ) (hη_pos : 0 < η) (a : ℕ) (B : ℕ) :
     ∑ m in Finset.Icc a B,
-      lorentzianKernel η (a : ℝ) m ≤ 16 * (η + 1) := by
-  sorry
+      lorentzianKernel η (a : ℝ) m ≤ 16 * (η + 1) :=
+  lorentzianMass_le η hη_pos (a : ℝ) a B
 
 /-- One-sided version for endpoints: sum to right endpoint b. -/
 theorem lorentzianMass_rightEndpoint_le
     (η : ℝ) (hη_pos : 0 < η) (b : ℕ) (A : ℕ) :
     ∑ m in Finset.Icc A b,
-      lorentzianKernel η (b : ℝ) m ≤ 16 * (η + 1) := by
-  sorry
+      lorentzianKernel η (b : ℝ) m ≤ 16 * (η + 1) :=
+  lorentzianMass_le η hη_pos (b : ℝ) A b
 
-/-- Pointwise domination: Lorentzian kernel is a decreasing function of distance. -/
-theorem lorentzianKernel_le_of_dist_le
-    (η : ℝ) (hη_pos : 0 < η) (m n x : ℝ) (h : |m - x| ≤ |n - x|) :
-    lorentzianKernel η x m ≥ lorentzianKernel η x n := by
-  sorry
+/-- General consumer-facing theorem: Lorentzian sum over any finite interval.
+    This is the primary theorem used by consumers of this module. -/
+theorem lorentzianMass_finsetIcc_le
+    {a b : ℕ} {η c : ℝ}
+    (hη : 0 < η) :
+    (∑ m in Finset.Icc a b,
+      η ^ 2 / (((m : ℝ) - c) ^ 2 + η ^ 2))
+      ≤ 16 * (η + 1) := by
+  show ∑ m in Finset.Icc a b, lorentzianKernel η c m ≤ 16 * (η + 1)
+  exact lorentzianMass_le η hη c a b
 
 end Real
 

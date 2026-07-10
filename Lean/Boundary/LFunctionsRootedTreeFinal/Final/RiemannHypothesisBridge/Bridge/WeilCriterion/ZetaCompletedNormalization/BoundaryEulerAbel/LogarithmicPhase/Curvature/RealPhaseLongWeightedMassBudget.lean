@@ -226,6 +226,15 @@ theorem logarithmicPhaseRealPhase_longWeightedAdditiveMass_lorentzian_decomposit
         C₃ * (∑ m in Finset.Icc a b, η ^ 2 / (((m : ℝ) - center₃) ^ 2 + η ^ 2)) := by
   sorry
 
+/-- Consumer bridge: Lorentzian bound for the weighted mass calc. -/
+theorem lorentzianMass_finsetIcc_bounded
+    {a b : ℕ} {η c : ℝ}
+    (hη_pos : 0 < η) :
+    (∑ m in Finset.Icc a b,
+      η ^ 2 / (((m : ℝ) - c) ^ 2 + η ^ 2))
+      ≤ 16 * (η + 1) :=
+  Real.lorentzianMass_finsetIcc_le hη_pos
+
 /-- Apply the dyadic shell lemma to each Lorentzian component from the decomposition. -/
 theorem logarithmicPhaseRealPhase_longWeightedAdditiveMass_dyadic_from_lorentzian
     (t : ℝ)
@@ -256,32 +265,37 @@ theorem logarithmicPhaseRealPhase_longWeightedAdditiveMass_dyadic_from_lorentzia
   let H := Real.secondDerivativeVdc_weylShiftLength ‖t‖
   let η := Real.sqrt ‖t‖ / ((b + 1 : ℕ) : ℝ)
   obtain ⟨C₁, C₂, C₃, c₁, c₂, c₃, hdecomp_mass⟩ := hdecomp
-  have hη_pos : 0 < η := by sorry
-  have hlorentz₁ : ∑ m : ℕ, η ^ 2 / (((m : ℝ) - c₁) ^ 2 + η ^ 2) ≤ 16 * (η + 1) := by
-    sorry
-  have hlorentz₂ : ∑ m : ℕ, η ^ 2 / (((m : ℝ) - c₂) ^ 2 + η ^ 2) ≤ 16 * (η + 1) := by
-    sorry
-  have hlorentz₃ : ∑ m : ℕ, η ^ 2 / (((m : ℝ) - c₃) ^ 2 + η ^ 2) ≤ 16 * (η + 1) := by
-    sorry
+  have hη_pos : 0 < η := by
+    unfold η
+    positivity
+  have hlorentz₁ : (∑ m in Finset.Icc a b,
+      η ^ 2 / (((m : ℝ) - c₁) ^ 2 + η ^ 2)) ≤ 16 * (η + 1) :=
+    lorentzianMass_finsetIcc_bounded hη_pos
+  have hlorentz₂ : (∑ m in Finset.Icc a b,
+      η ^ 2 / (((m : ℝ) - c₂) ^ 2 + η ^ 2)) ≤ 16 * (η + 1) :=
+    lorentzianMass_finsetIcc_bounded hη_pos
+  have hlorentz₃ : (∑ m in Finset.Icc a b,
+      η ^ 2 / (((m : ℝ) - c₃) ^ 2 + η ^ 2)) ≤ 16 * (η + 1) :=
+    lorentzianMass_finsetIcc_bounded hη_pos
   have hsum : Real.logarithmicPhaseRealPhase_longWeightedAdditiveMass t a b ≤
     C₁ * (16 * (η + 1)) + C₂ * (16 * (η + 1)) + C₃ * (16 * (η + 1)) := by
     calc Real.logarithmicPhaseRealPhase_longWeightedAdditiveMass t a b
-      ≤ C₁ * (∑ m : ℕ, η ^ 2 / (((m : ℝ) - c₁) ^ 2 + η ^ 2)) +
-        C₂ * (∑ m : ℕ, η ^ 2 / (((m : ℝ) - c₂) ^ 2 + η ^ 2)) +
-        C₃ * (∑ m : ℕ, η ^ 2 / (((m : ℝ) - c₃) ^ 2 + η ^ 2)) := hdecomp_mass
+      ≤ C₁ * (∑ m in Finset.Icc a b, η ^ 2 / (((m : ℝ) - c₁) ^ 2 + η ^ 2)) +
+        C₂ * (∑ m in Finset.Icc a b, η ^ 2 / (((m : ℝ) - c₂) ^ 2 + η ^ 2)) +
+        C₃ * (∑ m in Finset.Icc a b, η ^ 2 / (((m : ℝ) - c₃) ^ 2 + η ^ 2)) := hdecomp_mass
       _ ≤ C₁ * (16 * (η + 1)) + C₂ * (16 * (η + 1)) + C₃ * (16 * (η + 1)) := by
         apply add_le_add (add_le_add _ _) _
-        · exact mul_le_mul_of_nonneg_left hlorentz₁ (by sorry)
-        · exact mul_le_mul_of_nonneg_left hlorentz₂ (by sorry)
-        · exact mul_le_mul_of_nonneg_left hlorentz₃ (by sorry)
+        · exact mul_le_mul_of_nonneg_left hlorentz₁ (by nlinarith [hdecomp_mass.1])
+        · exact mul_le_mul_of_nonneg_left hlorentz₂ (by nlinarith [hdecomp_mass.1])
+        · exact mul_le_mul_of_nonneg_left hlorentz₃ (by nlinarith [hdecomp_mass.1])
   have hC_bound : C₁ + C₂ + C₃ ≤ (50 : ℝ) * (H : ℝ) ^ 2 / 16 := by sorry
-  have heta_nonneg : 0 ≤ η := by sorry
+  have heta_nonneg : 0 ≤ η := by positivity
   calc Real.logarithmicPhaseRealPhase_longWeightedAdditiveMass t a b
     ≤ C₁ * (16 * (η + 1)) + C₂ * (16 * (η + 1)) + C₃ * (16 * (η + 1)) := hsum
-    _ = (C₁ + C₂ + C₃) * (16 * (η + 1)) := by sorry
+    _ = (C₁ + C₂ + C₃) * (16 * (η + 1)) := by ring
     _ ≤ ((50 : ℝ) * (H : ℝ) ^ 2 / 16) * (16 * (η + 1)) := by
       exact mul_le_mul_of_nonneg_right hC_bound (by positivity)
-    _ = (50 : ℝ) * (H : ℝ) ^ 2 * (η + 1) := by sorry
+    _ = (50 : ℝ) * (H : ℝ) ^ 2 * (η + 1) := by ring
 
 /-- Each envelope term on a shift contributes (shift_length - h) * O((b-a) + 1/η_h).
 On a long block where b-a >> √‖t‖, the weighted sum telescopes via dyadic shells
