@@ -212,13 +212,7 @@ theorem lorentzianMass_shell_le
     have h_kernel_pos := two_pow_times_eta_sq_pos k η hη_pos
     have h_sum_pos : 0 < ((m : ℝ) - x) ^ 2 + η ^ 2 := add_pos_of_pos_of_nonneg h_denom_pos (eta_sq_pos η hη_pos)
     rw [div_le_div_iff h_sum_pos h_kernel_pos]
-    have h_final : η ^ 2 * (((m : ℝ) - x) ^ 2) ≤ 1 * (((m : ℝ) - x) ^ 2 + η ^ 2) := by
-      have h1 : (η ^ 2 - 1) * (((m : ℝ) - x) ^ 2) ≤ η ^ 2 := by sorry
-      have h2 : η ^ 2 * (((m : ℝ) - x) ^ 2) = (η ^ 2 - 1) * (((m : ℝ) - x) ^ 2) + (((m : ℝ) - x) ^ 2) := by sorry
-      calc η ^ 2 * (((m : ℝ) - x) ^ 2)
-        = (η ^ 2 - 1) * (((m : ℝ) - x) ^ 2) + (((m : ℝ) - x) ^ 2) := h2
-        _ ≤ η ^ 2 + (((m : ℝ) - x) ^ 2) := add_le_add h1 (le_refl _)
-        _ = (((m : ℝ) - x) ^ 2 + η ^ 2) := add_comm _ _
+    have h_final : η ^ 2 * (((m : ℝ) - x) ^ 2) ≤ 1 * (((m : ℝ) - x) ^ 2 + η ^ 2) := by sorry
     calc η ^ 2 * ((2 ^ k * η) ^ 2)
       ≤ η ^ 2 * (((m : ℝ) - x) ^ 2) := mul_le_mul_of_nonneg_left h_sq (eta_sq_pos η hη_pos)
       _ ≤ 1 * (((m : ℝ) - x) ^ 2 + η ^ 2) := h_final
