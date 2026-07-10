@@ -93,6 +93,20 @@ theorem two_pow_times_eta_sq_pos (k : ℕ) (η : ℝ) (hη_pos : 0 < η) : 0 < (
   have h2 := mul_pos h1 hη_pos
   exact sq_pos_of_pos h2
 
+/-- Helper: For distance d > 0, we have d² > 0. -/
+theorem dist_sq_pos {a b : ℝ} (h : 0 < |a - b|) : 0 < (a - b) ^ 2 := by
+  have : 0 < (|a - b|) ^ 2 := sq_pos_of_pos h
+  rwa [sq_abs] at this
+
+/-- Helper: η² > 0. -/
+theorem eta_sq_pos (η : ℝ) (hη_pos : 0 < η) : 0 < η ^ 2 := sq_pos_of_pos hη_pos
+
+/-- Helper: For distance d, we have (2^k·η)² ≤ d² if 2^k·η < |d|. -/
+theorem dist_bound_sq (k : ℕ) (η d : ℝ) (hη_pos : 0 < η) (h : 2 ^ k * η < |d|) :
+    (2 ^ k * η) ^ 2 ≤ d ^ 2 := by
+  have h_abs_sq : (2 ^ k * η) ^ 2 ≤ (|d|) ^ 2 := sq_le_sq' (by sorry : -(2 ^ k * η) ≤ |d|) h
+  rwa [sq_abs] at h_abs_sq
+
 /-- Core shell cardinality. -/
 theorem coreShell_card_le
     (η : ℝ) (hη_pos : 0 < η) (x : ℝ) :
@@ -193,13 +207,21 @@ theorem lorentzianMass_shell_le
       (Finset.mem_filter.mp hm).2
     unfold lorentzianKernel
     have h_lower := hm_shell.1
-    have h_sq : (2 ^ k * η) ^ 2 ≤ ((m : ℝ) - x) ^ 2 := by
-      have : (2 ^ k * η) ^ 2 ≤ (|(m : ℝ) - x|) ^ 2 := sq_le_sq' (by sorry) h_lower
-      rwa [sq_abs] at this
-    rw [div_le_div_iff (by sorry : 0 < ((m : ℝ) - x) ^ 2 + η ^ 2) (by sorry : 0 < (2 ^ k * η) ^ 2)]
+    have h_sq := dist_bound_sq k η ((m : ℝ) - x) hη_pos h_lower
+    have h_denom_pos := dist_sq_pos h_lower
+    have h_kernel_pos := two_pow_times_eta_sq_pos k η hη_pos
+    have h_sum_pos : 0 < ((m : ℝ) - x) ^ 2 + η ^ 2 := add_pos_of_pos_of_nonneg h_denom_pos (eta_sq_pos η hη_pos)
+    rw [div_le_div_iff h_sum_pos h_kernel_pos]
+    have h_final : η ^ 2 * (((m : ℝ) - x) ^ 2) ≤ 1 * (((m : ℝ) - x) ^ 2 + η ^ 2) := by
+      have h1 : (η ^ 2 - 1) * (((m : ℝ) - x) ^ 2) ≤ η ^ 2 := by sorry
+      have h2 : η ^ 2 * (((m : ℝ) - x) ^ 2) = (η ^ 2 - 1) * (((m : ℝ) - x) ^ 2) + (((m : ℝ) - x) ^ 2) := by sorry
+      calc η ^ 2 * (((m : ℝ) - x) ^ 2)
+        = (η ^ 2 - 1) * (((m : ℝ) - x) ^ 2) + (((m : ℝ) - x) ^ 2) := h2
+        _ ≤ η ^ 2 + (((m : ℝ) - x) ^ 2) := add_le_add h1 (le_refl _)
+        _ = (((m : ℝ) - x) ^ 2 + η ^ 2) := add_comm _ _
     calc η ^ 2 * ((2 ^ k * η) ^ 2)
-      ≤ η ^ 2 * (((m : ℝ) - x) ^ 2) := by sorry
-      _ ≤ 1 * (((m : ℝ) - x) ^ 2 + η ^ 2) := by sorry
+      ≤ η ^ 2 * (((m : ℝ) - x) ^ 2) := mul_le_mul_of_nonneg_left h_sq (eta_sq_pos η hη_pos)
+      _ ≤ 1 * (((m : ℝ) - x) ^ 2 + η ^ 2) := h_final
   have h_sum_each : ∑ m in shell, lorentzianKernel η x ↑m ≤ shell.card / (2 ^ k * η) ^ 2 := by
     have h_sum := finset_sum_le_card shell (fun m => lorentzianKernel η x ↑m) h_kernel_bound
     have h_pos := two_pow_times_eta_sq_pos k η hη_pos
