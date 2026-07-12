@@ -1,6 +1,9 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.RealPhaseBasics
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.DyadicComparison
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.FirstDerivativeBlock
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.CorrectedFrequencyStationary
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.OscillatorySums.Owner
 import Mathlib.Analysis.Complex.Basic
 import Mathlib.Analysis.Complex.Angle
 import Mathlib.Data.Complex.ExponentialBounds
@@ -429,6 +432,21 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_bound :
   exact
     Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound
       hfiniteDifference hdecCritical
+
+theorem Complex.logarithmicPhase_integerBlock_sum_norm_le_poissonPacketMajorant
+    (t : ℝ) (a b : ℤ) (ha : 1 ≤ a) (hab : a ≤ b) :
+    ‖∑ n ∈ Finset.Icc a b,
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+              t (n : ℝ) : ℂ))‖ ≤
+      ∑' m : ℤ,
+        ‖Complex.integerBlockFourierPacket
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          a b m‖ := by
+  exact
+    Complex.norm_logarithmicPhase_integerBlock_sum_le_packet_tsum_norm
+      t a b ha hab
 
 end
 

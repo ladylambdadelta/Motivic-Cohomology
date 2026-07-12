@@ -86,6 +86,69 @@ theorem Complex.logarithmicPhaseRealPhase_secondDerivative_curvature_lower
       hnorm_second.symm
       hscale
 
+/-- Concrete second-derivative curvature upper bound for the real scalar
+logarithmic phase on an integer block.  Together with the preceding lower
+bound, this is the two-sided curvature datum used on dyadic blocks. -/
+theorem Complex.logarithmicPhaseRealPhase_secondDerivative_curvature_upper
+    (t : ℝ)
+    {a b : ℕ}
+    (ha : 1 ≤ a) :
+    ∀ x : ℝ,
+      x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+        ‖deriv
+            (deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t))
+            x‖ ≤
+          ‖t‖ * ((((a : ℝ) * (a : ℝ)))⁻¹) := by
+  intro x hx
+  let φ : ℝ → ℝ :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t
+  let A : ℝ := (a : ℝ)
+  have hA_pos : 0 < A :=
+    Nat.cast_pos.mpr (Nat.lt_of_succ_le ha)
+  have hA_nonneg : 0 ≤ A :=
+    le_of_lt hA_pos
+  have hx_pos : 0 < x :=
+    lt_of_lt_of_le hA_pos hx.1
+  have hx_nonneg : 0 ≤ x :=
+    le_of_lt hx_pos
+  have hAA_pos : 0 < A * A :=
+    mul_pos hA_pos hA_pos
+  have hxx_pos : 0 < x * x :=
+    mul_pos hx_pos hx_pos
+  have hAA_le_hxx : A * A ≤ x * x :=
+    mul_le_mul hx.1 hx.1 hA_nonneg hx_nonneg
+  have hinverse :
+      (x * x)⁻¹ ≤ (A * A)⁻¹ :=
+    (inv_le_inv₀ hxx_pos hAA_pos).mpr hAA_le_hxx
+  have hscale :
+      ‖t‖ * (x * x)⁻¹ ≤ ‖t‖ * (A * A)⁻¹ :=
+    mul_le_mul_of_nonneg_left hinverse (norm_nonneg t)
+  have hderiv_eq :
+      deriv (deriv φ) x = t * (x * x)⁻¹ :=
+    Complex.logarithmicPhaseRealPhase_secondDerivative_eq t hx_pos
+  have hnorm_second :
+      ‖deriv (deriv φ) x‖ = ‖t‖ * (x * x)⁻¹ := by
+    have hxx_nonneg : 0 ≤ x * x :=
+      le_of_lt hxx_pos
+    calc
+      ‖deriv (deriv φ) x‖ =
+          ‖t * (x * x)⁻¹‖ := by
+        exact congrArg norm hderiv_eq
+      _ = ‖t‖ * ‖(x * x)⁻¹‖ :=
+        norm_mul t ((x * x)⁻¹)
+      _ = ‖t‖ * ‖x * x‖⁻¹ := by
+        exact congrArg (fun r : ℝ => ‖t‖ * r) (norm_inv (x * x))
+      _ = ‖t‖ * (x * x)⁻¹ := by
+        exact congrArg (fun r : ℝ => ‖t‖ * r⁻¹)
+          (Real.norm_of_nonneg hxx_nonneg)
+  exact
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤ ‖t‖ * (A * A)⁻¹)
+      hnorm_second.symm
+      hscale
+
 /-- Concrete first-derivative growth on a positive logarithmic real-phase
 block, obtained from the owner curvature lower bound. -/
 theorem Complex.logarithmicPhaseRealPhase_deriv_growth_on_integer_block

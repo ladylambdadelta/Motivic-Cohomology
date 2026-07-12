@@ -1,9 +1,11 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PhaseDefs
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseCurvatureAssembly
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseDyadicCurvature
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseLongWeylArithmetic
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseLongBranch
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseLongWeylTarget
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseLongMonotoneCurvature
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseResonanceActiveCover
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseLongAdditiveCover
 
 /-!
 # Logarithmic phase curvature owner
@@ -19,6 +21,44 @@ namespace LFunctions
 noncomputable section
 
 open scoped Filter Topology
+
+/-! The unconditional long branch uses the finite resonance-family complement,
+not a global resonance-avoidance assertion. -/
+
+theorem Complex.logarithmicPhaseRealPhase_resonanceComplement_cover
+    (t : ℝ)
+    {a b : ℕ}
+    (lam : ℝ)
+    (K : Finset ℤ)
+    (hab : a ≤ b)
+    (hlam : lam ≤ Real.pi)
+    (hwindow :
+      ∀ k : ℤ,
+        k ∈ K →
+          ∃ c d : ℕ,
+            Complex.realPhase_integerIncrementResonanceWindow
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                a b (2 * Real.pi * (k : ℝ)) lam =
+              Finset.Ico c d) :
+    ∃ gaps : Finset (ℕ × ℕ),
+      Complex.realPhase_IcoFamilyUnion gaps =
+          Complex.realPhase_integerResonanceFamilyComplement
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b lam K ∧
+        (∀ p₁ : ℕ × ℕ,
+          p₁ ∈ gaps →
+            ∀ p₂ : ℕ × ℕ,
+              p₂ ∈ gaps →
+                p₁ ≠ p₂ →
+                  Disjoint (Finset.Ico p₁.1 p₁.2)
+                    (Finset.Ico p₂.1 p₂.2)) ∧
+        Complex.realPhase_IcoFamilyIntervalConnected gaps ∧
+        Complex.realPhase_IcoFamilyBounded a b gaps ∧
+        gaps.card ≤ K.card + 1 := by
+  exact
+    Complex.exists_bounded_IcoFamily_connected_cover_resonanceFamilyComplement_of_window_eq_of_le_pi
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      a b lam K hab hlam hwindow
 
 /-- Every canonical Weyl shift is positive, in the quantified shape required
 by the range-counted active-center owner theorem. -/
@@ -314,11 +354,11 @@ theorem Complex.logarithmicPhase_curvature_integer_block_bound_of_realPhase
         Complex.exp
           (Complex.I *
             (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖) ≤
-        80 * (((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        80 * (((b + 1 : ℕ) : ℝ) / Real.sqrt ‖t‖ +
           Real.sqrt (1 + ‖t‖))) :
     (‖∑ n ∈ Finset.Icc a b,
       ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖) ≤
-      80 * (((b + 1 : ℕ) : ℝ) / ‖t‖ +
+      80 * (((b + 1 : ℕ) : ℝ) / Real.sqrt ‖t‖ +
         Real.sqrt (1 + ‖t‖)) := by
   have hsample :
       (∑ n ∈ Finset.Icc a b,
@@ -4515,22 +4555,15 @@ theorem Complex.logarithmicPhase_curvature_integer_block_bound_of_stationaryFami
 
 /-- Unconditional positive long-branch real-phase curvature estimate.
 
-The public owner theorem now only composes the long-branch owner theorem with
-the sign-symmetry branch assembly. -/
+The public owner theorem consumes an explicit long-branch owner bound and
+then performs only the sign-symmetry branch assembly. -/
 theorem Complex.logarithmicPhaseRealPhase_curvature_integer_block_bound
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     {a b : ℕ}
     (ha : 1 ≤ a)
-    (hab : a ≤ b) :
-    ‖∑ n ∈ Finset.Icc a b,
-      Complex.exp
-        (Complex.I *
-          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
-            t n : ℂ))‖ ≤
-      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
-        Real.sqrt (1 + ‖t‖))) := by
-  have hlong_nonneg :
+    (hab : a ≤ b)
+    (hlong_nonneg :
       ∀ u : ℝ,
         0 ≤ u →
           1 ≤ ‖u‖ →
@@ -4547,27 +4580,49 @@ theorem Complex.logarithmicPhaseRealPhase_curvature_integer_block_bound
                         (Complex.I *
                           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
                             u n : ℂ))‖ ≤
-                      80 * ((((d + 1 : ℕ) : ℝ) / ‖u‖ +
-                        Real.sqrt (1 + ‖u‖))) := by
-    intro u hu_nonneg hu_ht c d hc hd hcd_strict hlong_sqrt hlong_endpoint
-    exact
-      Complex.logarithmicPhaseRealPhase_long_nonneg_monotoneCurvature_resonanceDecomposition
-        u hu_nonneg hu_ht hc hd hcd_strict hlong_sqrt hlong_endpoint
+                      80 * ((((d + 1 : ℕ) : ℝ) / Real.sqrt ‖u‖ +
+                        Real.sqrt (1 + ‖u‖)))) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+            t n : ℂ))‖ ≤
+      80 * ((((b + 1 : ℕ) : ℝ) / Real.sqrt ‖t‖ +
+        Real.sqrt (1 + ‖t‖))) := by
   exact
     Complex.logarithmicPhaseRealPhase_curvature_integer_block_bound_of_long_nonneg
       t ht ha hab hlong_nonneg
 
-/-- Unconditional logarithmic curvature block estimate for the concrete
-samples `n ^ (-it)`. -/
+/-- Logarithmic curvature block estimate for the concrete samples `n ^ (-it)`
+from an explicit long-branch owner bound. -/
 theorem Complex.logarithmicPhase_curvature_integer_block_bound
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     {a b : ℕ}
     (ha : 1 ≤ a)
-    (hab : a ≤ b) :
+    (hab : a ≤ b)
+    (hlong_nonneg :
+      ∀ u : ℝ,
+        0 ≤ u →
+          1 ≤ ‖u‖ →
+            ∀ {c d : ℕ},
+              1 ≤ c →
+                c ≤ d →
+                  c < d →
+                    Real.sqrt (1 + ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    (((d + 1 : ℕ) : ℝ) / ‖u‖) <
+                      (((d + 1 : ℕ) : ℝ) - (c : ℝ)) →
+                    ‖∑ n ∈ Finset.Icc c d,
+                      Complex.exp
+                        (Complex.I *
+                          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                            u n : ℂ))‖ ≤
+                      80 * ((((d + 1 : ℕ) : ℝ) / Real.sqrt ‖u‖ +
+                        Real.sqrt (1 + ‖u‖)))) :
     ‖∑ n ∈ Finset.Icc a b,
       ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+      80 * ((((b + 1 : ℕ) : ℝ) / Real.sqrt ‖t‖ +
         Real.sqrt (1 + ‖t‖))) := by
   have hreal :
       ‖∑ n ∈ Finset.Icc a b,
@@ -4575,10 +4630,10 @@ theorem Complex.logarithmicPhase_curvature_integer_block_bound
           (Complex.I *
             (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
               t n : ℂ))‖ ≤
-        80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
+        80 * ((((b + 1 : ℕ) : ℝ) / Real.sqrt ‖t‖ +
           Real.sqrt (1 + ‖t‖))) :=
     Complex.logarithmicPhaseRealPhase_curvature_integer_block_bound
-      t ht ha hab
+      t ht ha hab hlong_nonneg
   exact
     Complex.logarithmicPhase_curvature_integer_block_bound_of_realPhase
       t ha hreal

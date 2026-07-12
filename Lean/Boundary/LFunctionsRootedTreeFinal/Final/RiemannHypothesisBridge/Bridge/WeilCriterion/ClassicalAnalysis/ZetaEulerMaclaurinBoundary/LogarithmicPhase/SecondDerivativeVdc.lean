@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.ReducedArcVariation
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.OscillatorySums.FiniteSumNorm
 import Mathlib.Algebra.Order.Chebyshev
 import Mathlib.Algebra.Order.Floor
 
@@ -24,53 +25,6 @@ namespace Boundary
 namespace LFunctions
 
 noncomputable section
-
-/-- A finite complex sum is bounded by a uniform bound times the number of
-summands.  This is the basic packet-counting estimate used in the
-second-derivative VdC decomposition. -/
-theorem Complex.finite_sum_norm_le_card_mul_of_norm_le
-    {ι : Type*}
-    (s : Finset ι)
-    (u : ι → ℂ)
-    {M : ℝ}
-    (hM : 0 ≤ M)
-    (hu : ∀ i : ι, i ∈ s → ‖u i‖ ≤ M) :
-    ‖∑ i ∈ s, u i‖ ≤ ((s.card : ℝ) * M) := by
-  have hsum_norm :
-      ‖∑ i ∈ s, u i‖ ≤ ∑ i ∈ s, ‖u i‖ :=
-    norm_sum_le s u
-  have hsum_bound :
-      (∑ i ∈ s, ‖u i‖) ≤ ∑ i ∈ s, M :=
-    Finset.sum_le_sum
-      (fun i hi => hu i hi)
-  have hconstant_sum :
-      (∑ i ∈ s, M) = ((s.card : ℝ) * M) :=
-    Eq.trans
-      (Finset.sum_const M)
-      (nsmul_eq_mul s.card M)
-  exact
-    le_trans hsum_norm
-      (le_trans hsum_bound
-        (le_of_eq hconstant_sum))
-
-/-- Unit-bounded finite complex sums are bounded by the cardinality of their
-index set. -/
-theorem Complex.finite_sum_norm_le_card_of_norm_le_one
-    {ι : Type*}
-    (s : Finset ι)
-    (u : ι → ℂ)
-    (hu : ∀ i : ι, i ∈ s → ‖u i‖ ≤ 1) :
-    ‖∑ i ∈ s, u i‖ ≤ (s.card : ℝ) := by
-  have hbound :
-      ‖∑ i ∈ s, u i‖ ≤ ((s.card : ℝ) * 1) :=
-    Complex.finite_sum_norm_le_card_mul_of_norm_le
-      s u zero_le_one hu
-  have hcard_mul_one :
-      ((s.card : ℝ) * 1) = (s.card : ℝ) :=
-    mul_one (s.card : ℝ)
-  exact
-    le_trans hbound
-      (le_of_eq hcard_mul_one)
 
 /-- Non-singleton prefix in the finite Abel transform.  This is the remaining
 finite summation-by-parts identity plus monotone-variation estimate. -/

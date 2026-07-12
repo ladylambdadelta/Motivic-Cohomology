@@ -188,7 +188,9 @@ theorem Complex.realPhase_IcoFamily_pairwiseIntersections_union_eq
                           lt_min hp_bounds.2 hr_bounds.2
                         exact Finset.mem_Ico.mpr (And.intro hleft_q hright_q)
                       have hq_nonempty : q.1 < q.2 :=
-                        (Finset.mem_Ico.mp hnq).2
+                        lt_of_le_of_lt
+                          (Finset.mem_Ico.mp hnq).1
+                          (Finset.mem_Ico.mp hnq).2
                       have hq_image :
                           q ∈
                             Complex.realPhase_IcoFamily_pairwiseIntersections

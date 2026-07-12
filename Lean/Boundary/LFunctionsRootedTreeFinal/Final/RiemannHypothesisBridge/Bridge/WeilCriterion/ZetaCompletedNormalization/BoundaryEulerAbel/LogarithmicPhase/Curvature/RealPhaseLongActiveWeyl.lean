@@ -403,13 +403,7 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum
             (2 * Real.pi * (center p : ℝ))‖ :=
       Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_separated
         t hn_complement (center p)
-    have hlt :
-        ‖Complex.realPhase_integerIncrement
-            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
-              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-              h)
-            n -
-          (2 * Real.pi * (center p : ℝ))‖ < eta :=
+    have hwindow_data :=
       (Complex.mem_realPhase_integerIncrementResonanceWindow_iff
         (φ :=
           Complex.realPhase_secondDerivative_vdc_shiftedDifference
@@ -419,7 +413,15 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum
         (b := b - h)
         (n := n)
         (resonance := 2 * Real.pi * (center p : ℝ))
-        (lam := eta)).mp hn_window |>.2
+        (lam := eta)).mp hn_window
+    have hlt :
+        ‖Complex.realPhase_integerIncrement
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            n -
+          (2 * Real.pi * (center p : ℝ))‖ < eta :=
+      hwindow_data.2
     exact not_lt_of_ge hsep hlt
   exact
     Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum_norm_le_gapCount_mul_firstDerivativeMajorant_of_integerLatticeShift_gaps
@@ -519,13 +521,7 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum
             (2 * Real.pi * (center p : ℝ))‖ :=
       Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_separated
         t hn_complement (center p)
-    have hlt :
-        ‖Complex.realPhase_integerIncrement
-            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
-              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-              h)
-            n -
-          (2 * Real.pi * (center p : ℝ))‖ < lam :=
+    have hwindow_data :=
       (Complex.mem_realPhase_integerIncrementResonanceWindow_iff
         (φ :=
           Complex.realPhase_secondDerivative_vdc_shiftedDifference
@@ -535,7 +531,15 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum
         (b := b - h)
         (n := n)
         (resonance := 2 * Real.pi * (center p : ℝ))
-        (lam := lam)).mp hn_window |>.2
+        (lam := lam)).mp hn_window
+    have hlt :
+        ‖Complex.realPhase_integerIncrement
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            n -
+          (2 * Real.pi * (center p : ℝ))‖ < lam :=
+      hwindow_data.2
     exact not_lt_of_ge hsep hlt
   exact
     Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum_norm_le_gapCount_mul_curvatureMajorant_of_integerLatticeShift_gaps
@@ -901,9 +905,10 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum
                       t a b h lam ⊆
                     Finset.Ico a (b - h) := by
                 intro n hn
-                exact
+                have hcomplement_data :=
                   (Complex.mem_realPhase_integerIncrementResonanceFamilyComplement_iff
-                    ψ).mp hn |>.1
+                    ψ).mp hn
+                exact hcomplement_data.1
               exact
                 Complex.finset_subset_integerIncrementPrincipalStripFamilyUnion_rangeActiveCenters
                   ψ hblock_subset hrange
@@ -979,8 +984,24 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum
                               ψ (center q))
                             n ∈
                           Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
-            Complex.logarithmicPhaseRealPhase_shiftedDifference_principal_gap_cover_of_Ico_subset_principalStrip
-              t refined hgap_principal
+            by
+              have hq_exists :
+                  ∀ q : ℕ × ℕ,
+                    q ∈ refined →
+                      ∃ k : ℤ,
+                        ∀ n : ℕ,
+                          n ∈ Finset.Ico q.1 q.2 →
+                            Complex.realPhase_integerIncrement
+                                (Complex.realPhase_integerLatticeShift ψ k) n ∈
+                              Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) := by
+                intro q hq
+                match hgap_principal q hq with
+                | ⟨k, hk⟩ =>
+                    exact Exists.intro k (fun n hn =>
+                      ((Complex.mem_realPhase_integerIncrementPrincipalStrip_iff ψ).mp
+                        (hk hn)).2)
+              choose center hcenter using hq_exists
+              exact Exists.intro center hcenter
           match hcenter_exists with
           | ⟨center, hprincipal⟩ =>
               have hrefined_sum :
@@ -1126,9 +1147,10 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum
                     t a b h eta ⊆
                   Finset.Ico a (b - h) := by
               intro n hn
-              exact
+              have hcomplement_data :=
                 (Complex.mem_realPhase_integerIncrementResonanceFamilyComplement_iff
-                  ψ).mp hn |>.1
+                  ψ).mp hn
+              exact hcomplement_data.1
             exact
               Complex.finset_subset_integerIncrementPrincipalStripFamilyUnion_rangeActiveCenters
                 ψ hblock_subset hrange
@@ -1204,8 +1226,24 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sum
                               ψ (center q))
                             n ∈
                           Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) :=
-            Complex.logarithmicPhaseRealPhase_shiftedDifference_principal_gap_cover_of_Ico_subset_principalStrip
-              t refined hgap_principal
+            by
+              have hq_exists :
+                  ∀ q : ℕ × ℕ,
+                    q ∈ refined →
+                      ∃ k : ℤ,
+                        ∀ n : ℕ,
+                          n ∈ Finset.Ico q.1 q.2 →
+                            Complex.realPhase_integerIncrement
+                                (Complex.realPhase_integerLatticeShift ψ k) n ∈
+                              Set.Ioc (-Real.pi) (-Real.pi + (2 * Real.pi)) := by
+                intro q hq
+                match hgap_principal q hq with
+                | ⟨k, hk⟩ =>
+                    exact Exists.intro k (fun n hn =>
+                      ((Complex.mem_realPhase_integerIncrementPrincipalStrip_iff ψ).mp
+                        (hk hn)).2)
+              choose center hcenter using hq_exists
+              exact Exists.intro center hcenter
           match hcenter_exists with
           | ⟨center, hprincipal⟩ =>
               have hrefined_sum :
@@ -1637,11 +1675,12 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedDifference_activeComplement_sub
           t a b h lam ⊆
         Finset.Ico a (b - h) := by
     intro n hn
-    exact
+    have hcomplement_data :=
       (Complex.mem_realPhase_integerIncrementResonanceFamilyComplement_iff
         (Complex.realPhase_secondDerivative_vdc_shiftedDifference
           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-          h)).mp hn |>.1
+          h)).mp hn
+    exact hcomplement_data.1
   exact
     Complex.finset_subset_integerIncrementPrincipalStripFamilyUnion_rangeActiveCenters
       (Complex.realPhase_secondDerivative_vdc_shiftedDifference
@@ -2666,7 +2705,7 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelation_norm_le_activeCente
           (((Finset.Ico a (b - h)).card : ℝ) *
             Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h) :=
     Complex.logarithmicPhaseRealPhase_shiftedDifference_Ico_sum_norm_le_activeCenterCount_window_add_refinedPrincipalGapMajorants
-      t ht ha habh hpos hlam hlam_pi hrange hwindow hinc_mono
+      t ht ha habh hpos hlam hlam_pi hrange hwindow hinc_mono hred_mono
   exact le_trans hclosed (add_le_add_right hIco 1)
 
 /-- Closed shifted correlations inherit the refined all-principal-branch
@@ -2708,6 +2747,12 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelation_norm_le_activeCente
         (Complex.realPhase_secondDerivative_vdc_shiftedDifference
           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
           h)
+        a (b - h))
+    (hred_mono :
+      Complex.realPhase_reducedIntegerIncrementMonotoneOn
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          h)
         a (b - h)) :
     ‖Complex.logarithmicPhaseRealPhase_shiftedCorrelation t h a b‖ ≤
       ((((Complex.logarithmicPhaseRealPhase_shiftedDifference_activeCenters
@@ -2737,7 +2782,7 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelation_norm_le_activeCente
           (((Finset.Ico a (b - h)).card : ℝ) *
             (4 * (eta⁻¹ + 1) + 4 * Real.pi * eta⁻¹)) :=
     Complex.logarithmicPhaseRealPhase_shiftedDifference_Ico_sum_norm_le_activeCenterCount_window_add_refinedPrincipalFirstDerivativeGapMajorants
-      t ha habh heta_pos heta_pi hrange hwindow hinc_mono
+      t ha habh heta_pos heta_pi hrange hwindow hinc_mono hred_mono
   exact le_trans hclosed (add_le_add_right hIco 1)
 
 /-- Closed shifted correlations inherit the direct all-integer active
@@ -2830,6 +2875,12 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelation_norm_le_activeCente
         (Complex.realPhase_secondDerivative_vdc_shiftedDifference
           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
           h)
+        a (b - h))
+    (hred_mono :
+      Complex.realPhase_reducedIntegerIncrementMonotoneOn
+        (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          h)
         a (b - h)) :
     ‖Complex.logarithmicPhaseRealPhase_shiftedCorrelation t h a b‖ ≤
       (((Complex.logarithmicPhaseRealPhase_shiftedDifference_activeCenters
@@ -2861,7 +2912,7 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelation_norm_le_activeCente
             t a b h eta).card + 1 : ℕ) : ℝ) *
             (4 * (eta⁻¹ + 1) + 4 * Real.pi * eta⁻¹)) :=
     Complex.logarithmicPhaseRealPhase_shiftedDifference_Ico_sum_norm_le_activeCenterCount_window_add_allIntegerFirstDerivativeGapMajorants
-      t ha habh heta_pos heta_pi hwindow hinc_mono
+      t ha habh heta_pos heta_pi hwindow hinc_mono hred_mono
   exact le_trans hclosed (add_le_add_right hIco 1)
 
 /-- Closed shifted correlations inherit the direct all-integer active
@@ -3096,6 +3147,14 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelationEnvelope_le_activeCe
       ∀ h : ℕ,
         h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H →
           Complex.realPhase_integerIncrementMonotoneOn
+            (Complex.realPhase_secondDerivative_vdc_shiftedDifference
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              h)
+            a (b - h))
+    (hred_mono :
+      ∀ h : ℕ,
+        h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H →
+          Complex.realPhase_reducedIntegerIncrementMonotoneOn
             (Complex.realPhase_secondDerivative_vdc_shiftedDifference
               (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
               h)
@@ -3413,7 +3472,7 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelationEnvelope_le_counted_
               (4 * ((eta h)⁻¹ + 1) + 4 * Real.pi * (eta h)⁻¹))) +
             1) :=
     Complex.logarithmicPhaseRealPhase_shiftedCorrelationEnvelope_le_activeCenterCount_window_add_allIntegerFirstDerivativeGapMajorants_add_one
-      t ha habh heta_pos heta_pi hwindow hinc_mono
+      t ha habh heta_pos heta_pi hwindow hinc_mono hred_mono
   have hsum :
       (∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
           (((((Complex.logarithmicPhaseRealPhase_shiftedDifference_activeCenters
@@ -3542,11 +3601,11 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelationEnvelope_le_rangeCou
         (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
         a b H ≤
       ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
-        ((((((Complex.realPhase_integerIncrementRangeActiveCenters
-            (lo h) (hi h) (eta h)).card : ℕ) : ℝ) * W h +
-          ((((Complex.realPhase_integerIncrementRangeActiveCenters
+        (((Complex.realPhase_integerIncrementRangeActiveCenters
+            (lo h) (hi h) (eta h)).card : ℝ) * W h +
+          (((Complex.realPhase_integerIncrementRangeActiveCenters
               (lo h) (hi h) (eta h)).card + 1 : ℕ) : ℝ) *
-            (4 * ((eta h)⁻¹ + 1) + 4 * Real.pi * (eta h)⁻¹))) +
+            (4 * ((eta h)⁻¹ + 1) + 4 * Real.pi * (eta h)⁻¹) +
           1) := by
   let C : ℕ → ℕ :=
     fun h : ℕ =>
@@ -3643,11 +3702,11 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelationEnvelope_le_rangeCou
         (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
         a b H ≤
       ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
-        ((((((Complex.realPhase_integerIncrementRangeActiveCenters
-            (lo h) (hi h) (eta h)).card : ℕ) : ℝ) * W h +
-          ((((Complex.realPhase_integerIncrementRangeActiveCenters
+        (((Complex.realPhase_integerIncrementRangeActiveCenters
+            (lo h) (hi h) (eta h)).card : ℝ) * W h +
+          (((Complex.realPhase_integerIncrementRangeActiveCenters
               (lo h) (hi h) (eta h)).card + 1 : ℕ) : ℝ) *
-            (4 * ((eta h)⁻¹ + 1) + 4 * Real.pi * (eta h)⁻¹))) +
+            (4 * ((eta h)⁻¹ + 1) + 4 * Real.pi * (eta h)⁻¹) +
           1) := by
   let C : ℕ → ℕ :=
     fun h : ℕ =>
@@ -3959,8 +4018,8 @@ theorem Complex.logarithmicPhaseRealPhase_long_bound_of_counted_activeCenter_win
                         4 * Real.pi * (eta h)⁻¹))) +
                     1))) *
             (((Real.secondDerivativeVdc_weylShiftLength ‖t‖ : ℕ) : ℝ)⁻¹)) ≤
-        (80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
-          Real.sqrt (1 + ‖t‖)))) ^ 2) :
+        (80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖) +
+          Real.sqrt (1 + ‖t‖))) ^ 2) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp
         (Complex.I *
@@ -4071,7 +4130,7 @@ theorem Complex.logarithmicPhaseRealPhase_long_bound_of_rangeCounted_activeCente
                     1))) *
             (((Real.secondDerivativeVdc_weylShiftLength ‖t‖ : ℕ) : ℝ)⁻¹)) ≤
         (80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ +
-          Real.sqrt (1 + ‖t‖)))) ^ 2) :
+          Real.sqrt (1 + ‖t‖))) ^ 2) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp
         (Complex.I *
@@ -4420,10 +4479,10 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelationEnvelope_le_counted_
               Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h)) +
             1)) ≤
         ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
-          ((((C h : ℕ) : ℝ) * W h +
+          (((C h : ℕ) : ℝ) * W h +
             (((C h + 1 : ℕ) : ℝ) *
-              Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h)) +
-            1) := by
+              Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h) +
+            1)) := by
     exact Finset.sum_le_sum
       (fun h hh =>
         have hcard_real :
@@ -4537,11 +4596,11 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelationEnvelope_le_counted_
         (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
         a b H ≤
       ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
-        ((((C h : ℕ) : ℝ) * W h +
-          (((((C h + 1 : ℕ) *
+        (((C h : ℝ) * W h) +
+          (((C h + 1 : ℕ) *
               (Complex.realPhase_integerIncrementRangeActiveCenters
                 (lo h) (hi h) Real.pi).card : ℕ) : ℝ) *
-            Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h)) +
+            Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h +
           1) := by
   have hraw :
       Complex.realPhase_secondDerivative_vdc_shiftedCorrelationEnvelope
@@ -4569,12 +4628,12 @@ theorem Complex.logarithmicPhaseRealPhase_shiftedCorrelationEnvelope_le_counted_
               Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h)) +
             1)) ≤
         ∑ h ∈ Complex.realPhase_secondDerivative_vdc_shiftRange H,
-          ((((C h : ℕ) : ℝ) * W h +
+          (((C h : ℕ) : ℝ) * W h +
             (((((C h + 1 : ℕ) *
                 (Complex.realPhase_integerIncrementRangeActiveCenters
                   (lo h) (hi h) Real.pi).card : ℕ) : ℝ) *
-              Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h)) +
-            1) := by
+              Real.secondDerivativeVdc_shiftedCorrelationMajorant ‖t‖ b h) +
+            1)) := by
     exact Finset.sum_le_sum
       (fun h hh =>
         have hcard_real :
