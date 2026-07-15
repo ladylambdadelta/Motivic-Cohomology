@@ -20,8 +20,9 @@ def Real.logarithmicPhaseLongBranchGeometry
       a < b ∧
         Real.sqrt (1 + ‖t‖) <
           (((b + 1 : ℕ) : ℝ) - (a : ℝ)) ∧
-        (((b + 1 : ℕ) : ℝ) / ‖t‖) <
-          (((b + 1 : ℕ) : ℝ) - (a : ℝ))
+        ((((b + 1 : ℕ) : ℝ) / ‖t‖) <
+          (((b + 1 : ℕ) : ℝ) - (a : ℝ)) ∧
+        b + 1 ≤ 2 * a)
 
 theorem Real.logarithmicPhaseLongBranchGeometry_first_pos
     {t : ℝ} {a b : ℕ}
@@ -53,7 +54,27 @@ theorem Real.logarithmicPhaseLongBranchGeometry_endpoint
     (hgeometry : Real.logarithmicPhaseLongBranchGeometry t a b) :
     (((b + 1 : ℕ) : ℝ) / ‖t‖) <
       (((b + 1 : ℕ) : ℝ) - (a : ℝ)) := by
-  exact hgeometry.2.2.2.2
+  exact hgeometry.2.2.2.2.1
+
+theorem Real.logarithmicPhaseLongBranchGeometry_comparable
+    {t : ℝ} {a b : ℕ}
+    (hgeometry : Real.logarithmicPhaseLongBranchGeometry t a b) :
+    b + 1 ≤ 2 * a := by
+  exact hgeometry.2.2.2.2.2
+
+theorem Real.logarithmicPhaseLongBranchGeometry_of_endpoint_hypotheses
+    {t : ℝ} {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hstrict : a < b)
+    (hsqrt : Real.sqrt (1 + ‖t‖) <
+      (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hendpoint : (((b + 1 : ℕ) : ℝ) / ‖t‖) <
+      (((b + 1 : ℕ) : ℝ) - (a : ℝ)))
+    (hcomparable : b + 1 ≤ 2 * a) :
+    Real.logarithmicPhaseLongBranchGeometry t a b := by
+  exact ⟨ha, hab, hstrict, hsqrt, hendpoint, hcomparable⟩
+
 
 theorem Real.logarithmicPhaseLongBranchGeometry_zero_lt_a
     {t : ℝ} {a b : ℕ}
@@ -77,7 +98,14 @@ theorem Real.logarithmicPhaseLongBranchGeometry_a_cast_ge_one
     {t : ℝ} {a b : ℕ}
     (hgeometry : Real.logarithmicPhaseLongBranchGeometry t a b) :
     (1 : ℝ) ≤ (a : ℝ) := by
-  exact Nat.cast_le.mpr hgeometry.1
+  have hcast : (((1 : ℕ) : ℝ)) ≤ (a : ℝ) :=
+    Nat.mono_cast hgeometry.1
+  have hone : (((1 : ℕ) : ℝ)) = (1 : ℝ) :=
+    Nat.cast_one
+  exact Eq.subst
+    (motive := fun value : ℝ => value ≤ (a : ℝ))
+    hone
+    hcast
 
 theorem Real.logarithmicPhaseLongBranchGeometry_length_pos
     {t : ℝ} {a b : ℕ}
@@ -97,7 +125,9 @@ theorem Real.logarithmicPhaseLongBranchGeometry_length_le_b
   have hneg := neg_le_neg haReal
   have hadd := add_le_add_left hneg (((b + 1 : ℕ) : ℝ))
   have hsuccCast : ((b + 1 : ℕ) : ℝ) = (b : ℝ) + 1 :=
-    Nat.cast_add b 1
+    Eq.trans
+      (Nat.cast_add b 1)
+      (congrArg (fun value : ℝ => (b : ℝ) + value) Nat.cast_one)
   have hnormalize :
       ((b : ℝ) + 1) + -1 = (b : ℝ) := by
     calc
@@ -214,7 +244,10 @@ theorem Real.logarithmicPhaseLongBranchGeometry_to_arguments
         (((b + 1 : ℕ) : ℝ) - (a : ℝ)) ∧
       (((b + 1 : ℕ) : ℝ) / ‖t‖) <
         (((b + 1 : ℕ) : ℝ) - (a : ℝ)) := by
-  exact hgeometry
+  exact And.intro hgeometry.1
+    (And.intro hgeometry.2.1
+      (And.intro hgeometry.2.2.1
+        (And.intro hgeometry.2.2.2.1 hgeometry.2.2.2.2.1)))
 
 end
 end LFunctions

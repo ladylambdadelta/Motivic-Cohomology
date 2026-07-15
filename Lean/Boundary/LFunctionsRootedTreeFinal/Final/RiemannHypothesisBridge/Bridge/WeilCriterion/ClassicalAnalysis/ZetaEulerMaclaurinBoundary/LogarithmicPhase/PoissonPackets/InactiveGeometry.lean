@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.DirectTails
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.ModeRangeCore
 
 /-!
 # Finite inactive logarithmic Poisson geometry
@@ -116,7 +117,7 @@ theorem Complex.logarithmicPhasePoissonLeftRightInactive_disjoint
               Complex.logarithmicPhaseFourierStationaryPoint t m :=
           lt_of_lt_of_le hleft.2.2
             (le_trans hab_real (le_of_lt hright.2.2))
-        exact lt_irrefl _ hcenter_lt_center)
+        lt_irrefl _ hcenter_lt_center)
 
 theorem Complex.logarithmicPhasePoissonLeftRightInactive_subset_inRangeInactive
     (t : ℝ) (a b : ℤ) :
@@ -233,7 +234,8 @@ theorem Complex.zero_mem_logarithmicPhasePoissonTransitionModes
     (t : ℝ) {a b : ℤ} (ha : 1 ≤ a) :
     0 ∈ Complex.logarithmicPhasePoissonTransitionModes t a b := by
   have hzero_range : 0 ∈ Complex.logarithmicPhasePoissonModeRange t a :=
-    Complex.zero_mem_logarithmicPhasePoissonModeRange_of_lower_le_zero t ha
+    Complex.zero_mem_logarithmicPhasePoissonModeRange_of_lower_le_zero t a
+      (Complex.logarithmicPhasePoissonModeRangeLower_le_zero t ha)
   have hzero_not_active : 0 ∉ Complex.logarithmicPhasePoissonActiveModes t a b := by
     intro hzero_active
     have hactive_data :=
@@ -285,11 +287,12 @@ theorem Complex.logarithmicPhasePoissonTransitionModes_card_eq_one
     (t : ℝ) {a b : ℤ} (ha : 1 ≤ a) :
     (Complex.logarithmicPhasePoissonTransitionModes t a b).card = 1 := by
   have heq :=
-    Complex.logarithmicPhasePoissonTransitionModes_eq_singleton_zero t ha
+    Complex.logarithmicPhasePoissonTransitionModes_eq_singleton_zero
+      t (b := b) ha
   exact
     Eq.trans
       (congrArg Finset.card heq)
-      Finset.card_singleton
+      (by rfl)
 
 theorem Complex.logarithmicPhasePoissonTransitionBudget_eq_zeroModePacketNorm
     (t : ℝ) {a b : ℤ} (ha : 1 ≤ a) :
@@ -298,7 +301,8 @@ theorem Complex.logarithmicPhasePoissonTransitionBudget_eq_zeroModePacketNorm
         (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
         a b 0‖ := by
   have hmodes :=
-    Complex.logarithmicPhasePoissonTransitionModes_eq_singleton_zero t ha
+    Complex.logarithmicPhasePoissonTransitionModes_eq_singleton_zero
+      t (b := b) ha
   unfold Complex.logarithmicPhasePoissonTransitionBudget
   calc
     (∑ m ∈ Complex.logarithmicPhasePoissonTransitionModes t a b,
@@ -320,6 +324,10 @@ theorem Complex.logarithmicPhasePoissonTransitionBudget_eq_zeroModePacketNorm
           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
           a b 0‖ :=
       Finset.sum_singleton
+        (fun m : ℤ =>
+          ‖Complex.integerBlockFourierPacket
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            a b m‖) 0
 
 theorem Complex.logarithmicPhasePoissonTransitionModes_card_le_modeRange_card
     (t : ℝ) (a b : ℤ) :
@@ -453,7 +461,7 @@ theorem Complex.logarithmicPhasePoissonTransitionBudget_le_blockLength
       4 / 3 + ((b : ℝ) - (a : ℝ)) := by
   have htransition :=
     Complex.logarithmicPhasePoissonTransitionBudget_eq_zeroModePacketNorm
-      t ha
+      t (b := b) ha
   have hpacket :=
     Complex.norm_integerBlockFourierPacket_le_crossing_add_blockLength
       t a b 0 ha hab
@@ -461,7 +469,7 @@ theorem Complex.logarithmicPhasePoissonTransitionBudget_le_blockLength
     Eq.subst
       (motive := fun value : ℝ =>
         value ≤ 4 / 3 + ((b : ℝ) - (a : ℝ)))
-      htransition
+      htransition.symm
       hpacket
 
 theorem Complex.logarithmicPhasePoissonTransitionBudget_le_card_mul_blockLength

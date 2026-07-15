@@ -1,5 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.BoundaryGrowth.OwnerParts.SharpPhaseIntegralParts.Part03_TaylorBlockSplit
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.BoundaryGrowth.OwnerParts.Part09_NormalizedKernelDirichlet
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.BoundaryGrowth.OwnerParts.SharpPhaseIntegralParts.ContinuousBernoulliFourier.CombinedBound
 
 /-!
 # Continuous Bernoulli logarithmic-phase estimate
@@ -36,7 +36,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_linearBlockSum_eq_m
     (((-(t : ℂ) * Complex.I) /
         (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
       ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-        (-(t : ℂ) * Complex.I)))
+        (-(t : ℂ) * Complex.I))))
   have hlocal :
       ∀ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ K,
         (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
@@ -99,7 +99,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_linearBlockSum_eq_m
     have hconst :
         (∫ x in s, C n * (B x * X x)) =
           C n * ∫ x in s, B x * X x :=
-      integral_const_mul (C n) (fun x : ℝ => B x * X x)
+      MeasureTheory.integral_mul_left (C n) (fun x : ℝ => B x * X x)
     calc
       (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
@@ -116,8 +116,16 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_linearBlockSum_eq_m
       boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementLinearBlockSum
           t K =
         ∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ K, (1 / 12 : ℂ) * C n := by
-    unfold boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementLinearBlockSum
-    exact Finset.sum_congr rfl hlocal
+    have hdefinition :
+        boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementLinearBlockSum
+            t K =
+          ∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ K,
+            ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
+              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+                (C n *
+                  ((x : ℂ) -
+                    (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ))) := rfl
+    exact Eq.trans hdefinition (Finset.sum_congr rfl hlocal)
   calc
     boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementLinearBlockSum
         t K =
@@ -146,11 +154,15 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlock
             ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
               (-(t : ℂ) * Complex.I))))‖ ≤
       Real.sqrt (1 + ‖t‖) * Real.log (2 + K) := by
-  exact
-    boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlockSum_norm_le_of_globalPhaseIntegral
-      t
-      (boundaryLineOnePointRealParam_logarithmicPhasePartialSum_postCutoff_bernoulliRemainder_norm_le_ownerGap
-        t ht hK)
+  have hglobal :=
+    norm_boundaryLineOnePointRealParam_firstPeriodicBernoulli_globalPhaseIntegral_le_postCutoffScale
+      t ht hK
+  exact Eq.subst
+    (motive := fun z : ℂ =>
+      ‖z‖ ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + K))
+    (boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlockSum_eq_globalPhaseIntegral
+      t).symm
+    hglobal
 
 /-- Continuous van der Corput estimate for the first-periodic Bernoulli amplitude
 against the logarithmic phase after the canonical cutoff.
@@ -187,5 +199,6 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_continuousVdc_postC
         t)
       hblocks
 
+end
 end LFunctions
 end Boundary

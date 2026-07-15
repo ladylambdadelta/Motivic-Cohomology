@@ -18,21 +18,30 @@ noncomputable section
 open MeasureTheory
 
 theorem Finset.sum_const_real_eq_card_mul
-    {α : Type*} (s : Finset α) (C : ℝ) :
+    {α : Type*} [DecidableEq α] (s : Finset α) (C : ℝ) :
     (∑ _m ∈ s, C) = (s.card : ℝ) * C := by
   induction s using Finset.induction_on with
   | empty =>
       exact
         Eq.trans
           Finset.sum_empty
-          (zero_mul C).symm
+          (Eq.trans
+            (zero_mul C).symm
+            (Eq.trans
+              (congrArg (fun value : ℝ => value * C)
+                Nat.cast_zero.symm)
+              (congrArg (fun n : ℕ => (n : ℝ) * C)
+                Finset.card_empty.symm)))
   | @insert m s hm ih =>
       have hcard : ((insert m s).card : ℝ) = (s.card : ℝ) + 1 := by
         calc
           ((insert m s).card : ℝ) = ((s.card + 1 : ℕ) : ℝ) :=
             congrArg (fun n : ℕ => (n : ℝ))
-              (Finset.card_insert_of_notMem hm)
-          _ = (s.card : ℝ) + 1 := Nat.cast_add s.card 1
+              (Finset.card_insert_of_not_mem hm)
+          _ = (s.card : ℝ) + 1 :=
+            (Nat.cast_add s.card 1).trans
+              (congrArg (fun value : ℝ => (s.card : ℝ) + value)
+                Nat.cast_one)
       calc
         (∑ _x ∈ insert m s, C) = C + ∑ _x ∈ s, C :=
           Finset.sum_insert hm
@@ -82,7 +91,7 @@ theorem Complex.logarithmicPhasePoissonInteriorBudget_nonneg
   unfold Complex.logarithmicPhasePoissonInteriorBudget
   exact
     Finset.sum_nonneg
-      (fun m hm =>
+      (fun m hm => by
         have hmem :=
           (Complex.mem_logarithmicPhasePoissonInteriorActiveModes_iff
             t a b m radius).mp hm

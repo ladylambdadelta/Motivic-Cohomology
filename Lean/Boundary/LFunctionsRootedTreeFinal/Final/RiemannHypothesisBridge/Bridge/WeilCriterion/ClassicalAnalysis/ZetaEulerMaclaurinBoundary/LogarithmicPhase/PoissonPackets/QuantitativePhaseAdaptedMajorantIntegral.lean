@@ -51,24 +51,30 @@ theorem Complex.continuousAt_abs_quantitativeLogarithmicBlockCutoff
     (a b : ℤ) (x : ℝ) :
     ContinuousAt
       (fun y : ℝ => |Real.quantitativeLogarithmicBlockCutoff a b y|) x := by
-  exact (Real.contDiff_quantitativeLogarithmicBlockCutoff a b)
-    .continuous.continuousAt.abs
+  have hcontDiff : ContDiff ℝ (⊤ : ℕ∞)
+      (Real.quantitativeLogarithmicBlockCutoff a b) :=
+    Real.contDiff_quantitativeLogarithmicBlockCutoff a b
+  exact hcontDiff.continuous.continuousAt.abs
 
 theorem Complex.continuousAt_abs_quantitativeLogarithmicBlockCutoffDerivative
     (a b : ℤ) (x : ℝ) :
     ContinuousAt
       (fun y : ℝ =>
         |Real.quantitativeLogarithmicBlockCutoffDerivative a b y|) x := by
-  exact (Real.contDiff_quantitativeLogarithmicBlockCutoffDerivative a b)
-    .continuous.continuousAt.abs
+  have hcontDiff : ContDiff ℝ (⊤ : ℕ∞)
+      (Real.quantitativeLogarithmicBlockCutoffDerivative a b) :=
+    Real.contDiff_quantitativeLogarithmicBlockCutoffDerivative a b
+  exact hcontDiff.continuous.continuousAt.abs
 
 theorem Complex.continuousAt_abs_quantitativeLogarithmicBlockCutoffSecondDerivative
     (a b : ℤ) (x : ℝ) :
     ContinuousAt
       (fun y : ℝ =>
         |Real.quantitativeLogarithmicBlockCutoffSecondDerivative a b y|) x := by
-  exact (Real.contDiff_quantitativeLogarithmicBlockCutoffSecondDerivative a b)
-    .continuous.continuousAt.abs
+  have hcontDiff : ContDiff ℝ (⊤ : ℕ∞)
+      (Real.quantitativeLogarithmicBlockCutoffSecondDerivative a b) :=
+    Real.contDiff_quantitativeLogarithmicBlockCutoffSecondDerivative a b
+  exact hcontDiff.continuous.continuousAt.abs
 
 theorem Complex.continuousAt_nonstationarySecondTransformMajorant_comp
     {A A₁ A₂ v w g : ℝ → ℝ} {x : ℝ}
@@ -90,14 +96,28 @@ theorem Complex.continuousAt_nonstationarySecondTransformMajorant_comp
   have hgTwoNe : g x ^ 2 ≠ 0 := pow_ne_zero 2 hgne
   have hgThreeNe : g x ^ 3 ≠ 0 := pow_ne_zero 3 hgne
   have hgFourNe : g x ^ 4 ≠ 0 := pow_ne_zero 4 hgne
-  have hfirst := hA₂.div hgTwo hgTwoNe
-  have hsecondNumerator := (continuousAt_const.mul hA₁).mul hv
-  have hsecond := hsecondNumerator.div hgThree hgThreeNe
-  have hthirdNumerator := hA.mul hw
-  have hthird := hthirdNumerator.div hgThree hgThreeNe
-  have hfourthNumerator :=
-    (continuousAt_const.mul hA).mul (hv.pow 2)
-  have hfourth := hfourthNumerator.div hgFour hgFourNe
+  have hfirst : ContinuousAt (fun y : ℝ => A₂ y / g y ^ 2) x :=
+    hA₂.div hgTwo hgTwoNe
+  have hthree : ContinuousAt (fun _ : ℝ => (3 : ℝ)) x :=
+    continuousAt_const
+  have hsecondNumerator :
+      ContinuousAt (fun y : ℝ => 3 * A₁ y * v y) x :=
+    (hthree.mul hA₁).mul hv
+  have hsecond :
+      ContinuousAt (fun y : ℝ => 3 * A₁ y * v y / g y ^ 3) x :=
+    hsecondNumerator.div hgThree hgThreeNe
+  have hthirdNumerator :
+      ContinuousAt (fun y : ℝ => A y * w y) x :=
+    hA.mul hw
+  have hthird :
+      ContinuousAt (fun y : ℝ => A y * w y / g y ^ 3) x :=
+    hthirdNumerator.div hgThree hgThreeNe
+  have hfourthNumerator :
+      ContinuousAt (fun y : ℝ => 3 * A y * v y ^ 2) x :=
+    (hthree.mul hA).mul (hv.pow 2)
+  have hfourth :
+      ContinuousAt (fun y : ℝ => 3 * A y * v y ^ 2 / g y ^ 4) x :=
+    hfourthNumerator.div hgFour hgFourNe
   exact ((hfirst.add hsecond).add hthird).add hfourth
 
 theorem Complex.continuousAt_logarithmicPhaseAdaptedPointwiseMajorant
@@ -169,7 +189,7 @@ theorem Complex.norm_logarithmicPhaseAdaptedPacket_le_pointwiseMajorantIntegral
     (hlower : ∀ x ∈ [[Complex.logarithmicPhaseQuantitativeSupportLeft a,
         Complex.logarithmicPhaseQuantitativeSupportRight b]],
       gap ≤ ‖Complex.logarithmicPhaseAdaptedTwistedPhaseDerivative t m x‖) :
-    ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+    ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket ‖t‖ a b m‖ ≤
       ∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
           Complex.logarithmicPhaseQuantitativeSupportRight b,
         Complex.logarithmicPhaseAdaptedPointwiseMajorant t a b m x := by
@@ -178,7 +198,12 @@ theorem Complex.norm_logarithmicPhaseAdaptedPacket_le_pointwiseMajorantIntegral
       t a b m gap ha hab hgap hlower
   have hleftRight :=
     Complex.logarithmicPhaseQuantitativeSupportLeft_le_right a b hab
-  have hsecondIntegrable :=
+  have hsecondIntegrable : IntervalIntegrable
+      (fun x : ℝ =>
+        ‖Complex.logarithmicPhaseAdaptedSecondTransform t a b m x‖)
+      volume
+      (Complex.logarithmicPhaseQuantitativeSupportLeft a)
+      (Complex.logarithmicPhaseQuantitativeSupportRight b) :=
     (Complex.continuousOn_logarithmicPhaseAdaptedSecondTransform
       t a b m gap ha hab hgap hlower).norm.intervalIntegrable
   have hmajorantIntegrable :=
@@ -192,14 +217,25 @@ theorem Complex.norm_logarithmicPhaseAdaptedPacket_le_pointwiseMajorantIntegral
     intro x hx
     have hxU : x ∈ [[Complex.logarithmicPhaseQuantitativeSupportLeft a,
         Complex.logarithmicPhaseQuantitativeSupportRight b]] :=
-      (Set.uIcc_of_le hleftRight).mpr hx
+      Eq.mpr
+        (congrArg
+          (fun S : Set ℝ => x ∈ S)
+          (Set.uIcc_of_le hleftRight))
+        hx
     have hxPos :=
       Complex.logarithmicPhaseQuantitativeSupport_mem_positive a b ha hab hxU
     unfold Complex.logarithmicPhaseAdaptedSecondTransform
     exact Complex.logarithmicPhaseAdaptedSecondTransform_pointwise_le
       t a b m x hxPos
-  have hintegral := intervalIntegral.integral_mono_on hleftRight
-    hsecondIntegrable hmajorantIntegrable hpointwise
+  have hintegral :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        ‖Complex.logarithmicPhaseAdaptedSecondTransform t a b m x‖) ≤
+      ∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        Complex.logarithmicPhaseAdaptedPointwiseMajorant t a b m x :=
+    intervalIntegral.integral_mono_on hleftRight
+      hsecondIntegrable hmajorantIntegrable hpointwise
   exact le_trans hpacket hintegral
 
 end

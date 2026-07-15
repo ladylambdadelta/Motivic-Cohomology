@@ -27,7 +27,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlock
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
           ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
             ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-              (-(t : ℂ) * Complex.I)))) =
+              (-(t : ℂ) * Complex.I))))) =
       boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementLinearBlockSum t K +
         boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementRemainderBlockSum t K := by
   have hlocal :
@@ -36,26 +36,13 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlock
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
               ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I)))) =
+                (-(t : ℂ) * Complex.I))))) =
           (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-              (((((-(t : ℂ) * Complex.I) /
-                    (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-                  ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                    (-(t : ℂ) * Complex.I))) *
-                  ((x : ℂ) -
-                    (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)))) +
+              boundaryLineOnePointRealParam_phaseIncrementLinearIntegrand t n x) +
             (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
               ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-                ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I) -
-                  ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                    (-(t : ℂ) * Complex.I)) -
-                  ((((-(t : ℂ) * Complex.I) /
-                      (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-                    ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                      (-(t : ℂ) * Complex.I))) *
-                    ((x : ℂ) -
-                      (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)))) := by
+                boundaryLineOnePointRealParam_phaseIncrementRemainderIntegrand t n x) := by
     intro n hn
     exact
       boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementIntegral_eq_linear_integral_add_remainder_integral
@@ -66,32 +53,20 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlock
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
               ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I)))) =
+                (-(t : ℂ) * Complex.I))))) =
         (∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ K,
           ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-              (((((-(t : ℂ) * Complex.I) /
-                    (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-                  ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                    (-(t : ℂ) * Complex.I))) *
-                  ((x : ℂ) -
-                    (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)))) +
+              boundaryLineOnePointRealParam_phaseIncrementLinearIntegrand t n x) +
           (∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ K,
             ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
               ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-                ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I) -
-                  ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                    (-(t : ℂ) * Complex.I)) -
-                  ((((-(t : ℂ) * Complex.I) /
-                      (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-                    ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                      (-(t : ℂ) * Complex.I))) *
-                    ((x : ℂ) -
-                      (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ))))) := by
+                boundaryLineOnePointRealParam_phaseIncrementRemainderIntegrand t n x) := by
     exact Eq.trans
       (Finset.sum_congr rfl hlocal)
       Finset.sum_add_distrib
   exact hsum
 
+end
 end LFunctions
 end Boundary

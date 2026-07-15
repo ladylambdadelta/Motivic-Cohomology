@@ -1400,8 +1400,8 @@ theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_gap_pi_
       t ht_nonneg ht ha hab hab_strict hlong_sqrt hlong_endpoint cfun dfun M
       hc hcd hdb hgap_pi hwindow hlength_chosen hrad
 
-/-- Positive long-branch real-phase estimate from the positive-branch empty
-zero-centered resonance window and the enlarged-envelope radicand target. -/
+/-! Compatibility theorem for the zero-centered resonance window and the
+enlarged-envelope radicand target. -/
 theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_gap_pi_zero_resonanceWindow_empty_radicand
     (t : ℝ)
     (ht_nonneg : 0 ≤ t)
@@ -1473,6 +1473,7 @@ theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_gap_pi_
 /-- Positive long-branch real-phase estimate from the Weyl target, with
 reduced-increment monotonicity supplied directly and separation supplied by
 all-integer resonance-window avoidance. -/
+
 theorem Complex.logarithmicPhaseRealPhase_long_nonneg_bProcess_budget_of_integer_resonanceWindow
     (t : ℝ)
     (ht_nonneg : 0 ≤ t)

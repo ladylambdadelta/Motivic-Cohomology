@@ -1504,7 +1504,8 @@ theorem Complex.logarithmicPhase_integerBlockFourierPacket_sequence_eventually_l
   exact
     hm.trans_eq
       (congrArg (fun value : ℝ => C * value)
-        (Real.norm_of_nonneg (Real.rpow_nonneg _ _)))
+        (Real.norm_of_nonneg
+          (Real.rpow_nonneg (norm_nonneg (m : ℝ)) _)))
 
 theorem Complex.logarithmicPhase_integerBlockFourierPacket_sequence_finite_exception_inverse_square
     (t : ℝ) (a b : ℤ) (ha : 1 ≤ a) (hab : a ≤ b) :

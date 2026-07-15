@@ -45,7 +45,7 @@ theorem Real.inv_le_inv_of_pos
     {x y : ℝ} (hx : 0 < x) (hxy : x ≤ y) :
     y⁻¹ ≤ x⁻¹ := by
   have hy : 0 < y := lt_of_lt_of_le hx hxy
-  exact inv_anti₀ hx hy hxy
+  exact inv_anti₀ hx hxy
 
 theorem Real.inv_pow_two_le_inv_pow_two
     {x y : ℝ} (hx : 0 < x) (hxy : x ≤ y) :
@@ -53,7 +53,12 @@ theorem Real.inv_pow_two_le_inv_pow_two
   have hinv := Real.inv_le_inv_of_pos hx hxy
   have hy : 0 < y := lt_of_lt_of_le hx hxy
   have hyInv : 0 ≤ y⁻¹ := Real.inv_nonneg_of_pos hy
-  exact mul_self_le_mul_self hyInv hinv
+  have hproduct : y⁻¹ * y⁻¹ ≤ x⁻¹ * x⁻¹ :=
+    mul_self_le_mul_self hyInv hinv
+  calc
+    y⁻¹ ^ 2 = y⁻¹ * y⁻¹ := pow_two y⁻¹
+    _ ≤ x⁻¹ * x⁻¹ := hproduct
+    _ = x⁻¹ ^ 2 := (pow_two x⁻¹).symm
 
 theorem Real.inv_pow_three_le_inv_pow_three
     {x y : ℝ} (hx : 0 < x) (hxy : x ≤ y) :
@@ -61,11 +66,14 @@ theorem Real.inv_pow_three_le_inv_pow_three
   have hinv := Real.inv_le_inv_of_pos hx hxy
   have hpowTwo := Real.inv_pow_two_le_inv_pow_two hx hxy
   have hy : 0 < y := lt_of_lt_of_le hx hxy
-  have hxInv : 0 ≤ x⁻¹ := Real.inv_nonneg_of_pos hx
   have hyInv : 0 ≤ y⁻¹ := Real.inv_nonneg_of_pos hy
-  have hmul := mul_le_mul hpowTwo hinv hyInv hxInv
-  exact Eq.subst (pow_succ y⁻¹ 2).symm
-    (Eq.subst (pow_succ x⁻¹ 2).symm hmul)
+  have hxInvTwo : 0 ≤ x⁻¹ ^ 2 := sq_nonneg x⁻¹
+  have hmul : y⁻¹ ^ 2 * y⁻¹ ≤ x⁻¹ ^ 2 * x⁻¹ :=
+    mul_le_mul hpowTwo hinv hyInv hxInvTwo
+  calc
+    y⁻¹ ^ 3 = y⁻¹ ^ 2 * y⁻¹ := pow_succ y⁻¹ 2
+    _ ≤ x⁻¹ ^ 2 * x⁻¹ := hmul
+    _ = x⁻¹ ^ 3 := (pow_succ x⁻¹ 2).symm
 
 theorem Real.inv_pow_four_le_inv_pow_four
     {x y : ℝ} (hx : 0 < x) (hxy : x ≤ y) :
@@ -79,7 +87,10 @@ theorem Real.inv_pow_four_le_inv_pow_four
     (pow_add y⁻¹ 2 2).symm
   have hxPower : x⁻¹ ^ 2 * x⁻¹ ^ 2 = x⁻¹ ^ 4 :=
     (pow_add x⁻¹ 2 2).symm
-  exact Eq.subst hyPower (Eq.subst hxPower hmul)
+  calc
+    y⁻¹ ^ 4 = y⁻¹ ^ 2 * y⁻¹ ^ 2 := hyPower.symm
+    _ ≤ x⁻¹ ^ 2 * x⁻¹ ^ 2 := hmul
+    _ = x⁻¹ ^ 4 := hxPower
 
 theorem Real.div_pow_antitone_two
     {u x y : ℝ}
@@ -89,7 +100,10 @@ theorem Real.div_pow_antitone_two
   have hmul := mul_le_mul_of_nonneg_left hinv hu
   have hyDiv := Real.div_pow_eq_mul_inv_pow u y 2
   have hxDiv := Real.div_pow_eq_mul_inv_pow u x 2
-  exact Eq.subst hyDiv.symm (Eq.subst hxDiv.symm hmul)
+  calc
+    u / y ^ 2 = u * y⁻¹ ^ 2 := hyDiv
+    _ ≤ u * x⁻¹ ^ 2 := hmul
+    _ = u / x ^ 2 := hxDiv.symm
 
 theorem Real.div_pow_antitone_three
     {u x y : ℝ}
@@ -99,7 +113,10 @@ theorem Real.div_pow_antitone_three
   have hmul := mul_le_mul_of_nonneg_left hinv hu
   have hyDiv := Real.div_pow_eq_mul_inv_pow u y 3
   have hxDiv := Real.div_pow_eq_mul_inv_pow u x 3
-  exact Eq.subst hyDiv.symm (Eq.subst hxDiv.symm hmul)
+  calc
+    u / y ^ 3 = u * y⁻¹ ^ 3 := hyDiv
+    _ ≤ u * x⁻¹ ^ 3 := hmul
+    _ = u / x ^ 3 := hxDiv.symm
 
 theorem Real.div_pow_antitone_four
     {u x y : ℝ}
@@ -109,7 +126,10 @@ theorem Real.div_pow_antitone_four
   have hmul := mul_le_mul_of_nonneg_left hinv hu
   have hyDiv := Real.div_pow_eq_mul_inv_pow u y 4
   have hxDiv := Real.div_pow_eq_mul_inv_pow u x 4
-  exact Eq.subst hyDiv.symm (Eq.subst hxDiv.symm hmul)
+  calc
+    u / y ^ 4 = u * y⁻¹ ^ 4 := hyDiv
+    _ ≤ u * x⁻¹ ^ 4 := hmul
+    _ = u / x ^ 4 := hxDiv.symm
 
 theorem Complex.logarithmicPhaseAdaptedCurvatureUpper_nonneg
     (t left : ℝ) (hleft : 0 ≤ left) :
@@ -122,7 +142,7 @@ theorem Complex.logarithmicPhaseAdaptedThirdDerivativeUpper_nonneg
     0 ≤ Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t left := by
   unfold Complex.logarithmicPhaseAdaptedThirdDerivativeUpper
   have hnumerator : 0 ≤ 2 * ‖t‖ :=
-    mul_nonneg (by exact OfNat.zero_le 2) (norm_nonneg t)
+    mul_nonneg (Nat.cast_nonneg 2) (norm_nonneg t)
   exact div_nonneg hnumerator (pow_nonneg hleft 3)
 
 theorem Complex.logarithmicPhaseAdaptedCurvature_le_left
@@ -144,7 +164,7 @@ theorem Complex.logarithmicPhaseAdaptedThirdDerivative_le_left
     pow_le_pow_left₀ hleft.le hleftx 3
   have hleftCube : 0 < left ^ 3 := pow_pos hleft 3
   have hnumerator : 0 ≤ 2 * ‖t‖ :=
-    mul_nonneg (by exact OfNat.zero_le 2) (norm_nonneg t)
+    mul_nonneg (Nat.cast_nonneg 2) (norm_nonneg t)
   exact div_le_div_of_nonneg_left hnumerator hleftCube hcube
 
 theorem Complex.logarithmicPhaseAdaptedClosedMajorant_nonneg
@@ -163,12 +183,12 @@ theorem Complex.logarithmicPhaseAdaptedClosedMajorant_nonneg
   have hthird :=
     Complex.logarithmicPhaseAdaptedThirdDerivativeUpper_nonneg t _ hleft
   have hfirst : 0 ≤ (48 : ℝ) / gap ^ 2 :=
-    div_nonneg (by exact OfNat.zero_le 48) hgapTwo
+    div_nonneg (Nat.cast_nonneg 48) hgapTwo
   have hsecond :
       0 ≤ 6 * Complex.logarithmicPhaseAdaptedCurvatureUpper t
         (Complex.logarithmicPhaseQuantitativeSupportLeft a) / gap ^ 3 :=
     div_nonneg
-      (mul_nonneg (by exact OfNat.zero_le 6) hcurvature) hgapThree
+      (mul_nonneg (Nat.cast_nonneg 6) hcurvature) hgapThree
   have hthirdTerm :
       0 ≤ Complex.logarithmicPhaseQuantitativeSupportLength a b *
         Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
@@ -180,7 +200,7 @@ theorem Complex.logarithmicPhaseAdaptedClosedMajorant_nonneg
           (Complex.logarithmicPhaseQuantitativeSupportLeft a) ^ 2 / gap ^ 4 :=
     div_nonneg
       (mul_nonneg
-        (mul_nonneg (by exact OfNat.zero_le 3) hlength)
+        (mul_nonneg (Nat.cast_nonneg 3) hlength)
         (pow_nonneg hcurvature 2)) hgapFour
   exact add_nonneg (add_nonneg (add_nonneg hfirst hsecond) hthirdTerm) hfourth
 
@@ -198,11 +218,11 @@ theorem Complex.logarithmicPhaseAdaptedClosedMajorant_gap_antitone
   have hthird :=
     Complex.logarithmicPhaseAdaptedThirdDerivativeUpper_nonneg t _ hleft
   have hfirst := Real.div_pow_antitone_two
-    (u := (48 : ℝ)) (by exact OfNat.zero_le 48) hgap₁ hgaps
+    (u := (48 : ℝ)) (Nat.cast_nonneg 48) hgap₁ hgaps
   have hsecondNumerator :
       0 ≤ 6 * Complex.logarithmicPhaseAdaptedCurvatureUpper t
         (Complex.logarithmicPhaseQuantitativeSupportLeft a) :=
-    mul_nonneg (by exact OfNat.zero_le 6) hcurvature
+    mul_nonneg (Nat.cast_nonneg 6) hcurvature
   have hsecond := Real.div_pow_antitone_three
     hsecondNumerator hgap₁ hgaps
   have hthirdNumerator :
@@ -217,7 +237,7 @@ theorem Complex.logarithmicPhaseAdaptedClosedMajorant_gap_antitone
         Complex.logarithmicPhaseAdaptedCurvatureUpper t
           (Complex.logarithmicPhaseQuantitativeSupportLeft a) ^ 2 :=
     mul_nonneg
-      (mul_nonneg (by exact OfNat.zero_le 3) hlength)
+      (mul_nonneg (Nat.cast_nonneg 3) hlength)
       (pow_nonneg hcurvature 2)
   have hfourth := Real.div_pow_antitone_four
     hfourthNumerator hgap₁ hgaps

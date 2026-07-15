@@ -57,40 +57,87 @@ theorem Complex.continuous_logarithmicPhaseAdaptedCurvatureMassDensity
     (a b : ℤ) (gap : ℝ) (hgap : gap ≠ 0) :
     Continuous (Complex.logarithmicPhaseAdaptedCurvatureMassDensity a b gap) := by
   unfold Complex.logarithmicPhaseAdaptedCurvatureMassDensity
-  have hnumerator :=
-    (Real.contDiff_quantitativeLogarithmicBlockCutoffSecondDerivative a b)
-      .continuous.abs
-  exact hnumerator.div continuous_const (pow_ne_zero 2 hgap)
+  have hsecond : Continuous
+      (Real.quantitativeLogarithmicBlockCutoffSecondDerivative a b) :=
+    (Real.contDiff_quantitativeLogarithmicBlockCutoffSecondDerivative a b).continuous
+  have hnumerator : Continuous (fun x : ℝ =>
+      |Real.quantitativeLogarithmicBlockCutoffSecondDerivative a b x|) :=
+    hsecond.abs
+  have hdenominator : ∀ _ : ℝ, gap ^ 2 ≠ 0 :=
+    fun _ => pow_ne_zero 2 hgap
+  exact hnumerator.div continuous_const hdenominator
 
 theorem Complex.continuous_logarithmicPhaseAdaptedVariationMassDensity
     (t : ℝ) (a b : ℤ) (gap : ℝ) (hgap : gap ≠ 0) :
     Continuous (Complex.logarithmicPhaseAdaptedVariationMassDensity t a b gap) := by
   unfold Complex.logarithmicPhaseAdaptedVariationMassDensity
-  have hnumerator :=
-    (continuous_const.mul
-      (Real.contDiff_quantitativeLogarithmicBlockCutoffDerivative a b)
-        .continuous.abs).mul continuous_const
-  exact hnumerator.div continuous_const (pow_ne_zero 3 hgap)
+  have hfirst : Continuous
+      (Real.quantitativeLogarithmicBlockCutoffDerivative a b) :=
+    (Real.contDiff_quantitativeLogarithmicBlockCutoffDerivative a b).continuous
+  have habs : Continuous (fun x : ℝ =>
+      |Real.quantitativeLogarithmicBlockCutoffDerivative a b x|) :=
+    hfirst.abs
+  have hthree : Continuous (fun _ : ℝ => (3 : ℝ)) := continuous_const
+  have hcurvature : Continuous (fun _ : ℝ =>
+      Complex.logarithmicPhaseAdaptedCurvatureUpper t
+        (Complex.logarithmicPhaseQuantitativeSupportLeft a)) :=
+    continuous_const
+  have hnumerator : Continuous (fun x : ℝ =>
+      3 * |Real.quantitativeLogarithmicBlockCutoffDerivative a b x| *
+        Complex.logarithmicPhaseAdaptedCurvatureUpper t
+          (Complex.logarithmicPhaseQuantitativeSupportLeft a)) :=
+    (hthree.mul habs).mul hcurvature
+  have hdenominator : ∀ _ : ℝ, gap ^ 3 ≠ 0 :=
+    fun _ => pow_ne_zero 3 hgap
+  exact hnumerator.div continuous_const hdenominator
 
 theorem Complex.continuous_logarithmicPhaseAdaptedThirdPhaseMassDensity
     (t : ℝ) (a b : ℤ) (gap : ℝ) (hgap : gap ≠ 0) :
     Continuous (Complex.logarithmicPhaseAdaptedThirdPhaseMassDensity t a b gap) := by
   unfold Complex.logarithmicPhaseAdaptedThirdPhaseMassDensity
-  have hnumerator :=
-    (Real.contDiff_quantitativeLogarithmicBlockCutoff a b)
-      .continuous.abs.mul continuous_const
-  exact hnumerator.div continuous_const (pow_ne_zero 3 hgap)
+  have hcutoff : Continuous
+      (Real.quantitativeLogarithmicBlockCutoff a b) :=
+    (Real.contDiff_quantitativeLogarithmicBlockCutoff a b).continuous
+  have habs : Continuous (fun x : ℝ =>
+      |Real.quantitativeLogarithmicBlockCutoff a b x|) :=
+    hcutoff.abs
+  have hthird : Continuous (fun _ : ℝ =>
+      Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
+        (Complex.logarithmicPhaseQuantitativeSupportLeft a)) :=
+    continuous_const
+  have hnumerator : Continuous (fun x : ℝ =>
+      |Real.quantitativeLogarithmicBlockCutoff a b x| *
+        Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
+          (Complex.logarithmicPhaseQuantitativeSupportLeft a)) :=
+    habs.mul hthird
+  have hdenominator : ∀ _ : ℝ, gap ^ 3 ≠ 0 :=
+    fun _ => pow_ne_zero 3 hgap
+  exact hnumerator.div continuous_const hdenominator
 
 theorem Complex.continuous_logarithmicPhaseAdaptedCurvatureSquareMassDensity
     (t : ℝ) (a b : ℤ) (gap : ℝ) (hgap : gap ≠ 0) :
     Continuous
       (Complex.logarithmicPhaseAdaptedCurvatureSquareMassDensity t a b gap) := by
   unfold Complex.logarithmicPhaseAdaptedCurvatureSquareMassDensity
-  have hnumerator :=
-    (continuous_const.mul
-      (Real.contDiff_quantitativeLogarithmicBlockCutoff a b)
-        .continuous.abs).mul continuous_const
-  exact hnumerator.div continuous_const (pow_ne_zero 4 hgap)
+  have hcutoff : Continuous
+      (Real.quantitativeLogarithmicBlockCutoff a b) :=
+    (Real.contDiff_quantitativeLogarithmicBlockCutoff a b).continuous
+  have habs : Continuous (fun x : ℝ =>
+      |Real.quantitativeLogarithmicBlockCutoff a b x|) :=
+    hcutoff.abs
+  have hthree : Continuous (fun _ : ℝ => (3 : ℝ)) := continuous_const
+  have hcurvatureSquare : Continuous (fun _ : ℝ =>
+      (Complex.logarithmicPhaseAdaptedCurvatureUpper t
+        (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2) :=
+    continuous_const
+  have hnumerator : Continuous (fun x : ℝ =>
+      3 * |Real.quantitativeLogarithmicBlockCutoff a b x| *
+        (Complex.logarithmicPhaseAdaptedCurvatureUpper t
+          (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2) :=
+    (hthree.mul habs).mul hcurvatureSquare
+  have hdenominator : ∀ _ : ℝ, gap ^ 4 ≠ 0 :=
+    fun _ => pow_ne_zero 4 hgap
+  exact hnumerator.div continuous_const hdenominator
 
 theorem Complex.intervalIntegrable_logarithmicPhaseAdaptedCurvatureMassDensity
     (a b : ℤ) (gap : ℝ) (hgap : gap ≠ 0) :
@@ -166,11 +213,45 @@ theorem Complex.integral_logarithmicPhaseAdaptedClosedDensity_eq_fourTerms
   have hsum₂ := intervalIntegral.integral_add (hcurvature.add hvariation) hthird
   have hsum₃ := intervalIntegral.integral_add
     ((hcurvature.add hvariation).add hthird) hfourth
-  have hpointwise := intervalIntegral.integral_congr
-    (fun x hx =>
+  have hpointwise :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        Complex.logarithmicPhaseAdaptedClosedDensity t a b gap x) =
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        Complex.logarithmicPhaseAdaptedCurvatureMassDensity a b gap x +
+          Complex.logarithmicPhaseAdaptedVariationMassDensity t a b gap x +
+          Complex.logarithmicPhaseAdaptedThirdPhaseMassDensity t a b gap x +
+          Complex.logarithmicPhaseAdaptedCurvatureSquareMassDensity
+            t a b gap x) :=
+    intervalIntegral.integral_congr (μ := volume)
+      (a := Complex.logarithmicPhaseQuantitativeSupportLeft a)
+      (b := Complex.logarithmicPhaseQuantitativeSupportRight b)
+      (fun x _ =>
       Complex.logarithmicPhaseAdaptedClosedDensity_eq_fourTerms
         t a b gap x)
-  exact Eq.trans hpointwise (Eq.trans hsum₃ rfl)
+  have hsplitThree := congrArg
+    (fun z : ℝ =>
+      z +
+        (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+            Complex.logarithmicPhaseQuantitativeSupportRight b,
+          Complex.logarithmicPhaseAdaptedCurvatureSquareMassDensity
+            t a b gap x))
+    hsum₂
+  have hsplitTwo := congrArg
+    (fun z : ℝ =>
+      (z +
+        (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+            Complex.logarithmicPhaseQuantitativeSupportRight b,
+          Complex.logarithmicPhaseAdaptedThirdPhaseMassDensity
+            t a b gap x)) +
+        (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+            Complex.logarithmicPhaseQuantitativeSupportRight b,
+          Complex.logarithmicPhaseAdaptedCurvatureSquareMassDensity
+            t a b gap x))
+    hsum₁
+  exact Eq.trans hpointwise
+    (Eq.trans hsum₃ (Eq.trans hsplitThree hsplitTwo))
 
 end
 end LFunctions

@@ -68,9 +68,35 @@ theorem Complex.norm_logarithmicPhaseQuantitativeEndpointInternalPacket_le
     Complex.norm_logarithmicPhaseQuantitativeEndpoint_principal_le
       t ht_nonneg a b m left right center radius ha hleft_block hwindow hright_block
       hleft_tail hright_tail hcentral
-  exact
+  have hpacket :=
     Complex.norm_logarithmicPhaseQuantitativePacket_le_crossings_add_principal
       t a b m ha hab hprincipal
+  have hreassociate :
+      2 / 3 +
+          ((Complex.logarithmicPhaseQuantitativeEndpointLeftTailBudget t a b m
+              (Complex.logarithmicPhaseFourierStationaryPoint t m) radius +
+            2 * radius) +
+          Complex.logarithmicPhaseQuantitativeEndpointRightTailBudget t a b m
+            (Complex.logarithmicPhaseFourierStationaryPoint t m) radius) =
+        ((2 / 3 +
+            Complex.logarithmicPhaseQuantitativeEndpointLeftTailBudget t a b m
+              (Complex.logarithmicPhaseFourierStationaryPoint t m) radius) +
+          2 * radius) +
+        Complex.logarithmicPhaseQuantitativeEndpointRightTailBudget t a b m
+          (Complex.logarithmicPhaseFourierStationaryPoint t m) radius :=
+    Real.add_reassociate_four_left
+      (2 / 3)
+      (Complex.logarithmicPhaseQuantitativeEndpointLeftTailBudget t a b m
+        (Complex.logarithmicPhaseFourierStationaryPoint t m) radius)
+      (2 * radius)
+      (Complex.logarithmicPhaseQuantitativeEndpointRightTailBudget t a b m
+        (Complex.logarithmicPhaseFourierStationaryPoint t m) radius)
+  exact
+    Eq.subst
+      (motive := fun bound : ℝ =>
+        ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤ bound)
+      hreassociate
+      hpacket
 
 def Complex.logarithmicPhaseQuantitativeEndpointInternalPacketBound
     (t : ℝ)

@@ -18,17 +18,14 @@ theorem Real.decreasingLogistic_transitionGap_eq_smoothTransition
     (hx0 : 0 < x)
     (hx1 : x < 1) :
     Real.decreasingLogistic (Real.transitionReciprocalGap x) =
-      smoothTransition x := by
+      Real.smoothTransition x := by
   let A := expNegInvGlue x
   let B := expNegInvGlue (1 - x)
-  have hA : 0 < A := expNegInvGlue.pos hx0
+  have hA : 0 < A := expNegInvGlue.pos_of_pos hx0
   have hANe : A ≠ 0 := ne_of_gt hA
-  have hsumPos : 0 < A + B :=
-    Real.smoothTransitionDenominator_pos x
-  have hsumNe : A + B ≠ 0 := ne_of_gt hsumPos
   have hratio := Real.exp_transitionReciprocalGap_eq_glue_ratio hx0 hx1
   unfold Real.decreasingLogistic
-  unfold smoothTransition
+  unfold Real.smoothTransition
   change (1 + Real.exp (Real.transitionReciprocalGap x))⁻¹ = A / (A + B)
   have hdenominator :
       1 + Real.exp (Real.transitionReciprocalGap x) =
@@ -49,7 +46,7 @@ theorem Real.smoothTransition_eq_decreasingLogistic_transitionGap
     {x : ℝ}
     (hx0 : 0 < x)
     (hx1 : x < 1) :
-    smoothTransition x =
+    Real.smoothTransition x =
       Real.decreasingLogistic (Real.transitionReciprocalGap x) := by
   exact (Real.decreasingLogistic_transitionGap_eq_smoothTransition hx0 hx1).symm
 
@@ -57,11 +54,11 @@ theorem Real.eventually_smoothTransition_eq_logistic
     {x : ℝ}
     (hx0 : 0 < x)
     (hx1 : x < 1) :
-    smoothTransition =ᶠ[nhds x]
+    Real.smoothTransition =ᶠ[nhds x]
       (fun y : ℝ =>
         Real.decreasingLogistic (Real.transitionReciprocalGap y)) := by
   have hneighborhood : Set.Ioo (0 : ℝ) 1 ∈ nhds x :=
-    Set.Ioo_mem_nhds hx0 hx1
+    Ioo_mem_nhds hx0 hx1
   exact Filter.mem_of_superset hneighborhood
     (fun y hy =>
       Real.smoothTransition_eq_decreasingLogistic_transitionGap hy.1 hy.2)
@@ -70,14 +67,14 @@ theorem Real.hasDerivAt_smoothTransition_logistic
     {x : ℝ}
     (hx0 : 0 < x)
     (hx1 : x < 1) :
-    HasDerivAt smoothTransition
+    HasDerivAt Real.smoothTransition
       (Real.transitionLogisticFirstDerivative x) x := by
   have hxNe : x ≠ 0 := ne_of_gt hx0
   have hcompNe : 1 - x ≠ 0 := ne_of_gt (sub_pos.mpr hx1)
   have hlogistic :=
     Real.hasDerivAt_transitionLogisticComposite hxNe hcompNe
   have heq := Real.eventually_smoothTransition_eq_logistic hx0 hx1
-  exact hlogistic.congr_of_eventuallyEq heq.symm
+  exact hlogistic.congr_of_eventuallyEq heq
 
 theorem Real.smoothTransitionDerivative_eq_logisticFirst
     {x : ℝ}
@@ -96,7 +93,7 @@ theorem Real.eventually_smoothTransitionDerivative_eq_logisticFirst
     Real.smoothTransitionDerivative =ᶠ[nhds x]
       Real.transitionLogisticFirstDerivative := by
   have hneighborhood : Set.Ioo (0 : ℝ) 1 ∈ nhds x :=
-    Set.Ioo_mem_nhds hx0 hx1
+    Ioo_mem_nhds hx0 hx1
   exact Filter.mem_of_superset hneighborhood
     (fun y hy =>
       Real.smoothTransitionDerivative_eq_logisticFirst hy.1 hy.2)
@@ -113,7 +110,7 @@ theorem Real.hasDerivAt_smoothTransitionDerivative_logistic
     Real.hasDerivAt_transitionLogisticFirstDerivative hxNe hcompNe
   have heq :=
     Real.eventually_smoothTransitionDerivative_eq_logisticFirst hx0 hx1
-  exact hlogistic.congr_of_eventuallyEq heq.symm
+  exact hlogistic.congr_of_eventuallyEq heq
 
 theorem Real.smoothTransitionSecondDerivative_eq_logisticSecond
     {x : ℝ}
@@ -133,27 +130,51 @@ theorem Real.transitionLogisticSecondDerivative_eq_expanded
           (Real.exp (Real.transitionReciprocalGap x) - 1) *
           (1 + Real.exp (Real.transitionReciprocalGap x))⁻¹ ^ 3 *
           Real.transitionReciprocalEnergy x ^ 2 -
-        Real.exp (Real.transitionReciprocalGap x) *
+          Real.exp (Real.transitionReciprocalGap x) *
           (1 + Real.exp (Real.transitionReciprocalGap x))⁻¹ ^ 2 *
           Real.transitionGapSecondDerivative x := by
-  unfold Real.transitionLogisticSecondDerivative
-  unfold Real.decreasingLogisticSecondDerivative
-  unfold Real.decreasingLogisticDerivative
-  unfold Real.transitionGapDerivative
+  let d := Real.transitionReciprocalGap x
+  let e := Real.exp d
+  let u := 1 + e
+  let E := Real.transitionReciprocalEnergy x
+  let S := Real.transitionGapSecondDerivative x
+  change
+    e * (e - 1) * u⁻¹ ^ 3 * (-E) ^ 2 +
+        (-(e * u⁻¹ ^ 2)) * S =
+      e * (e - 1) * u⁻¹ ^ 3 * E ^ 2 -
+        e * u⁻¹ ^ 2 * S
   have hnegativeSquare :
-      (-Real.transitionReciprocalEnergy x) ^ 2 =
-        Real.transitionReciprocalEnergy x ^ 2 :=
-    sq_neg (Real.transitionReciprocalEnergy x)
-  exact Eq.trans
-    (congrArg₂ (fun first second : ℝ => first + second)
-      (congrArg
-        (fun value : ℝ =>
-          Real.exp (Real.transitionReciprocalGap x) *
-            (Real.exp (Real.transitionReciprocalGap x) - 1) *
-            (1 + Real.exp (Real.transitionReciprocalGap x))⁻¹ ^ 3 * value)
-        hnegativeSquare)
-      rfl)
-    (add_eq_sub_iff_sub_eq_add.mpr rfl)
+      (-E) ^ 2 = E ^ 2 := by
+    exact Eq.trans
+      (pow_two (-E))
+      (Eq.trans
+        (neg_mul_neg E E)
+        (pow_two E).symm)
+  have hfirstTerm :
+      e * (e - 1) * u⁻¹ ^ 3 * (-E) ^ 2 =
+        e * (e - 1) * u⁻¹ ^ 3 * E ^ 2 :=
+    congrArg
+      (fun value : ℝ => e * (e - 1) * u⁻¹ ^ 3 * value)
+      hnegativeSquare
+  have hsecondTerm :
+      (-(e * u⁻¹ ^ 2)) * S = -(e * u⁻¹ ^ 2 * S) :=
+    neg_mul (e * u⁻¹ ^ 2) S
+  have hadditiveForm :
+      e * (e - 1) * u⁻¹ ^ 3 * (-E) ^ 2 +
+          (-(e * u⁻¹ ^ 2)) * S =
+        e * (e - 1) * u⁻¹ ^ 3 * E ^ 2 +
+          (-(e * u⁻¹ ^ 2 * S)) :=
+    congrArg₂ (fun first second : ℝ => first + second)
+      hfirstTerm hsecondTerm
+  have hsubtractionForm :
+      e * (e - 1) * u⁻¹ ^ 3 * E ^ 2 +
+          (-(e * u⁻¹ ^ 2 * S)) =
+        e * (e - 1) * u⁻¹ ^ 3 * E ^ 2 -
+          e * u⁻¹ ^ 2 * S :=
+    (sub_eq_add_neg
+      (e * (e - 1) * u⁻¹ ^ 3 * E ^ 2)
+      (e * u⁻¹ ^ 2 * S)).symm
+  exact Eq.trans hadditiveForm hsubtractionForm
 
 def Real.transitionLogisticPositiveFactor (x : ℝ) : ℝ :=
   Real.exp (Real.transitionReciprocalGap x) *

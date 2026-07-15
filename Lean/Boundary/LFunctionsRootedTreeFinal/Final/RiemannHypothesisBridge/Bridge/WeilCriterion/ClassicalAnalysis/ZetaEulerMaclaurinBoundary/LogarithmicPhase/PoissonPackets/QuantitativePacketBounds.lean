@@ -17,6 +17,24 @@ noncomputable section
 open scoped ContDiff FourierTransform Interval
 open MeasureTheory
 
+theorem Real.add_reassociate_four
+    (a b c d : ℝ) :
+    a + ((b + c) + d) = (a + b) + (c + d) := by
+  exact
+    (congrArg (fun value : ℝ => a + value) (add_assoc b c d)).trans
+      (add_assoc a b (c + d)).symm
+
+theorem Real.add_reassociate_four_left
+    (a b c d : ℝ) :
+    a + ((b + c) + d) = ((a + b) + c) + d := by
+  have houter :
+      a + ((b + c) + d) = (a + (b + c)) + d :=
+    (add_assoc a (b + c) d).symm
+  have hinner :
+      (a + (b + c)) + d = ((a + b) + c) + d :=
+    congrArg (fun value : ℝ => value + d) (add_assoc a b c).symm
+  exact houter.trans hinner
+
 theorem Complex.norm_logarithmicPhaseQuantitativePacket_le_crossings_add_principal
     (t : ℝ)
     (a b m : ℤ)
@@ -109,9 +127,13 @@ theorem Complex.norm_logarithmicPhaseQuantitativePacket_le_leftInactive_explicit
   have hprincipal :=
     Complex.norm_intervalIntegral_logarithmicPhase_realOscillation_le_right_nonstationary_tail_explicit
       t ht ht_nonneg a b m (a : ℝ) (b : ℝ) ha_real le_rfl le_rfl hab_real hcenter hm
-  exact
+  have hbound :=
     Complex.norm_logarithmicPhaseQuantitativePacket_le_crossings_add_principal
       t a b m ha hab hprincipal
+  exact Eq.subst
+    (motive := fun value : ℝ =>
+      ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤ value)
+    (add_assoc _ _ _).symm hbound
 
 theorem Complex.norm_logarithmicPhaseQuantitativePacket_le_rightInactive_explicit
     (t : ℝ)
@@ -138,9 +160,13 @@ theorem Complex.norm_logarithmicPhaseQuantitativePacket_le_rightInactive_explici
   have hprincipal :=
     Complex.norm_intervalIntegral_logarithmicPhase_realOscillation_le_left_nonstationary_tail_explicit
       t ht ht_nonneg a b m (a : ℝ) (b : ℝ) ha_real le_rfl le_rfl hab_real hcenter hm
-  exact
+  have hbound :=
     Complex.norm_logarithmicPhaseQuantitativePacket_le_crossings_add_principal
       t a b m ha hab hprincipal
+  exact Eq.subst
+    (motive := fun value : ℝ =>
+      ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤ value)
+    (add_assoc _ _ _).symm hbound
 
 theorem Complex.norm_logarithmicPhaseQuantitativePacket_le_active_stationary_explicit
     (t : ℝ)
@@ -233,9 +259,13 @@ theorem Complex.norm_logarithmicPhaseQuantitativePacket_le_active_stationary_exp
       hleft_center hwindow_order hright
       hleft_integrable hcentral_integrable hright_integrable
       hleft_bound hcentral hright_bound
-  exact
+  have hbound :=
     Complex.norm_logarithmicPhaseQuantitativePacket_le_crossings_add_principal
       t a b m ha hab hprincipal
+  exact Eq.subst
+    (motive := fun value : ℝ =>
+      ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤ value)
+    (Real.add_reassociate_four_left _ _ _ _) hbound
 
 end
 end LFunctions

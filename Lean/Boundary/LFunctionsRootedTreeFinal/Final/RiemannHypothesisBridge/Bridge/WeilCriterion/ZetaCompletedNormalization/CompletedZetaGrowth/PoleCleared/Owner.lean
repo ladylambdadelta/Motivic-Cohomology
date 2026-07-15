@@ -1382,7 +1382,7 @@ theorem poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_from_boundary_
         1 ≤ ‖z.im‖ →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  exact strip_growth_bound_of_holomorphic_boundary_growth_and_finite_order
+  exact strip_finite_order_growth_of_boundary_envelopes_by_damping
     poleClearedRiemannZeta 0 1 zero_lt_one
     poleClearedRiemannZeta_zero_one_strip_diffContOnCl
     (poleClearedRiemannZeta_zero_one_strip_admissible_growth_from_functionalEquation
@@ -1443,10 +1443,10 @@ def PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
 route, using the already-owned boundary and compact packages. -/
 def PoleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope : Prop :=
   PoleClearedZeroOneStripSelfReflectedVerticalTailEnvelope
-    boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap
+    boundaryLineOneAbelPartialMajorant_from_realParam
     poleClearedOneTwoStripCompactBoundaryBound_from_rightCriticalStrip_compact
     (reflectedBoundaryAbelPartialMajorant_of_boundaryLineOneAbelPartialMajorant
-      boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap)
+      boundaryLineOneAbelPartialMajorant_from_realParam)
     poleClearedRightCriticalStripCompactBoundaryBound_from_compact
 
 /-- Conditional exposure of the noncircular self-reflected vertical-tail
@@ -1638,10 +1638,10 @@ theorem poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_ownerEulerMacl
       (poleClearedRiemannZeta_zero_one_strip_completedFunctionalEquationMultiplier_growth_ownerGammaStirling
         hbranch)
       (poleClearedRiemannZeta_zero_one_strip_selfReflectedVerticalTailEnvelope_ownerEulerMaclaurinFunctionalEquationCore
-        boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap
+        boundaryLineOneAbelPartialMajorant_from_realParam
         poleClearedOneTwoStripCompactBoundaryBound_from_rightCriticalStrip_compact
         (reflectedBoundaryAbelPartialMajorant_of_boundaryLineOneAbelPartialMajorant
-          boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap)
+          boundaryLineOneAbelPartialMajorant_from_realParam)
         poleClearedRightCriticalStripCompactBoundaryBound_from_compact
         hreflected)
 
@@ -1897,7 +1897,7 @@ theorem poleClearedRiemannZeta_zero_one_strip_verticalTail_growth_from_boundary_
         1 ≤ ‖z.im‖ →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  exact strip_growth_bound_of_holomorphic_boundary_growth_and_finite_order
+  exact strip_finite_order_growth_of_boundary_envelopes_by_damping
     poleClearedRiemannZeta 0 1 zero_lt_one
     poleClearedRiemannZeta_zero_one_strip_diffContOnCl
     (poleClearedRiemannZeta_zero_one_strip_admissible_growth_ownerFunctionalEquationNoncircular
@@ -2175,7 +2175,7 @@ theorem poleClearedRiemannZeta_centralStrip_verticalTail_growth_from_PL_transpor
         1 ≤ ‖z.im‖ →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  exact strip_growth_bound_of_holomorphic_boundary_growth_and_finite_order
+  exact strip_finite_order_growth_of_boundary_envelopes_by_damping
     poleClearedRiemannZeta 0 2 zero_lt_two hhol hfinite hleft hright
 
 /-- The exact PL input package for the central-strip vertical tail.
@@ -2645,10 +2645,10 @@ theorem poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_owner
   exact
     poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_nonCircular
       hbranch
-      boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap
+      boundaryLineOneAbelPartialMajorant_from_realParam
       poleClearedOneTwoStripCompactBoundaryBound_from_rightCriticalStrip_compact
       (reflectedBoundaryAbelPartialMajorant_of_boundaryLineOneAbelPartialMajorant
-        boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap)
+        boundaryLineOneAbelPartialMajorant_from_realParam)
       poleClearedRightCriticalStripCompactBoundaryBound_from_compact
       hreflected
 
@@ -2830,7 +2830,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_verticalTail_growth_bound_of_s
         1 ≤ ‖z.im‖ →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  exact strip_growth_bound_of_holomorphic_boundary_growth_and_finite_order
+  exact strip_finite_order_growth_of_boundary_envelopes_by_damping
     poleClearedRiemannZeta 0 2 zero_lt_two hhol hfinite hleft hright
 
 /-- Vertical-tail strip estimate for the removable pole-cleared zeta factor.
@@ -2879,7 +2879,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_verticalTail_growth_bound
 /-- Vertical-tail pole-cleared zeta strip estimate.
 
 This is the final zeta-specific consumer of the generic strip Phragmen-Lindelöf
-pillar `strip_growth_bound_of_holomorphic_boundary_growth_and_finite_order`.
+pillar `strip_finite_order_growth_of_boundary_envelopes_by_damping`.
 The remaining zeta inputs are exactly the classical ones: holomorphicity after pole
 clearing, right-boundary growth from the Dirichlet-series estimate, and left-boundary
 growth from the functional equation/completed normalization with Gamma control. -/
@@ -3047,7 +3047,7 @@ theorem poleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope_owner 
   -- Apply strip PL theorem to get reflected bounds
   -- Using the multiplier growth + boundary conditions to provide inputs
   have hbranch := Complex.binetSecondFormula_branchUniformTailAbsorption_owner
-  have hpart := boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap
+  have hpart := boundaryLineOneAbelPartialMajorant_from_realParam
   have hcomp := poleClearedOneTwoStripCompactBoundaryBound_from_rightCriticalStrip_compact
   have hrefl := reflectedBoundaryAbelPartialMajorant_of_boundaryLineOneAbelPartialMajorant hpart
   have hcompB := poleClearedRightCriticalStripCompactBoundaryBound_from_compact
@@ -3064,7 +3064,7 @@ theorem poleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope_owner 
     poleClearedRiemannZeta_boundaryLine_one_growth_bound_standard
 
   -- Now we can apply strip PL to the reflected version
-  exact strip_growth_bound_of_holomorphic_boundary_growth_and_finite_order
+  exact strip_finite_order_growth_of_boundary_envelopes_by_damping
     poleClearedRiemannZeta 0 1 zero_lt_one
     poleClearedRiemannZeta_zero_one_strip_diffContOnCl
     ⟨A_mult, B_mult, m_mult, hA_mult_pos, hB_mult_pos,

@@ -18,11 +18,17 @@ def Complex.logarithmicPhaseOutsideToTailSum
     (m : {m : ℤ // m ∉ Complex.logarithmicPhasePoissonModeRange t a}) :
     Sum
       (Complex.logarithmicPhasePoissonFarNegativeModes t a)
-      Complex.logarithmicPhasePoissonPositiveTailModes :=
-  match Complex.logarithmicPhasePoissonOutsideRange_eq_farNegative_or_positive
-      t a m with
-  | Or.inl hfar => Sum.inl ⟨(m : ℤ), hfar⟩
-  | Or.inr hpositive => Sum.inr ⟨(m : ℤ), hpositive⟩
+      Complex.logarithmicPhasePoissonPositiveTailModes := by
+  classical
+  exact if hfar : (m : ℤ) ∈
+        Complex.logarithmicPhasePoissonFarNegativeModes t a then
+      Sum.inl ⟨(m : ℤ), hfar⟩
+    else
+      Sum.inr ⟨(m : ℤ),
+        Or.resolve_left
+          (Complex.logarithmicPhasePoissonOutsideRange_eq_farNegative_or_positive
+            t a m)
+          hfar⟩
 
 def Complex.logarithmicPhaseTailSumToOutside
     (t : ℝ) (a : ℤ) :
@@ -44,11 +50,41 @@ theorem Complex.logarithmicPhaseOutsideToTailSum_value
       (fun n : Complex.logarithmicPhasePoissonFarNegativeModes t a => (n : ℤ))
       (fun n : Complex.logarithmicPhasePoissonPositiveTailModes => (n : ℤ))
       (Complex.logarithmicPhaseOutsideToTailSum t a m) = (m : ℤ) := by
-  unfold Complex.logarithmicPhaseOutsideToTailSum
-  match Complex.logarithmicPhasePoissonOutsideRange_eq_farNegative_or_positive
-      t a m with
-  | Or.inl hfar => exact rfl
-  | Or.inr hpositive => exact rfl
+  classical
+  by_cases hfar : (m : ℤ) ∈
+      Complex.logarithmicPhasePoissonFarNegativeModes t a
+  · have hselected :
+        Complex.logarithmicPhaseOutsideToTailSum t a m =
+          Sum.inl ⟨(m : ℤ), hfar⟩ := by
+      unfold Complex.logarithmicPhaseOutsideToTailSum
+      exact dif_pos hfar
+    exact Eq.trans
+      (congrArg
+        (Sum.elim
+          (fun n : Complex.logarithmicPhasePoissonFarNegativeModes t a =>
+            (n : ℤ))
+          (fun n : Complex.logarithmicPhasePoissonPositiveTailModes =>
+            (n : ℤ)))
+        hselected)
+      rfl
+  · have hselected :
+        Complex.logarithmicPhaseOutsideToTailSum t a m =
+          Sum.inr ⟨(m : ℤ),
+            Or.resolve_left
+              (Complex.logarithmicPhasePoissonOutsideRange_eq_farNegative_or_positive
+                t a m)
+              hfar⟩ := by
+      unfold Complex.logarithmicPhaseOutsideToTailSum
+      exact dif_neg hfar
+    exact Eq.trans
+      (congrArg
+        (Sum.elim
+          (fun n : Complex.logarithmicPhasePoissonFarNegativeModes t a =>
+            (n : ℤ))
+          (fun n : Complex.logarithmicPhasePoissonPositiveTailModes =>
+            (n : ℤ)))
+        hselected)
+      rfl
 
 theorem Complex.logarithmicPhaseTailSumToOutside_value
     (t : ℝ) (a : ℤ)
@@ -82,35 +118,39 @@ theorem Complex.logarithmicPhaseOutsideToTailSum_rightInverse
       Complex.logarithmicPhasePoissonPositiveTailModes) :
     Complex.logarithmicPhaseOutsideToTailSum t a
       (Complex.logarithmicPhaseTailSumToOutside t a m) = m := by
+  classical
   match m with
   | Sum.inl n =>
-      have hfar :
-          ((Complex.logarithmicPhaseTailSumToOutside t a (Sum.inl n) :
-            {m : ℤ // m ∉ Complex.logarithmicPhasePoissonModeRange t a}) : ℤ) ∈
-            Complex.logarithmicPhasePoissonFarNegativeModes t a := n.property
-      unfold Complex.logarithmicPhaseOutsideToTailSum
-      match Complex.logarithmicPhasePoissonOutsideRange_eq_farNegative_or_positive
-          t a (Complex.logarithmicPhaseTailSumToOutside t a (Sum.inl n)) with
-      | Or.inl hselected => exact congrArg Sum.inl (Subtype.ext rfl)
-      | Or.inr hpositive =>
-          exact False.elim
-            (Set.disjoint_left.mp
-              (Complex.logarithmicPhasePoissonFarNegative_positive_disjoint
-                t a ha)
-              _ hfar hpositive)
+      have hselected :
+          Complex.logarithmicPhaseOutsideToTailSum t a
+              (Complex.logarithmicPhaseTailSumToOutside t a (Sum.inl n)) =
+            Sum.inl ⟨(n : ℤ), n.property⟩ := by
+        unfold Complex.logarithmicPhaseOutsideToTailSum
+        exact dif_pos n.property
+      exact Eq.trans hselected
+        (congrArg Sum.inl (Subtype.ext rfl))
   | Sum.inr n =>
-      unfold Complex.logarithmicPhaseOutsideToTailSum
-      match Complex.logarithmicPhasePoissonOutsideRange_eq_farNegative_or_positive
-          t a (Complex.logarithmicPhaseTailSumToOutside t a (Sum.inr n)) with
-      | Or.inl hfar =>
-          have hlower := Complex.logarithmicPhasePoissonModeRangeLower_le_zero
-            t ha
-          have hnegative :
-              ((Complex.logarithmicPhaseTailSumToOutside t a (Sum.inr n) :
-                {m : ℤ // m ∉ Complex.logarithmicPhasePoissonModeRange t a}) : ℤ) < 0 :=
+      have hnotFar : ¬ (n : ℤ) ∈
+          Complex.logarithmicPhasePoissonFarNegativeModes t a :=
+        fun hfar =>
+          have hlower :=
+            Complex.logarithmicPhasePoissonModeRangeLower_le_zero t ha
+          have hnegative : (n : ℤ) < 0 :=
             lt_of_lt_of_le hfar hlower
-          exact False.elim (not_lt_of_ge n.property.le hnegative)
-      | Or.inr hselected => exact congrArg Sum.inr (Subtype.ext rfl)
+          not_lt_of_ge n.property.le hnegative
+      have hselected :
+          Complex.logarithmicPhaseOutsideToTailSum t a
+              (Complex.logarithmicPhaseTailSumToOutside t a (Sum.inr n)) =
+            Sum.inr ⟨(n : ℤ),
+              Or.resolve_left
+                (Complex.logarithmicPhasePoissonOutsideRange_eq_farNegative_or_positive
+                  t a
+                  (Complex.logarithmicPhaseTailSumToOutside t a (Sum.inr n)))
+                hnotFar⟩ := by
+        unfold Complex.logarithmicPhaseOutsideToTailSum
+        exact dif_neg hnotFar
+      exact Eq.trans hselected
+        (congrArg Sum.inr (Subtype.ext rfl))
 
 def Complex.logarithmicPhaseOutsideEquivTailSum
     (t : ℝ) (a : ℤ) (ha : 1 ≤ a) :

@@ -154,8 +154,16 @@ theorem Complex.norm_logarithmicPhaseQuantitativeComplementPacket_tsum_le_budget
     fun m =>
       Complex.norm_logarithmicPhaseQuantitativePacket_le_modeMajorant
         t ht htNonneg a b m ha hab
+  have hnorm :
+      ‖∑' m : {m : ℤ //
+          m ∉ Complex.logarithmicPhasePoissonActiveModes t a b},
+        Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+        ∑' m : {m : ℤ //
+            m ∉ Complex.logarithmicPhasePoissonActiveModes t a b},
+          Complex.logarithmicPhaseQuantitativeModeMajorant t a b m :=
+    tsum_of_norm_bounded hsummable.hasSum hpointwise
   unfold Complex.logarithmicPhaseQuantitativeComplementTailBudget
-  exact tsum_norm_le hsummable hpointwise
+  exact hnorm
 
 theorem Complex.norm_logarithmicPhaseQuantitativeActivePacket_tsum_le_two_components
     (t : ℝ)

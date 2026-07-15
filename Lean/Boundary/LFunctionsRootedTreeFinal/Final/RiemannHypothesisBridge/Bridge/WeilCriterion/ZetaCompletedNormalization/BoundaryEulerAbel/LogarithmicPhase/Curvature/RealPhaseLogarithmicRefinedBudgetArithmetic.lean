@@ -16,6 +16,74 @@ namespace LFunctions
 
 noncomputable section
 
+theorem Real.two_add_one_eq_three :
+    (2 : ℝ) + 1 = 3 := by
+  have hcastTwo : ((2 : ℕ) : ℝ) = (2 : ℝ) := Nat.cast_ofNat
+  have hcastOne : ((1 : ℕ) : ℝ) = (1 : ℝ) := Nat.cast_one
+  have hcastThree : ((3 : ℕ) : ℝ) = (3 : ℝ) := Nat.cast_ofNat
+  have hnatural : (2 + 1 : ℕ) = 3 := rfl
+  have hcastNatural : ((2 + 1 : ℕ) : ℝ) = ((3 : ℕ) : ℝ) :=
+    congrArg (fun n : ℕ => (n : ℝ)) hnatural
+  have haddCast : ((2 : ℕ) : ℝ) + ((1 : ℕ) : ℝ) =
+      ((2 + 1 : ℕ) : ℝ) := (Nat.cast_add 2 1).symm
+  exact Eq.trans
+    (congrArg₂ (fun x y : ℝ => x + y) hcastTwo.symm hcastOne.symm)
+    (Eq.trans haddCast (Eq.trans hcastNatural hcastThree))
+
+theorem Real.two_mul_eight_eq_sixteen :
+    (2 : ℝ) * 8 = 16 := by
+  have hcastTwo : ((2 : ℕ) : ℝ) = (2 : ℝ) := Nat.cast_ofNat
+  have hcastEight : ((8 : ℕ) : ℝ) = (8 : ℝ) := Nat.cast_ofNat
+  have hcastSixteen : ((16 : ℕ) : ℝ) = (16 : ℝ) := Nat.cast_ofNat
+  have hnatural : (2 * 8 : ℕ) = 16 := rfl
+  have hcastNatural : ((2 * 8 : ℕ) : ℝ) = ((16 : ℕ) : ℝ) :=
+    congrArg (fun n : ℕ => (n : ℝ)) hnatural
+  have hmulCast : ((2 : ℕ) : ℝ) * ((8 : ℕ) : ℝ) =
+      ((2 * 8 : ℕ) : ℝ) := (Nat.cast_mul 2 8).symm
+  exact Eq.trans
+    (congrArg₂ (fun x y : ℝ => x * y) hcastTwo.symm hcastEight.symm)
+    (Eq.trans hmulCast (Eq.trans hcastNatural hcastSixteen))
+
+theorem Real.two_mul_four_eq_eight :
+    (2 : ℝ) * 4 = 8 := by
+  have hcastTwo : ((2 : ℕ) : ℝ) = (2 : ℝ) := Nat.cast_ofNat
+  have hcastFour : ((4 : ℕ) : ℝ) = (4 : ℝ) := Nat.cast_ofNat
+  have hcastEight : ((8 : ℕ) : ℝ) = (8 : ℝ) := Nat.cast_ofNat
+  have hnatural : (2 * 4 : ℕ) = 8 := rfl
+  have hcastNatural : ((2 * 4 : ℕ) : ℝ) = ((8 : ℕ) : ℝ) :=
+    congrArg (fun n : ℕ => (n : ℝ)) hnatural
+  have hmulCast : ((2 : ℕ) : ℝ) * ((4 : ℕ) : ℝ) =
+      ((2 * 4 : ℕ) : ℝ) := (Nat.cast_mul 2 4).symm
+  exact Eq.trans
+    (congrArg₂ (fun x y : ℝ => x * y) hcastTwo.symm hcastFour.symm)
+    (Eq.trans hmulCast (Eq.trans hcastNatural hcastEight))
+
+theorem Real.twenty_add_twenty_eq_forty :
+    (20 : ℝ) + 20 = 40 := by
+  have hcastTwenty : ((20 : ℕ) : ℝ) = (20 : ℝ) := Nat.cast_ofNat
+  have hcastForty : ((40 : ℕ) : ℝ) = (40 : ℝ) := Nat.cast_ofNat
+  have hnatural : (20 + 20 : ℕ) = 40 := rfl
+  have hcastNatural : ((20 + 20 : ℕ) : ℝ) = ((40 : ℕ) : ℝ) :=
+    congrArg (fun n : ℕ => (n : ℝ)) hnatural
+  have haddCast : ((20 : ℕ) : ℝ) + ((20 : ℕ) : ℝ) =
+      ((20 + 20 : ℕ) : ℝ) := (Nat.cast_add 20 20).symm
+  exact Eq.trans
+    (congrArg₂ (fun x y : ℝ => x + y) hcastTwenty.symm hcastTwenty.symm)
+    (Eq.trans haddCast (Eq.trans hcastNatural hcastForty))
+
+theorem Real.forty_add_forty_eq_eighty :
+    (40 : ℝ) + 40 = 80 := by
+  have hcastForty : ((40 : ℕ) : ℝ) = (40 : ℝ) := Nat.cast_ofNat
+  have hcastEighty : ((80 : ℕ) : ℝ) = (80 : ℝ) := Nat.cast_ofNat
+  have hnatural : (40 + 40 : ℕ) = 80 := rfl
+  have hcastNatural : ((40 + 40 : ℕ) : ℝ) = ((80 : ℕ) : ℝ) :=
+    congrArg (fun n : ℕ => (n : ℝ)) hnatural
+  have haddCast : ((40 : ℕ) : ℝ) + ((40 : ℕ) : ℝ) =
+      ((40 + 40 : ℕ) : ℝ) := (Nat.cast_add 40 40).symm
+  exact Eq.trans
+    (congrArg₂ (fun x y : ℝ => x + y) hcastForty.symm hcastForty.symm)
+    (Eq.trans haddCast (Eq.trans hcastNatural hcastEighty))
+
 def Real.logarithmicPhaseRefinedScale
     (t : ℝ) (b : ℤ) : ℝ :=
   ((b : ℝ) + 1) / ‖t‖ + Real.sqrt (1 + ‖t‖)
@@ -73,13 +141,7 @@ theorem Real.two_thirds_le_refinedScale
   have htwoLeThree : (2 : ℝ) ≤ 3 := by
     have honeNonneg : (0 : ℝ) ≤ 1 := zero_le_one
     have hstep : (2 : ℝ) ≤ 2 + 1 := le_add_of_nonneg_right honeNonneg
-    have hsum : (2 : ℝ) + 1 = 3 := by
-      exact Eq.trans
-        (Nat.cast_add 2 1).symm
-        (Eq.trans
-          (congrArg (fun n : ℕ => (n : ℝ))
-            (show (2 + 1 : ℕ) = 3 from rfl))
-          Nat.cast_ofNat)
+    have hsum : (2 : ℝ) + 1 = 3 := Real.two_add_one_eq_three
     exact hstep.trans_eq hsum
   have hfraction : (2 : ℝ) / 3 ≤ 1 :=
     (div_le_one hthreePos).mpr htwoLeThree
@@ -125,7 +187,7 @@ theorem Real.sixteen_thirds_le_eight_refinedScale
         (mul_div_assoc 2 8 3).symm
       _ = (16 : ℝ) / 3 :=
         congrArg (fun numerator : ℝ => numerator / 3)
-          (show (2 : ℝ) * 8 = 16 from rfl)
+          Real.two_mul_eight_eq_sixteen
   have hright :
       2 * (4 * Real.logarithmicPhaseRefinedScale t b) =
         8 * Real.logarithmicPhaseRefinedScale t b := by
@@ -137,7 +199,7 @@ theorem Real.sixteen_thirds_le_eight_refinedScale
         congrArg
           (fun coefficient : ℝ =>
             coefficient * Real.logarithmicPhaseRefinedScale t b)
-          (show (2 : ℝ) * 4 = 8 from rfl)
+          Real.two_mul_four_eq_eight
   exact le_trans (le_of_eq hleft.symm)
     (le_trans hdouble (le_of_eq hright))
 
@@ -197,7 +259,7 @@ theorem Real.refined_component_coefficients_eq_eighty
         (add_mul 20 20 scale).symm
       _ = 40 * scale :=
         congrArg (fun coefficient : ℝ => coefficient * scale)
-          (show (20 : ℝ) + 20 = 40 from rfl)
+          Real.twenty_add_twenty_eq_forty
   have hsecond :
       40 * scale + 40 * scale = 80 * scale := by
     calc
@@ -205,7 +267,7 @@ theorem Real.refined_component_coefficients_eq_eighty
         (add_mul 40 40 scale).symm
       _ = 80 * scale :=
         congrArg (fun coefficient : ℝ => coefficient * scale)
-          (show (40 : ℝ) + 40 = 80 from rfl)
+          Real.forty_add_forty_eq_eighty
   calc
     20 * scale + 20 * scale + (20 * scale + 20 * scale) =
         40 * scale + 40 * scale :=

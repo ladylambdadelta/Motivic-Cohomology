@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.OscillatorySums.QuantitativeTransitionLogisticIdentification
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.OscillatorySums.QuantitativeTransitionCurvatureVariation
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.OscillatorySums.QuantitativeCutoffSecondDerivativeSupport
 
 /-!
 # Convexity and concavity of the quantitative transition
@@ -13,6 +14,54 @@ namespace Boundary
 namespace LFunctions
 
 noncomputable section
+
+theorem Real.transitionConvexity_four_factor_association
+    (first second third fourth : ℝ) :
+    first * second * third ^ 3 * fourth =
+      (first * third ^ 2 * fourth) * (second * third) := by
+  have hcube : third ^ 3 = third ^ 2 * third := pow_succ third 2
+  calc
+    first * second * third ^ 3 * fourth =
+        (first * second) * (third ^ 2 * third) * fourth :=
+      congrArg (fun value : ℝ => first * second * value * fourth) hcube
+    _ = ((first * third ^ 2) * (second * third)) * fourth :=
+      congrArg (fun value : ℝ => value * fourth)
+        (mul_mul_mul_comm first second (third ^ 2) third)
+    _ = (first * third ^ 2) * ((second * third) * fourth) :=
+      mul_assoc (first * third ^ 2) (second * third) fourth
+    _ = (first * third ^ 2) * (fourth * (second * third)) :=
+      congrArg (fun value : ℝ => (first * third ^ 2) * value)
+        (mul_comm (second * third) fourth)
+    _ = (first * third ^ 2 * fourth) * (second * third) :=
+      (mul_assoc (first * third ^ 2) fourth (second * third)).symm
+
+theorem Real.transitionConvexity_right_factor_commutation
+    (first second third : ℝ) :
+    first * (second * third) = (first * third) * second := by
+  exact Eq.trans
+    (mul_assoc first second third).symm
+    (mul_right_comm first second third)
+
+theorem Real.transitionConvexity_two_lt_four :
+    (2 : ℝ) < 4 := by
+  have htwoPositive : (0 : ℝ) < 2 := zero_lt_two
+  have hraw : (2 : ℝ) < 2 + 2 :=
+    lt_add_of_pos_right 2 htwoPositive
+  have hsum : (2 : ℝ) + 2 = 4 :=
+    Real.transitionSecondDerivative_natCast_add 2 2 4 rfl
+  exact Eq.subst
+    (motive := fun upper : ℝ => (2 : ℝ) < upper)
+    hsum
+    hraw
+
+theorem Real.transitionConvexity_exponentialOddRatio_eq
+    (d : ℝ) :
+    Real.exponentialOddRatio d =
+      (Real.exp d - 1) / (1 + Real.exp d) := by
+  unfold Real.exponentialOddRatio
+  exact congrArg
+    (fun denominator : ℝ => (Real.exp d - 1) / denominator)
+    (add_comm (Real.exp d) 1)
 
 theorem Real.transitionReciprocalEnergy_eq_sum_product
     {x : ℝ}
@@ -72,13 +121,7 @@ theorem Real.transitionScalarCurvatureRatio_eq_gapSecond_div_energy_sq
         congrArg₂ (fun first second : ℝ => first * second)
           (pow_two s) (pow_two (s - 2))
       _ = (s * (s - 2)) * (s * (s - 2)) := by
-        exact (mul_assoc (s * s) (s - 2) (s - 2)).trans
-          (congrArg (fun value : ℝ => value * (s - 2))
-            ((mul_assoc s s (s - 2)).trans
-              (congrArg (fun value : ℝ => s * value)
-                (mul_comm s (s - 2))).trans
-              (mul_assoc s (s - 2) s).symm)).trans
-          (mul_assoc (s * (s - 2)) s (s - 2))
+        exact mul_mul_mul_comm s s (s - 2) (s - 2)
       _ = (s * (s - 2)) ^ 2 := (pow_two _).symm
   exact congrArg₂ (fun numerator denominator : ℝ => numerator / denominator)
     (Eq.trans hnumerator hsecond.symm)
@@ -98,15 +141,12 @@ theorem Real.transitionLogisticSecondDerivative_factorization
   let E := Real.transitionReciprocalEnergy x
   let R := Real.transitionScalarCurvatureRatio
     (Real.transitionReciprocalSum x) d
-  have huPos : 0 < u :=
-    add_pos_of_nonneg_of_pos zero_le_one (Real.exp_pos d)
-  have huNe : u ≠ 0 := ne_of_gt huPos
   have henergyPos : 0 < E := by
     have hsum := Real.four_le_transitionReciprocalSum hx0 hx1
     have hsumPos := Real.transitionScalar_pos hsum
     have hsubPos : 0 < Real.transitionReciprocalSum x - 2 := by
       exact sub_pos.mpr (lt_of_lt_of_le
-        (show (2 : ℝ) < 4 from lt_add_of_pos_right 2 zero_lt_two) hsum)
+        Real.transitionConvexity_two_lt_four hsum)
     have hidentity := Real.transitionReciprocalEnergy_eq_sum_product hx0 hx1
     exact Eq.subst (motive := fun value : ℝ => 0 < value)
       hidentity.symm (mul_pos hsumPos hsubPos)
@@ -128,21 +168,38 @@ theorem Real.transitionLogisticSecondDerivative_factorization
   change Real.transitionLogisticSecondDerivative x =
     (e * u⁻¹ ^ 2 * E ^ 2) *
       (Real.exponentialOddRatio d - R)
-  have hodd : Real.exponentialOddRatio d = (e - 1) / u := rfl
+  have hodd : Real.exponentialOddRatio d = (e - 1) / u := by
+    exact Real.transitionConvexity_exponentialOddRatio_eq d
+  have hfirstAssociation :
+      e * (e - 1) * u⁻¹ ^ 3 * E ^ 2 =
+        (e * u⁻¹ ^ 2 * E ^ 2) * ((e - 1) / u) := by
+    have hassociated :=
+      Real.transitionConvexity_four_factor_association
+        e (e - 1) u⁻¹ (E ^ 2)
+    have hdivision : (e - 1) / u = (e - 1) * u⁻¹ :=
+      div_eq_mul_inv (e - 1) u
+    exact Eq.trans hassociated
+      (congrArg
+        (fun value : ℝ => (e * u⁻¹ ^ 2 * E ^ 2) * value)
+        hdivision.symm)
+  have hsecondAssociation :
+      e * u⁻¹ ^ 2 * (R * E ^ 2) =
+        (e * u⁻¹ ^ 2 * E ^ 2) * R := by
+    exact Real.transitionConvexity_right_factor_commutation
+      (e * u⁻¹ ^ 2) R (E ^ 2)
   exact Eq.trans hexpanded
     (Eq.trans
       (congrArg (fun value : ℝ =>
         e * (e - 1) * u⁻¹ ^ 3 * E ^ 2 -
           e * u⁻¹ ^ 2 * value) hsecond)
       (by
-        have huInv : u⁻¹ * u = 1 := inv_mul_cancel₀ huNe
         calc
           e * (e - 1) * u⁻¹ ^ 3 * E ^ 2 -
               e * u⁻¹ ^ 2 * (R * E ^ 2) =
             (e * u⁻¹ ^ 2 * E ^ 2) * ((e - 1) / u) -
               (e * u⁻¹ ^ 2 * E ^ 2) * R := by
                 exact congrArg₂ (fun first second : ℝ => first - second)
-                  rfl rfl
+                  hfirstAssociation hsecondAssociation
           _ = (e * u⁻¹ ^ 2 * E ^ 2) *
               ((e - 1) / u - R) :=
             (mul_sub (e * u⁻¹ ^ 2 * E ^ 2) ((e - 1) / u) R).symm
@@ -158,7 +215,7 @@ theorem Real.smoothTransitionSecondDerivative_nonneg_of_pos_le_half
     0 ≤ Real.smoothTransitionSecondDerivative x := by
   have hxOne : x < 1 := by
     have hhalfOne : (1 / 2 : ℝ) < 1 :=
-      (div_lt_one₀ zero_lt_two).mpr one_lt_two
+      (div_lt_one zero_lt_two).mpr one_lt_two
     exact lt_of_le_of_lt hxHalf hhalfOne
   have hidentify :=
     Real.smoothTransitionSecondDerivative_eq_logisticSecond hx0 hxOne
@@ -178,11 +235,14 @@ theorem Real.smoothTransitionSecondDerivative_nonneg_on_left_half
       exact Real.smoothTransitionSecondDerivative_nonneg_of_pos_le_half
         hxPos hx.2
   | Or.inr hxZero =>
+      have hzeroNonneg :
+          0 ≤ Real.smoothTransitionSecondDerivative 0 :=
+        le_of_eq Real.smoothTransitionSecondDerivative_zero.symm
       exact Eq.subst
         (motive := fun value : ℝ =>
           0 ≤ Real.smoothTransitionSecondDerivative value)
-        hxZero.symm
-        (le_of_eq Real.smoothTransitionSecondDerivative_zero.symm)
+        hxZero
+        hzeroNonneg
 
 theorem Real.smoothTransitionSecondDerivative_nonpos_on_right_half
     (x : ℝ)
@@ -191,18 +251,18 @@ theorem Real.smoothTransitionSecondDerivative_nonpos_on_right_half
   let y := 1 - x
   have hyNonneg : 0 ≤ y := sub_nonneg.mpr hx.2
   have hyHalf : y ≤ 1 / 2 := by
-    exact (sub_le_iff_le_add).mpr
-      (le_trans
-        (sub_le_sub_left hx.1 1)
-        (le_of_eq
-          (show (1 : ℝ) - 1 / 2 = 1 / 2 from by
-            exact sub_half 1)))
+    have hreflectedBound : (1 : ℝ) - x ≤ 1 - 1 / 2 :=
+      sub_le_sub_left hx.1 1
+    have hhalfComplement : (1 : ℝ) - 1 / 2 = 1 / 2 :=
+      Real.smoothTransition_half_complement
+    exact le_trans hreflectedBound
+      (le_of_eq hhalfComplement)
   have hyMem : y ∈ Set.Icc (0 : ℝ) (1 / 2) := ⟨hyNonneg, hyHalf⟩
   have hySign := Real.smoothTransitionSecondDerivative_nonneg_on_left_half y hyMem
   have hreflection := Real.smoothTransitionSecondDerivative_reflection_neg y
   have hinner : 1 - y = x := by
     unfold y
-    exact sub_sub_cancel_left 1 x
+    exact Real.one_sub_one_sub x
   have hneg : -Real.smoothTransitionSecondDerivative y ≤ 0 :=
     neg_nonpos.mpr hySign
   exact Eq.subst

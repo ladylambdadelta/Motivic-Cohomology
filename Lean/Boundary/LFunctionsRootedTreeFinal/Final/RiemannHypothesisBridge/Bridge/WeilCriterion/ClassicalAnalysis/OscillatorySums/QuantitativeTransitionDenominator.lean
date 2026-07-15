@@ -34,9 +34,12 @@ theorem Real.inv_le_two_of_half_le
   have hhalfPos : (0 : ℝ) < 1 / 2 := by
     exact div_pos zero_lt_one
       (Nat.cast_pos.mpr (Nat.succ_pos 1))
-  have hxPos : 0 < x := lt_of_lt_of_le hhalfPos hx
-  exact (inv_le_iff₀ hxPos).mpr
-    (Real.one_le_two_mul_of_half_le hx)
+  have hinverse : x⁻¹ ≤ ((1 / 2 : ℝ))⁻¹ :=
+    inv_anti₀ hhalfPos hx
+  have hhalfInverse : ((1 / 2 : ℝ))⁻¹ = 2 := by
+    have honeDiv : (1 / 2 : ℝ) = (2 : ℝ)⁻¹ := one_div 2
+    exact Eq.trans (congrArg Inv.inv honeDiv) (inv_inv 2)
+  exact le_trans hinverse (le_of_eq hhalfInverse)
 
 theorem Real.exp_neg_two_le_exp_neg_inv_of_half_le
     {x : ℝ}
@@ -112,13 +115,16 @@ theorem Real.inv_smoothTransitionDenominator_le_exp_two
     (x : ℝ) :
     (expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ ≤ Real.exp 2 := by
   have hlowerPos : 0 < Real.exp (-2) := Real.exp_pos (-2)
-  have hdenominatorPos := Real.smoothTransitionDenominator_pos x
-  have hinverse := (inv_le_inv₀ hlowerPos hdenominatorPos).mpr
-    (Real.exp_neg_two_le_smoothTransitionDenominator x)
+  have hlower := Real.exp_neg_two_le_smoothTransitionDenominator x
+  have hinverse :
+      (expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ ≤
+        (Real.exp (-2))⁻¹ :=
+    inv_anti₀ hlowerPos hlower
   have hnormalize : (Real.exp (-2))⁻¹ = Real.exp 2 := by
-    exact
-      (Real.exp_neg 2).trans
-        (inv_inv (Real.exp 2))
+    have hnegExp : Real.exp (-2) = (Real.exp 2)⁻¹ := Real.exp_neg 2
+    exact Eq.trans
+      (congrArg Inv.inv hnegExp)
+      (inv_inv (Real.exp 2))
   exact le_trans hinverse (le_of_eq hnormalize)
 
 theorem Real.inv_sq_smoothTransitionDenominator_le_exp_two_sq
@@ -128,9 +134,22 @@ theorem Real.inv_sq_smoothTransitionDenominator_le_exp_two_sq
   have hinverseNonneg : 0 ≤
       (expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ :=
     inv_nonneg.mpr (Real.smoothTransitionDenominator_pos x).le
-  have hexpNonneg : 0 ≤ Real.exp 2 := (Real.exp_pos 2).le
-  exact mul_self_le_mul_self hinverseNonneg
-    (Real.inv_smoothTransitionDenominator_le_exp_two x)
+  have hproducts :
+      (expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ *
+          (expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ ≤
+        Real.exp 2 * Real.exp 2 :=
+    mul_self_le_mul_self hinverseNonneg
+      (Real.inv_smoothTransitionDenominator_le_exp_two x)
+  have hleftSquare :
+      (expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ ^ 2 =
+        (expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ *
+          (expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ :=
+    pow_two _
+  have hrightSquare :
+      (Real.exp 2) ^ 2 = Real.exp 2 * Real.exp 2 :=
+    pow_two _
+  exact le_trans (le_of_eq hleftSquare)
+    (le_trans hproducts (le_of_eq hrightSquare.symm))
 
 theorem Real.inv_pow_four_smoothTransitionDenominator_le_exp_two_pow_four
     (x : ℝ) :
@@ -141,15 +160,33 @@ theorem Real.inv_pow_four_smoothTransitionDenominator_le_exp_two_pow_four
   have hleftNonneg : 0 ≤
       (expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ ^ 2 := sq_nonneg _
   have hrightNonneg : 0 ≤ (Real.exp 2) ^ 2 := sq_nonneg _
-  have hmul := mul_self_le_mul_self hleftNonneg hsquare
+  have hmulProducts :
+      (expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ ^ 2 *
+          (expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ ^ 2 ≤
+        (Real.exp 2) ^ 2 * (Real.exp 2) ^ 2 :=
+    mul_self_le_mul_self hleftNonneg hsquare
+  have hleftOuterSquare :
+      ((expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ ^ 2) ^ 2 =
+        (expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ ^ 2 *
+          (expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ ^ 2 :=
+    pow_two _
+  have hrightOuterSquare :
+      ((Real.exp 2) ^ 2) ^ 2 =
+        (Real.exp 2) ^ 2 * (Real.exp 2) ^ 2 :=
+    pow_two _
+  have hmulPowers :
+      ((expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ ^ 2) ^ 2 ≤
+        ((Real.exp 2) ^ 2) ^ 2 :=
+    le_trans (le_of_eq hleftOuterSquare)
+      (le_trans hmulProducts (le_of_eq hrightOuterSquare.symm))
   have hleftPower :
       ((expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ ^ 2) ^ 2 =
         (expNegInvGlue x + expNegInvGlue (1 - x))⁻¹ ^ 4 :=
-    (pow_mul _ 2 2).trans rfl
+    Eq.trans (pow_mul _ 2 2).symm rfl
   have hrightPower : ((Real.exp 2) ^ 2) ^ 2 = (Real.exp 2) ^ 4 :=
-    (pow_mul _ 2 2).trans rfl
+    Eq.trans (pow_mul _ 2 2).symm rfl
   exact le_trans (le_of_eq hleftPower.symm)
-    (le_trans hmul (le_of_eq hrightPower))
+    (le_trans hmulPowers (le_of_eq hrightPower))
 
 end
 end LFunctions

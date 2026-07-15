@@ -25,6 +25,14 @@ theorem Real.div_eq_mul_inv_one
     x / g = x * g⁻¹ := by
   exact div_eq_mul_inv x g
 
+theorem Real.two_mul_add_self_eq_three_mul
+    (x : ℝ) :
+    2 * x + x = 3 * x := by
+  exact (congrArg (fun value : ℝ => 2 * x + value) (one_mul x).symm).trans
+    ((add_mul 2 1 x).symm.trans
+      (congrArg (fun coefficient : ℝ => coefficient * x)
+        two_add_one_eq_three))
+
 theorem Complex.nonstationaryFirstDerivativeRawMajorant_eq_inversePowers
     (A A₁ A₂ v w g : ℝ) :
     Complex.nonstationaryFirstDerivativeRawMajorant A A₁ A₂ v w g =
@@ -39,12 +47,11 @@ theorem Complex.nonstationaryFirstDerivativeRawMajorant_eq_inversePowers
     (congrArg₂ (fun first second : ℝ => first + second)
       rfl
       (congrArg (fun value : ℝ => 2 * A₁ * value)
-        (Eq.trans hv2 (mul_assoc v (g⁻¹ ^ 2) 1))))
+        hv2))
     (congrArg (fun value : ℝ => A * value)
       (congrArg₂ (fun first second : ℝ => first + second)
         hw2
-        (Eq.trans hvSq3
-          (mul_assoc 2 (v ^ 2) (g⁻¹ ^ 3)))))
+        hvSq3))
 
 def Complex.nonstationarySecondTransformExpandedMajorant
     (A A₁ A₂ v w g : ℝ) : ℝ :=
@@ -109,16 +116,98 @@ theorem Complex.nonstationarySecondTransformRawMajorant_eq_expanded
       have hg2 : g⁻¹ * g⁻¹ = g⁻¹ ^ 2 := (pow_two g⁻¹).symm
       have hg3 : g⁻¹ ^ 2 * g⁻¹ = g⁻¹ ^ 3 := (pow_succ g⁻¹ 2).symm
       have hg4 : g⁻¹ ^ 3 * g⁻¹ = g⁻¹ ^ 4 := (pow_succ g⁻¹ 3).symm
-      have hvSquare : v * v = v ^ 2 := (pow_two v).symm
-      exact congrArg
-        (fun powers : ℝ × ℝ × ℝ × ℝ =>
-          A₂ * powers.1 +
-            2 * A₁ * v * powers.2.1 +
-            A * w * powers.2.1 +
-            2 * A * v ^ 2 * powers.2.2.1 +
-            A₁ * v * powers.2.1 +
-            A * v ^ 2 * powers.2.2.1)
-        (Prod.ext hg2 (Prod.ext hg3 (Prod.ext hg4 hvSquare)))
+      have hterm1 : (A₂ * g⁻¹) * g⁻¹ = A₂ * g⁻¹ ^ 2 :=
+        (mul_assoc A₂ g⁻¹ g⁻¹).trans
+          (congrArg (fun value : ℝ => A₂ * value) hg2)
+      have hterm2 :
+          (2 * A₁ * (v * g⁻¹ ^ 2)) * g⁻¹ =
+            2 * A₁ * v * g⁻¹ ^ 3 := by
+        exact (mul_assoc (2 * A₁) (v * g⁻¹ ^ 2) g⁻¹).trans
+          ((congrArg (fun value : ℝ => (2 * A₁) * value)
+            (mul_assoc v (g⁻¹ ^ 2) g⁻¹)).trans
+            ((congrArg (fun value : ℝ => (2 * A₁) * (v * value)) hg3).trans
+              (mul_assoc (2 * A₁) v (g⁻¹ ^ 3)).symm))
+      have hterm3 :
+          (A * (w * g⁻¹ ^ 2 + 2 * v ^ 2 * g⁻¹ ^ 3)) * g⁻¹ =
+            A * w * g⁻¹ ^ 3 + 2 * A * v ^ 2 * g⁻¹ ^ 4 := by
+        have hdistributed := add_mul
+          (A * (w * g⁻¹ ^ 2)) (A * (2 * v ^ 2 * g⁻¹ ^ 3)) g⁻¹
+        have houter := congrArg (fun value : ℝ => value * g⁻¹)
+          (mul_add A (w * g⁻¹ ^ 2) (2 * v ^ 2 * g⁻¹ ^ 3))
+        have hleft : (A * (w * g⁻¹ ^ 2)) * g⁻¹ = A * w * g⁻¹ ^ 3 := by
+          exact (mul_assoc A (w * g⁻¹ ^ 2) g⁻¹).trans
+            ((congrArg (fun value : ℝ => A * value)
+              (mul_assoc w (g⁻¹ ^ 2) g⁻¹)).trans
+              ((congrArg (fun value : ℝ => A * (w * value)) hg3).trans
+                (mul_assoc A w (g⁻¹ ^ 3)).symm))
+        have hright :
+            (A * (2 * v ^ 2 * g⁻¹ ^ 3)) * g⁻¹ =
+              2 * A * v ^ 2 * g⁻¹ ^ 4 := by
+          have hcoefficient : A * (2 * v ^ 2) = 2 * A * v ^ 2 := by
+            exact (mul_assoc A 2 (v ^ 2)).symm.trans
+              (congrArg (fun value : ℝ => value * v ^ 2) (mul_comm A 2))
+          exact (mul_assoc A (2 * v ^ 2 * g⁻¹ ^ 3) g⁻¹).trans
+            ((congrArg (fun value : ℝ => A * value)
+              (mul_assoc (2 * v ^ 2) (g⁻¹ ^ 3) g⁻¹)).trans
+              ((congrArg (fun value : ℝ => A * ((2 * v ^ 2) * value)) hg4).trans
+                ((mul_assoc A (2 * v ^ 2) (g⁻¹ ^ 4)).symm.trans
+                  (congrArg (fun value : ℝ => value * g⁻¹ ^ 4) hcoefficient))))
+        exact houter.trans
+          (hdistributed.trans (congrArg₂ (fun p q : ℝ => p + q) hleft hright))
+      have hterm4 :
+          (A₁ * g⁻¹) * (v * g⁻¹ ^ 2) = A₁ * v * g⁻¹ ^ 3 := by
+        exact (mul_assoc A₁ g⁻¹ (v * g⁻¹ ^ 2)).trans
+          ((congrArg (fun value : ℝ => A₁ * value)
+            ((mul_assoc g⁻¹ v (g⁻¹ ^ 2)).symm.trans
+              ((congrArg (fun value : ℝ => value * g⁻¹ ^ 2) (mul_comm g⁻¹ v)).trans
+                (mul_assoc v g⁻¹ (g⁻¹ ^ 2))))).trans
+            ((mul_assoc A₁ v (g⁻¹ * g⁻¹ ^ 2)).symm.trans
+              (congrArg (fun value : ℝ => A₁ * v * value)
+                ((mul_comm g⁻¹ (g⁻¹ ^ 2)).trans hg3))))
+      have hterm5 :
+          (A * (v * g⁻¹ ^ 2)) * (v * g⁻¹ ^ 2) =
+            A * v ^ 2 * g⁻¹ ^ 4 := by
+        have hvv : v * v = v ^ 2 := (pow_two v).symm
+        have hgg : g⁻¹ ^ 2 * g⁻¹ ^ 2 = g⁻¹ ^ 4 := by
+          exact (congrArg (fun value : ℝ => g⁻¹ ^ 2 * value) (pow_two (g⁻¹))).trans
+            ((mul_assoc (g⁻¹ ^ 2) g⁻¹ g⁻¹).symm.trans
+              ((congrArg (fun value : ℝ => value * g⁻¹) hg3).trans
+                (pow_succ g⁻¹ 3).symm))
+        exact (mul_assoc A (v * g⁻¹ ^ 2) (v * g⁻¹ ^ 2)).trans
+          ((congrArg (fun value : ℝ => A * value)
+            ((mul_mul_mul_comm v (g⁻¹ ^ 2) v (g⁻¹ ^ 2)).trans
+              (congrArg₂ (fun p q : ℝ => p * q) hvv hgg))).trans
+            (mul_assoc A (v ^ 2) (g⁻¹ ^ 4)).symm)
+      exact (congrArg
+        (fun value : ℝ => value +
+          (2 * A₁ * (v * g⁻¹ ^ 2)) * g⁻¹ +
+          (A * (w * g⁻¹ ^ 2 + 2 * v ^ 2 * g⁻¹ ^ 3)) * g⁻¹ +
+          (A₁ * g⁻¹) * (v * g⁻¹ ^ 2) +
+          (A * (v * g⁻¹ ^ 2)) * (v * g⁻¹ ^ 2)) hterm1).trans
+        ((congrArg
+          (fun value : ℝ => A₂ * g⁻¹ ^ 2 + value +
+            (A * (w * g⁻¹ ^ 2 + 2 * v ^ 2 * g⁻¹ ^ 3)) * g⁻¹ +
+            (A₁ * g⁻¹) * (v * g⁻¹ ^ 2) +
+            (A * (v * g⁻¹ ^ 2)) * (v * g⁻¹ ^ 2)) hterm2).trans
+          ((congrArg
+            (fun value : ℝ => A₂ * g⁻¹ ^ 2 + 2 * A₁ * v * g⁻¹ ^ 3 +
+              value + (A₁ * g⁻¹) * (v * g⁻¹ ^ 2) +
+              (A * (v * g⁻¹ ^ 2)) * (v * g⁻¹ ^ 2)) hterm3).trans
+            ((congrArg
+              (fun value : ℝ => A₂ * g⁻¹ ^ 2 + 2 * A₁ * v * g⁻¹ ^ 3 +
+                (A * w * g⁻¹ ^ 3 + 2 * A * v ^ 2 * g⁻¹ ^ 4) + value +
+                (A * (v * g⁻¹ ^ 2)) * (v * g⁻¹ ^ 2)) hterm4).trans
+              ((congrArg
+                (fun value : ℝ => A₂ * g⁻¹ ^ 2 + 2 * A₁ * v * g⁻¹ ^ 3 +
+                  (A * w * g⁻¹ ^ 3 + 2 * A * v ^ 2 * g⁻¹ ^ 4) +
+                  A₁ * v * g⁻¹ ^ 3 + value) hterm5).trans
+                (congrArg
+                  (fun value : ℝ => value + A₁ * v * g⁻¹ ^ 3 +
+                    A * v ^ 2 * g⁻¹ ^ 4)
+                  (add_assoc
+                    (A₂ * g⁻¹ ^ 2 + 2 * A₁ * v * g⁻¹ ^ 3)
+                    (A * w * g⁻¹ ^ 3)
+                    (2 * A * v ^ 2 * g⁻¹ ^ 4)).symm)))))
 
 theorem Complex.nonstationarySecondTransformExpandedMajorant_eq_collected
     (A A₁ A₂ v w g : ℝ) :
@@ -128,32 +217,60 @@ theorem Complex.nonstationarySecondTransformExpandedMajorant_eq_collected
         A * w * g⁻¹ ^ 3 +
         3 * A * v ^ 2 * g⁻¹ ^ 4 := by
   unfold Complex.nonstationarySecondTransformExpandedMajorant
-  let derivativeTerm := A₁ * v * g⁻¹ ^ 3
-  let curvatureTerm := A * v ^ 2 * g⁻¹ ^ 4
   have hderivative :
-      2 * A₁ * v * g⁻¹ ^ 3 + derivativeTerm =
+      2 * A₁ * v * g⁻¹ ^ 3 + A₁ * v * g⁻¹ ^ 3 =
         3 * A₁ * v * g⁻¹ ^ 3 := by
-    change 2 * derivativeTerm + derivativeTerm = 3 * derivativeTerm
-    exact (two_mul derivativeTerm).symm.trans
-      ((add_mul 2 1 derivativeTerm).symm.trans
-        (congrArg (fun coefficient : ℝ => coefficient * derivativeTerm)
-          (show (2 : ℝ) + 1 = 3 from rfl)))
+    have htwo : 2 * (A₁ * v * g⁻¹ ^ 3) = 2 * A₁ * v * g⁻¹ ^ 3 :=
+      (mul_assoc 2 (A₁ * v) (g⁻¹ ^ 3)).symm.trans
+        (congrArg (fun value : ℝ => value * g⁻¹ ^ 3)
+          (mul_assoc 2 A₁ v).symm)
+    have hthree : 3 * (A₁ * v * g⁻¹ ^ 3) = 3 * A₁ * v * g⁻¹ ^ 3 :=
+      (mul_assoc 3 (A₁ * v) (g⁻¹ ^ 3)).symm.trans
+        (congrArg (fun value : ℝ => value * g⁻¹ ^ 3)
+          (mul_assoc 3 A₁ v).symm)
+    exact (congrArg (fun value : ℝ => value + A₁ * v * g⁻¹ ^ 3) htwo.symm).trans
+      ((Real.two_mul_add_self_eq_three_mul (A₁ * v * g⁻¹ ^ 3)).trans hthree)
   have hcurvature :
-      2 * A * v ^ 2 * g⁻¹ ^ 4 + curvatureTerm =
+      2 * A * v ^ 2 * g⁻¹ ^ 4 + A * v ^ 2 * g⁻¹ ^ 4 =
         3 * A * v ^ 2 * g⁻¹ ^ 4 := by
-    change 2 * curvatureTerm + curvatureTerm = 3 * curvatureTerm
-    exact (two_mul curvatureTerm).symm.trans
-      ((add_mul 2 1 curvatureTerm).symm.trans
-        (congrArg (fun coefficient : ℝ => coefficient * curvatureTerm)
-          (show (2 : ℝ) + 1 = 3 from rfl)))
-  exact
-    (add_assoc
-      (A₂ * g⁻¹ ^ 2 + 2 * A₁ * v * g⁻¹ ^ 3 + A * w * g⁻¹ ^ 3)
-      (2 * A * v ^ 2 * g⁻¹ ^ 4)
-      (derivativeTerm + curvatureTerm)).trans
-      (congrArg (fun value : ℝ =>
-        A₂ * g⁻¹ ^ 2 + value + A * w * g⁻¹ ^ 3 +
-          3 * A * v ^ 2 * g⁻¹ ^ 4) hderivative)
+    have htwo : 2 * (A * v ^ 2 * g⁻¹ ^ 4) = 2 * A * v ^ 2 * g⁻¹ ^ 4 :=
+      (mul_assoc 2 (A * v ^ 2) (g⁻¹ ^ 4)).symm.trans
+        (congrArg (fun value : ℝ => value * g⁻¹ ^ 4)
+          (mul_assoc 2 A (v ^ 2)).symm)
+    have hthree : 3 * (A * v ^ 2 * g⁻¹ ^ 4) = 3 * A * v ^ 2 * g⁻¹ ^ 4 :=
+      (mul_assoc 3 (A * v ^ 2) (g⁻¹ ^ 4)).symm.trans
+        (congrArg (fun value : ℝ => value * g⁻¹ ^ 4)
+          (mul_assoc 3 A (v ^ 2)).symm)
+    exact (congrArg (fun value : ℝ => value + A * v ^ 2 * g⁻¹ ^ 4) htwo.symm).trans
+      ((Real.two_mul_add_self_eq_three_mul (A * v ^ 2 * g⁻¹ ^ 4)).trans hthree)
+  have hmoveDerivative :
+      A₂ * g⁻¹ ^ 2 + 2 * A₁ * v * g⁻¹ ^ 3 + A * w * g⁻¹ ^ 3 +
+          2 * A * v ^ 2 * g⁻¹ ^ 4 + A₁ * v * g⁻¹ ^ 3 + A * v ^ 2 * g⁻¹ ^ 4 =
+        A₂ * g⁻¹ ^ 2 + (2 * A₁ * v * g⁻¹ ^ 3 + A₁ * v * g⁻¹ ^ 3) +
+          A * w * g⁻¹ ^ 3 + (2 * A * v ^ 2 * g⁻¹ ^ 4 + A * v ^ 2 * g⁻¹ ^ 4) := by
+    let p := A₂ * g⁻¹ ^ 2
+    let q := 2 * A₁ * v * g⁻¹ ^ 3
+    let r := A * w * g⁻¹ ^ 3
+    let s := 2 * A * v ^ 2 * g⁻¹ ^ 4
+    let u := A₁ * v * g⁻¹ ^ 3
+    let z := A * v ^ 2 * g⁻¹ ^ 4
+    change p + q + r + s + u + z = p + (q + u) + r + (s + z)
+    calc
+      p + q + r + s + u + z = ((p + q) + (r + s)) + (u + z) := by
+        exact (congrArg (fun value : ℝ => value + u + z)
+          (add_assoc (p + q) r s)).trans
+          (add_assoc ((p + q) + (r + s)) u z)
+      _ = ((p + q) + u) + ((r + s) + z) :=
+        add_add_add_comm (p + q) (r + s) u z
+      _ = p + (q + u) + (r + (s + z)) := by
+        exact congrArg₂ (fun first second : ℝ => first + second)
+          (add_assoc p q u) (add_assoc r s z)
+      _ = p + (q + u) + r + (s + z) :=
+        (add_assoc (p + (q + u)) r (s + z)).symm
+  exact hmoveDerivative.trans
+    ((congrArg₂ (fun p q : ℝ =>
+        A₂ * g⁻¹ ^ 2 + p + A * w * g⁻¹ ^ 3 + q)
+      hderivative hcurvature))
 
 theorem Complex.nonstationarySecondTransformRawMajorant_eq_canonical
     (A A₁ A₂ v w g : ℝ) :

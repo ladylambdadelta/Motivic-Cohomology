@@ -38,19 +38,8 @@ theorem Complex.norm_logarithmicPhaseAdaptedOscillator
     (t : ℝ) (m : ℤ) (x : ℝ) :
     ‖Complex.logarithmicPhaseAdaptedOscillator t m x‖ = 1 := by
   unfold Complex.logarithmicPhaseAdaptedOscillator
-  unfold Complex.realPhaseOscillation
-  have himaginary :
-      (Complex.I *
-        (Complex.logarithmicPhaseAdaptedTwistedPhase t m x : ℂ)).re = 0 := by
-    exact Eq.trans Complex.mul_re
-      (Eq.trans
-        (congrArg₂ (fun first second : ℝ => first - second)
-          Complex.I_re
-          (congrArg₂ (fun first second : ℝ => first * second)
-            Complex.I_im (Complex.ofReal_im _)))
-        (sub_zero 0))
-  exact Eq.trans Complex.norm_exp
-    (Eq.trans (congrArg Real.exp himaginary) Real.exp_zero)
+  exact Complex.norm_realPhaseOscillation
+    (Complex.logarithmicPhaseAdaptedTwistedPhase t m) x
 
 theorem Complex.norm_logarithmicPhaseAdaptedDerivativeDenominator
     (t : ℝ) (m : ℤ) (x : ℝ) :
@@ -96,7 +85,7 @@ theorem Complex.logarithmicPhaseAdaptedDerivative_ne_zero_of_gap
   intro hzero
   have hnormZero :
       ‖Complex.logarithmicPhaseAdaptedTwistedPhaseDerivative t m x‖ = 0 :=
-    congrArg norm hzero
+    Eq.trans (congrArg norm hzero) norm_zero
   have hgapZero : gap ≤ 0 := le_trans hlower (le_of_eq hnormZero)
   exact (not_le_of_gt hgap) hgapZero
 
@@ -156,7 +145,7 @@ theorem Complex.logarithmicPhaseAdaptedTwistedPhase_eq_frequencyTwist
     (t : ℝ) (m : ℤ) (x : ℝ) :
     Complex.logarithmicPhaseAdaptedTwistedPhase t m x =
       Complex.realPhaseFrequencyTwist
-        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase ‖t‖)
         m x := by
   unfold Complex.logarithmicPhaseAdaptedTwistedPhase
   unfold Complex.realPhaseFrequencyTwist
@@ -168,7 +157,7 @@ theorem Complex.logarithmicPhaseAdaptedTwistedPhase_eq_frequencyTwist
 theorem Complex.logarithmicPhaseAdaptedPacketIntegrand_eq
     (t : ℝ) (a b m : ℤ) (x : ℝ) :
     Complex.phaseCutoffFrequencyTwistIntegrand
-        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase ‖t‖)
         (Real.quantitativeLogarithmicBlockCutoff a b) m x =
       Complex.logarithmicPhaseAdaptedCutoffAmplitude a b x *
         Complex.logarithmicPhaseAdaptedOscillator t m x := by
@@ -182,15 +171,15 @@ theorem Complex.logarithmicPhaseAdaptedPacketIntegrand_eq
           Complex.exp
             (Complex.I *
               (Complex.realPhaseFrequencyTwist
-                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase ‖t‖)
                 m x : ℂ)) =
         (Real.quantitativeLogarithmicBlockCutoff a b x : ℂ) *
           Complex.exp
             (Complex.I *
               (Complex.realPhaseFrequencyTwist
-                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase ‖t‖)
                 m x : ℂ)) := by
-    exact real_smul _ _
+    exact Complex.real_smul
   exact Eq.trans hscalar
     (Eq.trans
       (congrArg

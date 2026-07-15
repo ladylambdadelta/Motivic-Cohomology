@@ -28,11 +28,11 @@ def BoundaryLineOneAbelPartialMajorant : Prop :=
 
 /-- The global `Re s = 1` Abel truncation package follows from the real-parameter
 boundary-line owner package applied to the imaginary coordinate. -/
-theorem boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap :
+theorem boundaryLineOneAbelPartialMajorant_from_realParam :
     BoundaryLineOneAbelPartialMajorant := by
   exact
     fun z _hz_re hz_im =>
-      boundaryLineOnePointRealParam_verticalTruncationHypotheses_ownerGap
+      boundaryLineOnePointRealParam_verticalTruncationHypotheses
         z.im hz_im
 
 /-- Uniform bounded-boundary vertical-tail input for the strip `1 ≤ re ≤ 2`. -/
@@ -595,7 +595,7 @@ theorem poleClearedRiemannZeta_one_two_strip_verticalTail_growth_from_boundary_a
         1 ≤ ‖z.im‖ →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  exact strip_growth_bound_of_holomorphic_boundary_growth_and_finite_order
+  exact strip_finite_order_growth_of_boundary_envelopes_by_damping
     poleClearedRiemannZeta 1 2 one_lt_two
     poleClearedRiemannZeta_one_two_strip_diffContOnCl
     poleClearedRiemannZeta_one_two_strip_admissible_growth_from_EulerMaclaurin_continuation

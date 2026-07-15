@@ -29,40 +29,35 @@ theorem Real.transitionReciprocalGap_sq_eq_sum_mul_shift
   unfold Real.transitionReciprocalGap
   change (p - q) ^ 2 = s * (s - 4)
   have hleft : (p - q) ^ 2 = p ^ 2 + q ^ 2 - 2 * (p * q) := by
-    have hbound := Real.twice_reciprocal_product_le_energy p q
-    have hsquare : 0 ≤ (p - q) ^ 2 := sq_nonneg (p - q)
     calc
-      (p - q) ^ 2 = (p - q) * (p - q) := pow_two (p - q)
-      _ = p * p - p * q - (q * p - q * q) := by
-        exact (mul_sub (p - q) p q).trans
-          (congrArg₂ (fun first second : ℝ => first - second)
-            (sub_mul p q p) (sub_mul p q q))
-      _ = p ^ 2 + q ^ 2 - 2 * (p * q) := by
-        have hpp : p * p = p ^ 2 := (pow_two p).symm
-        have hqq : q * q = q ^ 2 := (pow_two q).symm
-        have hqp : q * p = p * q := mul_comm q p
-        exact Eq.trans
-          (congrArg₂ (fun first second : ℝ => first - second)
-            (congrArg₂ (fun first second : ℝ => first - second) hpp rfl)
-            (congrArg₂ (fun first second : ℝ => first - second) hqp hqq))
-          (sub_sub_sub_cancel_right (p ^ 2 - p * q) (p * q) (q ^ 2)).trans
-          (congrArg (fun value : ℝ => p ^ 2 + q ^ 2 - value)
-            (two_mul (p * q)).symm)
+      (p - q) ^ 2 = p ^ 2 - 2 * p * q + q ^ 2 := sub_sq p q
+      _ = p ^ 2 - 2 * (p * q) + q ^ 2 :=
+        congrArg (fun value : ℝ => p ^ 2 - value + q ^ 2)
+          (mul_assoc 2 p q)
+      _ = p ^ 2 + q ^ 2 - 2 * (p * q) :=
+        sub_add_eq_add_sub (p ^ 2) (2 * (p * q)) (q ^ 2)
   have henergy :=
     Real.transitionReciprocalEnergy_eq_sum_sq_sub_two_sum hx0 hx1
   have hleftNormalized : p ^ 2 + q ^ 2 - 2 * (p * q) =
       s ^ 2 - 4 * s := by
+    change p ^ 2 + q ^ 2 = s ^ 2 - 2 * s at henergy
     have hpqTwice : 2 * (p * q) = 2 * s :=
       congrArg (fun value : ℝ => 2 * value) hpq
-    exact Eq.trans
-      (congrArg₂ (fun first second : ℝ => first - second)
-        henergy hpqTwice)
-      (Eq.trans
-        (sub_sub (s ^ 2) (2 * s) (2 * s)).symm
-        (congrArg (fun value : ℝ => s ^ 2 - value)
-          ((add_mul 2 2 s).symm.trans
-            (congrArg (fun coefficient : ℝ => coefficient * s)
-              (show (2 : ℝ) + 2 = 4 from rfl)))))
+    have htwoAddTwo : (2 : ℝ) + 2 = 4 :=
+      Real.transition_nat_cast_add 2 2 4 rfl
+    have htwiceAdd : 2 * s + 2 * s = 4 * s :=
+      Eq.trans
+        (add_mul 2 2 s).symm
+        (congrArg (fun coefficient : ℝ => coefficient * s) htwoAddTwo)
+    calc
+      p ^ 2 + q ^ 2 - 2 * (p * q) =
+          (s ^ 2 - 2 * s) - 2 * s :=
+        congrArg₂ (fun first second : ℝ => first - second)
+          henergy hpqTwice
+      _ = s ^ 2 - (2 * s + 2 * s) :=
+        sub_sub (s ^ 2) (2 * s) (2 * s)
+      _ = s ^ 2 - 4 * s :=
+        congrArg (fun value : ℝ => s ^ 2 - value) htwiceAdd
   have hright : s * (s - 4) = s ^ 2 - 4 * s := by
     exact (mul_sub s s 4).trans
       (congrArg₂ (fun first second : ℝ => first - second)
@@ -80,7 +75,7 @@ theorem Real.transitionCoordinateCurvatureRatio_le_exponential
       Real.exponentialOddRatio (Real.transitionReciprocalGap x) := by
   have hxOne : x < 1 := by
     have hhalfLtOne : (1 / 2 : ℝ) < 1 := by
-      exact (div_lt_one₀ zero_lt_two).mpr one_lt_two
+      exact (div_lt_one zero_lt_two).mpr one_lt_two
     exact lt_of_le_of_lt hxHalf hhalfLtOne
   have hsum := Real.four_le_transitionReciprocalSum hx0 hxOne
   have hgap := Real.transitionReciprocalGap_nonneg hx0 hxHalf
@@ -106,10 +101,11 @@ theorem Real.exp_transitionReciprocalGap_eq_glue_ratio
     calc
       x⁻¹ - (1 - x)⁻¹ = x⁻¹ + (-(1 - x)⁻¹) := sub_eq_add_neg _ _
       _ = (-(1 - x)⁻¹) + x⁻¹ := add_comm _ _
+      _ = (-(1 - x)⁻¹) + (-(-x⁻¹)) :=
+        congrArg (fun value : ℝ => (-(1 - x)⁻¹) + value)
+          (neg_neg x⁻¹).symm
       _ = (-(1 - x)⁻¹) - (-x⁻¹) :=
-        (sub_eq_add_neg (-(1 - x)⁻¹) (-x⁻¹)).symm.trans
-          (congrArg (fun value : ℝ => (-(1 - x)⁻¹) + value)
-            (neg_neg x⁻¹))
+        (sub_eq_add_neg (-(1 - x)⁻¹) (-x⁻¹)).symm
   have hexp := Real.exp_sub (-(1 - x)⁻¹) (-x⁻¹)
   exact Eq.trans
     (congrArg Real.exp hdiff)
@@ -126,7 +122,7 @@ theorem Real.exponentialOddRatio_transitionGap_eq_glue_difference
         (expNegInvGlue (1 - x) + expNegInvGlue x) := by
   let A := expNegInvGlue x
   let B := expNegInvGlue (1 - x)
-  have hA : 0 < A := expNegInvGlue.pos hx0
+  have hA : 0 < A := expNegInvGlue.pos_of_pos hx0
   have hANe : A ≠ 0 := ne_of_gt hA
   have hratio := Real.exp_transitionReciprocalGap_eq_glue_ratio hx0 hx1
   unfold Real.exponentialOddRatio
@@ -153,7 +149,17 @@ theorem Real.exponentialOddRatio_transitionGap_eq_glue_difference
       exact congrArg₂ (fun numerator denominator : ℝ => numerator / denominator)
         hminus hplus
     _ = (B - A) / (B + A) := by
-      exact div_div_div_cancel_right₀ (B - A) (B + A) hANe
+      exact div_div_div_cancel_right₀ hANe (B - A) (B + A)
+
+theorem Real.monotone_expNegInvGlue :
+    Monotone expNegInvGlue := by
+  exact monotone_of_deriv_nonneg
+    Real.differentiableAt_expNegInvGlue
+    (fun x =>
+      Eq.subst
+        (motive := fun value : ℝ => 0 ≤ value)
+        (Real.deriv_expNegInvGlue_exact x).symm
+        (Real.expNegInvGlueDerivative_nonneg x))
 
 theorem Real.glue_difference_nonneg_on_left_half
     {x : ℝ}
@@ -161,7 +167,7 @@ theorem Real.glue_difference_nonneg_on_left_half
     (hxHalf : x ≤ 1 / 2) :
     0 ≤ expNegInvGlue (1 - x) - expNegInvGlue x := by
   have hxComplement := Real.transition_left_le_right_complement hxHalf
-  have hmono := expNegInvGlue.monotone hxComplement
+  have hmono := Real.monotone_expNegInvGlue hxComplement
   exact sub_nonneg.mpr hmono
 
 end

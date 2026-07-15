@@ -254,7 +254,7 @@ theorem Complex.norm_logarithmicPhaseQuantitativeAmplitudeSecondDerivative_le_de
           (‖t‖ / x))).symm.trans
         (mul_assoc 2
           |Real.quantitativeLogarithmicBlockCutoffDerivative a b x|
-          (‖t‖ / x))
+          (‖t‖ / x)).symm
     exact
       (add_assoc _ _ _).trans
         ((congrArg (fun value : ℝ =>
@@ -280,9 +280,9 @@ theorem Complex.continuous_logarithmicPhaseQuantitativeCutoffCurvatureDensity
     Continuous
       (Complex.logarithmicPhaseQuantitativeCutoffCurvatureDensity a b) := by
   unfold Complex.logarithmicPhaseQuantitativeCutoffCurvatureDensity
-  exact
-    (Real.contDiff_quantitativeLogarithmicBlockCutoffSecondDerivative a b)
-      .continuous.abs
+  have hsecondDerivative :=
+    Real.contDiff_quantitativeLogarithmicBlockCutoffSecondDerivative a b
+  exact hsecondDerivative.continuous.abs
 
 theorem Complex.continuousOn_logarithmicPhaseQuantitativeMixedVariationDensity
     (t : ℝ) (a b : ℤ)
@@ -334,9 +334,11 @@ theorem Complex.intervalIntegrable_logarithmicPhaseQuantitativeCutoffCurvatureDe
     (a b : ℤ) (left right : ℝ) :
     IntervalIntegrable
       (Complex.logarithmicPhaseQuantitativeCutoffCurvatureDensity a b)
-      volume left right :=
-  (Complex.continuous_logarithmicPhaseQuantitativeCutoffCurvatureDensity a b)
-    .intervalIntegrable left right
+      volume left right := by
+  have hdensity : Continuous
+      (Complex.logarithmicPhaseQuantitativeCutoffCurvatureDensity a b) :=
+    Complex.continuous_logarithmicPhaseQuantitativeCutoffCurvatureDensity a b
+  exact hdensity.intervalIntegrable left right
 
 theorem Complex.intervalIntegrable_logarithmicPhaseQuantitativeMixedVariationDensity
     (t : ℝ) (a b : ℤ)

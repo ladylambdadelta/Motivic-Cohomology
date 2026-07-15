@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.OscillatorySums.QuantitativeLogarithmicCutoff
+import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+import Mathlib.Algebra.Polynomial.Derivative
 
 /-!
 # Differential owner for the explicit smooth transition
@@ -13,6 +15,8 @@ namespace LFunctions
 
 noncomputable section
 
+open Real
+open scoped Polynomial
 open scoped Topology
 
 def Real.expNegInvGlueDerivative
@@ -87,7 +91,7 @@ theorem Real.expNegInvGlueDerivative_eval_eq_inv_sq
         (Polynomial.X ^ 2).eval x⁻¹ :=
       congrArg (fun polynomial : ℝ[X] => polynomial.eval x⁻¹)
         Real.expNegInvGlueDerivative_polynomial_eq
-    _ = (Polynomial.X.eval x⁻¹) ^ 2 := Polynomial.eval_pow
+    _ = (Polynomial.X.eval x⁻¹) ^ 2 := Polynomial.eval_pow 2
     _ = x⁻¹ ^ 2 := congrArg (fun value : ℝ => value ^ 2) Polynomial.eval_X
 
 theorem Real.expNegInvGlueDerivative_eq_inv_sq_mul
@@ -109,11 +113,15 @@ theorem Real.hasDerivAt_quantitativeTransitionAffine
   unfold Real.quantitativeTransitionAffine
   have hlinear := (hasDerivAt_id x).const_mul slope
   have hsum := hlinear.add (hasDerivAt_const x intercept)
+  change HasDerivAt (fun y : ℝ => slope * y + intercept)
+    (slope * 1 + 0) x at hsum
+  have hderivative : slope * 1 + 0 = slope :=
+    (add_zero _).trans (mul_one _)
   exact
     Eq.subst
       (motive := fun derivative : ℝ =>
         HasDerivAt (fun y : ℝ => slope * y + intercept) derivative x)
-      (add_zero slope).symm
+      hderivative
       hsum
 
 theorem Real.hasDerivAt_expNegInvGlue_comp_affine
@@ -146,18 +154,27 @@ theorem Real.hasDerivAt_expNegInvGlue_one_sub
   have houter := Real.hasDerivAt_expNegInvGlue_exact (1 - x)
   have hinner := (hasDerivAt_const x 1).sub (hasDerivAt_id x)
   have hcomposition := houter.comp x hinner
+  change HasDerivAt (fun y : ℝ => expNegInvGlue (1 - y))
+    (Real.expNegInvGlueDerivative (1 - x) * (0 - 1)) x at hcomposition
+  have hderivative_transport :
+      Real.expNegInvGlueDerivative (1 - x) * (0 - 1) =
+        -Real.expNegInvGlueDerivative (1 - x) :=
+    (congrArg
+      (fun value : ℝ => Real.expNegInvGlueDerivative (1 - x) * value)
+      (zero_sub 1)).trans
+      (mul_neg_one _)
   exact
     Eq.subst
       (motive := fun derivative : ℝ =>
         HasDerivAt
           (fun y : ℝ => expNegInvGlue (1 - y))
           derivative x)
-      (mul_neg_one (Real.expNegInvGlueDerivative (1 - x)))
+      hderivative_transport
       hcomposition
 
 theorem Real.hasDerivAt_smoothTransition_exact
     (x : ℝ) :
-    HasDerivAt smoothTransition (Real.smoothTransitionDerivative x) x := by
+    HasDerivAt Real.smoothTransition (Real.smoothTransitionDerivative x) x := by
   have hleft := Real.hasDerivAt_expNegInvGlue_exact x
   have hright := Real.hasDerivAt_expNegInvGlue_one_sub x
   have hdenominator := hleft.add hright
@@ -168,7 +185,7 @@ theorem Real.hasDerivAt_smoothTransition_exact
 
 theorem Real.deriv_smoothTransition_exact
     (x : ℝ) :
-    deriv smoothTransition x = Real.smoothTransitionDerivative x :=
+    deriv Real.smoothTransition x = Real.smoothTransitionDerivative x :=
   (Real.hasDerivAt_smoothTransition_exact x).deriv
 
 theorem Real.expNegInvGlueDerivative_zero :
@@ -191,6 +208,12 @@ theorem Real.smoothTransitionDerivative_zero :
   have hderivativeZero : Real.expNegInvGlueDerivative 0 = 0 :=
     Real.expNegInvGlueDerivative_zero
   have honeSub : (1 : ℝ) - 0 = 1 := sub_zero 1
+  have hglueOne : expNegInvGlue (1 - 0) = expNegInvGlue 1 :=
+    congrArg (fun value : ℝ => expNegInvGlue value) honeSub
+  have hderivativeOne :
+      Real.expNegInvGlueDerivative (1 - 0) =
+        Real.expNegInvGlueDerivative 1 :=
+    congrArg (fun value : ℝ => Real.expNegInvGlueDerivative value) honeSub
   calc
     (Real.expNegInvGlueDerivative 0 *
           (expNegInvGlue 0 + expNegInvGlue (1 - 0)) -
@@ -201,18 +224,24 @@ theorem Real.smoothTransitionDerivative_zero :
       (0 * (0 + expNegInvGlue 1) -
         0 * (0 - Real.expNegInvGlueDerivative 1)) /
           (0 + expNegInvGlue 1) ^ 2 := by
-      exact congrArg₃
-        (fun derivativeZero glueZero oneSub : ℝ =>
+      have hvalues := congrArg₂
+        (fun derivativeZero glueZero : ℝ =>
           (derivativeZero *
-                (glueZero + expNegInvGlue oneSub) -
+                (glueZero + expNegInvGlue (1 - 0)) -
               glueZero *
-                (derivativeZero - Real.expNegInvGlueDerivative oneSub)) /
-            (glueZero + expNegInvGlue oneSub) ^ 2)
-        hderivativeZero hglueZero honeSub
+                (derivativeZero - Real.expNegInvGlueDerivative (1 - 0))) /
+            (glueZero + expNegInvGlue (1 - 0)) ^ 2)
+        hderivativeZero hglueZero
+      exact hvalues.trans
+        (congrArg₂
+          (fun glueAt derivativeAt : ℝ =>
+            (0 * (0 + glueAt) - 0 * (0 - derivativeAt)) /
+              (0 + glueAt) ^ 2)
+          hglueOne hderivativeOne)
     _ = (0 - 0) / (0 + expNegInvGlue 1) ^ 2 := by
       have hfirst : 0 * (0 + expNegInvGlue 1) = 0 := zero_mul _
       have hsecond : 0 * (0 - Real.expNegInvGlueDerivative 1) = 0 := zero_mul _
-      exact congrArg
+      exact congrArg₂
         (fun first second : ℝ =>
           (first - second) / (0 + expNegInvGlue 1) ^ 2)
         hfirst hsecond
@@ -229,8 +258,13 @@ theorem Real.smoothTransitionDerivative_one :
   have hglueZero : expNegInvGlue 0 = 0 := expNegInvGlue.zero
   have hderivativeZero : Real.expNegInvGlueDerivative 0 = 0 :=
     Real.expNegInvGlueDerivative_zero
-  let glueOne : ℝ := expNegInvGlue 1
-  let derivativeOne : ℝ := Real.expNegInvGlueDerivative 1
+  have hglueSub : expNegInvGlue (1 - 1) = 0 :=
+    (congrArg (fun value : ℝ => expNegInvGlue value) honeSub).trans
+      hglueZero
+  have hderivativeSub : Real.expNegInvGlueDerivative (1 - 1) = 0 :=
+    (congrArg
+      (fun value : ℝ => Real.expNegInvGlueDerivative value)
+      honeSub).trans hderivativeZero
   calc
     (Real.expNegInvGlueDerivative 1 *
           (expNegInvGlue 1 + expNegInvGlue (1 - 1)) -
@@ -238,48 +272,58 @@ theorem Real.smoothTransitionDerivative_one :
           (Real.expNegInvGlueDerivative 1 -
             Real.expNegInvGlueDerivative (1 - 1))) /
         (expNegInvGlue 1 + expNegInvGlue (1 - 1)) ^ 2 =
-      (derivativeOne * (glueOne + 0) -
-        glueOne * (derivativeOne - 0)) /
-          (glueOne + 0) ^ 2 := by
-      exact congrArg₃
-        (fun oneSub glueZero derivativeZero : ℝ =>
+      (Real.expNegInvGlueDerivative 1 * (expNegInvGlue 1 + 0) -
+        expNegInvGlue 1 * (Real.expNegInvGlueDerivative 1 - 0)) /
+          (expNegInvGlue 1 + 0) ^ 2 := by
+      exact congrArg₂
+        (fun glueSub derivativeSub : ℝ =>
           (Real.expNegInvGlueDerivative 1 *
-                (expNegInvGlue 1 + expNegInvGlue oneSub) -
+                (expNegInvGlue 1 + glueSub) -
               expNegInvGlue 1 *
-                (Real.expNegInvGlueDerivative 1 -
-                  Real.expNegInvGlueDerivative oneSub)) /
-            (expNegInvGlue 1 + expNegInvGlue oneSub) ^ 2)
-        honeSub hglueZero hderivativeZero
-    _ = (derivativeOne * glueOne - glueOne * derivativeOne) /
-        glueOne ^ 2 := by
-      have hfirst : derivativeOne * (glueOne + 0) =
-          derivativeOne * glueOne :=
-        congrArg (fun value : ℝ => derivativeOne * value) (add_zero glueOne)
-      have hsecond : glueOne * (derivativeOne - 0) =
-          glueOne * derivativeOne :=
-        congrArg (fun value : ℝ => glueOne * value) (sub_zero derivativeOne)
-      have hdenominator : (glueOne + 0) ^ 2 = glueOne ^ 2 :=
-        congrArg (fun value : ℝ => value ^ 2) (add_zero glueOne)
+                (Real.expNegInvGlueDerivative 1 - derivativeSub)) /
+            (expNegInvGlue 1 + glueSub) ^ 2)
+        hglueSub hderivativeSub
+    _ = (Real.expNegInvGlueDerivative 1 * expNegInvGlue 1 -
+          expNegInvGlue 1 * Real.expNegInvGlueDerivative 1) /
+        expNegInvGlue 1 ^ 2 := by
+      have hfirst :
+          Real.expNegInvGlueDerivative 1 * (expNegInvGlue 1 + 0) =
+            Real.expNegInvGlueDerivative 1 * expNegInvGlue 1 :=
+        congrArg
+          (fun value : ℝ => Real.expNegInvGlueDerivative 1 * value)
+          (add_zero (expNegInvGlue 1))
+      have hsecond :
+          expNegInvGlue 1 * (Real.expNegInvGlueDerivative 1 - 0) =
+            expNegInvGlue 1 * Real.expNegInvGlueDerivative 1 :=
+        congrArg (fun value : ℝ => expNegInvGlue 1 * value)
+          (sub_zero (Real.expNegInvGlueDerivative 1))
+      have hdenominator :
+          (expNegInvGlue 1 + 0) ^ 2 = expNegInvGlue 1 ^ 2 :=
+        congrArg (fun value : ℝ => value ^ 2) (add_zero (expNegInvGlue 1))
       exact congrArg₂ (fun numerator denominator : ℝ => numerator / denominator)
         (congrArg₂ (fun first second : ℝ => first - second) hfirst hsecond)
         hdenominator
-    _ = (glueOne * derivativeOne - glueOne * derivativeOne) / glueOne ^ 2 :=
+    _ = (expNegInvGlue 1 * Real.expNegInvGlueDerivative 1 -
+          expNegInvGlue 1 * Real.expNegInvGlueDerivative 1) /
+        expNegInvGlue 1 ^ 2 :=
       congrArg
-        (fun value : ℝ => (value - glueOne * derivativeOne) / glueOne ^ 2)
-        (mul_comm derivativeOne glueOne)
-    _ = 0 / glueOne ^ 2 :=
-      congrArg (fun value : ℝ => value / glueOne ^ 2)
-        (sub_self (glueOne * derivativeOne))
+        (fun value : ℝ =>
+          (value - expNegInvGlue 1 * Real.expNegInvGlueDerivative 1) /
+            expNegInvGlue 1 ^ 2)
+        (mul_comm (Real.expNegInvGlueDerivative 1) (expNegInvGlue 1))
+    _ = 0 / expNegInvGlue 1 ^ 2 :=
+      congrArg (fun value : ℝ => value / expNegInvGlue 1 ^ 2)
+        (sub_self (expNegInvGlue 1 * Real.expNegInvGlueDerivative 1))
     _ = 0 := zero_div _
 
 theorem Real.deriv_smoothTransition_zero :
-    deriv smoothTransition 0 = 0 := by
+    deriv Real.smoothTransition 0 = 0 := by
   exact
     (Real.deriv_smoothTransition_exact 0).trans
       Real.smoothTransitionDerivative_zero
 
 theorem Real.deriv_smoothTransition_one :
-    deriv smoothTransition 1 = 0 := by
+    deriv Real.smoothTransition 1 = 0 := by
   exact
     (Real.deriv_smoothTransition_exact 1).trans
       Real.smoothTransitionDerivative_one
@@ -294,7 +338,7 @@ theorem Real.hasDerivAt_quantitativeLogarithmicLeftCutoff
       (Real.quantitativeLogarithmicLeftCutoff a)
       (Real.quantitativeLogarithmicLeftCutoffDerivative a x) x := by
   have hshift := (hasDerivAt_id x).sub_const (a : ℝ)
-  have hscaled := (3 : ℝ).const_mul hshift
+  have hscaled := hshift.const_mul 3
   have hscaled_exact :
       HasDerivAt (fun y : ℝ => 3 * (y - (a : ℝ))) 3 x := by
     exact
@@ -307,7 +351,23 @@ theorem Real.hasDerivAt_quantitativeLogarithmicLeftCutoff
   have houter :=
     Real.hasDerivAt_smoothTransition_exact (3 * (x - (a : ℝ)) + 1)
   have hcomposition := houter.comp x hinner
-  exact hcomposition
+  unfold Real.quantitativeLogarithmicLeftCutoff
+  unfold Real.quantitativeLogarithmicLeftCutoffDerivative
+  change HasDerivAt
+    (fun y : ℝ => Real.smoothTransition (3 * (y - (a : ℝ)) + 1))
+    (Real.smoothTransitionDerivative (3 * (x - (a : ℝ)) + 1) * 3) x at hcomposition
+  change HasDerivAt
+    (fun y : ℝ => Real.smoothTransition (3 * (y - (a : ℝ)) + 1))
+    (3 * Real.smoothTransitionDerivative (3 * (x - (a : ℝ)) + 1)) x
+  have hderivative :=
+    mul_comm
+      (Real.smoothTransitionDerivative (3 * (x - (a : ℝ)) + 1)) 3
+  exact Eq.subst
+    (motive := fun derivative : ℝ =>
+      HasDerivAt
+        (fun y : ℝ => Real.smoothTransition (3 * (y - (a : ℝ)) + 1))
+        derivative x)
+    hderivative hcomposition
 
 theorem Real.deriv_quantitativeLogarithmicLeftCutoff
     (a : ℤ) (x : ℝ) :
@@ -333,7 +393,7 @@ theorem Real.hasDerivAt_quantitativeLogarithmicRightCutoff
       (Real.quantitativeLogarithmicRightCutoff b)
       (Real.quantitativeLogarithmicRightCutoffDerivative b x) x := by
   have hsub := (hasDerivAt_const x (b : ℝ)).sub (hasDerivAt_id x)
-  have hscaled := (3 : ℝ).const_mul hsub
+  have hscaled := hsub.const_mul 3
   have hscaled_exact :
       HasDerivAt (fun y : ℝ => 3 * ((b : ℝ) - y)) (-3) x := by
     exact
@@ -346,7 +406,23 @@ theorem Real.hasDerivAt_quantitativeLogarithmicRightCutoff
   have houter :=
     Real.hasDerivAt_smoothTransition_exact (3 * ((b : ℝ) - x) + 1)
   have hcomposition := houter.comp x hinner
-  exact hcomposition
+  unfold Real.quantitativeLogarithmicRightCutoff
+  unfold Real.quantitativeLogarithmicRightCutoffDerivative
+  change HasDerivAt
+    (fun y : ℝ => Real.smoothTransition (3 * ((b : ℝ) - y) + 1))
+    (Real.smoothTransitionDerivative (3 * ((b : ℝ) - x) + 1) * (-3)) x at hcomposition
+  change HasDerivAt
+    (fun y : ℝ => Real.smoothTransition (3 * ((b : ℝ) - y) + 1))
+    ((-3) * Real.smoothTransitionDerivative (3 * ((b : ℝ) - x) + 1)) x
+  have hderivative :=
+    mul_comm
+      (Real.smoothTransitionDerivative (3 * ((b : ℝ) - x) + 1)) (-3)
+  exact Eq.subst
+    (motive := fun derivative : ℝ =>
+      HasDerivAt
+        (fun y : ℝ => Real.smoothTransition (3 * ((b : ℝ) - y) + 1))
+        derivative x)
+    hderivative hcomposition
 
 theorem Real.deriv_quantitativeLogarithmicRightCutoff
     (b : ℤ) (x : ℝ) :
@@ -479,17 +555,37 @@ theorem Real.quantitativeLogarithmicBlockCutoffDerivative_at_supportRight
 
 theorem Real.contDiff_quantitativeTransitionAffine
     (slope intercept : ℝ) :
-    ContDiff ℝ ∞ (Real.quantitativeTransitionAffine slope intercept) := by
+    ContDiff ℝ (⊤ : ℕ∞) (Real.quantitativeTransitionAffine slope intercept) := by
   unfold Real.quantitativeTransitionAffine
-  exact (contDiff_const.mul contDiff_id).add contDiff_const
+  have hslope :
+      ContDiff ℝ (((⊤ : ℕ∞) : WithTop ℕ∞)) (fun _ : ℝ => slope) :=
+    contDiff_const
+  have hidentity :
+      ContDiff ℝ (((⊤ : ℕ∞) : WithTop ℕ∞)) (fun x : ℝ => x) :=
+    contDiff_id
+  have hproduct :
+      ContDiff ℝ (((⊤ : ℕ∞) : WithTop ℕ∞)) (fun x : ℝ => slope * x) :=
+    hslope.mul hidentity
+  have hintercept :
+      ContDiff ℝ (((⊤ : ℕ∞) : WithTop ℕ∞)) (fun _ : ℝ => intercept) :=
+    contDiff_const
+  exact hproduct.add hintercept
 
 theorem Real.contDiff_expNegInvGlue_comp_affine
     (slope intercept : ℝ) :
-    ContDiff ℝ ∞
+    ContDiff ℝ (⊤ : ℕ∞)
       (fun x : ℝ => expNegInvGlue
         (Real.quantitativeTransitionAffine slope intercept x)) := by
-  exact expNegInvGlue.contDiff.comp
-    (Real.contDiff_quantitativeTransitionAffine slope intercept)
+  change ContDiff ℝ (⊤ : ℕ∞)
+    (expNegInvGlue ∘ Real.quantitativeTransitionAffine slope intercept)
+  have houter :
+      ContDiff ℝ (((⊤ : ℕ∞) : WithTop ℕ∞)) expNegInvGlue :=
+    expNegInvGlue.contDiff (n := (⊤ : ℕ∞))
+  have hinner :
+      ContDiff ℝ (((⊤ : ℕ∞) : WithTop ℕ∞))
+        (Real.quantitativeTransitionAffine slope intercept) :=
+    Real.contDiff_quantitativeTransitionAffine slope intercept
+  exact houter.comp hinner
 
 end
 end LFunctions

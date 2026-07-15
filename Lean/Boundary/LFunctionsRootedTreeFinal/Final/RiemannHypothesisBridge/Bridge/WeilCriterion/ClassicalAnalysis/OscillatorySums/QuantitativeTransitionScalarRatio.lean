@@ -28,8 +28,16 @@ theorem Real.transitionScalar_energyDenominator_pos
     0 < s * (s - 2) ^ 2 := by
   have hsPos := Real.transitionScalar_pos hs
   have hsubPos : 0 < s - 2 := by
+    have hzeroLtTwo : (0 : ℝ) < 2 := zero_lt_two
+    have htwoLtTwoAddTwo : (2 : ℝ) < 2 + 2 :=
+      lt_add_of_pos_right 2 hzeroLtTwo
+    have htwoAddTwoEqFour : (2 : ℝ) + 2 = 4 :=
+      Real.transition_nat_cast_add 2 2 4 rfl
     have htwoLtFour : (2 : ℝ) < 4 := by
-      exact lt_add_of_pos_right 2 zero_lt_two
+      exact Eq.subst
+        (motive := fun upper : ℝ => (2 : ℝ) < upper)
+        htwoAddTwoEqFour
+        htwoLtTwoAddTwo
     exact sub_pos.mpr (lt_of_lt_of_le htwoLtFour hs)
   exact mul_pos hsPos (sq_pos_of_pos hsubPos)
 
@@ -79,6 +87,12 @@ theorem Real.transitionScalar_fullDenominator_eq
     _ = s * (s * (s - 2) ^ 2) :=
       mul_assoc s s ((s - 2) ^ 2)
 
+theorem Real.transitionScalar_sub_one_mul_two_mul
+    (s d : ℝ) :
+    (s - 1) * 2 * d = 2 * (s - 1) * d := by
+  exact congrArg (fun value : ℝ => value * d)
+    (mul_comm (s - 1) 2)
+
 theorem Real.transitionScalar_fullNumerator_eq
     (s d : ℝ) :
     2 * d * s * (s - 1) =
@@ -90,15 +104,12 @@ theorem Real.transitionScalar_fullNumerator_eq
       mul_comm (2 * d) (s * (s - 1))
     _ = s * ((s - 1) * (2 * d)) :=
       mul_assoc s (s - 1) (2 * d)
-    _ = s * (2 * ((s - 1) * d)) := by
-      exact congrArg (fun value : ℝ => s * value)
-        ((mul_assoc (s - 1) 2 d).symm.trans
-          (congrArg (fun value : ℝ => value * d)
-            (mul_comm (s - 1) 2)).trans
-          (mul_assoc 2 (s - 1) d))
-    _ = s * (2 * (s - 1) * d) := by
-      exact congrArg (fun value : ℝ => s * value)
-        (mul_assoc 2 (s - 1) d).symm
+    _ = s * ((s - 1) * 2 * d) :=
+      congrArg (fun value : ℝ => s * value)
+        (mul_assoc (s - 1) 2 d).symm
+    _ = s * (2 * (s - 1) * d) :=
+      congrArg (fun value : ℝ => s * value)
+        (Real.transitionScalar_sub_one_mul_two_mul s d)
 
 theorem Real.transitionScalarCurvatureRatio_eq_reduced
     {s d : ℝ}

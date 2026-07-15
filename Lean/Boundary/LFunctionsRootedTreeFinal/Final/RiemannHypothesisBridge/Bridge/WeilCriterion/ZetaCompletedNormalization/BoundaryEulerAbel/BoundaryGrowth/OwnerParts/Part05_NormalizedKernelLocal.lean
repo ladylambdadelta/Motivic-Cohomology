@@ -1,4 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.BoundaryGrowth.OwnerParts.Part04_ClassicalPrefixAndSplitting
+import Mathlib.MeasureTheory.Integral.Bochner
+import Mathlib.MeasureTheory.Integral.IntervalIntegral
+import Mathlib.MeasureTheory.Integral.SetIntegral
 
 /-!
 # Boundary growth owner part 5
@@ -12,6 +15,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped Filter Topology
+open MeasureTheory
 local notation "π" => Real.pi
 
 /-- Pointwise normalization of the unweighted logarithmic-phase derivative on
@@ -26,61 +30,81 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_unweightedDeriv
         (((x : ℝ) : ℂ) ^ (-(((t : ℂ) * Complex.I) + 1))) =
       (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
         (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) := by
-  let a : ℂ := -(t : ℂ) * Complex.I
   have hx_ne : (x : ℂ) ≠ 0 :=
     Complex.ofReal_ne_zero.mpr hx.ne'
   have hexponent :
-      (-(((t : ℂ) * Complex.I) + 1)) = a + (-1 : ℂ) := by
-    calc
       (-(((t : ℂ) * Complex.I) + 1)) =
-          -((t : ℂ) * Complex.I) + (-(1 : ℂ)) :=
-        neg_add ((t : ℂ) * Complex.I) (1 : ℂ)
-      _ = a + (-1 : ℂ) := rfl
+        -((t : ℂ) * Complex.I) + (-1 : ℂ) :=
+    neg_add ((t : ℂ) * Complex.I) (1 : ℂ)
   have hcpow_add :
-      (((x : ℝ) : ℂ) ^ (a + (-1 : ℂ))) =
-        (((x : ℝ) : ℂ) ^ a) * (((x : ℝ) : ℂ) ^ (-1 : ℂ)) :=
-    Complex.cpow_add a (-1 : ℂ) hx_ne
+      (((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I) + (-1 : ℂ))) =
+        (((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I)) ) *
+          (((x : ℝ) : ℂ) ^ (-1 : ℂ)) :=
+    Complex.cpow_add (-((t : ℂ) * Complex.I)) (-1 : ℂ) hx_ne
   have hcpow_neg_one :
       (((x : ℝ) : ℂ) ^ (-1 : ℂ)) = (x : ℂ)⁻¹ :=
     Complex.cpow_neg_one (x : ℂ)
   have hstandard :
       -((t : ℂ) * Complex.I) *
           (((x : ℝ) : ℂ) ^ (-(((t : ℂ) * Complex.I) + 1))) =
-        a * ((((x : ℝ) : ℂ) ^ a) * (x : ℂ)⁻¹) := by
+        -((t : ℂ) * Complex.I) *
+          ((((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I)) ) * (x : ℂ)⁻¹) := by
     calc
       -((t : ℂ) * Complex.I) *
           (((x : ℝ) : ℂ) ^ (-(((t : ℂ) * Complex.I) + 1))) =
-          a * (((x : ℝ) : ℂ) ^ (-(((t : ℂ) * Complex.I) + 1))) := rfl
-      _ = a * (((x : ℝ) : ℂ) ^ (a + (-1 : ℂ))) :=
+          -((t : ℂ) * Complex.I) *
+            (((x : ℝ) : ℂ) ^ (-(((t : ℂ) * Complex.I) + 1))) := Eq.refl _
+      _ = -((t : ℂ) * Complex.I) *
+            (((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I) + (-1 : ℂ))) :=
         congrArg
-          (fun y : ℂ => a * (((x : ℝ) : ℂ) ^ y))
+          (fun y : ℂ => -((t : ℂ) * Complex.I) * (((x : ℝ) : ℂ) ^ y))
           hexponent
-      _ = a * ((((x : ℝ) : ℂ) ^ a) *
+      _ = -((t : ℂ) * Complex.I) *
+          ((((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I)) ) *
           (((x : ℝ) : ℂ) ^ (-1 : ℂ))) :=
-        congrArg (fun y : ℂ => a * y) hcpow_add
-      _ = a * ((((x : ℝ) : ℂ) ^ a) * (x : ℂ)⁻¹) :=
+        congrArg (fun y : ℂ => -((t : ℂ) * Complex.I) * y) hcpow_add
+      _ = -((t : ℂ) * Complex.I) *
+          ((((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I)) ) * (x : ℂ)⁻¹) :=
         congrArg
-          (fun y : ℂ => a * ((((x : ℝ) : ℂ) ^ a) * y))
+          (fun y : ℂ => -((t : ℂ) * Complex.I) *
+            ((((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I)) ) * y))
           hcpow_neg_one
   have hnormalized :
-      a * ((((x : ℝ) : ℂ) ^ a) * (x : ℂ)⁻¹) =
-        ((a / (x : ℂ)) * (((x : ℝ) : ℂ) ^ a)) := by
-    have hdiv : a / (x : ℂ) = a * (x : ℂ)⁻¹ :=
-      div_eq_mul_inv a (x : ℂ)
+      -((t : ℂ) * Complex.I) *
+          ((((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I)) ) * (x : ℂ)⁻¹) =
+        ((-((t : ℂ) * Complex.I) / (x : ℂ)) *
+          (((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I)) )) := by
+    have hdiv : -((t : ℂ) * Complex.I) / (x : ℂ) =
+        -((t : ℂ) * Complex.I) * (x : ℂ)⁻¹ :=
+      div_eq_mul_inv (-((t : ℂ) * Complex.I)) (x : ℂ)
     calc
-      a * ((((x : ℝ) : ℂ) ^ a) * (x : ℂ)⁻¹) =
-          (a * (x : ℂ)⁻¹) * (((x : ℝ) : ℂ) ^ a) := by
-        exact
-          Eq.trans
-            (mul_assoc a (((x : ℝ) : ℂ) ^ a) ((x : ℂ)⁻¹))
-            (congrArg
-              (fun y : ℂ => y * (((x : ℝ) : ℂ) ^ a))
-              (mul_comm a ((x : ℂ)⁻¹)))
-      _ = (a / (x : ℂ)) * (((x : ℝ) : ℂ) ^ a) :=
+      -((t : ℂ) * Complex.I) *
+          ((((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I)) ) * (x : ℂ)⁻¹) =
+          (-((t : ℂ) * Complex.I) * (x : ℂ)⁻¹) *
+            (((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I)) ) :=
+        Eq.trans
+          (congrArg
+            (fun y : ℂ => -((t : ℂ) * Complex.I) * y)
+            (mul_comm (((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I)) ) ((x : ℂ)⁻¹)))
+          (mul_assoc (-((t : ℂ) * Complex.I)) (x : ℂ)⁻¹
+            (((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I)) )).symm
+      _ = (-((t : ℂ) * Complex.I) / (x : ℂ)) *
+          (((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I)) ) :=
         congrArg
-          (fun y : ℂ => y * (((x : ℝ) : ℂ) ^ a))
+          (fun y : ℂ => y * (((x : ℝ) : ℂ) ^ (-((t : ℂ) * Complex.I)) ))
           hdiv.symm
-  exact Eq.trans hstandard hnormalized
+  have hneg_mul :
+      -((t : ℂ) * Complex.I) = -(t : ℂ) * Complex.I :=
+    (neg_mul (t : ℂ) Complex.I).symm
+  have hphase_neg_mul :
+      -((t : ℂ) * Complex.I) = -(t : ℂ) * Complex.I :=
+    (neg_mul (t : ℂ) Complex.I).symm
+  exact Eq.trans hstandard
+    (Eq.trans hnormalized
+      (congrArg
+        (fun z : ℂ => (z / (x : ℂ)) *
+          (((x : ℝ) : ℂ) ^ z))
+        hphase_neg_mul))
 
 /-- Integral normalization for the unweighted Euler-Maclaurin Bernoulli
 remainder on the finite post-cutoff interval. -/
@@ -99,7 +123,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_postCutoff_bern
   let s : Set ℝ :=
     Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((M : ℕ) : ℝ))
   have hcongr :
-      EqOn
+      Set.EqOn
         (fun x : ℝ =>
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (-((t : ℂ) * Complex.I) *
@@ -133,7 +157,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_postCutoff_bern
       (fun y : ℂ => ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * y)
       (boundaryLineOnePointRealParam_logarithmicPhasePartialSum_unweightedDerivative_standard_eq_normalized
         t hx_pos)
-  exact setIntegral_congr_fun measurableSet_Ioc hcongr
+  exact MeasureTheory.setIntegral_congr_fun measurableSet_Ioc hcongr
 
 /-- Pointwise norm of the normalized unweighted logarithmic-phase derivative
 kernel on the positive real axis. -/
@@ -146,27 +170,27 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_normalizedDeriv
       ‖t‖ / x := by
   let K : ℂ := ((-(t : ℂ) * Complex.I) / (x : ℂ))
   have hphase :
-      Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t x =
+      boundaryLineOnePointRealParam_logarithmicPhaseFunction t x =
         ((x : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
-    Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_of_pos
+    boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_of_pos
       t hx
   have hderiv :
-      deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t) x =
-        K * Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t x :=
-    Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_eq
+      deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) x =
+        K * boundaryLineOnePointRealParam_logarithmicPhaseFunction t x :=
+    boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_eq
       t hx
   have hkernel_to_function :
       ‖K * (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ =
-        ‖K * Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t x‖ := by
+        ‖K * boundaryLineOnePointRealParam_logarithmicPhaseFunction t x‖ := by
     exact congrArg (fun z : ℂ => ‖K * z‖) hphase.symm
   have hfunction_to_deriv :
-      ‖K * Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t x‖ =
-        ‖deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t) x‖ :=
+      ‖K * boundaryLineOnePointRealParam_logarithmicPhaseFunction t x‖ =
+        ‖deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) x‖ :=
     congrArg norm hderiv.symm
   have hderiv_norm :
-      ‖deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t) x‖ =
+      ‖deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) x‖ =
         ‖t‖ / x :=
-    Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_norm_eq
+    boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_norm_eq
       t hx
   exact Eq.trans hkernel_to_function (Eq.trans hfunction_to_deriv hderiv_norm)
 
@@ -216,7 +240,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_po
     norm_mul B K
   have hproduct :
       ‖B‖ * ‖K‖ ≤ (1 : ℝ) * (‖t‖ / x) := by
-    exact mul_le_mul hB (le_of_eq hK) (norm_nonneg K) (norm_nonneg B)
+    exact mul_le_mul hB (le_of_eq hK) (norm_nonneg K) zero_le_one
   exact
     Eq.subst
       (motive := fun r : ℝ => r ≤ ‖t‖ / x)
@@ -307,7 +331,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_in
   have hg :
       Integrable g (volume.restrict s) :=
     (intervalIntegrable_iff_integrableOn_Ioc_of_le hle).mp
-      (intervalIntegrable_const (μ := volume) (a := (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))
+      (intervalIntegrable_const (μ := volume) (a := (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)))
         (b := (((M : ℕ) : ℝ))) (c := (1 : ℝ)))
   have hbound :
       ∀ᵐ x ∂volume.restrict s, ‖f x‖ ≤ g x :=
@@ -367,7 +391,18 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_in
             Set.uIcc
               (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))
               (((M : ℕ) : ℝ)) :=
-        not_mem_uIcc_of_lt hcutoff_real_pos hM_real_pos
+        by
+          have hcutoff_le_M :
+              (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ≤ (((M : ℕ) : ℝ)) :=
+            Nat.cast_le.mpr hM
+          intro hzero
+          have hzeroIcc :
+              (0 : ℝ) ∈
+                Set.Icc
+                  (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))
+                  (((M : ℕ) : ℝ)) :=
+            (Set.uIcc_of_le hcutoff_le_M).symm ▸ hzero
+          exact (not_lt_of_ge hzeroIcc.1) hcutoff_real_pos
       exact (intervalIntegrable_inv_iff.mpr (Or.inr hzero_not_mem))
     have hconst_mul :
         IntervalIntegrable (fun x : ℝ => ‖t‖ * x⁻¹) volume
@@ -405,7 +440,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_oneInterval_const_m
     ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)
   have hmul :
       (∫ x in s, B x * c) = (∫ x in s, B x) * c :=
-    integral_mul_right c B
+    MeasureTheory.integral_mul_right c B
   have hzero :
       (∫ x in s, B x) = 0 :=
     eulerMaclaurinFirstPeriodicBernoulli_oneInterval_integral_eq_zero n
@@ -458,7 +493,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_oneInterval_subtrac
   have hsub :
       (∫ x in s, B x * K x - B x * c) =
         (∫ x in s, B x * K x) - (∫ x in s, B x * c) :=
-    integral_sub hBK hBc
+    MeasureTheory.integral_sub hBK hBc
   have hconst :
       (∫ x in s, B x * c) = 0 :=
     boundaryLineOnePointRealParam_firstPeriodicBernoulli_oneInterval_const_mul_integral_eq_zero
@@ -502,7 +537,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_oneInterval_subtrac
   have hmul : ‖B * D‖ = ‖B‖ * ‖D‖ :=
     norm_mul B D
   have hprod : ‖B‖ * ‖D‖ ≤ (1 : ℝ) * ‖D‖ :=
-    mul_le_mul hB (le_rfl : ‖D‖ ≤ ‖D‖) (norm_nonneg D) (norm_nonneg B)
+    mul_le_mul hB (le_rfl : ‖D‖ ≤ ‖D‖) (norm_nonneg D) zero_le_one
   exact Eq.subst
     (motive := fun r : ℝ => r ≤ ‖D‖)
     hmul.symm
@@ -532,66 +567,66 @@ theorem boundaryLineOnePointRealParam_normalizedKernel_movement_norm_le_reciproc
               (((y : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ := by
   let a : ℂ := -(t : ℂ) * Complex.I
   let bx : ℂ := (x : ℂ)⁻¹
-  let by : ℂ := (y : ℂ)⁻¹
+  let bY : ℂ := (y : ℂ)⁻¹
   let px : ℂ := (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))
   let py : ℂ := (((y : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))
   have hx_div : (-(t : ℂ) * Complex.I) / (x : ℂ) = a * bx :=
     div_eq_mul_inv a (x : ℂ)
-  have hy_div : (-(t : ℂ) * Complex.I) / (y : ℂ) = a * by :=
+  have hy_div : (-(t : ℂ) * Complex.I) / (y : ℂ) = a * bY :=
     div_eq_mul_inv a (y : ℂ)
   have hdecomp :
-      (a * bx) * px - (a * by) * py =
-        a * ((bx - by) * px + by * (px - py)) := by
+      (a * bx) * px - (a * bY) * py =
+        a * ((bx - bY) * px + bY * (px - py)) := by
     calc
-      (a * bx) * px - (a * by) * py =
-          a * (bx * px) - a * (by * py) := by
+      (a * bx) * px - (a * bY) * py =
+          a * (bx * px) - a * (bY * py) := by
         exact congrArg₂ Sub.sub
           (mul_assoc a bx px)
-          (mul_assoc a by py)
-      _ = a * (bx * px - by * py) := by
-        exact (mul_sub a (bx * px) (by * py)).symm
-      _ = a * (((bx - by) * px) + by * (px - py)) := by
+          (mul_assoc a bY py)
+      _ = a * (bx * px - bY * py) := by
+        exact (mul_sub a (bx * px) (bY * py)).symm
+      _ = a * (((bx - bY) * px) + bY * (px - py)) := by
         have hinner :
-            bx * px - by * py =
-              (bx - by) * px + by * (px - py) := by
+            bx * px - bY * py =
+              (bx - bY) * px + bY * (px - py) := by
           calc
-            bx * px - by * py =
-                (bx * px - by * px) + (by * px - by * py) := by
+            bx * px - bY * py =
+                (bx * px - bY * px) + (bY * px - bY * py) := by
               have hcancel :
-                  (bx * px - by * px) + (by * px - by * py) =
-                    bx * px - by * py := by
+                  (bx * px - bY * px) + (bY * px - bY * py) =
+                    bx * px - bY * py := by
                 calc
-                  (bx * px - by * px) + (by * px - by * py) =
-                      (bx * px + -(by * px)) + (by * px + -(by * py)) := by
+                  (bx * px - bY * px) + (bY * px - bY * py) =
+                      (bx * px + -(bY * px)) + (bY * px + -(bY * py)) := by
                     exact congrArg₂ Add.add
-                      (sub_eq_add_neg (bx * px) (by * px))
-                      (sub_eq_add_neg (by * px) (by * py))
-                  _ = bx * px + (-(by * px) + (by * px + -(by * py))) := by
-                    exact add_assoc (bx * px) (-(by * px)) (by * px + -(by * py))
-                  _ = bx * px + ((-(by * px) + by * px) + -(by * py)) := by
+                      (sub_eq_add_neg (bx * px) (bY * px))
+                      (sub_eq_add_neg (bY * px) (bY * py))
+                  _ = bx * px + (-(bY * px) + (bY * px + -(bY * py))) := by
+                    exact add_assoc (bx * px) (-(bY * px)) (bY * px + -(bY * py))
+                  _ = bx * px + ((-(bY * px) + bY * px) + -(bY * py)) := by
                     exact congrArg (fun z : ℂ => bx * px + z)
-                      (add_assoc (-(by * px)) (by * px) (-(by * py))).symm
-                  _ = bx * px + (0 + -(by * py)) := by
+                      (add_assoc (-(bY * px)) (bY * px) (-(bY * py))).symm
+                  _ = bx * px + (0 + -(bY * py)) := by
                     exact congrArg
-                      (fun z : ℂ => bx * px + (z + -(by * py)))
-                      (neg_add_cancel (by * px))
-                  _ = bx * px + -(by * py) := by
+                      (fun z : ℂ => bx * px + (z + -(bY * py)))
+                      (neg_add_cancel (bY * px))
+                  _ = bx * px + -(bY * py) := by
                     exact congrArg (fun z : ℂ => bx * px + z)
-                      (zero_add (-(by * py)))
-                  _ = bx * px - by * py := by
-                    exact (sub_eq_add_neg (bx * px) (by * py)).symm
+                      (zero_add (-(bY * py)))
+                  _ = bx * px - bY * py := by
+                    exact (sub_eq_add_neg (bx * px) (bY * py)).symm
               exact hcancel.symm
-            _ = ((bx - by) * px) + (by * px - by * py) := by
-              exact congrArg (fun z : ℂ => z + (by * px - by * py))
-                (sub_mul bx by px).symm
-            _ = ((bx - by) * px) + by * (px - py) := by
-              exact congrArg (fun z : ℂ => ((bx - by) * px) + z)
-                (mul_sub by px py).symm
+            _ = ((bx - bY) * px) + (bY * px - bY * py) := by
+              exact congrArg (fun z : ℂ => z + (bY * px - bY * py))
+                (sub_mul bx bY px).symm
+            _ = ((bx - bY) * px) + bY * (px - py) := by
+              exact congrArg (fun z : ℂ => ((bx - bY) * px) + z)
+                (mul_sub bY px py).symm
         exact congrArg (fun z : ℂ => a * z) hinner
   have htarget_eq :
       ((-(t : ℂ) * Complex.I) / (x : ℂ)) * px -
           ((-(t : ℂ) * Complex.I) / (y : ℂ)) * py =
-        a * ((bx - by) * px + by * (px - py)) := by
+        a * ((bx - bY) * px + bY * (px - py)) := by
     calc
       ((-(t : ℂ) * Complex.I) / (x : ℂ)) * px -
           ((-(t : ℂ) * Complex.I) / (y : ℂ)) * py =
@@ -599,48 +634,47 @@ theorem boundaryLineOnePointRealParam_normalizedKernel_movement_norm_le_reciproc
         exact congrArg
           (fun z : ℂ => z * px - ((-(t : ℂ) * Complex.I) / (y : ℂ)) * py)
           hx_div
-      _ = (a * bx) * px - (a * by) * py := by
+      _ = (a * bx) * px - (a * bY) * py := by
         exact congrArg
           (fun z : ℂ => (a * bx) * px - z * py)
           hy_div
-      _ = a * ((bx - by) * px + by * (px - py)) :=
+      _ = a * ((bx - bY) * px + bY * (px - py)) :=
         hdecomp
   have hnorm_decomp :
-      ‖a * ((bx - by) * px + by * (px - py))‖ ≤
-        ‖a‖ * (‖(bx - by) * px‖ + ‖by * (px - py)‖) := by
+      ‖a * ((bx - bY) * px + bY * (px - py))‖ ≤
+        ‖a‖ * (‖(bx - bY) * px‖ + ‖bY * (px - py)‖) := by
     calc
-      ‖a * ((bx - by) * px + by * (px - py))‖ =
-          ‖a‖ * ‖(bx - by) * px + by * (px - py)‖ := by
-        exact norm_mul a ((bx - by) * px + by * (px - py))
-      _ ≤ ‖a‖ * (‖(bx - by) * px‖ + ‖by * (px - py)‖) :=
+      ‖a * ((bx - bY) * px + bY * (px - py))‖ =
+          ‖a‖ * ‖(bx - bY) * px + bY * (px - py)‖ := by
+        exact norm_mul a ((bx - bY) * px + bY * (px - py))
+      _ ≤ ‖a‖ * (‖(bx - bY) * px‖ + ‖bY * (px - py)‖) :=
         mul_le_mul_of_nonneg_left
-          (norm_add_le ((bx - by) * px) (by * (px - py)))
+          (norm_add_le ((bx - bY) * px) (bY * (px - py)))
           (norm_nonneg a)
   have hsplit :
-      ‖a‖ * (‖(bx - by) * px‖ + ‖by * (px - py)‖) =
-        ‖a‖ * ‖bx - by‖ * ‖px‖ + ‖a‖ * ‖by‖ * ‖px - py‖ := by
+      ‖a‖ * (‖(bx - bY) * px‖ + ‖bY * (px - py)‖) =
+        ‖a‖ * ‖bx - bY‖ * ‖px‖ + ‖a‖ * ‖bY‖ * ‖px - py‖ := by
     calc
-      ‖a‖ * (‖(bx - by) * px‖ + ‖by * (px - py)‖) =
-          ‖a‖ * (‖bx - by‖ * ‖px‖ + ‖by‖ * ‖px - py‖) := by
+      ‖a‖ * (‖(bx - bY) * px‖ + ‖bY * (px - py)‖) =
+          ‖a‖ * (‖bx - bY‖ * ‖px‖ + ‖bY‖ * ‖px - py‖) := by
         exact congrArg (fun z : ℝ => ‖a‖ * z)
           (congrArg₂ Add.add
-            (norm_mul (bx - by) px)
-            (norm_mul by (px - py)))
-      _ = ‖a‖ * (‖bx - by‖ * ‖px‖) +
-          ‖a‖ * (‖by‖ * ‖px - py‖) := by
-        exact mul_add ‖a‖ (‖bx - by‖ * ‖px‖) (‖by‖ * ‖px - py‖)
-      _ = ‖a‖ * ‖bx - by‖ * ‖px‖ + ‖a‖ * ‖by‖ * ‖px - py‖ := by
+            (norm_mul (bx - bY) px)
+            (norm_mul bY (px - py)))
+      _ = ‖a‖ * (‖bx - bY‖ * ‖px‖) +
+          ‖a‖ * (‖bY‖ * ‖px - py‖) := by
+        exact mul_add ‖a‖ (‖bx - bY‖ * ‖px‖) (‖bY‖ * ‖px - py‖)
+      _ = ‖a‖ * ‖bx - bY‖ * ‖px‖ + ‖a‖ * ‖bY‖ * ‖px - py‖ := by
         exact congrArg₂ Add.add
-          (mul_assoc ‖a‖ ‖bx - by‖ ‖px‖).symm
-          (mul_assoc ‖a‖ ‖by‖ ‖px - py‖).symm
+          (mul_assoc ‖a‖ ‖bx - bY‖ ‖px‖).symm
+          (mul_assoc ‖a‖ ‖bY‖ ‖px - py‖).symm
   exact Eq.subst
     (motive := fun z : ℂ =>
       ‖z‖ ≤
-        ‖a‖ * ‖bx - by‖ * ‖px‖ +
-          ‖a‖ * ‖by‖ * ‖px - py‖)
+        ‖a‖ * ‖bx - bY‖ * ‖px‖ +
+          ‖a‖ * ‖bY‖ * ‖px - py‖)
     htarget_eq.symm
-    (le_trans hnorm_decomp
-      (le_of_eq hsplit))
+    (le_trans hnorm_decomp (le_of_eq hsplit))
 
 /-- Quantitative reciprocal drift on a single unit interval. -/
 theorem boundaryLineOnePointRealParam_oneInterval_reciprocal_movement_norm_le
@@ -675,7 +709,7 @@ theorem boundaryLineOnePointRealParam_oneInterval_reciprocal_movement_norm_le
           exact add_sub_cancel_left nr 1
     exact Eq.subst
       (motive := fun r : ℝ => x - nr ≤ r)
-      hright.symm
+      hright
       hsub
   have hnr_sub_nonpos : nr - x ≤ 0 := by
     exact sub_nonpos.mpr hx_ge
@@ -762,7 +796,7 @@ theorem boundaryLineOnePointRealParam_oneInterval_phase_drift_norm_le
       ‖t‖ / (((n : ℕ) : ℝ)) := by
   let nr : ℝ := ((n : ℕ) : ℝ)
   let phase : ℝ → ℂ :=
-    Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t
+    boundaryLineOnePointRealParam_logarithmicPhaseFunction t
   let derivPhase : ℝ → ℂ := fun u =>
     (((-(t : ℂ) * Complex.I) / (u : ℂ)) * phase u)
   have hnr_pos : 0 < nr :=
@@ -789,7 +823,7 @@ theorem boundaryLineOnePointRealParam_oneInterval_phase_drift_norm_le
           exact add_sub_cancel_left nr 1
     exact Eq.subst
       (motive := fun r : ℝ => x - nr ≤ r)
-      hright.symm
+      hright
       hsub
   have hnr_mem : nr ∈ Set.Icc nr x :=
     ⟨le_rfl, hnr_le_x⟩
@@ -802,7 +836,7 @@ theorem boundaryLineOnePointRealParam_oneInterval_phase_drift_norm_le
     have hu_pos : 0 < u :=
       lt_of_lt_of_le hnr_pos hu.1
     exact
-      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_hasDerivAt
+      (boundaryLineOnePointRealParam_logarithmicPhaseFunction_hasDerivAt
         t hu_pos).hasDerivWithinAt
   have hderiv_bound :
       ∀ u ∈ Set.Icc nr x, ‖derivPhase u‖ ≤ ‖t‖ / nr := by
@@ -810,7 +844,7 @@ theorem boundaryLineOnePointRealParam_oneInterval_phase_drift_norm_le
     have hu_pos : 0 < u :=
       lt_of_lt_of_le hnr_pos hu.1
     have hnorm_eq : ‖derivPhase u‖ = ‖t‖ / u :=
-      Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_derivative_norm_eq
+      boundaryLineOnePointRealParam_logarithmicPhaseFunction_derivative_norm_eq
         t hu_pos
     have hnum_nonneg : 0 ≤ ‖t‖ :=
       norm_nonneg t
@@ -854,11 +888,11 @@ theorem boundaryLineOnePointRealParam_oneInterval_phase_drift_norm_le
         hscaled)
   have hx_phase :
       phase x = ((x : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
-    Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_of_pos
+    boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_of_pos
       t hx_pos
   have hn_phase :
       phase nr = ((nr : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
-    Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_of_pos
+    boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_of_pos
       t hnr_pos
   have htarget_eq :
       ((x : ℂ) ^ (-(t : ℂ) * Complex.I)) -
@@ -886,7 +920,7 @@ theorem boundaryLineOnePointRealParam_oneInterval_normalizedKernel_movement_norm
           ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) *
             ‖(((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ +
         ‖t‖ *
-          ‖(((((n : ℕ) : ℝ) : ℂ)⁻¹)‖ *
+          ‖(((n : ℕ) : ℝ) : ℂ)⁻¹‖ *
             (‖t‖ / (((n : ℕ) : ℝ))) := by
   let nr : ℝ := ((n : ℕ) : ℝ)
   have hsplit :
@@ -950,7 +984,7 @@ theorem boundaryLineOnePointRealParam_oneInterval_normalizedKernel_movement_norm
           ‖(nr : ℂ)⁻¹‖ *
             ‖(((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
               ((nr : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-        ‖t‖ * ‖(((((n : ℕ) : ℝ) : ℂ)⁻¹)‖ *
+        ‖t‖ * ‖(((n : ℕ) : ℝ) : ℂ)⁻¹‖ *
           (‖t‖ / (((n : ℕ) : ℝ))) := by
     have hleft_nonneg : 0 ≤ ‖t‖ * ‖(nr : ℂ)⁻¹‖ :=
       mul_nonneg (norm_nonneg t) (norm_nonneg ((nr : ℂ)⁻¹))
@@ -966,7 +1000,7 @@ theorem boundaryLineOnePointRealParam_oneInterval_normalizedKernel_movement_norm
         r * ‖(nr : ℂ)⁻¹‖ *
             ‖(((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
               ((nr : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-          ‖t‖ * ‖(((((n : ℕ) : ℝ) : ℂ)⁻¹)‖ *
+          ‖t‖ * ‖(((n : ℕ) : ℝ) : ℂ)⁻¹‖ *
             (‖t‖ / (((n : ℕ) : ℝ))))
       ha_norm.symm
       hproduct
@@ -989,7 +1023,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_oneInterval_subtrac
           ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) *
             ‖(((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ +
         ‖t‖ *
-          ‖(((((n : ℕ) : ℝ) : ℂ)⁻¹)‖ *
+          ‖(((n : ℕ) : ℝ) : ℂ)⁻¹‖ *
             (‖t‖ / (((n : ℕ) : ℝ))) := by
   let K : ℝ → ℂ := fun y =>
     (((-(t : ℂ) * Complex.I) / (y : ℂ)) *
@@ -1006,7 +1040,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_oneInterval_subtrac
             ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) *
               ‖(((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ +
           ‖t‖ *
-            ‖(((((n : ℕ) : ℝ) : ℂ)⁻¹)‖ *
+            ‖(((n : ℕ) : ℝ) : ℂ)⁻¹‖ *
               (‖t‖ / (((n : ℕ) : ℝ))) :=
     boundaryLineOnePointRealParam_oneInterval_normalizedKernel_movement_norm_le
       t hn hx
@@ -1020,14 +1054,14 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_cpow_norm_eq_one_of_pos
     (hx : 0 < x) :
     ‖((x : ℂ) ^ (-(t : ℂ) * Complex.I))‖ = (1 : ℝ) := by
   have hphase :
-      Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t x =
+      boundaryLineOnePointRealParam_logarithmicPhaseFunction t x =
         ((x : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
-    Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_of_pos
+    boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_of_pos
       t hx
   have hnorm :
-      ‖Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t x‖ =
+      ‖boundaryLineOnePointRealParam_logarithmicPhaseFunction t x‖ =
         (1 : ℝ) :=
-    Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_norm t x
+    boundaryLineOnePointRealParam_logarithmicPhaseFunction_norm t x
   exact Eq.trans (congrArg norm hphase.symm) hnorm
 
 /-- Norm of the reciprocal of a positive real embedded in `ℂ`. -/
@@ -1042,6 +1076,98 @@ theorem boundaryLineOnePointRealParam_complex_inv_ofReal_norm_eq_inv
       ‖(x : ℂ)‖ = x := by
     exact Eq.trans (RCLike.norm_ofReal x) (abs_of_pos hx)
   exact Eq.trans hnorm_inv (congrArg Inv.inv hnorm_real)
+
+/-- A point in the natural unit interval `(n,n+1]` is positive when its
+left endpoint is positive. -/
+theorem boundaryLineOnePointRealParam_oneInterval_point_pos
+    {n : ℕ}
+    (hn : 0 < n)
+    {x : ℝ}
+    (hx : x ∈ Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ))) :
+    0 < x :=
+  lt_trans (Nat.cast_pos.mpr hn) hx.1
+
+/-- Normalization of the reciprocal-movement term by the unit norm of the
+positive-real logarithmic phase. -/
+theorem boundaryLineOnePointRealParam_reciprocalMovement_phaseNorm_normalization
+    (t : ℝ)
+    {n : ℕ}
+    {x : ℝ}
+    (hx : 0 < x) :
+    ‖t‖ *
+          ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) *
+          ‖(((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ =
+      ‖t‖ *
+        ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) := by
+  have hphaseNorm :
+      ‖(((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ = (1 : ℝ) :=
+    boundaryLineOnePointRealParam_logarithmicPhase_cpow_norm_eq_one_of_pos
+      t hx
+  have hreplacePhase :
+      ‖t‖ *
+            ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) *
+            ‖(((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ =
+        ‖t‖ *
+            ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) *
+            (1 : ℝ) :=
+    congrArg
+      (fun phaseNorm : ℝ =>
+        ‖t‖ *
+          ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) *
+          phaseNorm)
+      hphaseNorm
+  exact Eq.trans hreplacePhase
+    (mul_one
+      (‖t‖ *
+        ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ)))))
+
+/-- Normalization of the phase-movement coefficient by the norm of the
+positive natural endpoint reciprocal. -/
+theorem boundaryLineOnePointRealParam_phaseMovement_endpointInvNorm_normalization
+    (t : ℝ)
+    {n : ℕ}
+    (hn : 0 < n) :
+    ‖t‖ * ‖(((n : ℕ) : ℝ) : ℂ)⁻¹‖ *
+          (‖t‖ / (((n : ℕ) : ℝ))) =
+      ‖t‖ * (((n : ℕ) : ℝ)⁻¹) *
+          (‖t‖ / (((n : ℕ) : ℝ))) := by
+  have hendpointPos : 0 < ((n : ℕ) : ℝ) :=
+    Nat.cast_pos.mpr hn
+  have hinverseNorm :
+      ‖((((n : ℕ) : ℝ) : ℂ)⁻¹)‖ = (((n : ℕ) : ℝ))⁻¹ :=
+    boundaryLineOnePointRealParam_complex_inv_ofReal_norm_eq_inv
+      hendpointPos
+  exact congrArg
+    (fun inverseNorm : ℝ =>
+      ‖t‖ * inverseNorm * (‖t‖ / (((n : ℕ) : ℝ))))
+    hinverseNorm
+
+/-- The raw two-term movement majorant equals its scalar normal form on a
+positive natural unit interval. -/
+theorem boundaryLineOnePointRealParam_scalarMovement_majorant_normalization
+    (t : ℝ)
+    {n : ℕ}
+    (hn : 0 < n)
+    {x : ℝ}
+    (hx : x ∈ Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ))) :
+    ‖t‖ *
+          ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) *
+          ‖(((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ +
+        ‖t‖ * ‖(((n : ℕ) : ℝ) : ℂ)⁻¹‖ *
+          (‖t‖ / (((n : ℕ) : ℝ))) =
+      ‖t‖ *
+          ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) +
+        ‖t‖ * (((n : ℕ) : ℝ)⁻¹) *
+          (‖t‖ / (((n : ℕ) : ℝ))) := by
+  have hxPos : 0 < x :=
+    boundaryLineOnePointRealParam_oneInterval_point_pos hn hx
+  have hreciprocalTerm :=
+    boundaryLineOnePointRealParam_reciprocalMovement_phaseNorm_normalization
+      t (n := n) (x := x) hxPos
+  have hphaseTerm :=
+    boundaryLineOnePointRealParam_phaseMovement_endpointInvNorm_normalization
+      t hn
+  exact congrArg₂ Add.add hreciprocalTerm hphaseTerm
 
 /-- Simplified pointwise one-interval bound for the Bernoulli-subtracted
 normalized kernel.
@@ -1064,94 +1190,36 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_oneInterval_subtrac
       ‖t‖ *
           ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) +
         ‖t‖ *
-          (((n : ℕ) : ℝ)⁻¹) *
+            (((n : ℕ) : ℝ)⁻¹) *
             (‖t‖ / (((n : ℕ) : ℝ))) := by
-  let nr : ℝ := ((n : ℕ) : ℝ)
-  have hnr_pos : 0 < nr :=
-    Nat.cast_pos.mpr hn
-  have hx_pos : 0 < x :=
-    lt_trans hnr_pos hx.1
   have hraw :
       ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
           (((( -(t : ℂ) * Complex.I) / (x : ℂ)) *
               (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) -
             (((-(t : ℂ) * Complex.I) / ((((n : ℕ) : ℝ) : ℂ))) *
-              (((((n : ℕ) : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))))‖ ≤
+            (((((n : ℕ) : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))))‖ ≤
         ‖t‖ *
             ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) *
               ‖(((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ +
           ‖t‖ *
-            ‖(((((n : ℕ) : ℝ) : ℂ)⁻¹)‖ *
+            ‖(((n : ℕ) : ℝ) : ℂ)⁻¹‖ *
               (‖t‖ / (((n : ℕ) : ℝ))) :=
     boundaryLineOnePointRealParam_firstPeriodicBernoulli_oneInterval_subtracted_normalizedKernel_pointwise_norm_le
       t hn hx
-  have hphase_norm :
-      ‖(((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ = (1 : ℝ) :=
-    boundaryLineOnePointRealParam_logarithmicPhase_cpow_norm_eq_one_of_pos
-      t hx_pos
-  have hinv_norm :
-      ‖(((((n : ℕ) : ℝ) : ℂ)⁻¹)‖ = nr⁻¹ :=
-    boundaryLineOnePointRealParam_complex_inv_ofReal_norm_eq_inv hnr_pos
   have hright :
       ‖t‖ *
           ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) *
             ‖(((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ +
         ‖t‖ *
-          ‖(((((n : ℕ) : ℝ) : ℂ)⁻¹)‖ *
+          ‖(((n : ℕ) : ℝ) : ℂ)⁻¹‖ *
             (‖t‖ / (((n : ℕ) : ℝ))) =
       ‖t‖ *
           ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) +
         ‖t‖ *
           (((n : ℕ) : ℝ)⁻¹) *
-            (‖t‖ / (((n : ℕ) : ℝ))) := by
-    calc
-      ‖t‖ *
-          ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) *
-            ‖(((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ +
-        ‖t‖ *
-          ‖(((((n : ℕ) : ℝ) : ℂ)⁻¹)‖ *
-            (‖t‖ / (((n : ℕ) : ℝ))) =
-          ‖t‖ *
-              ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) *
-                (1 : ℝ) +
-            ‖t‖ *
-              ‖(((((n : ℕ) : ℝ) : ℂ)⁻¹)‖ *
-                (‖t‖ / (((n : ℕ) : ℝ))) := by
-        exact congrArg
-          (fun y : ℝ =>
-            ‖t‖ *
-                ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) * y +
-              ‖t‖ *
-                ‖(((((n : ℕ) : ℝ) : ℂ)⁻¹)‖ *
-                  (‖t‖ / (((n : ℕ) : ℝ))))
-          hphase_norm
-      _ =
-          ‖t‖ *
-              ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) +
-            ‖t‖ *
-              ‖(((((n : ℕ) : ℝ) : ℂ)⁻¹)‖ *
-                (‖t‖ / (((n : ℕ) : ℝ))) := by
-        exact congrArg
-          (fun y : ℝ =>
-            y +
-              ‖t‖ *
-                ‖(((((n : ℕ) : ℝ) : ℂ)⁻¹)‖ *
-                  (‖t‖ / (((n : ℕ) : ℝ))))
-          (mul_one
-            (‖t‖ *
-              ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ)))))
-      _ =
-          ‖t‖ *
-              ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) +
-            ‖t‖ *
-              (((n : ℕ) : ℝ)⁻¹) *
-                (‖t‖ / (((n : ℕ) : ℝ))) := by
-        exact congrArg
-          (fun y : ℝ =>
-            ‖t‖ *
-                ((1 : ℝ) / (((n : ℕ) : ℝ) * ((n : ℕ) : ℝ))) +
-              ‖t‖ * y * (‖t‖ / (((n : ℕ) : ℝ))))
-          hinv_norm
+            (‖t‖ / (((n : ℕ) : ℝ))) :=
+    boundaryLineOnePointRealParam_scalarMovement_majorant_normalization
+      t hn hx
   exact Eq.subst
     (motive := fun r : ℝ =>
       ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
@@ -1159,7 +1227,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_oneInterval_subtrac
               (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) -
             (((-(t : ℂ) * Complex.I) / ((((n : ℕ) : ℝ) : ℂ))) *
               (((((n : ℕ) : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))))‖ ≤ r)
-    hright.symm
+    hright
     hraw
 
 /-- One-interval integral domination for the Bernoulli-subtracted normalized
@@ -1283,8 +1351,12 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_rightEndpointInterv
   let m : ℕ := n - 1
   have hcutoff_lt_n : ⌊2 + ‖t‖⌋₊ < n :=
     (Finset.mem_Ioc.mp hn).1
+  have hcutoff_pos : 0 < ⌊2 + ‖t‖⌋₊ :=
+    boundaryLineOnePointRealParam_cutoff_pos t
+  have hone_lt_n : 1 < n :=
+    lt_of_le_of_lt (Nat.succ_le_of_lt hcutoff_pos) hcutoff_lt_n
   have hm_pos : 0 < m :=
-    Nat.sub_pos_of_lt hcutoff_lt_n
+    Nat.sub_pos_of_lt hone_lt_n
   exact
     boundaryLineOnePointRealParam_firstPeriodicBernoulli_oneInterval_subtracted_normalizedKernel_integral_norm_le_scalarMovement
       t hm_pos
@@ -1420,14 +1492,14 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_postCutoff_Ioc_pred
     (t : ℝ)
     {M : ℕ} :
     ‖∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
-        (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
+        ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-            (((((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+            (((-(t : ℂ) * Complex.I) / (x : ℂ) *
                 (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) -
-              (((-(t : ℂ) * Complex.I) /
-                  (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I))))))‖ ≤
+              ((-(t : ℂ) * Complex.I) /
+                (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ) *
+                  (((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
+                    (-(t : ℂ) * Complex.I))))‖ ≤
       ∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
         ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
           (‖t‖ *
@@ -1476,7 +1548,7 @@ theorem boundaryGrowth_pairwiseDisjoint_Ioc_pred_self_natCast :
         (fun n : ℕ =>
           Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)))) := by
   have hmono : Monotone (fun n : ℕ => ((n : ℕ) : ℝ)) :=
-    Nat.cast_mono
+    fun _ _ hle => Nat.cast_le.mpr hle
   exact hmono.pairwise_disjoint_on_Ioc_pred
 
 /-- Finite-subset form of the disjointness of natural right-endpoint unit
@@ -1487,10 +1559,8 @@ theorem boundaryGrowth_pairwiseDisjoint_finset_Ioc_pred_self_natCast
       (Disjoint on
         (fun n : ℕ =>
           Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)))) := by
-  exact
-    Set.Pairwise.mono
-      (fun n _hn => Set.mem_univ n)
-      boundaryGrowth_pairwiseDisjoint_Ioc_pred_self_natCast
+  intro i _hi j _hj hij
+  exact boundaryGrowth_pairwiseDisjoint_Ioc_pred_self_natCast hij
 
 /-- Finite set-integral decomposition over natural right-endpoint unit
 intervals.
@@ -1532,7 +1602,7 @@ theorem boundaryGrowth_mem_Ioc_pred_self_iff_natCeil_eq
   have hmem :
       x ∈ (Nat.ceil : ℝ → ℕ) ⁻¹' {n} ↔
         x ∈ Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)) :=
-    congrArg (fun s : Set ℝ => x ∈ s) hpre
+    Iff.of_eq (congrArg (fun s : Set ℝ => x ∈ s) hpre)
   exact Iff.intro
     (fun hx =>
       have hx_pre :
@@ -1547,15 +1617,25 @@ theorem boundaryGrowth_mem_Ioc_pred_self_iff_natCeil_eq
 exactly the real interval `(C,M]`. -/
 theorem boundaryGrowth_biUnion_Ioc_pred_self_natCast_eq_Ioc
     (C M : ℕ) :
-    (⋃ n ∈ Finset.Ioc C M,
+    (Set.iUnion fun n : ℕ =>
+      Set.iUnion fun _hn : n ∈ Finset.Ioc C M =>
         Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ))) =
       Set.Ioc (((C : ℕ) : ℝ)) (((M : ℕ) : ℝ)) := by
   exact Set.ext
     (fun x =>
       Iff.intro
         (fun hx =>
-          match hx with
-          | ⟨n, hn_mem, hx_interval⟩ =>
+          let hx_index : ∃ n : ℕ,
+              x ∈ Set.iUnion fun _hn : n ∈ Finset.Ioc C M =>
+                Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)) :=
+            Set.mem_iUnion.mp hx
+          Exists.elim hx_index
+            (fun n hx_block =>
+              let hx_membership : ∃ hn_mem : n ∈ Finset.Ioc C M,
+                  x ∈ Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)) :=
+                Set.mem_iUnion.mp hx_block
+              Exists.elim hx_membership
+                (fun hn_mem hx_interval =>
               have hC_lt_n : C < n :=
                 (Finset.mem_Ioc.mp hn_mem).1
               have hn_le_M : n ≤ M :=
@@ -1571,7 +1651,7 @@ theorem boundaryGrowth_biUnion_Ioc_pred_self_natCast_eq_Ioc
               have hright :
                   x ≤ (((M : ℕ) : ℝ)) :=
                 le_trans hx_interval.2 (Nat.cast_le.mpr hn_le_M)
-              ⟨hleft, hright⟩)
+              ⟨hleft, hright⟩)))
         (fun hx =>
           let n : ℕ := Nat.ceil x
           have hn_eq : Nat.ceil x = n := rfl
@@ -1585,7 +1665,9 @@ theorem boundaryGrowth_biUnion_Ioc_pred_self_natCast_eq_Ioc
               x ∈ Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)) :=
             (boundaryGrowth_mem_Ioc_pred_self_iff_natCeil_eq hn_ne_zero x).mpr
               hn_eq
-          ⟨n, Finset.mem_Ioc.mpr ⟨hC_lt_n, hn_le_M⟩, hx_interval⟩))
+          Set.mem_iUnion.mpr
+            ⟨n, Set.mem_iUnion.mpr
+              ⟨Finset.mem_Ioc.mpr ⟨hC_lt_n, hn_le_M⟩, hx_interval⟩⟩))
 
 /-- Exact finite-block decomposition of the global normalized Bernoulli
 remainder into right-endpoint local zero-mean blocks, assuming the concrete
@@ -1612,9 +1694,9 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_in
         Integrable
           (fun x : ℝ =>
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-              (((-(t : ℂ) * Complex.I) /
-                  (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
+              ((-(t : ℂ) * Complex.I /
+                (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
+                (((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
                   (-(t : ℂ) * Complex.I))))
           (volume.restrict
             (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ))))) :
@@ -1642,19 +1724,19 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_in
     (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
       (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))
   have hcover :
-      (⋃ n ∈ Finset.Ioc C M,
+      (⋃ n ∈ (↑(Finset.Ioc C M) : Set ℕ),
           Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ))) =
         Set.Ioc (((C : ℕ) : ℝ)) (((M : ℕ) : ℝ)) :=
     boundaryGrowth_biUnion_Ioc_pred_self_natCast_eq_Ioc C M
   have hdomain :
       (∫ x in Set.Ioc (((C : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) =
-        ∫ x in ⋃ n ∈ Finset.Ioc C M,
+        ∫ x in ⋃ n ∈ (↑(Finset.Ioc C M) : Set ℕ),
           Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)), f x :=
     congrArg
       (fun s : Set ℝ => ∫ x in s, f x)
       hcover.symm
   have hsplit :
-      (∫ x in ⋃ n ∈ Finset.Ioc C M,
+      (∫ x in ⋃ n ∈ (↑(Finset.Ioc C M) : Set ℕ),
           Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)), f x) =
         ∑ n ∈ Finset.Ioc C M,
           ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)), f x :=
@@ -1742,7 +1824,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_in
           (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
             (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))) =
         ∫ x in Set.Ioc (((C : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x := rfl
-    _ = ∫ x in ⋃ n ∈ Finset.Ioc C M,
+    _ = ∫ x in ⋃ n ∈ (↑(Finset.Ioc C M) : Set ℕ),
           Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)), f x :=
       hdomain
     _ = ∑ n ∈ Finset.Ioc C M,
@@ -1788,9 +1870,9 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_in
           (fun x : ℝ =>
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
               (((-(t : ℂ) * Complex.I) /
-                  (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I))))
+                (((n - 1 : ℕ) : ℝ) : ℂ)) *
+                ((((n - 1 : ℕ) : ℝ) : ℂ) ^
+                  (-(t : ℂ) * Complex.I))) )
           (volume.restrict
             (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ))))) :
     ‖∫ x in Set.Ioc
@@ -1875,22 +1957,22 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_Ioc_pred_self_leftE
       (fun x : ℝ =>
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
           (((-(t : ℂ) * Complex.I) /
-              (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-            ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
+              (((n - 1 : ℕ) : ℝ) : ℂ)) *
+            ((((n - 1 : ℕ) : ℝ) : ℂ) ^
               (-(t : ℂ) * Complex.I))))
       (volume.restrict
         (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)))) := by
   let c : ℂ :=
-    (((-(t : ℂ) * Complex.I) /
-        (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-      ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-        (-(t : ℂ) * Complex.I)))
+    ((-(t : ℂ) * Complex.I) /
+        (((n - 1 : ℕ) : ℝ) : ℂ)) *
+      ((((n - 1 : ℕ) : ℝ) : ℂ) ^
+        (-(t : ℂ) * Complex.I))
   have hle :
       ((((n - 1 : ℕ) : ℕ) : ℝ)) ≤ (((n : ℕ) : ℝ)) := by
     exact Nat.cast_le.mpr (Nat.sub_le n 1)
   have hc_integrable :
       IntegrableOn
-        (fun _x : ℝ => c)
+        (fun constantArgument : ℝ => c)
         (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)))
         volume :=
     (intervalIntegrable_iff_integrableOn_Ioc_of_le hle).mp
@@ -1906,10 +1988,16 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_Ioc_pred_self_leftE
         (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)))
         volume :=
     eulerMaclaurin_bernoulli_mul_integrableOn_Ioc
-      (fun _x : ℝ => c)
+      (fun constantArgument : ℝ => c)
       ((((n - 1 : ℕ) : ℕ) : ℝ))
       (((n : ℕ) : ℝ))
       hc_integrable
+  change
+    IntegrableOn
+      (fun x : ℝ =>
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * c)
+      (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)))
+      volume
   exact hmul
 
 /-- Local integrability of the nonconstant normalized logarithmic-phase kernel
@@ -1955,7 +2043,7 @@ theorem boundaryLineOnePointRealParam_Ioc_pred_self_normalizedKernel_integrable
     have hx_pos : 0 < x :=
       lt_of_lt_of_le (Nat.cast_pos.mpr hn_pred_pos) hx.1
     exact
-      (Complex.continuous_ofReal.continuousAt.inv
+      (Complex.continuous_ofReal.continuousAt.inv₀
         (by
           exact Complex.ofReal_ne_zero.mpr (ne_of_gt hx_pos))).continuousWithinAt
   have hconst_mul_inv :
@@ -1991,7 +2079,7 @@ theorem boundaryLineOnePointRealParam_Ioc_pred_self_normalizedKernel_integrable
         volume
         ((((n - 1 : ℕ) : ℕ) : ℝ))
         (((n : ℕ) : ℝ)) :=
-    hcont_kernel.intervalIntegrable
+    hcont_kernel.intervalIntegrable_of_Icc hle
   exact
     (intervalIntegrable_iff_integrableOn_Ioc_of_le hle).mp hinterval
 
@@ -2172,7 +2260,11 @@ theorem boundaryLineOnePointRealParam_one_le_two_sqrt_one_add_norm_mul_log_two_a
     exact le_trans hlog_lower_norm hlog_le
   have hproduct_ge_one :
       (1 : ℝ) ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + M) :=
-    one_le_mul hsqrt_ge_one hlog_lower_M
+    calc
+      (1 : ℝ) = 1 * 1 := (one_mul 1).symm
+      _ ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + M) :=
+        mul_le_mul hsqrt_ge_one hlog_lower_M zero_le_one
+          (le_trans zero_le_one hsqrt_ge_one)
   calc
     (1 : ℝ) ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + M) :=
       hproduct_ge_one
@@ -2230,8 +2322,13 @@ theorem boundaryLineOnePointRealParam_one_le_sqrt_one_add_norm_mul_log_two_add_p
         Real.log (2 + ‖t‖) ≤ Real.log (2 + M) :=
       Real.log_le_log harg_pos harg_le
     exact le_trans hlog_lower_norm hlog_le
-  exact one_le_mul hsqrt_ge_one hlog_lower_M
+  calc
+    (1 : ℝ) = 1 * 1 := (one_mul 1).symm
+    _ ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + M) :=
+      mul_le_mul hsqrt_ge_one hlog_lower_M zero_le_one
+        (le_trans zero_le_one hsqrt_ge_one)
 
 
+end
 end LFunctions
 end Boundary

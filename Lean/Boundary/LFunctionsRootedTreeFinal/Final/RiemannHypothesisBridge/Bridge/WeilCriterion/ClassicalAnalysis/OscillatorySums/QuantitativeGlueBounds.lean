@@ -43,7 +43,7 @@ theorem Real.mul_exp_neg_nonneg
     0 ≤ y * Real.exp (-y) := by
   exact mul_nonneg hy (Real.exp_pos (-y)).le
 
-theorem Real.half_nonneg
+theorem Real.nonneg_div_two
     {y : ℝ}
     (hy : 0 ≤ y) :
     0 ≤ y / 2 := by
@@ -53,18 +53,18 @@ theorem Real.half_mul_exp_neg_half_le_one
     {y : ℝ}
     (hy : 0 ≤ y) :
     (y / 2) * Real.exp (-(y / 2)) ≤ 1 := by
-  exact Real.mul_exp_neg_le_one (Real.half_nonneg hy)
+  exact Real.mul_exp_neg_le_one (Real.nonneg_div_two hy)
 
 theorem Real.sq_half_mul_exp_neg_half_le_one
     {y : ℝ}
     (hy : 0 ≤ y) :
     ((y / 2) * Real.exp (-(y / 2))) ^ 2 ≤ 1 := by
-  have hnonneg := Real.mul_exp_neg_nonneg (Real.half_nonneg hy)
+  have hnonneg := Real.mul_exp_neg_nonneg (Real.nonneg_div_two hy)
   have honeNonneg : (0 : ℝ) ≤ 1 := zero_le_one
   have hbase := Real.half_mul_exp_neg_half_le_one hy
   have hsquare := mul_self_le_mul_self hnonneg hbase
   exact le_trans
-    (le_of_eq (pow_two ((y / 2) * Real.exp (-(y / 2)))).symm)
+    (le_of_eq (pow_two ((y / 2) * Real.exp (-(y / 2)))))
     (le_trans hsquare (le_of_eq (one_mul 1)))
 
 theorem Real.neg_half_add_neg_half_eq_neg
@@ -88,7 +88,7 @@ theorem Real.exp_neg_half_sq_eq_exp_neg
     Real.exp (-(y / 2)) ^ 2 = Real.exp (-y) := by
   exact
     (pow_two (Real.exp (-(y / 2)))).trans
-      ((Real.exp_add (-(y / 2)) (-(y / 2))).trans
+      ((Real.exp_add (-(y / 2)) (-(y / 2))).symm.trans
         (congrArg Real.exp (Real.neg_half_add_neg_half_eq_neg y)))
 
 theorem Real.half_sq_eq_quarter_mul_sq
@@ -97,12 +97,14 @@ theorem Real.half_sq_eq_quarter_mul_sq
   have hdivPow : (y / 2) ^ 2 = y ^ 2 / 2 ^ 2 := div_pow y 2 2
   have htwoSq : (2 : ℝ) ^ 2 = 4 := by
     exact (pow_two (2 : ℝ)).trans
-      (show (2 : ℝ) * 2 = 4 from rfl)
+      ((Nat.cast_mul 2 2).symm.trans
+        (congrArg (fun n : ℕ => (n : ℝ)) (show 2 * 2 = 4 from rfl)))
   have hdivision : y ^ 2 / 4 = (1 / 4 : ℝ) * y ^ 2 := by
     exact
       (div_eq_mul_inv (y ^ 2) 4).trans
-        (mul_comm (y ^ 2) 4⁻¹).trans
+        ((mul_comm (y ^ 2) 4⁻¹).trans
         (congrArg (fun value : ℝ => value * y ^ 2) (one_div 4).symm)
+        )
   exact hdivPow.trans
     ((congrArg (fun value : ℝ => y ^ 2 / value) htwoSq).trans hdivision)
 
@@ -200,7 +202,9 @@ theorem Real.quarter_sq_exp_square_le_sixteen
         ((y / 4) ^ 2 * Real.exp (-(y / 4))) *
           ((y / 4) ^ 2 * Real.exp (-(y / 4))) :=
     pow_two _
-  have hright : (4 : ℝ) * 4 = 16 := rfl
+  have hright : (4 : ℝ) * 4 = 16 :=
+    (Nat.cast_mul 4 4).symm.trans
+      (congrArg (fun n : ℕ => (n : ℝ)) (show 4 * 4 = 16 from rfl))
   exact le_trans (le_of_eq hleft) (le_trans hsquare (le_of_eq hright))
 
 theorem Real.neg_quarter_add_neg_quarter_eq_neg_half
@@ -214,11 +218,13 @@ theorem Real.neg_quarter_add_neg_quarter_eq_neg_half
       _ = y / 2 := by
         have htwoNe : (2 : ℝ) ≠ 0 :=
           ne_of_gt (Nat.cast_pos.mpr (Nat.succ_pos 1))
-        have hfour : (4 : ℝ) = 2 * 2 := rfl
+        have hfour : (4 : ℝ) = 2 * 2 :=
+          ((Nat.cast_mul 2 2).symm.trans
+            (congrArg (fun n : ℕ => (n : ℝ)) (show 2 * 2 = 4 from rfl))).symm
         calc
           (2 * y) / 4 = (2 * y) / (2 * 2) :=
-            congrArg (fun value : ℝ => (2 * y) / value) hfour.symm
-          _ = y / 2 := div_mul_div_cancel_left₀ y 2 htwoNe
+            congrArg (fun value : ℝ => (2 * y) / value) hfour
+          _ = y / 2 := mul_div_mul_left y 2 htwoNe
   exact
     (neg_add (y / 4) (y / 4)).symm.trans
       (congrArg Neg.neg hquarter)
@@ -228,7 +234,7 @@ theorem Real.exp_neg_quarter_sq_eq_exp_neg_half
     Real.exp (-(y / 4)) ^ 2 = Real.exp (-(y / 2)) := by
   exact
     (pow_two (Real.exp (-(y / 4)))).trans
-      ((Real.exp_add (-(y / 4)) (-(y / 4))).trans
+      ((Real.exp_add (-(y / 4)) (-(y / 4))).symm.trans
         (congrArg Real.exp
           (Real.neg_quarter_add_neg_quarter_eq_neg_half y)))
 
@@ -238,8 +244,19 @@ theorem Real.quarter_pow_four_eq_inv_256_mul_pow_four
   have hdivPow : (y / 4) ^ 4 = y ^ 4 / 4 ^ 4 := div_pow y 4 4
   have hfourPow : (4 : ℝ) ^ 4 = 256 := by
     calc
-      (4 : ℝ) ^ 4 = 4 * 4 * 4 * 4 := rfl
-      _ = 256 := rfl
+      (4 : ℝ) ^ 4 = ((4 : ℝ) * 4) * (4 * 4) := by
+        exact (pow_succ (4 : ℝ) 3).trans
+          ((congrArg (fun value : ℝ => value * 4)
+            ((pow_succ (4 : ℝ) 2).trans
+              (congrArg (fun value : ℝ => value * 4) (pow_two 4)))).trans
+            (mul_assoc ((4 : ℝ) * 4) 4 4))
+      _ = 256 := by
+        have hfourSquare : (4 : ℝ) * 4 = 16 :=
+          (Nat.cast_mul 4 4).symm.trans
+            (congrArg (fun n : ℕ => (n : ℝ)) (show 4 * 4 = 16 from rfl))
+        exact (congrArg₂ (fun p q : ℝ => p * q) hfourSquare hfourSquare).trans
+          ((Nat.cast_mul 16 16).symm.trans
+            (congrArg (fun n : ℕ => (n : ℝ)) (show 16 * 16 = 256 from rfl)))
   have hdivision : y ^ 4 / 256 = (1 / 256 : ℝ) * y ^ 4 := by
     exact
       (div_eq_mul_inv (y ^ 4) 256).trans
@@ -252,12 +269,14 @@ theorem Real.pow_four_mul_exp_neg_le_two_fifty_six
     {y : ℝ}
     (hy : 0 ≤ y) :
     y ^ 4 * Real.exp (-y) ≤ 256 := by
-  have hbase := Real.sq_mul_exp_neg_le_four (Real.half_nonneg hy)
+  have hbase := Real.sq_mul_exp_neg_le_four (Real.nonneg_div_two hy)
   have hbaseNonneg :
       0 ≤ (y / 2) ^ 2 * Real.exp (-(y / 2)) :=
     mul_nonneg (sq_nonneg _) (Real.exp_pos _).le
   have hsquare := mul_self_le_mul_self hbaseNonneg hbase
-  have hright : (4 : ℝ) * 4 = 16 := rfl
+  have hright : (4 : ℝ) * 4 = 16 :=
+    (Nat.cast_mul 4 4).symm.trans
+      (congrArg (fun n : ℕ => (n : ℝ)) (show 4 * 4 = 16 from rfl))
   have hsquareBound :
       ((y / 2) ^ 2 * Real.exp (-(y / 2))) ^ 2 ≤ 16 :=
     le_trans
@@ -266,7 +285,9 @@ theorem Real.pow_four_mul_exp_neg_le_two_fifty_six
   have hhalfPowFour :
       (y / 2) ^ 4 = (1 / 16 : ℝ) * y ^ 4 := by
     have hdivPow : (y / 2) ^ 4 = y ^ 4 / 2 ^ 4 := div_pow y 2 4
-    have htwoPow : (2 : ℝ) ^ 4 = 16 := rfl
+    have htwoPow : (2 : ℝ) ^ 4 = 16 := by
+      exact (Nat.cast_pow 2 4).symm.trans
+        (congrArg (fun n : ℕ => (n : ℝ)) (show 2 ^ 4 = 16 from rfl))
     exact hdivPow.trans
       ((congrArg (fun value : ℝ => y ^ 4 / value) htwoPow).trans
         ((div_eq_mul_inv (y ^ 4) 16).trans
@@ -278,13 +299,14 @@ theorem Real.pow_four_mul_exp_neg_le_two_fifty_six
     have hmulPow := mul_pow
       ((y / 2) ^ 2) (Real.exp (-(y / 2))) 2
     have hpowPower : ((y / 2) ^ 2) ^ 2 = (y / 2) ^ 4 :=
-      (pow_mul (y / 2) 2 2).trans rfl
+      (pow_mul (y / 2) 2 2).symm.trans
+        (congrArg (fun n : ℕ => (y / 2) ^ n) (show 2 * 2 = 4 from rfl))
     exact hmulPow.trans
       ((congrArg₂ (fun first second : ℝ => first * second)
         hpowPower (Real.exp_neg_half_sq_eq_exp_neg y)).trans
         ((congrArg
           (fun value : ℝ => value * Real.exp (-y)) hhalfPowFour).trans
-          (mul_assoc (1 / 16 : ℝ) (y ^ 4) (Real.exp (-y))))
+          (mul_assoc (1 / 16 : ℝ) (y ^ 4) (Real.exp (-y)))))
   have hquarter :
       (1 / 16 : ℝ) * (y ^ 4 * Real.exp (-y)) ≤ 16 :=
     le_trans (le_of_eq hnormalized.symm) hsquareBound
@@ -303,7 +325,9 @@ theorem Real.pow_four_mul_exp_neg_le_two_fifty_six
         ((congrArg
           (fun value : ℝ => value * (y ^ 4 * Real.exp (-y))) hunit).trans
           (one_mul _))
-  have hrightScaled : (16 : ℝ) * 16 = 256 := rfl
+  have hrightScaled : (16 : ℝ) * 16 = 256 :=
+    (Nat.cast_mul 16 16).symm.trans
+      (congrArg (fun n : ℕ => (n : ℝ)) (show 16 * 16 = 256 from rfl))
   exact le_trans (le_of_eq hcancel.symm)
     (le_trans hscaled (le_of_eq hrightScaled))
 

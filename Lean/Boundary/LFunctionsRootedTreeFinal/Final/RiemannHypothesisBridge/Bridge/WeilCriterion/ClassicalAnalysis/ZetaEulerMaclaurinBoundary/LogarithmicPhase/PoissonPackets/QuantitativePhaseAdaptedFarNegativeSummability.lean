@@ -16,8 +16,21 @@ noncomputable section
 theorem Complex.summable_positiveIntegerInverseSquare :
     Summable (fun k : Complex.logarithmicPhasePoissonPositiveTailModes =>
       |((k : ℤ) : ℝ)| ^ (-2 : ℝ)) := by
-  exact Complex.summable_scaled_integer_frequency_inverse_square_on_set
-    1 Complex.logarithmicPhasePoissonPositiveTailModes
+  have hscaled :=
+    Complex.summable_scaled_integer_frequency_inverse_square_on_set
+      1 Complex.logarithmicPhasePoissonPositiveTailModes
+  have hfunction :
+      (fun k : Complex.logarithmicPhasePoissonPositiveTailModes =>
+        (1 : ℝ) * |((k : ℤ) : ℝ)| ^ (-2 : ℝ)) =
+      (fun k : Complex.logarithmicPhasePoissonPositiveTailModes =>
+        |((k : ℤ) : ℝ)| ^ (-2 : ℝ)) := by
+    exact funext (fun k =>
+      one_mul (|((k : ℤ) : ℝ)| ^ (-2 : ℝ)))
+  exact Eq.subst
+    (motive := fun function :
+      Complex.logarithmicPhasePoissonPositiveTailModes → ℝ =>
+      Summable function)
+    hfunction hscaled
 
 theorem Complex.summable_logarithmicPhaseFarNegativeIntegerInverseSquare
     (t : ℝ) (a : ℤ) :
@@ -30,9 +43,9 @@ theorem Complex.summable_logarithmicPhaseFarNegativeIntegerInverseSquare
         |(((e m : Complex.logarithmicPhasePoissonPositiveTailModes) : ℤ) : ℝ)| ^
           (-2 : ℝ)) =
       Complex.logarithmicPhaseFarNegativeIntegerInverseSquare t a := by
-    funext m
-    exact (Complex.logarithmicPhaseFarNegativeIntegerInverseSquare_eq_positive
-      t a m).symm
+    exact funext (fun m =>
+      (Complex.logarithmicPhaseFarNegativeIntegerInverseSquare_eq_positive
+        t a m).symm)
   exact Eq.subst
     (motive := fun function :
       Complex.logarithmicPhasePoissonFarNegativeModes t a → ℝ =>

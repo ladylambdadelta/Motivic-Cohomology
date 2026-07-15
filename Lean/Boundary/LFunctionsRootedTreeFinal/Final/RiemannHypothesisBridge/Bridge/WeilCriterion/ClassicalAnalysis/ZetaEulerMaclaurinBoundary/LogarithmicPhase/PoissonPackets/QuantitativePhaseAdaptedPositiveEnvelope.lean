@@ -23,11 +23,13 @@ theorem Complex.logarithmicPhasePositiveModeInverseSquareCoefficient_nonneg
     Complex.logarithmicPhaseAdaptedCurvatureUpper_nonneg t _ hleft
   have hthird :=
     Complex.logarithmicPhaseAdaptedThirdDerivativeUpper_nonneg t _ hleft
-  have hfirst : 0 ≤ (48 : ℝ) := by exact OfNat.zero_le 48
+  have hfortyEight : 0 ≤ (48 : ℝ) := Nat.cast_nonneg 48
+  have hsix : 0 ≤ (6 : ℝ) := Nat.cast_nonneg 6
+  have hthree : 0 ≤ (3 : ℝ) := Nat.cast_nonneg 3
   have hsecond : 0 ≤ 6 *
       Complex.logarithmicPhaseAdaptedCurvatureUpper t
         (Complex.logarithmicPhaseQuantitativeSupportLeft a) :=
-    mul_nonneg (by exact OfNat.zero_le 6) hcurvature
+    mul_nonneg hsix hcurvature
   have hthirdTerm : 0 ≤
       Complex.logarithmicPhaseQuantitativeSupportLength a b *
         Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
@@ -38,9 +40,10 @@ theorem Complex.logarithmicPhasePositiveModeInverseSquareCoefficient_nonneg
         (Complex.logarithmicPhaseAdaptedCurvatureUpper t
           (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2 :=
     mul_nonneg
-      (mul_nonneg (by exact OfNat.zero_le 3) hlength)
+      (mul_nonneg hthree hlength)
       (sq_nonneg _)
-  exact add_nonneg (add_nonneg (add_nonneg hfirst hsecond) hthirdTerm) hfourth
+  exact add_nonneg
+    (add_nonneg (add_nonneg hfortyEight hsecond) hthirdTerm) hfourth
 
 theorem Complex.logarithmicPhasePositiveModeClosedMajorant_le_termwiseSquare
     (t : ℝ) (a b m : ℤ)
@@ -68,10 +71,12 @@ theorem Complex.logarithmicPhasePositiveModeClosedMajorant_le_termwiseSquare
     Complex.logarithmicPhaseAdaptedCurvatureUpper_nonneg t _ hleft
   have hthird :=
     Complex.logarithmicPhaseAdaptedThirdDerivativeUpper_nonneg t _ hleft
+  have hsix : 0 ≤ (6 : ℝ) := Nat.cast_nonneg 6
+  have hthree : 0 ≤ (3 : ℝ) := Nat.cast_nonneg 3
   have hsecondNumerator : 0 ≤ 6 *
       Complex.logarithmicPhaseAdaptedCurvatureUpper t
         (Complex.logarithmicPhaseQuantitativeSupportLeft a) :=
-    mul_nonneg (by exact OfNat.zero_le 6) hcurvature
+    mul_nonneg hsix hcurvature
   have hthirdNumerator : 0 ≤
       Complex.logarithmicPhaseQuantitativeSupportLength a b *
         Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
@@ -82,7 +87,7 @@ theorem Complex.logarithmicPhasePositiveModeClosedMajorant_le_termwiseSquare
         (Complex.logarithmicPhaseAdaptedCurvatureUpper t
           (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2 :=
     mul_nonneg
-      (mul_nonneg (by exact OfNat.zero_le 3) hlength)
+      (mul_nonneg hthree hlength)
       (sq_nonneg _)
   have hsecond := Real.div_pow_three_le_div_pow_two_of_one_le
     hsecondNumerator hgap

@@ -42,7 +42,13 @@ theorem Complex.modeRangeLower_floor_baseline
       2 * Real.pi *
           (Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ) ≤
         -‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a :=
-    Eq.subst hleftProduct.symm (Eq.subst hq.symm hmul)
+    calc
+      2 * Real.pi *
+          (Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ) =
+        (Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ) *
+          (2 * Real.pi) := hleftProduct.symm
+      _ ≤ q * (2 * Real.pi) := hmul
+      _ = -‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a := hq
   have hneg := neg_le_neg hnormalized
   have hleftNeg :
       -(2 * Real.pi *
@@ -54,11 +60,21 @@ theorem Complex.modeRangeLower_floor_baseline
   have hrightNeg :
       -(-‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a) =
         ‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a := by
-    exact Eq.trans
-      (neg_div (-‖t‖) (Real.integerBlockCutoffSupportLeftEndpoint a))
-      (congrArg (fun value : ℝ => value /
-        Real.integerBlockCutoffSupportLeftEndpoint a) (neg_neg ‖t‖))
-  exact Eq.subst hrightNeg.symm (Eq.subst hleftNeg.symm hneg)
+    have hnegativeDivision :
+        -‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a =
+          -(‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a) :=
+      neg_div (Real.integerBlockCutoffSupportLeftEndpoint a) ‖t‖
+    exact Eq.trans (congrArg Neg.neg hnegativeDivision)
+      (neg_neg (‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a))
+  calc
+    ‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a =
+        -(-‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a) :=
+      hrightNeg.symm
+    _ ≤ -(2 * Real.pi *
+        (Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ)) := hneg
+    _ = 2 * Real.pi *
+        (-(Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ)) :=
+      hleftNeg
 
 theorem Complex.modeRangeLower_quantitative_baseline
     (t : ℝ) (a : ℤ)
@@ -87,11 +103,34 @@ theorem Complex.farNegative_angular_decomposition
         -(Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ) +
           ((Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ) -
             (m : ℝ)) := by
-    exact Eq.trans
-      (Eq.symm (zero_add (-(m : ℝ))))
-      (congrArg (fun value : ℝ => value + -(m : ℝ))
-        (Eq.symm (add_neg_cancel
-          (Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ)))).symm
+    have hzero :
+        (0 : ℝ) =
+          -(Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ) +
+            (Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ) :=
+      (neg_add_cancel
+        (Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ)).symm
+    calc
+      -(m : ℝ) = 0 + -(m : ℝ) := (zero_add (-(m : ℝ))).symm
+      _ =
+          (-(Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ) +
+            (Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ)) +
+              -(m : ℝ) :=
+        congrArg (fun value : ℝ => value + -(m : ℝ)) hzero
+      _ =
+          -(Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ) +
+            ((Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ) +
+              -(m : ℝ)) :=
+        add_assoc _ _ _
+      _ =
+          -(Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ) +
+            ((Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ) -
+              (m : ℝ)) :=
+        congrArg
+          (fun value : ℝ =>
+            -(Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ) + value)
+          (sub_eq_add_neg
+            (Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ)
+            (m : ℝ)).symm
   exact Eq.trans (congrArg (fun value : ℝ => 2 * Real.pi * value) hinside)
     (Eq.trans (mul_add _ _ _)
       (congrArg (fun value : ℝ =>
@@ -110,8 +149,6 @@ theorem Complex.farNegative_distance_gap_le
   unfold Complex.logarithmicPhaseLeftInactiveGap
   have hbaseline := Complex.modeRangeLower_quantitative_baseline t a ha
   have hdecompose := Complex.farNegative_angular_decomposition t a m
-  have hsubtract := sub_le_sub_right hbaseline
-    (2 * Real.pi * (-(m : ℝ)))
   have hnormalize :
       2 * Real.pi * (-(m : ℝ)) -
           2 * Real.pi *
@@ -126,7 +163,16 @@ theorem Complex.farNegative_distance_gap_le
       (add_sub_cancel_left _ _)
   have horiented := sub_le_sub_left hbaseline
     (2 * Real.pi * (-(m : ℝ)))
-  exact Eq.subst hnormalize.symm horiented
+  calc
+    2 * Real.pi *
+        (Complex.logarithmicPhaseFarNegativeDistance t a m : ℝ) =
+      2 * Real.pi * (-(m : ℝ)) -
+        2 * Real.pi *
+          (-(Complex.logarithmicPhasePoissonModeRangeLower t a : ℝ)) :=
+      hnormalize.symm
+    _ ≤ 2 * Real.pi * (-(m : ℝ)) -
+        ‖t‖ / Complex.logarithmicPhaseQuantitativeSupportLeft a :=
+      horiented
 
 end
 end LFunctions

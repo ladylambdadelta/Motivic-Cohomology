@@ -32,10 +32,10 @@ theorem Real.shiftedReciprocalPowerKernel_succ_eq_affine_rpow
       (congrArg (fun value : ℝ => A + value) (mul_add c x 1))
       (Eq.trans
         (congrArg (fun value : ℝ => A + (c * x + value)) (mul_one c))
-        (Eq.trans (add_assoc A (c * x) c)
+        (Eq.trans (add_assoc A (c * x) c).symm
           (Eq.trans
             (congrArg (fun value : ℝ => value + c) (add_comm A (c * x)))
-            (add_assoc (c * x) A c).symm)))
+            (add_assoc (c * x) A c))))
   have hnonneg : 0 ≤ c * x + (A + c) := by
     have hcx : 0 ≤ c * x := mul_nonneg hc.le hx
     have hAc : 0 ≤ A + c := add_nonneg hA hc.le
@@ -50,10 +50,12 @@ theorem Real.mul_integral_shiftedReciprocalPowerKernel_eq_rpow
     c * (∫ x in (0 : ℝ)..N,
       Real.shiftedReciprocalPowerKernel A c p (x + 1)) =
       ∫ y in A + c..c * N + (A + c), y ^ (-p) := by
-  have hpointwise := intervalIntegral.integral_congr
+  have hpointwise := intervalIntegral.integral_congr (μ := MeasureTheory.volume)
     (fun x hx =>
+      have hxIcc : x ∈ Set.Icc (0 : ℝ) N :=
+        (Set.uIcc_of_le hN).symm ▸ hx
       Real.shiftedReciprocalPowerKernel_succ_eq_affine_rpow
-        A c p x hA hc hx.1)
+        A c p x hA hc hxIcc.1)
   have hsubstitution := intervalIntegral.mul_integral_comp_mul_add
     (a := (0 : ℝ)) (b := N) (c := c)
     (f := fun y : ℝ => y ^ (-p)) (A + c)
@@ -81,22 +83,26 @@ theorem Real.integral_shiftedReciprocalPowerKernel_eq_rpow_endpoints
   have hrightPos : 0 < c * N + (A + c) :=
     add_pos_of_nonneg_of_pos (mul_nonneg hc.le hN) hleftPos
   have hzeroNotMem : (0 : ℝ) ∉
-      [[A + c, c * N + (A + c)]] := by
+      Set.uIcc (A + c) (c * N + (A + c)) := by
     have horder : A + c ≤ c * N + (A + c) :=
       le_add_of_nonneg_left (mul_nonneg hc.le hN)
     have hIcc := Set.uIcc_of_le horder
     intro hzero
-    have hmem := hIcc.mp hzero
+    have hmem : (0 : ℝ) ∈
+        Set.Icc (A + c) (c * N + (A + c)) := by
+      exact Eq.subst
+        (motive := fun interval : Set ℝ => (0 : ℝ) ∈ interval)
+        hIcc hzero
     exact (not_le_of_gt hleftPos) hmem.1
   have hexponent : -p ≠ -1 := by
     intro heq
     have hneg := neg_inj.mp heq
     exact hp hneg
-  have hintegral := intervalIntegral.integral_rpow
+  have hintegral := integral_rpow
     (a := A + c) (b := c * N + (A + c)) (r := -p)
     (Or.inr ⟨hexponent, hzeroNotMem⟩)
   have hplus : -p + 1 = 1 - p := by
-    exact (sub_eq_add_neg 1 p).symm.trans (add_comm (-p) 1)
+    exact (add_comm (-p) 1).trans (sub_eq_add_neg 1 p).symm
   have hnormalize := congrArg₂
     (fun numerator denominator : ℝ => numerator / denominator)
     (congrArg₂ (fun first second : ℝ => first - second)

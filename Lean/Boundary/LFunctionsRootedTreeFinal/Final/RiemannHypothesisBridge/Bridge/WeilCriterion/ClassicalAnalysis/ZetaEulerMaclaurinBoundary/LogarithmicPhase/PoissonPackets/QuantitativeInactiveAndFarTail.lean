@@ -71,8 +71,10 @@ theorem Complex.logarithmicPhaseQuantitativeOutsideRangeClosedMajorant_nonneg
       0 ≤ Complex.logarithmicPhaseQuantitativeClosedSecondDerivativeMassBound
         t a b / (2 * Real.pi) ^ 2 :=
     div_nonneg hmass hdenominator
+  have habsolute : (0 : ℝ) ≤ |(m : ℝ)| :=
+    abs_nonneg (m : ℝ)
   have hfrequency : (0 : ℝ) ≤ |(m : ℝ)| ^ (-2 : ℝ) :=
-    Real.rpow_nonneg _ _
+    Real.rpow_nonneg habsolute (-2 : ℝ)
   exact mul_nonneg hcoefficient hfrequency
 
 theorem Complex.logarithmicPhaseQuantitativeOutsideRangeClosedBudget_nonneg
@@ -172,12 +174,25 @@ theorem Complex.logarithmicPhaseQuantitativeOutsideRangePacketBudget_le_closed
       Complex.logarithmicPhaseQuantitativeOutsideRangeClosedBudget t a b := by
   unfold Complex.logarithmicPhaseQuantitativeOutsideRangePacketBudget
   unfold Complex.logarithmicPhaseQuantitativeOutsideRangeClosedBudget
-  exact tsum_le_tsum
-    (fun m =>
+  have hpacketSummable :=
+    Complex.summable_norm_logarithmicPhaseQuantitativeOutsideRangePacket
+      t a b ha hab
+  have hmajorantSummable :=
+    Complex.summable_logarithmicPhaseQuantitativeOutsideRangeClosedMajorant
+      t a b
+  have hpointwise :
+      ∀ m : {m : ℤ //
+          m ∉ Complex.logarithmicPhasePoissonModeRange t a},
+        ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+          Complex.logarithmicPhaseQuantitativeOutsideRangeClosedMajorant
+            t a b m :=
+    fun m =>
       Complex.norm_logarithmicPhaseQuantitativeOutsideRangePacket_le_closed
-        t a b ha hab m)
-    (Complex.summable_logarithmicPhaseQuantitativeOutsideRangeClosedMajorant
-      t a b)
+        t a b ha hab m
+  exact tsum_le_tsum
+    hpointwise
+    hpacketSummable
+    hmajorantSummable
 
 theorem Complex.logarithmicPhaseQuantitativeInRangeInactiveBudget_le_card_mul
     (t : ℝ) (a b : ℤ) (C : ℝ)
@@ -270,15 +285,20 @@ theorem Complex.norm_logarithmicPhaseQuantitativeOutsideRangePacket_tsum_le_clos
         m ∉ Complex.logarithmicPhasePoissonModeRange t a},
       Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
       Complex.logarithmicPhaseQuantitativeOutsideRangeClosedBudget t a b := by
-  have hsummable :=
+  have hmajorantSummable :=
     Complex.summable_logarithmicPhaseQuantitativeOutsideRangeClosedMajorant
       t a b
-  have hpointwise :=
-    fun m : {m : ℤ // m ∉ Complex.logarithmicPhasePoissonModeRange t a} =>
+  have hpointwise :
+      ∀ m : {m : ℤ //
+          m ∉ Complex.logarithmicPhasePoissonModeRange t a},
+        ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+          Complex.logarithmicPhaseQuantitativeOutsideRangeClosedMajorant
+            t a b m :=
+    fun m =>
       Complex.norm_logarithmicPhaseQuantitativeOutsideRangePacket_le_closed
         t a b ha hab m
   unfold Complex.logarithmicPhaseQuantitativeOutsideRangeClosedBudget
-  exact tsum_norm_le hsummable hpointwise
+  exact tsum_of_norm_bounded hmajorantSummable.hasSum hpointwise
 
 end
 end LFunctions

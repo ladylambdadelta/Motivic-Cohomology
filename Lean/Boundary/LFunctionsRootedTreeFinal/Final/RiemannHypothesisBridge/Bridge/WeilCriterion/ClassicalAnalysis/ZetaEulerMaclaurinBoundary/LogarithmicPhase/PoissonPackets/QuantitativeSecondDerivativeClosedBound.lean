@@ -42,14 +42,17 @@ theorem Complex.logarithmicPhaseQuantitativeMixedVariationUpper_le_closed
       2 * (‖t‖ / Complex.logarithmicPhaseQuantitativeSupportLeft a) * 2 =
         4 * (‖t‖ / Complex.logarithmicPhaseQuantitativeSupportLeft a) := by
     let ratio := ‖t‖ / Complex.logarithmicPhaseQuantitativeSupportLeft a
+    have htwo_mul_two : (2 : ℝ) * 2 = 4 :=
+      (Nat.cast_mul 2 2).symm.trans
+        (congrArg (fun n : ℕ => (n : ℝ))
+          (show 2 * 2 = 4 from rfl))
     calc
-      2 * ratio * 2 = (2 * 2) * ratio := by
-        exact (mul_assoc 2 ratio 2).symm.trans
-          (congrArg (fun value : ℝ => 2 * value) (mul_comm ratio 2)).trans
-          (mul_assoc 2 2 ratio)
+      2 * ratio * 2 = 2 * (ratio * 2) := mul_assoc 2 ratio 2
+      _ = 2 * (2 * ratio) :=
+        congrArg (fun value : ℝ => 2 * value) (mul_comm ratio 2)
+      _ = (2 * 2) * ratio := (mul_assoc 2 2 ratio).symm
       _ = 4 * ratio :=
-        congrArg (fun value : ℝ => value * ratio)
-          (show (2 : ℝ) * 2 = 4 from rfl)
+        congrArg (fun value : ℝ => value * ratio) htwo_mul_two
   exact le_trans hmul (le_of_eq hnormalize)
 
 theorem Complex.logarithmicPhaseQuantitativeSecondDerivativeMassUpper_le_closed
@@ -124,8 +127,9 @@ theorem Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant_le_clos
       t a b ha hab
   have hdenominatorNonneg : (0 : ℝ) ≤ (2 * Real.pi) ^ 2 := sq_nonneg _
   have hdivision := div_le_div_of_nonneg_right hmass hdenominatorNonneg
+  have habsoluteNonneg : (0 : ℝ) ≤ |(m : ℝ)| := abs_nonneg _
   have hpower : (0 : ℝ) ≤ |(m : ℝ)| ^ (-2 : ℝ) :=
-    Real.rpow_nonneg _ _
+    Real.rpow_nonneg habsoluteNonneg _
   exact mul_le_mul_of_nonneg_right hdivision hpower
 
 theorem Complex.norm_logarithmicPhaseQuantitativeBlockFourierPacket_le_closed

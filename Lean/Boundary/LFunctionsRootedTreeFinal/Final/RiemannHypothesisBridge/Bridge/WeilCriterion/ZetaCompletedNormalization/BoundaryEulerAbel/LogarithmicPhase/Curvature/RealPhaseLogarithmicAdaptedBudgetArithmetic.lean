@@ -18,22 +18,42 @@ theorem Real.five_sixteen_mul_eq_eighty
     (scale : ℝ) :
     16 * scale + 16 * scale + 16 * scale + 16 * scale + 16 * scale =
       80 * scale := by
+  have hsixteen_add_sixteen : (16 : ℝ) + 16 = 32 := by
+    have hnat : (16 + 16 : ℕ) = 32 := rfl
+    exact Eq.trans (Nat.cast_add 16 16).symm
+      (Eq.trans (congrArg (fun value : ℕ => (value : ℝ)) hnat)
+        Nat.cast_ofNat)
+  have hthirty_two_add_sixteen : (32 : ℝ) + 16 = 48 := by
+    have hnat : (32 + 16 : ℕ) = 48 := rfl
+    exact Eq.trans (Nat.cast_add 32 16).symm
+      (Eq.trans (congrArg (fun value : ℕ => (value : ℝ)) hnat)
+        Nat.cast_ofNat)
+  have hforty_eight_add_sixteen : (48 : ℝ) + 16 = 64 := by
+    have hnat : (48 + 16 : ℕ) = 64 := rfl
+    exact Eq.trans (Nat.cast_add 48 16).symm
+      (Eq.trans (congrArg (fun value : ℕ => (value : ℝ)) hnat)
+        Nat.cast_ofNat)
+  have hsixty_four_add_sixteen : (64 : ℝ) + 16 = 80 := by
+    have hnat : (64 + 16 : ℕ) = 80 := rfl
+    exact Eq.trans (Nat.cast_add 64 16).symm
+      (Eq.trans (congrArg (fun value : ℕ => (value : ℝ)) hnat)
+        Nat.cast_ofNat)
   have htwo : 16 * scale + 16 * scale = 32 * scale := by
     exact Eq.trans (add_mul 16 16 scale).symm
       (congrArg (fun value : ℝ => value * scale)
-        (show (16 : ℝ) + 16 = 32 from rfl))
+        hsixteen_add_sixteen)
   have hthree : 32 * scale + 16 * scale = 48 * scale := by
     exact Eq.trans (add_mul 32 16 scale).symm
       (congrArg (fun value : ℝ => value * scale)
-        (show (32 : ℝ) + 16 = 48 from rfl))
+        hthirty_two_add_sixteen)
   have hfour : 48 * scale + 16 * scale = 64 * scale := by
     exact Eq.trans (add_mul 48 16 scale).symm
       (congrArg (fun value : ℝ => value * scale)
-        (show (48 : ℝ) + 16 = 64 from rfl))
+        hforty_eight_add_sixteen)
   have hfive : 64 * scale + 16 * scale = 80 * scale := by
     exact Eq.trans (add_mul 64 16 scale).symm
       (congrArg (fun value : ℝ => value * scale)
-        (show (64 : ℝ) + 16 = 80 from rfl))
+        hsixty_four_add_sixteen)
   exact Eq.trans
     (congrArg (fun value : ℝ => value + 16 * scale + 16 * scale + 16 * scale)
       htwo)
@@ -49,13 +69,13 @@ theorem Complex.logarithmicPhaseAdaptedThreeComponentBudget_le_eighty
       Complex.logarithmicPhaseQuantitativeActiveWindowBudget t a b radius ≤
         16 * Real.logarithmicPhaseRefinedScale t b)
     (hcrossing :
-      Complex.logarithmicPhaseQuantitativeCrossingBudget t a b radius ≤
+      Complex.logarithmicPhaseAdaptedCrossingBudget t a b radius ≤
         16 * Real.logarithmicPhaseRefinedScale t b)
     (hinactive :
-      Complex.logarithmicPhaseQuantitativeInRangeInactiveBudget t a b ≤
+      Complex.logarithmicPhaseAdaptedInRangeInactiveBudget t a b ≤
         16 * Real.logarithmicPhaseRefinedScale t b)
     (hnegative :
-      Complex.logarithmicPhaseAdaptedFarNegativeTailBudget t a b ≤
+      Complex.logarithmicPhaseEnhancedFarNegativeTailBudget t a b ≤
         16 * Real.logarithmicPhaseRefinedScale t b)
     (hpositive :
       Complex.logarithmicPhaseEnhancedPositiveTailBudget t a b ≤
@@ -71,7 +91,34 @@ theorem Complex.logarithmicPhaseAdaptedThreeComponentBudget_le_eighty
   have hsum₄ := add_le_add hsum₃ hpositive
   have harithmetic := Real.five_sixteen_mul_eq_eighty
     (Real.logarithmicPhaseRefinedScale t b)
-  exact le_trans hsum₄ (le_of_eq harithmetic)
+  have hreassociate :
+      (Complex.logarithmicPhaseQuantitativeActiveWindowBudget t a b radius +
+          Complex.logarithmicPhaseAdaptedCrossingBudget t a b radius) +
+          (Complex.logarithmicPhaseAdaptedInRangeInactiveBudget t a b +
+            (Complex.logarithmicPhaseEnhancedFarNegativeTailBudget t a b +
+              Complex.logarithmicPhaseEnhancedPositiveTailBudget t a b)) =
+        (((Complex.logarithmicPhaseQuantitativeActiveWindowBudget t a b radius +
+            Complex.logarithmicPhaseAdaptedCrossingBudget t a b radius) +
+            Complex.logarithmicPhaseAdaptedInRangeInactiveBudget t a b) +
+            Complex.logarithmicPhaseEnhancedFarNegativeTailBudget t a b) +
+          Complex.logarithmicPhaseEnhancedPositiveTailBudget t a b := by
+    exact Eq.trans
+      (add_assoc
+        (Complex.logarithmicPhaseQuantitativeActiveWindowBudget t a b radius +
+          Complex.logarithmicPhaseAdaptedCrossingBudget t a b radius)
+        (Complex.logarithmicPhaseAdaptedInRangeInactiveBudget t a b)
+        (Complex.logarithmicPhaseEnhancedFarNegativeTailBudget t a b +
+          Complex.logarithmicPhaseEnhancedPositiveTailBudget t a b)).symm
+      (add_assoc
+        ((Complex.logarithmicPhaseQuantitativeActiveWindowBudget t a b radius +
+          Complex.logarithmicPhaseAdaptedCrossingBudget t a b radius) +
+          Complex.logarithmicPhaseAdaptedInRangeInactiveBudget t a b)
+        (Complex.logarithmicPhaseEnhancedFarNegativeTailBudget t a b)
+        (Complex.logarithmicPhaseEnhancedPositiveTailBudget t a b)).symm
+  have hleftAssociated := le_trans hsum₄ (le_of_eq harithmetic)
+  exact Eq.subst (motive := fun value : ℝ =>
+      value ≤ 80 * Real.logarithmicPhaseRefinedScale t b)
+    hreassociate.symm hleftAssociated
 
 theorem Complex.logarithmicPhaseQuantitativeIntegerBlock_norm_le_eighty_adapted
     (t : ℝ)
@@ -83,13 +130,13 @@ theorem Complex.logarithmicPhaseQuantitativeIntegerBlock_norm_le_eighty_adapted
       Complex.logarithmicPhaseQuantitativeActiveWindowBudget t a b radius ≤
         16 * Real.logarithmicPhaseRefinedScale t b)
     (hcrossing :
-      Complex.logarithmicPhaseQuantitativeCrossingBudget t a b radius ≤
+      Complex.logarithmicPhaseAdaptedCrossingBudget t a b radius ≤
         16 * Real.logarithmicPhaseRefinedScale t b)
     (hinactive :
-      Complex.logarithmicPhaseQuantitativeInRangeInactiveBudget t a b ≤
+      Complex.logarithmicPhaseAdaptedInRangeInactiveBudget t a b ≤
         16 * Real.logarithmicPhaseRefinedScale t b)
     (hnegative :
-      Complex.logarithmicPhaseAdaptedFarNegativeTailBudget t a b ≤
+      Complex.logarithmicPhaseEnhancedFarNegativeTailBudget t a b ≤
         16 * Real.logarithmicPhaseRefinedScale t b)
     (hpositive :
       Complex.logarithmicPhaseEnhancedPositiveTailBudget t a b ≤

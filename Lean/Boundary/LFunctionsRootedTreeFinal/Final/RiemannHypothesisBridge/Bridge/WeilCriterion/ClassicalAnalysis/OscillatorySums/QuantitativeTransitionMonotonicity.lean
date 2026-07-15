@@ -49,24 +49,30 @@ theorem Real.smoothTransitionDerivative_numerator_eq
       have hnegative : -(gx * dx - gx * dy) = -gx * dx + gx * dy := by
         exact
           (neg_sub (gx * dx) (gx * dy)).trans
-            (congrArg₂ (fun first second : ℝ => first + second)
-              (neg_mul gx dx) rfl)
+            ((sub_eq_add_neg (gx * dy) (gx * dx)).trans
+              ((congrArg
+                (fun value : ℝ => gx * dy + value)
+                (neg_mul gx dx).symm).trans
+                (add_comm (gx * dy) (-gx * dx))))
       exact congrArg (fun value : ℝ => (dx * gx + dx * gy) + value)
         hnegative
     _ = ((dx * gx) + (-gx * dx)) + (dx * gy + gx * dy) := by
       exact
-        (add_assoc (dx * gx) (dx * gy) (-gx * dx + gx * dy)).trans
+        (add_assoc
+          (dx * gx) (dx * gy) (-gx * dx + gx * dy)).trans
           ((congrArg
             (fun value : ℝ => dx * gx + value)
             ((add_assoc (dx * gy) (-gx * dx) (gx * dy)).symm.trans
-              (congrArg
+              ((congrArg
                 (fun value : ℝ => value + gx * dy)
-                (add_comm (dx * gy) (-gx * dx))))).trans
-            ((add_assoc (dx * gx) (-gx * dx) (dx * gy + gx * dy)).symm))
+                (add_comm (dx * gy) (-gx * dx))).trans
+                (add_assoc (-gx * dx) (dx * gy) (gx * dy))))).trans
+            (add_assoc (dx * gx) (-gx * dx) (dx * gy + gx * dy)).symm)
     _ = 0 + (dx * gy + gx * dy) :=
       congrArg (fun value : ℝ => value + (dx * gy + gx * dy))
         ((congrArg (fun value : ℝ => dx * gx + value)
-          (congrArg Neg.neg (mul_comm gx dx))).trans
+          ((neg_mul gx dx).trans
+            (congrArg Neg.neg (mul_comm gx dx)))).trans
           (add_neg_cancel (dx * gx)))
     _ = dx * gy + gx * dy := zero_add _
 
@@ -99,14 +105,14 @@ theorem Real.smoothTransitionDerivative_nonneg
 
 theorem Real.deriv_smoothTransition_nonneg
     (x : ℝ) :
-    0 ≤ deriv smoothTransition x := by
+    0 ≤ deriv Real.smoothTransition x := by
   exact Eq.subst
     (motive := fun value : ℝ => 0 ≤ value)
     (Real.deriv_smoothTransition_exact x).symm
     (Real.smoothTransitionDerivative_nonneg x)
 
 theorem Real.monotone_smoothTransition :
-    Monotone smoothTransition := by
+    Monotone Real.smoothTransition := by
   exact monotone_of_deriv_nonneg
     (fun x => (Real.hasDerivAt_smoothTransition_exact x).differentiableAt)
     Real.deriv_smoothTransition_nonneg

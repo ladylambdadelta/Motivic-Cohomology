@@ -46,39 +46,45 @@ theorem Complex.deepNegative_mem_farNegative
     {m : ℤ}
     (hm : m ∈ Complex.logarithmicPhasePoissonDeepNegativeModes t a) :
     m ∈ Complex.logarithmicPhasePoissonFarNegativeModes t a := by
-  exact lt_trans hm (sub_one_lt _)
+  have hdeep :
+      m < Complex.logarithmicPhasePoissonModeRangeLower t a - 1 := hm
+  have hboundary :
+      Complex.logarithmicPhasePoissonModeRangeLower t a - 1 <
+        Complex.logarithmicPhasePoissonModeRangeLower t a :=
+    sub_one_lt _
+  exact lt_trans hdeep hboundary
 
 theorem Complex.farNegative_eq_boundary_union_deep
     (t : ℝ) (a : ℤ) :
     Complex.logarithmicPhasePoissonFarNegativeModes t a =
       {Complex.logarithmicPhasePoissonFarNegativeBoundaryMode t a} ∪
         Complex.logarithmicPhasePoissonDeepNegativeModes t a := by
-  ext m
-  constructor
-  · intro hm
-    have hmLeBoundary :
-        m ≤ Complex.logarithmicPhasePoissonModeRangeLower t a - 1 :=
-      (Int.lt_iff_add_one_le.mp hm)
-    match eq_or_lt_of_le hmLeBoundary with
-    | Or.inl heq => exact Or.inl heq
-    | Or.inr hlt => exact Or.inr hlt
-  · intro hm
-    match hm with
-    | Or.inl heq =>
-        exact Eq.subst
-          (motive := fun value : ℤ =>
-            value < Complex.logarithmicPhasePoissonModeRangeLower t a)
-          heq.symm
-          (Complex.farNegativeBoundaryMode_lt_lower t a)
-    | Or.inr hdeep => exact Complex.deepNegative_mem_farNegative t a hdeep
+  exact Set.ext (fun m =>
+    Iff.intro
+      (fun hm =>
+        have hmLeBoundary :
+            m ≤ Complex.logarithmicPhasePoissonModeRangeLower t a - 1 :=
+          Int.le_sub_one_iff.mpr hm
+        match eq_or_lt_of_le hmLeBoundary with
+        | Or.inl heq => Or.inl heq
+        | Or.inr hlt => Or.inr hlt)
+      (fun hm =>
+        match hm with
+        | Or.inl heq =>
+            Eq.subst
+              (motive := fun value : ℤ =>
+                value < Complex.logarithmicPhasePoissonModeRangeLower t a)
+              heq.symm
+              (Complex.farNegativeBoundaryMode_lt_lower t a)
+        | Or.inr hdeep =>
+            Complex.deepNegative_mem_farNegative t a hdeep))
 
 theorem Complex.boundaryMode_not_mem_deepNegative
     (t : ℝ) (a : ℤ) :
     Complex.logarithmicPhasePoissonFarNegativeBoundaryMode t a ∉
       Complex.logarithmicPhasePoissonDeepNegativeModes t a := by
-  intro hm
-  unfold Complex.logarithmicPhasePoissonFarNegativeBoundaryMode at hm
-  exact (lt_irrefl (Complex.logarithmicPhasePoissonModeRangeLower t a - 1)) hm
+  exact fun hm =>
+    (lt_irrefl (Complex.logarithmicPhasePoissonModeRangeLower t a - 1)) hm
 
 theorem Complex.farNegativeBoundary_deep_disjoint
     (t : ℝ) (a : ℤ) :
@@ -120,7 +126,7 @@ theorem Complex.farNegative_mode_reconstruct
     m = Complex.logarithmicPhasePoissonModeRangeLower t a -
       Complex.logarithmicPhaseFarNegativeDistance t a m := by
   unfold Complex.logarithmicPhaseFarNegativeDistance
-  exact (sub_sub_cancel_left
+  exact (sub_sub_cancel
     (Complex.logarithmicPhasePoissonModeRangeLower t a) m).symm
 
 theorem Complex.deepNegativeDistance_pos
@@ -135,7 +141,7 @@ theorem Complex.deepNegative_mode_reconstruct
     m = Complex.logarithmicPhasePoissonModeRangeLower t a - 1 -
       Complex.logarithmicPhaseDeepNegativeDistance t a m := by
   unfold Complex.logarithmicPhaseDeepNegativeDistance
-  have hfirst := sub_sub_cancel_left
+  have hfirst := sub_sub_cancel
     (Complex.logarithmicPhasePoissonModeRangeLower t a - 1) m
   exact hfirst.symm
 

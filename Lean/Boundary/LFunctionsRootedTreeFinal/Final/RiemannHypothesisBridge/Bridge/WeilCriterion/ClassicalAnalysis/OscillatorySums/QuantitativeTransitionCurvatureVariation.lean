@@ -25,29 +25,31 @@ theorem Real.continuous_smoothTransitionDerivative :
 
 theorem Real.continuous_smoothTransitionSecondDerivative :
     Continuous Real.smoothTransitionSecondDerivative := by
-  have hfirstContDiff : ContDiff ℝ ∞ Real.smoothTransitionDerivative := by
-    have hraw : ContDiff ℝ ∞ (deriv smoothTransition) :=
-      (contDiff_infty_iff_deriv.mp Real.smoothTransition.contDiff).2
-    have hfunction :
-        deriv smoothTransition = Real.smoothTransitionDerivative := by
-      funext x
-      exact Real.deriv_smoothTransition_exact x
-    exact Eq.subst
-      (motive := fun function : ℝ → ℝ => ContDiff ℝ ∞ function)
-      hfunction
-      hraw
-  have hderivativeContinuous :=
-    (contDiff_infty_iff_deriv.mp
-      hfirstContDiff).2.continuous
-  have hfunction :
+  have hsmooth : ContDiff ℝ (⊤ : ℕ∞) Real.smoothTransition :=
+    Real.smoothTransition.contDiff
+  have hfirstRaw : ContDiff ℝ (⊤ : ℕ∞) (deriv Real.smoothTransition) :=
+    (contDiff_infty_iff_deriv.mp hsmooth).2
+  have hfirstFunction :
+      deriv Real.smoothTransition = Real.smoothTransitionDerivative := by
+    funext x
+    exact Real.deriv_smoothTransition_exact x
+  have hfirst : ContDiff ℝ (⊤ : ℕ∞) Real.smoothTransitionDerivative :=
+    Eq.subst
+      (motive := fun function : ℝ → ℝ =>
+        ContDiff ℝ (⊤ : ℕ∞) function)
+      hfirstFunction
+      hfirstRaw
+  have hsecondRaw : Continuous (deriv Real.smoothTransitionDerivative) :=
+    (contDiff_infty_iff_deriv.mp hfirst).2.continuous
+  have hsecondFunction :
       deriv Real.smoothTransitionDerivative =
         Real.smoothTransitionSecondDerivative := by
     funext x
     exact Real.deriv_smoothTransitionDerivative x
   exact Eq.subst
     (motive := fun function : ℝ → ℝ => Continuous function)
-    hfunction
-    hderivativeContinuous
+    hsecondFunction
+    hsecondRaw
 
 theorem Real.intervalIntegrable_smoothTransitionSecondDerivative
     (left right : ℝ) :
@@ -70,31 +72,33 @@ theorem Real.integral_smoothTransitionSecondDerivative_eq_derivative_sub
       Real.smoothTransitionDerivative right -
         Real.smoothTransitionDerivative left := by
   have hderiv :
-      ∀ x ∈ [[left, right]],
+      ∀ x ∈ Set.uIcc left right,
         DifferentiableAt ℝ Real.smoothTransitionDerivative x :=
     fun x hx =>
       (Real.hasDerivAt_smoothTransitionDerivative x).differentiableAt
   have hintegrable :
       IntervalIntegrable (deriv Real.smoothTransitionDerivative)
         volume left right := by
-    have hfirstContDiff : ContDiff ℝ ∞ Real.smoothTransitionDerivative := by
-      have hraw : ContDiff ℝ ∞ (deriv smoothTransition) :=
-        (contDiff_infty_iff_deriv.mp Real.smoothTransition.contDiff).2
-      have hfunction :
-          deriv smoothTransition = Real.smoothTransitionDerivative := by
-        funext x
-        exact Real.deriv_smoothTransition_exact x
-      exact Eq.subst
-        (motive := fun function : ℝ → ℝ => ContDiff ℝ ∞ function)
-        hfunction
-        hraw
-    have hcontinuous :=
-      (contDiff_infty_iff_deriv.mp
-        hfirstContDiff).2.continuous
-    exact hcontinuous.intervalIntegrable left right
+    have hsecondIntegrable :
+        IntervalIntegrable Real.smoothTransitionSecondDerivative
+          volume left right :=
+      Real.intervalIntegrable_smoothTransitionSecondDerivative left right
+    have hfunction :
+        deriv Real.smoothTransitionDerivative =
+          Real.smoothTransitionSecondDerivative := by
+      funext x
+      exact Real.deriv_smoothTransitionDerivative x
+    exact Eq.subst
+      (motive := fun function : ℝ → ℝ =>
+        IntervalIntegrable function volume left right)
+      hfunction.symm
+      hsecondIntegrable
   have hftc := intervalIntegral.integral_deriv_eq_sub hderiv hintegrable
-  have hintegrand := intervalIntegral.integral_congr
-    (fun x hx => Real.deriv_smoothTransitionDerivative x)
+  have hintegrand :
+      (∫ x in left..right, deriv Real.smoothTransitionDerivative x) =
+        ∫ x in left..right, Real.smoothTransitionSecondDerivative x :=
+    intervalIntegral.integral_congr
+      (fun x hx => Real.deriv_smoothTransitionDerivative x)
   exact hintegrand.symm.trans hftc
 
 theorem Real.abs_smoothTransitionSecondDerivative_eq_self_of_nonneg
@@ -119,10 +123,23 @@ theorem Real.integral_abs_smoothTransitionSecondDerivative_left_half
       |Real.smoothTransitionSecondDerivative x|) =
       Real.smoothTransitionDerivative (1 / 2) -
         Real.smoothTransitionDerivative 0 := by
-  have hintegrand := intervalIntegral.integral_congr
-    (fun x hx =>
-      Real.abs_smoothTransitionSecondDerivative_eq_self_of_nonneg
-        (hleft x hx))
+  have hhalfNonneg : (0 : ℝ) ≤ 1 / 2 :=
+    one_div_nonneg.mpr (Nat.cast_nonneg 2)
+  have huIcc : Set.uIcc (0 : ℝ) (1 / 2) = Set.Icc 0 (1 / 2) :=
+    Set.uIcc_of_le hhalfNonneg
+  have hintegrand :
+      (∫ x in (0 : ℝ)..(1 / 2),
+        |Real.smoothTransitionSecondDerivative x|) =
+        ∫ x in (0 : ℝ)..(1 / 2),
+          Real.smoothTransitionSecondDerivative x :=
+    intervalIntegral.integral_congr
+      (fun x hx =>
+        Real.abs_smoothTransitionSecondDerivative_eq_self_of_nonneg
+          (hleft x
+            (Eq.subst
+              (motive := fun interval : Set ℝ => x ∈ interval)
+              huIcc
+              hx)))
   exact hintegrand.trans
     (Real.integral_smoothTransitionSecondDerivative_eq_derivative_sub
       0 (1 / 2))
@@ -135,12 +152,32 @@ theorem Real.integral_abs_smoothTransitionSecondDerivative_right_half
       |Real.smoothTransitionSecondDerivative x|) =
       Real.smoothTransitionDerivative (1 / 2) -
         Real.smoothTransitionDerivative 1 := by
-  have hintegrand := intervalIntegral.integral_congr
-    (fun x hx =>
-      Real.abs_smoothTransitionSecondDerivative_eq_neg_of_nonpos
-        (hright x hx))
-  have hnegative := intervalIntegral.integral_neg
-    Real.smoothTransitionSecondDerivative
+  have hhalfLeOne : (1 / 2 : ℝ) ≤ 1 := by
+    have honeLeTwo : (1 : ℝ) ≤ 2 := one_le_two
+    have hraw : (1 / 2 : ℝ) ≤ 1 / 1 :=
+      one_div_le_one_div_of_le zero_lt_one honeLeTwo
+    exact le_trans hraw (le_of_eq (div_one 1))
+  have huIcc : Set.uIcc (1 / 2 : ℝ) 1 = Set.Icc (1 / 2) 1 :=
+    Set.uIcc_of_le hhalfLeOne
+  have hintegrand :
+      (∫ x in (1 / 2 : ℝ)..1,
+        |Real.smoothTransitionSecondDerivative x|) =
+        ∫ x in (1 / 2 : ℝ)..1,
+          -Real.smoothTransitionSecondDerivative x :=
+    intervalIntegral.integral_congr
+      (fun x hx =>
+        Real.abs_smoothTransitionSecondDerivative_eq_neg_of_nonpos
+          (hright x
+            (Eq.subst
+              (motive := fun interval : Set ℝ => x ∈ interval)
+              huIcc
+              hx)))
+  have hnegative :
+      (∫ x in (1 / 2 : ℝ)..1,
+        -Real.smoothTransitionSecondDerivative x) =
+        -(∫ x in (1 / 2 : ℝ)..1,
+          Real.smoothTransitionSecondDerivative x) :=
+    intervalIntegral.integral_neg
   have hftc :=
     Real.integral_smoothTransitionSecondDerivative_eq_derivative_sub
       (1 / 2) 1
@@ -154,49 +191,150 @@ theorem Real.integral_abs_smoothTransitionSecondDerivative_right_half
     (hnegative.trans
       ((congrArg Neg.neg hftc).trans hnormalize))
 
-theorem Real.smoothTransitionDerivative_zero :
-    Real.smoothTransitionDerivative 0 = 0 := by
-  exact Eq.trans
-    (Real.smoothTransitionDerivative_eq_normalized 0)
-    (by
-      have hg0 : expNegInvGlue 0 = 0 :=
-        expNegInvGlue.zero_of_nonpos (le_refl 0)
-      have hd0 : Real.expNegInvGlueDerivative 0 = 0 :=
-        Real.expNegInvGlueDerivative_zero
-      have hone : (1 : ℝ) - 0 = 1 := sub_zero 1
-      have hnumerator :
-          Real.smoothTransitionDerivativeNumerator 0 = 0 := by
-        unfold Real.smoothTransitionDerivativeNumerator
-        exact Eq.trans
-          (congrArg₂ (fun first second : ℝ => first + second)
-            (congrArg
-              (fun value : ℝ => value * expNegInvGlue (1 - 0)) hd0)
-            (congrArg
-              (fun value : ℝ => value *
-                Real.expNegInvGlueDerivative (1 - 0)) hg0))
-          (Eq.trans
-            (congrArg₂ (fun first second : ℝ => first + second)
-              (zero_mul _) (zero_mul _))
-            (zero_add 0))
-      exact Eq.trans
-        (congrArg
-          (fun numerator : ℝ => numerator /
-            Real.smoothTransitionDerivativeDenominator 0 ^ 2)
-          hnumerator)
-        (zero_div _))
+theorem Real.smoothTransition_half_complement :
+    (1 : ℝ) - 1 / 2 = 1 / 2 := by
+  have htwoNe : (2 : ℝ) ≠ 0 := two_ne_zero
+  have honeAsHalf : (1 : ℝ) = 2 / 2 := (div_self htwoNe).symm
+  calc
+    (1 : ℝ) - 1 / 2 = 2 / 2 - 1 / 2 :=
+      congrArg (fun value : ℝ => value - 1 / 2) honeAsHalf
+    _ = (2 - 1) / 2 := (sub_div 2 1 2).symm
+    _ = 1 / 2 :=
+      congrArg (fun value : ℝ => value / 2) Real.two_sub_one_eq_one
 
-theorem Real.smoothTransitionDerivative_one :
-    Real.smoothTransitionDerivative 1 = 0 := by
-  have hreflection := Real.smoothTransitionDerivative_reflection 0
-  have hone : (1 : ℝ) - 0 = 1 := sub_zero 1
-  exact Eq.trans
-    (Eq.subst
-      (motive := fun value : ℝ =>
-        Real.smoothTransitionDerivative value =
-          Real.smoothTransitionDerivative 0)
-      hone
-      hreflection)
-    Real.smoothTransitionDerivative_zero
+theorem Real.smoothTransition_half_inverse :
+    (1 / 2 : ℝ)⁻¹ = 2 := by
+  have honeDiv : (1 / 2 : ℝ) = (2 : ℝ)⁻¹ := one_div 2
+  exact (congrArg Inv.inv honeDiv).trans (inv_inv 2)
+
+theorem Real.smoothTransition_two_sq_eq_four :
+    (2 : ℝ) ^ 2 = 4 := by
+  exact (pow_two (2 : ℝ)).trans
+    (Real.transitionSecondDerivative_natCast_mul 2 2 4 rfl)
+
+theorem Real.expNegInvGlueDerivative_half_eq_four_mul :
+    Real.expNegInvGlueDerivative (1 / 2) =
+      4 * expNegInvGlue (1 / 2) := by
+  have hinverseSquare : (1 / 2 : ℝ)⁻¹ ^ 2 = 4 :=
+    (congrArg (fun value : ℝ => value ^ 2)
+      Real.smoothTransition_half_inverse).trans
+      Real.smoothTransition_two_sq_eq_four
+  exact (Real.expNegInvGlueDerivative_eq_inv_sq_mul (1 / 2)).trans
+    (congrArg (fun value : ℝ => value * expNegInvGlue (1 / 2))
+      hinverseSquare)
+
+theorem Real.smoothTransitionDerivativeNumerator_half_eq_eight_mul_sq :
+    Real.smoothTransitionDerivativeNumerator (1 / 2) =
+      8 * expNegInvGlue (1 / 2) ^ 2 := by
+  let g := expNegInvGlue (1 / 2)
+  have hcomplement := Real.smoothTransition_half_complement
+  have hglueComplement : expNegInvGlue (1 - 1 / 2) = g :=
+    congrArg expNegInvGlue hcomplement
+  have hderivativeComplement :
+      Real.expNegInvGlueDerivative (1 - 1 / 2) =
+        Real.expNegInvGlueDerivative (1 / 2) :=
+    congrArg Real.expNegInvGlueDerivative hcomplement
+  have hderivative :
+      Real.expNegInvGlueDerivative (1 / 2) = 4 * g :=
+    Real.expNegInvGlueDerivative_half_eq_four_mul
+  have hfourAddFour : (4 : ℝ) + 4 = 8 :=
+    Real.transitionSecondDerivative_natCast_add 4 4 8 rfl
+  unfold Real.smoothTransitionDerivativeNumerator
+  change
+    Real.expNegInvGlueDerivative (1 / 2) *
+        expNegInvGlue (1 - 1 / 2) +
+      expNegInvGlue (1 / 2) *
+        Real.expNegInvGlueDerivative (1 - 1 / 2) =
+      8 * g ^ 2
+  calc
+    Real.expNegInvGlueDerivative (1 / 2) *
+          expNegInvGlue (1 - 1 / 2) +
+        expNegInvGlue (1 / 2) *
+          Real.expNegInvGlueDerivative (1 - 1 / 2) =
+      Real.expNegInvGlueDerivative (1 / 2) * g +
+        g * Real.expNegInvGlueDerivative (1 / 2) :=
+      congrArg₂ (fun first second : ℝ => first + second)
+        (congrArg
+          (fun value : ℝ =>
+            Real.expNegInvGlueDerivative (1 / 2) * value)
+          hglueComplement)
+        (congrArg (fun value : ℝ => g * value) hderivativeComplement)
+    _ = (4 * g) * g + g * (4 * g) :=
+      congrArg₂ (fun first second : ℝ => first * g + g * second)
+        hderivative hderivative
+    _ = 4 * (g * g) + 4 * (g * g) :=
+      congrArg₂ (fun first second : ℝ => first + second)
+        (mul_assoc 4 g g)
+        ((mul_assoc g 4 g).symm.trans
+          ((congrArg (fun value : ℝ => value * g) (mul_comm g 4)).trans
+            (mul_assoc 4 g g)))
+    _ = (4 + 4) * (g * g) := (add_mul 4 4 (g * g)).symm
+    _ = 8 * (g * g) :=
+      congrArg (fun value : ℝ => value * (g * g)) hfourAddFour
+    _ = 8 * g ^ 2 :=
+      congrArg (fun value : ℝ => 8 * value) (pow_two g).symm
+
+theorem Real.smoothTransitionDerivativeDenominator_half_sq_eq_four_mul_sq :
+    Real.smoothTransitionDerivativeDenominator (1 / 2) ^ 2 =
+      4 * expNegInvGlue (1 / 2) ^ 2 := by
+  let g := expNegInvGlue (1 / 2)
+  have hglueComplement : expNegInvGlue (1 - 1 / 2) = g :=
+    congrArg expNegInvGlue Real.smoothTransition_half_complement
+  have hdenominator :
+      Real.smoothTransitionDerivativeDenominator (1 / 2) = 2 * g := by
+    unfold Real.smoothTransitionDerivativeDenominator
+    exact (congrArg (fun value : ℝ => g + value) hglueComplement).trans
+      (two_mul g).symm
+  calc
+    Real.smoothTransitionDerivativeDenominator (1 / 2) ^ 2 =
+        (2 * g) ^ 2 := congrArg (fun value : ℝ => value ^ 2) hdenominator
+    _ = 2 ^ 2 * g ^ 2 := mul_pow 2 g 2
+    _ = 4 * g ^ 2 :=
+      congrArg (fun value : ℝ => value * g ^ 2)
+        Real.smoothTransition_two_sq_eq_four
+
+theorem Real.smoothTransitionDerivative_half_eq_two :
+    Real.smoothTransitionDerivative (1 / 2) = 2 := by
+  let g := expNegInvGlue (1 / 2)
+  have hdenominatorSq :=
+    Real.smoothTransitionDerivativeDenominator_half_sq_eq_four_mul_sq
+  have hdenominatorPos :
+      0 < Real.smoothTransitionDerivativeDenominator (1 / 2) := by
+    unfold Real.smoothTransitionDerivativeDenominator
+    exact Real.smoothTransitionDenominator_pos (1 / 2)
+  have hdenominatorSqNe :
+      Real.smoothTransitionDerivativeDenominator (1 / 2) ^ 2 ≠ 0 :=
+    pow_ne_zero 2 (ne_of_gt hdenominatorPos)
+  have hnumerator :=
+    Real.smoothTransitionDerivativeNumerator_half_eq_eight_mul_sq
+  have htwoMulFour : (2 : ℝ) * 4 = 8 :=
+    Real.transitionSecondDerivative_natCast_mul 2 4 8 rfl
+  have hquotientNumerator :
+      Real.smoothTransitionDerivativeNumerator (1 / 2) =
+        2 * Real.smoothTransitionDerivativeDenominator (1 / 2) ^ 2 := by
+    calc
+      Real.smoothTransitionDerivativeNumerator (1 / 2) = 8 * g ^ 2 :=
+        hnumerator
+      _ = (2 * 4) * g ^ 2 :=
+        congrArg (fun value : ℝ => value * g ^ 2) htwoMulFour.symm
+      _ = 2 * (4 * g ^ 2) := mul_assoc 2 4 (g ^ 2)
+      _ = 2 * Real.smoothTransitionDerivativeDenominator (1 / 2) ^ 2 :=
+        congrArg (fun value : ℝ => 2 * value) hdenominatorSq.symm
+  exact (Real.smoothTransitionDerivative_eq_normalized (1 / 2)).trans
+    ((div_eq_iff hdenominatorSqNe).2 hquotientNumerator)
+
+theorem Real.smoothTransitionDerivative_half_le_four :
+    Real.smoothTransitionDerivative (1 / 2) ≤ 4 := by
+  have htwoLeSum : (2 : ℝ) ≤ 2 + 2 :=
+    le_add_of_nonneg_right (Nat.cast_nonneg 2)
+  have htwoAddTwo : (2 : ℝ) + 2 = 4 :=
+    Real.transitionSecondDerivative_natCast_add 2 2 4 rfl
+  have htwoLeFour : (2 : ℝ) ≤ 4 :=
+    le_trans htwoLeSum (le_of_eq htwoAddTwo)
+  exact Eq.subst
+    (motive := fun value : ℝ => value ≤ 4)
+    Real.smoothTransitionDerivative_half_eq_two.symm
+    htwoLeFour
 
 theorem Real.integral_abs_smoothTransitionSecondDerivative_eq_twice_midpoint
     (hleft :
@@ -251,9 +389,10 @@ theorem Real.integral_abs_smoothTransitionSecondDerivative_le_eight
   have hidentity :=
     Real.integral_abs_smoothTransitionSecondDerivative_eq_twice_midpoint
       hleft hright
-  have hmidpoint := Real.smoothTransitionDerivative_le_four (1 / 2)
+  have hmidpoint := Real.smoothTransitionDerivative_half_le_four
   have hdouble := mul_le_mul_of_nonneg_left hmidpoint (Nat.cast_nonneg 2)
-  have hnormalize : (2 : ℝ) * 4 = 8 := rfl
+  have hnormalize : (2 : ℝ) * 4 = 8 :=
+    Real.transitionSecondDerivative_natCast_mul 2 4 8 rfl
   exact Eq.subst
     (motive := fun integralValue : ℝ => integralValue ≤ 8)
     hidentity.symm

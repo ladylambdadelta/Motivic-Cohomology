@@ -89,7 +89,14 @@ theorem Complex.div_square_le_div_leftSupport_square
   have hleftSquare : 0 < left ^ 2 := sq_pos_of_pos hleft
   have hsquare : left ^ 2 ≤ x ^ 2 := by
     have hxNonneg : 0 ≤ x := le_trans hleft.le hx
-    exact mul_self_le_mul_self hleft.le hx
+    have hproduct : left * left ≤ x * x :=
+      mul_self_le_mul_self hleft.le hx
+    have hleftPow : left ^ 2 = left * left := pow_two left
+    have hxPow : x ^ 2 = x * x := pow_two x
+    calc
+      left ^ 2 = left * left := hleftPow
+      _ ≤ x * x := hproduct
+      _ = x ^ 2 := hxPow.symm
   exact div_le_div_of_nonneg_left
     (norm_nonneg t) hleftSquare hsquare
 
@@ -104,7 +111,19 @@ theorem Complex.div_sq_le_div_leftSupport_sq
   have hxQuotient : 0 ≤ ‖t‖ / x := by
     have hxNonneg : 0 ≤ x := le_trans hleft.le hx
     exact div_nonneg (norm_nonneg t) hxNonneg
-  exact mul_self_le_mul_self hxQuotient hquotient
+  have hproduct :
+      (‖t‖ / x) * (‖t‖ / x) ≤
+        (‖t‖ / left) * (‖t‖ / left) :=
+    mul_self_le_mul_self hxQuotient hquotient
+  have hxPow : (‖t‖ / x) ^ 2 = (‖t‖ / x) * (‖t‖ / x) :=
+    pow_two (‖t‖ / x)
+  have hleftPow :
+      (‖t‖ / left) ^ 2 = (‖t‖ / left) * (‖t‖ / left) :=
+    pow_two (‖t‖ / left)
+  calc
+    (‖t‖ / x) ^ 2 = (‖t‖ / x) * (‖t‖ / x) := hxPow
+    _ ≤ (‖t‖ / left) * (‖t‖ / left) := hproduct
+    _ = (‖t‖ / left) ^ 2 := hleftPow.symm
 
 theorem Complex.logarithmicPhaseQuantitativeMixedVariationDensity_le_leftUpper
     (t : ℝ) (a b : ℤ) {x : ℝ}
@@ -173,12 +192,18 @@ theorem Complex.logarithmicPhaseQuantitativeMixedVariationMass_le_upper
       (fun x : ℝ =>
         2 * |Real.quantitativeLogarithmicBlockCutoffDerivative a b x| *
           (‖t‖ / left)) volume left right := by
+    have hcutoffDerivativeContinuous : Continuous
+        (Real.quantitativeLogarithmicBlockCutoffDerivative a b) :=
+      (Real.contDiff_quantitativeLogarithmicBlockCutoffDerivative a b).continuous
+    have habsContinuous : Continuous
+        (fun x : ℝ =>
+          |Real.quantitativeLogarithmicBlockCutoffDerivative a b x|) :=
+      hcutoffDerivativeContinuous.abs
     have hbase : IntervalIntegrable
         (fun x : ℝ =>
           |Real.quantitativeLogarithmicBlockCutoffDerivative a b x|)
         volume left right :=
-      ((Real.contDiff_quantitativeLogarithmicBlockCutoffDerivative a b)
-        .continuous.abs).intervalIntegrable left right
+      habsContinuous.intervalIntegrable left right
     exact (hbase.const_mul 2).mul_const (‖t‖ / left)
   have hmono := intervalIntegral.integral_mono_on hleftRight hdensity hvariation
     (fun x hx =>
@@ -191,16 +216,65 @@ theorem Complex.logarithmicPhaseQuantitativeMixedVariationMass_le_upper
         2 * (‖t‖ / left) *
           Complex.logarithmicPhaseQuantitativeCutoffVariationMass a b := by
     unfold Complex.logarithmicPhaseQuantitativeCutoffVariationMass
-    have hfirst := intervalIntegral.integral_const_mul 2
-      (fun x : ℝ =>
-        |Real.quantitativeLogarithmicBlockCutoffDerivative a b x| *
-          (‖t‖ / left))
-    have hsecond := intervalIntegral.integral_mul_const (‖t‖ / left)
-      (fun x : ℝ =>
-        |Real.quantitativeLogarithmicBlockCutoffDerivative a b x|)
-    exact hfirst.trans
-      ((congrArg (fun value : ℝ => 2 * value) hsecond).trans
-        (mul_assoc 2 (‖t‖ / left) _))
+    have hfirst :
+        (∫ x in left..right,
+          2 *
+            (|Real.quantitativeLogarithmicBlockCutoffDerivative a b x| *
+              (‖t‖ / left))) =
+          2 *
+            (∫ x in left..right,
+              |Real.quantitativeLogarithmicBlockCutoffDerivative a b x| *
+                (‖t‖ / left)) :=
+      intervalIntegral.integral_const_mul 2
+        (fun x : ℝ =>
+          |Real.quantitativeLogarithmicBlockCutoffDerivative a b x| *
+            (‖t‖ / left))
+    have hsecond :
+        (∫ x in left..right,
+          |Real.quantitativeLogarithmicBlockCutoffDerivative a b x| *
+            (‖t‖ / left)) =
+          (∫ x in left..right,
+            |Real.quantitativeLogarithmicBlockCutoffDerivative a b x|) *
+              (‖t‖ / left) :=
+      intervalIntegral.integral_mul_const (‖t‖ / left)
+        (fun x : ℝ =>
+          |Real.quantitativeLogarithmicBlockCutoffDerivative a b x|)
+    have hinput :
+        (∫ x in left..right,
+          2 * |Real.quantitativeLogarithmicBlockCutoffDerivative a b x| *
+            (‖t‖ / left)) =
+          (∫ x in left..right,
+            2 *
+              (|Real.quantitativeLogarithmicBlockCutoffDerivative a b x| *
+                (‖t‖ / left))) :=
+      intervalIntegral.integral_congr
+        (fun x hx =>
+          mul_assoc 2
+            |Real.quantitativeLogarithmicBlockCutoffDerivative a b x|
+            (‖t‖ / left))
+    have hscaledSecond := congrArg (fun value : ℝ => 2 * value) hsecond
+    have hfactorComm :
+        (∫ x in left..right,
+          |Real.quantitativeLogarithmicBlockCutoffDerivative a b x|) *
+            (‖t‖ / left) =
+          (‖t‖ / left) *
+            (∫ x in left..right,
+              |Real.quantitativeLogarithmicBlockCutoffDerivative a b x|) :=
+      mul_comm _ _
+    have hscaledComm := congrArg (fun value : ℝ => 2 * value) hfactorComm
+    have hreassociate :
+        2 *
+            ((‖t‖ / left) *
+              (∫ x in left..right,
+                |Real.quantitativeLogarithmicBlockCutoffDerivative a b x|)) =
+          2 * (‖t‖ / left) *
+            (∫ x in left..right,
+              |Real.quantitativeLogarithmicBlockCutoffDerivative a b x|) :=
+      (mul_assoc 2 (‖t‖ / left) _).symm
+    exact Eq.trans hinput
+      (Eq.trans hfirst
+        (Eq.trans hscaledSecond
+          (Eq.trans hscaledComm hreassociate)))
   unfold Complex.logarithmicPhaseQuantitativeMixedVariationMass
   unfold Complex.logarithmicPhaseQuantitativeMixedVariationUpper
   exact le_trans hmono (le_of_eq hpull)
@@ -227,8 +301,14 @@ theorem Complex.logarithmicPhaseQuantitativePhaseCurvatureMass_le_upper
     (fun x hx =>
       Complex.logarithmicPhaseQuantitativePhaseCurvatureDensity_le_leftUpper
         t a b ha hx.1)
-  have hintegral : (∫ _x in left..right, constant) = (right - left) * constant :=
-    intervalIntegral.integral_const
+  have hintegralSmul :
+      (∫ _x in left..right, constant) = (right - left) • constant :=
+    intervalIntegral.integral_const constant
+  have hsmulMul : (right - left) • constant = (right - left) * constant :=
+    Algebra.id.smul_eq_mul (right - left) constant
+  have hintegral :
+      (∫ _x in left..right, constant) = (right - left) * constant :=
+    Eq.trans hintegralSmul hsmulMul
   unfold Complex.logarithmicPhaseQuantitativePhaseCurvatureMass
   unfold Complex.logarithmicPhaseQuantitativePhaseCurvatureUpper
   unfold Complex.logarithmicPhaseQuantitativeSupportLength
@@ -251,9 +331,39 @@ theorem Complex.logarithmicPhaseQuantitativeSecondDerivativeMass_le_upper
       t a b ha hab
   unfold Complex.logarithmicPhaseQuantitativeDecomposedSecondDerivativeMass at hdecomposed
   unfold Complex.logarithmicPhaseQuantitativeSecondDerivativeMassUpper
-  exact le_trans hdecomposed
-    (add_le_add_left (add_le_add hmixed hphase)
-      (Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass a b))
+  have hgrouped :
+      Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass a b +
+          (Complex.logarithmicPhaseQuantitativeMixedVariationMass t a b +
+            Complex.logarithmicPhaseQuantitativePhaseCurvatureMass t a b) ≤
+        Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass a b +
+          (Complex.logarithmicPhaseQuantitativeMixedVariationUpper t a b +
+            Complex.logarithmicPhaseQuantitativePhaseCurvatureUpper t a b) :=
+    add_le_add_left (add_le_add hmixed hphase)
+      (Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass a b)
+  have hflat :
+      Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass a b +
+            Complex.logarithmicPhaseQuantitativeMixedVariationMass t a b +
+          Complex.logarithmicPhaseQuantitativePhaseCurvatureMass t a b ≤
+        Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass a b +
+            Complex.logarithmicPhaseQuantitativeMixedVariationUpper t a b +
+          Complex.logarithmicPhaseQuantitativePhaseCurvatureUpper t a b := by
+    calc
+      Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass a b +
+              Complex.logarithmicPhaseQuantitativeMixedVariationMass t a b +
+            Complex.logarithmicPhaseQuantitativePhaseCurvatureMass t a b =
+          Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass a b +
+            (Complex.logarithmicPhaseQuantitativeMixedVariationMass t a b +
+              Complex.logarithmicPhaseQuantitativePhaseCurvatureMass t a b) :=
+        add_assoc _ _ _
+      _ ≤ Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass a b +
+            (Complex.logarithmicPhaseQuantitativeMixedVariationUpper t a b +
+              Complex.logarithmicPhaseQuantitativePhaseCurvatureUpper t a b) :=
+        hgrouped
+      _ = Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass a b +
+              Complex.logarithmicPhaseQuantitativeMixedVariationUpper t a b +
+            Complex.logarithmicPhaseQuantitativePhaseCurvatureUpper t a b :=
+        (add_assoc _ _ _).symm
+  exact le_trans hdecomposed hflat
 
 end
 end LFunctions

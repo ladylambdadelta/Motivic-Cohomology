@@ -43,7 +43,7 @@ theorem Complex.nonstationaryFirstDerivativeRawMajorant_nonneg
   unfold Complex.nonstationaryFirstDerivativeRawMajorant
   have hginv : 0 ≤ g⁻¹ := inv_nonneg.mpr hg
   have hg2 : 0 ≤ g ^ 2 := sq_nonneg g
-  have hg3 : 0 ≤ g ^ 3 := pow_nonneg g 3
+  have hg3 : 0 ≤ g ^ 3 := pow_nonneg hg 3
   have hfirst := mul_nonneg hA₂ hginv
   have hsecond := mul_nonneg
     (mul_nonneg (Nat.cast_nonneg 2) hA₁)
@@ -144,18 +144,38 @@ theorem Complex.norm_nonstationarySecondTransform_le_rawMajorant
       amplitude amplitudeDerivative amplitudeSecondDerivative φ' φ'' φ''' x
   have hc := Complex.norm_realPhaseIntegrationCoefficient φ' x
   have hc' := Complex.norm_realPhaseIntegrationCoefficientDerivative φ' φ'' x
+  have hrawNonneg : 0 ≤
+      Complex.nonstationaryFirstDerivativeRawMajorant
+        ‖amplitude x‖ ‖amplitudeDerivative x‖
+        ‖amplitudeSecondDerivative x‖
+        |φ'' x| |φ''' x| ‖φ' x‖ :=
+    Complex.nonstationaryFirstDerivativeRawMajorant_nonneg
+      (norm_nonneg (amplitude x))
+      (norm_nonneg (amplitudeDerivative x))
+      (norm_nonneg (amplitudeSecondDerivative x))
+      (abs_nonneg (φ'' x))
+      (abs_nonneg (φ''' x))
+      (norm_nonneg (φ' x))
   unfold Complex.nonstationarySecondTransformRawMajorant
   have hfirst := mul_le_mul hB (le_of_eq hc)
-    (norm_nonneg _) (norm_nonneg _)
+    (norm_nonneg _) hrawNonneg
   have hinside := add_le_add
     (mul_le_mul_of_nonneg_left (le_of_eq hc)
       (norm_nonneg (amplitudeDerivative x)))
     (mul_le_mul_of_nonneg_left (le_of_eq hc')
       (norm_nonneg (amplitude x)))
+  have hgapInverse : 0 ≤ ‖φ' x‖⁻¹ :=
+    inv_nonneg.mpr (norm_nonneg (φ' x))
+  have hphaseQuotient : 0 ≤ |φ'' x| / ‖φ' x‖ ^ 2 :=
+    div_nonneg (abs_nonneg (φ'' x)) (sq_nonneg ‖φ' x‖)
+  have hinsideUpper : 0 ≤
+      ‖amplitudeDerivative x‖ * ‖φ' x‖⁻¹ +
+        ‖amplitude x‖ * (|φ'' x| / ‖φ' x‖ ^ 2) :=
+    add_nonneg
+      (mul_nonneg (norm_nonneg (amplitudeDerivative x)) hgapInverse)
+      (mul_nonneg (norm_nonneg (amplitude x)) hphaseQuotient)
   have hlast := mul_le_mul hinside (le_of_eq hc')
-    (norm_nonneg _) (add_nonneg
-      (mul_nonneg (norm_nonneg _) (norm_nonneg _))
-      (mul_nonneg (norm_nonneg _) (norm_nonneg _)))
+    (norm_nonneg _) hinsideUpper
   exact le_trans hcomponents (add_le_add hfirst hlast)
 
 end

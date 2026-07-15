@@ -18,12 +18,15 @@ theorem Real.smoothTransitionDerivative_eq_zero_of_neg
     {x : ℝ}
     (hx : x < 0) :
     Real.smoothTransitionDerivative x = 0 := by
-  have heventual : smoothTransition =ᶠ[nhds x] (fun _y : ℝ => (0 : ℝ)) := by
+  have heventual : Real.smoothTransition =ᶠ[nhds x]
+      (fun _y : ℝ => (0 : ℝ)) := by
     exact Filter.mem_of_superset
       (Iio_mem_nhds hx)
       (fun y hy => Real.smoothTransition.zero_of_nonpos hy.le)
-  have hderiv : deriv smoothTransition x = 0 :=
-    heventual.deriv_eq.trans (deriv_const x 0)
+  have hconstantDeriv : deriv (fun _y : ℝ => (0 : ℝ)) x = 0 :=
+    deriv_const x (0 : ℝ)
+  have hderiv : deriv Real.smoothTransition x = 0 :=
+    heventual.deriv_eq.trans hconstantDeriv
   exact
     (Real.deriv_smoothTransition_exact x).symm.trans hderiv
 
@@ -31,12 +34,15 @@ theorem Real.smoothTransitionDerivative_eq_zero_of_one_lt
     {x : ℝ}
     (hx : 1 < x) :
     Real.smoothTransitionDerivative x = 0 := by
-  have heventual : smoothTransition =ᶠ[nhds x] (fun _y : ℝ => (1 : ℝ)) := by
+  have heventual : Real.smoothTransition =ᶠ[nhds x]
+      (fun _y : ℝ => (1 : ℝ)) := by
     exact Filter.mem_of_superset
       (Ioi_mem_nhds hx)
       (fun y hy => Real.smoothTransition.one_of_one_le hy.le)
-  have hderiv : deriv smoothTransition x = 0 :=
-    heventual.deriv_eq.trans (deriv_const x 1)
+  have hconstantDeriv : deriv (fun _y : ℝ => (1 : ℝ)) x = 0 :=
+    deriv_const x (1 : ℝ)
+  have hderiv : deriv Real.smoothTransition x = 0 :=
+    heventual.deriv_eq.trans hconstantDeriv
   exact
     (Real.deriv_smoothTransition_exact x).symm.trans hderiv
 
@@ -75,8 +81,10 @@ theorem Real.smoothTransitionSecondDerivative_eq_zero_of_neg
     exact Filter.mem_of_superset
       (Iio_mem_nhds hx)
       (fun y hy => Real.smoothTransitionDerivative_eq_zero_of_neg hy)
+  have hconstantDeriv : deriv (fun _y : ℝ => (0 : ℝ)) x = 0 :=
+    deriv_const x (0 : ℝ)
   have hderiv : deriv Real.smoothTransitionDerivative x = 0 :=
-    heventual.deriv_eq.trans (deriv_const x 0)
+    heventual.deriv_eq.trans hconstantDeriv
   exact (Real.deriv_smoothTransitionDerivative x).symm.trans hderiv
 
 theorem Real.smoothTransitionSecondDerivative_eq_zero_of_one_lt
@@ -88,8 +96,10 @@ theorem Real.smoothTransitionSecondDerivative_eq_zero_of_one_lt
     exact Filter.mem_of_superset
       (Ioi_mem_nhds hx)
       (fun y hy => Real.smoothTransitionDerivative_eq_zero_of_one_lt hy)
+  have hconstantDeriv : deriv (fun _y : ℝ => (0 : ℝ)) x = 0 :=
+    deriv_const x (0 : ℝ)
   have hderiv : deriv Real.smoothTransitionDerivative x = 0 :=
-    heventual.deriv_eq.trans (deriv_const x 0)
+    heventual.deriv_eq.trans hconstantDeriv
   exact (Real.deriv_smoothTransitionDerivative x).symm.trans hderiv
 
 theorem Real.quantitativeLogarithmicLeftCutoffDerivative_eq_zero_of_le_supportLeft

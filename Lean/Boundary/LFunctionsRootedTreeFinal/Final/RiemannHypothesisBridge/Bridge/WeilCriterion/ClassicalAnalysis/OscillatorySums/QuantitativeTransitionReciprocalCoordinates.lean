@@ -73,7 +73,7 @@ theorem Real.transition_left_le_right_complement
   exact (le_sub_iff_add_le).mpr
     (Eq.subst
       (motive := fun value : ℝ => value ≤ 1)
-      (two_mul x).symm
+      (two_mul x)
       hdouble)
 
 theorem Real.transitionRightReciprocal_le_left
@@ -87,7 +87,7 @@ theorem Real.transitionRightReciprocal_le_left
     lt_of_lt_of_le hx0 hxComplement
   unfold Real.transitionRightReciprocal
   unfold Real.transitionLeftReciprocal
-  exact (inv_le_inv₀ hx0 hcomplementPos).mpr hxComplement
+  exact (inv_le_inv₀ hcomplementPos hx0).mpr hxComplement
 
 theorem Real.transitionReciprocalGap_nonneg
     {x : ℝ}
@@ -119,10 +119,12 @@ theorem Real.transitionReciprocal_product_eq_sum
   unfold Real.transitionReciprocalSum
   have hinverseAdd := inv_add_inv hxNe hcomplementNe
   have hsum : x + (1 - x) = 1 := by
-    exact add_sub_cancel_left x 1
+    exact (add_sub_assoc x 1 x).symm.trans (add_sub_cancel_left x 1)
   have hproductInverse : x⁻¹ * (1 - x)⁻¹ =
       (x * (1 - x))⁻¹ := by
-    exact (mul_inv_rev₀ x (1 - x)).symm
+    calc
+      x⁻¹ * (1 - x)⁻¹ = (1 - x)⁻¹ * x⁻¹ := mul_comm _ _
+      _ = (x * (1 - x))⁻¹ := (mul_inv_rev x (1 - x)).symm
   have hquotient :
       (x + (1 - x)) / (x * (1 - x)) =
         (x * (1 - x))⁻¹ := by
@@ -132,6 +134,27 @@ theorem Real.transitionReciprocal_product_eq_sum
       (one_div (x * (1 - x)))
   exact Eq.trans hproductInverse
     (Eq.trans hquotient.symm hinverseAdd.symm)
+
+theorem Real.add_sub_add_reassociated
+    (a middle b : ℝ) :
+    a + (middle - middle) + b =
+      (a + middle + b) - middle := by
+  calc
+    a + (middle - middle) + b =
+        (a + middle - middle) + b := by
+      exact congrArg (fun value : ℝ => value + b)
+        (add_sub_assoc a middle middle).symm
+    _ = a + ((middle - middle) + b) := by
+      exact (congrArg (fun value : ℝ => value + b)
+        (add_sub_assoc a middle middle)).trans
+        (add_assoc a (middle - middle) b)
+    _ = a + (middle + b - middle) := by
+      exact congrArg (fun value : ℝ => a + value)
+        (sub_add_eq_add_sub middle middle b)
+    _ = (a + middle + b) - middle := by
+      exact (add_sub_assoc a (middle + b) middle).symm.trans
+        (congrArg (fun value : ℝ => value - middle)
+          (add_assoc a middle b).symm)
 
 theorem Real.transitionReciprocalEnergy_eq_sum_sq_sub_two_sum
     {x : ℝ}
@@ -148,19 +171,9 @@ theorem Real.transitionReciprocalEnergy_eq_sum_sq_sub_two_sum
   unfold Real.transitionReciprocalSum
   change p ^ 2 + q ^ 2 = (p + q) ^ 2 - 2 * (p + q)
   have hsquare : (p + q) ^ 2 = p ^ 2 + 2 * (p * q) + q ^ 2 := by
-    calc
-      (p + q) ^ 2 = (p + q) * (p + q) := pow_two (p + q)
-      _ = p * p + p * q + (q * p + q * q) := by
-        exact (mul_add (p + q) p q).trans
-          (congrArg₂ (fun first second : ℝ => first + second)
-            (add_mul p q p) (add_mul p q q))
-      _ = p ^ 2 + 2 * (p * q) + q ^ 2 := by
-        exact congrArg₂ (fun first second : ℝ => first + second)
-          (congrArg₂ (fun first second : ℝ => first + second)
-            (pow_two p).symm
-            ((congrArg₂ (fun first second : ℝ => first + second)
-              rfl (mul_comm q p)).trans (two_mul (p * q)).symm))
-          (pow_two q).symm
+    exact (add_sq p q).trans
+      (congrArg (fun value : ℝ => p ^ 2 + value + q ^ 2)
+        (mul_assoc 2 p q))
   have htwice : 2 * (p + q) = 2 * (p * q) :=
     congrArg (fun value : ℝ => 2 * value) hpq.symm
   calc
@@ -169,17 +182,19 @@ theorem Real.transitionReciprocalEnergy_eq_sum_sq_sub_two_sum
       let middle := 2 * (p * q)
       calc
         p ^ 2 + q ^ 2 = p ^ 2 + (middle - middle) + q ^ 2 := by
-          exact congrArg
-            (fun value : ℝ => p ^ 2 + value + q ^ 2)
-            (sub_self middle).symm
-        _ = (p ^ 2 + middle + q ^ 2) - middle := by
-          exact
-            (add_assoc (p ^ 2) (middle - middle) (q ^ 2)).trans
-              ((congrArg (fun value : ℝ => p ^ 2 + value)
-                ((sub_add_eq_add_sub middle middle (q ^ 2)).trans
-                  (congrArg (fun value : ℝ => value - middle)
-                    (add_comm middle (q ^ 2))))).trans
-                (add_sub_assoc (p ^ 2) (middle + q ^ 2) middle))
+          calc
+            p ^ 2 + q ^ 2 = (p ^ 2 + 0) + q ^ 2 :=
+              congrArg (fun value : ℝ => value + q ^ 2)
+                (add_zero (p ^ 2)).symm
+            _ = p ^ 2 + (0 + q ^ 2) := add_assoc _ _ _
+            _ = p ^ 2 + ((middle - middle) + q ^ 2) := by
+              exact congrArg (fun value : ℝ => p ^ 2 + value)
+                (congrArg (fun value : ℝ => value + q ^ 2)
+                  (sub_self middle).symm)
+            _ = p ^ 2 + (middle - middle) + q ^ 2 :=
+              (add_assoc _ _ _).symm
+        _ = (p ^ 2 + middle + q ^ 2) - middle :=
+          Real.add_sub_add_reassociated (p ^ 2) middle (q ^ 2)
     _ = (p + q) ^ 2 - 2 * (p * q) :=
       congrArg (fun value : ℝ => value - 2 * (p * q)) hsquare.symm
     _ = (p + q) ^ 2 - 2 * (p + q) :=
@@ -204,10 +219,14 @@ theorem Real.transitionReciprocalCubicSum_eq_sum_mul_sum_sub_one
   change p ^ 2 + p * q + q ^ 2 = s * (s - 1)
   have hleft : p ^ 2 + p * q + q ^ 2 =
       (p ^ 2 + q ^ 2) + p * q := by
-    exact (add_assoc (p ^ 2) (p * q) (q ^ 2)).trans
-      (congrArg (fun value : ℝ => p ^ 2 + value)
-        (add_comm (p * q) (q ^ 2))).trans
-      (add_assoc (p ^ 2) (q ^ 2) (p * q)).symm
+    calc
+      p ^ 2 + p * q + q ^ 2 = p ^ 2 + (p * q + q ^ 2) :=
+        add_assoc _ _ _
+      _ = p ^ 2 + (q ^ 2 + p * q) :=
+        congrArg (fun value : ℝ => p ^ 2 + value)
+          (add_comm (p * q) (q ^ 2))
+      _ = (p ^ 2 + q ^ 2) + p * q :=
+        (add_assoc _ _ _).symm
   have hright : s * (s - 1) = s ^ 2 - s := by
     exact (mul_sub s s 1).trans
       (congrArg₂ (fun first second : ℝ => first - second)
@@ -234,36 +253,16 @@ theorem Real.twice_reciprocal_product_le_energy
   have hidentity :
       (p - q) ^ 2 = p ^ 2 + q ^ 2 - 2 * (p * q) := by
     calc
-      (p - q) ^ 2 = (p - q) * (p - q) := pow_two (p - q)
-      _ = p * p - p * q - (q * p - q * q) := by
-        exact (mul_sub (p - q) p q).trans
-          (congrArg₂ (fun first second : ℝ => first - second)
-            (sub_mul p q p) (sub_mul p q q))
-      _ = p ^ 2 - p * q - (p * q - q ^ 2) := by
-        exact congrArg₂ (fun first second : ℝ => first - second)
-          (congrArg₂ (fun first second : ℝ => first - second)
-            (pow_two p).symm rfl)
-          (congrArg₂ (fun first second : ℝ => first - second)
-            (mul_comm q p) (pow_two q).symm)
+      (p - q) ^ 2 = p ^ 2 - 2 * p * q + q ^ 2 :=
+        sub_sq p q
+      _ = p ^ 2 - 2 * (p * q) + q ^ 2 := by
+        exact congrArg (fun value : ℝ => p ^ 2 - value + q ^ 2)
+          (mul_assoc 2 p q)
       _ = p ^ 2 + q ^ 2 - 2 * (p * q) := by
-        let product := p * q
-        calc
-          p ^ 2 - product - (product - q ^ 2) =
-              p ^ 2 - product - product + q ^ 2 :=
-            sub_sub_sub_cancel_right (p ^ 2 - product) product (q ^ 2)
-          _ = (p ^ 2 + q ^ 2) - (product + product) := by
-            exact
-              (sub_add_eq_add_sub (p ^ 2 - product - product) (q ^ 2)
-                (product + product)).symm.trans
-              (congrArg₂ (fun first second : ℝ => first - second)
-                (add_comm (p ^ 2) (q ^ 2))
-                rfl)
-          _ = p ^ 2 + q ^ 2 - 2 * product :=
-            congrArg (fun value : ℝ => p ^ 2 + q ^ 2 - value)
-              (two_mul product).symm
+        exact sub_add_eq_add_sub (p ^ 2) (2 * (p * q)) (q ^ 2)
   have hdifference : 0 ≤ p ^ 2 + q ^ 2 - 2 * (p * q) :=
     Eq.subst (motive := fun value : ℝ => 0 ≤ value)
-      hidentity.symm hsquare
+      hidentity hsquare
   exact sub_nonneg.mp hdifference
 
 theorem Real.four_le_transitionReciprocalSum
@@ -297,7 +296,7 @@ theorem Real.four_le_transitionReciprocalSum
           (add_mul 2 2 s).symm
         _ = 4 * s :=
           congrArg (fun coefficient : ℝ => coefficient * s)
-            (show (2 : ℝ) + 2 = 4 from rfl)
+            two_add_two_eq_four
     have hright : s ^ 2 - 2 * s + 2 * s = s ^ 2 :=
       sub_add_cancel (s ^ 2) (2 * s)
     exact le_trans (le_of_eq hleft.symm)

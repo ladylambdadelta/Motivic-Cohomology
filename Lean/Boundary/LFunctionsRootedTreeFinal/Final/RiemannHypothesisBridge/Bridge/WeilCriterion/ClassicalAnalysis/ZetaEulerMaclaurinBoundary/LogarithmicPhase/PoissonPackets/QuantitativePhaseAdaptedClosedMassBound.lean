@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.QuantitativePhaseAdaptedMassFactors
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.QuantitativeSharpCutoffCurvatureMass
 
 /-!
 # Closed mass bound for phase-adapted packets
@@ -19,9 +20,17 @@ open scoped Interval
 theorem Real.abs_quantitativeLogarithmicBlockCutoff_le_one
     (a b : ℤ) (x : ℝ) :
     |Real.quantitativeLogarithmicBlockCutoff a b x| ≤ 1 := by
-  have hnonneg := Real.quantitativeLogarithmicBlockCutoff_nonneg a b x
-  have hle := Real.quantitativeLogarithmicBlockCutoff_le_one a b x
-  exact le_trans (le_of_eq (abs_of_nonneg hnonneg)) hle
+  have hnonneg :
+      0 ≤ Real.quantitativeLogarithmicBlockCutoff a b x :=
+    Real.quantitativeLogarithmicBlockCutoff_nonneg a b x
+  have habs :
+      |Real.quantitativeLogarithmicBlockCutoff a b x| =
+        Real.quantitativeLogarithmicBlockCutoff a b x :=
+    abs_of_nonneg hnonneg
+  have hcutoffLe :
+      Real.quantitativeLogarithmicBlockCutoff a b x ≤ 1 :=
+    Real.quantitativeLogarithmicBlockCutoff_le_one a b x
+  exact le_trans (le_of_eq habs) hcutoffLe
 
 theorem Complex.integral_abs_quantitativeLogarithmicBlockCutoff_le_length
     (a b : ℤ) (hab : a ≤ b) :
@@ -31,19 +40,32 @@ theorem Complex.integral_abs_quantitativeLogarithmicBlockCutoff_le_length
       Complex.logarithmicPhaseQuantitativeSupportLength a b := by
   let left := Complex.logarithmicPhaseQuantitativeSupportLeft a
   let right := Complex.logarithmicPhaseQuantitativeSupportRight b
-  have hleftRight :=
+  have hleftRight : left ≤ right :=
     Complex.logarithmicPhaseQuantitativeSupportLeft_le_right a b hab
+  have hcutoffContinuous : Continuous
+      (fun x : ℝ => |Real.quantitativeLogarithmicBlockCutoff a b x|) :=
+    (Real.contDiff_quantitativeLogarithmicBlockCutoff a b).continuous.abs
   have hcutoff : IntervalIntegrable
       (fun x : ℝ => |Real.quantitativeLogarithmicBlockCutoff a b x|)
       volume left right :=
-    ((Real.contDiff_quantitativeLogarithmicBlockCutoff a b)
-      .continuous.abs).intervalIntegrable left right
+    hcutoffContinuous.intervalIntegrable left right
   have hone : IntervalIntegrable (fun _x : ℝ => (1 : ℝ))
       volume left right := intervalIntegrable_const
-  have hmono := intervalIntegral.integral_mono_on hleftRight hcutoff hone
-    (fun x hx => Real.abs_quantitativeLogarithmicBlockCutoff_le_one a b x)
+  have hmono :
+      (∫ x in left..right,
+        |Real.quantitativeLogarithmicBlockCutoff a b x|) ≤
+      ∫ _x in left..right, (1 : ℝ) :=
+    intervalIntegral.integral_mono_on hleftRight hcutoff hone
+      (fun x _hx =>
+        Real.abs_quantitativeLogarithmicBlockCutoff_le_one a b x)
+  have honeIntegralRaw : (∫ _x in left..right, (1 : ℝ)) =
+      (right - left) • (1 : ℝ) :=
+    intervalIntegral.integral_const 1
+  have hsmulOne : (right - left) • (1 : ℝ) = right - left :=
+    Eq.trans (Eq.refl ((right - left) * (1 : ℝ)))
+      (mul_one (right - left))
   have honeIntegral : (∫ _x in left..right, (1 : ℝ)) = right - left :=
-    intervalIntegral.integral_const
+    Eq.trans honeIntegralRaw hsmulOne
   unfold Complex.logarithmicPhaseQuantitativeSupportLength
   exact le_trans hmono (le_of_eq honeIntegral)
 
@@ -56,7 +78,8 @@ theorem Complex.logarithmicPhaseAdaptedVariationCoefficient_nonneg
     (t left gap : ℝ) (hleft : 0 ≤ left) (hgap : 0 ≤ gap) :
     0 ≤ (3 * Complex.logarithmicPhaseAdaptedCurvatureUpper t left) /
       gap ^ 3 := by
-  have hcurvature :=
+  have hcurvature :
+      0 ≤ Complex.logarithmicPhaseAdaptedCurvatureUpper t left :=
     Complex.logarithmicPhaseAdaptedCurvatureUpper_nonneg t left hleft
   exact div_nonneg (Real.mul_three_nonneg hcurvature) (pow_nonneg hgap 3)
 
@@ -64,7 +87,8 @@ theorem Complex.logarithmicPhaseAdaptedThirdCoefficient_nonneg
     (t left gap : ℝ) (hleft : 0 ≤ left) (hgap : 0 ≤ gap) :
     0 ≤ Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t left /
       gap ^ 3 := by
-  have hthird :=
+  have hthird :
+      0 ≤ Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t left :=
     Complex.logarithmicPhaseAdaptedThirdDerivativeUpper_nonneg t left hleft
   exact div_nonneg hthird (pow_nonneg hgap 3)
 
@@ -72,8 +96,11 @@ theorem Complex.logarithmicPhaseAdaptedCurvatureSquareCoefficient_nonneg
     (t left gap : ℝ) (hgap : 0 ≤ gap) :
     0 ≤ (3 * (Complex.logarithmicPhaseAdaptedCurvatureUpper t left) ^ 2) /
       gap ^ 4 := by
-  have hnumerator := Real.mul_three_nonneg
-    (sq_nonneg (Complex.logarithmicPhaseAdaptedCurvatureUpper t left))
+  have hnumerator :
+      0 ≤ 3 *
+        (Complex.logarithmicPhaseAdaptedCurvatureUpper t left) ^ 2 :=
+    Real.mul_three_nonneg
+      (sq_nonneg (Complex.logarithmicPhaseAdaptedCurvatureUpper t left))
   exact div_nonneg hnumerator (pow_nonneg hgap 4)
 
 theorem Complex.integral_logarithmicPhaseAdaptedCurvatureMassDensity_le
@@ -83,15 +110,25 @@ theorem Complex.integral_logarithmicPhaseAdaptedCurvatureMassDensity_le
         Complex.logarithmicPhaseQuantitativeSupportRight b,
       Complex.logarithmicPhaseAdaptedCurvatureMassDensity a b gap x) ≤
       48 * (gap ^ 2)⁻¹ := by
-  have hfactor :=
+  have hfactor :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        Complex.logarithmicPhaseAdaptedCurvatureMassDensity a b gap x) =
+      Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass a b *
+        (gap ^ 2)⁻¹ :=
     Complex.integral_logarithmicPhaseAdaptedCurvatureMassDensity_factor
       a b gap
-  have hmass :=
+  have hmass :
+      Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass a b ≤ 48 :=
     Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass_le_forty_eight
       a b hab
-  have hcoefficient :=
+  have hcoefficient : 0 ≤ (gap ^ 2)⁻¹ :=
     Complex.logarithmicPhaseAdaptedCurvatureCoefficient_nonneg gap hgap
-  have hmul := mul_le_mul_of_nonneg_right hmass hcoefficient
+  have hmul :
+      Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass a b *
+          (gap ^ 2)⁻¹ ≤
+        48 * (gap ^ 2)⁻¹ :=
+    mul_le_mul_of_nonneg_right hmass hcoefficient
   exact le_trans (le_of_eq hfactor) hmul
 
 theorem Complex.integral_logarithmicPhaseAdaptedVariationMassDensity_le
@@ -104,15 +141,30 @@ theorem Complex.integral_logarithmicPhaseAdaptedVariationMassDensity_le
       Complex.logarithmicPhaseAdaptedVariationMassDensity t a b gap x) ≤
       2 * ((3 * Complex.logarithmicPhaseAdaptedCurvatureUpper t
         (Complex.logarithmicPhaseQuantitativeSupportLeft a)) / gap ^ 3) := by
-  have hfactor :=
+  have hfactor :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        Complex.logarithmicPhaseAdaptedVariationMassDensity t a b gap x) =
+      Complex.logarithmicPhaseQuantitativeCutoffVariationMass a b *
+        ((3 * Complex.logarithmicPhaseAdaptedCurvatureUpper t
+          (Complex.logarithmicPhaseQuantitativeSupportLeft a)) / gap ^ 3) :=
     Complex.integral_logarithmicPhaseAdaptedVariationMassDensity_factor
       t a b gap
-  have hmass :=
+  have hmass :
+      Complex.logarithmicPhaseQuantitativeCutoffVariationMass a b ≤ 2 :=
     Complex.logarithmicPhaseQuantitativeCutoffVariationMass_le_two a b hab
-  have hcoefficient :=
+  have hcoefficient :
+      0 ≤ (3 * Complex.logarithmicPhaseAdaptedCurvatureUpper t
+        (Complex.logarithmicPhaseQuantitativeSupportLeft a)) / gap ^ 3 :=
     Complex.logarithmicPhaseAdaptedVariationCoefficient_nonneg
-      t _ gap hleft hgap
-  have hmul := mul_le_mul_of_nonneg_right hmass hcoefficient
+      t (Complex.logarithmicPhaseQuantitativeSupportLeft a) gap hleft hgap
+  have hmul :
+      Complex.logarithmicPhaseQuantitativeCutoffVariationMass a b *
+          ((3 * Complex.logarithmicPhaseAdaptedCurvatureUpper t
+            (Complex.logarithmicPhaseQuantitativeSupportLeft a)) / gap ^ 3) ≤
+        2 * ((3 * Complex.logarithmicPhaseAdaptedCurvatureUpper t
+          (Complex.logarithmicPhaseQuantitativeSupportLeft a)) / gap ^ 3) :=
+    mul_le_mul_of_nonneg_right hmass hcoefficient
   exact le_trans (le_of_eq hfactor) hmul
 
 theorem Complex.integral_logarithmicPhaseAdaptedThirdPhaseMassDensity_le
@@ -126,14 +178,39 @@ theorem Complex.integral_logarithmicPhaseAdaptedThirdPhaseMassDensity_le
       Complex.logarithmicPhaseQuantitativeSupportLength a b *
         (Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
           (Complex.logarithmicPhaseQuantitativeSupportLeft a) / gap ^ 3) := by
-  have hfactor :=
+  have hfactor :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        Complex.logarithmicPhaseAdaptedThirdPhaseMassDensity
+          t a b gap x) =
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        |Real.quantitativeLogarithmicBlockCutoff a b x|) *
+        (Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
+          (Complex.logarithmicPhaseQuantitativeSupportLeft a) / gap ^ 3) :=
     Complex.integral_logarithmicPhaseAdaptedThirdPhaseMassDensity_factor
       t a b gap
-  have hmass :=
+  have hmass :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        |Real.quantitativeLogarithmicBlockCutoff a b x|) ≤
+      Complex.logarithmicPhaseQuantitativeSupportLength a b :=
     Complex.integral_abs_quantitativeLogarithmicBlockCutoff_le_length a b hab
-  have hcoefficient :=
-    Complex.logarithmicPhaseAdaptedThirdCoefficient_nonneg t _ gap hleft hgap
-  have hmul := mul_le_mul_of_nonneg_right hmass hcoefficient
+  have hcoefficient :
+      0 ≤ Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
+        (Complex.logarithmicPhaseQuantitativeSupportLeft a) / gap ^ 3 :=
+    Complex.logarithmicPhaseAdaptedThirdCoefficient_nonneg t
+      (Complex.logarithmicPhaseQuantitativeSupportLeft a) gap hleft hgap
+  have hmul :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        |Real.quantitativeLogarithmicBlockCutoff a b x|) *
+          (Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
+            (Complex.logarithmicPhaseQuantitativeSupportLeft a) / gap ^ 3) ≤
+        Complex.logarithmicPhaseQuantitativeSupportLength a b *
+          (Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
+            (Complex.logarithmicPhaseQuantitativeSupportLeft a) / gap ^ 3) :=
+    mul_le_mul_of_nonneg_right hmass hcoefficient
   exact le_trans (le_of_eq hfactor) hmul
 
 theorem Complex.integral_logarithmicPhaseAdaptedCurvatureSquareMassDensity_le
@@ -146,15 +223,43 @@ theorem Complex.integral_logarithmicPhaseAdaptedCurvatureSquareMassDensity_le
         ((3 * (Complex.logarithmicPhaseAdaptedCurvatureUpper t
           (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2) /
           gap ^ 4) := by
-  have hfactor :=
+  have hfactor :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        Complex.logarithmicPhaseAdaptedCurvatureSquareMassDensity
+          t a b gap x) =
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        |Real.quantitativeLogarithmicBlockCutoff a b x|) *
+        ((3 * (Complex.logarithmicPhaseAdaptedCurvatureUpper t
+          (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2) /
+          gap ^ 4) :=
     Complex.integral_logarithmicPhaseAdaptedCurvatureSquareMassDensity_factor
       t a b gap
-  have hmass :=
+  have hmass :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        |Real.quantitativeLogarithmicBlockCutoff a b x|) ≤
+      Complex.logarithmicPhaseQuantitativeSupportLength a b :=
     Complex.integral_abs_quantitativeLogarithmicBlockCutoff_le_length a b hab
-  have hcoefficient :=
+  have hcoefficient :
+      0 ≤ (3 * (Complex.logarithmicPhaseAdaptedCurvatureUpper t
+        (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2) /
+          gap ^ 4 :=
     Complex.logarithmicPhaseAdaptedCurvatureSquareCoefficient_nonneg
-      t _ gap hgap
-  have hmul := mul_le_mul_of_nonneg_right hmass hcoefficient
+      t (Complex.logarithmicPhaseQuantitativeSupportLeft a) gap hgap
+  have hmul :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        |Real.quantitativeLogarithmicBlockCutoff a b x|) *
+          ((3 * (Complex.logarithmicPhaseAdaptedCurvatureUpper t
+            (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2) /
+            gap ^ 4) ≤
+        Complex.logarithmicPhaseQuantitativeSupportLength a b *
+          ((3 * (Complex.logarithmicPhaseAdaptedCurvatureUpper t
+            (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2) /
+            gap ^ 4) :=
+    mul_le_mul_of_nonneg_right hmass hcoefficient
   exact le_trans (le_of_eq hfactor) hmul
 
 end

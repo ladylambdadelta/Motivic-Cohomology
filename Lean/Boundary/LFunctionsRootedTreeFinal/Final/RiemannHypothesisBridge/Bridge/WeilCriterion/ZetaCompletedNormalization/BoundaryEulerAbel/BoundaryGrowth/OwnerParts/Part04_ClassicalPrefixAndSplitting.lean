@@ -161,7 +161,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_eulerMaclaurin
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (-boundaryLineOnePointRealParam t *
               (((x : ℝ) : ℂ) ^
-                (-(boundaryLineOnePointRealParam t + 1))))))‖ ≤
+                (-(boundaryLineOnePointRealParam t + 1)))))‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
   let I : ℂ :=
     ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
@@ -179,7 +179,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_eulerMaclaurin
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
           (-boundaryLineOnePointRealParam t *
             (((x : ℝ) : ℂ) ^
-              (-(boundaryLineOnePointRealParam t + 1)))))
+              (-(boundaryLineOnePointRealParam t + 1))))
   have hI : ‖I‖ ≤ (2 : ℝ) :=
     boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_mainIntegral_norm_le_two
       t ht hM
@@ -288,9 +288,8 @@ theorem boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailBounded_of_class
 /-- The classical prefix leaf is exactly the corresponding positive-index
 logarithmic-phase prefix.
 
-The zeroth local sample vanishes for `1 ≤ |t|`, so the remaining prefix problem
-is the unconditional resonance-aware estimate for
-`∑_{1 ≤ n ≤ floor(2 + |t|)} n^{-it}`. -/
+The zeroth local sample vanishes for `1 ≤ |t|`, so the full prefix reduces to
+the positive-index sum controlled by the unconditional curvature theorem. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix_eq_positiveIndex
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
@@ -316,10 +315,9 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix
 /-- The classical prefix estimate is exactly the positive-index prefix
 estimate transported across the zeroth-term reduction.
 
-This is deliberately phrased with the positive-index estimate as an explicit
-input.  The remaining analytic theorem must be an unconditional
-resonance-aware estimate for the positive-index logarithmic phase sum; it is
-not a finite-difference/no-resonance consequence. -/
+This generic transport cut is deliberately phrased with the positive-index
+estimate as an explicit input.  The canonical theorem below supplies that
+input from the unconditional resonance-safe curvature estimate. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix_norm_le_of_positiveIndex
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
@@ -454,9 +452,9 @@ theorem boundaryLineOnePointRealParam_classicalPrefix_cutoff_vdcScale_le_five_sq
         hfour_add_one
 
 /-- The raw adjacent logarithmic increments are monotone on the classical
-prefix block.  This isolates the non-modular part of the prefix cancellation
-argument; the remaining difficulty is the resonance-aware reduced-increment
-analysis. -/
+prefix block.  This records the non-modular geometry without asserting that
+reduction modulo `2π` preserves separation; the curvature theorem handles
+resonances directly. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhase_classicalPrefix_rawIncrementMonotoneOn
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
@@ -489,8 +487,8 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_classicalPrefix_integerIn
       t (Nat.le_refl 1) hn
 
 /-- If the boundary frequency is bounded, the finite prefix estimate follows
-from the elementary cardinality bound.  This branch is genuinely finite; the
-large-frequency branch still needs oscillatory cancellation. -/
+from the elementary cardinality bound.  This is a genuine finite-frequency
+cut; the unconditional curvature theorem supplies the all-frequency result. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix_norm_le_of_norm_le_four
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
@@ -561,8 +559,12 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix
     exact le_trans hbase (Real.log_le_log harg_pos harg_le)
   have hone_le_scale :
       (1 : ℝ) ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + C) :=
-    mul_le_mul hsqrt_ge_one hlog_ge_one zero_le_one
-      (Real.sqrt_nonneg (1 + ‖t‖))
+    Eq.subst
+      (motive := fun left : ℝ =>
+        left ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + C))
+      (one_mul (1 : ℝ))
+      (mul_le_mul hsqrt_ge_one hlog_ge_one zero_le_one
+        (Real.sqrt_nonneg (1 + ‖t‖)))
   have height_le_target :
       (8 : ℝ) ≤ 8 * Real.sqrt (1 + ‖t‖) * Real.log (2 + C) := by
     calc
@@ -602,7 +604,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_classicalPrefix_curvature
     mul_pos hx_pos hx_pos
   have hxx_le_BB : x * x ≤ B * B :=
     mul_le_mul hx_le_B hx_le_B hx_nonneg hB_nonneg
-  exact inv_le_inv₀ hxx_pos hxx_le_BB
+  exact (inv_le_inv₀ (mul_pos hB_pos hB_pos) hxx_pos).mpr hxx_le_BB
 
 /-- Curvature-scale comparison on the classical prefix window, with the
 frequency factor restored. -/
@@ -661,100 +663,66 @@ theorem boundaryLineOnePointRealParam_classicalPrefix_cutoff_log_ge_one
     add_le_add_left hnorm_le_C 2
   exact le_trans hbase (Real.log_le_log harg_pos harg_le)
 
-/-- Canonical-prefix van der Corput scale estimate for the positive-index
-logarithmic phase sum.
-
-This is the true finite-prefix oscillatory sink: it must account for resonant
-and nonresonant frequencies without assuming separated adjacent increments. -/
-theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonicalPrefix_vdcScale_norm_le_ownerGap
-    (t : ℝ)
-    (ht : 1 ≤ ‖t‖) :
-    ‖Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum
-        t ⌊2 + ‖t‖⌋₊‖ ≤
-      80 * ((((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ +
-        Real.sqrt (1 + ‖t‖))) := by
-  exact
-    Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonicalPrefix_curvatureBlock_norm_le
-      t ht
+/-- The low-frequency coefficient-eight estimate is contained in the public
+coefficient-four-hundred envelope. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhase_lowFrequency_eight_le_fourhundred
+    (t : ℝ) :
+    8 * Real.sqrt (1 + ‖t‖) * Real.log (2 + ⌊2 + ‖t‖⌋₊) ≤
+      400 * Real.sqrt (1 + ‖t‖) * Real.log (2 + ⌊2 + ‖t‖⌋₊) := by
+  have hcoefficient : (8 : ℝ) ≤ 400 := by
+    have hnat : (8 : ℕ) ≤ 400 := by
+      have hle : 8 ≤ 8 + 392 := Nat.le_add_right 8 392
+      exact Eq.subst (motive := fun right : ℕ => 8 ≤ right)
+        (show (8 + 392 : ℕ) = 400 from rfl) hle
+    exact Nat.cast_le.mpr hnat
+  have hsqrt_nonneg : 0 ≤ Real.sqrt (1 + ‖t‖) :=
+    Real.sqrt_nonneg _
+  have hlog_nonneg : 0 ≤ Real.log (2 + ⌊2 + ‖t‖⌋₊) :=
+    le_trans
+      (show (0 : ℝ) ≤ 1 / 2 from div_nonneg zero_le_one zero_le_two)
+      (Complex.logarithmicPhase_standardLog_half_le ⌊2 + ‖t‖⌋₊)
+  have hfirst :
+      8 * Real.sqrt (1 + ‖t‖) ≤
+        400 * Real.sqrt (1 + ‖t‖) :=
+    mul_le_mul_of_nonneg_right hcoefficient hsqrt_nonneg
+  exact mul_le_mul_of_nonneg_right hfirst hlog_nonneg
 
 /-- Canonical-prefix oscillatory estimate for the positive-index logarithmic
-phase sum.
-
-This is the precise remaining finite-prefix analytic sink: the bound is
-unconditional in the frequency, so it cannot be obtained from the separated
-finite-difference/no-resonance package. -/
-theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonicalPrefix_norm_le_ownerGap
+phase sum.  Bounded frequencies use cardinality; high frequencies use exact
+dyadic aggregation of the comparable curvature theorem. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonicalPrefix_norm_le
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
     ‖Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum
         t ⌊2 + ‖t‖⌋₊‖ ≤
       400 * Real.sqrt (1 + ‖t‖) * Real.log (2 + ⌊2 + ‖t‖⌋₊) := by
-  have hvdc :
-      ‖Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum
-          t ⌊2 + ‖t‖⌋₊‖ ≤
-        80 * ((((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ +
-          Real.sqrt (1 + ‖t‖))) :=
-    Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonicalPrefix_vdcScale_norm_le_ownerGap
-      t ht
-  have hscale :
-      (((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ +
-          Real.sqrt (1 + ‖t‖)) ≤
-        5 * Real.sqrt (1 + ‖t‖) :=
-    boundaryLineOnePointRealParam_classicalPrefix_cutoff_vdcScale_le_five_sqrt
-      t ht
-  have hlog_ge_one :
-      (1 : ℝ) ≤ Real.log (2 + ⌊2 + ‖t‖⌋₊) :=
-    boundaryLineOnePointRealParam_classicalPrefix_cutoff_log_ge_one t ht
-  have hsqrt_nonneg : 0 ≤ Real.sqrt (1 + ‖t‖) :=
-    Real.sqrt_nonneg (1 + ‖t‖)
-  have hsqrt_le_sqrt_log :
-      Real.sqrt (1 + ‖t‖) ≤
-        Real.sqrt (1 + ‖t‖) * Real.log (2 + ⌊2 + ‖t‖⌋₊) := by
-    calc
-      Real.sqrt (1 + ‖t‖) = Real.sqrt (1 + ‖t‖) * 1 := by
-        exact (mul_one (Real.sqrt (1 + ‖t‖))).symm
-      _ ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + ⌊2 + ‖t‖⌋₊) :=
-        mul_le_mul_of_nonneg_left hlog_ge_one hsqrt_nonneg
-  have heighty_scale :
-      80 * ((((⌊2 + ‖t‖⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ +
-          Real.sqrt (1 + ‖t‖))) ≤
-        80 * (5 * Real.sqrt (1 + ‖t‖)) :=
-    mul_le_mul_of_nonneg_left hscale (Nat.cast_nonneg 80)
-  have heighty_five :
-      80 * (5 * Real.sqrt (1 + ‖t‖)) =
-        400 * Real.sqrt (1 + ‖t‖) := by
-    calc
-      80 * (5 * Real.sqrt (1 + ‖t‖)) =
-          (80 * 5 : ℝ) * Real.sqrt (1 + ‖t‖) :=
-        (mul_assoc (80 : ℝ) 5 (Real.sqrt (1 + ‖t‖))).symm
-      _ = 400 * Real.sqrt (1 + ‖t‖) := by
-        exact congrArg (fun r : ℝ => r * Real.sqrt (1 + ‖t‖))
-          boundaryGrowth_real_eighty_mul_five_eq_fourhundred
-  have hfourhundred_sqrt_le_target :
-      400 * Real.sqrt (1 + ‖t‖) ≤
-        400 * Real.sqrt (1 + ‖t‖) * Real.log (2 + ⌊2 + ‖t‖⌋₊) := by
-    calc
-      400 * Real.sqrt (1 + ‖t‖) =
-          400 * (Real.sqrt (1 + ‖t‖) * 1) := by
-        exact congrArg (fun r : ℝ => 400 * r)
-          (mul_one (Real.sqrt (1 + ‖t‖))).symm
-      _ ≤ 400 * (Real.sqrt (1 + ‖t‖) *
-          Real.log (2 + ⌊2 + ‖t‖⌋₊)) :=
-        mul_le_mul_of_nonneg_left
-          (Eq.subst
-            (motive := fun r : ℝ =>
-              r ≤ Real.sqrt (1 + ‖t‖) *
-                Real.log (2 + ⌊2 + ‖t‖⌋₊))
-            (mul_one (Real.sqrt (1 + ‖t‖))).symm
-            hsqrt_le_sqrt_log)
-          (show (0 : ℝ) ≤ 400 from Nat.cast_nonneg 400)
-      _ = 400 * Real.sqrt (1 + ‖t‖) *
-          Real.log (2 + ⌊2 + ‖t‖⌋₊) :=
-        (mul_assoc 400 (Real.sqrt (1 + ‖t‖))
-          (Real.log (2 + ⌊2 + ‖t‖⌋₊))).symm
-  exact le_trans hvdc
-    (le_trans heighty_scale
-      (le_trans (le_of_eq heighty_five) hfourhundred_sqrt_le_target))
+  exact Or.elim (le_or_gt ‖t‖ 4)
+    (fun ht_four =>
+      have hlow :=
+        boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix_norm_le_of_norm_le_four
+          t ht ht_four
+      have hpositiveIndex :
+          Boundary.LFunctions.boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+              ⌊2 + ‖t‖⌋₊ =
+            Boundary.LFunctions.Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+              ⌊2 + ‖t‖⌋₊ :=
+        boundaryLineOnePointRealParam_logarithmicPhasePartialSum_eq_positiveIndex
+          t ht ⌊2 + ‖t‖⌋₊
+      have hlowCanonical :
+          ‖Boundary.LFunctions.Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum
+              t ⌊2 + ‖t‖⌋₊‖ ≤
+            8 * Real.sqrt (1 + ‖t‖) * Real.log (2 + ⌊2 + ‖t‖⌋₊) :=
+        Eq.subst
+          (motive := fun z : ℂ =>
+            ‖z‖ ≤ 8 * Real.sqrt (1 + ‖t‖) *
+              Real.log (2 + ⌊2 + ‖t‖⌋₊))
+          hpositiveIndex
+          hlow
+      le_trans hlowCanonical
+        (boundaryLineOnePointRealParam_logarithmicPhase_lowFrequency_eight_le_fourhundred t))
+    (fun ht4 =>
+      Complex.logarithmicPhase_canonicalPrefix_norm_le_of_four_lt_norm
+        t ht ht4)
 
 /-- Finite prefix estimate for the unweighted logarithmic-phase partial sums up
 to the natural cutoff `C = ⌊2 + |t|⌋₊`.
@@ -763,7 +731,7 @@ This is the finite initial segment in the Dirichlet/Abel proof of the public
 partial-sum bound.  It is deliberately independent of the false finite
 difference/no-resonance package: the prefix is handled by a direct finite
 estimate at the cutoff. -/
-theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix_norm_le_ownerGap
+theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix_norm_le
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊2 + ‖t‖⌋₊‖ ≤
@@ -772,7 +740,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix
     boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix_norm_le_of_positiveIndex
       t ht
       400
-      (Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonicalPrefix_norm_le_ownerGap
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_canonicalPrefix_norm_le
         t ht)
 
 /-- The finite prefix `[0, C]` is disjoint from the open-right tail `(C, M]`. -/
@@ -815,7 +783,7 @@ theorem boundaryGrowth_Icc_zero_union_Ioc_eq_Icc
           (fun hn_total =>
             have hn_total_bounds : 0 ≤ n ∧ n ≤ M :=
               Finset.mem_Icc.mp hn_total
-            match Nat.le_or_gt n C with
+            match le_or_gt n C with
             | Or.inl hn_le_C =>
                 have hn_prefix : n ∈ Finset.Icc 0 C :=
                   Finset.mem_Icc.mpr ⟨hn_total_bounds.1, hn_le_C⟩
@@ -848,7 +816,7 @@ theorem boundaryGrowth_sum_Icc_zero_eq_prefix_add_Ioc
 
 /-- Exact finite splitting of a logarithmic-phase partial sum at the canonical
 post-cutoff endpoint. -/
-theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_eq_prefix_add_Ioc_tail_ownerGap
+theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_eq_prefix_add_Ioc_tail
     (t : ℝ)
     {M : ℕ}
     (hM : ⌊2 + ‖t‖⌋₊ ≤ M) :
@@ -865,6 +833,6 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_eq_prefix_add_I
     boundaryGrowth_sum_Icc_zero_eq_prefix_add_Ioc f C M hM
   exact hsplit
 
-
+end
 end LFunctions
 end Boundary

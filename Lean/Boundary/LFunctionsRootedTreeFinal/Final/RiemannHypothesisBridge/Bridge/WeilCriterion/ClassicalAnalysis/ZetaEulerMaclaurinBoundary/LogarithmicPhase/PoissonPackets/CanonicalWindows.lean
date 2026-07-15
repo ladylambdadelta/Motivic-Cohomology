@@ -167,7 +167,7 @@ theorem Complex.logarithmicPhasePoissonCanonicalInteriorBudget_nonneg
   unfold Complex.logarithmicPhasePoissonCanonicalInteriorBudget
   exact
     Finset.sum_nonneg
-      (fun m hm =>
+      (fun m hm => by
         have hpacket :=
           Complex.norm_integerBlockFourierPacket_le_canonical_stationary_bound
             t ht ht_nonneg a b m ha hab hm

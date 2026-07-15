@@ -52,10 +52,84 @@ theorem Complex.integral_logarithmicPhaseAdaptedClosedDensity_le_factoredMassBou
   have hfourth :=
     Complex.integral_logarithmicPhaseAdaptedCurvatureSquareMassDensity_le
       t a b gap hab hgap.le
-  have hsum := add_le_add (add_le_add (add_le_add hcurvature hvariation) hthird)
-    hfourth
+  have hcurvatureVariation := add_le_add hcurvature hvariation
+  have hcurvatureVariationThird :=
+    add_le_add hcurvatureVariation hthird
+  have hfourTerms := add_le_add hcurvatureVariationThird hfourth
   unfold Complex.logarithmicPhaseAdaptedFactoredMassBound
-  exact le_trans (le_of_eq hdecompose) hsum
+  exact le_trans (le_of_eq hdecompose) hfourTerms
+
+theorem Complex.logarithmicPhaseAdaptedCurvatureMassTerm_eq_closed
+    (gap : ℝ) :
+    48 * (gap ^ 2)⁻¹ = 48 / gap ^ 2 :=
+  (div_eq_mul_inv (48 : ℝ) (gap ^ 2)).symm
+
+theorem Complex.logarithmicPhaseAdaptedVariationMassTerm_eq_closed
+    (t : ℝ) (a : ℤ) (gap : ℝ) :
+    2 * ((3 * Complex.logarithmicPhaseAdaptedCurvatureUpper t
+      (Complex.logarithmicPhaseQuantitativeSupportLeft a)) / gap ^ 3) =
+    6 * Complex.logarithmicPhaseAdaptedCurvatureUpper t
+      (Complex.logarithmicPhaseQuantitativeSupportLeft a) / gap ^ 3 := by
+  let curvature : ℝ :=
+    Complex.logarithmicPhaseAdaptedCurvatureUpper t
+      (Complex.logarithmicPhaseQuantitativeSupportLeft a)
+  have htwoThree : (2 : ℝ) * 3 = 6 :=
+    Real.transitionSecondDerivative_natCast_mul 2 3 6 rfl
+  have hnumerator :
+      2 * (3 * curvature) = 6 * curvature :=
+    Eq.trans
+      (mul_assoc 2 3 curvature).symm
+      (congrArg (fun coefficient : ℝ => coefficient * curvature) htwoThree)
+  have hpull :
+      2 * ((3 * curvature) / gap ^ 3) =
+        (2 * (3 * curvature)) / gap ^ 3 :=
+    (mul_div_assoc 2 (3 * curvature) (gap ^ 3)).symm
+  exact Eq.trans hpull
+    (congrArg (fun numerator : ℝ => numerator / gap ^ 3) hnumerator)
+
+theorem Complex.logarithmicPhaseAdaptedThirdPhaseMassTerm_eq_closed
+    (t : ℝ) (a b : ℤ) (gap : ℝ) :
+    Complex.logarithmicPhaseQuantitativeSupportLength a b *
+        (Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
+          (Complex.logarithmicPhaseQuantitativeSupportLeft a) / gap ^ 3) =
+      Complex.logarithmicPhaseQuantitativeSupportLength a b *
+        Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
+          (Complex.logarithmicPhaseQuantitativeSupportLeft a) / gap ^ 3 :=
+  (mul_div_assoc
+    (Complex.logarithmicPhaseQuantitativeSupportLength a b)
+    (Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
+      (Complex.logarithmicPhaseQuantitativeSupportLeft a))
+    (gap ^ 3)).symm
+
+theorem Complex.logarithmicPhaseAdaptedCurvatureSquareMassTerm_eq_closed
+    (t : ℝ) (a b : ℤ) (gap : ℝ) :
+    Complex.logarithmicPhaseQuantitativeSupportLength a b *
+        ((3 * (Complex.logarithmicPhaseAdaptedCurvatureUpper t
+          (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2) /
+          gap ^ 4) =
+      3 * Complex.logarithmicPhaseQuantitativeSupportLength a b *
+        (Complex.logarithmicPhaseAdaptedCurvatureUpper t
+          (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2 /
+          gap ^ 4 := by
+  let length : ℝ := Complex.logarithmicPhaseQuantitativeSupportLength a b
+  let curvatureSquare : ℝ :=
+    (Complex.logarithmicPhaseAdaptedCurvatureUpper t
+      (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2
+  have hlengthThree : length * 3 = 3 * length := mul_comm length 3
+  have hnumerator :
+      length * (3 * curvatureSquare) =
+        3 * length * curvatureSquare :=
+    Eq.trans
+      (mul_assoc length 3 curvatureSquare).symm
+      (congrArg
+        (fun coefficient : ℝ => coefficient * curvatureSquare)
+        hlengthThree)
+  have hpull :
+      length * ((3 * curvatureSquare) / gap ^ 4) =
+        (length * (3 * curvatureSquare)) / gap ^ 4 :=
+    (mul_div_assoc length (3 * curvatureSquare) (gap ^ 4)).symm
+  exact Eq.trans hpull
+    (congrArg (fun numerator : ℝ => numerator / gap ^ 4) hnumerator)
 
 theorem Complex.logarithmicPhaseAdaptedFactoredMassBound_eq_closedMajorant
     (t : ℝ) (a b : ℤ) (gap : ℝ) :
@@ -64,19 +138,13 @@ theorem Complex.logarithmicPhaseAdaptedFactoredMassBound_eq_closedMajorant
   unfold Complex.logarithmicPhaseAdaptedFactoredMassBound
   unfold Complex.logarithmicPhaseAdaptedClosedMajorant
   have hfirst : 48 * (gap ^ 2)⁻¹ = 48 / gap ^ 2 :=
-    (div_eq_mul_inv 48 (gap ^ 2)).symm
+    Complex.logarithmicPhaseAdaptedCurvatureMassTerm_eq_closed gap
   have hsecond :
       2 * ((3 * Complex.logarithmicPhaseAdaptedCurvatureUpper t
         (Complex.logarithmicPhaseQuantitativeSupportLeft a)) / gap ^ 3) =
       6 * Complex.logarithmicPhaseAdaptedCurvatureUpper t
-        (Complex.logarithmicPhaseQuantitativeSupportLeft a) / gap ^ 3 := by
-    have hcoefficient : (2 : ℝ) * 3 = 6 := rfl
-    exact Eq.trans (mul_div_assoc 2 _ _)
-      (congrArg (fun value : ℝ => value / gap ^ 3)
-        (Eq.trans (mul_assoc 2 3 _)
-          (congrArg (fun value : ℝ => value *
-            Complex.logarithmicPhaseAdaptedCurvatureUpper t
-              (Complex.logarithmicPhaseQuantitativeSupportLeft a)) hcoefficient)))
+        (Complex.logarithmicPhaseQuantitativeSupportLeft a) / gap ^ 3 :=
+    Complex.logarithmicPhaseAdaptedVariationMassTerm_eq_closed t a gap
   have hthird :
       Complex.logarithmicPhaseQuantitativeSupportLength a b *
         (Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
@@ -84,34 +152,23 @@ theorem Complex.logarithmicPhaseAdaptedFactoredMassBound_eq_closedMajorant
       Complex.logarithmicPhaseQuantitativeSupportLength a b *
         Complex.logarithmicPhaseAdaptedThirdDerivativeUpper t
           (Complex.logarithmicPhaseQuantitativeSupportLeft a) / gap ^ 3 :=
-    mul_div_assoc _ _ _
+    Complex.logarithmicPhaseAdaptedThirdPhaseMassTerm_eq_closed t a b gap
   have hfourth :
       Complex.logarithmicPhaseQuantitativeSupportLength a b *
         ((3 * (Complex.logarithmicPhaseAdaptedCurvatureUpper t
           (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2) / gap ^ 4) =
       3 * Complex.logarithmicPhaseQuantitativeSupportLength a b *
         (Complex.logarithmicPhaseAdaptedCurvatureUpper t
-          (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2 / gap ^ 4 := by
-    have hproduct :
-        Complex.logarithmicPhaseQuantitativeSupportLength a b *
-          (3 * (Complex.logarithmicPhaseAdaptedCurvatureUpper t
-            (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2) =
-        3 * Complex.logarithmicPhaseQuantitativeSupportLength a b *
-          (Complex.logarithmicPhaseAdaptedCurvatureUpper t
-            (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2 := by
-      exact Eq.trans (mul_assoc _ 3 _)
-        (Eq.trans
-          (congrArg (fun value : ℝ => value *
-            (Complex.logarithmicPhaseAdaptedCurvatureUpper t
-              (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2)
-            (mul_comm _ 3))
-          (mul_assoc 3 _ _).symm)
-    exact Eq.trans (mul_div_assoc _ _ _)
-      (congrArg (fun value : ℝ => value / gap ^ 4) hproduct)
-  exact congrArg
-    (fun values : ℝ × ℝ × ℝ × ℝ =>
-      values.1 + values.2.1 + values.2.2.1 + values.2.2.2)
-    (Prod.ext hfirst (Prod.ext hsecond (Prod.ext hthird hfourth)))
+          (Complex.logarithmicPhaseQuantitativeSupportLeft a)) ^ 2 / gap ^ 4 :=
+    Complex.logarithmicPhaseAdaptedCurvatureSquareMassTerm_eq_closed
+      t a b gap
+  have hfirstSecond :=
+    congrArg₂ (fun first second : ℝ => first + second) hfirst hsecond
+  have hfirstSecondThird :=
+    congrArg₂ (fun firstThree third : ℝ => firstThree + third)
+      hfirstSecond hthird
+  exact congrArg₂ (fun firstThree fourth : ℝ => firstThree + fourth)
+    hfirstSecondThird hfourth
 
 theorem Complex.norm_logarithmicPhaseAdaptedPacket_le_closedMajorant
     (t : ℝ) (a b m : ℤ) (gap : ℝ)
@@ -120,7 +177,7 @@ theorem Complex.norm_logarithmicPhaseAdaptedPacket_le_closedMajorant
     (hlower : ∀ x ∈ [[Complex.logarithmicPhaseQuantitativeSupportLeft a,
         Complex.logarithmicPhaseQuantitativeSupportRight b]],
       gap ≤ ‖Complex.logarithmicPhaseAdaptedTwistedPhaseDerivative t m x‖) :
-    ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+    ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket ‖t‖ a b m‖ ≤
       Complex.logarithmicPhaseAdaptedClosedMajorant t a b gap := by
   have hpacket :=
     Complex.norm_logarithmicPhaseAdaptedPacket_le_closedDensityIntegral

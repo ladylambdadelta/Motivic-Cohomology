@@ -53,9 +53,11 @@ theorem Real.one_div_three_le_one :
     (1 / 3 : ℝ) ≤ 1 := by
   have hthree_pos : (0 : ℝ) < 3 :=
     Nat.cast_pos.mpr (Nat.succ_pos 2)
-  have hone_le_three : (1 : ℝ) ≤ 3 :=
-    Nat.cast_le.mpr
-      (Nat.succ_le_succ (Nat.succ_le_succ (Nat.zero_le 1)))
+  have hone_le_three : (1 : ℝ) ≤ 3 := by
+    calc
+      (1 : ℝ) = ((1 : ℕ) : ℝ) := Nat.cast_one.symm
+      _ ≤ ((3 : ℕ) : ℝ) := Nat.cast_le.mpr (show (1 : ℕ) ≤ 3 by decide)
+      _ = 3 := rfl
   have hcomparison : (1 : ℝ) ≤ 1 * 3 := by
     calc
       (1 : ℝ) = 1 * 1 := (mul_one 1).symm
@@ -106,15 +108,21 @@ theorem Real.quantitativeLogarithmicBlockCutoff_eq_zero_of_le_one_div_three
     (hx : x ≤ 1 / 3) :
     Real.quantitativeLogarithmicBlockCutoff a b x = 0 := by
   unfold Real.quantitativeLogarithmicBlockCutoff
-  have ha_real : (1 : ℝ) ≤ (a : ℝ) :=
-    Int.cast_le.mpr ha
+  have ha_real : (1 : ℝ) ≤ (a : ℝ) := by
+    calc
+      (1 : ℝ) = ((1 : ℤ) : ℝ) := Int.cast_one.symm
+      _ ≤ (a : ℝ) := Int.cast_le.mpr ha
   have hleft_margin : (1 / 3 : ℝ) ≤ (a : ℝ) - 1 / 3 := by
     have htwothirds_nonneg : (0 : ℝ) ≤ 2 / 3 :=
       div_nonneg (Nat.cast_nonneg 2) (Nat.cast_nonneg 3)
     calc
       (1 / 3 : ℝ) ≤ 1 - 1 / 3 := by
-        have hsum : (1 / 3 : ℝ) + 1 / 3 ≤ 1 :=
-          Real.two_div_three_le_one
+        have hsum : (1 / 3 : ℝ) + 1 / 3 ≤ 1 := by
+          calc
+            (1 / 3 : ℝ) + 1 / 3 = (1 + 1) / 3 := (add_div 1 1 3).symm
+            _ = 2 / 3 := congrArg (fun value : ℝ => value / 3)
+              one_add_one_eq_two
+            _ ≤ 1 := Real.two_div_three_le_one
         exact (le_sub_iff_add_le).mpr hsum
       _ ≤ (a : ℝ) - 1 / 3 :=
         sub_le_sub_right ha_real (1 / 3)
@@ -224,25 +232,25 @@ theorem Real.quantitativeLogarithmicBlockCutoff_le_one
 
 theorem Real.contDiff_quantitativeLogarithmicLeftCutoff
     (a : ℤ) :
-    ContDiff ℝ ∞ (Real.quantitativeLogarithmicLeftCutoff a) := by
+    ContDiff ℝ (↑(⊤ : ℕ∞)) (Real.quantitativeLogarithmicLeftCutoff a) := by
   unfold Real.quantitativeLogarithmicLeftCutoff
   have haffine :
-      ContDiff ℝ ∞ (fun x : ℝ => 3 * (x - (a : ℝ)) + 1) :=
+      ContDiff ℝ (↑(⊤ : ℕ∞)) (fun x : ℝ => 3 * (x - (a : ℝ)) + 1) :=
     (contDiff_const.mul (contDiff_id.sub contDiff_const)).add contDiff_const
   exact Real.smoothTransition.contDiff.comp haffine
 
 theorem Real.contDiff_quantitativeLogarithmicRightCutoff
     (b : ℤ) :
-    ContDiff ℝ ∞ (Real.quantitativeLogarithmicRightCutoff b) := by
+    ContDiff ℝ (↑(⊤ : ℕ∞)) (Real.quantitativeLogarithmicRightCutoff b) := by
   unfold Real.quantitativeLogarithmicRightCutoff
   have haffine :
-      ContDiff ℝ ∞ (fun x : ℝ => 3 * ((b : ℝ) - x) + 1) :=
+      ContDiff ℝ (↑(⊤ : ℕ∞)) (fun x : ℝ => 3 * ((b : ℝ) - x) + 1) :=
     (contDiff_const.mul (contDiff_const.sub contDiff_id)).add contDiff_const
   exact Real.smoothTransition.contDiff.comp haffine
 
 theorem Real.contDiff_quantitativeLogarithmicBlockCutoff
     (a b : ℤ) :
-    ContDiff ℝ ∞ (Real.quantitativeLogarithmicBlockCutoff a b) := by
+    ContDiff ℝ (↑(⊤ : ℕ∞)) (Real.quantitativeLogarithmicBlockCutoff a b) := by
   unfold Real.quantitativeLogarithmicBlockCutoff
   exact
     (Real.contDiff_quantitativeLogarithmicLeftCutoff a).mul
@@ -312,7 +320,7 @@ theorem Real.hasCompactSupport_quantitativeLogarithmicBlockCutoff
       Function.support (Real.quantitativeLogarithmicBlockCutoff a b) ⊆
         Set.Icc ((a : ℝ) - 1 / 3) ((b : ℝ) + 1 / 3) :=
     Set.Subset.trans hopen (fun x hx => And.intro (le_of_lt hx.1) (le_of_lt hx.2))
-  exact HasCompactSupport.of_support_subset_isCompact Set.isCompact_Icc hclosed
+  exact HasCompactSupport.of_support_subset_isCompact isCompact_Icc hclosed
 
 theorem Real.quantitativeLogarithmicBlockCutoff_eq_one_of_mem_Icc_int
     {a b n : ℤ}
@@ -329,7 +337,11 @@ theorem Real.quantitativeLogarithmicBlockCutoff_eq_zero_of_lt_left
     Real.quantitativeLogarithmicBlockCutoff a b (n : ℝ) = 0 := by
   have hgap : n + 1 ≤ a := Int.add_one_le_iff.mpr hna
   have hgap_real : (n : ℝ) + 1 ≤ (a : ℝ) := by
-    exact (Int.cast_add n 1).symm.trans (Int.cast_le.mpr hgap)
+    calc
+      (n : ℝ) + 1 = (n : ℝ) + ((1 : ℤ) : ℝ) :=
+        congrArg (fun value : ℝ => (n : ℝ) + value) Int.cast_one.symm
+      _ = ((n + 1 : ℤ) : ℝ) := (Int.cast_add n 1).symm
+      _ ≤ (a : ℝ) := Int.cast_le.mpr hgap
   have hmargin : (n : ℝ) ≤ (a : ℝ) - 1 / 3 := by
     calc
       (n : ℝ) ≤ (a : ℝ) - 1 := (le_sub_iff_add_le).mpr hgap_real
@@ -343,7 +355,11 @@ theorem Real.quantitativeLogarithmicBlockCutoff_eq_zero_of_lt_right
     Real.quantitativeLogarithmicBlockCutoff a b (n : ℝ) = 0 := by
   have hgap : b + 1 ≤ n := Int.add_one_le_iff.mpr hbn
   have hgap_real : (b : ℝ) + 1 ≤ (n : ℝ) := by
-    exact (Int.cast_add b 1).symm.trans (Int.cast_le.mpr hgap)
+    calc
+      (b : ℝ) + 1 = (b : ℝ) + ((1 : ℤ) : ℝ) :=
+        congrArg (fun value : ℝ => (b : ℝ) + value) Int.cast_one.symm
+      _ = ((b + 1 : ℤ) : ℝ) := (Int.cast_add b 1).symm
+      _ ≤ (n : ℝ) := Int.cast_le.mpr hgap
   have hmargin : (b : ℝ) + 1 / 3 ≤ (n : ℝ) := by
     calc
       (b : ℝ) + 1 / 3 ≤ (b : ℝ) + 1 :=

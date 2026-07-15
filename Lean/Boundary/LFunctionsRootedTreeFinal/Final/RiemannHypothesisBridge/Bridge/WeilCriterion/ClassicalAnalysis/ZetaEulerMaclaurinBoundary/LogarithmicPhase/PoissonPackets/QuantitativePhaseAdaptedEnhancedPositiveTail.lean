@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.QuantitativePhaseAdaptedEnhancedPositiveGap
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.QuantitativePhaseAdaptedEnhancedPositiveTailCore
 
 /-!
 # Summable endpoint-enhanced positive tail
@@ -12,11 +13,6 @@ namespace Boundary
 namespace LFunctions
 
 noncomputable section
-
-def Complex.logarithmicPhaseEnhancedPositiveTailBudget
-    (t : ℝ) (a b : ℤ) : ℝ :=
-  ∑' m : Complex.logarithmicPhasePoissonPositiveTailModes,
-    Complex.logarithmicPhaseEnhancedPositiveModeClosedMajorant t a b m
 
 theorem Complex.positiveModeGap_le_enhancedPositiveModeGap
     (t : ℝ) (a b m : ℤ)
@@ -90,7 +86,7 @@ theorem Complex.norm_logarithmicPhaseEnhancedPositiveTail_tsum_le
     (t : ℝ) (a b : ℤ)
     (ha : 1 ≤ a) (hab : a ≤ b) :
     ‖∑' m : Complex.logarithmicPhasePoissonPositiveTailModes,
-        Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+        Complex.logarithmicPhaseQuantitativeBlockFourierPacket (‖t‖) a b m‖ ≤
       Complex.logarithmicPhaseEnhancedPositiveTailBudget t a b := by
   unfold Complex.logarithmicPhaseEnhancedPositiveTailBudget
   exact tsum_norm_le

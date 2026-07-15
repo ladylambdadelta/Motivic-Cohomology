@@ -62,7 +62,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementLinea
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
           ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
             ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-              (-(t : ℂ) * Complex.I)))
+              (-(t : ℂ) * Complex.I))))
   have hS :
       ‖S‖ ≤ B :=
     boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlockSum_norm_le_sharp_ownerDirichlet
@@ -108,7 +108,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlock
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
               ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I)))) =
+                (-(t : ℂ) * Complex.I))))) =
         L + R :=
     boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlockSum_eq_linearBlockSum_add_remainderBlockSum
       t
@@ -182,7 +182,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_globalPhaseIntegral
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     {M : ℕ}
-    (_hM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    (hM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ∀ K : ℕ,
       ⌊2 + ‖t‖⌋₊ ≤ K →
       K ≤ M →
@@ -190,10 +190,11 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_globalPhaseIntegral
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
               (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
           Real.sqrt (1 + ‖t‖) * Real.log (2 + K) := by
-  intro K hK _hKM
+  intro K hK hKM
   exact
     boundaryLineOnePointRealParam_firstPeriodicBernoulli_globalPhaseIntegral_single_sharp_ownerGap
       t ht hK
 
+end
 end LFunctions
 end Boundary

@@ -94,7 +94,7 @@ theorem Real.inv_norm_le_inv_sqrt_norm_of_one_le
     ‖t‖⁻¹ ≤ (Real.sqrt ‖t‖)⁻¹ := by
   have hsqrtPos := Real.sqrt_norm_pos_of_one_le t ht
   have hnormPos : 0 < ‖t‖ := lt_of_lt_of_le zero_lt_one ht
-  exact (inv_le_inv₀ hsqrtPos hnormPos).mpr
+  exact (inv_le_inv₀ hnormPos hsqrtPos).mpr
     (Real.sqrt_norm_le_norm_of_one_le t ht)
 
 theorem Real.endpoint_div_norm_le_endpoint_div_sqrt_norm

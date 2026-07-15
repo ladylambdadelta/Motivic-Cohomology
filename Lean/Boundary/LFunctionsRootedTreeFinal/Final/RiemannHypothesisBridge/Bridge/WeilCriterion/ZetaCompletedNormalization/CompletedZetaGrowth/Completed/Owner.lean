@@ -132,6 +132,89 @@ theorem completedRiemannZeta₀_rightCriticalStrip_compact_growth_bound :
               le_mul_of_one_le_right hC_nonneg hfactor_ge_one
             le_trans hraw hC_le_scaled⟩
 
+private lemma completedGrowth_gamma_ne_zero_of_im_norm_ge_one
+    {z : ℂ} (hz_im : (1 : ℝ) ≤ ‖z.im‖) : Complex.Gammaℝ z ≠ 0 := by
+  intro hGamma
+  have hzero_index : ∃ n : ℕ, z = -(2 * (n : ℂ)) :=
+    Complex.Gammaℝ_eq_zero_iff.mp hGamma
+  match hzero_index with
+  | ⟨n, hn⟩ =>
+      have him_zero : z.im = 0 := by
+        calc
+          z.im = (-(2 * (n : ℂ))).im := by
+            exact congrArg Complex.im hn
+          _ = -(2 * (n : ℂ)).im := Complex.neg_im _
+          _ = -((2 : ℂ).re * (n : ℂ).im + (2 : ℂ).im * (n : ℂ).re) :=
+            congrArg Neg.neg (Complex.mul_im 2 (n : ℂ))
+          _ = -((2 : ℂ).re * 0 + 0 * (n : ℂ).re) :=
+            congrArg Neg.neg (congrArg₂ (· + ·)
+              (congrArg ((2 : ℂ).re * ·) (Complex.ofReal_im n))
+              (congrArg (· * (n : ℂ).re) (Complex.ofReal_im 2)))
+          _ = -(0 + 0) :=
+            congrArg Neg.neg (congrArg₂ (· + ·) (mul_zero _) (zero_mul _))
+          _ = 0 := by
+            exact (congrArg Neg.neg (add_zero 0)).trans neg_zero
+      have him_norm_zero : ‖z.im‖ = 0 := by
+        calc
+          ‖z.im‖ = ‖(0 : ℝ)‖ := by
+            exact congrArg norm him_zero
+          _ = 0 := by
+            exact norm_zero
+      have hone_le_zero : (1 : ℝ) ≤ 0 :=
+        Eq.subst
+          (motive := fun x : ℝ => (1 : ℝ) ≤ x)
+          him_norm_zero
+          hz_im
+      exact not_lt_of_ge hone_le_zero zero_lt_one
+
+private lemma completedGrowth_one_le_norm_of_im_norm_ge_one
+    {z : ℂ} (hz_im : (1 : ℝ) ≤ ‖z.im‖) : (1 : ℝ) ≤ ‖z‖ :=
+  le_trans hz_im (Complex.abs_im_le_abs z)
+
+private lemma completedGrowth_one_le_norm_one_sub_of_im_norm_ge_one
+    {z : ℂ} (hz_im : (1 : ℝ) ≤ ‖z.im‖) : (1 : ℝ) ≤ ‖1 - z‖ := by
+  have him_abs_le : ‖((1 : ℂ) - z).im‖ ≤ ‖(1 : ℂ) - z‖ :=
+    Complex.abs_im_le_abs ((1 : ℂ) - z)
+  have him_eq : ((1 : ℂ) - z).im = -z.im := by
+    calc
+      ((1 : ℂ) - z).im = (1 : ℂ).im - z.im := by
+        exact Complex.sub_im 1 z
+      _ = 0 - z.im := by
+        exact congrArg (fun x : ℝ => x - z.im) Complex.one_im
+      _ = -z.im := by
+        exact zero_sub z.im
+  have him_norm_eq : ‖((1 : ℂ) - z).im‖ = ‖z.im‖ := by
+    calc
+      ‖((1 : ℂ) - z).im‖ = ‖-z.im‖ := by
+        exact congrArg norm him_eq
+      _ = ‖z.im‖ := by
+        exact norm_neg z.im
+  exact le_trans
+    (Eq.subst
+      (motive := fun x : ℝ => (1 : ℝ) ≤ x)
+      him_norm_eq.symm
+      hz_im)
+    him_abs_le
+
+private lemma completedGrowth_one_le_norm_sub_one_of_im_norm_ge_one
+    {z : ℂ} (hz_im : (1 : ℝ) ≤ ‖z.im‖) : (1 : ℝ) ≤ ‖z - 1‖ := by
+  have him_abs_le : ‖(z - (1 : ℂ)).im‖ ≤ ‖z - (1 : ℂ)‖ :=
+    Complex.abs_im_le_abs (z - (1 : ℂ))
+  have him_eq : (z - (1 : ℂ)).im = z.im := by
+    calc
+      (z - (1 : ℂ)).im = z.im - (1 : ℂ).im := by
+        exact Complex.sub_im z 1
+      _ = z.im - 0 := by
+        exact congrArg (fun x : ℝ => z.im - x) Complex.one_im
+      _ = z.im := by
+        exact sub_zero z.im
+  exact le_trans
+    (Eq.subst
+      (motive := fun x : ℝ => (1 : ℝ) ≤ x)
+      (congrArg norm him_eq).symm
+      hz_im)
+    him_abs_le
+
 /-- On the vertical tail of the right critical strip, the explicit pole terms are bounded
 and the completed normalization is controlled by the pole-cleared zeta factor and `Gammaℝ`.
 -/
@@ -204,38 +287,8 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
         _ = 0 := by
           exact neg_zero
     hone_sub_ne_zero hone_sub_zero
-  have hGamma_ne : Complex.Gammaℝ z ≠ 0 := fun hGamma =>
-    have hzero_index : ∃ n : ℕ, z = -(2 * (n : ℂ)) :=
-      Complex.Gammaℝ_eq_zero_iff.mp hGamma
-    match hzero_index with
-    | ⟨n, hn⟩ =>
-        have him_zero : z.im = 0 := by
-          calc
-            z.im = (-(2 * (n : ℂ))).im := by
-              exact congrArg Complex.im hn
-            _ = -(2 * (n : ℂ)).im := Complex.neg_im _
-            _ = -((2 : ℂ).re * (n : ℂ).im + (2 : ℂ).im * (n : ℂ).re) :=
-                congrArg Neg.neg (Complex.mul_im 2 (n : ℂ))
-            _ = -((2 : ℂ).re * 0 + 0 * (n : ℂ).re) :=
-                congrArg Neg.neg (congrArg₂ (· + ·)
-                  (congrArg ((2 : ℂ).re * ·) (Complex.ofReal_im n))
-                  (congrArg (· * (n : ℂ).re) (Complex.ofReal_im 2)))
-            _ = -(0 + 0) :=
-                congrArg Neg.neg (congrArg₂ (· + ·) (mul_zero _) (zero_mul _))
-            _ = 0 := by
-                exact (congrArg Neg.neg (add_zero 0)).trans neg_zero
-        have him_norm_zero : ‖z.im‖ = 0 :=
-          calc
-            ‖z.im‖ = ‖(0 : ℝ)‖ := by
-              exact congrArg norm him_zero
-            _ = 0 := by
-              exact norm_zero
-        have hone_le_zero : (1 : ℝ) ≤ 0 :=
-          Eq.subst
-            (motive := fun x : ℝ => (1 : ℝ) ≤ x)
-            him_norm_zero
-            hz_im
-        not_lt_of_ge hone_le_zero zero_lt_one
+  have hGamma_ne : Complex.Gammaℝ z ≠ 0 :=
+    completedGrowth_gamma_ne_zero_of_im_norm_ge_one hz_im
   have hcompleted_factor :
       completedRiemannZeta z = riemannZeta z * Complex.Gammaℝ z := by
     have h := riemannZeta_def_of_ne_zero (s := z) hz_ne_zero
@@ -268,48 +321,11 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
               (add_assoc _ _ _).symm
       _ = completedRiemannZeta z + 1 / z + 1 / (1 - z) := by
         exact congrArg (fun w : ℂ => w + 1 / z + 1 / (1 - z)) hformula.symm
-  have hz_norm_ge_one : (1 : ℝ) ≤ ‖z‖ := by
-    exact le_trans hz_im (Complex.abs_im_le_abs z)
-  have hone_sub_norm_ge_one : (1 : ℝ) ≤ ‖1 - z‖ := by
-    have him_abs_le : ‖((1 : ℂ) - z).im‖ ≤ ‖(1 : ℂ) - z‖ :=
-      Complex.abs_im_le_abs ((1 : ℂ) - z)
-    have him_eq : ((1 : ℂ) - z).im = -z.im := by
-      calc
-        ((1 : ℂ) - z).im = (1 : ℂ).im - z.im := by
-          exact Complex.sub_im 1 z
-        _ = 0 - z.im := by
-          exact congrArg (fun x : ℝ => x - z.im) Complex.one_im
-        _ = -z.im := by
-          exact zero_sub z.im
-    have him_norm_eq : ‖((1 : ℂ) - z).im‖ = ‖z.im‖ := by
-      calc
-        ‖((1 : ℂ) - z).im‖ = ‖-z.im‖ := by
-          exact congrArg norm him_eq
-        _ = ‖z.im‖ := by
-          exact norm_neg z.im
-    exact le_trans
-      (Eq.subst
-        (motive := fun x : ℝ => (1 : ℝ) ≤ x)
-        him_norm_eq.symm
-        hz_im)
-      him_abs_le
-  have hz_minus_one_norm_ge_one : (1 : ℝ) ≤ ‖z - 1‖ := by
-    have him_abs_le : ‖(z - (1 : ℂ)).im‖ ≤ ‖z - (1 : ℂ)‖ :=
-      Complex.abs_im_le_abs (z - (1 : ℂ))
-    have him_eq : (z - (1 : ℂ)).im = z.im := by
-      calc
-        (z - (1 : ℂ)).im = z.im - (1 : ℂ).im := by
-          exact Complex.sub_im z 1
-        _ = z.im - 0 := by
-          exact congrArg (fun x : ℝ => z.im - x) Complex.one_im
-        _ = z.im := by
-          exact sub_zero z.im
-    exact le_trans
-      (Eq.subst
-        (motive := fun x : ℝ => (1 : ℝ) ≤ x)
-        (congrArg norm him_eq).symm
-        hz_im)
-      him_abs_le
+  have hz_norm_ge_one := completedGrowth_one_le_norm_of_im_norm_ge_one hz_im
+  have hone_sub_norm_ge_one :=
+    completedGrowth_one_le_norm_one_sub_of_im_norm_ge_one hz_im
+  have hz_minus_one_norm_ge_one :=
+    completedGrowth_one_le_norm_sub_one_of_im_norm_ge_one hz_im
   have hinv_z_le_one : ‖1 / z‖ ≤ (1 : ℝ) := by
     exact completedGrowth_norm_one_div_le_one hz_norm_ge_one
   have hinv_one_sub_le_one : ‖1 / (1 - z)‖ ≤ (1 : ℝ) := by

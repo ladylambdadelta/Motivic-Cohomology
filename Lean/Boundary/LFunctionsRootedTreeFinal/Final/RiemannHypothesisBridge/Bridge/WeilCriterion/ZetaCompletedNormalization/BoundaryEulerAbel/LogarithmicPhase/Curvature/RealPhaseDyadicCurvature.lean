@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.OscillatorySums.DyadicBlocks
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseCurvatureLower
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Curvature.RealPhaseCurvatureAssembly
 
 /-!
 # Two-sided logarithmic curvature on canonical dyadic blocks
@@ -239,6 +240,109 @@ theorem Complex.logarithmicPhaseRealPhase_dyadicBlock_twoSidedCurvature
     Complex.logarithmicPhaseRealPhase_secondDerivative_curvature_upper
       t (b := b) ha
   exact And.intro hlower hupper
+
+/-- The canonical dyadic block consumes the unconditional packet theorem
+directly.  Comparability is intrinsic to the dyadic endpoint construction. -/
+theorem Complex.logarithmicPhaseRealPhase_dyadicBlock_norm_le_unconditional
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {N j : ℕ}
+    (hnonempty :
+      Nat.dyadicBlockLeft j <
+        min (N + 1) (Nat.dyadicBlockRightExclusive j)) :
+    ‖∑ n ∈ Finset.Icc
+          (Nat.dyadicBlockLeft j) (Nat.dyadicBlockUpper N j),
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+              t n : ℂ))‖ ≤
+      80 *
+        (((((Nat.dyadicBlockUpper N j + 1 : ℕ) : ℝ)) /
+            ‖t‖) +
+          Real.sqrt (1 + ‖t‖)) := by
+  have ha := Nat.one_le_dyadicBlockLeft j
+  have hab := Nat.dyadicBlockLeft_le_upper hnonempty
+  have hcomparable :=
+    Nat.dyadicBlockUpper_add_one_le_two_mul_left hnonempty
+  exact
+    Complex.logarithmicPhaseRealPhase_comparable_curvature_integer_block_bound
+      t ht ha hab hcomparable
+
+/-- Concrete-power form of the unconditional dyadic packet estimate. -/
+theorem Complex.logarithmicPhase_dyadicBlock_norm_le_unconditional
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {N j : ℕ}
+    (hnonempty :
+      Nat.dyadicBlockLeft j <
+        min (N + 1) (Nat.dyadicBlockRightExclusive j)) :
+    ‖∑ n ∈ Finset.Icc
+          (Nat.dyadicBlockLeft j) (Nat.dyadicBlockUpper N j),
+        ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      80 *
+        (((((Nat.dyadicBlockUpper N j + 1 : ℕ) : ℝ)) /
+            ‖t‖) +
+          Real.sqrt (1 + ‖t‖)) := by
+  have hreal :=
+    Complex.logarithmicPhaseRealPhase_dyadicBlock_norm_le_unconditional
+      t ht hnonempty
+  have hsample :
+      (∑ n ∈ Finset.Icc
+          (Nat.dyadicBlockLeft j) (Nat.dyadicBlockUpper N j),
+        ((n : ℂ) ^ (-(t : ℂ) * Complex.I))) =
+        ∑ n ∈ Finset.Icc
+            (Nat.dyadicBlockLeft j) (Nat.dyadicBlockUpper N j),
+          Complex.exp
+            (Complex.I *
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                t n : ℂ)) := by
+    exact Finset.sum_congr
+      (Eq.refl
+        (Finset.Icc
+          (Nat.dyadicBlockLeft j) (Nat.dyadicBlockUpper N j)))
+      (fun n hn_mem =>
+        have hn_one : 1 ≤ n :=
+          le_trans
+            (Nat.one_le_dyadicBlockLeft j)
+            (Finset.mem_Icc.mp hn_mem).1
+        have hn_pos : 0 < n :=
+          Nat.lt_of_succ_le hn_one
+        have hsample_function :
+            ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) =
+              Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction
+                t n :=
+          (Complex.logarithmicPhase_integer_sample_eq t hn_pos).symm
+        have hfunction_phase :
+            Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction
+                t n =
+              Complex.exp
+                (Complex.I *
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                    t n : ℂ)) :=
+          Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_realPhase
+            t n
+        Eq.trans hsample_function hfunction_phase)
+  have hnorm :
+      ‖∑ n ∈ Finset.Icc
+          (Nat.dyadicBlockLeft j) (Nat.dyadicBlockUpper N j),
+        ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ =
+        ‖∑ n ∈ Finset.Icc
+            (Nat.dyadicBlockLeft j) (Nat.dyadicBlockUpper N j),
+          Complex.exp
+            (Complex.I *
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                t n : ℂ))‖ :=
+    congrArg norm hsample
+  exact
+    Eq.subst
+      (motive := fun value : ℝ =>
+        value ≤
+          80 *
+            (((((Nat.dyadicBlockUpper N j + 1 : ℕ) : ℝ)) /
+                ‖t‖) +
+              Real.sqrt (1 + ‖t‖)))
+      hnorm.symm
+      hreal
 
 end
 

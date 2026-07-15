@@ -133,34 +133,47 @@ theorem Complex.integrable_logarithmicPhaseQuantitativeAmplitude
     (a b : ℤ)
     (ha : 1 ≤ a) :
     Integrable (Complex.logarithmicPhaseQuantitativeAmplitude t a b) := by
-  exact
-    (Complex.continuous_logarithmicPhaseQuantitativeAmplitude t a b ha)
-      .integrable_of_hasCompactSupport
-      (Complex.hasCompactSupport_logarithmicPhaseQuantitativeAmplitude t a b)
+  have hcontinuous :
+      Continuous (Complex.logarithmicPhaseQuantitativeAmplitude t a b) :=
+    Complex.continuous_logarithmicPhaseQuantitativeAmplitude t a b ha
+  have hcompact :
+      HasCompactSupport (Complex.logarithmicPhaseQuantitativeAmplitude t a b) :=
+    Complex.hasCompactSupport_logarithmicPhaseQuantitativeAmplitude t a b
+  exact hcontinuous.integrable_of_hasCompactSupport hcompact
 
 theorem Complex.integrable_logarithmicPhaseQuantitativeAmplitudeFirstDerivative
     (t : ℝ)
     (a b : ℤ)
     (ha : 1 ≤ a) :
     Integrable (Complex.logarithmicPhaseQuantitativeAmplitudeFirstDerivative t a b) := by
-  exact
-    (Complex.continuous_logarithmicPhaseQuantitativeAmplitudeFirstDerivative
-      t a b ha)
-      .integrable_of_hasCompactSupport
-      (Complex.hasCompactSupport_logarithmicPhaseQuantitativeAmplitudeFirstDerivative
-        t a b)
+  have hcontinuous :
+      Continuous
+        (Complex.logarithmicPhaseQuantitativeAmplitudeFirstDerivative t a b) :=
+    Complex.continuous_logarithmicPhaseQuantitativeAmplitudeFirstDerivative
+      t a b ha
+  have hcompact :
+      HasCompactSupport
+        (Complex.logarithmicPhaseQuantitativeAmplitudeFirstDerivative t a b) :=
+    Complex.hasCompactSupport_logarithmicPhaseQuantitativeAmplitudeFirstDerivative
+      t a b
+  exact hcontinuous.integrable_of_hasCompactSupport hcompact
 
 theorem Complex.integrable_logarithmicPhaseQuantitativeAmplitudeSecondDerivative
     (t : ℝ)
     (a b : ℤ)
     (ha : 1 ≤ a) :
     Integrable (Complex.logarithmicPhaseQuantitativeAmplitudeSecondDerivative t a b) := by
-  exact
-    (Complex.continuous_logarithmicPhaseQuantitativeAmplitudeSecondDerivative
-      t a b ha)
-      .integrable_of_hasCompactSupport
-      (Complex.hasCompactSupport_logarithmicPhaseQuantitativeAmplitudeSecondDerivative
-        t a b)
+  have hcontinuous :
+      Continuous
+        (Complex.logarithmicPhaseQuantitativeAmplitudeSecondDerivative t a b) :=
+    Complex.continuous_logarithmicPhaseQuantitativeAmplitudeSecondDerivative
+      t a b ha
+  have hcompact :
+      HasCompactSupport
+        (Complex.logarithmicPhaseQuantitativeAmplitudeSecondDerivative t a b) :=
+    Complex.hasCompactSupport_logarithmicPhaseQuantitativeAmplitudeSecondDerivative
+      t a b
+  exact hcontinuous.integrable_of_hasCompactSupport hcompact
 
 theorem Complex.intervalIntegrable_logarithmicPhaseQuantitativeAmplitudeFirstDerivative
     (t : ℝ)

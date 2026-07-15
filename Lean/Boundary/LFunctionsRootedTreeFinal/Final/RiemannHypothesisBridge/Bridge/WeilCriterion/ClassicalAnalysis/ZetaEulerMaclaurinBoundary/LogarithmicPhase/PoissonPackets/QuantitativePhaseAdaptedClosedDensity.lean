@@ -86,9 +86,13 @@ theorem Complex.logarithmicPhaseAdaptedPointwiseMajorant_le_closedDensity
     div_nonneg (norm_nonneg t) (sq_nonneg x)
   have hw₀ : 0 ≤ 2 * ‖t‖ / x ^ 3 := by
     have hx : 0 < x := lt_of_lt_of_le hleft hleftx
+    have htwo : (0 : ℝ) ≤ 2 := Nat.cast_nonneg 2
+    have hnumerator : 0 ≤ 2 * ‖t‖ :=
+      mul_nonneg htwo (norm_nonneg t)
+    have hdenominator : 0 ≤ x ^ 3 := pow_nonneg hx.le 3
     exact div_nonneg
-      (mul_nonneg (by exact OfNat.zero_le 2) (norm_nonneg t))
-      (pow_nonneg hx.le 3)
+      hnumerator
+      hdenominator
   have hv :=
     Complex.logarithmicPhaseAdaptedCurvature_le_left t _ x hleft hleftx
   have hw :=
@@ -126,7 +130,7 @@ theorem Complex.intervalIntegrable_logarithmicPhaseAdaptedClosedDensity
     (hgap : gap ≠ 0) :
     IntervalIntegrable
       (Complex.logarithmicPhaseAdaptedClosedDensity t a b gap)
-      volume
+      MeasureTheory.volume
       (Complex.logarithmicPhaseQuantitativeSupportLeft a)
       (Complex.logarithmicPhaseQuantitativeSupportRight b) := by
   exact (Complex.continuous_logarithmicPhaseAdaptedClosedDensity
@@ -136,10 +140,11 @@ theorem Complex.norm_logarithmicPhaseAdaptedPacket_le_closedDensityIntegral
     (t : ℝ) (a b m : ℤ) (gap : ℝ)
     (ha : 1 ≤ a) (hab : a ≤ b)
     (hgap : 0 < gap)
-    (hlower : ∀ x ∈ [[Complex.logarithmicPhaseQuantitativeSupportLeft a,
-        Complex.logarithmicPhaseQuantitativeSupportRight b]],
+    (hlower : ∀ x ∈ Set.uIcc
+        (Complex.logarithmicPhaseQuantitativeSupportLeft a)
+        (Complex.logarithmicPhaseQuantitativeSupportRight b),
       gap ≤ ‖Complex.logarithmicPhaseAdaptedTwistedPhaseDerivative t m x‖) :
-    ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+    ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket ‖t‖ a b m‖ ≤
       ∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
           Complex.logarithmicPhaseQuantitativeSupportRight b,
         Complex.logarithmicPhaseAdaptedClosedDensity t a b gap x := by
@@ -156,12 +161,23 @@ theorem Complex.norm_logarithmicPhaseAdaptedPacket_le_closedDensityIntegral
   have hclosedIntegrable :=
     Complex.intervalIntegrable_logarithmicPhaseAdaptedClosedDensity
       t a b gap (ne_of_gt hgap)
-  have hmono := intervalIntegral.integral_mono_on hleftRight
-    hpointwiseIntegrable hclosedIntegrable
-    (fun x hx =>
+  have hpointwise : ∀ x ∈ Set.Icc
+      (Complex.logarithmicPhaseQuantitativeSupportLeft a)
+      (Complex.logarithmicPhaseQuantitativeSupportRight b),
+      Complex.logarithmicPhaseAdaptedPointwiseMajorant t a b m x ≤
+        Complex.logarithmicPhaseAdaptedClosedDensity t a b gap x :=
+    fun x hx =>
       Complex.logarithmicPhaseAdaptedPointwiseMajorant_le_closedDensity
         t a b m gap x hleftPos hx.1 hgap
-        (hlower x ((Set.uIcc_of_le hleftRight).mpr hx)))
+        (hlower x
+          (Eq.mpr
+            (congrArg
+              (fun support : Set ℝ => x ∈ support)
+              (Set.uIcc_of_le hleftRight))
+            hx))
+  have hmono := intervalIntegral.integral_mono_on hleftRight
+    hpointwiseIntegrable hclosedIntegrable
+    hpointwise
   exact le_trans hpacket hmono
 
 end

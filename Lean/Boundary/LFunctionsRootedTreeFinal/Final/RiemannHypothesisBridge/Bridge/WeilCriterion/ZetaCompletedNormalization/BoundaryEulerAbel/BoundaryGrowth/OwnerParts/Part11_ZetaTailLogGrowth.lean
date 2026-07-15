@@ -12,6 +12,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped Filter Topology
+open MeasureTheory
 local notation "π" => Real.pi
 
 theorem eulerMaclaurin_boundaryLineOnePointRealParam_classical_tail_estimate
@@ -423,5 +424,6 @@ theorem classicalZeta_boundaryLineOneZetaRealParam_vertical_log_growth_bound_fro
               (hA.right t ht hpartial hfinite))))
 
 
+end
 end LFunctions
 end Boundary

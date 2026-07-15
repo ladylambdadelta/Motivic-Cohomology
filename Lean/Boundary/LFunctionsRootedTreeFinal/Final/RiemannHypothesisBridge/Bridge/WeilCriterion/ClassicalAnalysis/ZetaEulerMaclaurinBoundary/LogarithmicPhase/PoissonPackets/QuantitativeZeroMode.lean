@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.QuantitativeCrossings
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.Reconstruction
 
 /-!
 # Zero-frequency identities for quantitative logarithmic packets
@@ -111,11 +112,7 @@ theorem Complex.logarithmicPhaseFourierZeroStationaryPoint_not_mem_positive
     (hx : 0 < x) :
     x ≠ Complex.logarithmicPhaseFourierStationaryPoint t 0 := by
   have hzero := Complex.logarithmicPhaseFourierStationaryPoint_zero t
-  exact
-    Eq.subst
-      (motive := fun center : ℝ => x ≠ center)
-      hzero
-      (ne_of_gt hx)
+  exact hzero ▸ ne_of_gt hx
 
 theorem Complex.norm_logarithmicPhaseFourierTwistedDerivative_zero
     (t : ℝ)
@@ -129,7 +126,8 @@ theorem Complex.norm_logarithmicPhaseFourierTwistedDerivative_zero
       congrArg norm htwisted
     _ = ‖-‖t‖‖ / ‖x‖ := norm_div (-‖t‖) x
     _ = ‖t‖ / ‖x‖ :=
-      congrArg (fun value : ℝ => value / ‖x‖) (norm_neg ‖t‖)
+      congrArg (fun value : ℝ => value / ‖x‖)
+        ((norm_neg ‖t‖).trans (Real.norm_of_nonneg (norm_nonneg t)))
     _ = ‖t‖ / x := congrArg (fun value : ℝ => ‖t‖ / value) hx_norm
 
 theorem Complex.norm_logarithmicPhaseFourierZeroIntegrationCoefficient
@@ -246,8 +244,7 @@ theorem Complex.norm_logarithmicPhaseFourierZeroIntegrationCoefficientDerivative
     Complex.norm_logarithmicPhaseFourierIntegrationCoefficientDerivative t 0 x
   have hscalar :=
     Complex.logarithmicPhaseFourierZero_coefficientDerivative_scalar t ht hx
-  exact hnorm.trans (Eq.trans (congrArg (fun value : ℝ => (‖t‖ / x ^ 2) / value ^ 2)
-    (Complex.norm_logarithmicPhaseFourierTwistedDerivative_zero t hx)) hscalar)
+  exact hnorm.trans hscalar
 
 theorem Complex.integral_norm_logarithmicPhaseFourierZeroCoefficientDerivative_le
     (t : ℝ)
@@ -357,6 +354,44 @@ theorem Complex.norm_intervalIntegral_logarithmicPhaseFourierZeroOscillation_le
           hremainder)
   exact le_trans hgeneric hsum
 
+theorem Complex.norm_add_three_le
+    (left middle right : ℂ) :
+    ‖left + middle + right‖ ≤ ‖left‖ + ‖middle‖ + ‖right‖ := by
+  have hfirst := norm_add_le left (middle + right)
+  have hsecond := norm_add_le middle right
+  have hassociated :
+      ‖left + (middle + right)‖ ≤
+        ‖left‖ + ‖middle‖ + ‖right‖ := by
+    have hsum := le_trans hfirst (add_le_add_left hsecond ‖left‖)
+    exact Eq.subst
+      (motive := fun value : ℝ =>
+        ‖left + (middle + right)‖ ≤ value)
+      (add_assoc ‖left‖ ‖middle‖ ‖right‖).symm
+      hsum
+  exact Eq.subst
+    (motive := fun value : ℂ =>
+      ‖value‖ ≤ ‖left‖ + ‖middle‖ + ‖right‖)
+    (add_assoc left middle right).symm
+    hassociated
+
+theorem Complex.norm_add_three_reorder
+    (left middle right : ℂ) :
+    ‖left‖ + ‖middle‖ + ‖right‖ =
+      (‖left‖ + ‖right‖) + ‖middle‖ := by
+  calc
+    ‖left‖ + ‖middle‖ + ‖right‖ =
+        ‖left‖ + (‖middle‖ + ‖right‖) :=
+      (add_assoc _ _ _)
+    _ = ‖left‖ + (‖right‖ + ‖middle‖) :=
+      congrArg (fun value : ℝ => ‖left‖ + value) (add_comm _ _)
+    _ = (‖left‖ + ‖right‖) + ‖middle‖ :=
+      (add_assoc _ _ _).symm
+
+theorem Complex.zero_packet_budget_reassociate
+    (crossing central tail : ℝ) :
+    crossing + (central + tail) = crossing + central + tail :=
+  (add_assoc _ _ _).symm
+
 theorem Complex.norm_logarithmicPhaseQuantitativeZeroPacket_le
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
@@ -366,7 +401,8 @@ theorem Complex.norm_logarithmicPhaseQuantitativeZeroPacket_le
     (hab : a ≤ b) :
     ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b 0‖ ≤
       2 / 3 + 2 * ((b : ℝ) / ‖t‖) + ((b : ℝ) - (a : ℝ)) • ‖t‖⁻¹ := by
-  have ha_real : (1 : ℝ) ≤ (a : ℝ) := Int.cast_le.mpr ha
+  have ha_cast : ((1 : ℤ) : ℝ) = 1 := Int.cast_one
+  have ha_real : (1 : ℝ) ≤ (a : ℝ) := ha_cast ▸ Int.cast_le.mpr ha
   have ha_pos : 0 < (a : ℝ) := lt_of_lt_of_le zero_lt_one ha_real
   have hab_real : (a : ℝ) ≤ (b : ℝ) := Int.cast_le.mpr hab
   have hdecomposition :=
@@ -400,35 +436,11 @@ theorem Complex.norm_logarithmicPhaseQuantitativeZeroPacket_le
               (Complex.realPhaseFrequencyTwist
                 (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
                 0) x‖ +
-          ‖∫ x in (b : ℝ)..((b : ℝ) + 1 / 3),
+        ‖∫ x in (b : ℝ)..((b : ℝ) + 1 / 3),
             Complex.phaseCutoffFrequencyTwistIntegrand
               (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
               (Real.quantitativeLogarithmicBlockCutoff a b) 0 x‖ := by
-    have hfirst := norm_add_le
-      (∫ x in ((a : ℝ) - 1 / 3)..(a : ℝ),
-        Complex.phaseCutoffFrequencyTwistIntegrand
-          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-          (Real.quantitativeLogarithmicBlockCutoff a b) 0 x)
-      (∫ x in (a : ℝ)..(b : ℝ),
-        Complex.realPhaseOscillation
-          (Complex.realPhaseFrequencyTwist
-            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-            0) x +
-        ∫ x in (b : ℝ)..((b : ℝ) + 1 / 3),
-          Complex.phaseCutoffFrequencyTwistIntegrand
-            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-            (Real.quantitativeLogarithmicBlockCutoff a b) 0 x)
-    have hsecond := norm_add_le
-      (∫ x in (a : ℝ)..(b : ℝ),
-        Complex.realPhaseOscillation
-          (Complex.realPhaseFrequencyTwist
-            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-            0) x)
-      (∫ x in (b : ℝ)..((b : ℝ) + 1 / 3),
-        Complex.phaseCutoffFrequencyTwistIntegrand
-          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-          (Real.quantitativeLogarithmicBlockCutoff a b) 0 x)
-    exact le_trans hfirst (add_le_add_left hsecond _)
+    exact Complex.norm_add_three_le _ _ _
   have hcomponents :
       ‖∫ x in ((a : ℝ) - 1 / 3)..(a : ℝ),
           Complex.phaseCutoffFrequencyTwistIntegrand
@@ -473,21 +485,53 @@ theorem Complex.norm_logarithmicPhaseQuantitativeZeroPacket_le
                 (Complex.realPhaseFrequencyTwist
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
                   0) x‖ :=
-      add_left_comm _ _ _
+      calc
+        _ = _ := add_assoc _ _ _
+        _ = _ := congrArg
+          (fun value : ℝ =>
+            ‖∫ x in ((a : ℝ) - 1 / 3)..(a : ℝ),
+                Complex.phaseCutoffFrequencyTwistIntegrand
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  (Real.quantitativeLogarithmicBlockCutoff a b) 0 x‖ + value)
+          (add_comm _ _)
+        _ = _ := (add_assoc _ _ _).symm
     exact
-      Eq.subst
+        Eq.subst
         (motive := fun left : ℝ =>
           left ≤ 2 / 3 +
             (2 * ((b : ℝ) / ‖t‖) + ((b : ℝ) - (a : ℝ)) • ‖t‖⁻¹))
-        hreorder
+        hreorder.symm
         hsum
   have hbound := le_trans htriangle hcomponents
+  have hbound_reassociated :
+      2 / 3 +
+          (2 * ((b : ℝ) / ‖t‖) + ((b : ℝ) - (a : ℝ)) • ‖t‖⁻¹) =
+        2 / 3 + 2 * ((b : ℝ) / ‖t‖) +
+          ((b : ℝ) - (a : ℝ)) • ‖t‖⁻¹ :=
+    (add_assoc _ _ _).symm
+  have hbound_target :
+      ‖(∫ x in ((a : ℝ) - 1 / 3)..(a : ℝ),
+          Complex.phaseCutoffFrequencyTwistIntegrand
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            (Real.quantitativeLogarithmicBlockCutoff a b) 0 x) +
+        (∫ x in (a : ℝ)..(b : ℝ),
+          Complex.realPhaseOscillation
+            (Complex.realPhaseFrequencyTwist
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+              0) x) +
+        (∫ x in (b : ℝ)..((b : ℝ) + 1 / 3),
+          Complex.phaseCutoffFrequencyTwistIntegrand
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            (Real.quantitativeLogarithmicBlockCutoff a b) 0 x)‖ ≤
+      2 / 3 + 2 * ((b : ℝ) / ‖t‖) +
+        ((b : ℝ) - (a : ℝ)) • ‖t‖⁻¹ :=
+    Eq.subst hbound_reassociated hbound
   exact
     Eq.subst
       (motive := fun value : ℂ =>
         ‖value‖ ≤ 2 / 3 + 2 * ((b : ℝ) / ‖t‖) + ((b : ℝ) - (a : ℝ)) • ‖t‖⁻¹)
       hdecomposition.symm
-      hbound
+      hbound_target
 
 theorem Complex.realPhaseOscillation_logarithmicFrequencyZero_eq
     (t : ℝ)

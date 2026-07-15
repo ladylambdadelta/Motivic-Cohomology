@@ -181,30 +181,35 @@ theorem Real.four_div_three_le_two
   have hsix_eq : (2 : ℝ) * 3 = 6 := by
     have hnat : (2 * 3 : ℕ) = 6 :=
       rfl
-    exact
-      Eq.trans
-        (Nat.cast_mul 2 3).symm
-        (Eq.trans
-          (congrArg (fun n : ℕ => (n : ℝ)) hnat)
-          Nat.cast_ofNat)
+    calc
+      (2 : ℝ) * 3 = ((2 * 3 : ℕ) : ℝ) := (Nat.cast_mul 2 3).symm
+      _ = (6 : ℝ) := congrArg (fun n : ℕ => (n : ℝ)) hnat
   have hfour_le_six : (4 : ℝ) ≤ 6 := by
     have htwo_nonneg : (0 : ℝ) ≤ 2 :=
       Nat.cast_nonneg 2
     have hfour_eq : (4 : ℝ) = 2 + 2 := by
-      exact (Nat.cast_add 2 2).symm
+      calc
+        (4 : ℝ) = ((4 : ℕ) : ℝ) := Nat.cast_ofNat.symm
+        _ = ((2 + 2 : ℕ) : ℝ) :=
+          congrArg (fun n : ℕ => (n : ℝ)) rfl
+        _ = (2 : ℝ) + 2 := Nat.cast_add 2 2
     have hsix_sum : (6 : ℝ) = 4 + 2 := by
       have hnat : (4 + 2 : ℕ) = 6 :=
         rfl
-      exact
-        Eq.trans
-          (Nat.cast_add 4 2).symm
-          (Eq.trans
-            (congrArg (fun n : ℕ => (n : ℝ)) hnat)
-            Nat.cast_ofNat)
+      calc
+        (6 : ℝ) = ((6 : ℕ) : ℝ) := Nat.cast_ofNat.symm
+        _ = ((4 + 2 : ℕ) : ℝ) :=
+          congrArg (fun n : ℕ => (n : ℝ)) hnat.symm
+        _ = (4 : ℝ) + 2 := Nat.cast_add 4 2
     calc
       (4 : ℝ) = 2 + 2 := hfour_eq
-      _ ≤ 4 + 2 := add_le_add_right (show (2 : ℝ) ≤ 4 from
-        le_add_of_nonneg_right htwo_nonneg) 2
+      _ ≤ 4 + 2 := by
+        have htwo_le_four : (2 : ℝ) ≤ 4 := by
+          calc
+            (2 : ℝ) = 2 + 0 := (add_zero 2).symm
+            _ ≤ 2 + 2 := add_le_add_left htwo_nonneg 2
+            _ = 4 := hfour_eq.symm
+        exact add_le_add_right htwo_le_four 2
       _ = 6 := hsix_sum.symm
   exact
     (div_le_iff₀ hthree_pos).mpr
@@ -252,16 +257,13 @@ theorem Real.eight_div_three_le_four_mul_logarithmicPhaseDirectPoissonTarget
     have hfour : (2 * 2 : ℝ) = 4 := by
       have hnat : (2 * 2 : ℕ) = 4 :=
         rfl
-      exact
-        Eq.trans
-          (Eq.trans
-            (congrArg (fun n : ℕ => (n : ℝ)) hnat).symm
-            (Nat.cast_mul 2 2))
-          rfl
+      calc
+        (2 * 2 : ℝ) = ((2 * 2 : ℕ) : ℝ) := (Nat.cast_mul 2 2).symm
+        _ = (4 : ℝ) := congrArg (fun n : ℕ => (n : ℝ)) hnat
     calc
       2 * (2 * Real.logarithmicPhaseDirectPoissonTarget t b) =
           (2 * 2 : ℝ) * Real.logarithmicPhaseDirectPoissonTarget t b :=
-        mul_assoc 2 2 (Real.logarithmicPhaseDirectPoissonTarget t b)
+        (mul_assoc 2 2 (Real.logarithmicPhaseDirectPoissonTarget t b)).symm
       _ = 4 * Real.logarithmicPhaseDirectPoissonTarget t b := by
         exact congrArg
           (fun value : ℝ => value * Real.logarithmicPhaseDirectPoissonTarget t b)

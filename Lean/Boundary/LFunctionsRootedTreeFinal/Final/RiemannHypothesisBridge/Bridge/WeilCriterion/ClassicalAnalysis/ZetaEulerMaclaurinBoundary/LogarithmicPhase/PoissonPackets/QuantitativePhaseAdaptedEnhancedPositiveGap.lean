@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.QuantitativePhaseAdaptedThreeComponent
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.QuantitativePhaseAdaptedEnhancedPositiveGapCore
 
 /-!
 # Endpoint-enhanced positive-mode gap
@@ -14,24 +15,6 @@ namespace LFunctions
 
 noncomputable section
 
-def Complex.logarithmicPhaseEnhancedPositiveModeGap
-    (t : ℝ) (b m : ℤ) : ℝ :=
-  ‖t‖ / Complex.logarithmicPhaseQuantitativeSupportRight b +
-    Complex.logarithmicPhasePositiveModeGap m
-
-theorem Complex.logarithmicPhaseEnhancedPositiveModeGap_pos
-    (t : ℝ) (a b m : ℤ)
-    (ha : 1 ≤ a) (hab : a ≤ b) (hm : 0 < m) :
-    0 < Complex.logarithmicPhaseEnhancedPositiveModeGap t b m := by
-  unfold Complex.logarithmicPhaseEnhancedPositiveModeGap
-  have hright :=
-    Complex.logarithmicPhaseQuantitativeSupportRight_pos a b ha hab
-  have hquotient : 0 ≤
-      ‖t‖ / Complex.logarithmicPhaseQuantitativeSupportRight b :=
-    div_nonneg (norm_nonneg t) hright.le
-  have hmode := Complex.logarithmicPhasePositiveModeGap_pos m hm
-  exact add_pos_of_nonneg_of_pos hquotient hmode
-
 theorem Complex.div_rightSupport_le_div_x
     (t : ℝ) {x right : ℝ}
     (hx : 0 < x) (hxright : x ≤ right) :
@@ -42,8 +25,9 @@ theorem Complex.logarithmicPhaseEnhancedPositiveModeDerivative_gap
     (t : ℝ) (a b m : ℤ) {x : ℝ}
     (ha : 1 ≤ a) (hab : a ≤ b)
     (hm : 0 < m)
-    (hx : x ∈ [[Complex.logarithmicPhaseQuantitativeSupportLeft a,
-      Complex.logarithmicPhaseQuantitativeSupportRight b]]) :
+    (hx : x ∈ Set.uIcc
+      (Complex.logarithmicPhaseQuantitativeSupportLeft a)
+      (Complex.logarithmicPhaseQuantitativeSupportRight b)) :
     Complex.logarithmicPhaseEnhancedPositiveModeGap t b m ≤
       ‖Complex.logarithmicPhaseAdaptedTwistedPhaseDerivative t m x‖ := by
   have hleftRight :=
@@ -51,7 +35,9 @@ theorem Complex.logarithmicPhaseEnhancedPositiveModeDerivative_gap
   have hxIcc : x ∈ Set.Icc
       (Complex.logarithmicPhaseQuantitativeSupportLeft a)
       (Complex.logarithmicPhaseQuantitativeSupportRight b) :=
-    (Set.uIcc_of_le hleftRight).mp hx
+    Eq.subst
+      (motive := fun interval : Set ℝ => x ∈ interval)
+      (Set.uIcc_of_le hleftRight) hx
   have hxPos :=
     Complex.logarithmicPhaseQuantitativeSupport_mem_positive a b ha hab hx
   have hdivision := Complex.div_rightSupport_le_div_x t hxPos hxIcc.2
@@ -70,12 +56,13 @@ def Complex.logarithmicPhaseEnhancedPositiveModeClosedMajorant
 theorem Complex.norm_logarithmicPhasePositiveModePacket_le_enhanced
     (t : ℝ) (a b m : ℤ)
     (ha : 1 ≤ a) (hab : a ≤ b) (hm : 0 < m) :
-    ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+    ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket (‖t‖) a b m‖ ≤
       Complex.logarithmicPhaseEnhancedPositiveModeClosedMajorant t a b m := by
   have hgap :=
     Complex.logarithmicPhaseEnhancedPositiveModeGap_pos t a b m ha hab hm
-  have hlower : ∀ x ∈ [[Complex.logarithmicPhaseQuantitativeSupportLeft a,
-      Complex.logarithmicPhaseQuantitativeSupportRight b]],
+  have hlower : ∀ x ∈ Set.uIcc
+      (Complex.logarithmicPhaseQuantitativeSupportLeft a)
+      (Complex.logarithmicPhaseQuantitativeSupportRight b),
       Complex.logarithmicPhaseEnhancedPositiveModeGap t b m ≤
         ‖Complex.logarithmicPhaseAdaptedTwistedPhaseDerivative t m x‖ :=
     fun x hx =>

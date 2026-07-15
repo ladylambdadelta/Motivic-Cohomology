@@ -31,35 +31,36 @@ theorem Real.transitionShiftedDiscriminant_eq_low_core_add_tail
         (188 * r ^ 2 + 224 * r ^ 3 +
           92 * r ^ 4 + 16 * r ^ 5 + r ^ 6) := by
   unfold Real.transitionShiftedDiscriminant
-  exact
-    (add_assoc
-      (16 - 16 * r)
-      (188 * r ^ 2)
-      (224 * r ^ 3)).trans
-      ((add_assoc
-        ((16 - 16 * r) + 188 * r ^ 2)
-        (224 * r ^ 3)
-        (92 * r ^ 4)).trans
-        ((add_assoc
-          (((16 - 16 * r) + 188 * r ^ 2) + 224 * r ^ 3)
-          (92 * r ^ 4)
-          (16 * r ^ 5)).trans
-          (add_assoc
-            ((((16 - 16 * r) + 188 * r ^ 2) + 224 * r ^ 3) +
-              92 * r ^ 4)
-            (16 * r ^ 5)
-            (r ^ 6))))
+  let a : ℝ := 16 - 16 * r
+  let b : ℝ := 188 * r ^ 2
+  let c : ℝ := 224 * r ^ 3
+  let d : ℝ := 92 * r ^ 4
+  let e : ℝ := 16 * r ^ 5
+  let f : ℝ := r ^ 6
+  change a + b + c + d + e + f = a + (b + c + d + e + f)
+  calc
+    a + b + c + d + e + f = a + (b + c) + d + e + f :=
+      congrArg (fun value : ℝ => value + d + e + f)
+        (add_assoc a b c)
+    _ = a + (b + c + d) + e + f :=
+      congrArg (fun value : ℝ => value + e + f)
+        (add_assoc a (b + c) d)
+    _ = a + (b + c + d + e) + f :=
+      congrArg (fun value : ℝ => value + f)
+        (add_assoc a (b + c + d) e)
+    _ = a + (b + c + d + e + f) :=
+      add_assoc a (b + c + d + e) f
 
 theorem Real.transitionShiftedDiscriminant_tail_nonneg
     {r : ℝ}
     (hr : 0 ≤ r) :
     0 ≤ 188 * r ^ 2 + 224 * r ^ 3 +
       92 * r ^ 4 + 16 * r ^ 5 + r ^ 6 := by
-  have hr2 : 0 ≤ r ^ 2 := pow_nonneg r 2
-  have hr3 : 0 ≤ r ^ 3 := pow_nonneg r 3
-  have hr4 : 0 ≤ r ^ 4 := pow_nonneg r 4
-  have hr5 : 0 ≤ r ^ 5 := pow_nonneg r 5
-  have hr6 : 0 ≤ r ^ 6 := pow_nonneg r 6
+  have hr2 : 0 ≤ r ^ 2 := pow_nonneg hr 2
+  have hr3 : 0 ≤ r ^ 3 := pow_nonneg hr 3
+  have hr4 : 0 ≤ r ^ 4 := pow_nonneg hr 4
+  have hr5 : 0 ≤ r ^ 5 := pow_nonneg hr 5
+  have hr6 : 0 ≤ r ^ 6 := pow_nonneg hr 6
   have h188 : 0 ≤ 188 * r ^ 2 :=
     mul_nonneg (Nat.cast_nonneg 188) hr2
   have h224 : 0 ≤ 224 * r ^ 3 :=
@@ -163,12 +164,12 @@ theorem Real.transitionShiftedDiscriminant_nonneg_of_one_le
   have hcore :=
     Real.transitionShiftedDiscriminant_high_core_nonneg hrOne
   have h224 : 0 ≤ 224 * r ^ 3 :=
-    mul_nonneg (Nat.cast_nonneg 224) (pow_nonneg r 3)
+    mul_nonneg (Nat.cast_nonneg 224) (pow_nonneg hr 3)
   have h92 : 0 ≤ 92 * r ^ 4 :=
-    mul_nonneg (Nat.cast_nonneg 92) (pow_nonneg r 4)
+    mul_nonneg (Nat.cast_nonneg 92) (pow_nonneg hr 4)
   have h16 : 0 ≤ 16 * r ^ 5 :=
-    mul_nonneg (Nat.cast_nonneg 16) (pow_nonneg r 5)
-  have hr6 : 0 ≤ r ^ 6 := pow_nonneg r 6
+    mul_nonneg (Nat.cast_nonneg 16) (pow_nonneg hr 5)
+  have hr6 : 0 ≤ r ^ 6 := pow_nonneg hr 6
   unfold Real.transitionShiftedDiscriminant
   exact add_nonneg
     (add_nonneg (add_nonneg (add_nonneg hcore h224) h92) h16)
@@ -206,12 +207,7 @@ theorem Real.transitionScalar_one_le
     have hthreeNonneg : (0 : ℝ) ≤ 3 := Nat.cast_nonneg 3
     have hadd : (1 : ℝ) ≤ 1 + 3 := le_add_of_nonneg_right hthreeNonneg
     have hsum : (1 : ℝ) + 3 = 4 := by
-      exact Eq.trans
-        (Nat.cast_add 1 3).symm
-        (Eq.trans
-          (congrArg (fun n : ℕ => (n : ℝ))
-            (show (1 + 3 : ℕ) = 4 from rfl))
-          Nat.cast_ofNat)
+      exact Eq.trans (add_comm (1 : ℝ) 3) three_add_one_eq_four
     exact hadd.trans_eq hsum
   exact le_trans honeLeFour hs
 
@@ -243,9 +239,15 @@ theorem Real.transitionScalar_sub_one_pos
     {s : ℝ}
     (hs : 4 ≤ s) :
     0 < s - 1 := by
+  have hfour : (1 : ℝ) + 3 = 4 :=
+    Eq.trans (add_comm (1 : ℝ) 3) three_add_one_eq_four
+  have honeThree : (1 : ℝ) + 3 ≤ s :=
+    Eq.subst (motive := fun value : ℝ => value ≤ s) hfour.symm hs
   exact sub_pos.mpr
-    (lt_of_lt_of_le zero_lt_one
-      (Real.transitionScalar_one_le hs))
+    (lt_of_lt_of_le
+      (lt_add_of_pos_right (1 : ℝ)
+        (Nat.cast_pos.mpr (by decide : 0 < 3)))
+      honeThree)
 
 theorem Real.transitionScalar_sub_two_nonneg
     {s : ℝ}

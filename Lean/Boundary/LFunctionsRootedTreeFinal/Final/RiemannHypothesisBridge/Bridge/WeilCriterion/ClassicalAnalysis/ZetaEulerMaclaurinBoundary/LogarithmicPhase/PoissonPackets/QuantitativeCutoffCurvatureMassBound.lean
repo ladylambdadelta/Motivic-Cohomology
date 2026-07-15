@@ -128,26 +128,47 @@ theorem Real.integral_abs_quantitativeLogarithmicLeftCutoffSecondDerivative_le
     unfold Complex.logarithmicPhaseQuantitativeSupportRight
     exact le_trans (Int.cast_le.mpr hab)
       (le_add_of_nonneg_right (le_of_lt Real.one_div_three_pos))
-  have hintegrable : IntervalIntegrable
+  have hdensityContinuous : Continuous
+      (fun x : ℝ =>
+        |Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x|) :=
+    (Real.continuous_quantitativeLogarithmicLeftCutoffSecondDerivative a).abs
+  have hleftIntegrable : IntervalIntegrable
       (fun x : ℝ =>
         |Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x|)
-      volume left right :=
-    (Real.continuous_quantitativeLogarithmicLeftCutoffSecondDerivative a).abs
-      .intervalIntegrable left right
-  have hleftIntegrable := hintegrable.mono_set
-    (Set.uIcc_subset_uIcc hleftCore hcoreRight)
+      volume left core :=
+    hdensityContinuous.intervalIntegrable left core
+  have hrightIntegrable : IntervalIntegrable
+      (fun x : ℝ =>
+        |Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x|)
+      volume core right :=
+    hdensityContinuous.intervalIntegrable core right
   have hrightZero :
       (∫ x in core..right,
         |Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x|) = 0 := by
-    exact intervalIntegral.integral_eq_zero_of_eq_zero
-      (fun x hx =>
-        congrArg abs
-          (Real.quantitativeLogarithmicLeftCutoffSecondDerivative_eq_zero_of_core_le
-            a hx.1))
-  have hsplit := intervalIntegral.integral_add_adjacent
-    (fun x : ℝ =>
-      |Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x|)
-    left core right
+    have hzeroFunction :
+        (∫ x in core..right,
+          |Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x|) =
+          ∫ _x in core..right, (0 : ℝ) :=
+      intervalIntegral.integral_congr
+        (fun x hx => by
+          have hminimum : min core right = core := min_eq_left hcoreRight
+          have hxCore : core ≤ x :=
+            Eq.subst (motive := fun value : ℝ => value ≤ x)
+              hminimum hx.1
+          exact
+            (congrArg abs
+              (Real.quantitativeLogarithmicLeftCutoffSecondDerivative_eq_zero_of_core_le
+                a hxCore)).trans abs_zero)
+    exact hzeroFunction.trans intervalIntegral.integral_zero
+  have hsplit :
+      (∫ x in left..right,
+        |Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x|) =
+        (∫ x in left..core,
+          |Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x|) +
+        ∫ x in core..right,
+          |Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x| :=
+    (intervalIntegral.integral_add_adjacent_intervals
+      hleftIntegrable hrightIntegrable).symm
   have hleftBound :
       (∫ x in left..core,
         |Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x|) ≤
@@ -156,19 +177,35 @@ theorem Real.integral_abs_quantitativeLogarithmicLeftCutoffSecondDerivative_le
         (fun _x : ℝ => Real.quantitativeLogarithmicCollarCurvatureBound)
         volume left core := continuous_const.intervalIntegrable left core
     have hmono := intervalIntegral.integral_mono_on hleftCore
-      ((Real.continuous_quantitativeLogarithmicLeftCutoffSecondDerivative a).abs
-        .intervalIntegrable left core)
+      hleftIntegrable
       hconstant
       (fun x hx =>
         Real.abs_quantitativeLogarithmicLeftCutoffSecondDerivative_le_collarBound
           a x)
     exact le_trans hmono
-      (le_of_eq (intervalIntegral.integral_const))
+      (le_of_eq
+        ((intervalIntegral.integral_const
+          Real.quantitativeLogarithmicCollarCurvatureBound).trans
+          (Algebra.id.smul_eq_mul
+            (core - left)
+            Real.quantitativeLogarithmicCollarCurvatureBound)))
   have hwidth : core - left = 1 / 3 := by
     unfold core
     unfold left
     unfold Complex.logarithmicPhaseQuantitativeSupportLeft
-    exact sub_sub_cancel_left (a : ℝ) (1 / 3)
+    calc
+      (a : ℝ) - ((a : ℝ) - 1 / 3) =
+          (a : ℝ) + -((a : ℝ) - 1 / 3) :=
+        sub_eq_add_neg _ _
+      _ = (a : ℝ) + (-(a : ℝ) + 1 / 3) :=
+        congrArg (fun value : ℝ => (a : ℝ) + value)
+          ((neg_sub _ _).trans
+            ((sub_eq_add_neg _ _).trans (add_comm _ _)))
+      _ = ((a : ℝ) + -(a : ℝ)) + 1 / 3 :=
+        (add_assoc _ _ _).symm
+      _ = 0 + 1 / 3 :=
+        congrArg (fun value : ℝ => value + 1 / 3) (add_neg_cancel _)
+      _ = 1 / 3 := zero_add _
   have hnormalize :
       (core - left) * Real.quantitativeLogarithmicCollarCurvatureBound =
         3 * Real.quantitativeTransitionCurvatureBound := by
@@ -178,6 +215,11 @@ theorem Real.integral_abs_quantitativeLogarithmicLeftCutoffSecondDerivative_le
       hwidth).trans <| by
         have hthreeNe : (3 : ℝ) ≠ 0 :=
           ne_of_gt (Nat.cast_pos.mpr (Nat.succ_pos 2))
+        have hnine : (9 : ℝ) = 3 * 3 := by
+          exact
+            (congrArg (fun value : ℕ => (value : ℝ))
+              (show (9 : ℕ) = 3 * 3 from rfl)).trans
+              (Nat.cast_mul 3 3)
         calc
           (1 / 3 : ℝ) * (9 * Real.quantitativeTransitionCurvatureBound) =
             ((1 / 3 : ℝ) * 9) * Real.quantitativeTransitionCurvatureBound :=
@@ -186,9 +228,15 @@ theorem Real.integral_abs_quantitativeLogarithmicLeftCutoffSecondDerivative_le
             exact congrArg
               (fun value : ℝ => value * Real.quantitativeTransitionCurvatureBound)
               (show (1 / 3 : ℝ) * 9 = 3 by
-                exact (div_mul_eq_mul_div 1 9 3).trans
-                  (show (1 * 9 : ℝ) / 3 = 3 by
-                    exact (one_mul 9).trans (div_eq_iff₀ hthreeNe).2 rfl))
+                calc
+                  (1 / 3 : ℝ) * 9 = (1 / 3 : ℝ) * (3 * 3) :=
+                    congrArg (fun value : ℝ => (1 / 3 : ℝ) * value) hnine
+                  _ = ((1 / 3 : ℝ) * 3) * 3 :=
+                    (mul_assoc _ _ _).symm
+                  _ = 1 * 3 :=
+                    congrArg (fun value : ℝ => value * 3)
+                      (one_div_mul_cancel hthreeNe)
+                  _ = 3 := one_mul 3)
   have htotal :
       (∫ x in left..right,
         |Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x|) =
@@ -225,34 +273,66 @@ theorem Real.integral_abs_quantitativeLogarithmicRightCutoffSecondDerivative_le
     unfold right
     unfold Complex.logarithmicPhaseQuantitativeSupportRight
     exact le_add_of_nonneg_right (le_of_lt Real.one_div_three_pos)
+  have hdensityContinuous : Continuous
+      (fun x : ℝ =>
+        |Real.quantitativeLogarithmicRightCutoffSecondDerivative b x|) :=
+    (Real.continuous_quantitativeLogarithmicRightCutoffSecondDerivative b).abs
+  have hleftIntegrable : IntervalIntegrable
+      (fun x : ℝ =>
+        |Real.quantitativeLogarithmicRightCutoffSecondDerivative b x|)
+      volume left core :=
+    hdensityContinuous.intervalIntegrable left core
+  have hrightIntegrable : IntervalIntegrable
+      (fun x : ℝ =>
+        |Real.quantitativeLogarithmicRightCutoffSecondDerivative b x|)
+      volume core right :=
+    hdensityContinuous.intervalIntegrable core right
   have hleftZero :
       (∫ x in left..core,
         |Real.quantitativeLogarithmicRightCutoffSecondDerivative b x|) = 0 := by
-    exact intervalIntegral.integral_eq_zero_of_eq_zero
-      (fun x hx =>
-        congrArg abs
-          (Real.quantitativeLogarithmicRightCutoffSecondDerivative_eq_zero_of_le_core
-            b hx.2))
-  have hsplit := intervalIntegral.integral_add_adjacent
-    (fun x : ℝ =>
-      |Real.quantitativeLogarithmicRightCutoffSecondDerivative b x|)
-    left core right
+    have hzeroFunction :
+        (∫ x in left..core,
+          |Real.quantitativeLogarithmicRightCutoffSecondDerivative b x|) =
+          ∫ _x in left..core, (0 : ℝ) :=
+      intervalIntegral.integral_congr
+        (fun x hx => by
+          have hmaximum : max left core = core := max_eq_right hleftCore
+          have hxCore : x ≤ core :=
+            Eq.subst (motive := fun value : ℝ => x ≤ value)
+              hmaximum hx.2
+          exact
+            (congrArg abs
+              (Real.quantitativeLogarithmicRightCutoffSecondDerivative_eq_zero_of_le_core
+                b hxCore)).trans abs_zero)
+    exact hzeroFunction.trans intervalIntegral.integral_zero
+  have hsplit :
+      (∫ x in left..right,
+        |Real.quantitativeLogarithmicRightCutoffSecondDerivative b x|) =
+        (∫ x in left..core,
+          |Real.quantitativeLogarithmicRightCutoffSecondDerivative b x|) +
+        ∫ x in core..right,
+          |Real.quantitativeLogarithmicRightCutoffSecondDerivative b x| :=
+    (intervalIntegral.integral_add_adjacent_intervals
+      hleftIntegrable hrightIntegrable).symm
   have hrightBound :
       (∫ x in core..right,
         |Real.quantitativeLogarithmicRightCutoffSecondDerivative b x|) ≤
         (right - core) * Real.quantitativeLogarithmicCollarCurvatureBound := by
-    have hdensity :=
-      (Real.continuous_quantitativeLogarithmicRightCutoffSecondDerivative b).abs
-        .intervalIntegrable core right
     have hconstant : IntervalIntegrable
         (fun _x : ℝ => Real.quantitativeLogarithmicCollarCurvatureBound)
         volume core right := continuous_const.intervalIntegrable core right
     have hmono := intervalIntegral.integral_mono_on hcoreRight
-      hdensity hconstant
+      hrightIntegrable hconstant
       (fun x hx =>
         Real.abs_quantitativeLogarithmicRightCutoffSecondDerivative_le_collarBound
           b x)
-    exact le_trans hmono (le_of_eq intervalIntegral.integral_const)
+    exact le_trans hmono
+      (le_of_eq
+        ((intervalIntegral.integral_const
+          Real.quantitativeLogarithmicCollarCurvatureBound).trans
+          (Algebra.id.smul_eq_mul
+            (right - core)
+            Real.quantitativeLogarithmicCollarCurvatureBound)))
   have hwidth : right - core = 1 / 3 := by
     unfold right
     unfold core
@@ -267,6 +347,11 @@ theorem Real.integral_abs_quantitativeLogarithmicRightCutoffSecondDerivative_le
       hwidth).trans <| by
         have hthreeNe : (3 : ℝ) ≠ 0 :=
           ne_of_gt (Nat.cast_pos.mpr (Nat.succ_pos 2))
+        have hnine : (9 : ℝ) = 3 * 3 := by
+          exact
+            (congrArg (fun value : ℕ => (value : ℝ))
+              (show (9 : ℕ) = 3 * 3 from rfl)).trans
+              (Nat.cast_mul 3 3)
         calc
           (1 / 3 : ℝ) * (9 * Real.quantitativeTransitionCurvatureBound) =
             ((1 / 3 : ℝ) * 9) * Real.quantitativeTransitionCurvatureBound :=
@@ -275,9 +360,15 @@ theorem Real.integral_abs_quantitativeLogarithmicRightCutoffSecondDerivative_le
             exact congrArg
               (fun value : ℝ => value * Real.quantitativeTransitionCurvatureBound)
               (show (1 / 3 : ℝ) * 9 = 3 by
-                exact (div_mul_eq_mul_div 1 9 3).trans
-                  (show (1 * 9 : ℝ) / 3 = 3 by
-                    exact (one_mul 9).trans (div_eq_iff₀ hthreeNe).2 rfl))
+                calc
+                  (1 / 3 : ℝ) * 9 = (1 / 3 : ℝ) * (3 * 3) :=
+                    congrArg (fun value : ℝ => (1 / 3 : ℝ) * value) hnine
+                  _ = ((1 / 3 : ℝ) * 3) * 3 :=
+                    (mul_assoc _ _ _).symm
+                  _ = 1 * 3 :=
+                    congrArg (fun value : ℝ => value * 3)
+                      (one_div_mul_cancel hthreeNe)
+                  _ = 3 := one_mul 3)
   have htotal :
       (∫ x in left..right,
         |Real.quantitativeLogarithmicRightCutoffSecondDerivative b x|) =
@@ -324,7 +415,13 @@ theorem Real.abs_quantitativeLogarithmicBlockCutoffSecondDerivative_le_collars
               Real.quantitativeLogarithmicLeftCutoff a x *
                 Real.quantitativeLogarithmicRightCutoffSecondDerivative b x)
           hcrossScaled).trans
-          ((add_zero _).trans rfl)
+          (congrArg
+            (fun value : ℝ => value +
+              Real.quantitativeLogarithmicLeftCutoff a x *
+                Real.quantitativeLogarithmicRightCutoffSecondDerivative b x)
+            (add_zero
+              (Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x *
+                Real.quantitativeLogarithmicRightCutoff b x)))
   have htriangle := abs_add
     (Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x *
       Real.quantitativeLogarithmicRightCutoff b x)
@@ -373,24 +470,36 @@ theorem Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass_le_universal
   have hblock :=
     Complex.intervalIntegrable_logarithmicPhaseQuantitativeCutoffCurvatureDensity
       a b left right
+  have hleftContinuous : Continuous
+      (fun x : ℝ =>
+        |Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x|) :=
+    (Real.continuous_quantitativeLogarithmicLeftCutoffSecondDerivative a).abs
+  have hrightContinuous : Continuous
+      (fun x : ℝ =>
+        |Real.quantitativeLogarithmicRightCutoffSecondDerivative b x|) :=
+    (Real.continuous_quantitativeLogarithmicRightCutoffSecondDerivative b).abs
+  have hleftIntegrable : IntervalIntegrable
+      (fun x : ℝ =>
+        |Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x|)
+      volume left right :=
+    hleftContinuous.intervalIntegrable left right
+  have hrightIntegrable : IntervalIntegrable
+      (fun x : ℝ =>
+        |Real.quantitativeLogarithmicRightCutoffSecondDerivative b x|)
+      volume left right :=
+    hrightContinuous.intervalIntegrable left right
   have hcollars : IntervalIntegrable
       (fun x : ℝ =>
         |Real.quantitativeLogarithmicLeftCutoffSecondDerivative a x| +
           |Real.quantitativeLogarithmicRightCutoffSecondDerivative b x|)
       volume left right :=
-    ((Real.continuous_quantitativeLogarithmicLeftCutoffSecondDerivative a).abs
-      .intervalIntegrable left right).add
-      ((Real.continuous_quantitativeLogarithmicRightCutoffSecondDerivative b).abs
-        .intervalIntegrable left right)
+    hleftIntegrable.add hrightIntegrable
   have hmono := intervalIntegral.integral_mono_on hleftRight hblock hcollars
     (fun x hx =>
       Real.abs_quantitativeLogarithmicBlockCutoffSecondDerivative_le_collars
         a b hab x)
   have hadd := intervalIntegral.integral_add
-    ((Real.continuous_quantitativeLogarithmicLeftCutoffSecondDerivative a).abs
-      .intervalIntegrable left right)
-    ((Real.continuous_quantitativeLogarithmicRightCutoffSecondDerivative b).abs
-      .intervalIntegrable left right)
+    hleftIntegrable hrightIntegrable
   have hleft :=
     Real.integral_abs_quantitativeLogarithmicLeftCutoffSecondDerivative_le
       a b hab
@@ -407,7 +516,10 @@ theorem Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass_le_universal
       (add_mul 3 3 Real.quantitativeTransitionCurvatureBound).symm.trans
         (congrArg
           (fun value : ℝ => value * Real.quantitativeTransitionCurvatureBound)
-          (show (3 : ℝ) + 3 = 6 from rfl))
+          (show (3 : ℝ) + 3 = 6 by
+            exact (Nat.cast_add 3 3).symm.trans
+              (congrArg (fun value : ℕ => (value : ℝ))
+                (show (3 + 3 : ℕ) = 6 from rfl))))
   unfold Complex.logarithmicPhaseQuantitativeCutoffCurvatureMass
   exact le_trans hmono
     (le_trans (le_of_eq hadd)

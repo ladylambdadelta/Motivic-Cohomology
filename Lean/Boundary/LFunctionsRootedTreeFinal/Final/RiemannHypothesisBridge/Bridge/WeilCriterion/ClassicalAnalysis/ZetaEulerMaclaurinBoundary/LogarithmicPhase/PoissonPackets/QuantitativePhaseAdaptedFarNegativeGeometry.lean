@@ -42,26 +42,24 @@ theorem Complex.modeRangeLower_angular_frequency_lt
     mul_comm _ _
   have hnegative := neg_lt_neg hmul
   have hleft :
-      -((-‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a) /
-          (2 * Real.pi) * (2 * Real.pi)) =
+      -(-‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a) =
         ‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a := by
-    have htwoPiNe : (2 * Real.pi : ℝ) ≠ 0 := ne_of_gt htwoPiPos
-    have hcancel :
-        ((-‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a) /
-          (2 * Real.pi)) * (2 * Real.pi) =
-        -‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a :=
-      div_mul_cancel₀ _ htwoPiNe
-    exact Eq.trans (congrArg Neg.neg hcancel)
-      (Eq.trans (neg_div (-‖t‖)
-        (Real.integerBlockCutoffSupportLeftEndpoint a))
-        (congrArg (fun value : ℝ => value /
-          Real.integerBlockCutoffSupportLeftEndpoint a) (neg_neg ‖t‖)))
+    have hnegativeDivision :
+        -‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a =
+          -(‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a) :=
+      neg_div (Real.integerBlockCutoffSupportLeftEndpoint a) ‖t‖
+    exact Eq.trans (congrArg Neg.neg hnegativeDivision)
+      (neg_neg (‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a))
   have hright :
       -((m : ℝ) * (2 * Real.pi)) =
         2 * Real.pi * (-(m : ℝ)) := by
     exact Eq.trans (congrArg Neg.neg hnormalizeLeft)
       (mul_neg (2 * Real.pi) (m : ℝ)).symm
-  exact Eq.subst hleft.symm (Eq.subst hright.symm hnegative)
+  calc
+    ‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a =
+        -(-‖t‖ / Real.integerBlockCutoffSupportLeftEndpoint a) := hleft.symm
+    _ < -((m : ℝ) * (2 * Real.pi)) := hnegative
+    _ = 2 * Real.pi * (-(m : ℝ)) := hright
 
 theorem Complex.integerBlockWideSupportLeft_lt_quantitativeSupportLeft
     (a : ℤ) :
@@ -70,7 +68,7 @@ theorem Complex.integerBlockWideSupportLeft_lt_quantitativeSupportLeft
   unfold Real.integerBlockCutoffSupportLeftEndpoint
   unfold Complex.logarithmicPhaseQuantitativeSupportLeft
   have hthird : (1 / 3 : ℝ) < 2 / 3 := by
-    have hthreePos : (0 : ℝ) < 3 := by exact OfNat.zero_lt 3
+    have hthreePos : (0 : ℝ) < 3 := zero_lt_three
     exact (div_lt_div_iff_of_pos_right hthreePos).mpr one_lt_two
   exact sub_lt_sub_left hthird (a : ℝ)
 
@@ -107,7 +105,7 @@ theorem Complex.norm_logarithmicPhaseFarNegativeModePacket_le
     (t : ℝ) (a b : ℤ)
     (ha : 1 ≤ a) (hab : a ≤ b)
     (m : Complex.logarithmicPhasePoissonFarNegativeModes t a) :
-    ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+    ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket (‖t‖) a b m‖ ≤
       Complex.logarithmicPhaseLeftInactiveClosedMajorant t a b m := by
   exact Complex.norm_logarithmicPhaseLeftInactiveModePacket_le
     t a b m ha hab

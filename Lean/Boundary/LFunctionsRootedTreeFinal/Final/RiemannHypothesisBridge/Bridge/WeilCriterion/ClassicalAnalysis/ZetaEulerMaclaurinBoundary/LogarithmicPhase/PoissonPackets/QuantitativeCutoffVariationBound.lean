@@ -105,8 +105,13 @@ theorem Real.integral_quantitativeLogarithmicLeftCutoffDerivative_eq_one
         Real.quantitativeLogarithmicLeftCutoffDerivative a x) =
         Real.quantitativeLogarithmicLeftCutoff a right -
           Real.quantitativeLogarithmicLeftCutoff a left := by
-    have hintegrand := intervalIntegral.integral_congr
-      (fun x hx => Real.deriv_quantitativeLogarithmicLeftCutoff a x)
+    have hintegrand :
+        (∫ x in left..right,
+          deriv (Real.quantitativeLogarithmicLeftCutoff a) x) =
+          ∫ x in left..right,
+            Real.quantitativeLogarithmicLeftCutoffDerivative a x :=
+      intervalIntegral.integral_congr
+        (fun x hx => Real.deriv_quantitativeLogarithmicLeftCutoff a x)
     exact hintegrand.symm.trans hftc
   have hright :=
     Real.quantitativeLogarithmicLeftCutoff_at_blockSupportRight a b hab
@@ -121,8 +126,15 @@ theorem Real.integral_abs_quantitativeLogarithmicLeftCutoffDerivative_eq_one
     (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
         Complex.logarithmicPhaseQuantitativeSupportRight b,
       |Real.quantitativeLogarithmicLeftCutoffDerivative a x|) = 1 := by
-  have hintegrand := intervalIntegral.integral_congr
-    (fun x hx => Real.abs_quantitativeLogarithmicLeftCutoffDerivative a x)
+  have hintegrand :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        |Real.quantitativeLogarithmicLeftCutoffDerivative a x|) =
+        ∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+          Real.quantitativeLogarithmicLeftCutoffDerivative a x :=
+    intervalIntegral.integral_congr
+      (fun x hx => Real.abs_quantitativeLogarithmicLeftCutoffDerivative a x)
   exact hintegrand.trans
     (Real.integral_quantitativeLogarithmicLeftCutoffDerivative_eq_one a b hab)
 
@@ -141,13 +153,20 @@ theorem Real.integral_quantitativeLogarithmicRightCutoffDerivative_eq_neg_one
       (Real.hasDerivAt_quantitativeLogarithmicRightCutoff b x).differentiableAt
   have hintegrable : IntervalIntegrable
       (deriv (Real.quantitativeLogarithmicRightCutoff b))
-      volume left right :=
-    ((contDiff_infty_iff_deriv.mp
-      (Real.contDiff_quantitativeLogarithmicRightCutoff b)).2.continuous)
-      .intervalIntegrable left right
+      volume left right := by
+    have hderivativeContinuous : Continuous
+        (deriv (Real.quantitativeLogarithmicRightCutoff b)) :=
+      (contDiff_infty_iff_deriv.mp
+        (Real.contDiff_quantitativeLogarithmicRightCutoff b)).2.continuous
+    exact hderivativeContinuous.intervalIntegrable left right
   have hftc := intervalIntegral.integral_deriv_eq_sub hderiv hintegrable
-  have hintegrand := intervalIntegral.integral_congr
-    (fun x hx => Real.deriv_quantitativeLogarithmicRightCutoff b x)
+  have hintegrand :
+      (∫ x in left..right,
+        deriv (Real.quantitativeLogarithmicRightCutoff b) x) =
+        ∫ x in left..right,
+          Real.quantitativeLogarithmicRightCutoffDerivative b x :=
+    intervalIntegral.integral_congr
+      (fun x hx => Real.deriv_quantitativeLogarithmicRightCutoff b x)
   have hright := Real.quantitativeLogarithmicRightCutoff_at_supportRight b
   have hleft :=
     Real.quantitativeLogarithmicRightCutoff_at_blockSupportLeft a b hab
@@ -161,10 +180,23 @@ theorem Real.integral_abs_quantitativeLogarithmicRightCutoffDerivative_eq_one
     (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
         Complex.logarithmicPhaseQuantitativeSupportRight b,
       |Real.quantitativeLogarithmicRightCutoffDerivative b x|) = 1 := by
-  have hintegrand := intervalIntegral.integral_congr
-    (fun x hx => Real.abs_quantitativeLogarithmicRightCutoffDerivative b x)
-  have hnegative := intervalIntegral.integral_neg
-    (Real.quantitativeLogarithmicRightCutoffDerivative b)
+  have hintegrand :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        |Real.quantitativeLogarithmicRightCutoffDerivative b x|) =
+        ∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+          -Real.quantitativeLogarithmicRightCutoffDerivative b x :=
+    intervalIntegral.integral_congr
+      (fun x hx => Real.abs_quantitativeLogarithmicRightCutoffDerivative b x)
+  have hnegative :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        -Real.quantitativeLogarithmicRightCutoffDerivative b x) =
+        -(∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+          Real.quantitativeLogarithmicRightCutoffDerivative b x) :=
+    intervalIntegral.integral_neg
   have hintegral :=
     Real.integral_quantitativeLogarithmicRightCutoffDerivative_eq_neg_one
       a b hab
@@ -228,9 +260,11 @@ theorem Complex.logarithmicPhaseQuantitativeCutoffVariationMass_le_two
   have hblock : IntervalIntegrable
       (fun x : ℝ =>
         |Real.quantitativeLogarithmicBlockCutoffDerivative a b x|)
-      volume left right :=
-    ((Real.contDiff_quantitativeLogarithmicBlockCutoffDerivative a b)
-      .continuous.abs).intervalIntegrable left right
+      volume left right := by
+    have hcontinuous : Continuous
+        (Real.quantitativeLogarithmicBlockCutoffDerivative a b) :=
+      (Real.contDiff_quantitativeLogarithmicBlockCutoffDerivative a b).continuous
+    exact hcontinuous.abs.intervalIntegrable left right
   have hsum : IntervalIntegrable
       (fun x : ℝ =>
         |Real.quantitativeLogarithmicLeftCutoffDerivative a x| +

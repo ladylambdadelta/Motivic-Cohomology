@@ -50,7 +50,8 @@ theorem Complex.logarithmicPhaseQuantitativeZeroModeBudget_nonneg
   have hbNorm : (0 : ℝ) ≤ ‖t‖ := norm_nonneg t
   have hquotient : (0 : ℝ) ≤ (b : ℝ) / ‖t‖ := by
     have hbNonneg : (0 : ℝ) ≤ (b : ℝ) := by
-      have haNonneg : (0 : ℤ) ≤ a := le_trans Int.zero_le_one ha
+      have hzeroOne : (0 : ℤ) ≤ 1 := zero_le_one
+      have haNonneg : (0 : ℤ) ≤ a := le_trans hzeroOne ha
       exact Int.cast_nonneg.mpr (le_trans haNonneg hab)
     exact div_nonneg hbNonneg hbNorm
   have htwice : (0 : ℝ) ≤ 2 * ((b : ℝ) / ‖t‖) :=
@@ -137,7 +138,7 @@ theorem Complex.logarithmicPhaseQuantitativeModeMajorant_nonneg
     | Or.inr hm =>
         exact Eq.subst
           (motive := fun value : ℝ => 0 ≤ value)
-          (if_neg hm).symm zero_le_zero
+          (if_neg hm).symm (le_refl (0 : ℝ))
   have hinverse :=
     Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant_nonneg
       t a b m hab
@@ -180,12 +181,12 @@ theorem Complex.norm_logarithmicPhaseQuantitativePacket_le_modeMajorant
             Complex.logarithmicPhaseQuantitativeModeMajorant t a b m := by
         unfold Complex.logarithmicPhaseQuantitativeModeMajorant
         exact
-          (congrArg
-            (fun value : ℝ => value +
-              Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant
-                t a b m)
-            (if_neg hm)).trans
-            (zero_add _)
+          ((congrArg
+              (fun value : ℝ => value +
+                Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant
+                  t a b m)
+              (if_neg hm)).trans
+              (zero_add _)).symm
       exact le_trans hinverse (le_of_eq hmajorant)
 
 theorem Complex.logarithmicPhaseQuantitativeModeMajorant_tsum_eq_globalBudget
@@ -232,7 +233,12 @@ theorem Complex.norm_logarithmicPhaseQuantitativePacket_tsum_le_globalBudget
     fun m =>
       Complex.norm_logarithmicPhaseQuantitativePacket_le_modeMajorant
         t ht htNonneg a b m ha hab
-  have hnorm := tsum_norm_le hmajorant hpointwise
+  have hnorm :
+      ‖∑' m : ℤ,
+          Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+        ∑' m : ℤ,
+          Complex.logarithmicPhaseQuantitativeModeMajorant t a b m :=
+    tsum_of_norm_bounded hmajorant.hasSum hpointwise
   exact le_trans hnorm
     (le_of_eq
       (Complex.logarithmicPhaseQuantitativeModeMajorant_tsum_eq_globalBudget

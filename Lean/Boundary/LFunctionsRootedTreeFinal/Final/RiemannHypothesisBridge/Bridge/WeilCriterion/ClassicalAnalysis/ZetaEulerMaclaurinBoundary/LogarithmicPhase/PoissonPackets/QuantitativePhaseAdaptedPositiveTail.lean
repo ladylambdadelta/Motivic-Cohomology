@@ -32,8 +32,18 @@ theorem Complex.logarithmicPhasePositiveModeGap_eq_angularNorm
   have hproduct : 0 ≤ 2 * Real.pi * (m : ℝ) :=
     mul_nonneg htwoPi hmReal
   unfold Complex.logarithmicPhasePoissonAngularFrequency
-  exact Eq.trans (Eq.symm (abs_of_nonneg hproduct))
-    (Eq.trans (abs_neg _) (Real.norm_eq_abs _).symm)
+  have habsProduct :
+      |2 * Real.pi * (m : ℝ)| = 2 * Real.pi * (m : ℝ) :=
+    abs_of_nonneg hproduct
+  have habsNegative :
+      |-(2 * Real.pi * (m : ℝ))| = |2 * Real.pi * (m : ℝ)| :=
+    abs_neg (2 * Real.pi * (m : ℝ))
+  calc
+    2 * Real.pi * (m : ℝ) = |2 * Real.pi * (m : ℝ)| :=
+      habsProduct.symm
+    _ = |-(2 * Real.pi * (m : ℝ))| := habsNegative.symm
+    _ = ‖-(2 * Real.pi * (m : ℝ))‖ :=
+      (Real.norm_eq_abs (-(2 * Real.pi * (m : ℝ)))).symm
 
 theorem Complex.logarithmicPhasePositiveModeEnvelope_eq_integerEnvelope
     (t : ℝ) (a b m : ℤ) (hm : 0 < m) :
@@ -106,25 +116,25 @@ theorem Complex.norm_logarithmicPhaseAdaptedPositiveTail_tsum_le
     (t : ℝ) (a b : ℤ)
     (ha : 1 ≤ a) (hab : a ≤ b) :
     ‖∑' m : Complex.logarithmicPhasePoissonPositiveTailModes,
-        Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+        Complex.logarithmicPhaseQuantitativeBlockFourierPacket (‖t‖) a b m‖ ≤
       Complex.logarithmicPhaseAdaptedPositiveTailBudget t a b := by
   unfold Complex.logarithmicPhaseAdaptedPositiveTailBudget
   have hleft :=
     (Complex.logarithmicPhaseQuantitativeSupportLeft_pos a ha).le
   have hpacket : ∀ m : Complex.logarithmicPhasePoissonPositiveTailModes,
-      ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
-        Complex.logarithmicPhasePositiveModeIntegerEnvelope t a b m := by
-    intro m
-    have hclosed := Complex.norm_logarithmicPhasePositiveModePacket_le
-      t a b m ha hab m.property
-    have henvelope :=
-      Complex.logarithmicPhasePositiveModeClosedMajorant_le_envelope
-        t a b m hab hleft m.property
-    have hnormalize :=
-      Complex.logarithmicPhasePositiveModeEnvelope_eq_integerEnvelope
-        t a b m m.property
-    exact le_trans hclosed
-      (le_trans henvelope (le_of_eq hnormalize))
+      ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket (‖t‖) a b m‖ ≤
+        Complex.logarithmicPhasePositiveModeIntegerEnvelope t a b m :=
+    fun m =>
+      have hclosed := Complex.norm_logarithmicPhasePositiveModePacket_le
+        t a b m ha hab m.property
+      have henvelope :=
+        Complex.logarithmicPhasePositiveModeClosedMajorant_le_envelope
+          t a b m hab hleft m.property
+      have hnormalize :=
+        Complex.logarithmicPhasePositiveModeEnvelope_eq_integerEnvelope
+          t a b m m.property
+      le_trans hclosed
+        (le_trans henvelope (le_of_eq hnormalize))
   exact tsum_norm_le
     (Complex.summable_logarithmicPhaseAdaptedPositiveTailEnvelope t a b)
     hpacket

@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.BoundaryGrowth.OwnerParts.Part05_NormalizedKernelLocal
+import Mathlib.MeasureTheory.Integral.Bochner
 
 /-!
 # Boundary growth owner part 6
@@ -12,6 +13,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped Filter Topology
+open MeasureTheory
 local notation "π" => Real.pi
 
 /-- The reciprocal-drift unit contribution and one sharp phase contribution
@@ -31,9 +33,13 @@ theorem boundaryLineOnePointRealParam_one_add_sqrt_log_le_two_sqrt_log_postCutof
     add_le_add_right hone_le_A A
   have htwo : A + A = 2 * A :=
     (two_mul A).symm
+  have htwoTarget :
+      A + A = 2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + M) :=
+    Eq.trans htwo
+      (mul_assoc (2 : ℝ) (Real.sqrt (1 + ‖t‖)) (Real.log (2 + M))).symm
   exact Eq.subst
     (motive := fun r : ℝ => (1 : ℝ) + A ≤ r)
-    htwo
+    htwoTarget
     hsum
 
 /-- Pointwise algebraic split of the local normalized-kernel defect into
@@ -118,7 +124,18 @@ theorem boundaryLineOnePointRealParam_normalizedKernel_defect_eq_reciprocal_add_
         (congrArg (fun z : ℂ => z * P) hx_div)
         (congrArg (fun z : ℂ => z * Q) hy_div)
     _ = A * (((x : ℂ)⁻¹ * P) - (y⁻¹ * Q)) := by
-      exact (mul_sub A (((x : ℂ)⁻¹) * P) (y⁻¹ * Q)).symm
+      have hleftAssociation :
+          (A * (x : ℂ)⁻¹) * P = A * ((x : ℂ)⁻¹ * P) :=
+        mul_assoc A (x : ℂ)⁻¹ P
+      have hrightAssociation :
+          (A * y⁻¹) * Q = A * (y⁻¹ * Q) :=
+        mul_assoc A y⁻¹ Q
+      have hassociatedDifference :
+          (A * (x : ℂ)⁻¹) * P - (A * y⁻¹) * Q =
+            A * ((x : ℂ)⁻¹ * P) - A * (y⁻¹ * Q) :=
+        congrArg₂ Sub.sub hleftAssociation hrightAssociation
+      exact Eq.trans hassociatedDifference
+        (mul_sub A ((x : ℂ)⁻¹ * P) (y⁻¹ * Q)).symm
     _ = A * ((((x : ℂ)⁻¹ - y⁻¹) * P) + y⁻¹ * (P - Q)) := by
       exact congrArg (fun z : ℂ => A * z) hinner
     _ = (-(t : ℂ) * Complex.I) *
@@ -145,18 +162,18 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBl
               (((-(t : ℂ) * Complex.I) /
                   (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I)))))) =
+                  (-(t : ℂ) * Complex.I))))))) =
       (∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
         ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             ((-(t : ℂ) * Complex.I) *
               (((x : ℂ)⁻¹ -
                   (((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹)) *
-                (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) +
+                (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) +
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
                   ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                     ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                      (-(t : ℂ) * Complex.I))))))) := by
+                      (-(t : ℂ) * Complex.I)))))))) := by
   let A : ℂ := -(t : ℂ) * Complex.I
   have hlocal :
       ∀ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
@@ -167,18 +184,18 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBl
               (((-(t : ℂ) * Complex.I) /
                   (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I)))))) =
+                  (-(t : ℂ) * Complex.I))))))) =
           (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-              ((-(t : ℂ) * Complex.I) *
+              ((-(t : ℂ) * Complex.I) * (
                 (((x : ℂ)⁻¹ -
                     (((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹)) *
-                  (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) +
+                  (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) +
                   ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
                     ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                       ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                        (-(t : ℂ) * Complex.I))))))) := by
-    intro n _hn
+                        (-(t : ℂ) * Complex.I))))))))) := by
+    intro n hnMembership
     let y : ℂ := (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)
     let s : Set ℝ :=
       Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ))
@@ -199,35 +216,11 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBl
                 (((x : ℂ)⁻¹ - y⁻¹) * P x +
                   y⁻¹ * (P x - Py)))) := by
       funext x
-      have hkernel :
-          (((-(t : ℂ) * Complex.I) / (x : ℂ)) * P x -
-              (((-(t : ℂ) * Complex.I) / y) * Py)) =
-            A * ((((x : ℂ)⁻¹ - y⁻¹) * P x) +
-              y⁻¹ * (P x - Py)) :=
-        boundaryLineOnePointRealParam_normalizedKernel_defect_eq_reciprocal_add_phase_pointwise
-          t x y
-      calc
-        B x *
-            (((((-(t : ℂ) * Complex.I) / (x : ℂ)) *
-                P x) -
-              (((-(t : ℂ) * Complex.I) / y) * Py))) =
-            B x *
-              (A * ((((x : ℂ)⁻¹ - y⁻¹) * P x) +
-                y⁻¹ * (P x - Py))) := by
-          exact congrArg (fun z : ℂ => B x * z) hkernel
-    have hintegral :
-        (∫ x in s,
-          B x *
-            (((((-(t : ℂ) * Complex.I) / (x : ℂ)) *
-                P x) -
-              (((-(t : ℂ) * Complex.I) / y) * Py)))) =
-          (∫ x in s,
-            B x *
-              ((-(t : ℂ) * Complex.I) *
-                (((x : ℂ)⁻¹ - y⁻¹) * P x +
-                  y⁻¹ * (P x - Py)))) := by
-      exact congrArg (fun f : ℝ → ℂ => ∫ x in s, f x) hpoint
-    exact hintegral
+      exact congrArg
+        (fun kernelValue : ℂ => B x * kernelValue)
+        (boundaryLineOnePointRealParam_normalizedKernel_defect_eq_reciprocal_add_phase_pointwise
+          t x y)
+    exact congrArg (fun integrand : ℝ → ℂ => ∫ x in s, integrand x) hpoint
   have hsum :
       (∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
         (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
@@ -237,18 +230,18 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBl
               (((-(t : ℂ) * Complex.I) /
                   (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I))))))) =
+                  (-(t : ℂ) * Complex.I)))))))) =
         ∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
           (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
               ((-(t : ℂ) * Complex.I) *
                 (((x : ℂ)⁻¹ -
                     (((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹)) *
-                  (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) +
+                  (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) +
                   ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
                     ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                       ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                        (-(t : ℂ) * Complex.I))))))) := by
+                        (-(t : ℂ) * Complex.I)))))))) := by
     exact Finset.sum_congr rfl hlocal
   exact hsum
 
@@ -270,7 +263,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_splitBlock_integran
             ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
               ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I)))))) =
+                  (-(t : ℂ) * Complex.I))))))) =
       ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
           ((-(t : ℂ) * Complex.I) *
             (((x : ℂ)⁻¹ -
@@ -281,7 +274,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_splitBlock_integran
             ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
               ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I))))) := by
+                  (-(t : ℂ) * Complex.I)))))) := by
   let B : ℂ := ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)
   let A : ℂ := -(t : ℂ) * Complex.I
   let R : ℂ :=
@@ -292,7 +285,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_splitBlock_integran
     ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
       ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
         ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-          (-(t : ℂ) * Complex.I))))
+          (-(t : ℂ) * Complex.I)))))
   calc
     B * (A * (R + P)) = B * (A * R + A * P) := by
       exact congrArg (fun z : ℂ => B * z) (mul_add A R P)
@@ -309,7 +302,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_splitBlock_integran
             ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
               ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I))))) := rfl
+                  (-(t : ℂ) * Complex.I)))))) := rfl
 
 /-- Local integral-level distribution of one split normalized-kernel block.
 
@@ -336,7 +329,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_splitBlock_integral
               ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
                 ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                   ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                    (-(t : ℂ) * Complex.I))))))
+                    (-(t : ℂ) * Complex.I)))))))
         (volume.restrict
           (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ))))) :
     (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
@@ -361,7 +354,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_splitBlock_integral
               ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
                 ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                   ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                    (-(t : ℂ) * Complex.I)))))) := by
+                    (-(t : ℂ) * Complex.I)))))))) := by
   have hpoint :
       (fun x : ℝ =>
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
@@ -372,7 +365,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_splitBlock_integral
               ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
                 ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                   ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                    (-(t : ℂ) * Complex.I))))))) =
+                    (-(t : ℂ) * Complex.I)))))))) =
         (fun x : ℝ =>
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             ((-(t : ℂ) * Complex.I) *
@@ -384,7 +377,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_splitBlock_integral
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
                   ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                     ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                      (-(t : ℂ) * Complex.I)))))) := by
+                      (-(t : ℂ) * Complex.I))))))) := by
     funext x
     exact
       boundaryLineOnePointRealParam_firstPeriodicBernoulli_splitBlock_integrand_eq_reciprocal_add_phaseDrift
@@ -398,8 +391,8 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_splitBlock_integral
               (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) +
               ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
                 ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-                  ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                    (-(t : ℂ) * Complex.I))))))) =
+                    ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
+                    (-(t : ℂ) * Complex.I)))))))) =
         (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             ((-(t : ℂ) * Complex.I) *
@@ -411,13 +404,13 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_splitBlock_integral
                   ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
                     ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                       ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                        (-(t : ℂ) * Complex.I)))))) := by
+                      (-(t : ℂ) * Complex.I))))))) := by
     exact congrArg
       (fun f : ℝ → ℂ =>
         ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)), f x)
       hpoint
   exact Eq.trans hintegral
-    (integral_add hrecip hphase)
+    (MeasureTheory.integral_add hrecip hphase)
 
 /-- Local integrability of the reciprocal-drift summand in one selected
 post-cutoff Bernoulli block. -/
@@ -465,7 +458,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_reciprocalDrift_int
     have hx_pos : 0 < x :=
       lt_of_lt_of_le (Nat.cast_pos.mpr hn_pred_pos) hx.1
     exact
-      (Complex.continuous_ofReal.continuousAt.inv
+      (Complex.continuous_ofReal.continuousAt.inv₀
         (Complex.ofReal_ne_zero.mpr (ne_of_gt hx_pos))).continuousWithinAt
   have hcont_recip :
       ContinuousOn
@@ -493,7 +486,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_reciprocalDrift_int
         (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)))
         volume :=
     (intervalIntegrable_iff_integrableOn_Ioc_of_le hle).mp
-      hcont_kernel.intervalIntegrable
+      (ContinuousOn.intervalIntegrable_of_Icc hle hcont_kernel)
   exact
     eulerMaclaurin_bernoulli_mul_integrableOn_Ioc
       (fun x : ℝ =>
@@ -518,7 +511,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDrift_integrab
             ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
               ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I))))))
+                  (-(t : ℂ) * Complex.I)))))))
       (volume.restrict
         (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)))) := by
   have hC_lt_n : ⌊2 + ‖t‖⌋₊ < n :=
@@ -549,7 +542,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDrift_integrab
         (fun x : ℝ =>
           (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
             ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-              (-(t : ℂ) * Complex.I)))
+              (-(t : ℂ) * Complex.I))))
         (Set.Icc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ))) :=
     hcont_cpow.sub continuousOn_const
   have hcont_weighted :
@@ -558,7 +551,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDrift_integrab
           ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
             ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
               ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I))))
+                (-(t : ℂ) * Complex.I))))))
         (Set.Icc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ))) :=
     continuousOn_const.mul hcont_increment
   have hcont_kernel :
@@ -568,7 +561,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDrift_integrab
             ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
               ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I)))))
+                  (-(t : ℂ) * Complex.I))))))
         (Set.Icc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ))) :=
     continuousOn_const.mul hcont_weighted
   have hkernel :
@@ -578,11 +571,11 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDrift_integrab
             ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
               ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I)))))
+                  (-(t : ℂ) * Complex.I))))))
         (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)))
         volume :=
     (intervalIntegrable_iff_integrableOn_Ioc_of_le hle).mp
-      hcont_kernel.intervalIntegrable
+      (ContinuousOn.intervalIntegrable_of_Icc hle hcont_kernel)
   exact
     eulerMaclaurin_bernoulli_mul_integrableOn_Ioc
       (fun x : ℝ =>
@@ -590,7 +583,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDrift_integrab
           ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
             ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
               ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I)))))
+                (-(t : ℂ) * Complex.I))))))
       ((((n - 1 : ℕ) : ℕ) : ℝ))
       (((n : ℕ) : ℝ))
       hkernel
@@ -608,7 +601,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBl
               (((-(t : ℂ) * Complex.I) /
                   (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I)))))) =
+                  (-(t : ℂ) * Complex.I))))))) =
       (∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
         ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
@@ -633,32 +626,32 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBl
                 (((-(t : ℂ) * Complex.I) /
                     (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
                   ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                    (-(t : ℂ) * Complex.I)))))) =
+                    (-(t : ℂ) * Complex.I))))))) =
         (∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
           ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-              ((-(t : ℂ) * Complex.I) *
+              ((-(t : ℂ) * Complex.I) * (
                 (((x : ℂ)⁻¹ -
                     (((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹)) *
                   (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) +
                   ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
                     ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                       ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                        (-(t : ℂ) * Complex.I))))))) :=
+                        (-(t : ℂ) * Complex.I)))))))) :=
     boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBlockSum_eq_reciprocal_add_phaseBlocks
       t
   have hlocal :
       ∀ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
         (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-            ((-(t : ℂ) * Complex.I) *
+            ((-(t : ℂ) * Complex.I) * (
               (((x : ℂ)⁻¹ -
                   (((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹)) *
-                (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) +
+                (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) +
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
                   ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                     ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                      (-(t : ℂ) * Complex.I))))))) =
+                      (-(t : ℂ) * Complex.I))))))))) =
           (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
               ((-(t : ℂ) * Complex.I) *
@@ -671,7 +664,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBl
                   ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
                     ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                       ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                        (-(t : ℂ) * Complex.I)))))) := by
+                        (-(t : ℂ) * Complex.I))))))) := by
     intro n hn
     exact
       boundaryLineOnePointRealParam_firstPeriodicBernoulli_splitBlock_integral_eq_reciprocal_add_phaseDrift
@@ -684,14 +677,14 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBl
       (∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
         ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-            ((-(t : ℂ) * Complex.I) *
+            ((-(t : ℂ) * Complex.I) * (
               (((x : ℂ)⁻¹ -
                   (((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹)) *
-                (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) +
+                (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) +
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
                   ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                     ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                      (-(t : ℂ) * Complex.I))))))) =
+                      (-(t : ℂ) * Complex.I))))))))) =
         (∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
           ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
@@ -738,8 +731,12 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_reciprocalDrift_poi
     (Finset.mem_Ioc.mp hn).1
   have hcutoff_pos : 0 < ⌊2 + ‖t‖⌋₊ :=
     boundaryLineOnePointRealParam_cutoff_pos t
+  have hone_le_cutoff : 1 ≤ ⌊2 + ‖t‖⌋₊ :=
+    Nat.succ_le_of_lt hcutoff_pos
+  have hone_lt_n : 1 < n :=
+    lt_of_le_of_lt hone_le_cutoff hcutoff_lt_n
   have hm_pos : 0 < m :=
-    Nat.sub_pos_of_lt hcutoff_lt_n
+    Nat.sub_pos_of_lt hone_lt_n
   have hn_eq : m + 1 = n :=
     Nat.sub_add_cancel (lt_trans hcutoff_pos hcutoff_lt_n)
   have hx_m :
@@ -801,7 +798,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_reciprocalDrift_poi
               ((-(t : ℂ) * Complex.I) *
                 (((x : ℂ)⁻¹ -
                     (((m : ℕ) : ℝ) : ℂ)⁻¹) *
-                  (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))
+                  (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))))
           _ =
               ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ *
                 (‖(-(t : ℂ) * Complex.I)‖ *
@@ -856,11 +853,10 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_reciprocalDrift_poi
             ((1 : ℝ) / (((m : ℕ) : ℝ) * ((m : ℕ) : ℝ))) := by
         exact mul_le_mul
           (mul_le_mul hB (le_rfl : ‖t‖ ≤ ‖t‖)
-            (norm_nonneg t) (norm_nonneg ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)))
+            (norm_nonneg t) zero_le_one)
           hrecip
           (norm_nonneg ((x : ℂ)⁻¹ - (((m : ℕ) : ℝ) : ℂ)⁻¹))
-          (mul_nonneg (norm_nonneg ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ))
-            (norm_nonneg t))
+          (mul_nonneg zero_le_one (norm_nonneg t))
       _ =
           ‖t‖ *
             ((1 : ℝ) / (((m : ℕ) : ℝ) * ((m : ℕ) : ℝ))) := by
@@ -950,7 +946,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_reciprocalDriftBloc
   have hset :
       ‖∫ x in s, F x‖ ≤ C * (volume s).toReal :=
     norm_setIntegral_le_of_norm_le_const'
-      (measure_Ioc_lt_top : volume s < ∞)
+      measure_Ioc_lt_top
       measurableSet_Ioc
       hbound
   have hcollapse :
@@ -1027,7 +1023,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlock_eq_
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
               ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I)))) := by
+                (-(t : ℂ) * Complex.I)))))) := by
   let c : ℂ :=
     (-(t : ℂ) * Complex.I) *
       ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹))
@@ -1037,7 +1033,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlock_eq_
     ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
       ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
         ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-          (-(t : ℂ) * Complex.I)))
+          (-(t : ℂ) * Complex.I))))
   have hpoint :
       (fun x : ℝ =>
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
@@ -1048,69 +1044,19 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlock_eq_
                   (-(t : ℂ) * Complex.I))))))) =
         (fun x : ℝ => c * F x) := by
     funext x
+    let b : ℂ := ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)
+    let a : ℂ := -(t : ℂ) * Complex.I
+    let q : ℂ := (((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹)
+    let d : ℂ :=
+      (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
+        (((((n - 1 : ℕ) : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))
     calc
-      ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-          ((-(t : ℂ) * Complex.I) *
-            ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
-              ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I)))))) =
-          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-            (c *
-              ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I)))) := by
-        exact congrArg
-          (fun z : ℂ =>
-            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * z)
-          (mul_assoc (-(t : ℂ) * Complex.I)
-            ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹))
-            ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-              ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I))))
-      _ =
-          c * (((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-            ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-              ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I)))) := by
-        calc
-          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-              (c *
-                ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-                  ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                    (-(t : ℂ) * Complex.I)))) =
-              (((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * c) *
-                ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-                  ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                    (-(t : ℂ) * Complex.I))) := by
-            exact mul_assoc
-              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)
-              c
-              ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I)))
-          _ =
-              (c * ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)) *
-                ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-                  ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                    (-(t : ℂ) * Complex.I))) := by
-            exact congrArg
-              (fun z : ℂ =>
-                z *
-                  ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-                    ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                      (-(t : ℂ) * Complex.I))))
-              (mul_comm ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) c)
-          _ =
-              c * (((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-                ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-                  ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                    (-(t : ℂ) * Complex.I)))) := by
-            exact (mul_assoc c
-              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)
-              ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I)))).symm
+      b * (a * (q * d)) = b * ((a * q) * d) :=
+        congrArg (fun z : ℂ => b * z) (mul_assoc a q d).symm
+      _ = (b * (a * q)) * d := (mul_assoc b (a * q) d).symm
+      _ = ((a * q) * b) * d :=
+        congrArg (fun z : ℂ => z * d) (mul_comm b (a * q))
+      _ = (a * q) * (b * d) := mul_assoc (a * q) b d
   have hintegral :
       (∫ x in s,
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
@@ -1123,7 +1069,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlock_eq_
     exact congrArg (fun G : ℝ → ℂ => ∫ x in s, G x) hpoint
   have hconst :
       (∫ x in s, c * F x) = c * ∫ x in s, F x :=
-    integral_const_mul c F
+    integral_mul_left c F
   exact Eq.trans hintegral hconst
 
 /-- The constant coefficient in each factored phase-drift block is bounded by
@@ -1133,7 +1079,7 @@ theorem boundaryLineOnePointRealParam_phaseDrift_leftEndpointCoefficient_norm_le
     {M n : ℕ}
     (hn : n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M) :
     ‖((-(t : ℂ) * Complex.I) *
-        ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹))‖ ≤ (1 : ℝ) := by
+        (((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹))‖ ≤ (1 : ℝ) := by
   let m : ℕ := n - 1
   let mr : ℝ := ((m : ℕ) : ℝ)
   have hcutoff_lt_n : ⌊2 + ‖t‖⌋₊ < n :=
@@ -1195,12 +1141,12 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlock_nor
           ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
             ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
               ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I)))))))‖ ≤
+                (-(t : ℂ) * Complex.I))))))‖ ≤
       ‖∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
           ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
             ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-              (-(t : ℂ) * Complex.I)))‖ := by
+              (-(t : ℂ) * Complex.I))))‖ := by
   let c : ℂ :=
     (-(t : ℂ) * Complex.I) *
       ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹))
@@ -1209,7 +1155,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlock_nor
       ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
         ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
           ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-            (-(t : ℂ) * Complex.I)))
+            (-(t : ℂ) * Complex.I))))
   have hfactor :
       (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
@@ -1230,7 +1176,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlock_nor
       ‖c * J‖ = ‖c‖ * ‖J‖ := by
         exact norm_mul c J
       _ ≤ (1 : ℝ) * ‖J‖ := by
-        exact mul_le_mul hc (le_rfl : ‖J‖ ≤ ‖J‖) (norm_nonneg J) (norm_nonneg c)
+        exact mul_le_mul hc (le_rfl : ‖J‖ ≤ ‖J‖) (norm_nonneg J) zero_le_one
       _ = ‖J‖ := by
         exact one_mul ‖J‖
   exact Eq.subst
@@ -1259,7 +1205,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlockSum_
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
               ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I)))‖ := by
+                (-(t : ℂ) * Complex.I))))‖ := by
   let F : ℕ → ℂ := fun n =>
     ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
       ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
@@ -1267,13 +1213,13 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlockSum_
           ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
             ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
               ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I)))))
+                (-(t : ℂ) * Complex.I))))))
   let G : ℕ → ℂ := fun n =>
     ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
       ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
         ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
           ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-            (-(t : ℂ) * Complex.I)))
+            (-(t : ℂ) * Complex.I))))
   have htriangle :
       ‖∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M, F n‖ ≤
         ∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M, ‖F n‖ :=
@@ -1302,7 +1248,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementInteg
             (-(t : ℂ) * Complex.I)))) =
       (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-          (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) := by
+          (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))) := by
   let m : ℕ := n - 1
   let K : ℝ → ℂ := fun x =>
     (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))
@@ -1336,7 +1282,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementInteg
         (Set.Ioc (((m : ℕ) : ℝ)) (((m + 1 : ℕ) : ℝ)))
         volume :=
     (intervalIntegrable_iff_integrableOn_Ioc_of_le hle).mp
-      hcont_phase.intervalIntegrable
+      (ContinuousOn.intervalIntegrable_of_Icc hle hcont_phase)
   have hBK :
       Integrable
         (fun x : ℝ =>
@@ -1351,7 +1297,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementInteg
   let c : ℂ := K (((m : ℕ) : ℝ))
   have hc_integrable :
       IntegrableOn
-        (fun _x : ℝ => c)
+        (fun constantArgument : ℝ => c)
         (Set.Ioc (((m : ℕ) : ℝ)) (((m + 1 : ℕ) : ℝ)))
         volume :=
     (intervalIntegrable_iff_integrableOn_Ioc_of_le hle).mp
@@ -1368,7 +1314,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementInteg
         (volume.restrict
           (Set.Ioc (((m : ℕ) : ℝ)) (((m + 1 : ℕ) : ℝ)))) :=
     eulerMaclaurin_bernoulli_mul_integrableOn_Ioc
-      (fun _x : ℝ => c)
+      (fun constantArgument : ℝ => c)
       (((m : ℕ) : ℝ))
       (((m + 1 : ℕ) : ℝ))
       hc_integrable
@@ -1390,7 +1336,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementInteg
                 (-(t : ℂ) * Complex.I)))) =
           (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((q : ℕ) : ℝ)),
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-              (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))))
+              (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))))
       hsucc
       hraw
 
@@ -1425,7 +1371,11 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_phaseIncrement_eq_linear_
         (((a : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) =
         P := rfl
     _ = L + (P - L) := by
-      exact (add_sub_cancel' L P).symm
+      have hcancel : L + (P - L) = P :=
+        Eq.trans
+          (add_sub_assoc L P L).symm
+          (add_sub_cancel_left L P)
+      exact hcancel.symm
     _ =
       (((-(t : ℂ) * Complex.I) / (a : ℂ)) *
           (((a : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) *
@@ -1459,15 +1409,15 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementInteg
                 (-(t : ℂ) * Complex.I))) *
               ((x : ℂ) -
                 (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ))) +
-            (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I) -
+            ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I) -
               ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I)) -
+                (-(t : ℂ) * Complex.I))) -
               ((((-(t : ℂ) * Complex.I) /
                   (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
                   (-(t : ℂ) * Complex.I))) *
                 ((x : ℂ) -
-                  (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)))))) := by
+                  (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)))))))))) := by
   let a : ℝ := ((((n - 1 : ℕ) : ℕ) : ℝ))
   let s : Set ℝ := Set.Ioc a (((n : ℕ) : ℝ))
   let B : ℝ → ℂ := fun x =>
@@ -1513,17 +1463,17 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlock
                   (-(t : ℂ) * Complex.I))) *
                 ((x : ℂ) -
                   (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ))) +
-              (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I) -
+              ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I) -
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I)) -
+                  (-(t : ℂ) * Complex.I))) -
                 ((((-(t : ℂ) * Complex.I) /
                     (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
                   ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
                     (-(t : ℂ) * Complex.I))) *
                   ((x : ℂ) -
-                    (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)))))) := by
+                    (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ))))))))) := by
   exact Finset.sum_congr rfl
-    (fun n _hn =>
+    (fun n hnMembership =>
       boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementIntegral_eq_linear_add_remainder
         t n)
 
@@ -1568,7 +1518,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_Ioc_pred_self_phase
         (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)))
         volume :=
     (intervalIntegrable_iff_integrableOn_Ioc_of_le hle).mp
-      hcont_phase.intervalIntegrable
+      (ContinuousOn.intervalIntegrable_of_Icc hle hcont_phase)
   exact
     eulerMaclaurin_bernoulli_mul_integrableOn_Ioc
       (fun x : ℝ => (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))
@@ -1640,7 +1590,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlock
               (-(t : ℂ) * Complex.I)))) =
       (∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-          (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) := by
+          (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))) := by
   have hlocal :
       (∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
         ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
@@ -1651,7 +1601,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlock
         ∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
           ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-              (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) := by
+              (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))) := by
     exact Finset.sum_congr rfl
       (fun n hn =>
         boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementIntegral_eq_phaseIntegral
@@ -1781,7 +1731,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlockSum_
       ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
         ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
           ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-            (-(t : ℂ) * Complex.I)))
+            (-(t : ℂ) * Complex.I))))
   let W : ℕ → ℂ := fun n =>
     (((‖t‖ / (((((n - 1 : ℕ) : ℕ) : ℝ))) : ℝ) : ℂ) * U n)
   have hblock :
@@ -1793,7 +1743,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlockSum_
                 ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                   ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
                     (-(t : ℂ) * Complex.I))))))) =
-        D * ∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M, W n := by
+        D * ∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M, W n) := by
     have hlocal :
         ∀ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
           (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
@@ -1814,13 +1764,13 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlockSum_
                     ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
                       (-(t : ℂ) * Complex.I))))))) =
             ((-(t : ℂ) * Complex.I) *
-                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹)) * U n :=
+                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹)) * U n) :=
         boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlock_eq_const_mul_phaseIncrementIntegral
           t
       have hcoeff :
           ((-(t : ℂ) * Complex.I) *
-              ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹)) =
-            D * (((‖t‖ / (((((n - 1 : ℕ) : ℕ) : ℝ))) : ℝ) : ℂ) :=
+              ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹))) =
+            D * (((‖t‖ / (((((n - 1 : ℕ) : ℕ) : ℝ))) : ℝ) : ℂ)) :=
         boundaryLineOnePointRealParam_phaseDrift_rightEndpointCoefficient_eq_direction_mul_weight
           t ht hn
       calc
@@ -1832,12 +1782,14 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlockSum_
                   ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
                     (-(t : ℂ) * Complex.I))))))) =
             ((-(t : ℂ) * Complex.I) *
-                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹)) * U n :=
+                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹)) * U n) :=
           hfactor
-        _ = (D * (((‖t‖ / (((((n - 1 : ℕ) : ℕ) : ℝ))) : ℝ) : ℂ)) * U n := by
+        _ = (D * (((‖t‖ / (((((n - 1 : ℕ) : ℕ) : ℝ))) : ℝ) : ℂ)) * U n) := by
           exact congrArg (fun z : ℂ => z * U n) hcoeff
         _ = D * W n := by
-          exact (mul_assoc D (((‖t‖ / (((((n - 1 : ℕ) : ℕ) : ℝ))) : ℝ) : ℂ)) (U n)).symm
+          exact mul_assoc D
+            (((‖t‖ / (((((n - 1 : ℕ) : ℕ) : ℝ))) : ℝ) : ℂ))
+            (U n)
     have hsum :
         (∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
           (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
@@ -1849,7 +1801,11 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlockSum_
                       (-(t : ℂ) * Complex.I)))))))) =
           ∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M, D * W n :=
       Finset.sum_congr rfl hlocal
-    exact Eq.trans hsum (Finset.mul_sum.symm)
+    exact Eq.trans hsum
+      (Finset.mul_sum
+        (Finset.Ioc ⌊2 + ‖t‖⌋₊ M)
+        W
+        D).symm
   have hweighted :
       ‖∑ k ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M, W k‖ ≤ B :=
     boundaryLineOnePointRealParam_phaseDrift_coefficientWeight_finite_sum_norm_le_of_local
@@ -1990,8 +1946,6 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlockSum_
       (boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrement_partial_sums_norm_le_of_globalPhaseIntegral_family_sharp
         t hphase)
 
-/-- Norm consequence of the global-to-local zero-mean block decomposition,
-with the local normalized-kernel integrability obligations discharged. -/
-
+end
 end LFunctions
 end Boundary

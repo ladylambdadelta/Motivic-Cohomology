@@ -12,6 +12,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped Filter Topology
+open MeasureTheory
 local notation "π" => Real.pi
 
 /-- Local integrability of the Taylor-linear summand in one Bernoulli-weighted
@@ -22,14 +23,10 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementLinea
     Integrable
       (fun x : ℝ =>
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-          (((((-(t : ℂ) * Complex.I) /
-                (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-              ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I))) *
-              ((x : ℂ) -
-                (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ))))
+          boundaryLineOnePointRealParam_phaseIncrementLinearIntegrand t n x)
       (volume.restrict
         (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)))) := by
+  unfold boundaryLineOnePointRealParam_phaseIncrementLinearIntegrand
   let a : ℝ := ((((n - 1 : ℕ) : ℕ) : ℝ))
   let b : ℝ := (((n : ℕ) : ℝ))
   let c : ℂ :=
@@ -49,7 +46,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementLinea
         (Set.Ioc a b)
         volume :=
     (intervalIntegrable_iff_integrableOn_Ioc_of_le hle).mp
-      hcont_kernel.intervalIntegrable
+      (ContinuousOn.intervalIntegrable_of_Icc hle hcont_kernel)
   exact
     eulerMaclaurin_bernoulli_mul_integrableOn_Ioc
       (fun x : ℝ => c * ((x : ℂ) - (a : ℂ)))
@@ -64,17 +61,11 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementRemai
     Integrable
       (fun x : ℝ =>
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-          ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I) -
-            ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-              (-(t : ℂ) * Complex.I)) -
-            ((((-(t : ℂ) * Complex.I) /
-                (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-              ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I))) *
-              ((x : ℂ) -
-                (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ))))
+          boundaryLineOnePointRealParam_phaseIncrementRemainderIntegrand t n x)
       (volume.restrict
         (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)))) := by
+  unfold boundaryLineOnePointRealParam_phaseIncrementRemainderIntegrand
+  unfold boundaryLineOnePointRealParam_phaseIncrementLinearIntegrand
   let a : ℝ := ((((n - 1 : ℕ) : ℕ) : ℝ))
   let b : ℝ := (((n : ℕ) : ℝ))
   let c : ℂ :=
@@ -104,7 +95,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementRemai
         (Or.inr (ne_of_gt hx_pos))).continuousWithinAt
   have hcont_left_phase :
       ContinuousOn
-        (fun _x : ℝ => (((a : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))
+        (fun x : ℝ => (((a : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))
         (Set.Icc a b) :=
     continuousOn_const
   have hcont_linear :
@@ -118,7 +109,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementRemai
         (fun x : ℝ =>
           (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I) -
             (((a : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-            c * ((x : ℂ) - (a : ℂ)))
+            c * ((x : ℂ) - (a : ℂ))))
         (Set.Icc a b) :=
     (hcont_phase.sub hcont_left_phase).sub hcont_linear
   have hkernel :
@@ -126,17 +117,17 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementRemai
         (fun x : ℝ =>
           (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I) -
             (((a : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-            c * ((x : ℂ) - (a : ℂ)))
+            c * ((x : ℂ) - (a : ℂ))))
         (Set.Ioc a b)
         volume :=
     (intervalIntegrable_iff_integrableOn_Ioc_of_le hle).mp
-      hcont_kernel.intervalIntegrable
+      (ContinuousOn.intervalIntegrable_of_Icc hle hcont_kernel)
   exact
     eulerMaclaurin_bernoulli_mul_integrableOn_Ioc
       (fun x : ℝ =>
         (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I) -
           (((a : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
-          c * ((x : ℂ) - (a : ℂ)))
+          c * ((x : ℂ) - (a : ℂ))))
       a b hkernel
 
 /-- One-block Taylor-linear/remainder integral split from the two local
@@ -148,80 +139,60 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementInteg
       Integrable
         (fun x : ℝ =>
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-            (((((-(t : ℂ) * Complex.I) /
-                  (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I))) *
-                ((x : ℂ) -
-                  (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ))))
+            boundaryLineOnePointRealParam_phaseIncrementLinearIntegrand t n x)
         (volume.restrict
           (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)))))
     (hremainder :
       Integrable
         (fun x : ℝ =>
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-            ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I) -
-              ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I)) -
-              ((((-(t : ℂ) * Complex.I) /
-                  (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I))) *
-                ((x : ℂ) -
-                  (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ))))
+            boundaryLineOnePointRealParam_phaseIncrementRemainderIntegrand t n x)
         (volume.restrict
           (Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ))))) :
     (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
       ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
         ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
           ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-            (-(t : ℂ) * Complex.I)))) =
+            (-(t : ℂ) * Complex.I))))) =
       (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-          (((((-(t : ℂ) * Complex.I) /
-                (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-              ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I))) *
-              ((x : ℂ) -
-                (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)))) +
+          boundaryLineOnePointRealParam_phaseIncrementLinearIntegrand t n x) +
         (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-            ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I) -
-              ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I)) -
-              ((((-(t : ℂ) * Complex.I) /
-                  (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I))) *
-                ((x : ℂ) -
-                  (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)))) := by
+            boundaryLineOnePointRealParam_phaseIncrementRemainderIntegrand t n x) := by
   let s : Set ℝ := Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ))
   let B : ℝ → ℂ := fun x =>
     ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)
   let L : ℝ → ℂ := fun x =>
-    ((((-(t : ℂ) * Complex.I) /
-        (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-      ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-        (-(t : ℂ) * Complex.I))) *
-      ((x : ℂ) - (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)))
+    boundaryLineOnePointRealParam_phaseIncrementLinearIntegrand t n x
   let R : ℝ → ℂ := fun x =>
-    (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I) -
-      ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-        (-(t : ℂ) * Complex.I)) -
-      ((((-(t : ℂ) * Complex.I) /
-          (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-        ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-          (-(t : ℂ) * Complex.I))) *
-        ((x : ℂ) - (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)))
+    boundaryLineOnePointRealParam_phaseIncrementRemainderIntegrand t n x
+  have hphase :
+      (fun x : ℝ =>
+        (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
+          ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
+            (-(t : ℂ) * Complex.I)))) =
+        (fun x : ℝ => L x + R x) := by
+    funext x
+    exact
+      boundaryLineOnePointRealParam_logarithmicPhase_phaseIncrement_eq_linear_add_remainder
+        t x ((((n - 1 : ℕ) : ℕ) : ℝ))
+  have hweighted :
+      (fun x : ℝ =>
+        B x *
+          ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
+            ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
+              (-(t : ℂ) * Complex.I))))) =
+        (fun x : ℝ => B x * (L x + R x)) :=
+    congrArg (fun phase : ℝ → ℂ => fun x : ℝ => B x * phase x) hphase
   have hcombined :
       (∫ x in s,
         B x *
           ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
             ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-              (-(t : ℂ) * Complex.I)))) =
+              (-(t : ℂ) * Complex.I))))) =
         ∫ x in s, B x * (L x + R x) :=
-    boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementIntegral_eq_linear_add_remainder
-      t n
+    congrArg (fun phase : ℝ → ℂ => ∫ x in s, phase x) hweighted
   have hpoint :
       (fun x : ℝ => B x * (L x + R x)) =
         (fun x : ℝ => B x * L x + B x * R x) := by
@@ -250,26 +221,13 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementInteg
       ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
         ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
           ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-            (-(t : ℂ) * Complex.I)))) =
+            (-(t : ℂ) * Complex.I))))) =
       (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-          (((((-(t : ℂ) * Complex.I) /
-                (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-              ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I))) *
-              ((x : ℂ) -
-                (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)))) +
+          boundaryLineOnePointRealParam_phaseIncrementLinearIntegrand t n x) +
         (∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-            ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I) -
-              ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                (-(t : ℂ) * Complex.I)) -
-              ((((-(t : ℂ) * Complex.I) /
-                  (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
-                ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I))) *
-                ((x : ℂ) -
-                  (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)))) := by
+            boundaryLineOnePointRealParam_phaseIncrementRemainderIntegrand t n x) := by
   exact
     boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementIntegral_eq_linear_integral_add_remainder_integral_of_integrable
       t n
@@ -278,5 +236,6 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementInteg
       (boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementRemainder_integrable
         t hn)
 
+end
 end LFunctions
 end Boundary

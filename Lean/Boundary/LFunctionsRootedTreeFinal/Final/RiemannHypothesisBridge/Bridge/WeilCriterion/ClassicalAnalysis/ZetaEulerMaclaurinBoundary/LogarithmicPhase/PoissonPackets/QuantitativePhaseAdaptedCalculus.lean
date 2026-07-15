@@ -1,5 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.OscillatorySums.TwoStepNonstationaryMajorantArithmetic
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.QuantitativeSharpCutoffCurvatureMass
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.QuantitativeAmplitudeSecondDerivative
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.QuantitativeReconstruction
 
 /-!
@@ -60,7 +60,7 @@ theorem Complex.hasDerivAt_logarithmicPhaseAdaptedCutoffAmplitudeDerivative
   unfold Complex.logarithmicPhaseAdaptedCutoffAmplitudeDerivative
   unfold Complex.logarithmicPhaseAdaptedCutoffAmplitudeSecondDerivative
   exact
-    (Real.hasDerivAt_quantitativeLogarithmicBlockCutoffDerivative_explicit
+    (Real.hasDerivAt_quantitativeLogarithmicBlockCutoffDerivative
       a b x).ofReal_comp
 
 theorem Complex.hasDerivAt_logarithmicPhaseAdaptedTwistedPhase
@@ -84,14 +84,13 @@ theorem Complex.hasDerivAt_logarithmicPhaseAdaptedTwistedPhase
     funext y
     unfold Complex.logarithmicPhaseAdaptedTwistedPhase
     exact congrArg (fun value : ℝ => -‖t‖ * Real.log y + value)
-      (neg_mul (2 * Real.pi * (m : ℝ)) y).symm
+      (neg_mul (2 * Real.pi * (m : ℝ)) y)
   have hderivative :
       -‖t‖ * x⁻¹ + (-(2 * Real.pi * (m : ℝ))) * 1 =
         -‖t‖ / x - 2 * Real.pi * (m : ℝ) := by
     exact congrArg₂ (fun first second : ℝ => first + second)
       (div_eq_mul_inv (-‖t‖) x).symm
-      ((mul_one (-(2 * Real.pi * (m : ℝ)))).trans
-        (sub_eq_add_neg 0 (2 * Real.pi * (m : ℝ))).symm)
+      (mul_one (-(2 * Real.pi * (m : ℝ))))
   exact Eq.subst
     (motive := fun function : ℝ → ℝ =>
       HasDerivAt function
@@ -131,6 +130,71 @@ theorem Complex.hasDerivAt_logarithmicPhaseAdaptedTwistedPhaseDerivative
     hnormalize
     hsum
 
+theorem Complex.hasDerivAt_logarithmicPhaseAdaptedInvSquare
+    {x : ℝ}
+    (hx : 0 < x) :
+    HasDerivAt (fun y : ℝ => y⁻¹ ^ 2) (-2 * x⁻¹ ^ 3) x := by
+  have hinverse :
+      HasDerivAt (fun y : ℝ => (id y)⁻¹) (-1 / (id x) ^ 2) x :=
+    (hasDerivAt_id x).inv hx.ne'
+  have hsquare := hinverse.pow 2
+  have hinverseDerivative :
+      -1 / (id x) ^ 2 = -x⁻¹ ^ 2 := by
+    calc
+      -1 / (id x) ^ 2 = -1 / x ^ 2 := rfl
+      _ = -(1 / x ^ 2) := neg_div (x ^ 2) 1
+      _ = -((x ^ 2)⁻¹) :=
+        congrArg Neg.neg (one_div (x ^ 2))
+      _ = -x⁻¹ ^ 2 :=
+        congrArg Neg.neg (inv_pow x 2).symm
+  have hraw :
+      (2 : ℝ) * x⁻¹ ^ (2 - 1) * (-x⁻¹ ^ 2) =
+        -2 * x⁻¹ ^ 3 := by
+    have hpower : x⁻¹ * x⁻¹ ^ 2 = x⁻¹ ^ 3 :=
+      Eq.trans (mul_comm x⁻¹ (x⁻¹ ^ 2)) (pow_succ x⁻¹ 2).symm
+    calc
+      (2 : ℝ) * x⁻¹ ^ (2 - 1) * (-x⁻¹ ^ 2) =
+          2 * x⁻¹ * (-x⁻¹ ^ 2) :=
+        congrArg (fun value : ℝ => 2 * value * (-x⁻¹ ^ 2))
+          (pow_one x⁻¹)
+      _ = -(2 * x⁻¹ * x⁻¹ ^ 2) :=
+        mul_neg (2 * x⁻¹) (x⁻¹ ^ 2)
+      _ = -(2 * (x⁻¹ * x⁻¹ ^ 2)) :=
+        congrArg Neg.neg (mul_assoc 2 x⁻¹ (x⁻¹ ^ 2))
+      _ = -(2 * x⁻¹ ^ 3) :=
+        congrArg (fun value : ℝ => -(2 * value)) hpower
+      _ = -2 * x⁻¹ ^ 3 := (neg_mul 2 (x⁻¹ ^ 3)).symm
+  have hsquareDerivativeEquality :
+      (2 : ℝ) * (id x)⁻¹ ^ (2 - 1) * (-1 / (id x) ^ 2) =
+        (2 : ℝ) * x⁻¹ ^ (2 - 1) * (-x⁻¹ ^ 2) := by
+    exact congrArg
+      (fun derivative : ℝ =>
+        (2 : ℝ) * (id x)⁻¹ ^ (2 - 1) * derivative)
+      hinverseDerivative
+  have hsquareDerivativeNormalized :
+      HasDerivAt
+        (fun y : ℝ => (id y)⁻¹ ^ 2)
+        ((2 : ℝ) * x⁻¹ ^ (2 - 1) * (-x⁻¹ ^ 2)) x :=
+    hsquare.congr_deriv hsquareDerivativeEquality
+  have hfunction :
+      (fun y : ℝ => (id y)⁻¹ ^ 2) =
+        (fun y : ℝ => y⁻¹ ^ 2) := by
+    funext y
+    rfl
+  have hsquareFunctionNormalized :
+      HasDerivAt
+        (fun y : ℝ => y⁻¹ ^ 2)
+        ((2 : ℝ) * x⁻¹ ^ (2 - 1) * (-x⁻¹ ^ 2)) x :=
+    Eq.subst
+      (motive := fun function : ℝ → ℝ =>
+        HasDerivAt function
+          ((2 : ℝ) * x⁻¹ ^ (2 - 1) * (-x⁻¹ ^ 2)) x)
+      hfunction hsquareDerivativeNormalized
+  exact Eq.subst
+    (motive := fun value : ℝ =>
+      HasDerivAt (fun y : ℝ => y⁻¹ ^ 2) value x)
+    hraw hsquareFunctionNormalized
+
 theorem Complex.hasDerivAt_logarithmicPhaseAdaptedTwistedPhaseSecondDerivative
     (t : ℝ)
     {x : ℝ}
@@ -140,35 +204,54 @@ theorem Complex.hasDerivAt_logarithmicPhaseAdaptedTwistedPhaseSecondDerivative
       (Complex.logarithmicPhaseAdaptedTwistedPhaseThirdDerivative t x) x := by
   unfold Complex.logarithmicPhaseAdaptedTwistedPhaseSecondDerivative
   unfold Complex.logarithmicPhaseAdaptedTwistedPhaseThirdDerivative
-  have hinverse := (hasDerivAt_id x).inv hx.ne'
-  have hsquare := hinverse.pow 2
-  have hscaled := hsquare.const_mul ‖t‖
+  have hinverseSquare :
+      HasDerivAt (fun y : ℝ => y⁻¹ ^ 2) (-2 * x⁻¹ ^ 3) x :=
+    Complex.hasDerivAt_logarithmicPhaseAdaptedInvSquare hx
+  have hscaled :
+      HasDerivAt
+        (fun y : ℝ => ‖t‖ * y⁻¹ ^ 2)
+        (‖t‖ * (-2 * x⁻¹ ^ 3)) x :=
+    hinverseSquare.const_mul ‖t‖
   have hnormalize :
-      ‖t‖ * (2 * x⁻¹ ^ (2 - 1) * (-(x⁻¹ ^ 2))) =
+      ‖t‖ * (-2 * x⁻¹ ^ 3) =
         -(2 * ‖t‖ / x ^ 3) := by
-    have hpow : x⁻¹ ^ (2 - 1) = x⁻¹ := pow_one x⁻¹
-    have hcube : x⁻¹ * x⁻¹ ^ 2 = x⁻¹ ^ 3 := (pow_succ x⁻¹ 2).symm
-    exact Eq.trans
-      (congrArg (fun value : ℝ => ‖t‖ *
-        (2 * value * (-(x⁻¹ ^ 2)))) hpow)
-      (Eq.trans
-        (congrArg (fun value : ℝ => ‖t‖ * value)
-          ((mul_neg (2 * x⁻¹) (x⁻¹ ^ 2)).trans
-            (congrArg Neg.neg
-              ((mul_assoc 2 x⁻¹ (x⁻¹ ^ 2)).trans
-                (congrArg (fun value : ℝ => 2 * value) hcube)))))
-        (Eq.trans
-          (mul_neg ‖t‖ (2 * x⁻¹ ^ 3))
-          (congrArg Neg.neg
-            ((mul_assoc ‖t‖ 2 (x⁻¹ ^ 3)).trans
-              (congrArg (fun value : ℝ => value * x⁻¹ ^ 3)
-                (mul_comm ‖t‖ 2)).trans
-              (div_eq_mul_inv (2 * ‖t‖) (x ^ 3)).symm))))
-  exact Eq.subst
+    have hcoefficient : ‖t‖ * (-2) = -(2 * ‖t‖) := by
+      exact
+        (mul_neg ‖t‖ 2).trans
+          (congrArg Neg.neg (mul_comm ‖t‖ 2))
+    have hinverseCube : (x ^ 3)⁻¹ = x⁻¹ ^ 3 := (inv_pow x 3).symm
+    have hdivision :
+        2 * ‖t‖ / x ^ 3 = (2 * ‖t‖) * x⁻¹ ^ 3 := by
+      exact
+        (div_eq_mul_inv (2 * ‖t‖) (x ^ 3)).trans
+          (congrArg (fun value : ℝ => (2 * ‖t‖) * value)
+            hinverseCube)
+    exact
+      (mul_assoc ‖t‖ (-2) (x⁻¹ ^ 3)).symm.trans
+        ((congrArg (fun value : ℝ => value * x⁻¹ ^ 3)
+          hcoefficient).trans
+          ((neg_mul (2 * ‖t‖) (x⁻¹ ^ 3)).trans
+            (congrArg Neg.neg hdivision.symm)))
+  have hscaledNormalized :
+      HasDerivAt
+        (fun y : ℝ => ‖t‖ * y⁻¹ ^ 2)
+        (-(2 * ‖t‖ / x ^ 3)) x :=
+    Eq.subst
     (motive := fun value : ℝ =>
       HasDerivAt (fun y : ℝ => ‖t‖ * y⁻¹ ^ 2) value x)
     hnormalize
     hscaled
+  have hfunction :
+      (fun y : ℝ => ‖t‖ * y⁻¹ ^ 2) =
+        (fun y : ℝ => ‖t‖ / y ^ 2) := by
+    funext y
+    exact
+      (congrArg (fun value : ℝ => ‖t‖ * value) (inv_pow y 2)).trans
+        (div_eq_mul_inv ‖t‖ (y ^ 2)).symm
+  exact Eq.subst
+    (motive := fun function : ℝ → ℝ =>
+      HasDerivAt function (-(2 * ‖t‖ / x ^ 3)) x)
+    hfunction hscaledNormalized
 
 theorem Complex.norm_logarithmicPhaseAdaptedCutoffAmplitude
     (a b : ℤ) (x : ℝ) :

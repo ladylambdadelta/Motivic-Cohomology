@@ -61,7 +61,48 @@ theorem Complex.hasDerivAt_realPhaseDerivativeDenominator_sq
         (Complex.realPhaseDerivativeDenominator φ' y) ^ 2)
       (2 * Complex.realPhaseDerivativeDenominator φ' x *
         (Complex.I * (φ'' x : ℂ))) x := by
-  exact (Complex.hasDerivAt_realPhaseDerivativeDenominator hφ').pow 2
+  let denominator : ℝ → ℂ := Complex.realPhaseDerivativeDenominator φ'
+  have hdenominator :=
+    Complex.hasDerivAt_realPhaseDerivativeDenominator hφ'
+  have hproduct := hdenominator.mul hdenominator
+  have hfunction :
+      (fun y : ℝ => denominator y ^ 2) =
+        (fun y : ℝ => denominator y * denominator y) := by
+    funext y
+    exact pow_two (denominator y)
+  have hderivative_eq :
+      (Complex.I * (φ'' x : ℂ)) * denominator x +
+          denominator x * (Complex.I * (φ'' x : ℂ)) =
+        2 * denominator x * (Complex.I * (φ'' x : ℂ)) := by
+    calc
+      (Complex.I * (φ'' x : ℂ)) * denominator x +
+          denominator x * (Complex.I * (φ'' x : ℂ)) =
+          denominator x * (Complex.I * (φ'' x : ℂ)) +
+            denominator x * (Complex.I * (φ'' x : ℂ)) :=
+        congrArg
+          (fun value : ℂ => value + denominator x * (Complex.I * (φ'' x : ℂ)))
+          (mul_comm (Complex.I * (φ'' x : ℂ)) (denominator x))
+      _ = 2 * (denominator x * (Complex.I * (φ'' x : ℂ))) :=
+        (two_mul _).symm
+      _ = 2 * denominator x * (Complex.I * (φ'' x : ℂ)) :=
+        (mul_assoc _ _ _).symm
+  have hproduct_function :
+      HasDerivAt
+        (fun y : ℝ => denominator y ^ 2)
+        (2 * denominator x * (Complex.I * (φ'' x : ℂ))) x := by
+    have hproduct_named :
+        HasDerivAt
+          (fun y : ℝ => denominator y * denominator y)
+          (2 * denominator x * (Complex.I * (φ'' x : ℂ))) x := by
+      change HasDerivAt
+        (fun y : ℝ => denominator y * denominator y)
+        (_ * denominator x + denominator x * _) x at hproduct
+      exact hderivative_eq ▸ hproduct
+    exact Eq.subst
+      (motive := fun f : ℝ → ℂ =>
+        HasDerivAt f (2 * denominator x * (Complex.I * (φ'' x : ℂ))) x)
+      hfunction.symm hproduct_named
+  exact hproduct_function
 
 theorem Complex.hasDerivAt_realPhaseIntegrationCoefficientDerivative
     {φ' φ'' φ''' : ℝ → ℝ}
@@ -96,27 +137,91 @@ theorem Complex.hasDerivAt_realPhaseIntegrationCoefficientDerivative
     have hD2Ne : D ^ 2 ≠ 0 := pow_ne_zero 2 hnonzero
     have hD3Ne : D ^ 3 ≠ 0 := pow_ne_zero 3 hnonzero
     have hD4Ne : (D ^ 2) ^ 2 ≠ 0 := pow_ne_zero 2 hD2Ne
+    have hinvpow : ((D ^ 2) ^ 2)⁻¹ = (D ^ 2)⁻¹ * (D ^ 2)⁻¹ := by
+      exact (congrArg Inv.inv (pow_two (D ^ 2))).trans
+        (mul_inv_rev (D ^ 2) (D ^ 2))
+    have hdivpow : D ^ 2 / (D ^ 2) ^ 2 = (D ^ 2)⁻¹ := by
+      calc
+        D ^ 2 / (D ^ 2) ^ 2 = D ^ 2 * ((D ^ 2) ^ 2)⁻¹ :=
+          div_eq_mul_inv _ _
+        _ = D ^ 2 * ((D ^ 2)⁻¹ * (D ^ 2)⁻¹) :=
+          congrArg (fun value : ℂ => D ^ 2 * value) hinvpow
+        _ = (D ^ 2 * (D ^ 2)⁻¹) * (D ^ 2)⁻¹ :=
+          (mul_assoc _ _ _).symm
+        _ = 1 * (D ^ 2)⁻¹ :=
+          congrArg (fun value : ℂ => value * (D ^ 2)⁻¹)
+            (mul_inv_cancel₀ hD2Ne)
+        _ = (D ^ 2)⁻¹ := one_mul _
+    have hD4 : (D ^ 2) ^ 2 = D ^ 4 := by
+      exact (pow_mul D 2 2).symm
+    have hD4_over_D3 : D ^ 4 / D ^ 3 = D := by
+      exact (div_eq_iff hD3Ne).2
+        ((pow_succ D 3).trans (mul_comm (D ^ 3) D))
+    have hnum : (-D') * (2 * D * D') = -(2 * D' ^ 2) * D := by
+      have hinner : D' * (2 * D * D') = 2 * D' ^ 2 * D := by
+        calc
+          D' * (2 * D * D') = D' * (2 * (D * D')) :=
+            congrArg (fun value : ℂ => D' * value) (mul_assoc 2 D D')
+          _ = (D' * 2) * (D * D') :=
+            (mul_assoc D' 2 (D * D')).symm
+          _ = (2 * D') * (D * D') :=
+            congrArg (fun value : ℂ => value * (D * D')) (mul_comm D' 2)
+          _ = 2 * (D' * (D * D')) :=
+            mul_assoc 2 D' (D * D')
+          _ = 2 * ((D' * D) * D') :=
+            congrArg (fun value : ℂ => 2 * value) (mul_assoc D' D D').symm
+          _ = 2 * (D' * (D' * D)) :=
+            congrArg (fun value : ℂ => 2 * value)
+              ((mul_assoc D' D D').trans
+                (congrArg (fun value : ℂ => D' * value) (mul_comm D D')))
+          _ = 2 * ((D' * D') * D) :=
+            congrArg (fun value : ℂ => 2 * value)
+              (mul_assoc D' D' D).symm
+          _ = 2 * (D' ^ 2 * D) :=
+            congrArg (fun value : ℂ => 2 * (value * D)) (pow_two D').symm
+          _ = 2 * D' ^ 2 * D :=
+            (mul_assoc 2 (D' ^ 2) D).symm
+      calc
+        (-D') * (2 * D * D') = -(D' * (2 * D * D')) :=
+          neg_mul D' (2 * D * D')
+        _ = -(2 * D' ^ 2 * D) := congrArg Neg.neg hinner
+        _ = -(2 * D' ^ 2) * D := by
+          exact (neg_mul (2 * D' ^ 2) D).symm
+    have hsecond_fraction :
+        ((-D') * (2 * D * D')) / (D ^ 2) ^ 2 =
+          -(2 * D' ^ 2 / D ^ 3) := by
+      exact (div_eq_iff hD4Ne).2
+        (calc
+          (-D') * (2 * D * D') = -(2 * D' ^ 2) * D := hnum
+          _ = -(2 * D' ^ 2 / D ^ 3) * D ^ 4 := by
+            exact Eq.trans
+              (neg_mul (2 * D' ^ 2) D)
+              (Eq.trans
+                (congrArg Neg.neg
+                  (congrArg (fun value : ℂ => (2 * D' ^ 2) * value)
+                    hD4_over_D3.symm))
+                (Eq.trans
+                  (congrArg Neg.neg
+                    (mul_div_assoc (2 * D' ^ 2) (D ^ 4) (D ^ 3)).symm)
+                  (Eq.trans
+                    (congrArg Neg.neg
+                      (div_mul_eq_mul_div (2 * D' ^ 2) (D ^ 3) (D ^ 4)).symm)
+                    (neg_mul (2 * D' ^ 2 / D ^ 3) (D ^ 4)).symm)))
+          _ = -(2 * D' ^ 2 / D ^ 3) * (D ^ 2) ^ 2 :=
+            congrArg (fun value : ℂ => -(2 * D' ^ 2 / D ^ 3) * value) hD4.symm)
     calc
       ((-D'') * D ^ 2 - (-D') * (2 * D * D')) /
           (D ^ 2) ^ 2 =
         ((-D'') * D ^ 2) / (D ^ 2) ^ 2 -
           ((-D') * (2 * D * D')) / (D ^ 2) ^ 2 :=
-        div_sub_div_same _ _ _
+        (div_sub_div_same _ _ _).symm
       _ = -D'' / D ^ 2 - (-(2 * D' ^ 2 / D ^ 3)) := by
         exact congrArg₂ (fun first second : ℂ => first - second)
           (Eq.trans
             (mul_div_assoc (-D'') (D ^ 2) ((D ^ 2) ^ 2))
             (congrArg (fun value : ℂ => (-D'') * value)
-              (div_pow_self (D ^ 2) 1 hD2Ne)))
-          (by
-            exact Eq.trans
-              (congrArg (fun value : ℂ => value / (D ^ 2) ^ 2)
-                ((mul_assoc (-D') (2 * D) D').trans
-                  (congrArg (fun value : ℂ => value * D')
-                    ((mul_assoc (-D') 2 D).trans
-                      (congrArg (fun value : ℂ => value * D)
-                        (mul_comm (-D') 2))))))
-              rfl)
+              hdivpow))
+          hsecond_fraction
       _ = -D'' / D ^ 2 + 2 * D' ^ 2 / D ^ 3 :=
         (sub_neg_eq_add _ _)
   exact Eq.subst
@@ -160,12 +265,15 @@ theorem Complex.norm_realPhaseIntegrationCoefficientSecondDerivative_le
       ‖2 * (Complex.I * (φ'' x : ℂ)) ^ 2 /
           (Complex.realPhaseDerivativeDenominator φ' x) ^ 3‖ =
         2 * |φ'' x| ^ 2 / ‖φ' x‖ ^ 3 := by
+    have htwo_norm : ‖(2 : ℂ)‖ = (2 : ℝ) :=
+      (Complex.norm_real 2).trans
+        (Real.norm_of_nonneg (show (0 : ℝ) ≤ 2 from zero_le_two))
     exact Eq.trans
       (norm_div _ _)
       (congrArg₂ (fun numerator denominator : ℝ => numerator / denominator)
         (Eq.trans (norm_mul 2 _)
           (congrArg₂ (fun first second : ℝ => first * second)
-            (Real.norm_of_nonneg (Nat.cast_nonneg 2))
+            htwo_norm
             (Eq.trans (norm_pow _ 2)
               (congrArg (fun value : ℝ => value ^ 2)
                 ((norm_mul Complex.I (φ'' x : ℂ)).trans

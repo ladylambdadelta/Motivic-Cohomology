@@ -387,12 +387,14 @@ theorem Complex.norm_intervalIntegral_amplitude_oscillator_le_second_transform
       hamplitude hcoefficient hfirst hoscillator hfirstIntegrable
       hsecondIntegrable hoscillatorDerivativeIntegrable hcancellation
       hfirstLeft hfirstRight hsecondLeft hsecondRight
-  have hnorm := intervalIntegral.norm_integral_le_integral_norm hleftRight
+  have hnorm := intervalIntegral.norm_integral_le_integral_norm
+    (μ := volume) hleftRight
     (f := fun x =>
       Complex.nonstationarySecondTransformedAmplitude
         firstTransformedDerivative amplitude amplitudeDerivative
         phaseCoefficient phaseCoefficientDerivative x * oscillator x)
   have hintegrand := intervalIntegral.integral_congr
+    (μ := volume) (a := left) (b := right)
     (fun x hx =>
       Eq.trans
         (norm_mul

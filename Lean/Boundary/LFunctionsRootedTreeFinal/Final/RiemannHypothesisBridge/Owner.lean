@@ -86,11 +86,11 @@ theorem autocorrelationSpectralEvalFiberSeparatedCommonPolynomialEnvelopeBase_ow
   -- Apply the proven theorem with the analytical boundary conditions
   exact ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberSeparatedCommonPolynomialEnvelopeBase_owner
     Complex.binetSecondFormulaBranchUniformTailAbsorption_owner
-    boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap
+    boundaryLineOneAbelPartialMajorant_from_realParam
     poleClearedOneTwoStripCompactBoundaryBound_from_rightCriticalStrip_compact
     poleClearedRightCriticalStripAdmissibleGrowth_owner
     (reflectedBoundaryAbelPartialMajorant_of_boundaryLineOneAbelPartialMajorant
-      boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap)
+      boundaryLineOneAbelPartialMajorant_from_realParam)
     poleClearedRightCriticalStripCompactBoundaryBound_from_compact
 
 /-- Raw autocorrelation Weil positivity for the final RH route.
@@ -136,7 +136,7 @@ theorem finalRiemannHypothesis_centeredZeroCriterion :
   let hreflected : PoleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope :=
     poleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope_owner
   have hpartialOneTwo : BoundaryLineOneAbelPartialMajorant :=
-    boundaryLineOneAbelPartialMajorant_from_realParam_ownerGap
+    boundaryLineOneAbelPartialMajorant_from_realParam
   have hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound :=
     poleClearedOneTwoStripCompactBoundaryBound_from_rightCriticalStrip_compact
   have hpartialLeft : ReflectedBoundaryAbelPartialMajorant :=

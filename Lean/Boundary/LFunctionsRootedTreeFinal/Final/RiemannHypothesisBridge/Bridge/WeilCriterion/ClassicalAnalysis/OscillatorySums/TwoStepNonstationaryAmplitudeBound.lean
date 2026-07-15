@@ -71,13 +71,64 @@ theorem Complex.hasDerivAt_nonstationaryFirstTransformedAmplitude_explicit
     calc
       (first + middle) + (middle + last) =
           first + (middle + middle) + last := by
-        exact (add_assoc first middle (middle + last)).trans
-          (congrArg (fun value : ℂ => first + value)
-            (add_assoc middle middle last).symm).trans
-          (add_assoc first (middle + middle) last).symm
+        calc
+          (first + middle) + (middle + last) =
+              first + (middle + (middle + last)) :=
+            add_assoc first middle (middle + last)
+          _ = first + ((middle + middle) + last) :=
+            congrArg (fun value : ℂ => first + value)
+              (add_assoc middle middle last).symm
+          _ = first + (middle + middle) + last :=
+            (add_assoc first (middle + middle) last).symm
       _ = first + 2 * middle + last :=
         congrArg (fun value : ℂ => first + value + last)
           (two_mul middle).symm
+      _ = amplitudeSecondDerivative x * phaseCoefficient x +
+          2 * amplitudeDerivative x * phaseCoefficientDerivative x +
+          amplitude x * phaseCoefficientSecondDerivative x := by
+        have hfirst_eq : first =
+            amplitudeSecondDerivative x * phaseCoefficient x := by
+          rfl
+        have hlast_eq : last =
+            amplitude x * phaseCoefficientSecondDerivative x := by
+          rfl
+        have hmiddle_eq : middle =
+            amplitudeDerivative x * phaseCoefficientDerivative x := by
+          rfl
+        have hmiddle_substitution :
+            first + 2 * middle + last =
+              first +
+                2 * (amplitudeDerivative x * phaseCoefficientDerivative x) +
+                last :=
+          congrArg (fun value : ℂ => first + 2 * value + last) hmiddle_eq
+        have hendpoint_substitution :
+            first +
+                2 * (amplitudeDerivative x * phaseCoefficientDerivative x) +
+                last =
+              amplitudeSecondDerivative x * phaseCoefficient x +
+                2 * (amplitudeDerivative x * phaseCoefficientDerivative x) +
+                amplitude x * phaseCoefficientSecondDerivative x :=
+          congrArg₂
+            (fun firstValue lastValue : ℂ =>
+              firstValue +
+                2 * (amplitudeDerivative x * phaseCoefficientDerivative x) +
+                lastValue)
+            hfirst_eq hlast_eq
+        have hscalar_reassociate :
+            amplitudeSecondDerivative x * phaseCoefficient x +
+                2 * (amplitudeDerivative x * phaseCoefficientDerivative x) +
+                amplitude x * phaseCoefficientSecondDerivative x =
+              amplitudeSecondDerivative x * phaseCoefficient x +
+                2 * amplitudeDerivative x * phaseCoefficientDerivative x +
+                amplitude x * phaseCoefficientSecondDerivative x :=
+          congrArg
+            (fun value : ℂ =>
+              amplitudeSecondDerivative x * phaseCoefficient x + value +
+                amplitude x * phaseCoefficientSecondDerivative x)
+            (mul_assoc (2 : ℂ) (amplitudeDerivative x)
+              (phaseCoefficientDerivative x)).symm
+        exact hmiddle_substitution.trans
+          (hendpoint_substitution.trans hscalar_reassociate)
   exact Eq.subst
     (motive := fun value : ℂ =>
       HasDerivAt
@@ -112,6 +163,9 @@ theorem Complex.norm_firstTransformedDerivativeExplicit_le
   have hmiddle :
       ‖2 * amplitudeDerivative x * phaseCoefficientDerivative x‖ =
         2 * ‖amplitudeDerivative x‖ * ‖phaseCoefficientDerivative x‖ := by
+    have htwo_norm : ‖(2 : ℂ)‖ = (2 : ℝ) :=
+      (Complex.norm_real 2).trans
+        (Real.norm_of_nonneg (show (0 : ℝ) ≤ 2 from zero_le_two))
     exact Eq.trans
       (norm_mul (2 * amplitudeDerivative x) (phaseCoefficientDerivative x))
       (congrArg
@@ -119,7 +173,7 @@ theorem Complex.norm_firstTransformedDerivativeExplicit_le
         ((norm_mul 2 (amplitudeDerivative x)).trans
           (congrArg
             (fun value : ℝ => value * ‖amplitudeDerivative x‖)
-            (Real.norm_of_nonneg (Nat.cast_nonneg 2)))))
+            htwo_norm)))
   have hlast := norm_mul (amplitude x) (phaseCoefficientSecondDerivative x)
   exact le_trans houter
     (le_trans (add_le_add_right hinner _)

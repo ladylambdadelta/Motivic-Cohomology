@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.QuantitativePacketDecay
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.OscillatorySums.QuantitativeCutoffSecondDerivative
 
 /-!
 # Explicit second derivative of the quantitative logarithmic amplitude
@@ -15,10 +16,6 @@ namespace LFunctions
 noncomputable section
 
 open MeasureTheory
-
-def Real.quantitativeLogarithmicBlockCutoffSecondDerivative
-    (a b : ℤ) : ℝ → ℝ :=
-  deriv (Real.quantitativeLogarithmicBlockCutoffDerivative a b)
 
 def Complex.logarithmicPhaseOscillator
     (t : ℝ) (x : ℝ) : ℂ :=
@@ -59,10 +56,12 @@ def Complex.logarithmicPhaseQuantitativeAmplitudeExplicitSecondDerivative
 
 theorem Real.contDiff_quantitativeLogarithmicBlockCutoffDerivative
     (a b : ℤ) :
-    ContDiff ℝ ∞ (Real.quantitativeLogarithmicBlockCutoffDerivative a b) := by
+    ContDiff ℝ (⊤ : ℕ∞)
+      (Real.quantitativeLogarithmicBlockCutoffDerivative a b) := by
   have hcutoff := Real.contDiff_quantitativeLogarithmicBlockCutoff a b
   have hderivative :
-      ContDiff ℝ ∞ (deriv (Real.quantitativeLogarithmicBlockCutoff a b)) :=
+      ContDiff ℝ (⊤ : ℕ∞)
+        (deriv (Real.quantitativeLogarithmicBlockCutoff a b)) :=
     (contDiff_infty_iff_deriv.mp hcutoff).2
   have hfunction :
       deriv (Real.quantitativeLogarithmicBlockCutoff a b) =
@@ -70,12 +69,13 @@ theorem Real.contDiff_quantitativeLogarithmicBlockCutoffDerivative
     funext x
     exact Real.deriv_quantitativeLogarithmicBlockCutoff a b x
   exact Eq.subst
-    (motive := fun function : ℝ → ℝ => ContDiff ℝ ∞ function)
+    (motive := fun function : ℝ → ℝ =>
+      ContDiff ℝ (⊤ : ℕ∞) function)
     hfunction hderivative
 
 theorem Real.contDiff_quantitativeLogarithmicBlockCutoffSecondDerivative
     (a b : ℤ) :
-    ContDiff ℝ ∞
+    ContDiff ℝ (⊤ : ℕ∞)
       (Real.quantitativeLogarithmicBlockCutoffSecondDerivative a b) := by
   unfold Real.quantitativeLogarithmicBlockCutoffSecondDerivative
   exact
@@ -88,9 +88,12 @@ theorem Real.hasDerivAt_quantitativeLogarithmicBlockCutoffDerivative
       (Real.quantitativeLogarithmicBlockCutoffDerivative a b)
       (Real.quantitativeLogarithmicBlockCutoffSecondDerivative a b x)
       x := by
-  have hdifferentiable :=
-    (Real.contDiff_quantitativeLogarithmicBlockCutoffDerivative a b)
-      .differentiable le_top
+  have hdifferentiable :
+      Differentiable ℝ
+        (Real.quantitativeLogarithmicBlockCutoffDerivative a b) :=
+    (Real.contDiff_quantitativeLogarithmicBlockCutoffDerivative a b).differentiable
+      (show (1 : WithTop ℕ∞) ≤ (((⊤ : ℕ∞) : WithTop ℕ∞)) from
+        WithTop.coe_le_coe.mpr (OrderTop.le_top (1 : ℕ∞)))
   unfold Real.quantitativeLogarithmicBlockCutoffSecondDerivative
   exact hdifferentiable.differentiableAt.hasDerivAt
 
@@ -98,28 +101,39 @@ theorem Complex.hasDerivAt_logarithmicPhaseDerivative
     (t : ℝ) {x : ℝ}
     (hx : 0 < x) :
     HasDerivAt (fun y : ℝ => -t / y) (t / x ^ 2) x := by
-  have hinverse : HasDerivAt (fun y : ℝ => y⁻¹) (-x⁻¹ ^ 2) x :=
-    (hasDerivAt_id x).inv hx.ne'
+  have hinverse := (hasDerivAt_id x).inv hx.ne'
   have hscaled := hinverse.const_mul (-t)
-  have hfunction :
-      (fun y : ℝ => -t * y⁻¹) = (fun y : ℝ => -t / y) := by
-    funext y
-    exact (div_eq_mul_inv (-t) y).symm
+  have hinverseValue : -1 / (id x) ^ 2 = -x⁻¹ ^ 2 := by
+    calc
+      -1 / (id x) ^ 2 = -1 / x ^ 2 := rfl
+      _ = -(1 / x ^ 2) := neg_div (x ^ 2) 1
+      _ = -((x ^ 2)⁻¹) :=
+        congrArg Neg.neg (one_div (x ^ 2))
+      _ = -x⁻¹ ^ 2 :=
+        congrArg Neg.neg (inv_pow x 2).symm
   have hvalue : (-t) * (-x⁻¹ ^ 2) = t / x ^ 2 := by
     calc
       (-t) * (-x⁻¹ ^ 2) = t * x⁻¹ ^ 2 :=
-        (neg_mul_neg t (x⁻¹ ^ 2))
+        neg_mul_neg t (x⁻¹ ^ 2)
       _ = t * (x ^ 2)⁻¹ :=
         congrArg (fun value : ℝ => t * value) (inv_pow x 2)
       _ = t / x ^ 2 := (div_eq_mul_inv t (x ^ 2)).symm
+  have hscaledValue :
+      (-t) * (-1 / (id x) ^ 2) = t / x ^ 2 :=
+    Eq.trans
+      (congrArg (fun value : ℝ => (-t) * value) hinverseValue)
+      hvalue
+  have hscaledNormalized :
+      HasDerivAt (fun y : ℝ => -t * (id y)⁻¹) (t / x ^ 2) x :=
+    hscaled.congr_deriv hscaledValue
+  have hfunction :
+      (fun y : ℝ => -t * (id y)⁻¹) = (fun y : ℝ => -t / y) := by
+    funext y
+    exact (div_eq_mul_inv (-t) y).symm
   exact Eq.subst
     (motive := fun function : ℝ → ℝ =>
       HasDerivAt function (t / x ^ 2) x)
-    hfunction
-    (Eq.subst
-      (motive := fun value : ℝ =>
-        HasDerivAt (fun y : ℝ => -t * y⁻¹) value x)
-      hvalue hscaled)
+    hfunction hscaledNormalized
 
 theorem Complex.hasDerivAt_logarithmicPhaseOscillator
     (t : ℝ) {x : ℝ}

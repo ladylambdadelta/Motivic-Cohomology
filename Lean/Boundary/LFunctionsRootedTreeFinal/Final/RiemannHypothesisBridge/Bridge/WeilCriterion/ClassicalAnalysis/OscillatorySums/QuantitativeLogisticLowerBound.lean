@@ -53,12 +53,10 @@ theorem Real.rationalOddLower_eq_logistic_add_one
   have hdenominator : (1 + z) + 1 = z + 2 := by
     calc
       (1 + z) + 1 = z + (1 + 1) := by
-        exact (add_assoc 1 z 1).trans
-          ((congrArg (fun value : ℝ => value + 1) (add_comm 1 z)).trans
-            (add_assoc z 1 1))
+        exact (add_assoc 1 z 1).trans (add_left_comm 1 z 1)
       _ = z + 2 :=
         congrArg (fun value : ℝ => z + value)
-          (show (1 : ℝ) + 1 = 2 from rfl)
+          one_add_one_eq_two
   exact congrArg₂ (fun numerator denominator : ℝ => numerator / denominator)
     hnumerator.symm hdenominator.symm
 
@@ -66,7 +64,9 @@ theorem Real.logisticOddRatio_denominator_pos
     {y : ℝ}
     (hy : -1 < y) :
     0 < y + 1 := by
-  exact (neg_lt_iff_add_pos).mp hy
+  have htranslated := add_lt_add_right hy 1
+  have hzero : (-1 : ℝ) + 1 = 0 := neg_add_cancel 1
+  exact Eq.subst (motive := fun z : ℝ => z < y + 1) hzero htranslated
 
 theorem Real.logisticOddRatio_difference_identity
     (u v : ℝ) :
@@ -112,18 +112,18 @@ theorem Real.logisticOddRatio_difference_identity
               common + (v - u - 1) := by
             calc
               common + v - (u + 1) = common + (v - (u + 1)) :=
-                (add_sub_assoc common v (u + 1)).symm
+                add_sub_assoc common v (u + 1)
               _ = common + (v - u - 1) :=
                 congrArg (fun value : ℝ => common + value)
-                  (sub_add_eq_sub_sub v u 1)
+                  (sub_sub v u 1).symm
           have hcancelSecond : common + u - (v + 1) =
               common + (u - v - 1) := by
             calc
               common + u - (v + 1) = common + (u - (v + 1)) :=
-                (add_sub_assoc common u (v + 1)).symm
+                add_sub_assoc common u (v + 1)
               _ = common + (u - v - 1) :=
                 congrArg (fun value : ℝ => common + value)
-                  (sub_add_eq_sub_sub u v 1)
+                  (sub_sub u v 1).symm
           exact Eq.trans
             (congrArg₂ (fun first second : ℝ => first - second)
               hcancelFirst hcancelSecond)
@@ -173,7 +173,8 @@ theorem Real.one_add_le_exp_of_nonneg
     {z : ℝ}
     (hz : 0 ≤ z) :
     1 + z ≤ Real.exp z := by
-  exact Real.add_one_le_exp z
+  exact Eq.subst (motive := fun w : ℝ => w ≤ Real.exp z)
+    (add_comm z 1) (Real.add_one_le_exp z)
 
 theorem Real.rationalOddLower_le_exponentialOddRatio
     {z : ℝ}

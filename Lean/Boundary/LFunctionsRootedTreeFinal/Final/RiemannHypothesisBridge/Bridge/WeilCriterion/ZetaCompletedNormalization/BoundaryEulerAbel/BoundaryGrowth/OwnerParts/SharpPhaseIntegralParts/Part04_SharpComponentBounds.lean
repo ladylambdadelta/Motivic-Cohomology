@@ -87,5 +87,6 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlock
     boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseIncrementBlockSum_norm_le_sharp_ownerDirichlet_core
       t ht hK
 
+end
 end LFunctions
 end Boundary

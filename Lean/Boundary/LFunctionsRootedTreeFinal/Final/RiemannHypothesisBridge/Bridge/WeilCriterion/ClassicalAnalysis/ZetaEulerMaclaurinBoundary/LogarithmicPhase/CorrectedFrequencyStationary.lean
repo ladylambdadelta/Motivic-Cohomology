@@ -42,6 +42,28 @@ def Complex.logarithmicPhaseFourierStationaryPoint
     (m : ℤ) : ℝ :=
   ‖t‖ / (2 * Real.pi * (-(m : ℝ)))
 
+theorem Complex.logarithmicPhaseAngular_mul_stationaryCenter
+    (t : ℝ) {m : ℤ} (hm : m < 0) :
+    (2 * Real.pi * (-(m : ℝ))) *
+        Complex.logarithmicPhaseFourierStationaryPoint t m =
+      ‖t‖ := by
+  have hmCastRaw : (m : ℝ) < ((0 : ℤ) : ℝ) := Int.cast_lt.mpr hm
+  have hmCast : (m : ℝ) < 0 :=
+    Eq.mp
+      (congrArg (fun value : ℝ => (m : ℝ) < value) Int.cast_zero)
+      hmCastRaw
+  have hmNegative : 0 < -(m : ℝ) := neg_pos.mpr hmCast
+  have hangular : 0 < 2 * Real.pi * (-(m : ℝ)) :=
+    mul_pos (mul_pos zero_lt_two Real.pi_pos) hmNegative
+  have hangularNe : (2 * Real.pi * (-(m : ℝ))) ≠ 0 :=
+    ne_of_gt hangular
+  unfold Complex.logarithmicPhaseFourierStationaryPoint
+  exact Eq.trans
+    (mul_div_assoc
+      (2 * Real.pi * (-(m : ℝ))) ‖t‖
+      (2 * Real.pi * (-(m : ℝ)))).symm
+    (mul_div_cancel_left₀ ‖t‖ hangularNe)
+
 theorem Complex.logarithmicPhaseFourierStationaryDistance_ge_left_endpoint
     {center left right x : ℝ}
     (hcenter : center ≤ left)
@@ -792,6 +814,18 @@ theorem Complex.logarithmicPhaseFourierStationaryPoint_pos
   exact
     div_pos ht_pos
       (Complex.logarithmicPhaseFourierStationaryPoint_denominator_pos m hm)
+
+/-- The negative Fourier angular frequency is the phase norm divided by its
+corrected stationary center. -/
+theorem Complex.logarithmicPhaseAngular_eq_norm_div_center
+    (t : ℝ) (ht : 1 ≤ ‖t‖) {m : ℤ} (hm : m < 0) :
+    2 * Real.pi * (-(m : ℝ)) =
+      ‖t‖ / Complex.logarithmicPhaseFourierStationaryPoint t m := by
+  have hcenter :=
+    Complex.logarithmicPhaseFourierStationaryPoint_pos t ht hm
+  have hproduct :=
+    Complex.logarithmicPhaseAngular_mul_stationaryCenter t hm
+  exact (eq_div_iff (ne_of_gt hcenter)).mpr hproduct
 
 /-- Reciprocal cancellation with the actual angular frequency. -/
 theorem Real.logarithmicPhase_fourier_reciprocal_identity

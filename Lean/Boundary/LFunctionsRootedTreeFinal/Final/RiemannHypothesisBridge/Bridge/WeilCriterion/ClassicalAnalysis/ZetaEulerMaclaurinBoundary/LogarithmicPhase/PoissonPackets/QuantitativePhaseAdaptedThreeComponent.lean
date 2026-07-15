@@ -12,6 +12,38 @@ namespace LFunctions
 
 noncomputable section
 
+theorem Complex.norm_logarithmicPhaseAdaptedActivePacket_tsum_le_two_components
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) (htNonneg : 0 ≤ t)
+    (a b : ℤ)
+    (ha : 1 ≤ a) (hab : a ≤ b)
+    (radius : ℝ) (hradius : 0 < radius) :
+    ‖∑' m : {m : ℤ //
+        m ∈ Complex.logarithmicPhasePoissonActiveModes t a b},
+      Complex.logarithmicPhaseQuantitativeBlockFourierPacket ‖t‖ a b m‖ ≤
+      Complex.logarithmicPhaseQuantitativeActiveWindowBudget t a b radius +
+        Complex.logarithmicPhaseAdaptedCrossingBudget t a b radius := by
+  have hnorm : t = ‖t‖ :=
+    (Real.norm_of_nonneg htNonneg).symm
+  have hactive :=
+    Complex.norm_logarithmicPhaseQuantitativeActivePacket_tsum_le_two_components
+      t ht htNonneg a b ha hab radius hradius
+  exact Eq.subst
+    (motive := fun packetParameter : ℝ =>
+      ‖∑' m : {m : ℤ //
+          m ∈ Complex.logarithmicPhasePoissonActiveModes t a b},
+        Complex.logarithmicPhaseQuantitativeBlockFourierPacket
+          packetParameter a b m‖ ≤
+        Complex.logarithmicPhaseQuantitativeActiveWindowBudget
+            t a b radius +
+          ∑ m ∈
+              Complex.logarithmicPhasePoissonEndpointActiveModes
+                t a b radius,
+            ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket
+              packetParameter a b m‖)
+    hnorm
+    hactive
+
 theorem Complex.norm_logarithmicPhaseQuantitativePacket_tsum_le_adaptedThreeComponent
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) (htNonneg : 0 ≤ t)
@@ -26,12 +58,26 @@ theorem Complex.norm_logarithmicPhaseQuantitativePacket_tsum_le_adaptedThreeComp
     Complex.norm_logarithmicPhaseQuantitativePacket_tsum_le_active_add_adaptedComplement
       t a b ha hab
   have hactive :=
-    Complex.norm_logarithmicPhaseQuantitativeActivePacket_tsum_le_two_components
+    Complex.norm_logarithmicPhaseAdaptedActivePacket_tsum_le_two_components
       t ht htNonneg a b ha hab radius hradius
-  unfold Complex.logarithmicPhaseAdaptedThreeComponentBudget
-  exact le_trans hcomplement
-    (add_le_add_right hactive
-      (Complex.logarithmicPhaseAdaptedComplementBudget t a b))
+  have hpacketAtNorm :
+      ‖∑' m : ℤ,
+          Complex.logarithmicPhaseQuantitativeBlockFourierPacket ‖t‖ a b m‖ ≤
+        Complex.logarithmicPhaseAdaptedThreeComponentBudget
+          t a b radius :=
+    le_trans hcomplement
+      (add_le_add_right hactive
+        (Complex.logarithmicPhaseAdaptedComplementBudget t a b))
+  have hnorm : ‖t‖ = t := Real.norm_of_nonneg htNonneg
+  exact Eq.subst
+    (motive := fun packetParameter : ℝ =>
+      ‖∑' m : ℤ,
+          Complex.logarithmicPhaseQuantitativeBlockFourierPacket
+            packetParameter a b m‖ ≤
+        Complex.logarithmicPhaseAdaptedThreeComponentBudget
+          t a b radius)
+    hnorm
+    hpacketAtNorm
 
 theorem Complex.logarithmicPhaseQuantitativeIntegerBlock_norm_le_adaptedThreeComponent
     (t : ℝ)

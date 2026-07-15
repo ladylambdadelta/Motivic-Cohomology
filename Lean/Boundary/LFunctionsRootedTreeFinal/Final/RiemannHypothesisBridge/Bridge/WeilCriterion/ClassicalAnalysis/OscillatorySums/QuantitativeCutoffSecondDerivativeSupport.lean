@@ -39,11 +39,29 @@ theorem Real.smoothTransitionSecondDerivative_zero :
             Real.expNegInvGlueGlobalSecondDerivative (1 - 0) =
         0 * expNegInvGlue 1 -
           0 * Real.expNegInvGlueGlobalSecondDerivative 1 := by
-        exact congrArg₃
-          (fun ddgZero gZero oneSub : ℝ =>
-            ddgZero * expNegInvGlue oneSub -
-              gZero * Real.expNegInvGlueGlobalSecondDerivative oneSub)
-          hddgZero hgZero honeSub
+        have hzeroComponents :
+            Real.expNegInvGlueGlobalSecondDerivative 0 *
+                expNegInvGlue (1 - 0) -
+              expNegInvGlue 0 *
+                Real.expNegInvGlueGlobalSecondDerivative (1 - 0) =
+              0 * expNegInvGlue (1 - 0) -
+                0 * Real.expNegInvGlueGlobalSecondDerivative (1 - 0) :=
+          congrArg₂
+            (fun ddgZero gZero : ℝ =>
+              ddgZero * expNegInvGlue (1 - 0) -
+                gZero * Real.expNegInvGlueGlobalSecondDerivative (1 - 0))
+            hddgZero hgZero
+        have honeSubTransport :
+            0 * expNegInvGlue (1 - 0) -
+                0 * Real.expNegInvGlueGlobalSecondDerivative (1 - 0) =
+              0 * expNegInvGlue 1 -
+                0 * Real.expNegInvGlueGlobalSecondDerivative 1 :=
+          congrArg
+            (fun oneSub : ℝ =>
+              0 * expNegInvGlue oneSub -
+                0 * Real.expNegInvGlueGlobalSecondDerivative oneSub)
+            honeSub
+        exact hzeroComponents.trans honeSubTransport
       _ = 0 - 0 := congrArg₂ (fun first second : ℝ => first - second)
         (zero_mul _) (zero_mul _)
       _ = 0 := sub_self 0
@@ -55,11 +73,27 @@ theorem Real.smoothTransitionSecondDerivative_zero :
           expNegInvGlue 0 * Real.expNegInvGlueDerivative (1 - 0) =
         0 * expNegInvGlue 1 +
           0 * Real.expNegInvGlueDerivative 1 := by
-        exact congrArg₃
-          (fun dgZero gZero oneSub : ℝ =>
-            dgZero * expNegInvGlue oneSub +
-              gZero * Real.expNegInvGlueDerivative oneSub)
-          hdgZero hgZero honeSub
+        have hzeroComponents :
+            Real.expNegInvGlueDerivative 0 * expNegInvGlue (1 - 0) +
+                expNegInvGlue 0 * Real.expNegInvGlueDerivative (1 - 0) =
+              0 * expNegInvGlue (1 - 0) +
+                0 * Real.expNegInvGlueDerivative (1 - 0) :=
+          congrArg₂
+            (fun dgZero gZero : ℝ =>
+              dgZero * expNegInvGlue (1 - 0) +
+                gZero * Real.expNegInvGlueDerivative (1 - 0))
+            hdgZero hgZero
+        have honeSubTransport :
+            0 * expNegInvGlue (1 - 0) +
+                0 * Real.expNegInvGlueDerivative (1 - 0) =
+              0 * expNegInvGlue 1 +
+                0 * Real.expNegInvGlueDerivative 1 :=
+          congrArg
+            (fun oneSub : ℝ =>
+              0 * expNegInvGlue oneSub +
+                0 * Real.expNegInvGlueDerivative oneSub)
+            honeSub
+        exact hzeroComponents.trans honeSubTransport
       _ = 0 + 0 := congrArg₂ (fun first second : ℝ => first + second)
         (zero_mul _) (zero_mul _)
       _ = 0 := zero_add 0
@@ -114,12 +148,33 @@ theorem Real.smoothTransitionSecondDerivative_one :
             Real.expNegInvGlueGlobalSecondDerivative (1 - 1) =
         Real.expNegInvGlueGlobalSecondDerivative 1 * 0 -
           expNegInvGlue 1 * 0 := by
-        exact congrArg₃
-          (fun oneSub gZero ddgZero : ℝ =>
-            Real.expNegInvGlueGlobalSecondDerivative 1 * expNegInvGlue oneSub -
+        have honeSubTransport :
+            Real.expNegInvGlueGlobalSecondDerivative 1 *
+                expNegInvGlue (1 - 1) -
               expNegInvGlue 1 *
-                Real.expNegInvGlueGlobalSecondDerivative oneSub)
-          honeSub hgZero hddgZero
+                Real.expNegInvGlueGlobalSecondDerivative (1 - 1) =
+              Real.expNegInvGlueGlobalSecondDerivative 1 * expNegInvGlue 0 -
+                expNegInvGlue 1 *
+                  Real.expNegInvGlueGlobalSecondDerivative 0 :=
+          congrArg
+            (fun oneSub : ℝ =>
+              Real.expNegInvGlueGlobalSecondDerivative 1 *
+                  expNegInvGlue oneSub -
+                expNegInvGlue 1 *
+                  Real.expNegInvGlueGlobalSecondDerivative oneSub)
+            honeSub
+        have hzeroComponents :
+            Real.expNegInvGlueGlobalSecondDerivative 1 * expNegInvGlue 0 -
+                expNegInvGlue 1 *
+                  Real.expNegInvGlueGlobalSecondDerivative 0 =
+              Real.expNegInvGlueGlobalSecondDerivative 1 * 0 -
+                expNegInvGlue 1 * 0 :=
+          congrArg₂
+            (fun gZero ddgZero : ℝ =>
+              Real.expNegInvGlueGlobalSecondDerivative 1 * gZero -
+                expNegInvGlue 1 * ddgZero)
+            hgZero hddgZero
+        exact honeSubTransport.trans hzeroComponents
       _ = 0 - 0 := congrArg₂ (fun first second : ℝ => first - second)
         (mul_zero _) (mul_zero _)
       _ = 0 := sub_self 0
@@ -130,11 +185,26 @@ theorem Real.smoothTransitionSecondDerivative_one :
       Real.expNegInvGlueDerivative 1 * expNegInvGlue (1 - 1) +
           expNegInvGlue 1 * Real.expNegInvGlueDerivative (1 - 1) =
         Real.expNegInvGlueDerivative 1 * 0 + expNegInvGlue 1 * 0 := by
-        exact congrArg₃
-          (fun oneSub gZero dgZero : ℝ =>
-            Real.expNegInvGlueDerivative 1 * expNegInvGlue oneSub +
-              expNegInvGlue 1 * Real.expNegInvGlueDerivative oneSub)
-          honeSub hgZero hdgZero
+        have honeSubTransport :
+            Real.expNegInvGlueDerivative 1 * expNegInvGlue (1 - 1) +
+                expNegInvGlue 1 * Real.expNegInvGlueDerivative (1 - 1) =
+              Real.expNegInvGlueDerivative 1 * expNegInvGlue 0 +
+                expNegInvGlue 1 * Real.expNegInvGlueDerivative 0 :=
+          congrArg
+            (fun oneSub : ℝ =>
+              Real.expNegInvGlueDerivative 1 * expNegInvGlue oneSub +
+                expNegInvGlue 1 * Real.expNegInvGlueDerivative oneSub)
+            honeSub
+        have hzeroComponents :
+            Real.expNegInvGlueDerivative 1 * expNegInvGlue 0 +
+                expNegInvGlue 1 * Real.expNegInvGlueDerivative 0 =
+              Real.expNegInvGlueDerivative 1 * 0 + expNegInvGlue 1 * 0 :=
+          congrArg₂
+            (fun gZero dgZero : ℝ =>
+              Real.expNegInvGlueDerivative 1 * gZero +
+                expNegInvGlue 1 * dgZero)
+            hgZero hdgZero
+        exact honeSubTransport.trans hzeroComponents
       _ = 0 + 0 := congrArg₂ (fun first second : ℝ => first + second)
         (mul_zero _) (mul_zero _)
       _ = 0 := zero_add 0

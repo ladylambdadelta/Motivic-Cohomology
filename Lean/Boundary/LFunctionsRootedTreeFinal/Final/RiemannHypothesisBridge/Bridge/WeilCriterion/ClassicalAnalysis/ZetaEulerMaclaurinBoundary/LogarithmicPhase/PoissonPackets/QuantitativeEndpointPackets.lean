@@ -99,8 +99,9 @@ theorem Complex.intervalIntegral_realPhaseOscillation_eq_zero_of_leftClippedAtBl
     Eq.subst
       (motive := fun right : ℝ =>
         (∫ x in (a : ℝ)..right, Complex.realPhaseOscillation φ x) = 0)
-      hleft
-      (intervalIntegral.integral_same (a : ℝ) (Complex.realPhaseOscillation φ))
+      hleft.symm
+      (intervalIntegral.integral_same :
+        (∫ x in (a : ℝ)..(a : ℝ), Complex.realPhaseOscillation φ x) = 0)
 
 theorem Complex.intervalIntegral_realPhaseOscillation_eq_zero_of_rightClippedAtBlockRight
     (φ : ℝ → ℝ)
@@ -114,8 +115,9 @@ theorem Complex.intervalIntegral_realPhaseOscillation_eq_zero_of_rightClippedAtB
     Eq.subst
       (motive := fun left : ℝ =>
         (∫ x in left..(b : ℝ), Complex.realPhaseOscillation φ x) = 0)
-      hright
-      (intervalIntegral.integral_same (b : ℝ) (Complex.realPhaseOscillation φ))
+      hright.symm
+      (intervalIntegral.integral_same :
+        (∫ x in (b : ℝ)..(b : ℝ), Complex.realPhaseOscillation φ x) = 0)
 
 theorem Complex.logarithmicPhaseQuantitativeEndpointWindowRawLeft_lt_center
     (center radius : ℝ)
@@ -159,16 +161,97 @@ theorem Complex.norm_logarithmicPhaseQuantitativeEndpoint_leftRawTail_le
               (center - radius)) ^ 2) := by
   have ha_real : 0 < (a : ℝ) :=
     Int.cast_pos.mpr (lt_of_lt_of_le Int.zero_lt_one ha)
-  have hright_block : center - radius ≤ (b : ℝ) :=
-    le_trans hblock (Int.cast_le.mpr hab)
   have hgap : center - radius <
       Complex.logarithmicPhaseFourierStationaryPoint t m := by
     exact hcenter ▸ Complex.logarithmicPhaseQuantitativeEndpointWindowRawLeft_lt_center
       center radius hradius
+  have hstationary_Icc :
+      ∀ x ∈ Set.Icc (a : ℝ) (center - radius),
+        x ≠ Complex.logarithmicPhaseFourierStationaryPoint t m :=
+    fun x hx =>
+      Complex.logarithmicPhaseFourierStationaryPoint_ne_of_lt t
+        (lt_of_le_of_lt hx.2 hgap)
+  have hstationary_uIcc :
+      ∀ x ∈ [[(a : ℝ), center - radius]],
+        x ≠ Complex.logarithmicPhaseFourierStationaryPoint t m :=
+    fun x hx =>
+      hstationary_Icc x
+        (Eq.subst
+          (motive := fun s : Set ℝ => x ∈ s)
+          (Set.uIcc_of_le hblock)
+          hx)
+  have hcoefficient_integrable :=
+    Complex.intervalIntegrable_logarithmicPhase_coefficientDerivative
+      t ht ht_nonneg m (a : ℝ) (center - radius)
+      ha_real hblock hstationary_Icc
+  have hoscillation_integrable :=
+    Complex.intervalIntegrable_logarithmicPhase_oscillationDerivative
+      t ht_nonneg m (a : ℝ) (center - radius) ha_real hblock
   have htail :=
-    Complex.norm_intervalIntegral_logarithmicPhase_realOscillation_le_left_nonstationary_tail_explicit
-      t ht ht_nonneg a b m (a : ℝ) (center - radius)
-      ha_real le_rfl hright_block hblock hgap hm
+    Complex.norm_intervalIntegral_logarithmicPhaseFourierOscillation_le_nonstationary_tail
+      t ht ht_nonneg m (a : ℝ) (center - radius) ha_real hblock
+      hstationary_uIcc hcoefficient_integrable hoscillation_integrable
+  let D : ℝ :=
+    ((2 * Real.pi * (-(m : ℝ))) *
+      (Complex.logarithmicPhaseFourierStationaryPoint t m - (center - radius)) /
+        (center - radius))⁻¹
+  let C : ℝ :=
+    (‖t‖ / (a : ℝ) ^ 2) /
+      ((2 * Real.pi * (-(m : ℝ))) *
+        (Complex.logarithmicPhaseFourierStationaryPoint t m - (center - radius)) /
+          (center - radius)) ^ 2
+  have hleft_coefficient :=
+    Complex.norm_logarithmicPhaseFourierIntegrationCoefficient_le_right_endpoint_gap_inv
+      hm ha_real hblock hgap ⟨le_rfl, hblock⟩
+  have hright_coefficient :=
+    Complex.norm_logarithmicPhaseFourierIntegrationCoefficient_le_right_endpoint_gap_inv
+      hm ha_real hblock hgap ⟨hblock, le_rfl⟩
+  have hcoefficient_bound :
+      ‖Complex.realPhaseIntegrationCoefficient
+          (Complex.logarithmicPhaseFourierTwistedDerivative t m) (center - radius)‖ +
+        ‖Complex.realPhaseIntegrationCoefficient
+          (Complex.logarithmicPhaseFourierTwistedDerivative t m) (a : ℝ)‖ ≤
+      D + D :=
+    add_le_add hright_coefficient hleft_coefficient
+  have hremainder :=
+    Complex.integral_logarithmicPhase_remainder_norm_le_right_endpoint_gap
+      t m ht ht_nonneg ha_real hblock hgap hm
+  have hremainder_bound :
+      (∫ x in (a : ℝ)..center - radius,
+        ‖-(Complex.I * ((‖t‖ : ℂ) / (x : ℂ) ^ 2)) /
+          (Complex.realPhaseDerivativeDenominator
+            (Complex.logarithmicPhaseFourierTwistedDerivative t m) x) ^ 2‖) ≤
+        ((center - radius) - (a : ℝ)) • C := by
+    change
+      (∫ x in (a : ℝ)..center - radius,
+        ‖Complex.logarithmicPhaseFourierIntegrationCoefficientDerivative t m x‖) ≤
+        ((center - radius) - (a : ℝ)) • C
+    exact hremainder
+  have hsum :
+      ‖Complex.realPhaseIntegrationCoefficient
+          (Complex.logarithmicPhaseFourierTwistedDerivative t m) (center - radius)‖ +
+        ‖Complex.realPhaseIntegrationCoefficient
+          (Complex.logarithmicPhaseFourierTwistedDerivative t m) (a : ℝ)‖ +
+        ∫ x in (a : ℝ)..center - radius,
+          ‖-(Complex.I * ((‖t‖ : ℂ) / (x : ℂ) ^ 2)) /
+            (Complex.realPhaseDerivativeDenominator
+              (Complex.logarithmicPhaseFourierTwistedDerivative t m) x) ^ 2‖ ≤
+      D + D + ((center - radius) - (a : ℝ)) • C :=
+    add_le_add hcoefficient_bound hremainder_bound
+  have htarget :
+      D + D + ((center - radius) - (a : ℝ)) • C =
+        2 * ((2 * Real.pi * (-(m : ℝ))) *
+          (Complex.logarithmicPhaseFourierStationaryPoint t m - (center - radius)) /
+            (center - radius))⁻¹ +
+        ((center - radius) - (a : ℝ)) •
+          ((‖t‖ / (a : ℝ) ^ 2) /
+            ((2 * Real.pi * (-(m : ℝ))) *
+              (Complex.logarithmicPhaseFourierStationaryPoint t m - (center - radius)) /
+                (center - radius)) ^ 2) :=
+    (congrArg
+      (fun value : ℝ => value + ((center - radius) - (a : ℝ)) • C)
+      (two_mul D).symm).trans rfl
+  have hraw_tail := le_trans htail (hsum.trans_eq htarget)
   exact
     Eq.subst
       (motive := fun right : ℝ =>
@@ -177,8 +260,8 @@ theorem Complex.norm_logarithmicPhaseQuantitativeEndpoint_leftRawTail_le
             (Complex.realPhaseFrequencyTwist
               (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
               m) x‖ ≤ _)
-      hleft
-      htail
+      hleft.symm
+      hraw_tail
 
 theorem Complex.norm_logarithmicPhaseQuantitativeEndpoint_rightRawTail_le
     (t : ℝ)
@@ -225,7 +308,7 @@ theorem Complex.norm_logarithmicPhaseQuantitativeEndpoint_rightRawTail_le
             (Complex.realPhaseFrequencyTwist
               (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
               m) x‖ ≤ _)
-      hright
+      hright.symm
       htail
 
 theorem Complex.integral_logarithmicPhaseQuantitativeEndpoint_principal_eq_three_parts
@@ -363,33 +446,39 @@ theorem Complex.norm_logarithmicPhaseQuantitativeEndpoint_principal_le
                 (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
                 m) x‖ := by
     have hfirst := norm_add_le
-      (∫ x in (a : ℝ)..left,
-        Complex.realPhaseOscillation
-          (Complex.realPhaseFrequencyTwist
-            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-            m) x)
-      ((∫ x in left..right,
+      ((∫ x in (a : ℝ)..left,
         Complex.realPhaseOscillation
           (Complex.realPhaseFrequencyTwist
             (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
             m) x) +
-        ∫ x in right..(b : ℝ),
+        ∫ x in left..right,
           Complex.realPhaseOscillation
             (Complex.realPhaseFrequencyTwist
               (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
               m) x)
-    have hsecond := norm_add_le
-      (∫ x in left..right,
-        Complex.realPhaseOscillation
-          (Complex.realPhaseFrequencyTwist
-            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-            m) x)
       (∫ x in right..(b : ℝ),
         Complex.realPhaseOscillation
           (Complex.realPhaseFrequencyTwist
             (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
             m) x)
-    exact le_trans hfirst (add_le_add_left hsecond _)
+    have hsecond := norm_add_le
+      (∫ x in (a : ℝ)..left,
+        Complex.realPhaseOscillation
+          (Complex.realPhaseFrequencyTwist
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            m) x)
+      (∫ x in left..right,
+        Complex.realPhaseOscillation
+          (Complex.realPhaseFrequencyTwist
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            m) x)
+    have hsecond_with_right := add_le_add_right hsecond
+      ‖∫ x in right..(b : ℝ),
+        Complex.realPhaseOscillation
+          (Complex.realPhaseFrequencyTwist
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+            m) x‖
+    exact le_trans hfirst hsecond_with_right
   intro hcentral
   have hsum := add_le_add (add_le_add hleft hcentral) hright
   exact
@@ -439,9 +528,20 @@ theorem Complex.norm_logarithmicPhaseQuantitativeEndpoint_leftTail_le_budget
             center - radius := by
         unfold Complex.logarithmicPhaseQuantitativeEndpointWindowLeft
         exact max_eq_right hraw
-      exact
+      have htail :=
         Complex.norm_logarithmicPhaseQuantitativeEndpoint_leftRawTail_le
           t ht ht_nonneg a b m ha hab hm center radius hcenter hradius hleft hraw
+      exact
+        Eq.subst
+          (motive := fun bound : ℝ =>
+            ‖∫ x in (a : ℝ)..
+                Complex.logarithmicPhaseQuantitativeEndpointWindowLeft a center radius,
+              Complex.realPhaseOscillation
+                (Complex.realPhaseFrequencyTwist
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  m) x‖ ≤ bound)
+          (if_pos hraw).symm
+          htail
   | Or.inr hraw =>
       have hraw_le : center - radius ≤ (a : ℝ) := le_of_not_ge hraw
       have hleft :
@@ -463,7 +563,18 @@ theorem Complex.norm_logarithmicPhaseQuantitativeEndpoint_leftTail_le_budget
                 (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
                 m) x‖ = 0 :=
         (congrArg norm hzero).trans (norm_zero)
-      exact Eq.subst (motive := fun value : ℝ => value ≤ 0) hnorm (le_rfl)
+      have hzero_bound := le_of_eq hnorm
+      exact
+        Eq.subst
+          (motive := fun bound : ℝ =>
+            ‖∫ x in (a : ℝ)..
+                Complex.logarithmicPhaseQuantitativeEndpointWindowLeft a center radius,
+              Complex.realPhaseOscillation
+                (Complex.realPhaseFrequencyTwist
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  m) x‖ ≤ bound)
+          (if_neg hraw).symm
+          hzero_bound
 
 def Complex.logarithmicPhaseQuantitativeEndpointRightTailBudget
     (t : ℝ)
@@ -507,10 +618,21 @@ theorem Complex.norm_logarithmicPhaseQuantitativeEndpoint_rightTail_le_budget
             center + radius := by
         unfold Complex.logarithmicPhaseQuantitativeEndpointWindowRight
         exact min_eq_right hraw
-      exact
+      have htail :=
         Complex.norm_logarithmicPhaseQuantitativeEndpoint_rightRawTail_le
           t ht ht_nonneg a b m ha hab hm center radius hcenter hradius hright
           hleft_block hraw
+      exact
+        Eq.subst
+          (motive := fun bound : ℝ =>
+            ‖∫ x in
+                Complex.logarithmicPhaseQuantitativeEndpointWindowRight b center radius..(b : ℝ),
+              Complex.realPhaseOscillation
+                (Complex.realPhaseFrequencyTwist
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  m) x‖ ≤ bound)
+          (if_pos hraw).symm
+          htail
   | Or.inr hraw =>
       have hraw_le : (b : ℝ) ≤ center + radius := le_of_not_ge hraw
       have hright :
@@ -532,7 +654,18 @@ theorem Complex.norm_logarithmicPhaseQuantitativeEndpoint_rightTail_le_budget
                 (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
                 m) x‖ = 0 :=
         (congrArg norm hzero).trans (norm_zero)
-      exact Eq.subst (motive := fun value : ℝ => value ≤ 0) hnorm (le_rfl)
+      have hzero_bound := le_of_eq hnorm
+      exact
+        Eq.subst
+          (motive := fun bound : ℝ =>
+            ‖∫ x in
+                Complex.logarithmicPhaseQuantitativeEndpointWindowRight b center radius..(b : ℝ),
+              Complex.realPhaseOscillation
+                (Complex.realPhaseFrequencyTwist
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+                  m) x‖ ≤ bound)
+          (if_neg hraw).symm
+          hzero_bound
 
 theorem Complex.logarithmicPhaseQuantitativeEndpointWindow_nonempty
     (a b : ℤ)

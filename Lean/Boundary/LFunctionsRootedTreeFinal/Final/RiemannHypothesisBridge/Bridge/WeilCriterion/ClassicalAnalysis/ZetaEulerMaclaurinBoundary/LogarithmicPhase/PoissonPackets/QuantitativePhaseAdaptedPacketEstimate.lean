@@ -43,29 +43,38 @@ def Complex.logarithmicPhaseAdaptedSecondTransform
 theorem Complex.logarithmicPhaseQuantitativeBlockFourierPacket_eq_adaptedInterval
     (t : ℝ) (a b m : ℤ)
     (ha : 1 ≤ a) (hab : a ≤ b) :
-    Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m =
+    Complex.logarithmicPhaseQuantitativeBlockFourierPacket ‖t‖ a b m =
+      ∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+          Complex.logarithmicPhaseAdaptedCutoffAmplitude a b x *
+          Complex.logarithmicPhaseAdaptedOscillator t m x := by
+  have hsupport :=
+    Complex.logarithmicPhaseQuantitativeBlockFourierPacket_eq_amplitude_linear_interval
+      ‖t‖ a b m ha hab
+  have hpointwise : ∀ x : ℝ,
+      Complex.logarithmicPhaseQuantitativeAmplitude ‖t‖ a b x *
+          Complex.realPhaseOscillation
+            (Complex.linearFourierPhase
+              (Complex.logarithmicPhasePoissonAngularFrequency m)) x =
+        Complex.logarithmicPhaseAdaptedCutoffAmplitude a b x *
+          Complex.logarithmicPhaseAdaptedOscillator t m x := fun x =>
+    Eq.trans
+      (Complex.phaseCutoffFrequencyTwistIntegrand_eq_quantitativeAmplitude_mul_linear
+        ‖t‖ a b m x).symm
+      (Complex.logarithmicPhaseAdaptedPacketIntegrand_eq t a b m x)
+  have hintegral :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        Complex.logarithmicPhaseQuantitativeAmplitude ‖t‖ a b x *
+          Complex.realPhaseOscillation
+            (Complex.linearFourierPhase
+              (Complex.logarithmicPhasePoissonAngularFrequency m)) x) =
       ∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
           Complex.logarithmicPhaseQuantitativeSupportRight b,
         Complex.logarithmicPhaseAdaptedCutoffAmplitude a b x *
-          Complex.logarithmicPhaseAdaptedOscillator t m x := by
-  unfold Complex.logarithmicPhaseQuantitativeBlockFourierPacket
-  have hsupport :=
-    Complex.logarithmicPhaseQuantitativeBlockFourierPacket_eq_amplitude_linear_interval
-      t a b m ha hab
-  have hpointwise : ∀ x : ℝ,
-      Complex.phaseCutoffFrequencyTwistIntegrand
-          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-          (Real.quantitativeLogarithmicBlockCutoff a b) m x =
-        Complex.logarithmicPhaseAdaptedCutoffAmplitude a b x *
           Complex.logarithmicPhaseAdaptedOscillator t m x :=
-    fun x => Complex.logarithmicPhaseAdaptedPacketIntegrand_eq t a b m x
-  have hintegral := intervalIntegral.integral_congr
-    (fun x hx => hpointwise x)
-  exact Eq.trans hsupport (Eq.trans
-    (intervalIntegral.integral_congr
-      (fun x hx =>
-        Complex.logarithmicPhaseAdaptedPacketIntegrand_eq t a b m x))
-    rfl)
+    intervalIntegral.integral_congr (fun x hx => hpointwise x)
+  exact Eq.trans hsupport hintegral
 
 theorem Complex.norm_logarithmicPhaseAdaptedPacket_le_secondTransform
     (t : ℝ) (a b m : ℤ) (gap : ℝ)
@@ -74,7 +83,7 @@ theorem Complex.norm_logarithmicPhaseAdaptedPacket_le_secondTransform
     (hlower : ∀ x ∈ [[Complex.logarithmicPhaseQuantitativeSupportLeft a,
         Complex.logarithmicPhaseQuantitativeSupportRight b]],
       gap ≤ ‖Complex.logarithmicPhaseAdaptedTwistedPhaseDerivative t m x‖) :
-    ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+    ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket ‖t‖ a b m‖ ≤
       ∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
           Complex.logarithmicPhaseQuantitativeSupportRight b,
         ‖Complex.logarithmicPhaseAdaptedSecondTransform t a b m x‖ := by

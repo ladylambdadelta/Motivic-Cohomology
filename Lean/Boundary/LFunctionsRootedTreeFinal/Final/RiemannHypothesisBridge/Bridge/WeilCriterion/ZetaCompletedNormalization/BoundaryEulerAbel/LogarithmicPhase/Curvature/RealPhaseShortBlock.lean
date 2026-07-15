@@ -136,20 +136,20 @@ theorem Complex.logarithmicPhaseRealPhase_block_bound_of_neg_parameter_bound
         Complex.exp
           (Complex.I *
             (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase (-t) n : ℂ))‖ ≤
-        80 * ((((b + 1 : ℕ) : ℝ) / Real.sqrt ‖-t‖ + Real.sqrt (1 + ‖-t‖)))) :
+        80 * ((((b + 1 : ℕ) : ℝ) / ‖-t‖ + Real.sqrt (1 + ‖-t‖)))) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp
         (Complex.I *
           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
-      80 * ((((b + 1 : ℕ) : ℝ) / Real.sqrt ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) := by
   have hneg_norm : ‖-t‖ = ‖t‖ :=
     norm_neg t
   have htarget_eq :
-      80 * ((((b + 1 : ℕ) : ℝ) / Real.sqrt ‖-t‖ + Real.sqrt (1 + ‖-t‖))) =
-        80 * ((((b + 1 : ℕ) : ℝ) / Real.sqrt ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
+      80 * ((((b + 1 : ℕ) : ℝ) / ‖-t‖ + Real.sqrt (1 + ‖-t‖))) =
+        80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))) :=
     congrArg
       (fun r : ℝ =>
-        80 * ((((b + 1 : ℕ) : ℝ) / Real.sqrt r + Real.sqrt (1 + r))))
+        80 * ((((b + 1 : ℕ) : ℝ) / r + Real.sqrt (1 + r))))
       hneg_norm
   have hnorm_eq :
       ‖∑ n ∈ Finset.Icc a b,
@@ -164,7 +164,7 @@ theorem Complex.logarithmicPhaseRealPhase_block_bound_of_neg_parameter_bound
   exact
     Eq.subst
       (motive := fun left : ℝ =>
-        left ≤ 80 * ((((b + 1 : ℕ) : ℝ) / Real.sqrt ‖t‖ + Real.sqrt (1 + ‖t‖))))
+        left ≤ 80 * ((((b + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖))))
       hnorm_eq
       (Eq.subst
         (motive := fun right : ℝ =>

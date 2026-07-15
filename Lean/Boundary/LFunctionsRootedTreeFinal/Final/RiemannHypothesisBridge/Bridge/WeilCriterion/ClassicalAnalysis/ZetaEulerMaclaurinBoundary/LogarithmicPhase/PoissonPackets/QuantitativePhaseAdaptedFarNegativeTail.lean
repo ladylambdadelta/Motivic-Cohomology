@@ -84,7 +84,7 @@ theorem Complex.norm_logarithmicPhaseFarNegativeModePacket_le_scaledEnvelope
     (t : ℝ) (a b : ℤ)
     (ha : 1 ≤ a) (hab : a ≤ b)
     (m : Complex.logarithmicPhasePoissonFarNegativeModes t a) :
-    ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+    ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket (‖t‖) a b m‖ ≤
       Complex.logarithmicPhaseFarNegativeScaledEnvelope t a b m := by
   have hpacket :=
     Complex.norm_logarithmicPhaseFarNegativeModePacket_le t a b ha hab m
@@ -104,7 +104,7 @@ theorem Complex.norm_logarithmicPhaseAdaptedFarNegativeTail_tsum_le
     (t : ℝ) (a b : ℤ)
     (ha : 1 ≤ a) (hab : a ≤ b) :
     ‖∑' m : Complex.logarithmicPhasePoissonFarNegativeModes t a,
-        Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+        Complex.logarithmicPhaseQuantitativeBlockFourierPacket (‖t‖) a b m‖ ≤
       Complex.logarithmicPhaseAdaptedFarNegativeTailBudget t a b := by
   unfold Complex.logarithmicPhaseAdaptedFarNegativeTailBudget
   exact tsum_norm_le

@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.BoundaryGrowth.OwnerParts.Part08_SharpPhaseIntegral
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.BoundaryGrowth.OwnerParts.Part09_NormalizedKernelDirichlet
 
 /-!
 # Boundary growth owner part 10
@@ -12,6 +13,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped Filter Topology
+open MeasureTheory
 local notation "π" => Real.pi
 
 /-- Exact finite endpoint bookkeeping and public normalization for the
@@ -20,7 +22,7 @@ unweighted Dirichlet/Euler-Maclaurin package.
 This assembles the finite prefix, the exact post-cutoff identity, the main
 integral estimate, the two endpoint terms, and the Bernoulli remainder into the
 `500`-constant public partial-sum surface. -/
-theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_of_classicalDirichletAbel_package_ownerGap
+theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_of_classicalDirichletAbel_package
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
     boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound t := by
@@ -39,7 +41,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_of_classic
   have hprefix :
       ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t C‖ ≤
         400 * Real.sqrt (1 + ‖t‖) * Real.log (2 + C) :=
-    boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix_norm_le_ownerGap
+    boundaryLineOnePointRealParam_logarithmicPhasePartialSum_classicalPrefix_norm_le
       t ht
   have hdecomp :
       boundaryLineOnePointRealParam_logarithmicPhasePartialSum t M =
@@ -241,6 +243,28 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_of_classic
         (add_le_add hsecond hremainder_A)
   have hconstant :
       (400 * A + 2 * A) + 2 * A + 6 * A ≤ 500 * A := by
+    have hcastFourHundredTwo :
+        ((400 + 2 : ℕ) : ℝ) = (400 : ℝ) + 2 :=
+      Nat.cast_add 400 2
+    have hcastFourHundredFour :
+        (((400 + 2 : ℕ) + 2 : ℕ) : ℝ) =
+          ((400 : ℝ) + 2) + 2 :=
+      Eq.trans
+        (Nat.cast_add (400 + 2) 2)
+        (congrArg (fun y : ℝ => y + 2) hcastFourHundredTwo)
+    have hcastFourHundredTen :
+        ((((400 + 2 : ℕ) + 2) + 6 : ℕ) : ℝ) =
+          (((400 : ℝ) + 2) + 2) + 6 :=
+      Eq.trans
+        (Nat.cast_add ((400 + 2) + 2) 6)
+        (congrArg (fun y : ℝ => y + 6) hcastFourHundredFour)
+    have hnaturalFourHundredTen :
+        (((400 + 2 : ℕ) + 2) + 6) = 410 := rfl
+    have hrealFourHundredTen :
+        (((400 : ℝ) + 2) + 2) + 6 = 410 :=
+      Eq.trans
+        hcastFourHundredTen.symm
+        (congrArg (fun n : ℕ => (n : ℝ)) hnaturalFourHundredTen)
     have hleft_eq : (400 * A + 2 * A) + 2 * A + 6 * A = 410 * A := by
       calc
         (400 * A + 2 * A) + 2 * A + 6 * A =
@@ -253,7 +277,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_of_classic
         _ = (((400 + 2) + 2) + 6) * A := by
           exact (add_mul ((400 + 2) + 2) 6 A).symm
         _ = 410 * A := by
-          exact congrArg (fun y : ℝ => y * A) rfl
+          exact congrArg (fun y : ℝ => y * A) hrealFourHundredTen
     have hsum_le_public : (410 : ℝ) ≤ 500 :=
       Nat.cast_le.mpr
         (show (410 : ℕ) ≤ 500 from Nat.le_add_right 410 90)
@@ -303,14 +327,44 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_of_classic
               (add_assoc (P + I) L U)
           _ = P + I + E + R := rfl
     exact Eq.trans hdecomp hright_group
-  exact
+  have htransported :
+      ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t M‖ ≤
+        500 * A :=
     Eq.subst
       (motive := fun z : ℂ => ‖z‖ ≤ 500 * A)
       hgrouped.symm
       htarget
+  have hindexDefinition : M = ⌊x⌋₊ := rfl
+  have hscaleDefinition :
+      A = (x / ‖t‖ + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := rfl
+  have hexpandedScale :
+      ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t M‖ ≤
+        500 * ((x / ‖t‖ + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) :=
+    Eq.subst
+      (motive := fun scale : ℝ =>
+        ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t M‖ ≤ 500 * scale)
+      hscaleDefinition
+      htransported
+  have hreassociatedScale :
+      ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t M‖ ≤
+        500 * (x / ‖t‖ + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) :=
+    Eq.subst
+      (motive := fun bound : ℝ =>
+        ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t M‖ ≤ bound)
+      (mul_assoc
+        (500 : ℝ)
+        (x / ‖t‖ + Real.sqrt (1 + ‖t‖))
+        (Real.log (2 + x))).symm
+      hexpandedScale
+  exact
+    Eq.subst
+      (motive := fun index : ℕ =>
+        ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t index‖ ≤
+          500 * (x / ‖t‖ + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
+      hindexDefinition
+      hreassociatedScale
 
-/-- Owner gap: unconditional logarithmic-phase partial sums on the boundary
-line.
+/-- Unconditional logarithmic-phase partial sums on the boundary line.
 
 The former route through `logarithmicPhaseFiniteDifferenceHypothesis` was not
 an honest owner proof: unrestricted real frequencies have exact resonances
@@ -320,37 +374,36 @@ estimate must instead be proved by the classical Dirichlet/Abel or
 Euler-Maclaurin argument for `∑ n^{-it}` with cutoff comparable to `|t|`;
 cf. Titchmarsh, *The Theory of the Riemann Zeta-function*, §3.5.
 -/
-theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_classicalDirichletAbel_ownerGap
+theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_classicalDirichletAbel
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
     boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound t := by
   exact
-    boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_of_classicalDirichletAbel_package_ownerGap
+    boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_of_classicalDirichletAbel_package
       t ht
 
-/-- Owner gap: logarithmic-phase partial sums on the boundary line.
+/-- Logarithmic-phase partial sums on the boundary line.
 
 Proof chain:
 classical Dirichlet/Abel oscillatory estimate for `∑ n^{-it}`
 -> cutoff normalization at `⌊2 + |t|⌋₊`
 -> this `500`-constant public boundary hypothesis.
 -/
-theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_ownerGap
+theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSumBoundOwner
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
     boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound t := by
   exact
-    boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_classicalDirichletAbel_ownerGap
+    boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_classicalDirichletAbel
       t ht
 
-/-- Owner gap: uniformly bounded finite post-cutoff Abel tails on the
-boundary line.
+/-- Uniformly bounded finite post-cutoff Abel tails on the boundary line.
 
 This is the direct classical bounded-partial-sums input needed by Abel
 transport.  The explicit finite Abel majorant above is useful for finite
 decompositions, but its endpoint form is not uniformly absorbed by the fixed
 Abel-tail constant. -/
-theorem boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailBounded_ownerGap
+theorem boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailBoundedOwner
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
     boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailBounded t := by
@@ -359,18 +412,19 @@ theorem boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailBounded_ownerGap
       t ht
 
 /-- Owner package for the real-parameter boundary-line truncation hypotheses. -/
-theorem boundaryLineOnePointRealParam_verticalTruncationHypotheses_ownerGap
+theorem boundaryLineOnePointRealParam_verticalTruncationHypotheses
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
     boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound t ∧
       boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailBounded t := by
   have hpartial :
       boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound t :=
-    boundaryLineOnePointRealParam_logarithmicPhasePartialSumBound_ownerGap t ht
+    boundaryLineOnePointRealParam_logarithmicPhasePartialSumBoundOwner t ht
   exact
     ⟨hpartial,
-      boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailBounded_ownerGap t ht⟩
+      boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailBoundedOwner t ht⟩
 
 
+end
 end LFunctions
 end Boundary

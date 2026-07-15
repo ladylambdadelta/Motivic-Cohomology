@@ -142,5 +142,6 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_globalPhaseIntegral
       (Exists.intro V
         ⟨hsplit, hhalf_smul_norm, hhalf_smul_norm⟩)
 
+end
 end LFunctions
 end Boundary

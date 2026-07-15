@@ -135,7 +135,54 @@ theorem Complex.logarithmicPhaseQuantitativeAmplitude_mul_linearOscillation
             Complex.realPhaseOscillation
               (Complex.linearFourierPhase
                 (Complex.logarithmicPhasePoissonAngularFrequency m)) x) := by
-    exact (smul_mul_assoc _ _ _).symm
+    have hleftScalar :
+        Real.quantitativeLogarithmicBlockCutoff a b x •
+            Complex.exp
+              (Complex.I *
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                  t x : ℂ)) =
+          (Real.quantitativeLogarithmicBlockCutoff a b x : ℂ) *
+            Complex.exp
+              (Complex.I *
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                  t x : ℂ)) :=
+      Complex.real_smul
+    have hrightScalar :
+        Real.quantitativeLogarithmicBlockCutoff a b x •
+            (Complex.exp
+                (Complex.I *
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                    t x : ℂ)) *
+              Complex.realPhaseOscillation
+                (Complex.linearFourierPhase
+                  (Complex.logarithmicPhasePoissonAngularFrequency m)) x) =
+          (Real.quantitativeLogarithmicBlockCutoff a b x : ℂ) *
+            (Complex.exp
+                (Complex.I *
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                    t x : ℂ)) *
+              Complex.realPhaseOscillation
+                (Complex.linearFourierPhase
+                  (Complex.logarithmicPhasePoissonAngularFrequency m)) x) :=
+      Complex.real_smul
+    exact
+      (congrArg
+        (fun value : ℂ =>
+          value *
+            Complex.realPhaseOscillation
+              (Complex.linearFourierPhase
+                (Complex.logarithmicPhasePoissonAngularFrequency m)) x)
+        hleftScalar).trans
+        ((mul_assoc
+          (Real.quantitativeLogarithmicBlockCutoff a b x : ℂ)
+          (Complex.exp
+            (Complex.I *
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+                t x : ℂ)))
+          (Complex.realPhaseOscillation
+            (Complex.linearFourierPhase
+              (Complex.logarithmicPhasePoissonAngularFrequency m)) x)).trans
+          hrightScalar.symm)
   exact
     hscalarProduct.trans
       (congrArg
@@ -186,7 +233,19 @@ theorem Complex.logarithmicPhaseQuantitativeBlockFourierPacket_eq_amplitude_line
     exact
       Complex.phaseCutoffFrequencyTwistIntegrand_eq_quantitativeAmplitude_mul_linear
         t a b m x
-  have hintegral := intervalIntegral.integral_congr hintegrand
+  have hintegral :
+      (∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+          Complex.logarithmicPhaseQuantitativeSupportRight b,
+        Complex.phaseCutoffFrequencyTwistIntegrand
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+          (Real.quantitativeLogarithmicBlockCutoff a b) m x ∂volume) =
+        ∫ x in Complex.logarithmicPhaseQuantitativeSupportLeft a..
+            Complex.logarithmicPhaseQuantitativeSupportRight b,
+          Complex.logarithmicPhaseQuantitativeAmplitude t a b x *
+            Complex.realPhaseOscillation
+              (Complex.linearFourierPhase
+                (Complex.logarithmicPhasePoissonAngularFrequency m)) x ∂volume :=
+    intervalIntegral.integral_congr (μ := volume) hintegrand
   have hendpointsLeft :
       Complex.logarithmicPhaseQuantitativeSupportLeft a =
         (a : ℝ) - 1 / 3 := rfl
@@ -241,9 +300,14 @@ theorem Complex.hasDerivAt_logarithmicPhaseQuantitativeAmplitude
       (Complex.logarithmicPhaseQuantitativeAmplitude t a b)
       (Complex.logarithmicPhaseQuantitativeAmplitudeFirstDerivative t a b x)
       x := by
-  have hdifferentiable :=
-    (Complex.contDiff_logarithmicPhaseQuantitativeAmplitude t a b ha)
-      .differentiable le_top
+  have hdegree :
+      1 ≤ (((⊤ : ℕ∞) : WithTop ℕ∞)) :=
+    WithTop.coe_le_coe.mpr (OrderTop.le_top (1 : ℕ∞))
+  have hdifferentiable :
+      Differentiable ℝ
+        (Complex.logarithmicPhaseQuantitativeAmplitude t a b) :=
+    (Complex.contDiff_logarithmicPhaseQuantitativeAmplitude t a b ha).differentiable
+      hdegree
   unfold Complex.logarithmicPhaseQuantitativeAmplitudeFirstDerivative
   exact hdifferentiable.differentiableAt.hasDerivAt
 
@@ -255,9 +319,14 @@ theorem Complex.hasDerivAt_logarithmicPhaseQuantitativeAmplitudeFirstDerivative
       (Complex.logarithmicPhaseQuantitativeAmplitudeFirstDerivative t a b)
       (Complex.logarithmicPhaseQuantitativeAmplitudeSecondDerivative t a b x)
       x := by
-  have hdifferentiable :=
+  have hdegree :
+      1 ≤ (((⊤ : ℕ∞) : WithTop ℕ∞)) :=
+    WithTop.coe_le_coe.mpr (OrderTop.le_top (1 : ℕ∞))
+  have hdifferentiable :
+      Differentiable ℝ
+        (Complex.logarithmicPhaseQuantitativeAmplitudeFirstDerivative t a b) :=
     (Complex.contDiff_logarithmicPhaseQuantitativeAmplitudeFirstDerivative
-      t a b ha).differentiable le_top
+      t a b ha).differentiable hdegree
   unfold Complex.logarithmicPhaseQuantitativeAmplitudeSecondDerivative
   exact hdifferentiable.differentiableAt.hasDerivAt
 
@@ -314,12 +383,21 @@ theorem Complex.logarithmicPhaseQuantitativeSupportLeft_pos
     (ha : 1 ≤ a) :
     0 < Complex.logarithmicPhaseQuantitativeSupportLeft a := by
   unfold Complex.logarithmicPhaseQuantitativeSupportLeft
-  have haReal : (1 : ℝ) ≤ (a : ℝ) := Int.cast_le.mpr ha
+  have haCast : ((1 : ℤ) : ℝ) = (1 : ℝ) := Int.cast_one
+  have haRealCast : ((1 : ℤ) : ℝ) ≤ (a : ℝ) := Int.cast_le.mpr ha
+  have haReal : (1 : ℝ) ≤ (a : ℝ) :=
+    Eq.subst (motive := fun left : ℝ => left ≤ (a : ℝ)) haCast haRealCast
   have hthirdLtOne : (1 / 3 : ℝ) < 1 := by
     have hthreePos : (0 : ℝ) < 3 :=
       Nat.cast_pos.mpr (Nat.succ_pos 2)
-    have honeLtThree : (1 : ℝ) < 3 :=
-      Nat.cast_lt.mpr (Nat.one_lt_of_lt (Nat.succ_lt_succ (Nat.zero_lt_succ 1)))
+    have htwoPos : (0 : ℝ) < 2 :=
+      Nat.cast_pos.mpr (Nat.succ_pos 1)
+    have honeLtThree : (1 : ℝ) < 3 := by
+      calc
+        (1 : ℝ) = 1 + 0 := (add_zero 1).symm
+        _ < 1 + 2 := add_lt_add_left htwoPos 1
+        _ = 2 + 1 := add_comm 1 2
+        _ = 3 := two_add_one_eq_three
     exact (div_lt_one hthreePos).mpr honeLtThree
   have hthirdLtA : (1 / 3 : ℝ) < (a : ℝ) := lt_of_lt_of_le hthirdLtOne haReal
   exact sub_pos.mpr hthirdLtA
@@ -330,7 +408,10 @@ theorem Complex.logarithmicPhaseQuantitativeSupportRight_pos
     (hab : a ≤ b) :
     0 < Complex.logarithmicPhaseQuantitativeSupportRight b := by
   unfold Complex.logarithmicPhaseQuantitativeSupportRight
-  have haReal : (1 : ℝ) ≤ (a : ℝ) := Int.cast_le.mpr ha
+  have haCast : ((1 : ℤ) : ℝ) = (1 : ℝ) := Int.cast_one
+  have haRealCast : ((1 : ℤ) : ℝ) ≤ (a : ℝ) := Int.cast_le.mpr ha
+  have haReal : (1 : ℝ) ≤ (a : ℝ) :=
+    Eq.subst (motive := fun left : ℝ => left ≤ (a : ℝ)) haCast haRealCast
   have habReal : (a : ℝ) ≤ (b : ℝ) := Int.cast_le.mpr hab
   have hbPositive : (0 : ℝ) < (b : ℝ) :=
     lt_of_lt_of_le zero_lt_one (le_trans haReal habReal)
@@ -698,7 +779,14 @@ theorem Complex.intervalIntegrable_logarithmicPhaseLinearOscillationDerivative
       (Complex.linearFourierPhase
         (Complex.logarithmicPhasePoissonAngularFrequency m) x : ℂ)) :=
     Complex.continuous_ofReal.comp hphase
-  have hexponent := continuous_const.mul hphaseComplex
+  have himaginaryConstant :
+      Continuous (fun _x : ℝ => Complex.I) :=
+    continuous_const
+  have hexponent : Continuous (fun x : ℝ =>
+      Complex.I *
+        (Complex.linearFourierPhase
+          (Complex.logarithmicPhasePoissonAngularFrequency m) x : ℂ)) :=
+    himaginaryConstant.mul hphaseComplex
   have hoscillation : Continuous
       (Complex.realPhaseOscillation
         (Complex.linearFourierPhase
@@ -822,13 +910,17 @@ theorem Complex.abs_intCast_rpow_neg_two_eq_inv_sq
     (m : ℤ)
     (hm : m ≠ 0) :
     |(m : ℝ)| ^ (-2 : ℝ) = |(m : ℝ)|⁻¹ ^ 2 := by
-  have habsNonneg : (0 : ℝ) ≤ |(m : ℝ)| := abs_nonneg _
+  have habsPos : (0 : ℝ) < |(m : ℝ)| :=
+    Complex.abs_intCast_pos m hm
+  have habsNonneg : (0 : ℝ) ≤ |(m : ℝ)| := le_of_lt habsPos
   have hrpowNeg :
       |(m : ℝ)| ^ (-((2 : ℕ) : ℝ)) =
         (|(m : ℝ)| ^ ((2 : ℕ) : ℝ))⁻¹ :=
     Real.rpow_neg habsNonneg ((2 : ℕ) : ℝ)
+  have htwoCast : ((2 : ℕ) : ℝ) = (2 : ℝ) :=
+    Nat.cast_ofNat (R := ℝ)
   have hnegativeCast : (-((2 : ℕ) : ℝ) : ℝ) = -2 :=
-    congrArg Neg.neg (Nat.cast_ofNat 2)
+    congrArg (fun value : ℝ => -value) htwoCast
   have hrpowNat : |(m : ℝ)| ^ ((2 : ℕ) : ℝ) = |(m : ℝ)| ^ 2 :=
     Real.rpow_natCast |(m : ℝ)| 2
   have hinversePower : (|(m : ℝ)| ^ 2)⁻¹ = |(m : ℝ)|⁻¹ ^ 2 :=
@@ -863,7 +955,7 @@ theorem Complex.angularInverseSquare_eq_integerInverseSquareCoefficient
     Complex.norm_logarithmicPhasePoissonAngularFrequency m
   have hinverseProduct : (base * magnitude)⁻¹ = base⁻¹ * magnitude⁻¹ := by
     exact
-      (mul_inv_rev₀ base magnitude).trans
+      (mul_inv_rev base magnitude).trans
         (mul_comm magnitude⁻¹ base⁻¹)
   have hsquareProduct :
       (base⁻¹ * magnitude⁻¹) ^ 2 =

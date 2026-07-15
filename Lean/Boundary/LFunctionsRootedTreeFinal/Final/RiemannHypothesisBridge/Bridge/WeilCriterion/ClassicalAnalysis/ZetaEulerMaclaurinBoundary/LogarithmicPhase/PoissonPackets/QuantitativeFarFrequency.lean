@@ -1,6 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.OscillatorySums.TwoStepLinearFourierDecay
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.QuantitativeAmplitudeDerivatives
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.DirectTails
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.LogarithmicPhase.PoissonPackets.QuantitativeCrossings
 
 /-!
 # Deterministic far-frequency majorants
@@ -63,6 +64,26 @@ def Complex.logarithmicPhaseQuantitativePositiveTailBudget
     (t : ℝ) (a b : ℤ) : ℝ :=
   ∑' m : Complex.logarithmicPhasePoissonPositiveTailModes,
     Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant t a b m
+
+def Complex.logarithmicPhaseQuantitativeNegativeTailPacket
+    (t : ℝ) (a b : ℤ)
+    (m : Complex.logarithmicPhasePoissonNegativeTailModes) : ℂ :=
+  Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m.1
+
+def Complex.logarithmicPhaseQuantitativePositiveTailPacket
+    (t : ℝ) (a b : ℤ)
+    (m : Complex.logarithmicPhasePoissonPositiveTailModes) : ℂ :=
+  Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m.1
+
+def Complex.logarithmicPhaseQuantitativeNegativeTailMajorant
+    (t : ℝ) (a b : ℤ)
+    (m : Complex.logarithmicPhasePoissonNegativeTailModes) : ℝ :=
+  Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant t a b m.1
+
+def Complex.logarithmicPhaseQuantitativePositiveTailMajorant
+    (t : ℝ) (a b : ℤ)
+    (m : Complex.logarithmicPhasePoissonPositiveTailModes) : ℝ :=
+  Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant t a b m.1
 
 theorem Complex.logarithmicPhasePoissonAngularFrequency_zero :
     Complex.logarithmicPhasePoissonAngularFrequency 0 = 0 := by
@@ -155,7 +176,8 @@ theorem Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant_nonneg
   have hcoefficient :
       0 ≤ Complex.logarithmicPhaseQuantitativeSecondDerivativeMass t a b /
         (2 * Real.pi) ^ 2 := div_nonneg hmass hdenominator
-  have hpower : (0 : ℝ) ≤ |(m : ℝ)| ^ (-2 : ℝ) := Real.rpow_nonneg _ _
+  have hpower : (0 : ℝ) ≤ |(m : ℝ)| ^ (-2 : ℝ) :=
+    Real.rpow_nonneg (abs_nonneg _) _
   exact mul_nonneg hcoefficient hpower
 
 theorem Complex.logarithmicPhasePoissonNegativeTailModes_subset_nonzero :
@@ -243,6 +265,20 @@ theorem Complex.summable_logarithmicPhaseQuantitativePositiveTailMajorant
     Complex.summable_logarithmicPhaseQuantitativeIntegerInverseSquareMajorant_on_set
       t a b Complex.logarithmicPhasePoissonPositiveTailModes
 
+theorem Complex.summable_logarithmicPhaseQuantitativeNegativeTailMajorantFunction
+    (t : ℝ) (a b : ℤ) :
+    Summable
+      (Complex.logarithmicPhaseQuantitativeNegativeTailMajorant t a b) := by
+  exact
+    Complex.summable_logarithmicPhaseQuantitativeNegativeTailMajorant t a b
+
+theorem Complex.summable_logarithmicPhaseQuantitativePositiveTailMajorantFunction
+    (t : ℝ) (a b : ℤ) :
+    Summable
+      (Complex.logarithmicPhaseQuantitativePositiveTailMajorant t a b) := by
+  exact
+    Complex.summable_logarithmicPhaseQuantitativePositiveTailMajorant t a b
+
 theorem Complex.logarithmicPhaseQuantitativeNegativeTailBudget_nonneg
     (t : ℝ) (a b : ℤ)
     (hab : a ≤ b) :
@@ -261,6 +297,146 @@ theorem Complex.logarithmicPhaseQuantitativePositiveTailBudget_nonneg
     Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant_nonneg
       t a b m hab)
 
+theorem Complex.logarithmicPhaseQuantitativeNegativeTailPacket_apply
+    (t : ℝ) (a b : ℤ)
+    (m : Complex.logarithmicPhasePoissonNegativeTailModes) :
+    Complex.logarithmicPhaseQuantitativeNegativeTailPacket t a b m =
+      Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m.1 := by
+  exact Eq.refl _
+
+theorem Complex.logarithmicPhaseQuantitativePositiveTailPacket_apply
+    (t : ℝ) (a b : ℤ)
+    (m : Complex.logarithmicPhasePoissonPositiveTailModes) :
+    Complex.logarithmicPhaseQuantitativePositiveTailPacket t a b m =
+      Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m.1 := by
+  exact Eq.refl _
+
+theorem Complex.logarithmicPhaseQuantitativeNegativeTailMajorant_apply
+    (t : ℝ) (a b : ℤ)
+    (m : Complex.logarithmicPhasePoissonNegativeTailModes) :
+    Complex.logarithmicPhaseQuantitativeNegativeTailMajorant t a b m =
+      Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant
+        t a b m.1 := by
+  exact Eq.refl _
+
+theorem Complex.logarithmicPhaseQuantitativePositiveTailMajorant_apply
+    (t : ℝ) (a b : ℤ)
+    (m : Complex.logarithmicPhasePoissonPositiveTailModes) :
+    Complex.logarithmicPhaseQuantitativePositiveTailMajorant t a b m =
+      Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant
+        t a b m.1 := by
+  exact Eq.refl _
+
+theorem Complex.logarithmicPhaseQuantitativeNegativeTailPacket_norm_le_majorant
+    (t : ℝ) (a b : ℤ)
+    (hpacket :
+      ∀ m : Complex.logarithmicPhasePoissonNegativeTailModes,
+        ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+          Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant
+            t a b m)
+    (m : Complex.logarithmicPhasePoissonNegativeTailModes) :
+    ‖Complex.logarithmicPhaseQuantitativeNegativeTailPacket t a b m‖ ≤
+      Complex.logarithmicPhaseQuantitativeNegativeTailMajorant t a b m := by
+  exact hpacket m
+
+theorem Complex.logarithmicPhaseQuantitativePositiveTailPacket_norm_le_majorant
+    (t : ℝ) (a b : ℤ)
+    (hpacket :
+      ∀ m : Complex.logarithmicPhasePoissonPositiveTailModes,
+        ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+          Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant
+            t a b m)
+    (m : Complex.logarithmicPhasePoissonPositiveTailModes) :
+    ‖Complex.logarithmicPhaseQuantitativePositiveTailPacket t a b m‖ ≤
+      Complex.logarithmicPhaseQuantitativePositiveTailMajorant t a b m := by
+  exact hpacket m
+
+theorem Complex.logarithmicPhaseQuantitativeNegativeTailMajorant_hasSum
+    (t : ℝ) (a b : ℤ) :
+    HasSum
+      (Complex.logarithmicPhaseQuantitativeNegativeTailMajorant t a b)
+      (∑' m : Complex.logarithmicPhasePoissonNegativeTailModes,
+        Complex.logarithmicPhaseQuantitativeNegativeTailMajorant t a b m) := by
+  exact
+    (Complex.summable_logarithmicPhaseQuantitativeNegativeTailMajorantFunction
+      t a b).hasSum
+
+theorem Complex.logarithmicPhaseQuantitativePositiveTailMajorant_hasSum
+    (t : ℝ) (a b : ℤ) :
+    HasSum
+      (Complex.logarithmicPhaseQuantitativePositiveTailMajorant t a b)
+      (∑' m : Complex.logarithmicPhasePoissonPositiveTailModes,
+        Complex.logarithmicPhaseQuantitativePositiveTailMajorant t a b m) := by
+  exact
+    (Complex.summable_logarithmicPhaseQuantitativePositiveTailMajorantFunction
+      t a b).hasSum
+
+theorem Complex.logarithmicPhaseQuantitativeNegativeTailPacket_tsum_norm_le_majorant_tsum
+    (t : ℝ) (a b : ℤ)
+    (hpacket :
+      ∀ m : Complex.logarithmicPhasePoissonNegativeTailModes,
+        ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+          Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant
+            t a b m) :
+    ‖∑' m : Complex.logarithmicPhasePoissonNegativeTailModes,
+        Complex.logarithmicPhaseQuantitativeNegativeTailPacket t a b m‖ ≤
+      ∑' m : Complex.logarithmicPhasePoissonNegativeTailModes,
+        Complex.logarithmicPhaseQuantitativeNegativeTailMajorant t a b m := by
+  exact
+    tsum_of_norm_bounded
+      (Complex.logarithmicPhaseQuantitativeNegativeTailMajorant_hasSum t a b)
+      (fun m : Complex.logarithmicPhasePoissonNegativeTailModes =>
+        Complex.logarithmicPhaseQuantitativeNegativeTailPacket_norm_le_majorant
+          t a b hpacket m)
+
+theorem Complex.logarithmicPhaseQuantitativePositiveTailPacket_tsum_norm_le_majorant_tsum
+    (t : ℝ) (a b : ℤ)
+    (hpacket :
+      ∀ m : Complex.logarithmicPhasePoissonPositiveTailModes,
+        ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
+          Complex.logarithmicPhaseQuantitativeIntegerInverseSquareMajorant
+            t a b m) :
+    ‖∑' m : Complex.logarithmicPhasePoissonPositiveTailModes,
+        Complex.logarithmicPhaseQuantitativePositiveTailPacket t a b m‖ ≤
+      ∑' m : Complex.logarithmicPhasePoissonPositiveTailModes,
+        Complex.logarithmicPhaseQuantitativePositiveTailMajorant t a b m := by
+  exact
+    tsum_of_norm_bounded
+      (Complex.logarithmicPhaseQuantitativePositiveTailMajorant_hasSum t a b)
+      (fun m : Complex.logarithmicPhasePoissonPositiveTailModes =>
+        Complex.logarithmicPhaseQuantitativePositiveTailPacket_norm_le_majorant
+          t a b hpacket m)
+
+theorem Complex.logarithmicPhaseQuantitativeNegativeTailPacket_tsum_eq
+    (t : ℝ) (a b : ℤ) :
+    (∑' m : Complex.logarithmicPhasePoissonNegativeTailModes,
+      Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m) =
+      ∑' m : Complex.logarithmicPhasePoissonNegativeTailModes,
+        Complex.logarithmicPhaseQuantitativeNegativeTailPacket t a b m := by
+  exact Eq.refl _
+
+theorem Complex.logarithmicPhaseQuantitativePositiveTailPacket_tsum_eq
+    (t : ℝ) (a b : ℤ) :
+    (∑' m : Complex.logarithmicPhasePoissonPositiveTailModes,
+      Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m) =
+      ∑' m : Complex.logarithmicPhasePoissonPositiveTailModes,
+        Complex.logarithmicPhaseQuantitativePositiveTailPacket t a b m := by
+  exact Eq.refl _
+
+theorem Complex.logarithmicPhaseQuantitativeNegativeTailBudget_eq_majorant_tsum
+    (t : ℝ) (a b : ℤ) :
+    Complex.logarithmicPhaseQuantitativeNegativeTailBudget t a b =
+      ∑' m : Complex.logarithmicPhasePoissonNegativeTailModes,
+        Complex.logarithmicPhaseQuantitativeNegativeTailMajorant t a b m := by
+  exact Eq.refl _
+
+theorem Complex.logarithmicPhaseQuantitativePositiveTailBudget_eq_majorant_tsum
+    (t : ℝ) (a b : ℤ) :
+    Complex.logarithmicPhaseQuantitativePositiveTailBudget t a b =
+      ∑' m : Complex.logarithmicPhasePoissonPositiveTailModes,
+        Complex.logarithmicPhaseQuantitativePositiveTailMajorant t a b m := by
+  exact Eq.refl _
+
 theorem Complex.logarithmicPhaseQuantitativeNegativeTail_tsum_norm_le
     (t : ℝ) (a b : ℤ)
     (hpacket :
@@ -271,10 +447,20 @@ theorem Complex.logarithmicPhaseQuantitativeNegativeTail_tsum_norm_le
     ‖∑' m : Complex.logarithmicPhasePoissonNegativeTailModes,
         Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
       Complex.logarithmicPhaseQuantitativeNegativeTailBudget t a b := by
-  unfold Complex.logarithmicPhaseQuantitativeNegativeTailBudget
-  exact tsum_norm_le
-    (Complex.summable_logarithmicPhaseQuantitativeNegativeTailMajorant t a b)
-    hpacket
+  calc
+    ‖∑' m : Complex.logarithmicPhasePoissonNegativeTailModes,
+        Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ =
+        ‖∑' m : Complex.logarithmicPhasePoissonNegativeTailModes,
+          Complex.logarithmicPhaseQuantitativeNegativeTailPacket t a b m‖ :=
+      congrArg norm
+        (Complex.logarithmicPhaseQuantitativeNegativeTailPacket_tsum_eq t a b)
+    _ ≤ ∑' m : Complex.logarithmicPhasePoissonNegativeTailModes,
+        Complex.logarithmicPhaseQuantitativeNegativeTailMajorant t a b m :=
+      Complex.logarithmicPhaseQuantitativeNegativeTailPacket_tsum_norm_le_majorant_tsum
+        t a b hpacket
+    _ = Complex.logarithmicPhaseQuantitativeNegativeTailBudget t a b :=
+      (Complex.logarithmicPhaseQuantitativeNegativeTailBudget_eq_majorant_tsum
+        t a b).symm
 
 theorem Complex.logarithmicPhaseQuantitativePositiveTail_tsum_norm_le
     (t : ℝ) (a b : ℤ)
@@ -286,10 +472,20 @@ theorem Complex.logarithmicPhaseQuantitativePositiveTail_tsum_norm_le
     ‖∑' m : Complex.logarithmicPhasePoissonPositiveTailModes,
         Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ ≤
       Complex.logarithmicPhaseQuantitativePositiveTailBudget t a b := by
-  unfold Complex.logarithmicPhaseQuantitativePositiveTailBudget
-  exact tsum_norm_le
-    (Complex.summable_logarithmicPhaseQuantitativePositiveTailMajorant t a b)
-    hpacket
+  calc
+    ‖∑' m : Complex.logarithmicPhasePoissonPositiveTailModes,
+        Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b m‖ =
+        ‖∑' m : Complex.logarithmicPhasePoissonPositiveTailModes,
+          Complex.logarithmicPhaseQuantitativePositiveTailPacket t a b m‖ :=
+      congrArg norm
+        (Complex.logarithmicPhaseQuantitativePositiveTailPacket_tsum_eq t a b)
+    _ ≤ ∑' m : Complex.logarithmicPhasePoissonPositiveTailModes,
+        Complex.logarithmicPhaseQuantitativePositiveTailMajorant t a b m :=
+      Complex.logarithmicPhaseQuantitativePositiveTailPacket_tsum_norm_le_majorant_tsum
+        t a b hpacket
+    _ = Complex.logarithmicPhaseQuantitativePositiveTailBudget t a b :=
+      (Complex.logarithmicPhaseQuantitativePositiveTailBudget_eq_majorant_tsum
+        t a b).symm
 
 end
 end LFunctions

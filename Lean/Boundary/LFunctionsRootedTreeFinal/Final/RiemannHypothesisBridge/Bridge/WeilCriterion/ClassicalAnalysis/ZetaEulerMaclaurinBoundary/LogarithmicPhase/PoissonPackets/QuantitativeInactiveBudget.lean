@@ -136,7 +136,8 @@ theorem Complex.logarithmicPhaseQuantitativeTransitionBudget_eq_zeroPacket
     Complex.logarithmicPhaseQuantitativeTransitionBudget t a b =
       ‖Complex.logarithmicPhaseQuantitativeBlockFourierPacket t a b 0‖ := by
   have hmodes :=
-    Complex.logarithmicPhasePoissonTransitionModes_eq_singleton_zero t ha
+    Complex.logarithmicPhasePoissonTransitionModes_eq_singleton_zero
+      t (a := a) (b := b) ha
   unfold Complex.logarithmicPhaseQuantitativeTransitionBudget
   exact Eq.trans
     (congrArg
@@ -157,7 +158,7 @@ theorem Complex.logarithmicPhaseQuantitativeTransitionBudget_le_zeroModeBudget
       Complex.logarithmicPhaseQuantitativeZeroModeBudget t a b := by
   have hidentity :=
     Complex.logarithmicPhaseQuantitativeTransitionBudget_eq_zeroPacket
-      t ha
+      t (a := a) (b := b) ha
   have hzero :=
     Complex.norm_logarithmicPhaseQuantitativeZeroPacket_le_budget
       t ht htNonneg a b ha hab
@@ -165,7 +166,7 @@ theorem Complex.logarithmicPhaseQuantitativeTransitionBudget_le_zeroModeBudget
     (motive := fun transitionBudget : ℝ =>
       transitionBudget ≤
         Complex.logarithmicPhaseQuantitativeZeroModeBudget t a b)
-    hidentity
+    hidentity.symm
     hzero
 
 theorem Complex.logarithmicPhaseQuantitativeLeftInactiveBudget_le_explicit
@@ -317,6 +318,7 @@ theorem Complex.logarithmicPhasePoissonLeftInactive_center_lt_supportLeft
 
 theorem Complex.logarithmicPhasePoissonRightInactive_supportRight_lt_center
     (t : ℝ) (a b m : ℤ)
+    (hab : a ≤ b)
     (hm : m ∈ Complex.logarithmicPhasePoissonRightInactiveModes t a b) :
     (b : ℝ) + 2 / 3 <
       Complex.logarithmicPhaseFourierStationaryPoint t m := by
@@ -337,7 +339,8 @@ theorem Complex.logarithmicPhasePoissonRightInactive_supportRight_lt_center
   have hsupportLeftLeCenter :
       Real.integerBlockCutoffSupportLeftEndpoint a ≤
         Complex.logarithmicPhaseFourierStationaryPoint t m :=
-    le_trans hsupportLeftLeA (le_of_lt hbLtCenter)
+    le_trans hsupportLeftLeA
+      (le_trans (Int.cast_le.mpr hab) (le_of_lt hbLtCenter))
   match lt_or_ge
       ((b : ℝ) + 2 / 3)
       (Complex.logarithmicPhaseFourierStationaryPoint t m) with
@@ -379,17 +382,18 @@ theorem Complex.logarithmicPhasePoissonLeftInactive_twoThirds_lt_gap
     (motive := fun leftGap : ℝ =>
       leftGap < (a : ℝ) -
         Complex.logarithmicPhaseFourierStationaryPoint t m)
-    hnormalize.symm
+    hnormalize
     htransport
 
 theorem Complex.logarithmicPhasePoissonRightInactive_twoThirds_lt_gap
     (t : ℝ) (a b m : ℤ)
+    (hab : a ≤ b)
     (hm : m ∈ Complex.logarithmicPhasePoissonRightInactiveModes t a b) :
     (2 : ℝ) / 3 <
       Complex.logarithmicPhaseFourierStationaryPoint t m - (b : ℝ) := by
   have hcenter :=
     Complex.logarithmicPhasePoissonRightInactive_supportRight_lt_center
-      t a b m hm
+      t a b m hab hm
   have htransport := sub_lt_sub_right hcenter (b : ℝ)
   have hnormalize :
       ((b : ℝ) + 2 / 3) - (b : ℝ) = (2 : ℝ) / 3 := by
@@ -404,7 +408,7 @@ theorem Complex.logarithmicPhasePoissonRightInactive_twoThirds_lt_gap
     (motive := fun leftGap : ℝ =>
       leftGap <
         Complex.logarithmicPhaseFourierStationaryPoint t m - (b : ℝ))
-    hnormalize.symm
+    hnormalize
     htransport
 
 theorem Complex.logarithmicPhasePoissonLeftInactive_gap_pos
@@ -425,13 +429,10 @@ theorem Complex.logarithmicPhasePoissonRightInactive_gap_pos
     (t : ℝ) (a b m : ℤ)
     (hm : m ∈ Complex.logarithmicPhasePoissonRightInactiveModes t a b) :
     0 < Complex.logarithmicPhaseFourierStationaryPoint t m - (b : ℝ) := by
-  have hthirds :=
-    Complex.logarithmicPhasePoissonRightInactive_twoThirds_lt_gap
-      t a b m hm
-  have htwoThirdsPos : (0 : ℝ) < 2 / 3 :=
-    div_pos (Nat.cast_pos.mpr (Nat.succ_pos 1))
-      (Nat.cast_pos.mpr (Nat.succ_pos 2))
-  exact lt_trans htwoThirdsPos hthirds
+  have hmem :=
+    (Complex.mem_logarithmicPhasePoissonRightInactiveModes_iff
+      t a b m).mp hm
+  exact sub_pos.mpr hmem.2.2
 
 end
 end LFunctions

@@ -58,7 +58,7 @@ theorem Complex.logarithmicPhaseFarNegativeToPositive_leftInverse
           (fun value : ℤ =>
             Complex.logarithmicPhasePoissonModeRangeLower t a - value)
           (Complex.logarithmicPhaseFarNegativeToPositive_value t a m))
-        (sub_sub_cancel_left
+        (sub_sub_cancel
           (Complex.logarithmicPhasePoissonModeRangeLower t a) (m : ℤ))))
 
 theorem Complex.logarithmicPhaseFarNegativeToPositive_rightInverse
@@ -75,7 +75,7 @@ theorem Complex.logarithmicPhaseFarNegativeToPositive_rightInverse
           (fun value : ℤ =>
             Complex.logarithmicPhasePoissonModeRangeLower t a - value)
           (Complex.logarithmicPhasePositiveToFarNegative_value t a k))
-        (sub_sub_cancel_left
+        (sub_sub_cancel
           (Complex.logarithmicPhasePoissonModeRangeLower t a) (k : ℤ))))
 
 def Complex.logarithmicPhaseFarNegativeEquivPositive

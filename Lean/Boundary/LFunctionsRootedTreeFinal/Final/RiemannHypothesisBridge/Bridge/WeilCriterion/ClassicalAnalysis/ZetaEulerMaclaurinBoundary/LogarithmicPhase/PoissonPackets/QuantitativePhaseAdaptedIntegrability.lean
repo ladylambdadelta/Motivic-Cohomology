@@ -28,7 +28,11 @@ theorem Complex.logarithmicPhaseQuantitativeSupport_mem_positive
   have hxIcc : x ∈ Set.Icc
       (Complex.logarithmicPhaseQuantitativeSupportLeft a)
       (Complex.logarithmicPhaseQuantitativeSupportRight b) :=
-    (Set.uIcc_of_le hleftRight).mp hx
+    Eq.mp
+      (congrArg
+        (fun support : Set ℝ => x ∈ support)
+        (Set.uIcc_of_le hleftRight))
+      hx
   have hleftPos :=
     Complex.logarithmicPhaseQuantitativeSupportLeft_pos a ha
   exact lt_of_lt_of_le hleftPos hxIcc.1
@@ -210,8 +214,25 @@ theorem Complex.continuousOn_logarithmicPhaseAdaptedOscillatorDerivative
   intro x hx
   have hxPos :=
     Complex.logarithmicPhaseQuantitativeSupport_mem_positive a b ha hab hx
-  exact (Complex.hasDerivAt_logarithmicPhaseAdaptedOscillator
-    t m hxPos).continuousAt.continuousWithinAt
+  have hoscillator : ContinuousAt
+      (Complex.logarithmicPhaseAdaptedOscillator t m) x :=
+    (Complex.hasDerivAt_logarithmicPhaseAdaptedOscillator
+      t m hxPos).continuousAt
+  have hphase : ContinuousAt
+      (Complex.logarithmicPhaseAdaptedTwistedPhaseDerivative t m) x :=
+    (Complex.hasDerivAt_logarithmicPhaseAdaptedTwistedPhaseDerivative
+      t m hxPos).continuousAt
+  have hphaseCast : ContinuousAt
+      (fun y : ℝ =>
+        (Complex.logarithmicPhaseAdaptedTwistedPhaseDerivative t m y : ℂ)) x :=
+    Complex.continuous_ofReal.continuousAt.comp hphase
+  have hdenominator : ContinuousAt
+      (Complex.realPhaseDerivativeDenominator
+        (Complex.logarithmicPhaseAdaptedTwistedPhaseDerivative t m)) x := by
+    unfold Complex.realPhaseDerivativeDenominator
+    exact continuousAt_const.mul hphaseCast
+  unfold Complex.logarithmicPhaseAdaptedOscillatorDerivative
+  exact (hoscillator.mul hdenominator).continuousWithinAt
 
 theorem Complex.intervalIntegrable_logarithmicPhaseAdaptedOscillatorDerivative
     (t : ℝ) (a b m : ℤ)

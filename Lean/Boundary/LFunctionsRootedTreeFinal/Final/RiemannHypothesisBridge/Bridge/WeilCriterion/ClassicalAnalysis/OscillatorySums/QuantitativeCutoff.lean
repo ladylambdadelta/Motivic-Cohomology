@@ -94,25 +94,39 @@ theorem Real.quantitativeIntegerBlockCutoff_le_one
 
 theorem Real.contDiff_quantitativeIntegerBlockLeftCutoff
     (a : ℤ) :
-    ContDiff ℝ ∞ (Real.quantitativeIntegerBlockLeftCutoff a) := by
+    ContDiff ℝ (↑(⊤ : ℕ∞)) (Real.quantitativeIntegerBlockLeftCutoff a) := by
   unfold Real.quantitativeIntegerBlockLeftCutoff
   have haffine :
-      ContDiff ℝ ∞ (fun x : ℝ => x - (a : ℝ) + 1) :=
+      ContDiff ℝ (↑(⊤ : ℕ∞)) (fun x : ℝ => x - (a : ℝ) + 1) :=
     (contDiff_id.sub contDiff_const).add contDiff_const
-  exact Real.smoothTransition.contDiff.comp haffine
+  have hcomp :
+      ContDiff ℝ (↑(⊤ : ℕ∞))
+        (Real.smoothTransition ∘ fun x : ℝ => x - (a : ℝ) + 1) :=
+    (Real.smoothTransition.contDiff (n := (⊤ : ℕ∞))).comp
+      haffine
+  change ContDiff ℝ (↑(⊤ : ℕ∞))
+    (Real.smoothTransition ∘ fun x : ℝ => x - (a : ℝ) + 1)
+  exact hcomp
 
 theorem Real.contDiff_quantitativeIntegerBlockRightCutoff
     (b : ℤ) :
-    ContDiff ℝ ∞ (Real.quantitativeIntegerBlockRightCutoff b) := by
+    ContDiff ℝ (↑(⊤ : ℕ∞)) (Real.quantitativeIntegerBlockRightCutoff b) := by
   unfold Real.quantitativeIntegerBlockRightCutoff
   have haffine :
-      ContDiff ℝ ∞ (fun x : ℝ => (b : ℝ) - x + 1) :=
+      ContDiff ℝ (↑(⊤ : ℕ∞)) (fun x : ℝ => (b : ℝ) - x + 1) :=
     (contDiff_const.sub contDiff_id).add contDiff_const
-  exact Real.smoothTransition.contDiff.comp haffine
+  have hcomp :
+      ContDiff ℝ (↑(⊤ : ℕ∞))
+        (Real.smoothTransition ∘ fun x : ℝ => (b : ℝ) - x + 1) :=
+    (Real.smoothTransition.contDiff (n := (⊤ : ℕ∞))).comp
+      haffine
+  change ContDiff ℝ (↑(⊤ : ℕ∞))
+    (Real.smoothTransition ∘ fun x : ℝ => (b : ℝ) - x + 1)
+  exact hcomp
 
 theorem Real.contDiff_quantitativeIntegerBlockCutoff
     (a b : ℤ) :
-    ContDiff ℝ ∞ (Real.quantitativeIntegerBlockCutoff a b) := by
+    ContDiff ℝ (↑(⊤ : ℕ∞)) (Real.quantitativeIntegerBlockCutoff a b) := by
   unfold Real.quantitativeIntegerBlockCutoff
   exact
     (Real.contDiff_quantitativeIntegerBlockLeftCutoff a).mul
@@ -123,15 +137,15 @@ theorem Real.quantitativeIntegerBlockLeftCutoff_eq_zero_of_le
     (hx : x ≤ (a : ℝ) - 1) :
     Real.quantitativeIntegerBlockLeftCutoff a x = 0 := by
   unfold Real.quantitativeIntegerBlockLeftCutoff
-  have hsub : x - (a : ℝ) ≤ ((a : ℝ) - 1) - (a : ℝ) :=
-    sub_le_sub_right hx (a : ℝ)
   have hargument : x - (a : ℝ) + 1 ≤ 0 := by
+    have hbound : x + 1 ≤ (a : ℝ) := by
+      calc
+        x + 1 ≤ ((a : ℝ) - 1) + 1 := add_le_add_right hx 1
+        _ = (a : ℝ) := sub_add_cancel (a : ℝ) 1
+    have hshifted : x + 1 - (a : ℝ) ≤ 0 := sub_nonpos.mpr hbound
     calc
-      x - (a : ℝ) + 1 ≤ ((a : ℝ) - 1) - (a : ℝ) + 1 :=
-        add_le_add_right hsub 1
-      _ = ((a : ℝ) - 1) - ((a : ℝ) - 1) :=
-        sub_add_eq_sub_sub ((a : ℝ) - 1) (a : ℝ) 1
-      _ = 0 := sub_self ((a : ℝ) - 1)
+      x - (a : ℝ) + 1 = x + 1 - (a : ℝ) := sub_add_eq_add_sub x (a : ℝ) 1
+      _ ≤ 0 := hshifted
   exact Real.smoothTransition.zero_of_nonpos hargument
 
 theorem Real.quantitativeIntegerBlockRightCutoff_eq_zero_of_le
@@ -139,18 +153,12 @@ theorem Real.quantitativeIntegerBlockRightCutoff_eq_zero_of_le
     (hx : (b : ℝ) + 1 ≤ x) :
     Real.quantitativeIntegerBlockRightCutoff b x = 0 := by
   unfold Real.quantitativeIntegerBlockRightCutoff
-  have hsub : (b : ℝ) - x ≤ (b : ℝ) - ((b : ℝ) + 1) :=
-    sub_le_sub_left hx (b : ℝ)
   have hargument : (b : ℝ) - x + 1 ≤ 0 := by
+    have hbound : (b : ℝ) + 1 ≤ x := hx
+    have hshifted : (b : ℝ) + 1 - x ≤ 0 := sub_nonpos.mpr hbound
     calc
-      (b : ℝ) - x + 1 ≤ (b : ℝ) - ((b : ℝ) + 1) + 1 :=
-        add_le_add_right hsub 1
-      _ = (b : ℝ) - (((b : ℝ) + 1) - 1) := by
-        exact sub_add_eq_sub_sub (b : ℝ) ((b : ℝ) + 1) 1
-      _ = (b : ℝ) - (b : ℝ) :=
-        congrArg (fun value : ℝ => (b : ℝ) - value)
-          (add_sub_cancel (b : ℝ) 1)
-      _ = 0 := sub_self (b : ℝ)
+      (b : ℝ) - x + 1 = (b : ℝ) + 1 - x := sub_add_eq_add_sub (b : ℝ) x 1
+      _ ≤ 0 := hshifted
   exact Real.smoothTransition.zero_of_nonpos hargument
 
 theorem Real.quantitativeIntegerBlockLeftCutoff_eq_one_of_le
@@ -258,14 +266,16 @@ theorem Real.hasCompactSupport_quantitativeIntegerBlockCutoff
     HasCompactSupport (Real.quantitativeIntegerBlockCutoff a b) := by
   exact
     HasCompactSupport.of_support_subset_isCompact
-      (Set.isCompact_Icc)
+      (isCompact_Icc)
       (Real.support_quantitativeIntegerBlockCutoff_subset_closedCollar a b)
 
 theorem Real.quantitativeIntegerBlockCutoff_eq_zero_of_nonpos
     {a b : ℤ} (ha : 1 ≤ a) {x : ℝ} (hx : x ≤ 0) :
     Real.quantitativeIntegerBlockCutoff a b x = 0 := by
-  have ha_real : (1 : ℝ) ≤ (a : ℝ) :=
-    Int.cast_le.mpr ha
+  have ha_real : (1 : ℝ) ≤ (a : ℝ) := by
+    have hcast : ((1 : ℤ) : ℝ) = 1 := Int.cast_one
+    exact Eq.subst (motive := fun z : ℝ => z ≤ (a : ℝ)) hcast
+      (Int.cast_le.mpr ha)
   have hzero_le_margin : (0 : ℝ) ≤ (a : ℝ) - 1 :=
     sub_nonneg.mpr ha_real
   have hleft : x ≤ (a : ℝ) - 1 :=
@@ -288,9 +298,11 @@ theorem Real.quantitativeIntegerBlockCutoff_eq_zero_of_lt_left
   have hgap : n + 1 ≤ a :=
     Int.add_one_le_iff.mpr hna
   have hgap_real : (n : ℝ) + 1 ≤ (a : ℝ) := by
-    exact
-      (Int.cast_add n 1).symm.trans
-        (Int.cast_le.mpr hgap)
+    have hcast : (((n + 1 : ℤ) : ℝ)) = (n : ℝ) + 1 :=
+      Eq.trans (Int.cast_add n 1)
+        (congrArg (fun z : ℝ => (n : ℝ) + z) Int.cast_one)
+    exact Eq.subst (motive := fun z : ℝ => z ≤ (a : ℝ)) hcast
+      (Int.cast_le.mpr hgap)
   have hleft : (n : ℝ) ≤ (a : ℝ) - 1 :=
     le_sub_iff_add_le.mpr hgap_real
   exact Real.quantitativeIntegerBlockCutoff_eq_zero_of_left a b hleft
@@ -302,9 +314,11 @@ theorem Real.quantitativeIntegerBlockCutoff_eq_zero_of_lt_right
   have hgap : b + 1 ≤ n :=
     Int.add_one_le_iff.mpr hbn
   have hgap_real : (b : ℝ) + 1 ≤ (n : ℝ) := by
-    exact
-      (Int.cast_add b 1).symm.trans
-        (Int.cast_le.mpr hgap)
+    have hcast : (((b + 1 : ℤ) : ℝ)) = (b : ℝ) + 1 :=
+      Eq.trans (Int.cast_add b 1)
+        (congrArg (fun z : ℝ => (b : ℝ) + z) Int.cast_one)
+    exact Eq.subst (motive := fun z : ℝ => z ≤ (n : ℝ)) hcast
+      (Int.cast_le.mpr hgap)
   exact Real.quantitativeIntegerBlockCutoff_eq_zero_of_right a b hgap_real
 
 theorem Real.quantitativeIntegerBlockCutoff_eq_zero_of_not_mem_Icc

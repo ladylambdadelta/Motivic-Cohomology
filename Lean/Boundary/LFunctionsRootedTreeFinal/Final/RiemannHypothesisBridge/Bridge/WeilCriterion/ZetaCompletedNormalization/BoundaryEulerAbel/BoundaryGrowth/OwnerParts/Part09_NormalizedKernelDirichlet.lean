@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.BoundaryGrowth.OwnerParts.Part07_PostCutoffDefect
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.BoundaryGrowth.OwnerParts.SharpPhaseIntegralParts.ContinuousBernoulliVdc
 
 /-!
 # Boundary growth owner part 9
@@ -12,6 +13,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped Filter Topology
+open MeasureTheory
 local notation "π" => Real.pi
 
 /-- Finite oscillatory zero-mean block estimate for the normalized Bernoulli
@@ -50,7 +52,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBl
             ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ)⁻¹) *
               ((((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)) -
                 ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                  (-(t : ℂ) * Complex.I)))))
+                  (-(t : ℂ) * Complex.I))))))
   have hsplit :
       (∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
           ∫ x in Set.Ioc ((((n - 1 : ℕ) : ℕ) : ℝ)) (((n : ℕ) : ℝ)),
@@ -60,7 +62,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBl
                 (((-(t : ℂ) * Complex.I) /
                     (((((n - 1 : ℕ) : ℕ) : ℝ)) : ℂ)) *
                   ((((((n - 1 : ℕ) : ℕ) : ℝ) : ℂ) ^
-                    (-(t : ℂ) * Complex.I)))))) =
+                    (-(t : ℂ) * Complex.I))))))) =
         R + P :=
     boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBlockSum_eq_reciprocalDrift_add_phaseDrift
       t
@@ -75,8 +77,9 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_finiteOscillatoryBl
               ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
                 (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
             Real.sqrt (1 + ‖t‖) * Real.log (2 + K) :=
-    boundaryLineOnePointRealParam_firstPeriodicBernoulli_globalPhaseIntegral_family_sharp_ownerGap
-      t ht hM
+    fun K hK _hKM =>
+      boundaryLineOnePointRealParam_firstPeriodicBernoulli_continuousVdc_postCutoff
+        t ht hK
   have hphase :
       ‖P‖ ≤ Real.sqrt (1 + ‖t‖) * Real.log (2 + M) :=
     boundaryLineOnePointRealParam_firstPeriodicBernoulli_phaseDriftBlockSum_norm_le_of_globalPhaseIntegral_family_sharp
@@ -315,7 +318,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_ca
     {M : ℕ}
     (hM : ⌊2 + ‖t‖⌋₊ ≤ M)
     (C V : ℂ)
-    (_hidentity :
+    (hidentity :
       (∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
@@ -336,7 +339,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_ca
     {M : ℕ}
     (hM : ⌊2 + ‖t‖⌋₊ ≤ M)
     (C V : ℂ)
-    (_hidentity :
+    (hidentity :
       (∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
@@ -385,7 +388,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_ca
   match
     boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_canonicalFixedInterval_selectedEndpointVariation_ownerIntegrationByParts
       t ht hM with
-  | ⟨C, V, hidentity, _hendpoint, _hvariation⟩ =>
+  | ⟨C, V, hidentity, hendpoint, hvariation⟩ =>
       exact Exists.intro C (Exists.intro V hidentity)
 
 /-- Exact endpoint estimate for the endpoint selected by the canonical fixed
@@ -396,7 +399,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_ca
     {M : ℕ}
     (hM : ⌊2 + ‖t‖⌋₊ ≤ M)
     (C V : ℂ)
-    (_hidentity :
+    (hidentity :
       (∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
@@ -441,7 +444,7 @@ theorem boundaryLineOnePointRealParam_firstPeriodicBernoulli_normalizedKernel_ca
     {M : ℕ}
     (hM : ⌊2 + ‖t‖⌋₊ ≤ M)
     (C V : ℂ)
-    (_hidentity :
+    (hidentity :
       (∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
@@ -754,7 +757,14 @@ theorem boundaryGrowth_two_four_scale_le_six_scale_ownerGap
     (add_mul (2 : ℝ) 4 A).symm
   have htwo_four :
       ((2 : ℝ) + 4) * A = 6 * A :=
-    congrArg (fun c : ℝ => c * A) (show (2 : ℝ) + 4 = 6 from rfl)
+    have hnat : (2 + 4 : ℕ) = 6 := rfl
+    have hcast : (((2 + 4 : ℕ) : ℝ)) = ((6 : ℕ) : ℝ) :=
+      congrArg (fun n : ℕ => (n : ℝ)) hnat
+    have hleft : (((2 + 4 : ℕ) : ℝ)) = (2 : ℝ) + 4 :=
+      Nat.cast_add 2 4
+    have hright : ((6 : ℕ) : ℝ) = (6 : ℝ) := rfl
+    congrArg (fun c : ℝ => c * A)
+      (Eq.trans hleft.symm (Eq.trans hcast hright))
   exact le_of_eq (Eq.trans hfactor htwo_four)
 
 /-- Final constant algebra after the Bernoulli-periodic cancellation and
@@ -778,9 +788,24 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_postCutoff_bern
                 (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I)))) =
           C + V ∧
         ‖C‖ ≤ 2 * A ∧
-        ‖V‖ ≤ 4 * A :=
-    boundaryLineOnePointRealParam_logarithmicPhasePartialSum_postCutoff_bernoulliRemainder_periodicOscillatoryDecomposition_endpointVariation_ownerGap
-      t ht hM
+        ‖V‖ ≤ 4 * A := by
+    have hrawDecomp :=
+      boundaryLineOnePointRealParam_logarithmicPhasePartialSum_postCutoff_bernoulliRemainder_periodicOscillatoryDecomposition_endpointVariation_ownerGap
+        t ht hM
+    match hrawDecomp with
+    | ⟨C, V, hidentity, hC, hV⟩ =>
+        have htwoScale :
+            2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + M) = 2 * A :=
+          mul_assoc (2 : ℝ) (Real.sqrt (1 + ‖t‖)) (Real.log (2 + M))
+        have hfourScale :
+            4 * Real.sqrt (1 + ‖t‖) * Real.log (2 + M) = 4 * A :=
+          mul_assoc (4 : ℝ) (Real.sqrt (1 + ‖t‖)) (Real.log (2 + M))
+        have hCBound : ‖C‖ ≤ 2 * A :=
+          Eq.subst (motive := fun r : ℝ => ‖C‖ ≤ r) htwoScale hC
+        have hVBound : ‖V‖ ≤ 4 * A :=
+          Eq.subst (motive := fun r : ℝ => ‖V‖ ≤ r) hfourScale hV
+        exact Exists.intro C
+          (Exists.intro V ⟨hidentity, hCBound, hVBound⟩)
   match hdecomp with
   | ⟨C, V, hsplit, hC, hV⟩ =>
       have hsum :
@@ -789,11 +814,26 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_postCutoff_bern
       have hscale :
           (2 : ℝ) * A + 4 * A ≤ 6 * A :=
         boundaryGrowth_two_four_scale_le_six_scale_ownerGap A
-      exact
+      have hbound :
+          ‖(∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+                (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))))‖ ≤ 6 * A :=
         Eq.subst
           (motive := fun z : ℂ => ‖z‖ ≤ 6 * A)
           hsplit.symm
           (le_trans hsum hscale)
+      have htarget :
+          6 * A = 6 * Real.sqrt (1 + ‖t‖) * Real.log (2 + M) :=
+        (mul_assoc (6 : ℝ) (Real.sqrt (1 + ‖t‖)) (Real.log (2 + M))).symm
+      exact Eq.subst
+        (motive := fun r : ℝ =>
+          ‖(∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+                (((x : ℝ) : ℂ) ^ (-(t : ℂ) * Complex.I))))‖ ≤ r)
+        htarget
+        hbound
 
 /-- Bernoulli-remainder estimate for the unweighted post-cutoff
 Euler-Maclaurin decomposition.
@@ -816,5 +856,6 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_postCutoff_bern
       t ht hM
 
 
+end
 end LFunctions
 end Boundary

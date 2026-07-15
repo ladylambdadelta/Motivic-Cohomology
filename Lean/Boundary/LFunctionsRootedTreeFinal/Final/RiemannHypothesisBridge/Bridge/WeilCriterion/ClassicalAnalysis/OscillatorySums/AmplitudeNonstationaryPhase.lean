@@ -144,7 +144,8 @@ theorem Complex.intervalIntegral_realPhaseAmplitudeOscillation_eq_boundary_sub_r
         phaseDerivativeCoefficientDerivative x
         (hamplitude x hx) (hcoefficient x hx)
   have hintegrationByParts :=
-    Complex.intervalIntegral_oscillator_eq_boundary_sub_remainder
+    Complex.intervalIntegral_target_eq_boundary_sub_remainder
+      (fun x => amplitude x * Complex.realPhaseOscillation phase x)
       (Complex.realPhaseOscillation phase)
       (Complex.realPhaseAmplitudeCoefficient amplitude phaseDerivative)
       oscillationDerivative
@@ -274,7 +275,7 @@ theorem Complex.norm_intervalIntegral_realPhaseAmplitudeOscillation_le_boundary_
             amplitude amplitudeDerivative phaseDerivativeCoefficientDerivative
             phaseDerivative x‖ := by
     have hnorm :=
-      intervalIntegral.norm_integral_le_integral_norm hleft_right
+      intervalIntegral.norm_integral_le_integral_norm (μ := volume) hleft_right
         (f := fun x : ℝ =>
           Complex.realPhaseAmplitudeCoefficientDerivative
             amplitude amplitudeDerivative phaseDerivativeCoefficientDerivative
@@ -307,7 +308,7 @@ theorem Complex.norm_intervalIntegral_realPhaseAmplitudeOscillation_le_boundary_
               ‖Complex.realPhaseAmplitudeCoefficientDerivative
                 amplitude amplitudeDerivative phaseDerivativeCoefficientDerivative
                 phaseDerivative x‖))
-    have hintegral := intervalIntegral.integral_congr hintegrand
+    have hintegral := intervalIntegral.integral_congr (μ := volume) hintegrand
     exact hnorm.trans (le_of_eq hintegral)
   have hcombined :
       ‖rightBoundary - leftBoundary - remainder‖ ≤

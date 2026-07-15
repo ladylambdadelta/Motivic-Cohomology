@@ -14,10 +14,14 @@ namespace LFunctions
 noncomputable section
 
 theorem Real.mul_three_nonneg {x : ℝ} (hx : 0 ≤ x) :
-    0 ≤ 3 * x := mul_nonneg (by exact OfNat.zero_le 3) hx
+    0 ≤ 3 * x :=
+  let hthree : (0 : ℝ) ≤ (3 : ℝ) := Nat.cast_nonneg 3
+  mul_nonneg hthree hx
 
 theorem Real.mul_six_nonneg {x : ℝ} (hx : 0 ≤ x) :
-    0 ≤ 6 * x := mul_nonneg (by exact OfNat.zero_le 6) hx
+    0 ≤ 6 * x :=
+  let hsix : (0 : ℝ) ≤ (6 : ℝ) := Nat.cast_nonneg 6
+  mul_nonneg hsix hx
 
 theorem Real.div_le_div_of_numerator_le_pow_two
     {u₁ u₂ g₁ g₂ : ℝ}
@@ -54,24 +58,44 @@ theorem Real.three_mul_mul_mono
     (hx₁ : 0 ≤ x₁) (hy₁ : 0 ≤ y₁)
     (hx : x₁ ≤ x₂) (hy : y₁ ≤ y₂) :
     3 * x₁ * y₁ ≤ 3 * x₂ * y₂ := by
+  have hthree : (0 : ℝ) ≤ (3 : ℝ) := Nat.cast_nonneg 3
+  have hx₂ : 0 ≤ x₂ := le_trans hx₁ hx
   have hthreeX₁ : 0 ≤ 3 * x₁ := Real.mul_three_nonneg hx₁
-  have hthreeX := mul_le_mul_of_nonneg_left hx (by exact OfNat.zero_le 3)
-  exact mul_le_mul hthreeX hy hy₁ hthreeX₁
+  have hthreeX₂ : 0 ≤ 3 * x₂ := Real.mul_three_nonneg hx₂
+  have hthreeX : 3 * x₁ ≤ 3 * x₂ :=
+    mul_le_mul_of_nonneg_left hx hthree
+  have hfirst : 3 * x₁ * y₁ ≤ 3 * x₂ * y₁ :=
+    mul_le_mul_of_nonneg_right hthreeX hy₁
+  have hsecond : 3 * x₂ * y₁ ≤ 3 * x₂ * y₂ :=
+    mul_le_mul_of_nonneg_left hy hthreeX₂
+  exact le_trans hfirst hsecond
 
 theorem Real.mul_mul_mono
     {x₁ x₂ y₁ y₂ : ℝ}
     (hx₁ : 0 ≤ x₁) (hy₁ : 0 ≤ y₁)
     (hx : x₁ ≤ x₂) (hy : y₁ ≤ y₂) :
     x₁ * y₁ ≤ x₂ * y₂ := by
-  exact mul_le_mul hx hy hy₁ hx₁
+  have hx₂ : 0 ≤ x₂ := le_trans hx₁ hx
+  have hfirst : x₁ * y₁ ≤ x₂ * y₁ :=
+    mul_le_mul_of_nonneg_right hx hy₁
+  have hsecond : x₂ * y₁ ≤ x₂ * y₂ :=
+    mul_le_mul_of_nonneg_left hy hx₂
+  exact le_trans hfirst hsecond
 
 theorem Real.three_mul_mul_sq_mono
     {x₁ x₂ y₁ y₂ : ℝ}
     (hx₁ : 0 ≤ x₁) (hy₁ : 0 ≤ y₁)
     (hx : x₁ ≤ x₂) (hy : y₁ ≤ y₂) :
     3 * x₁ * y₁ ^ 2 ≤ 3 * x₂ * y₂ ^ 2 := by
-  have hySquare : y₁ ^ 2 ≤ y₂ ^ 2 :=
+  have hyProduct : y₁ * y₁ ≤ y₂ * y₂ :=
     mul_self_le_mul_self hy₁ hy
+  have hyOneSquare : y₁ ^ 2 = y₁ * y₁ := pow_two y₁
+  have hyTwoSquare : y₂ ^ 2 = y₂ * y₂ := pow_two y₂
+  have hySquare : y₁ ^ 2 ≤ y₂ ^ 2 := by
+    calc
+      y₁ ^ 2 = y₁ * y₁ := hyOneSquare
+      _ ≤ y₂ * y₂ := hyProduct
+      _ = y₂ ^ 2 := hyTwoSquare.symm
   have hySquareNonneg : 0 ≤ y₁ ^ 2 := sq_nonneg y₁
   exact Real.three_mul_mul_mono hx₁ hySquareNonneg hx hySquare
 

@@ -51,7 +51,16 @@ theorem Complex.linearFourierPhase_hasDerivAt
       (Complex.linearFourierPhase frequency)
       (Complex.linearFourierPhaseDerivative frequency x)
       x := by
-  exact (hasDerivAt_id x).const_mul frequency
+  unfold Complex.linearFourierPhase
+  unfold Complex.linearFourierPhaseDerivative
+  have hderiv := (hasDerivAt_id x).const_mul frequency
+  have hfunction :
+      (fun y : ℝ => frequency * id y) = Complex.linearFourierPhase frequency := by
+    funext y
+    rfl
+  have hderiv' := hderiv.congr_deriv (mul_one frequency)
+  exact hderiv'.congr_of_eventuallyEq
+    (Filter.Eventually.of_forall (fun y => congrFun hfunction.symm y))
 
 theorem Complex.linearFourierPhaseDerivative_hasDerivAt
     (frequency x : ℝ) :
@@ -146,7 +155,8 @@ theorem Complex.linearFourierAmplitudeCoefficient_eq_firstAmplitude
       amplitudeDerivative x *
         Complex.realPhaseIntegrationCoefficient
           (Complex.linearFourierPhaseDerivative frequency) x :=
-      add_zero _
+      (congrArg₂ (fun first second : ℂ => first + second)
+        rfl (mul_zero (amplitude x))).trans (add_zero _)
     _ = amplitudeDerivative x * Complex.linearFourierCoefficient frequency :=
       congrArg (fun value : ℂ => amplitudeDerivative x * value) hcoefficient
 
@@ -170,10 +180,16 @@ theorem Complex.linearFourierFirstAmplitude_hasDerivAt
       amplitudeSecondDerivative x * Complex.linearFourierCoefficient frequency +
           amplitudeDerivative x * 0 =
         Complex.linearFourierSecondAmplitude amplitudeSecondDerivative frequency x := by
-    exact
-      (add_zero
-        (amplitudeSecondDerivative x *
-          Complex.linearFourierCoefficient frequency)).trans rfl
+    unfold Complex.linearFourierSecondAmplitude
+    calc
+      amplitudeSecondDerivative x * Complex.linearFourierCoefficient frequency +
+          amplitudeDerivative x * 0 =
+        amplitudeSecondDerivative x * Complex.linearFourierCoefficient frequency + 0 :=
+          congrArg₂ (fun first second : ℂ => first + second)
+            rfl (mul_zero (amplitudeDerivative x))
+      _ = amplitudeSecondDerivative x * Complex.linearFourierCoefficient frequency :=
+        add_zero _
+      _ = Complex.linearFourierSecondAmplitude amplitudeSecondDerivative frequency x := rfl
   exact Eq.subst
     (motive := fun value : ℂ =>
       HasDerivAt
@@ -204,7 +220,10 @@ theorem Complex.linearFourierFirstAmplitudeCoefficientDerivative_eq_secondAmplit
       amplitudeSecondDerivative x * Complex.linearFourierCoefficient frequency *
         Complex.realPhaseIntegrationCoefficient
           (Complex.linearFourierPhaseDerivative frequency) x :=
-      add_zero _
+      (congrArg₂ (fun first second : ℂ => first + second)
+        rfl (mul_zero
+          (amplitudeDerivative x * Complex.linearFourierCoefficient frequency))).trans
+        (add_zero _)
     _ = amplitudeSecondDerivative x * Complex.linearFourierCoefficient frequency *
         Complex.linearFourierCoefficient frequency :=
       congrArg
@@ -317,20 +336,20 @@ theorem Complex.intervalIntegral_linearFourier_eq_secondDerivative
       Complex.realPhaseAmplitudeCoefficient amplitude
           (Complex.linearFourierPhaseDerivative frequency) right = 0 := by
     unfold Complex.realPhaseAmplitudeCoefficient
-    exact congrArg
+    exact (congrArg
       (fun value : ℂ => value *
         Complex.realPhaseIntegrationCoefficient
           (Complex.linearFourierPhaseDerivative frequency) right)
-      hamplitudeRight
+      hamplitudeRight).trans (zero_mul _)
   have hfirstBoundaryLeft :
       Complex.realPhaseAmplitudeCoefficient amplitude
           (Complex.linearFourierPhaseDerivative frequency) left = 0 := by
     unfold Complex.realPhaseAmplitudeCoefficient
-    exact congrArg
+    exact (congrArg
       (fun value : ℂ => value *
         Complex.realPhaseIntegrationCoefficient
           (Complex.linearFourierPhaseDerivative frequency) left)
-      hamplitudeLeft
+      hamplitudeLeft).trans (zero_mul _)
   have hfirstReduced :
       (∫ x in left..right,
           amplitude x * Complex.realPhaseOscillation
@@ -366,11 +385,11 @@ theorem Complex.intervalIntegral_linearFourier_eq_secondDerivative
         intro x hx
         exact Complex.linearFourierAmplitudeCoefficient_eq_firstAmplitude
           amplitude amplitudeDerivative frequency x
-      have hintegral := intervalIntegral.integral_congr
+      have hintegral := intervalIntegral.integral_congr (μ := volume)
         (fun x hx => congrArg
           (fun value : ℂ => value * Complex.realPhaseOscillation
             (Complex.linearFourierPhase frequency) x)
-          (hintegrand x hx))
+          (hintegrand hx))
       calc
         Complex.realPhaseAmplitudeCoefficient amplitude
               (Complex.linearFourierPhaseDerivative frequency) right *
@@ -408,7 +427,15 @@ theorem Complex.intervalIntegral_linearFourier_eq_secondDerivative
                   (Complex.linearFourierPhaseDerivative frequency) x *
                 Complex.realPhaseOscillation
                   (Complex.linearFourierPhase frequency) x := by
-            exact Eq.trans (zero_sub 0) (zero_sub _)
+            exact (congrArg
+              (fun value : ℂ => value -
+                ∫ x in left..right,
+                  Complex.realPhaseAmplitudeCoefficientDerivative
+                    amplitude amplitudeDerivative (fun _x : ℝ => 0)
+                    (Complex.linearFourierPhaseDerivative frequency) x *
+                    Complex.realPhaseOscillation
+                      (Complex.linearFourierPhase frequency) x)
+              (sub_self (0 : ℂ))).trans (zero_sub _)
         _ = -∫ x in left..right,
               Complex.linearFourierFirstAmplitude amplitudeDerivative frequency x *
                 Complex.realPhaseOscillation
@@ -437,22 +464,30 @@ theorem Complex.intervalIntegral_linearFourier_eq_secondDerivative
           (Complex.linearFourierPhaseDerivative frequency) right = 0 := by
     unfold Complex.realPhaseAmplitudeCoefficient
     unfold Complex.linearFourierFirstAmplitude
-    exact congrArg
+    exact ((congrArg
       (fun value : ℂ => value * Complex.linearFourierCoefficient frequency *
         Complex.realPhaseIntegrationCoefficient
           (Complex.linearFourierPhaseDerivative frequency) right)
-      hamplitudeDerivativeRight
+      hamplitudeDerivativeRight).trans
+        ((congrArg (fun value : ℂ => value *
+          Complex.realPhaseIntegrationCoefficient
+            (Complex.linearFourierPhaseDerivative frequency) right)
+          (zero_mul _)).trans (zero_mul _)))
   have hsecondBoundaryLeft :
       Complex.realPhaseAmplitudeCoefficient
           (Complex.linearFourierFirstAmplitude amplitudeDerivative frequency)
           (Complex.linearFourierPhaseDerivative frequency) left = 0 := by
     unfold Complex.realPhaseAmplitudeCoefficient
     unfold Complex.linearFourierFirstAmplitude
-    exact congrArg
+    exact ((congrArg
       (fun value : ℂ => value * Complex.linearFourierCoefficient frequency *
         Complex.realPhaseIntegrationCoefficient
           (Complex.linearFourierPhaseDerivative frequency) left)
-      hamplitudeDerivativeLeft
+      hamplitudeDerivativeLeft).trans
+        ((congrArg (fun value : ℂ => value *
+          Complex.realPhaseIntegrationCoefficient
+            (Complex.linearFourierPhaseDerivative frequency) left)
+          (zero_mul _)).trans (zero_mul _)))
   have hsecondReduced :
       (∫ x in left..right,
           Complex.linearFourierFirstAmplitude amplitudeDerivative frequency x *
@@ -498,11 +533,11 @@ theorem Complex.intervalIntegral_linearFourier_eq_secondDerivative
         intro x hx
         exact Complex.linearFourierFirstAmplitudeCoefficientDerivative_eq_secondAmplitude
           amplitudeDerivative amplitudeSecondDerivative frequency x
-      have hintegral := intervalIntegral.integral_congr
+      have hintegral := intervalIntegral.integral_congr (μ := volume)
         (fun x hx => congrArg
           (fun value : ℂ => value * Complex.realPhaseOscillation
             (Complex.linearFourierPhase frequency) x)
-          (hintegrand x hx))
+          (hintegrand hx))
       calc
         Complex.realPhaseAmplitudeCoefficient
               (Complex.linearFourierFirstAmplitude amplitudeDerivative frequency)
@@ -550,7 +585,17 @@ theorem Complex.intervalIntegral_linearFourier_eq_secondDerivative
                   (Complex.linearFourierPhaseDerivative frequency) x *
                 Complex.realPhaseOscillation
                   (Complex.linearFourierPhase frequency) x := by
-            exact Eq.trans (zero_sub 0) (zero_sub _)
+            exact (congrArg
+              (fun value : ℂ => value -
+                ∫ x in left..right,
+                  Complex.realPhaseAmplitudeCoefficientDerivative
+                    (Complex.linearFourierFirstAmplitude amplitudeDerivative frequency)
+                    (Complex.linearFourierSecondAmplitude amplitudeSecondDerivative frequency)
+                    (fun _x : ℝ => 0)
+                    (Complex.linearFourierPhaseDerivative frequency) x *
+                    Complex.realPhaseOscillation
+                      (Complex.linearFourierPhase frequency) x)
+              (sub_self (0 : ℂ))).trans (zero_sub _)
         _ = -∫ x in left..right,
               amplitudeSecondDerivative x *
                 (Complex.linearFourierCoefficient frequency) ^ 2 *
@@ -605,7 +650,7 @@ theorem Complex.norm_intervalIntegral_linearFourier_le_inverseSquare_integral
       ∫ x in left..right,
         ‖amplitudeSecondDerivative x‖ * ‖frequency‖⁻¹ ^ 2 := by
   have hnorm := intervalIntegral.norm_integral_le_integral_norm
-    hleftRight
+    (μ := volume) hleftRight
     (f := fun x : ℝ =>
       amplitudeSecondDerivative x *
         (Complex.linearFourierCoefficient frequency) ^ 2 *
@@ -623,7 +668,7 @@ theorem Complex.norm_intervalIntegral_linearFourier_le_inverseSquare_integral
     intro x hx
     exact Complex.linearFourier_twiceIntegrated_integrand_norm
       amplitudeSecondDerivative frequency x
-  have hintegral := intervalIntegral.integral_congr hintegrand
+  have hintegral := intervalIntegral.integral_congr (μ := volume) hintegrand
   have htransported :
       ‖∫ x in left..right,
           amplitude x * Complex.realPhaseOscillation
