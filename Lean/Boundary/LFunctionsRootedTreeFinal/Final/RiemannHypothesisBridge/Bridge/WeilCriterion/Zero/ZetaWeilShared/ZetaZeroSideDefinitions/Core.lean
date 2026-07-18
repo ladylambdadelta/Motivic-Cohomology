@@ -27,7 +27,20 @@ namespace LFunctions
 noncomputable section
 
 open Complex Filter MeasureTheory
-open scoped Topology
+open scoped Topology ComplexConjugate
+
+theorem conj_zero : conj (0 : ℂ) = 0 :=
+  map_zero (starRingEnd ℂ)
+
+theorem conj_one : conj (1 : ℂ) = 1 :=
+  map_one (starRingEnd ℂ)
+
+theorem conj_half : conj (1 / 2 : ℂ) = 1 / 2 := by
+  calc
+    conj (1 / 2 : ℂ) = conj (1 : ℂ) / conj (2 : ℂ) :=
+      map_div₀ (starRingEnd ℂ) 1 2
+    _ = 1 / 2 := by
+      exact congrArg₂ HDiv.hDiv (conj_one) (Complex.conj_natCast 2)
 
 /-- Owner-level name for the completed zeta function in zero-side local proofs. -/
 def completedRiemannZetaFunction (s : ℂ) : ℂ :=
@@ -63,6 +76,428 @@ theorem centeredCompletedRiemannZetaFunction_eq_completedRiemannZetaFunction_shi
 
 attribute [irreducible] completedRiemannZetaFunction
 attribute [irreducible] centeredCompletedRiemannZetaFunction
+
+/-- Mellin transforms of pointwise real-valued complex functions commute with
+complex conjugation.  This is the analytic real-structure input used below for
+the completed zeta function. -/
+theorem mellin_conj_of_pointwise_conj
+    (F : ℝ → ℂ)
+    (hF : ∀ t : ℝ, conj (F t) = F t)
+    (s : ℂ) :
+    mellin F (conj s) = conj (mellin F s) := by
+  unfold mellin
+  calc
+    ∫ t : ℝ in Set.Ioi 0, (t : ℂ) ^ (conj s - 1) • F t =
+        ∫ t : ℝ in Set.Ioi 0, conj ((t : ℂ) ^ (s - 1) • F t) := by
+      exact
+        setIntegral_congr_fun measurableSet_Ioi
+          (fun t ht => by
+            have ht_pos : 0 < t := ht
+            have hExponent : conj s - 1 = conj (s - 1) := by
+              calc
+                conj s - 1 = conj s - conj 1 := by
+                  exact congrArg (fun value : ℂ => conj s - value) conj_one.symm
+                _ = conj (s - 1) := by
+                  exact (map_sub (conj : ℂ →+* ℂ) s 1).symm
+            have hArgument : (t : ℂ).arg ≠ Real.pi := by
+              intro hArgument
+              have hZeroPi : (0 : ℝ) = Real.pi := by
+                exact
+                  Eq.trans
+                    (Complex.arg_ofReal_of_nonneg ht_pos.le).symm
+                    hArgument
+              exact Real.pi_ne_zero hZeroPi.symm
+            have hPower :
+                (t : ℂ) ^ (conj s - 1) = conj ((t : ℂ) ^ (s - 1)) := by
+              calc
+                (t : ℂ) ^ (conj s - 1) =
+                    (t : ℂ) ^ (conj (s - 1)) := by
+                      exact congrArg (fun exponent : ℂ => (t : ℂ) ^ exponent) hExponent
+                _ = conj (conj (t : ℂ) ^ (s - 1)) := by
+                      exact Complex.cpow_conj (t : ℂ) (s - 1) hArgument
+                _ = conj ((t : ℂ) ^ (s - 1)) := by
+                      have htconj : conj (t : ℂ) = (t : ℂ) :=
+                        Complex.conj_ofReal t
+                      exact congrArg (fun base : ℂ => conj (base ^ (s - 1))) htconj
+            calc
+              (t : ℂ) ^ (conj s - 1) • F t =
+                  (t : ℂ) ^ (conj s - 1) * F t := by
+                    exact rfl
+              _ = conj ((t : ℂ) ^ (s - 1)) * conj (F t) := by
+                    exact
+                      Eq.trans
+                        (congrArg (fun value : ℂ => value * F t) hPower)
+                        (congrArg
+                          (fun value : ℂ => conj ((t : ℂ) ^ (s - 1)) * value)
+                          (hF t).symm)
+              _ = conj ((t : ℂ) ^ (s - 1)) * F t := by
+                    exact congrArg (fun value : ℂ => conj ((t : ℂ) ^ (s - 1)) * value)
+                      (hF t)
+              _ = conj ((t : ℂ) ^ (s - 1) * F t) := by
+                    exact
+                      Eq.trans
+                        (congrArg
+                          (fun value : ℂ => conj ((t : ℂ) ^ (s - 1)) * value)
+                          (hF t).symm)
+                        (map_mul (conj : ℂ →+* ℂ)
+                          ((t : ℂ) ^ (s - 1)) (F t)).symm
+              _ = conj ((t : ℂ) ^ (s - 1) • F t) := by
+                    exact
+                      congrArg (fun value : ℂ => conj value)
+                        (show ((t : ℂ) ^ (s - 1) • F t) =
+                          (t : ℂ) ^ (s - 1) * F t from rfl).symm)
+    _ = conj (∫ t : ℝ in Set.Ioi 0, (t : ℂ) ^ (s - 1) • F t) := by
+      exact integral_conj
+
+/-- The even Hurwitz kernel at the Riemann parameter has real values when
+viewed in the complex scalar field. -/
+theorem hurwitzEvenKernel_zero_conj
+    (t : ℝ) :
+    conj (HurwitzZeta.evenKernel 0 t : ℂ) =
+      (HurwitzZeta.evenKernel 0 t : ℂ) := by
+  exact Complex.conj_ofReal (HurwitzZeta.evenKernel 0 t)
+
+/-- The first kernel of the Riemann functional-equation pair is the complex
+embedding of the real even Hurwitz kernel. -/
+theorem hurwitzEvenFEPair_zero_f_apply
+    (t : ℝ) :
+    (HurwitzZeta.hurwitzEvenFEPair 0).f t =
+      (HurwitzZeta.evenKernel 0 t : ℂ) := by
+  rfl
+
+/-- The Riemann functional-equation pair has unit root number. -/
+theorem hurwitzEvenFEPair_zero_epsilon :
+    (HurwitzZeta.hurwitzEvenFEPair 0).ε = 1 := by
+  rfl
+
+/-- The Riemann functional-equation pair has weight one half. -/
+theorem hurwitzEvenFEPair_zero_k :
+    (HurwitzZeta.hurwitzEvenFEPair 0).k = (1 / 2 : ℝ) := by
+  rfl
+
+/-- The first constant term of the Riemann functional-equation pair is one. -/
+theorem hurwitzEvenFEPair_zero_f_zero :
+    (HurwitzZeta.hurwitzEvenFEPair 0).f₀ = 1 := by
+  change (if (0 : UnitAddCircle) = 0 then 1 else 0) = 1
+  exact if_pos rfl
+
+/-- The second constant term of the Riemann functional-equation pair is one. -/
+theorem hurwitzEvenFEPair_zero_g_zero :
+    (HurwitzZeta.hurwitzEvenFEPair 0).g₀ = 1 := by
+  rfl
+
+/-- On the upper support branch, the modified Riemann kernel is the even
+Hurwitz kernel minus its constant term. -/
+theorem hurwitzEvenFEPair_zero_f_modif_of_one_lt
+    {t : ℝ}
+    (ht : 1 < t) :
+    (HurwitzZeta.hurwitzEvenFEPair 0).f_modif t =
+      (HurwitzZeta.evenKernel 0 t : ℂ) - 1 := by
+  let P : WeakFEPair ℂ := HurwitzZeta.hurwitzEvenFEPair 0
+  have htIoi : t ∈ Set.Ioi 1 := ht
+  have htNotIoo : t ∉ Set.Ioo 0 1 :=
+    Set.not_mem_Ioo_of_ge ht.le
+  have hSupport :
+      P.f_modif t = P.f t - P.f₀ := by
+    calc
+      P.f_modif t =
+          (Set.Ioi 1).indicator (fun x : ℝ => P.f x - P.f₀) t +
+            (Set.Ioo 0 1).indicator
+              (fun x : ℝ =>
+                P.f x - (P.ε * ((x ^ (-P.k) : ℝ) : ℂ)) • P.g₀)
+                t := by
+          rfl
+      _ = (P.f t - P.f₀) + 0 := by
+          exact
+            congrArg₂ HAdd.hAdd
+              (Set.indicator_of_mem htIoi (fun x : ℝ => P.f x - P.f₀))
+              (Set.indicator_of_not_mem htNotIoo
+                (fun x : ℝ => P.f x - (P.ε * ((x ^ (-P.k) : ℝ) : ℂ)) • P.g₀))
+      _ = P.f t - P.f₀ := add_zero (P.f t - P.f₀)
+  change P.f_modif t = (HurwitzZeta.evenKernel 0 t : ℂ) - 1
+  calc
+    P.f_modif t = P.f t - P.f₀ := hSupport
+    _ = (HurwitzZeta.evenKernel 0 t : ℂ) - 1 := by
+      exact
+        congrArg₂ HSub.hSub
+          (hurwitzEvenFEPair_zero_f_apply t)
+          hurwitzEvenFEPair_zero_f_zero
+
+/-- On the middle support branch, the modified Riemann kernel is the raw
+kernel minus the explicit functional-equation correction. -/
+theorem hurwitzEvenFEPair_zero_f_modif_of_mem_Ioo
+    {t : ℝ}
+    (ht : t ∈ Set.Ioo 0 1) :
+    (HurwitzZeta.hurwitzEvenFEPair 0).f_modif t =
+      (HurwitzZeta.hurwitzEvenFEPair 0).f t -
+        ((HurwitzZeta.hurwitzEvenFEPair 0).ε *
+          ((t ^ (-(HurwitzZeta.hurwitzEvenFEPair 0).k) : ℝ) : ℂ)) •
+            (HurwitzZeta.hurwitzEvenFEPair 0).g₀ := by
+  let P : WeakFEPair ℂ := HurwitzZeta.hurwitzEvenFEPair 0
+  have htNotIoi : t ∉ Set.Ioi 1 :=
+    Set.not_mem_Ioi.mpr ht.2.le
+  have hSupport :
+      P.f_modif t =
+        P.f t - (P.ε * ((t ^ (-P.k) : ℝ) : ℂ)) • P.g₀ := by
+    calc
+      P.f_modif t =
+          (Set.Ioi 1).indicator (fun x : ℝ => P.f x - P.f₀) t +
+            (Set.Ioo 0 1).indicator
+              (fun x : ℝ =>
+                P.f x - (P.ε * ((x ^ (-P.k) : ℝ) : ℂ)) • P.g₀)
+                t := by
+          rfl
+      _ = 0 + (P.f t - (P.ε * ((t ^ (-P.k) : ℝ) : ℂ)) • P.g₀) := by
+          exact
+            congrArg₂ HAdd.hAdd
+              (Set.indicator_of_not_mem htNotIoi
+                (fun x : ℝ => P.f x - P.f₀))
+              (Set.indicator_of_mem ht
+                (fun x : ℝ => P.f x - (P.ε * ((x ^ (-P.k) : ℝ) : ℂ)) • P.g₀))
+      _ = P.f t - (P.ε * ((t ^ (-P.k) : ℝ) : ℂ)) • P.g₀ := by
+          exact zero_add (P.f t - (P.ε * ((t ^ (-P.k) : ℝ) : ℂ)) • P.g₀)
+  exact hSupport
+
+/-- The middle support branch is a difference of two real-valued complex
+terms after evaluating the Riemann functional-equation pair. -/
+theorem hurwitzEvenFEPair_zero_f_modif_middle_normalForm
+    {t : ℝ}
+    (ht : t ∈ Set.Ioo 0 1) :
+    (HurwitzZeta.hurwitzEvenFEPair 0).f_modif t =
+      (HurwitzZeta.evenKernel 0 t : ℂ) -
+        ((t ^ (-(1 / 2 : ℝ)) : ℝ) : ℂ) := by
+  have hBranch := hurwitzEvenFEPair_zero_f_modif_of_mem_Ioo ht
+  calc
+    (HurwitzZeta.hurwitzEvenFEPair 0).f_modif t =
+        (HurwitzZeta.hurwitzEvenFEPair 0).f t -
+          ((HurwitzZeta.hurwitzEvenFEPair 0).ε *
+            ((t ^ (-(HurwitzZeta.hurwitzEvenFEPair 0).k) : ℝ) : ℂ)) •
+              (HurwitzZeta.hurwitzEvenFEPair 0).g₀ := hBranch
+    _ = (HurwitzZeta.evenKernel 0 t : ℂ) -
+          ((1 : ℂ) * ((t ^ (-(1 / 2 : ℝ)) : ℝ) : ℂ)) • (1 : ℂ) := by
+      exact
+        congrArg₂ HSub.hSub
+          (hurwitzEvenFEPair_zero_f_apply t)
+          (congrArg₂ HSMul.hSMul
+            (congrArg₂ HMul.hMul
+              hurwitzEvenFEPair_zero_epsilon
+              (congrArg
+                (fun exponent : ℝ => ((t ^ (-exponent) : ℝ) : ℂ))
+                hurwitzEvenFEPair_zero_k))
+            hurwitzEvenFEPair_zero_g_zero)
+    _ = (HurwitzZeta.evenKernel 0 t : ℂ) -
+          ((t ^ (-(1 / 2 : ℝ)) : ℝ) : ℂ) := by
+      exact
+        congrArg
+          (fun correction : ℂ => (HurwitzZeta.evenKernel 0 t : ℂ) - correction)
+          (calc
+            ((1 : ℂ) * ((t ^ (-(1 / 2 : ℝ)) : ℝ) : ℂ)) • (1 : ℂ) =
+                ((1 : ℂ) * ((t ^ (-(1 / 2 : ℝ)) : ℝ) : ℂ)) * (1 : ℂ) := by
+                  exact rfl
+            _ = ((t ^ (-(1 / 2 : ℝ)) : ℝ) : ℂ) := by
+                  exact
+                    Eq.trans
+                      (mul_one ((1 : ℂ) * ((t ^ (-(1 / 2 : ℝ)) : ℝ) : ℂ)))
+                      (one_mul ((t ^ (-(1 / 2 : ℝ)) : ℝ) : ℂ)))
+
+/-- Outside both support regions, the modified Riemann kernel vanishes. -/
+theorem hurwitzEvenFEPair_zero_f_modif_eq_zero_of_outside
+    {t : ℝ}
+    (htIoi : t ∉ Set.Ioi 1)
+    (htIoo : t ∉ Set.Ioo 0 1) :
+    (HurwitzZeta.hurwitzEvenFEPair 0).f_modif t = 0 := by
+  let P : WeakFEPair ℂ := HurwitzZeta.hurwitzEvenFEPair 0
+  have hSupport : P.f_modif t = 0 := by
+    calc
+      P.f_modif t =
+          (Set.Ioi 1).indicator (fun x : ℝ => P.f x - P.f₀) t +
+            (Set.Ioo 0 1).indicator
+              (fun x : ℝ =>
+                P.f x - (P.ε * ((x ^ (-P.k) : ℝ) : ℂ)) • P.g₀)
+                t := by
+          rfl
+      _ = 0 + 0 := by
+          exact
+            congrArg₂ HAdd.hAdd
+              (Set.indicator_of_not_mem htIoi (fun x : ℝ => P.f x - P.f₀))
+              (Set.indicator_of_not_mem htIoo
+                (fun x : ℝ => P.f x - (P.ε * ((x ^ (-P.k) : ℝ) : ℂ)) • P.g₀))
+      _ = 0 := zero_add 0
+  exact hSupport
+
+/-- The modified Riemann kernel is pointwise fixed by complex conjugation. -/
+theorem hurwitzEvenFEPair_zero_f_modif_conj
+    (t : ℝ) :
+    conj ((HurwitzZeta.hurwitzEvenFEPair 0).f_modif t) =
+      (HurwitzZeta.hurwitzEvenFEPair 0).f_modif t := by
+  by_cases hTop : 1 < t
+  · have hBranch := hurwitzEvenFEPair_zero_f_modif_of_one_lt hTop
+    calc
+      conj ((HurwitzZeta.hurwitzEvenFEPair 0).f_modif t) =
+          conj ((HurwitzZeta.evenKernel 0 t : ℂ) - 1) := by
+            exact congrArg (fun value : ℂ => conj value) hBranch
+      _ = conj (HurwitzZeta.evenKernel 0 t : ℂ) - conj 1 := by
+            exact map_sub (conj : ℂ →+* ℂ)
+              (HurwitzZeta.evenKernel 0 t : ℂ) 1
+      _ = (HurwitzZeta.evenKernel 0 t : ℂ) - 1 := by
+            exact
+              congrArg₂ HSub.hSub
+                (hurwitzEvenKernel_zero_conj t)
+                conj_one
+      _ = (HurwitzZeta.hurwitzEvenFEPair 0).f_modif t := hBranch.symm
+  · have hTopSet : t ∉ Set.Ioi 1 :=
+      Set.not_mem_Ioi.mpr (not_lt.mp hTop)
+    by_cases hMiddle : t ∈ Set.Ioo 0 1
+    · have hBranch := hurwitzEvenFEPair_zero_f_modif_middle_normalForm hMiddle
+      calc
+        conj ((HurwitzZeta.hurwitzEvenFEPair 0).f_modif t) =
+            conj ((HurwitzZeta.evenKernel 0 t : ℂ) -
+              ((t ^ (-(1 / 2 : ℝ)) : ℝ) : ℂ)) := by
+              exact congrArg (fun value : ℂ => conj value) hBranch
+        _ = conj (HurwitzZeta.evenKernel 0 t : ℂ) -
+              conj ((t ^ (-(1 / 2 : ℝ)) : ℝ) : ℂ) := by
+              exact map_sub (conj : ℂ →+* ℂ)
+                (HurwitzZeta.evenKernel 0 t : ℂ)
+                ((t ^ (-(1 / 2 : ℝ)) : ℝ) : ℂ)
+        _ = (HurwitzZeta.evenKernel 0 t : ℂ) -
+              ((t ^ (-(1 / 2 : ℝ)) : ℝ) : ℂ) := by
+              exact
+                congrArg₂ HSub.hSub
+                  (hurwitzEvenKernel_zero_conj t)
+                  (Complex.conj_ofReal (t ^ (-(1 / 2 : ℝ))))
+        _ = (HurwitzZeta.hurwitzEvenFEPair 0).f_modif t := hBranch.symm
+    · have hZero :=
+        hurwitzEvenFEPair_zero_f_modif_eq_zero_of_outside hTopSet hMiddle
+      calc
+        conj ((HurwitzZeta.hurwitzEvenFEPair 0).f_modif t) = conj 0 :=
+            congrArg (fun value : ℂ => conj value) hZero
+        _ = 0 := conj_zero
+        _ = (HurwitzZeta.hurwitzEvenFEPair 0).f_modif t := hZero.symm
+
+/-- The pole-cleared completed Riemann zeta function has real structure. -/
+theorem completedRiemannZeta₀_conj
+    (s : ℂ) :
+    completedRiemannZeta₀ (conj s) = conj (completedRiemannZeta₀ s) := by
+  let P : WeakFEPair ℂ := HurwitzZeta.hurwitzEvenFEPair 0
+  have hArgument : conj s / 2 = conj (s / 2) := by
+    calc
+      conj s / 2 = conj s / conj 2 := by
+        exact congrArg (fun denominator : ℂ => conj s / denominator)
+          (Complex.conj_natCast 2).symm
+      _ = conj (s / 2) := by
+        exact (map_div₀ (conj : ℂ →+* ℂ) s 2).symm
+  change P.Λ₀ (conj s / 2) / 2 = conj (P.Λ₀ (s / 2) / 2)
+  calc
+    P.Λ₀ (conj s / 2) / 2 = P.Λ₀ (conj (s / 2)) / 2 := by
+      exact congrArg (fun argument : ℂ => P.Λ₀ argument / 2) hArgument
+    _ = conj (P.Λ₀ (s / 2)) / 2 := by
+      exact
+        congrArg (fun value : ℂ => value / 2)
+          (mellin_conj_of_pointwise_conj P.f_modif
+            (by
+              intro t
+              exact hurwitzEvenFEPair_zero_f_modif_conj t)
+            (s / 2))
+    _ = conj (P.Λ₀ (s / 2) / 2) := by
+      exact
+        (Eq.trans
+          (map_div₀ (conj : ℂ →+* ℂ) (P.Λ₀ (s / 2)) 2)
+            (congrArg (fun denominator : ℂ => conj (P.Λ₀ (s / 2)) / denominator)
+              (Complex.conj_natCast 2))).symm
+
+/-- The completed Riemann zeta function has real structure. -/
+theorem completedRiemannZeta_conj
+    (s : ℂ) :
+    completedRiemannZeta (conj s) = conj (completedRiemannZeta s) := by
+  have hFirstPole : 1 / conj s = conj (1 / s) := by
+    calc
+      1 / conj s = conj 1 / conj s := by
+        exact congrArg (fun numerator : ℂ => numerator / conj s) conj_one.symm
+      _ = conj (1 / s) := by
+        exact (map_div₀ (conj : ℂ →+* ℂ) 1 s).symm
+  have hSecondDenominator : 1 - conj s = conj (1 - s) := by
+    calc
+      1 - conj s = conj 1 - conj s := by
+        exact congrArg (fun value : ℂ => value - conj s) conj_one.symm
+      _ = conj (1 - s) := by
+        exact (map_sub (conj : ℂ →+* ℂ) 1 s).symm
+  have hSecondPole : 1 / (1 - conj s) = conj (1 / (1 - s)) := by
+    calc
+      1 / (1 - conj s) = 1 / conj (1 - s) := by
+        exact congrArg (fun denominator : ℂ => 1 / denominator) hSecondDenominator
+      _ = conj 1 / conj (1 - s) := by
+        exact congrArg (fun numerator : ℂ => numerator / conj (1 - s)) conj_one.symm
+      _ = conj (1 / (1 - s)) := by
+        exact (map_div₀ (conj : ℂ →+* ℂ) 1 (1 - s)).symm
+  calc
+    completedRiemannZeta (conj s) =
+        completedRiemannZeta₀ (conj s) - 1 / conj s - 1 / (1 - conj s) :=
+      completedRiemannZeta_eq (conj s)
+    _ = conj (completedRiemannZeta₀ s) - conj (1 / s) -
+          conj (1 / (1 - s)) := by
+      exact
+        congrArg₂ HSub.hSub
+          (congrArg₂ HSub.hSub
+            (completedRiemannZeta₀_conj s)
+            hFirstPole)
+          hSecondPole
+    _ = conj (completedRiemannZeta₀ s - 1 / s - 1 / (1 - s)) := by
+      have hmap :
+          conj (completedRiemannZeta₀ s - 1 / s - 1 / (1 - s)) =
+            (conj (completedRiemannZeta₀ s) - conj (1 / s)) -
+              conj (1 / (1 - s)) := by
+        exact
+          Eq.trans
+            (map_sub (conj : ℂ →+* ℂ)
+              (completedRiemannZeta₀ s - 1 / s)
+              (1 / (1 - s)))
+            (congrArg
+              (fun value : ℂ => value - conj (1 / (1 - s)))
+              (map_sub (conj : ℂ →+* ℂ)
+                (completedRiemannZeta₀ s)
+                (1 / s)))
+      exact hmap.symm
+    _ = conj (completedRiemannZeta s) := by
+      exact congrArg (fun value : ℂ => conj value) (completedRiemannZeta_eq s).symm
+
+/-- The centered completed Riemann zeta function has real structure. -/
+theorem centeredCompletedRiemannZeta_conj
+    (z : ℂ) :
+    centeredCompletedRiemannZeta z = conj (centeredCompletedRiemannZeta (conj z)) := by
+  calc
+    centeredCompletedRiemannZeta z = completedRiemannZeta ((1 / 2 : ℂ) + z) := by
+      rfl
+    _ = conj (completedRiemannZeta (conj ((1 / 2 : ℂ) + z))) := by
+      exact
+        Eq.trans
+          (Eq.symm (Complex.conj_conj (completedRiemannZeta ((1 / 2 : ℂ) + z))))
+          (congrArg (fun value : ℂ => conj value)
+            (completedRiemannZeta_conj ((1 / 2 : ℂ) + z)).symm)
+    _ = conj (completedRiemannZeta ((1 / 2 : ℂ) + conj z)) := by
+      exact
+        congrArg (fun value : ℂ => conj (completedRiemannZeta value))
+          (calc
+            conj ((1 / 2 : ℂ) + z) = conj (1 / 2 : ℂ) + conj z :=
+              map_add (conj : ℂ →+* ℂ) (1 / 2) z
+            _ = (1 / 2 : ℂ) + conj z := by
+              exact congrArg (fun value : ℂ => value + conj z)
+                conj_half)
+    _ = conj (centeredCompletedRiemannZeta (conj z)) := by
+      rfl
+
+/-- Conjugation transport in the forward centered-completed-zeta direction. -/
+theorem centeredCompletedRiemannZeta_conj_apply
+    (z : ℂ) :
+    centeredCompletedRiemannZeta (conj z) =
+      conj (centeredCompletedRiemannZeta z) := by
+  calc
+    centeredCompletedRiemannZeta (conj z) =
+        conj (centeredCompletedRiemannZeta (conj (conj z))) :=
+      centeredCompletedRiemannZeta_conj (conj z)
+    _ = conj (centeredCompletedRiemannZeta z) := by
+      exact
+        congrArg (fun argument : ℂ => conj (centeredCompletedRiemannZeta argument))
+          (Complex.conj_conj z)
 
 private theorem complex_neg_neg_half :
     - (-(1 / 2 : ℂ)) = (1 / 2 : ℂ) :=
@@ -204,6 +639,48 @@ theorem zetaCompletedZero_neg
         exact (centeredCompletedRiemannZetaFunction_eq ρ).symm
       _ = 0 := zetaCompletedZero_zero_of_prop hρ
   exact zetaCompletedZero_mk hneg hpos hzero
+
+/-- The completed-zero locus is stable under complex conjugation. -/
+theorem zetaCompletedZero_conj
+    {ρ : ℂ}
+    (hρ : ZetaCompletedZero ρ) :
+    ZetaCompletedZero (conj ρ) := by
+  have hneg : conj ρ ≠ -(1 / 2 : ℂ) := by
+    intro hneg
+    apply hρ.1
+    calc
+      ρ = conj (conj ρ) := (Complex.conj_conj ρ).symm
+      _ = conj (-(1 / 2 : ℂ)) := by
+        exact congrArg (fun value : ℂ => conj value) hneg
+      _ = -(1 / 2 : ℂ) := by
+        calc
+          conj (-(1 / 2 : ℂ)) = -conj (1 / 2 : ℂ) :=
+            map_neg (conj : ℂ →+* ℂ) (1 / 2 : ℂ)
+          _ = -(1 / 2 : ℂ) := by
+            exact congrArg Neg.neg conj_half
+  have hpos : conj ρ ≠ (1 / 2 : ℂ) := by
+    intro hpos
+    apply hρ.2.1
+    calc
+      ρ = conj (conj ρ) := (Complex.conj_conj ρ).symm
+      _ = conj (1 / 2 : ℂ) := by
+        exact congrArg (fun value : ℂ => conj value) hpos
+      _ = (1 / 2 : ℂ) := conj_half
+  have hzero : centeredCompletedRiemannZetaFunction (conj ρ) = 0 := by
+    calc
+      centeredCompletedRiemannZetaFunction (conj ρ) =
+          centeredCompletedRiemannZeta (conj ρ) :=
+        centeredCompletedRiemannZetaFunction_eq (conj ρ)
+      _ = conj (centeredCompletedRiemannZeta ρ) :=
+        centeredCompletedRiemannZeta_conj_apply ρ
+      _ = conj (centeredCompletedRiemannZetaFunction ρ) := by
+        exact
+          congrArg (fun value : ℂ => conj value)
+            (centeredCompletedRiemannZetaFunction_eq ρ).symm
+      _ = conj 0 := by
+        exact congrArg (fun value : ℂ => conj value) hρ.2.2
+      _ = 0 := conj_zero
+  exact ⟨hneg, hpos, hzero⟩
 
 /-- The multiplicity of a completed zeta zero.
 

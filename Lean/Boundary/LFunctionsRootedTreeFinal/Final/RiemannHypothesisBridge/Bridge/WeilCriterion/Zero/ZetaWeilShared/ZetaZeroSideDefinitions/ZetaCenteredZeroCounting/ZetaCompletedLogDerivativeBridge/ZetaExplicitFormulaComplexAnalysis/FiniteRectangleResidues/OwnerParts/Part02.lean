@@ -33,12 +33,12 @@ theorem explicitFormulaScheduledRectangleContourIntegral_eq_residueSum_add_error
   let T : ℝ := h.height_schedule.height u
   have hbase :
       zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) =
-        explicitFormulaCompletedZeroHeightWindowResidueSum f T +
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f T +
           explicitFormulaFamilyResidueWindowError f F T :=
     zetaCompletedExplicitFormulaContourIntegral_eq_heightWindowResidueSum_add_error f F T
   have hpointwise :
       explicitFormulaScheduledRectangleResidueSum f F h u =
-        explicitFormulaCompletedZeroHeightWindowResidueSum f T := by
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f T := by
     rfl
   have herror :
       explicitFormulaScheduledRectangleResidueEqualityError f F h u =
@@ -97,9 +97,9 @@ theorem explicitFormulaRectangleContourIntegral_eq_heightWindowResidueSum_of_avo
     (havoid : explicitFormulaContourFamilyAvoidsSingularBoundary F T)
     (hfinite :
       zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) =
-        explicitFormulaCompletedZeroHeightWindowResidueSum f T) :
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f T) :
     zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) =
-      explicitFormulaCompletedZeroHeightWindowResidueSum f T := by
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f T := by
   exact
     zetaCompletedExplicitFormulaRectangleContourIntegral_eq_heightWindowResidueSum_of_avoidsBoundary_of_finiteRectangleResidueTheorem
       f F h T havoid hfinite
@@ -117,13 +117,13 @@ theorem explicitFormulaRectangleContourIntegrand_boundaryRegular_of_avoidsBounda
     completedZetaContourIntegrand_regularAt_all_boundary_points_of_avoidsBoundary
       f F h T havoid
 
-/-- The completed-zero window used by the residue theorem is exactly the centered-height
-window in finite-set form. -/
-theorem explicitFormulaCompletedZeroHeightWindow_mem_iff_centeredHeight
+/-- The completed-zero window used by the residue theorem is exactly the open raw
+imaginary-height window. -/
+theorem explicitFormulaCompletedZeroContourHeightWindow_mem_iff_rawHeight
     (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
-    ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
-      ρ ∈ completedZerosInCenteredHeightBall T := by
-  exact mem_explicitFormulaCompletedZeroHeightWindow_iff T ρ
+    ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
+      |(completedZeroResidueCoordinate ρ).im| < T := by
+  exact mem_explicitFormulaCompletedZeroContourHeightWindow_iff T ρ
 
 /-- Local completed-zero residues are the summands of the named residue window. -/
 theorem explicitFormulaRectangle_completedZeroResidueWindow_summand
@@ -136,50 +136,50 @@ theorem explicitFormulaRectangle_completedZeroResidueWindow_summand
 height-window residue sum. -/
 theorem explicitFormulaRectangle_completedZeroResidueWindowSum_eq_heightWindowResidueSum
     (f : ZetaAdmissibleFunction) (T : ℝ) :
-    (∑ ρ in explicitFormulaCompletedZeroHeightWindow T,
+    (∑ ρ in explicitFormulaCompletedZeroContourHeightWindow T,
       explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ)) =
-      explicitFormulaCompletedZeroHeightWindowResidueSum f T := by
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f T := by
   rfl
 
-/-- Membership in the completed-zero height window unfolds to the centered-height cutoff. -/
-theorem explicitFormulaCompletedZeroHeightWindow_mem_iff_centeredHeight_le
+/-- Membership in the contour-height window unfolds to the raw imaginary cutoff. -/
+theorem explicitFormulaCompletedZeroContourHeightWindow_mem_iff_abs_im_lt
     (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
-    ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
-      zetaCompletedZeroCenteredHeight ρ ≤ T := by
-  exact mem_explicitFormulaCompletedZeroHeightWindow_iff T ρ
+    ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
+      |(completedZeroResidueCoordinate ρ).im| < T := by
+  exact mem_explicitFormulaCompletedZeroContourHeightWindow_iff T ρ
 
-/-- A completed zero in the finite height window has its centered height bounded by `T`. -/
-theorem explicitFormulaCompletedZeroHeightWindow_centeredHeight_le
+/-- A completed zero in the contour window has raw imaginary height below `T`. -/
+theorem explicitFormulaCompletedZeroContourHeightWindow_abs_im_lt
     (T : ℝ) {ρ : {ρ : ℂ // ZetaCompletedZero ρ}}
-    (hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T) :
-    zetaCompletedZeroCenteredHeight ρ ≤ T := by
+    (hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T) :
+    |(completedZeroResidueCoordinate ρ).im| < T := by
   exact
-    (explicitFormulaCompletedZeroHeightWindow_mem_iff_centeredHeight_le T ρ).mp hρ
+    (explicitFormulaCompletedZeroContourHeightWindow_mem_iff_abs_im_lt T ρ).mp hρ
 
-/-- A centered-height bound places a completed zero in the finite height window. -/
-theorem explicitFormulaCompletedZeroHeightWindow_mem_of_centeredHeight_le
+/-- A raw imaginary-height bound places a completed zero in the contour window. -/
+theorem explicitFormulaCompletedZeroContourHeightWindow_mem_of_abs_im_lt
     (T : ℝ) {ρ : {ρ : ℂ // ZetaCompletedZero ρ}}
-    (hρ : zetaCompletedZeroCenteredHeight ρ ≤ T) :
-    ρ ∈ explicitFormulaCompletedZeroHeightWindow T := by
+    (hρ : |(completedZeroResidueCoordinate ρ).im| < T) :
+    ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T := by
   exact
-    (explicitFormulaCompletedZeroHeightWindow_mem_iff_centeredHeight_le T ρ).mpr hρ
+    (explicitFormulaCompletedZeroContourHeightWindow_mem_iff_abs_im_lt T ρ).mpr hρ
 
 /-- Completed-zero height windows are monotone in the height cutoff.  This local
 alias keeps finite-rectangle residue-window comparisons inside the
 finite-rectangle owner layer. -/
-theorem explicitFormulaCompletedZeroHeightWindow_subset_of_le
+theorem explicitFormulaCompletedZeroContourHeightWindow_subset_of_le
     {S T : ℝ} (hST : S ≤ T) :
-    explicitFormulaCompletedZeroHeightWindow S ⊆
-      explicitFormulaCompletedZeroHeightWindow T :=
-  explicitFormulaCompletedZeroHeightWindow_mono hST
+    explicitFormulaCompletedZeroContourHeightWindow S ⊆
+      explicitFormulaCompletedZeroContourHeightWindow T :=
+  explicitFormulaCompletedZeroContourHeightWindow_mono hST
 
 /-- The completed-zero coordinates in the outer band between two height
 windows.  The parameter order is `(inner, outer)`. -/
 def explicitFormulaCompletedZeroHeightOuterBand (S T : ℝ) :
     Finset {ρ : ℂ // ZetaCompletedZero ρ} :=
-  (explicitFormulaCompletedZeroHeightWindow T).filter
+  (explicitFormulaCompletedZeroContourHeightWindow T).filter
     (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-      ρ ∉ explicitFormulaCompletedZeroHeightWindow S)
+      ρ ∉ explicitFormulaCompletedZeroContourHeightWindow S)
 
 /-- Residue contribution of the completed-zero outer band, defined as the
 exact difference of the outer and inner finite residue windows.
@@ -189,25 +189,25 @@ larger zero carrier, such as `S + 1`, to contain all interior zero
 singularities. -/
 noncomputable def explicitFormulaCompletedZeroHeightOuterBandResidueError
     (f : ZetaAdmissibleFunction) (S T : ℝ) : ℂ :=
-  explicitFormulaCompletedZeroHeightWindowResidueSum f T -
-    explicitFormulaCompletedZeroHeightWindowResidueSum f S
+  explicitFormulaCompletedZeroContourHeightWindowResidueSum f T -
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum f S
 
 /-- Enlarging a completed-zero residue window is exactly the inner window plus
 the named outer-band residue error. -/
-theorem explicitFormulaCompletedZeroHeightWindowResidueSum_eq_inner_add_outerBandResidueError
+theorem explicitFormulaCompletedZeroContourHeightWindowResidueSum_eq_inner_add_outerBandResidueError
     (f : ZetaAdmissibleFunction) (S T : ℝ) :
-    explicitFormulaCompletedZeroHeightWindowResidueSum f T =
-      explicitFormulaCompletedZeroHeightWindowResidueSum f S +
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum f T =
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f S +
         explicitFormulaCompletedZeroHeightOuterBandResidueError f S T := by
-  let A : ℂ := explicitFormulaCompletedZeroHeightWindowResidueSum f S
-  let B : ℂ := explicitFormulaCompletedZeroHeightWindowResidueSum f T
+  let A : ℂ := explicitFormulaCompletedZeroContourHeightWindowResidueSum f S
+  let B : ℂ := explicitFormulaCompletedZeroContourHeightWindowResidueSum f T
   calc
-    explicitFormulaCompletedZeroHeightWindowResidueSum f T = B := by
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum f T = B := by
       rfl
     _ = A + (B - A) := by
       exact (add_sub_cancel'_right A B).symm
     _ =
-        explicitFormulaCompletedZeroHeightWindowResidueSum f S +
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f S +
           explicitFormulaCompletedZeroHeightOuterBandResidueError f S T := by
       rfl
 
@@ -254,6 +254,66 @@ theorem explicitFormulaCompletedZero_mem_contourIntegrandSingularSet_ownerGap :
       _ = 0 := by
         exact zetaCompletedZero_zero ρ
   exact Or.inr (Or.inr ⟨hne_zero, hne_one, hzeta⟩)
+
+/-- The exact contour-height window is precisely the completed-zero singular carrier in
+the open rectangle. -/
+theorem explicitFormulaCompletedZeroContourHeightWindow_mem_iff_interiorSingular
+    (F : ExplicitFormulaContourFamily) (T : ℝ)
+    (rho : {rho : ℂ // ZetaCompletedZero rho}) :
+    rho ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
+      completedZeroResidueCoordinate rho ∈
+          explicitFormulaContourFamilyInterior F T ∧
+        completedZeroResidueCoordinate rho ∈
+          completedZetaContourIntegrandSingularSet := by
+  apply Iff.intro
+  · intro hrho
+    have himAbs : |(completedZeroResidueCoordinate rho).im| < T :=
+      (mem_explicitFormulaCompletedZeroContourHeightWindow_iff T rho).mp hrho
+    have him :
+        (completedZeroResidueCoordinate rho).im ∈ Set.Ioo (-T) T :=
+      abs_lt.mp himAbs
+    have hzeta :
+        completedRiemannZeta (completedZeroResidueCoordinate rho) = 0 :=
+      calc
+        completedRiemannZeta (completedZeroResidueCoordinate rho) =
+            completedRiemannZeta ((1 / 2 : ℂ) + (rho : ℂ)) := by
+          rfl
+        _ = centeredCompletedRiemannZeta (rho : ℂ) := by
+          exact
+            (centeredCompletedRiemannZeta_eq_completedRiemannZeta_shift
+              (rho : ℂ)).symm
+        _ = centeredCompletedRiemannZetaFunction (rho : ℂ) := by
+          exact (centeredCompletedRiemannZetaFunction_eq (rho : ℂ)).symm
+        _ = 0 := by
+          exact zetaCompletedZero_zero rho
+    have hstrip :
+        0 ≤ (completedZeroResidueCoordinate rho).re ∧
+          (completedZeroResidueCoordinate rho).re ≤ (1 : ℝ) :=
+      completedRiemannZeta_zero_re_mem_criticalStrip
+        (completedZeroResidueCoordinate rho) hzeta
+    have hleft :
+        1 - F.c < (completedZeroResidueCoordinate rho).re :=
+      lt_of_lt_of_le F.one_sub_c_neg hstrip.1
+    have hright :
+        (completedZeroResidueCoordinate rho).re < F.c :=
+      lt_of_le_of_lt hstrip.2 F.c_gt_one
+    have hre :
+        (completedZeroResidueCoordinate rho).re ∈ Set.uIoo F.c (1 - F.c) :=
+      Set.mem_uIoo_of_gt hleft hright
+    have hrectangle :
+        completedZeroResidueCoordinate rho ∈
+          explicitFormulaContourFamilyInterior F T :=
+      And.intro hre him
+    have hsingular :
+        completedZeroResidueCoordinate rho ∈
+          completedZetaContourIntegrandSingularSet :=
+      explicitFormulaCompletedZero_mem_contourIntegrandSingularSet_ownerGap rho
+    exact And.intro hrectangle hsingular
+  · intro hrho
+    have himAbs : |(completedZeroResidueCoordinate rho).im| < T :=
+      abs_lt.mpr hrho.1.2
+    exact
+      (mem_explicitFormulaCompletedZeroContourHeightWindow_iff T rho).mpr himAbs
 
 /-- Generic local analytic residue theorem for the logarithmic derivative at a zero of
 finite analytic order.

@@ -149,23 +149,26 @@ theorem zetaPacketAsEnsemble_eq_explicitFormulaPacket
 
 /-- The completed packet norm square is the completed boundary-defect Gram norm. -/
 theorem zetaCompletedPacketNormSq_eq_boundaryDefectGram (f : ZetaAdmissibleFunction) :
-    zetaCompletedPacketNormSq f 0 = zetaCompletedBoundaryDefectGram f := by
+    ZetaPacketEnsemble.normSq (canonicalZetaPacketAsEnsemble f) =
+      zetaCompletedBoundaryDefectGram f := by
   exact (zetaCompletedBoundaryDefectGram_eq_packetNormSq f).symm
 
 /-- The completed boundary-defect Gram norm is the completed packet norm square. -/
 theorem zetaCompletedBoundaryDefectGram_eq_completedPacketNormSq
     (f : ZetaAdmissibleFunction) :
-    zetaCompletedBoundaryDefectGram f = zetaCompletedPacketNormSq f 0 := by
+    zetaCompletedBoundaryDefectGram f =
+      ZetaPacketEnsemble.normSq (canonicalZetaPacketAsEnsemble f) := by
   exact zetaCompletedBoundaryDefectGram_eq_packetNormSq f
 
 /-- The completed packet norm square is nonnegative via the boundary-defect Gram. -/
 theorem zetaCompletedPacketNormSq_nonnegative_of_boundaryDefect
     (f : ZetaAdmissibleFunction) :
-    0 ≤ zetaCompletedPacketNormSq f 0 := by
+    0 ≤ ZetaPacketEnsemble.normSq (canonicalZetaPacketAsEnsemble f) := by
   have hboundary : 0 ≤ zetaCompletedBoundaryDefectGram f :=
     zetaCompletedBoundaryDefectGram_nonnegative f
   have hgram :
-      zetaCompletedBoundaryDefectGram f = zetaCompletedPacketNormSq f 0 :=
+      zetaCompletedBoundaryDefectGram f =
+        ZetaPacketEnsemble.normSq (canonicalZetaPacketAsEnsemble f) :=
     zetaCompletedBoundaryDefectGram_eq_completedPacketNormSq f
   exact Eq.subst (motive := fun x : ℝ => 0 ≤ x) hgram hboundary
 

@@ -37,7 +37,7 @@ theorem explicitFormulaScheduledProjectedRectangleResidueEqualityError_tendsto_z
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
             (F.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroHeightWindowResidueSum f
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
             (h.height_schedule.height u)) :
     Tendsto
       (fun u : ℝ =>
@@ -129,7 +129,7 @@ theorem explicitFormulaScheduledProjectedContourSpineError_tendsto_zero_ownerPro
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
             (F.toContourFamily.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroHeightWindowResidueSum f
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
             (h.height_schedule.height u)) :
     Tendsto
       (fun u : ℝ =>
@@ -217,7 +217,7 @@ theorem explicitFormulaScheduledProjectedContourSpineError_tendsto_zero_of_sched
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
             (F.toContourFamily.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroHeightWindowResidueSum f
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
             (h.height_schedule.height u)) :
     Tendsto
       (fun u : ℝ =>
@@ -330,7 +330,7 @@ theorem explicitFormulaFamilyContourZeroSideWindowError_tendsto_zero_core_ownerF
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
             (F.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroHeightWindowResidueSum f
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
             (h.height_schedule.height u)) :
     Tendsto
       (fun u : ℝ =>
@@ -409,7 +409,7 @@ theorem explicitFormulaFamilyVerticalZeroSideWindowError_tendsto_zero_core_owner
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
             (F.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroHeightWindowResidueSum f
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
             (h.height_schedule.height u)) :
     Tendsto
       (fun u : ℝ =>
@@ -486,7 +486,7 @@ theorem explicitFormulaFamilyVerticalZeroSideWindowError_tendsto_zero_of_schedul
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
             (F.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroHeightWindowResidueSum f
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
             (h.height_schedule.height u)) :
     Tendsto
       (fun u : ℝ =>
@@ -571,7 +571,7 @@ theorem explicitFormulaFamilyVerticalResidueWindowError_tendsto_zero_core_ownerF
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
             (F.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroHeightWindowResidueSum f
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
             (h.height_schedule.height u)) :
     Tendsto
       (fun u : ℝ =>
@@ -614,7 +614,7 @@ theorem explicitFormulaFamilyVerticalResidueWindowError_tendsto_zero_of_schedule
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
             (F.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroHeightWindowResidueSum f
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
             (h.height_schedule.height u)) :
     Tendsto
       (fun u : ℝ =>
@@ -668,7 +668,7 @@ theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_core_ownerResidueCa
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
             (F.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroHeightWindowResidueSum f
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
             (h.height_schedule.height u)) :
     Tendsto
       (fun u : ℝ =>
@@ -745,7 +745,7 @@ theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_of_scheduledCarrier
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
             (F.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroHeightWindowResidueSum f
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
             (h.height_schedule.height u)) :
     Tendsto
       (fun u : ℝ =>

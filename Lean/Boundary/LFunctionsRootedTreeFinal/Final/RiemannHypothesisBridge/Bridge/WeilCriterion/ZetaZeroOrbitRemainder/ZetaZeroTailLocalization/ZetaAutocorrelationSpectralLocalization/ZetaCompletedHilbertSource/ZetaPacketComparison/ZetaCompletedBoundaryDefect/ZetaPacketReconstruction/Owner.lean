@@ -2,6 +2,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaPacketComparison.ZetaCompletedBoundaryDefect.ZetaPacketReconstruction.ZetaPacketDecomposition.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaPacketComparison.ZetaCompletedBoundaryDefect.ZetaPacketReconstruction.ZetaPacketEnergy.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.SupportInterval.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.ZetaLogBoundaryDefect.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaPacketComparison.ZetaCompletionCorrection.Owner
 
@@ -78,6 +79,11 @@ def zetaPacketPrimeSupport (B : ℝ) : Finset (ℕ × ℕ) :=
     (Finset.range (Nat.ceil (Real.exp B) + 1))
     (Finset.range (Nat.ceil (Real.exp B) + 1))
 
+/-- The finite prime-power support determined by the actual support radius of a probe. -/
+noncomputable def canonicalZetaPacketPrimeSupport
+    (f : ZetaAdmissibleFunction) : Finset (ℕ × ℕ) :=
+  zetaPacketPrimeSupport (canonicalZetaPaleyWienerSupportRadius f)
+
 /-- The prime packet associated to an admissible function. -/
 def zetaPrimePacketAsEnsemble (f : ZetaAdmissibleFunction) (B : ℝ) :
     ZetaPacketEnsemble :=
@@ -87,6 +93,11 @@ def zetaPrimePacketAsEnsemble (f : ZetaAdmissibleFunction) (B : ℝ) :
       (Complex.re
         (zetaPrimePacketWeight (ZetaPacketLabel.prime ℓ.1 ℓ.2) •
           ZetaTestFunction.primePacketTranslationDefect ℓ.1 ℓ.2 f.toZetaTestFunction' 0))
+
+/-- The canonical prime packet uses the probe-dependent compact-support cutoff. -/
+noncomputable def canonicalZetaPrimePacketAsEnsemble
+    (f : ZetaAdmissibleFunction) : ZetaPacketEnsemble :=
+  zetaPrimePacketAsEnsemble f (canonicalZetaPaleyWienerSupportRadius f)
 
 /-- The archimedean packet associated to an admissible function. -/
 def zetaArchimedeanPacketAsEnsemble (f : ZetaAdmissibleFunction) :
@@ -106,6 +117,11 @@ def zetaPacketAsEnsemble (f : ZetaAdmissibleFunction) (B : ℝ) :
     zetaArchimedeanPacketAsEnsemble f +
     zetaCorrectionPacketAsEnsemble f
 
+/-- The completed packet reconstructed using the actual support radius of the probe. -/
+noncomputable def canonicalZetaPacketAsEnsemble
+    (f : ZetaAdmissibleFunction) : ZetaPacketEnsemble :=
+  zetaPacketAsEnsemble f (canonicalZetaPaleyWienerSupportRadius f)
+
 /-- The packet is finite-support because it is a finite sum of singletons. -/
 theorem zetaPacketAsEnsemble_finiteSupport (f : ZetaAdmissibleFunction) :
     ∀ B : ℝ, Finite ((zetaPacketAsEnsemble f B).support : Set ZetaPacketLabel) := by
@@ -122,6 +138,12 @@ theorem zetaCompletedPacketNormSq_nonnegative (f : ZetaAdmissibleFunction) :
   intro B
   unfold zetaCompletedPacketNormSq
   exact ZetaPacketEnsemble.normSq_nonneg (zetaPacketAsEnsemble f B)
+
+/-- The canonical probe-dependent completed packet has nonnegative norm square. -/
+theorem canonicalZetaPacketAsEnsemble_normSq_nonnegative
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ ZetaPacketEnsemble.normSq (canonicalZetaPacketAsEnsemble f) := by
+  exact ZetaPacketEnsemble.normSq_nonneg (canonicalZetaPacketAsEnsemble f)
 
 /-- The reconstructed packet decomposes into prime, archimedean, and correction parts. -/
 theorem zetaPacketAsEnsemble_decomposition (f : ZetaAdmissibleFunction) :

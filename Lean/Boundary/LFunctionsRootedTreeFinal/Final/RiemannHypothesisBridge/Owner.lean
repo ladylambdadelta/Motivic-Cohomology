@@ -32,13 +32,18 @@ theorem boundaryRiemannZeta_eq_mathlib :
 The actual nonlinear autocorrelation-cone Runge theorem is owned in the
 zero-tail localization layer; this final bridge only exposes the theorem to
 the RH assembly. -/
-theorem finalRiemannHypothesis_separatedZeroTailSmallValuesOwnerRunge :
-    ZetaAdmissibleFunction.AutocorrelationSpectralEvalFiberSeparatedCommonPolynomialEnvelopeBase →
-      ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+theorem finalRiemannHypothesis_separatedZeroTailSmallValuesOwnerRunge
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound) :
+    ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
       (∀ ρ : ℂ,
         ZetaCompletedZero ρ →
           ρ ∉ S →
-            zetaCenteredZero ρ ∉
+            ρ ∉
               ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset P) →
       ∀ ε : ℝ, 0 < ε →
         ∃ r : ℝ,
@@ -47,7 +52,8 @@ theorem finalRiemannHypothesis_separatedZeroTailSmallValuesOwnerRunge :
               S P f₀ ∧
             r < ε := by
   exact
-    ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberSeparatedZeroTailSmallValuesRunge_owner
+    ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberDirectCenteredZeroTailSmallValuesRunge_owner
+      hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
 
 /-- Corrected Binet endpoint-restored finite-height input currently owned by
 the Gamma-Stirling layer.
@@ -71,54 +77,13 @@ theorem finalRiemannHypothesis_poleClearedRightCriticalStripAdmissibleGrowth
     PoleClearedRightCriticalStripAdmissibleGrowth := by
   exact poleClearedRightCriticalStripAdmissibleGrowth_owner hbranch hreflected
 
-/-- Unconditional separated base common-polynomial-envelope package.
-
-This theorem provides the separated zero envelopes needed for the Runge small-values analysis.
-
-It is proven in ZetaAutocorrelationSpectralLocalization/Owner.lean via:
-1. Spectral window selection: choosing T₀ disjoint from dagger-closed constraints
-2. Envelope existence: using existing height-decay summability theory
-3. Zero-side bounds: applying Paley-Wiener + analytical estimates
-4. Assembly: packaging into the separated base data structure
--/
-theorem autocorrelationSpectralEvalFiberSeparatedCommonPolynomialEnvelopeBase_owner :
-    ZetaAdmissibleFunction.AutocorrelationSpectralEvalFiberSeparatedCommonPolynomialEnvelopeBase := by
-  -- Apply the proven theorem with the analytical boundary conditions
-  exact ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberSeparatedCommonPolynomialEnvelopeBase_owner
-    Complex.binetSecondFormulaBranchUniformTailAbsorption_owner
-    boundaryLineOneAbelPartialMajorant_from_realParam
-    poleClearedOneTwoStripCompactBoundaryBound_from_rightCriticalStrip_compact
-    poleClearedRightCriticalStripAdmissibleGrowth_owner
-    (reflectedBoundaryAbelPartialMajorant_of_boundaryLineOneAbelPartialMajorant
-      boundaryLineOneAbelPartialMajorant_from_realParam)
-    poleClearedRightCriticalStripCompactBoundaryBound_from_compact
-
 /-- Raw autocorrelation Weil positivity for the final RH route.
 
 This theorem first removes the diagonal debt on autocorrelations, then transports
 ordered-heart nonnegativity to the raw Weil/Krein scalar. -/
 theorem finalRiemannHypothesis_zetaWeilQuadraticPositivity :
     ZetaWeilQuadraticPositivity := by
-  intro f
-  have hordered :
-      0 ≤ ZetaAdmissibleFunction.zetaCompletedZeroSideAutocorrelationOrderedHeartScalar f :=
-    ZetaAdmissibleFunction.zetaCompletedZeroSideAutocorrelationOrderedHeartScalar_nonnegative f
-  have hordered_raw :
-      ZetaAdmissibleFunction.zetaCompletedZeroSideAutocorrelationOrderedHeartScalar f =
-        zetaCompletedZeroKreinGram
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f) :=
-    ZetaAdmissibleFunction.orderedHeartScalar_eq_rawKreinScalar_on_autocorrelation f
-  have hraw :
-      0 ≤ zetaCompletedZeroKreinGram
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f) :=
-    Eq.subst (motive := fun x : ℝ => 0 ≤ x) hordered_raw hordered
-  have hweil :
-      zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-        zetaCompletedZeroKreinGram
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f) :=
-    zetaWeilFormCompleted_eq_zeroKreinGram
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-  exact Eq.subst (motive := fun x : ℝ => 0 ≤ x) hweil.symm hraw
+  exact zetaWeilQuadraticPositivity_owner
 
 /-- Final centered-zero criterion wrapper for RH, using raw autocorrelation Weil positivity.
 
@@ -129,8 +94,6 @@ theorem finalRiemannHypothesis_centeredZeroCriterion :
         (¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1)) →
           (1 / 2 + s) ≠ 1 →
             s.re = 0 := by
-  let hbase : ZetaAdmissibleFunction.AutocorrelationSpectralEvalFiberSeparatedCommonPolynomialEnvelopeBase :=
-    autocorrelationSpectralEvalFiberSeparatedCommonPolynomialEnvelopeBase_owner
   let hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption :=
     Complex.binetSecondFormulaBranchUniformTailAbsorption_owner
   let hreflected : PoleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope :=
@@ -146,7 +109,14 @@ theorem finalRiemannHypothesis_centeredZeroCriterion :
     poleClearedRightCriticalStripCompactBoundaryBound_from_compact
   exact
     centeredZeroCriterion_of_zetaWeilQuadraticPositivity
-      (finalRiemannHypothesis_separatedZeroTailSmallValuesOwnerRunge hbase)
+      finalRiemannHypothesis_separatedZeroTailSmallValuesOwnerRunge
+        hbranch
+        hpartialOneTwo
+        hcompactOneTwo
+        (finalRiemannHypothesis_poleClearedRightCriticalStripAdmissibleGrowth
+          hbranch hreflected)
+        hpartialLeft
+        hcompactBoundary
       hbranch
       hpartialOneTwo
       hcompactOneTwo
@@ -169,12 +139,12 @@ and
 they provide the prime-power seed-pair majorant and the completed two-face contour-shadow
 cancellation used to remove the diagonal debt.  The proof cone also uses the named analytic
 owner theorems:
-1. `autocorrelationSpectralEvalFiberSeparatedCommonPolynomialEnvelopeBase_owner` - Runge theorem
+1. `autocorrelationSpectralEvalFiber_zeroTailClosure_nonlinear_owner` - nonlinear Runge theorem
 2. `Complex.binetSecondFormulaBranchUniformTailAbsorption_owner` - Binet branch-tail decay
 3. `poleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope_owner` - Pole-cleared envelope
 4. `ZetaAdmissibleFunction.zetaCompletedPrimePowerSpectralSampleCoordinateTsum_convolutionAutocorrelation_re_eq_zero_boundaryCancellation` -
    completed prime-power spectral-sample coordinate-sum cancellation on autocorrelations. -/
-theorem boundaryRiemannHypothesis : boundaryRiemannHypothesis :=
+theorem boundaryRiemannHypothesis_owner : boundaryRiemannHypothesis :=
   boundaryRiemannHypothesis_of_centeredZeroCriterion
     finalRiemannHypothesis_centeredZeroCriterion
 

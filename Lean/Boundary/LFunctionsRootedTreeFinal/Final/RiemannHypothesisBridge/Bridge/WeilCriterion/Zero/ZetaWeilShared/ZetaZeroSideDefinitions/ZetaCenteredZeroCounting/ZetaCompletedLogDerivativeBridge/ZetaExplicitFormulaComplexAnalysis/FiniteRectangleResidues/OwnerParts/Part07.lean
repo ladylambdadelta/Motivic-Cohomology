@@ -24,7 +24,7 @@ def explicitFormulaCompletedZeroWindowPuncturedInterior
     (F : ExplicitFormulaContourFamily) (T ε : ℝ) : Set ℂ :=
   finiteRectangleIndexedPuncturedDomain
     (explicitFormulaContourFamilyInterior F T)
-    (explicitFormulaCompletedZeroHeightWindow T)
+    (explicitFormulaCompletedZeroContourHeightWindow T)
     (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} => completedZeroResidueCoordinate ρ)
     ε
 
@@ -579,7 +579,7 @@ theorem finiteRectangleIndexedDeletedDisks_subset_of_forall_ball_subset
 finite coordinate carrier. -/
 theorem explicitFormulaCompletedZeroWindowCoordinates_mem_of_mem_window
     (T : ℝ) {ρ : {ρ : ℂ // ZetaCompletedZero ρ}}
-    (hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T) :
+    (hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T) :
     completedZeroResidueCoordinate ρ ∈ explicitFormulaCompletedZeroWindowCoordinates T :=
   Finset.mem_image.mpr (Exists.intro ρ (And.intro hρ rfl))
 
@@ -600,7 +600,7 @@ theorem explicitFormulaRectangleRawSingularCoordinates_one_mem
 singular-coordinate carrier. -/
 theorem explicitFormulaRectangleRawSingularCoordinates_completedZero_mem
     (T : ℝ) {ρ : {ρ : ℂ // ZetaCompletedZero ρ}}
-    (hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T) :
+    (hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T) :
     completedZeroResidueCoordinate ρ ∈ explicitFormulaRectangleRawSingularCoordinates T :=
   Finset.mem_insert_of_mem
     (Finset.mem_insert_of_mem
@@ -613,7 +613,7 @@ theorem explicitFormulaRectangleRawSingularCoordinates_cases
     (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T) :
     a = 0 ∨ a = 1 ∨
       ∃ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ∧
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ∧
           completedZeroResidueCoordinate ρ = a := by
   match Finset.mem_insert.mp ha with
   | Or.inl hzero =>
@@ -627,6 +627,81 @@ theorem explicitFormulaRectangleRawSingularCoordinates_cases
             (Or.inr
               (explicitFormulaCompletedZeroWindowCoordinates_exists_window_of_mem
                 T hcompleted))
+
+/-- Radii for which a quarter-radius square side through one listed point can pass
+through another listed point. -/
+def finiteRectangleSquareSideForbiddenRadii (S : Finset ℂ) : Finset ℝ :=
+  ((S.product S).image
+      (fun pair : ℂ × ℂ => 2 * (2 * (pair.1.re - pair.2.re)))) ∪
+    ((S.product S).image
+      (fun pair : ℂ × ℂ => 2 * (2 * (pair.1.im - pair.2.im))))
+
+/-- Every positive radius bound contains a smaller radius avoiding all square-side
+coordinate alignments in a finite complex carrier. -/
+theorem finiteRectangle_exists_squareSideRegular_radius
+    (S : Finset ℂ) {δ : ℝ} (hδ : 0 < δ) :
+    ∃ ε : ℝ,
+      0 < ε ∧ ε < δ ∧ ε ∉ finiteRectangleSquareSideForbiddenRadii S := by
+  have hinfinite : (Set.Ioo (0 : ℝ) δ).Infinite :=
+    Set.Ioo_infinite hδ
+  match hinfinite.exists_not_mem_finset
+      (finiteRectangleSquareSideForbiddenRadii S) with
+  | ⟨ε, hεInterval, hεRegular⟩ =>
+      exact Exists.intro ε
+        (And.intro hεInterval.1
+          (And.intro hεInterval.2 hεRegular))
+
+/-- The finite raw singular carrier admits closed-radius controls whose inscribed
+square side levels avoid every raw singular coordinate alignment. -/
+theorem explicitFormulaRectangleRawSingularCoordinates_exists_squareSideRegular_closedRadiusControls
+    (F : ExplicitFormulaContourFamily) (T : ℝ)
+    (hlocal :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          ∃ r : ℝ, 0 < r ∧ Metric.ball a r ⊆ explicitFormulaContourFamilyInterior F T) :
+    ∃ ε : ℝ,
+      0 < ε ∧
+        (∀ a : ℂ,
+          a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+            Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T) ∧
+        (∀ a : ℂ,
+          a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+            ∀ b : ℂ,
+              b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                a ≠ b → ε + ε < dist a b) ∧
+        ε ∉ finiteRectangleSquareSideForbiddenRadii
+          (explicitFormulaRectangleRawSingularCoordinates T) := by
+  match explicitFormulaRectangleRawSingularCoordinates_exists_closedRadiusControls
+      F T hlocal with
+  | ⟨δ, hδ, hclosedδ, hseparatedδ⟩ =>
+      match finiteRectangle_exists_squareSideRegular_radius
+          (explicitFormulaRectangleRawSingularCoordinates T) hδ with
+      | ⟨ε, hε, hεδ, hregular⟩ =>
+          have hε_le_δ : ε ≤ δ :=
+            le_of_lt hεδ
+          have hclosedε :
+              ∀ a : ℂ,
+                a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                  Metric.closedBall a ε ⊆
+                    explicitFormulaContourFamilyInterior F T := by
+            intro a ha
+            exact Set.Subset.trans
+              (finiteRectangle_closedBall_subset_of_radius_le hε_le_δ)
+              (hclosedδ a ha)
+          have hseparatedε :
+              ∀ a : ℂ,
+                a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                  ∀ b : ℂ,
+                    b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+                      a ≠ b → ε + ε < dist a b := by
+            intro a ha b hb hab
+            have hsum : ε + ε ≤ δ + δ :=
+              add_le_add hε_le_δ hε_le_δ
+            exact lt_of_le_of_lt hsum (hseparatedδ a ha b hb hab)
+          exact Exists.intro ε
+            (And.intro hε
+              (And.intro hclosedε
+                (And.intro hseparatedε hregular)))
 
 end ZetaAdmissibleFunction
 

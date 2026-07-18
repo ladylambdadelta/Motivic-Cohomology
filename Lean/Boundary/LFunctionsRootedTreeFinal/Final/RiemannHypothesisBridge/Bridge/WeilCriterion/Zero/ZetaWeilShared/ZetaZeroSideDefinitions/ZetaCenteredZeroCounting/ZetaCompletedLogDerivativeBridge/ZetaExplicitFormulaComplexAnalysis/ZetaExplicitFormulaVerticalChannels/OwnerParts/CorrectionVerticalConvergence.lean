@@ -192,7 +192,7 @@ theorem zetaCompletedExplicitFormulaCorrectionPoleVerticalIntegral_tendsto_stand
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F (h.height_schedule.height u))
         atTop
-        (𝓝 0)) :
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c))) :
     Tendsto
       (fun u : ℝ =>
         (∫ t in Set.Icc
@@ -360,7 +360,7 @@ theorem zetaCompletedExplicitFormulaCorrectionVerticalChannel_tendsto_correction
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F (h.height_schedule.height u))
         atTop
-        (𝓝 0)) :
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c))) :
       Tendsto
         (fun u : ℝ =>
           zetaCompletedExplicitFormulaCorrectionVerticalChannel f F

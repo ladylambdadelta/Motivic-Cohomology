@@ -36,7 +36,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
             DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hgrid :
@@ -73,7 +73,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
     (hvalue_completed :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+          ∀ hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T,
             value ε (completedZeroResidueCoordinate ρ) =
               (2 * ↑Real.pi * Complex.I : ℂ) •
                 explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))
@@ -84,7 +84,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
     (hszero :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
             (szero ε ρ).Countable)
       (hzero_continuous :
         ∀ ε : ℝ,
@@ -113,7 +113,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
     (hcompleted_continuous :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
             ContinuousOn
               (fun z : ℂ =>
                 (z - completedZeroResidueCoordinate ρ) *
@@ -123,7 +123,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
     (hcompleted_differentiable :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ∀ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+          ∀ hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T,
             ∀ z : ℂ,
               z ∈ (Metric.ball (completedZeroResidueCoordinate ρ) (ε / 2) \
                   {completedZeroResidueCoordinate ρ}) \ szero ε ρ →
@@ -148,7 +148,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
                 explicitFormulaRectangleRawInscribedSquareBoundary f (ε / 2) a = value ε a)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -195,7 +195,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
     (havoid : explicitFormulaContourFamilyAvoidsSingularBoundary F T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hgrid :
@@ -249,7 +249,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
                 explicitFormulaRectangleRawDeletedSquareBoundary f ((ε / 2) / 2) a = value ε a)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -276,7 +276,7 @@ theorem zetaCompletedExplicitFormulaContourIntegral_eq_poleCorrectedResidueSum_o
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ)
     (hcorrected :
       explicitFormulaRectangle_poleCorrectedContourIntegral f F T =
-        explicitFormulaCompletedZeroHeightWindowResidueSum f T)
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f T)
     (hpoles :
       explicitFormulaRectangle_completedPoleBoundaryContribution f F T =
         explicitFormulaRectangle_completedPoleResidueSum f) :
@@ -287,15 +287,15 @@ theorem zetaCompletedExplicitFormulaContourIntegral_eq_poleCorrectedResidueSum_o
         explicitFormulaRectangle_poleCorrectedContourIntegral f F T +
           explicitFormulaRectangle_completedPoleBoundaryContribution f F T := by
       exact zetaCompletedExplicitFormulaContourIntegral_eq_poleCorrected_add_poles f F T
-    _ = explicitFormulaCompletedZeroHeightWindowResidueSum f T +
+    _ = explicitFormulaCompletedZeroContourHeightWindowResidueSum f T +
           explicitFormulaRectangle_completedPoleBoundaryContribution f F T := by
       exact congrArg
         (fun x : ℂ => x + explicitFormulaRectangle_completedPoleBoundaryContribution f F T)
         hcorrected
-    _ = explicitFormulaCompletedZeroHeightWindowResidueSum f T +
+    _ = explicitFormulaCompletedZeroContourHeightWindowResidueSum f T +
           explicitFormulaRectangle_completedPoleResidueSum f := by
       exact congrArg
-        (fun x : ℂ => explicitFormulaCompletedZeroHeightWindowResidueSum f T + x)
+        (fun x : ℂ => explicitFormulaCompletedZeroContourHeightWindowResidueSum f T + x)
         hpoles
     _ = explicitFormulaRectangle_poleCorrectedResidueSum f T := by
       exact (explicitFormulaRectangle_poleCorrectedResidueSum_eq f T).symm
@@ -315,7 +315,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
             DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hside :
@@ -354,7 +354,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
                                   (ε / 2) a).re))
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -386,7 +386,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
             DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hside :
@@ -425,7 +425,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
                                   (ε / 2) a).re))
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -447,7 +447,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
     (havoid : explicitFormulaContourFamilyAvoidsSingularBoundary F T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hside :
@@ -486,7 +486,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
                                   (ε / 2) a).re))
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -519,7 +519,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
     (havoid : explicitFormulaContourFamilyAvoidsSingularBoundary F T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hside :
@@ -558,7 +558,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
                                   (ε / 2) a).re))
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -584,12 +584,12 @@ theorem explicitFormulaScheduledRectangleContourIntegral_eq_heightWindowResidueS
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
             (F.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroHeightWindowResidueSum f
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
             (h.height_schedule.height u)) :
     ∀ u : ℝ,
       zetaCompletedExplicitFormulaContourIntegral f
           (F.rectangle (h.height_schedule.height u)) =
-        explicitFormulaCompletedZeroHeightWindowResidueSum f
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f
           (h.height_schedule.height u) := by
   intro u
   exact hfinite u
@@ -602,11 +602,11 @@ theorem explicitFormulaScheduledRectangleContourIntegral_eq_heightWindowResidueS
     (hfinite :
       zetaCompletedExplicitFormulaContourIntegral f
           (F.rectangle (h.height_schedule.height u)) =
-        explicitFormulaCompletedZeroHeightWindowResidueSum f
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f
           (h.height_schedule.height u)) :
     zetaCompletedExplicitFormulaContourIntegral f
         (F.rectangle (h.height_schedule.height u)) =
-      explicitFormulaCompletedZeroHeightWindowResidueSum f
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f
         (h.height_schedule.height u) := by
   exact
     hfinite
@@ -619,9 +619,9 @@ theorem zetaCompletedExplicitFormulaContourIntegral_eq_completedZeroHeightWindow
     (havoid : explicitFormulaContourFamilyAvoidsSingularBoundary F T)
     (hfinite :
       zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) =
-        explicitFormulaCompletedZeroHeightWindowResidueSum f T) :
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f T) :
     zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) =
-      explicitFormulaCompletedZeroHeightWindowResidueSum f T := by
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f T := by
   exact
     hfinite
 
@@ -633,13 +633,13 @@ theorem explicitFormulaScheduledRectangleResidueEqualityError_eq_zero_of_heightW
     (hfinite :
     zetaCompletedExplicitFormulaContourIntegral f
         (F.rectangle (h.height_schedule.height u)) =
-      explicitFormulaCompletedZeroHeightWindowResidueSum f
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f
         (h.height_schedule.height u)) :
     explicitFormulaScheduledRectangleResidueEqualityError f F h u = 0 := by
   change
     zetaCompletedExplicitFormulaContourIntegral f
           (F.rectangle (h.height_schedule.height u)) -
-        explicitFormulaCompletedZeroHeightWindowResidueSum f
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f
           (h.height_schedule.height u) =
       0
   exact sub_eq_zero.mpr hfinite
@@ -658,7 +658,7 @@ theorem explicitFormulaScheduledRectangleResidueEqualityError_eq_zero_of_avoidsB
     (hfinite :
       zetaCompletedExplicitFormulaContourIntegral f
           (F.rectangle (h.height_schedule.height u)) =
-        explicitFormulaCompletedZeroHeightWindowResidueSum f
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f
           (h.height_schedule.height u)) :
     explicitFormulaScheduledRectangleResidueEqualityError f F h u = 0 := by
   exact
@@ -673,7 +673,7 @@ theorem explicitFormulaScheduledRectangleResidueEqualityError_eq_zero
     (hfinite :
       zetaCompletedExplicitFormulaContourIntegral f
           (F.rectangle (h.height_schedule.height u)) =
-        explicitFormulaCompletedZeroHeightWindowResidueSum f
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f
           (h.height_schedule.height u)) :
     explicitFormulaScheduledRectangleResidueEqualityError f F h u = 0 := by
   exact
@@ -696,7 +696,7 @@ theorem explicitFormulaScheduledRectangleResidueEqualityError_tendsto_zero_of_av
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
             (F.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroHeightWindowResidueSum f
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
             (h.height_schedule.height u)) :
     Tendsto
       (fun u : ℝ =>
@@ -727,7 +727,7 @@ theorem explicitFormulaScheduledRectangleResidueEqualityError_tendsto_zero_core_
       ∀ u : ℝ,
         zetaCompletedExplicitFormulaContourIntegral f
             (F.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroHeightWindowResidueSum f
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
             (h.height_schedule.height u)) :
     Tendsto
       (fun u : ℝ =>

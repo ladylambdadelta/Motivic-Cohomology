@@ -28,7 +28,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
     (hT : 0 < T) (hε_pos : 0 < ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hclosed :
@@ -46,7 +46,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
         f F T ε = 0)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) *
@@ -82,7 +82,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
     (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hlocalInterior :
@@ -104,7 +104,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
               f F T ε = 0)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) *
@@ -134,7 +134,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
     (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hfiniteHoleCauchy :
@@ -152,7 +152,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
               f F T ε = 0)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) *
@@ -185,7 +185,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
             DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hgrid :
@@ -220,7 +220,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
                   explicitFormulaRectangleRawInscribedSquareBoundary f (ε / 2) a)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -252,7 +252,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
             DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hgrid :
@@ -279,7 +279,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
                     explicitFormulaRectangleRawInscribedSquareBoundary f (ε / 2) a))
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -351,7 +351,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
             DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hgrid :
@@ -391,7 +391,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
                   explicitFormulaRectangleRawInscribedSquareBoundary f (ε / 2) a)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -421,7 +421,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
             DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hgrid :
@@ -461,7 +461,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
                   explicitFormulaRectangleRawDeletedSquareBoundary f ((ε / 2) / 2) a)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -509,7 +509,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
             DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hgrid :
@@ -563,7 +563,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
                 explicitFormulaRectangleRawDeletedSquareBoundary f ((ε / 2) / 2) a = value ε a)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -612,7 +612,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
             DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hgrid :
@@ -666,7 +666,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
                 explicitFormulaRectangleRawInscribedSquareBoundary f (ε / 2) a = value ε a)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)

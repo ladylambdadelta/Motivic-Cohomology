@@ -22,13 +22,13 @@ namespace ZetaAdmissibleFunction
 completed-zeta pole coordinate `0`, in the explicit-formula normalization. -/
 noncomputable def explicitFormulaRectangle_zeroPoleResidue
     (f : ZetaAdmissibleFunction) : ℂ :=
-  zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))
+  -zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))
 
 /-- The local residue contribution of the raw completed contour integrand at the
 completed-zeta pole coordinate `1`, in the explicit-formula normalization. -/
 noncomputable def explicitFormulaRectangle_onePoleResidue
     (f : ZetaAdmissibleFunction) : ℂ :=
-  zetaCompletedExplicitFormulaPhi f (1 / 2 : ℂ)
+  -zetaCompletedExplicitFormulaPhi f (1 / 2 : ℂ)
 
 /-- The shifted completed explicit-formula transform tends to its shifted value at any
 punctured-neighborhood center. -/
@@ -574,7 +574,7 @@ named completed-zero residue summand. -/
 theorem explicitFormulaRectangle_completedZeroResidueWindow_contourToZeroSideConvention_ownerGap
     (f : ZetaAdmissibleFunction) (T : ℝ)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
-    (_hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T) :
+    (_hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T) :
     explicitFormulaZeroResidue f (explicitFormulaContourZeroDataOfCompletedZero ρ) =
         - (zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
           zetaCompletedExplicitFormulaPhi f (ρ : ℂ) ∧
@@ -589,7 +589,7 @@ theorem explicitFormulaRectangle_completedZeroResidueWindow_contourToZeroSideCon
 theorem explicitFormulaRectangle_completedZeroResidueWindow_phiConventionCorrection
     (f : ZetaAdmissibleFunction) (T : ℝ)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
-    (_hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T) :
+    (_hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T) :
     zetaCompletedExplicitFormulaPhi f (ρ : ℂ) =
       zetaCompletedExplicitFormulaPhi f (ρ : ℂ) := by
   rfl
@@ -598,7 +598,7 @@ theorem explicitFormulaRectangle_completedZeroResidueWindow_phiConventionCorrect
 theorem explicitFormulaRectangle_completedZeroResidueWindow_contourToZeroSideResidueEquality
     (f : ZetaAdmissibleFunction) (T : ℝ)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
-    (_hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T)
+    (_hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T)
     (hphi :
       zetaCompletedExplicitFormulaPhi f (ρ : ℂ) =
         zetaCompletedExplicitFormulaPhi f (ρ : ℂ)) :

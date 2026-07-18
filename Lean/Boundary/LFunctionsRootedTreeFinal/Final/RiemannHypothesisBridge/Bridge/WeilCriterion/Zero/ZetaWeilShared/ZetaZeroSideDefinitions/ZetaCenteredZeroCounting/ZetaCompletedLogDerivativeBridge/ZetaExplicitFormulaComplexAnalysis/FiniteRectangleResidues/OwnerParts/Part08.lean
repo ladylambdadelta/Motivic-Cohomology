@@ -137,7 +137,7 @@ theorem explicitFormulaCompletedZeroWindowCoordinates_mem_interiorSingular_of_hi
     (F : ExplicitFormulaContourFamily) (T : ℝ)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     {z : ℂ}
@@ -161,7 +161,7 @@ theorem explicitFormulaCompletedZeroWindowCoordinates_mem_of_interiorSingular_no
     (F : ExplicitFormulaContourFamily) (T : ℝ)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     {z : ℂ}
@@ -175,7 +175,7 @@ theorem explicitFormulaCompletedZeroWindowCoordinates_mem_of_interiorSingular_no
   let ρ : {ρ : ℂ // ZetaCompletedZero ρ} :=
     explicitFormulaCompletedZeroOfContourZero z hz0 hz1 hzeta
   have hρWindow :
-      ρ ∈ explicitFormulaCompletedZeroHeightWindow T :=
+      ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T :=
     explicitFormulaRectangle_interiorSingular_nonPole_completedZero_mem_window
       F T hinterior hzInterior hzSingular hz0 hz1
   have hcoord : completedZeroResidueCoordinate ρ = z :=
@@ -192,7 +192,7 @@ theorem explicitFormulaRectangleRawSingularCoordinates_mem_of_interiorSingular
     (F : ExplicitFormulaContourFamily) (T : ℝ)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     {z : ℂ}
@@ -226,7 +226,7 @@ theorem explicitFormulaRectangleRawSingularCoordinates_mem_interiorSingular_of_m
     (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     {z : ℂ}
@@ -267,7 +267,7 @@ theorem explicitFormulaRectangleRawSingularCoordinates_mem_iff_interiorSingular
     (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     {z : ℂ} :
@@ -288,7 +288,7 @@ theorem explicitFormulaRectangleRawSingularCoordinates_localInterior_ball
     (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     {z : ℂ}
@@ -306,7 +306,7 @@ theorem explicitFormulaRectangleInterior_not_mem_singularSet_of_not_mem_rawSingu
     (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     {z : ℂ}
@@ -325,7 +325,7 @@ theorem explicitFormulaRectangleRawPuncturedInterior_not_mem_singularSet
     (F : ExplicitFormulaContourFamily) {T ε : ℝ} (hT : 0 < T) (hε : 0 < ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     {z : ℂ}
@@ -366,7 +366,7 @@ theorem explicitFormulaRectangle_deletedBall_not_mem_singularSet_of_rawDisjoint
     (F : ExplicitFormulaContourFamily) {T ε : ℝ} (hT : 0 < T) (hε : 0 < ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hball :
@@ -409,7 +409,7 @@ theorem explicitFormulaRectangle_deletedClosedBall_not_mem_singularSet_of_rawClo
     (F : ExplicitFormulaContourFamily) {T ε : ℝ} (hT : 0 < T) (hε : 0 < ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hclosedBall :
@@ -454,7 +454,7 @@ theorem explicitFormulaRectangle_rawDeletedClosedBall_localResidueCoefficient_re
     {T ε : ℝ} (hT : 0 < T) (hε : 0 < ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hclosedBall :
@@ -513,7 +513,7 @@ theorem explicitFormulaRectangle_zeroPole_rawDeletedCircle_regular_of_closedRadi
     {T ε : ℝ} (hT : 0 < T) (hε : 0 < ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hgeometry :
@@ -575,7 +575,7 @@ theorem explicitFormulaRectangle_onePole_rawDeletedCircle_regular_of_closedRadiu
     {T ε : ℝ} (hT : 0 < T) (hε : 0 < ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hgeometry :
@@ -609,7 +609,7 @@ theorem explicitFormulaRectangle_completedZero_rawDeletedCircle_regular_of_close
     {T ε : ℝ} (hT : 0 < T) (hε : 0 < ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hgeometry :
@@ -623,7 +623,7 @@ theorem explicitFormulaRectangle_completedZero_rawDeletedCircle_regular_of_close
               a ≠ b →
                 Disjoint (Metric.closedBall a ε) (Metric.closedBall b ε)))
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
-    (hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T)
+    (hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T)
     (s : Set ℂ) :
     ContinuousOn
         (fun z : ℂ =>
@@ -653,7 +653,7 @@ theorem explicitFormulaRectangleRawPuncturedInterior_differentiableAt
     {T ε : ℝ} (hT : 0 < T) (hε : 0 < ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     {z : ℂ}
@@ -679,7 +679,7 @@ theorem explicitFormulaRectangleRawPuncturedInterior_continuousAt
     {T ε : ℝ} (hT : 0 < T) (hε : 0 < ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     {z : ℂ}

@@ -23,6 +23,79 @@ contribution coordinates of a zero orbit. -/
 def zetaZeroOrbitContributionSpectralSampleFinset (ρ : ℂ) : Finset ℂ :=
   zetaZeroOrbitFinset ρ
 
+/-- The raw spectral sample set for an orbit, closed under the autocorrelation dagger
+operation. -/
+def zetaZeroOrbitDaggerClosedSpectralSampleFinset
+    (ρ : ℂ) : Finset ℂ :=
+  ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
+    (zetaZeroOrbitContributionSpectralSampleFinset ρ)
+
+/-- The finite completed-zero window attached to the dagger closure of an orbit sample set. -/
+def zetaZeroOrbitDaggerClosedCompletedZeroFinset
+    (ρ : ℂ) : Finset ℂ :=
+  ZetaAdmissibleFunction.completedZeroDaggerClosureFinset
+    (zetaZeroOrbitDaggerClosedSpectralSampleFinset ρ)
+
+/-- Every point of the finite orbit dagger window is a completed zero. -/
+theorem zetaZeroOrbitDaggerClosedCompletedZeroFinset_mem_completedZero
+    (ρ z : ℂ)
+    (hz : z ∈ zetaZeroOrbitDaggerClosedCompletedZeroFinset ρ) :
+    ZetaCompletedZero z := by
+  exact
+    ZetaAdmissibleFunction.completedZeroDaggerClosureFinset_mem_completedZero
+      (zetaZeroOrbitDaggerClosedSpectralSampleFinset ρ)
+      z
+      hz
+
+/-- A completed zero outside the finite orbit dagger window is disjoint from the full
+dagger closure of the raw orbit samples. -/
+theorem zetaCompletedZero_not_mem_daggerClosedOrbitSamples_of_not_mem_orbitDaggerWindow
+    (ρ z : ℂ)
+    (hz : ZetaCompletedZero z)
+    (hnot : z ∉ zetaZeroOrbitDaggerClosedCompletedZeroFinset ρ) :
+    z ∉ ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
+      (zetaZeroOrbitDaggerClosedSpectralSampleFinset ρ) := by
+  exact
+    ZetaAdmissibleFunction.completedZero_not_mem_daggerClosedSpectralSampleFinset_of_not_mem_completedZeroDaggerClosure
+      (zetaZeroOrbitDaggerClosedSpectralSampleFinset ρ)
+      z
+      hz
+      hnot
+
+/-- The orbit dagger window satisfies the raw separation contract consumed by finite-tail
+Runge localization. -/
+theorem zetaZeroOrbitDaggerClosedCompletedZeroFinset_rawSeparated
+    (ρ : ℂ) :
+    ∀ z : ℂ,
+      ZetaCompletedZero z →
+        z ∉ zetaZeroOrbitDaggerClosedCompletedZeroFinset ρ →
+          z ∉ ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
+            (zetaZeroOrbitDaggerClosedSpectralSampleFinset ρ) := by
+  intro z hz hnot
+  exact
+    zetaCompletedZero_not_mem_daggerClosedOrbitSamples_of_not_mem_orbitDaggerWindow
+      ρ
+      z
+      hz
+      hnot
+
+/-- The distinguished completed zero belongs to its finite orbit dagger window. -/
+theorem zetaZero_mem_zetaZeroOrbitDaggerClosedCompletedZeroFinset
+    (ρ : ℂ)
+    (hρ : ZetaCompletedZero ρ) :
+    ρ ∈ zetaZeroOrbitDaggerClosedCompletedZeroFinset ρ := by
+  apply Finset.mem_filter.mpr
+  apply And.intro
+  · exact
+      ZetaAdmissibleFunction.mem_daggerClosedSpectralSampleFinset_self
+        (zetaZeroOrbitDaggerClosedSpectralSampleFinset ρ)
+        ρ
+        (ZetaAdmissibleFunction.mem_daggerClosedSpectralSampleFinset_self
+          (zetaZeroOrbitContributionSpectralSampleFinset ρ)
+          ρ
+          (zetaZeroOrbitFinset_mem_self ρ))
+  · exact hρ
+
 /-- Membership in the centered zero orbit gives membership of the centered coordinate in the
 finite spectral sample set. -/
 theorem zetaCenteredZero_mem_zeroOrbitSpectralSampleFinset
@@ -278,6 +351,63 @@ theorem exists_zeroOrbit_autocorrelation_finiteSpectralSeparator_owner
           ρ hρ hρre horbit
           (ZetaAdmissibleFunction.convolutionAutocorrelation f)
           hsample⟩
+
+/-- Unit samples on a finite completed-zero set make its finite zero-side real
+contribution strictly negative as soon as the set contains one completed zero. -/
+theorem finiteCompletedZeroContributionRe_lt_zero_of_unitSpectralSamples
+    (S : Finset ℂ)
+    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η)
+    (ρ : ℂ)
+    (hρ : ρ ∈ S)
+    (φ : ZetaAdmissibleFunction)
+    (hsample : ∀ η : ℂ, η ∈ S → zetaSpectralEval φ η = 1) :
+    Complex.re (∑ η in S, zetaZeroSideContribution η φ) < 0 := by
+  have hterm_nonpos :
+      ∀ η : ℂ, η ∈ S →
+        Complex.re (zetaZeroSideContribution η φ) ≤ 0 := by
+    intro η hη
+    have hvalue :
+        Complex.re (zetaZeroSideContribution η φ) =
+          - (zetaZeroMultiplicity η : ℝ) :=
+      zetaZeroSideContribution_re_eq_neg_multiplicity_of_unitSample
+        η φ (hsample η hη)
+    have hnonneg : 0 ≤ (zetaZeroMultiplicity η : ℝ) :=
+      Nat.cast_nonneg (zetaZeroMultiplicity η)
+    exact Eq.subst (motive := fun x : ℝ => x ≤ 0) hvalue.symm (neg_nonpos.mpr hnonneg)
+  have hterm_negative :
+      Complex.re (zetaZeroSideContribution ρ φ) < 0 := by
+    have hvalue :
+        Complex.re (zetaZeroSideContribution ρ φ) =
+          - (zetaZeroMultiplicity ρ : ℝ) :=
+      zetaZeroSideContribution_re_eq_neg_multiplicity_of_unitSample
+        ρ φ (hsample ρ hρ)
+    have hpositive : 0 < (zetaZeroMultiplicity ρ : ℝ) :=
+      Nat.cast_pos.mpr
+        (zetaZeroMultiplicity_pos_of_completedZero ⟨ρ, hS ρ hρ⟩)
+    exact Eq.subst (motive := fun x : ℝ => x < 0) hvalue.symm (neg_lt_zero.mpr hpositive)
+  have hsum :
+      (∑ η in S, Complex.re (zetaZeroSideContribution η φ)) <
+        ∑ _η in S, (0 : ℝ) :=
+    Finset.sum_lt_sum hterm_nonpos ⟨ρ, hρ, hterm_negative⟩
+  have hzero : (∑ _η in S, (0 : ℝ)) = 0 :=
+    Finset.sum_const_zero
+  have hsum_negative :
+      (∑ η in S, Complex.re (zetaZeroSideContribution η φ)) < 0 :=
+    hsum.trans_eq hzero
+  exact lt_of_eq_of_lt
+    (Complex.re_sum (s := S) (fun η => zetaZeroSideContribution η φ))
+    hsum_negative
+
+/-- The dagger-closed orbit sample set has a unit autocorrelation probe. -/
+theorem exists_daggerClosedOrbit_autocorrelation_unitSpectralSamples
+    (ρ : ℂ) :
+    ∃ f : ZetaAdmissibleFunction,
+      ∀ z : ℂ,
+        z ∈ zetaZeroOrbitDaggerClosedSpectralSampleFinset ρ →
+          zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f) z = 1 := by
+  exact
+    ZetaAdmissibleFunction.exists_autocorrelation_spectralEval_one_on_finset
+      (zetaZeroOrbitDaggerClosedSpectralSampleFinset ρ)
 
 /-- The real coordinate of `1/2 : ℂ` is `1/2 : ℝ`. -/
 private theorem complex_half_re : (1 / 2 : ℂ).re = (1 / 2 : ℝ) := by

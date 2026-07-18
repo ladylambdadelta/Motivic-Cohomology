@@ -86,7 +86,7 @@ theorem explicitFormulaRectangleRawSingularHalfAnnulus_continuousOn_of_closedRad
     {T ε : ℝ} (hT : 0 < T) (hε : 0 < ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hclosed :
@@ -120,7 +120,7 @@ theorem explicitFormulaRectangleRawSingularHalfAnnulus_differentiableAt_of_close
     {T ε : ℝ} (hT : 0 < T) (hε : 0 < ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hclosed :

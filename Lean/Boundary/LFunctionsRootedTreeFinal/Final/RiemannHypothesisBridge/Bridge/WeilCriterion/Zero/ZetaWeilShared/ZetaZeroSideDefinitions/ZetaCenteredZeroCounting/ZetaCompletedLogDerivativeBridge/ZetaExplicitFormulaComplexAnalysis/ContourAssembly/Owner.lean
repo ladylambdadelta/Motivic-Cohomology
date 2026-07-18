@@ -362,7 +362,9 @@ theorem zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryCha
             ((zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
               f schedule hPhi hLog).height_schedule.height u))
         atTop
-        (𝓝 0))
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+          (convolutionAutocorrelation f)
+          (zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c)))
     (hcontourScheduled :
       Tendsto
         (fun u : ℝ =>
@@ -480,7 +482,9 @@ theorem zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryCha
             ((zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
               f schedule hPhi hLog).height_schedule.height u))
         atTop
-        (𝓝 0))
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+          (convolutionAutocorrelation f)
+          (zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c)))
     (hcontourScheduled :
       Tendsto
         (fun u : ℝ =>
@@ -575,7 +579,9 @@ theorem zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryCha
             ((zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
               f schedule hPhi hLog).height_schedule.height u))
         atTop
-        (𝓝 0))
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+          (convolutionAutocorrelation f)
+          (zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c)))
     (N : ℕ)
     (hfinite :
       ∀ u : ℝ,

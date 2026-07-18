@@ -58,6 +58,76 @@ theorem exists_zetaPaleyWienerSupportInterval
               (fun t ht => le_trans (min_le_left A B) (hA t ht)),
               (fun t ht => le_trans (hB t ht) (le_max_right A B))⟩⟩
 
+/-- The canonical compact interval containing the support of an admissible probe. -/
+noncomputable def canonicalZetaPaleyWienerSupportInterval
+    (f : ZetaAdmissibleFunction) : ZetaPaleyWienerSupportInterval f :=
+  Classical.choice (exists_zetaPaleyWienerSupportInterval f)
+
+/-- A symmetric nonnegative radius containing the canonical support interval. -/
+noncomputable def canonicalZetaPaleyWienerSupportRadius
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  max |(canonicalZetaPaleyWienerSupportInterval f).lower|
+    |(canonicalZetaPaleyWienerSupportInterval f).upper|
+
+/-- The canonical support radius is nonnegative. -/
+theorem canonicalZetaPaleyWienerSupportRadius_nonnegative
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ canonicalZetaPaleyWienerSupportRadius f := by
+  exact le_trans
+    (abs_nonneg (canonicalZetaPaleyWienerSupportInterval f).lower)
+    (le_max_left
+      |(canonicalZetaPaleyWienerSupportInterval f).lower|
+      |(canonicalZetaPaleyWienerSupportInterval f).upper|)
+
+/-- The lower endpoint lies above the negative canonical support radius. -/
+theorem canonicalZetaPaleyWienerSupportRadius_neg_le_lower
+    (f : ZetaAdmissibleFunction) :
+    -canonicalZetaPaleyWienerSupportRadius f ≤
+      (canonicalZetaPaleyWienerSupportInterval f).lower := by
+  have hlower_abs :
+      |(canonicalZetaPaleyWienerSupportInterval f).lower| ≤
+        canonicalZetaPaleyWienerSupportRadius f :=
+    le_max_left
+      |(canonicalZetaPaleyWienerSupportInterval f).lower|
+      |(canonicalZetaPaleyWienerSupportInterval f).upper|
+  have hneg_abs :
+      -|(canonicalZetaPaleyWienerSupportInterval f).lower| ≤
+        (canonicalZetaPaleyWienerSupportInterval f).lower :=
+    neg_abs_le (canonicalZetaPaleyWienerSupportInterval f).lower
+  exact le_trans (neg_le_neg hlower_abs) hneg_abs
+
+/-- The upper endpoint lies below the canonical support radius. -/
+theorem canonicalZetaPaleyWienerSupportRadius_upper_le
+    (f : ZetaAdmissibleFunction) :
+    (canonicalZetaPaleyWienerSupportInterval f).upper ≤
+      canonicalZetaPaleyWienerSupportRadius f := by
+  have hupper_abs :
+      |(canonicalZetaPaleyWienerSupportInterval f).upper| ≤
+        canonicalZetaPaleyWienerSupportRadius f :=
+    le_max_right
+      |(canonicalZetaPaleyWienerSupportInterval f).lower|
+      |(canonicalZetaPaleyWienerSupportInterval f).upper|
+  exact le_trans
+    (le_abs_self (canonicalZetaPaleyWienerSupportInterval f).upper)
+    hupper_abs
+
+/-- Every support point lies in the symmetric canonical support interval. -/
+theorem mem_symmetricCanonicalZetaPaleyWienerSupportInterval
+    (f : ZetaAdmissibleFunction) (t : ℝ)
+    (ht : t ∈ tsupport f.toZetaTestFunction) :
+    t ∈ Set.Icc
+      (-canonicalZetaPaleyWienerSupportRadius f)
+      (canonicalZetaPaleyWienerSupportRadius f) := by
+  have hlower :
+      (canonicalZetaPaleyWienerSupportInterval f).lower ≤ t :=
+    (canonicalZetaPaleyWienerSupportInterval f).lower_mem t ht
+  have hupper :
+      t ≤ (canonicalZetaPaleyWienerSupportInterval f).upper :=
+    (canonicalZetaPaleyWienerSupportInterval f).upper_mem t ht
+  exact
+    ⟨le_trans (canonicalZetaPaleyWienerSupportRadius_neg_le_lower f) hlower,
+      le_trans hupper (canonicalZetaPaleyWienerSupportRadius_upper_le f)⟩
+
 /-- The admissible source vanishes strictly above its Paley-Wiener support bound. -/
 theorem zetaPaleyWiener_eq_zero_of_supportUpperBound_lt
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f) {t : ℝ}

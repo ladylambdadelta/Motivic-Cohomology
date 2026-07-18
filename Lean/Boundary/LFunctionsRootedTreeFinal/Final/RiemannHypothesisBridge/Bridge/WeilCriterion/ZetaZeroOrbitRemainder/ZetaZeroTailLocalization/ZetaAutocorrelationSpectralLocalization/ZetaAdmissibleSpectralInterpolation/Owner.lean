@@ -46,25 +46,101 @@ theorem mem_daggerClosedSpectralSampleFinset_reflection
   exact Finset.mem_union.mpr
     (Or.inr (Finset.mem_image.mpr ⟨z, hz, rfl⟩))
 
-/-- Spectral evaluation is additive on admissible probes. -/
-theorem zetaSpectralEval_add
-    (f g : ZetaAdmissibleFunction) (z : ℂ) :
-    zetaSpectralEval (f + g) z =
-      zetaSpectralEval f z + zetaSpectralEval g z := by
-  exact
-    zetaSpectralTransform_add
-      f.toZetaTestFunction'
-      g.toZetaTestFunction'
-      z
-      (integrable_laplaceKernel_at f z)
-      (integrable_laplaceKernel_at g z)
+/-- Dagger reflection is an involution on spectral coordinates. -/
+theorem daggerReflection_involutive
+    (z : ℂ) :
+    -star (-star z) = z := by
+  calc
+    -star (-star z) = -(-star (star z)) :=
+      congrArg Neg.neg (star_neg (star z))
+    _ = star (star z) := neg_neg (star (star z))
+    _ = z := star_star z
 
-/-- Spectral evaluation is homogeneous on admissible probes. -/
-theorem zetaSpectralEval_smul
-    (c : ℂ) (f : ZetaAdmissibleFunction) (z : ℂ) :
-    zetaSpectralEval (c • f) z =
-      c * zetaSpectralEval f z := by
-  exact zetaSpectralTransform_smul c f.toZetaTestFunction' z
+/-- A dagger-closed finite spectral sample set is closed under dagger reflection. -/
+theorem mem_daggerClosedSpectralSampleFinset_reflection_of_mem
+    (S : Finset ℂ) (z : ℂ)
+    (hz : z ∈ daggerClosedSpectralSampleFinset S) :
+    -star z ∈ daggerClosedSpectralSampleFinset S := by
+  change z ∈ S ∪ daggerReflectedSpectralSampleFinset S at hz
+  change -star z ∈ S ∪ daggerReflectedSpectralSampleFinset S
+  match Finset.mem_union.mp hz with
+  | Or.inl hzBase =>
+      exact
+        Finset.mem_union.mpr
+          (Or.inr (Finset.mem_image.mpr ⟨z, hzBase, rfl⟩))
+  | Or.inr hzReflected =>
+      match Finset.mem_image.mp hzReflected with
+      | ⟨w, hw, hwEq⟩ =>
+          have hreflection : -star z = w :=
+            calc
+              -star z = -star (-star w) := congrArg (fun u : ℂ => -star u) hwEq.symm
+              _ = w := daggerReflection_involutive w
+          exact
+            Eq.mp
+              (congrArg
+                (fun u : ℂ => u ∈ S ∪ daggerReflectedSpectralSampleFinset S)
+                hreflection.symm)
+              (Finset.mem_union.mpr (Or.inl hw))
+
+/-- Closing a finite spectral sample set under dagger reflection is idempotent. -/
+theorem daggerClosedSpectralSampleFinset_idempotent
+    (S : Finset ℂ) :
+    daggerClosedSpectralSampleFinset (daggerClosedSpectralSampleFinset S) =
+      daggerClosedSpectralSampleFinset S := by
+  apply Finset.ext
+  intro z
+  apply Iff.intro
+  · intro hz
+    change z ∈ daggerClosedSpectralSampleFinset S ∪
+      daggerReflectedSpectralSampleFinset
+        (daggerClosedSpectralSampleFinset S) at hz
+    match Finset.mem_union.mp hz with
+    | Or.inl hzBase =>
+        exact hzBase
+    | Or.inr hzReflected =>
+        match Finset.mem_image.mp hzReflected with
+        | ⟨w, hw, hwEq⟩ =>
+            have hreflection : z = -star w := hwEq.symm
+            exact
+              Eq.mp
+                (congrArg
+                  (fun u : ℂ => u ∈ daggerClosedSpectralSampleFinset S)
+                  hreflection.symm)
+                (mem_daggerClosedSpectralSampleFinset_reflection_of_mem S w hw)
+  · intro hz
+    exact mem_daggerClosedSpectralSampleFinset_self
+      (daggerClosedSpectralSampleFinset S)
+      z
+      hz
+
+/-- The completed zeros lying in the dagger closure of a finite spectral sample set. -/
+def completedZeroDaggerClosureFinset
+    (S : Finset ℂ) : Finset ℂ :=
+  (daggerClosedSpectralSampleFinset S).filter ZetaCompletedZero
+
+/-- Every member of the completed-zero dagger closure is a completed zero. -/
+theorem completedZeroDaggerClosureFinset_mem_completedZero
+    (S : Finset ℂ) (z : ℂ)
+    (hz : z ∈ completedZeroDaggerClosureFinset S) :
+    ZetaCompletedZero z := by
+  exact (Finset.mem_filter.mp hz).2
+
+/-- Every member of the completed-zero dagger closure lies in the dagger closure. -/
+theorem mem_daggerClosedSpectralSampleFinset_of_mem_completedZeroDaggerClosureFinset
+    (S : Finset ℂ) (z : ℂ)
+    (hz : z ∈ completedZeroDaggerClosureFinset S) :
+    z ∈ daggerClosedSpectralSampleFinset S := by
+  exact (Finset.mem_filter.mp hz).1
+
+/-- A completed zero outside the finite completed-zero dagger closure is disjoint from the
+dagger closure itself. -/
+theorem completedZero_not_mem_daggerClosedSpectralSampleFinset_of_not_mem_completedZeroDaggerClosure
+    (S : Finset ℂ) (z : ℂ)
+    (hz : ZetaCompletedZero z)
+    (hnot : z ∉ completedZeroDaggerClosureFinset S) :
+    z ∉ daggerClosedSpectralSampleFinset S := by
+  intro hmem
+  exact hnot (Finset.mem_filter.mpr ⟨hmem, hz⟩)
 
 /-- Spectral evaluation commutes with finite sums of admissible probes. -/
 theorem zetaSpectralEval_sum

@@ -29,7 +29,7 @@ theorem explicitFormulaRectangle_finiteHoleCauchy_of_regularGridEndpointDataHalf
     {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hgrid :
@@ -115,7 +115,7 @@ theorem explicitFormulaRectangle_finiteHoleCauchy_of_regularGridEndpointDataSubd
     {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :
@@ -203,7 +203,7 @@ theorem explicitFormulaRectangle_finiteHoleCauchy_of_regularGridEndpointDataSubd
     {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :
@@ -288,7 +288,7 @@ theorem explicitFormulaRectangle_finiteHoleCauchy_of_regularGridEndpointDataSubd
     {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :
@@ -374,7 +374,7 @@ theorem explicitFormulaRectangle_finiteHoleCauchy_of_regularGridEndpointDataSubd
     {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :
@@ -479,7 +479,7 @@ theorem explicitFormulaRectangle_finiteHoleCauchy_of_regularGridEndpointDataSubd
     {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :
@@ -521,7 +521,7 @@ theorem explicitFormulaRectangle_finiteHoleCauchy_of_regularGridEndpointDataSubd
     (hvalue_completed :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+          ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T,
             value ε (completedZeroResidueCoordinate ρ) =
               (2 * ↑Real.pi * Complex.I : ℂ) •
                 explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))
@@ -532,7 +532,7 @@ theorem explicitFormulaRectangle_finiteHoleCauchy_of_regularGridEndpointDataSubd
     (hszero :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
             (szero ε ρ).Countable)
       (hzero_continuous :
         ∀ ε : ℝ,
@@ -561,7 +561,7 @@ theorem explicitFormulaRectangle_finiteHoleCauchy_of_regularGridEndpointDataSubd
     (hcompleted_continuous :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
             ContinuousOn
               (fun z : ℂ =>
                 (z - completedZeroResidueCoordinate ρ) *
@@ -571,7 +571,7 @@ theorem explicitFormulaRectangle_finiteHoleCauchy_of_regularGridEndpointDataSubd
     (hcompleted_differentiable :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+          ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T,
             ∀ z : ℂ,
               z ∈ (Metric.ball (completedZeroResidueCoordinate ρ) (ε / 2) \
                   {completedZeroResidueCoordinate ρ}) \ szero ε ρ →
@@ -596,7 +596,7 @@ theorem explicitFormulaRectangle_finiteHoleCauchy_of_regularGridEndpointDataSubd
                 explicitFormulaRectangleRawInscribedSquareBoundary f (ε / 2) a = value ε a)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)

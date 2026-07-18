@@ -746,6 +746,32 @@ theorem completedZetaNegLogDeriv_polynomialStripBound_of_zetaSide_and_gamma
     exact (add_mul Czeta Cgamma ((1 + ‖z.im‖) ^ N)).symm
   exact hnorm_split.trans (hbounds.trans_eq hfactor)
 
+/-- The completed negative logarithmic derivative has polynomial growth on every
+canonical zero-excised strip. -/
+theorem completedZetaNegLogDeriv_zeroExcisedPolynomialStripBound
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        z ∈ E.carrier →
+        ‖completedZetaNegLogDeriv z‖ ≤ C * (1 + ‖z.im‖) ^ N := by
+  exact completedZetaNegLogDeriv_polynomialStripBound_of_zetaSide_and_gamma
+    a b E N
+    (zetaSideNegLogDeriv_polynomialStripBound a b E N)
+    (gammaCompletionLogDeriv_polynomialStripBound a b E N)
+
+/-- The completed negative logarithmic derivative has one fixed polynomial-growth
+degree on every canonical zero-excised strip. -/
+theorem completedZetaNegLogDeriv_zeroExcisedPolynomialGrowth
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) :
+    ∃ K : ℕ,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          z ∈ E.carrier →
+          ‖completedZetaNegLogDeriv z‖ ≤ C * (1 + ‖z.im‖) ^ K := by
+  exact ⟨1, completedZetaNegLogDeriv_zeroExcisedPolynomialStripBound a b E 1⟩
+
 /-- Strip control data for the completed zeta negative logarithmic derivative. -/
 structure CompletedZetaNegLogDerivControl (f : ZetaAdmissibleFunction) where
   /-- Fixed-degree polynomial growth for the completed negative log derivative on a
@@ -784,6 +810,44 @@ structure CompletedZetaNegLogDerivControl (f : ZetaAdmissibleFunction) where
       ‖completedZetaNegLogDeriv z‖ ≤
         zero_excised_polynomial_strip_bound_constant a b E N *
           (1 + ‖z.im‖) ^ N
+
+/-- The canonical completed log-derivative strip constant. -/
+noncomputable def completedZetaNegLogDerivStripBoundConstant
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) : ℝ :=
+  Classical.choose
+    (completedZetaNegLogDeriv_zeroExcisedPolynomialStripBound a b E N)
+
+/-- The canonical completed log-derivative strip constant is positive. -/
+theorem completedZetaNegLogDerivStripBoundConstant_pos
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
+    0 < completedZetaNegLogDerivStripBoundConstant a b E N := by
+  exact (Classical.choose_spec
+    (completedZetaNegLogDeriv_zeroExcisedPolynomialStripBound a b E N)).1
+
+/-- The canonical completed log-derivative strip constant gives the pointwise bound. -/
+theorem completedZetaNegLogDerivStripBoundConstant_bound
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ)
+    (z : ℂ) (hz : z ∈ E.carrier) :
+    ‖completedZetaNegLogDeriv z‖ ≤
+      completedZetaNegLogDerivStripBoundConstant a b E N *
+        (1 + ‖z.im‖) ^ N := by
+  exact (Classical.choose_spec
+    (completedZetaNegLogDeriv_zeroExcisedPolynomialStripBound a b E N)).2 z hz
+
+/-- Every admissible probe carries the canonical completed log-derivative control.
+The control is independent of the probe; the parameter records its contour use. -/
+noncomputable def completedZetaNegLogDerivControl
+    (f : ZetaAdmissibleFunction) : CompletedZetaNegLogDerivControl f :=
+  { zero_excised_polynomial_growth :=
+      completedZetaNegLogDeriv_zeroExcisedPolynomialGrowth
+    zero_excised_polynomial_strip_bound :=
+      completedZetaNegLogDeriv_zeroExcisedPolynomialStripBound
+    zero_excised_polynomial_strip_bound_constant :=
+      completedZetaNegLogDerivStripBoundConstant
+    zero_excised_polynomial_strip_bound_constant_pos :=
+      completedZetaNegLogDerivStripBoundConstant_pos
+    zero_excised_polynomial_strip_bound_constant_bound :=
+      completedZetaNegLogDerivStripBoundConstant_bound }
 
 /-- The strip-control package exposes fixed-degree zero-excised polynomial growth. -/
 theorem CompletedZetaNegLogDerivControl.zeroExcisedPolynomialGrowth

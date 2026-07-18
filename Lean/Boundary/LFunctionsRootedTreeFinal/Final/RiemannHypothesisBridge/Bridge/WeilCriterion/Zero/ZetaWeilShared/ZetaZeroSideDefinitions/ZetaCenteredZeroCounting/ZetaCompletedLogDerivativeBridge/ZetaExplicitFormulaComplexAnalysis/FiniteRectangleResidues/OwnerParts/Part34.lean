@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part30
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part33
 
 /-!
 # Explicit-formula finite rectangle residues
@@ -2527,7 +2527,7 @@ theorem explicitFormulaRectangleRawSingular_coefficientRegularity
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (ε : ℝ) (hε : 0 < ε)
@@ -2674,7 +2674,7 @@ theorem explicitFormulaRectangleRawSingular_residueLimit
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (a : ℂ) (ha : a ∈ explicitFormulaRectangleRawSingularCoordinates T) :
@@ -2742,7 +2742,7 @@ theorem explicitFormulaRectangleRawSingular_puncturedResidueRegularity
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (ε : ℝ) (hε : 0 < ε)
@@ -2798,7 +2798,7 @@ theorem explicitFormulaRectangleComplement_circleEqDeletedSquare
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (ε : ℝ) (hε : 0 < ε)
@@ -2853,7 +2853,7 @@ theorem explicitFormulaRectangleComplement_circleEqSquare
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (ε : ℝ) (hε : 0 < ε)
@@ -2978,7 +2978,7 @@ theorem explicitFormulaRectangleComplement_endpointDataSubdivision
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet) :
     ∀ ε : ℝ,
@@ -3067,7 +3067,7 @@ theorem explicitFormulaRectangleComplement_subdivisionExists
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet) :
     ∀ ε : ℝ,
@@ -3125,7 +3125,7 @@ theorem explicitFormulaRectangleComplement_hgrid
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :
@@ -3194,7 +3194,7 @@ theorem explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral_eq_
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :

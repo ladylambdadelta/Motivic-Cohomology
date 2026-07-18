@@ -153,11 +153,11 @@ theorem explicitFormulaRectangle_completedZeroWindow_coordinate_mem_interiorSing
     (F : ExplicitFormulaContourFamily) (T : ℝ)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     {ρ : {ρ : ℂ // ZetaCompletedZero ρ}}
-    (hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T) :
+    (hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T) :
     completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
       completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet := by
   exact (hinterior ρ).mp hρ
@@ -168,14 +168,14 @@ theorem explicitFormulaRectangle_completedZeroWindow_coordinate_localResidue
     (f : ZetaAdmissibleFunction) (T : ℝ)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)
             (𝓝[≠] (completedZeroResidueCoordinate ρ))
             (𝓝 (explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))))
     {ρ : {ρ : ℂ // ZetaCompletedZero ρ}}
-    (hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T) :
+    (hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T) :
     Tendsto
       (fun z : ℂ =>
         (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)
@@ -262,7 +262,7 @@ theorem explicitFormulaRectangle_interiorSingular_nonPole_completedZero_mem_wind
     (F : ExplicitFormulaContourFamily) (T : ℝ)
     (hclass :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     {z : ℂ}
@@ -272,7 +272,7 @@ theorem explicitFormulaRectangle_interiorSingular_nonPole_completedZero_mem_wind
     explicitFormulaCompletedZeroOfContourZero z hz0 hz1
         (explicitFormulaRectangleContourIntegrand_interiorSingular_zeroCase
           F T hinterior hz hz0 hz1)
-      ∈ explicitFormulaCompletedZeroHeightWindow T := by
+      ∈ explicitFormulaCompletedZeroContourHeightWindow T := by
   let hzeta : completedRiemannZeta z = 0 :=
     explicitFormulaRectangleContourIntegrand_interiorSingular_zeroCase
       F T hinterior hz hz0 hz1
@@ -301,7 +301,7 @@ theorem explicitFormulaRectangle_interiorSingular_pole_or_completedZeroWindow
     (F : ExplicitFormulaContourFamily) (T : ℝ)
     (hclass :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     {z : ℂ}
@@ -309,7 +309,7 @@ theorem explicitFormulaRectangle_interiorSingular_pole_or_completedZeroWindow
     (hz : z ∈ completedZetaContourIntegrandSingularSet) :
     z = 0 ∨ z = 1 ∨
       ∃ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ∧
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ∧
           completedZeroResidueCoordinate ρ = z := by
   match explicitFormulaRectangleContourIntegrand_interiorSingular_cases
       F T hinterior hz with
@@ -335,7 +335,7 @@ theorem explicitFormulaRectangle_interiorSingular_pole_or_completedZeroWindow
           (motive := fun w : ℂ => w ∈ completedZetaContourIntegrandSingularSet)
           hcoord.symm
           hz
-      have hρWindow : ρ ∈ explicitFormulaCompletedZeroHeightWindow T :=
+      have hρWindow : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T :=
         (hclass ρ).mpr (And.intro hcoordInterior hcoordSingular)
       exact Or.inr (Or.inr ⟨ρ, And.intro hρWindow hcoord⟩)
 
@@ -397,7 +397,7 @@ theorem explicitFormulaRectangle_onePole_mem_interiorSingular_of_pos_height
 `0`. -/
 theorem explicitFormulaRectangle_zeroPole_not_completedZeroWindowCoordinate
     (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
-    (_hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T) :
+    (_hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T) :
     completedZeroResidueCoordinate ρ ≠ 0 := by
   exact completedZeroResidueCoordinate_ne_zero ρ
 
@@ -405,7 +405,7 @@ theorem explicitFormulaRectangle_zeroPole_not_completedZeroWindowCoordinate
 `1`. -/
 theorem explicitFormulaRectangle_onePole_not_completedZeroWindowCoordinate
     (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
-    (_hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T) :
+    (_hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T) :
     completedZeroResidueCoordinate ρ ≠ 1 := by
   exact completedZeroResidueCoordinate_ne_one ρ
 
@@ -419,7 +419,7 @@ noncomputable def explicitFormulaRectangle_completedPoleResidueSum
 /-- The pole-corrected finite residue target for the raw completed contour integrand. -/
 noncomputable def explicitFormulaRectangle_poleCorrectedResidueSum
     (f : ZetaAdmissibleFunction) (T : ℝ) : ℂ :=
-  explicitFormulaCompletedZeroHeightWindowResidueSum f T +
+  explicitFormulaCompletedZeroContourHeightWindowResidueSum f T +
     explicitFormulaRectangle_completedPoleResidueSum f
 
 /-- The pole-corrected finite residue target unfolds to the completed-zero window plus the
@@ -427,7 +427,7 @@ two pole-coordinate residues. -/
 theorem explicitFormulaRectangle_poleCorrectedResidueSum_eq
     (f : ZetaAdmissibleFunction) (T : ℝ) :
     explicitFormulaRectangle_poleCorrectedResidueSum f T =
-      explicitFormulaCompletedZeroHeightWindowResidueSum f T +
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f T +
         explicitFormulaRectangle_completedPoleResidueSum f := by
   rfl
 
@@ -439,32 +439,32 @@ theorem explicitFormulaRectangle_completedPoleResidueSum_eq
         explicitFormulaRectangle_onePoleResidue f := by
   rfl
 
-/-- The `s = 0` pole residue unfolds to the centered value `-1 / 2` of the test
-transform. -/
+/-- The `s = 0` pole residue is the negative centered value `-1 / 2` of the test
+transform, matching the residue of the negative logarithmic derivative. -/
 theorem explicitFormulaRectangle_zeroPoleResidue_eq
     (f : ZetaAdmissibleFunction) :
     explicitFormulaRectangle_zeroPoleResidue f =
-      zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)) := by
+      -zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)) := by
   rfl
 
-/-- The `s = 1` pole residue unfolds to the centered value `1 / 2` of the test transform. -/
+/-- The `s = 1` pole residue is the negative centered value `1 / 2` of the test transform. -/
 theorem explicitFormulaRectangle_onePoleResidue_eq
     (f : ZetaAdmissibleFunction) :
     explicitFormulaRectangle_onePoleResidue f =
-      zetaCompletedExplicitFormulaPhi f (1 / 2 : ℂ) := by
+      -zetaCompletedExplicitFormulaPhi f (1 / 2 : ℂ) := by
   rfl
 
 /-- Removing the two pole-coordinate residues from the pole-corrected residue target
 recovers the completed-zero height window. -/
 theorem explicitFormulaRectangle_heightWindowResidueSum_eq_poleCorrected_sub_poles
     (f : ZetaAdmissibleFunction) (T : ℝ) :
-    explicitFormulaCompletedZeroHeightWindowResidueSum f T =
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum f T =
       explicitFormulaRectangle_poleCorrectedResidueSum f T -
         explicitFormulaRectangle_completedPoleResidueSum f := by
-  let Z : ℂ := explicitFormulaCompletedZeroHeightWindowResidueSum f T
+  let Z : ℂ := explicitFormulaCompletedZeroContourHeightWindowResidueSum f T
   let P : ℂ := explicitFormulaRectangle_completedPoleResidueSum f
   calc
-    explicitFormulaCompletedZeroHeightWindowResidueSum f T = Z := by
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum f T = Z := by
       rfl
     _ = (Z + P) - P := by
       exact (add_sub_cancel_right Z P).symm
@@ -482,7 +482,7 @@ theorem explicitFormulaRectangle_zeroPole_localResidue_tendsto
           ((-1 / z) *
             zetaCompletedExplicitFormulaPhi f (z - 1 / 2)))
       (𝓝[≠] (0 : ℂ))
-      (𝓝 (-explicitFormulaRectangle_zeroPoleResidue f)) := by
+        (𝓝 (explicitFormulaRectangle_zeroPoleResidue f)) := by
   have hraw :
       Tendsto
         (fun z : ℂ =>
@@ -502,7 +502,7 @@ theorem explicitFormulaRectangle_zeroPole_localResidue_tendsto
                 zetaCompletedExplicitFormulaPhi f (z - 1 / 2)))
           (𝓝[≠] (0 : ℂ))
           (𝓝 w))
-      (congrArg Neg.neg (explicitFormulaRectangle_zeroPoleResidue_eq f)).symm
+      (explicitFormulaRectangle_zeroPoleResidue_eq f).symm
       hraw
 
 /-- The isolated correction kernel at `s = 1` has the negative of the raw completed-contour
@@ -515,7 +515,7 @@ theorem explicitFormulaRectangle_onePole_localResidue_tendsto
           ((-1 / (z - 1)) *
             zetaCompletedExplicitFormulaPhi f (z - 1 / 2)))
       (𝓝[≠] (1 : ℂ))
-      (𝓝 (-explicitFormulaRectangle_onePoleResidue f)) := by
+        (𝓝 (explicitFormulaRectangle_onePoleResidue f)) := by
   have hraw :
       Tendsto
         (fun z : ℂ =>
@@ -535,7 +535,7 @@ theorem explicitFormulaRectangle_onePole_localResidue_tendsto
                 zetaCompletedExplicitFormulaPhi f (z - 1 / 2)))
           (𝓝[≠] (1 : ℂ))
           (𝓝 w))
-      (congrArg Neg.neg (explicitFormulaRectangle_onePoleResidue_eq f)).symm
+      (explicitFormulaRectangle_onePoleResidue_eq f).symm
       hraw
 
 /-- The isolated `s = 0` pole local residue transports along any punctured

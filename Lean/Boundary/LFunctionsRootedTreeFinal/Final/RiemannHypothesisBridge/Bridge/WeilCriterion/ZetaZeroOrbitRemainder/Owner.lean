@@ -33,7 +33,7 @@ variable
       (∀ ρ : ℂ,
         ZetaCompletedZero ρ →
           ρ ∉ S →
-            zetaCenteredZero ρ ∉
+            ρ ∉
               ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset P) →
       ∀ ε : ℝ, 0 < ε →
         ∃ r : ℝ,
@@ -55,9 +55,9 @@ theorem exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe
       ∀ η : ℂ,
         ZetaCompletedZero η →
           η ∉ zetaZeroOrbitFinset ρ →
-            zetaCenteredZero η ∉
+            η ∉
               ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
-                (zetaZeroOrbitSpectralSampleFinset ρ))
+                (zetaZeroOrbitFinset ρ))
     (hmargin :
       zetaZeroOrbitContributionRe ρ
           (ZetaAdmissibleFunction.convolutionAutocorrelation f₀) ≤ -δ) :
@@ -80,9 +80,9 @@ theorem exists_zeroOrbit_autocorrelation_remainder_small_preserving_margin
       ∀ η : ℂ,
         ZetaCompletedZero η →
           η ∉ zetaZeroOrbitFinset ρ →
-            zetaCenteredZero η ∉
+            η ∉
               ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
-                (zetaZeroOrbitSpectralSampleFinset ρ))
+                (zetaZeroOrbitFinset ρ))
     (hmargin :
       ∀ ε : ℝ, 0 < ε →
         ∃ f : ZetaAdmissibleFunction,
@@ -107,9 +107,9 @@ theorem exists_uniform_zeroOrbit_autocorrelation_separator_of_margin_family
       ∀ η : ℂ,
         ZetaCompletedZero η →
           η ∉ zetaZeroOrbitFinset ρ →
-            zetaCenteredZero η ∉
+            η ∉
               ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
-                (zetaZeroOrbitSpectralSampleFinset ρ))
+                (zetaZeroOrbitFinset ρ))
     (hmargin :
       ∃ δ : ℝ, 0 < δ ∧
         ∀ ε : ℝ, 0 < ε →
@@ -139,9 +139,9 @@ theorem exists_uniform_zeroOrbit_autocorrelation_separator
       ∀ η : ℂ,
         ZetaCompletedZero η →
           η ∉ zetaZeroOrbitFinset ρ →
-            zetaCenteredZero η ∉
+            η ∉
               ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset
-                (zetaZeroOrbitSpectralSampleFinset ρ)) :
+                (zetaZeroOrbitFinset ρ)) :
     ∃ δ : ℝ, 0 < δ ∧
       ∀ ε : ℝ, 0 < ε →
         ∃ f : ZetaAdmissibleFunction,
@@ -318,6 +318,116 @@ theorem zetaCompletedZeroSideRe_lt_zero_of_orbitContribution_add_remainderRe_lt_
     (zetaCompletedZeroSideRe_eq_orbitContribution_add_orbitRemainderRe
       ρ φ hρ horbit hsum).symm
     hneg
+
+/-- A dagger-closed completed-zero window around a completed zero gives a
+negative completed zero side after localizing its complementary tail.
+
+The finite window is deliberately larger than the two-point functional-equation
+orbit: it contains every completed-zero point forced by the autocorrelation
+dagger symmetry. -/
+theorem exists_negative_completedZeroSide_autocorrelation_of_daggerClosedOrbitWindow
+    (hZeroTailSmallValuesOwnerRunge :
+      ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
+        (∀ z : ℂ,
+          ZetaCompletedZero z →
+            z ∉ S →
+              z ∉ ZetaAdmissibleFunction.daggerClosedSpectralSampleFinset P) →
+        ∀ ε : ℝ, 0 < ε →
+          ∃ r : ℝ,
+            r ∈ ZetaAdmissibleFunction.autocorrelationSpectralEvalFiberZeroTailRealAbsValues
+              S P f₀ ∧
+              r < ε)
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (ρ : ℂ)
+    (hρ : ZetaCompletedZero ρ) :
+    ∃ f : ZetaAdmissibleFunction,
+      zetaCompletedZeroSideRe
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
+  match exists_daggerClosedOrbit_autocorrelation_unitSpectralSamples ρ with
+  | ⟨f₀, hf₀⟩ =>
+      let S : Finset ℂ := zetaZeroOrbitDaggerClosedCompletedZeroFinset ρ
+      let P : Finset ℂ := zetaZeroOrbitDaggerClosedSpectralSampleFinset ρ
+      let φ₀ : ZetaAdmissibleFunction :=
+        ZetaAdmissibleFunction.convolutionAutocorrelation f₀
+      have hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η := by
+        intro η hη
+        exact zetaZeroOrbitDaggerClosedCompletedZeroFinset_mem_completedZero ρ η hη
+      have hρS : ρ ∈ S :=
+        zetaZero_mem_zetaZeroOrbitDaggerClosedCompletedZeroFinset ρ hρ
+      have hsample₀ : ∀ η : ℂ, η ∈ S → zetaSpectralEval φ₀ η = 1 := by
+        intro η hη
+        have hηP : η ∈ P := by
+          exact mem_zetaZeroOrbitDaggerClosedSpectralSampleFinset_of_mem_completedWindow
+            ρ η hη
+        exact hf₀ η hηP
+      have hfinite₀ :
+          Complex.re (∑ η in S, zetaZeroSideContribution η φ₀) < 0 :=
+        finiteCompletedZeroContributionRe_lt_zero_of_unitSpectralSamples
+          S hS ρ hρS φ₀ hsample₀
+      have hmargin : 0 < -Complex.re (∑ η in S, zetaZeroSideContribution η φ₀) :=
+        neg_pos.mpr hfinite₀
+      match
+        exists_daggerClosedOrbit_autocorrelation_unitSamples_zeroTail_small
+          hZeroTailSmallValuesOwnerRunge
+          ρ
+          (-Complex.re (∑ η in S, zetaZeroSideContribution η φ₀))
+          hmargin with
+      | ⟨f, hsample, htail⟩ =>
+          let φ : ZetaAdmissibleFunction :=
+            ZetaAdmissibleFunction.convolutionAutocorrelation f
+          have hfinite_eq :
+              (∑ η in S, zetaZeroSideContribution η φ) =
+                ∑ η in S, zetaZeroSideContribution η φ₀ := by
+            exact Finset.sum_congr rfl (fun η hη =>
+              zetaZeroSideContribution_eq_of_spectralEval_eq
+                η φ φ₀
+                (Eq.trans (hsample η hη) (hsample₀ η hη).symm))
+          have htail_lt :
+              Complex.re (zetaZeroTail S φ) <
+                -Complex.re (∑ η in S, zetaZeroSideContribution η φ) := by
+            have htail_upper :
+                Complex.re (zetaZeroTail S φ) <
+                  -Complex.re (∑ η in S, zetaZeroSideContribution η φ₀) :=
+              (abs_lt.mp htail).2
+            exact Eq.subst
+              (motive := fun x : ℝ =>
+                Complex.re (zetaZeroTail S φ) < -x)
+              (congrArg Complex.re hfinite_eq).symm
+              htail_upper
+          have hsum :
+              Summable
+                (fun η : {η : ℂ // ZetaCompletedZero η} =>
+                  zetaZeroSideContribution (η : ℂ) φ) :=
+            summable_zetaZeroSideContribution
+              hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary φ
+          have hsplit :
+              zetaCompletedZeroSideRe φ =
+                Complex.re (∑ η in S, zetaZeroSideContribution η φ) +
+                  Complex.re (zetaZeroTail S φ) := by
+            have hcomplex := zetaCompletedZeroSideSum_eq_finite_add_tail S φ hS hsum
+            unfold zetaCompletedZeroSideRe
+            calc
+              Complex.re
+                  (∑' η : {η : ℂ // ZetaCompletedZero η},
+                    zetaZeroSideContribution (η : ℂ) φ) =
+                  Complex.re
+                    ((∑ η in S, zetaZeroSideContribution η φ) + zetaZeroTail S φ) := by
+                      exact congrArg Complex.re hcomplex
+              _ = Complex.re (∑ η in S, zetaZeroSideContribution η φ) +
+                    Complex.re (zetaZeroTail S φ) := by
+                      exact Complex.add_re
+                        (∑ η in S, zetaZeroSideContribution η φ)
+                        (zetaZeroTail S φ)
+          have hnegative :
+              Complex.re (∑ η in S, zetaZeroSideContribution η φ) +
+                Complex.re (zetaZeroTail S φ) < 0 := by
+            exact zeroOrbit_add_remainder_lt_zero_of_remainder_lt_neg htail_lt
+          exact ⟨f, Eq.subst (motive := fun x : ℝ => x < 0) hsplit.symm hnegative⟩
 
 end
 end LFunctions

@@ -29,7 +29,7 @@ private lemma zetaCompletionCorrectionPacketCoordinate_ne_zero :
 /-- The prime component of the completed zeta boundary defect. -/
 noncomputable def zetaCompletedBoundaryDefectPrime (f : ZetaAdmissibleFunction) :
     ZetaPacketEnsemble :=
-  zetaPrimePacketAsEnsemble f 0
+  canonicalZetaPrimePacketAsEnsemble f
 
 /-- The archimedean component of the completed zeta boundary defect. -/
 noncomputable def zetaCompletedBoundaryDefectArchimedean (f : ZetaAdmissibleFunction) :
@@ -49,26 +49,26 @@ noncomputable def zetaCompletedBoundaryDefect (f : ZetaAdmissibleFunction) :
     zetaCompletedBoundaryDefectCorrection f
 
 /-- A prime packet has zero correction coordinate. -/
-theorem zetaPrimePacketAsEnsemble_correction_apply
-    (f : ZetaAdmissibleFunction) :
-    zetaPrimePacketAsEnsemble f 0 ZetaPacketLabel.correction = 0 := by
+theorem zetaPrimePacketAsEnsemble_correction_apply_at_bound
+    (f : ZetaAdmissibleFunction) (B : ℝ) :
+    zetaPrimePacketAsEnsemble f B ZetaPacketLabel.correction = 0 := by
   unfold zetaPrimePacketAsEnsemble ZetaPacketEnsemble.single
   calc
-    (∑ ℓ in zetaPacketPrimeSupport 0,
+    (∑ ℓ in zetaPacketPrimeSupport B,
         (Finsupp.single (ZetaPacketLabel.prime ℓ.1 ℓ.2)
           (Complex.re
             (zetaPrimePacketWeight (ZetaPacketLabel.prime ℓ.1 ℓ.2) •
               ZetaTestFunction.primePacketTranslationDefect ℓ.1 ℓ.2
                 f.toZetaTestFunction' 0)) : ZetaPacketEnsemble))
         ZetaPacketLabel.correction =
-        ∑ ℓ in zetaPacketPrimeSupport 0,
+        ∑ ℓ in zetaPacketPrimeSupport B,
           (Finsupp.single (ZetaPacketLabel.prime ℓ.1 ℓ.2)
             (Complex.re
               (zetaPrimePacketWeight (ZetaPacketLabel.prime ℓ.1 ℓ.2) •
                 ZetaTestFunction.primePacketTranslationDefect ℓ.1 ℓ.2
                   f.toZetaTestFunction' 0)) : ZetaPacketEnsemble)
             ZetaPacketLabel.correction := by
-      exact Finsupp.finset_sum_apply (zetaPacketPrimeSupport 0)
+      exact Finsupp.finset_sum_apply (zetaPacketPrimeSupport B)
         (fun ℓ =>
           (Finsupp.single (ZetaPacketLabel.prime ℓ.1 ℓ.2)
             (Complex.re
@@ -82,6 +82,14 @@ theorem zetaPrimePacketAsEnsemble_correction_apply
           Finsupp.single_eq_of_ne
             (fun h : ZetaPacketLabel.prime ℓ.1 ℓ.2 = ZetaPacketLabel.correction =>
               ZetaPacketLabel.noConfusion h))
+
+/-- The canonical probe-dependent prime packet has zero correction coordinate. -/
+theorem canonicalZetaPrimePacketAsEnsemble_correction_apply
+    (f : ZetaAdmissibleFunction) :
+    canonicalZetaPrimePacketAsEnsemble f ZetaPacketLabel.correction = 0 := by
+  exact
+    zetaPrimePacketAsEnsemble_correction_apply_at_bound
+      f (canonicalZetaPaleyWienerSupportRadius f)
 
 /-- An archimedean packet has zero correction coordinate. -/
 theorem zetaArchimedeanPacketAsEnsemble_correction_apply
@@ -112,7 +120,7 @@ theorem zetaCompletedBoundaryDefect_decomposition (f : ZetaAdmissibleFunction) :
 /-- The explicit prime defect component is the reconstructed prime packet at the centered bound. -/
 theorem zetaCompletedBoundaryDefectPrime_eq_packetPrime
     (f : ZetaAdmissibleFunction) :
-    zetaCompletedBoundaryDefectPrime f = zetaPrimePacketAsEnsemble f 0 := by
+    zetaCompletedBoundaryDefectPrime f = canonicalZetaPrimePacketAsEnsemble f := by
   rfl
 
 /-- The explicit archimedean defect component is the reconstructed archimedean packet. -/
@@ -132,7 +140,7 @@ theorem zetaCompletedBoundaryDefectCorrection_eq_packetCorrection
 /-- The explicit completed boundary defect is the reconstructed packet at the centered bound. -/
 theorem zetaCompletedBoundaryDefect_eq_packetAsEnsemble
     (f : ZetaAdmissibleFunction) :
-    zetaCompletedBoundaryDefect f = zetaPacketAsEnsemble f 0 := by
+    zetaCompletedBoundaryDefect f = canonicalZetaPacketAsEnsemble f := by
   have hprime := zetaCompletedBoundaryDefectPrime_eq_packetPrime f
   have harch := zetaCompletedBoundaryDefectArchimedean_eq_packetArchimedean f
   have hcorrection := zetaCompletedBoundaryDefectCorrection_eq_packetCorrection f
@@ -143,13 +151,13 @@ theorem zetaCompletedBoundaryDefect_eq_packetAsEnsemble
           zetaCompletedBoundaryDefectCorrection f := by
       rfl
     _ =
-        zetaPrimePacketAsEnsemble f 0 +
+        canonicalZetaPrimePacketAsEnsemble f +
           zetaArchimedeanPacketAsEnsemble f +
           zetaCorrectionPacketAsEnsemble f := by
       exact congrArg₂ (fun a b : ZetaPacketEnsemble => a + b)
         (congrArg₂ (fun a b : ZetaPacketEnsemble => a + b) hprime harch)
         hcorrection
-    _ = zetaPacketAsEnsemble f 0 := by
+    _ = canonicalZetaPacketAsEnsemble f := by
       rfl
 
 /-- The completed boundary defect has the normalized correction coordinate in the
@@ -165,14 +173,14 @@ theorem zetaCompletedBoundaryDefect_correction_apply
           zetaCompletedBoundaryDefectCorrection f ZetaPacketLabel.correction := by
       rfl
     _ =
-        zetaPrimePacketAsEnsemble f 0 ZetaPacketLabel.correction +
+        canonicalZetaPrimePacketAsEnsemble f ZetaPacketLabel.correction +
             zetaArchimedeanPacketAsEnsemble f ZetaPacketLabel.correction +
           zetaCorrectionPacketAsEnsemble f ZetaPacketLabel.correction := by
       rfl
     _ = 0 + 0 + zetaCompletionCorrectionPacketCoordinate := by
       exact congrArg₂ (fun a b : ℝ => a + b)
         (congrArg₂ (fun a b : ℝ => a + b)
-          (zetaPrimePacketAsEnsemble_correction_apply f)
+          (canonicalZetaPrimePacketAsEnsemble_correction_apply f)
           (zetaArchimedeanPacketAsEnsemble_correction_apply f))
         (zetaCorrectionPacketAsEnsemble_correction_apply f)
     _ = zetaCompletionCorrectionPacketCoordinate := by
@@ -275,16 +283,19 @@ noncomputable def zetaCompletedBoundaryDefectGram (f : ZetaAdmissibleFunction) :
 
 /-- The completed boundary defect Gram norm square is the packet norm square. -/
 theorem zetaCompletedBoundaryDefectGram_eq_packetNormSq (f : ZetaAdmissibleFunction) :
-    zetaCompletedBoundaryDefectGram f = zetaCompletedPacketNormSq f 0 := by
+    zetaCompletedBoundaryDefectGram f =
+      ZetaPacketEnsemble.normSq (canonicalZetaPacketAsEnsemble f) := by
   exact congrArg ZetaPacketEnsemble.normSq (zetaCompletedBoundaryDefect_eq_packetAsEnsemble f)
 
 /-- The completed boundary defect Gram norm is nonnegative. -/
 theorem zetaCompletedBoundaryDefectGram_nonnegative (f : ZetaAdmissibleFunction) :
     0 ≤ zetaCompletedBoundaryDefectGram f := by
-  have hpacket : 0 ≤ zetaCompletedPacketNormSq f 0 :=
-    zetaCompletedPacketNormSq_nonnegative f 0
+  have hpacket :
+      0 ≤ ZetaPacketEnsemble.normSq (canonicalZetaPacketAsEnsemble f) :=
+    canonicalZetaPacketAsEnsemble_normSq_nonnegative f
   have hgram :
-      zetaCompletedBoundaryDefectGram f = zetaCompletedPacketNormSq f 0 :=
+      zetaCompletedBoundaryDefectGram f =
+        ZetaPacketEnsemble.normSq (canonicalZetaPacketAsEnsemble f) :=
     zetaCompletedBoundaryDefectGram_eq_packetNormSq f
   exact Eq.subst (motive := fun x : ℝ => 0 ≤ x) hgram.symm hpacket
 

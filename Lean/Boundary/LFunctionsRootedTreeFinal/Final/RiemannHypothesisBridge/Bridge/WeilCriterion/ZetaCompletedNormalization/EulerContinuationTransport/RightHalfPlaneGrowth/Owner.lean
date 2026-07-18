@@ -233,7 +233,8 @@ theorem eulerMaclaurinPoleClearedZetaEndpointTerm_one_two_strip_polynomial_bound
             le_trans hdiv_two_norm hsub_norm
           have hrecip :
               ‖1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)‖ ≤ 1 :=
-            eulerMaclaurinPoleClearedZetaEndpointReciprocal_norm_le_one z hz_one
+            eulerMaclaurinPoleClearedZetaEndpointReciprocal_norm_le_one z
+              (le_trans zero_le_one hz_one)
           have hproduct :
               ‖(z - 1) / (2 : ℂ) *
                   (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))‖ ≤

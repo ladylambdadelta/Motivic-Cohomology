@@ -130,6 +130,24 @@ theorem eulerMaclaurin_poleCleared_formula_of_raw_formula
           eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z :=
       hterms
 
+/-- Pole-cleared Euler--Maclaurin formula throughout the positive-real
+punctured strip.  This exposes the analytically continued first-order formula
+needed before the Bernoulli remainder is integrated by parts a second time. -/
+theorem eulerMaclaurin_poleClearedRiemannZeta_formula_on_positivePuncturedStrip
+    (z : ℂ)
+    (hz_re_pos : 0 < z.re)
+    (hz_re_lt_two : z.re < 2)
+    (hz_ne_one : z ≠ 1) :
+    poleClearedRiemannZeta z =
+      eulerMaclaurinPoleClearedZetaFinitePart z +
+        eulerMaclaurinPoleClearedZetaMainTerm z +
+        eulerMaclaurinPoleClearedZetaEndpointTerm z +
+        eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z := by
+  exact eulerMaclaurin_poleCleared_formula_of_raw_formula
+    hz_ne_one
+    (eulerMaclaurin_riemannZeta_formula_on_positivePuncturedStrip
+      z hz_re_pos hz_re_lt_two hz_ne_one)
+
 /-- Subtracting a left summand from a two-term sum leaves the right summand. -/
 theorem complex_add_sub_left_cancel
     (S R : ℂ) :

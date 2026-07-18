@@ -28,7 +28,7 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
     {T ε : ℝ} (hT : 0 < T) (hε : 0 < ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hsubdivision :
@@ -99,7 +99,7 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
     {T ε : ℝ} (hT : 0 < T) (hε : 0 < ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hsubdivision :
@@ -138,7 +138,7 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
     {T ε : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hsubdivision :
@@ -217,7 +217,7 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
     {T ε : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :
@@ -313,7 +313,7 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
     {T ε : ℝ} (hT : 0 < T) (hε : 0 ≤ ε)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hsubdivision :
@@ -355,7 +355,7 @@ theorem explicitFormulaRectangleTangentFiniteRadiusInscribedSquarePuncturedBound
     {T ε : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hsubdivision :
@@ -391,12 +391,12 @@ theorem explicitFormulaRectangle_completedZero_localResidue_along_puncturedParam
     {ι : Type*} [TopologicalSpace ι] {l : Filter ι}
     (f : ZetaAdmissibleFunction) (T : ℝ)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
-    (hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T)
+    (hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T)
     (γ : ι → ℂ)
     (hγ : Tendsto γ l (𝓝[≠] (completedZeroResidueCoordinate ρ)))
     (hlocal :
       ∀ σ : {σ : ℂ // ZetaCompletedZero σ},
-        σ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        σ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate σ) *
@@ -420,7 +420,7 @@ theorem explicitFormulaRectangle_nonPoleInteriorSingular_localResidue_along_punc
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ)
     (hinterior :
       ∀ σ : {σ : ℂ // ZetaCompletedZero σ},
-        σ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        σ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate σ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate σ ∈ completedZetaContourIntegrandSingularSet)
     {z : ℂ}
@@ -437,7 +437,7 @@ theorem explicitFormulaRectangle_nonPoleInteriorSingular_localResidue_along_punc
                 F T hzInterior hzSingular hz0 hz1)))))
     (hlocal :
       ∀ σ : {σ : ℂ // ZetaCompletedZero σ},
-        σ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        σ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun w : ℂ =>
               (w - completedZeroResidueCoordinate σ) *
@@ -464,7 +464,7 @@ theorem explicitFormulaRectangle_nonPoleInteriorSingular_localResidue_along_punc
       F T hzInterior hzSingular hz0 hz1
   let ρ : {ρ : ℂ // ZetaCompletedZero ρ} :=
     explicitFormulaCompletedZeroOfContourZero z hz0 hz1 hzeta
-  have hρWindow : ρ ∈ explicitFormulaCompletedZeroHeightWindow T :=
+  have hρWindow : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T :=
     explicitFormulaRectangle_interiorSingular_nonPole_completedZero_mem_window
       F T hinterior hzInterior hzSingular hz0 hz1
   exact
@@ -548,7 +548,7 @@ the local regularity inputs supplied by the punctured-rectangle construction. -/
 theorem explicitFormulaRectangle_completedZero_deletedCircleCoefficientIntegral_eq_twoPiI_smul_residue
     (f : ZetaAdmissibleFunction) (T : ℝ)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
-    (hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T)
+    (hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T)
     {R : ℝ} (hR : 0 < R)
     (s : Set ℂ) (hs : s.Countable)
     (hcontinuous :
@@ -569,7 +569,7 @@ theorem explicitFormulaRectangle_completedZero_deletedCircleCoefficientIntegral_
             z)
     (hlocal :
       ∀ σ : {σ : ℂ // ZetaCompletedZero σ},
-        σ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        σ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate σ) *
@@ -601,7 +601,7 @@ completed explicit-formula integrand in Mathlib's circle normalization. -/
 theorem explicitFormulaRectangle_completedZero_deletedCircleIntegral_eq_twoPiI_smul_residue
     (f : ZetaAdmissibleFunction) (T : ℝ)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
-    (hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T)
+    (hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T)
     {R : ℝ} (hR : 0 < R)
     (s : Set ℂ) (hs : s.Countable)
     (hcontinuous :
@@ -622,7 +622,7 @@ theorem explicitFormulaRectangle_completedZero_deletedCircleIntegral_eq_twoPiI_s
             z)
     (hlocal :
       ∀ σ : {σ : ℂ // ZetaCompletedZero σ},
-        σ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        σ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate σ) *

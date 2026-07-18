@@ -463,13 +463,13 @@ def finiteRectangleIndexedPuncturedDomain {α : Type*}
 /-- Deleted disks around the completed-zero coordinates in the finite height window. -/
 def explicitFormulaCompletedZeroWindowDeletedDisks (T ε : ℝ) : Set ℂ :=
   finiteRectangleIndexedDeletedDisks
-    (explicitFormulaCompletedZeroHeightWindow T)
+    (explicitFormulaCompletedZeroContourHeightWindow T)
     (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} => completedZeroResidueCoordinate ρ)
     ε
 
 /-- The finite set of completed-zero contour coordinates in the height window. -/
 def explicitFormulaCompletedZeroWindowCoordinates (T : ℝ) : Finset ℂ :=
-  (explicitFormulaCompletedZeroHeightWindow T).image
+  (explicitFormulaCompletedZeroContourHeightWindow T).image
     (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} => completedZeroResidueCoordinate ρ)
 
 /-- Every coordinate in the finite completed-zero carrier comes from a completed zero in
@@ -478,7 +478,7 @@ theorem explicitFormulaCompletedZeroWindowCoordinates_exists_window_of_mem
     (T : ℝ) {z : ℂ}
     (hz : z ∈ explicitFormulaCompletedZeroWindowCoordinates T) :
     ∃ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-      ρ ∈ explicitFormulaCompletedZeroHeightWindow T ∧
+      ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ∧
         completedZeroResidueCoordinate ρ = z :=
   Finset.mem_image.mp hz
 
@@ -503,7 +503,7 @@ inductive ExplicitFormulaRectangleRawSingularIndex (T : ℝ) where
   | onePole : ExplicitFormulaRectangleRawSingularIndex T
   | completedZero :
       (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) →
-      ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+      ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
       ExplicitFormulaRectangleRawSingularIndex T
 
 /-- Coordinate of an indexed raw singularity. -/
@@ -531,7 +531,7 @@ noncomputable def explicitFormulaRectangleRawSingularIndexedResidueSum
     (f : ZetaAdmissibleFunction) (T : ℝ) : ℂ :=
   explicitFormulaRectangle_zeroPoleResidue f +
     explicitFormulaRectangle_onePoleResidue f +
-      ∑ ρ in explicitFormulaCompletedZeroHeightWindow T,
+      ∑ ρ in explicitFormulaCompletedZeroContourHeightWindow T,
         explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ)
 
 /-- The indexed raw singular residue sum is the pole-corrected residue target. -/
@@ -542,9 +542,9 @@ theorem explicitFormulaRectangleRawSingularIndexedResidueSum_eq_poleCorrectedRes
   let Z : ℂ := explicitFormulaRectangle_zeroPoleResidue f
   let O : ℂ := explicitFormulaRectangle_onePoleResidue f
   let W : ℂ :=
-    ∑ ρ in explicitFormulaCompletedZeroHeightWindow T,
+    ∑ ρ in explicitFormulaCompletedZeroContourHeightWindow T,
       explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ)
-  have hW : W = explicitFormulaCompletedZeroHeightWindowResidueSum f T :=
+  have hW : W = explicitFormulaCompletedZeroContourHeightWindowResidueSum f T :=
     explicitFormulaRectangle_completedZeroResidueWindowSum_eq_heightWindowResidueSum f T
   calc
     explicitFormulaRectangleRawSingularIndexedResidueSum f T = Z + O + W := by
@@ -555,9 +555,9 @@ theorem explicitFormulaRectangleRawSingularIndexedResidueSum_eq_poleCorrectedRes
           rfl
         _ = W + (Z + O) := by
           exact add_comm (Z + O) W
-    _ = explicitFormulaCompletedZeroHeightWindowResidueSum f T + (Z + O) := by
+    _ = explicitFormulaCompletedZeroContourHeightWindowResidueSum f T + (Z + O) := by
       exact congrArg (fun x : ℂ => x + (Z + O)) hW
-    _ = explicitFormulaCompletedZeroHeightWindowResidueSum f T +
+    _ = explicitFormulaCompletedZeroContourHeightWindowResidueSum f T +
         explicitFormulaRectangle_completedPoleResidueSum f := by
       rfl
     _ = explicitFormulaRectangle_poleCorrectedResidueSum f T := by
@@ -574,7 +574,7 @@ theorem finiteRectangleDeletedCircleBoundarySum_rawSingularCoordinates_eq_indexe
       deletedCircle 1 = explicitFormulaRectangle_onePoleResidue f)
     (hcompleted :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T,
           deletedCircle (completedZeroResidueCoordinate ρ) =
             explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ)) :
     finiteRectangleDeletedCircleBoundarySum
@@ -582,7 +582,7 @@ theorem finiteRectangleDeletedCircleBoundarySum_rawSingularCoordinates_eq_indexe
       explicitFormulaRectangleRawSingularIndexedResidueSum f T := by
   let C : Finset ℂ := explicitFormulaCompletedZeroWindowCoordinates T
   let W : Finset {ρ : ℂ // ZetaCompletedZero ρ} :=
-    explicitFormulaCompletedZeroHeightWindow T
+    explicitFormulaCompletedZeroContourHeightWindow T
   have hzero_not_C : (0 : ℂ) ∉ C := by
     intro hmem
     exact

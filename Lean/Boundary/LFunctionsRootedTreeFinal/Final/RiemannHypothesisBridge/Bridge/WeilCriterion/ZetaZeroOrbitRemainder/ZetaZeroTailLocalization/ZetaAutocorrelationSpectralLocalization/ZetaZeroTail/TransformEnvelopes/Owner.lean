@@ -154,13 +154,12 @@ theorem zetaZeroGrowthDecayProductEnvelope_eq_constant_mul_powerProduct
       (M * B) *
         (zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ) *
           zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ))) := by
-  exact
-    (show
+  have hproduct_identity :
       (M * zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ)) *
           (B * zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ))) =
         (M * B) *
           (zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ) *
-            zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ))) from
+            zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ))) := by
     calc
     (M * zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ)) *
         (B * zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ))) =
@@ -205,7 +204,8 @@ theorem zetaZeroGrowthDecayProductEnvelope_eq_constant_mul_powerProduct
             zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ))) := by
       exact (mul_assoc M B
         (zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ) *
-          zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ)))).symm)
+          zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ)))).symm
+  exact hproduct_identity
 
 /-- If the decay exponent is chosen past the growth degree, the product power is bounded
 by the requested zero-tail decay power. -/

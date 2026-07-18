@@ -28,7 +28,7 @@ theorem zetaCompletedExplicitFormulaCorrectionVerticalChannel_tendsto_correction
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F (h.height_schedule.height u))
         atTop
-        (𝓝 0)) :
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c))) :
     Tendsto
       (fun u : ℝ =>
         explicitFormulaSelectedScheduledVerticalChannel
@@ -135,7 +135,7 @@ theorem zetaCompletedExplicitFormulaCorrectionVerticalChannelTransportRemainder_
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F (h.height_schedule.height u))
         atTop
-        (𝓝 0)) :
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c))) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaCorrectionVerticalChannelTransportRemainder
@@ -301,7 +301,7 @@ theorem zetaCompletedExplicitFormulaCorrectionVerticalChannel_tendsto_correction
             zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
               f F (h.height_schedule.height u))
           atTop
-          (𝓝 0)) :
+          (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c))) :
       Tendsto
         (fun u : ℝ =>
           zetaCompletedExplicitFormulaCorrectionVerticalChannel f F
@@ -347,7 +347,7 @@ theorem zetaCompletedExplicitFormulaCorrectionVerticalChannelTransportRemainder_
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F (h.height_schedule.height u))
         atTop
-        (𝓝 0)) :
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c))) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaCorrectionVerticalChannelTransportRemainder
@@ -439,7 +439,8 @@ theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_z
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F.toContourFamily (h.height_schedule.height u))
         atTop
-        (𝓝 0)) :
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+          f F.toContourFamily.c))) :
       Tendsto
           (fun u : ℝ =>
             zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
@@ -490,7 +491,8 @@ theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_z
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F.toContourFamily (h.height_schedule.height u))
         atTop
-        (𝓝 0)) :
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+          f F.toContourFamily.c))) :
       Tendsto
           (fun u : ℝ =>
             zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
@@ -544,7 +546,8 @@ theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_z
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F.toContourFamily (h.height_schedule.height u))
         atTop
-        (𝓝 0)) :
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+          f F.toContourFamily.c))) :
       Tendsto
           (fun u : ℝ =>
             zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
@@ -604,7 +607,8 @@ theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_z
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F.toContourFamily (h.height_schedule.height u))
         atTop
-        (𝓝 0)) :
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+          f F.toContourFamily.c))) :
       Tendsto
           (fun u : ℝ =>
             zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
@@ -645,7 +649,8 @@ theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_z
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F.toContourFamily (h.height_schedule.height u))
         atTop
-        (𝓝 0)) :
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+          f F.toContourFamily.c))) :
       Tendsto
           (fun u : ℝ =>
             zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
@@ -692,7 +697,8 @@ theorem zetaCompletedExplicitFormulaVerticalChannelTransportRemainders_tendsto_z
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F.toContourFamily (h.height_schedule.height u))
         atTop
-        (𝓝 0)) :
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+          f F.toContourFamily.c))) :
       Tendsto
           (fun u : ℝ =>
             zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder

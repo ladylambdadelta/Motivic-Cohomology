@@ -150,7 +150,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_onePole_eq_twoPiI_smul_
 theorem explicitFormulaRectangleRawDeletedCircleBoundary_completedZero_eq_twoPiI_smul_residue
     (f : ZetaAdmissibleFunction) (T : ℝ)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
-    (hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T)
+    (hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T)
     {R : ℝ} (hR : 0 < R)
     (s : Set ℂ) (hs : s.Countable)
     (hcontinuous :
@@ -171,7 +171,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_completedZero_eq_twoPiI
             z)
     (hlocal :
       ∀ σ : {σ : ℂ // ZetaCompletedZero σ},
-        σ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        σ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate σ) *
@@ -198,7 +198,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_twoPiI_smul_residue_
     (szero : {ρ : ℂ // ZetaCompletedZero ρ} → Set ℂ)
     (hszero :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           (szero ρ).Countable)
       (hzero_continuous :
         ContinuousOn
@@ -222,7 +222,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_twoPiI_smul_residue_
             z)
     (hcompleted_continuous :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           ContinuousOn
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) *
@@ -231,7 +231,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_twoPiI_smul_residue_
               {completedZeroResidueCoordinate ρ}))
     (hcompleted_differentiable :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T,
           ∀ z : ℂ,
             z ∈ (Metric.ball (completedZeroResidueCoordinate ρ) R \
                 {completedZeroResidueCoordinate ρ}) \ szero ρ →
@@ -242,7 +242,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_twoPiI_smul_residue_
                 z)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) *
@@ -260,7 +260,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_twoPiI_smul_residue_
           (2 * ↑Real.pi * Complex.I : ℂ) •
             explicitFormulaRectangle_onePoleResidue f) ∨
       (∃ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∃ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∃ _hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T,
           completedZeroResidueCoordinate ρ = a ∧
             explicitFormulaRectangleRawDeletedCircleBoundary f R a =
               (2 * ↑Real.pi * Complex.I : ℂ) •
@@ -359,7 +359,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_commonValue_on_rawSi
           explicitFormulaRectangle_onePoleResidue f)
     (hvalue_completed :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T,
           value (completedZeroResidueCoordinate ρ) =
             (2 * ↑Real.pi * Complex.I : ℂ) •
               explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))
@@ -367,7 +367,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_commonValue_on_rawSi
     (szero : {ρ : ℂ // ZetaCompletedZero ρ} → Set ℂ)
     (hszero :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           (szero ρ).Countable)
       (hzero_continuous :
         ContinuousOn
@@ -391,7 +391,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_commonValue_on_rawSi
             z)
     (hcompleted_continuous :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           ContinuousOn
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) *
@@ -400,7 +400,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_commonValue_on_rawSi
               {completedZeroResidueCoordinate ρ}))
     (hcompleted_differentiable :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T,
           ∀ z : ℂ,
             z ∈ (Metric.ball (completedZeroResidueCoordinate ρ) R \
                 {completedZeroResidueCoordinate ρ}) \ szero ρ →
@@ -411,7 +411,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_commonValue_on_rawSi
                 z)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) *
@@ -432,7 +432,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_eq_commonValue_on_rawSi
             (2 * ↑Real.pi * Complex.I : ℂ) •
               explicitFormulaRectangle_onePoleResidue f) ∨
         (∃ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ∃ hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+          ∃ hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T,
             completedZeroResidueCoordinate ρ = a ∧
               explicitFormulaRectangleRawDeletedCircleBoundary f R a =
                 (2 * ↑Real.pi * Complex.I : ℂ) •
@@ -508,7 +508,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_half_eq_commonValue_on_
     (hvalue_completed :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+          ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T,
             value ε (completedZeroResidueCoordinate ρ) =
               (2 * ↑Real.pi * Complex.I : ℂ) •
                 explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))
@@ -519,7 +519,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_half_eq_commonValue_on_
     (hszero :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
             (szero ε ρ).Countable)
       (hzero_continuous :
         ∀ ε : ℝ,
@@ -548,7 +548,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_half_eq_commonValue_on_
     (hcompleted_continuous :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
             ContinuousOn
               (fun z : ℂ =>
                 (z - completedZeroResidueCoordinate ρ) *
@@ -558,7 +558,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_half_eq_commonValue_on_
     (hcompleted_differentiable :
       ∀ ε : ℝ,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+          ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T,
             ∀ z : ℂ,
               z ∈ (Metric.ball (completedZeroResidueCoordinate ρ) (ε / 2) \
                   {completedZeroResidueCoordinate ρ}) \ szero ε ρ →
@@ -569,7 +569,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundary_half_eq_commonValue_on_
                   z)
     (hlocal :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T →
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T →
           Tendsto
             (fun z : ℂ =>
               (z - completedZeroResidueCoordinate ρ) *

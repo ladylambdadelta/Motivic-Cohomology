@@ -104,7 +104,7 @@ theorem eulerMaclaurinPoleClearedZetaMainTerm_norm_le_one
 
 theorem eulerMaclaurinPoleClearedZetaEndpointReciprocal_norm_le_one
     (z : ℂ)
-    (hz_one : 1 ≤ z.re) :
+    (hz_nonnegative : 0 ≤ z.re) :
     ‖1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)‖ ≤ 1 := by
   let N : ℕ := eulerMaclaurinPoleClearedZetaCutoff z
   have hN_pos : 0 < N := eulerMaclaurinPoleClearedZetaCutoff_pos z
@@ -113,8 +113,8 @@ theorem eulerMaclaurinPoleClearedZetaEndpointReciprocal_norm_le_one
   have hnorm_cpow :
       ‖((N : ℕ) : ℂ) ^ z‖ = (N : ℝ) ^ z.re :=
     Complex.norm_natCast_cpow_of_pos hN_pos z
-  have hz_nonneg : 0 ≤ z.re := le_trans zero_le_one hz_one
-  have hpow_one : 1 ≤ (N : ℝ) ^ z.re := Real.one_le_rpow hN_one hz_nonneg
+  have hpow_one : 1 ≤ (N : ℝ) ^ z.re :=
+    Real.one_le_rpow hN_one hz_nonnegative
   have hpow_pos : 0 < (N : ℝ) ^ z.re :=
     Real.rpow_pos_of_pos (Nat.cast_pos.mpr hN_pos) z.re
   have hnorm_pos : 0 < ‖((N : ℕ) : ℂ) ^ z‖ :=
@@ -142,7 +142,7 @@ theorem eulerMaclaurinPoleClearedZetaFinitePart_summand_norm_le_one
     (z : ℂ)
     {n : ℕ}
     (hn : 1 ≤ n)
-    (hz_one : 1 ≤ z.re) :
+    (hz_nonnegative : 0 ≤ z.re) :
     ‖1 / (((n : ℕ) : ℂ) ^ z)‖ ≤ 1 := by
   have hn_pos : 0 < n := Nat.lt_of_succ_le hn
   have hn_real_one : (1 : ℝ) ≤ (n : ℝ) := by
@@ -155,8 +155,8 @@ theorem eulerMaclaurinPoleClearedZetaFinitePart_summand_norm_le_one
   have hnorm_cpow :
       ‖((n : ℕ) : ℂ) ^ z‖ = (n : ℝ) ^ z.re :=
     Complex.norm_natCast_cpow_of_pos hn_pos z
-  have hz_nonneg : 0 ≤ z.re := le_trans zero_le_one hz_one
-  have hpow_one : 1 ≤ (n : ℝ) ^ z.re := Real.one_le_rpow hn_real_one hz_nonneg
+  have hpow_one : 1 ≤ (n : ℝ) ^ z.re :=
+    Real.one_le_rpow hn_real_one hz_nonnegative
   have hnorm_one : 1 ≤ ‖((n : ℕ) : ℂ) ^ z‖ :=
     Eq.subst (motive := fun x : ℝ => 1 ≤ x) hnorm_cpow.symm hpow_one
   have hnorm_inv :
@@ -178,7 +178,7 @@ theorem eulerMaclaurinPoleClearedZetaFinitePart_summand_norm_le_one
 
 theorem eulerMaclaurinPoleClearedZetaFinitePart_sum_norm_le_card
     (z : ℂ)
-    (hz_one : 1 ≤ z.re) :
+    (hz_nonnegative : 0 ≤ z.re) :
     ‖∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
         1 / (((n : ℕ) : ℂ) ^ z)‖ ≤
       ((Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z)).card : ℝ) := by
@@ -195,7 +195,7 @@ theorem eulerMaclaurinPoleClearedZetaFinitePart_sum_norm_le_card
     exact Finset.sum_le_sum
       (fun n hn =>
         eulerMaclaurinPoleClearedZetaFinitePart_summand_norm_le_one
-          z (Finset.mem_Icc.mp hn).1 hz_one)
+          z (Finset.mem_Icc.mp hn).1 hz_nonnegative)
   have hcard :
       (∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z), (1 : ℝ)) =
         ((Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z)).card : ℝ) :=
@@ -212,7 +212,9 @@ theorem eulerMaclaurinPoleClearedZetaFinitePart_sum_norm_le_card
                 (Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z)).card
                 (1 : ℝ)
           _ = ((Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z)).card : ℝ) := by
-            exact mul_one _
+            exact
+              mul_one
+                ((Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z)).card : ℝ)
   exact le_trans hsum_norm (le_trans hterms (le_of_eq hcard))
 
 theorem eulerMaclaurinPoleClearedZetaFinitePart_card_le_three_mul_height
@@ -298,64 +300,72 @@ theorem eulerMaclaurinPoleClearedZetaFinitePart_sum_cardinality_polynomial_bound
         1 ≤ z.re →
         z.re ≤ 2 →
         ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ ≤ C * (1 + ‖z‖) ^ m := by
-  refine ⟨3, 2, ?_, ?_⟩
-  · exact
-      lt_of_lt_of_le
-        (zero_lt_one : (0 : ℝ) < 1)
-        (le_trans
-          (show (1 : ℝ) ≤ 2 from one_le_two)
-          (le_of_lt (Nat.cast_lt.mpr (Nat.lt_succ_self 2))))
-  intro z hz_one _hz_two
-  unfold eulerMaclaurinPoleClearedZetaFinitePart
-  let H : ℝ := 1 + ‖z‖
-  have hH_nonneg : 0 ≤ H := le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))
-  have hpole : ‖z - 1‖ ≤ H :=
-    eulerMaclaurinPoleClearedZetaFinitePart_poleFactor_norm_le_height z
-  have hsum_card :
+  have hconstantPositive : (0 : ℝ) < 3 :=
+    lt_of_lt_of_le
+      (zero_lt_one : (0 : ℝ) < 1)
+      (le_trans
+        (show (1 : ℝ) ≤ 2 from one_le_two)
+        (le_of_lt (Nat.cast_lt.mpr (Nat.lt_succ_self 2))))
+  have hbound :
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ ≤
+          3 * (1 + ‖z‖) ^ (2 : ℕ) := by
+    intro z hz_one hz_two
+    unfold eulerMaclaurinPoleClearedZetaFinitePart
+    let H : ℝ := 1 + ‖z‖
+    have hH_nonneg : 0 ≤ H :=
+      le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))
+    have hpole : ‖z - 1‖ ≤ H :=
+      eulerMaclaurinPoleClearedZetaFinitePart_poleFactor_norm_le_height z
+    have hsum_card :
       ‖∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
           1 / (((n : ℕ) : ℂ) ^ z)‖ ≤
         ((Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z)).card : ℝ) :=
-    eulerMaclaurinPoleClearedZetaFinitePart_sum_norm_le_card z hz_one
-  have hcard :
+      eulerMaclaurinPoleClearedZetaFinitePart_sum_norm_le_card z
+        (le_trans zero_le_one hz_one)
+    have hcard :
       ((Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z)).card : ℝ) ≤
         3 * H :=
-    eulerMaclaurinPoleClearedZetaFinitePart_card_le_three_mul_height z
-  have hsum : ‖∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+      eulerMaclaurinPoleClearedZetaFinitePart_card_le_three_mul_height z
+    have hsum : ‖∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
           1 / (((n : ℕ) : ℂ) ^ z)‖ ≤ 3 * H :=
-    le_trans hsum_card hcard
-  have hprod :
+      le_trans hsum_card hcard
+    have hprod :
       ‖(z - 1) *
           ∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
             1 / (((n : ℕ) : ℂ) ^ z)‖ ≤
         H * (3 * H) := by
-    calc
-      ‖(z - 1) *
-          ∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
-            1 / (((n : ℕ) : ℂ) ^ z)‖ =
-          ‖z - 1‖ *
-            ‖∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
-              1 / (((n : ℕ) : ℂ) ^ z)‖ := by
-        exact norm_mul (z - 1)
-          (∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
-            1 / (((n : ℕ) : ℂ) ^ z))
-      _ ≤ H * (3 * H) :=
-        mul_le_mul hpole hsum
-          (norm_nonneg
+      calc
+        ‖(z - 1) *
             (∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
-              1 / (((n : ℕ) : ℂ) ^ z)))
-          hH_nonneg
-  have hcollapse : H * (3 * H) = 3 * H ^ (2 : ℕ) := by
-    calc
-      H * (3 * H) = (H * 3) * H := by
-        exact (mul_assoc H 3 H).symm
-      _ = (3 * H) * H := by
-        exact congrArg (fun x : ℝ => x * H) (mul_comm H 3)
-      _ = 3 * (H * H) := by
-        exact mul_assoc 3 H H
-      _ = 3 * H ^ (2 : ℕ) := by
-        exact congrArg (fun x : ℝ => 3 * x) (pow_two H).symm
-  have htarget : 3 * H ^ (2 : ℕ) = 3 * (1 + ‖z‖) ^ (2 : ℕ) := rfl
-  exact le_trans hprod (le_of_eq (hcollapse.trans htarget))
+              1 / (((n : ℕ) : ℂ) ^ z))‖ =
+            ‖z - 1‖ *
+              ‖∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+                1 / (((n : ℕ) : ℂ) ^ z)‖ := by
+          exact norm_mul (z - 1)
+            (∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+              1 / (((n : ℕ) : ℂ) ^ z))
+        _ ≤ H * (3 * H) :=
+          mul_le_mul hpole hsum
+            (norm_nonneg
+              (∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+                1 / (((n : ℕ) : ℂ) ^ z)))
+            hH_nonneg
+    have hcollapse : H * (3 * H) = 3 * H ^ (2 : ℕ) := by
+      calc
+        H * (3 * H) = (H * 3) * H := by
+          exact (mul_assoc H 3 H).symm
+        _ = (3 * H) * H := by
+          exact congrArg (fun x : ℝ => x * H) (mul_comm H 3)
+        _ = 3 * (H * H) := by
+          exact mul_assoc 3 H H
+        _ = 3 * H ^ (2 : ℕ) := by
+          exact congrArg (fun x : ℝ => 3 * x) (pow_two H).symm
+    have htarget : 3 * H ^ (2 : ℕ) = 3 * (1 + ‖z‖) ^ (2 : ℕ) := rfl
+    exact le_trans hprod (le_of_eq (hcollapse.trans htarget))
+  exact ⟨3, 2, hconstantPositive, hbound⟩
 
 end
 end LFunctions

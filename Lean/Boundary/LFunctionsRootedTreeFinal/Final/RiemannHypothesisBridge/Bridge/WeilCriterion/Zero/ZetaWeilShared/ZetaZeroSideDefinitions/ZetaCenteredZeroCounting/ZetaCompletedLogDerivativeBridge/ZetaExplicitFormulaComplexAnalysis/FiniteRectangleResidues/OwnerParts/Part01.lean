@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.HorizontalDecay.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroKreinGram.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaResidueRegularity.ContourHeightWindow
 
 /-!
 # Explicit-formula finite rectangle residues
@@ -97,7 +98,7 @@ rectangle contour integral. -/
 noncomputable def explicitFormulaFamilyResidueWindowError
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
   zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) -
-    explicitFormulaCompletedZeroHeightWindowResidueSum f T
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum f T
 
 /-- The finite-rectangle vertical residue-window error: the right-minus-left vertical
 contour contribution after subtracting the finite completed-zero residue window. -/
@@ -105,7 +106,7 @@ noncomputable def explicitFormulaFamilyVerticalResidueWindowError
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
   zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) -
     zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) -
-      explicitFormulaCompletedZeroHeightWindowResidueSum f T
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f T
 
 /-- The vertical finite-window error written using the zero-side finite window rather than
 the residue presentation. -/
@@ -113,21 +114,21 @@ noncomputable def explicitFormulaFamilyVerticalZeroSideWindowError
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
   zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) -
     zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) -
-      explicitFormulaCompletedZeroHeightWindowZeroSideSum f T
+      explicitFormulaCompletedZeroContourHeightWindowZeroSideSum f T
 
 /-- The full finite-rectangle residue-theorem error after replacing the residue window by
 the zero-side finite window. -/
 noncomputable def explicitFormulaFamilyContourZeroSideWindowError
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
   zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) -
-    explicitFormulaCompletedZeroHeightWindowZeroSideSum f T
+    explicitFormulaCompletedZeroContourHeightWindowZeroSideSum f T
 
 /-- The scheduled finite-rectangle residue equality error: contour integral minus the finite
 residue sum obtained from the residue theorem at the scheduled height. -/
 noncomputable def explicitFormulaScheduledRectangleResidueSum
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) : ℂ :=
-  explicitFormulaCompletedZeroHeightWindowResidueSum f
+  explicitFormulaCompletedZeroContourHeightWindowResidueSum f
     (h.height_schedule.height u)
 
 /-- The scheduled finite-rectangle residue equality error: contour integral minus the finite
@@ -145,7 +146,7 @@ noncomputable def explicitFormulaScheduledZeroWindowAccountingError
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) : ℂ :=
   explicitFormulaScheduledRectangleResidueSum f F h u -
-    explicitFormulaCompletedZeroHeightWindowZeroSideSum f
+    explicitFormulaCompletedZeroContourHeightWindowZeroSideSum f
       (h.height_schedule.height u)
 
 /-- The horizontal residue-window error is the top-minus-bottom horizontal contour
@@ -160,10 +161,10 @@ residue-window error. -/
 theorem zetaCompletedExplicitFormulaContourIntegral_eq_heightWindowResidueSum_add_error
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
     zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) =
-      explicitFormulaCompletedZeroHeightWindowResidueSum f T +
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f T +
         explicitFormulaFamilyResidueWindowError f F T := by
   let C : ℂ := zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T)
-  let S : ℂ := explicitFormulaCompletedZeroHeightWindowResidueSum f T
+  let S : ℂ := explicitFormulaCompletedZeroContourHeightWindowResidueSum f T
   change C = S + (C - S)
   calc
     C = C + 0 := by
@@ -188,7 +189,7 @@ theorem explicitFormulaFamilyResidueWindowError_eq_vertical_add_horizontal
   let L : ℂ := zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T)
   let U : ℂ := zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T)
   let B : ℂ := zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T)
-  let S : ℂ := explicitFormulaCompletedZeroHeightWindowResidueSum f T
+  let S : ℂ := explicitFormulaCompletedZeroContourHeightWindowResidueSum f T
   change (R - L + U - B) - S = (R - L - S) + (U - B)
   calc
     (R - L + U - B) - S = ((R - L) + U - B) - S := by
@@ -298,12 +299,12 @@ theorem explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_of_schedu
 
 /-- The completed-zero residue window and the zero-side window are the same finite sum
 after both are expressed at the centered completed-zero coordinate. -/
-theorem explicitFormulaCompletedZeroHeightWindowResidueSum_eq_zeroSideSum
+theorem explicitFormulaCompletedZeroContourHeightWindowResidueSum_eq_zeroSideSum
     (f : ZetaAdmissibleFunction) (T : ℝ) :
-    explicitFormulaCompletedZeroHeightWindowResidueSum f T =
-      explicitFormulaCompletedZeroHeightWindowZeroSideSum f T := by
-  unfold explicitFormulaCompletedZeroHeightWindowResidueSum
-  unfold explicitFormulaCompletedZeroHeightWindowZeroSideSum
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum f T =
+      explicitFormulaCompletedZeroContourHeightWindowZeroSideSum f T := by
+  unfold explicitFormulaCompletedZeroContourHeightWindowResidueSum
+  unfold explicitFormulaCompletedZeroContourHeightWindowZeroSideSum
   exact Finset.sum_congr rfl
     (fun ρ _hρ => by
       calc
@@ -318,31 +319,31 @@ theorem explicitFormulaCompletedZeroHeightWindowResidueSum_eq_zeroSideSum
           exact (zetaZeroSideContribution_def (ρ : ℂ) f).symm)
 
 /-- The completed-zero residue windows converge to the zero-side `tsum`. -/
-theorem explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroSideTsum
+theorem explicitFormulaCompletedZeroContourHeightWindowResidueSum_tendsto_zeroSideTsum
     (f : ZetaAdmissibleFunction)
     (hsum :
       Summable
         (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
           zetaZeroSideContribution (ρ : ℂ) f)) :
     Tendsto
-      (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowResidueSum f T)
+      (fun T : ℝ => explicitFormulaCompletedZeroContourHeightWindowResidueSum f T)
       atTop
       (𝓝
         (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
           zetaZeroSideContribution (ρ : ℂ) f)) := by
   have hzero :
       Tendsto
-        (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowZeroSideSum f T)
+        (fun T : ℝ => explicitFormulaCompletedZeroContourHeightWindowZeroSideSum f T)
         atTop
         (𝓝
           (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
             zetaZeroSideContribution (ρ : ℂ) f)) :=
-    explicitFormulaCompletedZeroHeightWindowZeroSideSum_tendsto_tsum f hsum
+    explicitFormulaCompletedZeroContourHeightWindowZeroSideSum_tendsto_tsum f hsum
   have hpointwise :
-      (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowResidueSum f T) =
-        fun T : ℝ => explicitFormulaCompletedZeroHeightWindowZeroSideSum f T := by
+      (fun T : ℝ => explicitFormulaCompletedZeroContourHeightWindowResidueSum f T) =
+        fun T : ℝ => explicitFormulaCompletedZeroContourHeightWindowZeroSideSum f T := by
     funext T
-    exact explicitFormulaCompletedZeroHeightWindowResidueSum_eq_zeroSideSum f T
+    exact explicitFormulaCompletedZeroContourHeightWindowResidueSum_eq_zeroSideSum f T
   exact Eq.subst
     (motive := fun φ : ℝ → ℂ =>
       Tendsto φ atTop
@@ -361,11 +362,11 @@ theorem explicitFormulaFamilyVerticalResidueWindowError_eq_zeroSideWindowError
     zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) -
       zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T)
   have hwindow :
-      explicitFormulaCompletedZeroHeightWindowResidueSum f T =
-        explicitFormulaCompletedZeroHeightWindowZeroSideSum f T :=
-    explicitFormulaCompletedZeroHeightWindowResidueSum_eq_zeroSideSum f T
-  change V - explicitFormulaCompletedZeroHeightWindowResidueSum f T =
-    V - explicitFormulaCompletedZeroHeightWindowZeroSideSum f T
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f T =
+        explicitFormulaCompletedZeroContourHeightWindowZeroSideSum f T :=
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum_eq_zeroSideSum f T
+  change V - explicitFormulaCompletedZeroContourHeightWindowResidueSum f T =
+    V - explicitFormulaCompletedZeroContourHeightWindowZeroSideSum f T
   exact congrArg (fun S : ℂ => V - S) hwindow
 
 /-- If the zero-side presentation of the vertical finite-window error vanishes, then so does
@@ -399,11 +400,11 @@ theorem explicitFormulaFamilyContourZeroSideWindowError_eq_residueWindowError
       explicitFormulaFamilyResidueWindowError f F T := by
   let C : ℂ := zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T)
   have hwindow :
-      explicitFormulaCompletedZeroHeightWindowResidueSum f T =
-        explicitFormulaCompletedZeroHeightWindowZeroSideSum f T :=
-    explicitFormulaCompletedZeroHeightWindowResidueSum_eq_zeroSideSum f T
-  change C - explicitFormulaCompletedZeroHeightWindowZeroSideSum f T =
-    C - explicitFormulaCompletedZeroHeightWindowResidueSum f T
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f T =
+        explicitFormulaCompletedZeroContourHeightWindowZeroSideSum f T :=
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum_eq_zeroSideSum f T
+  change C - explicitFormulaCompletedZeroContourHeightWindowZeroSideSum f T =
+    C - explicitFormulaCompletedZeroContourHeightWindowResidueSum f T
   exact congrArg (fun S : ℂ => C - S) hwindow.symm
 
 /-- The scheduled zero-window accounting error vanishes pointwise: the finite rectangle
@@ -414,11 +415,11 @@ theorem explicitFormulaScheduledZeroWindowAccountingError_eq_zero
     (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
     explicitFormulaScheduledZeroWindowAccountingError f F h u = 0 := by
   have hwindow :
-      explicitFormulaCompletedZeroHeightWindowResidueSum f
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f
           (h.height_schedule.height u) =
-        explicitFormulaCompletedZeroHeightWindowZeroSideSum f
+        explicitFormulaCompletedZeroContourHeightWindowZeroSideSum f
           (h.height_schedule.height u) :=
-    explicitFormulaCompletedZeroHeightWindowResidueSum_eq_zeroSideSum
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum_eq_zeroSideSum
       f (h.height_schedule.height u)
   exact sub_eq_zero.mpr hwindow
 
@@ -454,7 +455,7 @@ theorem explicitFormulaFamilyContourZeroSideWindowError_scheduled_eq_residueEqua
       (F.rectangle (h.height_schedule.height u))
   let R : ℂ := explicitFormulaScheduledRectangleResidueSum f F h u
   let Z : ℂ :=
-    explicitFormulaCompletedZeroHeightWindowZeroSideSum f
+    explicitFormulaCompletedZeroContourHeightWindowZeroSideSum f
       (h.height_schedule.height u)
   change C - Z = (C - R) + (R - Z)
   calc
@@ -484,7 +485,7 @@ theorem explicitFormulaFamilyVerticalZeroSideWindowError_eq_contourZeroSide_sub_
   let L : ℂ := zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T)
   let U : ℂ := zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T)
   let B : ℂ := zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T)
-  let S : ℂ := explicitFormulaCompletedZeroHeightWindowZeroSideSum f T
+  let S : ℂ := explicitFormulaCompletedZeroContourHeightWindowZeroSideSum f T
   change R - L - S = ((R - L + U - B) - S) - (U - B)
   exact (calc
     ((R - L + U - B) - S) - (U - B)
@@ -527,24 +528,24 @@ This is the zero-side summability/Jensen input specialized to the residue window
 the finite height-window residue sums converge to the completed complex zero-side residue
 sum.  Passing to the Krein scalar is a real-part operation, not a complex equality with a
 coerced real number. -/
-theorem explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroSideComplex_ownerZeroLimit
+theorem explicitFormulaCompletedZeroContourHeightWindowResidueSum_tendsto_zeroSideComplex_ownerZeroLimit
     (f : ZetaAdmissibleFunction)
     (hsum :
       Summable
         (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
           zetaZeroSideContribution (ρ : ℂ) f)) :
     Tendsto
-      (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowResidueSum f T)
+      (fun T : ℝ => explicitFormulaCompletedZeroContourHeightWindowResidueSum f T)
       atTop
       (𝓝 (zetaCompletedZeroSideComplex f)) := by
   have hzeroSideTsum :
       Tendsto
-        (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowResidueSum f T)
+        (fun T : ℝ => explicitFormulaCompletedZeroContourHeightWindowResidueSum f T)
         atTop
         (𝓝
           (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
             zetaZeroSideContribution (ρ : ℂ) f)) :=
-    explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroSideTsum f hsum
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum_tendsto_zeroSideTsum f hsum
   have hzeroSideTsum_eq_complex :
       (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
           zetaZeroSideContribution (ρ : ℂ) f) =
@@ -553,7 +554,7 @@ theorem explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroSideCompl
   exact Eq.subst
     (motive := fun z : ℂ =>
       Tendsto
-        (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowResidueSum f T)
+        (fun T : ℝ => explicitFormulaCompletedZeroContourHeightWindowResidueSum f T)
         atTop
         (𝓝 z))
     hzeroSideTsum_eq_complex
@@ -561,25 +562,25 @@ theorem explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroSideCompl
 
 /-- The real parts of the completed-zero residue windows converge to the zero-side Krein
 scalar. -/
-theorem explicitFormulaCompletedZeroHeightWindowResidueSum_re_tendsto_zeroKreinGram_ownerZeroLimit
+theorem explicitFormulaCompletedZeroContourHeightWindowResidueSum_re_tendsto_zeroKreinGram_ownerZeroLimit
     (f : ZetaAdmissibleFunction)
     (hsum :
       Summable
         (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
           zetaZeroSideContribution (ρ : ℂ) f)) :
     Tendsto
-      (fun T : ℝ => Complex.re (explicitFormulaCompletedZeroHeightWindowResidueSum f T))
+      (fun T : ℝ => Complex.re (explicitFormulaCompletedZeroContourHeightWindowResidueSum f T))
       atTop
       (𝓝 (zetaCompletedZeroKreinGram f)) := by
   have hcomplex :
       Tendsto
-          (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowResidueSum f T)
+          (fun T : ℝ => explicitFormulaCompletedZeroContourHeightWindowResidueSum f T)
         atTop
         (𝓝 (zetaCompletedZeroSideComplex f)) :=
-    explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroSideComplex_ownerZeroLimit f hsum
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum_tendsto_zeroSideComplex_ownerZeroLimit f hsum
   have hre :
       Tendsto
-        (fun T : ℝ => Complex.re (explicitFormulaCompletedZeroHeightWindowResidueSum f T))
+        (fun T : ℝ => Complex.re (explicitFormulaCompletedZeroContourHeightWindowResidueSum f T))
         atTop
         (𝓝 (Complex.re (zetaCompletedZeroSideComplex f))) :=
     (Complex.continuous_re.tendsto (zetaCompletedZeroSideComplex f)).comp hcomplex
@@ -590,7 +591,7 @@ theorem explicitFormulaCompletedZeroHeightWindowResidueSum_re_tendsto_zeroKreinG
   exact Eq.subst
     (motive := fun x : ℝ =>
       Tendsto
-        (fun T : ℝ => Complex.re (explicitFormulaCompletedZeroHeightWindowResidueSum f T))
+        (fun T : ℝ => Complex.re (explicitFormulaCompletedZeroContourHeightWindowResidueSum f T))
         atTop
         (𝓝 x))
     htarget
@@ -616,15 +617,15 @@ theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_of_contourIntegral_
       (𝓝 0) := by
   have hwindow :
       Tendsto
-          (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowResidueSum f T)
+          (fun T : ℝ => explicitFormulaCompletedZeroContourHeightWindowResidueSum f T)
         atTop
         (𝓝 (zetaCompletedZeroSideComplex f)) :=
-    explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroSideComplex_ownerZeroLimit f hsum
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum_tendsto_zeroSideComplex_ownerZeroLimit f hsum
   have hsub :
       Tendsto
         (fun T : ℝ =>
           zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) -
-            explicitFormulaCompletedZeroHeightWindowResidueSum f T)
+            explicitFormulaCompletedZeroContourHeightWindowResidueSum f T)
         atTop
         (𝓝 (zetaCompletedZeroSideComplex f - zetaCompletedZeroSideComplex f)) :=
     hcontour.sub hwindow
@@ -635,7 +636,7 @@ theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_of_contourIntegral_
       (fun T : ℝ => explicitFormulaFamilyResidueWindowError f F T) =
         (fun T : ℝ =>
           zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) -
-            explicitFormulaCompletedZeroHeightWindowResidueSum f T) := by
+            explicitFormulaCompletedZeroContourHeightWindowResidueSum f T) := by
     funext T
     rfl
   exact Eq.subst
@@ -646,7 +647,7 @@ theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_of_contourIntegral_
         Tendsto
           (fun T : ℝ =>
             zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) -
-              explicitFormulaCompletedZeroHeightWindowResidueSum f T)
+              explicitFormulaCompletedZeroContourHeightWindowResidueSum f T)
           atTop
           (𝓝 z))
       htarget

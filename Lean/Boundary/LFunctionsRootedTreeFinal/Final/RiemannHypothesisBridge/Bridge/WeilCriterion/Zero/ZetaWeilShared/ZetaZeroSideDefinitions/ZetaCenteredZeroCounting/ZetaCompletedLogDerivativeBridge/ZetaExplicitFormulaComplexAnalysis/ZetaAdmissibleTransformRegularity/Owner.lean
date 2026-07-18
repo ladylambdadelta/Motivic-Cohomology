@@ -256,6 +256,40 @@ theorem zetaPhi_verticalStripRapidDecay_ownerGap
           ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
   exact zetaPhi_verticalStripRapidDecay_of_admissible f a b N
 
+/-- The canonical rapid-decay constant selected from admissible Paley-Wiener decay. -/
+noncomputable def zetaPhiVerticalStripRapidDecayConstant
+    (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ) : ℝ :=
+  Classical.choose (zetaPhi_verticalStripRapidDecay_ownerGap f a b N)
+
+/-- The selected admissible Paley-Wiener rapid-decay constant is positive. -/
+theorem zetaPhiVerticalStripRapidDecayConstant_pos
+    (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ) :
+    0 < zetaPhiVerticalStripRapidDecayConstant f a b N := by
+  exact (Classical.choose_spec
+    (zetaPhi_verticalStripRapidDecay_ownerGap f a b N)).1
+
+/-- The selected admissible Paley-Wiener constant gives the requested strip bound. -/
+theorem zetaPhiVerticalStripRapidDecayConstant_bound
+    (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ) (z : ℂ)
+    (ha : a ≤ z.re) (hb : z.re ≤ b) :
+    ‖zetaCompletedExplicitFormulaPhi f z‖ ≤
+      zetaPhiVerticalStripRapidDecayConstant f a b N *
+        (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
+  exact (Classical.choose_spec
+    (zetaPhi_verticalStripRapidDecay_ownerGap f a b N)).2 z ha hb
+
+/-- Every admissible probe carries the canonical completed-transform control package. -/
+noncomputable def zetaPhiAnalyticControl_of_admissible
+    (f : ZetaAdmissibleFunction) : ZetaPhiAnalyticControl f := by
+  letI hdecidable : ∀ t : ℝ,
+      Decidable (t ∈ tsupport f.toZetaTestFunction') :=
+    fun t : ℝ => Classical.propDecidable (t ∈ tsupport f.toZetaTestFunction')
+  exact zetaPhiAnalyticControl_of_suppliedConstants
+    f
+    (zetaPhiVerticalStripRapidDecayConstant f)
+    (zetaPhiVerticalStripRapidDecayConstant_pos f)
+    (zetaPhiVerticalStripRapidDecayConstant_bound f)
+
 /-- The transform package is the owner-level input for contour estimates. -/
 def ZetaPhiAnalyticControlPackage (f : ZetaAdmissibleFunction) : Type :=
   ZetaPhiAnalyticControl f

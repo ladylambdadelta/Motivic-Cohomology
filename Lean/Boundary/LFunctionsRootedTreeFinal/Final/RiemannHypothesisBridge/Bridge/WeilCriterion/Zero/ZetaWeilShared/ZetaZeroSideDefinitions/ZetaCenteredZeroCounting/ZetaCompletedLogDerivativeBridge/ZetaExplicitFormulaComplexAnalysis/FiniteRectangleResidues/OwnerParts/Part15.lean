@@ -25,7 +25,7 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_poleCorrectedResid
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ)
     (hcorrected :
       explicitFormulaRectangle_fullTangentPoleCorrectedContourIntegral f F T =
-        explicitFormulaCompletedZeroHeightWindowResidueSum f T)
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f T)
     (hpoles :
       explicitFormulaRectangle_completedPoleTangentBoundaryContribution f F T =
         explicitFormulaRectangle_completedPoleResidueSum f) :
@@ -38,15 +38,15 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_poleCorrectedResid
       exact
         zetaCompletedExplicitFormulaTangentContourIntegral_eq_fullTangentPoleCorrected_add_tangentPoles
           f F T
-    _ = explicitFormulaCompletedZeroHeightWindowResidueSum f T +
+    _ = explicitFormulaCompletedZeroContourHeightWindowResidueSum f T +
           explicitFormulaRectangle_completedPoleTangentBoundaryContribution f F T := by
       exact congrArg
         (fun x : ℂ => x + explicitFormulaRectangle_completedPoleTangentBoundaryContribution f F T)
         hcorrected
-    _ = explicitFormulaCompletedZeroHeightWindowResidueSum f T +
+    _ = explicitFormulaCompletedZeroContourHeightWindowResidueSum f T +
           explicitFormulaRectangle_completedPoleResidueSum f := by
       exact congrArg
-        (fun x : ℂ => explicitFormulaCompletedZeroHeightWindowResidueSum f T + x)
+        (fun x : ℂ => explicitFormulaCompletedZeroContourHeightWindowResidueSum f T + x)
         hpoles
     _ = explicitFormulaRectangle_poleCorrectedResidueSum f T := by
       exact (explicitFormulaRectangle_poleCorrectedResidueSum_eq f T).symm
