@@ -20,6 +20,16 @@ noncomputable def zetaCompletedZeroSideComplex
   ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
     zetaZeroSideContribution (ρ : ℂ) φ
 
+namespace ZetaAdmissibleFunction
+
+/- The historical namespace-qualified spelling is retained as a thin owner-level
+   alias; the construction itself remains owned by `Boundary.LFunctions`. -/
+noncomputable def zetaCompletedZeroSideComplex
+    (φ : ZetaProbe) : ℂ :=
+  Boundary.LFunctions.zetaCompletedZeroSideComplex φ
+
+end ZetaAdmissibleFunction
+
 /-- The completed zero-side sum in real-valued form. -/
 noncomputable def zetaCompletedZeroSideRe
     (φ : ZetaProbe) : ℝ :=

@@ -941,7 +941,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_of_lower_bound
         norm_inv G
       have hreciprocal_le :
           ‖G‖⁻¹ ≤ (c * Real.exp (-x) * H ^ (a - 1 / 2))⁻¹ :=
-        inv_le_inv_of_le henvelope_pos hG_lower
+        inv_anti₀ henvelope_pos hG_lower
       have htarget_eq :
           (c * Real.exp (-x) * H ^ (a - 1 / 2))⁻¹ =
             c⁻¹ * Real.exp x * H ^ (1 / 2 - a) := by

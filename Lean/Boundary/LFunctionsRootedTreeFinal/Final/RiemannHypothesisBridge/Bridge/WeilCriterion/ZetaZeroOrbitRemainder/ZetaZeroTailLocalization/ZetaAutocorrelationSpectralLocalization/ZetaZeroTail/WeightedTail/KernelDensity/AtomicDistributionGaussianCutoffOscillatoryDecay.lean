@@ -88,18 +88,27 @@ theorem zetaPaleyWienerHorizontalTwistIteratedDerivative_cutoff_eq
   Eq.refl _
 
 /-- Uniform zero-order oscillatory control for an arbitrary starting
-derivative. -/
-theorem zetaPaleyWienerIteratedDerivativeOscillatoryIntegral_cutoff_uniformBound
+derivative from a supplied derivative `L1` bound. -/
+theorem zetaPaleyWienerIteratedDerivativeOscillatoryIntegral_cutoff_uniformBound_of_l1Bound
     (scale : ℝ)
-    (hscale : 0 < scale)
-    (start : ℕ) :
+    (start : ℕ)
+    (derivativeL1Bound : ℝ)
+    (hderivativeL1Bound :
+      ∀ n : ℕ,
+        ∀ x : ℝ,
+          |x| ≤ scale →
+            (∫ t : ℝ,
+              ‖iteratedDeriv start
+                (fun u : ℝ =>
+                  zetaPaleyWienerHorizontalTwist
+                    (admissibleGaussianCutoffNat n) x u)
+                t‖) ≤ derivativeL1Bound) :
     ∀ n : ℕ,
       ∀ x frequency : ℝ,
         |x| ≤ scale →
           ‖zetaPaleyWienerIteratedDerivativeOscillatoryIntegral
               (admissibleGaussianCutoffNat n) start x frequency‖ ≤
-            admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound
-              start scale := by
+            derivativeL1Bound := by
   intro n x frequency hx
   have hoscillatory :=
     norm_zetaPaleyWienerIteratedDerivativeOscillatoryIntegral_le_derivativeL1
@@ -122,14 +131,11 @@ theorem zetaPaleyWienerIteratedDerivativeOscillatoryIntegral_cutoff_uniformBound
             (zetaPaleyWienerHorizontalTwistIteratedDerivative_cutoff_eq
               start n x t)))
   have hderivativeIntegral :=
-    integral_norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleGaussianCutoffNat_le
-      start scale hscale n x hx
+    hderivativeL1Bound n x hx
   exact le_trans hoscillatory
     (Eq.subst
       (motive := fun left : ℝ =>
-        left ≤
-          admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound
-            start scale)
+        left ≤ derivativeL1Bound)
       hsourceIntegral.symm
       hderivativeIntegral)
 
@@ -152,29 +158,27 @@ theorem admissibleGaussianCutoffNat_iteratedOscillatoryIntegral_uniform_highFreq
                     (1 + ‖frequency‖) ^ (-(degree : ℤ)) := by
   induction degree generalizing start with
   | zero =>
-      let bound : ℝ :=
-        admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound
-          start scale
-      have hboundPositive : 0 < bound :=
-        admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound_pos
-          start scale
-      exact Exists.intro bound (And.intro hboundPositive (by
-        intro n x frequency hx hfrequency
-        have hraw :=
-          zetaPaleyWienerIteratedDerivativeOscillatoryIntegral_cutoff_uniformBound
-            scale hscale start n x frequency hx
-        have hweight :
-            bound * (1 + ‖frequency‖) ^ (-(0 : ℤ)) = bound :=
-          Eq.trans
-            (congrArg (fun value : ℝ => bound * value)
-              (zetaPaleyWiener_zeroDecayWeight frequency))
-            (mul_one bound)
-        exact Eq.subst
-          (motive := fun right : ℝ =>
-            ‖zetaPaleyWienerIteratedDerivativeOscillatoryIntegral
-              (admissibleGaussianCutoffNat n) start x frequency‖ ≤ right)
-          hweight.symm
-          hraw))
+      match
+          exists_admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound
+            start scale hscale with
+      | ⟨bound, hboundPositive, hboundControls⟩ =>
+          exact Exists.intro bound (And.intro hboundPositive (by
+            intro n x frequency hx hfrequency
+            have hraw :=
+              zetaPaleyWienerIteratedDerivativeOscillatoryIntegral_cutoff_uniformBound_of_l1Bound
+                scale start bound hboundControls n x frequency hx
+            have hweight :
+                bound * (1 + ‖frequency‖) ^ (-(0 : ℤ)) = bound :=
+              Eq.trans
+                (congrArg (fun value : ℝ => bound * value)
+                  (zetaPaleyWiener_zeroDecayWeight frequency))
+                (mul_one bound)
+            exact Eq.subst
+              (motive := fun right : ℝ =>
+                ‖zetaPaleyWienerIteratedDerivativeOscillatoryIntegral
+                  (admissibleGaussianCutoffNat n) start x frequency‖ ≤ right)
+              hweight.symm
+              hraw))
   | succ degree ih =>
       obtain ⟨nextBound, hnextBoundPositive, hnextBound⟩ :=
         ih (start + 1)

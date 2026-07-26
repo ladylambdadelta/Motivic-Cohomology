@@ -35,20 +35,24 @@ theorem exists_fixedFiberProbe_with_completedZeroComplementL1Norm_lt
     (hepsilon : 0 < epsilon) :
     ∃ f : ZetaAdmissibleFunction,
       f ∈ AutocorrelationSpectralEvalFiberOf P f₀ ∧
-        completedZeroComplementL1Norm S (convolutionAutocorrelation f) < epsilon := by
-  obtain ⟨f, hfFiber, hseedDagger⟩ :=
+        completedZeroComplementL1Norm S (convolutionAutocorrelation f) < epsilon :=
+  match
     exists_fixedFiberProbe_with_seedDaggerProductL1Norm_lt
       hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
-      S P f₀ hSeparated epsilon hepsilon
-  have hnormEquality :=
-    completedZeroComplementL1Norm_convolutionAutocorrelation_eq_seedDaggerProduct S f
-  have htail :
-      completedZeroComplementL1Norm S (convolutionAutocorrelation f) < epsilon :=
-    Eq.subst
-      (motive := fun value : ℝ => value < epsilon)
-      hnormEquality.symm
-      hseedDagger
-  exact ⟨f, hfFiber, htail⟩
+      S P f₀ hSeparated epsilon hepsilon with
+  | ⟨f, hfFiber, hseedDagger⟩ =>
+      let hnormEquality :
+          completedZeroComplementL1Norm S (convolutionAutocorrelation f) =
+            completedZeroSeedDaggerProductL1Norm S f :=
+        completedZeroComplementL1Norm_convolutionAutocorrelation_eq_seedDaggerProduct
+          S f
+      let htail :
+          completedZeroComplementL1Norm S (convolutionAutocorrelation f) < epsilon :=
+        Eq.subst
+          (motive := fun value : ℝ => value < epsilon)
+          hnormEquality.symm
+          hseedDagger
+      ⟨f, hfFiber, htail⟩
 
 end QuantitativeSeparation
 end ZetaAdmissibleFunction

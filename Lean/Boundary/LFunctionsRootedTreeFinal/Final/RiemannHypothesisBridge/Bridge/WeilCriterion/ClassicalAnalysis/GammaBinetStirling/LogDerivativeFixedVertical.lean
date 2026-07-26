@@ -1,11 +1,13 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.Binet.Derivatives.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.FixedVertical
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.SectorialLogNorm
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.SlitPlaneDefinitions
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.SectorialLog.VerticalStripShift
 
 /-!
 # Fixed-vertical Gamma logarithmic-derivative bounds
 
-This file owns fixed-real-part consequences of the Binet logarithmic-derivative
+This owner file owns fixed-real-part consequences of the Binet logarithmic-derivative
 formula.  Value bounds for `Gamma` and `Gamma⁻¹` live in `FixedVertical`; this
 file is specifically for the logarithmic derivative `Gamma'/Gamma`.
 -/
@@ -70,6 +72,25 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_binet
   exact
     Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral
       hw_re_pos hfinite_w hfinite_nhds
+
+theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_binet_of_carrierBranchCoherence
+    (hcoh : Complex.BinetCarrierBranchCoherence)
+    {σ : ℝ} (hσ : 0 < σ) (t : ℝ) :
+    deriv Complex.Gamma (σ + t * Complex.I) /
+        Complex.Gamma (σ + t * Complex.I) =
+      (Complex.log (σ + t * Complex.I) -
+          (1 / (2 * (σ + t * Complex.I)))) +
+        2 * ∫ u : ℝ in Set.Ioi (0 : ℝ),
+          (-(u : ℂ) /
+              ((σ + t * Complex.I) ^ 2 + (u : ℂ) ^ 2)) /
+            (Complex.exp (((2 : ℝ) * Real.pi * u : ℝ) : ℂ) - 1) := by
+  let w : ℂ := σ + t * Complex.I
+  have hw_re_pos : 0 < w.re :=
+    Complex.fixedRealPartLine_re_pos hσ
+  have hfinite_w := hcoh.2.1 w hw_re_pos
+  have hfinite_nhds := (hcoh.2.2 w hw_re_pos).2
+  exact Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral
+    hw_re_pos hfinite_w hfinite_nhds
 
 /-- The fixed-real-part Binet main term in the Gamma logarithmic derivative. -/
 noncomputable def Complex.GammaLogDerivativeFixedVerticalMain
@@ -212,12 +233,26 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_main_add_remainder
   exact
     Complex.Gamma_logDerivative_fixedRealPartLine_eq_binet hcoh hσ t
 
+theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_main_add_remainder_of_carrierBranchCoherence
+    (hcoh : Complex.BinetCarrierBranchCoherence)
+    {σ : ℝ} (hσ : 0 < σ) (t : ℝ) :
+    deriv Complex.Gamma (σ + t * Complex.I) /
+        Complex.Gamma (σ + t * Complex.I) =
+      Complex.GammaLogDerivativeFixedVerticalMain σ t +
+        Complex.GammaLogDerivativeFixedVerticalRemainder σ t := by
+  exact Complex.Gamma_logDerivative_fixedRealPartLine_eq_binet_of_carrierBranchCoherence
+    hcoh hσ t
+
 /-- Pointwise polynomial bounds for the fixed-line Binet main term and
 differentiated remainder imply the same kind of bound for `Gamma'/Gamma`. -/
-theorem Complex.Gamma_logDerivative_fixedRealPartLine_bound_of_main_remainder
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+theorem Complex.Gamma_logDerivative_fixedRealPartLine_bound_of_decomposition
     {σ : ℝ}
-    (hσ : 0 < σ)
+    (decomposition :
+      ∀ t : ℝ,
+        deriv Complex.Gamma (σ + t * Complex.I) /
+            Complex.Gamma (σ + t * Complex.I) =
+          Complex.GammaLogDerivativeFixedVerticalMain σ t +
+            Complex.GammaLogDerivativeFixedVerticalRemainder σ t)
     (N : ℕ)
     (M R : ℝ)
     (hmain :
@@ -239,8 +274,7 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_bound_of_main_remainder
       deriv Complex.Gamma (σ + t * Complex.I) /
           Complex.Gamma (σ + t * Complex.I) =
         A + B :=
-    Complex.Gamma_logDerivative_fixedRealPartLine_eq_main_add_remainder
-      hcoh hσ t
+    decomposition t
   have htriangle :
       ‖deriv Complex.Gamma (σ + t * Complex.I) /
           Complex.Gamma (σ + t * Complex.I)‖ ≤
@@ -259,6 +293,32 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_bound_of_main_remainder
         (M + R) * (1 + ‖t‖) ^ N :=
     (add_mul M R ((1 + ‖t‖) ^ N)).symm
   exact htriangle.trans (hsum.trans_eq hfactor)
+
+/-- Historical coherence-based specialization of the decomposition bound. -/
+theorem Complex.Gamma_logDerivative_fixedRealPartLine_bound_of_main_remainder
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    {σ : ℝ}
+    (hσ : 0 < σ)
+    (N : ℕ)
+    (M R : ℝ)
+    (hmain :
+      ∀ t : ℝ,
+        ‖Complex.GammaLogDerivativeFixedVerticalMain σ t‖ ≤
+          M * (1 + ‖t‖) ^ N)
+    (hremainder :
+      ∀ t : ℝ,
+        ‖Complex.GammaLogDerivativeFixedVerticalRemainder σ t‖ ≤
+          R * (1 + ‖t‖) ^ N) :
+    ∀ t : ℝ,
+      ‖deriv Complex.Gamma (σ + t * Complex.I) /
+          Complex.Gamma (σ + t * Complex.I)‖ ≤
+        (M + R) * (1 + ‖t‖) ^ N := by
+  exact
+    Complex.Gamma_logDerivative_fixedRealPartLine_bound_of_decomposition
+      (fun t : ℝ =>
+        Complex.Gamma_logDerivative_fixedRealPartLine_eq_main_add_remainder
+          hcoh hσ t)
+      N M R hmain hremainder
 
 /-- The Gamma recurrence in logarithmic-derivative form. -/
 theorem Complex.logDeriv_Gamma_add_one
@@ -733,8 +793,15 @@ If a natural right-shift of the fixed real part lies in the positive
 half-plane and the original fixed line avoids the ordinary Gamma pole locus,
 then the Binet decomposition transports back to the original line by iterating
 the Gamma recurrence. -/
-theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_shiftNat_main_add_remainder
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_shiftNat_main_add_remainder_of_base
+    (baseIdentity :
+      ∀ {realPart : ℝ},
+        0 < realPart →
+          ∀ height : ℝ,
+            deriv Complex.Gamma (realPart + height * Complex.I) /
+                Complex.Gamma (realPart + height * Complex.I) =
+              Complex.GammaLogDerivativeFixedVerticalMain realPart height +
+                Complex.GammaLogDerivativeFixedVerticalRemainder realPart height)
     {σ : ℝ}
     (N : ℕ)
     (hσ_shift_pos : 0 < σ + (N : ℝ))
@@ -763,12 +830,11 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_shiftNat_main_add_remai
             Complex.Gamma (σ + t * Complex.I) =
           Complex.GammaLogDerivativeFixedVerticalMain σ t +
             Complex.GammaLogDerivativeFixedVerticalRemainder σ t :=
-          Complex.Gamma_logDerivative_fixedRealPartLine_eq_main_add_remainder
-            hcoh hσ_pos t
+          baseIdentity hσ_pos t
         _ =
-          Complex.GammaLogDerivativeFixedVerticalShiftNatMain σ 0 t +
-            Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder σ 0 t := by
-          exact Eq.refl _
+            Complex.GammaLogDerivativeFixedVerticalShiftNatMain σ 0 t +
+              Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder σ 0 t := by
+            exact Eq.refl _
   | succ N ih =>
       let s : ℂ := σ + t * Complex.I
       let shifted : ℂ := ((σ + 1 : ℝ) + t * Complex.I : ℂ)
@@ -879,6 +945,28 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_shiftNat_main_add_remai
                 σ (N + 1) t := by
           exact Eq.refl _
 
+/-- Compatibility form of the finite-shift decomposition using the historical
+principal-log coherence package for its positive-line base case. -/
+theorem Complex.Gamma_logDerivative_fixedRealPartLine_eq_shiftNat_main_add_remainder
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    {σ : ℝ}
+    (N : ℕ)
+    (hσ_shift_pos : 0 < σ + (N : ℝ))
+    (hnot_pole :
+      ∀ t : ℝ, ∀ n : ℕ,
+        (σ + t * Complex.I : ℂ) ≠ -n)
+    (t : ℝ) :
+    deriv Complex.Gamma (σ + t * Complex.I) /
+        Complex.Gamma (σ + t * Complex.I) =
+      Complex.GammaLogDerivativeFixedVerticalShiftNatMain σ N t +
+        Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder σ N t := by
+    exact
+      Complex.Gamma_logDerivative_fixedRealPartLine_eq_shiftNat_main_add_remainder_of_base
+        (fun realPartPositive height =>
+          Complex.Gamma_logDerivative_fixedRealPartLine_eq_main_add_remainder
+            hcoh realPartPositive height)
+        N hσ_shift_pos hnot_pole t
+
 /-- Every fixed real part admits a natural right-shift into the positive
 half-plane. -/
 theorem Complex.exists_fixedRealPartLine_positive_shift_nat
@@ -899,7 +987,7 @@ half-plane.  The value is chosen only from the archimedean property above; no
 contour-family upper bound is required. -/
 noncomputable def Complex.GammaLogDerivativeFixedVerticalPositiveShiftNat
     (σ : ℝ) : ℕ :=
-  Classical.choose (Complex.exists_fixedRealPartLine_positive_shift_nat σ)
+  Complex.verticalStripRightShift σ
 
 /-- The canonical finite shift has positive shifted real part. -/
 theorem Complex.GammaLogDerivativeFixedVerticalPositiveShiftNat_pos
@@ -907,8 +995,8 @@ theorem Complex.GammaLogDerivativeFixedVerticalPositiveShiftNat_pos
     0 <
       σ +
         (Complex.GammaLogDerivativeFixedVerticalPositiveShiftNat σ : ℝ) :=
-  Classical.choose_spec
-    (Complex.exists_fixedRealPartLine_positive_shift_nat σ)
+  lt_of_lt_of_le zero_lt_one
+    (Complex.one_le_lower_add_verticalStripRightShift σ)
 
 /-- The differentiated Binet remainder is uniformly bounded on any vertical
 region bounded away from the imaginary axis. -/
@@ -1120,7 +1208,7 @@ theorem Complex.fixedRealPartLine_inv_norm_le_abs_re_inv
   have hnorm_inv : ‖z⁻¹‖ = (‖z‖)⁻¹ :=
     norm_inv z
   have hinv_le : (‖z‖)⁻¹ ≤ |σ|⁻¹ :=
-    inv_le_inv_of_le hσ_abs_pos hz_lower
+    inv_anti₀ hσ_abs_pos hz_lower
   exact
     Eq.subst
       (motive := fun x : ℝ => x ≤ |σ|⁻¹)
@@ -1302,7 +1390,7 @@ theorem Complex.fixedRealPartLine_inv_two_mul_norm_le_const
       _ = ‖(2 : ℂ) * z‖ := hden_norm.symm
   have hinv_mono :
       (‖(2 : ℂ) * z‖)⁻¹ ≤ σ⁻¹ :=
-    inv_le_inv_of_le hσ hσ_le_den
+    inv_anti₀ hσ hσ_le_den
   have hnorm_eq :
       ‖(1 : ℂ) / (2 * z)‖ = (‖(2 : ℂ) * z‖)⁻¹ := by
     calc
@@ -1414,10 +1502,15 @@ theorem Complex.GammaLogDerivativeFixedVerticalRemainder_linear_bound
 
 /-- Fixed-positive-real-part logarithmic derivative of Gamma has linear growth
 on vertical lines, with the Binet coherence package supplying the identity. -/
-theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_decomposition
     {σ : ℝ}
-    (hσ : 0 < σ) :
+    (hσ : 0 < σ)
+    (decomposition :
+      ∀ t : ℝ,
+        deriv Complex.Gamma (σ + t * Complex.I) /
+            Complex.Gamma (σ + t * Complex.I) =
+          Complex.GammaLogDerivativeFixedVerticalMain σ t +
+            Complex.GammaLogDerivativeFixedVerticalRemainder σ t) :
     ∀ t : ℝ,
       ‖deriv Complex.Gamma (σ + t * Complex.I) /
           Complex.Gamma (σ + t * Complex.I)‖ ≤
@@ -1470,8 +1563,8 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
       ‖deriv Complex.Gamma (σ + t * Complex.I) /
           Complex.Gamma (σ + t * Complex.I)‖ ≤
         (M + R) * (1 + ‖t‖) ^ (1 : ℕ) :=
-    Complex.Gamma_logDerivative_fixedRealPartLine_bound_of_main_remainder
-      hcoh hσ 1 M R hmain_pow hremainder_pow t
+    Complex.Gamma_logDerivative_fixedRealPartLine_bound_of_decomposition
+      decomposition 1 M R hmain_pow hremainder_pow t
   have hpow :
       (1 + ‖t‖) ^ (1 : ℕ) = (1 + ‖t‖ : ℝ) :=
     pow_one (1 + ‖t‖)
@@ -1498,6 +1591,36 @@ theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
           x * (1 + ‖t‖))
       hconstant
       hlinear
+
+theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_carrierBranchCoherence
+    (hcoh : Complex.BinetCarrierBranchCoherence)
+    {σ : ℝ} (hσ : 0 < σ) :
+    ∀ t : ℝ,
+      ‖deriv Complex.Gamma (σ + t * Complex.I) /
+          Complex.Gamma (σ + t * Complex.I)‖ ≤
+        Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant σ *
+          (1 + ‖t‖) := by
+  apply Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_decomposition hσ
+  intro t
+  exact Complex.Gamma_logDerivative_fixedRealPartLine_eq_main_add_remainder_of_carrierBranchCoherence
+    hcoh hσ t
+
+/- Historical coherence-based specialization of the positive-line bound. -/
+theorem Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    {σ : ℝ}
+    (hσ : 0 < σ) :
+    ∀ t : ℝ,
+      ‖deriv Complex.Gamma (σ + t * Complex.I) /
+          Complex.Gamma (σ + t * Complex.I)‖ ≤
+        Complex.GammaLogDerivativeFixedVerticalPositiveLineConstant σ *
+          (1 + ‖t‖) := by
+  exact
+    Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_decomposition
+      hσ
+      (fun t : ℝ =>
+        Complex.Gamma_logDerivative_fixedRealPartLine_eq_main_add_remainder
+          hcoh hσ t)
 
 /-- Fixed-positive-real-part logarithmic derivative of Gamma has linear growth
 on vertical lines, with the explicit majorant packaged as its owner constant. -/

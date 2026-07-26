@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part32
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part32Polynomial
 
 /-!
 # Explicit-formula finite rectangle residues
@@ -260,6 +260,30 @@ theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_of_scheduledCarrier
     explicitFormulaFamilyResidueWindowError_tendsto_zero_of_scheduledCarrier_core_ownerResidueCalculus
       f F.toContourFamily h N hfinite
 
+/-- Owner finite-rectangle residue-calculus error theorem with fixed-degree
+scheduled horizontal growth. -/
+theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_of_polynomialScheduledPackage_ownerResidueCalculus
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hPoly :
+      ExplicitFormulaScheduledPolynomialFamilyAnalyticPackage f F.toContourFamily)
+    (hschedule : hPoly.height_schedule = h.height_schedule)
+    (hfinite :
+      ∀ u : ℝ,
+        zetaCompletedExplicitFormulaContourIntegral f
+            (F.toContourFamily.rectangle (h.height_schedule.height u)) =
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
+            (h.height_schedule.height u)) :
+    Tendsto
+      (fun u : ℝ =>
+        explicitFormulaFamilyResidueWindowError f F.toContourFamily
+          (h.height_schedule.height u))
+      atTop
+      (𝓝 0) := by
+  exact
+    explicitFormulaFamilyResidueWindowError_tendsto_zero_of_polynomialScheduledPackage_core_ownerResidueCalculus
+      f F.toContourFamily h hPoly hschedule hfinite
+
 /-- The completed-zeta rectangle residue calculus reconstructs the complex zero-side
 residue sum from the limiting contour integral. -/
 theorem zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_ownerResidueCalculus
@@ -331,6 +355,92 @@ theorem zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_of_s
       N
       hfinite
       hsum
+
+/-- The completed-zeta rectangle residue calculus reconstructs the complex zero-side
+residue sum using fixed-degree scheduled horizontal growth. -/
+theorem zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_of_polynomialScheduledPackage_ownerResidueCalculus
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hPoly :
+      ExplicitFormulaScheduledPolynomialFamilyAnalyticPackage f F.toContourFamily)
+    (hschedule : hPoly.height_schedule = h.height_schedule)
+    (hfinite :
+      ∀ u : ℝ,
+        zetaCompletedExplicitFormulaContourIntegral f
+            (F.toContourFamily.rectangle (h.height_schedule.height u)) =
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
+            (h.height_schedule.height u))
+    (hsum :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          zetaZeroSideContribution (ρ : ℂ) f)) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaContourIntegral f
+          (F.toContourFamily.rectangle (h.height_schedule.height u)))
+      atTop
+      (𝓝 (zetaCompletedZeroSideComplex f)) := by
+  have hwindow :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedZeroSideComplex f)) :=
+    (explicitFormulaCompletedZeroContourHeightWindowResidueSum_tendsto_zeroSideComplex_ownerZeroLimit
+      f hsum).comp h.height_schedule.cofinal
+  have herror :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaFamilyResidueWindowError f F.toContourFamily
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 0) :=
+    explicitFormulaFamilyResidueWindowError_tendsto_zero_of_polynomialScheduledPackage_ownerResidueCalculus
+      f F h hPoly hschedule hfinite
+  have hsumLimit :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
+              (h.height_schedule.height u) +
+            explicitFormulaFamilyResidueWindowError f F.toContourFamily
+              (h.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedZeroSideComplex f + 0)) :=
+    hwindow.add herror
+  have htarget :
+      zetaCompletedZeroSideComplex f + 0 =
+        zetaCompletedZeroSideComplex f :=
+    add_zero _
+  have hpointwise :
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaContourIntegral f
+          (F.toContourFamily.rectangle (h.height_schedule.height u))) =
+      (fun u : ℝ =>
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
+              (h.height_schedule.height u) +
+            explicitFormulaFamilyResidueWindowError f F.toContourFamily
+              (h.height_schedule.height u)) := by
+    exact funext
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaContourIntegral_eq_heightWindowResidueSum_add_error
+          f F.toContourFamily (h.height_schedule.height u))
+  exact Eq.subst
+    (motive := fun u : ℝ → ℂ =>
+      Tendsto u atTop (𝓝 (zetaCompletedZeroSideComplex f)))
+    hpointwise.symm
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun u : ℝ =>
+            explicitFormulaCompletedZeroContourHeightWindowResidueSum f
+                (h.height_schedule.height u) +
+              explicitFormulaFamilyResidueWindowError f F.toContourFamily
+                (h.height_schedule.height u))
+          atTop
+          (𝓝 z))
+      htarget
+      hsumLimit)
 
 end ZetaAdmissibleFunction
 

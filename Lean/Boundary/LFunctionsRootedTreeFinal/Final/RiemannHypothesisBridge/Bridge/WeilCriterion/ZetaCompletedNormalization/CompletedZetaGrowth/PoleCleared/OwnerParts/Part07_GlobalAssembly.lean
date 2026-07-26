@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.CompletedZetaGrowth.PoleCleared.OwnerParts.Part06_CentralGrowth
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.CompletedZetaGrowth.PoleCleared.Owner
 
 /-!
 # Pole-cleared zeta global finite-order assembly
@@ -12,8 +13,73 @@ noncomputable section
 open scoped Filter Topology
 local notation "π" => Real.pi
 
+theorem poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_ownerUnconditional
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
+    PoleClearedZeroOneStripOrdinaryFiniteOrderGrowth := by
+  exact
+    poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_nonCircular
+      hbranch
+      boundaryLineOneAbelPartialMajorant_from_realParam
+      poleClearedOneTwoStripCompactBoundaryBound_from_rightCriticalStrip_compact
+      (reflectedBoundaryAbelPartialMajorant_of_boundaryLineOneAbelPartialMajorant
+        boundaryLineOneAbelPartialMajorant_from_realParam)
+      poleClearedRightCriticalStripCompactBoundaryBound_from_compact
+      poleClearedZeroOneStripCanonicalSelfReflectedVerticalTailEnvelope_owner
+
+/-! The pole-cleared estimate becomes an ordinary-zeta estimate only after the
+denominator is quantitatively separated from its pole.  Keeping that division
+explicit here prevents the later carrier package from silently treating
+countable avoidance as a polynomial lower bound. -/
+
+theorem riemannZeta_norm_le_of_poleCleared_zero_one_strip_growth
+    (hgrowth : PoleClearedZeroOneStripOrdinaryFiniteOrderGrowth)
+    (z : ℂ) (hz1 : z ≠ 1)
+    (hzre0 : 0 ≤ z.re) (hzre1 : z.re ≤ 1)
+    (hsep : 0 < ‖z - 1‖) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧ 0 < B ∧
+      ‖riemannZeta z‖ ≤
+        A * Real.exp (B * (1 + ‖z‖) ^ m) / hsep := by
+  rcases hgrowth with ⟨A, B, m, hA, hB, hgrowth⟩
+  refine ⟨A, B, m, hA, hB, ?_⟩
+  have hpole :
+      poleClearedRiemannZeta z = (z - 1) * riemannZeta z :=
+    poleClearedRiemannZeta_eq_of_ne_one hz1
+  have hzeta :
+      riemannZeta z = poleClearedRiemannZeta z / (z - 1) := by
+    apply (eq_div_iff (sub_ne_zero.mpr hz1)).2
+    calc
+      riemannZeta z * (z - 1) = (z - 1) * riemannZeta z := mul_comm _ _
+      _ = poleClearedRiemannZeta z := hpole.symm
+  have hnorm :
+      ‖riemannZeta z‖ =
+        ‖poleClearedRiemannZeta z‖ / ‖z - 1‖ := by
+    calc
+      ‖riemannZeta z‖ =
+          ‖poleClearedRiemannZeta z / (z - 1)‖ := congrArg norm hzeta
+      _ = ‖poleClearedRiemannZeta z‖ / ‖z - 1‖ := norm_div _ _
+  have hbound :
+      ‖poleClearedRiemannZeta z‖ ≤
+        A * Real.exp (B * (1 + ‖z‖) ^ m) :=
+    hgrowth z hzre0 hzre1
+  have hden : ‖z - 1‖⁻¹ ≤ hsep⁻¹ := by
+    exact inv_le_inv₀ hsep (le_of_lt hsep)
+  have hnonneg : 0 ≤ ‖poleClearedRiemannZeta z‖ := norm_nonneg _
+  have hmul :
+      ‖poleClearedRiemannZeta z‖ * ‖z - 1‖⁻¹ ≤
+        (A * Real.exp (B * (1 + ‖z‖) ^ m)) * hsep⁻¹ :=
+    mul_le_mul hbound hden hnonneg
+      (mul_nonneg (le_of_lt hA) (Real.exp_nonneg _))
+  calc
+    ‖riemannZeta z‖ = ‖poleClearedRiemannZeta z‖ * ‖z - 1‖⁻¹ := by
+      exact hnorm.trans (div_eq_mul_inv _ _)
+    _ ≤
+        (A * Real.exp (B * (1 + ‖z‖) ^ m)) * hsep⁻¹ := hmul
+    _ = A * Real.exp (B * (1 + ‖z‖) ^ m) / hsep := by
+      exact (div_eq_mul_inv _ _).symm
+
 /-- The first nonnegative summand is bounded by a three-term sum. -/
-private theorem firstReal_le_threeSum
+theorem firstReal_le_threeSum
     (first second third : ℝ)
     (hsecond : 0 ≤ second)
     (hthird : 0 ≤ third) :
@@ -23,7 +89,7 @@ private theorem firstReal_le_threeSum
     (le_add_of_nonneg_right hthird)
 
 /-- The middle nonnegative summand is bounded by a three-term sum. -/
-private theorem middleReal_le_threeSum
+theorem middleReal_le_threeSum
     (first second third : ℝ)
     (hfirst : 0 ≤ first)
     (hthird : 0 ≤ third) :
@@ -33,7 +99,7 @@ private theorem middleReal_le_threeSum
     (le_add_of_nonneg_right hthird)
 
 /-- The final nonnegative summand is bounded by a three-term sum. -/
-private theorem finalReal_le_threeSum
+theorem finalReal_le_threeSum
     (first second third : ℝ)
     (hfirst : 0 ≤ first)
     (hsecond : 0 ≤ second) :
@@ -47,19 +113,19 @@ private theorem finalReal_le_threeSum
   exact le_trans hthird_le_second_third hsecond_third_le_sum
 
 /-- Each degree is bounded by the three-term degree sum. -/
-private theorem firstNat_le_threeSum (first second third : ℕ) :
+theorem firstNat_le_threeSum (first second third : ℕ) :
     first ≤ first + second + third :=
   Eq.subst
     (motive := fun degree : ℕ => first ≤ degree)
     (Nat.add_assoc first second third).symm
     (Nat.le_add_right first (second + third))
 
-private theorem middleNat_le_threeSum (first second third : ℕ) :
+theorem middleNat_le_threeSum (first second third : ℕ) :
     second ≤ first + second + third :=
   le_trans (Nat.le_add_left second first)
     (Nat.le_add_right (first + second) third)
 
-private theorem finalNat_le_threeSum (first second third : ℕ) :
+theorem finalNat_le_threeSum (first second third : ℕ) :
     third ≤ first + second + third :=
   le_trans (Nat.le_add_left third second)
     (Eq.subst
@@ -68,7 +134,7 @@ private theorem finalNat_le_threeSum (first second third : ℕ) :
       (Nat.le_add_left (second + third) first))
 
 /-- Region selection for the global three-envelope patch. -/
-private theorem poleClearedRiemannZeta_globalFiniteOrder_threeRegion_bound
+theorem poleClearedRiemannZeta_globalFiniteOrder_threeRegion_bound
     (Al Bl : ℝ) (ml : ℕ)
     (Ac Bc : ℝ) (mc : ℕ)
     (Ar Br : ℝ) (mr : ℕ)

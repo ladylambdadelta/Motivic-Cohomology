@@ -172,8 +172,58 @@ theorem explicitFormulaRectangle_poleCorrectedResidueSum_eventually_eq_normalize
     (fun u hu =>
       (zetaCompletedExplicitFormulaNormalizedTangentContourIntegral_eq_poleCorrectedResidueSum_selected
         f F h hu
-        (explicitFormulaCompletedZeroContourHeightWindow_mem_iff_interiorSingular
-          F (h.height_schedule.height u))).symm)
+      (explicitFormulaCompletedZeroContourHeightWindow_mem_iff_interiorSingular
+        F (h.height_schedule.height u))).symm)
+
+/-- Pole-corrected finite zero-residue windows converge to the completed zero
+side plus the fixed completed-pole packet along any cofinal height schedule. -/
+theorem explicitFormulaRectangle_poleCorrectedResidueSum_tendsto_zeroSideComplex_add_poles
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (heightSchedule : ExplicitFormulaCofinalHeightSchedule F)
+    (hsum :
+      Summable
+        (fun rho : {rho : ℂ // ZetaCompletedZero rho} =>
+          zetaZeroSideContribution (rho : ℂ) f)) :
+    Tendsto
+      (fun u : ℝ =>
+        explicitFormulaRectangle_poleCorrectedResidueSum f
+          (heightSchedule.height u))
+      atTop
+      (𝓝 (zetaCompletedZeroSideComplex f +
+        explicitFormulaRectangle_completedPoleResidueSum f)) := by
+  have hwindow :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
+            (heightSchedule.height u))
+        atTop (𝓝 (zetaCompletedZeroSideComplex f)) :=
+    (explicitFormulaCompletedZeroContourHeightWindowResidueSum_tendsto_zeroSideComplex_ownerZeroLimit
+      f hsum).comp heightSchedule.cofinal
+  have hpole :
+      Tendsto
+        (fun _u : ℝ => explicitFormulaRectangle_completedPoleResidueSum f)
+        atTop (𝓝 (explicitFormulaRectangle_completedPoleResidueSum f)) :=
+    tendsto_const_nhds
+  have hsumLimit := hwindow.add hpole
+  have hpointwise :
+      (fun u : ℝ =>
+        explicitFormulaRectangle_poleCorrectedResidueSum f
+          (heightSchedule.height u)) =
+      (fun u : ℝ =>
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f
+            (heightSchedule.height u) +
+          explicitFormulaRectangle_completedPoleResidueSum f) := by
+    exact funext
+      (fun u : ℝ =>
+        explicitFormulaRectangle_poleCorrectedResidueSum_eq
+          f (heightSchedule.height u))
+  exact Eq.subst
+    (motive := fun values : ℝ → ℂ =>
+      Tendsto values atTop
+        (𝓝 (zetaCompletedZeroSideComplex f +
+          explicitFormulaRectangle_completedPoleResidueSum f)))
+    hpointwise.symm
+    hsumLimit
 
 /-- The normalized pole-corrected project contour converges to the completed zero-side
 series along the scheduled rectangles. -/
@@ -199,14 +249,6 @@ theorem explicitFormulaRectangleNormalizedPoleCorrectedContourIntegral_tendsto_z
         explicitFormulaRectangleNormalizedPoleCorrectedContourIntegral
           f F (h.height_schedule.height u))
       atTop (𝓝 (zetaCompletedZeroSideComplex f)) := by
-  have hwindow :
-      Tendsto
-        (fun u : ℝ =>
-          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
-            (h.height_schedule.height u))
-        atTop (𝓝 (zetaCompletedZeroSideComplex f)) :=
-    (explicitFormulaCompletedZeroContourHeightWindowResidueSum_tendsto_zeroSideComplex_ownerZeroLimit
-      f hsum).comp h.height_schedule.cofinal
   have hpole :
       Tendsto
         (fun _u : ℝ => explicitFormulaRectangle_completedPoleResidueSum f)
@@ -220,24 +262,9 @@ theorem explicitFormulaRectangleNormalizedPoleCorrectedContourIntegral_tendsto_z
         atTop
         (𝓝 (zetaCompletedZeroSideComplex f +
           explicitFormulaRectangle_completedPoleResidueSum f)) := by
-    have hsumLimit := hwindow.add hpole
-    have hpointwise :
-        (fun u : ℝ =>
-          explicitFormulaRectangle_poleCorrectedResidueSum f
-            (h.height_schedule.height u)) =
-        (fun u : ℝ =>
-          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
-              (h.height_schedule.height u) +
-            explicitFormulaRectangle_completedPoleResidueSum f) := by
-      exact funext (fun u : ℝ =>
-        explicitFormulaRectangle_poleCorrectedResidueSum_eq
-          f (h.height_schedule.height u))
-    exact Eq.subst
-      (motive := fun values : ℝ → ℂ =>
-        Tendsto values atTop
-          (𝓝 (zetaCompletedZeroSideComplex f +
-            explicitFormulaRectangle_completedPoleResidueSum f)))
-      hpointwise.symm hsumLimit
+    exact
+      explicitFormulaRectangle_poleCorrectedResidueSum_tendsto_zeroSideComplex_add_poles
+        f F h.height_schedule hsum
   have htangent :
       Tendsto
         (fun u : ℝ =>
@@ -253,7 +280,7 @@ theorem explicitFormulaRectangleNormalizedPoleCorrectedContourIntegral_tendsto_z
       Tendsto
         (fun u : ℝ => explicitFormulaScheduledHorizontalSideDifference f F h u)
         atTop (𝓝 0) :=
-    explicitFormulaScheduledHorizontalSideDifference_tendsto_zero_ownerGap
+    Boundary.LFunctions.ZetaAdmissibleFunction.explicitFormulaScheduledHorizontalSideDifference_tendsto_zero_owner
       f F h E hTopMem hBottomMem
   have hproject :
       Tendsto
@@ -285,7 +312,7 @@ theorem explicitFormulaRectangleNormalizedPoleCorrectedContourIntegral_tendsto_z
     htarget hcorrected
 
 /-- The scheduled normalized vertical side with the completed-pole residue
-packet removed. -/
+packet removed in the residue-theorem coordinates. -/
 noncomputable def explicitFormulaScheduledNormalizedPoleCorrectedVerticalDifference
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) : ℂ :=
@@ -457,15 +484,19 @@ theorem explicitFormulaScheduledNormalizedPoleCorrectedVerticalDifference_tendst
     explicitFormulaRectangleNormalizedPoleCorrectedContourIntegral_tendsto_zeroSideComplex
       f F h E hTopMem hBottomMem hsum
   have hhorizontal :=
-    explicitFormulaScheduledHorizontalSideDifference_tendsto_zero_ownerGap
+    Boundary.LFunctions.ZetaAdmissibleFunction.explicitFormulaScheduledHorizontalSideDifference_tendsto_zero_owner
       f F h E hTopMem hBottomMem
   have hnormalizedHorizontal :=
     hhorizontal.div_const explicitFormulaTwoPi
   have hdifference := hcontour.sub hnormalizedHorizontal
+  have hzeroDiv :
+      (0 : ℂ) / explicitFormulaTwoPi = 0 :=
+    zero_div explicitFormulaTwoPi
   have htarget :
-      zetaCompletedZeroSideComplex f - 0 =
+      zetaCompletedZeroSideComplex f - 0 / explicitFormulaTwoPi =
         zetaCompletedZeroSideComplex f :=
-    sub_zero _
+    Eq.trans (congrArg (fun term : ℂ => zetaCompletedZeroSideComplex f - term) hzeroDiv)
+      (sub_zero _)
   have hpointwise :
       (fun u : ℝ =>
         explicitFormulaRectangleNormalizedPoleCorrectedContourIntegral
@@ -513,7 +544,7 @@ theorem explicitFormulaScheduledNormalizedPoleCorrectedVerticalDifference_tendst
           f F h u)
       atTop
       (𝓝
-        (zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum f)) := by
+        (zetaCompletedExplicitFormulaResidueNormalizedStandardContourBoundarySum f)) := by
   have hdivided := hvertical.div_const explicitFormulaTwoPi
   have hpoles :
       Tendsto
@@ -525,8 +556,8 @@ theorem explicitFormulaScheduledNormalizedPoleCorrectedVerticalDifference_tendst
   exact hsubtracted
 
 /-- Uniqueness of the normalized scheduled vertical limit identifies the
-standard-contour boundary target with the completed zero-side series. -/
-theorem zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum_eq_zeroSideComplex
+residue-normalized standard-contour boundary target with the completed zero-side series. -/
+theorem zetaCompletedExplicitFormulaResidueNormalizedStandardContourBoundarySum_eq_zeroSideComplex
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
@@ -552,7 +583,7 @@ theorem zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum_eq_zero
                 (F.rectangle (h.height_schedule.height u)))
         atTop
         (𝓝 (zetaCompletedExplicitFormulaStandardContourBoundarySum f))) :
-    zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum f =
+    zetaCompletedExplicitFormulaResidueNormalizedStandardContourBoundarySum f =
       zetaCompletedZeroSideComplex f := by
   have hstandard :=
     explicitFormulaScheduledNormalizedPoleCorrectedVerticalDifference_tendsto_standardBoundary

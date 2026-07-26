@@ -251,7 +251,7 @@ theorem zetaSpectralEval_admissibleGaussianCutoffNat_scaled_completedZero_unifor
   exact ⟨bound, hboundPositive, huniform⟩
 
 /-- Polynomial-growth atomic coefficients multiplied by all natural compact
-Gaussian cutoffs admit one summable completed-zero majorant, independent of
+Gaussian cutoffs have one summable completed-zero majorant, independent of
 the cutoff radius. -/
 theorem completedZeroTargetScaledGaussianCutoff_exists_summable_majorant
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)

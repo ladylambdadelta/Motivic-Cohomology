@@ -1,5 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.NormalizedCorrectionTarget
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaCompletedWeightStream.ZetaCompletedFinitePart.ZetaCompletedSquareLedger.ZetaAutocorrelationHilbert.Owner
 
 /-!
 # Autocorrelation prime normalization
@@ -72,9 +72,15 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample_convolutio
     zetaCompletedTimeBoundaryValue_convolutionAutocorrelation_neg_eq_star f center
   have hreal : value + star value = ((Complex.re (value + star value) : ℝ) : ℂ) :=
     zetaCompleted_add_star_eq_ofReal_re_add_star value
+  have htwoPi_coe :
+      (((2 * Real.pi : ℝ) : ℝ) : ℂ) = explicitFormulaTwoPi := by
+    unfold explicitFormulaTwoPi
+    exact Complex.ofReal_mul 2 Real.pi
   have hsmul (sample : ℂ) :
       (2 * Real.pi : ℝ) • sample = explicitFormulaTwoPi * sample := by
-    exact RCLike.real_smul_eq_coe_mul (2 * Real.pi) sample
+    exact Eq.trans
+      (RCLike.real_smul_eq_coe_mul (2 * Real.pi) sample)
+      (congrArg (fun scalar : ℂ => scalar * sample) htwoPi_coe)
   calc
     zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample
         (convolutionAutocorrelation f) n =
@@ -98,14 +104,24 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample_convolutio
             explicitFormulaTwoPi * ((weight : ℂ) * value) +
               explicitFormulaTwoPi * ((weight : ℂ) * star value) := by
           exact congrArg₂ HAdd.hAdd
-            (Eq.trans
-              (mul_assoc (weight : ℂ) explicitFormulaTwoPi value).symm
-              (congrArg (fun scalar : ℂ => scalar * value)
-                (mul_comm (weight : ℂ) explicitFormulaTwoPi)))
-            (Eq.trans
-              (mul_assoc (weight : ℂ) explicitFormulaTwoPi (star value)).symm
-              (congrArg (fun scalar : ℂ => scalar * star value)
-                (mul_comm (weight : ℂ) explicitFormulaTwoPi)))
+            (calc
+              (weight : ℂ) * (explicitFormulaTwoPi * value) =
+                  ((weight : ℂ) * explicitFormulaTwoPi) * value := by
+                exact (mul_assoc (weight : ℂ) explicitFormulaTwoPi value).symm
+              _ = (explicitFormulaTwoPi * (weight : ℂ)) * value := by
+                exact congrArg (fun scalar : ℂ => scalar * value)
+                  (mul_comm (weight : ℂ) explicitFormulaTwoPi)
+              _ = explicitFormulaTwoPi * ((weight : ℂ) * value) := by
+                exact mul_assoc explicitFormulaTwoPi (weight : ℂ) value)
+            (calc
+              (weight : ℂ) * (explicitFormulaTwoPi * star value) =
+                  ((weight : ℂ) * explicitFormulaTwoPi) * star value := by
+                exact (mul_assoc (weight : ℂ) explicitFormulaTwoPi (star value)).symm
+              _ = (explicitFormulaTwoPi * (weight : ℂ)) * star value := by
+                exact congrArg (fun scalar : ℂ => scalar * star value)
+                  (mul_comm (weight : ℂ) explicitFormulaTwoPi)
+              _ = explicitFormulaTwoPi * ((weight : ℂ) * star value) := by
+                exact mul_assoc explicitFormulaTwoPi (weight : ℂ) (star value))
         _ = explicitFormulaTwoPi *
               ((weight : ℂ) * value + (weight : ℂ) * star value) := by
           exact (mul_add explicitFormulaTwoPi
@@ -121,17 +137,28 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample_convolutio
           (-(zetaCompletedExplicitFormulaPrimeNaturalTimeSummand
             (convolutionAutocorrelation f) n)) := by
       unfold zetaCompletedExplicitFormulaPrimeNaturalTimeSummand
-      exact Eq.refl _
+      exact congrArg
+        (fun sample : ℂ => explicitFormulaTwoPi * sample)
+        (neg_neg ((weight : ℂ) * ((Complex.re (value + star value) : ℝ) : ℂ))).symm
+
+/-- Multiplying a summable complex sequence by a fixed scalar preserves its
+`HasSum` value on the left. -/
+theorem hasSum_complex_left_mul_of_summable
+    (a : ℂ) (term : ℕ → ℂ) (hterm : Summable term) :
+    HasSum
+      (fun n : ℕ => a * term n)
+      (a * (∑' n : ℕ, term n)) :=
+  HasSum.mul_left a hterm.hasSum
 
 /-- The raw two-face autocorrelation contribution divided by `2 pi` is the
-negative public signed prime contribution. -/
-theorem zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundaryContribution_div_twoPi_eq_neg_primeContribution_autocorrelation
+public signed prime contribution. -/
+theorem zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundaryContribution_div_twoPi_eq_primeContribution_autocorrelation
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundaryContribution
           (convolutionAutocorrelation f) /
         explicitFormulaTwoPi =
-      -(zetaCompletedExplicitFormulaPrimeContribution
-        (convolutionAutocorrelation f)) := by
+      zetaCompletedExplicitFormulaPrimeContribution
+        (convolutionAutocorrelation f) := by
   let timeSummand : ℕ → ℂ := fun n : ℕ =>
     zetaCompletedExplicitFormulaPrimeNaturalTimeSummand
       (convolutionAutocorrelation f) n
@@ -142,7 +169,25 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundaryContribution_div_
       HasSum
         (fun n : ℕ => explicitFormulaTwoPi * (-(timeSummand n)))
         (explicitFormulaTwoPi * (-(∑' n : ℕ, timeSummand n))) := by
-    exact (htime.neg.hasSum.const_mul explicitFormulaTwoPi)
+    have hrawBase :
+        HasSum
+          (fun n : ℕ => explicitFormulaTwoPi * (-(timeSummand n)))
+          (explicitFormulaTwoPi * (∑' n : ℕ, -(timeSummand n))) :=
+      hasSum_complex_left_mul_of_summable
+        explicitFormulaTwoPi
+        (fun n : ℕ => -(timeSummand n))
+        htime.neg
+    have hnegTsum :
+        (∑' n : ℕ, -(timeSummand n)) =
+          -(∑' n : ℕ, timeSummand n) :=
+      tsum_neg
+    exact Eq.subst
+      (motive := fun value : ℂ =>
+        HasSum
+          (fun n : ℕ => explicitFormulaTwoPi * (-(timeSummand n)))
+          (explicitFormulaTwoPi * value))
+      hnegTsum
+      hrawBase
   have hpoint :
       (fun n : ℕ =>
         zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundarySample
@@ -166,16 +211,31 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundaryContribution_div_
     mul_div_cancel_left₀ (-(∑' n : ℕ, timeSummand n)) explicitFormulaTwoPi_ne_zero
   have hpublic :
       (∑' n : ℕ, timeSummand n) =
-        zetaCompletedExplicitFormulaPrimeContribution
+        -zetaCompletedExplicitFormulaPrimeContribution
           (convolutionAutocorrelation f) :=
     Eq.trans
       (zetaCompletedExplicitFormulaPrimeNaturalSymmetricContribution_eq_tsum
         (convolutionAutocorrelation f)).symm
       (zetaCompletedExplicitFormulaPrimeNaturalSymmetricContribution_eq_primeContribution
         (convolutionAutocorrelation f))
+  have hnegPublic :
+      -(∑' n : ℕ, timeSummand n) =
+        zetaCompletedExplicitFormulaPrimeContribution
+          (convolutionAutocorrelation f) := by
+    calc
+      -(∑' n : ℕ, timeSummand n) =
+          -(-zetaCompletedExplicitFormulaPrimeContribution
+            (convolutionAutocorrelation f)) := by
+        exact congrArg Neg.neg hpublic
+      _ =
+          zetaCompletedExplicitFormulaPrimeContribution
+            (convolutionAutocorrelation f) := by
+        exact neg_neg
+          (zetaCompletedExplicitFormulaPrimeContribution
+            (convolutionAutocorrelation f))
   exact Eq.trans
     (congrArg (fun value : ℂ => value / explicitFormulaTwoPi) hcontribution)
-    (Eq.trans hdivide (congrArg Neg.neg hpublic))
+    (Eq.trans hdivide hnegPublic)
 
 end ZetaAdmissibleFunction
 

@@ -1,5 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ArchimedeanGammaBinetMajorants
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ArchimedeanTransport
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.LogDerivativeFiniteFormula
+import Mathlib.Analysis.SpecialFunctions.Gamma.Deligne
 
 /-!
 # Archimedean Gamma/Binet transport
@@ -19,6 +21,7 @@ open Filter
 open LSeries ArithmeticFunction
 open MeasureTheory
 open scoped ArithmeticFunction
+open scoped LSeries.notation
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
@@ -146,7 +149,7 @@ theorem zetaCompletedExplicitFormula_halfGammaLogDeriv_binet_algebra
   calc
     (D * (1 / 2 : ℂ)) / G =
         (D / G) * (1 / 2 : ℂ) := by
-      exact (mul_div_right_comm D (1 / 2 : ℂ) G).symm
+      exact mul_div_right_comm D (1 / 2 : ℂ) G
     _ = (M + R) * (1 / 2 : ℂ) := by
       exact congrArg (fun z : ℂ => z * (1 / 2 : ℂ)) h
     _ = M * (1 / 2 : ℂ) + R * (1 / 2 : ℂ) := by
@@ -164,7 +167,7 @@ theorem zetaCompletedExplicitFormula_archimedeanBinet_logDerivative_algebra
     -(P + (M + R)) - C =
       (-(P + M) - C) + -R := by
   have hassoc : P + (M + R) = (P + M) + R :=
-    add_assoc P M R
+    (add_assoc P M R).symm
   calc
     -(P + (M + R)) - C =
         -(P + (M + R)) + -C := by
@@ -182,42 +185,42 @@ theorem zetaCompletedExplicitFormula_archimedeanBinet_logDerivative_algebra
 /-- Pointwise Binet decomposition of the right archimedean affine-line kernel. -/
 theorem zetaCompletedExplicitFormulaArchimedeanRightAffineKernel_eq_binetMain_add_remainder
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) (t : ℝ) :
+    (t : ℝ) :
     zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t =
       zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel f F t +
         zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
           f F t := by
   let s : ℂ := zetaCompletedExplicitFormulaRightAffineLine F t
   let w : ℂ := s / 2
-  let σ : ℝ := F.c / 2
-  let τ : ℝ := t / 2
+  let sigma : ℝ := F.c / 2
+  let tau : ℝ := t / 2
   let P : ℂ := zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm
   let M : ℂ := (1 / 2 : ℂ) *
-    Complex.GammaLogDerivativeFixedVerticalMain σ τ
+    Complex.GammaLogDerivativeFixedVerticalMain sigma tau
   let R : ℂ := (1 / 2 : ℂ) *
-    Complex.GammaLogDerivativeFixedVerticalRemainder σ τ
+    Complex.GammaLogDerivativeFixedVerticalRemainder sigma tau
   let C : ℂ := explicitFormulaCorrectionLogDerivative s
   let Φ : ℂ :=
     zetaCompletedExplicitFormulaPhi f
       (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)
-  have hσ_pos : 0 < σ := by
+  have hsigma_pos : 0 < sigma := by
     exact div_pos F.c_pos zero_lt_two
-  have hline : w = (σ + τ * Complex.I : ℂ) := by
+  have hline : w = (sigma + tau * Complex.I : ℂ) := by
     exact zetaCompletedExplicitFormulaRightAffineLine_div_two_eq_fixedVertical
       F t
   have hgamma_fixed :
       deriv Complex.Gamma w / Complex.Gamma w =
-        Complex.GammaLogDerivativeFixedVerticalMain σ τ +
-          Complex.GammaLogDerivativeFixedVerticalRemainder σ τ := by
+        Complex.GammaLogDerivativeFixedVerticalMain sigma tau +
+          Complex.GammaLogDerivativeFixedVerticalRemainder sigma tau := by
     exact
       Eq.subst
         (motive := fun z : ℂ =>
           deriv Complex.Gamma z / Complex.Gamma z =
-            Complex.GammaLogDerivativeFixedVerticalMain σ τ +
-              Complex.GammaLogDerivativeFixedVerticalRemainder σ τ)
+            Complex.GammaLogDerivativeFixedVerticalMain sigma tau +
+              Complex.GammaLogDerivativeFixedVerticalRemainder sigma tau)
         hline.symm
-        (Complex.Gamma_logDerivative_fixedRealPartLine_eq_main_add_remainder
-          hcoh hσ_pos τ)
+        (Complex.Gamma_logDerivative_fixedRealPartLine_eq_main_add_remainder_direct
+          hsigma_pos tau)
   have hhalf :
       (deriv Complex.Gamma w * (1 / 2 : ℂ)) / Complex.Gamma w =
         M + R := by
@@ -225,18 +228,18 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightAffineKernel_eq_binetMain_ad
       zetaCompletedExplicitFormula_halfGammaLogDeriv_binet_algebra
         (deriv Complex.Gamma w)
         (Complex.Gamma w)
-        (Complex.GammaLogDerivativeFixedVerticalMain σ τ)
-        (Complex.GammaLogDerivativeFixedVerticalRemainder σ τ)
+        (Complex.GammaLogDerivativeFixedVerticalMain sigma tau)
+        (Complex.GammaLogDerivativeFixedVerticalRemainder sigma tau)
         hgamma_fixed
   have hgammaR :
-      deriv Gammaℝ s / Gammaℝ s = P + (M + R) := by
+      deriv Complex.Gammaℝ s / Complex.Gammaℝ s = P + (M + R) := by
     have hraw :
-        deriv Gammaℝ s / Gammaℝ s =
+        deriv Complex.Gammaℝ s / Complex.Gammaℝ s =
           P + (deriv Complex.Gamma w * (1 / 2 : ℂ)) /
             Complex.Gamma w :=
       zetaCompletedExplicitFormulaRightAffineLine_Gammaℝ_logDeriv_eq F t
     calc
-      deriv Gammaℝ s / Gammaℝ s =
+      deriv Complex.Gammaℝ s / Complex.Gammaℝ s =
           P + (deriv Complex.Gamma w * (1 / 2 : ℂ)) /
             Complex.Gamma w := hraw
       _ = P + (M + R) := by
@@ -245,14 +248,14 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightAffineKernel_eq_binetMain_ad
       inverseGammaCompletionLogDeriv s = -(P + (M + R)) := by
     have hraw :
         inverseGammaCompletionLogDeriv s =
-          -deriv Gammaℝ s / Gammaℝ s :=
+          -deriv Complex.Gammaℝ s / Complex.Gammaℝ s :=
       zetaCompletedExplicitFormulaInverseGammaLogDeriv_rightAffineLine_eq_neg_Gammaℝ_logDeriv
         F t
     calc
       inverseGammaCompletionLogDeriv s =
-          -deriv Gammaℝ s / Gammaℝ s := hraw
-      _ = -(deriv Gammaℝ s / Gammaℝ s) := by
-        exact neg_div (Gammaℝ s) (deriv Gammaℝ s)
+          -deriv Complex.Gammaℝ s / Complex.Gammaℝ s := hraw
+      _ = -(deriv Complex.Gammaℝ s / Complex.Gammaℝ s) := by
+        exact neg_div (Complex.Gammaℝ s) (deriv Complex.Gammaℝ s)
       _ = -(P + (M + R)) := by
         exact congrArg Neg.neg hgammaR
   have hlog :
@@ -290,52 +293,52 @@ formula directly. -/
 theorem zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_eq_binetMain_add_remainder
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) (t : ℝ) :
+    (t : ℝ) :
     zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t =
       zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel f F t +
         zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
           f F t := by
   let s : ℂ := zetaCompletedExplicitFormulaLeftAffineLine F t
   let w : ℂ := s / 2
-  let σ : ℝ := (1 - F.c) / 2
-  let τ : ℝ := t / 2
+  let sigma : ℝ := (1 - F.c) / 2
+  let tau : ℝ := t / 2
   let N : ℕ := zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F
   let P : ℂ := zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm
   let M : ℂ := (1 / 2 : ℂ) *
-    Complex.GammaLogDerivativeFixedVerticalShiftNatMain σ N τ
+    Complex.GammaLogDerivativeFixedVerticalShiftNatMain sigma N tau
   let R : ℂ := (1 / 2 : ℂ) *
-    Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder σ N τ
+    Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder sigma N tau
   let C : ℂ := explicitFormulaCorrectionLogDerivative s
   let Φ : ℂ :=
     zetaCompletedExplicitFormulaPhi f
       (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t)
-  have hline : w = (σ + τ * Complex.I : ℂ) := by
+  have hline : w = (sigma + tau * Complex.I : ℂ) := by
     exact zetaCompletedExplicitFormulaLeftAffineLine_div_two_eq_fixedVertical
       F t
-  have hσ_shift_pos : 0 < σ + (N : ℝ) := by
+  have hsigma_shift_pos : 0 < sigma + (N : ℝ) := by
     exact
       Complex.GammaLogDerivativeFixedVerticalPositiveShiftNat_pos
         ((1 - F.c) / 2)
   have hnot_pole :
       ∀ u : ℝ, ∀ n : ℕ,
-        (σ + u * Complex.I : ℂ) ≠ -n := by
+        (sigma + u * Complex.I : ℂ) ≠ -n := by
     intro u n
     exact
       zetaCompletedExplicitFormulaLeftFixedVertical_ne_Gamma_zero_locus_of_gammaRegular'
         F hregular u n
   have hgamma_fixed :
       deriv Complex.Gamma w / Complex.Gamma w =
-        Complex.GammaLogDerivativeFixedVerticalShiftNatMain σ N τ +
-          Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder σ N τ := by
+        Complex.GammaLogDerivativeFixedVerticalShiftNatMain sigma N tau +
+          Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder sigma N tau := by
     exact
       Eq.subst
         (motive := fun z : ℂ =>
           deriv Complex.Gamma z / Complex.Gamma z =
-            Complex.GammaLogDerivativeFixedVerticalShiftNatMain σ N τ +
-              Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder σ N τ)
+            Complex.GammaLogDerivativeFixedVerticalShiftNatMain sigma N tau +
+              Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder sigma N tau)
         hline.symm
-        (Complex.Gamma_logDerivative_fixedRealPartLine_eq_shiftNat_main_add_remainder
-          hcoh N hσ_shift_pos hnot_pole τ)
+        (Complex.Gamma_logDerivative_fixedRealPartLine_eq_shiftNat_main_add_remainder_direct
+          N hsigma_shift_pos hnot_pole tau)
   have hhalf :
       (deriv Complex.Gamma w * (1 / 2 : ℂ)) / Complex.Gamma w =
         M + R := by
@@ -343,19 +346,19 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_eq_binetMain_add
       zetaCompletedExplicitFormula_halfGammaLogDeriv_binet_algebra
         (deriv Complex.Gamma w)
         (Complex.Gamma w)
-        (Complex.GammaLogDerivativeFixedVerticalShiftNatMain σ N τ)
-        (Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder σ N τ)
+        (Complex.GammaLogDerivativeFixedVerticalShiftNatMain sigma N tau)
+        (Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder sigma N tau)
         hgamma_fixed
   have hgammaR :
-      deriv Gammaℝ s / Gammaℝ s = P + (M + R) := by
+      deriv Complex.Gammaℝ s / Complex.Gammaℝ s = P + (M + R) := by
     have hraw :
-        deriv Gammaℝ s / Gammaℝ s =
+        deriv Complex.Gammaℝ s / Complex.Gammaℝ s =
           P + (deriv Complex.Gamma w * (1 / 2 : ℂ)) /
             Complex.Gamma w :=
       zetaCompletedExplicitFormulaLeftAffineLine_Gammaℝ_logDeriv_eq_of_gammaRegular
         F hregular t
     calc
-      deriv Gammaℝ s / Gammaℝ s =
+      deriv Complex.Gammaℝ s / Complex.Gammaℝ s =
           P + (deriv Complex.Gamma w * (1 / 2 : ℂ)) /
             Complex.Gamma w := hraw
       _ = P + (M + R) := by
@@ -364,14 +367,14 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_eq_binetMain_add
       inverseGammaCompletionLogDeriv s = -(P + (M + R)) := by
     have hraw :
         inverseGammaCompletionLogDeriv s =
-          -deriv Gammaℝ s / Gammaℝ s :=
+          -deriv Complex.Gammaℝ s / Complex.Gammaℝ s :=
       zetaCompletedExplicitFormulaInverseGammaLogDeriv_leftAffineLine_eq_neg_Gammaℝ_logDeriv_of_gammaRegular
         F hregular t
     calc
       inverseGammaCompletionLogDeriv s =
-          -deriv Gammaℝ s / Gammaℝ s := hraw
-      _ = -(deriv Gammaℝ s / Gammaℝ s) := by
-        exact neg_div (Gammaℝ s) (deriv Gammaℝ s)
+          -deriv Complex.Gammaℝ s / Complex.Gammaℝ s := hraw
+      _ = -(deriv Complex.Gammaℝ s / Complex.Gammaℝ s) := by
+        exact neg_div (Complex.Gammaℝ s) (deriv Complex.Gammaℝ s)
       _ = -(P + (M + R)) := by
         exact congrArg Neg.neg hgammaR
   have hlog :
@@ -508,10 +511,6 @@ theorem zetaCompletedExplicitFormula_scheduledWindow_tendsto_of_binetMain_add_re
           B u + C u := by
       exact
         integral_add
-          (μ := volume.restrict
-            (Set.Icc
-              (-(F.rectangle (height u)).T)
-              (F.rectangle (height u)).T))
           (hM_integrable u)
           (hR_integrable u)
     exact Eq.trans hintegral hsplit
@@ -603,7 +602,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightAffineKernel_scheduledWindow
     (zetaCompletedExplicitFormulaPhi f 0)
     (fun t : ℝ =>
       zetaCompletedExplicitFormulaArchimedeanRightAffineKernel_eq_binetMain_add_remainder
-        f F.toContourFamily hcoh t)
+        f F.toContourFamily t)
     hmain_integrable
     hremainder_integrable
     hmain
@@ -692,7 +691,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_scheduledWindow_
       (-(zetaCompletedExplicitFormulaPhi f 0))
       (fun t : ℝ =>
         zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_eq_binetMain_add_remainder
-          f F.toContourFamily hregular hcoh t)
+          f F.toContourFamily hregular t)
       hmain_integrable
       hremainder_integrable
       hmain
@@ -1056,7 +1055,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightAffineKernel_integrable_owne
     Filter.Eventually.of_forall
       (fun t =>
         zetaCompletedExplicitFormulaArchimedeanRightAffineKernel_eq_binetMain_add_remainder
-          f F.toContourFamily hcoh t)
+          f F.toContourFamily t)
   exact hsum.congr hpoint.symm
 
 /-- Integrability of the left archimedean affine kernel from its Gamma/Binet
@@ -1109,7 +1108,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_integrable_owner
     Filter.Eventually.of_forall
       (fun t =>
         zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_eq_binetMain_add_remainder
-          f F.toContourFamily hregular hcoh t)
+          f F.toContourFamily hregular t)
   exact hsum.congr hpoint.symm
 
 /-- Scheduled right archimedean line exhaustion to its whole-line affine
@@ -1603,7 +1602,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightAffineKernel_integral_eq_bin
     Filter.Eventually.of_forall
       (fun t =>
         zetaCompletedExplicitFormulaArchimedeanRightAffineKernel_eq_binetMain_add_remainder
-          f F.toContourFamily hcoh t)
+          f F.toContourFamily t)
   exact Eq.trans (integral_congr_ae hpoint) hsum
 
 /-- Whole-line left affine Gamma/Binet integral decomposes as the sum of the
@@ -1668,7 +1667,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_integral_eq_bine
     Filter.Eventually.of_forall
       (fun t =>
         zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_eq_binetMain_add_remainder
-              f F.toContourFamily hregular hcoh t)
+              f F.toContourFamily hregular t)
   exact Eq.trans (integral_congr_ae hpoint) hsum
 
 /-- Coupled right Gamma/Binet full-transform value from an independently
@@ -1768,6 +1767,56 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetFullTransform_integral_e
             f F.toContourFamily t := by
       exact hdecomp.symm
     _ = -(zetaCompletedExplicitFormulaPhi f 0) := by
+      exact haffine
+
+/-- Coupled shifted-left Gamma/Binet full-transform value from an independently
+proved whole-line left affine value, with an arbitrary scalar target.
+
+This is only decomposition transport.  The theorem intentionally does not
+identify the scalar target; it preserves whichever value the affine owner
+has actually proved. -/
+theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetFullTransform_integral_eq_of_affineValue
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (target : ℂ)
+    (haffine :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
+          f F.toContourFamily t) =
+        target) :
+    (∫ t : ℝ,
+      zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+        f F.toContourFamily t) +
+      ∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+          f F.toContourFamily t =
+      target := by
+  have hdecomp :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
+          f F.toContourFamily t) =
+        (∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+            f F.toContourFamily t) +
+          ∫ t : ℝ,
+            zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+              f F.toContourFamily t :=
+    zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_integral_eq_binetMain_add_remainder_integrals
+      f F h hcoh
+  calc
+    (∫ t : ℝ,
+      zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+        f F.toContourFamily t) +
+      ∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+          f F.toContourFamily t =
+        ∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
+            f F.toContourFamily t := by
+      exact hdecomp.symm
+    _ = target := by
       exact haffine
 
 /-- Whole-line right coupled Gamma/Binet full-transform value from the
@@ -2156,6 +2205,106 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetFullTransform_scheduledW
       hvalue
       hsum
 
+/-- Scheduled full shifted-left Binet transform value from the coupled
+whole-line shifted-left Binet value, with an arbitrary scalar target.
+
+This is only exhaustion transport.  It preserves the target produced by the
+whole-line owner instead of forcing a special archimedean normalization. -/
+theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetFullTransform_scheduledWindow_tendsto_of_integral_eq
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular
+      F.toContourFamily)
+    (target : ℂ)
+    (hvalue :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+          f F.toContourFamily t) +
+        ∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+            f F.toContourFamily t =
+        target) :
+    Tendsto
+      (fun u : ℝ =>
+        (∫ t in Set.Icc
+            (-(F.toContourFamily.rectangle
+                (h.height_schedule.height u)).T)
+            (F.toContourFamily.rectangle
+                (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+            f F.toContourFamily t) +
+          ∫ t in Set.Icc
+            (-(F.toContourFamily.rectangle
+                (h.height_schedule.height u)).T)
+            (F.toContourFamily.rectangle
+                (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+            f F.toContourFamily t)
+      atTop
+      (𝓝 target) := by
+  let S : ℝ → ℂ := fun u : ℝ =>
+    (∫ t in Set.Icc
+        (-(F.toContourFamily.rectangle
+            (h.height_schedule.height u)).T)
+        (F.toContourFamily.rectangle
+            (h.height_schedule.height u)).T,
+      zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+        f F.toContourFamily t) +
+      ∫ t in Set.Icc
+        (-(F.toContourFamily.rectangle
+            (h.height_schedule.height u)).T)
+        (F.toContourFamily.rectangle
+            (h.height_schedule.height u)).T,
+      zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+        f F.toContourFamily t
+  let I : ℂ :=
+    (∫ t : ℝ,
+      zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+        f F.toContourFamily t) +
+      ∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+          f F.toContourFamily t
+  have hmain :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 (∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+            f F.toContourFamily t)) :=
+    zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel_scheduledWindow_tendsto_integral
+      f F h hregular
+  have hremainder :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 (∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+            f F.toContourFamily t)) :=
+    zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_scheduledWindow_tendsto_integral
+      f F h hregular
+  have hsum : Tendsto S atTop (𝓝 I) :=
+    hmain.add hremainder
+  exact
+    Eq.subst
+      (motive := fun z : ℂ => Tendsto S atTop (𝓝 z))
+      hvalue
+      hsum
+
 /-- Right Gamma/Binet source value from the named coupled whole-line transform
 value.
 
@@ -2310,7 +2459,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_
             zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
               f F.toContourFamily t)
         atTop
-        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
+        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0)))) := by
   have hleft_regular :
       zetaCompletedExplicitFormulaLeftAffineLineGammaRegular
         F.toContourFamily :=
@@ -2322,6 +2471,80 @@ theorem zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_
         f F h hright_value)
       (zetaCompletedExplicitFormulaArchimedeanLeftBinetFullTransform_scheduledWindow_tendsto_neg_phiZero_of_integral_eq
         f F h hleft_regular hleft_value)
+
+/-- Paired scheduled Gamma/Binet full-transform values from coupled whole-line
+Binet values, with an arbitrary left scalar target.
+
+The right endpoint remains the normalized right value.  The left endpoint is
+transported exactly as supplied by the affine or vertical-channel owner. -/
+theorem zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_of_fullTransformIntegralValues_leftTarget
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (leftTarget : ℂ)
+    (hright_value :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
+          f F.toContourFamily t) +
+        ∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
+            f F.toContourFamily t =
+        zetaCompletedExplicitFormulaPhi f 0)
+    (hleft_value :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+          f F.toContourFamily t) +
+        ∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+            f F.toContourFamily t =
+        leftTarget) :
+    (Tendsto
+        (fun u : ℝ =>
+          (∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
+              f F.toContourFamily t) +
+            ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0))) ∧
+      (Tendsto
+        (fun u : ℝ =>
+          (∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+              f F.toContourFamily t) +
+            ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 leftTarget)) := by
+  have hleft_regular :
+      zetaCompletedExplicitFormulaLeftAffineLineGammaRegular
+        F.toContourFamily :=
+    zetaCompletedExplicitFormulaLeftAffineLineGammaRegular_of_verticallyRegular
+      F
+  exact
+    And.intro
+      (zetaCompletedExplicitFormulaArchimedeanRightBinetFullTransform_scheduledWindow_tendsto_phiZero_of_integral_eq
+        f F h hright_value)
+      (zetaCompletedExplicitFormulaArchimedeanLeftBinetFullTransform_scheduledWindow_tendsto_of_integral_eq
+        f F h hleft_regular leftTarget hleft_value)
 
 /-- Paired scheduled Gamma/Binet full-transform values from the right and
 shifted-left affine whole-line values.
@@ -2379,27 +2602,162 @@ theorem zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_
             zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
               f F.toContourFamily t)
         atTop
-        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
+        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0)))) := by
   have hpair :
       ((∫ t : ℝ,
         zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
           f F.toContourFamily t) +
-        ∫ t : ℝ,
+        (∫ t : ℝ,
           zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
-            f F.toContourFamily t =
+            f F.toContourFamily t) =
         zetaCompletedExplicitFormulaPhi f 0) ∧
       ((∫ t : ℝ,
         zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
           f F.toContourFamily t) +
-        ∫ t : ℝ,
+        (∫ t : ℝ,
           zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
-            f F.toContourFamily t =
+            f F.toContourFamily t) =
         -(zetaCompletedExplicitFormulaPhi f 0)) :=
     zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_integral_pair_of_affineValues
       f F h hcoh hright_affine hleft_affine
   exact
     zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_of_fullTransformIntegralValues
       f F h hpair.1 hpair.2
+
+/-- Paired scheduled Gamma/Binet full-transform values from paired scheduled
+affine contour values, with an arbitrary left scalar target.
+
+This is the target-preserving variant used by difference-channel wrappers. -/
+theorem zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_of_scheduledAffineValues_leftTarget
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (leftTarget : ℂ)
+    (hscheduled :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightAffineKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0)) ∧
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 leftTarget)) :
+    (Tendsto
+        (fun u : ℝ =>
+          (∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
+              f F.toContourFamily t) +
+            ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0))) ∧
+      (Tendsto
+        (fun u : ℝ =>
+          (∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+              f F.toContourFamily t) +
+            ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                  (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 leftTarget)) := by
+  have hright_affine :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanRightAffineKernel
+          f F.toContourFamily t) =
+        zetaCompletedExplicitFormulaPhi f 0 :=
+    explicitFormulaScheduledScalar_integral_eq_of_tendsto_integral_and_value
+      (fun u : ℝ =>
+        ∫ t in Set.Icc
+            (-(F.toContourFamily.rectangle
+                (h.height_schedule.height u)).T)
+            (F.toContourFamily.rectangle
+                (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaArchimedeanRightAffineKernel
+            f F.toContourFamily t)
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanRightAffineKernel
+          f F.toContourFamily t)
+      (zetaCompletedExplicitFormulaPhi f 0)
+      (zetaCompletedExplicitFormulaArchimedeanRightAffineKernel_scheduledWindow_tendsto_integral_ownerGammaBinetLineValue
+        f F h hcoh)
+      hscheduled.1
+  have hleft_affine :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
+          f F.toContourFamily t) =
+        leftTarget :=
+    explicitFormulaScheduledScalar_integral_eq_of_tendsto_integral_and_value
+      (fun u : ℝ =>
+        ∫ t in Set.Icc
+            (-(F.toContourFamily.rectangle
+                (h.height_schedule.height u)).T)
+            (F.toContourFamily.rectangle
+                (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
+            f F.toContourFamily t)
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
+          f F.toContourFamily t)
+      leftTarget
+      (zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_scheduledWindow_tendsto_integral_ownerGammaBinetLineValue
+        f F h hcoh)
+      hscheduled.2
+  have hright_binet :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel
+          f F.toContourFamily t) +
+        ∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel
+            f F.toContourFamily t =
+        zetaCompletedExplicitFormulaPhi f 0 :=
+    zetaCompletedExplicitFormulaArchimedeanRightBinetFullTransform_integral_eq_phiZero_of_affineValue
+      f F h hcoh hright_affine
+  have hleft_binet :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel
+          f F.toContourFamily t) +
+        ∫ t : ℝ,
+          zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
+            f F.toContourFamily t =
+        leftTarget :=
+    zetaCompletedExplicitFormulaArchimedeanLeftBinetFullTransform_integral_eq_of_affineValue
+      f F h hcoh leftTarget hleft_affine
+  exact
+    zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_of_fullTransformIntegralValues_leftTarget
+      f F h leftTarget hright_binet hleft_binet
 
 /-- Paired scheduled coupled Gamma/Binet values from direct paired scheduled
 affine contour values.
@@ -2472,7 +2830,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_
             zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
               f F.toContourFamily t)
         atTop
-        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
+        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0)))) := by
   have haffine :
       ((∫ t : ℝ,
         zetaCompletedExplicitFormulaArchimedeanRightAffineKernel
@@ -2558,7 +2916,8 @@ theorem zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_
             zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
               f F.toContourFamily t)
         atTop
-        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0 -
+          zetaCompletedExplicitFormulaArchimedeanContribution f))) := by
   have haffine :
       Tendsto
           (fun u : ℝ =>
@@ -2581,12 +2940,16 @@ theorem zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_
               zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
                 f F.toContourFamily t)
           atTop
-          (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) :=
+          (𝓝 (zetaCompletedExplicitFormulaPhi f 0 -
+            zetaCompletedExplicitFormulaArchimedeanContribution f)) :=
     zetaCompletedExplicitFormulaArchimedeanAffineKernel_scheduledPair_of_right_and_verticallyRegular_gammaBinet_integral_eq
       f F h hcoh hright hvalue
   exact
-    zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_of_scheduledAffineValues
-      f F h hcoh haffine
+    zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_of_scheduledAffineValues_leftTarget
+      f F h hcoh
+      (zetaCompletedExplicitFormulaPhi f 0 -
+        zetaCompletedExplicitFormulaArchimedeanContribution f)
+      haffine
 
 /-- Paired scheduled Gamma/Binet full-transform values from the direct right
 scheduled affine contour value and the scheduled right-minus-left affine-window
@@ -2666,7 +3029,8 @@ theorem zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_
             zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
               f F.toContourFamily t)
         atTop
-        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0 -
+          zetaCompletedExplicitFormulaArchimedeanContribution f))) := by
   have haffine :
       Tendsto
           (fun u : ℝ =>
@@ -2689,12 +3053,16 @@ theorem zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_
               zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
                 f F.toContourFamily t)
           atTop
-          (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) :=
+          (𝓝 (zetaCompletedExplicitFormulaPhi f 0 -
+            zetaCompletedExplicitFormulaArchimedeanContribution f)) :=
     zetaCompletedExplicitFormulaArchimedeanAffineKernel_scheduledPair_of_right_and_difference
       f F.toContourFamily h hright hdifference
   exact
-    zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_of_scheduledAffineValues
-      f F h hcoh haffine
+    zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_of_scheduledAffineValues_leftTarget
+      f F h hcoh
+      (zetaCompletedExplicitFormulaPhi f 0 -
+        zetaCompletedExplicitFormulaArchimedeanContribution f)
+      haffine
 
 /-- Paired scheduled Gamma/Binet full-transform values from the direct right
 scheduled affine contour value and the archimedean vertical-channel value. -/
@@ -2757,7 +3125,8 @@ theorem zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_
             zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel
               f F.toContourFamily t)
         atTop
-        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
+        (𝓝 (zetaCompletedExplicitFormulaPhi f 0 -
+          zetaCompletedExplicitFormulaArchimedeanContribution f))) := by
   have haffine :
       Tendsto
           (fun u : ℝ =>
@@ -2780,13 +3149,18 @@ theorem zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_
               zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
                 f F.toContourFamily t)
           atTop
-          (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) :=
+          (𝓝 (zetaCompletedExplicitFormulaPhi f 0 -
+            zetaCompletedExplicitFormulaArchimedeanContribution f)) :=
     zetaCompletedExplicitFormulaArchimedeanAffineKernel_scheduledPair_of_right_and_verticalChannel
       f F.toContourFamily h hright hchannel
   exact
-    zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_of_scheduledAffineValues
-      f F h hcoh haffine
+    zetaCompletedExplicitFormulaArchimedeanBinetFullTransform_scheduledPair_of_scheduledAffineValues_leftTarget
+      f F h hcoh
+      (zetaCompletedExplicitFormulaPhi f 0 -
+        zetaCompletedExplicitFormulaArchimedeanContribution f)
+      haffine
 
+/-
 /-- Affine-line geometry: left affine line equals one minus right affine line of
 negated argument. This is the functional-equation reflection relationship across
 the critical line. -/
@@ -2844,9 +3218,9 @@ theorem zetaCompletedExplicitFormulaCorrectionLogDerivative_integral_transport
   have htransport :
       (∫ t : ℝ,
         explicitFormulaCorrectionLogDerivative
-          (fun s => -(zetaCompletedExplicitFormulaRightAffineLine F (-s))) t *
+          ((fun s => -(zetaCompletedExplicitFormulaRightAffineLine F (-s))) t) *
           zetaCompletedExplicitFormulaPhi f
-            (fun s => -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-s))) t) =
+            ((fun s => -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-s))) t)) =
       - (∫ t : ℝ,
         explicitFormulaCorrectionLogDerivative
           (zetaCompletedExplicitFormulaRightAffineLine F t) *
@@ -2862,10 +3236,10 @@ theorem zetaCompletedExplicitFormulaCorrectionLogDerivative_integral_transport
           (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t)) =
         (∫ t : ℝ,
           explicitFormulaCorrectionLogDerivative
-            (fun s => -(zetaCompletedExplicitFormulaRightAffineLine F (-s))) t *
+            ((fun s => -(zetaCompletedExplicitFormulaRightAffineLine F (-s))) t) *
             zetaCompletedExplicitFormulaPhi f
-              (fun s => -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-s))) t) := by
-      exact integral_cong_ae
+              ((fun s => -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-s))) t)) := by
+      exact integral_congr_ae
         (Filter.Eventually.of_forall fun t =>
           congrArg₂ HMul.hMul
             (congrArg explicitFormulaCorrectionLogDerivative
@@ -2897,7 +3271,7 @@ theorem zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm_integral_transp
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm *
           zetaCompletedExplicitFormulaPhi f
-            (fun s => -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-s))) t) =
+            ((fun s => -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-s))) t)) =
       - (∫ t : ℝ,
         zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm *
           zetaCompletedExplicitFormulaPhi f
@@ -2912,8 +3286,8 @@ theorem zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm_integral_transp
         (∫ t : ℝ,
           zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm *
             zetaCompletedExplicitFormulaPhi f
-              (fun s => -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-s))) t) := by
-      exact integral_cong_ae
+              ((fun s => -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-s))) t)) := by
+      exact integral_congr_ae
         (Filter.Eventually.of_forall fun t =>
           congrArg (zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm * ·)
             (congrArg (zetaCompletedExplicitFormulaPhi f)
@@ -2952,7 +3326,7 @@ theorem zetaCompletedExplicitFormulaGammaLogDerivativeMain_integral_transport
           Complex.GammaLogDerivativeFixedVerticalMain
             (F.c / 2) ((-t) / 2) *
           zetaCompletedExplicitFormulaPhi f
-            (fun s => -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-s))) t) =
+            ((fun s => -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-s))) t)) =
       - (∫ t : ℝ,
         (1 / 2 : ℂ) *
           Complex.GammaLogDerivativeFixedVerticalMain
@@ -2975,8 +3349,8 @@ theorem zetaCompletedExplicitFormulaGammaLogDerivativeMain_integral_transport
             Complex.GammaLogDerivativeFixedVerticalMain
               (F.c / 2) ((-t) / 2) *
             zetaCompletedExplicitFormulaPhi f
-              (fun s => -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-s))) t) := by
-      exact integral_cong_ae
+              ((fun s => -(zetaCompletedExplicitFormulaRightCenteredAffineLine F (-s))) t)) := by
+      exact integral_congr_ae
         (Filter.Eventually.of_forall fun t =>
           congrArg₂ HMul.hMul
             (congrArg ((1 / 2 : ℂ) * ·)
@@ -3761,6 +4135,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_schedule
         (F.rectangle (h.height_schedule.height u)).T,
       zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel f F t) := by
       exact hright_def.symm
+-/
 
 end ZetaAdmissibleFunction
 

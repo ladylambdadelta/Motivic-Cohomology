@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeLeftReflectedTermKernelAlgebra
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.LogDerivativeFiniteFormula
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.AffineCauchyKernelBounds
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ArchimedeanGammaBinetLineCore
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleLeftOffPoleDecay
@@ -1270,7 +1271,6 @@ with the left-centered test transform retained. -/
 theorem zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel_eq_binetMain_add_remainder
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
     (t : ℝ) :
     zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel f F t =
       zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetMainKernel
@@ -1306,8 +1306,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel_eq_binet
             Complex.GammaLogDerivativeFixedVerticalMain σ τ +
               Complex.GammaLogDerivativeFixedVerticalRemainder σ τ)
         hline.symm
-        (Complex.Gamma_logDerivative_fixedRealPartLine_eq_main_add_remainder
-          hcoh hσ_pos τ)
+        (Complex.Gamma_logDerivative_fixedRealPartLine_eq_main_add_remainder_direct
+          hσ_pos τ)
   have hhalf :
       (deriv Complex.Gamma w * (1 / 2 : ℂ)) / Complex.Gamma w =
         M + R := by
@@ -1494,7 +1494,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetFullTransf
       Filter.Eventually.of_forall
         (fun t =>
           zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel_eq_binetMain_add_remainder
-            f F hcoh t)
+            f F t)
     calc
       (∫ t in Set.Icc
           (-(F.rectangle (h.height_schedule.height u)).T)
@@ -1970,7 +1970,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanScheduled_tends
       (-(zetaCompletedExplicitFormulaPhi f 0))
       (fun t =>
         zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel_eq_binetMain_add_remainder
-          f F hcoh t)
+          f F t)
       (fun u =>
         zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanBinetMainKernel_integrable_restrict_Icc_ownerGammaBinetReflectedContour
           f F h u)
@@ -2065,7 +2065,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanScheduled_tends
       Filter.Eventually.of_forall
         (fun t =>
           zetaCompletedExplicitFormulaPrimeLeftReflectedArchimedeanKernel_eq_binetMain_add_remainder
-            f F hcoh t)
+            f F t)
     calc
       A u =
           ∫ t in Set.Icc

@@ -18,307 +18,6 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- Projecting the finite scheduled rectangle residue equality introduces no new algebra. -/
-theorem explicitFormulaScheduledProjectedRectangleResidueEqualityError_eq_rectangleError
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ)
-    (channel : ExplicitFormulaScheduledVerticalChannelProjection) :
-    explicitFormulaScheduledProjectedRectangleResidueEqualityError f F h u channel =
-      explicitFormulaScheduledRectangleResidueEqualityError f F h u := by
-  exact Eq.refl _
-
-/-- The projected finite rectangle residue-equality error vanishes along the scheduled
-boundary-avoiding rectangles. -/
-theorem explicitFormulaScheduledProjectedRectangleResidueEqualityError_tendsto_zero
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (channel : ExplicitFormulaScheduledVerticalChannelProjection)
-    (hfinite :
-      ∀ u : ℝ,
-        zetaCompletedExplicitFormulaContourIntegral f
-            (F.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
-            (h.height_schedule.height u)) :
-    Tendsto
-      (fun u : ℝ =>
-        explicitFormulaScheduledProjectedRectangleResidueEqualityError f F h u channel)
-      atTop
-      (𝓝 0) := by
-  have hpointwise :
-      (fun u : ℝ =>
-        explicitFormulaScheduledProjectedRectangleResidueEqualityError f F h u channel) =
-        (fun u : ℝ =>
-          explicitFormulaScheduledRectangleResidueEqualityError f F h u) := by
-    exact funext
-      (fun u : ℝ =>
-        explicitFormulaScheduledProjectedRectangleResidueEqualityError_eq_rectangleError
-          f F h u channel)
-  exact Eq.subst
-    (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
-    hpointwise.symm
-    (explicitFormulaScheduledRectangleResidueEqualityError_tendsto_zero_core_ownerFiniteRectangleResidueEquality
-      f F h hfinite)
-
-/-- Projected horizontal decay for a selected vertical channel. -/
-theorem explicitFormulaScheduledProjectedHorizontalError_tendsto_zero_ownerProjectedHorizontalDecay
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (E : CompletedZetaZeroExcisedStrip
-      (min F.toContourFamily.c (1 - F.toContourFamily.c))
-      (max F.toContourFamily.c (1 - F.toContourFamily.c)))
-    (hTopMem :
-      ∀ (T x : ℝ), x ∈ Set.uIcc F.toContourFamily.c (1 - F.toContourFamily.c) →
-        zetaCompletedExplicitFormulaTopPath (F.toContourFamily.rectangle T) x ∈ E.carrier)
-    (hBottomMem :
-      ∀ (T x : ℝ), x ∈ Set.uIcc F.toContourFamily.c (1 - F.toContourFamily.c) →
-        zetaCompletedExplicitFormulaBottomPath (F.toContourFamily.rectangle T) x ∈ E.carrier)
-    (N : ℕ)
-    (channel : ExplicitFormulaScheduledVerticalChannelProjection) :
-    Tendsto
-      (fun u : ℝ =>
-        explicitFormulaScheduledProjectedHorizontalError
-          f F.toContourFamily h u channel)
-      atTop
-      (𝓝 0) := by
-  exact
-    explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_scheduled
-      f F.toContourFamily h E hTopMem hBottomMem N
-
-/-- Projected horizontal decay for a selected vertical channel, using the scheduled
-horizontal carrier constructed by the analytic package. -/
-theorem explicitFormulaScheduledProjectedHorizontalError_tendsto_zero_of_scheduledCarrier
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (N : ℕ)
-    (channel : ExplicitFormulaScheduledVerticalChannelProjection) :
-    Tendsto
-      (fun u : ℝ =>
-        explicitFormulaScheduledProjectedHorizontalError
-          f F.toContourFamily h u channel)
-      atTop
-      (𝓝 0) := by
-  exact
-    explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_of_scheduledCarrier
-      f F.toContourFamily h N
-
-/-- The projected contour spine error vanishes once the three owner inputs are supplied:
-scheduled rectangle residue equality, projected horizontal decay, and projected vertical
-decomposition. -/
-theorem explicitFormulaScheduledProjectedContourSpineError_tendsto_zero_ownerProjectedContourSpine
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (channel : ExplicitFormulaScheduledVerticalChannelProjection)
-    (E : CompletedZetaZeroExcisedStrip
-      (min F.toContourFamily.c (1 - F.toContourFamily.c))
-      (max F.toContourFamily.c (1 - F.toContourFamily.c)))
-    (hTopMem :
-      ∀ (T x : ℝ), x ∈ Set.uIcc F.toContourFamily.c (1 - F.toContourFamily.c) →
-        zetaCompletedExplicitFormulaTopPath (F.toContourFamily.rectangle T) x ∈ E.carrier)
-    (hBottomMem :
-      ∀ (T x : ℝ), x ∈ Set.uIcc F.toContourFamily.c (1 - F.toContourFamily.c) →
-        zetaCompletedExplicitFormulaBottomPath (F.toContourFamily.rectangle T) x ∈ E.carrier)
-    (N : ℕ)
-    (hvertical :
-      Tendsto
-        (fun u : ℝ =>
-          explicitFormulaScheduledProjectedVerticalDecompositionError
-            f F.toContourFamily h u channel)
-        atTop
-        (𝓝 0))
-    (hfinite :
-      ∀ u : ℝ,
-        zetaCompletedExplicitFormulaContourIntegral f
-            (F.toContourFamily.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
-            (h.height_schedule.height u)) :
-    Tendsto
-      (fun u : ℝ =>
-        explicitFormulaScheduledProjectedContourSpineError
-          f F.toContourFamily h u channel)
-      atTop
-      (𝓝 0) := by
-  have hresidue :
-      Tendsto
-        (fun u : ℝ =>
-          explicitFormulaScheduledProjectedRectangleResidueEqualityError
-            f F.toContourFamily h u channel)
-        atTop
-        (𝓝 0) :=
-    explicitFormulaScheduledProjectedRectangleResidueEqualityError_tendsto_zero
-      f F.toContourFamily h channel hfinite
-  have hhorizontal :
-      Tendsto
-        (fun u : ℝ =>
-          explicitFormulaScheduledProjectedHorizontalError
-            f F.toContourFamily h u channel)
-        atTop
-        (𝓝 0) :=
-    explicitFormulaScheduledProjectedHorizontalError_tendsto_zero_ownerProjectedHorizontalDecay
-      f F h E hTopMem hBottomMem N channel
-  have hsum :
-      Tendsto
-        (fun u : ℝ =>
-          explicitFormulaScheduledProjectedRectangleResidueEqualityError
-              f F.toContourFamily h u channel +
-            explicitFormulaScheduledProjectedHorizontalError
-              f F.toContourFamily h u channel +
-              explicitFormulaScheduledProjectedVerticalDecompositionError
-                f F.toContourFamily h u channel)
-        atTop
-        (𝓝 (0 + 0 + 0 : ℂ)) :=
-    (hresidue.add hhorizontal).add hvertical
-  have htarget : (0 + 0 + 0 : ℂ) = 0 := by
-    exact Eq.trans (add_zero (0 + 0)) (add_zero 0)
-  have hpointwise :
-      (fun u : ℝ =>
-        explicitFormulaScheduledProjectedContourSpineError
-          f F.toContourFamily h u channel) =
-        (fun u : ℝ =>
-          explicitFormulaScheduledProjectedRectangleResidueEqualityError
-              f F.toContourFamily h u channel +
-            explicitFormulaScheduledProjectedHorizontalError
-              f F.toContourFamily h u channel +
-              explicitFormulaScheduledProjectedVerticalDecompositionError
-                f F.toContourFamily h u channel) := by
-    exact funext (fun u : ℝ => Eq.refl _)
-  exact Eq.subst
-    (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
-    hpointwise.symm
-    (Eq.subst
-      (motive := fun z : ℂ =>
-        Tendsto
-          (fun u : ℝ =>
-            explicitFormulaScheduledProjectedRectangleResidueEqualityError
-                f F.toContourFamily h u channel +
-              explicitFormulaScheduledProjectedHorizontalError
-                f F.toContourFamily h u channel +
-                explicitFormulaScheduledProjectedVerticalDecompositionError
-                  f F.toContourFamily h u channel)
-          atTop
-          (𝓝 z))
-      htarget
-      hsum)
-
-/-- The projected contour spine error vanishes using the analytic package's constructed
-scheduled horizontal carrier. -/
-theorem explicitFormulaScheduledProjectedContourSpineError_tendsto_zero_of_scheduledCarrier
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (channel : ExplicitFormulaScheduledVerticalChannelProjection)
-    (N : ℕ)
-    (hvertical :
-      Tendsto
-        (fun u : ℝ =>
-          explicitFormulaScheduledProjectedVerticalDecompositionError
-            f F.toContourFamily h u channel)
-        atTop
-        (𝓝 0))
-    (hfinite :
-      ∀ u : ℝ,
-        zetaCompletedExplicitFormulaContourIntegral f
-            (F.toContourFamily.rectangle (h.height_schedule.height u)) =
-          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
-            (h.height_schedule.height u)) :
-    Tendsto
-      (fun u : ℝ =>
-        explicitFormulaScheduledProjectedContourSpineError
-          f F.toContourFamily h u channel)
-      atTop
-      (𝓝 0) := by
-  have hresidue :
-      Tendsto
-        (fun u : ℝ =>
-          explicitFormulaScheduledProjectedRectangleResidueEqualityError
-            f F.toContourFamily h u channel)
-        atTop
-        (𝓝 0) :=
-    explicitFormulaScheduledProjectedRectangleResidueEqualityError_tendsto_zero
-      f F.toContourFamily h channel hfinite
-  have hhorizontal :
-      Tendsto
-        (fun u : ℝ =>
-          explicitFormulaScheduledProjectedHorizontalError
-            f F.toContourFamily h u channel)
-        atTop
-        (𝓝 0) :=
-    explicitFormulaScheduledProjectedHorizontalError_tendsto_zero_of_scheduledCarrier
-      f F h N channel
-  have hsum :
-      Tendsto
-        (fun u : ℝ =>
-          explicitFormulaScheduledProjectedRectangleResidueEqualityError
-              f F.toContourFamily h u channel +
-            explicitFormulaScheduledProjectedHorizontalError
-              f F.toContourFamily h u channel +
-              explicitFormulaScheduledProjectedVerticalDecompositionError
-                f F.toContourFamily h u channel)
-        atTop
-        (𝓝 (0 + 0 + 0 : ℂ)) :=
-    (hresidue.add hhorizontal).add hvertical
-  have htarget : (0 + 0 + 0 : ℂ) = 0 := by
-    exact Eq.trans (add_zero (0 + 0)) (add_zero 0)
-  have hpointwise :
-      (fun u : ℝ =>
-        explicitFormulaScheduledProjectedContourSpineError
-          f F.toContourFamily h u channel) =
-        (fun u : ℝ =>
-          explicitFormulaScheduledProjectedRectangleResidueEqualityError
-              f F.toContourFamily h u channel +
-            explicitFormulaScheduledProjectedHorizontalError
-              f F.toContourFamily h u channel +
-              explicitFormulaScheduledProjectedVerticalDecompositionError
-                f F.toContourFamily h u channel) := by
-    exact funext (fun u : ℝ => Eq.refl _)
-  exact Eq.subst
-    (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
-    hpointwise.symm
-    (Eq.subst
-      (motive := fun z : ℂ =>
-        Tendsto
-          (fun u : ℝ =>
-            explicitFormulaScheduledProjectedRectangleResidueEqualityError
-                f F.toContourFamily h u channel +
-              explicitFormulaScheduledProjectedHorizontalError
-                f F.toContourFamily h u channel +
-                explicitFormulaScheduledProjectedVerticalDecompositionError
-                  f F.toContourFamily h u channel)
-          atTop
-          (𝓝 z))
-      htarget
-      hsum)
-
-/-- The shared selected-channel transport theorem is a thin wrapper over a supplied
-projected vertical-decomposition input. -/
-theorem explicitFormulaScheduledVerticalChannelProjectionTransportRemainder_tendsto_zero_ownerProjectedContourSpine
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (channel : ExplicitFormulaScheduledVerticalChannelProjection)
-    (hvertical :
-      Tendsto
-        (fun u : ℝ =>
-          explicitFormulaScheduledProjectedVerticalDecompositionError
-            f F.toContourFamily h u channel)
-        atTop
-        (𝓝 0)) :
-    Tendsto
-      (fun u : ℝ =>
-        explicitFormulaScheduledVerticalChannelProjectionTransportRemainder
-          f F.toContourFamily (h.height_schedule.height u) channel)
-      atTop
-      (𝓝 0) := by
-  have hpointwise :
-      (fun u : ℝ =>
-        explicitFormulaScheduledVerticalChannelProjectionTransportRemainder
-          f F.toContourFamily (h.height_schedule.height u) channel) =
-        (fun u : ℝ =>
-          explicitFormulaScheduledProjectedVerticalDecompositionError
-            f F.toContourFamily h u channel) := by
-    exact funext (fun u : ℝ => Eq.refl _)
-  exact Eq.subst
-    (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
-    hpointwise.symm
-    hvertical
-
 /-- Core finite-rectangle contour residue theorem, after zero-excision/window accounting.
 
 The scheduled finite-rectangle residue equality controls the contour-minus-residue error,
@@ -553,6 +252,108 @@ theorem explicitFormulaFamilyVerticalZeroSideWindowError_tendsto_zero_of_schedul
       htarget
       hsub)
 
+/-- Core finite-rectangle vertical zero-side theorem with fixed-degree scheduled
+horizontal decay. -/
+theorem explicitFormulaFamilyVerticalZeroSideWindowError_tendsto_zero_of_polynomialScheduledPackage_ownerFiniteRectangleResidueTheorem
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hPoly : ExplicitFormulaScheduledPolynomialFamilyAnalyticPackage f F)
+    (hschedule : hPoly.height_schedule = h.height_schedule)
+    (hfinite :
+      ∀ u : ℝ,
+        zetaCompletedExplicitFormulaContourIntegral f
+            (F.rectangle (h.height_schedule.height u)) =
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
+            (h.height_schedule.height u)) :
+    Tendsto
+      (fun u : ℝ =>
+        explicitFormulaFamilyVerticalZeroSideWindowError f F
+          (h.height_schedule.height u))
+      atTop
+      (𝓝 0) := by
+  have hcontour :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaFamilyContourZeroSideWindowError f F
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 0) :=
+    explicitFormulaFamilyContourZeroSideWindowError_tendsto_zero_core_ownerFiniteRectangleResidueTheorem
+      f F h hfinite
+  have hhorizontalPoly :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaFamilyHorizontalResidueWindowError f F
+            (hPoly.height_schedule.height u))
+        atTop
+        (𝓝 0) :=
+    explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_of_polynomialScheduledPackage
+      f F hPoly
+  have hscheduleFunction :
+      (fun u : ℝ =>
+          explicitFormulaFamilyHorizontalResidueWindowError f F
+            (hPoly.height_schedule.height u)) =
+        (fun u : ℝ =>
+          explicitFormulaFamilyHorizontalResidueWindowError f F
+            (h.height_schedule.height u)) :=
+    congrArg
+      (fun schedule : ExplicitFormulaCofinalHeightSchedule F =>
+        fun u : ℝ =>
+          explicitFormulaFamilyHorizontalResidueWindowError f F
+            (schedule.height u))
+      hschedule
+  have hhorizontal :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaFamilyHorizontalResidueWindowError f F
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 0) :=
+    Eq.subst
+      (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
+      hscheduleFunction
+      hhorizontalPoly
+  have hsub :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaFamilyContourZeroSideWindowError f F
+              (h.height_schedule.height u) -
+            explicitFormulaFamilyHorizontalResidueWindowError f F
+              (h.height_schedule.height u))
+        atTop
+        (𝓝 (0 - 0 : ℂ)) :=
+    hcontour.sub hhorizontal
+  have htarget : (0 - 0 : ℂ) = 0 :=
+    sub_self 0
+  have hpointwise :
+      (fun u : ℝ =>
+        explicitFormulaFamilyVerticalZeroSideWindowError f F
+          (h.height_schedule.height u)) =
+        (fun u : ℝ =>
+          explicitFormulaFamilyContourZeroSideWindowError f F
+              (h.height_schedule.height u) -
+            explicitFormulaFamilyHorizontalResidueWindowError f F
+              (h.height_schedule.height u)) := by
+    exact funext
+      (fun u : ℝ =>
+        explicitFormulaFamilyVerticalZeroSideWindowError_eq_contourZeroSide_sub_horizontal
+          f F (h.height_schedule.height u))
+  exact Eq.subst
+    (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
+    hpointwise.symm
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun u : ℝ =>
+            explicitFormulaFamilyContourZeroSideWindowError f F
+                (h.height_schedule.height u) -
+              explicitFormulaFamilyHorizontalResidueWindowError f F
+                (h.height_schedule.height u))
+          atTop
+          (𝓝 z))
+      htarget
+      hsub)
+
 /-- The vertical residue-window error vanishes by zero-excision/window equality from the
 zero-side finite-rectangle residue theorem. -/
 theorem explicitFormulaFamilyVerticalResidueWindowError_tendsto_zero_core_ownerFiniteRectangleResidueTheorem
@@ -631,6 +432,50 @@ theorem explicitFormulaFamilyVerticalResidueWindowError_tendsto_zero_of_schedule
         (𝓝 0) :=
     explicitFormulaFamilyVerticalZeroSideWindowError_tendsto_zero_of_scheduledCarrier_ownerFiniteRectangleResidueTheorem
       f F h N hfinite
+  have hpointwise :
+      (fun u : ℝ =>
+        explicitFormulaFamilyVerticalResidueWindowError f F
+          (h.height_schedule.height u)) =
+        (fun u : ℝ =>
+          explicitFormulaFamilyVerticalZeroSideWindowError f F
+            (h.height_schedule.height u)) := by
+    exact funext
+      (fun u : ℝ =>
+        explicitFormulaFamilyVerticalResidueWindowError_eq_zeroSideWindowError
+          f F (h.height_schedule.height u))
+  exact Eq.subst
+    (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
+    hpointwise.symm
+    hzeroSide
+
+/-- The vertical residue-window error vanishes with fixed-degree scheduled
+horizontal decay. -/
+theorem explicitFormulaFamilyVerticalResidueWindowError_tendsto_zero_of_polynomialScheduledPackage_ownerFiniteRectangleResidueTheorem
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hPoly : ExplicitFormulaScheduledPolynomialFamilyAnalyticPackage f F)
+    (hschedule : hPoly.height_schedule = h.height_schedule)
+    (hfinite :
+      ∀ u : ℝ,
+        zetaCompletedExplicitFormulaContourIntegral f
+            (F.rectangle (h.height_schedule.height u)) =
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
+            (h.height_schedule.height u)) :
+    Tendsto
+      (fun u : ℝ =>
+        explicitFormulaFamilyVerticalResidueWindowError f F
+          (h.height_schedule.height u))
+      atTop
+      (𝓝 0) := by
+  have hzeroSide :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaFamilyVerticalZeroSideWindowError f F
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 0) :=
+    explicitFormulaFamilyVerticalZeroSideWindowError_tendsto_zero_of_polynomialScheduledPackage_ownerFiniteRectangleResidueTheorem
+      f F h hPoly hschedule hfinite
   have hpointwise :
       (fun u : ℝ =>
         explicitFormulaFamilyVerticalResidueWindowError f F
@@ -734,6 +579,35 @@ theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_core_ownerResidueCa
           (𝓝 z))
       htarget
       hsum)
+
+/-- The residue-window limit after the finite vertical-residue calculation has been
+discharged.  This is the canonical analytic assembly point: the remaining horizontal
+term is supplied by the independent scheduled decay theorem. -/
+theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_of_verticalResidueLimit_ownerResidueCalculus
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hvertical :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaFamilyVerticalResidueWindowError f F
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 0))
+    (hhorizontal :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaFamilyHorizontalResidueWindowError f F
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 0)) :
+    Tendsto
+      (fun u : ℝ =>
+        explicitFormulaFamilyResidueWindowError f F
+          (h.height_schedule.height u))
+      atTop
+      (𝓝 0) :=
+  explicitFormulaFamilyResidueWindowError_tendsto_zero_of_scheduled_vertical_and_horizontal
+    f F h hvertical hhorizontal
 
 /-- Core finite-rectangle residue-calculus error theorem using the analytic package's
 scheduled horizontal carrier. -/

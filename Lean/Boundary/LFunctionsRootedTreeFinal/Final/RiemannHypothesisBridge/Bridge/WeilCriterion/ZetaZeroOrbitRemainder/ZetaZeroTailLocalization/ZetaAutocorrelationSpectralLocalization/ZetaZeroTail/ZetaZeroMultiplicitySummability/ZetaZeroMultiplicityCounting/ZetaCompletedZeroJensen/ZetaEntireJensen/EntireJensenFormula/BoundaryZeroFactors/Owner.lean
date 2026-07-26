@@ -13,22 +13,20 @@ namespace LFunctions
 
 noncomputable section
 
-attribute [local instance] Classical.propDecidable
-
 local instance entireFunctionZero_coe_eq_zero_decidable
     (F : ℂ → ℂ) :
     ∀ z : EntireFunctionZero F, Decidable ((z : ℂ) = 0) :=
-  fun _z => Classical.propDecidable _
+  fun _z => inferInstance
 
 local instance entireFunctionZero_norm_lt_decidable
     (F : ℂ → ℂ) (ρ : ℝ) :
     ∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ < ρ) :=
-  fun _z => Classical.propDecidable _
+  fun _z => inferInstance
 
 local instance entireFunctionZero_norm_le_decidable
     (F : ℂ → ℂ) (ρ : ℝ) :
     ∀ z : EntireFunctionZero F, Decidable (‖(z : ℂ)‖ ≤ ρ) :=
-  fun _z => Classical.propDecidable _
+  fun _z => inferInstance
 
 open scoped Topology
 

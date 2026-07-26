@@ -161,6 +161,79 @@ theorem zetaPaleyWienerZeroOrderEnvelope_pos
       zetaPaleyWienerStripExponentialEnvelope I a b *
       zetaPaleyWienerSupportIntervalLength I)
 
+theorem zetaPaleyWienerZeroOrderEnvelope_eq_factor_add_one
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) :
+    zetaPaleyWienerZeroOrderEnvelope f I a b =
+      zetaPaleyWienerSupportNormEnvelope f *
+          zetaPaleyWienerStripExponentialEnvelope I a b *
+            zetaPaleyWienerSupportIntervalLength I + 1 := by
+  let E : ℝ :=
+    zetaPaleyWienerSupportNormEnvelope f *
+      zetaPaleyWienerStripExponentialEnvelope I a b *
+        zetaPaleyWienerSupportIntervalLength I
+  have hE : 0 ≤ E := by
+    unfold E
+    exact mul_nonneg
+      (mul_nonneg
+        (zetaPaleyWienerSupportNormEnvelope_nonnegative f)
+        (le_of_lt (zetaPaleyWienerStripExponentialEnvelope_pos I a b)))
+      (zetaPaleyWienerSupportIntervalLength_nonnegative I)
+  have hmax : max E 0 = E := max_eq_left hE
+  unfold zetaPaleyWienerZeroOrderEnvelope
+  change max E 0 + 1 = E + 1
+  exact congrArg (fun value : ℝ => value + 1) hmax
+
+theorem zetaPaleyWienerZeroOrderEnvelope_sq_eq_factor_quadratic
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) :
+    zetaPaleyWienerZeroOrderEnvelope f I a b ^ 2 =
+      (zetaPaleyWienerSupportNormEnvelope f *
+          zetaPaleyWienerStripExponentialEnvelope I a b *
+            zetaPaleyWienerSupportIntervalLength I) ^ 2 +
+        2 * (zetaPaleyWienerSupportNormEnvelope f *
+          zetaPaleyWienerStripExponentialEnvelope I a b *
+            zetaPaleyWienerSupportIntervalLength I) + 1 := by
+  let E : ℝ :=
+    zetaPaleyWienerSupportNormEnvelope f *
+      zetaPaleyWienerStripExponentialEnvelope I a b *
+        zetaPaleyWienerSupportIntervalLength I
+  have hfactor :
+      zetaPaleyWienerZeroOrderEnvelope f I a b = E + 1 := by
+    exact zetaPaleyWienerZeroOrderEnvelope_eq_factor_add_one f I a b
+  have hquad : (E + 1) ^ 2 = E ^ 2 + 2 * E + 1 := by
+    calc
+      (E + 1) ^ 2 = (E + 1) * (E + 1) := pow_two (E + 1)
+      _ = E * (E + 1) + 1 * (E + 1) := add_mul E 1 (E + 1)
+      _ = (E * E + E * 1) + (E + 1) := by
+        exact congrArg₂ (· + ·) (mul_add E E 1) (one_mul (E + 1))
+      _ = (E * E + E) + (E + 1) := by
+        have hleft : E * E + E * 1 = E * E + E :=
+          congrArg (fun value : ℝ => E * E + value) (mul_one E)
+        exact congrArg (fun value : ℝ => value + (E + 1)) hleft
+      _ = ((E * E + E) + E) + 1 :=
+        (add_assoc (E * E + E) E 1).symm
+      _ = (E * E + (E + E)) + 1 := by
+        exact congrArg (fun value : ℝ => value + 1)
+          (add_assoc (E * E) E E)
+      _ = (E * E + 2 * E) + 1 := by
+        exact congrArg (fun value : ℝ => (E * E + value) + 1)
+          (two_mul E).symm
+      _ = E ^ 2 + 2 * E + 1 := by
+        exact congrArg (fun value : ℝ => value + 2 * E + 1)
+          (pow_two E).symm
+  calc
+    zetaPaleyWienerZeroOrderEnvelope f I a b ^ 2 = (E + 1) ^ 2 :=
+      congrArg (fun value : ℝ => value ^ 2) hfactor
+    _ = E ^ 2 + 2 * E + 1 := hquad
+    _ = (zetaPaleyWienerSupportNormEnvelope f *
+          zetaPaleyWienerStripExponentialEnvelope I a b *
+            zetaPaleyWienerSupportIntervalLength I) ^ 2 +
+        2 * (zetaPaleyWienerSupportNormEnvelope f *
+          zetaPaleyWienerStripExponentialEnvelope I a b *
+            zetaPaleyWienerSupportIntervalLength I) + 1 := by
+      rfl
+
 /-- The support-norm envelope bounds the admissible source on its support. -/
 theorem zetaPaleyWienerSupportNorm_le_envelope
     (f : ZetaAdmissibleFunction) :

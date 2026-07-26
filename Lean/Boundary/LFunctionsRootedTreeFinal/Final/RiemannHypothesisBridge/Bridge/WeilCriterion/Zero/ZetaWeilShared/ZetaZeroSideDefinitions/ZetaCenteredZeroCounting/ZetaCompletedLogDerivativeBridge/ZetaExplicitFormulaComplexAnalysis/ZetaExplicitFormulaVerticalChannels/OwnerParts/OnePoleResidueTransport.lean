@@ -1,8 +1,10 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.LeftZeroCancellation
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleHorizontalEdgeBounds
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleLeftStandardResidueValue
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleResidueTailEstimate
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.RightOnePoleBoundaryIdentities
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.RightOnePoleCauchyCancellation
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PoleKernelVerticalInversionEstimate
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.RightZeroPoleTransport
 
 namespace Boundary
 namespace LFunctions
@@ -165,14 +167,14 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleRectangleBoundaryIntegral_t
   have hevent :
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaCorrectionOnePoleRectangleBoundaryIntegral
-          f F (h.height_schedule.height u)) =
-       ᶠ[atTop]
+          f F (h.height_schedule.height u))
+      =ᶠ[atTop]
       (fun _u : ℝ =>
         1 / (1 - (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0) := by
     exact h.height_schedule.eventually_height_pos.mono
       (fun u hu =>
         hpositive (h.height_schedule.height u) hu)
-  exact hevent.tendsto_iff.2 tendsto_const_nhds
+  exact Tendsto.congr' hevent.symm tendsto_const_nhds
 
 /-- Positive-height finite `s = 1` rectangle Cauchy residue transport to the left
 on-pole vertical channel. -/
@@ -339,6 +341,38 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendst
     let U : ℂ := zetaCompletedExplicitFormulaCorrectionTopOnePoleHorizontalIntegral f F T
     let D : ℂ := zetaCompletedExplicitFormulaCorrectionBottomOnePoleHorizontalIntegral f F T
     have hS : S = D - U + R * Complex.I - L * Complex.I := by
+      let U' : ℂ :=
+        ∫ x in Set.Icc (1 - F.c) F.c,
+          zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+            (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x)
+      let D' : ℂ :=
+        ∫ x in Set.Icc (1 - F.c) F.c,
+          zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+            (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x)
+      have hU_Icc : U = U' := by
+        have htangent_horizontal :
+            zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral f F T =
+              U :=
+          zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral_eq_horizontal
+            f F T
+        have htangent_Icc :
+            zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral f F T =
+              U' :=
+          zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral_eq_Icc
+            f F T
+        exact Eq.trans htangent_horizontal.symm htangent_Icc
+      have hD_Icc : D = D' := by
+        have htangent_horizontal :
+            zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral f F T =
+              D :=
+          zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral_eq_horizontal
+            f F T
+        have htangent_Icc :
+            zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral f F T =
+              D' :=
+          zetaCompletedExplicitFormulaCorrectionBottomOnePoleTangentIntegral_eq_Icc
+            f F T
+        exact Eq.trans htangent_horizontal.symm htangent_Icc
       have hRtan :
           zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral f F T =
             R * Complex.I :=
@@ -351,10 +385,31 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendst
           f F T
       calc
         S =
+            D' - U' +
+              zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral f F T -
+              zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral f F T := by
+          exact zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral_eq
+            f F T
+        _ =
+            D - U' +
+              zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral f F T -
+              zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral f F T := by
+          exact congrArg
+            (fun x : ℂ =>
+              x - U' +
+                zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral f F T -
+                zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral f F T)
+            hD_Icc.symm
+        _ =
             D - U +
               zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral f F T -
               zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral f F T := by
-          rfl
+          exact congrArg
+            (fun x : ℂ =>
+              D - x +
+                zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral f F T -
+                zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral f F T)
+            hU_Icc.symm
         _ = D - U + R * Complex.I -
               zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral f F T := by
           exact congrArg
@@ -413,7 +468,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendst
               exact add_zero (R * Complex.I - L * Complex.I)
     have hI_sq : Complex.I * Complex.I = -(1 : ℂ) :=
       Complex.I_mul_I
-    have hsolve : L = R + (S + H) * Complex.I := by
+    have hsolve : R + (S + H) * Complex.I = L := by
       calc
         R + (S + H) * Complex.I =
             R + (R * Complex.I - L * Complex.I) * Complex.I := by
@@ -478,8 +533,8 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendst
   have hevent :
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaCorrectionOnePoleStandardRectangleBoundaryIntegral
-          f F (h.height_schedule.height u)) =
-       ᶠ[atTop]
+          f F (h.height_schedule.height u))
+      =ᶠ[atTop]
       (fun _u : ℝ =>
         (2 * (Real.pi : ℂ) * Complex.I) *
           (-zetaCompletedExplicitFormulaPhi f (1 / 2))) := by
@@ -494,7 +549,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendst
         atTop
         (𝓝 ((2 * (Real.pi : ℂ) * Complex.I) *
           (-zetaCompletedExplicitFormulaPhi f (1 / 2)))) :=
-    hevent.tendsto_iff.2 tendsto_const_nhds
+    Tendsto.congr' hevent.symm tendsto_const_nhds
   exact
     zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_of_standardBoundaryResidue
       f F h
@@ -544,85 +599,6 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventu
     zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_to_projectionResidue_ownerResidueTail
       f F h
 
-/-- The right pole face transports to the pole at `s = 0`, evaluated at the centered
-basepoint of the test transform. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightPoleVerticalIntegral_tendsto_centeredPolePhi_ownerChannelTransportAnalytic
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (hone :
-      Tendsto
-        (fun u : ℝ =>
-          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-            f F (h.height_schedule.height u))
-        atTop
-        (𝓝 0)) :
-    Tendsto
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionRightPoleVerticalIntegral
-          f F (h.height_schedule.height u))
-      atTop
-      (𝓝 ((1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0)) := by
-  have hzero :
-      Tendsto
-        (fun u : ℝ =>
-          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
-            f F (h.height_schedule.height u))
-        atTop
-        (𝓝 ((1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0)) :=
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tendsto_centeredPolePhi_ownerChannelTransportAnalytic
-      f F h
-  have hone :
-      Tendsto
-        (fun u : ℝ =>
-          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-            f F (h.height_schedule.height u))
-        atTop
-        (𝓝 0) :=
-    hone
-  have hsum :
-      Tendsto
-        (fun u : ℝ =>
-          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
-              f F (h.height_schedule.height u) +
-            zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-              f F (h.height_schedule.height u))
-        atTop
-        (𝓝 (((1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0) + 0)) :=
-    Tendsto.add hzero hone
-  have hpointwise :
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionRightPoleVerticalIntegral
-          f F (h.height_schedule.height u)) =
-        (fun u : ℝ =>
-          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
-              f F (h.height_schedule.height u) +
-            zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-              f F (h.height_schedule.height u)) := by
-    funext u
-    exact zetaCompletedExplicitFormulaCorrectionRightPoleVerticalIntegral_eq_zero_add_one
-      f h.phi_control F (h.height_schedule.height u)
-  have htarget :
-      ((1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0) + 0 =
-        (1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0 :=
-    add_zero ((1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0)
-  exact Eq.subst
-    (motive := fun φ : ℝ → ℂ =>
-      Tendsto φ atTop
-        (𝓝 ((1 / (1 / 2 : ℂ)) * zetaCompletedExplicitFormulaPhi f 0)))
-    hpointwise.symm
-    (Eq.subst
-      (motive := fun z : ℂ =>
-        Tendsto
-          (fun u : ℝ =>
-            zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
-                f F (h.height_schedule.height u) +
-              zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-                f F (h.height_schedule.height u))
-          atTop
-          (𝓝 z))
-      htarget
-      hsum)
-
 /-- The left pole face transports with the projection-corrected one-pole
 residue normalization. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral_tendsto_projectionResidue_ownerChannelTransportAnalytic
@@ -633,17 +609,33 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral_tendsto_p
         zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral
           f F (h.height_schedule.height u))
       atTop
-      (𝓝 (((2 * (Real.pi : ℂ) * Complex.I) *
-        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
-          zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) := by
+      (𝓝
+        ((Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+            f.toZetaTestFunction' F.c +
+          zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+            f * Complex.I) +
+          (((2 * (Real.pi : ℂ) * Complex.I) *
+            (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+              zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c))) := by
+  let A : ℂ :=
+    Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+      f.toZetaTestFunction' F.c +
+      zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+        f * Complex.I
+  let B : ℂ :=
+    ((2 * (Real.pi : ℂ) * Complex.I) *
+      (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+        zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c
   have hzero :
       Tendsto
         (fun u : ℝ =>
           zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral
             f F (h.height_schedule.height u))
         atTop
-        (𝓝 0) :=
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_tendsto_zero_ownerChannelTransportAnalytic
+        (𝓝 A) := by
+    unfold A
+    exact
+      zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_tendsto_projectionResidue_ownerChannelTransportAnalytic
       f F h
   have hone :
       Tendsto
@@ -651,9 +643,9 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral_tendsto_p
           zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
             f F (h.height_schedule.height u))
         atTop
-        (𝓝 (((2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
-            zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) :=
+        (𝓝 B) := by
+    unfold B
+    exact
     zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_tendsto_projectionResidue_ownerChannelTransportAnalytic
       f F h
   have hsum :
@@ -665,9 +657,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral_tendsto_p
               f F (h.height_schedule.height u))
         atTop
         (𝓝
-          (0 + (((2 * (Real.pi : ℂ) * Complex.I) *
-            (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
-              zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c))) :=
+          (A + B)) :=
     Tendsto.add hzero hone
   have hpointwise :
       (fun u : ℝ =>
@@ -682,21 +672,26 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral_tendsto_p
     exact zetaCompletedExplicitFormulaCorrectionLeftPoleVerticalIntegral_eq_zero_add_one
       f h.phi_control F (h.height_schedule.height u)
   have htarget :
-      0 + (((2 * (Real.pi : ℂ) * Complex.I) *
-        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
-          zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c) =
-        ((2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
-            zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c :=
-    zero_add ((((2 * (Real.pi : ℂ) * Complex.I) *
-      (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I) +
-        zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)
+      A + B =
+        (Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+            f.toZetaTestFunction' F.c +
+          zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+            f * Complex.I) +
+          (((2 * (Real.pi : ℂ) * Complex.I) *
+            (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+              zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c) := by
+    rfl
   exact Eq.subst
     (motive := fun φ : ℝ → ℂ =>
       Tendsto φ atTop
-        (𝓝 (((2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
-            zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)))
+        (𝓝
+          ((Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+              f.toZetaTestFunction' F.c +
+            zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+              f * Complex.I) +
+            (((2 * (Real.pi : ℂ) * Complex.I) *
+              (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+                zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c))))
     hpointwise.symm
     (Eq.subst
       (motive := fun z : ℂ =>

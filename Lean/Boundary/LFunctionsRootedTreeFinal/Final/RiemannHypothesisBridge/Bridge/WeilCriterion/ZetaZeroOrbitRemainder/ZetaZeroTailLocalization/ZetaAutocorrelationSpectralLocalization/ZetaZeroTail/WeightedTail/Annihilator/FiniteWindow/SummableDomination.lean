@@ -14,6 +14,44 @@ noncomputable section
 namespace ZetaAdmissibleFunction
 namespace FiniteWindow
 
+open Filter
+open scoped ENNReal
+open scoped Topology
+
+theorem finite_norm_dominates_tail_of_tail_lt_half_total
+    (total : ℂ)
+    (finite : ℂ)
+    (tail : ℂ)
+    (htailSmall : norm tail < norm total / 2)
+    (hsplit : finite + tail = total) :
+    norm tail < norm finite :=
+  not_le.mp
+    (fun hfiniteLeTail =>
+      let htotalNormLe :
+          norm total ≤ norm finite + norm tail :=
+        let hnormAdd :
+            norm (finite + tail) ≤ norm finite + norm tail :=
+          norm_add_le finite tail
+        Eq.subst
+          (motive := fun value : ℂ =>
+            norm value ≤ norm finite + norm tail)
+          hsplit
+          hnormAdd
+      let hfinitePlusTailLeDoubleTail :
+          norm finite + norm tail ≤ norm tail + norm tail :=
+        add_le_add_right hfiniteLeTail (norm tail)
+      let hdoubleTailLtTotal :
+          norm tail + norm tail < norm total :=
+        let hdoubleTailLtHalves :
+            norm tail + norm tail < norm total / 2 + norm total / 2 :=
+          add_lt_add htailSmall htailSmall
+        lt_of_lt_of_eq hdoubleTailLtHalves (add_halves (norm total))
+      let htotalNormLt : norm total < norm total :=
+        lt_of_le_of_lt
+          (le_trans htotalNormLe hfinitePlusTailLeDoubleTail)
+          hdoubleTailLtTotal
+      (lt_irrefl (norm total)) htotalNormLt)
+
 theorem exists_finite_sum_dominates_complementary_tsum
     {alpha : Type*}
     [DecidableEq alpha]
@@ -39,7 +77,7 @@ theorem exists_finite_sum_dominates_complementary_tsum
         (nhds 0) :=
     tendsto_tsum_compl_atTop_zero (fun eta : alpha => norm (g eta))
   have htailEventually :
-      ∀ᵉ U in atTop,
+      ∀ᶠ U in atTop,
         tsum (fun eta : {eta : alpha // eta ∉ U} => norm (g eta)) <
           norm (tsum g) / 2 :=
     ((tendsto_order.1 htailNormTendsToZero).2
@@ -58,7 +96,8 @@ theorem exists_finite_sum_dominates_complementary_tsum
   have htailNormBound :
       norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)) ≤
         tsum (fun eta : {eta : alpha // eta ∉ U} => norm (g eta)) :=
-    norm_tsum_le_tsum_norm hcomplementSummable
+    norm_tsum_le_tsum_norm
+      (hnormSummable.subtype (fun eta : alpha => eta ∉ U))
   have htailSmall :
       norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)) <
         norm (tsum g) / 2 :=
@@ -71,53 +110,13 @@ theorem exists_finite_sum_dominates_complementary_tsum
   have hfiniteDominates :
       norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)) <
         norm (∑ eta in U, g eta) := by
-    by_contra hnotDominates
-    have hfiniteLeTail :
-        norm (∑ eta in U, g eta) ≤
-          norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)) :=
-      le_of_not_gt hnotDominates
-    have htotalNormLe :
-        norm (tsum g) ≤
-          norm (∑ eta in U, g eta) +
-            norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)) := by
-      have hnormAdd :
-          norm
-              ((∑ eta in U, g eta) +
-                tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)) ≤
-            norm (∑ eta in U, g eta) +
-              norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)) :=
-        norm_add_le
-          (∑ eta in U, g eta)
-          (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta))
-      exact Eq.subst
-        (motive := fun value : ℂ =>
-          norm value ≤
-            norm (∑ eta in U, g eta) +
-              norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)))
+    exact
+      finite_norm_dominates_tail_of_tail_lt_half_total
+        (tsum g)
+        (∑ eta in U, g eta)
+        (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta))
+        htailSmall
         hseriesSplit
-        hnormAdd
-    have hfinitePlusTailLeDoubleTail :
-        norm (∑ eta in U, g eta) +
-            norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)) ≤
-          norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)) +
-            norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)) :=
-      add_le_add_right hfiniteLeTail
-        (norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)))
-    have hdoubleTailLtTotal :
-        norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)) +
-            norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)) <
-          norm (tsum g) := by
-      have hdoubleTailLtHalves :
-          norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)) +
-              norm (tsum (fun eta : {eta : alpha // eta ∉ U} => g eta)) <
-            norm (tsum g) / 2 + norm (tsum g) / 2 :=
-        add_lt_add htailSmall htailSmall
-      exact lt_of_lt_of_eq hdoubleTailLtHalves (add_halves (norm (tsum g)))
-    have htotalNormLt : norm (tsum g) < norm (tsum g) :=
-      lt_of_le_of_lt
-        (le_trans htotalNormLe hfinitePlusTailLeDoubleTail)
-        hdoubleTailLtTotal
-    exact (lt_irrefl (norm (tsum g))) htotalNormLt
   exact ⟨U, Finset.mem_insert_self rho Ubase, hfiniteDominates⟩
 
 def completedZeroCoordinateValueEmbedding : ZetaCompletedZeroCoordinate ↪ ℂ where
@@ -184,13 +183,29 @@ theorem completedZeroCoordinateComplement_tsum_eq_valueComplement_tsum
         eta : ℂ // ZetaCompletedZero eta ∧
           eta ∉ completedZeroCoordinateValueFinset U} =>
         g ⟨(eta : ℂ), eta.2.1⟩) := by
+  let e :
+      {rho : ZetaCompletedZeroCoordinate // rho ∉ U} ≃
+        {eta : ℂ //
+          ZetaCompletedZero eta ∧ eta ∉ completedZeroCoordinateValueFinset U} :=
+    completedZeroCoordinateComplementEquiv U
+  have hcoordinate :
+      tsum (fun rho : {rho : ZetaCompletedZeroCoordinate // rho ∉ U} => g rho) =
+        tsum (fun rho : {rho : ZetaCompletedZeroCoordinate // rho ∉ U} =>
+          g ⟨((e rho : {eta : ℂ //
+            ZetaCompletedZero eta ∧ eta ∉ completedZeroCoordinateValueFinset U}) : ℂ),
+            (e rho).2.1⟩) := by
+    exact tsum_congr
+      (fun rho =>
+        congrArg g
+          (Subtype.ext
+            (Eq.refl (rho.1 : ℂ))).symm)
   have htransport :=
-    (completedZeroCoordinateComplementEquiv U).tsum_eq
+    e.tsum_eq
       (fun eta : {
         eta : ℂ // ZetaCompletedZero eta ∧
           eta ∉ completedZeroCoordinateValueFinset U} =>
         g ⟨(eta : ℂ), eta.2.1⟩)
-  exact htransport.symm
+  exact Eq.trans hcoordinate htransport
 
 theorem exists_finiteWindow_dominates_complementaryTail_of_annihilator_ne_zero
     (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))

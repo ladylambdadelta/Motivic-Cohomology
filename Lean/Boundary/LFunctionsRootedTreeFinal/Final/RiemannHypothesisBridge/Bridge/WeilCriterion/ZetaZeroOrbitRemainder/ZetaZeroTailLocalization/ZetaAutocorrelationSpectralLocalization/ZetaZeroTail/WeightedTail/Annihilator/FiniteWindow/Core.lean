@@ -14,6 +14,8 @@ noncomputable section
 namespace ZetaAdmissibleFunction
 namespace FiniteWindow
 
+open scoped ENNReal
+
 noncomputable def zetaCompletedZeroSideAnnihilatorFiniteWindow
     (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
     (S : Finset ℂ)
@@ -61,7 +63,33 @@ theorem finiteWindow_sideContribution_sum_attach_eq_sum
         ∑ eta in S.attach, g (eta : ℂ) := by
       apply Finset.sum_congr rfl
       intro eta heta
-      exact dif_pos eta.2
+      change
+        b ⟨eta, hS eta eta.2⟩ * zetaZeroSideContribution eta f =
+          (if hmem : (eta : ℂ) ∈ S then
+            b ⟨eta, hS eta hmem⟩ * zetaZeroSideContribution eta f
+          else
+            0)
+      have hcoordinate :
+          (⟨eta, hS eta eta.2⟩ : ZetaCompletedZeroCoordinate) =
+            ⟨eta, hS eta (show (eta : ℂ) ∈ S from eta.2)⟩ :=
+        Subtype.ext (Eq.refl (eta : ℂ))
+      have hterm :
+          b ⟨eta, hS eta eta.2⟩ * zetaZeroSideContribution eta f =
+            b ⟨eta, hS eta (show (eta : ℂ) ∈ S from eta.2)⟩ *
+              zetaZeroSideContribution eta f :=
+        congrArg
+          (fun rho : ZetaCompletedZeroCoordinate =>
+            b rho * zetaZeroSideContribution eta f)
+          hcoordinate
+      have hif :
+          (if hmem : (eta : ℂ) ∈ S then
+            b ⟨eta, hS eta hmem⟩ * zetaZeroSideContribution eta f
+          else
+            0) =
+            b ⟨eta, hS eta (show (eta : ℂ) ∈ S from eta.2)⟩ *
+              zetaZeroSideContribution eta f :=
+        dif_pos eta.2
+      exact hterm.trans hif.symm
     _ = ∑ eta in S, g eta := hattach
     _ = ∑ eta in S,
         (if heta : eta ∈ S then
@@ -70,7 +98,7 @@ theorem finiteWindow_sideContribution_sum_attach_eq_sum
           0) := by
       apply Finset.sum_congr rfl
       intro eta heta
-      exact dif_pos heta
+      exact Eq.refl (g eta)
 
 theorem zetaCompletedZeroSideAnnihilatorFiniteWindow_smul
     (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
@@ -177,13 +205,39 @@ theorem zetaCompletedZeroSideAnnihilatorFiniteWindow_add
           (mul_add
             (b ⟨eta, hS eta eta.2⟩)
             (zetaZeroSideContribution eta f)
-            (zetaZeroSideContribution eta g)).symm)
+            (zetaZeroSideContribution eta g)))
     _ =
         (∑ eta in S.attach,
           b ⟨eta, hS eta eta.2⟩ * zetaZeroSideContribution eta f) +
           (∑ eta in S.attach,
             b ⟨eta, hS eta eta.2⟩ * zetaZeroSideContribution eta g) := by
       exact Finset.sum_add_distrib
+
+theorem summable_zetaCompletedZeroSideAnnihilatorComplementaryTail
+    (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (S : Finset ℂ)
+    (f : ZetaAdmissibleFunction) :
+    Summable
+      (fun rho : {rho : ℂ // ZetaCompletedZero rho ∧ rho ∉ S} =>
+        b ⟨rho, rho.2.1⟩ * zetaZeroSideContribution (rho : ℂ) f) := by
+  have hsum :
+      Summable
+        (fun rho : ZetaCompletedZeroCoordinate =>
+          b rho * zetaZeroSideContribution (rho : ℂ) f) :=
+    summable_zetaCompletedZeroSideAnnihilator
+      b hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary f
+  exact
+    completedZeroComplementFace_summable
+      S
+      (fun rho : ZetaCompletedZeroCoordinate =>
+        b rho * zetaZeroSideContribution (rho : ℂ) f)
+      hsum
 
 theorem zetaCompletedZeroSideAnnihilatorComplementaryTail_smul
     (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
@@ -198,17 +252,13 @@ theorem zetaCompletedZeroSideAnnihilatorComplementaryTail_smul
     (f : ZetaAdmissibleFunction) :
     zetaCompletedZeroSideAnnihilatorComplementaryTail b S (c • f) =
       c * zetaCompletedZeroSideAnnihilatorComplementaryTail b S f := by
-  have hsum :
-      Summable
-        (fun rho : ZetaCompletedZeroCoordinate =>
-          b rho * zetaZeroSideContribution (rho : ℂ) f) :=
-    summable_zetaCompletedZeroSideAnnihilator
-      b hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary f
   have htail :
       Summable
         (fun rho : {rho : ℂ // ZetaCompletedZero rho ∧ rho ∉ S} =>
           b ⟨rho, rho.2.1⟩ * zetaZeroSideContribution (rho : ℂ) f) := by
-    exact hsum.subtype {rho : ZetaCompletedZeroCoordinate | (rho : ℂ) ∉ S}
+    exact
+      summable_zetaCompletedZeroSideAnnihilatorComplementaryTail
+        b hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary S f
   unfold zetaCompletedZeroSideAnnihilatorComplementaryTail
   calc
     tsum
@@ -258,7 +308,7 @@ theorem zetaCompletedZeroSideAnnihilatorComplementaryTail_smul
         c * tsum
           (fun rho : {rho : ℂ // ZetaCompletedZero rho ∧ rho ∉ S} =>
             b ⟨rho, rho.2.1⟩ * zetaZeroSideContribution (rho : ℂ) f) :=
-      (htail.tsum_mul_left c).symm
+      htail.tsum_mul_left c
 
 theorem zetaCompletedZeroSideAnnihilatorComplementaryTail_add
     (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
@@ -274,22 +324,20 @@ theorem zetaCompletedZeroSideAnnihilatorComplementaryTail_add
     zetaCompletedZeroSideAnnihilatorComplementaryTail b S (f + g) =
       zetaCompletedZeroSideAnnihilatorComplementaryTail b S f +
         zetaCompletedZeroSideAnnihilatorComplementaryTail b S g := by
-  have hsumf :=
-    summable_zetaCompletedZeroSideAnnihilator
-      b hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary f
-  have hsumg :=
-    summable_zetaCompletedZeroSideAnnihilator
-      b hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary g
   have htailf :
       Summable
         (fun rho : {rho : ℂ // ZetaCompletedZero rho ∧ rho ∉ S} =>
           b ⟨rho, rho.2.1⟩ * zetaZeroSideContribution (rho : ℂ) f) := by
-    exact hsumf.subtype {rho : ZetaCompletedZeroCoordinate | (rho : ℂ) ∉ S}
+    exact
+      summable_zetaCompletedZeroSideAnnihilatorComplementaryTail
+        b hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary S f
   have htailg :
       Summable
         (fun rho : {rho : ℂ // ZetaCompletedZero rho ∧ rho ∉ S} =>
           b ⟨rho, rho.2.1⟩ * zetaZeroSideContribution (rho : ℂ) g) := by
-    exact hsumg.subtype {rho : ZetaCompletedZeroCoordinate | (rho : ℂ) ∉ S}
+    exact
+      summable_zetaCompletedZeroSideAnnihilatorComplementaryTail
+        b hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary S g
   unfold zetaCompletedZeroSideAnnihilatorComplementaryTail
   calc
     tsum

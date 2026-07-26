@@ -672,6 +672,21 @@ theorem Complex.Gamma_fixedRealPart_vertical_lower_bound_classical
     Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_from_nonvanishing_and_stirling
       hbranch σ hσ hcompact_half_dec height_split_dec tail_split_dec
 
+theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_unconditional_owner
+    (σ : ℝ)
+    (hσ : 0 < σ)
+    (hcompact_half_dec : ∀ H : ℝ, Decidable ((1 / 2 : ℝ) ≤ H))
+    (height_split_dec : ∀ H b : ℝ, Decidable (H ≤ ‖b‖))
+    (tail_split_dec : ∀ T t : ℝ, Decidable (T ≤ ‖t‖)) :
+    ∃ C : ℝ, ∃ A : ℝ,
+      0 < C ∧ 0 < A ∧
+      ∀ t : ℝ,
+        ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤
+          C * Real.exp (A * ‖t‖) := by
+  exact Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_from_nonvanishing_and_stirling
+    Complex.binetSecondFormulaBranchUniformTailAbsorption_owner
+    σ hσ hcompact_half_dec height_split_dec tail_split_dec
+
 end
 
 end LFunctions

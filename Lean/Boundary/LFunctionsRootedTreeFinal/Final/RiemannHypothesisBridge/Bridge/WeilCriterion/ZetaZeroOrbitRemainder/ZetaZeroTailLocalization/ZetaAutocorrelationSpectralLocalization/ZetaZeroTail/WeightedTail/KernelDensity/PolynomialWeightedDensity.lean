@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.KernelDensity.FiniteSpectralZeroOperator
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.KernelDensity.FiniteSpectralZeroCarrierSeparation
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.KernelDensity.AtomicDistributionUniqueness
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.KernelDensity.PolynomialMultiplierGrowth
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.Owner
@@ -44,36 +44,6 @@ theorem lp_one_norm_eq_tsum_norm
             ENNReal.one_toReal)
           (Real.rpow_one ‖x rho‖))
   exact Eq.trans hleft.symm (Eq.trans hnormPower hright)
-
-noncomputable def finiteSpectralZeroMultiplier
-    (P : Finset ℂ)
-    (z : ℂ) : ℂ :=
-  (P.toList.map (fun sample : ℂ => sample - z)).prod
-
-theorem finiteSpectralZeroMultiplier_ne_zero_of_not_mem
-    (P : Finset ℂ)
-    (z : ℂ)
-    (hz : z ∉ P) :
-    finiteSpectralZeroMultiplier P z ≠ 0 := by
-  unfold finiteSpectralZeroMultiplier
-  exact List.prod_ne_zero
-    (fun hzeroMember =>
-      match List.mem_map.mp hzeroMember with
-      | ⟨sample, hsampleList, hsampleDifference⟩ =>
-          have hsampleEqual : sample = z :=
-            sub_eq_zero.mp hsampleDifference
-          hz
-            (Eq.mp
-              (congrArg (fun value : ℂ => value ∈ P) hsampleEqual)
-              (Finset.mem_toList.mp hsampleList)))
-
-theorem finiteSpectralZeroMultiplier_eq_operatorMultiplier
-    (P : Finset ℂ)
-    (f : ZetaAdmissibleFunction)
-    (z : ℂ) :
-    zetaZeroSideContribution z (finiteSpectralZeroOperator P f) =
-      finiteSpectralZeroMultiplier P z * zetaZeroSideContribution z f := by
-  exact zetaZeroSideContribution_finiteSpectralZeroOperator P f z
 
 noncomputable def polynomialWeightedCompletedZeroCoordinateLinearMap
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
@@ -455,12 +425,112 @@ theorem completedZeroCoordinateMask_mem_polynomialWeightedCoordinateClosure
     (target : lp (fun rho : ZetaCompletedZeroCoordinate => ℂ) (1 : ENNReal)) :
     completedZeroCoordinateMask P target ∈
       polynomialWeightedCoordinateClosureSubmodule
-        hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary P := by
-  exact Classical.byContradiction
-    (completedZeroCoordinateMask_not_mem_polynomialWeightedCoordinateClosure_impossible
-      hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary P target)
+        hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary P :=
+  by_contradiction
+    (fun hnotMember =>
+      completedZeroCoordinateMask_not_mem_polynomialWeightedCoordinateClosure_impossible
+        hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary P target
+        hnotMember)
 
-theorem exists_polynomialWeighted_completedZeroSideCoordinate_approximation
+theorem dist_completedZeroCoordinateMask_polynomialWeightedCoordinate_eq_complement_tsum
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (P : Finset ℂ)
+    (target : lp (fun rho : ZetaCompletedZeroCoordinate => ℂ) (1 : ENNReal))
+    (f : ZetaAdmissibleFunction) :
+    dist (completedZeroCoordinateMask P target)
+        (polynomialWeightedCompletedZeroCoordinateLinearMap
+          hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
+          P f) =
+      ∑' rho : ZetaCompletedZeroCoordinate,
+        if (rho : ℂ) ∈ P then 0
+        else
+          ‖target rho -
+            finiteSpectralZeroMultiplier P (rho : ℂ) *
+              zetaZeroSideContribution (rho : ℂ) f‖ := by
+  let A := polynomialWeightedCompletedZeroCoordinateLinearMap
+    hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary P
+  have hpointwise :
+      (fun rho : ZetaCompletedZeroCoordinate =>
+        ‖(completedZeroCoordinateMask P target - A f) rho‖) =
+      (fun rho : ZetaCompletedZeroCoordinate =>
+        if (rho : ℂ) ∈ P then 0
+        else
+          ‖target rho -
+            finiteSpectralZeroMultiplier P (rho : ℂ) *
+              zetaZeroSideContribution (rho : ℂ) f‖) := by
+    funext rho
+    if hmembership : (rho : ℂ) ∈ P then
+      have hspectralZero :
+          zetaSpectralEval (finiteSpectralZeroOperator P f) (rho : ℂ) = 0 :=
+        zetaSpectralEval_finiteSpectralZeroOperator_eq_zero_of_mem
+          P f (rho : ℂ) hmembership
+      have hsideZero :
+          zetaZeroSideContribution (rho : ℂ) (finiteSpectralZeroOperator P f) = 0 :=
+        zetaZeroSideContribution_eq_zero_of_zetaSpectralEval_eq_zero
+          (rho : ℂ) (finiteSpectralZeroOperator P f) hspectralZero
+      have hcoordinateZero : A f rho = 0 :=
+        Eq.trans
+          (zetaCompletedZeroSideCoordinateL1LinearMap_apply
+            hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft
+            hcompactBoundary (finiteSpectralZeroOperator P f) rho)
+          hsideZero
+      have hmaskZero : completedZeroCoordinateMask P target rho = 0 :=
+        Eq.trans
+          (completedZeroCoordinateMask_apply P target rho)
+          (if_pos hmembership)
+      have hsubApply :
+          (completedZeroCoordinateMask P target - A f) rho =
+            completedZeroCoordinateMask P target rho - A f rho := rfl
+      have hnormZero :
+          ‖(completedZeroCoordinateMask P target - A f) rho‖ = 0 :=
+        Eq.trans
+          (congrArg norm hsubApply)
+          (Eq.trans
+            (congrArg norm
+              (Eq.trans
+                (congrArg₂ HSub.hSub hmaskZero hcoordinateZero)
+                (sub_self (0 : ℂ))))
+            (norm_zero : ‖(0 : ℂ)‖ = 0))
+      exact Eq.trans hnormZero (if_pos hmembership).symm
+    else
+      have hmaskValue : completedZeroCoordinateMask P target rho = target rho :=
+        Eq.trans
+          (completedZeroCoordinateMask_apply P target rho)
+          (if_neg hmembership)
+      have hcoordinateValue :
+          A f rho =
+            finiteSpectralZeroMultiplier P (rho : ℂ) *
+              zetaZeroSideContribution (rho : ℂ) f :=
+        polynomialWeightedCompletedZeroCoordinateLinearMap_apply
+          hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft
+          hcompactBoundary P f rho
+      have hsubApply :
+          (completedZeroCoordinateMask P target - A f) rho =
+            completedZeroCoordinateMask P target rho - A f rho := rfl
+      have hnormValue :
+          ‖(completedZeroCoordinateMask P target - A f) rho‖ =
+            ‖target rho -
+              finiteSpectralZeroMultiplier P (rho : ℂ) *
+                zetaZeroSideContribution (rho : ℂ) f‖ :=
+        Eq.trans
+          (congrArg norm hsubApply)
+          (congrArg norm
+            (congrArg₂ HSub.hSub hmaskValue hcoordinateValue))
+      exact Eq.trans hnormValue (if_neg hmembership).symm
+  exact Eq.trans
+    (dist_eq_norm (completedZeroCoordinateMask P target) (A f))
+    (Eq.trans
+      (lp_one_norm_eq_tsum_norm (completedZeroCoordinateMask P target - A f))
+      (congrArg tsum hpointwise))
+
+/-- The polynomial-weighted coordinate range comes arbitrarily close to the
+masked completed-zero target. -/
+theorem exists_polynomialWeightedCoordinate_near_completedZeroCoordinateMask
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -472,12 +542,10 @@ theorem exists_polynomialWeighted_completedZeroSideCoordinate_approximation
     (epsilon : ℝ)
     (hepsilon : 0 < epsilon) :
     ∃ f : ZetaAdmissibleFunction,
-      (∑' rho : ZetaCompletedZeroCoordinate,
-        if (rho : ℂ) ∈ P then 0
-        else
-          ‖target rho -
-            finiteSpectralZeroMultiplier P (rho : ℂ) *
-              zetaZeroSideContribution (rho : ℂ) f‖) < epsilon := by
+      dist (completedZeroCoordinateMask P target)
+        (polynomialWeightedCompletedZeroCoordinateLinearMap
+          hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
+          P f) < epsilon := by
   let A := polynomialWeightedCompletedZeroCoordinateLinearMap
     hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary P
   have hclosureSubmodule :=
@@ -532,88 +600,36 @@ theorem exists_polynomialWeighted_completedZeroSideCoordinate_approximation
           dist (completedZeroCoordinateMask P target) candidate < epsilon)
       hf.symm
       hdistanceValue
-  have hdistanceIdentity :
-      dist (completedZeroCoordinateMask P target) (A f) =
-        ∑' rho : ZetaCompletedZeroCoordinate,
-          if (rho : ℂ) ∈ P then 0
-          else
-            ‖target rho -
-              finiteSpectralZeroMultiplier P (rho : ℂ) *
-                zetaZeroSideContribution (rho : ℂ) f‖ := by
-    exact Eq.trans
-      (dist_eq_norm
-        (completedZeroCoordinateMask P target)
-        (A f))
-      (Eq.trans
-        (lp_one_norm_eq_tsum_norm
-          (completedZeroCoordinateMask P target - A f))
-        (tsum_congr
-          (fun rho : ZetaCompletedZeroCoordinate =>
-            if hmembership : (rho : ℂ) ∈ P then by
-              have hspectralZero :
-                  zetaSpectralEval (finiteSpectralZeroOperator P f) (rho : ℂ) = 0 :=
-                zetaSpectralEval_finiteSpectralZeroOperator_eq_zero_of_mem
-                  P f (rho : ℂ) hmembership
-              have hsideZero :
-                  zetaZeroSideContribution (rho : ℂ)
-                    (finiteSpectralZeroOperator P f) = 0 :=
-                zetaZeroSideContribution_eq_zero_of_zetaSpectralEval_eq_zero
-                  (rho : ℂ) (finiteSpectralZeroOperator P f) hspectralZero
-              have hcoordinateZero : A f rho = 0 :=
-                Eq.trans
-                  (zetaCompletedZeroSideCoordinateL1LinearMap_apply
-                    hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft
-                    hcompactBoundary (finiteSpectralZeroOperator P f) rho)
-                  hsideZero
-              have hmaskZero : completedZeroCoordinateMask P target rho = 0 :=
-                Eq.trans
-                  (completedZeroCoordinateMask_apply P target rho)
-                  (if_pos hmembership)
-              have hsubApply :
-                  (completedZeroCoordinateMask P target - A f) rho =
-                    completedZeroCoordinateMask P target rho - A f rho := rfl
-              have hnormZero :
-                  ‖(completedZeroCoordinateMask P target - A f) rho‖ = 0 :=
-                Eq.trans
-                  (congrArg norm hsubApply)
-                  (Eq.trans
-                    (congrArg norm
-                      (Eq.trans
-                        (congrArg₂ HSub.hSub hmaskZero hcoordinateZero)
-                        (sub_self (0 : ℂ))))
-                    (norm_zero : ‖(0 : ℂ)‖ = 0))
-              exact Eq.trans
-                hnormZero
-                (if_pos hmembership).symm
-            else by
-              have hmaskValue : completedZeroCoordinateMask P target rho = target rho :=
-                Eq.trans
-                  (completedZeroCoordinateMask_apply P target rho)
-                  (if_neg hmembership)
-              have hcoordinateValue :
-                  A f rho =
-                    finiteSpectralZeroMultiplier P (rho : ℂ) *
-                      zetaZeroSideContribution (rho : ℂ) f :=
-                polynomialWeightedCompletedZeroCoordinateLinearMap_apply
-                  hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft
-                  hcompactBoundary P f rho
-              have hsubApply :
-                  (completedZeroCoordinateMask P target - A f) rho =
-                    completedZeroCoordinateMask P target rho - A f rho := rfl
-              have hnormValue :
-                  ‖(completedZeroCoordinateMask P target - A f) rho‖ =
-                    ‖target rho -
-                      finiteSpectralZeroMultiplier P (rho : ℂ) *
-                        zetaZeroSideContribution (rho : ℂ) f‖ :=
-                Eq.trans
-                  (congrArg norm hsubApply)
-                  (congrArg norm
-                    (congrArg₂ HSub.hSub hmaskValue hcoordinateValue))
-              exact Eq.trans hnormValue (if_neg hmembership).symm)))
+  exact ⟨f, hdistance⟩
+
+theorem exists_polynomialWeighted_completedZeroSideCoordinate_approximation
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (P : Finset ℂ)
+    (target : lp (fun rho : ZetaCompletedZeroCoordinate => ℂ) (1 : ENNReal))
+    (epsilon : ℝ)
+    (hepsilon : 0 < epsilon) :
+    ∃ f : ZetaAdmissibleFunction,
+      (∑' rho : ZetaCompletedZeroCoordinate,
+        if (rho : ℂ) ∈ P then 0
+        else
+          ‖target rho -
+            finiteSpectralZeroMultiplier P (rho : ℂ) *
+              zetaZeroSideContribution (rho : ℂ) f‖) < epsilon := by
+  obtain ⟨f, hdistance⟩ :=
+    exists_polynomialWeightedCoordinate_near_completedZeroCoordinateMask
+      hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
+      P target epsilon hepsilon
   exact ⟨f,
     Eq.subst
       (motive := fun value : ℝ => value < epsilon)
-      hdistanceIdentity
+      (dist_completedZeroCoordinateMask_polynomialWeightedCoordinate_eq_complement_tsum
+        hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
+        P target f)
       hdistance⟩
 
 end ZetaAdmissibleFunction

@@ -1,5 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.AffineLineMeasurability
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.LogDerivativeFiniteFormula
 
 /-!
 # Inverse-Gamma factor bounds
@@ -158,9 +158,8 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLi
 
 /-- The Gamma/Stirling fixed-line estimates give a linear right-line bound for
 the inverse-Gamma completion logarithmic derivative. -/
-theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLine_bound_of_gammaBinetCoherence_owner
-    (F : ExplicitFormulaContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLine_bound_of_gammaBinet_owner
+    (F : ExplicitFormulaContourFamily) :
     ∃ B : ℝ,
       0 ≤ B ∧
         ∀ t : ℝ,
@@ -223,8 +222,8 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLi
             (fun x : ℂ => (sigma + x * Complex.I : ℂ))
             hheight)
     have hfixed :=
-      Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_positiveLineConstant
-        hcoh hsigma_pos (t / 2)
+      Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_direct
+        hsigma_pos (t / 2)
     have hfixed_abs :
         ‖deriv Complex.Gamma (sigma + (((t / 2 : ℝ) : ℂ) * Complex.I)) /
             Complex.Gamma (sigma + (((t / 2 : ℝ) : ℂ) * Complex.I))‖ ≤
@@ -368,6 +367,34 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLi
     zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLine_bound_of_halfGamma_logDeriv_bound_owner
       F B hB_nonneg hgamma_bound
 
+/-- Compatibility wrapper for the former coherence-qualified right-line API. -/
+theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLine_bound_of_gammaBinetCoherence_owner
+    (F : ExplicitFormulaContourFamily)
+    (coherence : Complex.gammaBinetPrincipalLogCoherence) :
+    ∃ B : ℝ,
+      0 ≤ B ∧
+        ∀ t : ℝ,
+          ‖inverseGammaCompletionLogDeriv
+              (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤
+            B * (1 + ‖t‖) := by
+  exact
+    zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLine_bound_of_gammaBinet_owner
+      F
+
+/- The right-line inverse-Gamma estimate is supplied by the concrete Binet
+owner construction itself; no principal-log coherence hypothesis is used. -/
+theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLine_bound_unconditional_owner
+    (F : ExplicitFormulaContourFamily) :
+    ∃ B : ℝ,
+      0 ≤ B ∧
+        ∀ t : ℝ,
+          ‖inverseGammaCompletionLogDeriv
+              (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤
+            B * (1 + ‖t‖) := by
+  exact
+    zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLine_bound_of_gammaBinet_owner
+      F
+
 /-- A left-line bound for the ordinary `Gammaℝ` logarithmic derivative gives a
 left-line bound for the inverse-Gamma completion logarithmic derivative. -/
 theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_Gammaℝ_logDeriv_bound_owner
@@ -506,10 +533,9 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
 
 /-- A finite shifted fixed-line Gamma estimate gives a linear bound for the
 inverse-Gamma completion logarithmic derivative on the left affine line. -/
-theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinetCoherence_shift_owner
+theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinet_shift_owner
     (F : ExplicitFormulaContourFamily)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
     (N : ℕ)
     (hshift_pos : 0 < ((1 - F.c) / 2 : ℝ) + (N : ℝ)) :
     ∃ B : ℝ,
@@ -588,8 +614,8 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
             Complex.Gamma (sigma + u * Complex.I)‖ ≤
           Complex.GammaLogDerivativeFixedVerticalShiftConstant sigma N *
             (1 + ‖u‖) :=
-    Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_shift_nat
-      hcoh N hshift_pos hnot_pole
+    Complex.Gamma_logDerivative_fixedRealPartLine_linear_bound_of_shift_nat_direct
+      N hshift_pos hnot_pole
   have hgamma_bound :
       ∀ t : ℝ,
         ‖(deriv Complex.Gamma
@@ -759,13 +785,29 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
     zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_halfGamma_logDeriv_bound_owner
       F hregular B hB_nonneg hgamma_bound
 
+/-- Compatibility wrapper for the former shifted coherence-qualified API. -/
+theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinetCoherence_shift_owner
+    (F : ExplicitFormulaContourFamily)
+    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
+    (coherence : Complex.gammaBinetPrincipalLogCoherence)
+    (N : ℕ)
+    (hshift_pos : 0 < ((1 - F.c) / 2 : ℝ) + (N : ℝ)) :
+    ∃ B : ℝ,
+      0 ≤ B ∧
+        ∀ t : ℝ,
+          ‖inverseGammaCompletionLogDeriv
+              (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
+            B * (1 + ‖t‖) := by
+  exact
+    zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinet_shift_owner
+      F hregular N hshift_pos
+
 /-- The Gamma/Stirling fixed-line estimates give a linear left-line bound for
 the inverse-Gamma completion logarithmic derivative under the natural
 left-half-line Gamma-regularity condition. -/
-theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinetCoherence_owner
+theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinet_owner
     (F : ExplicitFormulaContourFamily)
-    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence) :
+    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F) :
     ∃ B : ℝ,
       0 ≤ B ∧
         ∀ t : ℝ,
@@ -795,8 +837,38 @@ theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLin
       have hshift_pos : 0 < sigma + (N : ℝ) :=
         lt_of_lt_of_le zero_lt_one hone_le_shift
       exact
-        zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinetCoherence_shift_owner
-          F hregular hcoh N hshift_pos
+        zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinet_shift_owner
+          F hregular N hshift_pos
+
+/-- Compatibility wrapper for the former coherence-qualified left-line API. -/
+theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinetCoherence_owner
+    (F : ExplicitFormulaContourFamily)
+    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
+    (coherence : Complex.gammaBinetPrincipalLogCoherence) :
+    ∃ B : ℝ,
+      0 ≤ B ∧
+        ∀ t : ℝ,
+          ‖inverseGammaCompletionLogDeriv
+              (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
+            B * (1 + ‖t‖) := by
+  exact
+    zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinet_owner
+      F hregular
+
+/- The left-line estimate is likewise provided by the concrete shifted Binet
+owner construction and does not require principal-log coherence. -/
+theorem zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_unconditional_owner
+    (F : ExplicitFormulaContourFamily)
+    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F) :
+    ∃ B : ℝ,
+      0 ≤ B ∧
+        ∀ t : ℝ,
+          ‖inverseGammaCompletionLogDeriv
+              (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
+            B * (1 + ‖t‖) := by
+  exact
+    zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinet_owner
+      F hregular
 
 end ZetaAdmissibleFunction
 

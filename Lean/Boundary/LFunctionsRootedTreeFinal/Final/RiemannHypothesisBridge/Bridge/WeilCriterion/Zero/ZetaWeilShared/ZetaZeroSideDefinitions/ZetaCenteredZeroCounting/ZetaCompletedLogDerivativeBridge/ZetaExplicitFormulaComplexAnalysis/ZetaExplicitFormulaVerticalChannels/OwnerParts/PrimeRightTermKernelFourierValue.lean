@@ -64,6 +64,40 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_integral_eq_
       f F h hn
   exact Eq.trans hMK.symm hMS
 
+/-- Owner wrapper: positive-index Fourier/Mellin inversion for a single right
+von Mangoldt term kernel, using the unconditional Paley-Wiener sampling
+theorem. -/
+theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel_integral_eq_primeNaturalOneSidedTimeSample_unconditional_ownerFourierValue
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    {n : ℕ} (hn : n ≠ 0) :
+    (∫ t : ℝ,
+      zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel f F n t) =
+      zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n :=
+  let M : ℂ :=
+    ∫ t : ℝ,
+      ((↗Λ) n /
+          (n : ℂ) ^ zetaCompletedExplicitFormulaRightAffineLine F t) *
+        zetaCompletedExplicitFormulaPhi f
+          (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)
+  let K : ℂ :=
+    ∫ t : ℝ,
+      zetaCompletedExplicitFormulaPrimeRightVonMangoldtTermKernel f F n t
+  let S : ℂ :=
+    zetaCompletedExplicitFormulaPrimeNaturalOneSidedTimeSample f n
+  have hMK : M = K :=
+    zetaCompletedExplicitFormulaPrimeRightVonMangoldtPositiveMonomial_integral_eq_termKernel_integral
+      f F hn
+  have hMS : M = S :=
+    Eq.trans
+      (zetaCompletedExplicitFormulaPhi_projectRightVonMangoldtMonomialRawIntegral_eq
+        f F n).symm
+      (Eq.trans
+        (zetaCompletedExplicitFormulaPhi_projectRightVonMangoldtMonomialRawIntegral_eq_timeSample_unconditional
+          f F hn)
+        (zetaCompletedExplicitFormulaPhi_projectRightVonMangoldtMonomialTimeSample_eq
+          f n))
+  Eq.trans hMK.symm hMS
+
 end ZetaAdmissibleFunction
 
 end

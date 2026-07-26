@@ -1,7 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaContour.ZetaExplicitFormulaRectangleAPI.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaContour.ZetaExplicitFormulaContourPaths.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaContour.ZetaExplicitFormulaContourPathLemmas.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.OwnerParts.BoundaryChannels
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaCompletedLogDerivativeControl.Owner
 import Mathlib.Topology.Basic
 
@@ -108,21 +108,51 @@ theorem ExplicitFormulaContourFamily.rightPath_re_pos
     0 < (zetaCompletedExplicitFormulaRightPath (F.rectangle t) t).re := by
   exact rightPath_re_pos_of_family_re F t (F.rightPath_re t)
 
-/-- The contour family exposes the top strip bound at every height. -/
-theorem ExplicitFormulaContourFamily.topPath_strip
-    (F : ExplicitFormulaContourFamily) (T x : ℝ)
-    (hx1 : F.c ≤ x) (hx2 : x ≤ 1 - F.c) :
-    F.c ≤ (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x).re ∧
-      (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x).re ≤ 1 - F.c := by
-  exact zetaCompletedExplicitFormulaTopPath_strip (F.rectangle T) x hx1 hx2
+/- The old endpoint order `c ≤ x ≤ 1-c` is empty for the pole-enclosing
+   convention `1 < c`.  The owner API therefore uses the unordered interval
+   `uIcc (1-c) c` throughout. -/
 
-/-- The contour family exposes the bottom strip bound at every height. -/
-theorem ExplicitFormulaContourFamily.bottomPath_strip
+/-- Correct endpoint ordering for the pole-enclosing rectangle: since
+`c > 1`, its horizontal interval is `[1-c,c]`. -/
+theorem ExplicitFormulaContourFamily.topPath_strip_of_uIcc
     (F : ExplicitFormulaContourFamily) (T x : ℝ)
-    (hx1 : F.c ≤ x) (hx2 : x ≤ 1 - F.c) :
-    F.c ≤ (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x).re ∧
-      (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x).re ≤ 1 - F.c := by
-  exact zetaCompletedExplicitFormulaBottomPath_strip (F.rectangle T) x hx1 hx2
+    (hx : x ∈ Set.uIcc (1 - F.c) F.c) :
+    1 - F.c ≤
+        (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x).re ∧
+      (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x).re ≤ F.c := by
+  have horder : 1 - F.c < F.c := by
+    exact lt_trans F.one_sub_c_neg (le_of_lt F.c_pos)
+  have hbounds : 1 - F.c ≤ x ∧ x ≤ F.c := by
+    match Set.mem_uIcc.mp hx with
+    | Or.inl h => exact h
+    | Or.inr h =>
+        exact False.elim
+          (lt_irrefl (1 - F.c)
+            (lt_of_lt_of_le horder (le_trans h.1 h.2)))
+  exact Eq.subst
+    (motive := fun y : ℝ => 1 - F.c ≤ y ∧ y ≤ F.c)
+    (zetaCompletedExplicitFormulaTopPath_re_eq (F.rectangle T) x)
+    hbounds
+
+theorem ExplicitFormulaContourFamily.bottomPath_strip_of_uIcc
+    (F : ExplicitFormulaContourFamily) (T x : ℝ)
+    (hx : x ∈ Set.uIcc (1 - F.c) F.c) :
+    1 - F.c ≤
+        (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x).re ∧
+      (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x).re ≤ F.c := by
+  have horder : 1 - F.c < F.c := by
+    exact lt_trans F.one_sub_c_neg (le_of_lt F.c_pos)
+  have hbounds : 1 - F.c ≤ x ∧ x ≤ F.c := by
+    match Set.mem_uIcc.mp hx with
+    | Or.inl h => exact h
+    | Or.inr h =>
+        exact False.elim
+          (lt_irrefl (1 - F.c)
+            (lt_of_lt_of_le horder (le_trans h.1 h.2)))
+  exact Eq.subst
+    (motive := fun y : ℝ => 1 - F.c ≤ y ∧ y ≤ F.c)
+    (zetaCompletedExplicitFormulaBottomPath_re_eq (F.rectangle T) x)
+    hbounds
 
 /-- The open rectangle enclosed by the contour family at height `T`. -/
 def explicitFormulaContourFamilyInterior

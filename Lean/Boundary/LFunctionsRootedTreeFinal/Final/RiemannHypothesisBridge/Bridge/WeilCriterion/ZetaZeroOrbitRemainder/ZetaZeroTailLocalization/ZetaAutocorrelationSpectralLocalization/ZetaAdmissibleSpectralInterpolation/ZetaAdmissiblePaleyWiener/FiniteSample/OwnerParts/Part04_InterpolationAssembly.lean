@@ -442,21 +442,6 @@ theorem zetaLaplaceTransformFiniteSample_surjective_ownerPaleyWiener
   intro aS
   exact exists_zetaLaplaceTransformFiniteSample_eq_ownerPaleyWiener S aS
 
-noncomputable def zetaLaplaceTransformFiniteSample_rightInverse_ownerPaleyWiener
-    (S : Finset ℂ) :
-    (S → ℂ) → ZetaAdmissibleFunction :=
-  fun aS =>
-    Classical.choose
-      (exists_zetaLaplaceTransformFiniteSample_eq_ownerPaleyWiener S aS)
-
-theorem zetaLaplaceTransformFiniteSample_rightInverse_spec_ownerPaleyWiener
-    (S : Finset ℂ) (aS : S → ℂ) :
-    zetaLaplaceTransformFiniteSample S
-        (zetaLaplaceTransformFiniteSample_rightInverse_ownerPaleyWiener S aS) = aS := by
-  exact
-    Classical.choose_spec
-      (exists_zetaLaplaceTransformFiniteSample_eq_ownerPaleyWiener S aS)
-
 /-- Finite Paley-Wiener interpolation for admissible Laplace transforms on a finite
 spectral sample set.
 

@@ -21,11 +21,62 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- A.e.-strong measurability is preserved by the fixed half-scale on the
+Lebesgue line. -/
+theorem aestronglyMeasurable_comp_div_two_of_aestronglyMeasurable
+    (g : ℝ → ℂ)
+    (hg : AEStronglyMeasurable g (volume : Measure ℝ)) :
+    AEStronglyMeasurable
+      (fun t : ℝ => g (t / 2))
+      (volume : Measure ℝ) := by
+  let scale : ℝ → ℝ := fun t : ℝ => t / 2
+  have hscale_meas : Measurable scale :=
+    measurable_id.div_const 2
+  have htwo_ne : (2 : ℝ) ≠ 0 :=
+    ne_of_gt zero_lt_two
+  have hhalf_ne : ((1 : ℝ) / 2) ≠ 0 :=
+    div_ne_zero one_ne_zero htwo_ne
+  have hscale_eq : scale = fun t : ℝ => t * ((1 : ℝ) / 2) := by
+    funext t
+    exact
+      Eq.trans
+        (div_eq_mul_inv t 2)
+        (congrArg (fun u : ℝ => t * u) (one_div (2 : ℝ)).symm)
+  have hmap :
+      Measure.map scale (volume : Measure ℝ) =
+        ENNReal.ofReal |(((1 : ℝ) / 2)⁻¹)| •
+          (volume : Measure ℝ) := by
+    exact
+      Eq.trans
+        (congrArg
+          (fun φ : ℝ → ℝ => Measure.map φ (volume : Measure ℝ))
+          hscale_eq)
+        (Real.map_volume_mul_right hhalf_ne)
+  have hac :
+      Measure.map scale (volume : Measure ℝ) ≪
+        (volume : Measure ℝ) := by
+    have hac_smul :
+        ENNReal.ofReal |(((1 : ℝ) / 2)⁻¹)| •
+            (volume : Measure ℝ) ≪
+          (volume : Measure ℝ) :=
+      Measure.smul_absolutelyContinuous
+    let target : Measure ℝ → Prop := fun mu =>
+      mu ≪ (volume : Measure ℝ)
+    exact
+      Eq.mp
+        (congrArg target hmap.symm)
+        hac_smul
+  have hg_map :
+      AEStronglyMeasurable g
+        (Measure.map scale (volume : Measure ℝ)) :=
+    AEStronglyMeasurable.mono_ac hac hg
+  exact hg_map.comp_measurable hscale_meas
+
 /-- A linearly bounded factor times the right centered test transform has an
 integrable majorant.  The Gamma/Binet owner layer supplies the factor
 measurability and the factor bound; this theorem owns only the reusable
 Paley-Wiener multiplication step. -/
-theorem zetaCompletedExplicitFormulaRightCenteredAffineProduct_majorantPackage_of_linear_factor_bound
+def zetaCompletedExplicitFormulaRightCenteredAffineProduct_majorantPackage_of_linear_factor_bound
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (A : ℝ → ℂ) (B : ℝ)
@@ -40,40 +91,50 @@ theorem zetaCompletedExplicitFormulaRightCenteredAffineProduct_majorantPackage_o
   let C : ℝ :=
     h.phi_control.verticalStripRapidDecayConstant
       (F.c - (1 / 2 : ℝ)) (F.c - (1 / 2 : ℝ)) 4
-  let majorant : ℝ → ℝ := fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(3 : ℤ))
-  have hC_nonneg : 0 ≤ C :=
-    h.phi_control.verticalStripRapidDecayConstant_nonneg
-      (F.c - (1 / 2 : ℝ)) (F.c - (1 / 2 : ℝ)) 4
+  let majorant : ℝ → ℝ := fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(3 : ℤ)))
   have hintegrable :
       Integrable majorant (volume : Measure ℝ) := by
     have hfinrank : Module.finrank ℝ ℝ = 1 :=
       Module.finrank_self ℝ
     have hfinrank_cast : ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
-      congrArg (fun n : ℕ => (n : ℝ)) hfinrank
+      Eq.trans
+        (congrArg (fun n : ℕ => (n : ℝ)) hfinrank)
+        Nat.cast_one
+    have htwo_lt_three : (2 : ℝ) < 3 := by
+      have htwo_add_one : (2 : ℝ) + 1 = 3 :=
+        two_add_one_eq_three
+      exact Eq.subst
+        (motive := fun value : ℝ => (2 : ℝ) < value)
+        htwo_add_one
+        (lt_add_of_pos_right 2 zero_lt_one)
     have hdim : (Module.finrank ℝ ℝ : ℝ) < 3 :=
       Eq.subst
         (motive := fun x : ℝ => x < 3)
         hfinrank_cast.symm
-        (lt_trans one_lt_two two_lt_three)
+        (lt_trans one_lt_two htwo_lt_three)
     have hbase :
         Integrable
           (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℝ)))
           (volume : Measure ℝ) :=
-      integrable_one_add_norm (E := ℝ) hdim
+      integrable_one_add_norm hdim
     have hscaled :
         Integrable
-          (fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(3 : ℝ)))
+          (fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(3 : ℝ))))
           (volume : Measure ℝ) :=
       (hbase.const_mul C).const_mul B
     have hfun :
         majorant =
-          (fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(3 : ℝ))) := by
+          (fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(3 : ℝ)))) := by
       funext t
       have hpow :
           (1 + ‖t‖) ^ (-(3 : ℤ)) =
             (1 + ‖t‖) ^ (-(3 : ℝ)) :=
-        (Real.rpow_intCast (1 + ‖t‖) (-(3 : ℤ))).symm
-      exact congrArg (fun x : ℝ => B * C * x) hpow
+        Eq.trans
+          (Real.rpow_intCast (1 + ‖t‖) (-(3 : ℤ))).symm
+          (congrArg
+            (fun exponent : ℝ => (1 + ‖t‖) ^ exponent)
+            (Int.cast_neg 3))
+      exact congrArg (fun x : ℝ => B * (C * x)) hpow
     exact
       Eq.subst
         (motive := fun φ : ℝ → ℝ => Integrable φ (volume : Measure ℝ))
@@ -125,6 +186,12 @@ theorem zetaCompletedExplicitFormulaRightCenteredAffineProduct_majorantPackage_o
               (1 + ‖t‖) ^ (-(3 : ℤ)) := by
           calc
             (1 + ‖t‖) * (1 + ‖t‖) ^ (-(4 : ℤ)) =
+                (1 + ‖t‖) ^ (1 : ℤ) *
+                  (1 + ‖t‖) ^ (-(4 : ℤ)) := by
+              exact congrArg
+                (fun x : ℝ => x * (1 + ‖t‖) ^ (-(4 : ℤ)))
+                (zpow_one (1 + ‖t‖)).symm
+            _ =
                 (1 + ‖t‖) ^ ((1 : ℤ) + (-(4 : ℤ))) := by
               exact (zpow_add₀ hbase_nonzero (1 : ℤ) (-(4 : ℤ))).symm
             _ = (1 + ‖t‖) ^ (-(3 : ℤ)) := by
@@ -132,11 +199,11 @@ theorem zetaCompletedExplicitFormulaRightCenteredAffineProduct_majorantPackage_o
         have hassoc :
             (B * (1 + ‖t‖)) *
                 (C * (1 + ‖t‖) ^ (-(4 : ℤ))) =
-              B * C * (1 + ‖t‖) ^ (-(3 : ℤ)) := by
+              B * (C * (1 + ‖t‖) ^ (-(3 : ℤ))) := by
           let a : ℝ := 1 + ‖t‖
           let b : ℝ := (1 + ‖t‖) ^ (-(4 : ℤ))
           have hscalar :
-              (B * a) * (C * b) = B * C * (a * b) := by
+              (B * a) * (C * b) = B * (C * (a * b)) := by
             calc
               (B * a) * (C * b) = B * (a * (C * b)) :=
                 mul_assoc B a (C * b)
@@ -146,13 +213,11 @@ theorem zetaCompletedExplicitFormulaRightCenteredAffineProduct_majorantPackage_o
                 exact congrArg (fun x : ℝ => B * (x * b)) (mul_comm a C)
               _ = B * (C * (a * b)) := by
                 exact congrArg (fun x : ℝ => B * x) (mul_assoc C a b)
-              _ = B * C * (a * b) := by
-                exact (mul_assoc B C (a * b)).symm
           have hrewrite : a * b = (1 + ‖t‖) ^ (-(3 : ℤ)) :=
             hweight
           exact
             Eq.trans hscalar
-              (congrArg (fun x : ℝ => B * C * x) hrewrite)
+              (congrArg (fun x : ℝ => B * (C * x)) hrewrite)
         hprod.trans_eq hassoc)
   exact
     ExplicitFormulaAffineKernelMajorantPackage.of_mul_le
@@ -160,7 +225,7 @@ theorem zetaCompletedExplicitFormulaRightCenteredAffineProduct_majorantPackage_o
 
 /-- A linearly bounded factor times the left centered test transform has an
 integrable majorant. -/
-theorem zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of_linear_factor_bound
+def zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of_linear_factor_bound
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (A : ℝ → ℂ) (B : ℝ)
@@ -176,41 +241,50 @@ theorem zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of
     h.phi_control.verticalStripRapidDecayConstant
       ((1 : ℝ) - F.c - (1 / 2 : ℝ))
       ((1 : ℝ) - F.c - (1 / 2 : ℝ)) 4
-  let majorant : ℝ → ℝ := fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(3 : ℤ))
-  have hC_nonneg : 0 ≤ C :=
-    h.phi_control.verticalStripRapidDecayConstant_nonneg
-      ((1 : ℝ) - F.c - (1 / 2 : ℝ))
-      ((1 : ℝ) - F.c - (1 / 2 : ℝ)) 4
+  let majorant : ℝ → ℝ := fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(3 : ℤ)))
   have hintegrable :
       Integrable majorant (volume : Measure ℝ) := by
     have hfinrank : Module.finrank ℝ ℝ = 1 :=
       Module.finrank_self ℝ
     have hfinrank_cast : ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
-      congrArg (fun n : ℕ => (n : ℝ)) hfinrank
+      Eq.trans
+        (congrArg (fun n : ℕ => (n : ℝ)) hfinrank)
+        Nat.cast_one
+    have htwo_lt_three : (2 : ℝ) < 3 := by
+      have htwo_add_one : (2 : ℝ) + 1 = 3 :=
+        two_add_one_eq_three
+      exact Eq.subst
+        (motive := fun value : ℝ => (2 : ℝ) < value)
+        htwo_add_one
+        (lt_add_of_pos_right 2 zero_lt_one)
     have hdim : (Module.finrank ℝ ℝ : ℝ) < 3 :=
       Eq.subst
         (motive := fun x : ℝ => x < 3)
         hfinrank_cast.symm
-        (lt_trans one_lt_two two_lt_three)
+        (lt_trans one_lt_two htwo_lt_three)
     have hbase :
         Integrable
           (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℝ)))
           (volume : Measure ℝ) :=
-      integrable_one_add_norm (E := ℝ) hdim
+      integrable_one_add_norm hdim
     have hscaled :
         Integrable
-          (fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(3 : ℝ)))
+          (fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(3 : ℝ))))
           (volume : Measure ℝ) :=
       (hbase.const_mul C).const_mul B
     have hfun :
         majorant =
-          (fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(3 : ℝ))) := by
+          (fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(3 : ℝ)))) := by
       funext t
       have hpow :
           (1 + ‖t‖) ^ (-(3 : ℤ)) =
             (1 + ‖t‖) ^ (-(3 : ℝ)) :=
-        (Real.rpow_intCast (1 + ‖t‖) (-(3 : ℤ))).symm
-      exact congrArg (fun x : ℝ => B * C * x) hpow
+        Eq.trans
+          (Real.rpow_intCast (1 + ‖t‖) (-(3 : ℤ))).symm
+          (congrArg
+            (fun exponent : ℝ => (1 + ‖t‖) ^ exponent)
+            (Int.cast_neg 3))
+      exact congrArg (fun x : ℝ => B * (C * x)) hpow
     exact
       Eq.subst
         (motive := fun φ : ℝ → ℝ => Integrable φ (volume : Measure ℝ))
@@ -262,6 +336,12 @@ theorem zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of
               (1 + ‖t‖) ^ (-(3 : ℤ)) := by
           calc
             (1 + ‖t‖) * (1 + ‖t‖) ^ (-(4 : ℤ)) =
+                (1 + ‖t‖) ^ (1 : ℤ) *
+                  (1 + ‖t‖) ^ (-(4 : ℤ)) := by
+              exact congrArg
+                (fun x : ℝ => x * (1 + ‖t‖) ^ (-(4 : ℤ)))
+                (zpow_one (1 + ‖t‖)).symm
+            _ =
                 (1 + ‖t‖) ^ ((1 : ℤ) + (-(4 : ℤ))) := by
               exact (zpow_add₀ hbase_nonzero (1 : ℤ) (-(4 : ℤ))).symm
             _ = (1 + ‖t‖) ^ (-(3 : ℤ)) := by
@@ -269,11 +349,11 @@ theorem zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of
         have hassoc :
             (B * (1 + ‖t‖)) *
                 (C * (1 + ‖t‖) ^ (-(4 : ℤ))) =
-              B * C * (1 + ‖t‖) ^ (-(3 : ℤ)) := by
+              B * (C * (1 + ‖t‖) ^ (-(3 : ℤ))) := by
           let a : ℝ := 1 + ‖t‖
           let b : ℝ := (1 + ‖t‖) ^ (-(4 : ℤ))
           have hscalar :
-              (B * a) * (C * b) = B * C * (a * b) := by
+              (B * a) * (C * b) = B * (C * (a * b)) := by
             calc
               (B * a) * (C * b) = B * (a * (C * b)) :=
                 mul_assoc B a (C * b)
@@ -283,13 +363,11 @@ theorem zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of
                 exact congrArg (fun x : ℝ => B * (x * b)) (mul_comm a C)
               _ = B * (C * (a * b)) := by
                 exact congrArg (fun x : ℝ => B * x) (mul_assoc C a b)
-              _ = B * C * (a * b) := by
-                exact (mul_assoc B C (a * b)).symm
           have hrewrite : a * b = (1 + ‖t‖) ^ (-(3 : ℤ)) :=
             hweight
           exact
             Eq.trans hscalar
-              (congrArg (fun x : ℝ => B * C * x) hrewrite)
+              (congrArg (fun x : ℝ => B * (C * x)) hrewrite)
         hprod.trans_eq hassoc)
   exact
     ExplicitFormulaAffineKernelMajorantPackage.of_mul_le
@@ -376,15 +454,16 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainFactor_aestronglyMe
           explicitFormulaCorrectionLogDerivative
             (zetaCompletedExplicitFormulaRightAffineLine F t))
       (volume : Measure ℝ) := by
-  have hscale : Measurable (fun t : ℝ => t / 2) :=
-    measurable_id.div_const 2
   have hgamma :
       AEStronglyMeasurable
         (fun t : ℝ =>
           Complex.GammaLogDerivativeFixedVerticalMain (F.c / 2) (t / 2))
         (volume : Measure ℝ) :=
-    (Complex.GammaLogDerivativeFixedVerticalMain_aestronglyMeasurable
-      (F.c / 2)).comp_measurable hscale
+    aestronglyMeasurable_comp_div_two_of_aestronglyMeasurable
+      (fun τ : ℝ =>
+        Complex.GammaLogDerivativeFixedVerticalMain (F.c / 2) τ)
+      (Complex.GammaLogDerivativeFixedVerticalMain_aestronglyMeasurable
+        (F.c / 2))
   have hhalf :
       AEStronglyMeasurable
         (fun t : ℝ =>
@@ -425,8 +504,6 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetMainFactor_aestronglyMea
           explicitFormulaCorrectionLogDerivative
             (zetaCompletedExplicitFormulaLeftAffineLine F t))
       (volume : Measure ℝ) := by
-  have hscale : Measurable (fun t : ℝ => t / 2) :=
-    measurable_id.div_const 2
   have hgamma :
       AEStronglyMeasurable
         (fun t : ℝ =>
@@ -435,10 +512,15 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetMainFactor_aestronglyMea
             (zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F)
             (t / 2))
         (volume : Measure ℝ) :=
-    (Complex.GammaLogDerivativeFixedVerticalShiftNatMain_aestronglyMeasurable
-      ((1 - F.c) / 2)
-      (zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F)).comp_measurable
-        hscale
+    aestronglyMeasurable_comp_div_two_of_aestronglyMeasurable
+      (fun τ : ℝ =>
+        Complex.GammaLogDerivativeFixedVerticalShiftNatMain
+          ((1 - F.c) / 2)
+          (zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F)
+          τ)
+      (Complex.GammaLogDerivativeFixedVerticalShiftNatMain_aestronglyMeasurable
+        ((1 - F.c) / 2)
+        (zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F))
   have hhalf :
       AEStronglyMeasurable
         (fun t : ℝ =>
@@ -504,15 +586,16 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderFactor_aestron
           Complex.GammaLogDerivativeFixedVerticalRemainder
             (F.c / 2) (t / 2)))
       (volume : Measure ℝ) := by
-  have hscale : Measurable (fun t : ℝ => t / 2) :=
-    measurable_id.div_const 2
   have hgamma :
       AEStronglyMeasurable
         (fun t : ℝ =>
           Complex.GammaLogDerivativeFixedVerticalRemainder (F.c / 2) (t / 2))
         (volume : Measure ℝ) :=
-    (Complex.GammaLogDerivativeFixedVerticalRemainder_aestronglyMeasurable
-      (F.c / 2)).comp_measurable hscale
+    aestronglyMeasurable_comp_div_two_of_aestronglyMeasurable
+      (fun τ : ℝ =>
+        Complex.GammaLogDerivativeFixedVerticalRemainder (F.c / 2) τ)
+      (Complex.GammaLogDerivativeFixedVerticalRemainder_aestronglyMeasurable
+        (F.c / 2))
   exact (hgamma.const_mul (1 / 2 : ℂ)).neg
 
 /-- Strong measurability of the left archimedean Binet remainder factor before
@@ -527,8 +610,6 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderFactor_aestrong
             (zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F)
             (t / 2)))
       (volume : Measure ℝ) := by
-  have hscale : Measurable (fun t : ℝ => t / 2) :=
-    measurable_id.div_const 2
   have hgamma :
       AEStronglyMeasurable
         (fun t : ℝ =>
@@ -537,10 +618,15 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderFactor_aestrong
             (zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F)
             (t / 2))
         (volume : Measure ℝ) :=
-    (Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder_aestronglyMeasurable
-      ((1 - F.c) / 2)
-      (zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F)).comp_measurable
-        hscale
+    aestronglyMeasurable_comp_div_two_of_aestronglyMeasurable
+      (fun τ : ℝ =>
+        Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder
+          ((1 - F.c) / 2)
+          (zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F)
+          τ)
+      (Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder_aestronglyMeasurable
+        ((1 - F.c) / 2)
+        (zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F))
   exact (hgamma.const_mul (1 / 2 : ℂ)).neg
 
 /-- Strong measurability of the right archimedean Binet remainder kernel. -/
@@ -643,7 +729,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLogDerivative_rightAffineLine_line
       (div_nonneg zero_le_one (sub_pos.mpr F.c_gt_one).le)
   calc
     ‖explicitFormulaCorrectionLogDerivative line‖ = ‖Z + O‖ := by
-      exact congrArg norm hpole
+      exact congrArg (fun z : ℂ => ‖z‖) hpole
     _ ≤ ‖Z‖ + ‖O‖ :=
       norm_add_le Z O
     _ ≤ (1 : ℝ) / F.c + (1 : ℝ) / (F.c - 1) :=
@@ -693,7 +779,10 @@ theorem zetaCompletedExplicitFormulaCorrectionLogDerivative_leftAffineLine_linea
         (1 - F.c) - 1 < 0 - 1 := by
           exact sub_lt_sub_right F.one_sub_c_neg 1
         _ < 0 := by
-          exact neg_lt_zero.mpr zero_lt_one
+          exact
+            Eq.mp
+              (congrArg (fun x : ℝ => x < 0) (zero_sub (1 : ℝ)).symm)
+              (neg_lt_zero.mpr (zero_lt_one' ℝ))
     exact neg_pos.mpr hneg
   have hconst_nonneg :
       0 ≤
@@ -789,7 +878,7 @@ theorem zetaCompletedExplicitFormulaGammaLogDerivativeFixedVerticalMain_right_li
 
 /-- The right `π` component of the Binet main kernel has the standard affine
 integrable majorant package. -/
-theorem zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm_rightKernel_majorantPackage
+def zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm_rightKernel_majorantPackage
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     ExplicitFormulaAffineKernelMajorantPackage
@@ -813,7 +902,7 @@ theorem zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm_rightKernel_maj
 
 /-- The right fixed-vertical Gamma-main component of the Binet main kernel has
 the standard affine integrable majorant package. -/
-theorem zetaCompletedExplicitFormulaGammaLogDerivativeFixedVerticalMain_rightKernel_majorantPackage
+def zetaCompletedExplicitFormulaGammaLogDerivativeFixedVerticalMain_rightKernel_majorantPackage
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     ExplicitFormulaAffineKernelMajorantPackage
@@ -840,15 +929,16 @@ theorem zetaCompletedExplicitFormulaGammaLogDerivativeFixedVerticalMain_rightKer
     Complex.GammaLogDerivativeFixedVerticalMainLinearConstant_nonneg hσ
   have hB_nonneg : 0 ≤ B :=
     mul_nonneg (norm_nonneg (1 / 2 : ℂ)) hM_nonneg
-  have hscale : Measurable (fun t : ℝ => t / 2) :=
-    measurable_id.div_const 2
   have hgamma :
       AEStronglyMeasurable
         (fun t : ℝ =>
           Complex.GammaLogDerivativeFixedVerticalMain (F.c / 2) (t / 2))
         (volume : Measure ℝ) :=
-    (Complex.GammaLogDerivativeFixedVerticalMain_aestronglyMeasurable
-      (F.c / 2)).comp_measurable hscale
+    aestronglyMeasurable_comp_div_two_of_aestronglyMeasurable
+      (fun τ : ℝ =>
+        Complex.GammaLogDerivativeFixedVerticalMain (F.c / 2) τ)
+      (Complex.GammaLogDerivativeFixedVerticalMain_aestronglyMeasurable
+        (F.c / 2))
   have hA_meas : AEStronglyMeasurable A (volume : Measure ℝ) :=
     hgamma.const_mul (1 / 2 : ℂ)
   have hA_bound : ∀ t : ℝ, ‖A t‖ ≤ B * (1 + ‖t‖) := by
@@ -862,7 +952,7 @@ theorem zetaCompletedExplicitFormulaGammaLogDerivativeFixedVerticalMain_rightKer
 
 /-- The right elementary correction component of the Binet main kernel has the
 standard affine integrable majorant package. -/
-theorem zetaCompletedExplicitFormulaCorrectionLogDerivative_rightKernel_majorantPackage
+def zetaCompletedExplicitFormulaCorrectionLogDerivative_rightKernel_majorantPackage
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     ExplicitFormulaAffineKernelMajorantPackage
@@ -1002,8 +1092,8 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainFactor_linear_bound
       have hpg : ‖P + G‖ ≤ ‖P‖ + ‖G‖ :=
         norm_add_le P G
       exact add_le_add_right hpg ‖C‖
-    _ = ‖P‖ + ‖G‖ + ‖C‖ :=
-      add_assoc ‖P‖ ‖G‖ ‖C‖
+    _ = ‖P‖ + ‖G‖ + ‖C‖ := by
+      exact Eq.refl _
     _ ≤
         ‖P‖ * (1 + ‖t‖) +
           (‖(1 / 2 : ℂ)‖ * M) * (1 + ‖t‖) +
@@ -1086,7 +1176,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderFactor_linear_
 
 /-- The right Binet main kernel has the standard affine integrable majorant
 package. -/
-theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_majorantPackage
+def zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_majorantPackage
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     ExplicitFormulaAffineKernelMajorantPackage
@@ -1129,77 +1219,6 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetMainKernel_majorantPack
   exact
     zetaCompletedExplicitFormulaRightCenteredAffineProduct_majorantPackage_of_linear_factor_bound
       f F h A B hB_nonneg hA_meas hA_bound
-
-/-- Half of the right affine line is the fixed-vertical line with real part
-`F.c / 2` and height `t / 2`. -/
-theorem zetaCompletedExplicitFormulaRightAffineLine_div_two_eq_fixedVertical
-    (F : ExplicitFormulaContourFamily) (t : ℝ) :
-    zetaCompletedExplicitFormulaRightAffineLine F t / 2 =
-      ((F.c / 2 : ℝ) + (t / 2 : ℝ) * Complex.I : ℂ) := by
-  calc
-    zetaCompletedExplicitFormulaRightAffineLine F t / 2 =
-        ((F.c : ℂ) + t * Complex.I) / 2 := by
-      exact congrArg (fun z : ℂ => z / 2)
-        (zetaCompletedExplicitFormulaRightAffineLine_eq F t)
-    _ = ((F.c : ℂ) / 2) + (t * Complex.I) / 2 := by
-      exact add_div ((F.c : ℂ)) (t * Complex.I) (2 : ℂ)
-    _ = (F.c / 2 : ℂ) + (t * Complex.I) / 2 := by
-      exact congrArg
-        (fun z : ℂ => z + (t * Complex.I) / 2)
-        (Complex.ofReal_div F.c 2)
-    _ = (F.c / 2 : ℂ) + ((t / 2 : ℝ) : ℂ) * Complex.I := by
-      have ht :
-          (t * Complex.I) / 2 = ((t / 2 : ℝ) : ℂ) * Complex.I := by
-        calc
-          (t * Complex.I) / 2 =
-              ((t : ℂ) / 2) * Complex.I := by
-            exact (div_mul_eq_mul_div (t : ℂ) Complex.I (2 : ℂ)).symm
-          _ = ((t / 2 : ℝ) : ℂ) * Complex.I := by
-            exact congrArg (fun z : ℂ => z * Complex.I)
-              (Complex.ofReal_div t 2)
-      exact congrArg (fun z : ℂ => (F.c / 2 : ℂ) + z) ht
-    _ = ((F.c / 2 : ℝ) + (t / 2 : ℝ) * Complex.I : ℂ) := by
-      rfl
-
-/-- Half of the left affine line is the fixed-vertical line with real part
-`(1 - F.c) / 2` and height `t / 2`. -/
-theorem zetaCompletedExplicitFormulaLeftAffineLine_div_two_eq_fixedVertical
-    (F : ExplicitFormulaContourFamily) (t : ℝ) :
-    zetaCompletedExplicitFormulaLeftAffineLine F t / 2 =
-      (((1 - F.c) / 2 : ℝ) + (t / 2 : ℝ) * Complex.I : ℂ) := by
-  calc
-    zetaCompletedExplicitFormulaLeftAffineLine F t / 2 =
-        (((1 : ℂ) - (F.c : ℂ)) + t * Complex.I) / 2 := by
-      exact congrArg (fun z : ℂ => z / 2)
-        (zetaCompletedExplicitFormulaLeftAffineLine_eq F t)
-    _ = (((1 : ℂ) - (F.c : ℂ)) / 2) + (t * Complex.I) / 2 := by
-      exact add_div (((1 : ℂ) - (F.c : ℂ))) (t * Complex.I) (2 : ℂ)
-    _ = ((1 - F.c) / 2 : ℂ) + (t * Complex.I) / 2 := by
-      have hreal :
-          (((1 : ℂ) - (F.c : ℂ)) / 2) =
-            (((1 - F.c) / 2 : ℝ) : ℂ) := by
-        calc
-          (((1 : ℂ) - (F.c : ℂ)) / 2) =
-              (((1 - F.c : ℝ) : ℂ) / 2) := by
-            rfl
-          _ = (((1 - F.c) / 2 : ℝ) : ℂ) := by
-            exact Complex.ofReal_div (1 - F.c) 2
-      exact congrArg
-        (fun z : ℂ => z + (t * Complex.I) / 2)
-        hreal
-    _ = ((1 - F.c) / 2 : ℂ) + ((t / 2 : ℝ) : ℂ) * Complex.I := by
-      have ht :
-          (t * Complex.I) / 2 = ((t / 2 : ℝ) : ℂ) * Complex.I := by
-        calc
-          (t * Complex.I) / 2 =
-              ((t : ℂ) / 2) * Complex.I := by
-            exact (div_mul_eq_mul_div (t : ℂ) Complex.I (2 : ℂ)).symm
-          _ = ((t / 2 : ℝ) : ℂ) * Complex.I := by
-            exact congrArg (fun z : ℂ => z * Complex.I)
-              (Complex.ofReal_div t 2)
-      exact congrArg (fun z : ℂ => ((1 - F.c) / 2 : ℂ) + z) ht
-    _ = (((1 - F.c) / 2 : ℝ) + (t / 2 : ℝ) * Complex.I : ℂ) := by
-      rfl
 
 /-- The fixed-vertical form of the left half-line avoids the ordinary Gamma
 pole locus whenever the left affine line satisfies the completed-Gamma
@@ -1270,25 +1289,25 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetMainFactor_linear_bound
               (1 : ℝ) / (-((1 - F.c) - 1)))) *
           (1 + ‖t‖) := by
   intro t
-  let σ : ℝ := (1 - F.c) / 2
+  let sigma : ℝ := (1 - F.c) / 2
   let N : ℕ := zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F
   let P : ℂ := zetaCompletedExplicitFormulaGammaRealPiLogDerivativeTerm
   let G : ℂ :=
     (1 / 2 : ℂ) *
-      Complex.GammaLogDerivativeFixedVerticalShiftNatMain σ N (t / 2)
+      Complex.GammaLogDerivativeFixedVerticalShiftNatMain sigma N (t / 2)
   let C : ℂ :=
     explicitFormulaCorrectionLogDerivative
       (zetaCompletedExplicitFormulaLeftAffineLine F t)
   let M : ℝ :=
-    Complex.GammaLogDerivativeFixedVerticalShiftNatMainLinearConstant σ N
+    Complex.GammaLogDerivativeFixedVerticalShiftNatMainLinearConstant sigma N
   let K : ℝ :=
     (1 : ℝ) / (-(1 - F.c)) +
       (1 : ℝ) / (-((1 - F.c) - 1))
-  have hshift_pos : 0 < σ + (N : ℝ) :=
-    Complex.GammaLogDerivativeFixedVerticalPositiveShiftNat_pos σ
+  have hshift_pos : 0 < sigma + (N : ℝ) :=
+    Complex.GammaLogDerivativeFixedVerticalPositiveShiftNat_pos sigma
   have hnot_pole :
       ∀ τ : ℝ, ∀ n : ℕ,
-        (σ + τ * Complex.I : ℂ) ≠ -n :=
+        (sigma + τ * Complex.I : ℂ) ≠ -n :=
     zetaCompletedExplicitFormulaLeftFixedVertical_ne_Gamma_zero_locus_of_gammaRegular'
       F hregular
   have hM_nonneg : 0 ≤ M :=
@@ -1306,7 +1325,10 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetMainFactor_linear_bound
         (1 - F.c) - 1 < 0 - 1 := by
           exact sub_lt_sub_right F.one_sub_c_neg 1
         _ < 0 := by
-          exact neg_lt_zero.mpr zero_lt_one
+          exact
+            Eq.mp
+              (congrArg (fun x : ℝ => x < 0) (zero_sub (1 : ℝ)).symm)
+              (neg_lt_zero.mpr (zero_lt_one' ℝ))
     exact neg_pos.mpr hneg
   have hK_nonneg : 0 ≤ K :=
     add_nonneg
@@ -1316,7 +1338,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetMainFactor_linear_bound
       ‖G‖ ≤ ‖(1 / 2 : ℂ)‖ * (M * (1 + ‖t / 2‖)) := by
     have hmain :
         ‖Complex.GammaLogDerivativeFixedVerticalShiftNatMain
-            σ N (t / 2)‖ ≤
+            sigma N (t / 2)‖ ≤
           M * (1 + ‖t / 2‖) :=
       Complex.GammaLogDerivativeFixedVerticalShiftNatMain_linear_bound
         N hshift_pos hnot_pole (t / 2)
@@ -1324,10 +1346,10 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetMainFactor_linear_bound
       ‖G‖ =
           ‖(1 / 2 : ℂ)‖ *
             ‖Complex.GammaLogDerivativeFixedVerticalShiftNatMain
-              σ N (t / 2)‖ := by
+              sigma N (t / 2)‖ := by
         exact norm_mul (1 / 2 : ℂ)
           (Complex.GammaLogDerivativeFixedVerticalShiftNatMain
-            σ N (t / 2))
+            sigma N (t / 2))
       _ ≤ ‖(1 / 2 : ℂ)‖ * (M * (1 + ‖t / 2‖)) :=
         mul_le_mul_of_nonneg_left hmain hhalf_nonneg
   have hG :
@@ -1382,8 +1404,8 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetMainFactor_linear_bound
       have hpg : ‖P + G‖ ≤ ‖P‖ + ‖G‖ :=
         norm_add_le P G
       exact add_le_add_right hpg ‖C‖
-    _ = ‖P‖ + ‖G‖ + ‖C‖ :=
-      add_assoc ‖P‖ ‖G‖ ‖C‖
+    _ = ‖P‖ + ‖G‖ + ‖C‖ := by
+      exact Eq.refl _
     _ ≤
         ‖P‖ * (1 + ‖t‖) +
           (‖(1 / 2 : ℂ)‖ * M) * (1 + ‖t‖) +
@@ -1410,26 +1432,26 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderFactor_linear_b
             (zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F)) *
           (1 + ‖t‖) := by
   intro t
-  let σ : ℝ := (1 - F.c) / 2
+  let sigma : ℝ := (1 - F.c) / 2
   let N : ℕ := zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F
   let C : ℝ :=
-    Complex.GammaLogDerivativeFixedVerticalShiftNatRemainderLinearConstant σ N
-  have hshift_pos : 0 < σ + (N : ℝ) :=
-    Complex.GammaLogDerivativeFixedVerticalPositiveShiftNat_pos σ
+    Complex.GammaLogDerivativeFixedVerticalShiftNatRemainderLinearConstant sigma N
+  have hshift_pos : 0 < sigma + (N : ℝ) :=
+    Complex.GammaLogDerivativeFixedVerticalPositiveShiftNat_pos sigma
   have hnot_pole :
       ∀ τ : ℝ, ∀ n : ℕ,
-        (σ + τ * Complex.I : ℂ) ≠ -n :=
+        (sigma + τ * Complex.I : ℂ) ≠ -n :=
     zetaCompletedExplicitFormulaLeftFixedVertical_ne_Gamma_zero_locus_of_gammaRegular'
       F hregular
   have hR :
       ‖Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder
-          σ N (t / 2)‖ ≤
+          sigma N (t / 2)‖ ≤
         C * (1 + ‖t / 2‖) :=
     Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder_linear_bound
       N hshift_pos hnot_pole (t / 2)
   have hC_nonneg : 0 ≤ C :=
     Complex.GammaLogDerivativeFixedVerticalShiftNatRemainderLinearConstant_nonneg
-      σ N
+      sigma N
   have hhalf_nonneg : 0 ≤ ‖(1 / 2 : ℂ)‖ :=
     norm_nonneg (1 / 2 : ℂ)
   have hweight :
@@ -1440,27 +1462,27 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderFactor_linear_b
   have hscaled :
       ‖(1 / 2 : ℂ)‖ *
           ‖Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder
-            σ N (t / 2)‖ ≤
+            sigma N (t / 2)‖ ≤
         ‖(1 / 2 : ℂ)‖ * (C * (1 + ‖t‖)) :=
     mul_le_mul_of_nonneg_left (hR.trans hweight) hhalf_nonneg
   calc
     ‖-((1 / 2 : ℂ) *
         Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder
-          σ N (t / 2))‖ =
+          sigma N (t / 2))‖ =
         ‖(1 / 2 : ℂ) *
           Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder
-            σ N (t / 2)‖ := by
+            sigma N (t / 2)‖ := by
       exact norm_neg
         ((1 / 2 : ℂ) *
           Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder
-            σ N (t / 2))
+            sigma N (t / 2))
     _ =
         ‖(1 / 2 : ℂ)‖ *
           ‖Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder
-            σ N (t / 2)‖ := by
+            sigma N (t / 2)‖ := by
       exact norm_mul (1 / 2 : ℂ)
         (Complex.GammaLogDerivativeFixedVerticalShiftNatRemainder
-          σ N (t / 2))
+          sigma N (t / 2))
     _ ≤ ‖(1 / 2 : ℂ)‖ * (C * (1 + ‖t‖)) :=
       hscaled
     _ = (‖(1 / 2 : ℂ)‖ * C) * (1 + ‖t‖) := by
@@ -1468,7 +1490,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderFactor_linear_b
 
 /-- The right Binet remainder kernel has the standard affine integrable
 majorant package. -/
-theorem zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_majorantPackage
+def zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_majorantPackage
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     ExplicitFormulaAffineKernelMajorantPackage
@@ -1504,7 +1526,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanRightBinetRemainderKernel_majoran
 
 /-- The left Binet remainder kernel has the standard affine integrable
 majorant package, once the left line is known Gamma-regular. -/
-theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_majorantPackage
+def zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_majorantPackage
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F) :
@@ -1540,7 +1562,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetRemainderKernel_majorant
 
 /-- The left Binet main kernel has the standard affine integrable majorant
 package, once the left line is Gamma-regular. -/
-theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel_majorantPackage
+def zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel_majorantPackage
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F) :
@@ -1563,14 +1585,14 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel_majorantPacka
           (zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F) +
       ((1 : ℝ) / (-(1 - F.c)) +
         (1 : ℝ) / (-((1 - F.c) - 1)))
-  let σ : ℝ := (1 - F.c) / 2
+  let sigma : ℝ := (1 - F.c) / 2
   let N : ℕ := zetaCompletedExplicitFormulaArchimedeanLeftBinetShiftNat F
-  have hshift_pos : 0 < σ + (N : ℝ) :=
-    Complex.GammaLogDerivativeFixedVerticalPositiveShiftNat_pos σ
+  have hshift_pos : 0 < sigma + (N : ℝ) :=
+    Complex.GammaLogDerivativeFixedVerticalPositiveShiftNat_pos sigma
   have hM_nonneg :
       0 ≤
         Complex.GammaLogDerivativeFixedVerticalShiftNatMainLinearConstant
-          σ N :=
+          sigma N :=
     Complex.GammaLogDerivativeFixedVerticalShiftNatMainLinearConstant_nonneg
       N hshift_pos
   have hzero_den_pos : 0 < -(1 - F.c) :=
@@ -1581,7 +1603,10 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftBinetMainKernel_majorantPacka
         (1 - F.c) - 1 < 0 - 1 := by
           exact sub_lt_sub_right F.one_sub_c_neg 1
         _ < 0 := by
-          exact neg_lt_zero.mpr zero_lt_one
+          exact
+            Eq.mp
+              (congrArg (fun x : ℝ => x < 0) (zero_sub (1 : ℝ)).symm)
+              (neg_lt_zero.mpr (zero_lt_one' ℝ))
     exact neg_pos.mpr hneg
   have hB_nonneg : 0 ≤ B :=
     add_nonneg

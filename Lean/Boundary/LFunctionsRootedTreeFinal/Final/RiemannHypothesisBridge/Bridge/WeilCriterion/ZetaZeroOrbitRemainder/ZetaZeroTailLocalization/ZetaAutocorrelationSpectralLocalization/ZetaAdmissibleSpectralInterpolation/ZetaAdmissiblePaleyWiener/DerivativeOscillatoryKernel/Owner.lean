@@ -4,9 +4,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 # Paley-Wiener derivative oscillatory kernels
 
 This file owns the derivative-source oscillatory kernels and their zero-order
-compact-support Fourier bounds. It is copy-first extracted from the current
-Paley-Wiener owner file and is not imported by that parent yet, so declaration
-names intentionally match the existing owner surface.
+compact-support Fourier bounds.
 -/
 
 open scoped Real
@@ -438,36 +436,44 @@ theorem exists_zetaPaleyWienerHorizontalTwistIteratedDerivative_zero_uniformSemi
         x ≤ b →
         ∀ t : ℝ,
           ‖zetaPaleyWienerHorizontalTwistIteratedDerivative f 0 x t‖ ≤ C := by
-  rcases exists_zetaPaleyWienerHorizontalTwistVerticalJet_intervalBound
-      f I a b 0 with ⟨C, hCpos, hCbound⟩
-  refine ⟨C, hCpos, ?_⟩
-  intro x hx_left hx_right t
-  rcases zetaPaleyWienerSupportInterval_inside_or_outside I t with hinside | houtside
-  · have hjet :
-        ‖zetaPaleyWienerHorizontalTwistVerticalJet f 0 x t‖ ≤ C :=
-      hCbound x hx_left hx_right t hinside.1 hinside.2
-    exact Eq.subst
-      (motive := fun v : ℂ => ‖v‖ ≤ C)
-      (zetaPaleyWienerHorizontalTwistIteratedDerivative_zero_eq_verticalJet_zero
-        f x t).symm
-      hjet
-  · rcases houtside with hbelow | habove
-    · have hzero :
-          zetaPaleyWienerHorizontalTwistIteratedDerivative f 0 x t = 0 :=
-        zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_off_supportInterval
-          f I 0 x t hbelow
-      exact Eq.subst
-        (motive := fun v : ℂ => ‖v‖ ≤ C)
-        hzero.symm
-        (complex_norm_zero_le_of_pos C hCpos)
-    · have hzero :
-          zetaPaleyWienerHorizontalTwistIteratedDerivative f 0 x t = 0 :=
-        zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_of_supportInterval_lt
-          f I 0 x t habove
-      exact Eq.subst
-        (motive := fun v : ℂ => ‖v‖ ≤ C)
-        hzero.symm
-        (complex_norm_zero_le_of_pos C hCpos)
+  let C : ℝ :=
+    zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope f I a b 0
+  have hCpos : 0 < C :=
+    zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_pos f I a b 0
+  exact
+    ⟨C, hCpos,
+      fun x hxLeft hxRight t =>
+        match zetaPaleyWienerSupportInterval_inside_or_outside I t with
+        | Or.inl hinside =>
+            let hjet :
+                ‖zetaPaleyWienerHorizontalTwistVerticalJet f 0 x t‖ ≤ C :=
+              zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_bound
+                f I a b 0 (x, t) ⟨⟨hxLeft, hxRight⟩, hinside⟩
+            Eq.subst
+              (motive := fun v : ℂ => ‖v‖ ≤ C)
+              (zetaPaleyWienerHorizontalTwistIteratedDerivative_zero_eq_verticalJet_zero
+                f x t).symm
+              hjet
+        | Or.inr houtside =>
+            match houtside with
+            | Or.inl hbelow =>
+                let hzero :
+                    zetaPaleyWienerHorizontalTwistIteratedDerivative f 0 x t = 0 :=
+                  zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_off_supportInterval
+                    f I 0 x t hbelow
+                Eq.subst
+                  (motive := fun v : ℂ => ‖v‖ ≤ C)
+                  hzero.symm
+                  (complex_norm_zero_le_of_pos C hCpos)
+            | Or.inr habove =>
+                let hzero :
+                    zetaPaleyWienerHorizontalTwistIteratedDerivative f 0 x t = 0 :=
+                  zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_of_supportInterval_lt
+                    f I 0 x t habove
+                Eq.subst
+                  (motive := fun v : ℂ => ‖v‖ ≤ C)
+                  hzero.symm
+                  (complex_norm_zero_le_of_pos C hCpos)⟩
 
 /-- Uniform seminorm control for the iterated horizontal-twist derivative family on compact
 real-part strips and the fixed compact support interval. -/
@@ -481,39 +487,46 @@ theorem exists_zetaPaleyWienerHorizontalTwistIteratedDerivative_uniformSeminorm
         x ≤ b →
         ∀ t : ℝ,
           ‖zetaPaleyWienerHorizontalTwistIteratedDerivative f N x t‖ ≤ C := by
-  rcases exists_zetaPaleyWienerHorizontalTwistVerticalJet_intervalBound
-      f I a b N with ⟨C, hCpos, hCbound⟩
-  refine ⟨C, hCpos, ?_⟩
-  intro x hx_left hx_right t
-  rcases zetaPaleyWienerSupportInterval_inside_or_outside I t with hinside | houtside
-  · have hjet :
-        ‖zetaPaleyWienerHorizontalTwistVerticalJet f N x t‖ ≤ C :=
-      hCbound x hx_left hx_right t hinside.1 hinside.2
-    exact Eq.subst
-      (motive := fun v : ℂ => ‖v‖ ≤ C)
-      (zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_verticalJet
-        f N x t).symm
-      hjet
-  · rcases houtside with hbelow | habove
-    · have hzero :
-          zetaPaleyWienerHorizontalTwistIteratedDerivative f N x t = 0 :=
-        zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_off_supportInterval
-          f I N x t hbelow
-      exact Eq.subst
-        (motive := fun v : ℂ => ‖v‖ ≤ C)
-        hzero.symm
-        (complex_norm_zero_le_of_pos C hCpos)
-    · have hzero :
-          zetaPaleyWienerHorizontalTwistIteratedDerivative f N x t = 0 :=
-        zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_of_supportInterval_lt
-          f I N x t habove
-      exact Eq.subst
-        (motive := fun v : ℂ => ‖v‖ ≤ C)
-        hzero.symm
-        (complex_norm_zero_le_of_pos C hCpos)
+  let C : ℝ :=
+    zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope f I a b N
+  have hCpos : 0 < C :=
+    zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_pos f I a b N
+  exact
+    ⟨C, hCpos,
+      fun x hxLeft hxRight t =>
+        match zetaPaleyWienerSupportInterval_inside_or_outside I t with
+        | Or.inl hinside =>
+            let hjet :
+                ‖zetaPaleyWienerHorizontalTwistVerticalJet f N x t‖ ≤ C :=
+              zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_bound
+                f I a b N (x, t) ⟨⟨hxLeft, hxRight⟩, hinside⟩
+            Eq.subst
+              (motive := fun v : ℂ => ‖v‖ ≤ C)
+              (zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_verticalJet
+                f N x t).symm
+              hjet
+        | Or.inr houtside =>
+            match houtside with
+            | Or.inl hbelow =>
+                let hzero :
+                    zetaPaleyWienerHorizontalTwistIteratedDerivative f N x t = 0 :=
+                  zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_off_supportInterval
+                    f I N x t hbelow
+                Eq.subst
+                  (motive := fun v : ℂ => ‖v‖ ≤ C)
+                  hzero.symm
+                  (complex_norm_zero_le_of_pos C hCpos)
+            | Or.inr habove =>
+                let hzero :
+                    zetaPaleyWienerHorizontalTwistIteratedDerivative f N x t = 0 :=
+                  zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_of_supportInterval_lt
+                    f I N x t habove
+                Eq.subst
+                  (motive := fun v : ℂ => ‖v‖ ≤ C)
+                  hzero.symm
+                  (complex_norm_zero_le_of_pos C hCpos)⟩
 
-/-- Uniform seminorm control for the first horizontal-twist derivative family on compact
-real-part strips. -/
+/-- Uniform seminorm control for the first horizontal-twist derivative family on compact real-part strips. -/
 theorem exists_zetaPaleyWienerHorizontalTwistDerivative_uniformSeminorm
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
     (a b : ℝ) :
@@ -524,14 +537,62 @@ theorem exists_zetaPaleyWienerHorizontalTwistDerivative_uniformSeminorm
         x ≤ b →
         ∀ t : ℝ,
           ‖zetaPaleyWienerVerticalLineIBPDerivative f x t‖ ≤ C := by
-  rcases exists_zetaPaleyWienerHorizontalTwistIteratedDerivative_uniformSeminorm
-      f I a b 1 with ⟨C, hCpos, hCbound⟩
-  refine ⟨C, hCpos, ?_⟩
-  intro x hx_left hx_right t
-  exact Eq.subst
-    (motive := fun v : ℂ => ‖v‖ ≤ C)
-    (zetaPaleyWienerHorizontalTwistIteratedDerivative_one f x t)
-    (hCbound x hx_left hx_right t)
+  let C : ℝ :=
+    zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope f I a b 1
+  have hCpos : 0 < C :=
+    zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_pos f I a b 1
+  exact
+    ⟨C, hCpos,
+      fun x hxLeft hxRight t =>
+        match zetaPaleyWienerSupportInterval_inside_or_outside I t with
+        | Or.inl hinside =>
+            let hjet :
+                ‖zetaPaleyWienerHorizontalTwistVerticalJet f 1 x t‖ ≤ C :=
+              zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_bound
+                f I a b 1 (x, t) ⟨⟨hxLeft, hxRight⟩, hinside⟩
+            let hiterated :
+                ‖zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t‖ ≤ C :=
+              Eq.subst
+                (motive := fun v : ℂ => ‖v‖ ≤ C)
+                (zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_verticalJet
+                  f 1 x t).symm
+                hjet
+            Eq.subst
+              (motive := fun v : ℂ => ‖v‖ ≤ C)
+              (zetaPaleyWienerHorizontalTwistIteratedDerivative_one f x t)
+              hiterated
+        | Or.inr houtside =>
+            match houtside with
+            | Or.inl hbelow =>
+                let hzero :
+                    zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t = 0 :=
+                  zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_off_supportInterval
+                    f I 1 x t hbelow
+                let hiterated :
+                    ‖zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t‖ ≤ C :=
+                  Eq.subst
+                    (motive := fun v : ℂ => ‖v‖ ≤ C)
+                    hzero.symm
+                    (complex_norm_zero_le_of_pos C hCpos)
+                Eq.subst
+                  (motive := fun v : ℂ => ‖v‖ ≤ C)
+                  (zetaPaleyWienerHorizontalTwistIteratedDerivative_one f x t)
+                  hiterated
+            | Or.inr habove =>
+                let hzero :
+                    zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t = 0 :=
+                  zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_of_supportInterval_lt
+                    f I 1 x t habove
+                let hiterated :
+                    ‖zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t‖ ≤ C :=
+                  Eq.subst
+                    (motive := fun v : ℂ => ‖v‖ ≤ C)
+                    hzero.symm
+                    (complex_norm_zero_le_of_pos C hCpos)
+                Eq.subst
+                  (motive := fun v : ℂ => ‖v‖ ≤ C)
+                  (zetaPaleyWienerHorizontalTwistIteratedDerivative_one f x t)
+                  hiterated⟩
 
 /-- Raw compact-support bound for the post-IBP derivative Fourier integral. -/
 theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_le_rawBound
@@ -606,8 +667,66 @@ theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrder_unifo
         ‖∫ t : ℝ,
           zetaPaleyWienerVerticalLineIBPDerivative f x t *
             zetaPaleyWienerVerticalOscillation y t‖ ≤ C := by
-  rcases exists_zetaPaleyWienerHorizontalTwistDerivative_uniformSeminorm
-      f I a b with ⟨C0, hC0pos, hC0bound⟩
+  let C0 : ℝ :=
+    zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope f I a b 1
+  have hC0pos : 0 < C0 :=
+    zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_pos f I a b 1
+  let hC0bound :
+      ∀ x : ℝ,
+        a ≤ x →
+        x ≤ b →
+        ∀ t : ℝ,
+          ‖zetaPaleyWienerVerticalLineIBPDerivative f x t‖ ≤ C0 :=
+    fun x hxLeft hxRight t =>
+      match zetaPaleyWienerSupportInterval_inside_or_outside I t with
+      | Or.inl hinside =>
+          let hjet :
+              ‖zetaPaleyWienerHorizontalTwistVerticalJet f 1 x t‖ ≤ C0 :=
+            zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_bound
+              f I a b 1 (x, t) ⟨⟨hxLeft, hxRight⟩, hinside⟩
+          let hiterated :
+              ‖zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t‖ ≤ C0 :=
+            Eq.subst
+              (motive := fun v : ℂ => ‖v‖ ≤ C0)
+              (zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_verticalJet
+                f 1 x t).symm
+              hjet
+          Eq.subst
+            (motive := fun v : ℂ => ‖v‖ ≤ C0)
+            (zetaPaleyWienerHorizontalTwistIteratedDerivative_one f x t)
+            hiterated
+      | Or.inr houtside =>
+          match houtside with
+          | Or.inl hbelow =>
+              let hzero :
+                  zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t = 0 :=
+                zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_off_supportInterval
+                  f I 1 x t hbelow
+              let hiterated :
+                  ‖zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t‖ ≤ C0 :=
+                Eq.subst
+                  (motive := fun v : ℂ => ‖v‖ ≤ C0)
+                  hzero.symm
+                  (complex_norm_zero_le_of_pos C0 hC0pos)
+              Eq.subst
+                (motive := fun v : ℂ => ‖v‖ ≤ C0)
+                (zetaPaleyWienerHorizontalTwistIteratedDerivative_one f x t)
+                hiterated
+          | Or.inr habove =>
+              let hzero :
+                  zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t = 0 :=
+                zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_of_supportInterval_lt
+                  f I 1 x t habove
+              let hiterated :
+                  ‖zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t‖ ≤ C0 :=
+                Eq.subst
+                  (motive := fun v : ℂ => ‖v‖ ≤ C0)
+                  hzero.symm
+                  (complex_norm_zero_le_of_pos C0 hC0pos)
+              Eq.subst
+                (motive := fun v : ℂ => ‖v‖ ≤ C0)
+                (zetaPaleyWienerHorizontalTwistIteratedDerivative_one f x t)
+                hiterated
   let C : ℝ := C0 * zetaPaleyWienerSupportIntervalLength I + 1
   have hC0_nonneg : 0 ≤ C0 :=
     le_of_lt hC0pos
@@ -619,10 +738,11 @@ theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrder_unifo
       (lt_add_of_pos_right
         (C0 * zetaPaleyWienerSupportIntervalLength I)
         zero_lt_one)
-  refine ⟨C, hCpos, ?_⟩
-  intro x y hx_left hx_right
-  exact zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_le_bumpedBound
-    f I a b C0 hC0_nonneg hC0bound x y hx_left hx_right
+  exact
+    ⟨C, hCpos,
+      fun x y hxLeft hxRight =>
+        zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_le_bumpedBound
+          f I a b C0 hC0_nonneg hC0bound x y hxLeft hxRight⟩
 
 end LFunctions
 end Boundary

@@ -13,7 +13,7 @@ open scoped Filter Topology
 local notation "π" => Real.pi
 
 /-- The left half of the zero-one strip lies below the right boundary. -/
-private theorem zeroOneLeftHalf_real_le_one
+theorem zeroOneLeftHalf_real_le_one
     {z : ℂ}
     (hz_half : z.re ≤ (1 / 2 : ℝ)) :
     z.re ≤ 1 :=
@@ -21,7 +21,7 @@ private theorem zeroOneLeftHalf_real_le_one
     (le_of_lt ((div_lt_one zero_lt_two).mpr one_lt_two))
 
 /-- The second degree embeds in the sum of the two degrees. -/
-private theorem secondDegree_le_degreeSum (mM mR : ℕ) :
+theorem secondDegree_le_degreeSum (mM mR : ℕ) :
     mR ≤ mM + mR :=
   Eq.subst
     (motive := fun degree : ℕ => mR ≤ degree)
@@ -29,7 +29,7 @@ private theorem secondDegree_le_degreeSum (mM mR : ℕ) :
     (Nat.le_add_right mR mM)
 
 /-- The first finite-order envelope embeds in the common product envelope. -/
-private theorem firstFiniteOrderEnvelope_le_commonEnvelope
+theorem firstFiniteOrderEnvelope_le_commonEnvelope
     (A BM BR H : ℝ)
     (mM mR : ℕ)
     (hA_nonnegative : 0 ≤ A)
@@ -48,7 +48,7 @@ private theorem firstFiniteOrderEnvelope_le_commonEnvelope
     (Nat.le_add_right mM mR)
 
 /-- The second finite-order envelope embeds in the common product envelope. -/
-private theorem secondFiniteOrderEnvelope_le_commonEnvelope
+theorem secondFiniteOrderEnvelope_le_commonEnvelope
     (A BM BR H : ℝ)
     (mM mR : ℕ)
     (hA_nonnegative : 0 ≤ A)
@@ -68,7 +68,7 @@ private theorem secondFiniteOrderEnvelope_le_commonEnvelope
 
 /-- Taking norms in the pole-cleared functional equation exposes the product
 of the multiplier norm and the reflected-value norm. -/
-private theorem poleClearedRiemannZeta_zeroOneStrip_functionalEquation_norm
+theorem poleClearedRiemannZeta_zeroOneStrip_functionalEquation_norm
     (z : ℂ)
     (hz_zero : 0 ≤ z.re)
     (hz_one : z.re ≤ 1)
@@ -87,9 +87,71 @@ private theorem poleClearedRiemannZeta_zeroOneStrip_functionalEquation_norm
       (poleClearedRiemannZeta_completedFunctionalEquationMultiplier z)
       (poleClearedRiemannZeta ((1 : ℂ) - z)))
 
+/-- Polynomial left-boundary growth for the pole-cleared zeta factor.
+
+This is the direct functional-equation assembly: the multiplier is controlled
+by the elementary pole-clearing ratio times the cancelled Gamma ratio, while
+the reflected pole-cleared value is controlled by the Euler--Maclaurin leaf.
+-/
+theorem poleClearedRiemannZeta_leftBoundary_polynomial_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ,
+        z.re = 0 →
+        1 ≤ ‖z.im‖ →
+        ‖poleClearedRiemannZeta z‖ ≤ A * (1 + ‖z‖) ^ m := by
+  match
+    Gammaℝ_leftBoundary_completedFunctionalEquation_multiplier_polynomial_bound hbranch,
+    poleClearedRiemannZeta_leftHalf_reflectedValue_verticalTail_polynomial with
+  | ⟨AM, mM, hAM, hM⟩, ⟨AR, mR, hAR, hR⟩ =>
+      refine ⟨AM * AR, mM + mR, mul_pos hAM hAR, fun z hz_re hz_im => ?_⟩
+      have hz_zero : 0 ≤ z.re := le_of_eq hz_re
+      have hz_half : z.re ≤ (1 / 2 : ℝ) := by
+        calc
+          z.re = 0 := hz_re
+          _ ≤ (1 / 2 : ℝ) := by
+            exact (div_nonneg zero_le_one (by exact zero_le_two))
+      have hz_one : z.re ≤ 1 := by
+        calc
+          z.re = 0 := hz_re
+          _ ≤ 1 := zero_le_one
+      let H : ℝ := 1 + ‖z‖
+      have hH_nonneg : 0 ≤ H := by
+        exact le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))
+      have hmultiplier := hM z hz_re hz_im
+      have hreflected := hR z hz_zero hz_half hz_im
+      have hproduct :
+          ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ *
+              ‖poleClearedRiemannZeta ((1 : ℂ) - z)‖ ≤
+            (AM * H ^ mM) * (AR * H ^ mR) := by
+        exact mul_le_mul hmultiplier hreflected
+          (norm_nonneg _)
+          (mul_nonneg (le_of_lt hAM) (pow_nonneg hH_nonneg mM))
+      have halgebra :
+          (AM * H ^ mM) * (AR * H ^ mR) =
+            (AM * AR) * H ^ (mM + mR) := by
+        calc
+          (AM * H ^ mM) * (AR * H ^ mR) =
+              (AM * AR) * (H ^ mM * H ^ mR) := by
+            exact mul_mul_mul_comm AM (H ^ mM) AR (H ^ mR)
+          _ = (AM * AR) * H ^ (mM + mR) := by
+            exact congrArg (fun u : ℝ => (AM * AR) * u)
+              (pow_add H mM mR).symm
+      calc
+        ‖poleClearedRiemannZeta z‖ =
+          ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ *
+              ‖poleClearedRiemannZeta ((1 : ℂ) - z)‖ :=
+          poleClearedRiemannZeta_zeroOneStrip_functionalEquation_norm
+            z hz_zero hz_one hz_im
+        _ ≤ (AM * H ^ mM) * (AR * H ^ mR) := hproduct
+        _ = (AM * AR) * H ^ (mM + mR) := halgebra
+        _ = (AM * AR) * (1 + ‖z‖) ^ (mM + mR) := by
+          exact congrArg (fun u : ℝ => (AM * AR) * u) rfl
+
 /-- Two estimates with the same enlarged exponential envelope collapse to the
 standard doubled-coefficient product envelope. -/
-private theorem poleClearedRiemannZeta_functionalEquation_commonEnvelope_product
+theorem poleClearedRiemannZeta_functionalEquation_commonEnvelope_product
     (z : ℂ)
     (AM AR coefficient : ℝ)
     (degree : ℕ)
@@ -130,7 +192,7 @@ private theorem poleClearedRiemannZeta_functionalEquation_commonEnvelope_product
 
 /-- Pointwise finite-order product assembly for the completed functional
 equation on the left half of the zero-one strip. -/
-private theorem poleClearedRiemannZeta_leftHalf_verticalTail_finiteOrder_of_multiplier_and_reflectedEnvelope
+theorem poleClearedRiemannZeta_leftHalf_verticalTail_finiteOrder_of_multiplier_and_reflectedEnvelope
     (hmult :
       ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
         0 < A ∧ 0 < B ∧
@@ -196,7 +258,7 @@ private theorem poleClearedRiemannZeta_leftHalf_verticalTail_finiteOrder_of_mult
 
 /-- The completed functional equation transports the direct positive-half
 envelope to the left half. -/
-private theorem poleClearedRiemannZeta_leftHalf_verticalTail_finiteOrder
+theorem poleClearedRiemannZeta_leftHalf_verticalTail_finiteOrder
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -215,7 +277,7 @@ private theorem poleClearedRiemannZeta_leftHalf_verticalTail_finiteOrder
 
 /-- The two half-strip estimates give a noncircular vertical-tail estimate on
 the full closed zero-one strip. -/
-private theorem poleClearedRiemannZeta_zeroOneStrip_verticalTail_finiteOrder_nonCircular
+theorem poleClearedRiemannZeta_zeroOneStrip_verticalTail_finiteOrder_nonCircular
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧ 0 < B ∧
@@ -246,7 +308,7 @@ private theorem poleClearedRiemannZeta_zeroOneStrip_verticalTail_finiteOrder_non
 
 /-- Compact patching turns the noncircular tail estimate into ordinary
 finite-order growth on the closed zero-one strip. -/
-private theorem poleClearedRiemannZeta_zeroOneStrip_ordinaryFiniteOrder_nonCircular
+theorem poleClearedRiemannZeta_zeroOneStrip_ordinaryFiniteOrder_nonCircular
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
     PoleClearedZeroOneStripOrdinaryFiniteOrderGrowth := by
   exact

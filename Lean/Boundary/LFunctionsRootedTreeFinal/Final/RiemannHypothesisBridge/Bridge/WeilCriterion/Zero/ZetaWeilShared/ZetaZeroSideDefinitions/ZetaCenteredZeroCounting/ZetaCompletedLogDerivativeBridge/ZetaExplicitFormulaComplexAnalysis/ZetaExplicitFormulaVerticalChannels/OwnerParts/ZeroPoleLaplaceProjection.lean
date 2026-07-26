@@ -74,7 +74,7 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIn
       Tendsto S atTop
         (𝓝
           (zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue f)) :=
-    hstandard_event.tendsto_iff.2 tendsto_const_nhds
+    Tendsto.congr' hstandard_event.symm tendsto_const_nhds
   have hdefect : Tendsto D atTop (𝓝 0) :=
     zetaCompletedExplicitFormulaCorrectionZeroPoleTangentOrientationDefect_tendsto_zero
       f F h

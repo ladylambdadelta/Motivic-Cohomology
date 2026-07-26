@@ -21,7 +21,7 @@ noncomputable def physicalDerivative
     (f : ZetaAdmissibleFunction) : ZetaAdmissibleFunction := by
   have hsmoothDerivative : ContDiff ℝ ∞ (fun t : ℝ => deriv f t) :=
     (contDiff_succ_iff_deriv.mp (show ContDiff ℝ ((∞ : WithTop ℕ∞) + 1) (fun t : ℝ => f t) by
-      simpa using f.smooth)).2.2
+      exact f.smooth)).2.2
   have hcontinuousDerivative : Continuous (fun t : ℝ => deriv f t) :=
     hsmoothDerivative.continuous
   have hcompactDerivative : HasCompactSupport (fun t : ℝ => deriv f t) :=

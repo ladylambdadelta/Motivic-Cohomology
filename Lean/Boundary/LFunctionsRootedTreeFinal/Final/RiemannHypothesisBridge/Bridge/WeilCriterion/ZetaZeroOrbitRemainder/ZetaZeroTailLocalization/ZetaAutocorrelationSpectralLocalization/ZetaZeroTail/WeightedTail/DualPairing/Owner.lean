@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.Coordinate
 
 /-!
 # Completed-zero `l1`--`linfinity` dual pairing
@@ -15,9 +15,6 @@ noncomputable section
 namespace ZetaAdmissibleFunction
 
 open scoped ENNReal
-
-/-- The completed-zero coordinate type used by the discrete tail space. -/
-abbrev ZetaCompletedZeroCoordinate := {rho : ℂ // ZetaCompletedZero rho}
 
 /-- The endpoint product series of a bounded completed-zero family and an
 absolutely summable completed-zero family is summable. -/

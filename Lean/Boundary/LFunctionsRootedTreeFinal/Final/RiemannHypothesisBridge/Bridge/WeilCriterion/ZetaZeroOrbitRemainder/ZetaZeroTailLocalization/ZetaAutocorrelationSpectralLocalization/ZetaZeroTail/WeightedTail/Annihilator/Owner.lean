@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.DualPairing.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.Owner
 
 /-!
 # Completed-zero coordinate annihilators
@@ -12,9 +13,11 @@ namespace LFunctions
 noncomputable section
 namespace ZetaAdmissibleFunction
 
+open scoped ENNReal
+
 /-- The completed-zero functional induced by a bounded coefficient family. -/
 noncomputable def zetaCompletedZeroSideAnnihilator
-    (b : lp (fun _ : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
+    (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -36,7 +39,7 @@ noncomputable def zetaCompletedZeroSideAnnihilator
 /-- The bounded-coefficient completed-zero annihilator as a linear functional
 on admissible probes. -/
 noncomputable def zetaCompletedZeroSideAnnihilatorLinearMap
-    (b : lp (fun _ : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
+    (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -56,7 +59,7 @@ noncomputable def zetaCompletedZeroSideAnnihilatorLinearMap
 /-- The linear annihilator functional evaluates to its absolutely convergent
 completed-zero coefficient series. -/
 theorem zetaCompletedZeroSideAnnihilatorLinearMap_apply
-    (b : lp (fun _ : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
+    (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -86,7 +89,7 @@ theorem zetaCompletedZeroSideAnnihilatorLinearMap_apply
 
 /-- The coefficient series defining a completed-zero annihilator is summable. -/
 theorem summable_zetaCompletedZeroSideAnnihilator
-    (b : lp (fun _ : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
+    (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -152,7 +155,7 @@ theorem summable_zetaCompletedZeroSideAnnihilator
 
 /-- The annihilator is the corresponding absolutely convergent zero-side series. -/
 theorem zetaCompletedZeroSideAnnihilator_eq_tsum
-    (b : lp (fun _ : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
+    (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -193,7 +196,7 @@ theorem zetaCompletedZeroSideAnnihilator_eq_tsum
 probe coordinate, it also annihilates the completed-zero `l1` closure of those
 coordinates. -/
 theorem zetaCompletedZeroSideL1DualPairing_eq_zero_on_coordinateClosure
-    (b : lp (fun _ : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
+    (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -211,7 +214,7 @@ theorem zetaCompletedZeroSideL1DualPairing_eq_zero_on_coordinateClosure
           hpartialLeft
           hcompactBoundary
           f = 0) :
-    forall x : lp (fun _ : ZetaCompletedZeroCoordinate => ℂ) (1 : ENNReal),
+    forall x : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (1 : ENNReal),
       x ∈
         zetaCompletedZeroSideCoordinateL1Closure
           hbranch
@@ -222,7 +225,7 @@ theorem zetaCompletedZeroSideL1DualPairing_eq_zero_on_coordinateClosure
           hcompactBoundary ->
         zetaCompletedZeroSideL1DualPairing b x = 0 := by
   let L :
-      lp (fun _ : ZetaCompletedZeroCoordinate => ℂ) (1 : ENNReal) →L[ℂ] ℂ :=
+      lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (1 : ENNReal) →L[ℂ] ℂ :=
     zetaCompletedZeroSideL1DualContinuousLinearMap b
   have hclosed : IsClosed (L ⁻¹' ({0} : Set ℂ)) := by
     exact isClosed_singleton.preimage L.continuous
@@ -264,8 +267,8 @@ theorem zetaCompletedZeroSideL1DualPairing_eq_zero_on_coordinateClosure
               (hvanishing f)
         exact
           Eq.subst
-            (motive := fun coordinate => L coordinate ∈ ({0} : Set ℂ))
-            hf.symm
+            (motive := fun coordinate => L coordinate = 0)
+            hf
             hpairing
   have hclosure :
       zetaCompletedZeroSideCoordinateL1Closure
@@ -290,7 +293,7 @@ theorem zetaCompletedZeroSideL1DualPairing_eq_zero_on_coordinateClosure
 /-- Density of the admissible completed-zero coordinate image forces every
 bounded annihilator coefficient family to vanish. -/
 theorem zetaCompletedZeroSideL1DualCoefficient_eq_zero_of_coordinateClosure_eq_univ
-    (b : lp (fun _ : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
+    (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -328,12 +331,12 @@ theorem zetaCompletedZeroSideL1DualCoefficient_eq_zero_of_coordinateClosure_eq_u
           hfinite
           hpartialLeft
           hcompactBoundary := by
-    exact
-      Eq.mpr
-        (congrArg
-          (fun carrier => x ∈ carrier)
-          hdense.symm)
-        (Set.mem_univ x)
+      exact
+        Eq.mp
+          (congrArg
+            (fun carrier => x ∈ carrier)
+            hdense.symm)
+          (Set.mem_univ x)
   exact
     zetaCompletedZeroSideL1DualPairing_eq_zero_on_coordinateClosure
       b

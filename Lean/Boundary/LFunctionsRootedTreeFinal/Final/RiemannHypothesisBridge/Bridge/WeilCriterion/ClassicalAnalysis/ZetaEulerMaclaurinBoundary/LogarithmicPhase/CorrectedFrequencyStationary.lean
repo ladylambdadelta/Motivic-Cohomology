@@ -1374,7 +1374,7 @@ theorem Complex.norm_logarithmicPhaseFourierIntegrationCoefficient_le_left_endpo
   have hderivative_lower :=
     Complex.abs_logarithmicPhaseFourierTwistedDerivative_ge_left_endpoint_gap
       hm hleft hright (le_of_lt hcenter) hx
-  have hinverse := inv_le_inv_of_le hgap_pos hderivative_lower
+  have hinverse := inv_anti₀ hgap_pos hderivative_lower
   exact
     (Complex.norm_logarithmicPhaseFourierIntegrationCoefficient t m x).trans_le
       hinverse
@@ -1398,7 +1398,7 @@ theorem Complex.norm_logarithmicPhaseFourierIntegrationCoefficient_le_right_endp
   have hderivative_lower :=
     Complex.abs_logarithmicPhaseFourierTwistedDerivative_ge_right_endpoint_gap
       hm hleft hright (le_of_lt hcenter) hx
-  have hinverse := inv_le_inv_of_le hgap_pos hderivative_lower
+  have hinverse := inv_anti₀ hgap_pos hderivative_lower
   exact
     (Complex.norm_logarithmicPhaseFourierIntegrationCoefficient t m x).trans_le
       hinverse

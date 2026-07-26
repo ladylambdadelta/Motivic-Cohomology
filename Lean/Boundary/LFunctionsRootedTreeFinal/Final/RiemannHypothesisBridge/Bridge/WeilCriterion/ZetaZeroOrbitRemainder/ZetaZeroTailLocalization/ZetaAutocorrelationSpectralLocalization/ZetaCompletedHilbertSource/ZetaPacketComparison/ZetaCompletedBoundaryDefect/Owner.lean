@@ -1,6 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaPacketComparison.ZetaCompletedBoundaryDefect.ZetaPacketReconstruction.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaPacketComparison.ZetaCompletionCorrection.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.OwnerParts.BoundaryChannels
 
 /-!
 # Boundary completed zeta defect
@@ -205,6 +205,53 @@ theorem zetaCompletedBoundaryDefect_correction_mem_support
     exact hvalue.trans_ne hnonzero
   exact Finsupp.mem_support_iff.mpr hsupport
 
+/-- The correction part vanishes away from the correction label. -/
+theorem zetaPacketEnsemble_correctionPart_sq_eq_zero_of_ne_correction
+    (x : ZetaPacketEnsemble) (ℓ : ZetaPacketLabel)
+    (hne : ℓ ≠ ZetaPacketLabel.correction) :
+    ZetaPacketEnsemble.correctionPart x ℓ *
+        ZetaPacketEnsemble.correctionPart x ℓ =
+      0 :=
+  match ℓ with
+  | ZetaPacketLabel.prime m n =>
+      let hzero :
+          ZetaPacketEnsemble.correctionPart x (ZetaPacketLabel.prime m n) = 0 :=
+        ZetaPacketEnsemble.correctionPart_prime x m n
+      ZetaPacketEnsemble.sq_eq_zero_of_eq_zero hzero
+  | ZetaPacketLabel.archimedean =>
+      let hzero :
+          ZetaPacketEnsemble.correctionPart x ZetaPacketLabel.archimedean = 0 :=
+        ZetaPacketEnsemble.correctionPart_archimedean x
+      ZetaPacketEnsemble.sq_eq_zero_of_eq_zero hzero
+  | ZetaPacketLabel.correction =>
+      False.elim (hne rfl)
+
+/-- The correction label cannot be missing from the completed boundary-defect support. -/
+theorem zetaCompletedBoundaryDefect_correction_not_not_mem_support
+    (f : ZetaAdmissibleFunction)
+    (hnotmem : ZetaPacketLabel.correction ∉ (zetaCompletedBoundaryDefect f).support) :
+    False :=
+  hnotmem (zetaCompletedBoundaryDefect_correction_mem_support f)
+
+/-- The correction-part square sum of the completed boundary defect has only the
+correction-label contribution. -/
+theorem zetaCompletedBoundaryDefect_correctionPart_sq_sum_eq_single
+    (f : ZetaAdmissibleFunction) :
+    let x : ZetaPacketEnsemble := zetaCompletedBoundaryDefect f
+    ∑ ℓ ∈ x.support,
+        ZetaPacketEnsemble.correctionPart x ℓ *
+          ZetaPacketEnsemble.correctionPart x ℓ =
+      ZetaPacketEnsemble.correctionPart x ZetaPacketLabel.correction *
+        ZetaPacketEnsemble.correctionPart x ZetaPacketLabel.correction := by
+  intro x
+  exact
+    Finset.sum_eq_single ZetaPacketLabel.correction
+      (fun ℓ _hℓ hne =>
+        zetaPacketEnsemble_correctionPart_sq_eq_zero_of_ne_correction x ℓ hne)
+      (fun hnotmem =>
+        False.elim
+          (zetaCompletedBoundaryDefect_correction_not_not_mem_support f hnotmem))
+
 /-- The correction Gram of the completed boundary defect is the square of the
 normalized correction coordinate. -/
 theorem zetaCompletedBoundaryDefect_correctionPacketGram_eq_coordinate_sq
@@ -226,24 +273,8 @@ theorem zetaCompletedBoundaryDefect_correctionPacketGram_eq_coordinate_sq
           ZetaPacketEnsemble.correctionPart x ℓ *
             ZetaPacketEnsemble.correctionPart x ℓ =
         ZetaPacketEnsemble.correctionPart x ZetaPacketLabel.correction *
-          ZetaPacketEnsemble.correctionPart x ZetaPacketLabel.correction := by
-    refine Finset.sum_eq_single ZetaPacketLabel.correction ?_ ?_
-    · intro ℓ hℓ hne
-      cases ℓ with
-      | prime m n =>
-          have hzero : ZetaPacketEnsemble.correctionPart x (ZetaPacketLabel.prime m n) = 0 :=
-            ZetaPacketEnsemble.correctionPart_prime x m n
-          exact ZetaPacketEnsemble.sq_eq_zero_of_eq_zero hzero
-      | archimedean =>
-          have hzero : ZetaPacketEnsemble.correctionPart x ZetaPacketLabel.archimedean = 0 :=
-            ZetaPacketEnsemble.correctionPart_archimedean x
-          exact ZetaPacketEnsemble.sq_eq_zero_of_eq_zero hzero
-      | correction =>
-          exact False.elim (hne rfl)
-    · intro hnotmem
-      have hmem : ZetaPacketLabel.correction ∈ x.support :=
-        zetaCompletedBoundaryDefect_correction_mem_support f
-      exact False.elim (hnotmem hmem)
+          ZetaPacketEnsemble.correctionPart x ZetaPacketLabel.correction :=
+    zetaCompletedBoundaryDefect_correctionPart_sq_sum_eq_single f
   calc
     ZetaPacketEnsemble.correctionPacketGram (zetaCompletedBoundaryDefect f) =
         ∑ ℓ ∈ x.support,

@@ -352,7 +352,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundarySum_eq_twoPiI_smul_index
           explicitFormulaRectangle_onePoleResidue f)
     (hcompleted :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T,
           explicitFormulaRectangleRawDeletedCircleBoundary f ε
               (completedZeroResidueCoordinate ρ) =
             (2 * ↑Real.pi * Complex.I : ℂ) •
@@ -364,7 +364,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundarySum_eq_twoPiI_smul_index
   let c : ℂ := 2 * ↑Real.pi * Complex.I
   let C : Finset ℂ := explicitFormulaCompletedZeroWindowCoordinates T
   let W : Finset {ρ : ℂ // ZetaCompletedZero ρ} :=
-    explicitFormulaCompletedZeroHeightWindow T
+    explicitFormulaCompletedZeroContourHeightWindow T
   let deletedCircle : ℂ → ℂ :=
     explicitFormulaRectangleRawDeletedCircleBoundary f ε
   have hzero_not_C : (0 : ℂ) ∉ C := by
@@ -471,7 +471,18 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundarySum_eq_twoPiI_smul_index
     _ =
         (2 * ↑Real.pi * Complex.I : ℂ) •
           explicitFormulaRectangleRawSingularIndexedResidueSum f T := by
-      rfl
+      have hindexed :
+          Z + O + R =
+            explicitFormulaRectangleRawSingularIndexedResidueSum f T :=
+        Eq.refl _
+      calc
+        c • (Z + O + R) =
+            c • explicitFormulaRectangleRawSingularIndexedResidueSum f T := by
+          exact congrArg (fun value : ℂ => c • value) hindexed
+        _ =
+            (2 * ↑Real.pi * Complex.I : ℂ) •
+              explicitFormulaRectangleRawSingularIndexedResidueSum f T := by
+          exact Eq.refl _
 
 /-- Multiplicative-notation wrapper for
 `explicitFormulaRectangleRawDeletedCircleBoundarySum_eq_twoPiI_smul_indexedResidueSum_of_values`. -/
@@ -487,7 +498,7 @@ theorem explicitFormulaRectangleRawDeletedCircleBoundarySum_eq_twoPiI_mul_indexe
           explicitFormulaRectangle_onePoleResidue f)
     (hcompleted :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroHeightWindow T,
+          ∀ _hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T,
           explicitFormulaRectangleRawDeletedCircleBoundary f ε
               (completedZeroResidueCoordinate ρ) =
             (2 * ↑Real.pi * Complex.I : ℂ) •
@@ -531,7 +542,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_eventually_rawDeletedCi
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
           ∀ _hρ : ρ ∈
-              explicitFormulaCompletedZeroHeightWindow
+              explicitFormulaCompletedZeroContourHeightWindow
                 (h.height_schedule.height u),
             explicitFormulaRectangleRawDeletedCircleBoundary f (ε u)
                 (completedZeroResidueCoordinate ρ) =
@@ -732,7 +743,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError_
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
           ∀ _hρ : ρ ∈
-              explicitFormulaCompletedZeroHeightWindow
+              explicitFormulaCompletedZeroContourHeightWindow
                 (h.height_schedule.height u),
             explicitFormulaRectangleRawDeletedCircleBoundary f (ε u)
                 (completedZeroResidueCoordinate ρ) =

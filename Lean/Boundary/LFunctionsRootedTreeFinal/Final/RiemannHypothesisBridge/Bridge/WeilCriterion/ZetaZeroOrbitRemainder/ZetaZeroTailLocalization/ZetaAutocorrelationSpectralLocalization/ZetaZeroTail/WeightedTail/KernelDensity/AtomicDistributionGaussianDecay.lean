@@ -6,9 +6,6 @@ namespace Boundary
 namespace LFunctions
 noncomputable section
 namespace ZetaAdmissibleFunction
-def fullGaussianLaplaceKernelNormalizationNorm : ℝ :=
-  ‖((Real.pi : ℂ) / (1 : ℂ)) ^ (1 / 2 : ℂ)‖
-
 def completedZeroScaledGaussianNorm
     (target rho : ZetaCompletedZeroCoordinate)
     (scale : ℝ) : ℝ :=
@@ -202,31 +199,6 @@ theorem completedZero_scaledDisplacement_square_div_four_re_le
       completedZero_scaledDisplacement_square_div_four_re target rho scale
     _ ≤ scaleFactor - scaleFactor * imaginaryDisplacement ^ 2 :=
       halgebraicBound
-
-theorem norm_fullGaussianLaplaceKernel_eq_exp_re
-    (z : ℂ) :
-    ‖fullGaussianLaplaceKernel z‖ =
-      fullGaussianLaplaceKernelNormalizationNorm *
-        Real.exp ((z ^ 2 / 4).re) := by
-  have hformula : fullGaussianLaplaceKernel z =
-      ((Real.pi : ℂ) / (1 : ℂ)) ^ (1 / 2 : ℂ) *
-        Complex.exp (z ^ 2 / 4) :=
-    fullGaussianLaplaceKernel_eq z
-  have hexponentialNorm :
-      ‖Complex.exp (z ^ 2 / 4)‖ = Real.exp ((z ^ 2 / 4).re) :=
-    Eq.trans
-      (Complex.norm_eq_abs (Complex.exp (z ^ 2 / 4)))
-      (Complex.abs_exp (z ^ 2 / 4))
-  exact Eq.trans
-    (congrArg Norm.norm hformula)
-    (Eq.trans
-      (norm_mul
-        (((Real.pi : ℂ) / (1 : ℂ)) ^ (1 / 2 : ℂ))
-        (Complex.exp (z ^ 2 / 4)))
-      (congrArg₂
-        (fun left right : ℝ => left * right)
-        (Eq.refl fullGaussianLaplaceKernelNormalizationNorm)
-        hexponentialNorm))
 
 theorem realGaussianExponent_eq_product
     (scale displacement : ℝ) :

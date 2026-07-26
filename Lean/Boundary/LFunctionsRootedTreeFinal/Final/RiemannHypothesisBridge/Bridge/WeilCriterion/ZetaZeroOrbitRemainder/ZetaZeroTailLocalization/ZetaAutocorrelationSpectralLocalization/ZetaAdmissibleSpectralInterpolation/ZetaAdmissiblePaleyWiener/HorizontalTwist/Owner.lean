@@ -4,10 +4,8 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 # Paley-Wiener horizontal twist
 
 This file owns the horizontal-twist source, parameter rectangle, vertical-line
-derivative compatibility, and compact rectangle seminorm bounds used before the
-vertical integration-by-parts layer. It is copy-first extracted from the current
-Paley-Wiener owner file and is not imported by that parent yet, so declaration
-names intentionally match the existing owner surface.
+derivative compatibility, and compact rectangle seminorm bounds used before
+the vertical integration-by-parts layer.
 -/
 
 namespace Boundary
@@ -480,6 +478,67 @@ theorem zetaPaleyWienerHorizontalTwistVerticalJet_continuousOn_rectangle
       (zetaPaleyWienerParameterSupportRectangle I a b) := by
   exact (zetaPaleyWienerHorizontalTwistVerticalJet_continuous f n).continuousOn
 
+/-- The compact image of vertical-jet norms on the Paley-Wiener parameter rectangle. -/
+def zetaPaleyWienerHorizontalTwistVerticalJetNormImage
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (n : ℕ) : Set ℝ :=
+  (fun p : ℝ × ℝ =>
+    ‖zetaPaleyWienerHorizontalTwistVerticalJet f n p.1 p.2‖) ''
+      zetaPaleyWienerParameterSupportRectangle I a b
+
+/-- The vertical-jet norm image is bounded above by compactness. -/
+theorem zetaPaleyWienerHorizontalTwistVerticalJetNormImage_bddAbove
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (n : ℕ) :
+    BddAbove
+      (zetaPaleyWienerHorizontalTwistVerticalJetNormImage f I a b n) :=
+  let hcompact :
+      IsCompact (zetaPaleyWienerParameterSupportRectangle I a b) :=
+    zetaPaleyWienerParameterSupportRectangle_isCompact I a b
+  let hcontinuous :
+      ContinuousOn
+        (fun p : ℝ × ℝ =>
+          ‖zetaPaleyWienerHorizontalTwistVerticalJet f n p.1 p.2‖)
+        (zetaPaleyWienerParameterSupportRectangle I a b) :=
+    (zetaPaleyWienerHorizontalTwistVerticalJet_continuousOn_rectangle
+      f I a b n).norm
+  hcompact.bddAbove_image hcontinuous
+
+/-- Deterministic compact-rectangle envelope for the vertical-jet seminorm. -/
+noncomputable def zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (n : ℕ) : ℝ :=
+  max (sSup (zetaPaleyWienerHorizontalTwistVerticalJetNormImage f I a b n)) 0 + 1
+
+/-- The deterministic vertical-jet rectangle envelope is positive. -/
+theorem zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_pos
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (n : ℕ) :
+    0 < zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope f I a b n :=
+  weightedLaplaceKernel_positive_bump
+    (sSup (zetaPaleyWienerHorizontalTwistVerticalJetNormImage f I a b n))
+
+/-- The deterministic vertical-jet rectangle envelope bounds the vertical jet. -/
+theorem zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_bound
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (n : ℕ) (p : ℝ × ℝ)
+    (hp : p ∈ zetaPaleyWienerParameterSupportRectangle I a b) :
+    ‖zetaPaleyWienerHorizontalTwistVerticalJet f n p.1 p.2‖ ≤
+      zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope f I a b n :=
+  let imageSet : Set ℝ :=
+    zetaPaleyWienerHorizontalTwistVerticalJetNormImage f I a b n
+  let value : ℝ :=
+    ‖zetaPaleyWienerHorizontalTwistVerticalJet f n p.1 p.2‖
+  let hvalue_mem : value ∈ imageSet :=
+    ⟨p, hp, rfl⟩
+  let hvalue_le_sup : value ≤ sSup imageSet :=
+    le_csSup
+      (zetaPaleyWienerHorizontalTwistVerticalJetNormImage_bddAbove f I a b n)
+      hvalue_mem
+  weightedLaplaceKernel_bound_le_bump
+    (sSup imageSet)
+    hvalue_le_sup
+
 /-- Compact-rectangle boundedness for the vertical parameter jet. -/
 theorem exists_zetaPaleyWienerHorizontalTwistVerticalJet_rectangleBound
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
@@ -489,17 +548,10 @@ theorem exists_zetaPaleyWienerHorizontalTwistVerticalJet_rectangleBound
       ∀ p : ℝ × ℝ,
         p ∈ zetaPaleyWienerParameterSupportRectangle I a b →
         ‖zetaPaleyWienerHorizontalTwistVerticalJet f n p.1 p.2‖ ≤ C := by
-  rcases IsCompact.exists_bound_of_continuousOn
-      (zetaPaleyWienerParameterSupportRectangle_isCompact I a b)
-      (zetaPaleyWienerHorizontalTwistVerticalJet_continuousOn_rectangle
-        f I a b n) with
-    ⟨C0, hC0⟩
-  refine ⟨max C0 0 + 1, weightedLaplaceKernel_positive_bump C0, ?_⟩
-  intro p hp
-  have hraw :
-      ‖zetaPaleyWienerHorizontalTwistVerticalJet f n p.1 p.2‖ ≤ C0 :=
-    hC0 p hp
-  exact weightedLaplaceKernel_bound_le_bump C0 hraw
+  exact
+    ⟨zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope f I a b n,
+      zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_pos f I a b n,
+      zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_bound f I a b n⟩
 
 /-- Coordinate form of compact-rectangle boundedness for the vertical parameter jet. -/
 theorem exists_zetaPaleyWienerHorizontalTwistVerticalJet_intervalBound
@@ -514,14 +566,15 @@ theorem exists_zetaPaleyWienerHorizontalTwistVerticalJet_intervalBound
           I.lower ≤ t →
           t ≤ I.upper →
           ‖zetaPaleyWienerHorizontalTwistVerticalJet f n x t‖ ≤ C := by
-  rcases exists_zetaPaleyWienerHorizontalTwistVerticalJet_rectangleBound
-      f I a b n with ⟨C, hCpos, hCbound⟩
-  refine ⟨C, hCpos, ?_⟩
-  intro x hx_left hx_right t ht_lower ht_upper
-  have hp :
-      (x, t) ∈ zetaPaleyWienerParameterSupportRectangle I a b := by
-    exact ⟨⟨hx_left, hx_right⟩, ⟨ht_lower, ht_upper⟩⟩
-  exact hCbound (x, t) hp
+  exact
+    ⟨zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope f I a b n,
+      zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_pos f I a b n,
+      fun x hxLeft hxRight t htLower htUpper =>
+        let hp :
+            (x, t) ∈ zetaPaleyWienerParameterSupportRectangle I a b :=
+          ⟨⟨hxLeft, hxRight⟩, ⟨htLower, htUpper⟩⟩
+        zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_bound
+          f I a b n (x, t) hp⟩
 
 /-- A point of the real line is either inside the certified support interval or strictly
 outside one of its two sides. -/

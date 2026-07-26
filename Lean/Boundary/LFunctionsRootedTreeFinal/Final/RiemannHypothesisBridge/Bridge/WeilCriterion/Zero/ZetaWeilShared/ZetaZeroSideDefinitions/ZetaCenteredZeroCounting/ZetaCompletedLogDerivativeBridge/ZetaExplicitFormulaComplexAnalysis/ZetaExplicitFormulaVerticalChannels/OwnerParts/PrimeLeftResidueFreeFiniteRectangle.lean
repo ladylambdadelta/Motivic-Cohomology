@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part34
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.SelectedRadiusCauchy
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.AffineVerticalKernels
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OrientationAlgebra
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeScheduledChannels
@@ -36,7 +37,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_tangentPuncturedRectang
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :
@@ -105,7 +106,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_tangentContour_sub_rawD
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :
@@ -174,6 +175,66 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_tangentContour_sub_rawD
       f F T ε
   exact Eq.trans hunfold.symm hpunctured
 
+/-- Selected-radius finite-rectangle input for the prime-left residue-free
+contour.  This is the radius-regular version of
+`zetaCompletedExplicitFormulaPrimeLeftResidueFree_tangentContour_sub_rawDeletedCircleBoundarySum_eq_zero_ownerFiniteRectangle`;
+it consumes one radius whose square sides avoid the finite singular set rather
+than an all-radius side-integrability package. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_tangentContour_sub_rawDeletedCircleBoundarySum_eq_zero_selectedRegularRadius_ownerFiniteRectangle
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) {T ε : ℝ} (hT : 0 < T)
+    (hε : 0 < ε)
+    (hinterior :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
+          completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
+            completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
+    (hboundary :
+      ∀ z : ℂ,
+        z ∈ explicitFormulaContourFamilyBoundary F T →
+          ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
+            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (hboundaryAvoidance :
+      ∀ z : ℂ,
+        z ∈ explicitFormulaContourFamilyBoundary F T →
+          z ∉ completedZetaContourIntegrandSingularSet)
+    (hclosed :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T)
+    (hsep :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          ∀ b : ℂ,
+            b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              a ≠ b → ε + ε < dist a b)
+    (hregular :
+      ε ∉ finiteRectangleSquareSideForbiddenRadii
+        (explicitFormulaRectangleRawSingularCoordinates T)) :
+    zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) -
+      explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε = 0 := by
+  have hpunctured :
+      explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral
+        f F T ε = 0 :=
+    explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral_eq_zero_of_selectedRegularRadius_boundaryData
+      f F h hT hε hinterior hboundary hboundaryAvoidance hclosed hsep hregular
+      (explicitFormulaRectangleComplement_hgrid_noPackage f F hT)
+      (explicitFormulaRectangleComplement_circleEqSquare_of_puncturedResidueRegularity
+        f T ε hε
+        (fun a ha =>
+          explicitFormulaRectangleRawSingular_puncturedResidueRegularity_of_coefficientRegularity
+            f h.phi_control a ha
+            (explicitFormulaRectangleRawSingular_coefficientRegularity_of_phiControl
+              f F h.phi_control hT hinterior ε hε hclosed hsep a ha)))
+  have hunfold :
+      explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral
+        f F T ε =
+        zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) -
+          explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε :=
+    explicitFormulaRectangleTangentFiniteRadiusPuncturedBoundaryIntegral_eq_tangentContour_sub_rawDeletedCircleBoundarySum
+      f F T ε
+  exact Eq.trans hunfold.symm hpunctured
+
 /-- The finite horizontal/right completed-log-derivative boundary error left
 after isolating the left tangent side of the residue-free rectangle. -/
 noncomputable def zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteHorizontalRightError
@@ -202,7 +263,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_horizon
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :
@@ -346,6 +407,130 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_horizon
       (explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε)
       htangent
 
+/-- Selected-radius version of the finite left-tangent residue-free boundary
+identity. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_horizontalRight_sub_excision_eq_zero_selectedRegularRadius_ownerFiniteRectangle
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) {T ε : ℝ} (hT : 0 < T)
+    (hε : 0 < ε)
+    (hinterior :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
+          completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
+            completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
+    (hboundary :
+      ∀ z : ℂ,
+        z ∈ explicitFormulaContourFamilyBoundary F T →
+          ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
+            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (hboundaryAvoidance :
+      ∀ z : ℂ,
+        z ∈ explicitFormulaContourFamilyBoundary F T →
+          z ∉ completedZetaContourIntegrandSingularSet)
+    (hclosed :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T)
+    (hsep :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          ∀ b : ℂ,
+            b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              a ≠ b → ε + ε < dist a b)
+    (hregular :
+      ε ∉ finiteRectangleSquareSideForbiddenRadii
+        (explicitFormulaRectangleRawSingularCoordinates T)) :
+    (-(zetaCompletedExplicitFormulaLeftLineIntegral
+          f (F.rectangle T) * Complex.I)) +
+        ((zetaCompletedExplicitFormulaRightLineIntegral
+            f (F.rectangle T) * Complex.I) +
+          (zetaCompletedExplicitFormulaBottomLineIntegral
+              f (F.rectangle T) -
+            zetaCompletedExplicitFormulaTopLineIntegral
+              f (F.rectangle T))) -
+      explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε = 0 := by
+  have hboundary_zero :
+      zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) -
+        explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε = 0 :=
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_tangentContour_sub_rawDeletedCircleBoundarySum_eq_zero_selectedRegularRadius_ownerFiniteRectangle
+      f F h hT hε hinterior hboundary hboundaryAvoidance hclosed hsep hregular
+  have htangent :
+      (zetaCompletedExplicitFormulaRightLineIntegral
+          f (F.rectangle T) * Complex.I -
+          zetaCompletedExplicitFormulaLeftLineIntegral
+            f (F.rectangle T) * Complex.I +
+          (zetaCompletedExplicitFormulaBottomLineIntegral
+              f (F.rectangle T) -
+            zetaCompletedExplicitFormulaTopLineIntegral
+              f (F.rectangle T))) -
+        explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε = 0 := by
+    have hunfold :
+        zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) =
+          zetaCompletedExplicitFormulaBottomLineIntegral
+              f (F.rectangle T) -
+            zetaCompletedExplicitFormulaTopLineIntegral
+              f (F.rectangle T) +
+              (zetaCompletedExplicitFormulaRightLineIntegral
+                  f (F.rectangle T) * Complex.I -
+                zetaCompletedExplicitFormulaLeftLineIntegral
+                  f (F.rectangle T) * Complex.I) :=
+      zetaCompletedExplicitFormulaTangentContourIntegral_eq f (F.rectangle T)
+    have hsplit :
+        zetaCompletedExplicitFormulaBottomLineIntegral
+              f (F.rectangle T) -
+            zetaCompletedExplicitFormulaTopLineIntegral
+              f (F.rectangle T) +
+              (zetaCompletedExplicitFormulaRightLineIntegral
+                  f (F.rectangle T) * Complex.I -
+                zetaCompletedExplicitFormulaLeftLineIntegral
+                  f (F.rectangle T) * Complex.I) =
+          zetaCompletedExplicitFormulaRightLineIntegral
+              f (F.rectangle T) * Complex.I -
+            zetaCompletedExplicitFormulaLeftLineIntegral
+              f (F.rectangle T) * Complex.I +
+            (zetaCompletedExplicitFormulaBottomLineIntegral
+                f (F.rectangle T) -
+              zetaCompletedExplicitFormulaTopLineIntegral
+                f (F.rectangle T)) := by
+      exact explicitFormula_standardBoundary_verticalFirst_noExcision
+        (zetaCompletedExplicitFormulaRightLineIntegral
+          f (F.rectangle T) * Complex.I)
+        (zetaCompletedExplicitFormulaLeftLineIntegral
+          f (F.rectangle T) * Complex.I)
+        (zetaCompletedExplicitFormulaBottomLineIntegral
+          f (F.rectangle T) -
+          zetaCompletedExplicitFormulaTopLineIntegral
+            f (F.rectangle T))
+    have hreplace :
+        zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) =
+          zetaCompletedExplicitFormulaRightLineIntegral
+              f (F.rectangle T) * Complex.I -
+            zetaCompletedExplicitFormulaLeftLineIntegral
+              f (F.rectangle T) * Complex.I +
+            (zetaCompletedExplicitFormulaBottomLineIntegral
+                f (F.rectangle T) -
+              zetaCompletedExplicitFormulaTopLineIntegral
+                f (F.rectangle T)) :=
+      Eq.trans hunfold hsplit
+    exact Eq.trans
+      (congrArg
+        (fun z : ℂ =>
+          z - explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε)
+        hreplace.symm)
+      hboundary_zero
+  exact
+    explicitFormula_tangentBoundary_leftFirst_eq_zero_of_boundary_sub_excision_eq_zero
+      (zetaCompletedExplicitFormulaRightLineIntegral
+        f (F.rectangle T) * Complex.I)
+      (zetaCompletedExplicitFormulaLeftLineIntegral
+        f (F.rectangle T) * Complex.I)
+      (zetaCompletedExplicitFormulaBottomLineIntegral
+          f (F.rectangle T) -
+        zetaCompletedExplicitFormulaTopLineIntegral
+          f (F.rectangle T))
+      (explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε)
+      htangent
+
 /-- Finite-radius prime-left residue-free rectangle identity in the boundary
 sum orientation consumed by the scheduled decay assembly: left tangent side
 plus horizontal/right error plus deleted-circle excision error is zero. -/
@@ -354,7 +539,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_finiteE
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :
@@ -425,6 +610,88 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_finiteE
         explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε = 0 :=
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_horizontalRight_sub_excision_eq_zero_ownerFiniteRectangle
       f F h hT hinterior hboundary hside ε hε hclosed hsep
+  have hconvert :
+      (-(zetaCompletedExplicitFormulaLeftLineIntegral
+            f (F.rectangle T) * Complex.I)) +
+          ((zetaCompletedExplicitFormulaRightLineIntegral
+              f (F.rectangle T) * Complex.I) +
+            (zetaCompletedExplicitFormulaBottomLineIntegral
+                f (F.rectangle T) -
+              zetaCompletedExplicitFormulaTopLineIntegral
+                f (F.rectangle T))) +
+        (-explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε) =
+      (-(zetaCompletedExplicitFormulaLeftLineIntegral
+            f (F.rectangle T) * Complex.I)) +
+          ((zetaCompletedExplicitFormulaRightLineIntegral
+              f (F.rectangle T) * Complex.I) +
+            (zetaCompletedExplicitFormulaBottomLineIntegral
+                f (F.rectangle T) -
+              zetaCompletedExplicitFormulaTopLineIntegral
+                f (F.rectangle T))) -
+        explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε :=
+    (sub_eq_add_neg
+      ((-(zetaCompletedExplicitFormulaLeftLineIntegral
+            f (F.rectangle T) * Complex.I)) +
+          ((zetaCompletedExplicitFormulaRightLineIntegral
+              f (F.rectangle T) * Complex.I) +
+            (zetaCompletedExplicitFormulaBottomLineIntegral
+                f (F.rectangle T) -
+              zetaCompletedExplicitFormulaTopLineIntegral
+                f (F.rectangle T))))
+      (explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε)).symm
+  exact Eq.trans hconvert hsub
+
+/-- Selected-radius finite-radius prime-left residue-free rectangle identity in
+the boundary-sum orientation consumed by scheduled decay assembly. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_finiteErrors_eq_zero_selectedRegularRadius_ownerFiniteRectangle
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) {T ε : ℝ} (hT : 0 < T)
+    (hε : 0 < ε)
+    (hinterior :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
+          completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
+            completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
+    (hboundary :
+      ∀ z : ℂ,
+        z ∈ explicitFormulaContourFamilyBoundary F T →
+          ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
+            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (hboundaryAvoidance :
+      ∀ z : ℂ,
+        z ∈ explicitFormulaContourFamilyBoundary F T →
+          z ∉ completedZetaContourIntegrandSingularSet)
+    (hclosed :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T)
+    (hsep :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          ∀ b : ℂ,
+            b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              a ≠ b → ε + ε < dist a b)
+    (hregular :
+      ε ∉ finiteRectangleSquareSideForbiddenRadii
+        (explicitFormulaRectangleRawSingularCoordinates T)) :
+    (-(zetaCompletedExplicitFormulaLeftLineIntegral
+          f (F.rectangle T) * Complex.I)) +
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteHorizontalRightError
+        f F T +
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteExcisionError
+        f T ε = 0 := by
+  have hsub :
+      (-(zetaCompletedExplicitFormulaLeftLineIntegral
+            f (F.rectangle T) * Complex.I)) +
+          ((zetaCompletedExplicitFormulaRightLineIntegral
+              f (F.rectangle T) * Complex.I) +
+            (zetaCompletedExplicitFormulaBottomLineIntegral
+                f (F.rectangle T) -
+              zetaCompletedExplicitFormulaTopLineIntegral
+                f (F.rectangle T))) -
+        explicitFormulaRectangleRawDeletedCircleBoundarySum f T ε = 0 :=
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_horizontalRight_sub_excision_eq_zero_selectedRegularRadius_ownerFiniteRectangle
+      f F h hT hε hinterior hboundary hboundaryAvoidance hclosed hsep hregular
   have hconvert :
       (-(zetaCompletedExplicitFormulaLeftLineIntegral
             f (F.rectangle T) * Complex.I)) +
@@ -562,7 +829,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePri
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :
@@ -654,6 +921,78 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePri
       hleft_decomp
       hcompleted_boundary
 
+/-- Selected-radius version of the finite prime-left boundary identity after
+the left completed-log-derivative side has been decomposed. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePrimeErrors_eq_zero_of_leftIntegral_decomposition_selectedRegularRadius
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) {T ε : ℝ} (hT : 0 < T)
+    (hε : 0 < ε)
+    (hinterior :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
+          completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
+            completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
+    (hboundary :
+      ∀ z : ℂ,
+        z ∈ explicitFormulaContourFamilyBoundary F T →
+          ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
+            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (hboundaryAvoidance :
+      ∀ z : ℂ,
+        z ∈ explicitFormulaContourFamilyBoundary F T →
+          z ∉ completedZetaContourIntegrandSingularSet)
+    (hclosed :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T)
+    (hsep :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          ∀ b : ℂ,
+            b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              a ≠ b → ε + ε < dist a b)
+    (hregular :
+      ε ∉ finiteRectangleSquareSideForbiddenRadii
+        (explicitFormulaRectangleRawSingularCoordinates T))
+    (hleft_decomp :
+      zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) =
+        (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+          zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t) +
+        (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+          zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F t)) :
+    (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+      zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t) +
+      ((∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+          zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F t) +
+        Complex.I *
+          zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteHorizontalRightError
+            f F T) +
+      Complex.I *
+        zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteExcisionError
+          f T ε = 0 := by
+  have hcompleted_boundary :
+      (-(zetaCompletedExplicitFormulaLeftLineIntegral
+            f (F.rectangle T) * Complex.I)) +
+          zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteHorizontalRightError
+            f F T +
+          zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteExcisionError
+            f T ε = 0 :=
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_finiteErrors_eq_zero_selectedRegularRadius_ownerFiniteRectangle
+      f F h hT hε hinterior hboundary hboundaryAvoidance hclosed hsep hregular
+  exact
+    explicitFormula_primeLeftBoundary_of_completedLeftBoundary
+      (zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T))
+      (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+        zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t)
+      (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+        zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F t)
+      (zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteHorizontalRightError
+        f F T)
+      (zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteExcisionError
+        f T ε)
+      hleft_decomp
+      hcompleted_boundary
+
 /-- Finite-radius residue-free rectangle identity after both vertical
 completed-log-derivative sides have been decomposed into their prime and
 inverse-Gamma packets.
@@ -667,7 +1006,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeDifference_add_inv
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :
@@ -776,6 +1115,96 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeDifference_add_inv
       C P G R Q J H E hleft_decomp hright_decomp hcompleted_boundary
   exact hsplit
 
+/-- Selected-radius two-sided finite residue-free rectangle identity after both
+vertical completed-log-derivative sides have been decomposed into prime and
+inverse-Gamma packets. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeDifference_add_inverseGammaDifference_add_finiteErrors_eq_zero_of_vertical_decompositions_selectedRegularRadius
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) {T ε : ℝ} (hT : 0 < T)
+    (hε : 0 < ε)
+    (hinterior :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
+          completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
+            completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
+    (hboundary :
+      ∀ z : ℂ,
+        z ∈ explicitFormulaContourFamilyBoundary F T →
+          ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
+            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (hboundaryAvoidance :
+      ∀ z : ℂ,
+        z ∈ explicitFormulaContourFamilyBoundary F T →
+          z ∉ completedZetaContourIntegrandSingularSet)
+    (hclosed :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T)
+    (hsep :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          ∀ b : ℂ,
+            b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              a ≠ b → ε + ε < dist a b)
+    (hregular :
+      ε ∉ finiteRectangleSquareSideForbiddenRadii
+        (explicitFormulaRectangleRawSingularCoordinates T))
+    (hleft_decomp :
+      zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) =
+        (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+          zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t) +
+        (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+          zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F t))
+    (hright_decomp :
+      zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) =
+        (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+          zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel f F t) +
+        (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+          zetaCompletedExplicitFormulaInverseGammaRightAffineKernel f F t)) :
+    ((∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+        zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t) -
+      ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+        zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel f F t) +
+      (((∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+          zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F t) -
+        ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+          zetaCompletedExplicitFormulaInverseGammaRightAffineKernel f F t) +
+        Complex.I *
+          (zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) -
+            zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T))) +
+      Complex.I *
+        zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteExcisionError
+          f T ε = 0 := by
+  let C : ℂ := zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T)
+  let P : ℂ :=
+    ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+      zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t
+  let G : ℂ :=
+    ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+      zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F t
+  let R : ℂ := zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T)
+  let Q : ℂ :=
+    ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+      zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel f F t
+  let J : ℂ :=
+    ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+      zetaCompletedExplicitFormulaInverseGammaRightAffineKernel f F t
+  let H : ℂ :=
+    zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) -
+      zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T)
+  let E : ℂ :=
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteExcisionError
+      f T ε
+  have hcompleted_boundary :
+      (-(C * Complex.I)) + (R * Complex.I + H) + E = 0 :=
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftTangent_add_finiteErrors_eq_zero_selectedRegularRadius_ownerFiniteRectangle
+      f F h hT hε hinterior hboundary hboundaryAvoidance hclosed hsep hregular
+  have hsplit :
+      (P - Q) + ((G - J) + Complex.I * H) + Complex.I * E = 0 :=
+    explicitFormula_primeLeftBoundary_fullRightSplit_of_completedBoundary
+      C P G R Q J H E hleft_decomp hright_decomp hcompleted_boundary
+  exact hsplit
+
 /-- Finite-radius prime-left residue-free rectangle identity in prime-oriented
 boundary-sum form, with the finite left completed-log-derivative decomposition
 proved from integrability of the two summands. -/
@@ -784,7 +1213,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePri
     (h : ExplicitFormulaFamilyAnalyticPackage f F) {T : ℝ} (hT : 0 < T)
     (hinterior :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
           completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
             completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
     (hboundary :
@@ -865,6 +1294,70 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePri
   exact
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePrimeErrors_eq_zero_of_leftIntegral_decomposition
       f F h hT hinterior hboundary hside hleft_decomp
+
+/-- Selected-radius finite prime-left residue-free rectangle identity in
+prime-oriented boundary-sum form, with the left decomposition proved from
+integrability of the two summands. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePrimeErrors_eq_zero_selectedRegularRadius_ownerFiniteRectangle
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) {T ε : ℝ} (hT : 0 < T)
+    (hε : 0 < ε)
+    (hinterior :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
+          completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
+            completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet)
+    (hboundary :
+      ∀ z : ℂ,
+        z ∈ explicitFormulaContourFamilyBoundary F T →
+          ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
+            DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (hboundaryAvoidance :
+      ∀ z : ℂ,
+        z ∈ explicitFormulaContourFamilyBoundary F T →
+          z ∉ completedZetaContourIntegrandSingularSet)
+    (hclosed :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          Metric.closedBall a ε ⊆ explicitFormulaContourFamilyInterior F T)
+    (hsep :
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+          ∀ b : ℂ,
+            b ∈ explicitFormulaRectangleRawSingularCoordinates T →
+              a ≠ b → ε + ε < dist a b)
+    (hregular :
+      ε ∉ finiteRectangleSquareSideForbiddenRadii
+        (explicitFormulaRectangleRawSingularCoordinates T))
+    (hprime :
+      IntegrableOn
+        (zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F)
+        (Set.Icc (-(F.rectangle T).T) (F.rectangle T).T))
+    (hinverseGamma :
+      IntegrableOn
+        (zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F)
+        (Set.Icc (-(F.rectangle T).T) (F.rectangle T).T)) :
+    (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+      zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t) +
+      ((∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+          zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F t) +
+        Complex.I *
+          zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteHorizontalRightError
+            f F T) +
+      Complex.I *
+        zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteExcisionError
+          f T ε = 0 := by
+  have hleft_decomp :
+      zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T) =
+        (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+          zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t) +
+        (∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
+          zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F t) :=
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftIntegral_eq_prime_add_inverseGamma_of_integrableOn
+      f F T hprime hinverseGamma
+  exact
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePrimeErrors_eq_zero_of_leftIntegral_decomposition_selectedRegularRadius
+      f F h hT hε hinterior hboundary hboundaryAvoidance hclosed hsep hregular hleft_decomp
 
 end ZetaAdmissibleFunction
 

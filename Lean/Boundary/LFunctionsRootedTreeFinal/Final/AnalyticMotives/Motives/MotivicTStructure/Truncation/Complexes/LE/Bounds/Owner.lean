@@ -1,5 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.MotivicTStructure.Truncation.Complexes.LE.Objects.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Comparison.Weights.Source.Bounds.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Weights.AdditiveEnvelope.Bounds.Complexes.Owner
 
 /-!
 # Bounded lower analytic truncations
@@ -23,7 +23,7 @@ def additiveTruncLEBound
     (cut : ℤ)
     {bound : Nat}
     (complex :
-      TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound) :
+      TraceAnalyticAdditiveCochainComplex.WeightBoundedBy bound) :
     Nat :=
   Nat.max
     bound
@@ -36,7 +36,7 @@ theorem additiveTruncLEBound_original_le
     (cut : ℤ)
     {bound : Nat}
     (complex :
-      TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound) :
+      TraceAnalyticAdditiveCochainComplex.WeightBoundedBy bound) :
     bound ≤
       TraceAnalyticMotivicTStructure.additiveTruncLEBound cut complex :=
   Nat.le_max_left
@@ -50,7 +50,7 @@ theorem additiveTruncLEBound_boundary_le
     (cut : ℤ)
     {bound : Nat}
     (complex :
-      TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound) :
+      TraceAnalyticAdditiveCochainComplex.WeightBoundedBy bound) :
     (TraceAnalyticMotivicTStructure.additiveTruncLE
       cut
       complex.complex).degreeWeight cut ≤
@@ -67,7 +67,7 @@ theorem additiveTruncLE_degreeWeight_le_of_boundary
     (cut : ℤ)
     {bound : Nat}
     (complex :
-      TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound)
+      TraceAnalyticAdditiveCochainComplex.WeightBoundedBy bound)
     [∀ degree, complex.complex.HasHomology degree]
     (degree : ℤ)
     (tail : ℕ)
@@ -106,7 +106,7 @@ theorem additiveTruncLE_degreeWeight_le_of_not_boundary
     (cut : ℤ)
     {bound : Nat}
     (complex :
-      TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound)
+      TraceAnalyticAdditiveCochainComplex.WeightBoundedBy bound)
     [∀ degree, complex.complex.HasHomology degree]
     (degree : ℤ)
     (tail : ℕ)
@@ -164,7 +164,7 @@ theorem additiveTruncLE_degreeWeight_le_of_r_eq_none
     (cut : ℤ)
     {bound : Nat}
     (complex :
-      TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound)
+      TraceAnalyticAdditiveCochainComplex.WeightBoundedBy bound)
     [∀ degree, complex.complex.HasHomology degree]
     (degree : ℤ)
     (htail :
@@ -206,7 +206,7 @@ theorem additiveTruncLE_degreeWeight_le
     (cut : ℤ)
     {bound : Nat}
     (complex :
-      TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound)
+      TraceAnalyticAdditiveCochainComplex.WeightBoundedBy bound)
     [∀ degree, complex.complex.HasHomology degree]
     (degree : ℤ) :
     (TraceAnalyticMotivicTStructure.additiveTruncLE
@@ -251,9 +251,9 @@ def sourceAdditiveTruncLEWeightBoundedBy
     (cut : ℤ)
     {bound : Nat}
     (complex :
-      TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound)
+      TraceAnalyticAdditiveCochainComplex.WeightBoundedBy bound)
     [∀ degree, complex.complex.HasHomology degree] :
-    TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy
+    TraceAnalyticAdditiveCochainComplex.WeightBoundedBy
       (TraceAnalyticMotivicTStructure.additiveTruncLEBound cut complex) :=
   ⟨
     TraceAnalyticMotivicTStructure.additiveTruncLE cut complex.complex,
@@ -268,7 +268,7 @@ theorem sourceAdditiveTruncLEWeightBoundedBy_complex
     (cut : ℤ)
     {bound : Nat}
     (complex :
-      TraceAnalyticMotiveComparison.SourceComplexWeightBoundedBy bound)
+      TraceAnalyticAdditiveCochainComplex.WeightBoundedBy bound)
     [∀ degree, complex.complex.HasHomology degree] :
     (TraceAnalyticMotivicTStructure.sourceAdditiveTruncLEWeightBoundedBy
         cut

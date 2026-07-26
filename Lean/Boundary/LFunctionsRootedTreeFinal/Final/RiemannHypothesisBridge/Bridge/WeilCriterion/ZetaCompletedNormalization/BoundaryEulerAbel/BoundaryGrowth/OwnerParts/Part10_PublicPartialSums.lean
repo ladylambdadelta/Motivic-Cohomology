@@ -424,6 +424,16 @@ theorem boundaryLineOnePointRealParam_verticalTruncationHypotheses
     ⟨hpartial,
       boundaryLineOnePointRealParam_logarithmicPhaseFiniteTailBoundedOwner t ht⟩
 
+/-- The complex boundary-line hypothesis is owned by the real-parameter
+Abel-tail package.  This transport is deliberately explicit so the later
+polynomial boundary-growth theorem does not carry an artificial hypothesis. -/
+theorem boundaryLineOneVerticalTruncationHypotheses_owner
+    (w : ℂ)
+    (_hw : w.re = 1)
+    (ht : 1 ≤ ‖w.im‖) :
+    boundaryLineOneVerticalTruncationHypotheses w := by
+  exact boundaryLineOnePointRealParam_verticalTruncationHypotheses w.im ht
+
 
 end
 end LFunctions

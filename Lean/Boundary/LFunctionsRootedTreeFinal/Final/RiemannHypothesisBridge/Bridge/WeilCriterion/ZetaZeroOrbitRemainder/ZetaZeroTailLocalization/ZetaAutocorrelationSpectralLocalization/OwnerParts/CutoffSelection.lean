@@ -109,7 +109,7 @@ theorem exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_from_e
               zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
           A * zetaCompletedZeroCenteredHeight
             (⟨(ρ : ℂ), ρ.2.1⟩ :
-              {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) < ε := by
+              {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) < ε :=
   let β :=
     {ρ : ℂ //
       ZetaCompletedZero ρ ∧
@@ -153,7 +153,7 @@ theorem exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_from_e
                       zetaCenteredZero z ∉ daggerClosedSpectralSampleFinset P)
                     hρZero_eq
                     ρZero.2.2.2
-      have htail_transport :
+      let htail_transport :
           (∑' ρ :
             {ρ : ℂ //
               ZetaCompletedZero ρ ∧
@@ -163,7 +163,7 @@ theorem exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_from_e
             A * zetaCompletedZeroCenteredHeight
               (⟨(ρ : ℂ), ρ.2.1⟩ :
                 {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) =
-            ∑' ρ : {ρ : β // ρ ∉ U}, envelopeβ ρ := by
+            ∑' ρ : {ρ : β // ρ ∉ U}, envelopeβ ρ :=
         let γ :=
           {ρ : ℂ //
             ZetaCompletedZero ρ ∧
@@ -188,7 +188,7 @@ theorem exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_from_e
               A * zetaCompletedZeroCenteredHeight
                 (⟨(ρ : ℂ), ρ.2.1⟩ :
                   {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)))).symm
-        have hterm :
+        let hterm :
             (fun ρ : δ =>
               A * zetaCompletedZeroCenteredHeight
                 (⟨((tailEquiv.symm ρ : γ) : ℂ),
@@ -196,11 +196,10 @@ theorem exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_from_e
                   {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) =
               fun ρ : δ => envelopeβ ρ :=
           funext (fun ρ => Eq.refl (envelopeβ ρ))
-        exact
-          Eq.trans hraw
-            (congrArg
-              (fun F : δ → ℝ => ∑' ρ : δ, F ρ)
-              hterm)
+        Eq.trans hraw
+          (congrArg
+            (fun F : δ → ℝ => ∑' ρ : δ, F ρ)
+            hterm)
       have htail :
           (∑' ρ :
             {ρ : ℂ //
@@ -215,7 +214,11 @@ theorem exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_from_e
           (motive := fun x : ℝ => x < ε)
           htail_transport.symm
           hUtail
-      exact ⟨T, hT₀T, hT, htail⟩
+      Exists.intro
+        T
+        (And.intro
+          hT₀T
+          (And.intro hT htail))
 
 /-- Public supported non-dagger cutoff for a summable completed-zero envelope. -/
 theorem exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_supported
@@ -245,10 +248,9 @@ theorem exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_suppor
               zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
           A * zetaCompletedZeroCenteredHeight
             (⟨(ρ : ℂ), ρ.2.1⟩ :
-              {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) < ε := by
-  exact
-    exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_from_eventual_complement
-      S P T₀ hT₀ ε hε A k hsum
+              {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ))) < ε :=
+  exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_from_eventual_complement
+    S P T₀ hT₀ ε hε A k hsum
 
 end ZetaAdmissibleFunction
 end

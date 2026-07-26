@@ -353,6 +353,55 @@ theorem leftBoundary_completedFunctionalEquation_poleClearing_ratio_growth_bound
       _ ≤ 2 * Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (1 : ℕ)) := by
         exact le_mul_of_one_le_right zero_le_two hone_le_exp⟩
 
+/-! The same elementary factor is uniformly bounded on the left vertical
+tail.  This is the polynomial form consumed by the direct Gamma-ratio
+cancellation owner. -/
+theorem leftBoundary_completedFunctionalEquation_poleClearing_ratio_polynomial_bound :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ,
+        z.re = 0 →
+        1 ≤ ‖z.im‖ →
+        ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ ≤ A * (1 + ‖z‖) ^ m := by
+  refine ⟨2, 0, zero_lt_two, fun z hz_re hz_im => ?_⟩
+  have hz_norm_ge_one : (1 : ℝ) ≤ ‖z‖ :=
+    one_le_norm_of_one_le_norm_im hz_im
+  have hz_norm_pos : 0 < ‖z‖ :=
+    lt_of_lt_of_le zero_lt_one hz_norm_ge_one
+  have hden_eq : (((1 : ℂ) - z) - 1) = -z := by
+    calc
+      (((1 : ℂ) - z) - 1) = ((1 : ℂ) - 1) - z :=
+        sub_right_comm (1 : ℂ) z 1
+      _ = 0 - z := congrArg (fun x : ℂ => x - z) (sub_self (1 : ℂ))
+      _ = -z := zero_sub z
+  have hnum : ‖z - 1‖ ≤ 2 * ‖z‖ := by
+    calc
+      ‖z - 1‖ ≤ ‖z‖ + 1 :=
+        le_trans (norm_sub_le z (1 : ℂ))
+          (le_of_eq (congrArg (fun x : ℝ => ‖z‖ + x) norm_one))
+      _ ≤ ‖z‖ + ‖z‖ := add_le_add_left hz_norm_ge_one ‖z‖
+      _ = 2 * ‖z‖ := (two_mul ‖z‖).symm
+  have hratio :
+      ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ ≤ 2 := by
+    calc
+      ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ = ‖z - 1‖ / ‖z‖ := by
+        calc
+          ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ =
+              ‖z - 1‖ / ‖(((1 : ℂ) - z) - 1)‖ :=
+            norm_div _ _
+          _ = ‖z - 1‖ / ‖z‖ := by
+            exact congrArg (fun x : ℝ => ‖z - 1‖ / x)
+              (Eq.trans (congrArg norm hden_eq) (norm_neg z))
+      _ ≤ (2 * ‖z‖) / ‖z‖ :=
+        div_le_div_of_nonneg_right hnum (norm_nonneg z)
+      _ = 2 := mul_div_cancel_right₀ 2 (ne_of_gt hz_norm_pos)
+  have hone : (1 : ℝ) ≤ (1 + ‖z‖) ^ (0 : ℕ) := by
+    exact le_of_eq (pow_zero (1 + ‖z‖)).symm
+  calc
+    ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ ≤ 2 := hratio
+    _ ≤ 2 * (1 + ‖z‖) ^ (0 : ℕ) := by
+      exact le_mul_of_one_le_right zero_le_two hone
+
 /-- A positive polynomial vertical-height bound is an exponential finite-order bound in the
 same vertical-height variable. -/
 theorem vertical_polynomial_growth_bound_to_exponential_growth_bound

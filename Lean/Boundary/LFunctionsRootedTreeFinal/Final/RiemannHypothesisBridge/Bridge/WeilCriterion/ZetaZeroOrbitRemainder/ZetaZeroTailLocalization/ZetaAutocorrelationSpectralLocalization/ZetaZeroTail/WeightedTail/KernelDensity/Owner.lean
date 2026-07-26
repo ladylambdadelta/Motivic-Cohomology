@@ -81,7 +81,7 @@ theorem finiteSpectralZeroOperator_complementDistance_summand_eq
         (congrArg (fun value : ℂ => ‖target rho - value‖) hcoordinate)
         (if_neg hmembership).symm)
 
-theorem exists_zetaCompletedZeroSideCoordinateL1_kernel_approximation
+theorem exists_quantitativeCarrierSeparation_kernel_complementDistance_lt
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -127,6 +127,72 @@ theorem exists_zetaCompletedZeroSideCoordinateL1_kernel_approximation
       (motive := fun value : ℝ => value < epsilon)
       hdistanceIdentity.symm
       hseedApproximation⟩
+
+/-- Quantitative carrier-separated kernel approximation with the explicit
+finite reciprocal-multiplier constant retained for downstream estimates. -/
+theorem exists_quantitativeCarrierSeparation_kernel_complementDistance_lt_with_carrierBound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (P : Finset ℂ)
+    (carrier : Finset ZetaCompletedZeroCoordinate)
+    (hdisjoint :
+      ∀ rho : ZetaCompletedZeroCoordinate,
+        rho ∈ carrier → (rho : ℂ) ∉ P)
+    (target : lp (fun rho : ZetaCompletedZeroCoordinate => ℂ) (1 : ENNReal))
+    (epsilon : ℝ)
+    (hepsilon : 0 < epsilon) :
+    ∃ (C : ℝ) (f : ZetaAdmissibleFunction),
+      0 ≤ C ∧
+        (∀ rho : ZetaCompletedZeroCoordinate,
+          rho ∈ carrier →
+            finiteSpectralZeroMultiplier P (rho : ℂ) ≠ 0 ∧
+              ‖(finiteSpectralZeroMultiplier P (rho : ℂ))⁻¹‖ ≤ C) ∧
+        (∀ z : ℂ, z ∈ P → zetaSpectralEval f z = 0) ∧
+          zetaCompletedZeroCoordinateComplementL1Distance P target
+            (zetaCompletedZeroSideCoordinateL1LinearMap
+              hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
+              f) < epsilon := by
+  let C : ℝ := finiteSpectralZeroMultiplierCarrierInverseNormBound P carrier
+  have hcarrierSeparation :
+      0 ≤ C ∧
+        ∀ rho : ZetaCompletedZeroCoordinate,
+          rho ∈ carrier →
+            finiteSpectralZeroMultiplier P (rho : ℂ) ≠ 0 ∧
+              ‖(finiteSpectralZeroMultiplier P (rho : ℂ))⁻¹‖ ≤ C :=
+    finiteSpectralZeroMultiplier_quantitativeCarrierSeparation
+      P carrier hdisjoint
+  match
+    exists_quantitativeCarrierSeparation_kernel_complementDistance_lt
+      hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
+      P target epsilon hepsilon with
+  | ⟨f, hkernel, hdistance⟩ =>
+      exact
+        ⟨C, f, hcarrierSeparation.1, hcarrierSeparation.2, hkernel, hdistance⟩
+
+theorem exists_zetaCompletedZeroSideCoordinateL1_kernel_approximation
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hfinite : PoleClearedRightCriticalStripAdmissibleGrowth)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
+    (P : Finset ℂ)
+    (target : lp (fun rho : ZetaCompletedZeroCoordinate => ℂ) (1 : ENNReal))
+    (epsilon : ℝ)
+    (hepsilon : 0 < epsilon) :
+    ∃ f : ZetaAdmissibleFunction,
+      (∀ z : ℂ, z ∈ P → zetaSpectralEval f z = 0) ∧
+        zetaCompletedZeroCoordinateComplementL1Distance P target
+          (zetaCompletedZeroSideCoordinateL1LinearMap
+            hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
+            f) < epsilon :=
+  exists_quantitativeCarrierSeparation_kernel_complementDistance_lt
+    hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
+    P target epsilon hepsilon
 
 theorem zetaCompletedZeroSideCoordinateL1Closure_eq_univ_of_kernelDensity
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)

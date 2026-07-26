@@ -43,7 +43,7 @@ theorem zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_nonDagger_
             zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
         A * zetaCompletedZeroCenteredHeight
           (⟨(ρ : ℂ), ρ.2.1⟩ :
-            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) := by
+            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) :=
   let γ := {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T}
   let δ :=
     {ρ : ℂ //
@@ -114,37 +114,36 @@ theorem zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_nonDagger_
       (motive := fun sequence : γ → ℝ => Summable sequence)
       henvelopeγ_eq
       henvelopeγ_restricted_summable
-  have hnorm_summable : Summable (fun ρ : γ => ‖contribution ρ‖) := by
-    have hnorm_bound : ∀ ρ : γ, ‖‖contribution ρ‖‖ ≤ envelopeγ ρ := by
-      intro ρ
+  let hnorm_bound : ∀ ρ : γ, ‖‖contribution ρ‖‖ ≤ envelopeγ ρ :=
+    fun ρ =>
       match (inferInstance :
           Decidable (zetaCenteredZero (ρ : ℂ) ∈ daggerClosedSpectralSampleFinset P)) with
       | isTrue hρDagger =>
-          have hzero : contribution ρ = 0 :=
+          let hzero : contribution ρ = 0 :=
             hforcedZero ρ hρDagger
-          have hnorm_zero_raw : ‖contribution ρ‖ = ‖(0 : ℂ)‖ :=
+          let hnorm_zero_raw : ‖contribution ρ‖ = ‖(0 : ℂ)‖ :=
             congrArg norm hzero
-          have hnorm_zero : ‖contribution ρ‖ = 0 :=
+          let hnorm_zero : ‖contribution ρ‖ = 0 :=
             Eq.trans hnorm_zero_raw norm_zero
-          have henv_nonneg : 0 ≤ envelopeγ ρ :=
+          let henv_nonneg : 0 ≤ envelopeγ ρ :=
             zetaZeroMultiplicityTransformEnvelope_nonnegative hA k
               (⟨(ρ : ℂ), ρ.2.1⟩ :
                 {ρ : ℂ // ZetaCompletedZero ρ})
-          have hnormNorm :
+          let hnormNorm :
               ‖‖contribution ρ‖‖ = ‖contribution ρ‖ :=
             norm_norm (contribution ρ)
-          exact
-            le_trans (le_of_eq hnormNorm)
-              (le_trans (le_of_eq hnorm_zero) henv_nonneg)
+          le_trans (le_of_eq hnormNorm)
+            (le_trans (le_of_eq hnorm_zero) henv_nonneg)
       | isFalse hρNonDagger =>
-          have hnormNorm :
+          let hnormNorm :
               ‖‖contribution ρ‖‖ = ‖contribution ρ‖ :=
             norm_norm (contribution ρ)
-          have hbound : ‖contribution ρ‖ ≤ envelopeγ ρ :=
+          let hbound : ‖contribution ρ‖ ≤ envelopeγ ρ :=
             hboundNonDagger
               (⟨(ρ : ℂ), ρ.2.1, ρ.2.2.1, ρ.2.2.2, hρNonDagger⟩ : δ)
-          exact le_trans (le_of_eq hnormNorm) hbound
-    exact Summable.of_norm_bounded envelopeγ henvelopeγ_summable hnorm_bound
+          le_trans (le_of_eq hnormNorm) hbound
+  let hnorm_summable : Summable (fun ρ : γ => ‖contribution ρ‖) :=
+    Summable.of_norm_bounded envelopeγ henvelopeγ_summable hnorm_bound
   have hnorm_tsum :
       ‖(∑' ρ : γ, contribution ρ)‖ ≤
         ∑' ρ : γ, ‖contribution ρ‖ :=
@@ -174,8 +173,8 @@ theorem zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_nonDagger_
     tsum_subtype_add_tsum_subtype_compl hnorm_summable nonDagger
   have hdagger_zero_pointwise :
       ∀ ρ : (nonDaggerᶜ : Set γ), ‖contribution ρ‖ = 0 :=
-    fun ρ => by
-      have hρDagger :
+    fun ρ =>
+      let hρDagger :
           zetaCenteredZero ((ρ : γ) : ℂ) ∈ daggerClosedSpectralSampleFinset P :=
         match (inferInstance :
             Decidable
@@ -185,11 +184,11 @@ theorem zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_nonDagger_
             hρDagger
         | isFalse hρNonDagger =>
             False.elim (ρ.2 hρNonDagger)
-      have hzero : contribution (ρ : γ) = 0 :=
+      let hzero : contribution (ρ : γ) = 0 :=
         hforcedZero (ρ : γ) hρDagger
-      have hnormZeroRaw : ‖contribution (ρ : γ)‖ = ‖(0 : ℂ)‖ :=
+      let hnormZeroRaw : ‖contribution (ρ : γ)‖ = ‖(0 : ℂ)‖ :=
         congrArg norm hzero
-      exact Eq.trans hnormZeroRaw norm_zero
+      Eq.trans hnormZeroRaw norm_zero
   have hdagger_zero_fun :
       (fun ρ : (nonDaggerᶜ : Set γ) => ‖contribution ρ‖) =
         fun zeroElement : (nonDaggerᶜ : Set γ) => 0 :=
@@ -207,9 +206,9 @@ theorem zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_nonDagger_
         ∑' ρ : δ, ‖contribution (nonDaggerEquiv ρ : γ)‖ :=
     ((nonDaggerEquiv).tsum_eq
       (fun ρ : nonDagger => ‖contribution ρ‖)).symm
-  have hnondagger_bound :
+  let hnondagger_bound :
       (∑' ρ : δ, ‖contribution (nonDaggerEquiv ρ : γ)‖) ≤
-        ∑' ρ : δ, envelopeδ ρ := by
+        ∑' ρ : δ, envelopeδ ρ :=
     let completedZeroMapδ : δ → {ρ : ℂ // ZetaCompletedZero ρ} :=
       fun ρ => ⟨(ρ : ℂ), ρ.2.1⟩
     have hcompletedZeroMapδ_injective : Function.Injective completedZeroMapδ :=
@@ -259,44 +258,44 @@ theorem zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_nonDagger_
         (motive := fun sequence : δ → ℝ => Summable sequence)
         henvelopeδ_eq
         henvelopeδ_restricted_summable
-    have hnormδ_summable :
+    let hnormδ_bound :
+        ∀ ρ : δ,
+          ‖‖contribution (nonDaggerEquiv ρ : γ)‖‖ ≤ envelopeδ ρ :=
+      fun ρ =>
+        let hnormNorm :
+            ‖‖contribution (nonDaggerEquiv ρ : γ)‖‖ =
+              ‖contribution (nonDaggerEquiv ρ : γ)‖ :=
+          norm_norm (contribution (nonDaggerEquiv ρ : γ))
+        le_trans (le_of_eq hnormNorm) (hboundNonDagger ρ)
+    let hnormδ_summable :
         Summable (fun ρ : δ => ‖contribution (nonDaggerEquiv ρ : γ)‖) :=
       Summable.of_norm_bounded envelopeδ henvelopeδ_summable
-        (fun ρ => by
-          have hnormNorm :
-              ‖‖contribution (nonDaggerEquiv ρ : γ)‖‖ =
-                ‖contribution (nonDaggerEquiv ρ : γ)‖ :=
-            norm_norm (contribution (nonDaggerEquiv ρ : γ))
-          exact
-            le_trans (le_of_eq hnormNorm) (hboundNonDagger ρ))
-    exact
-      tsum_le_tsum
-        (fun ρ => hboundNonDagger ρ)
-        hnormδ_summable
-        henvelopeδ_summable
-  have hnorm_sum_le_nondagger :
+        hnormδ_bound
+    tsum_le_tsum
+      (fun ρ => hboundNonDagger ρ)
+      hnormδ_summable
+      henvelopeδ_summable
+  let hnorm_sum_le_nondagger :
       (∑' ρ : γ, ‖contribution ρ‖) ≤
-        ∑' ρ : δ, envelopeδ ρ := by
-    have hsum_eq_nondagger :
+        ∑' ρ : δ, envelopeδ ρ :=
+    let hsum_eq_nondagger :
         (∑' ρ : γ, ‖contribution ρ‖) =
-          ∑' ρ : nonDagger, ‖contribution ρ‖ := by
-      exact
-        Eq.trans
-          hsplit.symm
-          (Eq.trans
-            (congrArg
-              (fun x : ℝ => (∑' ρ : nonDagger, ‖contribution ρ‖) + x)
-              hdagger_zero_tsum)
-            (add_zero (∑' ρ : nonDagger, ‖contribution ρ‖)))
-    exact
-      Eq.subst
+          ∑' ρ : nonDagger, ‖contribution ρ‖ :=
+      Eq.trans
+        hsplit.symm
+        (Eq.trans
+          (congrArg
+            (fun x : ℝ => (∑' ρ : nonDagger, ‖contribution ρ‖) + x)
+            hdagger_zero_tsum)
+          (add_zero (∑' ρ : nonDagger, ‖contribution ρ‖)))
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ ∑' ρ : δ, envelopeδ ρ)
+      hsum_eq_nondagger.symm
+      (Eq.subst
         (motive := fun x : ℝ => x ≤ ∑' ρ : δ, envelopeδ ρ)
-        hsum_eq_nondagger.symm
-        (Eq.subst
-          (motive := fun x : ℝ => x ≤ ∑' ρ : δ, envelopeδ ρ)
-          hnondagger_transport.symm
-          hnondagger_bound)
-  exact le_trans hnorm_tsum hnorm_sum_le_nondagger
+        hnondagger_transport.symm
+        hnondagger_bound)
+  le_trans hnorm_tsum hnorm_sum_le_nondagger
 
 end ZetaAdmissibleFunction
 end

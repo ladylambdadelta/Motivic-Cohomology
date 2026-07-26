@@ -1192,8 +1192,8 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledRectangleCau
     zetaCompletedExplicitFormulaCorrectionRightOnePole_eventually_scheduledRectangleCauchyCancellation_of_eventual_tangentCauchy
       f F h A hApos htangent
 
-/-- Compatibility name for the scheduled right-face one-pole Cauchy package. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledRectangleCauchyCancellation_ownerGap
+/-- Owner name for the scheduled right-face one-pole Cauchy package. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledRectangleCauchyCancellation_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (A : ℝ)

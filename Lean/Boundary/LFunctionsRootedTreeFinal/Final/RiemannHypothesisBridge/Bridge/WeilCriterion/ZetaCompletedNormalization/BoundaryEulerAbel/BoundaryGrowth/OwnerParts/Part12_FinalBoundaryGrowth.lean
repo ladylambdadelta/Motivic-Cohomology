@@ -351,6 +351,21 @@ theorem riemannZeta_poleCleared_boundaryLine_one_vertical_polynomial_growth_boun
     boundaryLineOneVerticalTruncationHypotheses
     classicalZeta_poleCleared_boundaryLine_one_vertical_log_linear_growth_bound
 
+/-- The boundary polynomial estimate with its Abel-tail input discharged at
+the real-parameter owner level. -/
+theorem riemannZeta_poleCleared_boundaryLine_one_vertical_polynomial_growth_bound_owner :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ w : ℂ,
+        w.re = 1 →
+        1 ≤ ‖w.im‖ →
+        ‖(w - 1) * riemannZeta w‖ ≤
+          A * (1 + ‖w.im‖) ^ m := by
+  match riemannZeta_poleCleared_boundaryLine_one_vertical_polynomial_growth_bound_standard with
+  | ⟨A, m, hA, hbound⟩ =>
+      exact ⟨A, m, hA, fun w hw ht =>
+        hbound w hw ht (boundaryLineOneVerticalTruncationHypotheses_owner w hw ht)⟩
+
 /-- Standard finite-order vertical growth of the pole-cleared zeta factor on the boundary
 line `re = 1`, converted from the polynomial boundary-line estimate.
 
@@ -370,6 +385,22 @@ theorem riemannZeta_poleCleared_boundaryLine_one_vertical_growth_bound_standard 
   exact boundaryLine_one_polynomial_growth_bound_to_exponential_growth_bound_of_condition
     boundaryLineOneVerticalTruncationHypotheses
     riemannZeta_poleCleared_boundaryLine_one_vertical_polynomial_growth_bound_standard
+
+/-- The finite-order boundary estimate with the Abel-tail condition discharged
+by the boundary owner. -/
+theorem riemannZeta_poleCleared_boundaryLine_one_vertical_growth_bound_owner :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ w : ℂ,
+        w.re = 1 →
+        1 ≤ ‖w.im‖ →
+        ‖(w - 1) * riemannZeta w‖ ≤
+          A * Real.exp (B * (1 + ‖w.im‖) ^ m) := by
+  match riemannZeta_poleCleared_boundaryLine_one_vertical_growth_bound_standard with
+  | ⟨A, B, m, hA, hB, hbound⟩ =>
+      exact ⟨A, B, m, hA, hB, fun w hw ht =>
+        hbound w hw ht (boundaryLineOneVerticalTruncationHypotheses_owner w hw ht)⟩
 
 /-- The standard vertical-height finite-order estimate for `(s - 1)ζ(s)` on `re = 1`
 implies the complex-height envelope consumed by the strip-normalization chain. -/

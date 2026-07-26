@@ -51,7 +51,7 @@ theorem zetaCompletedZeroPolynomialEnvelope_heightWindow_tail_le_cutoff_tail
           ρ ∉ daggerClosedSpectralSampleFinset P},
         A * zetaCompletedZeroCenteredHeight
           (⟨(ρ : ℂ), ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
-            (-(k + 3 : ℤ)) := by
+            (-(k + 3 : ℤ)) :=
   let α := {ρ : ℂ //
     ZetaCompletedZero ρ ∧
       ρ ∉ S ∧
@@ -81,35 +81,33 @@ theorem zetaCompletedZeroPolynomialEnvelope_heightWindow_tail_le_cutoff_tail
         fun hρT =>
           ρ.2.2.2 (hcover (ρ : ℂ) hρT),
         hSeparated (ρ : ℂ) ρ.2.1 ρ.2.2.1⟩
-  have hinclusion : Function.Injective inclusion :=
+  let hinclusion : Function.Injective inclusion :=
     fun left right heq =>
       Subtype.ext
         (congrArg (fun value : β => (value : ℂ)) heq)
-  have hsumα : Summable envelopeα :=
+  let hsumα : Summable envelopeα :=
     zetaCompletedZeroPolynomialEnvelope_comp_summable
       A k zeroMapα
       (fun left right heq =>
         Subtype.ext
           (congrArg (fun value : {ρ : ℂ // ZetaCompletedZero ρ} => (value : ℂ)) heq))
       hsum
-  have hsumβ : Summable envelopeβ :=
+  let hsumβ : Summable envelopeβ :=
     zetaCompletedZeroPolynomialEnvelope_comp_summable
       A k zeroMapβ
       (fun left right heq =>
         Subtype.ext
           (congrArg (fun value : {ρ : ℂ // ZetaCompletedZero ρ} => (value : ℂ)) heq))
       hsum
-  have hnonnegative :
+  let hnonnegative :
       ∀ ρ : β, 0 ≤ envelopeβ ρ :=
     fun ρ =>
       zetaZeroMultiplicityTransformEnvelope_nonnegative hA k
         (⟨(ρ : ℂ), ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ})
-  change (∑' ρ : α, envelopeα ρ) ≤ ∑' ρ : β, envelopeβ ρ
-  exact
-    tsum_le_tsum_of_inj inclusion hinclusion
-      (fun ρ _hρ => hnonnegative ρ)
-      (fun ρ => le_of_eq (Eq.refl (envelopeα ρ)))
-      hsumα hsumβ
+  tsum_le_tsum_of_inj inclusion hinclusion
+    (fun ρ hρ => hnonnegative ρ)
+    (fun ρ => le_of_eq (Eq.refl (envelopeα ρ)))
+    hsumα hsumβ
 
 /-- A fixed summable polynomial completed-zero envelope has arbitrarily small
 complementary mass outside a canonical finite non-dagger height window. -/
@@ -137,40 +135,43 @@ theorem exists_zetaCompletedZeroPolynomialEnvelope_nonDaggerHeightWindow_tail_lt
           ρ ∉ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R},
         A * zetaCompletedZeroCenteredHeight
           (⟨(ρ : ℂ), ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
-            (-(k + 3 : ℤ))) < ε := by
-  have hemptyZero : ∀ ρ : ℂ, ρ ∈ (∅ : Finset ℂ) → ZetaCompletedZero ρ :=
+            (-(k + 3 : ℤ))) < ε :=
+  let hemptyZero : ∀ ρ : ℂ, ρ ∈ (∅ : Finset ℂ) → ZetaCompletedZero ρ :=
     fun ρ hρ => False.elim (Finset.not_mem_empty ρ hρ)
-  have hemptyOutside : ∀ ρ : ℂ, ρ ∈ (∅ : Finset ℂ) → ρ ∉ S :=
+  let hemptyOutside : ∀ ρ : ℂ, ρ ∈ (∅ : Finset ℂ) → ρ ∉ S :=
     fun ρ hρ => False.elim (Finset.not_mem_empty ρ hρ)
-  have hemptyDagger :
+  let hemptyDagger :
       ∀ ρ : ℂ, ρ ∈ (∅ : Finset ℂ) →
         ρ ∉ daggerClosedSpectralSampleFinset P :=
     fun ρ hρ => False.elim (Finset.not_mem_empty ρ hρ)
-  obtain ⟨T, _hemptySubset, hTzero, hTS, hTdagger, hcutoff⟩ :=
+  match
     exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_supported_data
-      S P ∅ hemptyZero hemptyOutside hemptyDagger ε hε A k hsum
-  obtain ⟨R, hcover⟩ :=
-    exists_nonDaggerHeightWindow_cover_finite_completedZeros
-      S P T hTzero hTS hTdagger
-  have hmonotone :
-      (∑' ρ : {ρ : ℂ //
-        ZetaCompletedZero ρ ∧
-          ρ ∉ S ∧
-          ρ ∉ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R},
-        A * zetaCompletedZeroCenteredHeight
-          (⟨(ρ : ℂ), ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
-            (-(k + 3 : ℤ))) ≤
-        ∑' ρ : {ρ : ℂ //
-          ZetaCompletedZero ρ ∧
-            ρ ∉ S ∧
-            ρ ∉ T ∧
-            ρ ∉ daggerClosedSpectralSampleFinset P},
-          A * zetaCompletedZeroCenteredHeight
-            (⟨(ρ : ℂ), ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
-              (-(k + 3 : ℤ)) :=
-    zetaCompletedZeroPolynomialEnvelope_heightWindow_tail_le_cutoff_tail
-      S P T R hcover hSeparated A k hA hsum
-  exact ⟨R, lt_of_le_of_lt hmonotone hcutoff⟩
+      S P ∅ hemptyZero hemptyOutside hemptyDagger ε hε A k hsum with
+  | ⟨T, hemptySubset, hTzero, hTS, hTdagger, hcutoff⟩ =>
+      match
+          exists_nonDaggerHeightWindow_cover_finite_completedZeros
+            S P T hTzero hTS hTdagger
+      with
+      | ⟨R, hcover⟩ =>
+          let hmonotone :
+              (∑' ρ : {ρ : ℂ //
+                ZetaCompletedZero ρ ∧
+                  ρ ∉ S ∧
+                  ρ ∉ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R},
+                A * zetaCompletedZeroCenteredHeight
+                  (⟨(ρ : ℂ), ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
+                    (-(k + 3 : ℤ))) ≤
+                ∑' ρ : {ρ : ℂ //
+                  ZetaCompletedZero ρ ∧
+                    ρ ∉ S ∧
+                    ρ ∉ T ∧
+                    ρ ∉ daggerClosedSpectralSampleFinset P},
+                  A * zetaCompletedZeroCenteredHeight
+                    (⟨(ρ : ℂ), ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
+                      (-(k + 3 : ℤ)) :=
+            zetaCompletedZeroPolynomialEnvelope_heightWindow_tail_le_cutoff_tail
+              S P T R hcover hSeparated A k hA hsum
+          ⟨R, lt_of_le_of_lt hmonotone hcutoff⟩
 
 /-- At every cardinal-construction radius, the resulting concrete envelope has a
 possibly later canonical height window with arbitrarily small complementary mass. -/
@@ -202,16 +203,19 @@ theorem exists_autocorrelationSpectralEvalFiberCardinalEnvelopeData_with_externa
               ρ ∉ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P Rtail},
             data.envelopeConstant * zetaCompletedZeroCenteredHeight
               (⟨(ρ : ℂ), ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
-                (-(data.envelopeOrder + 3 : ℤ))) < ε := by
-  obtain ⟨F, data⟩ :=
+                (-(data.envelopeOrder + 3 : ℤ))) < ε :=
+  match
     exists_autocorrelationSpectralEvalFiberCardinalEnvelopeData_at_radius
       hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
-      S P f₀ R
-  obtain ⟨Rtail, htail⟩ :=
-    exists_zetaCompletedZeroPolynomialEnvelope_nonDaggerHeightWindow_tail_lt
-      S P hSeparated ε hε data.envelopeConstant data.envelopeOrder
-      data.envelopeConstant_nonnegative data.envelopeSummable
-  exact ⟨F, data, Rtail, htail⟩
+      S P f₀ R with
+  | ⟨F, data⟩ =>
+      match
+          exists_zetaCompletedZeroPolynomialEnvelope_nonDaggerHeightWindow_tail_lt
+            S P hSeparated ε hε data.envelopeConstant data.envelopeOrder
+            data.envelopeConstant_nonnegative data.envelopeSummable
+      with
+      | ⟨Rtail, htail⟩ =>
+          ⟨F, data, Rtail, htail⟩
 
 theorem autocorrelationSpectralEvalFiberCardinalEnvelopeData_tail_lt_of_cutoff_before_radius
     (S : Finset ℂ)
@@ -244,18 +248,33 @@ theorem autocorrelationSpectralEvalFiberCardinalEnvelopeData_tail_lt_of_cutoff_b
         ρ ∉ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R},
       data.envelopeConstant * zetaCompletedZeroCenteredHeight
         (⟨(ρ : ℂ), ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
-          (-(data.envelopeOrder + 3 : ℤ))) < ε := by
-  have hcover :
+          (-(data.envelopeOrder + 3 : ℤ))) < ε :=
+  let hcover :
       ∀ ρ : ℂ, ρ ∈ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P Rtail →
         ρ ∈ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R :=
     autocorrelationSpectralEvalFiberNonDaggerHeightWindow_mono S P hRtailR
-  have hsum :
+  let hsum :
       Summable
         (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
           data.envelopeConstant * zetaCompletedZeroCenteredHeight ρ ^
             (-(data.envelopeOrder + 3 : ℤ))) :=
     data.envelopeSummable
-  have hle :=
+  let hle :
+      (∑' ρ : {ρ : ℂ //
+        ZetaCompletedZero ρ ∧
+          ρ ∉ S ∧
+          ρ ∉ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R},
+        data.envelopeConstant * zetaCompletedZeroCenteredHeight
+          (⟨(ρ : ℂ), ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
+            (-(data.envelopeOrder + 3 : ℤ))) ≤
+        ∑' ρ : {ρ : ℂ //
+          ZetaCompletedZero ρ ∧
+            ρ ∉ S ∧
+            ρ ∉ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P Rtail ∧
+            ρ ∉ daggerClosedSpectralSampleFinset P},
+          data.envelopeConstant * zetaCompletedZeroCenteredHeight
+            (⟨(ρ : ℂ), ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
+              (-(data.envelopeOrder + 3 : ℤ)) :=
     zetaCompletedZeroPolynomialEnvelope_heightWindow_tail_le_cutoff_tail
       S P
       (autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P Rtail)
@@ -266,7 +285,7 @@ theorem autocorrelationSpectralEvalFiberCardinalEnvelopeData_tail_lt_of_cutoff_b
       data.envelopeOrder
       data.envelopeConstant_nonnegative
       hsum
-  exact lt_of_le_of_lt hle htail
+  lt_of_le_of_lt hle htail
 
 end ZetaAdmissibleFunction
 end

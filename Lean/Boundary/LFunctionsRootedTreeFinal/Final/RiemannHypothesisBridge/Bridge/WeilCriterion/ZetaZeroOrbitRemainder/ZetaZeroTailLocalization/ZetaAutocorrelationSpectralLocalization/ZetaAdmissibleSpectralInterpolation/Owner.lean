@@ -82,36 +82,62 @@ theorem mem_daggerClosedSpectralSampleFinset_reflection_of_mem
                 hreflection.symm)
               (Finset.mem_union.mpr (Or.inl hw))
 
+/-- A point in the reflected image of the dagger closure already belongs to
+the dagger closure. -/
+theorem mem_daggerClosedSpectralSampleFinset_of_mem_reflected_daggerClosure
+    (S : Finset ℂ) (z : ℂ)
+    (hz :
+      z ∈ daggerReflectedSpectralSampleFinset
+        (daggerClosedSpectralSampleFinset S)) :
+    z ∈ daggerClosedSpectralSampleFinset S :=
+  match Finset.mem_image.mp hz with
+  | ⟨w, hw, hwEq⟩ =>
+      let hreflection : -star w = z := hwEq
+      let hclosed :
+          -star w ∈ daggerClosedSpectralSampleFinset S :=
+        mem_daggerClosedSpectralSampleFinset_reflection_of_mem S w hw
+      Eq.subst
+        (motive := fun value : ℂ =>
+          value ∈ daggerClosedSpectralSampleFinset S)
+        hreflection
+        hclosed
+
+/-- The dagger closure is contained in its second dagger closure. -/
+theorem daggerClosedSpectralSampleFinset_subset_secondClosure
+    (S : Finset ℂ) (z : ℂ)
+    (hz : z ∈ daggerClosedSpectralSampleFinset S) :
+    z ∈ daggerClosedSpectralSampleFinset
+      (daggerClosedSpectralSampleFinset S) :=
+  mem_daggerClosedSpectralSampleFinset_self
+    (daggerClosedSpectralSampleFinset S)
+    z
+    hz
+
+/-- The second dagger closure is contained in the first dagger closure. -/
+theorem daggerClosedSpectralSampleFinset_secondClosure_subset
+    (S : Finset ℂ) (z : ℂ)
+    (hz :
+      z ∈ daggerClosedSpectralSampleFinset
+        (daggerClosedSpectralSampleFinset S)) :
+    z ∈ daggerClosedSpectralSampleFinset S :=
+  match Finset.mem_union.mp hz with
+  | Or.inl hzBase => hzBase
+  | Or.inr hzReflected =>
+      mem_daggerClosedSpectralSampleFinset_of_mem_reflected_daggerClosure
+        S z hzReflected
+
 /-- Closing a finite spectral sample set under dagger reflection is idempotent. -/
 theorem daggerClosedSpectralSampleFinset_idempotent
     (S : Finset ℂ) :
     daggerClosedSpectralSampleFinset (daggerClosedSpectralSampleFinset S) =
-      daggerClosedSpectralSampleFinset S := by
-  apply Finset.ext
-  intro z
-  apply Iff.intro
-  · intro hz
-    change z ∈ daggerClosedSpectralSampleFinset S ∪
-      daggerReflectedSpectralSampleFinset
-        (daggerClosedSpectralSampleFinset S) at hz
-    match Finset.mem_union.mp hz with
-    | Or.inl hzBase =>
-        exact hzBase
-    | Or.inr hzReflected =>
-        match Finset.mem_image.mp hzReflected with
-        | ⟨w, hw, hwEq⟩ =>
-            have hreflection : z = -star w := hwEq.symm
-            exact
-              Eq.mp
-                (congrArg
-                  (fun u : ℂ => u ∈ daggerClosedSpectralSampleFinset S)
-                  hreflection.symm)
-                (mem_daggerClosedSpectralSampleFinset_reflection_of_mem S w hw)
-  · intro hz
-    exact mem_daggerClosedSpectralSampleFinset_self
-      (daggerClosedSpectralSampleFinset S)
-      z
-      hz
+      daggerClosedSpectralSampleFinset S :=
+  Finset.ext
+    (fun z : ℂ =>
+      Iff.intro
+        (fun hz =>
+          daggerClosedSpectralSampleFinset_secondClosure_subset S z hz)
+        (fun hz =>
+          daggerClosedSpectralSampleFinset_subset_secondClosure S z hz))
 
 /-- The completed zeros lying in the dagger closure of a finite spectral sample set. -/
 def completedZeroDaggerClosureFinset
@@ -204,26 +230,35 @@ def RealizesSeedSpectralSamples
     (aS : SpectralSampleVector S) : Prop :=
   seedSpectralEvalFiniteSample S f = aS
 
+/-- A finite Laplace-transform sample equality gives the corresponding seed
+spectral-evaluation sample equality. -/
+theorem seedSpectralEvalFiniteSample_eq_of_zetaLaplaceTransformFiniteSample_eq
+    (S : Finset ℂ) (f : ZetaAdmissibleFunction) (aS : SpectralSampleVector S)
+    (hf : zetaLaplaceTransformFiniteSample S f = aS) :
+    seedSpectralEvalFiniteSample S f = aS :=
+  funext
+    (fun z : S =>
+      calc
+        seedSpectralEvalFiniteSample S f z =
+            zetaSpectralEval f (z : ℂ) := by
+          rfl
+        _ = Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z : ℂ) := by
+          exact zetaSpectralEval_eq_laplace f (z : ℂ)
+        _ = zetaLaplaceTransformFiniteSample S f z := by
+          rfl
+        _ = aS z := by
+          exact congrFun hf z)
+
 /-- Finite Paley-Wiener interpolation in realization-predicate form. -/
 theorem exists_realizesSeedSpectralSamples_ownerPaleyWiener
     (S : Finset ℂ) (aS : SpectralSampleVector S) :
     ∃ f : ZetaAdmissibleFunction,
-      RealizesSeedSpectralSamples f S aS := by
-  rcases exists_zetaLaplaceTransformFiniteSample_eq_ownerPaleyWiener
-      S aS with
-    ⟨f, hf⟩
-  refine ⟨f, ?_⟩
-  funext z
-  calc
-    seedSpectralEvalFiniteSample S f z =
-        zetaSpectralEval f (z : ℂ) := by
-      rfl
-    _ = Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z : ℂ) := by
-      exact zetaSpectralEval_eq_laplace f (z : ℂ)
-    _ = zetaLaplaceTransformFiniteSample S f z := by
-      rfl
-    _ = aS z := by
-      exact congrFun hf z
+      RealizesSeedSpectralSamples f S aS :=
+  match exists_zetaLaplaceTransformFiniteSample_eq_ownerPaleyWiener S aS with
+  | ⟨f, hf⟩ =>
+      Exists.intro f
+        (seedSpectralEvalFiniteSample_eq_of_zetaLaplaceTransformFiniteSample_eq
+          S f aS hf)
 
 /-- Finite Paley-Wiener interpolation for seed spectral-evaluation vectors. -/
 theorem exists_seedSpectralEvalFiniteSample_eq_ownerPaleyWiener

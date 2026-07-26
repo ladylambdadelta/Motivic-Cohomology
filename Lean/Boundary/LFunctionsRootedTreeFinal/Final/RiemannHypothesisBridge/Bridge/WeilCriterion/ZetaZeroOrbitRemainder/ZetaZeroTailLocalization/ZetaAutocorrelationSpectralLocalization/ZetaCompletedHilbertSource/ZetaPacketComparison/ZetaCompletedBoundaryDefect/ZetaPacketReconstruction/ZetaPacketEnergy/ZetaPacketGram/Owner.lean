@@ -68,9 +68,8 @@ theorem sum_three_terms (s : Finset ZetaPacketLabel) (f g h : ZetaPacketLabel �
   calc
     ∑ ℓ in s, (f ℓ + g ℓ + h ℓ)
         = ∑ ℓ in s, ((f ℓ + g ℓ) + h ℓ) := by
-            refine Finset.sum_congr rfl ?_
-            intro ℓ hℓ
-            exact Eq.refl _
+            exact Finset.sum_congr rfl
+              (fun ℓ hℓ => Eq.refl ((f ℓ + g ℓ) + h ℓ))
     _ = ∑ ℓ in s, (f ℓ + g ℓ) + ∑ ℓ in s, h ℓ := by
           exact sum_two_terms s (fun ℓ => f ℓ + g ℓ) h
     _ = (∑ ℓ in s, f ℓ + ∑ ℓ in s, g ℓ) + ∑ ℓ in s, h ℓ := by
@@ -299,15 +298,41 @@ theorem dotProduct_prime_archimedean_correction (x : ZetaPacketEnsemble) :
   exact zero_mul _
 
 /-- Helper: the prime and archimedean packet parts are orthogonal. -/
-theorem dotProduct_prime_archimedean_helper (x : ZetaPacketEnsemble) :
-    ZetaPacketEnsemble.dotProduct (primePart x) (archimedeanPart x) = 0 := by
-  unfold ZetaPacketEnsemble.dotProduct
-  refine Finset.sum_eq_zero ?_
-  intro ℓ hℓ
+theorem dotProduct_prime_archimedean_pointwise_zero
+    (x : ZetaPacketEnsemble) (ℓ : ZetaPacketLabel) :
+    primePart x ℓ * archimedeanPart x ℓ = 0 := by
   cases ℓ with
   | prime m n => exact dotProduct_prime_archimedean_prime x m n
   | archimedean => exact dotProduct_prime_archimedean_archimedean x
   | correction => exact dotProduct_prime_archimedean_correction x
+
+theorem dotProduct_prime_archimedean_support_sum_zero
+    (x : ZetaPacketEnsemble) :
+    (∑ ℓ ∈ x.support, primePart x ℓ * archimedeanPart x ℓ) = 0 := by
+  exact Finset.sum_eq_zero
+    (fun ℓ hℓ =>
+      (fun hmem : ℓ ∈ x.support =>
+        dotProduct_prime_archimedean_pointwise_zero x ℓ) hℓ)
+
+theorem dotProduct_prime_archimedean_sum_zero_on
+    (x : ZetaPacketEnsemble) (s : Finset ZetaPacketLabel) :
+    (∑ ℓ ∈ s, primePart x ℓ * archimedeanPart x ℓ) = 0 := by
+  exact Finset.sum_eq_zero
+    (fun ℓ hℓ =>
+      (fun hmem : ℓ ∈ s =>
+        dotProduct_prime_archimedean_pointwise_zero x ℓ) hℓ)
+
+theorem dotProduct_prime_archimedean_pairSupport_sum_zero
+    (x : ZetaPacketEnsemble) :
+    (∑ ℓ ∈ x.primePart.support ∪ x.archimedeanPart.support,
+      primePart x ℓ * archimedeanPart x ℓ) = 0 := by
+  exact dotProduct_prime_archimedean_sum_zero_on x
+    (x.primePart.support ∪ x.archimedeanPart.support)
+
+theorem dotProduct_prime_archimedean_helper (x : ZetaPacketEnsemble) :
+    ZetaPacketEnsemble.dotProduct (primePart x) (archimedeanPart x) = 0 := by
+  unfold ZetaPacketEnsemble.dotProduct
+  exact dotProduct_prime_archimedean_pairSupport_sum_zero x
 
 /-- Prime and archimedean packet parts are orthogonal for the packet kernel. -/
 theorem dotProduct_prime_archimedean (x : ZetaPacketEnsemble) :
@@ -339,15 +364,41 @@ theorem dotProduct_prime_correction_correction (x : ZetaPacketEnsemble) :
   exact zero_mul _
 
 /-- Helper: the prime and correction packet parts are orthogonal. -/
-theorem dotProduct_prime_correction_helper (x : ZetaPacketEnsemble) :
-    ZetaPacketEnsemble.dotProduct (primePart x) (correctionPart x) = 0 := by
-  unfold ZetaPacketEnsemble.dotProduct
-  refine Finset.sum_eq_zero ?_
-  intro ℓ hℓ
+theorem dotProduct_prime_correction_pointwise_zero
+    (x : ZetaPacketEnsemble) (ℓ : ZetaPacketLabel) :
+    primePart x ℓ * correctionPart x ℓ = 0 := by
   cases ℓ with
   | prime m n => exact dotProduct_prime_correction_prime x m n
   | archimedean => exact dotProduct_prime_correction_archimedean x
   | correction => exact dotProduct_prime_correction_correction x
+
+theorem dotProduct_prime_correction_support_sum_zero
+    (x : ZetaPacketEnsemble) :
+    (∑ ℓ ∈ x.support, primePart x ℓ * correctionPart x ℓ) = 0 := by
+  exact Finset.sum_eq_zero
+    (fun ℓ hℓ =>
+      (fun hmem : ℓ ∈ x.support =>
+        dotProduct_prime_correction_pointwise_zero x ℓ) hℓ)
+
+theorem dotProduct_prime_correction_sum_zero_on
+    (x : ZetaPacketEnsemble) (s : Finset ZetaPacketLabel) :
+    (∑ ℓ ∈ s, primePart x ℓ * correctionPart x ℓ) = 0 := by
+  exact Finset.sum_eq_zero
+    (fun ℓ hℓ =>
+      (fun hmem : ℓ ∈ s =>
+        dotProduct_prime_correction_pointwise_zero x ℓ) hℓ)
+
+theorem dotProduct_prime_correction_pairSupport_sum_zero
+    (x : ZetaPacketEnsemble) :
+    (∑ ℓ ∈ x.primePart.support ∪ x.correctionPart.support,
+      primePart x ℓ * correctionPart x ℓ) = 0 := by
+  exact dotProduct_prime_correction_sum_zero_on x
+    (x.primePart.support ∪ x.correctionPart.support)
+
+theorem dotProduct_prime_correction_helper (x : ZetaPacketEnsemble) :
+    ZetaPacketEnsemble.dotProduct (primePart x) (correctionPart x) = 0 := by
+  unfold ZetaPacketEnsemble.dotProduct
+  exact dotProduct_prime_correction_pairSupport_sum_zero x
 
 /-- Prime and correction packet parts are orthogonal for the packet kernel. -/
 theorem dotProduct_prime_correction (x : ZetaPacketEnsemble) :
@@ -379,15 +430,41 @@ theorem dotProduct_archimedean_correction_correction (x : ZetaPacketEnsemble) :
   exact zero_mul _
 
 /-- Helper: the archimedean and correction packet parts are orthogonal. -/
-theorem dotProduct_archimedean_correction_helper (x : ZetaPacketEnsemble) :
-    ZetaPacketEnsemble.dotProduct (archimedeanPart x) (correctionPart x) = 0 := by
-  unfold ZetaPacketEnsemble.dotProduct
-  refine Finset.sum_eq_zero ?_
-  intro ℓ hℓ
+theorem dotProduct_archimedean_correction_pointwise_zero
+    (x : ZetaPacketEnsemble) (ℓ : ZetaPacketLabel) :
+    archimedeanPart x ℓ * correctionPart x ℓ = 0 := by
   cases ℓ with
   | prime m n => exact dotProduct_archimedean_correction_prime x m n
   | archimedean => exact dotProduct_archimedean_correction_archimedean x
   | correction => exact dotProduct_archimedean_correction_correction x
+
+theorem dotProduct_archimedean_correction_support_sum_zero
+    (x : ZetaPacketEnsemble) :
+    (∑ ℓ ∈ x.support, archimedeanPart x ℓ * correctionPart x ℓ) = 0 := by
+  exact Finset.sum_eq_zero
+    (fun ℓ hℓ =>
+      (fun hmem : ℓ ∈ x.support =>
+        dotProduct_archimedean_correction_pointwise_zero x ℓ) hℓ)
+
+theorem dotProduct_archimedean_correction_sum_zero_on
+    (x : ZetaPacketEnsemble) (s : Finset ZetaPacketLabel) :
+    (∑ ℓ ∈ s, archimedeanPart x ℓ * correctionPart x ℓ) = 0 := by
+  exact Finset.sum_eq_zero
+    (fun ℓ hℓ =>
+      (fun hmem : ℓ ∈ s =>
+        dotProduct_archimedean_correction_pointwise_zero x ℓ) hℓ)
+
+theorem dotProduct_archimedean_correction_pairSupport_sum_zero
+    (x : ZetaPacketEnsemble) :
+    (∑ ℓ ∈ x.archimedeanPart.support ∪ x.correctionPart.support,
+      archimedeanPart x ℓ * correctionPart x ℓ) = 0 := by
+  exact dotProduct_archimedean_correction_sum_zero_on x
+    (x.archimedeanPart.support ∪ x.correctionPart.support)
+
+theorem dotProduct_archimedean_correction_helper (x : ZetaPacketEnsemble) :
+    ZetaPacketEnsemble.dotProduct (archimedeanPart x) (correctionPart x) = 0 := by
+  unfold ZetaPacketEnsemble.dotProduct
+  exact dotProduct_archimedean_correction_pairSupport_sum_zero x
 
 /-- Archimedean and correction packet parts are orthogonal for the packet kernel. -/
 theorem dotProduct_archimedean_correction (x : ZetaPacketEnsemble) :
@@ -399,6 +476,14 @@ theorem normSq_eq_prime_add_archimedean_add_correction_helper (x : ZetaPacketEns
     normSq x = primePacketGram x + archimedeanPacketGram x + correctionPacketGram x := by
   unfold normSq dotProduct primePacketGram archimedeanPacketGram correctionPacketGram
   have hsupport : x.support ∪ x.support = x.support := support_union_self x
+  have hpointwise :
+      (∑ ℓ ∈ x.support, x ℓ * x ℓ) =
+        ∑ ℓ ∈ x.support,
+            (primePart x ℓ * primePart x ℓ +
+              archimedeanPart x ℓ * archimedeanPart x ℓ +
+              correctionPart x ℓ * correctionPart x ℓ) :=
+    Finset.sum_congr rfl
+      (fun ℓ hℓ => pointwise_sq_decompose x ℓ)
   calc
     ∑ ℓ ∈ x.support ∪ x.support, x ℓ * x ℓ =
         ∑ ℓ ∈ x.support, x ℓ * x ℓ := by
@@ -408,9 +493,7 @@ theorem normSq_eq_prime_add_archimedean_add_correction_helper (x : ZetaPacketEns
             (primePart x ℓ * primePart x ℓ +
               archimedeanPart x ℓ * archimedeanPart x ℓ +
               correctionPart x ℓ * correctionPart x ℓ) := by
-            refine Finset.sum_congr rfl ?_
-            intro ℓ hℓ
-            exact pointwise_sq_decompose x ℓ
+            exact hpointwise
     _ = ∑ ℓ ∈ x.support, primePart x ℓ * primePart x ℓ +
           ∑ ℓ ∈ x.support, archimedeanPart x ℓ * archimedeanPart x ℓ +
           ∑ ℓ ∈ x.support, correctionPart x ℓ * correctionPart x ℓ := by

@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.HorizontalDecay.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaHorizontalEdgeBounds.Scheduled
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaHorizontalEdgeBounds.ScheduledPolynomialGrowth
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroKreinGram.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaResidueRegularity.ContourHeightWindow
 
@@ -297,6 +299,34 @@ theorem explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_of_schedu
     zetaCompletedExplicitFormulaHorizontalDifference_tendsto_zero_of_scheduledCarrier
       F h N
 
+/-- The horizontal residue-window error vanishes along a narrow scheduled analytic package. -/
+theorem explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_of_scheduledPackage
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaScheduledFamilyAnalyticPackage f F)
+    (N : ℕ) :
+    Tendsto
+      (fun u : ℝ =>
+        explicitFormulaFamilyHorizontalResidueWindowError f F
+          (h.height_schedule.height u))
+      atTop
+      (𝓝 0) :=
+  zetaCompletedExplicitFormulaHorizontalDifference_tendsto_zero_of_scheduledPackage
+    h N
+
+/-- The horizontal residue-window error vanishes along a fixed-degree scheduled
+analytic package. -/
+theorem explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_of_polynomialScheduledPackage
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaScheduledPolynomialFamilyAnalyticPackage f F) :
+    Tendsto
+      (fun u : ℝ =>
+        explicitFormulaFamilyHorizontalResidueWindowError f F
+          (h.height_schedule.height u))
+      atTop
+      (𝓝 0) :=
+  zetaCompletedExplicitFormulaHorizontalDifference_tendsto_zero_of_polynomialScheduledPackage
+    h
+
 /-- The completed-zero residue window and the zero-side window are the same finite sum
 after both are expressed at the centered completed-zero coordinate. -/
 theorem explicitFormulaCompletedZeroContourHeightWindowResidueSum_eq_zeroSideSum
@@ -391,6 +421,123 @@ theorem explicitFormulaFamilyVerticalResidueWindowError_tendsto_zero_of_zeroSide
     (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
     hpointwise.symm
     hzeroSide
+
+/-- The common-parent limit assembly for the residue-window error.  Once the vertical
+finite-residue term and the horizontal edge term have separately been shown to vanish,
+their owner-level decomposition gives the full contour error limit. -/
+theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_of_vertical_and_horizontal
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (hvertical :
+      Tendsto
+        (fun T : ℝ => explicitFormulaFamilyVerticalResidueWindowError f F T)
+        atTop
+        (𝓝 0))
+    (hhorizontal :
+      Tendsto
+        (fun T : ℝ => explicitFormulaFamilyHorizontalResidueWindowError f F T)
+        atTop
+        (𝓝 0)) :
+    Tendsto
+      (fun T : ℝ => explicitFormulaFamilyResidueWindowError f F T)
+      atTop
+      (𝓝 0) := by
+  have hsum :
+      Tendsto
+        (fun T : ℝ =>
+          explicitFormulaFamilyVerticalResidueWindowError f F T +
+            explicitFormulaFamilyHorizontalResidueWindowError f F T)
+        atTop
+        (𝓝 (0 + 0 : ℂ)) :=
+    hvertical.add hhorizontal
+  have htarget : (0 + 0 : ℂ) = 0 :=
+    add_zero 0
+  have hpointwise :
+      (fun T : ℝ => explicitFormulaFamilyResidueWindowError f F T) =
+        (fun T : ℝ =>
+          explicitFormulaFamilyVerticalResidueWindowError f F T +
+            explicitFormulaFamilyHorizontalResidueWindowError f F T) := by
+    exact funext
+      (fun T : ℝ =>
+        explicitFormulaFamilyResidueWindowError_eq_vertical_add_horizontal
+          f F T)
+  exact Eq.subst
+    (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
+    hpointwise.symm
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun T : ℝ =>
+            explicitFormulaFamilyVerticalResidueWindowError f F T +
+              explicitFormulaFamilyHorizontalResidueWindowError f F T)
+          atTop
+          (𝓝 z))
+      htarget
+      hsum)
+
+/-- Scheduled-height specialization of the common residue-window limit assembly. -/
+theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_of_scheduled_vertical_and_horizontal
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hvertical :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaFamilyVerticalResidueWindowError f F
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 0))
+    (hhorizontal :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaFamilyHorizontalResidueWindowError f F
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 0)) :
+    Tendsto
+      (fun u : ℝ =>
+        explicitFormulaFamilyResidueWindowError f F
+          (h.height_schedule.height u))
+      atTop
+      (𝓝 0) := by
+  have hsum :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaFamilyVerticalResidueWindowError f F
+              (h.height_schedule.height u) +
+            explicitFormulaFamilyHorizontalResidueWindowError f F
+              (h.height_schedule.height u))
+        atTop
+        (𝓝 (0 + 0 : ℂ)) :=
+    hvertical.add hhorizontal
+  have htarget : (0 + 0 : ℂ) = 0 :=
+    add_zero 0
+  have hpointwise :
+      (fun u : ℝ =>
+        explicitFormulaFamilyResidueWindowError f F
+          (h.height_schedule.height u)) =
+        (fun u : ℝ =>
+          explicitFormulaFamilyVerticalResidueWindowError f F
+              (h.height_schedule.height u) +
+            explicitFormulaFamilyHorizontalResidueWindowError f F
+              (h.height_schedule.height u)) := by
+    exact funext
+      (fun u : ℝ =>
+        explicitFormulaFamilyResidueWindowError_eq_vertical_add_horizontal
+          f F (h.height_schedule.height u))
+  exact Eq.subst
+    (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
+    hpointwise.symm
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun u : ℝ =>
+            explicitFormulaFamilyVerticalResidueWindowError f F
+                (h.height_schedule.height u) +
+              explicitFormulaFamilyHorizontalResidueWindowError f F
+                (h.height_schedule.height u))
+          atTop
+          (𝓝 z))
+      htarget
+      hsum)
 
 /-- Replacing the residue window by the zero-side window in the full contour error is only
 the finite zero-window accounting identity. -/

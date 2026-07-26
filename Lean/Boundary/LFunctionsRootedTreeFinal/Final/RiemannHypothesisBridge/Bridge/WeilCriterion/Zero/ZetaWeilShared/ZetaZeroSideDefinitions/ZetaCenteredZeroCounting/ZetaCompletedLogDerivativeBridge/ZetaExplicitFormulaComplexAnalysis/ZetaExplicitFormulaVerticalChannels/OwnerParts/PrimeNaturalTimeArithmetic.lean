@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.OwnerParts.BoundaryChannels
 import Mathlib.Algebra.Order.Floor
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Data.Nat.Factorization.PrimePow
@@ -2445,7 +2445,7 @@ completed prime contribution. -/
 theorem zetaCompletedExplicitFormulaPrimeNaturalSymmetricContribution_eq_primeContribution
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaPrimeNaturalSymmetricContribution f =
-      zetaCompletedExplicitFormulaPrimeContribution f := by
+      -zetaCompletedExplicitFormulaPrimeContribution f := by
   have hnatural :
       zetaCompletedExplicitFormulaPrimeNaturalSymmetricContribution f =
         ∑' n : ℕ,
@@ -2469,8 +2469,8 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalSymmetricContribution_eq_primeCo
               (zetaCompletedTimeBoundaryValue f (ZetaPrimePowerIndex.center ι) +
                 star (zetaCompletedTimeBoundaryValue f
                   (ZetaPrimePowerIndex.center ι))))) : ℂ) =
-        zetaCompletedExplicitFormulaPrimeContribution f := by
-    exact zetaCompletedExplicitFormulaPrimePowerContribution_eq_primeContribution f
+        -zetaCompletedExplicitFormulaPrimeContribution f := by
+    exact zetaCompletedExplicitFormulaPrimePowerContribution_eq_neg_primeContribution f
   exact Eq.trans hnatural (Eq.trans hreindex hprime)
 
 /-- Arithmetic recombination of the right one-sided natural contribution with
@@ -2479,7 +2479,7 @@ theorem zetaCompletedExplicitFormulaPrimeNaturalOneSided_add_complementContribut
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaPrimeNaturalOneSidedContribution f +
         zetaCompletedExplicitFormulaPrimeNaturalComplementContribution f =
-      zetaCompletedExplicitFormulaPrimeContribution f := by
+      -zetaCompletedExplicitFormulaPrimeContribution f := by
   exact Eq.trans
     (zetaCompletedExplicitFormulaPrimeNaturalOneSided_add_complementContribution f)
     (zetaCompletedExplicitFormulaPrimeNaturalSymmetricContribution_eq_primeContribution f)

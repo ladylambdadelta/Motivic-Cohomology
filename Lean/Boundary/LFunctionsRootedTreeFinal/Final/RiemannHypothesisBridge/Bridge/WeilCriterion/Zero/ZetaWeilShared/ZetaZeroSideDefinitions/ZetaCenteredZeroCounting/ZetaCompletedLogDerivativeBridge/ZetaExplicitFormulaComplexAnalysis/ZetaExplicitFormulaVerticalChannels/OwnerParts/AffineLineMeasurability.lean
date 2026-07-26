@@ -24,6 +24,80 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- Half of the right affine line is the fixed-vertical line with real part
+`F.c / 2` and height `t / 2`. -/
+theorem zetaCompletedExplicitFormulaRightAffineLine_div_two_eq_fixedVertical
+    (F : ExplicitFormulaContourFamily) (t : ℝ) :
+    zetaCompletedExplicitFormulaRightAffineLine F t / 2 =
+      ((F.c / 2 : ℝ) + (t / 2 : ℝ) * Complex.I : ℂ) := by
+  calc
+    zetaCompletedExplicitFormulaRightAffineLine F t / 2 =
+        ((F.c : ℂ) + t * Complex.I) / 2 := by
+      exact congrArg (fun z : ℂ => z / 2)
+        (zetaCompletedExplicitFormulaRightAffineLine_eq F t)
+    _ = ((F.c : ℂ) / 2) + (t * Complex.I) / 2 := by
+      exact add_div ((F.c : ℂ)) (t * Complex.I) (2 : ℂ)
+    _ = (((F.c / 2 : ℝ) : ℂ)) + (t * Complex.I) / 2 := by
+      exact congrArg
+        (fun z : ℂ => z + (t * Complex.I) / 2)
+        (Complex.ofReal_div F.c 2).symm
+    _ = (((F.c / 2 : ℝ) : ℂ)) + ((t / 2 : ℝ) : ℂ) * Complex.I := by
+      have ht :
+          (t * Complex.I) / 2 = ((t / 2 : ℝ) : ℂ) * Complex.I := by
+        calc
+          (t * Complex.I) / 2 =
+              ((t : ℂ) / 2) * Complex.I := by
+            exact mul_div_right_comm (t : ℂ) Complex.I (2 : ℂ)
+          _ = ((t / 2 : ℝ) : ℂ) * Complex.I := by
+            exact congrArg (fun z : ℂ => z * Complex.I)
+              (Complex.ofReal_div t 2).symm
+      exact congrArg (fun z : ℂ => (((F.c / 2 : ℝ) : ℂ)) + z) ht
+    _ = ((F.c / 2 : ℝ) + (t / 2 : ℝ) * Complex.I : ℂ) := by
+      exact rfl
+
+/-- Half of the left affine line is the fixed-vertical line with real part
+`(1 - F.c) / 2` and height `t / 2`. -/
+theorem zetaCompletedExplicitFormulaLeftAffineLine_div_two_eq_fixedVertical
+    (F : ExplicitFormulaContourFamily) (t : ℝ) :
+    zetaCompletedExplicitFormulaLeftAffineLine F t / 2 =
+      (((1 - F.c) / 2 : ℝ) + (t / 2 : ℝ) * Complex.I : ℂ) := by
+  calc
+    zetaCompletedExplicitFormulaLeftAffineLine F t / 2 =
+        (((1 : ℂ) - (F.c : ℂ)) + t * Complex.I) / 2 := by
+      exact congrArg (fun z : ℂ => z / 2)
+        (zetaCompletedExplicitFormulaLeftAffineLine_eq F t)
+    _ = (((1 : ℂ) - (F.c : ℂ)) / 2) + (t * Complex.I) / 2 := by
+      exact add_div (((1 : ℂ) - (F.c : ℂ))) (t * Complex.I) (2 : ℂ)
+    _ = ((((1 - F.c) / 2 : ℝ) : ℂ)) + (t * Complex.I) / 2 := by
+      have hreal :
+          (((1 : ℂ) - (F.c : ℂ)) / 2) =
+            (((1 - F.c) / 2 : ℝ) : ℂ) := by
+        calc
+          (((1 : ℂ) - (F.c : ℂ)) / 2) =
+              (((1 - F.c : ℝ) : ℂ) / 2) := by
+            exact congrArg (fun z : ℂ => z / 2)
+              (Complex.ofReal_sub 1 F.c).symm
+          _ = (((1 - F.c) / 2 : ℝ) : ℂ) := by
+            exact (Complex.ofReal_div (1 - F.c) 2).symm
+      exact congrArg
+        (fun z : ℂ => z + (t * Complex.I) / 2)
+        hreal
+    _ = ((((1 - F.c) / 2 : ℝ) : ℂ)) + ((t / 2 : ℝ) : ℂ) * Complex.I := by
+      have ht :
+          (t * Complex.I) / 2 = ((t / 2 : ℝ) : ℂ) * Complex.I := by
+        calc
+          (t * Complex.I) / 2 =
+              ((t : ℂ) / 2) * Complex.I := by
+            exact mul_div_right_comm (t : ℂ) Complex.I (2 : ℂ)
+          _ = ((t / 2 : ℝ) : ℂ) * Complex.I := by
+            exact congrArg (fun z : ℂ => z * Complex.I)
+              (Complex.ofReal_div t 2).symm
+      exact congrArg
+        (fun z : ℂ => ((((1 - F.c) / 2 : ℝ) : ℂ)) + z)
+        ht
+    _ = (((1 - F.c) / 2 : ℝ) + (t / 2 : ℝ) * Complex.I : ℂ) := by
+      exact rfl
+
 /-- Continuity of the right affine line. -/
 theorem zetaCompletedExplicitFormulaRightAffineLine_continuous
     (F : ExplicitFormulaContourFamily) :
@@ -952,6 +1026,28 @@ theorem zetaCompletedExplicitFormulaPhi_leftCenteredAffineLine_continuous
     (zetaCompletedExplicitFormulaLeftCenteredAffineLine_continuous F)
 
 /-- Strong measurability of the right shifted affine-line test transform. -/
+theorem zetaCompletedExplicitFormulaPhi_rightCenteredAffineLine_aestronglyMeasurable_of_phiControl
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (hPhi : ZetaPhiAnalyticControl f) :
+    AEStronglyMeasurable
+      (fun t : ℝ =>
+        zetaCompletedExplicitFormulaPhi f
+          (zetaCompletedExplicitFormulaRightCenteredAffineLine F t))
+      (volume : Measure ℝ) :=
+  let hPhiContinuous :
+      Continuous (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z) :=
+    continuous_iff_continuousAt.2
+      (fun z => (hPhi.differentiableAt z).continuousAt)
+  let hLineContinuous :
+      Continuous
+        (fun t : ℝ =>
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)) :=
+    hPhiContinuous.comp
+      (zetaCompletedExplicitFormulaRightCenteredAffineLine_continuous F)
+  hLineContinuous.aestronglyMeasurable
+
+/-- Strong measurability of the right shifted affine-line test transform. -/
 theorem zetaCompletedExplicitFormulaPhi_rightCenteredAffineLine_aestronglyMeasurable
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
@@ -960,8 +1056,30 @@ theorem zetaCompletedExplicitFormulaPhi_rightCenteredAffineLine_aestronglyMeasur
         zetaCompletedExplicitFormulaPhi f
           (zetaCompletedExplicitFormulaRightCenteredAffineLine F t))
       (volume : Measure ℝ) :=
-  (zetaCompletedExplicitFormulaPhi_rightCenteredAffineLine_continuous
-    f F h).aestronglyMeasurable
+  zetaCompletedExplicitFormulaPhi_rightCenteredAffineLine_aestronglyMeasurable_of_phiControl
+    f F h.phi_control
+
+/-- Strong measurability of the left shifted affine-line test transform. -/
+theorem zetaCompletedExplicitFormulaPhi_leftCenteredAffineLine_aestronglyMeasurable_of_phiControl
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (hPhi : ZetaPhiAnalyticControl f) :
+    AEStronglyMeasurable
+      (fun t : ℝ =>
+        zetaCompletedExplicitFormulaPhi f
+          (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t))
+      (volume : Measure ℝ) :=
+  let hPhiContinuous :
+      Continuous (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z) :=
+    continuous_iff_continuousAt.2
+      (fun z => (hPhi.differentiableAt z).continuousAt)
+  let hLineContinuous :
+      Continuous
+        (fun t : ℝ =>
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t)) :=
+    hPhiContinuous.comp
+      (zetaCompletedExplicitFormulaLeftCenteredAffineLine_continuous F)
+  hLineContinuous.aestronglyMeasurable
 
 /-- Strong measurability of the left shifted affine-line test transform. -/
 theorem zetaCompletedExplicitFormulaPhi_leftCenteredAffineLine_aestronglyMeasurable
@@ -972,8 +1090,8 @@ theorem zetaCompletedExplicitFormulaPhi_leftCenteredAffineLine_aestronglyMeasura
         zetaCompletedExplicitFormulaPhi f
           (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t))
       (volume : Measure ℝ) :=
-  (zetaCompletedExplicitFormulaPhi_leftCenteredAffineLine_continuous
-    f F h).aestronglyMeasurable
+  zetaCompletedExplicitFormulaPhi_leftCenteredAffineLine_aestronglyMeasurable_of_phiControl
+    f F h.phi_control
 
 end ZetaAdmissibleFunction
 

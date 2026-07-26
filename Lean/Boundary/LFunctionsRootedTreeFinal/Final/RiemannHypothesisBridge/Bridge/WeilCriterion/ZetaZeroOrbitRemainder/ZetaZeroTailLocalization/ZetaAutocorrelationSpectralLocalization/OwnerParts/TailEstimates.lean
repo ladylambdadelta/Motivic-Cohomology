@@ -37,8 +37,8 @@ theorem zetaCompletedZeroPolynomialEnvelope_comp_summable
     Summable
       (fun element : index =>
         A * zetaCompletedZeroCenteredHeight (zeroMap element) ^
-          (-(k + 3 : ℤ))) := by
-  exact hsum.comp_injective zeroMapInjective
+          (-(k + 3 : ℤ))) :=
+  hsum.comp_injective zeroMapInjective
 
 theorem zetaZeroTail_eq_complement_tsum_of_zero_on_window_partition
     (S : Finset ℂ)
@@ -54,7 +54,7 @@ theorem zetaZeroTail_eq_complement_tsum_of_zero_on_window_partition
           zetaZeroSideContribution (ρ : ℂ) φ = 0) :
     zetaZeroTail S φ =
       ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
-        zetaZeroSideContribution (ρ : ℂ) φ := by
+        zetaZeroSideContribution (ρ : ℂ) φ :=
   let α := {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}
   let β := {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T}
   let contribution : α → ℂ :=
@@ -77,24 +77,24 @@ theorem zetaZeroTail_eq_complement_tsum_of_zero_on_window_partition
         (fun f : killed → ℂ => ∑' ρ : killed, f ρ)
         hkilled_fun)
       tsum_zero
-  have htail_unfold :
+  let htail_unfold :
       zetaZeroTail S φ = ∑' ρ : α, contribution ρ :=
     Eq.refl (zetaZeroTail S φ)
-  have hright_transport :
+  let hright_transport :
       (∑' ρ : (killedᶜ : Set α), contribution ρ) =
         ∑' ρ : β, zetaZeroSideContribution (ρ : ℂ) φ :=
-    have hraw :
+    let hraw :
         (∑' ρ : (killedᶜ : Set α), contribution ρ) =
           ∑' ρ : β, contribution (complementEquiv ρ) :=
       ((complementEquiv).tsum_eq
         (fun ρ : (killedᶜ : Set α) => contribution ρ)).symm
-    have hterm :
+    let hterm :
         (fun ρ : β => contribution (complementEquiv ρ)) =
           fun ρ : β => zetaZeroSideContribution (ρ : ℂ) φ :=
       funext (fun rho => Eq.refl (zetaZeroSideContribution (rho : ℂ) φ))
     Eq.trans hraw
       (congrArg (fun F : β → ℂ => ∑' ρ : β, F ρ) hterm)
-  have htotal_eq_right :
+  let htotal_eq_right :
       (∑' ρ : α, contribution ρ) =
         ∑' ρ : β, zetaZeroSideContribution (ρ : ℂ) φ :=
     Eq.trans
@@ -107,10 +107,10 @@ theorem zetaZeroTail_eq_complement_tsum_of_zero_on_window_partition
         (Eq.trans
           (zero_add (∑' ρ : (killedᶜ : Set α), contribution ρ))
           hright_transport))
-  exact Eq.trans htail_unfold htotal_eq_right
+  Eq.trans htail_unfold htotal_eq_right
 
 /-- Public zero-window removal theorem. -/
-theorem zetaZeroTail_eq_complement_tsum_of_zero_on_window_ownerGap
+theorem zetaZeroTail_eq_complement_tsum_of_zero_on_window
     (S : Finset ℂ)
     (T : Finset ℂ)
     (φ : ZetaAdmissibleFunction)
@@ -124,10 +124,9 @@ theorem zetaZeroTail_eq_complement_tsum_of_zero_on_window_ownerGap
           zetaZeroSideContribution (ρ : ℂ) φ = 0) :
     zetaZeroTail S φ =
       ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
-        zetaZeroSideContribution (ρ : ℂ) φ := by
-  exact
-    zetaZeroTail_eq_complement_tsum_of_zero_on_window_partition
-      S T φ hsummable hzeroT
+        zetaZeroSideContribution (ρ : ℂ) φ :=
+  zetaZeroTail_eq_complement_tsum_of_zero_on_window_partition
+    S T φ hsummable hzeroT
 
 /-- The norm of a complementary completed-zero `tsum` is bounded by a summable
 nonnegative polynomial envelope. -/
@@ -152,7 +151,7 @@ theorem zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_by_majoriz
       ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
         A * zetaCompletedZeroCenteredHeight
           (⟨(ρ : ℂ), ρ.2.1⟩ :
-            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) := by
+            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) :=
   let envelope :
       {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T} → ℝ :=
     fun ρ =>
@@ -176,14 +175,14 @@ theorem zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_by_majoriz
   have henvelope_summable : Summable envelope :=
     zetaCompletedZeroPolynomialEnvelope_comp_summable
       A k zeroMap zeroMapInjective hsum
-  have hnorm_summable : Summable (fun ρ => ‖contribution ρ‖) := by
-    have hnorm_bound : ∀ ρ, ‖‖contribution ρ‖‖ ≤ envelope ρ :=
-      fun rho =>
-        (Eq.subst
-          (motive := fun value : ℝ => value ≤ envelope rho)
-          (norm_norm (contribution rho)).symm
-          (hbound rho))
-    exact Summable.of_norm_bounded envelope henvelope_summable hnorm_bound
+  let hnorm_bound : ∀ ρ, ‖‖contribution ρ‖‖ ≤ envelope ρ :=
+    fun rho =>
+      Eq.subst
+        (motive := fun value : ℝ => value ≤ envelope rho)
+        (norm_norm (contribution rho)).symm
+        (hbound rho)
+  let hnorm_summable : Summable (fun ρ => ‖contribution ρ‖) :=
+    Summable.of_norm_bounded envelope henvelope_summable hnorm_bound
   have hnorm_tsum :
       ‖(∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
           contribution ρ)‖ ≤
@@ -196,10 +195,10 @@ theorem zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_by_majoriz
         ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
           envelope ρ :=
     tsum_le_tsum hbound hnorm_summable henvelope_summable
-  exact hnorm_tsum.trans hmajorant_tsum
+  hnorm_tsum.trans hmajorant_tsum
 
 /-- Public complementary polynomial-envelope norm estimate. -/
-theorem zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_tsum_ownerGap
+theorem zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_tsum
     (S : Finset ℂ)
     (T : Finset ℂ)
     (A : ℝ)
@@ -220,10 +219,9 @@ theorem zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_tsum_owner
       ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
         A * zetaCompletedZeroCenteredHeight
           (⟨(ρ : ℂ), ρ.2.1⟩ :
-            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) := by
-  exact
-    zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_by_majorization
-      S T A k hsum f hbound
+            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) :=
+  zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_by_majorization
+    S T A k hsum f hbound
 
 /-- The norm of a complementary completed-zero `tsum` is bounded by the
 non-dagger part of a summable polynomial envelope when dagger-constrained
@@ -273,8 +271,8 @@ theorem zetaZeroTail_norm_le_commonPolynomialEnvelope_nonDagger_by_partition
             zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
         A * zetaCompletedZeroCenteredHeight
           (⟨(ρ : ℂ), ρ.2.1⟩ :
-            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) := by
-  have htail_eq :
+            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) :=
+  let htail_eq :
       zetaZeroTail S (convolutionAutocorrelation f) =
         ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
           zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f) :=
@@ -292,26 +290,26 @@ theorem zetaZeroTail_norm_le_commonPolynomialEnvelope_nonDagger_by_partition
         {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} →
           {ρ : ℂ // ZetaCompletedZero ρ} :=
       fun rho => ⟨(rho : ℂ), rho.2.1⟩
-    have zeroMapInjective : Function.Injective zeroMap :=
+    let zeroMapInjective : Function.Injective zeroMap :=
       fun left right equality =>
         Subtype.ext
           (congrArg
             (fun zero : {ρ : ℂ // ZetaCompletedZero ρ} => (zero : ℂ))
             equality)
-    have henvelope_summable : Summable envelope :=
+    let henvelope_summable : Summable envelope :=
       zetaCompletedZeroPolynomialEnvelope_comp_summable
         A k zeroMap zeroMapInjective hsum
-    have hnorm_bound :
+    let hnorm_bound :
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
           ‖contribution ρ‖ ≤ envelope ρ :=
       fun ρ =>
             match (inferInstance : Decidable ((ρ : ℂ) ∈ T)) with
             | isTrue hρT =>
-                have hcontribution_zero : contribution ρ = 0 :=
+                let hcontribution_zero : contribution ρ = 0 :=
                   hzeroT ρ hρT
-                have hnorm_zero : ‖contribution ρ‖ = 0 :=
+                let hnorm_zero : ‖contribution ρ‖ = 0 :=
                   Eq.trans (congrArg norm hcontribution_zero) norm_zero
-                have henvelope_nonneg : 0 ≤ envelope ρ :=
+                let henvelope_nonneg : 0 ≤ envelope ρ :=
                   zetaZeroMultiplicityTransformEnvelope_nonnegative hA k
                     (⟨(ρ : ℂ), ρ.2.1⟩ :
                       {ρ : ℂ // ZetaCompletedZero ρ})
@@ -325,14 +323,14 @@ theorem zetaZeroTail_norm_le_commonPolynomialEnvelope_nonDagger_by_partition
                       (zetaCenteredZero (ρ : ℂ) ∈
                         daggerClosedSpectralSampleFinset P)) with
                 | isTrue hρDagger =>
-                    have hcontribution_zero : contribution ρ = 0 :=
+                    let hcontribution_zero : contribution ρ = 0 :=
                       hforcedZero
                         (⟨(ρ : ℂ), ρ.2.1, ρ.2.2, hρT⟩ :
                           {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T})
                         hρDagger
-                    have hnorm_zero : ‖contribution ρ‖ = 0 :=
+                    let hnorm_zero : ‖contribution ρ‖ = 0 :=
                       Eq.trans (congrArg norm hcontribution_zero) norm_zero
-                    have henvelope_nonneg : 0 ≤ envelope ρ :=
+                    let henvelope_nonneg : 0 ≤ envelope ρ :=
                       zetaZeroMultiplicityTransformEnvelope_nonnegative hA k
                         (⟨(ρ : ℂ), ρ.2.1⟩ :
                           {ρ : ℂ // ZetaCompletedZero ρ})
@@ -348,11 +346,11 @@ theorem zetaZeroTail_norm_le_commonPolynomialEnvelope_nonDagger_by_partition
                             ρ ∉ S ∧
                             ρ ∉ T ∧
                             zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P})
-    have htail_contribution_summable : Summable contribution :=
+    let htail_contribution_summable : Summable contribution :=
       Summable.of_norm_bounded envelope henvelope_summable hnorm_bound
-    zetaZeroTail_eq_complement_tsum_of_zero_on_window_ownerGap
+    zetaZeroTail_eq_complement_tsum_of_zero_on_window
       S T (convolutionAutocorrelation f) htail_contribution_summable hzeroT
-  have hcomplement_bound :
+  let hcomplement_bound :
       ‖(∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
           zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f))‖ ≤
         ∑' ρ :
@@ -367,21 +365,20 @@ theorem zetaZeroTail_norm_le_commonPolynomialEnvelope_nonDagger_by_partition
     zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_nonDagger_tsum
       S P T A k hA hsum (convolutionAutocorrelation f)
         hforcedZero hboundNonDagger
-  exact
-    Eq.subst
-      (motive := fun z : ℂ =>
-        ‖z‖ ≤
-          ∑' ρ :
-            {ρ : ℂ //
-              ZetaCompletedZero ρ ∧
-                ρ ∉ S ∧
-                ρ ∉ T ∧
-                zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
-            A * zetaCompletedZeroCenteredHeight
-              (⟨(ρ : ℂ), ρ.2.1⟩ :
-                {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)))
-      htail_eq.symm
-      hcomplement_bound
+  Eq.subst
+    (motive := fun z : ℂ =>
+      ‖z‖ ≤
+        ∑' ρ :
+          {ρ : ℂ //
+            ZetaCompletedZero ρ ∧
+              ρ ∉ S ∧
+              ρ ∉ T ∧
+              zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
+          A * zetaCompletedZeroCenteredHeight
+            (⟨(ρ : ℂ), ρ.2.1⟩ :
+              {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)))
+    htail_eq.symm
+    hcomplement_bound
 
 /-- Public non-dagger complementary polynomial-envelope estimate. -/
 theorem zetaZeroTail_norm_le_commonPolynomialEnvelope_nonDagger_complement_tsum
@@ -424,10 +421,9 @@ theorem zetaZeroTail_norm_le_commonPolynomialEnvelope_nonDagger_complement_tsum
             zetaCenteredZero ρ ∉ daggerClosedSpectralSampleFinset P},
         A * zetaCompletedZeroCenteredHeight
           (⟨(ρ : ℂ), ρ.2.1⟩ :
-            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) := by
-  exact
-    zetaZeroTail_norm_le_commonPolynomialEnvelope_nonDagger_by_partition
-      S P T A k hA hsum f hzeroT hforcedZero hboundNonDagger
+            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) :=
+  zetaZeroTail_norm_le_commonPolynomialEnvelope_nonDagger_by_partition
+    S P T A k hA hsum f hzeroT hforcedZero hboundNonDagger
 
 /-- The remaining summable-tail cutoff for a common completed-zero polynomial envelope.
 
@@ -459,8 +455,8 @@ theorem zetaZeroTail_norm_le_commonPolynomialEnvelope_complement_by_partition
       ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
         A * zetaCompletedZeroCenteredHeight
           (⟨(ρ : ℂ), ρ.2.1⟩ :
-            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) := by
-  have htail_eq :
+            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) :=
+  let htail_eq :
       zetaZeroTail S (convolutionAutocorrelation f) =
         ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
           zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f) :=
@@ -478,26 +474,26 @@ theorem zetaZeroTail_norm_le_commonPolynomialEnvelope_complement_by_partition
         {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} →
           {ρ : ℂ // ZetaCompletedZero ρ} :=
       fun rho => ⟨(rho : ℂ), rho.2.1⟩
-    have zeroMapInjective : Function.Injective zeroMap :=
+    let zeroMapInjective : Function.Injective zeroMap :=
       fun left right equality =>
         Subtype.ext
           (congrArg
             (fun zero : {ρ : ℂ // ZetaCompletedZero ρ} => (zero : ℂ))
             equality)
-    have henvelope_summable : Summable envelope :=
+    let henvelope_summable : Summable envelope :=
       zetaCompletedZeroPolynomialEnvelope_comp_summable
         A k zeroMap zeroMapInjective hsum
-    have hnorm_bound :
+    let hnorm_bound :
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
           ‖contribution ρ‖ ≤ envelope ρ :=
       fun ρ =>
         match (inferInstance : Decidable ((ρ : ℂ) ∈ T)) with
             | isTrue hρT =>
-                have hcontribution_zero : contribution ρ = 0 :=
+                let hcontribution_zero : contribution ρ = 0 :=
                   hzeroT ρ hρT
-                have hnorm_zero : ‖contribution ρ‖ = 0 :=
+                let hnorm_zero : ‖contribution ρ‖ = 0 :=
                   Eq.trans (congrArg norm hcontribution_zero) norm_zero
-                have henvelope_nonneg : 0 ≤ envelope ρ :=
+                let henvelope_nonneg : 0 ≤ envelope ρ :=
                   zetaZeroMultiplicityTransformEnvelope_nonnegative hA k
                     (⟨(ρ : ℂ), ρ.2.1⟩ :
                       {ρ : ℂ // ZetaCompletedZero ρ})
@@ -509,32 +505,31 @@ theorem zetaZeroTail_norm_le_commonPolynomialEnvelope_complement_by_partition
                 hbound
                   (⟨(ρ : ℂ), ρ.2.1, ρ.2.2, hρT⟩ :
                     {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T})
-    have htail_contribution_summable : Summable contribution :=
+    let htail_contribution_summable : Summable contribution :=
       Summable.of_norm_bounded envelope henvelope_summable hnorm_bound
-    zetaZeroTail_eq_complement_tsum_of_zero_on_window_ownerGap
+    zetaZeroTail_eq_complement_tsum_of_zero_on_window
       S T (convolutionAutocorrelation f) htail_contribution_summable hzeroT
-  have hcomplement_bound :
+  let hcomplement_bound :
       ‖(∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
           zetaZeroSideContribution (ρ : ℂ) (convolutionAutocorrelation f))‖ ≤
         ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
           A * zetaCompletedZeroCenteredHeight
             (⟨(ρ : ℂ), ρ.2.1⟩ :
               {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) :=
-    zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_tsum_ownerGap
+    zetaZeroTail_complement_tsum_norm_le_commonPolynomialEnvelope_tsum
       S T A k hsum f hbound
-  exact
-    Eq.subst
-      (motive := fun z : ℂ =>
-        ‖z‖ ≤
-          ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
-            A * zetaCompletedZeroCenteredHeight
-              (⟨(ρ : ℂ), ρ.2.1⟩ :
-                {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)))
-      htail_eq.symm
-      hcomplement_bound
+  Eq.subst
+    (motive := fun z : ℂ =>
+      ‖z‖ ≤
+        ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
+          A * zetaCompletedZeroCenteredHeight
+            (⟨(ρ : ℂ), ρ.2.1⟩ :
+              {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)))
+    htail_eq.symm
+    hcomplement_bound
 
 /-- Public common polynomial-envelope complementary-tail estimate. -/
-theorem zetaZeroTail_norm_le_commonPolynomialEnvelope_complement_tsum_ownerGap
+theorem zetaZeroTail_norm_le_commonPolynomialEnvelope_complement_tsum
     (S : Finset ℂ)
     (T : Finset ℂ)
     (A : ℝ)
@@ -559,10 +554,9 @@ theorem zetaZeroTail_norm_le_commonPolynomialEnvelope_complement_tsum_ownerGap
       ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T},
         A * zetaCompletedZeroCenteredHeight
           (⟨(ρ : ℂ), ρ.2.1⟩ :
-            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) := by
-  exact
-    zetaZeroTail_norm_le_commonPolynomialEnvelope_complement_by_partition
-      S T A k hA hsum f hzeroT hbound
+            {ρ : ℂ // ZetaCompletedZero ρ}) ^ (-(k + 3 : ℤ)) :=
+  zetaZeroTail_norm_le_commonPolynomialEnvelope_complement_by_partition
+    S T A k hA hsum f hzeroT hbound
 
 end ZetaAdmissibleFunction
 end

@@ -14,6 +14,32 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- The tangent-weighted right-side `s = 1` integral is the real vertical
+one-pole integral multiplied by the vertical tangent `I`. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral_eq_vertical_mul_I
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleTangentIntegral f F T =
+      zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral f F T * Complex.I := by
+  exact
+    integral_smul_const
+      (fun t : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+          (zetaCompletedExplicitFormulaRightPath (F.rectangle T) t))
+      Complex.I
+
+/-- The tangent-weighted left-side `s = 1` integral is the real vertical
+one-pole integral multiplied by the vertical tangent `I`. -/
+theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral_eq_vertical_mul_I
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
+    zetaCompletedExplicitFormulaCorrectionLeftOnePoleTangentIntegral f F T =
+      zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral f F T * Complex.I := by
+  exact
+    integral_smul_const
+      (fun t : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionOnePoleKernel f
+          (zetaCompletedExplicitFormulaLeftPath (F.rectangle T) t))
+      Complex.I
+
 /-- The tangent-weighted top `s = 1` side is the top horizontal integral in the
 vertical-channel notation. -/
 theorem zetaCompletedExplicitFormulaCorrectionTopOnePoleTangentIntegral_eq_horizontal

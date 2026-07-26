@@ -45,7 +45,7 @@ inverse-quadratic height envelope.
 
 This is the deterministic normalization of the horizontal-edge owner envelope; no
 top/bottom geometry is involved in this step. -/
-theorem horizontalUnorderedFamilyEdgeEnvelopeSplit_zero_two_inverseQuadratic_ownerGap
+theorem horizontalUnorderedFamilyEdgeEnvelopeSplit_zero_two_inverseQuadratic_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
@@ -133,7 +133,7 @@ theorem horizontalUnorderedFamilyEdgeEnvelopeSplit_zero_two_inverseQuadratic_own
 
 /-- Top horizontal-edge data sufficient to convert the existing split-envelope
 estimate into the inverse-quadratic bound consumed by the vertical channel. -/
-theorem explicitFormulaTopLineIntegral_inverseQuadraticEnvelope_ownerGap
+theorem explicitFormulaTopLineIntegral_inverseQuadraticEnvelope_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
@@ -142,20 +142,22 @@ theorem explicitFormulaTopLineIntegral_inverseQuadraticEnvelope_ownerGap
       ∀ (u x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
         zetaCompletedExplicitFormulaTopPath
           (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
-    ∃ Btop : ℝ,
-      0 < Btop ∧
-      ∀ T : ℝ,
-        horizontalUnorderedFamilyEdgeEnvelopeSplit
-            h.phi_control h.logderiv_control F E 0 2 T
-          ≤ Btop * (1 + ‖(F.rectangle T).T‖) ^ (-(2 : ℤ)) := by
-  match horizontalUnorderedFamilyEdgeEnvelopeSplit_zero_two_inverseQuadratic_ownerGap
-      f F h E with
-  | ⟨B, hBpos, hB⟩ =>
-      exact ⟨B, hBpos, hB⟩
+      ∃ Btop : ℝ,
+        0 < Btop ∧
+        ∀ T : ℝ,
+          horizontalUnorderedFamilyEdgeEnvelopeSplit
+              h.phi_control h.logderiv_control F E 0 2 T
+            ≤ Btop * (1 + ‖(F.rectangle T).T‖) ^ (-(2 : ℤ)) := by
+    let envelopeData :=
+      horizontalUnorderedFamilyEdgeEnvelopeSplit_zero_two_inverseQuadratic_owner
+        f F h E
+    exact Exists.elim envelopeData
+      (fun B envelopeSpec =>
+        ⟨B, envelopeSpec.1, envelopeSpec.2⟩)
 
 /-- Bottom horizontal-edge data sufficient to convert the existing split-envelope
 estimate into the inverse-quadratic bound consumed by the vertical channel. -/
-theorem explicitFormulaBottomLineIntegral_inverseQuadraticEnvelope_ownerGap
+theorem explicitFormulaBottomLineIntegral_inverseQuadraticEnvelope_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
@@ -164,23 +166,25 @@ theorem explicitFormulaBottomLineIntegral_inverseQuadraticEnvelope_ownerGap
       ∀ (u x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
         zetaCompletedExplicitFormulaBottomPath
           (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
-    ∃ Bbottom : ℝ,
-      0 < Bbottom ∧
-      ∀ T : ℝ,
-        horizontalUnorderedFamilyEdgeEnvelopeSplit
-            h.phi_control h.logderiv_control F E 0 2 T
-          ≤ Bbottom * (1 + ‖(F.rectangle T).T‖) ^ (-(2 : ℤ)) := by
-  match horizontalUnorderedFamilyEdgeEnvelopeSplit_zero_two_inverseQuadratic_ownerGap
-      f F h E with
-  | ⟨B, hBpos, hB⟩ =>
-      exact ⟨B, hBpos, hB⟩
+      ∃ Bbottom : ℝ,
+        0 < Bbottom ∧
+        ∀ T : ℝ,
+          horizontalUnorderedFamilyEdgeEnvelopeSplit
+              h.phi_control h.logderiv_control F E 0 2 T
+            ≤ Bbottom * (1 + ‖(F.rectangle T).T‖) ^ (-(2 : ℤ)) := by
+    let envelopeData :=
+      horizontalUnorderedFamilyEdgeEnvelopeSplit_zero_two_inverseQuadratic_owner
+        f F h E
+    exact Exists.elim envelopeData
+      (fun B envelopeSpec =>
+        ⟨B, envelopeSpec.1, envelopeSpec.2⟩)
 
 /-- Scheduled top horizontal-edge inverse-quadratic estimate.
 
 This is the top-edge half of the horizontal-control package.  It is separated
 from the top-minus-bottom statement so the final owner theorem is only norm
 subadditivity and scalar algebra. -/
-theorem explicitFormulaTopLineIntegral_inverseQuadraticBound_ownerGap
+theorem explicitFormulaTopLineIntegral_inverseQuadraticBound_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
@@ -189,31 +193,33 @@ theorem explicitFormulaTopLineIntegral_inverseQuadraticBound_ownerGap
       ∀ (u x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
         zetaCompletedExplicitFormulaTopPath
           (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
-    ∃ Btop : ℝ,
-      0 < Btop ∧
-      ∀ u : ℝ,
-        ‖zetaCompletedExplicitFormulaTopLineIntegral
-            f (F.rectangle (h.height_schedule.height u))‖
-          ≤ Btop *
-            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
-  match explicitFormulaTopLineIntegral_inverseQuadraticEnvelope_ownerGap f F h E hTopMem with
-  | ⟨Btop, hBtop_pos, hBtop⟩ =>
-      refine ⟨Btop, hBtop_pos, ?_⟩
-      intro u
-      have hedge :
+      ∃ Btop : ℝ,
+        0 < Btop ∧
+        ∀ u : ℝ,
           ‖zetaCompletedExplicitFormulaTopLineIntegral
               f (F.rectangle (h.height_schedule.height u))‖
-            ≤ horizontalUnorderedFamilyEdgeEnvelopeSplit
-                h.phi_control h.logderiv_control F E 0 2
-                (h.height_schedule.height u) :=
-        zetaCompletedExplicitFormulaTopLineIntegral_uIcc_norm_le_envelopeSplit
-          h.phi_control h.logderiv_control
-          (F.rectangle (h.height_schedule.height u)) E
-          (fun x hx => hTopMem u x hx) 0 2
-      exact le_trans hedge (hBtop (h.height_schedule.height u))
+            ≤ Btop *
+              (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
+    let topData :=
+      explicitFormulaTopLineIntegral_inverseQuadraticEnvelope_owner f F h E hTopMem
+    exact Exists.elim topData
+      (fun Btop topSpec =>
+        ⟨Btop, topSpec.1,
+          fun u =>
+            have hedge :
+                ‖zetaCompletedExplicitFormulaTopLineIntegral
+                    f (F.rectangle (h.height_schedule.height u))‖
+                  ≤ horizontalUnorderedFamilyEdgeEnvelopeSplit
+                      h.phi_control h.logderiv_control F E 0 2
+                      (h.height_schedule.height u) :=
+              zetaCompletedExplicitFormulaTopLineIntegral_uIcc_norm_le_envelopeSplit
+                h.phi_control h.logderiv_control
+                (F.rectangle (h.height_schedule.height u)) E
+                (fun x hx => hTopMem u x hx) 0 2
+            le_trans hedge (topSpec.2 (h.height_schedule.height u))⟩)
 
 /-- Scheduled bottom horizontal-edge inverse-quadratic estimate. -/
-theorem explicitFormulaBottomLineIntegral_inverseQuadraticBound_ownerGap
+theorem explicitFormulaBottomLineIntegral_inverseQuadraticBound_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
@@ -222,28 +228,30 @@ theorem explicitFormulaBottomLineIntegral_inverseQuadraticBound_ownerGap
       ∀ (u x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
         zetaCompletedExplicitFormulaBottomPath
           (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
-    ∃ Bbottom : ℝ,
-      0 < Bbottom ∧
-      ∀ u : ℝ,
-        ‖zetaCompletedExplicitFormulaBottomLineIntegral
-            f (F.rectangle (h.height_schedule.height u))‖
-          ≤ Bbottom *
-            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
-  match explicitFormulaBottomLineIntegral_inverseQuadraticEnvelope_ownerGap f F h E hBottomMem with
-  | ⟨Bbottom, hBbottom_pos, hBbottom⟩ =>
-      refine ⟨Bbottom, hBbottom_pos, ?_⟩
-      intro u
-      have hedge :
+      ∃ Bbottom : ℝ,
+        0 < Bbottom ∧
+        ∀ u : ℝ,
           ‖zetaCompletedExplicitFormulaBottomLineIntegral
               f (F.rectangle (h.height_schedule.height u))‖
-            ≤ horizontalUnorderedFamilyEdgeEnvelopeSplit
-                h.phi_control h.logderiv_control F E 0 2
-                (h.height_schedule.height u) :=
-        zetaCompletedExplicitFormulaBottomLineIntegral_uIcc_norm_le_envelopeSplit
-          h.phi_control h.logderiv_control
-          (F.rectangle (h.height_schedule.height u)) E
-          (fun x hx => hBottomMem u x hx) 0 2
-      exact le_trans hedge (hBbottom (h.height_schedule.height u))
+            ≤ Bbottom *
+              (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
+    let bottomData :=
+      explicitFormulaBottomLineIntegral_inverseQuadraticEnvelope_owner f F h E hBottomMem
+    exact Exists.elim bottomData
+      (fun Bbottom bottomSpec =>
+        ⟨Bbottom, bottomSpec.1,
+          fun u =>
+            have hedge :
+                ‖zetaCompletedExplicitFormulaBottomLineIntegral
+                    f (F.rectangle (h.height_schedule.height u))‖
+                  ≤ horizontalUnorderedFamilyEdgeEnvelopeSplit
+                      h.phi_control h.logderiv_control F E 0 2
+                      (h.height_schedule.height u) :=
+              zetaCompletedExplicitFormulaBottomLineIntegral_uIcc_norm_le_envelopeSplit
+                h.phi_control h.logderiv_control
+                (F.rectangle (h.height_schedule.height u)) E
+                (fun x hx => hBottomMem u x hx) 0 2
+            le_trans hedge (bottomSpec.2 (h.height_schedule.height u))⟩)
 
 /-- Norm-subadditivity and scalar accounting for the top-minus-bottom
 horizontal estimate. -/
@@ -296,7 +304,7 @@ theorem explicitFormulaHorizontalSideDifference_inverseQuadraticBound_from_edges
 top-minus-bottom horizontal side difference.
 
 This is the horizontal estimate consumed by the correction-channel users. -/
-theorem explicitFormulaHorizontalSideDifference_inverseQuadraticBound_ownerGap
+theorem explicitFormulaHorizontalSideDifference_inverseQuadraticBound_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
@@ -309,19 +317,23 @@ theorem explicitFormulaHorizontalSideDifference_inverseQuadraticBound_ownerGap
       ∀ (u x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
         zetaCompletedExplicitFormulaBottomPath
           (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
-    ∃ B : ℝ,
-      0 < B ∧
-      ∀ u : ℝ,
-        ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖
-          ≤ B *
-            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
-  match explicitFormulaTopLineIntegral_inverseQuadraticBound_ownerGap f F h E hTopMem,
-    explicitFormulaBottomLineIntegral_inverseQuadraticBound_ownerGap f F h E hBottomMem with
-  | ⟨Btop, hBtop_pos, hBtop⟩, ⟨Bbottom, hBbottom_pos, hBbottom⟩ =>
-      exact
-        ⟨Btop + Bbottom, add_pos hBtop_pos hBbottom_pos,
-          explicitFormulaHorizontalSideDifference_inverseQuadraticBound_from_edges
-            f F h Btop Bbottom hBtop hBbottom⟩
+      ∃ B : ℝ,
+        0 < B ∧
+        ∀ u : ℝ,
+          ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖
+            ≤ B *
+              (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
+    let topData :=
+      explicitFormulaTopLineIntegral_inverseQuadraticBound_owner f F h E hTopMem
+    let bottomData :=
+      explicitFormulaBottomLineIntegral_inverseQuadraticBound_owner f F h E hBottomMem
+    exact Exists.elim topData
+      (fun Btop topSpec =>
+        Exists.elim bottomData
+          (fun Bbottom bottomSpec =>
+            ⟨Btop + Bbottom, add_pos topSpec.1 bottomSpec.1,
+              explicitFormulaHorizontalSideDifference_inverseQuadraticBound_from_edges
+                f F h Btop Bbottom topSpec.2 bottomSpec.2⟩))
 
 /-- Inserting the package height schedule into the unscheduled horizontal
 inverse-quadratic estimate gives the scheduled estimate. -/
@@ -346,7 +358,7 @@ theorem explicitFormulaScheduledHorizontalSideDifference_inverseQuadraticBound_o
 Both off-pole correction faces consume the same top-minus-bottom horizontal
 side difference, so the face-specific estimates below are wrappers over this
 single scheduled transport of the horizontal owner estimate. -/
-theorem explicitFormulaScheduledHorizontalSideDifference_inverseQuadraticBound_ownerGap
+theorem explicitFormulaScheduledHorizontalSideDifference_inverseQuadraticBound_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
@@ -359,20 +371,22 @@ theorem explicitFormulaScheduledHorizontalSideDifference_inverseQuadraticBound_o
       ∀ (u x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
         zetaCompletedExplicitFormulaBottomPath
           (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
-    ∃ B : ℝ,
-      0 < B ∧
-      ∀ u : ℝ,
-        ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖
-          ≤ B *
-            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
-  match explicitFormulaHorizontalSideDifference_inverseQuadraticBound_ownerGap
-      f F h E hTopMem hBottomMem with
-  | ⟨B, hBpos, hB⟩ =>
-      exact ⟨B, hBpos, hB⟩
+      ∃ B : ℝ,
+        0 < B ∧
+        ∀ u : ℝ,
+          ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖
+            ≤ B *
+              (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
+    let horizontalData :=
+      explicitFormulaHorizontalSideDifference_inverseQuadraticBound_owner
+        f F h E hTopMem hBottomMem
+    exact Exists.elim horizontalData
+      (fun B horizontalSpec =>
+        ⟨B, horizontalSpec.1, horizontalSpec.2⟩)
 
-/-- The scheduled horizontal side difference tends to zero once its horizontal
-edges are carried by a common zero-excised strip. -/
-theorem explicitFormulaScheduledHorizontalSideDifference_tendsto_zero_ownerGap
+/-- Exported scheduled horizontal decay once both horizontal edges are carried by
+a common zero-excised strip. -/
+theorem explicitFormulaScheduledHorizontalSideDifference_tendsto_zero_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
@@ -385,34 +399,36 @@ theorem explicitFormulaScheduledHorizontalSideDifference_tendsto_zero_ownerGap
       ∀ (u x : ℝ), x ∈ Set.uIcc F.c (1 - F.c) →
         zetaCompletedExplicitFormulaBottomPath
           (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
-    Tendsto
-      (fun u : ℝ => explicitFormulaScheduledHorizontalSideDifference f F h u)
-      atTop
-      (𝓝 0) := by
-  match explicitFormulaScheduledHorizontalSideDifference_inverseQuadraticBound_ownerGap
-      f F h E hTopMem hBottomMem with
-  | ⟨B, _hBpos, hB⟩ =>
-      have hbound :
-          ∀ᶠ u in atTop,
-            ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖
-              ≤ B *
-                (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) :=
-        Filter.Eventually.of_forall hB
-      have hmajorant :
-          Tendsto
-            (fun u : ℝ =>
-              B *
-                (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)))
-            atTop
-            (𝓝 0) :=
-        zetaCompletedExplicitFormulaCorrection_scheduledInverseQuadraticTailMajorant_tendsto_zero
-          F h.height_schedule B
-      exact squeeze_zero_norm' hbound hmajorant
+      Tendsto
+        (fun u : ℝ => explicitFormulaScheduledHorizontalSideDifference f F h u)
+        atTop
+        (𝓝 0) := by
+    let scheduledData :=
+      explicitFormulaScheduledHorizontalSideDifference_inverseQuadraticBound_owner
+        f F h E hTopMem hBottomMem
+    exact Exists.elim scheduledData
+      (fun B scheduledSpec =>
+        have hbound :
+            ∀ᶠ u in atTop,
+              ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖
+                ≤ B *
+                  (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) :=
+          Filter.Eventually.of_forall scheduledSpec.2
+        have hmajorant :
+            Tendsto
+              (fun u : ℝ =>
+                B *
+                  (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)))
+              atTop
+              (𝓝 0) :=
+          zetaCompletedExplicitFormulaCorrection_scheduledInverseQuadraticTailMajorant_tendsto_zero
+            F h.height_schedule B
+        squeeze_zero_norm' hbound hmajorant)
 
 /-- Horizontal-edge cancellation for the scheduled right-face opposite-pole
 integral.  This is the decay of the horizontal remainder exposed by the Cauchy
 rectangle identity, not a vertical pointwise denominator estimate. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_horizontalEdgeCancellation_inverseQuadraticBound_ownerGap
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_horizontalEdgeCancellation_inverseQuadraticBound_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
@@ -432,12 +448,12 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_horizontalEdgeCancell
           ≤ B *
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   exact
-    explicitFormulaScheduledHorizontalSideDifference_inverseQuadraticBound_ownerGap
+    explicitFormulaScheduledHorizontalSideDifference_inverseQuadraticBound_owner
       f F h E hTopMem hBottomMem
 
 /-- Algebraic assembly of the scheduled Cauchy rectangle cancellation and the
 horizontal-edge inverse-quadratic bound for the right-face off-pole pole. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_inverseQuadraticBound_from_cauchyHorizontal_ownerGap
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_inverseQuadraticBound_from_cauchyHorizontal_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (A : ℝ)
@@ -462,47 +478,51 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_inverseQuadraticBound
           (F.rectangle (h.height_schedule.height u)) x ∈ E.carrier) :
     ∃ M : ℝ,
       0 < M ∧
-      ∀ᶠ u in atTop,
-        ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
-          f F h u‖
-          ≤ M *
-            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
-  match
-    zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledRectangleCauchyCancellation_ownerGap
-      f F h A hApos htangent,
-    zetaCompletedExplicitFormulaCorrectionRightOnePole_horizontalEdgeCancellation_inverseQuadraticBound_ownerGap
-      f F h E hTopMem hBottomMem with
-  | ⟨A, hApos, hA⟩, ⟨B, hBpos, hB⟩ =>
-      refine ⟨A + B, add_pos hApos hBpos, ?_⟩
-      exact hA.mono
-        (fun u hrectangle =>
-          let q : ℝ :=
-            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ))
-          have hhorizontal :
-              ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖
-                ≤ B * q :=
-            hB u
-          have hcombined :
-              ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖ + A * q
-                ≤ B * q + A * q :=
-            add_le_add_right hhorizontal (A * q)
-          have hcommuted :
-              B * q + A * q = A * q + B * q :=
-            add_comm (B * q) (A * q)
-          have hfactored :
-              A * q + B * q = (A + B) * q :=
-            (add_mul A B q).symm
-          have htarget :
-              B * q + A * q = (A + B) * q :=
-            Eq.trans hcommuted hfactored
-          le_trans hrectangle (le_trans hcombined (le_of_eq htarget)))
+        ∀ᶠ u in atTop,
+          ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
+            f F h u‖
+            ≤ M *
+              (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
+    let rectangleData :=
+      zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledRectangleCauchyCancellation_owner
+        f F h A hApos htangent
+    let horizontalData :=
+      zetaCompletedExplicitFormulaCorrectionRightOnePole_horizontalEdgeCancellation_inverseQuadraticBound_owner
+        f F h E hTopMem hBottomMem
+    exact Exists.elim rectangleData
+      (fun Arect rectangleSpec =>
+        Exists.elim horizontalData
+          (fun B horizontalSpec =>
+            ⟨Arect + B, add_pos rectangleSpec.1 horizontalSpec.1,
+              rectangleSpec.2.mono
+                (fun u hrectangle =>
+                  let q : ℝ :=
+                    (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ))
+                  have hhorizontal :
+                      ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖
+                        ≤ B * q :=
+                    horizontalSpec.2 u
+                  have hcombined :
+                      ‖explicitFormulaScheduledHorizontalSideDifference f F h u‖ + Arect * q
+                        ≤ B * q + Arect * q :=
+                    add_le_add_right hhorizontal (Arect * q)
+                  have hcommuted :
+                      B * q + Arect * q = Arect * q + B * q :=
+                    add_comm (B * q) (Arect * q)
+                  have hfactored :
+                      Arect * q + B * q = (Arect + B) * q :=
+                    (add_mul Arect B q).symm
+                  have htarget :
+                      B * q + Arect * q = (Arect + B) * q :=
+                    Eq.trans hcommuted hfactored
+                  le_trans hrectangle (le_trans hcombined (le_of_eq htarget)))⟩))
 
 /-- The scheduled Cauchy/oscillatory cancellation package for the right-face
 off-pole `s = 1` correction integral.
 
 The proof is now localized to the finite Cauchy rectangle cancellation, the
 horizontal-edge cancellation estimate, and the final inverse-quadratic algebra. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledContourCancellation_inverseQuadraticBound_ownerGap
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledContourCancellation_inverseQuadraticBound_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (A : ℝ)
@@ -533,7 +553,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledContourCance
           ≤ M *
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   exact
-    zetaCompletedExplicitFormulaCorrectionRightOnePole_inverseQuadraticBound_from_cauchyHorizontal_ownerGap
+    zetaCompletedExplicitFormulaCorrectionRightOnePole_inverseQuadraticBound_from_cauchyHorizontal_owner
       f F h A hApos htangent E hTopMem hBottomMem
 
 /-- Scheduled Cauchy cancellation for the explicit right-face off-pole `s = 1`
@@ -544,7 +564,7 @@ pointwise denominator-separation bound on an expanding interval.  Its analytic
 content is the contour/oscillatory cancellation that converts the off-pole
 vertical integral into an inverse-quadratic scheduled tail.  The following
 named-integral theorem only unfolds the owner definition. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryIntegral_inverseQuadraticBound_ownerGap
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryIntegral_inverseQuadraticBound_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (A : ℝ)
@@ -580,35 +600,36 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryI
               zetaCompletedExplicitFormulaPhi f
                 (zetaCompletedExplicitFormulaRightPath
                     (F.rectangle (h.height_schedule.height u)) t - 1 / 2)‖
-          ≤ M *
-            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
-  match
-    zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledContourCancellation_inverseQuadraticBound_ownerGap
-      f F h A hApos htangent E hTopMem hBottomMem with
-  | ⟨M, hMpos, hbound⟩ =>
-      refine ⟨M, hMpos, ?_⟩
-      exact hbound.mono
-        (fun u hu =>
-          have hnamed :
-              (∫ t in
-                  Set.Icc
-                    (-(F.rectangle (h.height_schedule.height u)).T)
-                    (F.rectangle (h.height_schedule.height u)).T,
-                  (-1 /
-                      (zetaCompletedExplicitFormulaRightPath
-                          (F.rectangle (h.height_schedule.height u)) t - 1)) *
-                    zetaCompletedExplicitFormulaPhi f
-                      (zetaCompletedExplicitFormulaRightPath
-                          (F.rectangle (h.height_schedule.height u)) t - 1 / 2)) =
-                zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
-                  f F h u :=
-            zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryIntegral_eq_named
-              f F h u
-          Eq.symm hnamed ▸ hu)
+            ≤ M *
+              (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
+    let contourData :=
+      zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledContourCancellation_inverseQuadraticBound_owner
+        f F h A hApos htangent E hTopMem hBottomMem
+    exact Exists.elim contourData
+      (fun M contourSpec =>
+        ⟨M, contourSpec.1,
+          contourSpec.2.mono
+            (fun u hu =>
+              have hnamed :
+                  (∫ t in
+                      Set.Icc
+                        (-(F.rectangle (h.height_schedule.height u)).T)
+                        (F.rectangle (h.height_schedule.height u)).T,
+                      (-1 /
+                          (zetaCompletedExplicitFormulaRightPath
+                              (F.rectangle (h.height_schedule.height u)) t - 1)) *
+                        zetaCompletedExplicitFormulaPhi f
+                          (zetaCompletedExplicitFormulaRightPath
+                              (F.rectangle (h.height_schedule.height u)) t - 1 / 2)) =
+                    zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledOscillatoryIntegral
+                      f F h u :=
+                zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryIntegral_eq_named
+                  f F h u
+              Eq.symm hnamed ▸ hu)⟩)
 
 /-- Definition transport from the right-face off-pole correction integral to its
 explicit oscillatory-integral cancellation estimate. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_scheduledCauchyCancellation_rawInverseQuadraticBound_ownerGap
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_scheduledCauchyCancellation_rawInverseQuadraticBound_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (A : ℝ)
@@ -639,13 +660,13 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_sched
           ≤ M *
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   exact
-    zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryIntegral_inverseQuadraticBound_ownerGap
+    zetaCompletedExplicitFormulaCorrectionRightOnePole_scheduledOscillatoryIntegral_inverseQuadraticBound_owner
       f F h A hApos htangent E hTopMem hBottomMem
 
 /-- Algebraic transport from the scheduled right-face Cauchy cancellation estimate
 to the public inverse-quadratic off-pole bound.  The only remaining content of
 the preceding theorem is the scheduled contour cancellation itself. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_scheduledCauchyCancellation_inverseQuadraticBound_ownerGap
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_scheduledCauchyCancellation_inverseQuadraticBound_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (A : ℝ)
@@ -676,7 +697,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_sched
           ≤ M *
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   exact
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_scheduledCauchyCancellation_rawInverseQuadraticBound_ownerGap
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_scheduledCauchyCancellation_rawInverseQuadraticBound_owner
       f F h A hApos htangent E hTopMem hBottomMem
 
 /-- Off-pole right-face correction tail estimate for the `s = 1` pole.
@@ -684,7 +705,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_sched
 This public estimate is a thin wrapper over the scheduled Cauchy cancellation
 theorem.  It deliberately does not assert that pointwise denominator separation
 alone controls the expanding vertical integral. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_offPoleTailBound_ownerGap
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_offPoleTailBound_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (A : ℝ)
@@ -715,7 +736,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_offPo
           ≤ M *
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
   exact
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_scheduledCauchyCancellation_inverseQuadraticBound_ownerGap
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_scheduledCauchyCancellation_inverseQuadraticBound_owner
       f F h A hApos htangent E hTopMem hBottomMem
 
 /-- The off-pole right-face correction tail majorant tends to zero along the
@@ -795,22 +816,23 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
           ≤ A *
             (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ))) :
     Tendsto
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-          f F (h.height_schedule.height u))
-      atTop
-      (𝓝 0) := by
-  match
-    ExplicitFormulaFamilyAnalyticPackage.scheduled_horizontalFamilyZeroExcisedStrip
-      h with
-  | ⟨E, hTopMem, hBottomMem⟩ =>
-      match
-        zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_offPoleTailBound_ownerGap
-          f F h A hApos htangent E hTopMem hBottomMem with
-      | ⟨C, _hCpos, hCbound⟩ =>
-          exact
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 0) := by
+    let stripData :=
+      ExplicitFormulaFamilyAnalyticPackage.scheduled_horizontalFamilyZeroExcisedStrip
+        h
+    exact Exists.elim stripData
+      (fun E stripSpec =>
+        let tailData :=
+          zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_offPoleTailBound_owner
+            f F h A hApos htangent E stripSpec.1 stripSpec.2
+        Exists.elim tailData
+          (fun C tailSpec =>
             zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_zero_of_eventualOffPoleTailBound
-              f F h C hCbound
+              f F h C tailSpec.2))
 
 /-- A pointwise bound on the top `s = 0` single-pole horizontal integrand
 controls the corresponding horizontal edge integral. -/

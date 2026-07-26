@@ -1,6 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralLinearity
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralLinearity
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZeroTailTomography.Owner
@@ -54,37 +53,27 @@ theorem zetaSpectralEvalPresentation_sourceDifference_mem_ker
     (P : Finset ℂ) (f₀ f : ZetaAdmissibleFunction)
     (hf : zetaSpectralEvalPresentationMap P f =
       zetaSpectralEvalPresentationTarget P f₀) :
-    f - f₀ ∈ LinearMap.ker (zetaSpectralEvalPresentationMap P) := by
-  have hsub :
+    f - f₀ ∈ LinearMap.ker (zetaSpectralEvalPresentationMap P) :=
+  let hsub :
       zetaSpectralEvalPresentationMap P (f - f₀) =
         zetaSpectralEvalPresentationMap P f -
           zetaSpectralEvalPresentationMap P f₀ :=
     LinearMap.map_sub (zetaSpectralEvalPresentationMap P) f f₀
-  have htarget :
+  let htarget :
       zetaSpectralEvalPresentationTarget P f₀ =
         zetaSpectralEvalPresentationMap P f₀ :=
     Eq.refl (zetaSpectralEvalPresentationMap P f₀)
-  calc
-    zetaSpectralEvalPresentationMap P (f - f₀) =
-        zetaSpectralEvalPresentationMap P f -
-          zetaSpectralEvalPresentationMap P f₀ := hsub
-    zetaSpectralEvalPresentationMap P f -
-          zetaSpectralEvalPresentationMap P f₀ =
-        zetaSpectralEvalPresentationTarget P f₀ -
-          zetaSpectralEvalPresentationMap P f₀ :=
-      congrArg
+  Eq.trans
+    hsub
+    (Eq.trans
+      (congrArg
         (fun value : P → ℂ => value - zetaSpectralEvalPresentationMap P f₀)
-        hf
-    zetaSpectralEvalPresentationTarget P f₀ -
-          zetaSpectralEvalPresentationMap P f₀ =
-        zetaSpectralEvalPresentationMap P f₀ -
-          zetaSpectralEvalPresentationMap P f₀ :=
-      congrArg
-        (fun value : P → ℂ => value - zetaSpectralEvalPresentationMap P f₀)
-        htarget
-    zetaSpectralEvalPresentationMap P f₀ -
-        zetaSpectralEvalPresentationMap P f₀ = 0 :=
-      sub_self (zetaSpectralEvalPresentationMap P f₀)
+        hf)
+      (Eq.trans
+        (congrArg
+          (fun value : P → ℂ => value - zetaSpectralEvalPresentationMap P f₀)
+          htarget)
+        (sub_self (zetaSpectralEvalPresentationMap P f₀))))
 
 /-- Every source equals the base source plus its source difference. -/
 theorem zetaSpectralEvalPresentation_eq_source_add_sourceDifference
@@ -98,24 +87,16 @@ theorem zetaSpectralEvalPresentation_eq_target_of_kernel_translate
     (hk : k ∈ LinearMap.ker (zetaSpectralEvalPresentationMap P))
     (hkf : f = f₀ + k) :
     zetaSpectralEvalPresentationMap P f =
-      zetaSpectralEvalPresentationTarget P f₀ := by
-  calc
-    zetaSpectralEvalPresentationMap P f =
-        zetaSpectralEvalPresentationMap P (f₀ + k) :=
-      congrArg (zetaSpectralEvalPresentationMap P) hkf
-    zetaSpectralEvalPresentationMap P (f₀ + k) =
-        zetaSpectralEvalPresentationMap P f₀ +
-          zetaSpectralEvalPresentationMap P k :=
-      LinearMap.map_add (zetaSpectralEvalPresentationMap P) f₀ k
-    zetaSpectralEvalPresentationMap P f₀ +
-          zetaSpectralEvalPresentationMap P k =
-        zetaSpectralEvalPresentationMap P f₀ + 0 :=
-      congrArg
-        (fun value : P → ℂ => zetaSpectralEvalPresentationMap P f₀ + value)
-        hk
-    zetaSpectralEvalPresentationMap P f₀ + 0 =
-        zetaSpectralEvalPresentationTarget P f₀ :=
-      add_zero (zetaSpectralEvalPresentationMap P f₀)
+      zetaSpectralEvalPresentationTarget P f₀ :=
+  Eq.trans
+    (congrArg (zetaSpectralEvalPresentationMap P) hkf)
+    (Eq.trans
+      (LinearMap.map_add (zetaSpectralEvalPresentationMap P) f₀ k)
+      (Eq.trans
+        (congrArg
+          (fun value : P → ℂ => zetaSpectralEvalPresentationMap P f₀ + value)
+          hk)
+        (add_zero (zetaSpectralEvalPresentationMap P f₀))))
 
 /-- The raw finite spectral presentation fiber over a source target is the affine translate
 of the kernel of the presentation map. -/
@@ -126,8 +107,8 @@ theorem zetaSpectralEvalPresentationFiber_eq_source_add_ker
       fun f : ZetaAdmissibleFunction =>
         ∃ k : ZetaAdmissibleFunction,
           k ∈ LinearMap.ker (zetaSpectralEvalPresentationMap P) ∧
-            f = f₀ + k := by
-  exact Set.ext (fun f =>
+            f = f₀ + k :=
+  Set.ext (fun f =>
     Iff.intro
       (fun hf =>
         Exists.intro (f - f₀)
@@ -206,8 +187,8 @@ theorem AutocorrelationSpectralEvalFiberOf_eq_presentationFiber
     (P : Finset ℂ) (f₀ : ZetaAdmissibleFunction) :
     AutocorrelationSpectralEvalFiberOf P f₀ =
       AutocorrelationSpectralEvalPresentationFiber P
-        (autocorrelationSpectralEvalPresentationTarget P f₀) := by
-  exact Set.ext (fun f =>
+        (autocorrelationSpectralEvalPresentationTarget P f₀) :=
+  Set.ext (fun f =>
     Iff.intro
       (fun hf => funext (fun z => hf (z : ℂ) z.property))
       (fun hf z hz => congrFun hf ⟨z, hz⟩))
@@ -246,8 +227,8 @@ theorem completedBoundaryHilbertSourceZeroTailRealAbs_eq_of_zeroTailTomography
     (hXY :
       CompletedBoundaryHilbertSource.ZeroTailTomographicallyEquivalent X Y) :
     completedBoundaryHilbertSourceZeroTailRealAbs S X =
-      completedBoundaryHilbertSourceZeroTailRealAbs S Y := by
-  exact hXY S
+      completedBoundaryHilbertSourceZeroTailRealAbs S Y :=
+  hXY S
 
 /-- The completed zero-tail absolute-value functional on the zero-tail ordered-heart
 quotient. -/
@@ -266,8 +247,8 @@ theorem completedBoundaryOrderedHeartZeroTailRealAbs_mk
     (S : Finset ℂ) (X : CompletedBoundaryHilbertSource) :
     completedBoundaryOrderedHeartZeroTailRealAbs S
         (completedBoundaryZeroTailOrderedHeartClass X) =
-      completedBoundaryHilbertSourceZeroTailRealAbs S X := by
-  exact Eq.refl
+      completedBoundaryHilbertSourceZeroTailRealAbs S X :=
+  Eq.refl
     (completedBoundaryOrderedHeartZeroTailRealAbs S
       (completedBoundaryZeroTailOrderedHeartClass X))
 
@@ -280,18 +261,17 @@ theorem completedBoundaryOrderedHeartZeroTailRealAbs_eq_of_spectralTomography
     completedBoundaryOrderedHeartZeroTailRealAbs S
         (completedBoundaryZeroTailOrderedHeartClass X) =
       completedBoundaryOrderedHeartZeroTailRealAbs S
-        (completedBoundaryZeroTailOrderedHeartClass Y) := by
-  exact congrArg (completedBoundaryOrderedHeartZeroTailRealAbs S)
+        (completedBoundaryZeroTailOrderedHeartClass Y) :=
+  congrArg (completedBoundaryOrderedHeartZeroTailRealAbs S)
     (completedBoundaryZeroTailOrderedHeartClass_eq_of_spectralTomography hXY)
 
 /-- The quotient zero-tail absolute-value functional is nonnegative. -/
 theorem completedBoundaryOrderedHeartZeroTailRealAbs_nonnegative
     (S : Finset ℂ) (C : CompletedBoundaryZeroTailOrderedHeartClass) :
-    0 ≤ completedBoundaryOrderedHeartZeroTailRealAbs S C := by
-  exact
-    Quotient.inductionOn C
-      (fun X : CompletedBoundaryHilbertSource =>
-        abs_nonneg (Complex.re (zetaZeroTail S X.seed)))
+    0 ≤ completedBoundaryOrderedHeartZeroTailRealAbs S C :=
+  Quotient.inductionOn C
+    (fun X : CompletedBoundaryHilbertSource =>
+      abs_nonneg (Complex.re (zetaZeroTail S X.seed)))
 
 /-- The completed zero-tail ordered-heart classes represented by autocorrelation probes
 inside a fixed finite spectral presentation fiber. -/
@@ -325,8 +305,8 @@ theorem autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValue
       r ∈
         autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues
           S P f₀) :
-    0 ≤ r := by
-  exact match hr with
+    0 ≤ r :=
+  match hr with
   | ⟨C, hClassEvidence, hrC⟩ =>
       Eq.subst
         (motive := fun value : ℝ => 0 ≤ value)
@@ -342,8 +322,8 @@ theorem autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValue
     (f₀ : ZetaAdmissibleFunction) :
     autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues S P f₀ =
       (completedBoundaryOrderedHeartZeroTailRealAbs S) ''
-        autocorrelationConeSpectralEvalFiberZeroTailOrderedHeartImage P f₀ := by
-  exact Set.ext (fun r =>
+        autocorrelationConeSpectralEvalFiberZeroTailOrderedHeartImage P f₀ :=
+  Set.ext (fun r =>
     Iff.intro
       (fun hr =>
         match hr with
@@ -364,21 +344,21 @@ theorem autocorrelationZeroTailRealAbs_lt_of_zetaZeroTail_norm_lt
     (ε : ℝ)
     (htail :
       ‖zetaZeroTail S (convolutionAutocorrelation f)‖ < ε) :
-    autocorrelationZeroTailRealAbs S f < ε := by
-  have hrealNorm :
+    autocorrelationZeroTailRealAbs S f < ε :=
+  let hrealNorm :
       autocorrelationZeroTailRealAbs S f ≤
         ‖zetaZeroTail S (convolutionAutocorrelation f)‖ :=
     RCLike.abs_re_le_norm
       (zetaZeroTail S (convolutionAutocorrelation f))
-  exact lt_of_le_of_lt hrealNorm htail
+  lt_of_le_of_lt hrealNorm htail
 
 /-- The named autocorrelation zero-tail absolute value is the absolute value of the real
 part of the completed zero tail. -/
 theorem autocorrelationZeroTailRealAbs_eq
     (S : Finset ℂ) (f : ZetaAdmissibleFunction) :
     autocorrelationZeroTailRealAbs S f =
-      |Complex.re (zetaZeroTail S (convolutionAutocorrelation f))| := by
-  exact Eq.refl (autocorrelationZeroTailRealAbs S f)
+      |Complex.re (zetaZeroTail S (convolutionAutocorrelation f))| :=
+  Eq.refl (autocorrelationZeroTailRealAbs S f)
 
 /-- The autocorrelation zero-tail value is the Hilbert-source zero-tail value. -/
 theorem autocorrelationZeroTailRealAbs_eq_hilbertSourceZeroTailRealAbs
@@ -415,8 +395,10 @@ theorem mem_autocorrelationSampleFiberOf_iff
     (P : Finset ℂ) (f₀ f : ZetaAdmissibleFunction) :
     f ∈ AutocorrelationSampleFiberOf P f₀ ↔
       autocorrelationSpectralFiniteSample P f =
-        autocorrelationSpectralFiniteSample P f₀ := by
-  exact Iff.intro (fun equality => equality) (fun equality => equality)
+        autocorrelationSpectralFiniteSample P f₀ :=
+  Iff.intro
+    (fun equality => equality)
+    (fun equality => equality)
 
 /-- Finite autocorrelation sample equality gives membership in the source fiber. -/
 theorem mem_autocorrelationSampleFiberOf_of_spectralFiniteSample_eq
@@ -424,16 +406,16 @@ theorem mem_autocorrelationSampleFiberOf_of_spectralFiniteSample_eq
     (hf :
       autocorrelationSpectralFiniteSample P f =
         autocorrelationSpectralFiniteSample P f₀) :
-    f ∈ AutocorrelationSampleFiberOf P f₀ := by
-  exact hf
+    f ∈ AutocorrelationSampleFiberOf P f₀ :=
+  hf
 
 /-- Membership in the source fiber gives finite autocorrelation sample equality. -/
 theorem spectralFiniteSample_eq_of_mem_autocorrelationSampleFiberOf
     (P : Finset ℂ) (f₀ f : ZetaAdmissibleFunction)
     (hf : f ∈ AutocorrelationSampleFiberOf P f₀) :
     autocorrelationSpectralFiniteSample P f =
-      autocorrelationSpectralFiniteSample P f₀ := by
-  exact hf
+      autocorrelationSpectralFiniteSample P f₀ :=
+  hf
 
 /-- Membership in the pointwise finite spectral-evaluation fiber is exactly pointwise
 preservation on the finite sample set. -/
@@ -442,8 +424,10 @@ theorem mem_autocorrelationSpectralEvalFiberOf_iff
     f ∈ AutocorrelationSpectralEvalFiberOf P f₀ ↔
       ∀ z : ℂ, z ∈ P →
         zetaSpectralEval (convolutionAutocorrelation f) z =
-          zetaSpectralEval (convolutionAutocorrelation f₀) z := by
-  exact Iff.intro (fun equality => equality) (fun equality => equality)
+          zetaSpectralEval (convolutionAutocorrelation f₀) z :=
+  Iff.intro
+    (fun equality => equality)
+    (fun equality => equality)
 
 /-- Pointwise preservation gives membership in the finite spectral-evaluation fiber. -/
 theorem mem_autocorrelationSpectralEvalFiberOf_of_spectralEval_eq_on_finset
@@ -452,8 +436,8 @@ theorem mem_autocorrelationSpectralEvalFiberOf_of_spectralEval_eq_on_finset
       ∀ z : ℂ, z ∈ P →
         zetaSpectralEval (convolutionAutocorrelation f) z =
           zetaSpectralEval (convolutionAutocorrelation f₀) z) :
-    f ∈ AutocorrelationSpectralEvalFiberOf P f₀ := by
-  exact hf
+    f ∈ AutocorrelationSpectralEvalFiberOf P f₀ :=
+  hf
 
 /-- Membership in the finite spectral-evaluation fiber gives pointwise preservation on
 the finite sample set. -/
@@ -462,8 +446,8 @@ theorem spectralEval_eq_on_finset_of_mem_autocorrelationSpectralEvalFiberOf
     (hf : f ∈ AutocorrelationSpectralEvalFiberOf P f₀) :
     ∀ z : ℂ, z ∈ P →
       zetaSpectralEval (convolutionAutocorrelation f) z =
-        zetaSpectralEval (convolutionAutocorrelation f₀) z := by
-  exact hf
+        zetaSpectralEval (convolutionAutocorrelation f₀) z :=
+  hf
 
 /-- Full autocorrelation spectral tomography identifies the zero-tail ordered-heart class of
 the completed Hilbert-source realizations.
@@ -480,8 +464,8 @@ theorem completedBoundaryZeroTailOrderedHeartClass_eq_of_autocorrelation_spectra
     completedBoundaryZeroTailOrderedHeartClass
         (completedBoundaryHilbertSource (convolutionAutocorrelation f)) =
       completedBoundaryZeroTailOrderedHeartClass
-        (completedBoundaryHilbertSource (convolutionAutocorrelation g)) := by
-  exact completedBoundaryZeroTailOrderedHeartClass_eq_of_contourChannelTomography
+        (completedBoundaryHilbertSource (convolutionAutocorrelation g)) :=
+  completedBoundaryZeroTailOrderedHeartClass_eq_of_contourChannelTomography
     (X := completedBoundaryHilbertSource (convolutionAutocorrelation f))
     (Y := completedBoundaryHilbertSource (convolutionAutocorrelation g))
     hfg
@@ -491,12 +475,11 @@ theorem zeroTailRealAbs_lt_of_autocorrelationZeroTailRealAbs_lt
     (S : Finset ℂ) (f : ZetaAdmissibleFunction)
     (ε : ℝ)
     (hf : autocorrelationZeroTailRealAbs S f < ε) :
-    |Complex.re (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
-  exact
-    Eq.subst
-      (motive := fun x : ℝ => x < ε)
-      (autocorrelationZeroTailRealAbs_eq S f)
-      hf
+    |Complex.re (zetaZeroTail S (convolutionAutocorrelation f))| < ε :=
+  Eq.subst
+    (motive := fun x : ℝ => x < ε)
+    (autocorrelationZeroTailRealAbs_eq S f)
+    hf
 
 /-- Pointwise preservation on a finite sample set gives equality of finite
 autocorrelation spectral-sample vectors. -/
@@ -527,8 +510,8 @@ theorem autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_eq
     (P : Finset ℂ)
     (f₀ : ZetaAdmissibleFunction) :
     autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues S P f₀ =
-      autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ := by
-  exact Set.ext (fun r =>
+      autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ :=
+  Set.ext (fun r =>
     Iff.intro
       (fun hr =>
         match hr with
@@ -540,7 +523,7 @@ theorem autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_eq
             let C : CompletedBoundaryOrderedHeartClass :=
               completedBoundaryOrderedHeartClass
                 (completedBoundaryHilbertSource (convolutionAutocorrelation f))
-            have hC :
+            let hC :
                 C ∈ autocorrelationConeSpectralEvalFiberOrderedHeartImage P f₀ :=
               ⟨f, hfFiber, Eq.refl C⟩
             ⟨C, hC, f, hfFiber, Eq.refl C, hrValue⟩))
@@ -550,16 +533,16 @@ zero-tail value set on the positive/autocorrelation cone image. -/
 theorem autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_to_quotient
     (S P : Finset ℂ) (f₀ : ZetaAdmissibleFunction) (r : ℝ)
     (hr : r ∈ autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues S P f₀) :
-    r ∈ autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues S P f₀ := by
-  exact match hr with
+    r ∈ autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues S P f₀ :=
+  match hr with
   | ⟨classValue, hClassEvidence, f, hfFiber, hClassEqualityEvidence, hrValue⟩ =>
       let Ctail : CompletedBoundaryZeroTailOrderedHeartClass :=
         completedBoundaryZeroTailOrderedHeartClass
           (completedBoundaryHilbertSource (convolutionAutocorrelation f))
-      have hCtail :
+      let hCtail :
           Ctail ∈ autocorrelationConeSpectralEvalFiberZeroTailOrderedHeartImage P f₀ :=
         ⟨f, hfFiber, Eq.refl Ctail⟩
-      have hvalue :
+      let hvalue :
           r = completedBoundaryOrderedHeartZeroTailRealAbs S Ctail :=
         Eq.trans hrValue
           (Eq.trans
@@ -574,18 +557,18 @@ theorem autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_of_quo
     (S P : Finset ℂ) (f₀ : ZetaAdmissibleFunction) (r : ℝ)
     (hr : r ∈
       autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues S P f₀) :
-    r ∈ autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues S P f₀ := by
-  exact match hr with
+    r ∈ autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues S P f₀ :=
+  match hr with
   | ⟨Ctail, hCtail, hrValue⟩ =>
       match hCtail with
       | ⟨f, hfFiber, hCtailEquality⟩ =>
           let C : CompletedBoundaryOrderedHeartClass :=
             completedBoundaryOrderedHeartClass
               (completedBoundaryHilbertSource (convolutionAutocorrelation f))
-          have hC :
+          let hC :
               C ∈ autocorrelationConeSpectralEvalFiberOrderedHeartImage P f₀ :=
             ⟨f, hfFiber, Eq.refl C⟩
-          have hvalue : r = autocorrelationZeroTailRealAbs S f :=
+          let hvalue : r = autocorrelationZeroTailRealAbs S f :=
             Eq.trans hrValue
               (Eq.trans
                 (congrArg (completedBoundaryOrderedHeartZeroTailRealAbs S) hCtailEquality)
@@ -601,8 +584,8 @@ theorem autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_eq_quo
     (P : Finset ℂ)
     (f₀ : ZetaAdmissibleFunction) :
     autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues S P f₀ =
-      autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues S P f₀ := by
-  exact Set.ext (fun r =>
+      autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues S P f₀ :=
+  Set.ext (fun r =>
     Iff.intro
       (autocorrelationConeSpectralFiberOrderedHeartZeroTailRealAbsValues_to_quotient
         S P f₀ r)

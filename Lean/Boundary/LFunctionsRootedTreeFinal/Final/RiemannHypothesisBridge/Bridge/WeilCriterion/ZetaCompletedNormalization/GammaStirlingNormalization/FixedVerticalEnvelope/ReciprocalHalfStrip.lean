@@ -84,7 +84,7 @@ theorem Complex.Gamma_verticalStrip_reciprocal_bound_of_lower_bound
         norm_inv G
       have hreciprocal_le :
           ‖G‖⁻¹ ≤ (c * Real.exp (-R) * T ^ (x - 1 / 2))⁻¹ :=
-        inv_le_inv_of_le henvelope_pos hG_lower
+        inv_anti₀ henvelope_pos hG_lower
       have htarget_eq :
           (c * Real.exp (-R) * T ^ (x - 1 / 2))⁻¹ =
             c⁻¹ * Complex.fixedRealPartVerticalReciprocalStirlingEnvelope x y := by
@@ -432,6 +432,53 @@ theorem Complex.Gamma_zero_half_strip_verticalTail_finiteOrder_bound
                 _ ≤ A := hCcompact_le_A
                 _ ≤ A * Real.exp (B * (1 + ‖w‖) ^ (1 : ℕ)) :=
                   hA_le_Aexp⟩
+
+/-- The uniform Gamma numerator bound is polynomial on the half-strip: its
+large-height Stirling envelope is bounded by one, and compact height is
+handled by the existing strip compactness theorem. -/
+theorem Complex.Gamma_zero_half_strip_verticalTail_polynomial_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        0 ≤ w.re →
+        w.re ≤ (1 / 2 : ℝ) →
+        (1 / 2 : ℝ) ≤ ‖w.im‖ →
+        ‖Complex.Gamma w‖ ≤ C := by
+  match Complex.Gamma_verticalStrip_largeHeight_stirling_bound_classical_point
+      hbranch 0 (1 / 2) with
+  | ⟨H, Clarge, hH_pos, hClarge_pos, hlarge⟩ =>
+    match Complex.Gamma_closedRealStrip_compactHeight_bound
+        0 (1 / 2) (1 / 2) H one_half_pos with
+    | ⟨Ccompact, hCcompact_pos, hcompact⟩ =>
+      let C : ℝ := max Clarge Ccompact
+      have hC_pos : 0 < C :=
+        lt_of_lt_of_le hClarge_pos (le_max_left Clarge Ccompact)
+      refine ⟨C, hC_pos, ?_⟩
+      intro w hw_re_nonneg hw_re_half hw_im_tail
+      match le_total H ‖w.im‖ with
+      | Or.inl hw_large =>
+          have hstirling :
+              ‖Complex.Gamma w‖ ≤
+                Clarge * Complex.fixedRealPartVerticalStirlingEnvelope
+                  w.re w.im :=
+            hlarge w hw_re_nonneg hw_re_half hw_large
+          have henvelope :
+              Complex.fixedRealPartVerticalStirlingEnvelope w.re w.im ≤ 1 :=
+            Complex.fixedRealPartVerticalStirlingEnvelope_zero_half_le_one hw_re_half
+          have htail : ‖Complex.Gamma w‖ ≤ Clarge := by
+            calc
+              ‖Complex.Gamma w‖ ≤
+                  Clarge * Complex.fixedRealPartVerticalStirlingEnvelope w.re w.im :=
+                hstirling
+              _ ≤ Clarge * 1 :=
+                mul_le_mul_of_nonneg_left henvelope (le_of_lt hClarge_pos)
+              _ = Clarge := mul_one Clarge
+          exact htail.trans (le_max_left Clarge Ccompact)
+      | Or.inr hw_compact =>
+          have hcompact_bound : ‖Complex.Gamma w‖ ≤ Ccompact :=
+            hcompact w hw_re_nonneg hw_re_half hw_im_tail hw_compact
+          exact hcompact_bound.trans (le_max_right Clarge Ccompact)
 
 /-- The reciprocal fixed-line Stirling envelope is finite-order on the
 half-strip used by the `Gammaℝ` half-argument. -/

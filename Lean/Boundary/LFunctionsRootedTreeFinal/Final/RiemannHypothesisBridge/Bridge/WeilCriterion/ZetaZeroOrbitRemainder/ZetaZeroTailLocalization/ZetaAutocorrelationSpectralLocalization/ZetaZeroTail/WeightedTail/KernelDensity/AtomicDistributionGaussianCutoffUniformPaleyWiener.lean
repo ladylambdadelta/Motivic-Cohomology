@@ -151,13 +151,23 @@ theorem one_add_abs_le_affineFrequencyHeightFactor_mul_two_of_norm_le_one
 
 /-- Low affine frequencies are controlled by the zero-th derivative `L1`
 bound after enlarging the canonical-height constant. -/
-theorem admissibleGaussianCutoffNat_uniformPaleyWiener_lowAffineFrequency
+theorem admissibleGaussianCutoffNat_uniformPaleyWiener_lowAffineFrequency_of_l1Bound
     (shift scale : ℝ)
     (hscale : 0 < scale)
-    (degree : ℕ) :
+    (degree : ℕ)
+    (zeroBound : ℝ)
+    (hzeroBound :
+      ∀ n : ℕ,
+        ∀ x : ℝ,
+          |x| ≤ scale →
+            (∫ t : ℝ,
+              ‖iteratedDeriv 0
+                (fun u : ℝ =>
+                  zetaPaleyWienerHorizontalTwist
+                    (admissibleGaussianCutoffNat n) x u)
+                t‖) ≤ zeroBound) :
     let lowBound : ℝ :=
-      admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound 0 scale *
-        (affineFrequencyHeightFactor shift scale * 2) ^ degree
+      zeroBound * (affineFrequencyHeightFactor shift scale * 2) ^ degree
     ∀ n : ℕ,
       ∀ x y : ℝ,
         |x| ≤ scale →
@@ -175,23 +185,21 @@ theorem admissibleGaussianCutoffNat_uniformPaleyWiener_lowAffineFrequency
               (admissibleGaussianCutoffNat n)
               ((x : ℂ) +
                 ((scale * (y - shift) : ℝ) : ℂ) * Complex.I)‖ ≤
-            (admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound 0 scale *
+            (zeroBound *
                 (affineFrequencyHeightFactor shift scale * 2) ^ degree) *
               (1 + |y|) ^ (-(degree : ℤ))
   intro n x y hx hfrequency
   let lowBound : ℝ :=
-    admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound 0 scale *
+    zeroBound *
       (affineFrequencyHeightFactor shift scale * 2) ^ degree
   let frequency : ℝ := scale * (y - shift)
   let factor : ℝ := affineFrequencyHeightFactor shift scale
-  let zeroBound : ℝ :=
-    admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound 0 scale
   have hspectral :=
     zetaSpectralEval_verticalLine_eq_iteratedOscillatoryIntegral_zero
       (admissibleGaussianCutoffNat n) x frequency
   have hzero :=
-    zetaPaleyWienerIteratedDerivativeOscillatoryIntegral_cutoff_uniformBound
-      scale hscale 0 n x frequency hx
+    zetaPaleyWienerIteratedDerivativeOscillatoryIntegral_cutoff_uniformBound_of_l1Bound
+      scale 0 zeroBound hzeroBound n x frequency hx
   have hheightBound :
       1 + |y| ≤ factor * 2 :=
     one_add_abs_le_affineFrequencyHeightFactor_mul_two_of_norm_le_one
@@ -209,9 +217,20 @@ theorem admissibleGaussianCutoffNat_uniformPaleyWiener_lowAffineFrequency
       hfactorTwoPositive
       hheightBound
   have hzeroBoundNonnegative : 0 ≤ zeroBound :=
-    le_of_lt
-      (admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound_pos
-        0 scale)
+    le_trans
+      (MeasureTheory.integral_nonneg
+        (fun t : ℝ =>
+          norm_nonneg
+            (iteratedDeriv 0
+              (fun u : ℝ =>
+                zetaPaleyWienerHorizontalTwist
+                  (admissibleGaussianCutoffNat 0) 0 u)
+              t)))
+      (hzeroBound 0 0
+        (Eq.subst
+          (motive := fun value : ℝ => value ≤ scale)
+          abs_zero.symm
+          (le_of_lt hscale)))
   have hscaledAbsorption :
       zeroBound ≤
         zeroBound *
@@ -326,6 +345,17 @@ theorem admissibleGaussianCutoffNat_uniformPaleyWiener_of_low_high
     (shift scale : ℝ)
     (hscale : 0 < scale)
     (degree : ℕ)
+    (zeroBound : ℝ)
+    (hzeroBound :
+      ∀ n : ℕ,
+        ∀ x : ℝ,
+          |x| ≤ scale →
+            (∫ t : ℝ,
+              ‖iteratedDeriv 0
+                (fun u : ℝ =>
+                  zetaPaleyWienerHorizontalTwist
+                    (admissibleGaussianCutoffNat n) x u)
+                t‖) ≤ zeroBound)
     (highBound : ℝ)
     (hhighBound :
       ∀ n : ℕ,
@@ -338,8 +368,7 @@ theorem admissibleGaussianCutoffNat_uniformPaleyWiener_of_low_high
                     ((scale * (y - shift) : ℝ) : ℂ) * Complex.I)‖ ≤
                 highBound * (1 + |y|) ^ (-(degree : ℤ))) :
     let lowBound : ℝ :=
-      admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound 0 scale *
-        (affineFrequencyHeightFactor shift scale * 2) ^ degree
+      zeroBound * (affineFrequencyHeightFactor shift scale * 2) ^ degree
     let bound : ℝ := max lowBound highBound + 1
     ∀ n : ℕ,
       ∀ x y : ℝ,
@@ -357,13 +386,13 @@ theorem admissibleGaussianCutoffNat_uniformPaleyWiener_of_low_high
             ((x : ℂ) +
               ((scale * (y - shift) : ℝ) : ℂ) * Complex.I)‖ ≤
           (max
-              (admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound 0 scale *
+              (zeroBound *
                 (affineFrequencyHeightFactor shift scale * 2) ^ degree)
               highBound + 1) *
             (1 + |y|) ^ (-(degree : ℤ))
   intro n x y hx
   let lowBound : ℝ :=
-    admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound 0 scale *
+    zeroBound *
       (affineFrequencyHeightFactor shift scale * 2) ^ degree
   let bound : ℝ := max lowBound highBound + 1
   let frequency : ℝ := scale * (y - shift)
@@ -372,11 +401,11 @@ theorem admissibleGaussianCutoffNat_uniformPaleyWiener_of_low_high
     zpow_nonneg
       (add_nonneg zero_le_one (abs_nonneg y))
       (-(degree : ℤ))
-  exact Or.elim (Classical.em (‖frequency‖ ≤ 1))
-    (fun hlow =>
+  by_cases hlow : ‖frequency‖ ≤ 1
+  ·
       have hraw :=
-        admissibleGaussianCutoffNat_uniformPaleyWiener_lowAffineFrequency
-          shift scale hscale degree n x y hx hlow
+        admissibleGaussianCutoffNat_uniformPaleyWiener_lowAffineFrequency_of_l1Bound
+          shift scale hscale degree zeroBound hzeroBound n x y hx hlow
       have hconstant : lowBound ≤ bound :=
         le_trans
           (le_max_left lowBound highBound)
@@ -385,10 +414,10 @@ theorem admissibleGaussianCutoffNat_uniformPaleyWiener_of_low_high
           lowBound * (1 + |y|) ^ (-(degree : ℤ)) ≤
             bound * (1 + |y|) ^ (-(degree : ℤ)) :=
         mul_le_mul_of_nonneg_right hconstant hweightNonnegative
-      le_trans hraw hscaledConstant)
-    (fun hnotLow =>
+      exact le_trans hraw hscaledConstant
+  ·
       have hhigh : 1 ≤ ‖frequency‖ :=
-        le_of_lt (lt_of_not_ge hnotLow)
+        le_of_lt (lt_of_not_ge hlow)
       have hraw := hhighBound n x y hx hhigh
       have hconstant : highBound ≤ bound :=
         le_trans
@@ -398,7 +427,7 @@ theorem admissibleGaussianCutoffNat_uniformPaleyWiener_of_low_high
           highBound * (1 + |y|) ^ (-(degree : ℤ)) ≤
             bound * (1 + |y|) ^ (-(degree : ℤ)) :=
         mul_le_mul_of_nonneg_right hconstant hweightNonnegative
-      le_trans hraw hscaledConstant)
+      exact le_trans hraw hscaledConstant
 
 /-- Natural Gaussian cutoffs have arbitrary vertical decay uniformly in the
 cutoff radius on a fixed horizontal strip, after a fixed positive ordinate
@@ -420,13 +449,15 @@ theorem admissibleGaussianCutoffNat_uniformPaleyWiener_shiftedScale
   obtain ⟨highBound, hhighBoundPositive, hhighBound⟩ :=
     admissibleGaussianCutoffNat_uniformPaleyWiener_highAffineFrequency
       shift scale hscale degree
+  obtain ⟨zeroBound, hzeroBoundPositive, hzeroBound⟩ :=
+    exists_admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound
+      0 scale hscale
   let lowBound : ℝ :=
-    admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound 0 scale *
+    zeroBound *
       (affineFrequencyHeightFactor shift scale * 2) ^ degree
   have hlowBoundPositive : 0 < lowBound :=
     mul_pos
-      (admissibleGaussianCutoffHorizontalTwistDerivativeL1Bound_pos
-        0 scale)
+      hzeroBoundPositive
       (pow_pos
         (mul_pos
           (affineFrequencyHeightFactor_pos shift scale hscale)
@@ -441,7 +472,7 @@ theorem admissibleGaussianCutoffNat_uniformPaleyWiener_shiftedScale
     add_pos_of_nonneg_of_pos hmaxNonnegative zero_lt_one
   have huniform :=
     admissibleGaussianCutoffNat_uniformPaleyWiener_of_low_high
-      shift scale hscale degree highBound hhighBound
+      shift scale hscale degree zeroBound hzeroBound highBound hhighBound
   exact Exists.intro bound (And.intro hboundPositive huniform)
 
 end ZetaAdmissibleFunction

@@ -584,6 +584,32 @@ theorem zetaCompletedZero_mk
     ZetaCompletedZero ρ :=
   ⟨hneg, hpos, hzero⟩
 
+theorem zetaCompletedZero_of_completed_zero
+    {s : ℂ}
+    (hs0 : s ≠ 0)
+    (hs1 : s ≠ 1)
+    (hs : completedRiemannZetaFunction s = 0) :
+    ZetaCompletedZero (s - (1 / 2 : ℂ)) := by
+  apply zetaCompletedZero_mk
+  · intro hneg
+    apply hs0
+    have hsum := congrArg (fun z : ℂ => z + (1 / 2 : ℂ)) hneg
+    calc
+      s = (s - (1 / 2 : ℂ)) + (1 / 2 : ℂ) :=
+        (sub_add_cancel s (1 / 2 : ℂ)).symm
+      _ = (-(1 / 2 : ℂ)) + (1 / 2 : ℂ) := hsum
+      _ = 0 := neg_add_cancel (1 / 2 : ℂ)
+  · intro hpos
+    apply hs1
+    have hsum := congrArg (fun z : ℂ => z + (1 / 2 : ℂ)) hpos
+    calc
+      s = (s - (1 / 2 : ℂ)) + (1 / 2 : ℂ) :=
+        (sub_add_cancel s (1 / 2 : ℂ)).symm
+      _ = (1 / 2 : ℂ) + (1 / 2 : ℂ) := hsum
+      _ = 1 := by
+        exact (add_halves (1 : ℂ)).symm
+  · exact completed_zero_function_to_centered_zero_shift hs
+
 /-- A raw completed-zero proof carries the zero equation. -/
 theorem zetaCompletedZero_zero_of_prop
     {ρ : ℂ}
@@ -928,6 +954,20 @@ theorem centered_zero_shift_to_completed_zero_function
     (centeredCompletedRiemannZetaFunction_eq_completedRiemannZetaFunction_shift
       (s - (1 / 2 : ℂ))).symm.trans hs
   exact hcenter ▸ hcompleted
+
+theorem completed_zero_function_to_centered_zero_shift
+    {s : ℂ}
+    (hs : completedRiemannZetaFunction s = 0) :
+    centeredCompletedRiemannZetaFunction (s - (1 / 2 : ℂ)) = 0 := by
+  have hcenter : (1 / 2 : ℂ) + (s - (1 / 2 : ℂ)) = s :=
+    complex_half_add_sub_half s
+  have hcompleted :
+      completedRiemannZetaFunction
+        ((1 / 2 : ℂ) + (s - (1 / 2 : ℂ))) = 0 :=
+    hcenter ▸ hs
+  exact
+    (centeredCompletedRiemannZetaFunction_eq_completedRiemannZetaFunction_shift
+      (s - (1 / 2 : ℂ))).symm ▸ hcompleted
 
 /-- Eventual centered vanishing transports across the half-shift. -/
 theorem centered_eventually_zero_shift_to_centered_pullback

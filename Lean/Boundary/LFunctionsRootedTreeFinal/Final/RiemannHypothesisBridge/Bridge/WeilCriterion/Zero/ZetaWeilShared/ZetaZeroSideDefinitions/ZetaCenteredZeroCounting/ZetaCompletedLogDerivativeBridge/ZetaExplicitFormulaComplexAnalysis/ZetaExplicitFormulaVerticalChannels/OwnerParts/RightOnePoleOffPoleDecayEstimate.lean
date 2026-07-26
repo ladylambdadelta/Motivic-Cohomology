@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.HorizontalEdgeBounds
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleAffineIntegralZero
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleResidueTransport
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleTangentDefectRate
 
@@ -78,7 +79,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentDefect_eventual_inve
           calc
             L - C * Complex.I =
                 (L - C * Complex.I + H * Complex.I) - H * Complex.I := by
-              exact (add_sub_cancel (L - C * Complex.I) (H * Complex.I)).symm
+              exact Eq.symm (add_sub_cancel_right (L - C * Complex.I) (H * Complex.I))
             _ = R - H * Complex.I := by
               exact congrArg (fun z : ℂ => z - H * Complex.I) hR.symm
         have hnorm_split :
@@ -137,52 +138,17 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleOffPoleVerticalIntegra
       h with
   | ⟨E, hTopMem, hBottomMem⟩ =>
       match
-        zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_offPoleTailBound_ownerGap
+        zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_offPoleTailBound_owner
           f F h A hApos htangent E hTopMem hBottomMem with
       | ⟨M, _hMpos, hMbound⟩ =>
           exact ⟨M, hMbound⟩
 
-/-- Eventual inverse-quadratic off-pole bound for the scheduled right `s = 1`
-correction face. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleOffPoleVerticalIntegral_eventual_inverseQuadraticBound
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    ∃ M : ℝ,
-      ∀ᶠ u in atTop,
-        ‖zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-          f F (h.height_schedule.height u)‖
-          ≤ M *
-            (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) := by
-  match
-    zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral_eventual_inverseQuadratic_of_standardResidue
-      f F h with
-  | ⟨ML, hMLpos, hleft⟩ =>
-      match
-        zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral_eventual_inverseQuadratic_of_standardResidue
-          f F h with
-      | ⟨MB, hMBpos, htangent⟩ =>
-          let B : ℂ :=
-            (2 * (Real.pi : ℂ) * Complex.I) *
-              (-zetaCompletedExplicitFormulaPhi f (1 / 2))
-          have hcancel : B * Complex.I - B * Complex.I = 0 :=
-            sub_self (B * Complex.I)
-          have hdefect :
-              ∀ᶠ u in atTop,
-                ‖zetaCompletedExplicitFormulaCorrectionLeftOnePoleVerticalIntegral
-                    f F (h.height_schedule.height u) -
-                  zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
-                    f F (h.height_schedule.height u) * Complex.I‖
-                  ≤ (ML + MB) *
-                    (1 + ‖(F.rectangle (h.height_schedule.height u)).T‖) ^ (-(2 : ℤ)) :=
-            zetaCompletedExplicitFormulaCorrectionOnePoleTangentBoundaryDefect_eventual_inverseQuadratic_of_component_rates
-              f F h (B * Complex.I) B ML MB hcancel hleft htangent
-          exact
-            zetaCompletedExplicitFormulaCorrectionRightOnePoleOffPoleVerticalIntegral_eventual_inverseQuadraticBound_of_tangentDefect
-              f F h (ML + MB) (add_pos hMLpos hMBpos) hdefect
+/-- Projection-valued limit for the scheduled right `s = 1` correction face.
 
-/-- Direct off-pole Cauchy decay for the scheduled right `s = 1` correction
-face, obtained from the eventual inverse-quadratic bound. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleOffPoleVerticalIntegral_tendsto_zero
+The right one-pole face is not a zero-limit object by itself; its residue-free
+Cauchy/Laplace projection is retained and cancels later in the full
+right-minus-left correction channel. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleOffPoleVerticalIntegral_tendsto_projection
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     Tendsto
@@ -190,14 +156,10 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleOffPoleVerticalIntegra
         zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
           f F (h.height_schedule.height u))
       atTop
-      (𝓝 0) := by
-  match
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleOffPoleVerticalIntegral_eventual_inverseQuadraticBound
-      f F h with
-  | ⟨M, hM⟩ =>
-      exact
-        zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_zero_of_eventualOffPoleTailBound
-          f F h M hM
+      (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) := by
+  exact
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_projection_direct_ownerOnePoleAffine
+      f F h
 
 end ZetaAdmissibleFunction
 

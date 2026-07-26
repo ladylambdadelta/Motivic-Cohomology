@@ -13,7 +13,7 @@ open scoped Filter Topology
 local notation "π" => Real.pi
 
 /-- Reflection preserves the closed zero-one real strip. -/
-private theorem zeroOneReflection_real_coordinates
+theorem zeroOneReflection_real_coordinates
     (z : ℂ)
     (hz_nonnegative : 0 ≤ z.re)
     (hz_le_one : z.re ≤ 1) :
@@ -30,7 +30,7 @@ private theorem zeroOneReflection_real_coordinates
       Eq.subst (motive := fun value : ℝ => value ≤ 1) hre.symm hupper⟩
 
 /-- Reflection has norm at most the standard height base. -/
-private theorem zeroOneReflection_norm_le_height (z : ℂ) :
+theorem zeroOneReflection_norm_le_height (z : ℂ) :
     ‖(1 : ℂ) - z‖ ≤ 1 + ‖z‖ := by
   have htriangle : ‖(1 : ℂ) - z‖ ≤ ‖(1 : ℂ)‖ + ‖z‖ :=
     norm_sub_le (1 : ℂ) z
@@ -43,7 +43,7 @@ private theorem zeroOneReflection_norm_le_height (z : ℂ) :
     htriangle
 
 /-- The reflected height base is at most twice the original height base. -/
-private theorem zeroOneReflection_height_le_two_mul_height (z : ℂ) :
+theorem zeroOneReflection_height_le_two_mul_height (z : ℂ) :
     1 + ‖(1 : ℂ) - z‖ ≤ 2 * (1 + ‖z‖) := by
   have hreflected : 1 + ‖(1 : ℂ) - z‖ ≤ 1 + (1 + ‖z‖) :=
     add_le_add_left (zeroOneReflection_norm_le_height z) 1
@@ -70,7 +70,7 @@ private theorem zeroOneReflection_height_le_two_mul_height (z : ℂ) :
     hscaled
 
 /-- Reflection rescales a finite-order exponent by at most `2^m`. -/
-private theorem zeroOneReflection_finiteOrder_exponent_le
+theorem zeroOneReflection_finiteOrder_exponent_le
     (z : ℂ)
     (B : ℝ)
     (m : ℕ)

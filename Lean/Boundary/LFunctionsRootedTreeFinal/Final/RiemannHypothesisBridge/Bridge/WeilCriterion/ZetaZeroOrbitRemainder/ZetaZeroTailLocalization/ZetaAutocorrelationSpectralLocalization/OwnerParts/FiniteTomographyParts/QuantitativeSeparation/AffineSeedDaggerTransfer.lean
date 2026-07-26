@@ -19,11 +19,11 @@ theorem daggerReflection_not_mem_of_not_mem_daggerClosed
     (P : Finset ℂ)
     (z : ℂ)
     (hz : z ∉ daggerClosedSpectralSampleFinset P) :
-    -star z ∉ daggerClosedSpectralSampleFinset P := by
-  intro hreflected
-  have hdouble : -star (-star z) ∈ daggerClosedSpectralSampleFinset P :=
+    -star z ∉ daggerClosedSpectralSampleFinset P :=
+  fun hreflected =>
+  let hdouble : -star (-star z) ∈ daggerClosedSpectralSampleFinset P :=
     mem_daggerClosedSpectralSampleFinset_reflection_of_mem P (-star z) hreflected
-  exact hz
+  hz
     (Eq.mp
       (congrArg
         (fun value : ℂ => value ∈ daggerClosedSpectralSampleFinset P)
@@ -36,21 +36,21 @@ theorem affineKernel_preserves_autocorrelationFiber
     (hkernel :
       ∀ z : ℂ,
         z ∈ daggerClosedSpectralSampleFinset P → zetaSpectralEval h z = 0) :
-    f₀ + h ∈ AutocorrelationSpectralEvalFiberOf P f₀ := by
-  intro z hz
-  have hleft : zetaSpectralEval h z = 0 :=
+    f₀ + h ∈ AutocorrelationSpectralEvalFiberOf P f₀ :=
+  fun z hz =>
+  let hleft : zetaSpectralEval h z = 0 :=
     hkernel z (mem_daggerClosedSpectralSampleFinset_self P z hz)
-  have hright : zetaSpectralEval h (-star z) = 0 :=
+  let hright : zetaSpectralEval h (-star z) = 0 :=
     hkernel (-star z)
       (mem_daggerClosedSpectralSampleFinset_reflection P z hz)
-  have haddLeft :
+  let haddLeft :
       zetaSpectralEval (f₀ + h) z = zetaSpectralEval f₀ z :=
     Eq.trans
       (zetaSpectralEval_add f₀ h z)
       (Eq.trans
         (congrArg (fun value : ℂ => zetaSpectralEval f₀ z + value) hleft)
         (add_zero (zetaSpectralEval f₀ z)))
-  have haddRight :
+  let haddRight :
       zetaSpectralEval (f₀ + h) (-star z) =
         zetaSpectralEval f₀ (-star z) :=
     Eq.trans
@@ -60,7 +60,7 @@ theorem affineKernel_preserves_autocorrelationFiber
           (fun value : ℂ => zetaSpectralEval f₀ (-star z) + value)
           hright)
         (add_zero (zetaSpectralEval f₀ (-star z))))
-  exact Eq.trans
+  Eq.trans
     (zetaSpectralEval_convolutionAutocorrelation_eq_seed_daggerProduct
       (f₀ + h) z)
     (Eq.trans
@@ -88,16 +88,16 @@ theorem affineCoordinateComplement_summand_eq
           zetaCompletedZeroSideCoordinateL1LinearMap
             hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary h rho‖) =
       if (rho : ℂ) ∈ P then 0
-      else ‖zetaZeroSideContribution (rho : ℂ) (f₀ + h)‖ := by
+      else ‖zetaZeroSideContribution (rho : ℂ) (f₀ + h)‖ :=
   if hmembership : (rho : ℂ) ∈ P then
-    exact Eq.trans (if_pos hmembership) (if_pos hmembership).symm
+    Eq.trans (if_pos hmembership) (if_pos hmembership).symm
   else
-    have hcoordinateAdd :
+    let hcoordinateAdd :
         zetaZeroSideContribution (rho : ℂ) (f₀ + h) =
           zetaZeroSideContribution (rho : ℂ) f₀ +
             zetaZeroSideContribution (rho : ℂ) h :=
       zetaZeroSideContribution_add (rho : ℂ) f₀ h
-    have hnegative :
+    let hnegative :
         -(zetaZeroSideContribution (rho : ℂ) f₀) -
             zetaZeroSideContribution (rho : ℂ) h =
           -(zetaZeroSideContribution (rho : ℂ) (f₀ + h)) :=
@@ -110,14 +110,14 @@ theorem affineCoordinateComplement_summand_eq
             (zetaZeroSideContribution (rho : ℂ) f₀)
             (zetaZeroSideContribution (rho : ℂ) h)).symm
           (congrArg Neg.neg hcoordinateAdd.symm))
-    have hnorm :
+    let hnorm :
         ‖-(zetaZeroSideContribution (rho : ℂ) f₀) -
             zetaZeroSideContribution (rho : ℂ) h‖ =
           ‖zetaZeroSideContribution (rho : ℂ) (f₀ + h)‖ :=
       Eq.trans
         (congrArg norm hnegative)
         (norm_neg (zetaZeroSideContribution (rho : ℂ) (f₀ + h)))
-    exact Eq.trans
+    Eq.trans
       (if_neg hmembership)
       (Eq.trans hnorm (if_neg hmembership).symm)
 
@@ -125,14 +125,14 @@ theorem if_zero_else_norm_nonnegative
     (proposition : Prop)
     [Decidable proposition]
     (value : ℂ) :
-    0 ≤ if proposition then 0 else ‖value‖ := by
+    0 ≤ if proposition then 0 else ‖value‖ :=
   if hproposition : proposition then
-    exact Eq.subst
+    Eq.subst
       (motive := fun result : ℝ => 0 ≤ result)
       (if_pos hproposition).symm
       (le_refl 0)
   else
-    exact Eq.subst
+    Eq.subst
       (motive := fun result : ℝ => 0 ≤ result)
       (if_neg hproposition).symm
       (norm_nonneg value)
@@ -141,14 +141,14 @@ theorem if_zero_else_norm_le_norm
     (proposition : Prop)
     [Decidable proposition]
     (value : ℂ) :
-    (if proposition then 0 else ‖value‖) ≤ ‖value‖ := by
+    (if proposition then 0 else ‖value‖) ≤ ‖value‖ :=
   if hproposition : proposition then
-    exact Eq.subst
+    Eq.subst
       (motive := fun result : ℝ => result ≤ ‖value‖)
       (if_pos hproposition).symm
       (norm_nonneg value)
   else
-    exact Eq.subst
+    Eq.subst
       (motive := fun result : ℝ => result ≤ ‖value‖)
       (if_neg hproposition).symm
       (le_refl ‖value‖)
@@ -169,12 +169,48 @@ theorem affineCoordinateComplementDistance_eq
           hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary h) =
       ∑' rho : ZetaCompletedZeroCoordinate,
         if (rho : ℂ) ∈ P then 0
-        else ‖zetaZeroSideContribution (rho : ℂ) (f₀ + h)‖ := by
-  unfold zetaCompletedZeroCoordinateComplementL1Distance
-  exact tsum_congr
+        else ‖zetaZeroSideContribution (rho : ℂ) (f₀ + h)‖ :=
+  tsum_congr
     (affineCoordinateComplement_summand_eq
       hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
       P f₀ h)
+
+/-- Product-sum domination and subtype-mass domination combine to bound the
+product sum by the square of the ambient total. -/
+theorem nonnegative_subtype_product_tsum_le_square_of_bounds
+    {index : Type*}
+    (coordinate : index → ℝ)
+    (predicate : index → Prop)
+    (partner : {value : index // predicate value} → index)
+    (total : ℝ)
+    (hproductLe :
+      (∑' value : {value : index // predicate value},
+          coordinate (value : index) * coordinate (partner value)) ≤
+        ∑' value : {value : index // predicate value},
+          coordinate (value : index) * total)
+    (hsumMul :
+      (∑' value : {value : index // predicate value},
+          coordinate (value : index) * total) =
+        (∑' value : {value : index // predicate value},
+          coordinate (value : index)) * total)
+    (hsubtypeLe :
+      (∑' value : {value : index // predicate value},
+        coordinate (value : index)) ≤ total)
+    (htotalNonnegative : 0 ≤ total) :
+    (∑' value : {value : index // predicate value},
+        coordinate (value : index) * coordinate (partner value)) ≤
+      total ^ 2 :=
+  le_trans
+    hproductLe
+    (Eq.subst
+      (motive := fun square : ℝ =>
+        (∑' value : {value : index // predicate value},
+            coordinate (value : index) * total) ≤ square)
+      (pow_two total).symm
+      (Eq.subst
+        (motive := fun left : ℝ => left ≤ total * total)
+        hsumMul.symm
+        (mul_le_mul_of_nonneg_right hsubtypeLe htotalNonnegative)))
 
 theorem nonnegative_subtype_product_tsum_le_square
     {index : Type*}
@@ -185,25 +221,25 @@ theorem nonnegative_subtype_product_tsum_le_square
     (hcoordinateSummable : Summable coordinate) :
     (∑' value : {value : index // predicate value},
         coordinate (value : index) * coordinate (partner value)) ≤
-      (∑' value : index, coordinate value) ^ 2 := by
+      (∑' value : index, coordinate value) ^ 2 :=
   let total : ℝ := ∑' value : index, coordinate value
-  have hpartnerBound :
+  let hpartnerBound :
       ∀ value : {value : index // predicate value},
         coordinate (partner value) ≤ total :=
     fun value =>
       le_tsum hcoordinateSummable (partner value)
         (fun other _ => hcoordinateNonnegative other)
-  have hsubtypeSummable :
+  let hsubtypeSummable :
       Summable
         (fun value : {value : index // predicate value} =>
           coordinate (value : index)) :=
     hcoordinateSummable.subtype predicate
-  have hmajorantSummable :
+  let hmajorantSummable :
       Summable
         (fun value : {value : index // predicate value} =>
           coordinate (value : index) * total) :=
     hsubtypeSummable.mul_right total
-  have hproductSummable :
+  let hproductSummable :
       Summable
         (fun value : {value : index // predicate value} =>
           coordinate (value : index) * coordinate (partner value)) :=
@@ -217,7 +253,7 @@ theorem nonnegative_subtype_product_tsum_le_square
           (hpartnerBound value)
           (hcoordinateNonnegative (value : index)))
       hmajorantSummable
-  have hproductLe :
+  let hproductLe :
       (∑' value : {value : index // predicate value},
           coordinate (value : index) * coordinate (partner value)) ≤
         ∑' value : {value : index // predicate value},
@@ -229,23 +265,21 @@ theorem nonnegative_subtype_product_tsum_le_square
           (hcoordinateNonnegative (value : index)))
       hproductSummable
       hmajorantSummable
-  have hsubtypeLe :
+  let hsubtypeLe :
       (∑' value : {value : index // predicate value},
         coordinate (value : index)) ≤ total :=
     tsum_subtype_le coordinate predicate hcoordinateNonnegative hcoordinateSummable
-  have htotalNonnegative : 0 ≤ total :=
+  let htotalNonnegative : 0 ≤ total :=
     tsum_nonneg hcoordinateNonnegative
-  calc
-    (∑' value : {value : index // predicate value},
-        coordinate (value : index) * coordinate (partner value)) ≤
-        ∑' value : {value : index // predicate value},
-          coordinate (value : index) * total := hproductLe
-    _ = (∑' value : {value : index // predicate value},
-          coordinate (value : index)) * total :=
-      hsubtypeSummable.tsum_mul_right total
-    _ ≤ total * total :=
-      mul_le_mul_of_nonneg_right hsubtypeLe htotalNonnegative
-    _ = total ^ 2 := (pow_two total).symm
+  nonnegative_subtype_product_tsum_le_square_of_bounds
+    coordinate
+    predicate
+    partner
+    total
+    hproductLe
+    (hsubtypeSummable.tsum_mul_right total)
+    hsubtypeLe
+    htotalNonnegative
 
 theorem nonnegative_subtype_tsum_le_square_of_le_product
     {index : Type*}
@@ -261,19 +295,19 @@ theorem nonnegative_subtype_tsum_le_square_of_le_product
         target value ≤
           coordinate (value : index) * coordinate (partner value)) :
     (∑' value : {value : index // predicate value}, target value) ≤
-      (∑' value : index, coordinate value) ^ 2 := by
-  have hpartnerBound :
+      (∑' value : index, coordinate value) ^ 2 :=
+  let hpartnerBound :
       ∀ value : {value : index // predicate value},
         coordinate (partner value) ≤ ∑' other : index, coordinate other :=
     fun value =>
       le_tsum hcoordinateSummable (partner value)
         (fun other _ => hcoordinateNonnegative other)
-  have hsubtypeSummable :
+  let hsubtypeSummable :
       Summable
         (fun value : {value : index // predicate value} =>
           coordinate (value : index)) :=
     hcoordinateSummable.subtype predicate
-  have hproductSummable :
+  let hproductSummable :
       Summable
         (fun value : {value : index // predicate value} =>
           coordinate (value : index) * coordinate (partner value)) :=
@@ -288,7 +322,7 @@ theorem nonnegative_subtype_tsum_le_square_of_le_product
           (hcoordinateNonnegative (value : index)))
       (hsubtypeSummable.mul_right
         (∑' other : index, coordinate other))
-  exact le_trans
+  le_trans
     (tsum_le_tsum htargetLe htargetSummable hproductSummable)
     (nonnegative_subtype_product_tsum_le_square
       coordinate predicate partner hcoordinateNonnegative hcoordinateSummable)
@@ -312,7 +346,7 @@ theorem completedZeroSeedDaggerProductL1Norm_le_affineComplementDistance_square
         (-(zetaCompletedZeroSideCoordinateL1LinearMap
           hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary f₀))
         (zetaCompletedZeroSideCoordinateL1LinearMap
-          hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary h)) ^ 2 := by
+          hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary h)) ^ 2 :=
   let corrected : ZetaAdmissibleFunction := f₀ + h
   let closedSamples : Finset ℂ := daggerClosedSpectralSampleFinset P
   let coordinate : ZetaCompletedZeroCoordinate → ℝ :=
@@ -338,88 +372,97 @@ theorem completedZeroSeedDaggerProductL1Norm_le_affineComplementDistance_square
           ⟨(rho : ZetaCompletedZeroCoordinate).property, rho.property⟩⟩
       invFun := fun rho =>
         ⟨⟨(rho : ℂ), rho.property.1⟩, rho.property.2⟩
-      left_inv := fun rho => Subtype.ext (Subtype.ext (Eq.refl _))
-      right_inv := fun rho => Subtype.ext (Eq.refl _) }
-  have hdirectSummable :
+      left_inv := fun rho =>
+        Subtype.ext
+          (Subtype.ext (Eq.refl ((rho : ZetaCompletedZeroCoordinate) : ℂ)))
+      right_inv := fun rho => Subtype.ext (Eq.refl (rho : ℂ)) }
+  let hdirectSummable :
       Summable
         (fun rho : ZetaCompletedZeroCoordinate =>
           ‖zetaZeroSideContribution (rho : ℂ) corrected‖) :=
     (summable_zetaZeroSideContribution
       hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
       corrected).norm
-  have hcoordinateNonnegative :
+  let hcoordinateNonnegative :
       ∀ rho : ZetaCompletedZeroCoordinate, 0 ≤ coordinate rho :=
     fun rho =>
       if_zero_else_norm_nonnegative
         ((rho : ℂ) ∈ closedSamples)
         (zetaZeroSideContribution (rho : ℂ) corrected)
-  have hcoordinateLe :
+  let hcoordinateLe :
       ∀ rho : ZetaCompletedZeroCoordinate,
         coordinate rho ≤ ‖zetaZeroSideContribution (rho : ℂ) corrected‖ :=
     fun rho =>
       if_zero_else_norm_le_norm
         ((rho : ℂ) ∈ closedSamples)
         (zetaZeroSideContribution (rho : ℂ) corrected)
-  have hcoordinateSummable : Summable coordinate :=
+  let hcoordinateSummable : Summable coordinate :=
     Summable.of_nonneg_of_le
       hcoordinateNonnegative
       hcoordinateLe
       hdirectSummable
-  have htargetSummable : Summable target := by
-    have hautocorrelationSummable :
+  let htargetSummable : Summable target :=
+    let hautocorrelationSummable :
         Summable
           (fun rho : ZetaCompletedZeroCoordinate =>
-            ‖zetaCompletedZeroAutocorrelationSideCoordinate corrected rho‖) := by
-      have hsideSummable :=
+            ‖zetaCompletedZeroAutocorrelationSideCoordinate corrected rho‖) :=
+      let hsideSummable :
+          Summable
+            (fun rho : ZetaCompletedZeroCoordinate =>
+              ‖zetaZeroSideContribution (rho : ℂ)
+                (convolutionAutocorrelation corrected)‖) :=
         (summable_zetaZeroSideContribution
           hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
           (convolutionAutocorrelation corrected)).norm
-      exact hsideSummable.congr
+      hsideSummable.congr
         (fun rho : ZetaCompletedZeroCoordinate =>
           congrArg norm
             (zetaCompletedZeroAutocorrelationSideCoordinate_eq corrected rho).symm)
-    exact (hautocorrelationSummable.subtype tailPredicate).congr
+    (hautocorrelationSummable.subtype tailPredicate).congr
       (fun rho =>
         norm_zetaCompletedZeroAutocorrelationSideCoordinate
           corrected (rho : ZetaCompletedZeroCoordinate))
-  have htargetLe :
+  let htargetLe :
       ∀ rho : {rho : ZetaCompletedZeroCoordinate // tailPredicate rho},
         target rho ≤
-          coordinate (rho : ZetaCompletedZeroCoordinate) * coordinate (partner rho) := by
-    intro rho
-    have hnotClosed :
+          coordinate (rho : ZetaCompletedZeroCoordinate) * coordinate (partner rho) :=
+    fun rho =>
+    let hnotClosed :
         ((rho : ZetaCompletedZeroCoordinate) : ℂ) ∉ closedSamples :=
       hSeparated
         ((rho : ZetaCompletedZeroCoordinate) : ℂ)
         (rho : ZetaCompletedZeroCoordinate).2
         rho.2
-    have hdaggerNotClosed :
-        ((partner rho : ZetaCompletedZeroCoordinate) : ℂ) ∉ closedSamples := by
-      have hreflected := daggerReflection_not_mem_of_not_mem_daggerClosed P
+    let hdaggerNotClosed :
+        ((partner rho : ZetaCompletedZeroCoordinate) : ℂ) ∉ closedSamples :=
+      let hreflected :
+          -star ((rho : ZetaCompletedZeroCoordinate) : ℂ) ∉
+            daggerClosedSpectralSampleFinset P :=
+        daggerReflection_not_mem_of_not_mem_daggerClosed P
         ((rho : ZetaCompletedZeroCoordinate) : ℂ) hnotClosed
-      exact Eq.mp
+      Eq.mp
         (congrArg
           (fun value : ℂ => value ∉ closedSamples)
           (zetaCompletedZeroDagger_coe
             (rho : ZetaCompletedZeroCoordinate)).symm)
         hreflected
-    have hcoordinateSelf :
+    let hcoordinateSelf :
         coordinate (rho : ZetaCompletedZeroCoordinate) =
           ‖zetaZeroSideContribution
             ((rho : ZetaCompletedZeroCoordinate) : ℂ) corrected‖ :=
       if_neg hnotClosed
-    have hcoordinatePartner :
+    let hcoordinatePartner :
         coordinate (partner rho) =
           ‖zetaZeroSideContribution
             ((partner rho : ZetaCompletedZeroCoordinate) : ℂ) corrected‖ :=
       if_neg hdaggerNotClosed
-    have htargetCoordinate :
+    let htargetCoordinate :
         target rho =
           ‖zetaCompletedZeroAutocorrelationSideCoordinate
             corrected (rho : ZetaCompletedZeroCoordinate)‖ :=
       (norm_zetaCompletedZeroAutocorrelationSideCoordinate
         corrected (rho : ZetaCompletedZeroCoordinate)).symm
-    exact Eq.subst
+    Eq.subst
       (motive := fun value : ℝ => value ≤
         coordinate (rho : ZetaCompletedZeroCoordinate) * coordinate (partner rho))
       htargetCoordinate.symm
@@ -430,39 +473,45 @@ theorem completedZeroSeedDaggerProductL1Norm_le_affineComplementDistance_square
         (congrArg₂ HMul.hMul hcoordinateSelf hcoordinatePartner).symm
         (norm_zetaCompletedZeroAutocorrelationSideCoordinate_le_directProduct
           corrected (rho : ZetaCompletedZeroCoordinate)))
-  have htailBound :
+  let htailBound :
       (∑' rho : {rho : ZetaCompletedZeroCoordinate // tailPredicate rho}, target rho) ≤
         (∑' rho : ZetaCompletedZeroCoordinate, coordinate rho) ^ 2 :=
     nonnegative_subtype_tsum_le_square_of_le_product
       coordinate tailPredicate partner target
       hcoordinateNonnegative hcoordinateSummable htargetSummable htargetLe
-  have hleft :
+  let hleft :
       completedZeroSeedDaggerProductL1Norm S corrected =
         ∑' rho : {rho : ZetaCompletedZeroCoordinate // tailPredicate rho}, target rho :=
-    by
-      unfold completedZeroSeedDaggerProductL1Norm
-      have htransport :=
+    let htransport :
+        (∑' rho : {rho : ℂ // ZetaCompletedZero rho ∧ rho ∉ S},
+          (zetaZeroMultiplicity (rho : ℂ) : ℝ) *
+            (‖zetaSpectralEval corrected (rho : ℂ)‖ *
+              ‖zetaSpectralEval corrected (-star (rho : ℂ))‖)) =
+          ∑' rho : {rho : ZetaCompletedZeroCoordinate // tailPredicate rho},
+            (zetaZeroMultiplicity
+              ((rho : ZetaCompletedZeroCoordinate) : ℂ) : ℝ) *
+              (‖zetaSpectralEval corrected
+                  ((rho : ZetaCompletedZeroCoordinate) : ℂ)‖ *
+                ‖zetaSpectralEval corrected
+                  (-star ((rho : ZetaCompletedZeroCoordinate) : ℂ))‖) :=
         (tailCoordinateEquiv.tsum_eq
           (fun rho : {rho : ℂ // ZetaCompletedZero rho ∧ rho ∉ S} =>
             (zetaZeroMultiplicity (rho : ℂ) : ℝ) *
               (‖zetaSpectralEval corrected (rho : ℂ)‖ *
                 ‖zetaSpectralEval corrected (-star (rho : ℂ))‖))).symm
-      exact Eq.trans htransport
-        (tsum_congr (fun rho => Eq.refl (target rho)))
-  have hright :
+    Eq.trans htransport
+      (tsum_congr (fun rho => Eq.refl (target rho)))
+  let hright :
       zetaCompletedZeroCoordinateComplementL1Distance closedSamples
           (-(zetaCompletedZeroSideCoordinateL1LinearMap
             hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary f₀))
           (zetaCompletedZeroSideCoordinateL1LinearMap
             hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary h) =
-        ∑' rho : ZetaCompletedZeroCoordinate, coordinate rho := by
-    unfold closedSamples
-    unfold coordinate
-    unfold corrected
-    exact affineCoordinateComplementDistance_eq
+        ∑' rho : ZetaCompletedZeroCoordinate, coordinate rho :=
+    affineCoordinateComplementDistance_eq
       hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
       (daggerClosedSpectralSampleFinset P) f₀ h
-  exact Eq.subst
+  Eq.subst
     (motive := fun value : ℝ =>
       value ≤
         (zetaCompletedZeroCoordinateComplementL1Distance closedSamples
@@ -477,6 +526,36 @@ theorem completedZeroSeedDaggerProductL1Norm_le_affineComplementDistance_square
           value ^ 2)
       hright.symm
       htailBound)
+
+/-- A nonnegative strict bound controls the square by the square of the
+upper bound. -/
+theorem square_lt_square_of_nonnegative_lt
+    (distance delta : ℝ)
+    (hdistanceNonnegative : 0 ≤ distance)
+    (happroximation : distance < delta) :
+    distance ^ 2 < delta ^ 2 :=
+  Eq.subst
+    (motive := fun left : ℝ => left < delta ^ 2)
+    (pow_two distance).symm
+    (Eq.subst
+      (motive := fun right : ℝ => distance * distance < right)
+      (pow_two delta).symm
+      (mul_self_lt_mul_self hdistanceNonnegative happroximation))
+
+/-- A positive subunit bound makes the square strictly smaller than the
+original positive number. -/
+theorem square_lt_self_of_positive_lt_one
+    (delta : ℝ)
+    (hdeltaPositive : 0 < delta)
+    (hdeltaSubunit : delta < 1) :
+    delta ^ 2 < delta :=
+  Eq.subst
+    (motive := fun left : ℝ => left < delta)
+    (pow_two delta).symm
+    (Eq.subst
+      (motive := fun right : ℝ => delta * delta < right)
+      (mul_one delta)
+      (mul_lt_mul_of_pos_left hdeltaSubunit hdeltaPositive))
 
 theorem fixedFiber_seedDaggerProduct_lt_of_kernelApproximation
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
@@ -510,8 +589,8 @@ theorem fixedFiber_seedDaggerProduct_lt_of_kernelApproximation
             hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
             h) < delta) :
     f₀ + h ∈ AutocorrelationSpectralEvalFiberOf P f₀ ∧
-      completedZeroSeedDaggerProductL1Norm S (f₀ + h) < epsilon := by
-  have hfiber :
+      completedZeroSeedDaggerProductL1Norm S (f₀ + h) < epsilon :=
+  let hfiber :
       f₀ + h ∈ AutocorrelationSpectralEvalFiberOf P f₀ :=
     affineKernel_preserves_autocorrelationFiber P f₀ h hkernel
   let distance : ℝ :=
@@ -521,10 +600,8 @@ theorem fixedFiber_seedDaggerProduct_lt_of_kernelApproximation
         hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary f₀))
       (zetaCompletedZeroSideCoordinateL1LinearMap
         hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary h)
-  have hdistanceNonnegative : 0 ≤ distance := by
-    unfold distance
-    unfold zetaCompletedZeroCoordinateComplementL1Distance
-    exact tsum_nonneg
+  let hdistanceNonnegative : 0 ≤ distance :=
+    tsum_nonneg
       (fun rho : ZetaCompletedZeroCoordinate =>
         if_zero_else_norm_nonnegative
           ((rho : ℂ) ∈ daggerClosedSpectralSampleFinset P)
@@ -534,24 +611,23 @@ theorem fixedFiber_seedDaggerProduct_lt_of_kernelApproximation
             zetaCompletedZeroSideCoordinateL1LinearMap
               hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
               h rho))
-  have hproductBound :
+  let hproductBound :
       completedZeroSeedDaggerProductL1Norm S (f₀ + h) ≤ distance ^ 2 :=
     completedZeroSeedDaggerProductL1Norm_le_affineComplementDistance_square
       hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
       S P f₀ h hSeparated
-  have hsquareDistance : distance ^ 2 < delta ^ 2 := by
-    calc
-      distance ^ 2 = distance * distance := pow_two distance
-      _ < delta * delta :=
-        mul_self_lt_mul_self hdistanceNonnegative happroximation
-      _ = delta ^ 2 := (pow_two delta).symm
-  have hsquareDelta : delta ^ 2 < delta := by
-    calc
-      delta ^ 2 = delta * delta := pow_two delta
-      _ < delta * 1 :=
-        mul_lt_mul_of_pos_left hdeltaSubunit hdeltaPositive
-      _ = delta := mul_one delta
-  exact And.intro hfiber
+  let hsquareDistance : distance ^ 2 < delta ^ 2 :=
+    square_lt_square_of_nonnegative_lt
+      distance
+      delta
+      hdistanceNonnegative
+      happroximation
+  let hsquareDelta : delta ^ 2 < delta :=
+    square_lt_self_of_positive_lt_one
+      delta
+      hdeltaPositive
+      hdeltaSubunit
+  And.intro hfiber
     (lt_of_le_of_lt hproductBound
       (lt_trans hsquareDistance (lt_trans hsquareDelta hdeltaEpsilon)))
 

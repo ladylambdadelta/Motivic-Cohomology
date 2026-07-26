@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.AffineKernelIntegrability
+import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-!
 # Integrable majorant packages for affine kernels
@@ -16,9 +16,7 @@ noncomputable section
 
 open Complex
 open Filter
-open LSeries ArithmeticFunction
 open MeasureTheory
-open scoped ArithmeticFunction
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
@@ -35,8 +33,7 @@ structure ExplicitFormulaAffineKernelMajorantPackage (φ : ℝ → ℂ) where
 theorem ExplicitFormulaAffineKernelMajorantPackage.integrable
     {φ : ℝ → ℂ} (P : ExplicitFormulaAffineKernelMajorantPackage φ) :
     Integrable φ (volume : Measure ℝ) :=
-  explicitFormulaAffineKernel_integrable_of_integrable_majorant
-    φ P.majorant P.integrable_majorant P.stronglyMeasurable_kernel
+  P.integrable_majorant.mono' P.stronglyMeasurable_kernel
     P.norm_le_majorant
 
 /-- The bundled majorant package exposes the old existential majorant shape. -/
@@ -48,26 +45,6 @@ theorem ExplicitFormulaAffineKernelMajorantPackage.exists_majorant
         ∀ᵐ t ∂(volume : Measure ℝ), ‖φ t‖ ≤ majorant t :=
   ⟨P.majorant, P.integrable_majorant, P.stronglyMeasurable_kernel,
     P.norm_le_majorant⟩
-
-/-- Build a majorant package from the old existential majorant shape. -/
-def ExplicitFormulaAffineKernelMajorantPackage.of_exists
-    {φ : ℝ → ℂ}
-    (h :
-      ∃ majorant : ℝ → ℝ,
-        Integrable majorant (volume : Measure ℝ) ∧
-          AEStronglyMeasurable φ (volume : Measure ℝ) ∧
-          ∀ᵐ t ∂(volume : Measure ℝ), ‖φ t‖ ≤ majorant t) :
-    ExplicitFormulaAffineKernelMajorantPackage φ :=
-  let majorant : ℝ → ℝ := Classical.choose h
-  let hspec :
-      Integrable majorant (volume : Measure ℝ) ∧
-        AEStronglyMeasurable φ (volume : Measure ℝ) ∧
-          ∀ᵐ t ∂(volume : Measure ℝ), ‖φ t‖ ≤ majorant t :=
-    Classical.choose_spec h
-  { majorant := majorant
-    integrable_majorant := hspec.left
-    stronglyMeasurable_kernel := hspec.right.left
-    norm_le_majorant := hspec.right.right }
 
 /-- The zero kernel has the zero integrable majorant. -/
 def ExplicitFormulaAffineKernelMajorantPackage.zero :

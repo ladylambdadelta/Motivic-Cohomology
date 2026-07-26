@@ -232,7 +232,65 @@ theorem Complex.Gamma_inv_closedRealStripCompactHeightSet_bound
               ‖(Complex.Gamma w)⁻¹‖ ≤ M := hM w hw
               _ ≤ C := le_max_right 1 M⟩
 
-/-- Pointwise form of the compact-height closed-rectangle reciprocal Gamma bound. -/
+/-- A compact-height logarithmic-derivative bound.  The height cutoff keeps
+the Gamma pole locus outside the owner domain; complex analyticity then
+supplies continuity of the derivative before compactness is applied. -/
+theorem Complex.Gamma_logDerivative_closedRealStripCompactHeightSet_bound
+    (A B L H : ℝ)
+    (hL_pos : 0 < L) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        w ∈ Complex.closedRealStripCompactHeightSet A B L H →
+          ‖deriv Complex.Gamma w / Complex.Gamma w‖ ≤ C := by
+  let U : Set ℂ := {w : ℂ | 0 < ‖w.im‖}
+  have hU_open : IsOpen U := by
+    exact isOpen_lt continuous_const (Complex.continuous_im.norm)
+  have hGamma_diff : DifferentiableOn ℂ Complex.Gamma U := by
+    intro w hw
+    apply Complex.differentiableAt_Gamma
+    intro n hn
+    intro hEq
+    have hImEq : w.im = (-(n : ℂ)).im :=
+      congrArg Complex.im hEq
+    have hPoleIm : (-(n : ℂ)).im = 0 := by
+      calc
+        (-(n : ℂ)).im = -((n : ℂ).im) := Complex.neg_im (n : ℂ)
+        _ = -0 := congrArg Neg.neg (Complex.ofReal_im (n : ℝ))
+        _ = 0 := neg_zero
+    have hImZero : w.im = 0 := hImEq.trans hPoleIm
+    have hNormZero : ‖w.im‖ = 0 := congrArg norm hImZero
+    exact (not_lt_of_ge (le_of_eq hNormZero.symm)) hw
+  have hGamma_cont : ContinuousOn Complex.Gamma U :=
+    hGamma_diff.continuousOn
+  have hGamma_deriv_cont :
+      ContinuousOn (deriv Complex.Gamma) U := by
+    exact
+      (hGamma_diff.contDiffOn hU_open).continuousOn_deriv_of_isOpen
+        hU_open (by exact le_top)
+  have hquot_cont :
+      ContinuousOn (fun w : ℂ => deriv Complex.Gamma w / Complex.Gamma w) U := by
+    exact hGamma_deriv_cont.div hGamma_cont
+  have hK_compact :
+      IsCompact (Complex.closedRealStripCompactHeightSet A B L H) :=
+    Complex.closedRealStripCompactHeightSet_isCompact A B L H
+  have hK_sub :
+      Complex.closedRealStripCompactHeightSet A B L H ⊆ U := by
+    intro w hw
+    have hL_le_norm : L ≤ ‖w.im‖ := hw.1.2.1
+    exact lt_of_lt_of_le hL_pos hL_le_norm
+  have hK_bound :=
+    IsCompact.exists_bound_of_continuousOn hK_compact
+      (hquot_cont.mono hK_sub)
+  match hK_bound with
+  | ⟨M, hM⟩ =>
+      let C : ℝ := max 1 M
+      have hC_pos : 0 < C :=
+        lt_of_lt_of_le zero_lt_one (le_max_left 1 M)
+      exact ⟨C, hC_pos, fun w hw =>
+        (hM w hw).trans (le_max_right 1 M)⟩
+
+/- Pointwise form of the compact-height closed-rectangle reciprocal Gamma bound. -/
 theorem Complex.Gamma_inv_closedRealStrip_compactHeight_bound
     (A B L H : ℝ)
     (hL_pos : 0 < L) :

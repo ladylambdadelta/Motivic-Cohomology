@@ -4,10 +4,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 # Paley-Wiener low-frequency decay weights
 
 This file owns the elementary real decay-weight arithmetic and the low-frequency
-Fourier decay estimate for the first derivative-source oscillatory integral. It
-is copy-first extracted from the current Paley-Wiener owner file and is not
-imported by that parent yet, so declaration names intentionally match the
-existing owner surface.
+Fourier decay estimate for the first derivative-source oscillatory integral.
 -/
 
 open scoped Real
@@ -155,6 +152,107 @@ theorem zetaPaleyWiener_lowFrequency_decayWeight_absorbs_constant
       hright
       hscaled)
 
+/-- The deterministic zero-order Fourier constant for the first derivative source. -/
+noncomputable def zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrderConstant
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) : ℝ :=
+  zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope f I a b 1 *
+    zetaPaleyWienerSupportIntervalLength I + 1
+
+/-- The deterministic zero-order Fourier constant is positive. -/
+theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrderConstant_pos
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) :
+    0 <
+      zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrderConstant
+        f I a b :=
+  let C0 : ℝ := zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope f I a b 1
+  let hC0pos : 0 < C0 :=
+    zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_pos f I a b 1
+  let hC0_nonneg : 0 ≤ C0 :=
+    le_of_lt hC0pos
+  let hraw_nonneg : 0 ≤ C0 * zetaPaleyWienerSupportIntervalLength I :=
+    mul_nonneg hC0_nonneg (zetaPaleyWienerSupportIntervalLength_nonnegative I)
+  lt_of_le_of_lt hraw_nonneg
+    (lt_add_of_pos_right
+      (C0 * zetaPaleyWienerSupportIntervalLength I)
+      zero_lt_one)
+
+/-- The deterministic zero-order Fourier constant bounds the first derivative
+source oscillatory integral. -/
+theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrderConstant_bound
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b x y : ℝ)
+    (hxLeft : a ≤ x) (hxRight : x ≤ b) :
+    ‖∫ t : ℝ,
+      zetaPaleyWienerVerticalLineIBPDerivative f x t *
+        zetaPaleyWienerVerticalOscillation y t‖ ≤
+      zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrderConstant
+        f I a b :=
+  let C0 : ℝ := zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope f I a b 1
+  let hC0pos : 0 < C0 :=
+    zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_pos f I a b 1
+  let hC0_nonneg : 0 ≤ C0 :=
+    le_of_lt hC0pos
+  let hC0bound :
+      ∀ x : ℝ,
+        a ≤ x →
+        x ≤ b →
+        ∀ t : ℝ,
+          ‖zetaPaleyWienerVerticalLineIBPDerivative f x t‖ ≤ C0 :=
+    fun x hxLeftLocal hxRightLocal t =>
+      match zetaPaleyWienerSupportInterval_inside_or_outside I t with
+      | Or.inl hinside =>
+          let hjet :
+              ‖zetaPaleyWienerHorizontalTwistVerticalJet f 1 x t‖ ≤ C0 :=
+            zetaPaleyWienerHorizontalTwistVerticalJetRectangleEnvelope_bound
+              f I a b 1 (x, t) ⟨⟨hxLeftLocal, hxRightLocal⟩, hinside⟩
+          let hiterated :
+              ‖zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t‖ ≤ C0 :=
+            Eq.subst
+              (motive := fun v : ℂ => ‖v‖ ≤ C0)
+              (zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_verticalJet
+                f 1 x t).symm
+              hjet
+          Eq.subst
+            (motive := fun v : ℂ => ‖v‖ ≤ C0)
+            (zetaPaleyWienerHorizontalTwistIteratedDerivative_one f x t)
+            hiterated
+      | Or.inr houtside =>
+          match houtside with
+          | Or.inl hbelow =>
+              let hzero :
+                  zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t = 0 :=
+                zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_off_supportInterval
+                  f I 1 x t hbelow
+              let hiterated :
+                  ‖zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t‖ ≤ C0 :=
+                Eq.subst
+                  (motive := fun v : ℂ => ‖v‖ ≤ C0)
+                  hzero.symm
+                  (complex_norm_zero_le_of_pos C0 hC0pos)
+              Eq.subst
+                (motive := fun v : ℂ => ‖v‖ ≤ C0)
+                (zetaPaleyWienerHorizontalTwistIteratedDerivative_one f x t)
+                hiterated
+          | Or.inr habove =>
+              let hzero :
+                  zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t = 0 :=
+                zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_of_supportInterval_lt
+                  f I 1 x t habove
+              let hiterated :
+                  ‖zetaPaleyWienerHorizontalTwistIteratedDerivative f 1 x t‖ ≤ C0 :=
+                Eq.subst
+                  (motive := fun v : ℂ => ‖v‖ ≤ C0)
+                  hzero.symm
+                  (complex_norm_zero_le_of_pos C0 hC0pos)
+              Eq.subst
+                (motive := fun v : ℂ => ‖v‖ ≤ C0)
+                (zetaPaleyWienerHorizontalTwistIteratedDerivative_one f x t)
+                hiterated
+  zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_le_bumpedBound
+    f I a b C0 hC0_nonneg hC0bound x y hxLeft hxRight
+
 /-- Zero-order Fourier decay for the compactly supported horizontal-twist derivative
 family. -/
 theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrder_uniformDecay
@@ -169,22 +267,83 @@ theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrder_unifo
           zetaPaleyWienerVerticalLineIBPDerivative f x t *
             zetaPaleyWienerVerticalOscillation y t‖
           ≤ C * (1 + ‖y‖) ^ (-(0 : ℤ)) := by
-  rcases zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrder_uniformBound
-      f I a b with ⟨C, hCpos, hCbound⟩
-  refine ⟨C, hCpos, ?_⟩
-  intro x y hx_left hx_right
-  have hweight :
+  let C : ℝ :=
+    zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrderConstant
+      f I a b
+  exact ⟨C,
+    zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrderConstant_pos
+      f I a b,
+    fun x y hxLeft hxRight =>
+    let hweight :
       C * (1 + ‖y‖) ^ (-(0 : ℤ)) = C := by
-    exact Eq.trans
-      (congrArg (fun v : ℝ => C * v) (zetaPaleyWiener_zeroDecayWeight y))
-      (mul_one C)
-  exact Eq.subst
-    (motive := fun v : ℝ =>
+      exact Eq.trans
+        (congrArg (fun v : ℝ => C * v) (zetaPaleyWiener_zeroDecayWeight y))
+        (mul_one C)
+    Eq.subst
+      (motive := fun v : ℝ =>
+        ‖∫ t : ℝ,
+          zetaPaleyWienerVerticalLineIBPDerivative f x t *
+            zetaPaleyWienerVerticalOscillation y t‖ ≤ v)
+      hweight.symm
+      (zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrderConstant_bound
+        f I a b x y hxLeft hxRight)⟩
+
+/-- The deterministic low-frequency positive-order Fourier constant for the first
+derivative source. -/
+noncomputable def zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_positiveOrderLowFrequencyConstant
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (N : ℕ) : ℝ :=
+  zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrderConstant f I a b *
+    (2 : ℝ) ^ (Nat.succ N)
+
+/-- The deterministic low-frequency positive-order Fourier constant is positive. -/
+theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_positiveOrderLowFrequencyConstant_pos
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (N : ℕ) :
+    0 <
+      zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_positiveOrderLowFrequencyConstant
+        f I a b N :=
+  mul_pos
+    (zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrderConstant_pos
+      f I a b)
+    (pow_pos zero_lt_two (Nat.succ N))
+
+/-- The deterministic low-frequency positive-order Fourier constant gives the
+renormalized low-frequency decay bound. -/
+theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_positiveOrderLowFrequencyConstant_bound
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (N : ℕ) :
+    ∀ x y : ℝ,
+      a ≤ x →
+      x ≤ b →
+      ‖y‖ ≤ 1 →
       ‖∫ t : ℝ,
         zetaPaleyWienerVerticalLineIBPDerivative f x t *
-          zetaPaleyWienerVerticalOscillation y t‖ ≤ v)
-    hweight.symm
-    (hCbound x y hx_left hx_right)
+          zetaPaleyWienerVerticalOscillation y t‖
+        ≤
+          zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_positiveOrderLowFrequencyConstant
+              f I a b N *
+            (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) :=
+  fun x y hxLeft hxRight hy =>
+    let C0 : ℝ :=
+      zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrderConstant
+        f I a b
+    let hC0pos : 0 < C0 :=
+      zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrderConstant_pos
+        f I a b
+    let hzero :
+        ‖∫ t : ℝ,
+          zetaPaleyWienerVerticalLineIBPDerivative f x t *
+            zetaPaleyWienerVerticalOscillation y t‖ ≤ C0 :=
+      zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrderConstant_bound
+        f I a b x y hxLeft hxRight
+    let habsorb :
+        C0 ≤
+          (C0 * (2 : ℝ) ^ (Nat.succ N)) *
+            (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) :=
+      zetaPaleyWiener_lowFrequency_decayWeight_absorbs_constant
+        C0 (le_of_lt hC0pos) N hy
+    le_trans hzero habsorb
 
 /-- Low-frequency positive-order Fourier decay follows from the zero-order bound after
 renormalizing the constant on `|y| ≤ 1`. -/
@@ -201,23 +360,13 @@ theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_positiveOrder_l
           zetaPaleyWienerVerticalLineIBPDerivative f x t *
             zetaPaleyWienerVerticalOscillation y t‖
           ≤ C * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) := by
-  rcases zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_zeroOrder_uniformBound
-      f I a b with ⟨C0, hC0pos, hC0bound⟩
-  refine ⟨C0 * (2 : ℝ) ^ (Nat.succ N),
-    mul_pos hC0pos (pow_pos zero_lt_two (Nat.succ N)), ?_⟩
-  intro x y hx_left hx_right hy
-  have hzero :
-      ‖∫ t : ℝ,
-        zetaPaleyWienerVerticalLineIBPDerivative f x t *
-          zetaPaleyWienerVerticalOscillation y t‖ ≤ C0 :=
-    hC0bound x y hx_left hx_right
-  have habsorb :
-      C0 ≤
-        (C0 * (2 : ℝ) ^ (Nat.succ N)) *
-          (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) :=
-    zetaPaleyWiener_lowFrequency_decayWeight_absorbs_constant
-      C0 (le_of_lt hC0pos) N hy
-  exact le_trans hzero habsorb
+  exact
+    ⟨zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_positiveOrderLowFrequencyConstant
+        f I a b N,
+      zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_positiveOrderLowFrequencyConstant_pos
+        f I a b N,
+      zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_positiveOrderLowFrequencyConstant_bound
+        f I a b N⟩
 
 end LFunctions
 end Boundary

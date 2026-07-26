@@ -85,7 +85,7 @@ theorem centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand_nonnegativ
       0 ≤ centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand R z :=
   fun z =>
     @centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand_nonnegative
-      R z (Classical.propDecidable (‖(z : ℂ)‖ ≤ R))
+      R z inferInstance
 
 /-- The injective completed-zero pullback sum is bounded by the carrier sum. -/
 theorem carrierPullback_tsum_le_carrier_tsum

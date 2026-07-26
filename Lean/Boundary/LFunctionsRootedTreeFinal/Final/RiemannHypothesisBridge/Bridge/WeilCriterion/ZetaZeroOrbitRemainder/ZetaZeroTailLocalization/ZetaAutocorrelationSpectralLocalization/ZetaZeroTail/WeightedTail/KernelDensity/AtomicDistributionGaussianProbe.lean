@@ -188,10 +188,10 @@ theorem exists_admissibleGaussianUnitBumpProfile_iteratedDeriv_norm_bound
         (norm_zero : ‖(0 : ℂ)‖ = 0).symm
         (le_of_lt hboundPositive))
   have hglobal : ∀ t : ℝ, ‖derivative t‖ ≤ bound :=
-    fun t =>
-      Or.elim (Classical.em (t ∈ tsupport derivative))
-        (hinside t)
-        (houtside t)
+    fun t => by
+      by_cases ht : t ∈ tsupport derivative
+      · exact hinside t ht
+      · exact houtside t ht
   exact Exists.intro bound (And.intro hboundPositive hglobal)
 
 /-- Scaled fixed bump profiles have derivative bounds uniform over all radii

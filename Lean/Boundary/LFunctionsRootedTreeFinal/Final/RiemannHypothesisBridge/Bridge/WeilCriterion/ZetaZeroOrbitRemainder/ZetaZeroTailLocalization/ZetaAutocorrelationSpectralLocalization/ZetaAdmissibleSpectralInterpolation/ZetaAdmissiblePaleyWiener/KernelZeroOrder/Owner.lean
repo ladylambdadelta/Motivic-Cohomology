@@ -635,18 +635,20 @@ theorem zetaLaplaceTransform_supportInterval_zeroOrder_decay
         zetaPaleyWienerInVerticalStrip a b z →
         ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
           ≤ C * zetaPaleyWienerVerticalWeight z 0 := by
-  rcases zetaLaplaceTransform_supportInterval_zeroOrder_integralBound
-      f I a b with ⟨C, hCpos, hCbound⟩
-  refine ⟨C, hCpos, ?_⟩
-  intro z hz
-  have hweight :
-      zetaPaleyWienerVerticalWeight z 0 = 1 := by
-    unfold zetaPaleyWienerVerticalWeight
-    exact zpow_zero (1 + ‖z.im‖)
-  have htarget :
-      C * zetaPaleyWienerVerticalWeight z 0 = C := by
-    exact Eq.trans (congrArg (fun W : ℝ => C * W) hweight) (mul_one C)
-  exact (hCbound z hz).trans_eq htarget.symm
+  exact
+    match zetaLaplaceTransform_supportInterval_zeroOrder_integralBound f I a b with
+    | ⟨C, hCpos, hCbound⟩ =>
+        Exists.intro C
+          (And.intro hCpos
+            (fun z hz =>
+              have hweight :
+                  zetaPaleyWienerVerticalWeight z 0 = 1 := by
+                unfold zetaPaleyWienerVerticalWeight
+                exact zpow_zero (1 + ‖z.im‖)
+              have htarget :
+                  C * zetaPaleyWienerVerticalWeight z 0 = C := by
+                exact Eq.trans (congrArg (fun W : ℝ => C * W) hweight) (mul_one C)
+              (hCbound z hz).trans_eq htarget.symm))
 
 end ZetaAdmissibleFunction
 

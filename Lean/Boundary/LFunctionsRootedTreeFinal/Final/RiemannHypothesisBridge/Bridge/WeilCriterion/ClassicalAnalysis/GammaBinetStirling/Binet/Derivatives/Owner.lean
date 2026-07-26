@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.Binet.Denominator.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.SlitPlaneDefinitions
 import Mathlib.Analysis.Calculus.ParametricIntegral
 
 /-!
@@ -1210,7 +1211,7 @@ theorem Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral_ow
       (Complex.log w - (1 / (2 * w))) +
         2 * ∫ t : ℝ in Set.Ioi (0 : ℝ),
           (-(t : ℂ) / (w ^ 2 + (t : ℂ) ^ 2)) /
-            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) := by
+      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) := by
   let D : ℂ :=
     (Complex.log w - (1 / (2 * w))) +
       Complex.binetSecondFormulaRemainderDerivative w
@@ -1330,6 +1331,32 @@ theorem Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral
   exact
     Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral_owner
       hw_re_pos hfinite_w hfinite_nhds
+
+/-- Canonical branch-correct name for the Abel--Plana logarithmic-derivative
+owner.  This surface deliberately carries no principal-log slit hypothesis. -/
+theorem Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral_branch_owner
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (hfinite_w :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+            Complex.binetAbelPlanaFiniteContourRemainder N w)
+    (hfinite_nhds :
+      ∀ᶠ z : ℂ in 𝓝 w,
+        ∀ N : ℕ,
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+            Complex.binetAbelPlanaFiniteMainTerm N z +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+              Complex.binetAbelPlanaFiniteContourRemainder N z) :
+    deriv Complex.Gamma w / Complex.Gamma w =
+      (Complex.log w - (1 / (2 * w))) +
+        2 * ∫ t : ℝ in Set.Ioi (0 : ℝ),
+          (-(t : ℂ) / (w ^ 2 + (t : ℂ) ^ 2)) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) :=
+  Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral_owner
+    hw_re_pos hfinite_w hfinite_nhds
 
 /-- The standard Binet log-derivative identity in the local remainder-derivative
 normalization used by this file. -/
@@ -1753,6 +1780,50 @@ theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane_of_positiveReal_and_
     exact Eq.trans hconstant.symm hbase_zero
   exact sub_eq_zero.mp hw_zero
 
+/- The branch input for the Binet identity is pointwise.  The older theorem
+   above exposed it as a global half-plane hypothesis, although the derivative
+   calculation only needs the value at the point being evaluated. -/
+theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane_of_local_slit
+    (w : ℂ)
+    (hw_re : 0 < w.re)
+    (hgamma_w : Complex.Gamma w ∈ Complex.slitPlane)
+    (hgamma_slit : Complex.GammaRightHalfPlaneSlitPlaneControl)
+    (hfinite_real :
+      ∀ x : ℝ,
+        0 < x →
+          ∀ N : ℕ,
+            Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+              Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                  Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ))
+    (hfinite_local :
+      ∀ z : ℂ,
+        0 < z.re →
+          (∀ N : ℕ,
+            Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+              Complex.binetAbelPlanaFiniteMainTerm N z +
+                Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                  Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+          (∀ᶠ y : ℂ in 𝓝 z,
+            ∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                Complex.binetAbelPlanaFiniteMainTerm N y +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                    Complex.binetAbelPlanaFiniteContourRemainder N y)) :
+    Complex.log (Complex.Gamma w) =
+      Complex.binetLogGammaMainTerm w +
+        Complex.binetSecondFormulaRemainder w := by
+  exact
+    Complex.Gamma_binetSecondFormula_openRightHalfPlane_of_positiveReal_and_sameDerivative
+      (fun hx =>
+        Complex.Gamma_binetSecondFormula_integral_representation_positiveReal
+          hx (hfinite_real _ hx))
+      (fun {w'} hw_pos =>
+        Complex.Gamma_binetSecondFormula_integral_representation_sameDerivative
+          (w := w') hw_pos (hgamma_slit w' hw_pos)
+            (hfinite_local _ hw_pos).1 (hfinite_local _ hw_pos).2)
+      w hw_re
+
 /-- The open right half-plane is connected to the positive real axis by
 paths along which the principal-log Binet difference has zero derivative.
 
@@ -1934,6 +2005,43 @@ theorem Complex.Gamma_binetSecondFormula_large_openRightHalfPlane :
         (And.intro zero_lt_one (fun w hw_re_pos _hR hgamma_slit_open hfinite_real hfinite_open =>
           Complex.Gamma_binetSecondFormula_openRightHalfPlane
             w hw_re_pos hgamma_slit_open hfinite_real hfinite_open))
+
+/- The large-radius form with the mathematically minimal branch input. -/
+theorem Complex.Gamma_binetSecondFormula_large_openRightHalfPlane_of_local_slit :
+      ∃ R : ℝ,
+        0 < R ∧
+        ∀ w : ℂ,
+        0 < w.re →
+          R ≤ ‖w‖ →
+          Complex.Gamma w ∈ Complex.slitPlane →
+          Complex.GammaRightHalfPlaneSlitPlaneControl →
+          (∀ x : ℝ,
+            0 < x →
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                  Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                      Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+          (∀ z : ℂ,
+            0 < z.re →
+              (∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                  Complex.binetAbelPlanaFiniteMainTerm N z +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                      Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+              (∀ᶠ y : ℂ in 𝓝 z,
+                ∀ N : ℕ,
+                  Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                    Complex.binetAbelPlanaFiniteMainTerm N y +
+                      Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                        Complex.binetAbelPlanaFiniteContourRemainder N y)) →
+          Complex.log (Complex.Gamma w) =
+            Complex.binetLogGammaMainTerm w +
+              Complex.binetSecondFormulaRemainder w := by
+  refine ⟨1, zero_lt_one, ?_⟩
+  intro w hw_re _hnorm hgamma hgamma_slit hreal hlocal
+  exact Complex.Gamma_binetSecondFormula_openRightHalfPlane_of_local_slit
+    w hw_re hgamma hgamma_slit hreal hlocal
 
 /-- Large-radius Binet formula for the existing principal-arctangent integral.
 The hypothesis is open half-plane because the current remainder is the

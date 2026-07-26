@@ -978,6 +978,44 @@ theorem Gammaℝ_closedRightCriticalStrip_verticalTail_stirling_growth_bound
               _ ≤ AΓ * Real.exp (BΓ * (1 + ‖z‖) ^ mΓ) :=
                 hscaled_exp⟩
 
+/-- Polynomial numerator bound obtained from the uniform half-argument Gamma
+bound and the norm-one `π^(-z/2)` factor. -/
+theorem Gammaℝ_closedRightCriticalStrip_verticalTail_polynomial_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 1 →
+        1 ≤ ‖z.im‖ →
+        ‖Complex.Gammaℝ z‖ ≤ C := by
+  match Complex.Gamma_zero_half_strip_verticalTail_polynomial_bound hbranch with
+  | ⟨CΓ, hCΓ_pos, hΓ⟩ =>
+    exact ⟨CΓ, hCΓ_pos, fun z hz_re_nonneg hz_re_le_one hz_im_tail => by
+      have hw_re_nonneg : 0 ≤ (z / 2 : ℂ).re :=
+        halfArgument_re_nonneg_of_re_nonneg hz_re_nonneg
+      have hw_re_half : (z / 2 : ℂ).re ≤ (1 / 2 : ℝ) :=
+        halfArgument_re_le_half_of_re_le_one hz_re_le_one
+      have hw_im_tail : (1 / 2 : ℝ) ≤ ‖(z / 2 : ℂ).im‖ :=
+        halfArgument_im_norm_ge_half_of_one_le_norm_im hz_im_tail
+      have hΓ_bound : ‖Complex.Gamma (z / 2)‖ ≤ CΓ :=
+        hΓ (z / 2) hw_re_nonneg hw_re_half hw_im_tail
+      have hπ : ‖((π : ℂ) ^ (-z / 2 : ℂ))‖ ≤ 1 :=
+        pi_cpow_neg_halfArgument_norm_le_one hz_re_nonneg
+      have hfactor :
+          ‖Complex.Gammaℝ z‖ =
+            ‖((π : ℂ) ^ (-z / 2 : ℂ))‖ * ‖Complex.Gamma (z / 2)‖ :=
+        norm_Gammaℝ_eq_norm_pi_mul_norm_complexGamma_half z
+      have hproduct :
+          ‖((π : ℂ) ^ (-z / 2 : ℂ))‖ * ‖Complex.Gamma (z / 2)‖ ≤ 1 * CΓ :=
+        mul_le_mul hπ hΓ_bound (norm_nonneg (Complex.Gamma (z / 2))) zero_le_one
+      calc
+        ‖Complex.Gammaℝ z‖ =
+            ‖((π : ℂ) ^ (-z / 2 : ℂ))‖ * ‖Complex.Gamma (z / 2)‖ := hfactor
+        _ ≤ 1 * CΓ := hproduct
+        _ = CΓ := one_mul CΓ⟩
+
+/-! The exponential version remains the legacy Stirling interface. -/
 /-- Closed-boundary vertical-tail Stirling bound for the reflected numerator
 `Gammaℝ (1 - z)` on `0 ≤ Re z ≤ 1`. -/
 theorem Gammaℝ_one_sub_zeroOneStrip_verticalTail_stirling_growth_bound

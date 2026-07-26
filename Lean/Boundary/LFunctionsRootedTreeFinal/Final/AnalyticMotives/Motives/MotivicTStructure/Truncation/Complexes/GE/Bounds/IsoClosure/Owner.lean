@@ -1,5 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.MotivicTStructure.Truncation.Complexes.GE.Bounds.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Comparison.Weights.Source.Bounds.IsoClosure.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.AnalyticMotives.Motives.Weights.AdditiveEnvelope.Bounds.Complexes.IsoBounded.IsoClosure.Owner
 
 /-!
 # Iso-closure bounded upper analytic truncations
@@ -223,7 +223,7 @@ theorem additiveTruncGE_degree_mem_isoClosure_of_not_boundary
     {bound : Nat}
     (complex : TraceAnalyticAdditiveCochainComplex)
     (bounded :
-      TraceAnalyticMotiveComparison.sourceComplexDegreewiseIsoClosureBoundedBy
+      TraceAnalyticAdditiveCochainComplex.DegreewiseIsoClosureBoundedBy
         complex
         bound)
     [∀ degree, complex.HasHomology degree]
@@ -286,11 +286,11 @@ theorem additiveTruncGE_sourceComplexDegreewiseIsoClosureBoundedBy
     {bound : Nat}
     (complex : TraceAnalyticAdditiveCochainComplex)
     (bounded :
-      TraceAnalyticMotiveComparison.sourceComplexDegreewiseIsoClosureBoundedBy
+      TraceAnalyticAdditiveCochainComplex.DegreewiseIsoClosureBoundedBy
         complex
         bound)
     [∀ degree, complex.HasHomology degree] :
-    TraceAnalyticMotiveComparison.sourceComplexDegreewiseIsoClosureBoundedBy
+    TraceAnalyticAdditiveCochainComplex.DegreewiseIsoClosureBoundedBy
       (TraceAnalyticMotivicTStructure.additiveTruncGE cut complex)
       (TraceAnalyticMotivicTStructure.additiveTruncGEIsoClosureBound
         cut

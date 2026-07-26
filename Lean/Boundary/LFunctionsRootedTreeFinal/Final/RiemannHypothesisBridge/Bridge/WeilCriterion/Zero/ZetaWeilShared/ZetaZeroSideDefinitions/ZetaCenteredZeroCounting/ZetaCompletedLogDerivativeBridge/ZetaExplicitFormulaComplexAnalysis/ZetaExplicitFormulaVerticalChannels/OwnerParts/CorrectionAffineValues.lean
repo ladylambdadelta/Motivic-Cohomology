@@ -1,6 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.LeftZeroPoleAffineInversionTransport
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleAffineInversionTransport
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PoleCauchyInversion
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.RightZeroPoleLocalCauchyValue
 
 /-!
 # Whole-line values of the elementary correction affine kernels
@@ -24,13 +24,15 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- Whole-line value of the total right elementary correction affine kernel. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightAffineKernel_integral_eq_value_ownerCorrectionAffineValues
+/-- Whole-line value of the total right elementary correction affine kernel in
+the one-sided projection normalization for the right `s = 0` pole. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightAffineKernel_integral_eq_projection_ownerCorrectionAffineValues
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaCorrectionRightAffineKernel f F t) =
-      zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f +
+      Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+          f.toZetaTestFunction' F.c +
         zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c := by
   have hzero_int :
       Integrable
@@ -65,9 +67,10 @@ theorem zetaCompletedExplicitFormulaCorrectionRightAffineKernel_integral_eq_valu
   have hzero_value :
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel f F t) =
-        zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f :=
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral_eq_value_ownerCauchyInversion
-      f F h
+        Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+          f.toZetaTestFunction' F.c :=
+    zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral_eq_projection_directOffPoleCauchy
+      f F
   have hone_value :
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F t) =
@@ -88,7 +91,8 @@ theorem zetaCompletedExplicitFormulaCorrectionRightAffineKernel_integral_eq_valu
             zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F t := by
       exact hsum
     _ =
-        zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f +
+        Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+            f.toZetaTestFunction' F.c +
           ∫ t : ℝ,
             zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F t := by
       exact congrArg
@@ -98,22 +102,34 @@ theorem zetaCompletedExplicitFormulaCorrectionRightAffineKernel_integral_eq_valu
               zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernel f F t)
         hzero_value
     _ =
-        zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f +
+        Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+            f.toZetaTestFunction' F.c +
           zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c := by
       exact congrArg
         (fun z : ℂ =>
-          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f + z)
+          Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+              f.toZetaTestFunction' F.c + z)
         hone_value
 
-/-- Whole-line value of the total left elementary correction affine kernel. -/
+/-- Whole-line value of the total left elementary correction affine kernel in
+the corrected projection-residue normalization. -/
 theorem zetaCompletedExplicitFormulaCorrectionLeftAffineKernel_integral_eq_projectionResidue_ownerCorrectionAffineValues
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaCorrectionLeftAffineKernel f F t) =
-      ((2 * (Real.pi : ℂ) * Complex.I) *
-        (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
-          zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c := by
+      (Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+          f.toZetaTestFunction' F.c +
+        zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+          f * Complex.I) +
+        (((2 * (Real.pi : ℂ) * Complex.I) *
+          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+            zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c) := by
+  let A : ℂ :=
+    Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+      f.toZetaTestFunction' F.c +
+      zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+        f * Complex.I
   let B : ℂ :=
     ((2 * (Real.pi : ℂ) * Complex.I) *
       (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I
@@ -152,8 +168,10 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftAffineKernel_integral_eq_proje
   have hzero_value :
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F t) =
-        0 :=
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_ownerTransport
+        A := by
+    unfold A
+    exact
+      zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_projectionResidue_ownerTransport
       f F h
   have hone_value :
       (∫ t : ℝ,
@@ -175,7 +193,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftAffineKernel_integral_eq_proje
             zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel f F t := by
       exact hsum
     _ =
-        0 +
+        A +
           ∫ t : ℝ,
             zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel f F t := by
       exact congrArg
@@ -184,14 +202,16 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftAffineKernel_integral_eq_proje
             ∫ t : ℝ,
               zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernel f F t)
         hzero_value
-    _ = 0 + (B + P) := by
-      exact congrArg (fun z : ℂ => 0 + z) hone_value
-    _ = B + P := by
-      exact zero_add (B + P)
+    _ = A + (B + P) := by
+      exact congrArg (fun z : ℂ => A + z) hone_value
     _ =
-        ((2 * (Real.pi : ℂ) * Complex.I) *
-          (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
-            zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c := by
+        (Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+            f.toZetaTestFunction' F.c +
+          zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+            f * Complex.I) +
+          (((2 * (Real.pi : ℂ) * Complex.I) *
+            (-zetaCompletedExplicitFormulaPhi f (1 / 2))) * Complex.I +
+              zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c) := by
       rfl
 
 end ZetaAdmissibleFunction

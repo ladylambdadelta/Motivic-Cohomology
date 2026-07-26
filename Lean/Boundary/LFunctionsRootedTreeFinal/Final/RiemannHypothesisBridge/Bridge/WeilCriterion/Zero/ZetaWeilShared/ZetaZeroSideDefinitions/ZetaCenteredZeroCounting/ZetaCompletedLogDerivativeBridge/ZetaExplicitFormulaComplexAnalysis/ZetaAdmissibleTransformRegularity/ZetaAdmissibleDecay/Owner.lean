@@ -48,7 +48,24 @@ theorem zetaPhi_verticalStripRapidDecay_of_admissible
         z.re ≤ b →
         ‖zetaCompletedExplicitFormulaPhi f z‖
           ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
-  exact zetaPhi_verticalStripRapidDecay_of_admissible_owner f a b N
+  let I : ZetaPaleyWienerSupportInterval f :=
+    canonicalZetaPaleyWienerSupportInterval f
+  let C : ℝ :=
+    zetaLaplaceTransform_supportInterval_decayConstant f I a b N
+  let hLaplace :
+      zetaLaplaceTransformHasVerticalStripDecayConstant f a b N C :=
+    And.intro
+      (zetaLaplaceTransform_supportInterval_decayConstant_pos f I a b N)
+      (zetaLaplaceTransform_supportInterval_decayConstant_bound f I a b N)
+  let hPhi :
+      0 < C ∧
+        ∀ z : ℂ,
+          a ≤ z.re →
+          z.re ≤ b →
+          ‖zetaCompletedExplicitFormulaPhi f z‖
+            ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) :=
+    zetaPhi_hasVerticalStripDecayConstant_of_laplace f a b N C hLaplace
+  exact ⟨C, hPhi.1, hPhi.2⟩
 
 end ZetaAdmissibleFunction
 

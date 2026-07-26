@@ -31,16 +31,6 @@ def zetaCompletedExplicitFormulaPrimeSupport : Finset (ℕ × ℕ) :=
     (Finset.range (Nat.ceil (Real.exp 0) + 1))
     (Finset.range (Nat.ceil (Real.exp 0) + 1))
 
-/-- The explicit prime-power weight in the completed formula normalization. -/
-def zetaCompletedExplicitFormulaPrimeWeight (p n : ℕ) : ℝ :=
-  if _hp : Nat.Prime p then
-    if _hn : n ≠ 0 then
-      Real.log p / Real.sqrt (p ^ n)
-    else
-      0
-  else
-    0
-
 /-- Finite display presentation for packet-level prime terms.
 
 This is not the owner completed prime distribution; the public prime contribution below is
@@ -216,48 +206,47 @@ theorem zetaCompletedExplicitFormulaPhi_primePowerSeedPair_realNorm_realAxisSpec
                 (zetaCompletedExplicitFormulaPhi f
                   (-(ZetaPrimePowerIndex.center ι : ℂ)))‖ ≤
             C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  refine ⟨Cpos * Cneg, kpos, ?_, ?_⟩
-  · exact mul_nonneg hCpos hCneg
-  · intro ι
-    let A : ℝ :=
-      ‖zetaCompletedExplicitFormulaPhi f (ZetaPrimePowerIndex.center ι)‖
-    let B : ℝ :=
-      ‖star
-        (zetaCompletedExplicitFormulaPhi f
-          (-(ZetaPrimePowerIndex.center ι : ℂ)))‖
-    let Dpos : ℝ := ZetaPrimePowerIndex.polynomialHeightDecay kpos ι
-    let Dneg : ℝ := ZetaPrimePowerIndex.polynomialHeightDecay kneg ι
-    have hA_nonneg : 0 ≤ A := norm_nonneg _
-    have hB_nonneg : 0 ≤ B := norm_nonneg _
-    have hDpos_nonneg : 0 ≤ Dpos :=
-      ZetaPrimePowerIndex.polynomialHeightDecay_nonnegative kpos ι
-    have hDneg_le_one : Dneg ≤ 1 :=
-      ZetaPrimePowerIndex.polynomialHeightDecay_le_one kneg ι
-    have hpos_ι : A ≤ Cpos * Dpos := hpos ι
-    have hneg_ι : B ≤ Cneg * Dneg := hneg ι
-    have hCposDpos_nonneg : 0 ≤ Cpos * Dpos :=
-      mul_nonneg hCpos hDpos_nonneg
-    have hmul_bounds : A * B ≤ (Cpos * Dpos) * (Cneg * Dneg) :=
-      mul_le_mul hpos_ι hneg_ι hB_nonneg hCposDpos_nonneg
-    have hDneg_nonneg : 0 ≤ Dneg :=
-      ZetaPrimePowerIndex.polynomialHeightDecay_nonnegative kneg ι
-    have hCnegDneg_le_Cneg : Cneg * Dneg ≤ Cneg * 1 :=
-      mul_le_mul_of_nonneg_left hDneg_le_one hCneg
-    have hright_shrink :
-        (Cpos * Dpos) * (Cneg * Dneg) ≤ (Cpos * Dpos) * (Cneg * 1) :=
-      mul_le_mul_of_nonneg_left hCnegDneg_le_Cneg hCposDpos_nonneg
-    have halgebra :
-        (Cpos * Dpos) * (Cneg * 1) = (Cpos * Cneg) * Dpos := by
-      calc
-        (Cpos * Dpos) * (Cneg * 1) = (Cpos * Dpos) * Cneg := by
-          exact congrArg (fun x : ℝ => (Cpos * Dpos) * x) (mul_one Cneg)
-        _ = Cneg * (Cpos * Dpos) := by
-          exact mul_comm (Cpos * Dpos) Cneg
-        _ = (Cneg * Cpos) * Dpos := by
-          exact (mul_assoc Cneg Cpos Dpos).symm
-        _ = (Cpos * Cneg) * Dpos := by
-          exact congrArg (fun x : ℝ => x * Dpos) (mul_comm Cneg Cpos)
-    exact hmul_bounds.trans (hright_shrink.trans (le_of_eq halgebra))
+  exact Exists.intro (Cpos * Cneg)
+    (Exists.intro kpos
+      (And.intro
+        (mul_nonneg hCpos hCneg)
+        (fun ι =>
+          let A : ℝ :=
+            ‖zetaCompletedExplicitFormulaPhi f (ZetaPrimePowerIndex.center ι)‖
+          let B : ℝ :=
+            ‖star
+              (zetaCompletedExplicitFormulaPhi f
+                (-(ZetaPrimePowerIndex.center ι : ℂ)))‖
+          let Dpos : ℝ := ZetaPrimePowerIndex.polynomialHeightDecay kpos ι
+          let Dneg : ℝ := ZetaPrimePowerIndex.polynomialHeightDecay kneg ι
+          have hB_nonneg : 0 ≤ B := norm_nonneg _
+          have hDpos_nonneg : 0 ≤ Dpos :=
+            ZetaPrimePowerIndex.polynomialHeightDecay_nonnegative kpos ι
+          have hDneg_le_one : Dneg ≤ 1 :=
+            ZetaPrimePowerIndex.polynomialHeightDecay_le_one kneg ι
+          have hpos_ι : A ≤ Cpos * Dpos := hpos ι
+          have hneg_ι : B ≤ Cneg * Dneg := hneg ι
+          have hCposDpos_nonneg : 0 ≤ Cpos * Dpos :=
+            mul_nonneg hCpos hDpos_nonneg
+          have hmul_bounds : A * B ≤ (Cpos * Dpos) * (Cneg * Dneg) :=
+            mul_le_mul hpos_ι hneg_ι hB_nonneg hCposDpos_nonneg
+          have hCnegDneg_le_Cneg : Cneg * Dneg ≤ Cneg * 1 :=
+            mul_le_mul_of_nonneg_left hDneg_le_one hCneg
+          have hright_shrink :
+              (Cpos * Dpos) * (Cneg * Dneg) ≤ (Cpos * Dpos) * (Cneg * 1) :=
+            mul_le_mul_of_nonneg_left hCnegDneg_le_Cneg hCposDpos_nonneg
+          have halgebra :
+              (Cpos * Dpos) * (Cneg * 1) = (Cpos * Cneg) * Dpos := by
+            calc
+              (Cpos * Dpos) * (Cneg * 1) = (Cpos * Dpos) * Cneg := by
+                exact congrArg (fun x : ℝ => (Cpos * Dpos) * x) (mul_one Cneg)
+              _ = Cneg * (Cpos * Dpos) := by
+                exact mul_comm (Cpos * Dpos) Cneg
+              _ = (Cneg * Cpos) * Dpos := by
+                exact (mul_assoc Cneg Cpos Dpos).symm
+              _ = (Cpos * Cneg) * Dpos := by
+                exact congrArg (fun x : ℝ => x * Dpos) (mul_comm Cneg Cpos)
+          hmul_bounds.trans (hright_shrink.trans (le_of_eq halgebra)))))
 
 end ZetaAdmissibleFunction
 

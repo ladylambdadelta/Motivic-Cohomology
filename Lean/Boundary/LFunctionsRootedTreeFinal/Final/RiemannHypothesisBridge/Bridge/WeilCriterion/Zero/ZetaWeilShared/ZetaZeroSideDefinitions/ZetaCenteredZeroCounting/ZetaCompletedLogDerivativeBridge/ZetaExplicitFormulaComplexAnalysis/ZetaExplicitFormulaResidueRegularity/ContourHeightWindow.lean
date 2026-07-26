@@ -28,13 +28,31 @@ theorem completedZeroResidueCoordinate_im_eq_centeredZero_im
         ((1 / 2 : ℂ) + (rho : ℂ)).im := by
       rfl
     _ = (rho : ℂ).im := by
+      have hhalf_cast : (((1 / 2 : ℝ) : ℂ) = (1 / 2 : ℂ)) :=
+        Complex.ofReal_div 1 2
+      have hreal_half_im : (((1 / 2 : ℝ) : ℂ).im = 0) :=
+        Complex.ofReal_im (1 / 2 : ℝ)
+      have hhalf_im : (1 / 2 : ℂ).im = 0 :=
+        (congrArg (fun z : ℂ => z.im) hhalf_cast).symm.trans hreal_half_im
+      have hreplace :
+          (1 / 2 : ℂ).im + (rho : ℂ).im = 0 + (rho : ℂ).im :=
+        congrArg (fun value : ℝ => value + (rho : ℂ).im) hhalf_im
       exact Eq.trans
         (Complex.add_im (1 / 2 : ℂ) (rho : ℂ))
-        (zero_add (rho : ℂ).im)
+        (hreplace.trans (zero_add (rho : ℂ).im))
     _ = ((rho : ℂ) - (1 / 2 : ℂ)).im := by
+      have hhalf_cast : (((1 / 2 : ℝ) : ℂ) = (1 / 2 : ℂ)) :=
+        Complex.ofReal_div 1 2
+      have hreal_half_im : (((1 / 2 : ℝ) : ℂ).im = 0) :=
+        Complex.ofReal_im (1 / 2 : ℝ)
+      have hhalf_im : (1 / 2 : ℂ).im = 0 :=
+        (congrArg (fun z : ℂ => z.im) hhalf_cast).symm.trans hreal_half_im
+      have hreplace :
+          (rho : ℂ).im - (1 / 2 : ℂ).im = (rho : ℂ).im - 0 :=
+        congrArg (fun value : ℝ => (rho : ℂ).im - value) hhalf_im
       exact (Eq.trans
         (Complex.sub_im (rho : ℂ) (1 / 2 : ℂ))
-        (sub_zero (rho : ℂ).im)).symm
+        (hreplace.trans (sub_zero (rho : ℂ).im))).symm
     _ = (zetaCenteredZero (rho : ℂ)).im := by
       rfl
 
@@ -67,7 +85,14 @@ theorem mem_explicitFormulaCompletedZeroContourHeightWindow_iff
         (completedZeroResidueCoordinate_im_eq_centeredZero_im rho)
         hnormResidue
     have hheight : zetaCompletedZeroCenteredHeight rho ≤ T + 1 :=
-      le_of_lt (add_lt_add_left hnormCentered 1)
+      calc
+        zetaCompletedZeroCenteredHeight rho =
+            1 + ‖(zetaCenteredZero (rho : ℂ)).im‖ := by
+          rfl
+        _ ≤ 1 + T := by
+          exact add_le_add_left (le_of_lt hnormCentered) 1
+        _ = T + 1 := by
+          exact add_comm 1 T
     have hweighted : rho ∈ explicitFormulaCompletedZeroHeightWindow (T + 1) :=
       (mem_explicitFormulaCompletedZeroHeightWindow_iff (T + 1) rho).mpr hheight
     exact Finset.mem_filter.mpr (And.intro hweighted him)

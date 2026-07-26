@@ -217,8 +217,23 @@ theorem zetaCompletedExplicitFormula_twistedTimeKernel_fourier_integrable_from_d
       (fun y : ℝ =>
         zetaCompletedExplicitFormulaPhi f (σ + 2 * π * (-y) * I))
       (volume : Measure ℝ) := by
-  rcases zetaPhi_verticalStripRapidDecay_of_admissible_owner f σ σ 4 with
-    ⟨C, hCpos, hCbound⟩
+  let Ipw : ZetaPaleyWienerSupportInterval f :=
+    canonicalZetaPaleyWienerSupportInterval f
+  let C : ℝ :=
+    zetaLaplaceTransform_supportInterval_decayConstant f Ipw σ σ 4
+  let hLaplace :
+      zetaLaplaceTransformHasVerticalStripDecayConstant f σ σ 4 C :=
+    And.intro
+      (zetaLaplaceTransform_supportInterval_decayConstant_pos f Ipw σ σ 4)
+      (zetaLaplaceTransform_supportInterval_decayConstant_bound f Ipw σ σ 4)
+  let hPhi :
+      0 < C ∧
+        ∀ z : ℂ,
+          σ ≤ z.re →
+          z.re ≤ σ →
+          ‖zetaCompletedExplicitFormulaPhi f z‖
+            ≤ C * (1 + ‖z.im‖) ^ (-(4 : ℤ)) :=
+    zetaPhi_hasVerticalStripDecayConstant_of_laplace f σ σ 4 C hLaplace
   let majorant : ℝ → ℝ :=
     fun y : ℝ => C * (1 + ‖y * (-(2 * π))‖) ^ (-(4 : ℤ))
   have hmajorant :
@@ -282,7 +297,7 @@ theorem zetaCompletedExplicitFormula_twistedTimeKernel_fourier_integrable_from_d
             ((σ : ℂ) + 2 * π * (-y) * I)‖
           ≤ C *
             (1 + ‖((σ : ℂ) + 2 * π * (-y) * I).im‖) ^ (-(4 : ℤ)) :=
-      hCbound ((σ : ℂ) + 2 * π * (-y) * I) hleft hright
+      hPhi.2 ((σ : ℂ) + 2 * π * (-y) * I) hleft hright
     exact
       le_trans hdecay
         (le_of_eq

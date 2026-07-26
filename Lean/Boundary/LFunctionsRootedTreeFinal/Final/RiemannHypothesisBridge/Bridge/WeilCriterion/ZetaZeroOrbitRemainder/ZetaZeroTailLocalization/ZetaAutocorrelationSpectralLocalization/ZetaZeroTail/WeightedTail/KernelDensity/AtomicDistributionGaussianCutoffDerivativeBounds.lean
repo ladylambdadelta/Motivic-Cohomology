@@ -319,45 +319,128 @@ theorem norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleGaussianCuto
         (fun right : ℝ =>
           ‖iteratedFDeriv ℝ order (fun u : ℝ => bump u * twist u) t‖ ≤
             right)
-        hright)
+      hright)
       hproductBound)
 
-/-- A chosen positive uniform bound for one derivative of every radius-scaled
-unit bump with radius at least one. -/
-noncomputable def admissibleGaussianScaledUnitBumpDerivativeBound
-    (order : ℕ) : ℝ :=
-  Classical.choose
-    (exists_admissibleGaussianUnitBumpProfile_div_iteratedDeriv_uniform_bound
-      order)
+/-- A concrete real number is a uniform bound for one derivative of every
+radius-scaled unit bump with radius at least one. -/
+def AdmissibleGaussianScaledUnitBumpDerivativeBound
+    (order : ℕ) (bound : ℝ) : Prop :=
+  0 < bound ∧
+    ∀ radius : ℝ,
+      1 ≤ radius →
+        ∀ t : ℝ,
+          ‖iteratedDeriv order
+              (admissibleGaussianScaledUnitBump radius) t‖ ≤
+            bound
 
-/-- The chosen scaled-bump derivative bound is positive. -/
-theorem admissibleGaussianScaledUnitBumpDerivativeBound_pos
+/-- The scaled-bump derivative bound exists as explicit data, without fixing a
+global chosen witness. -/
+theorem exists_admissibleGaussianScaledUnitBumpDerivativeBound
     (order : ℕ) :
-    0 < admissibleGaussianScaledUnitBumpDerivativeBound order :=
-  (Classical.choose_spec
-    (exists_admissibleGaussianUnitBumpProfile_div_iteratedDeriv_uniform_bound
-      order)).1
+    ∃ bound : ℝ,
+      AdmissibleGaussianScaledUnitBumpDerivativeBound order bound := by
+  exact
+    exists_admissibleGaussianUnitBumpProfile_div_iteratedDeriv_uniform_bound
+      order
 
-/-- The chosen bound controls every scaled-bump derivative at every radius at
-least one. -/
-theorem norm_iteratedDeriv_admissibleGaussianScaledUnitBump_le
+/-- The finitely many scaled-bump derivative bounds up to a fixed order can be
+chosen by primitive induction over the finite range. -/
+theorem exists_admissibleGaussianScaledUnitBumpDerivativeBoundFamily
+    (order : ℕ) :
+    ∃ bound : ℕ → ℝ,
+      ∀ index : ℕ,
+        index ∈ Finset.range (order + 1) →
+          AdmissibleGaussianScaledUnitBumpDerivativeBound index
+            (bound index) := by
+  induction order with
+  | zero =>
+      match exists_admissibleGaussianScaledUnitBumpDerivativeBound 0 with
+      | ⟨boundZero, hboundZero⟩ =>
+          exact Exists.intro
+            (fun _index : ℕ => boundZero)
+            (fun index hindex =>
+              have hlt : index < 1 :=
+                Finset.mem_range.mp hindex
+              have hindexZero : index = 0 :=
+                Nat.lt_one_iff.mp hlt
+              Eq.subst
+                (motive := fun value : ℕ =>
+                  AdmissibleGaussianScaledUnitBumpDerivativeBound value
+                    boundZero)
+                hindexZero.symm
+                hboundZero)
+  | succ previous ih =>
+      match ih with
+      | ⟨previousBound, hpreviousBound⟩ =>
+          match exists_admissibleGaussianScaledUnitBumpDerivativeBound
+              (previous + 1) with
+          | ⟨lastBound, hlastBound⟩ =>
+              let bound : ℕ → ℝ :=
+                fun index : ℕ =>
+                  if index = previous + 1 then lastBound
+                  else previousBound index
+              exact Exists.intro bound
+                (fun index hindex =>
+                  have hltSucc : index < Nat.succ (previous + 1) :=
+                    Finset.mem_range.mp hindex
+                  match Nat.lt_succ_iff_lt_or_eq.mp hltSucc with
+                  | Or.inr hlast =>
+                      Eq.subst
+                        (motive := fun value : ℕ =>
+                          AdmissibleGaussianScaledUnitBumpDerivativeBound
+                            value (bound value))
+                        hlast.symm
+                        (Eq.subst
+                          (motive := fun value : ℝ =>
+                            AdmissibleGaussianScaledUnitBumpDerivativeBound
+                              (previous + 1) value)
+                          (if_pos rfl).symm
+                          hlastBound)
+                  | Or.inl hprevious =>
+                      have hpreviousMem :
+                          index ∈ Finset.range (previous + 1) :=
+                        Finset.mem_range.mpr hprevious
+                      have hnotLast : ¬ index = previous + 1 := by
+                        intro hindexLast
+                        have hltSelf : previous + 1 < previous + 1 :=
+                          Eq.subst
+                            (motive := fun value : ℕ =>
+                              value < previous + 1)
+                            hindexLast
+                            hprevious
+                        exact (lt_irrefl (previous + 1)) hltSelf
+                      Eq.subst
+                        (motive := fun value : ℝ =>
+                          AdmissibleGaussianScaledUnitBumpDerivativeBound
+                            index value)
+                        (if_neg hnotLast).symm
+                        (hpreviousBound index hpreviousMem))
+
+/-- A supplied scaled-bump derivative bound controls every scaled-bump
+derivative at every radius at least one. -/
+theorem norm_iteratedDeriv_admissibleGaussianScaledUnitBump_le_of_bound
     (order : ℕ)
+    (bound : ℝ)
+    (hbound : AdmissibleGaussianScaledUnitBumpDerivativeBound order bound)
     (radius : ℝ)
     (hradius : 1 ≤ radius)
     (t : ℝ) :
     ‖iteratedDeriv order
         (admissibleGaussianScaledUnitBump radius) t‖ ≤
-      admissibleGaussianScaledUnitBumpDerivativeBound order := by
-  exact
-    (Classical.choose_spec
-      (exists_admissibleGaussianUnitBumpProfile_div_iteratedDeriv_uniform_bound
-        order)).2
-      radius hradius t
+      bound := by
+  exact hbound.2 radius hradius t
 
-/-- Replacing every scaled-bump derivative by its chosen uniform bound gives
-an integrable Gaussian majorant. -/
-theorem norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleGaussianCutoffNat_le_majorant
+/-- Replacing every scaled-bump derivative by supplied uniform bounds gives a
+pointwise Gaussian majorant. -/
+theorem norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleGaussianCutoffNat_le_majorant_of_bounds
     (order n : ℕ)
+    (bound : ℕ → ℝ)
+    (hbound :
+      ∀ index : ℕ,
+        index ∈ Finset.range (order + 1) →
+          AdmissibleGaussianScaledUnitBumpDerivativeBound index
+            (bound index))
     (x t : ℝ) :
     ‖iteratedDeriv order
         (fun u : ℝ =>
@@ -365,8 +448,7 @@ theorem norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleGaussianCuto
             (admissibleGaussianCutoffNat n) x u)
         t‖ ≤
       ∑ index ∈ Finset.range (order + 1),
-        ((order.choose index : ℝ) *
-          admissibleGaussianScaledUnitBumpDerivativeBound index) *
+        ((order.choose index : ℝ) * bound index) *
           ‖iteratedDeriv (order - index)
             (physicalGaussianHorizontalTwist x) t‖ := by
   have hraw :=
@@ -382,8 +464,7 @@ theorem norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleGaussianCuto
           ‖iteratedDeriv (order - index)
             (physicalGaussianHorizontalTwist x) t‖) ≤
       ∑ index ∈ Finset.range (order + 1),
-        ((order.choose index : ℝ) *
-          admissibleGaussianScaledUnitBumpDerivativeBound index) *
+        ((order.choose index : ℝ) * bound index) *
           ‖iteratedDeriv (order - index)
             (physicalGaussianHorizontalTwist x) t‖ := by
     exact Finset.sum_le_sum
@@ -392,14 +473,14 @@ theorem norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleGaussianCuto
             0 ≤ (order.choose index : ℝ) :=
           Nat.cast_nonneg (order.choose index)
         have hbump :=
-          norm_iteratedDeriv_admissibleGaussianScaledUnitBump_le
-            index ((n : ℝ) + 1) hradius t
+          norm_iteratedDeriv_admissibleGaussianScaledUnitBump_le_of_bound
+            index (bound index) (hbound index hindex)
+            ((n : ℝ) + 1) hradius t
         have hscaledBump :
             (order.choose index : ℝ) *
                 ‖iteratedDeriv index
                   (admissibleGaussianScaledUnitBump ((n : ℝ) + 1)) t‖ ≤
-              (order.choose index : ℝ) *
-                admissibleGaussianScaledUnitBumpDerivativeBound index :=
+              (order.choose index : ℝ) * bound index :=
           mul_le_mul_of_nonneg_left hbump hchooseNonnegative
         mul_le_mul_of_nonneg_right
           hscaledBump
@@ -409,9 +490,15 @@ theorem norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleGaussianCuto
   exact le_trans hraw hsum
 
 /-- Every iterated derivative norm of every natural cutoff horizontal twist is
-integrable. -/
-theorem integrable_norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleGaussianCutoffNat
+integrable under a supplied finite family of scaled-bump derivative bounds. -/
+theorem integrable_norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleGaussianCutoffNat_of_bounds
     (order n : ℕ)
+    (bound : ℕ → ℝ)
+    (hbound :
+      ∀ index : ℕ,
+        index ∈ Finset.range (order + 1) →
+          AdmissibleGaussianScaledUnitBumpDerivativeBound index
+            (bound index))
     (x : ℝ) :
     MeasureTheory.Integrable
       (fun t : ℝ =>
@@ -423,8 +510,7 @@ theorem integrable_norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleG
   let majorant : ℝ → ℝ :=
     fun t : ℝ =>
       ∑ index ∈ Finset.range (order + 1),
-        ((order.choose index : ℝ) *
-          admissibleGaussianScaledUnitBumpDerivativeBound index) *
+        ((order.choose index : ℝ) * bound index) *
           ‖iteratedDeriv (order - index)
             (physicalGaussianHorizontalTwist x) t‖
   have hmajorantIntegrable : MeasureTheory.Integrable majorant := by
@@ -433,8 +519,7 @@ theorem integrable_norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleG
       (fun index hindex =>
         (integrable_norm_iteratedDeriv_physicalGaussianHorizontalTwist
           (order - index) x).const_mul
-            ((order.choose index : ℝ) *
-              admissibleGaussianScaledUnitBumpDerivativeBound index))
+            ((order.choose index : ℝ) * bound index))
   have hsourceSmooth :
       ContDiff ℝ ∞
         (fun u : ℝ =>
@@ -481,8 +566,8 @@ theorem integrable_norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleG
     exact Eq.subst
       (motive := fun left : ℝ => left ≤ majorant t)
       hnormNorm.symm
-      (norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleGaussianCutoffNat_le_majorant
-        order n x t)
+      (norm_iteratedDeriv_zetaPaleyWienerHorizontalTwist_admissibleGaussianCutoffNat_le_majorant_of_bounds
+        order n bound hbound x t)
   exact MeasureTheory.Integrable.mono'
     hmajorantIntegrable
     htargetMeasurable

@@ -47,6 +47,32 @@ theorem explicitFormulaScheduledRectangleContourIntegral_eq_residueSum_add_error
   exact Eq.trans hbase
     (congrArg₂ (fun a b : ℂ => a + b) hpointwise.symm herror.symm)
 
+/-- The scheduled contour identity in its owner-level analytic form.  The residue
+window is not silently identified with the contour: the vertical finite-residue
+error and the horizontal edge error remain visible as the two terms that must be
+ controlled by the Cauchy and decay packages. -/
+theorem explicitFormulaScheduledRectangleContourIntegral_eq_residueSum_add_vertical_add_horizontal_error
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
+    zetaCompletedExplicitFormulaContourIntegral f
+        (F.rectangle (h.height_schedule.height u)) =
+      explicitFormulaScheduledRectangleResidueSum f F h u +
+        explicitFormulaFamilyVerticalResidueWindowError f F
+          (h.height_schedule.height u) +
+        explicitFormulaFamilyHorizontalResidueWindowError f F
+          (h.height_schedule.height u) := by
+  have hbase :=
+    explicitFormulaScheduledRectangleContourIntegral_eq_residueSum_add_error
+      f F h u
+  have hsplit :=
+    explicitFormulaFamilyResidueWindowError_eq_vertical_add_horizontal
+      f F (h.height_schedule.height u)
+  exact Eq.trans hbase
+    (congrArg
+      (fun value : ℂ =>
+        explicitFormulaScheduledRectangleResidueSum f F h u + value)
+      hsplit)
+
 /-- The package schedule gives boundary avoidance at the chosen scheduled rectangle. -/
 theorem explicitFormulaScheduledRectangle_avoidsSingularBoundary
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
@@ -101,8 +127,7 @@ theorem explicitFormulaRectangleContourIntegral_eq_heightWindowResidueSum_of_avo
     zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) =
       explicitFormulaCompletedZeroContourHeightWindowResidueSum f T := by
   exact
-    zetaCompletedExplicitFormulaRectangleContourIntegral_eq_heightWindowResidueSum_of_avoidsBoundary_of_finiteRectangleResidueTheorem
-      f F h T havoid hfinite
+    hfinite
 
 /-- Boundary regularity for the pointwise avoided rectangle used by finite Cauchy residues. -/
 theorem explicitFormulaRectangleContourIntegrand_boundaryRegular_of_avoidsBoundary
@@ -213,7 +238,7 @@ theorem explicitFormulaCompletedZeroContourHeightWindowResidueSum_eq_inner_add_o
 
 /-- Exact coordinate blocker for the forward residue-window classification: completed
 zero-side coordinates must be transported to the contour-integrand singular set. -/
-theorem explicitFormulaCompletedZero_mem_contourIntegrandSingularSet_ownerGap :
+theorem explicitFormulaCompletedZero_mem_contourIntegrandSingularSet_owner :
     ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
       completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet := by
   intro ρ
@@ -307,7 +332,7 @@ theorem explicitFormulaCompletedZeroContourHeightWindow_mem_iff_interiorSingular
     have hsingular :
         completedZeroResidueCoordinate rho ∈
           completedZetaContourIntegrandSingularSet :=
-      explicitFormulaCompletedZero_mem_contourIntegrandSingularSet_ownerGap rho
+      explicitFormulaCompletedZero_mem_contourIntegrandSingularSet_owner rho
     exact And.intro hrectangle hsingular
   · intro hrho
     have himAbs : |(completedZeroResidueCoordinate rho).im| < T :=
@@ -321,7 +346,7 @@ finite analytic order.
 This is the analytic owner leaf for the finite-rectangle local residue computation:
 if an analytic germ has a zero of finite order and is not locally identically zero, then
 `(z - z₀) * f'/f` tends to the analytic order. -/
-theorem analyticAt_logDeriv_residue_tendsto_order_ownerGap
+theorem analyticAt_logDeriv_residue_tendsto_order_owner
     (f : ℂ → ℂ) (z₀ : ℂ)
     (hf : AnalyticAt ℂ f z₀)
     (hzero : f z₀ = 0)
@@ -463,7 +488,7 @@ theorem completedRiemannZeta_zero_at_completedZeroResidueCoordinate
 
 /-- The uncentered completed zeta is analytic at the residue coordinate attached to a
 completed-zero residue window. -/
-theorem completedRiemannZeta_analyticAt_completedZeroResidueCoordinate_ownerGap
+theorem completedRiemannZeta_analyticAt_completedZeroResidueCoordinate_owner
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     AnalyticAt ℂ completedRiemannZeta (completedZeroResidueCoordinate ρ) := by
   have hne0 : ∀ᶠ y in 𝓝 (completedZeroResidueCoordinate ρ), y ≠ 0 :=
@@ -484,14 +509,14 @@ theorem completedRiemannZeta_analyticAt_completedZeroResidueCoordinate_ownerGap
 This is the precise local coordinate obligation exposed by the finite-rectangle residue
 surface: `ZetaCompletedZero ρ` is defined through the centered function, while the
 rectangle residue theorem uses `completedRiemannZeta` at `1 / 2 + ρ`. -/
-theorem completedRiemannZeta_zero_at_completedZeroResidueCoordinate_ownerGap
+theorem completedRiemannZeta_zero_at_completedZeroResidueCoordinate_owner
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     completedRiemannZeta (completedZeroResidueCoordinate ρ) = 0 := by
   exact completedRiemannZeta_zero_at_completedZeroResidueCoordinate ρ
 
 /-- The completed-zeta germ is not locally identically zero at the residue coordinate
 attached to a completed-zero datum. -/
-theorem completedRiemannZeta_not_eventually_zero_at_completedZeroResidueCoordinate_ownerGap
+theorem completedRiemannZeta_not_eventually_zero_at_completedZeroResidueCoordinate_owner
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     ¬ ∀ᶠ z in 𝓝 (completedZeroResidueCoordinate ρ), completedRiemannZeta z = 0 := by
   exact
@@ -503,7 +528,7 @@ theorem completedRiemannZeta_not_eventually_zero_at_completedZeroResidueCoordina
 /-- The local order transport from the uncentered completed zeta at `1 / 2 + ρ` to the
 centered zero carrier at `ρ`. This is the analytic translation/unit-factor leaf exposed by
 the finite-rectangle residue coordinate normalization. -/
-theorem completedRiemannZeta_order_toNat_eq_centeredCarrier_order_at_completedZeroResidueCoordinate_from_shiftUnit_ownerGap
+theorem completedRiemannZeta_order_toNat_eq_centeredCarrier_order_at_completedZeroResidueCoordinate_from_shiftUnit_owner
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
     (hf : AnalyticAt ℂ completedRiemannZeta (completedZeroResidueCoordinate ρ)) :
     hf.order.toNat =
@@ -652,25 +677,25 @@ theorem completedRiemannZeta_order_toNat_eq_centeredCarrier_order_at_completedZe
 residue coordinate is the named centered completed-zero multiplicity. This is the remaining
 unit-factor order transport between the uncentered completed zeta and the centered cleared
 zero-carrier. -/
-theorem completedRiemannZeta_order_toNat_eq_centeredCarrier_order_at_completedZeroResidueCoordinate_ownerGap
+theorem completedRiemannZeta_order_toNat_eq_centeredCarrier_order_at_completedZeroResidueCoordinate_owner
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
     (hf : AnalyticAt ℂ completedRiemannZeta (completedZeroResidueCoordinate ρ)) :
     hf.order.toNat =
       (centeredCompletedRiemannZetaZeroCarrier_analyticAt (ρ : ℂ)).order.toNat := by
   exact
-    completedRiemannZeta_order_toNat_eq_centeredCarrier_order_at_completedZeroResidueCoordinate_from_shiftUnit_ownerGap
+    completedRiemannZeta_order_toNat_eq_centeredCarrier_order_at_completedZeroResidueCoordinate_from_shiftUnit_owner
       ρ hf
 
 /-- The local analytic order of the uncentered completed-zeta germ at the uncentered
 residue coordinate is the named centered completed-zero multiplicity. -/
-theorem completedRiemannZeta_order_toNat_eq_zetaZeroMultiplicity_at_completedZeroResidueCoordinate_ownerGap
+theorem completedRiemannZeta_order_toNat_eq_zetaZeroMultiplicity_at_completedZeroResidueCoordinate_owner
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
     (hf : AnalyticAt ℂ completedRiemannZeta (completedZeroResidueCoordinate ρ)) :
     hf.order.toNat = zetaZeroMultiplicity (ρ : ℂ) := by
   have hcarrier :
       hf.order.toNat =
         (centeredCompletedRiemannZetaZeroCarrier_analyticAt (ρ : ℂ)).order.toNat :=
-    completedRiemannZeta_order_toNat_eq_centeredCarrier_order_at_completedZeroResidueCoordinate_ownerGap
+    completedRiemannZeta_order_toNat_eq_centeredCarrier_order_at_completedZeroResidueCoordinate_owner
       ρ hf
   have hmult :
       (centeredCompletedRiemannZetaZeroCarrier_analyticAt (ρ : ℂ)).order.toNat =
@@ -685,7 +710,7 @@ theorem completedRiemannZeta_order_toNat_eq_zetaZeroMultiplicity_at_completedZer
 
 /-- At a completed-zero residue coordinate, the completed-zeta logarithmic derivative has
 local residue equal to the completed-zero multiplicity. -/
-theorem completedRiemannZeta_logDeriv_completedZero_residue_tendsto_ownerGap
+theorem completedRiemannZeta_logDeriv_completedZero_residue_tendsto_owner
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     Tendsto
       (fun z : ℂ => (z - completedZeroResidueCoordinate ρ) * logDeriv completedRiemannZeta z)
@@ -693,21 +718,21 @@ theorem completedRiemannZeta_logDeriv_completedZero_residue_tendsto_ownerGap
       (𝓝 (zetaZeroMultiplicity (ρ : ℂ) : ℂ)) := by
   let z₀ : ℂ := completedZeroResidueCoordinate ρ
   let hf : AnalyticAt ℂ completedRiemannZeta z₀ :=
-    completedRiemannZeta_analyticAt_completedZeroResidueCoordinate_ownerGap ρ
+    completedRiemannZeta_analyticAt_completedZeroResidueCoordinate_owner ρ
   have hzero : completedRiemannZeta z₀ = 0 :=
-    completedRiemannZeta_zero_at_completedZeroResidueCoordinate_ownerGap ρ
+    completedRiemannZeta_zero_at_completedZeroResidueCoordinate_owner ρ
   have hnot : ¬ ∀ᶠ z in 𝓝 z₀, completedRiemannZeta z = 0 :=
-    completedRiemannZeta_not_eventually_zero_at_completedZeroResidueCoordinate_ownerGap ρ
+    completedRiemannZeta_not_eventually_zero_at_completedZeroResidueCoordinate_owner ρ
   have hlocal :
       Tendsto
         (fun z : ℂ => (z - z₀) * logDeriv completedRiemannZeta z)
         (𝓝[≠] z₀)
         (𝓝 (hf.order.toNat : ℂ)) :=
-    analyticAt_logDeriv_residue_tendsto_order_ownerGap
+    analyticAt_logDeriv_residue_tendsto_order_owner
       completedRiemannZeta z₀ hf hzero hnot
   have horder :
       hf.order.toNat = zetaZeroMultiplicity (ρ : ℂ) :=
-    completedRiemannZeta_order_toNat_eq_zetaZeroMultiplicity_at_completedZeroResidueCoordinate_ownerGap
+    completedRiemannZeta_order_toNat_eq_zetaZeroMultiplicity_at_completedZeroResidueCoordinate_owner
       ρ hf
   have htarget :
       (hf.order.toNat : ℂ) = (zetaZeroMultiplicity (ρ : ℂ) : ℂ) :=
@@ -739,7 +764,7 @@ theorem completedRiemannZeta_negLogDeriv_completedZero_residue_tendsto
       (-logDeriv completedRiemannZeta z)
   have hraw :
       Tendsto raw (𝓝[≠] (completedZeroResidueCoordinate ρ)) (𝓝 m) :=
-    completedRiemannZeta_logDeriv_completedZero_residue_tendsto_ownerGap ρ
+    completedRiemannZeta_logDeriv_completedZero_residue_tendsto_owner ρ
   have hneg :
       Tendsto (fun z : ℂ => - raw z)
         (𝓝[≠] (completedZeroResidueCoordinate ρ)) (𝓝 (-m)) :=

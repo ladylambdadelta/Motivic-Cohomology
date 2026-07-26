@@ -19,20 +19,25 @@ theorem autocorrelationSpectralEvalFiberDirectCenteredZeroTailSmallValuesRunge_o
       ∀ S : Finset ℂ, ∀ P : Finset ℂ, ∀ f₀ : ZetaAdmissibleFunction,
         (∀ ρ : ℂ, ZetaCompletedZero ρ → ρ ∉ S →
           ρ ∉ daggerClosedSpectralSampleFinset P) →
-        ∀ ε : ℝ, 0 < ε →
+      ∀ ε : ℝ, 0 < ε →
           ∃ r : ℝ,
             r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
-              r < ε := by
-  intro hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
-  intro S P f₀ hSeparated ε hε
-  have hclosure :
-      (0 : ℝ) ∈ closure (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) :=
-    autocorrelationSpectralEvalFiber_zeroTailClosure_nonlinear_owner
-      hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
-      S P f₀ hSeparated
-  exact
-    autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_small_values_of_zero_mem_closure
-      S P f₀ hclosure ε hε
+              r < ε :=
+  fun hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary =>
+    fun S P f₀ hSeparated ε hε =>
+      let hclosure :
+          (0 : ℝ) ∈
+            closure (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) :=
+        autocorrelationSpectralEvalFiber_zeroTailClosure_nonlinear_owner
+          hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
+          S P f₀ hSeparated
+      show
+        ∃ r : ℝ,
+            r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
+              r < ε
+      from
+        autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_small_values_of_zero_mem_closure
+          S P f₀ hclosure ε hε
 
 end ZetaAdmissibleFunction
 end

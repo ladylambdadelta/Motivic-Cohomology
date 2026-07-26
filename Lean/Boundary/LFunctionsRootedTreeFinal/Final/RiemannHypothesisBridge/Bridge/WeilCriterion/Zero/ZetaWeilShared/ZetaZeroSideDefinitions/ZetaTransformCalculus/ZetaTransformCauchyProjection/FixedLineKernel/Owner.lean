@@ -726,7 +726,7 @@ theorem fixedRightLine_cauchyMultiplier_bracketed_bound
     _ ≤
         (c - 1)⁻¹ + 1 := by
           exact add_le_add
-            (inv_le_inv_of_le hRatePos hRateNorm)
+            (inv_anti₀ hRatePos hRateNorm)
             ((inv_mul_le_one₀ hDenomPos).mpr hFreq)
     _ = 1 + (c - 1)⁻¹ := by
           exact add_comm ((c - 1)⁻¹) 1

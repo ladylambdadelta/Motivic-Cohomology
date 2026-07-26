@@ -20,7 +20,7 @@ namespace ZetaAdmissibleFunction
 
 /-- The completed negative logarithmic derivative has the same punctured local residue as
 `- logDeriv completedRiemannZeta`. -/
-theorem completedZetaNegLogDeriv_completedZero_residue_tendsto_ownerGap
+theorem completedZetaNegLogDeriv_completedZero_residue_tendsto
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     Tendsto
       (fun z : ℂ => (z - completedZeroResidueCoordinate ρ) * completedZetaNegLogDeriv z)
@@ -638,7 +638,7 @@ theorem zetaCompletedExplicitFormulaPhi_completedZero_shift_tendsto_of_control
         hcomp)
   exact hcontinuous.continuousAt.tendsto.mono_left inf_le_left
 
-theorem zetaCompletedExplicitFormulaPhi_completedZero_shift_tendsto_ownerGap
+theorem zetaCompletedExplicitFormulaPhi_completedZero_shift_tendsto
     (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     Tendsto

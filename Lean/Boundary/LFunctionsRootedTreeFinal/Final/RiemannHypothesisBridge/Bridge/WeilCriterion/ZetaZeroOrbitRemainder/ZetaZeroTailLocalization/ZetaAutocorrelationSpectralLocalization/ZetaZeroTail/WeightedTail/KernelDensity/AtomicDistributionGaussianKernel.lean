@@ -1,4 +1,3 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.KernelDensity.AtomicDistributionGaussianGeometry
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.KernelDensity.AtomicDistributionGaussianProbe
 
 /-!
@@ -16,6 +15,10 @@ namespace ZetaAdmissibleFunction
 /-- The full Gaussian bilateral Laplace kernel. -/
 noncomputable def fullGaussianLaplaceKernel (z : ℂ) : ℂ :=
   ∫ t : ℝ, physicalGaussian t * Complex.exp (z * (t : ℂ))
+
+/-- The scalar normalization appearing in the full Gaussian Laplace kernel. -/
+def fullGaussianLaplaceKernelNormalizationNorm : ℝ :=
+  ‖((Real.pi : ℂ) / (1 : ℂ)) ^ (1 / 2 : ℂ)‖
 
 /-- The physical-Gaussian Laplace integrand is a complex quadratic
 exponential in the form consumed by `integral_cexp_quadratic`. -/
@@ -102,6 +105,33 @@ theorem fullGaussianLaplaceKernel_eq
       (fun function : ℝ → ℂ => ∫ t : ℝ, function t)
       hintegrand)
     hnormalizedQuadratic
+
+/-- The norm of the full Gaussian Laplace kernel is its scalar normalization
+times the exponential of the real part of the quadratic exponent. -/
+theorem norm_fullGaussianLaplaceKernel_eq_exp_re
+    (z : ℂ) :
+    ‖fullGaussianLaplaceKernel z‖ =
+      fullGaussianLaplaceKernelNormalizationNorm *
+        Real.exp ((z ^ 2 / 4).re) := by
+  have hformula : fullGaussianLaplaceKernel z =
+      ((Real.pi : ℂ) / (1 : ℂ)) ^ (1 / 2 : ℂ) *
+        Complex.exp (z ^ 2 / 4) :=
+    fullGaussianLaplaceKernel_eq z
+  have hexponentialNorm :
+      ‖Complex.exp (z ^ 2 / 4)‖ = Real.exp ((z ^ 2 / 4).re) :=
+    Eq.trans
+      (Complex.norm_eq_abs (Complex.exp (z ^ 2 / 4)))
+      (Complex.abs_exp (z ^ 2 / 4))
+  exact Eq.trans
+    (congrArg Norm.norm hformula)
+    (Eq.trans
+      (norm_mul
+        (((Real.pi : ℂ) / (1 : ℂ)) ^ (1 / 2 : ℂ))
+        (Complex.exp (z ^ 2 / 4)))
+      (congrArg₂
+        (fun left right : ℝ => left * right)
+        (Eq.refl fullGaussianLaplaceKernelNormalizationNorm)
+        hexponentialNorm))
 
 /-- The full Gaussian kernel at spectral zero is the physical Gaussian
 integral. -/

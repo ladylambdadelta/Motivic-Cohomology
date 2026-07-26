@@ -103,6 +103,29 @@ theorem zeroField_of_globalPostcompVanishing
           sourceMembership
           targetMembership)
 
+/-- Global orthogonality supplies the corresponding postcomposition vanishing
+against every probe. -/
+theorem globalPostcompVanishing_of_zeroField
+    (zeroField :
+      ∀ {source target : TraceAnalyticDerivedMotiveCategory},
+        ∀ (morphism : source ⟶ target),
+          TraceAnalyticDerivedMotiveCategory.tStructureLE 0 source →
+            TraceAnalyticDerivedMotiveCategory.tStructureGE 1 target →
+              morphism = 0) :
+    ∀ {source target : TraceAnalyticDerivedMotiveCategory},
+      ∀ (morphism : source ⟶ target),
+        TraceAnalyticDerivedMotiveCategory.tStructureLE 0 source →
+          TraceAnalyticDerivedMotiveCategory.tStructureGE 1 target →
+            ∀ (probe : TraceAnalyticDerivedMotiveCategoryᵒᵖ),
+              ∀ hom : probe.unop ⟶ source,
+                hom ≫ morphism = 0 :=
+  fun morphism sourceMembership targetMembership probe hom =>
+    Eq.trans
+      (congrArg
+        (fun map => hom ≫ map)
+        (zeroField morphism sourceMembership targetMembership))
+      (comp_zero hom)
+
 /-- If the global adjacent preimage short-exact field is known, it supplies
 the adjacent truncation-triangle field required by the Mathlib assembly. -/
 theorem existsTriangleZeroOne_of_globalCochainPreimageShortExact

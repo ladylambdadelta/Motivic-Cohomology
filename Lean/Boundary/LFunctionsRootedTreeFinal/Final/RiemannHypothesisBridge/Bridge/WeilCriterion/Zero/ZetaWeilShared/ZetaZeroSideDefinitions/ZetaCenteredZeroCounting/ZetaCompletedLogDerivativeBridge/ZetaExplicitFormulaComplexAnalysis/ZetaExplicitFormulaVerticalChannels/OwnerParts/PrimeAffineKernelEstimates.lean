@@ -27,6 +27,7 @@ open Filter
 open LSeries ArithmeticFunction
 open MeasureTheory
 open scoped ArithmeticFunction
+open scoped LSeries.notation
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
@@ -38,105 +39,19 @@ theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_aestrongly
     AEStronglyMeasurable
       (zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel f F)
       (volume : Measure ℝ) :=
-  (zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_aestronglyMeasurable
-    F).mul
-    (zetaCompletedExplicitFormulaPhi_rightCenteredAffineLine_aestronglyMeasurable
-      f F h)
+  zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_aestronglyMeasurable_ownerInversion
+    f F h
 
 /-- Bundled majorant package for the right von Mangoldt affine kernel.  The analytic
 content is polynomial/logarithmic control of the von Mangoldt Dirichlet-series
 factor combined with rapid decay of `Φ_f`. -/
-theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_majorantPackage
+def zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_majorantPackage
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     ExplicitFormulaAffineKernelMajorantPackage
-      (zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel f F) := by
-  let B : ℝ :=
-    zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactorBound F
-  let C : ℝ :=
-    h.phi_control.verticalStripRapidDecayConstant
-      (F.c - (1 / 2 : ℝ)) (F.c - (1 / 2 : ℝ)) 2
-  let majorant : ℝ → ℝ := fun t : ℝ =>
-    B * C * (1 + ‖t‖) ^ (-(2 : ℤ))
-  have hintegrable :
-      Integrable majorant (volume : Measure ℝ) := by
-    have hfinrank : Module.finrank ℝ ℝ = 1 :=
-      Module.finrank_self ℝ
-    have hfinrank_cast : ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
-      congrArg (fun n : ℕ => (n : ℝ)) hfinrank
-    have hdim : (Module.finrank ℝ ℝ : ℝ) < 2 :=
-      Eq.subst
-        (motive := fun x : ℝ => x < 2)
-        hfinrank_cast.symm
-        one_lt_two
-    have hbase :
-        Integrable
-          (fun t : ℝ => (1 + ‖t‖) ^ (-(2 : ℝ)))
-          (volume : Measure ℝ) :=
-      integrable_one_add_norm (E := ℝ) hdim
-    have hscaled :
-        Integrable
-          (fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(2 : ℝ)))
-          (volume : Measure ℝ) :=
-      (hbase.const_mul C).const_mul B
-    have hfun :
-        majorant =
-          (fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(2 : ℝ))) := by
-      funext t
-      have hpow :
-          (1 + ‖t‖) ^ (-(2 : ℤ)) =
-            (1 + ‖t‖) ^ (-(2 : ℝ)) :=
-        (Real.rpow_intCast (1 + ‖t‖) (-(2 : ℤ))).symm
-      exact congrArg (fun x : ℝ => B * C * x) hpow
-    exact Eq.subst
-      (motive := fun φ : ℝ → ℝ => Integrable φ (volume : Measure ℝ))
-      hfun.symm
-      hscaled
-  have hfactor_meas :
-      AEStronglyMeasurable
-        (fun t : ℝ => (L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t))
-        (volume : Measure ℝ) :=
-    zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_aestronglyMeasurable F
-  have hphi_meas :
-      AEStronglyMeasurable
-        (fun t : ℝ =>
-          zetaCompletedExplicitFormulaPhi f
-            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t))
-        (volume : Measure ℝ) :=
-    zetaCompletedExplicitFormulaPhi_rightCenteredAffineLine_aestronglyMeasurable
-      f F h
-  have hbound :
-      ∀ᵐ t ∂(volume : Measure ℝ),
-        ‖(L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t)‖ *
-            ‖zetaCompletedExplicitFormulaPhi f
-              (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)‖
-          ≤ majorant t :=
-    Filter.Eventually.of_forall
-      (fun t : ℝ =>
-        let factor : ℂ :=
-          (L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t)
-        let phi : ℂ :=
-          zetaCompletedExplicitFormulaPhi f
-            (zetaCompletedExplicitFormulaRightCenteredAffineLine F t)
-        let weight : ℝ := (1 + ‖t‖) ^ (-(2 : ℤ))
-        have hfactor : ‖factor‖ ≤ B :=
-          zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_norm_le_bound
-            F t
-        have hphi : ‖phi‖ ≤ C * weight :=
-          zetaCompletedExplicitFormulaPhi_rightCenteredAffineLine_decay_bound
-            f F h 2 t
-        have hphi_nonneg : 0 ≤ C * weight :=
-          (norm_nonneg phi).trans hphi
-        have hfactor_nonneg : 0 ≤ ‖factor‖ :=
-          norm_nonneg factor
-        have hprod : ‖factor‖ * ‖phi‖ ≤ B * (C * weight) :=
-          mul_le_mul hfactor hphi hphi_nonneg hfactor_nonneg
-        have hassoc : B * (C * weight) = B * C * weight :=
-          (mul_assoc B C weight).symm
-        hprod.trans_eq hassoc)
-  exact
-    ExplicitFormulaAffineKernelMajorantPackage.of_mul_le
-      majorant hintegrable hfactor_meas hphi_meas hbound
+      (zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel f F) :=
+  zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_majorantPackage_ownerInversion
+    f F h
 
 /-- Existential majorant package for the right von Mangoldt affine kernel. -/
 theorem zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel_integrableMajorant
@@ -434,11 +349,164 @@ theorem zetaCompletedExplicitFormulaPrimeLogDerivative_leftAffineLine_factor_bou
     (add_mul BZ BG (1 + ‖t‖)).symm
   exact htriangle.trans (hsum.trans_eq hfactor)
 
+/-- The completed logarithmic derivative is linearly bounded on the right
+affine line by the right von Mangoldt absolute-convergence bound and the
+Gamma/Binet inverse-Gamma bound. -/
+theorem zetaCompletedExplicitFormula_completedZetaNegLogDeriv_rightAffineLine_bound_of_gammaBinet
+    (F : ExplicitFormulaContourFamily) :
+    ∃ B : ℝ,
+      0 ≤ B ∧
+        ∀ t : ℝ,
+          ‖completedZetaNegLogDeriv
+              (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤
+            B * (1 + ‖t‖) :=
+  match
+    zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_rightAffineLine_bound_of_gammaBinet_owner
+      F with
+  | ⟨BG, hBG_nonneg, hG_bound⟩ =>
+      let BP : ℝ :=
+        zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactorBound F
+      let B : ℝ := BP + BG
+      have hBP_nonneg : 0 ≤ BP :=
+        zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactorBound_nonneg F
+      have hB_nonneg : 0 ≤ B :=
+        add_nonneg hBP_nonneg hBG_nonneg
+      have hbound :
+          ∀ t : ℝ,
+            ‖completedZetaNegLogDeriv
+                (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤
+              B * (1 + ‖t‖) := by
+        intro t
+        let s : ℂ := zetaCompletedExplicitFormulaRightAffineLine F t
+        let P : ℂ := explicitFormulaPrimeLogDerivative s
+        let G : ℂ := inverseGammaCompletionLogDeriv s
+        let Z : ℂ := completedZetaNegLogDeriv s
+        have hprime_norm_eq :
+            ‖P‖ =
+              ‖(L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t)‖ :=
+          (congrArg
+            (fun z : ℂ => ‖z‖)
+            (zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_eq_logDerivative
+              F t)).symm
+        have hprime_raw :
+            ‖(L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤ BP :=
+          zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_norm_le_factorBound_owner
+            F t
+        have hprime_constant : ‖P‖ ≤ BP :=
+          hprime_norm_eq.trans_le hprime_raw
+        have hprime_bound : ‖P‖ ≤ BP * (1 + ‖t‖) := by
+          have hscale : BP ≤ BP * (1 + ‖t‖) := by
+            calc
+              BP = BP * 1 := by
+                exact (mul_one BP).symm
+              _ ≤ BP * (1 + ‖t‖) := by
+                exact mul_le_mul_of_nonneg_left
+                  (Real.one_le_one_add_norm t)
+                  hBP_nonneg
+          exact hprime_constant.trans hscale
+        have hZ_eq : Z = P + G := by
+          have hprime_def : P = Z - G :=
+            show explicitFormulaPrimeLogDerivative s =
+              completedZetaNegLogDeriv s - inverseGammaCompletionLogDeriv s from
+              Eq.refl _
+          calc
+            Z = (Z - G) + G := by
+              exact (sub_add_cancel Z G).symm
+            _ = P + G := by
+              exact congrArg (fun z : ℂ => z + G) hprime_def.symm
+        have htriangle : ‖Z‖ ≤ ‖P‖ + ‖G‖ := by
+          exact
+            Eq.subst
+              (motive := fun z : ℂ => ‖z‖ ≤ ‖P‖ + ‖G‖)
+              hZ_eq.symm
+              (norm_add_le P G)
+        have hsum :
+            ‖P‖ + ‖G‖ ≤
+              BP * (1 + ‖t‖) + BG * (1 + ‖t‖) :=
+          add_le_add hprime_bound (hG_bound t)
+        have hfactor :
+            BP * (1 + ‖t‖) + BG * (1 + ‖t‖) =
+              B * (1 + ‖t‖) :=
+          (add_mul BP BG (1 + ‖t‖)).symm
+        exact htriangle.trans (hsum.trans_eq hfactor)
+      ⟨B, hB_nonneg, hbound⟩
+
+/- The right-line Dirichlet estimate is also a bound for the finite zeta-side
+factor, after the explicit regular-domain normalization bridge. -/
+theorem zetaCompletedExplicitFormula_zetaSideNegLogDeriv_rightAffineLine_bound_of_factorBound
+    (F : ExplicitFormulaContourFamily) :
+    ∃ B : ℝ,
+      0 ≤ B ∧
+        ∀ t : ℝ,
+          ‖zetaSideNegLogDeriv
+              (zetaCompletedExplicitFormulaRightAffineLine F t)‖ ≤
+            B * (1 + ‖t‖) := by
+  let B : ℝ := zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactorBound F
+  have hB : 0 ≤ B :=
+    zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactorBound_nonneg F
+  refine ⟨B, hB, ?_⟩
+  intro t
+  let s : ℂ := zetaCompletedExplicitFormulaRightAffineLine F t
+  have hside : zetaSideNegLogDeriv s = explicitFormulaPrimeLogDerivative s :=
+    zetaSideNegLogDeriv_eq_explicitFormulaPrimeLogDerivative_of_regular
+      s
+      (zetaCompletedExplicitFormulaRightAffineLine_ne_zero F t)
+      (zetaCompletedExplicitFormulaRightAffineLine_ne_one F t)
+      (zetaCompletedExplicitFormulaRightAffineLine_completedRiemannZeta_ne_zero F t)
+      (zetaCompletedExplicitFormulaRightAffineLine_Gammaℝ_ne_zero F t)
+  have hprime : ‖explicitFormulaPrimeLogDerivative s‖ ≤ B := by
+    have hnorm :
+        ‖explicitFormulaPrimeLogDerivative s‖ =
+          ‖(L ↗Λ) (zetaCompletedExplicitFormulaRightAffineLine F t)‖ :=
+      congrArg norm
+        (zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_eq_logDerivative
+          F t)
+    exact hnorm.trans_le
+      (zetaCompletedExplicitFormulaPrimeRightVonMangoldtFactor_norm_le_factorBound_owner
+        F t)
+  have hscale : B ≤ B * (1 + ‖t‖) := by
+    calc
+      B = B * 1 := (mul_one B).symm
+      _ ≤ B * (1 + ‖t‖) :=
+        mul_le_mul_of_nonneg_left (Real.one_le_one_add_norm t) hB
+  have hnormside :
+      ‖zetaSideNegLogDeriv s‖ = ‖explicitFormulaPrimeLogDerivative s‖ :=
+    congrArg norm hside
+  exact hnormside.trans (hprime.trans hscale)
+
+/- The left finite-factor normalization is transported on the canonical
+Gamma-regular branch from the already-proved explicit-prime estimate. -/
+theorem zetaCompletedExplicitFormula_zetaSideNegLogDeriv_leftAffineLine_bound_of_primeBound
+    (F : ExplicitFormulaContourFamily)
+    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
+    (B : ℝ) (hbound : ∀ t : ℝ,
+      ‖explicitFormulaPrimeLogDerivative
+        (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
+        B * (1 + ‖t‖)) :
+    ∀ t : ℝ,
+      ‖zetaSideNegLogDeriv
+        (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
+        B * (1 + ‖t‖) := by
+  intro t
+  let s : ℂ := zetaCompletedExplicitFormulaLeftAffineLine F t
+  have hside : zetaSideNegLogDeriv s = explicitFormulaPrimeLogDerivative s :=
+    zetaSideNegLogDeriv_eq_explicitFormulaPrimeLogDerivative_of_regular
+      s
+      (zetaCompletedExplicitFormulaLeftAffineLine_ne_zero F t)
+      (zetaCompletedExplicitFormulaLeftAffineLine_ne_one F t)
+      (zetaCompletedExplicitFormulaLeftAffineLine_completedRiemannZeta_ne_zero F t)
+      (zetaCompletedExplicitFormulaLeftAffineLine_Gammaℝ_ne_zero_of_gammaRegular
+        F hregular t)
+  have hnormside :
+      ‖zetaSideNegLogDeriv s‖ = ‖explicitFormulaPrimeLogDerivative s‖ :=
+    congrArg norm hside
+  exact hnormside.trans (hbound t)
+
 /-- A polynomial bound for the prime logarithmic derivative on the left affine
 line packages the left prime affine kernel.  This theorem owns the
 vertical-channel multiplication with the rapidly decaying test transform; the
 logarithmic-derivative owner layer supplies the factor bound. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantPackage_of_factor_bound
+def zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantPackage_of_factor_bound
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -455,41 +523,50 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantP
     h.phi_control.verticalStripRapidDecayConstant
       ((1 : ℝ) - F.c - (1 / 2 : ℝ))
       ((1 : ℝ) - F.c - (1 / 2 : ℝ)) 4
-  let majorant : ℝ → ℝ := fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(3 : ℤ))
-  have hC_nonneg : 0 ≤ C :=
-    h.phi_control.verticalStripRapidDecayConstant_nonneg
-      ((1 : ℝ) - F.c - (1 / 2 : ℝ))
-      ((1 : ℝ) - F.c - (1 / 2 : ℝ)) 4
+  let majorant : ℝ → ℝ := fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(3 : ℤ)))
   have hintegrable :
       Integrable majorant (volume : Measure ℝ) := by
     have hfinrank : Module.finrank ℝ ℝ = 1 :=
       Module.finrank_self ℝ
     have hfinrank_cast : ((Module.finrank ℝ ℝ : ℕ) : ℝ) = 1 :=
-      congrArg (fun n : ℕ => (n : ℝ)) hfinrank
+      Eq.trans
+        (congrArg (fun n : ℕ => (n : ℝ)) hfinrank)
+        Nat.cast_one
+    have htwo_lt_three : (2 : ℝ) < 3 := by
+      have htwo_add_one : (2 : ℝ) + 1 = 3 :=
+        two_add_one_eq_three
+      exact Eq.subst
+        (motive := fun value : ℝ => (2 : ℝ) < value)
+        htwo_add_one
+        (lt_add_of_pos_right 2 zero_lt_one)
     have hdim : (Module.finrank ℝ ℝ : ℝ) < 3 :=
       Eq.subst
         (motive := fun x : ℝ => x < 3)
         hfinrank_cast.symm
-        (lt_trans one_lt_two two_lt_three)
+        (lt_trans one_lt_two htwo_lt_three)
     have hbase :
         Integrable
           (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℝ)))
           (volume : Measure ℝ) :=
-      integrable_one_add_norm (E := ℝ) hdim
+      integrable_one_add_norm hdim
     have hscaled :
         Integrable
-          (fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(3 : ℝ)))
+          (fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(3 : ℝ))))
           (volume : Measure ℝ) :=
       (hbase.const_mul C).const_mul B
     have hfun :
         majorant =
-          (fun t : ℝ => B * C * (1 + ‖t‖) ^ (-(3 : ℝ))) := by
+          (fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(3 : ℝ)))) := by
       funext t
       have hpow :
           (1 + ‖t‖) ^ (-(3 : ℤ)) =
             (1 + ‖t‖) ^ (-(3 : ℝ)) :=
-        (Real.rpow_intCast (1 + ‖t‖) (-(3 : ℤ))).symm
-      exact congrArg (fun x : ℝ => B * C * x) hpow
+        Eq.trans
+          (Real.rpow_intCast (1 + ‖t‖) (-(3 : ℤ))).symm
+          (congrArg
+            (fun exponent : ℝ => (1 + ‖t‖) ^ exponent)
+            (Int.cast_neg 3))
+      exact congrArg (fun x : ℝ => B * (C * x)) hpow
     exact Eq.subst
       (motive := fun φ : ℝ → ℝ => Integrable φ (volume : Measure ℝ))
       hfun.symm
@@ -554,6 +631,12 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantP
               (1 + ‖t‖) ^ (-(3 : ℤ)) := by
           calc
             (1 + ‖t‖) * (1 + ‖t‖) ^ (-(4 : ℤ)) =
+                (1 + ‖t‖) ^ (1 : ℤ) *
+                  (1 + ‖t‖) ^ (-(4 : ℤ)) := by
+              exact congrArg
+                (fun x : ℝ => x * (1 + ‖t‖) ^ (-(4 : ℤ)))
+                (zpow_one (1 + ‖t‖)).symm
+            _ =
                 (1 + ‖t‖) ^ ((1 : ℤ) + (-(4 : ℤ))) := by
               exact (zpow_add₀ hbase_nonzero (1 : ℤ) (-(4 : ℤ))).symm
             _ = (1 + ‖t‖) ^ (-(3 : ℤ)) := by
@@ -561,11 +644,11 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantP
         have hassoc :
             (B * (1 + ‖t‖)) *
                 (C * (1 + ‖t‖) ^ (-(4 : ℤ))) =
-              B * C * (1 + ‖t‖) ^ (-(3 : ℤ)) := by
+              B * (C * (1 + ‖t‖) ^ (-(3 : ℤ))) := by
           let a : ℝ := 1 + ‖t‖
           let b : ℝ := (1 + ‖t‖) ^ (-(4 : ℤ))
           have hscalar :
-              (B * a) * (C * b) = B * C * (a * b) := by
+              (B * a) * (C * b) = B * (C * (a * b)) := by
             calc
               (B * a) * (C * b) = B * (a * (C * b)) :=
                 mul_assoc B a (C * b)
@@ -577,14 +660,12 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantP
                     (mul_comm a C)
               _ = B * (C * (a * b)) := by
                 exact congrArg (fun x : ℝ => B * x) (mul_assoc C a b)
-              _ = B * C * (a * b) := by
-                exact (mul_assoc B C (a * b)).symm
           have hrewrite :
               a * b = (1 + ‖t‖) ^ (-(3 : ℤ)) :=
             hweight
           exact
             Eq.trans hscalar
-              (congrArg (fun x : ℝ => B * C * x) hrewrite)
+              (congrArg (fun x : ℝ => B * (C * x)) hrewrite)
         hprod.trans_eq hassoc)
   exact
     ExplicitFormulaAffineKernelMajorantPackage.of_mul_le
@@ -592,7 +673,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantP
 
 /-- Completed-zeta and inverse-Gamma fixed-line bounds package the left prime
 affine kernel. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantPackage_of_completed_and_inverseGamma_bounds
+def zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantPackage_of_completed_and_inverseGamma_bounds
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -737,7 +818,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivative_completed_factor_boun
 package the left prime affine kernel.  This is the honest owner-level form for
 whole-line left affine estimates: the zero-excised carrier and Gamma regularity
 are explicit hypotheses rather than implicit contour-family fields. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantPackage_of_zeroExcisedLine_and_inverseGamma_bound
+def zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantPackage_of_zeroExcisedLine_and_inverseGamma_bound
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -1114,7 +1195,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_integrabl
 /-- Bundled majorant package for the left prime logarithmic-derivative affine kernel.
 The analytic content is off-critical logarithmic-derivative growth combined
 with rapid decay of `Φ_f` on the shifted left vertical line. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantPackage
+def zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantPackage
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -1184,6 +1265,29 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_integrabl
   (zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantPackage
     f F h hregular E hline_mem BG hBG_nonneg hinverseGamma_bound).integrable
 
+/- The left prime kernel has an owner-level integrability constructor that does
+not consume the ambient strip log-derivative package.  Its completed factor is
+transported from the right by the completed functional equation, while its
+inverse-Gamma factor is supplied by the direct Binet estimate. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_integrable_of_owner_gammaBinet
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F) :
+    Integrable
+      (zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F)
+      (volume : Measure ℝ) :=
+  match
+    zetaCompletedExplicitFormula_completedZetaNegLogDeriv_leftAffineLine_bound_of_gammaBinet
+      F with
+  | ⟨BZ, hBZ_nonneg, hcompleted_bound⟩ =>
+      match
+        zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinet_owner
+          F hregular with
+      | ⟨BG, hBG_nonneg, hinverseGamma_bound⟩ =>
+          (zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_majorantPackage_of_completed_and_inverseGamma_bounds
+            f F h hregular BZ BG hBZ_nonneg hBG_nonneg hcompleted_bound
+            hinverseGamma_bound).integrable
+
 /-- Vertically regular, Gamma-coherence-qualified integrability of the left
 prime logarithmic-derivative affine kernel. -/
 theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_integrable_of_verticallyRegular_gammaBinetCoherence
@@ -1195,29 +1299,14 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_integrabl
       (zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel
         f F.toContourFamily)
       (volume : Measure ℝ) := by
-  let E : CompletedZetaZeroExcisedStrip
-      (1 - F.toContourFamily.c) (1 - F.toContourFamily.c) :=
-    zetaCompletedExplicitFormulaLeftAffineLineZeroExcisedStrip_of_verticallyRegular
-      F
   have hregular :
       zetaCompletedExplicitFormulaLeftAffineLineGammaRegular
         F.toContourFamily :=
     zetaCompletedExplicitFormulaLeftAffineLineGammaRegular_of_verticallyRegular
       F
-  have hline_mem :
-      ∀ t : ℝ,
-        zetaCompletedExplicitFormulaLeftAffineLine F.toContourFamily t ∈
-          E.carrier :=
-    zetaCompletedExplicitFormulaLeftAffineLine_mem_zeroExcisedStrip_of_verticallyRegular
-      F
-  match
-    zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinetCoherence_owner
-      F.toContourFamily hregular hcoh with
-  | ⟨BG, hBG_nonneg, hinverseGamma_bound⟩ =>
-      exact
-        zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_integrable
-          f F.toContourFamily h hregular E hline_mem
-          BG hBG_nonneg hinverseGamma_bound
+  exact
+    zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_integrable_of_owner_gammaBinet
+      f F.toContourFamily h hregular
 
 /-- The whole-line left prime logarithmic-derivative affine-kernel tail value
 follows from an independent scheduled tail-decay theorem.  The hypotheses are
@@ -1296,14 +1385,15 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_integral_
           E.carrier :=
     zetaCompletedExplicitFormulaLeftAffineLine_mem_zeroExcisedStrip_of_verticallyRegular
       F
-  match
-    zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinetCoherence_owner
-      F.toContourFamily hregular hcoh with
-  | ⟨BG, hBG_nonneg, hinverseGamma_bound⟩ =>
-      exact
+  let hdata :=
+    zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinet_owner
+      F.toContourFamily hregular
+  exact
+    Exists.elim hdata
+      (fun BG hBG_data =>
         zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_integral_eq_zero_of_scheduled_tendsto_zero
           f F.toContourFamily h hregular E hline_mem
-          BG hBG_nonneg hinverseGamma_bound hscheduled
+          BG hBG_data.1 hBG_data.2 hscheduled)
 
 /-- Direct symmetric-window left prime logarithmic-derivative tail decay. -/
 theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernelIntegral_tendsto_zero_symmetric

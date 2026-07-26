@@ -6,7 +6,7 @@ noncomputable section
 namespace ZetaAdmissibleFunction
 
 /-- The finite-window tail theorem is the centered coordinate-transport theorem. -/
-theorem autocorrelationSpectralEvalFiber_polynomialEnvelopeFiniteTailControl_ownerGap
+theorem autocorrelationSpectralEvalFiber_polynomialEnvelopeFiniteTailControl
     (S : Finset ℂ)
     (P : Finset ℂ)
     (f₀ : ZetaAdmissibleFunction)
@@ -54,11 +54,10 @@ theorem autocorrelationSpectralEvalFiber_polynomialEnvelopeFiniteTailControl_own
             f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
               (∀ ρ : ℂ, ρ ∈ T →
                 zetaSpectralEval (convolutionAutocorrelation f) ρ = 0) →
-                autocorrelationZeroTailRealAbs S f < ε := by
-  exact
-    autocorrelationSpectralEvalFiber_commonPolynomialEnvelope_forcedDaggerTailWindow_conditional
-      S P f₀ ε hε T₀ hT₀ A k hA hsum
-        hpositiveForced hpositiveEnv
+                autocorrelationZeroTailRealAbs S f < ε :=
+  autocorrelationSpectralEvalFiber_commonPolynomialEnvelope_forcedDaggerTailWindow_owner
+    S P f₀ ε hε T₀ hT₀ A k hA hsum
+      hpositiveForced hpositiveEnv
 
 end ZetaAdmissibleFunction
 end

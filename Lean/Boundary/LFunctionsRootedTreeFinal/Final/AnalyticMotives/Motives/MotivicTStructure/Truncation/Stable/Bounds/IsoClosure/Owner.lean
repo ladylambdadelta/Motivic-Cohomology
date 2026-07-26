@@ -27,7 +27,7 @@ theorem stableTruncGE_degreewiseIsoClosureBoundedStableRepresentative
     {bound : Nat}
     (complex : TraceAnalyticAdditiveCochainComplex)
     (bounded :
-      TraceAnalyticMotiveComparison.sourceComplexDegreewiseIsoClosureBoundedBy
+      TraceAnalyticAdditiveCochainComplex.DegreewiseIsoClosureBoundedBy
         complex
         bound)
     [∀ degree, complex.HasHomology degree] :
@@ -58,7 +58,7 @@ theorem stableTruncGE_degreewiseIsoClosureBoundedStableObject
     {bound : Nat}
     (complex : TraceAnalyticAdditiveCochainComplex)
     (bounded :
-      TraceAnalyticMotiveComparison.sourceComplexDegreewiseIsoClosureBoundedBy
+      TraceAnalyticAdditiveCochainComplex.DegreewiseIsoClosureBoundedBy
         complex
         bound)
     [∀ degree, complex.HasHomology degree] :
@@ -82,7 +82,7 @@ theorem stableTruncLE_degreewiseIsoClosureBoundedStableRepresentative
     {bound : Nat}
     (complex : TraceAnalyticAdditiveCochainComplex)
     (bounded :
-      TraceAnalyticMotiveComparison.sourceComplexDegreewiseIsoClosureBoundedBy
+      TraceAnalyticAdditiveCochainComplex.DegreewiseIsoClosureBoundedBy
         complex
         bound)
     [∀ degree, complex.HasHomology degree] :
@@ -113,7 +113,7 @@ theorem stableTruncLE_degreewiseIsoClosureBoundedStableObject
     {bound : Nat}
     (complex : TraceAnalyticAdditiveCochainComplex)
     (bounded :
-      TraceAnalyticMotiveComparison.sourceComplexDegreewiseIsoClosureBoundedBy
+      TraceAnalyticAdditiveCochainComplex.DegreewiseIsoClosureBoundedBy
         complex
         bound)
     [∀ degree, complex.HasHomology degree] :

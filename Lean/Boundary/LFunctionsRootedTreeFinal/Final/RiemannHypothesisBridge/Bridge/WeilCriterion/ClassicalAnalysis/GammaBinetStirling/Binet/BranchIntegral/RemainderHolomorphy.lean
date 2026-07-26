@@ -220,7 +220,7 @@ theorem Complex.binetSecondFormulaDerivativeKernel_deriv_norm_le_scaled_majorant
       Eq.subst
         (motive := fun x : ℝ => x ≤ 2 * R * t / δ ^ 4)
         hsplit.symm
-        (div_le_div h2Rt_nonneg hnum hδ4_pos hDsq_ge)
+        (div_le_div₀ h2Rt_nonneg hnum hδ4_pos hDsq_ge)
   -- assemble through the exponential denominator
   have hkernel_norm :
       ‖(2 * (t : ℂ) * z / D ^ 2) /

@@ -56,22 +56,21 @@ theorem autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_tai
           ρ ∉ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R},
         A * zetaCompletedZeroCenteredHeight
           (⟨(ρ : ℂ), ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
-            (-(k + 3 : ℤ)) := by
-  exact
-    zetaZeroTail_norm_le_commonPolynomialEnvelope_complement_tsum_ownerGap
+            (-(k + 3 : ℤ)) :=
+  zetaZeroTail_norm_le_commonPolynomialEnvelope_complement_tsum
+    S
+    (autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R)
+    A k hA hsum
+    (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
+      S P f₀ R F)
+    (zetaZeroSideContribution_eq_zero_of_window_spectralEval_zero
       S
       (autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R)
-      A k hA hsum
       (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
         S P f₀ R F)
-      (zetaZeroSideContribution_eq_zero_of_window_spectralEval_zero
-        S
-        (autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R)
-        (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
-          S P f₀ R F)
-        (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_window_zero
-          S P f₀ R F hF))
-      hbound
+      (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_window_zero
+        S P f₀ R F hF))
+    hbound
 
 /-- An explicit common envelope with complementary mass below `ε` gives a cardinal
 interpolant whose real completed-zero tail is below `ε`. -/
@@ -117,17 +116,16 @@ theorem autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_tai
             (-(k + 3 : ℤ))) < ε) :
     autocorrelationZeroTailRealAbs S
       (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
-        S P f₀ R F) < ε := by
-  exact
-    autocorrelationZeroTailRealAbs_lt_of_zetaZeroTail_norm_lt
-      S
-      (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
-        S P f₀ R F)
-      ε
-      (lt_of_le_of_lt
-        (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_tail_norm_le
-          S P f₀ R F hF A k hA hsum hbound)
-        htail)
+        S P f₀ R F) < ε :=
+  autocorrelationZeroTailRealAbs_lt_of_zetaZeroTail_norm_lt
+    S
+    (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
+      S P f₀ R F)
+    ε
+    (lt_of_le_of_lt
+      (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_tail_norm_le
+        S P f₀ R F hF A k hA hsum hbound)
+      htail)
 
 end ZetaAdmissibleFunction
 end

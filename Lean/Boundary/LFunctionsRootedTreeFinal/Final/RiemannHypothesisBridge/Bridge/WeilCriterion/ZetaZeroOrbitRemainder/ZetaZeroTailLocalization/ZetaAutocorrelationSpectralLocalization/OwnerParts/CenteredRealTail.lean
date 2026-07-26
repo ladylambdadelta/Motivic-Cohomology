@@ -13,14 +13,14 @@ def autocorrelationCenteredZeroTailRealAbs
 theorem autocorrelationCenteredZeroTailRealAbs_eq
     (S : Finset ℂ) (f : ZetaAdmissibleFunction) :
     autocorrelationCenteredZeroTailRealAbs S f =
-      |Complex.re (zetaCenteredZeroTail S (convolutionAutocorrelation f))| := by
-  exact Eq.refl (autocorrelationCenteredZeroTailRealAbs S f)
+      |Complex.re (zetaCenteredZeroTail S (convolutionAutocorrelation f))| :=
+  Eq.refl (autocorrelationCenteredZeroTailRealAbs S f)
 
 theorem autocorrelationCenteredZeroTailRealAbs_le_centeredTailNorm
     (S : Finset ℂ) (f : ZetaAdmissibleFunction) :
     autocorrelationCenteredZeroTailRealAbs S f ≤
-      ‖zetaCenteredZeroTail S (convolutionAutocorrelation f)‖ := by
-  exact RCLike.abs_re_le_norm
+      ‖zetaCenteredZeroTail S (convolutionAutocorrelation f)‖ :=
+  RCLike.abs_re_le_norm
     (zetaCenteredZeroTail S (convolutionAutocorrelation f))
 
 theorem autocorrelationCenteredZeroTailRealAbs_lt_of_centeredTailNorm_lt
@@ -29,8 +29,8 @@ theorem autocorrelationCenteredZeroTailRealAbs_lt_of_centeredTailNorm_lt
     (ε : ℝ)
     (htail :
       ‖zetaCenteredZeroTail S (convolutionAutocorrelation f)‖ < ε) :
-    autocorrelationCenteredZeroTailRealAbs S f < ε := by
-  exact lt_of_le_of_lt
+    autocorrelationCenteredZeroTailRealAbs S f < ε :=
+  lt_of_le_of_lt
     (autocorrelationCenteredZeroTailRealAbs_le_centeredTailNorm S f)
     htail
 

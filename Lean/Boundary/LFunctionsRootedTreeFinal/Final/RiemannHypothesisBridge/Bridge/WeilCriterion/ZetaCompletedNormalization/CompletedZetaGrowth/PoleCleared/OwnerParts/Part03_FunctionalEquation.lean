@@ -169,7 +169,7 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_identit
   exact Eq.trans hleft (Eq.trans halgebra_transport hpole_transport)
 
 /-- A point on the vertical tail cannot be zero. -/
-private theorem complex_ne_zero_of_one_le_norm_im
+theorem complex_ne_zero_of_one_le_norm_im
     (z : ℂ)
     (hz_im_tail : 1 ≤ ‖z.im‖) :
     z ≠ 0 :=
@@ -179,7 +179,7 @@ private theorem complex_ne_zero_of_one_le_norm_im
     poleCleared_realNonzeroOfOneLeNorm hz_im_tail hzero_im
 
 /-- A point on the vertical tail cannot equal one. -/
-private theorem complex_ne_one_of_one_le_norm_im
+theorem complex_ne_one_of_one_le_norm_im
     (z : ℂ)
     (hz_im_tail : 1 ≤ ‖z.im‖) :
     z ≠ 1 :=
@@ -189,7 +189,7 @@ private theorem complex_ne_one_of_one_le_norm_im
     poleCleared_realNonzeroOfOneLeNorm hz_im_tail hone_im
 
 /-- Reflection preserves the imaginary-coordinate norm. -/
-private theorem oneSubComplex_im_norm_eq (z : ℂ) :
+theorem oneSubComplex_im_norm_eq (z : ℂ) :
     ‖((1 : ℂ) - z).im‖ = ‖z.im‖ := by
   have him_subtraction : ((1 : ℂ) - z).im = (1 : ℂ).im - z.im :=
     Complex.sub_im (1 : ℂ) z
@@ -202,7 +202,7 @@ private theorem oneSubComplex_im_norm_eq (z : ℂ) :
 
 /-- Reflection of a point with real part at most one has nonnegative real
 part. -/
-private theorem oneSubComplex_re_nonnegative
+theorem oneSubComplex_re_nonnegative
     (z : ℂ)
     (hz_re_le_one : z.re ≤ 1) :
     0 ≤ ((1 : ℂ) - z).re := by
@@ -215,7 +215,7 @@ private theorem oneSubComplex_re_nonnegative
     (sub_nonneg.mpr hz_re_le_one)
 
 /-- Reflection of a vertical-tail point cannot be zero. -/
-private theorem oneSubComplex_ne_zero_of_one_le_norm_im
+theorem oneSubComplex_ne_zero_of_one_le_norm_im
     (z : ℂ)
     (hz_im_tail : 1 ≤ ‖z.im‖) :
     ((1 : ℂ) - z) ≠ 0 := by
@@ -228,7 +228,7 @@ private theorem oneSubComplex_ne_zero_of_one_le_norm_im
 
 /-- The reflected pole-clearing denominator does not vanish on the vertical
 tail. -/
-private theorem oneSubComplex_sub_one_ne_zero_of_one_le_norm_im
+theorem oneSubComplex_sub_one_ne_zero_of_one_le_norm_im
     (z : ℂ)
     (hz_im_tail : 1 ≤ ‖z.im‖) :
     (((1 : ℂ) - z) - 1) ≠ 0 := by
@@ -245,7 +245,7 @@ private theorem oneSubComplex_sub_one_ne_zero_of_one_le_norm_im
           hzero))
 
 /-- Reconstruction of completed zeta from zeta and the real Gamma factor. -/
-private theorem riemannZeta_mul_GammaReal_eq_completedRiemannZeta
+theorem riemannZeta_mul_GammaReal_eq_completedRiemannZeta
     {w : ℂ}
     (hw_ne_zero : w ≠ 0)
     (hGamma_ne : Complex.Gammaℝ w ≠ 0) :
@@ -262,7 +262,7 @@ private theorem riemannZeta_mul_GammaReal_eq_completedRiemannZeta
 
 /-- Completed-zeta symmetry yields the zeta quotient once both Gamma
 reconstructions are valid. -/
-private theorem riemannZeta_completedFunctionalEquation_quotient_of_nonzero
+theorem riemannZeta_completedFunctionalEquation_quotient_of_nonzero
     {z : ℂ}
     (hz_ne_zero : z ≠ 0)
     (hw_ne_zero : ((1 : ℂ) - z) ≠ 0)

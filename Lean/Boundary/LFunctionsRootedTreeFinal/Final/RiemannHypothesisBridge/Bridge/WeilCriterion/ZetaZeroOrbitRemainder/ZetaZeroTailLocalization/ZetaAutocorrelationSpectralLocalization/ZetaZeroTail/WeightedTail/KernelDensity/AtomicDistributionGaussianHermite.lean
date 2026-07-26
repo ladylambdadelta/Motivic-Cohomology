@@ -310,8 +310,8 @@ theorem one_add_abs_pow_le_two_pow_mul_one_add_abs_pow
     pow_nonneg htwoNonnegative degree
   have habsolutePowerNonnegative : 0 ≤ |x| ^ degree :=
     pow_nonneg (abs_nonneg x) degree
-  exact Or.elim (Classical.em (|x| ≤ 1))
-    (fun habsoluteLeOne =>
+  by_cases habsoluteLeOne : |x| ≤ 1
+  ·
       have hheightLeTwo : 1 + |x| ≤ (2 : ℝ) :=
         Eq.mp
           (congrArg
@@ -337,10 +337,10 @@ theorem one_add_abs_pow_le_two_pow_mul_one_add_abs_pow
           (mul_le_mul_of_nonneg_left
             honeLeFactor
             htwoPowerNonnegative)
-      le_trans hheightPowerLeTwoPower htwoPowerLeProduct)
-    (fun hnotLe =>
+      exact le_trans hheightPowerLeTwoPower htwoPowerLeProduct
+  ·
       have honeLeAbsolute : 1 ≤ |x| :=
-        le_of_not_ge hnotLe
+        le_of_not_ge habsoluteLeOne
       have hheightLeDouble :
           1 + |x| ≤ 2 * |x| := by
         have hadd : 1 + |x| ≤ |x| + |x| :=
@@ -369,13 +369,12 @@ theorem one_add_abs_pow_le_two_pow_mul_one_add_abs_pow
         mul_le_mul_of_nonneg_left
           habsolutePowerLeOneAdded
           htwoPowerNonnegative
-      le_trans hheightPowerLeDoublePower
-        (Eq.mpr
-          (congrArg
-            (fun left : ℝ =>
-              left ≤ (2 : ℝ) ^ degree * (1 + |x| ^ degree))
-            hdoublePower)
-          hproductIncrease))
+      exact le_trans hheightPowerLeDoublePower
+        (Eq.subst
+          (motive := fun left : ℝ =>
+            left ≤ (2 : ℝ) ^ degree * (1 + |x| ^ degree))
+          hdoublePower.symm
+          hproductIncrease)
 
 /-- Multiplicative scaling of the real variable is controlled by the product
 of the two canonical heights. -/

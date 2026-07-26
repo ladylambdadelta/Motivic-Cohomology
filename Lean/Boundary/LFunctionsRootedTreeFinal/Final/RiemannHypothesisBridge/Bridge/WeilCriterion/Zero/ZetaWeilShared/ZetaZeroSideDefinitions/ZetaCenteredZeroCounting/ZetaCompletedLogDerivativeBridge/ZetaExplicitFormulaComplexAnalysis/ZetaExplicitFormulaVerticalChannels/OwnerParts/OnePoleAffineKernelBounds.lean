@@ -195,7 +195,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleAffineKernelMajorant_t
       Integrable
         (fun t : ℝ => (1 + ‖t‖) ^ (-(2 : ℝ)))
         (volume : Measure ℝ) :=
-    integrable_one_add_norm (E := ℝ) hdim
+    integrable_one_add_norm hdim
   have hscaled :
       Integrable
         (fun t : ℝ => A * (C * (1 + ‖t‖) ^ (-(2 : ℝ))))
@@ -242,7 +242,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftOnePoleAffineKernelMajorant_tw
       Integrable
         (fun t : ℝ => (1 + ‖t‖) ^ (-(2 : ℝ)))
         (volume : Measure ℝ) :=
-    integrable_one_add_norm (E := ℝ) hdim
+    integrable_one_add_norm hdim
   have hscaled :
       Integrable
         (fun t : ℝ => A * (C * (1 + ‖t‖) ^ (-(2 : ℝ))))

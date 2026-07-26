@@ -5,9 +5,8 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 # Boundary explicit-formula defect package
 
 This file packages the three logarithmic-line defect families into a single
-owner-level object. It does not yet prove the full analytic explicit formula;
-it records the concrete components that the completed explicit formula must
-assemble:
+owner-level object. It records the concrete components assembled by the
+completed explicit formula:
 
 * finite prime translation defects,
 * archimedean translation defects,

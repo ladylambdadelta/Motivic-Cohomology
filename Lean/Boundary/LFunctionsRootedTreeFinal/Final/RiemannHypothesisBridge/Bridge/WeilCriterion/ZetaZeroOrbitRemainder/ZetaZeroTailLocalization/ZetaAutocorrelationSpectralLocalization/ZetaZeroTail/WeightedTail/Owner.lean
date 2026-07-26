@@ -1,5 +1,6 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralLinearity
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.TailSummability.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralLinearity
 import Mathlib.Analysis.Normed.Lp.lpSpace
 
 /-!
@@ -208,7 +209,7 @@ theorem zetaCompletedZeroSideCoordinateL1LinearMap_apply
         f
         ρ =
       zetaZeroSideContribution (ρ : ℂ) f := by
-  rfl
+  exact zetaCompletedZeroSideCoordinateLinearMap_apply f ρ
 
 /-- Evaluation at a completed-zero coordinate is continuous on discrete `ℓ¹`. -/
 theorem continuous_zetaCompletedZeroSideCoordinateL1_eval

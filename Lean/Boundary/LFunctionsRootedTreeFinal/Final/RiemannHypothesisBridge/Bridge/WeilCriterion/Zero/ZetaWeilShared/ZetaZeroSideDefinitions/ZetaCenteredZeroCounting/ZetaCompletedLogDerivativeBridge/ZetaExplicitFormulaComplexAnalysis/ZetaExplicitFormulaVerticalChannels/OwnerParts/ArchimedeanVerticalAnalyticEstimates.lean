@@ -27,8 +27,9 @@ open scoped Topology
 namespace ZetaAdmissibleFunction
 
 /-- The scheduled correction-channel estimate supplied by the pole-face
-correction transport theorem, once the right one-pole decay has been proved. -/
-theorem zetaCompletedExplicitFormulaScheduledCorrectionVerticalChannel_tendsto_correctionContribution_of_rightOnePoleDecay
+correction transport theorem, once the right one-pole projection limit has
+been proved. -/
+theorem zetaCompletedExplicitFormulaScheduledCorrectionVerticalChannel_tendsto_correctionContribution_of_rightOnePoleProjection
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hone :
@@ -37,7 +38,7 @@ theorem zetaCompletedExplicitFormulaScheduledCorrectionVerticalChannel_tendsto_c
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F (h.height_schedule.height u))
         atTop
-        (𝓝 0)) :
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c))) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaScheduledCorrectionVerticalChannel
@@ -49,8 +50,8 @@ theorem zetaCompletedExplicitFormulaScheduledCorrectionVerticalChannel_tendsto_c
       f F h hone
 
 /-- Conditional archimedean scheduled estimates from the inverse-Gamma estimate
-and the independently supplied right one-pole decay. -/
-theorem zetaCompletedExplicitFormulaScheduledArchimedeanEstimates_tendsto_of_inverseGamma_and_rightOnePoleDecay
+and the independently supplied right one-pole projection limit. -/
+theorem zetaCompletedExplicitFormulaScheduledArchimedeanEstimates_tendsto_of_inverseGamma_and_rightOnePoleProjection
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hinverse :
@@ -68,7 +69,7 @@ theorem zetaCompletedExplicitFormulaScheduledArchimedeanEstimates_tendsto_of_inv
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F (h.height_schedule.height u))
         atTop
-        (𝓝 0)) :
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c))) :
       Tendsto
           (fun u : ℝ =>
             zetaCompletedExplicitFormulaScheduledInverseGammaCompletionVerticalChannel
@@ -84,11 +85,12 @@ theorem zetaCompletedExplicitFormulaScheduledArchimedeanEstimates_tendsto_of_inv
           atTop
           (𝓝 (zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)) :=
   And.intro hinverse
-    (zetaCompletedExplicitFormulaScheduledCorrectionVerticalChannel_tendsto_correctionContribution_of_rightOnePoleDecay
+    (zetaCompletedExplicitFormulaScheduledCorrectionVerticalChannel_tendsto_correctionContribution_of_rightOnePoleProjection
       f F h hone)
 
-/-- Scheduled right one-pole decay needed by correction-channel convergence. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledVerticalIntegral_tendsto_zero
+/-- Scheduled right one-pole projection limit needed by correction-channel
+convergence. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledVerticalIntegral_tendsto_projection
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     Tendsto
@@ -96,9 +98,9 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledVerticalInteg
         zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
           f F (h.height_schedule.height u))
       atTop
-      (𝓝 0) := by
+      (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) := by
   exact
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleOffPoleVerticalIntegral_tendsto_zero
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleOffPoleVerticalIntegral_tendsto_projection
       f F h
 
 /-- The scheduled inverse-Gamma completion channel converges by the named
@@ -135,8 +137,8 @@ theorem zetaCompletedExplicitFormulaScheduledInverseGammaCompletionVerticalChann
         (𝓝
           (zetaCompletedExplicitFormulaArchimedeanContribution f +
             zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)) :=
-    zetaCompletedExplicitFormulaInverseGammaAffineKernelIntegrals_tendsto_archimedean_add_correction_of_gammaBinetCoherence_regular_and_integral_eq
-      f F h hregular hcoh hvalue
+    zetaCompletedExplicitFormulaInverseGammaAffineKernelIntegrals_tendsto_archimedean_add_correction
+      f F h hregular hvalue
   exact
     explicitFormulaScheduledScalar_tendsto_of_forall_eq
       (fun u : ℝ =>
@@ -183,14 +185,14 @@ theorem zetaCompletedExplicitFormulaScheduledInverseGammaCompletionVerticalChann
       Integrable
         (zetaCompletedExplicitFormulaInverseGammaRightAffineKernel f F)
         (volume : Measure ℝ) :=
-    (zetaCompletedExplicitFormulaInverseGammaRightAffineKernel_majorantPackage_of_gammaBinetCoherence
-      f F h hcoh).integrable
+    (zetaCompletedExplicitFormulaInverseGammaRightAffineKernel_majorantPackage_of_gammaBinet
+      f F h).integrable
   have hL_integrable :
       Integrable
         (zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F)
         (volume : Measure ℝ) :=
-    (zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel_majorantPackage_of_gammaBinetCoherence
-      f F h hregular hcoh).integrable
+    (zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel_majorantPackage_of_gammaBinet
+      f F h hregular).integrable
   have hdiff :
       (fun u : ℝ =>
         ∫ t in Set.Icc
@@ -239,8 +241,8 @@ theorem zetaCompletedExplicitFormulaScheduledInverseGammaCompletionVerticalChann
         (𝓝
           (zetaCompletedExplicitFormulaArchimedeanContribution f +
             zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)) :=
-    zetaCompletedExplicitFormulaInverseGammaAffineKernelIntegrals_tendsto_archimedean_add_correction_of_gammaBinetCoherence_regular_and_integral_eq
-      f F h hregular hcoh hvalue
+    zetaCompletedExplicitFormulaInverseGammaAffineKernelIntegrals_tendsto_archimedean_add_correction_of_gammaBinet_regular_and_integral_eq
+      f F h hregular hvalue
   have hkernel :
       Tendsto K atTop
         (𝓝
@@ -334,8 +336,8 @@ theorem zetaCompletedExplicitFormulaScheduledInverseGammaCompletionVerticalChann
         (zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel
           f F.toContourFamily)
         (volume : Measure ℝ) :=
-    zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel_integrable_of_gammaBinetCoherence_regular
-      f F.toContourFamily h hregular hcoh
+    zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel_integrable_of_gammaBinet_regular
+      f F.toContourFamily h hregular
   have hkernel :
       Tendsto K atTop
         (𝓝
@@ -347,15 +349,15 @@ theorem zetaCompletedExplicitFormulaScheduledInverseGammaCompletionVerticalChann
           (zetaCompletedExplicitFormulaInverseGammaRightAffineKernel
             f F.toContourFamily)
           (volume : Measure ℝ) :=
-      (zetaCompletedExplicitFormulaInverseGammaRightAffineKernel_majorantPackage_of_gammaBinetCoherence
-        f F.toContourFamily h hcoh).integrable
+      (zetaCompletedExplicitFormulaInverseGammaRightAffineKernel_majorantPackage_of_gammaBinet
+        f F.toContourFamily h).integrable
     have hleft :
         Integrable
           (zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel
             f F.toContourFamily)
           (volume : Measure ℝ) :=
-      (zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel_majorantPackage_of_gammaBinetCoherence
-        f F.toContourFamily h hregular hcoh).integrable
+      (zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel_majorantPackage_of_gammaBinet
+        f F.toContourFamily h hregular).integrable
     have hdiff :
         Tendsto
           (fun T : ℝ =>
@@ -416,11 +418,11 @@ theorem zetaCompletedExplicitFormulaScheduledArchimedeanEstimates_tendsto
               f F h u)
           atTop
           (𝓝 (zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)) :=
-  zetaCompletedExplicitFormulaScheduledArchimedeanEstimates_tendsto_of_inverseGamma_and_rightOnePoleDecay
+  zetaCompletedExplicitFormulaScheduledArchimedeanEstimates_tendsto_of_inverseGamma_and_rightOnePoleProjection
     f F h
     (zetaCompletedExplicitFormulaScheduledInverseGammaCompletionVerticalChannel_tendsto_archimedean_add_correction
       f F h hregular hcoh hvalue)
-    (zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledVerticalIntegral_tendsto_zero
+    (zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledVerticalIntegral_tendsto_projection
       f F h)
 
 /-- Combined archimedean scheduled analytic estimates for a vertically regular
@@ -451,11 +453,11 @@ theorem zetaCompletedExplicitFormulaScheduledArchimedeanEstimates_tendsto_of_ver
               f F.toContourFamily h u)
           atTop
           (𝓝 (zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)) :=
-  zetaCompletedExplicitFormulaScheduledArchimedeanEstimates_tendsto_of_inverseGamma_and_rightOnePoleDecay
+  zetaCompletedExplicitFormulaScheduledArchimedeanEstimates_tendsto_of_inverseGamma_and_rightOnePoleProjection
     f F.toContourFamily h
     (zetaCompletedExplicitFormulaScheduledInverseGammaCompletionVerticalChannel_tendsto_archimedean_add_correction_of_verticallyRegular_gammaBinet_integral_eq
       f F h hcoh hvalue)
-    (zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledVerticalIntegral_tendsto_zero
+    (zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledVerticalIntegral_tendsto_projection
       f F.toContourFamily h)
 
 /-- The scheduled correction channel converges to the standard correction
@@ -471,9 +473,9 @@ theorem zetaCompletedExplicitFormulaScheduledCorrectionVerticalChannel_tendsto_c
           f F h u)
       atTop
       (𝓝 (zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)) :=
-  zetaCompletedExplicitFormulaScheduledCorrectionVerticalChannel_tendsto_correctionContribution_of_rightOnePoleDecay
+  zetaCompletedExplicitFormulaScheduledCorrectionVerticalChannel_tendsto_correctionContribution_of_rightOnePoleProjection
     f F h
-    (zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledVerticalIntegral_tendsto_zero
+    (zetaCompletedExplicitFormulaCorrectionRightOnePoleScheduledVerticalIntegral_tendsto_projection
       f F h)
 
 end ZetaAdmissibleFunction

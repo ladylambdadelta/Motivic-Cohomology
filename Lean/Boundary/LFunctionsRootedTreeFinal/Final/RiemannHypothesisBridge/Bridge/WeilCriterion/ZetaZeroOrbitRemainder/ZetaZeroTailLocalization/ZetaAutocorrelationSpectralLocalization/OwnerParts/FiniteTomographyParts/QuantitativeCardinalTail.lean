@@ -45,10 +45,9 @@ def AutocorrelationSpectralEvalFiberSeparatedNonDaggerHeightWindowTailLocalizati
 /-- Controlled weighted-cardinal construction implies finite tomographic tail
 localization. -/
 theorem autocorrelationSpectralEvalFiber_separatedNonDaggerHeightWindowTailLocalization :
-    AutocorrelationSpectralEvalFiberSeparatedNonDaggerHeightWindowTailLocalization := by
-  intro hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
-  intro S P f₀ hSeparated ε hε
-  exact
+    AutocorrelationSpectralEvalFiberSeparatedNonDaggerHeightWindowTailLocalization :=
+  fun hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary =>
+  fun S P f₀ hSeparated ε hε =>
     QuantitativeSeparation.exists_fixedFiberProbe_with_autocorrelationZeroTailRealAbs_lt
       hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
       S P f₀ hSeparated ε hε

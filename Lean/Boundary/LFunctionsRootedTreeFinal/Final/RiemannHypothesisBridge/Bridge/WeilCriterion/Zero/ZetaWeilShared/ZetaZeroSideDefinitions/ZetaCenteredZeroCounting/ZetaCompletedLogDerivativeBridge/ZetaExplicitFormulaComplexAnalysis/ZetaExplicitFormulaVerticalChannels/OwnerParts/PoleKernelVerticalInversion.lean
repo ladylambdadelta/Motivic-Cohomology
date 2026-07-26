@@ -260,6 +260,42 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValu
 
 /-- Transport a proved scheduled vertical-inversion limit back to the existing
 right zero-pole vertical integral name. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tendsto_of_scheduledVerticalInversion_value
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (value : ℂ)
+    (hinversion :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion
+            f F h u)
+        atTop
+        (𝓝 value)) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+          f F (h.height_schedule.height u))
+      atTop
+      (𝓝 value) := by
+  have hfun :
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion
+          f F h u) =
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+          f F (h.height_schedule.height u)) := by
+    funext u
+    exact
+      zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_eq_verticalIntegral
+        f F h u
+  exact Eq.subst
+    (motive := fun φ : ℝ → ℂ =>
+      Tendsto φ atTop (𝓝 value))
+    hfun
+    hinversion
+
+/-- Transport a proved scheduled vertical-inversion limit back to the existing
+right zero-pole vertical integral name in the residue-valued normalization. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tendsto_of_scheduledVerticalInversion
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
@@ -276,23 +312,11 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tend
           f F (h.height_schedule.height u))
       atTop
       (𝓝 (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)) := by
-  have hfun :
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion
-          f F h u) =
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
-          f F (h.height_schedule.height u)) := by
-    funext u
-    exact
-      zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_eq_verticalIntegral
-        f F h u
-  exact Eq.subst
-    (motive := fun φ : ℝ → ℂ =>
-      Tendsto φ atTop
-        (𝓝 (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)))
-    hfun
-    hinversion
+  exact
+    zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tendsto_of_scheduledVerticalInversion_value
+      f F h
+      (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)
+      hinversion
 
 end ZetaAdmissibleFunction
 

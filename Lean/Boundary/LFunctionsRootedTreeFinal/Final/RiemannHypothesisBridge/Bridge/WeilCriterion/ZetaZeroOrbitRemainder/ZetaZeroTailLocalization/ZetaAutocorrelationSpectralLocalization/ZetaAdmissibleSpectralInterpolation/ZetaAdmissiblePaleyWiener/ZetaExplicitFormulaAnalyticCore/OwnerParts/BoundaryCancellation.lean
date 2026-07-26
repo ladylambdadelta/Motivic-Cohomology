@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.OwnerParts.ContourTomography
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.OwnerParts.BoundaryCancellationInputs
 
 /-!
 # Boundary explicit-formula analytic core
@@ -540,7 +541,6 @@ theorem zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_hasSum_pur
   obtain ⟨z, hsum, hre⟩ :=
     zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_hasSum_realPart_zero_boundaryCancellation
       f hledger horiented
-  refine ⟨Complex.im z, ?_⟩
   have hz : z = Complex.I * (Complex.im z : ℂ) := by
     apply Complex.ext
     · calc
@@ -565,14 +565,15 @@ theorem zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate_hasSum_pur
                 exact Complex.I_mul_im (Complex.im z : ℂ)
               _ = Complex.im z := by
                 exact Complex.ofReal_re (Complex.im z)).symm
-  · exact Eq.subst
+  exact ⟨Complex.im z,
+    Eq.subst
       (motive := fun w : ℂ =>
         HasSum
           (fun ι : ZetaPrimePowerIndex =>
             zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate ι f)
           w)
       hz
-      hsum
+      hsum⟩
 
 /-- Completed autocorrelation prime-power spectral-sample coordinate-sum cancellation.
 
@@ -655,7 +656,6 @@ theorem zetaCompletedPrimePowerSpectralSampleCoordinateTsum_convolutionAutocorre
           (ZetaAdmissibleFunction.convolutionAutocorrelation f)) = 0 :=
     hsum.tsum_eq
   exact (congrArg Complex.re htsum).trans Complex.zero_re
-
 
 end ZetaAdmissibleFunction
 

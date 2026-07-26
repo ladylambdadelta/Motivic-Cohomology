@@ -165,8 +165,8 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
   exact
     zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCorrectedResidueSum_of_radiusLocalInterior_and_finiteHoleCauchy
       f F h T hT hinterior
-      (fun a ha =>
-        explicitFormulaRectangleRawSingularCoordinates_localInterior_ball F hT hinterior ha)
+      (explicitFormulaRectangleRawSingularCoordinates_localInterior_ball_of_heightWindow_owner
+        F hT hinterior)
       hfiniteHoleCauchy
       hlocal
 
@@ -697,6 +697,21 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
   exact
     zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCorrectedResidueSum_of_boundaryRegular_regularGridEndpointDataSubdivision_ownerCauchyResidueTheorem
       f F h T hT hboundary hinterior hgrid hdeleted hlocal
+
+/- The local-interior hypothesis required by finite-radius geometry is supplied
+by the finite height-window classification itself. -/
+theorem explicitFormulaRectangleRawSingularCoordinates_localInterior_ball_of_heightWindow_owner
+    (F : ExplicitFormulaContourFamily) {T : ℝ} (hT : 0 < T)
+    (hinterior :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T ↔
+          completedZeroResidueCoordinate ρ ∈ explicitFormulaContourFamilyInterior F T ∧
+            completedZeroResidueCoordinate ρ ∈ completedZetaContourIntegrandSingularSet) :
+    ∀ a : ℂ,
+      a ∈ explicitFormulaRectangleRawSingularCoordinates T →
+        ∃ r : ℝ, 0 < r ∧ Metric.ball a r ⊆ explicitFormulaContourFamilyInterior F T :=
+  fun a ha => explicitFormulaRectangleRawSingularCoordinates_localInterior_ball
+    F hT hinterior ha
 
 end ZetaAdmissibleFunction
 

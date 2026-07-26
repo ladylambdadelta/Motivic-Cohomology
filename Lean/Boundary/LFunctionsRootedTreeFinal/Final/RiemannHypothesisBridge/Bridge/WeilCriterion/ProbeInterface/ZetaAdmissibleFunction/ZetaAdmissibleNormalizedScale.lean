@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ProbeInterface.ZetaAdmissibleFunction.ZetaAdmissibleComplexModulation
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.SupportInterval.Owner
 import Mathlib.MeasureTheory.Measure.Haar.NormedSpace
 
 /-!
@@ -39,6 +40,123 @@ theorem normalizedScale_apply
     _ = (a⁻¹ : ℂ) * f (a⁻¹ * t) := by
       exact congrArg (fun value : ℂ => (a⁻¹ : ℂ) * value) hscale
 
+/-- The ordinary support of a nonzero normalized dilation is the inverse-scaled
+support of the original probe. -/
+theorem normalizedScale_support
+    (a : ℝ)
+    (ha : a ≠ 0)
+    (f : ZetaAdmissibleFunction) :
+    Function.support (normalizedScale a f) =
+      (fun x : ℝ => a⁻¹ * x) ⁻¹' Function.support f := by
+  unfold normalizedScale
+  calc
+    Function.support ((a⁻¹ : ℂ) • scale a⁻¹ f) =
+        Function.support (scale a⁻¹ f) := by
+          exact support_smul (a⁻¹ : ℂ)
+            (inv_ne_zero (Complex.ofReal_ne_zero.mpr ha)) (scale a⁻¹ f)
+    _ = (fun x : ℝ => a⁻¹ * x) ⁻¹' Function.support f := by
+      exact support_scale a⁻¹ (inv_ne_zero ha) f
+
+/-- The topological support of a normalized dilation is contained in the
+inverse-scaled topological support of the original probe. -/
+theorem normalizedScale_tsupport_subset
+    (a : ℝ)
+    (ha : a ≠ 0)
+    (f : ZetaAdmissibleFunction) :
+    tsupport (normalizedScale a f) ⊆
+      (fun x : ℝ => a⁻¹ * x) ⁻¹' tsupport f := by
+  unfold tsupport
+  apply closure_minimal
+  · intro x hx
+    have hscaled :
+        x ∈ (fun y : ℝ => a⁻¹ * y) ⁻¹' Function.support f := by
+      exact (normalizedScale_support a ha f) ▸ hx
+    exact subset_tsupport f hscaled
+  · exact (isClosed_tsupport f).preimage
+      (continuous_const.mul continuous_id)
+
+/-- A positive normalized dilation transports a support interval by the same
+positive scale.  This is the geometric input needed before comparing its
+Paley--Wiener exponential envelope with prime-power height. -/
+noncomputable def normalizedScale_supportInterval
+    (a : ℝ) (ha : 0 < a) (f : ZetaAdmissibleFunction)
+    (I : ZetaPaleyWienerSupportInterval f) :
+    ZetaPaleyWienerSupportInterval (normalizedScale a f) := by
+  let J : ZetaPaleyWienerSupportInterval (normalizedScale a f) :=
+    { lower := a * I.lower
+      upper := a * I.upper
+      lower_le_upper := mul_le_mul_of_nonneg_left I.lower_le_upper ha.le
+      lower_mem := by
+        intro t ht
+        have hscaled : a⁻¹ * t ∈ tsupport f := by
+          exact (normalizedScale_tsupport_subset a ha.ne' f ht)
+        have hlower : I.lower ≤ a⁻¹ * t := I.lower_mem _ hscaled
+        have hmul : a * I.lower ≤ a * (a⁻¹ * t) :=
+          mul_le_mul_of_nonneg_left hlower ha.le
+        exact hmul.trans_eq (by
+          calc
+            a * (a⁻¹ * t) = (a * a⁻¹) * t := by
+              exact (mul_assoc a a⁻¹ t).symm
+            _ = 1 * t := by
+              exact congrArg (fun x : ℝ => x * t) (mul_inv_cancel₀ ha.ne')
+            _ = t := one_mul t)
+      upper_mem := by
+        intro t ht
+        have hscaled : a⁻¹ * t ∈ tsupport f := by
+          exact (normalizedScale_tsupport_subset a ha.ne' f ht)
+        have hupper : a⁻¹ * t ≤ I.upper := I.upper_mem _ hscaled
+        have hmul : a * (a⁻¹ * t) ≤ a * I.upper :=
+          mul_le_mul_of_nonneg_left hupper ha.le
+        have heq : a * (a⁻¹ * t) = t := by
+          calc
+            a * (a⁻¹ * t) = (a * a⁻¹) * t := by
+              exact (mul_assoc a a⁻¹ t).symm
+            _ = 1 * t := by
+              exact congrArg (fun x : ℝ => x * t) (mul_inv_cancel₀ ha.ne')
+            _ = t := one_mul t
+        exact heq ▸ hmul}
+  exact J
+
+theorem normalizedScale_supportInterval_explicit
+    (a : ℝ) (ha : 0 < a) (f : ZetaAdmissibleFunction)
+    (I : ZetaPaleyWienerSupportInterval f) :
+    ∃ J : ZetaPaleyWienerSupportInterval (normalizedScale a f),
+      J.lower = a * I.lower ∧ J.upper = a * I.upper := by
+  let J : ZetaPaleyWienerSupportInterval (normalizedScale a f) :=
+    { lower := a * I.lower
+      upper := a * I.upper
+      lower_le_upper := mul_le_mul_of_nonneg_left I.lower_le_upper ha.le
+      lower_mem := by
+        intro t ht
+        have hscaled : a⁻¹ * t ∈ tsupport f :=
+          normalizedScale_tsupport_subset a ha.ne' f ht
+        have hlower : I.lower ≤ a⁻¹ * t := I.lower_mem _ hscaled
+        have hmul : a * I.lower ≤ a * (a⁻¹ * t) :=
+          mul_le_mul_of_nonneg_left hlower ha.le
+        exact hmul.trans_eq (by
+          calc
+            a * (a⁻¹ * t) = (a * a⁻¹) * t :=
+              (mul_assoc a a⁻¹ t).symm
+            _ = 1 * t := congrArg (fun x : ℝ => x * t)
+              (mul_inv_cancel₀ ha.ne')
+            _ = t := one_mul t)
+      upper_mem := by
+        intro t ht
+        have hscaled : a⁻¹ * t ∈ tsupport f :=
+          normalizedScale_tsupport_subset a ha.ne' f ht
+        have hupper : a⁻¹ * t ≤ I.upper := I.upper_mem _ hscaled
+        have hmul : a * (a⁻¹ * t) ≤ a * I.upper :=
+          mul_le_mul_of_nonneg_left hupper ha.le
+        have heq : a * (a⁻¹ * t) = t := by
+          calc
+            a * (a⁻¹ * t) = (a * a⁻¹) * t :=
+              (mul_assoc a a⁻¹ t).symm
+            _ = 1 * t := congrArg (fun x : ℝ => x * t)
+              (mul_inv_cancel₀ ha.ne')
+            _ = t := one_mul t
+        exact heq ▸ hmul }
+  exact ⟨J, rfl, rfl⟩
+
 /-- Positive normalized dilation evaluates the Laplace transform at the corresponding
 scaled spectral coordinate. -/
 theorem zetaLaplaceTransform_normalizedScale
@@ -64,26 +182,30 @@ theorem zetaLaplaceTransform_normalizedScale
           (a⁻¹ : ℂ) * f (a⁻¹ * x) :=
       normalizedScale_apply a ha_ne_zero f x
     have hcast_inv_mul :
-        ((a⁻¹ * x : ℝ) : ℂ) = (a⁻¹ : ℂ) * (x : ℂ) := by
-      simpa only [Complex.ofReal_inv] using Complex.ofReal_mul a⁻¹ x
+        ((a⁻¹ * x : ℝ) : ℂ) = ((a : ℂ)⁻¹) * (x : ℂ) := by
+      exact
+        Eq.trans
+          (Complex.ofReal_mul a⁻¹ x)
+          (congrArg (fun value : ℂ => value * (x : ℂ))
+            (Complex.ofReal_inv a))
     have hcoefficient :
-        (a : ℂ) * (a⁻¹ : ℂ) = 1 := by
+        (a : ℂ) * ((a : ℂ)⁻¹) = 1 := by
       exact mul_inv_cancel₀ ha_complex_ne_zero
     have hexponent_argument :
         ((a : ℂ) * z) * ((a⁻¹ * x : ℝ) : ℂ) = z * (x : ℂ) := by
       calc
         ((a : ℂ) * z) * ((a⁻¹ * x : ℝ) : ℂ) =
-            ((a : ℂ) * z) * ((a⁻¹ : ℂ) * (x : ℂ)) := by
+            ((a : ℂ) * z) * (((a : ℂ)⁻¹) * (x : ℂ)) := by
               exact congrArg (fun value : ℂ => ((a : ℂ) * z) * value) hcast_inv_mul
-        _ = (((a : ℂ) * z) * (a⁻¹ : ℂ)) * (x : ℂ) := by
-              exact (mul_assoc ((a : ℂ) * z) (a⁻¹ : ℂ) (x : ℂ)).symm
-        _ = ((z * (a : ℂ)) * (a⁻¹ : ℂ)) * (x : ℂ) := by
+        _ = (((a : ℂ) * z) * ((a : ℂ)⁻¹)) * (x : ℂ) := by
+              exact (mul_assoc ((a : ℂ) * z) ((a : ℂ)⁻¹) (x : ℂ)).symm
+        _ = ((z * (a : ℂ)) * ((a : ℂ)⁻¹)) * (x : ℂ) := by
               exact congrArg
-                (fun value : ℂ => (value * (a⁻¹ : ℂ)) * (x : ℂ))
+                (fun value : ℂ => (value * ((a : ℂ)⁻¹)) * (x : ℂ))
                 (mul_comm (a : ℂ) z)
-        _ = (z * ((a : ℂ) * (a⁻¹ : ℂ))) * (x : ℂ) := by
+        _ = (z * ((a : ℂ) * ((a : ℂ)⁻¹))) * (x : ℂ) := by
               exact congrArg (fun value : ℂ => value * (x : ℂ))
-                (mul_assoc z (a : ℂ) (a⁻¹ : ℂ))
+                (mul_assoc z (a : ℂ) ((a : ℂ)⁻¹))
         _ = (z * 1) * (x : ℂ) := by
               exact congrArg (fun value : ℂ => (z * value) * (x : ℂ)) hcoefficient
         _ = z * (x : ℂ) := by

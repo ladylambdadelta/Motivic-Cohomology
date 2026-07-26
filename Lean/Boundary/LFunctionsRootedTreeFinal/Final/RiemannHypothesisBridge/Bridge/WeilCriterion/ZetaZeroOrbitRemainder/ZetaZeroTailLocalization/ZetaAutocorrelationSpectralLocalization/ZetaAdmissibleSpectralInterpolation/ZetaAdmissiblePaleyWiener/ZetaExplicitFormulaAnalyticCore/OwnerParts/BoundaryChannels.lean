@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.OwnerParts.PrimePowerCoordinates
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.OwnerParts.ArchimedeanHermitianKernel
 
 /-!
 # Boundary explicit-formula analytic core
@@ -43,19 +43,32 @@ This public owner definition is the completed time/log-side prime-power distribu
 finite display support and not the contour-side spectral-sample presentation. -/
 noncomputable def zetaCompletedExplicitFormulaPrimeContribution
     (f : ZetaAdmissibleFunction) : ℂ :=
-  zetaCompletedExplicitFormulaPrimePowerContribution f
+  -zetaCompletedExplicitFormulaPrimePowerContribution f
 
-/-- The completed prime-power owner contribution is the public prime contribution. -/
-theorem zetaCompletedExplicitFormulaPrimePowerContribution_eq_primeContribution
+/-- The completed prime-power owner distribution is the negative of the
+public prime contribution. -/
+theorem zetaCompletedExplicitFormulaPrimePowerContribution_eq_neg_primeContribution
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaPrimePowerContribution f =
-      zetaCompletedExplicitFormulaPrimeContribution f := by
-  exact Eq.refl (zetaCompletedExplicitFormulaPrimePowerContribution f)
+      -zetaCompletedExplicitFormulaPrimeContribution f := by
+  unfold zetaCompletedExplicitFormulaPrimeContribution
+  exact (neg_neg (zetaCompletedExplicitFormulaPrimePowerContribution f)).symm
 
-/-- The archimedean contribution in the completed explicit formula. -/
+/-- The public prime contribution is the negative of the raw completed
+prime-power owner distribution. -/
+theorem zetaCompletedExplicitFormulaPrimeContribution_eq_neg_primePowerContribution
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaPrimeContribution f =
+      -zetaCompletedExplicitFormulaPrimePowerContribution f := by
+  exact Eq.refl (zetaCompletedExplicitFormulaPrimeContribution f)
+
+/-- The archimedean contribution in the completed explicit formula.
+
+This is the Hermitian Gamma-factor distribution supplied by the two completed
+vertical faces.  It is not a rank-one transform evaluation. -/
 noncomputable def zetaCompletedExplicitFormulaArchimedeanContribution
     (f : ZetaAdmissibleFunction) : ℂ :=
-  (2 : ℂ) * zetaCompletedExplicitFormulaPhi f 0
+  zetaCompletedExplicitFormulaHermitianArchimedeanContribution f
 
 /-- The correction contribution in the completed explicit formula. -/
 noncomputable def zetaCompletedExplicitFormulaCorrectionContribution
@@ -67,14 +80,17 @@ noncomputable def zetaCompletedExplicitFormulaCorrectionContribution
 theorem zetaCompletedExplicitFormulaPrimeContribution_eq
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaPrimeContribution f =
-      zetaCompletedExplicitFormulaPrimePowerContribution f := by
+      -zetaCompletedExplicitFormulaPrimePowerContribution f := by
   exact Eq.refl (zetaCompletedExplicitFormulaPrimeContribution f)
 
-/-- The archimedean contribution is the spectral value at the self-paired basepoint. -/
+/-- The archimedean contribution unfolds to the Hermitian Gamma-factor
+distribution. -/
 theorem zetaCompletedExplicitFormulaArchimedeanContribution_eq
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaArchimedeanContribution f =
-      (2 : ℂ) * zetaCompletedExplicitFormulaPhi f 0 := by
+      ∫ t : ℝ,
+        zetaCompletedArchimedeanHermitianKernel t *
+          zetaCompletedExplicitFormulaPhi f (t * Complex.I) := by
   exact Eq.refl (zetaCompletedExplicitFormulaArchimedeanContribution f)
 
 /-- The correction contribution is the centered pole correction at the basepoint. -/
@@ -120,31 +136,63 @@ theorem zetaCompletedExplicitFormulaBoundarySumCore_eq
         zetaCompletedExplicitFormulaCorrectionContribution f := by
   exact Eq.refl _
 
-/-- The normalized completed explicit-formula boundary channel.
+/-- The completed explicit-formula boundary channel.
 
 The stored prime contribution already carries the conventional negative
-prime-power sign.  The raw contour prime face therefore enters with the
-opposite sign, while the raw archimedean face is divided by the real Cauchy
-factor `2 pi`.  The elementary pole channel is absent here because its local
-residues are removed by the normalized pole correction. -/
+prime-power sign, so the raw contour prime face enters as this stored
+contribution.  The archimedean and correction channels are kept as separate
+owner pieces so the Hilbert-source correction coordinate has a genuine boundary
+channel to represent. -/
 def completedBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
-  -(zetaCompletedExplicitFormulaPrimeContribution g) +
-    zetaCompletedExplicitFormulaArchimedeanContribution g /
-      (2 * (Real.pi : ℂ))
+  zetaCompletedExplicitFormulaPrimeContribution g +
+    zetaCompletedExplicitFormulaArchimedeanContribution g +
+    zetaCompletedExplicitFormulaCorrectionContribution g
 
-/-- The normalized completed boundary unfolds into its signed prime and
-normalized archimedean terms. -/
+/-- The completed boundary unfolds into its signed prime, archimedean, and
+correction terms. -/
 theorem completedBoundaryChannel_eq_normalized_prime_archimedean
     (g : ZetaAdmissibleFunction) :
     completedBoundaryChannel g =
-      -(zetaCompletedExplicitFormulaPrimeContribution g) +
-        zetaCompletedExplicitFormulaArchimedeanContribution g /
-          (2 * (Real.pi : ℂ)) := by
+      zetaCompletedExplicitFormulaPrimeContribution g +
+        zetaCompletedExplicitFormulaArchimedeanContribution g +
+        zetaCompletedExplicitFormulaCorrectionContribution g := by
+  exact Eq.refl _
+
+/-- The two endpoint evaluations contributed when the poles of the
+meromorphic completed zeta function at `0` and `1` are removed from its
+negative logarithmic derivative.  The spectral coordinate is centered at
+`1 / 2`, so the two endpoints occur at `-1 / 2` and `1 / 2`. -/
+noncomputable def completedWeilEndpointCorrectionChannel
+    (g : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaPhi g (-(1 / 2 : ℂ)) +
+    zetaCompletedExplicitFormulaPhi g (1 / 2 : ℂ)
+
+/-- The completed Weil boundary in zero-side coordinates.  It consists of
+the physical prime/Gamma boundary together with the two endpoint terms that
+remove the poles of the meromorphic completed zeta function. -/
+noncomputable def completedWeilBoundaryChannel
+    (g : ZetaAdmissibleFunction) : ℂ :=
+  completedBoundaryChannel g + completedWeilEndpointCorrectionChannel g
+
+/-- The endpoint correction unfolds to its two centered evaluations. -/
+theorem completedWeilEndpointCorrectionChannel_eq
+    (g : ZetaAdmissibleFunction) :
+    completedWeilEndpointCorrectionChannel g =
+      zetaCompletedExplicitFormulaPhi g (-(1 / 2 : ℂ)) +
+        zetaCompletedExplicitFormulaPhi g (1 / 2 : ℂ) := by
+  exact Eq.refl _
+
+/-- The completed Weil boundary unfolds to the physical channel plus its
+endpoint correction. -/
+theorem completedWeilBoundaryChannel_eq
+    (g : ZetaAdmissibleFunction) :
+    completedWeilBoundaryChannel g =
+      completedBoundaryChannel g + completedWeilEndpointCorrectionChannel g := by
   exact Eq.refl _
 
 /-- The prime channel of the completed boundary functional. -/
 def primeBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
-  -(zetaCompletedExplicitFormulaPrimeContribution g)
+  zetaCompletedExplicitFormulaPrimeContribution g
 
 /-- The opposite prime face of the completed boundary functional.  This is the negative
 prime-power face paired with the positive prime channel by dagger. -/
@@ -155,12 +203,11 @@ def oppositePrimeBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
 
 /-- The archimedean channel of the completed boundary functional. -/
 def archimedeanBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
-  zetaCompletedExplicitFormulaArchimedeanContribution g /
-    (2 * (Real.pi : ℂ))
+  zetaCompletedExplicitFormulaArchimedeanContribution g
 
 /-- The pole channel in the current centered completed-zeta normalization. -/
-def poleBoundaryChannel (_g : ZetaAdmissibleFunction) : ℂ :=
-  0
+def poleBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaCorrectionContribution g
 
 /-- The residual completion channel after the explicit archimedean and pole channels have been
 separated.  In the current normalization this channel is zero; if the gamma normalization is
@@ -181,31 +228,30 @@ archimedean pieces. -/
 theorem completedBoundaryChannel_unfold
     (g : ZetaAdmissibleFunction) :
     completedBoundaryChannel g =
-      -(zetaCompletedExplicitFormulaPrimeContribution g) +
-        zetaCompletedExplicitFormulaArchimedeanContribution g /
-          (2 * (Real.pi : ℂ)) := by
+      zetaCompletedExplicitFormulaPrimeContribution g +
+        zetaCompletedExplicitFormulaArchimedeanContribution g +
+        zetaCompletedExplicitFormulaCorrectionContribution g := by
   exact Eq.refl (completedBoundaryChannel g)
 
 /-- The prime boundary channel unfolds to the prime contribution. -/
 theorem primeBoundaryChannel_unfold
     (g : ZetaAdmissibleFunction) :
     primeBoundaryChannel g =
-      -(zetaCompletedExplicitFormulaPrimeContribution g) := by
+      zetaCompletedExplicitFormulaPrimeContribution g := by
   exact Eq.refl (primeBoundaryChannel g)
 
 /-- The archimedean boundary channel unfolds to the archimedean contribution. -/
 theorem archimedeanBoundaryChannel_unfold
     (g : ZetaAdmissibleFunction) :
     archimedeanBoundaryChannel g =
-      zetaCompletedExplicitFormulaArchimedeanContribution g /
-        (2 * (Real.pi : ℂ)) := by
+      zetaCompletedExplicitFormulaArchimedeanContribution g := by
   exact Eq.refl (archimedeanBoundaryChannel g)
 
 /-- The pole boundary channel unfolds to the correction contribution. -/
 theorem poleBoundaryChannel_unfold
     (g : ZetaAdmissibleFunction) :
     poleBoundaryChannel g =
-      0 := by
+      zetaCompletedExplicitFormulaCorrectionContribution g := by
   exact Eq.refl (poleBoundaryChannel g)
 
 /-- The residual completion channel is zero in the current normalization. -/
@@ -224,24 +270,19 @@ theorem completedBoundaryChannel_eq_prime_add_archimedean_add_pole_add_completio
         completionBoundaryChannel g := by
   calc
     completedBoundaryChannel g =
-        -(zetaCompletedExplicitFormulaPrimeContribution g) +
-          zetaCompletedExplicitFormulaArchimedeanContribution g /
-            (2 * (Real.pi : ℂ)) :=
+        zetaCompletedExplicitFormulaPrimeContribution g +
+          zetaCompletedExplicitFormulaArchimedeanContribution g +
+          zetaCompletedExplicitFormulaCorrectionContribution g :=
       completedBoundaryChannel_unfold g
     _ =
-        (-(zetaCompletedExplicitFormulaPrimeContribution g) +
-          zetaCompletedExplicitFormulaArchimedeanContribution g /
-            (2 * (Real.pi : ℂ)) + 0) + 0 := by
-      exact Eq.trans
+        (zetaCompletedExplicitFormulaPrimeContribution g +
+          zetaCompletedExplicitFormulaArchimedeanContribution g +
+          zetaCompletedExplicitFormulaCorrectionContribution g) + 0 := by
+      exact
         (add_zero
-          (-(zetaCompletedExplicitFormulaPrimeContribution g) +
-            zetaCompletedExplicitFormulaArchimedeanContribution g /
-              (2 * (Real.pi : ℂ)))).symm
-        (congrArg (fun value : ℂ => value + 0)
-          (add_zero
-            (-(zetaCompletedExplicitFormulaPrimeContribution g) +
-              zetaCompletedExplicitFormulaArchimedeanContribution g /
-                (2 * (Real.pi : ℂ)))).symm)
+          (zetaCompletedExplicitFormulaPrimeContribution g +
+            zetaCompletedExplicitFormulaArchimedeanContribution g +
+            zetaCompletedExplicitFormulaCorrectionContribution g)).symm
     _ =
         primeBoundaryChannel g +
           archimedeanBoundaryChannel g +

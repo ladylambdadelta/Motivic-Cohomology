@@ -69,15 +69,19 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernelIntegral_t
     zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernelIntegral_tendsto_integral_ownerLeftOffPoleTransport
       f F h
 
-/-- The whole-line left zero-pole affine-kernel integral vanishes. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_ownerTransport
+/-- The whole-line left zero-pole affine-kernel integral in the corrected
+projection-residue normalization. -/
+theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_projectionResidue_ownerTransport
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F t) =
-      0 := by
+      Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+          f.toZetaTestFunction' F.c +
+        zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+          f * Complex.I := by
   exact
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_ownerLeftOffPoleDecay
+    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_projectionResidue_ownerLeftOffPoleDecay
       f F h
 
 end ZetaAdmissibleFunction

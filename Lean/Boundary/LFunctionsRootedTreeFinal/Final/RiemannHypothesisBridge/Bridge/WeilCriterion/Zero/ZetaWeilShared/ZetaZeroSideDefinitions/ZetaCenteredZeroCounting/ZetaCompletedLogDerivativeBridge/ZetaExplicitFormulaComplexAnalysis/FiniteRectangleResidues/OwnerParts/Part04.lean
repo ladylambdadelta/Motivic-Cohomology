@@ -22,13 +22,13 @@ namespace ZetaAdmissibleFunction
 completed-zeta pole coordinate `0`, in the explicit-formula normalization. -/
 noncomputable def explicitFormulaRectangle_zeroPoleResidue
     (f : ZetaAdmissibleFunction) : ℂ :=
-  -zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))
+  zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))
 
 /-- The local residue contribution of the raw completed contour integrand at the
 completed-zeta pole coordinate `1`, in the explicit-formula normalization. -/
 noncomputable def explicitFormulaRectangle_onePoleResidue
     (f : ZetaAdmissibleFunction) : ℂ :=
-  -zetaCompletedExplicitFormulaPhi f (1 / 2 : ℂ)
+  zetaCompletedExplicitFormulaPhi f (1 / 2 : ℂ)
 
 /-- The shifted completed explicit-formula transform tends to its shifted value at any
 punctured-neighborhood center. -/
@@ -373,7 +373,7 @@ theorem explicitFormulaRectangle_onePole_localResidue_tendsto_rawCompleted
       f hPhi completedZetaNegLogDeriv_onePole_residue_tendsto
 
 /-- The contour-coordinate datum is the correct datum for the finite rectangle pole. -/
-theorem explicitFormulaRectangle_completedZero_localResidue_centeredResidueCoordinateCorrection_ownerGap
+theorem explicitFormulaRectangle_completedZero_localResidue_centeredResidueCoordinateCorrection
     (f : ZetaAdmissibleFunction) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     (explicitFormulaContourZeroDataOfCompletedZero ρ).zero =
       completedZeroResidueCoordinate ρ ∧
@@ -391,7 +391,7 @@ The finite rectangle residue computation gives the contour-coordinate datum.  Th
 records both unfolded residues at their own coordinates, so the remaining convention
 change is visible to the global finite-sum normalization instead of being hidden as a
 false local-residue identity. -/
-theorem explicitFormulaRectangle_completedZero_localResidue_zeroDataResidueCompatibility_ownerGap
+theorem explicitFormulaRectangle_completedZero_localResidue_zeroDataResidueCompatibility
     (f : ZetaAdmissibleFunction) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     explicitFormulaZeroResidue f (explicitFormulaContourZeroDataOfCompletedZero ρ) =
         - (zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
@@ -463,7 +463,7 @@ the finite rectangle pole is `completedZeroResidueCoordinate ρ = 1 / 2 + ρ`, s
 product transport samples the test transform at
 `completedZeroResidueCoordinate ρ - 1 / 2`.  Conversion to the named zero-side datum is a
 separate convention-normalization obligation. -/
-theorem explicitFormulaRectangle_completedZero_localResidue_productTransport_ownerGap
+theorem explicitFormulaRectangle_completedZero_localResidue_productTransport
     (f : ZetaAdmissibleFunction) (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
     (hlog :
       Tendsto
@@ -499,13 +499,13 @@ theorem explicitFormulaRectangle_completedZero_localResidue_tendsto_contourSumma
   exact
     explicitFormulaRectangle_completedZero_localResidue_productTransport_contourCoordinate
       f ρ
-      (completedZetaNegLogDeriv_completedZero_residue_tendsto_ownerGap ρ)
-      (zetaCompletedExplicitFormulaPhi_completedZero_shift_tendsto_ownerGap f hPhi ρ)
+      (completedZetaNegLogDeriv_completedZero_residue_tendsto ρ)
+      (zetaCompletedExplicitFormulaPhi_completedZero_shift_tendsto f hPhi ρ)
 
 /-- The local residue of the completed explicit-formula integrand at a completed zero is the
 named zero-side residue summand only after the centered residue-coordinate correction has
 been supplied. -/
-theorem explicitFormulaRectangle_completedZero_localResidue_tendsto_summand_ownerGap
+theorem explicitFormulaRectangle_completedZero_localResidue_tendsto_summand
     (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
     (hnormalize :
@@ -526,10 +526,10 @@ theorem explicitFormulaRectangle_completedZero_localResidue_tendsto_summand_owne
           (𝓝[≠] (completedZeroResidueCoordinate ρ))
           (𝓝 w))
       hnormalize
-      (explicitFormulaRectangle_completedZero_localResidue_productTransport_ownerGap
+      (explicitFormulaRectangle_completedZero_localResidue_productTransport
         f ρ
-        (completedZetaNegLogDeriv_completedZero_residue_tendsto_ownerGap ρ)
-        (zetaCompletedExplicitFormulaPhi_completedZero_shift_tendsto_ownerGap f hPhi ρ))
+        (completedZetaNegLogDeriv_completedZero_residue_tendsto ρ)
+        (zetaCompletedExplicitFormulaPhi_completedZero_shift_tendsto f hPhi ρ))
 
 /-- The local Cauchy-residue hypothesis must stay at the true uncentered contour pole.
 
@@ -537,7 +537,7 @@ The older centered-neighborhood surface asked for a punctured neighborhood of `�
 would move the residue away from the actual pole of the contour integrand.  The corrected
 owner statement records that the local theorem supplied at `1 / 2 + ρ` is already in the
 coordinate required by the rectangle residue calculation. -/
-theorem explicitFormulaRectangle_completedZero_localResidue_zeroSideCoordinateCompatibility_centeredNeighborhoodTransport_ownerGap
+theorem explicitFormulaRectangle_completedZero_localResidue_zeroSideCoordinateCompatibility_uncenteredPoleTransport
     (f : ZetaAdmissibleFunction) (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
     (hlocal :
       Tendsto
@@ -557,7 +557,7 @@ after the local contour-coordinate residue has been computed.
 
 The named completed-zero datum is now the contour-coordinate datum, so both unfolded
 residue presentations sample `Φ_f ρ`. -/
-theorem explicitFormulaRectangle_completedZero_localResidue_zeroSideConventionNormalization_ownerGap
+theorem explicitFormulaRectangle_completedZero_localResidue_zeroSideConventionNormalization
     (f : ZetaAdmissibleFunction) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     explicitFormulaZeroResidue f (explicitFormulaContourZeroDataOfCompletedZero ρ) =
         - (zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
@@ -566,12 +566,12 @@ theorem explicitFormulaRectangle_completedZero_localResidue_zeroSideConventionNo
         - (zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
           zetaCompletedExplicitFormulaPhi f (ρ : ℂ) := by
   exact
-    explicitFormulaRectangle_completedZero_localResidue_zeroDataResidueCompatibility_ownerGap
+    explicitFormulaRectangle_completedZero_localResidue_zeroDataResidueCompatibility
       f ρ
 
 /-- Finite-window convention bridge from the contour-coordinate residue summand to the
 named completed-zero residue summand. -/
-theorem explicitFormulaRectangle_completedZeroResidueWindow_contourToZeroSideConvention_ownerGap
+theorem explicitFormulaRectangle_completedZeroResidueWindow_contourToZeroSideConvention
     (f : ZetaAdmissibleFunction) (T : ℝ)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
     (_hρ : ρ ∈ explicitFormulaCompletedZeroContourHeightWindow T) :
@@ -582,7 +582,7 @@ theorem explicitFormulaRectangle_completedZeroResidueWindow_contourToZeroSideCon
         - (zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
           zetaCompletedExplicitFormulaPhi f (ρ : ℂ) := by
   exact
-    explicitFormulaRectangle_completedZero_localResidue_zeroSideConventionNormalization_ownerGap
+    explicitFormulaRectangle_completedZero_localResidue_zeroSideConventionNormalization
       f ρ
 
 /-- The contour datum and named completed-zero datum have the same `Φ` argument. -/
@@ -621,7 +621,7 @@ theorem explicitFormulaRectangle_completedZeroResidueWindow_contourToZeroSideRes
 
 /-- Transport the already-computed local residue at the true uncentered contour pole to
 the currently named zero-side summand through the explicit convention-normalization leaf. -/
-theorem explicitFormulaRectangle_completedZero_localResidue_zeroSideCoordinateCompatibility_from_uncentered_ownerGap
+theorem explicitFormulaRectangle_completedZero_localResidue_zeroSideCoordinateCompatibility_from_uncentered
     (f : ZetaAdmissibleFunction) (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
     (hnormalize :
       explicitFormulaZeroResidue f (explicitFormulaContourZeroDataOfCompletedZero ρ) =
@@ -643,7 +643,7 @@ theorem explicitFormulaRectangle_completedZero_localResidue_zeroSideCoordinateCo
           (z - completedZeroResidueCoordinate ρ) * zetaCompletedExplicitFormulaContourIntegrand f z)
         (𝓝[≠] (completedZeroResidueCoordinate ρ))
         (𝓝 (explicitFormulaZeroResidue f (explicitFormulaContourZeroDataOfCompletedZero ρ))) :=
-    explicitFormulaRectangle_completedZero_localResidue_zeroSideCoordinateCompatibility_centeredNeighborhoodTransport_ownerGap
+    explicitFormulaRectangle_completedZero_localResidue_zeroSideCoordinateCompatibility_uncenteredPoleTransport
       f ρ hlocal
   exact
     Eq.subst

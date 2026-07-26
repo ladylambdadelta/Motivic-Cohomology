@@ -297,6 +297,56 @@ theorem Gammaℝ_rightCriticalStrip_verticalTail_reciprocal_stirling_growth_boun
               AΓ BΓ mΓ hAΓ_pos hBΓ_pos hΓ_bound
               z hz_re_nonneg hz_re_le_one hz_im_tail⟩
 
+/-- Reciprocal `Gammaℝ` has one finite-order exponential envelope on the whole
+right critical strip.  The compact-height part is supplied by continuity of the
+entire reciprocal Gamma factor; the large-height part is the Binet/Stirling tail.
+-/
+theorem Gammaℝ_rightCriticalStrip_reciprocal_stirling_growth_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 1 →
+          ‖(Complex.Gammaℝ z)⁻¹‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  obtain ⟨At, Bt, mt, hAt, hBt, htail⟩ :=
+    Gammaℝ_rightCriticalStrip_verticalTail_reciprocal_stirling_growth_bound hbranch
+  let K : Set ℂ := Complex.closedRealStripCompactHeightSet 0 1 0 1
+  have hK : IsCompact K :=
+    Complex.closedRealStripCompactHeightSet_isCompact 0 1 0 1
+  have hKcont :
+      ContinuousOn (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) K :=
+    differentiable_Gammaℝ_inv.continuous.continuousOn
+  obtain ⟨M, hM⟩ := IsCompact.exists_bound_of_continuousOn hK hKcont
+  let A : ℝ := max At (max 1 M)
+  have hA : 0 < A := by
+    exact lt_of_lt_of_le hAt (le_max_left At (max 1 M))
+  refine ⟨A, Bt, mt, hA, hBt, ?_⟩
+  intro z hz_re_nonneg hz_re_le_one
+  by_cases hz_tail : 1 ≤ ‖z.im‖
+  · have htail_z := htail z hz_re_nonneg hz_re_le_one hz_tail
+    have hAt_le : At ≤ A := le_max_left At (max 1 M)
+    have hexp_nonneg : 0 ≤ Real.exp (Bt * (1 + ‖z‖) ^ mt) :=
+      le_of_lt (Real.exp_pos _)
+    exact htail_z.trans
+      (mul_le_mul_of_nonneg_right hAt_le hexp_nonneg)
+  · have hz_im_le : ‖z.im‖ ≤ 1 := le_of_not_ge hz_tail
+    have hzK : z ∈ K := by
+      exact
+        ⟨⟨⟨hz_re_nonneg, hz_re_le_one⟩, norm_nonneg z.im⟩, hz_im_le⟩
+    have hcompact := hM z hzK
+    have hM_le : M ≤ A := le_max_right At (max 1 M)
+    have hbase_nonneg : 0 ≤ Bt * (1 + ‖z‖) ^ mt := by
+      exact
+        mul_nonneg (le_of_lt hBt)
+          (pow_nonneg (add_nonneg zero_le_one (norm_nonneg z)) mt)
+    have hexp_one : 1 ≤ Real.exp (Bt * (1 + ‖z‖) ^ mt) := by
+      exact (Real.one_le_exp_iff).mpr hbase_nonneg
+    exact hcompact.trans
+      (hM_le.trans (le_mul_of_one_le_right (le_of_lt hA) hexp_one))
+
 end
 end LFunctions
 end Boundary

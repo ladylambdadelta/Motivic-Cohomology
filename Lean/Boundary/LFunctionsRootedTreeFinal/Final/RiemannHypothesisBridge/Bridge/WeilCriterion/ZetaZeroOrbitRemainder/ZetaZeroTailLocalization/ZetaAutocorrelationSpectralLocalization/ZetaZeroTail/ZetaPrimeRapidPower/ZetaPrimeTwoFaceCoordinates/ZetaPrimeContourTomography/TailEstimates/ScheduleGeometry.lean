@@ -1,4 +1,6 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaPrimeRapidPower.ZetaPrimeTwoFaceCoordinates.ZetaPrimeContourTomography.TailEstimates.CoordinateTail
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaPrimeRapidPower.ZetaPrimeTwoFaceCoordinates.ZetaPrimeContourTomography.CoordinateLedger.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaAnalyticPackage.ScheduledConcreteLogDerivControl
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.Part01
 
 namespace Boundary
 namespace LFunctions
@@ -16,34 +18,14 @@ This record contains only contour geometry.  In particular, it does not contain 
 prime-distribution reconstruction that the contour argument is intended to prove. -/
 structure CompletedPrimeContourTransportScheduleGeometry where
   height_schedule : ExplicitFormulaCofinalHeightSchedule completedPrimeContourTransportFamily
-  horizontal_excisedStrip :
-    CompletedZetaZeroExcisedStrip
-      (min completedPrimeContourTransportFamily.c
-        (1 - completedPrimeContourTransportFamily.c))
-      (max completedPrimeContourTransportFamily.c
-        (1 - completedPrimeContourTransportFamily.c))
-  horizontal_top_mem :
-    ∀ (T x : ℝ),
-      x ∈ Set.uIcc completedPrimeContourTransportFamily.c
-          (1 - completedPrimeContourTransportFamily.c) →
-        zetaCompletedExplicitFormulaTopPath
-            (completedPrimeContourTransportFamily.rectangle T) x ∈
-          horizontal_excisedStrip.carrier
-  horizontal_bottom_mem :
-    ∀ (T x : ℝ),
-      x ∈ Set.uIcc completedPrimeContourTransportFamily.c
-          (1 - completedPrimeContourTransportFamily.c) →
-        zetaCompletedExplicitFormulaBottomPath
-            (completedPrimeContourTransportFamily.rectangle T) x ∈
-          horizontal_excisedStrip.carrier
   horizontal_decay_order : ℕ
 
 /-- Combined geometric schedule and finite reconstruction data. -/
 structure CompletedPrimeContourTransportScheduledFamily extends
     CompletedPrimeContourTransportScheduleGeometry where
-  primeDistributionReconstruction :
+  summedTransport :
     ∀ f : ZetaAdmissibleFunction,
-      CompletedFiniteWindowPrimeDistributionReconstruction f
+      CompletedSummedPrimeContourTimeTransport f
 
 /-- Forget reconstruction data and retain only the contour geometry. -/
 def CompletedPrimeContourTransportScheduledFamily.toScheduleGeometry
@@ -51,81 +33,129 @@ def CompletedPrimeContourTransportScheduledFamily.toScheduleGeometry
     CompletedPrimeContourTransportScheduleGeometry :=
   S.toCompletedPrimeContourTransportScheduleGeometry
 
-/-- Scheduled contour data construct the completed finite-window prime distribution
-reconstruction datum consumed by the distribution-transport owner theorem. -/
-def completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily
+/-- Concrete separated factor-bound data on the completed-prime scheduled horizontal carrier. -/
+structure CompletedPrimeContourTransportConcreteFactorData
+    (S : CompletedPrimeContourTransportScheduleGeometry) where
+  /-- Shared scheduled horizontal carrier. -/
+  carrier :
+    CompletedZetaZeroExcisedStrip
+      (min completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+      (max completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+  /-- Top horizontal edge membership in the shared carrier. -/
+  top_mem :
+    ∀ u x : ℝ,
+      x ∈ Set.uIcc completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c) →
+        zetaCompletedExplicitFormulaTopPath
+          (completedPrimeContourTransportFamily.rectangle
+            (S.height_schedule.height u)) x ∈ carrier.carrier
+  /-- Bottom horizontal edge membership in the shared carrier. -/
+  bottom_mem :
+    ∀ u x : ℝ,
+      x ∈ Set.uIcc completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c) →
+        zetaCompletedExplicitFormulaBottomPath
+          (completedPrimeContourTransportFamily.rectangle
+            (S.height_schedule.height u)) x ∈ carrier.carrier
+  /-- Zeta-side bounds on the scheduled carrier. -/
+  zeta_data :
+    CompletedZetaZeroExcisedStrip.ZetaSideBoundData carrier
+  /-- Inverse-Gamma bounds on the scheduled carrier. -/
+  gamma_data :
+    CompletedZetaZeroExcisedStrip.InverseGammaBoundData carrier
+
+def CompletedPrimeContourTransportConcreteFactorData.ofFactorBoundData
+    {S : CompletedPrimeContourTransportScheduleGeometry}
+    (carrier :
+      CompletedZetaZeroExcisedStrip
+        (min completedPrimeContourTransportFamily.c
+            (1 - completedPrimeContourTransportFamily.c))
+        (max completedPrimeContourTransportFamily.c
+            (1 - completedPrimeContourTransportFamily.c)))
+    (top_mem :
+      ∀ u x : ℝ,
+        x ∈ Set.uIcc completedPrimeContourTransportFamily.c
+            (1 - completedPrimeContourTransportFamily.c) →
+          zetaCompletedExplicitFormulaTopPath
+            (completedPrimeContourTransportFamily.rectangle
+              (S.height_schedule.height u)) x ∈ carrier.carrier)
+    (bottom_mem :
+      ∀ u x : ℝ,
+        x ∈ Set.uIcc completedPrimeContourTransportFamily.c
+            (1 - completedPrimeContourTransportFamily.c) →
+          zetaCompletedExplicitFormulaBottomPath
+            (completedPrimeContourTransportFamily.rectangle
+              (S.height_schedule.height u)) x ∈ carrier.carrier)
+    (factor_data :
+      CompletedZetaZeroExcisedStrip.FactorBoundData carrier) :
+    CompletedPrimeContourTransportConcreteFactorData S :=
+  { carrier := carrier
+    top_mem := top_mem
+    bottom_mem := bottom_mem
+    zeta_data := factor_data.zetaSide
+    gamma_data := factor_data.inverseGamma }
+
+def CompletedPrimeContourTransportConcreteFactorData.toFactorBoundData
+    {S : CompletedPrimeContourTransportScheduleGeometry}
+    (D : CompletedPrimeContourTransportConcreteFactorData S) :
+    CompletedZetaZeroExcisedStrip.FactorBoundData D.carrier :=
+  CompletedZetaZeroExcisedStrip.FactorBoundData.ofParts
+    D.zeta_data
+    D.gamma_data
+
+/-- Concrete factor data construct the scheduled horizontal log-derivative control. -/
+def CompletedPrimeContourTransportConcreteFactorData.toScheduledHorizontalLogDerivControl
+    {S : CompletedPrimeContourTransportScheduleGeometry}
+    (D : CompletedPrimeContourTransportConcreteFactorData S)
+    (f : ZetaAdmissibleFunction) :
+    ExplicitFormulaScheduledHorizontalLogDerivControl
+      (convolutionAutocorrelation f)
+      completedPrimeContourTransportFamily
+      S.height_schedule :=
+  ExplicitFormulaScheduledHorizontalLogDerivControl.ofFactorBoundData
+    D.carrier D.top_mem D.bottom_mem D.toFactorBoundData
+
+/-- Scheduled contour data construct the visible summed prime distribution transport datum
+consumed by the distribution-transport owner theorem. -/
+def completedSummedPrimeContourTimeTransport_of_scheduledContourFamily
     (S : CompletedPrimeContourTransportScheduledFamily)
     (f : ZetaAdmissibleFunction) :
-    CompletedFiniteWindowPrimeDistributionReconstruction f :=
-  S.primeDistributionReconstruction f
+    CompletedSummedPrimeContourTimeTransport f :=
+  S.summedTransport f
 
-/-- The scheduled-family reconstruction stream is the common finite-window stream stored
-in the scheduled contour data. -/
-theorem completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily_finiteWindow
-    (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
-    (completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily S f).finiteWindow =
-      (S.primeDistributionReconstruction f).finiteWindow := by
-  rfl
-
-/-- The scheduled-family reconstruction stream has the time-window presentation. -/
-theorem completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily_timeWindow
+/-- The scheduled-family transport stream has the time-window presentation. -/
+theorem completedSummedPrimeContourTimeTransport_of_scheduledContourFamily_timeWindow
     (S : CompletedPrimeContourTransportScheduledFamily)
     (f : ZetaAdmissibleFunction)
     (N : ℕ) :
-    (completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily S f).finiteWindow N =
+    (completedSummedPrimeContourTimeTransport_of_scheduledContourFamily S f).timeWindow N =
       finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) :=
-  (completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily
-    S f).finiteWindow_eq_timeWindow N
+  (completedSummedPrimeContourTimeTransport_of_scheduledContourFamily
+    S f).timeWindow_eq N
 
-/-- The scheduled-family reconstruction stream has the contour-window presentation. -/
-theorem completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily_contourWindow
+/-- The scheduled-family transport stream has the contour-window presentation. -/
+theorem completedSummedPrimeContourTimeTransport_of_scheduledContourFamily_contourWindow
     (S : CompletedPrimeContourTransportScheduledFamily)
     (f : ZetaAdmissibleFunction)
     (N : ℕ) :
-    (completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily S f).finiteWindow N =
+    (completedSummedPrimeContourTimeTransport_of_scheduledContourFamily S f).contourWindow N =
       finitePrimeContourRealizedTimeDistributionWindow N (convolutionAutocorrelation f) :=
-  (completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily
-    S f).finiteWindow_eq_contourWindow N
-
-/-- The scheduled-family time finite windows converge to the completed time pairing. -/
-theorem completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily_timeWindow_tendsto
-    (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
-    Tendsto
-      (fun N : ℕ =>
-        finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f))
-      atTop
-      (𝓝 (completedPrimeTimeDistributionPairing (convolutionAutocorrelation f))) :=
-  (completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily
-    S f).timeWindow_tendsto
-
-/-- The scheduled-family contour finite windows converge to the completed contour
-pairing. -/
-theorem completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily_contourWindow_tendsto
-    (S : CompletedPrimeContourTransportScheduledFamily)
-    (f : ZetaAdmissibleFunction) :
-    Tendsto
-      (fun N : ℕ =>
-        finitePrimeContourRealizedTimeDistributionWindow N (convolutionAutocorrelation f))
-      atTop
-      (𝓝
-        (completedPrimeContourRealizedTimeDistributionPairing
-          (convolutionAutocorrelation f))) :=
-  (completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily
-    S f).contourWindow_tendsto
+  (completedSummedPrimeContourTimeTransport_of_scheduledContourFamily
+    S f).contourWindow_eq N
 
 /-- Scheduled contour data route the completed prime distribution transport theorem through
 the explicit finite-window reconstruction datum. -/
 theorem completedPrimeDistributionTransport_timePairing_eq_contourRealizedPairing_of_scheduledContourFamily
     (S : CompletedPrimeContourTransportScheduledFamily)
     (f : ZetaAdmissibleFunction) :
-    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+  completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
       completedPrimeContourRealizedTimeDistributionPairing
         (convolutionAutocorrelation f) :=
-  completedPrimeDistributionTransport_timePairing_eq_contourRealizedPairing_ownerFiniteWindowTransport
+  completedPrimeDistributionTransport_timePairing_eq_contourRealizedPairing_ownerSummedTransport
     f
-    (completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily S f)
+    (completedSummedPrimeContourTimeTransport_of_scheduledContourFamily S f)
 
 /-- The scheduled contour-family object associated to prime contour transport data. -/
 def CompletedPrimeContourTransportScheduleGeometry.toScheduledContourFamily
@@ -139,16 +169,16 @@ prime contour-transport family. -/
 theorem CompletedPrimeContourTransportScheduleGeometry.toScheduledContourFamily_toContourFamily
     (S : CompletedPrimeContourTransportScheduleGeometry) :
     S.toScheduledContourFamily.toContourFamily =
-      completedPrimeContourTransportFamily := by
-  rfl
+      completedPrimeContourTransportFamily :=
+  Eq.refl completedPrimeContourTransportFamily
 
 /-- The scheduled contour-family object associated to prime transport data carries the
 stored prime transport height schedule. -/
 theorem CompletedPrimeContourTransportScheduleGeometry.toScheduledContourFamily_height_schedule
     (S : CompletedPrimeContourTransportScheduleGeometry) :
     S.toScheduledContourFamily.height_schedule =
-      S.height_schedule := by
-  rfl
+      S.height_schedule :=
+  Eq.refl S.height_schedule
 
 /-- Family analytic package for the convolution autocorrelation and the completed prime
 contour-transport family, using supplied scheduled contour data. -/
@@ -172,8 +202,8 @@ theorem completedPrimeContourTransportFamilyAnalyticPackage_height_schedule
     (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
     (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     (completedPrimeContourTransportFamilyAnalyticPackage S f hPhi hLog).height_schedule =
-      S.height_schedule := by
-  rfl
+      S.height_schedule :=
+  Eq.refl S.height_schedule
 
 /-- The prime contour-transport package is the scheduled-contour-family analytic package
 for the scheduled prime transport object when the same analytic controls are supplied. -/
@@ -184,118 +214,247 @@ theorem completedPrimeContourTransportFamilyAnalyticPackage_eq_scheduledContourF
     (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     completedPrimeContourTransportFamilyAnalyticPackage S f hPhi hLog =
       explicitFormulaFamilyAnalyticPackage_of_scheduledContourFamily hPhi hLog
-        S.toScheduledContourFamily := by
-  rfl
+        S.toScheduledContourFamily :=
+  Eq.refl (completedPrimeContourTransportFamilyAnalyticPackage S f hPhi hLog)
 
-/-- The finite horizontal residue shadow tends to zero by horizontal decay from an explicit
-family analytic package. -/
-theorem finitePrimeHorizontalResidueShadow_tendsto_zero_of_package
+/-- Narrow scheduled analytic package for the convolution autocorrelation and the completed
+prime contour-transport family. -/
+noncomputable def completedPrimeContourTransportScheduledFamilyAnalyticPackage
+    (S : CompletedPrimeContourTransportScheduleGeometry)
     (f : ZetaAdmissibleFunction)
-    (h : ExplicitFormulaFamilyAnalyticPackage
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hHorizontal :
+      ExplicitFormulaScheduledHorizontalLogDerivControl
+        (convolutionAutocorrelation f)
+        completedPrimeContourTransportFamily
+        S.height_schedule) :
+    ExplicitFormulaScheduledFamilyAnalyticPackage
       (convolutionAutocorrelation f)
-      completedPrimeContourTransportFamily)
-    (E : CompletedZetaZeroExcisedStrip
-      (min completedPrimeContourTransportFamily.c
-        (1 - completedPrimeContourTransportFamily.c))
-      (max completedPrimeContourTransportFamily.c
-        (1 - completedPrimeContourTransportFamily.c)))
-    (hTopMem :
-      ∀ (T x : ℝ),
-        x ∈ Set.uIcc completedPrimeContourTransportFamily.c
-            (1 - completedPrimeContourTransportFamily.c) →
-          zetaCompletedExplicitFormulaTopPath
-              (completedPrimeContourTransportFamily.rectangle T) x ∈
-            E.carrier)
-    (hBottomMem :
-      ∀ (T x : ℝ),
-        x ∈ Set.uIcc completedPrimeContourTransportFamily.c
-            (1 - completedPrimeContourTransportFamily.c) →
-          zetaCompletedExplicitFormulaBottomPath
-              (completedPrimeContourTransportFamily.rectangle T) x ∈
-            E.carrier)
-    (M : ℕ) :
-    Tendsto
-      (fun N : ℕ => finitePrimeHorizontalResidueShadow N f)
-      atTop
-      (𝓝 0) := by
-  have hcomplex :
+      completedPrimeContourTransportFamily :=
+  { phi_control := hPhi
+    height_schedule := S.height_schedule
+    horizontal_logderiv_control := hHorizontal }
+
+/-- The finite residue shadow is pointwise the real part of the scheduled
+horizontal window-error term. -/
+theorem finitePrimeHorizontalResidueShadowAt_fun_eq_horizontalResidueWindowError_re
+    (S : CompletedPrimeContourTransportScheduleGeometry)
+    (f : ZetaAdmissibleFunction) :
+    (fun N : ℕ => finitePrimeHorizontalResidueShadowAt S.height_schedule N f) =
+      (fun N : ℕ =>
+        Complex.re
+          (explicitFormulaFamilyHorizontalResidueWindowError
+            (convolutionAutocorrelation f)
+            completedPrimeContourTransportFamily
+            (S.height_schedule.height (N : ℝ)))) :=
+  funext
+    (fun N =>
+      finitePrimeHorizontalResidueShadowAt_eq_horizontalResidueWindowError_re
+        S.height_schedule
+        N
+        f)
+
+/-- Complex horizontal window-error convergence implies real-part convergence
+to the real zero. -/
+theorem horizontalResidueWindowError_re_tendsto_zero_of_complex_tendsto_zero
+    (S : CompletedPrimeContourTransportScheduleGeometry)
+    (f : ZetaAdmissibleFunction)
+    (hcomplex :
       Tendsto
         (fun N : ℕ =>
           explicitFormulaFamilyHorizontalResidueWindowError
             (convolutionAutocorrelation f)
             completedPrimeContourTransportFamily
-            (N : ℝ))
+            (S.height_schedule.height (N : ℝ)))
         atTop
-        (𝓝 0) := by
-    exact
-        (explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero
-          (convolutionAutocorrelation f)
-          completedPrimeContourTransportFamily
-          h
-          E
-          hTopMem
-          hBottomMem
-          M).comp tendsto_natCast_atTop_atTop
-  have hre :
+        (𝓝 0)) :
+    Tendsto
+      (fun N : ℕ =>
+        Complex.re
+          (explicitFormulaFamilyHorizontalResidueWindowError
+            (convolutionAutocorrelation f)
+            completedPrimeContourTransportFamily
+            (S.height_schedule.height (N : ℝ))))
+      atTop
+      (𝓝 0) :=
+  Eq.subst
+    (motive := fun x : ℝ =>
       Tendsto
-        (fun N : ℕ =>
-          Complex.re
-            (explicitFormulaFamilyHorizontalResidueWindowError
-                (convolutionAutocorrelation f)
-                completedPrimeContourTransportFamily
-                (N : ℝ)))
-        atTop
-        (𝓝 (Complex.re 0)) :=
-    (RCLike.continuous_re.tendsto (0 : ℂ)).comp hcomplex
-  have hzero : Complex.re (0 : ℂ) = (0 : ℝ) :=
-    Complex.zero_re
-  have hshadow :
-      (fun N : ℕ => finitePrimeHorizontalResidueShadow N f) =
         (fun N : ℕ =>
           Complex.re
             (explicitFormulaFamilyHorizontalResidueWindowError
               (convolutionAutocorrelation f)
               completedPrimeContourTransportFamily
-              (N : ℝ))) := by
-    funext N
-    exact finitePrimeHorizontalResidueShadow_eq_horizontalResidueWindowError_re
-      N f
-  exact Eq.subst
-    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
-    hshadow.symm
-    (Eq.subst
-      (motive := fun x : ℝ =>
-        Tendsto
-          (fun N : ℕ =>
-            Complex.re
-              (explicitFormulaFamilyHorizontalResidueWindowError
-                (convolutionAutocorrelation f)
-                completedPrimeContourTransportFamily
-                (N : ℝ)))
-          atTop
-          (𝓝 x))
-      hzero
-      hre)
+              (S.height_schedule.height (N : ℝ))))
+        atTop
+        (𝓝 x))
+    Complex.zero_re
+    ((RCLike.continuous_re.tendsto (0 : ℂ)).comp hcomplex)
 
-/-- The finite horizontal residue shadow tends to zero by supplied scheduled prime
-contour-transport data. -/
-theorem finitePrimeHorizontalResidueShadow_tendsto_zero_ownerTailEstimate
+/-- Real-part horizontal window-error convergence transports to the residue
+shadow convergence. -/
+theorem finitePrimeHorizontalResidueShadowAt_tendsto_zero_of_horizontalResidueWindowError_re
+    (S : CompletedPrimeContourTransportScheduleGeometry)
+    (f : ZetaAdmissibleFunction)
+    (hre :
+      Tendsto
+        (fun N : ℕ =>
+          Complex.re
+            (explicitFormulaFamilyHorizontalResidueWindowError
+              (convolutionAutocorrelation f)
+              completedPrimeContourTransportFamily
+              (S.height_schedule.height (N : ℝ))))
+        atTop
+        (𝓝 0)) :
+    Tendsto
+      (fun N : ℕ => finitePrimeHorizontalResidueShadowAt S.height_schedule N f)
+      atTop
+      (𝓝 0) :=
+  Eq.subst
+    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+    (finitePrimeHorizontalResidueShadowAt_fun_eq_horizontalResidueWindowError_re
+      S
+      f).symm
+    hre
+
+/-- The narrow scheduled package gives complex horizontal window-error
+convergence along natural heights. -/
+theorem horizontalResidueWindowError_tendsto_zero_of_scheduledPackage_nat
+    (S : CompletedPrimeContourTransportScheduleGeometry)
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hHorizontal :
+      ExplicitFormulaScheduledHorizontalLogDerivControl
+        (convolutionAutocorrelation f)
+        completedPrimeContourTransportFamily
+        S.height_schedule) :
+    Tendsto
+      (fun N : ℕ =>
+        explicitFormulaFamilyHorizontalResidueWindowError
+          (convolutionAutocorrelation f)
+          completedPrimeContourTransportFamily
+          (S.height_schedule.height (N : ℝ)))
+      atTop
+      (𝓝 0) :=
+  (explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_of_scheduledPackage
+    (convolutionAutocorrelation f)
+    completedPrimeContourTransportFamily
+    (completedPrimeContourTransportScheduledFamilyAnalyticPackage
+      S
+      f
+      hPhi
+      hHorizontal)
+    S.horizontal_decay_order).comp tendsto_natCast_atTop_atTop
+
+/-- The family package height schedule transports the horizontal window-error
+stream to the schedule stored in the geometric data. -/
+theorem completedPrimeContourTransportPackage_horizontalResidueWindowError_fun_eq_ownerSchedule
+    (S : CompletedPrimeContourTransportScheduleGeometry)
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
+    (fun u : ℝ =>
+      explicitFormulaFamilyHorizontalResidueWindowError
+        (convolutionAutocorrelation f)
+        completedPrimeContourTransportFamily
+        ((completedPrimeContourTransportFamilyAnalyticPackage
+          S f hPhi hLog).height_schedule.height u)) =
+      (fun u : ℝ =>
+        explicitFormulaFamilyHorizontalResidueWindowError
+          (convolutionAutocorrelation f)
+          completedPrimeContourTransportFamily
+          (S.height_schedule.height u)) :=
+  congrArg
+    (fun schedule :
+      ExplicitFormulaCofinalHeightSchedule completedPrimeContourTransportFamily =>
+      fun u : ℝ =>
+        explicitFormulaFamilyHorizontalResidueWindowError
+          (convolutionAutocorrelation f)
+          completedPrimeContourTransportFamily
+          (schedule.height u))
+    (completedPrimeContourTransportFamilyAnalyticPackage_height_schedule
+      S
+      f
+      hPhi
+      hLog)
+
+/-- The full family package gives complex horizontal window-error convergence
+along natural heights after height-schedule transport. -/
+theorem horizontalResidueWindowError_tendsto_zero_of_package_nat
     (S : CompletedPrimeContourTransportScheduleGeometry)
     (f : ZetaAdmissibleFunction)
     (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
     (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
     Tendsto
-      (fun N : ℕ => finitePrimeHorizontalResidueShadow N f)
+      (fun N : ℕ =>
+        explicitFormulaFamilyHorizontalResidueWindowError
+          (convolutionAutocorrelation f)
+          completedPrimeContourTransportFamily
+          (S.height_schedule.height (N : ℝ)))
       atTop
-      (𝓝 0) := by
-  exact
-    finitePrimeHorizontalResidueShadow_tendsto_zero_of_package
+      (𝓝 0) :=
+  (Eq.subst
+    (motive := fun v : ℝ → ℂ => Tendsto v atTop (𝓝 0))
+    (completedPrimeContourTransportPackage_horizontalResidueWindowError_fun_eq_ownerSchedule
+      S
       f
+      hPhi
+      hLog)
+    (explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_of_scheduledCarrier
+      (convolutionAutocorrelation f)
+      completedPrimeContourTransportFamily
       (completedPrimeContourTransportFamilyAnalyticPackage S f hPhi hLog)
-      S.horizontal_excisedStrip
-      S.horizontal_top_mem
-      S.horizontal_bottom_mem
-      S.horizontal_decay_order
+      S.horizontal_decay_order)).comp tendsto_natCast_atTop_atTop
+
+/-- The finite horizontal residue shadow along the supplied schedule tends to zero
+by scheduled horizontal decay from a narrow scheduled analytic package. -/
+theorem finitePrimeHorizontalResidueShadowAt_tendsto_zero_of_scheduledPackage
+    (S : CompletedPrimeContourTransportScheduleGeometry)
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hHorizontal :
+      ExplicitFormulaScheduledHorizontalLogDerivControl
+        (convolutionAutocorrelation f)
+        completedPrimeContourTransportFamily
+        S.height_schedule) :
+    Tendsto
+      (fun N : ℕ => finitePrimeHorizontalResidueShadowAt S.height_schedule N f)
+      atTop
+      (𝓝 0) :=
+  finitePrimeHorizontalResidueShadowAt_tendsto_zero_of_horizontalResidueWindowError_re
+    S
+    f
+    (horizontalResidueWindowError_re_tendsto_zero_of_complex_tendsto_zero
+      S
+      f
+      (horizontalResidueWindowError_tendsto_zero_of_scheduledPackage_nat
+        S
+        f
+        hPhi
+        hHorizontal))
+
+/-- The finite horizontal residue shadow along the supplied schedule tends to zero
+by scheduled horizontal decay from an explicit family analytic package. -/
+theorem finitePrimeHorizontalResidueShadowAt_tendsto_zero_of_package
+    (S : CompletedPrimeContourTransportScheduleGeometry)
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
+    Tendsto
+      (fun N : ℕ => finitePrimeHorizontalResidueShadowAt S.height_schedule N f)
+      atTop
+      (𝓝 0) :=
+  finitePrimeHorizontalResidueShadowAt_tendsto_zero_of_horizontalResidueWindowError_re
+    S
+    f
+    (horizontalResidueWindowError_re_tendsto_zero_of_complex_tendsto_zero
+      S
+      f
+      (horizontalResidueWindowError_tendsto_zero_of_package_nat
+        S
+        f
+        hPhi
+        hLog))
 
 end ZetaAdmissibleFunction
 

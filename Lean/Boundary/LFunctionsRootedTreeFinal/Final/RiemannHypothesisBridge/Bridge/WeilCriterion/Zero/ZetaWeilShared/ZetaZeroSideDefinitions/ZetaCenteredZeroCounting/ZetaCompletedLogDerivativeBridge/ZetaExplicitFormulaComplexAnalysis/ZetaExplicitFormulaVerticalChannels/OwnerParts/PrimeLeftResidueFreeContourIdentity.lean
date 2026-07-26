@@ -129,7 +129,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
       atTop
       (𝓝 (∫ t : ℝ,
         zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t)) :=
-  zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernelIntegral_tendsto_integral_of_zeroExcisedLine_inverseGamma_bound
+  zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernelIntegral_tendsto_integral_of_zeroExcisedLine_and_inverseGamma_bound
     f F h hregular E hline_mem BG hBG_nonneg hinverseGamma_bound
 
 /-- Whole-line residue-free value from the scheduled-window contour value.
@@ -481,13 +481,13 @@ scheduled residue window plus the named outer-band residue error. -/
 theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledEnlargedResidueSum_eq_inner_add_outerBand
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) :
-    explicitFormulaCompletedZeroHeightWindowResidueSum f
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum f
         (h.height_schedule.height u + 1) =
-      explicitFormulaCompletedZeroHeightWindowResidueSum f
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f
           (h.height_schedule.height u) +
         zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledOuterBandResidueError
           f F h u :=
-  explicitFormulaCompletedZeroHeightWindowResidueSum_eq_inner_add_outerBandResidueError
+  explicitFormulaCompletedZeroContourHeightWindowResidueSum_eq_inner_add_outerBandResidueError
     f (h.height_schedule.height u) (h.height_schedule.height u + 1)
 
 /-- The inner completed-zero residue window tends to zero once the enlarged
@@ -498,7 +498,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_innerCompletedZeroResid
     (henlarged :
       Tendsto
         (fun u : ℝ =>
-          explicitFormulaCompletedZeroHeightWindowResidueSum f
+          explicitFormulaCompletedZeroContourHeightWindowResidueSum f
             (h.height_schedule.height u + 1))
         atTop
         (𝓝 0))
@@ -510,15 +510,15 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_innerCompletedZeroResid
         (𝓝 0)) :
     Tendsto
       (fun u : ℝ =>
-        explicitFormulaCompletedZeroHeightWindowResidueSum f
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f
           (h.height_schedule.height u))
       atTop
       (𝓝 0) := by
   let Inner : ℝ → ℂ := fun u : ℝ =>
-    explicitFormulaCompletedZeroHeightWindowResidueSum f
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum f
       (h.height_schedule.height u)
   let Enlarged : ℝ → ℂ := fun u : ℝ =>
-    explicitFormulaCompletedZeroHeightWindowResidueSum f
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum f
       (h.height_schedule.height u + 1)
   let Outer : ℝ → ℂ :=
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledOuterBandResidueError
@@ -576,9 +576,9 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledOuterBandResid
     ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
       zetaZeroSideContribution (ρ : ℂ) f
   let W : ℝ → ℂ := fun T : ℝ =>
-    explicitFormulaCompletedZeroHeightWindowResidueSum f T
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum f T
   have hwindow : Tendsto W atTop (𝓝 L) :=
-    explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroSideTsum
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum_tendsto_zeroSideTsum
       f hsum
   have hinner :
       Tendsto
@@ -674,14 +674,14 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRawSingularInd
         (zetaCompletedZeroSideComplex f +
           explicitFormulaRectangle_completedPoleResidueSum f)) := by
   let W : ℝ → ℂ := fun T : ℝ =>
-    explicitFormulaCompletedZeroHeightWindowResidueSum f T
+    explicitFormulaCompletedZeroContourHeightWindowResidueSum f T
   let P : ℂ := explicitFormulaRectangle_completedPoleResidueSum f
   have hwindow :
       Tendsto
         (fun u : ℝ => W (h.height_schedule.height u))
         atTop
         (𝓝 (zetaCompletedZeroSideComplex f)) :=
-    (explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroSideComplex_ownerZeroLimit
+    (explicitFormulaCompletedZeroContourHeightWindowResidueSum_tendsto_zeroSideComplex_ownerZeroLimit
       f hsum).comp h.height_schedule.cofinal
   have hpoles :
       Tendsto (fun _u : ℝ => P) atTop (𝓝 P) :=
@@ -745,7 +745,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError_
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
           ∀ hρ : ρ ∈
-              explicitFormulaCompletedZeroHeightWindow
+              explicitFormulaCompletedZeroContourHeightWindow
                 (h.height_schedule.height u),
             explicitFormulaRectangleRawDeletedCircleBoundary f (ε u)
                 (completedZeroResidueCoordinate ρ) =
@@ -842,7 +842,7 @@ noncomputable def zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRota
 
 /-- The rotated horizontal packet tends to zero when the two horizontal edges
 lie in a common zero-excised strip. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError_tendsto_zero_ownerGap
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError_tendsto_zero_owner
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (E : CompletedZetaZeroExcisedStrip
@@ -866,7 +866,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizon
         (fun u : ℝ => explicitFormulaScheduledHorizontalSideDifference f F h u)
         atTop
         (𝓝 0) :=
-    explicitFormulaScheduledHorizontalSideDifference_tendsto_zero_ownerGap
+    explicitFormulaScheduledHorizontalSideDifference_tendsto_zero_owner
       f F h E hTopMem hBottomMem
   have hrotated :
       Tendsto
@@ -906,8 +906,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledHorizontalInve
         f F h u =
       zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledVerticalPacketError
           f F h u +
-        zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-          f F h u := by
+        (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+          f F h u) := by
   let T : ℝ := h.height_schedule.height u
   let L : ℂ :=
     ∫ t in Set.Icc (-(F.rectangle T).T) (F.rectangle T).T,
@@ -916,32 +916,59 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledHorizontalInve
   let H : ℂ :=
     zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
       zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T)
+  have hhorizontalFinite :
+      zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T) -
+          zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) =
+        -H := by
+    exact (neg_sub
+      (zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T))
+      (zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T))).symm
+  have hfiniteError :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteHorizontalRightError
+          f F T =
+        R * Complex.I + -H := by
+    unfold zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteHorizontalRightError
+    exact
+      congrArg
+        (fun value : ℂ => R * Complex.I + value)
+        hhorizontalFinite
   have hrotate :
-      Complex.I * (R * Complex.I + H) = -R + Complex.I * H :=
-    explicitFormula_rotate_rightTangent_add_horizontal R H
+      Complex.I * (R * Complex.I + -H) = -R + Complex.I * (-H) :=
+    explicitFormula_rotate_rightTangent_add_horizontal R (-H)
   have hregroup :
-      L + (-R + Complex.I * H) = (L - R) + Complex.I * H := by
+      L + (-R + Complex.I * (-H)) = (L - R) + Complex.I * (-H) := by
     calc
-      L + (-R + Complex.I * H) =
-          (L + -R) + Complex.I * H := by
-        exact (add_assoc L (-R) (Complex.I * H)).symm
-      _ = (L - R) + Complex.I * H := by
-        exact congrArg (fun z : ℂ => z + Complex.I * H)
+      L + (-R + Complex.I * (-H)) =
+          (L + -R) + Complex.I * (-H) := by
+        exact (add_assoc L (-R) (Complex.I * (-H))).symm
+      _ = (L - R) + Complex.I * (-H) := by
+        exact congrArg (fun z : ℂ => z + Complex.I * (-H))
           (sub_eq_add_neg L R).symm
+  have hrotatedNeg :
+      -zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+          f F h u =
+        Complex.I * (-H) := by
+    unfold zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+    have hnegMul :
+        -(Complex.I * H) = Complex.I * (-H) :=
+      (map_neg (LinearMap.mulLeft ℂ Complex.I) H).symm
+    exact hnegMul
   calc
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledHorizontalInverseGammaError
         f F h u =
-        L + Complex.I * (R * Complex.I + H) := by
-      exact Eq.refl _
-    _ = L + (-R + Complex.I * H) := by
+        L + Complex.I * (R * Complex.I + -H) := by
+      unfold zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledHorizontalInverseGammaError
+      exact congrArg (fun value : ℂ => L + Complex.I * value) hfiniteError
+    _ = L + (-R + Complex.I * (-H)) := by
       exact congrArg (fun z : ℂ => L + z) hrotate
-    _ = (L - R) + Complex.I * H := hregroup
+    _ = (L - R) + Complex.I * (-H) := hregroup
     _ =
         zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledVerticalPacketError
             f F h u +
-          zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-            f F h u := by
-      exact Eq.refl _
+          (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+            f F h u) := by
+      unfold zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledVerticalPacketError
+      exact congrArg (fun value : ℂ => (L - R) + value) hrotatedNeg.symm
 
 /-- Decay of the scheduled horizontal/inverse-Gamma packet follows from decay
 of its vertical packet and rotated horizontal packet. -/
@@ -969,17 +996,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledHorizontalInve
       Tendsto
         (fun u : ℝ =>
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledVerticalPacketError
-              f F h u +
+              f F h u -
             zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
               f F h u)
         atTop
-        (𝓝 (0 + 0)) :=
-    hvertical.add hhorizontal
+        (𝓝 (0 - 0)) :=
+    hvertical.sub hhorizontal
   have hsum_zero :
       Tendsto
         (fun u : ℝ =>
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledVerticalPacketError
-              f F h u +
+              f F h u -
             zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
               f F h u)
         atTop
@@ -989,12 +1016,12 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledHorizontalInve
         Tendsto
           (fun u : ℝ =>
             zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledVerticalPacketError
-                f F h u +
+                f F h u -
               zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
                 f F h u)
           atTop
           (𝓝 z))
-      (zero_add 0)
+      (sub_zero 0)
       hsum
   exact
     hsum_zero.congr'
@@ -1047,6 +1074,72 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDi
                 f F h u +
               zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
                 f F h u)
+          atTop
+          (𝓝 z))
+      (zero_add 0)
+      hsum
+
+/-- The inverse-Gamma difference plus the negative rotated horizontal packet
+vanishes when both components vanish. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifference_add_neg_horizontal_tendsto_zero
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hinverseGamma :
+      Tendsto
+        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
+          f F h)
+        atTop
+        (𝓝 0))
+    (hhorizontal :
+      Tendsto
+        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+          f F h)
+        atTop
+        (𝓝 0)) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
+            f F h u +
+          (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+            f F h u))
+      atTop
+      (𝓝 0) := by
+  have hnegative :
+      Tendsto
+        (fun u : ℝ =>
+          -zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+            f F h u)
+        atTop
+        (𝓝 0) :=
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun u : ℝ =>
+            -zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u)
+          atTop
+          (𝓝 z))
+      (neg_zero : -(0 : ℂ) = 0)
+      hhorizontal.neg
+  have hsum :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
+              f F h u +
+            (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u))
+        atTop
+        (𝓝 (0 + 0)) :=
+    hinverseGamma.add hnegative
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun u : ℝ =>
+            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
+                f F h u +
+              (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+                f F h u))
           atTop
           (𝓝 z))
       (zero_add 0)
@@ -1172,8 +1265,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
             f F h u +
           (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
               f F h u +
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-              f F h u) +
+            (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u)) +
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
             f F h ε u = 0)
     (hinverseGamma_horizontal :
@@ -1181,8 +1274,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
         (fun u : ℝ =>
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
               f F h u +
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-              f F h u)
+            (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u))
         atTop
         (𝓝 0))
     (hexcision :
@@ -1203,8 +1296,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
             f F h u +
-          zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-            f F h u)
+          (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+            f F h u))
       (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
         f F h ε)
       hboundary_sum
@@ -1223,8 +1316,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
             f F h u +
           (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
               f F h u +
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-              f F h u) +
+            (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u)) +
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
             f F h ε u = 0)
     (herror :
@@ -1232,8 +1325,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
         (fun u : ℝ =>
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
               f F h u +
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-              f F h u)
+            (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u))
         atTop
         (𝓝 E))
     (hexcision :
@@ -1254,8 +1347,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
             f F h u +
-          zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-            f F h u)
+          (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+            f F h u))
       (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
         f F h ε)
       E
@@ -1276,8 +1369,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
             f F h u +
           (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
               f F h u +
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-              f F h u) +
+            (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u)) +
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
             f F h ε u = 0)
     (herror :
@@ -1285,8 +1378,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
         (fun u : ℝ =>
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
               f F h u +
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-              f F h u)
+            (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u))
         atTop
         (𝓝 Epacket))
     (hexcision :
@@ -1307,8 +1400,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
             f F h u +
-          zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-            f F h u)
+          (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+            f F h u))
       (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
         f F h ε)
       Epacket
@@ -1322,7 +1415,7 @@ prime window.
 
 The prime-difference packet is oriented `left - right`; therefore
 `left = (left - right) + right`.  This theorem is pure limit algebra and is
-the canonical cancellation step after the finite residue-free boundary has
+the final cancellation step after the finite residue-free boundary has
 identified the prime-difference packet and the right/reflected prime inversion
 has identified the right packet. -/
 theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_of_primeDifference_and_right
@@ -1451,7 +1544,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
     zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_of_primeDifference_and_right
       f F h (-R) R hsum hdiff hright
 
-/-- Residue-free left scheduled-window vanishing from the canonical
+/-- Residue-free left scheduled-window vanishing from the
 archimedean-plus-correction prime-difference normalization.
 
 The finite boundary branch proves the prime-difference packet with target
@@ -1524,7 +1617,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
@@ -1559,7 +1652,12 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq
             ∀ b : ℂ,
               b ∈ explicitFormulaRectangleRawSingularCoordinates
                   (h.height_schedule.height u) →
-                a ≠ b → ε u + ε u < dist a b) :
+                a ≠ b → ε u + ε u < dist a b)
+    (hεregular :
+      ∀ᶠ u in atTop,
+        ε u ∉ finiteRectangleSquareSideForbiddenRadii
+          (explicitFormulaRectangleRawSingularCoordinates
+            (h.height_schedule.height u))) :
     ∀ᶠ u in atTop,
       (∫ t in Set.Icc
           (-(F.rectangle (h.height_schedule.height u)).T)
@@ -1570,27 +1668,37 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq
         zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
           f F h ε u = 0 := by
   exact
-    (hT.and (hinterior.and (hboundary.and (hεpos.and (hclosed.and hsep))))).mono
+    (hT.and (hinterior.and (hboundary.and (hεpos.and (hclosed.and (hsep.and hεregular)))))).mono
       (fun u hu =>
-        match hu with
-        | ⟨hTu, ⟨hinterioru, ⟨hboundaryu, ⟨hεposu, ⟨hclosedu, hsepu⟩⟩⟩⟩⟩ =>
-            have hintegrable :
-                IntegrableOn
-                    (zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F)
-                    (Set.Icc
-                      (-(F.rectangle (h.height_schedule.height u)).T)
-                      (F.rectangle (h.height_schedule.height u)).T) ∧
-                  IntegrableOn
-                    (zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F)
-                    (Set.Icc
-                      (-(F.rectangle (h.height_schedule.height u)).T)
-                      (F.rectangle (h.height_schedule.height u)).T) :=
-              zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteWindow_integrable_inputs_ownerResidueFreeContourIdentity
-                f F h hregular E hline_mem BG hBG_nonneg hinverseGamma_bound
-                (h.height_schedule.height u)
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePrimeErrors_eq_zero_ownerFiniteRectangle
-              f F h hTu hinterioru hboundaryu hintegrable.1 hintegrable.2
-              (ε u) hεposu hclosedu hsepu)
+        have hTu := hu.1
+        have hinterioru := hu.2.1
+        have hboundaryu := hu.2.2.1
+        have hεposu := hu.2.2.2.1
+        have hclosedu := hu.2.2.2.2.1
+        have hsepu := hu.2.2.2.2.2.1
+        have hεregularu := hu.2.2.2.2.2.2
+        have hintegrable :
+            IntegrableOn
+                (zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F)
+                (Set.Icc
+                  (-(F.rectangle (h.height_schedule.height u)).T)
+                  (F.rectangle (h.height_schedule.height u)).T) ∧
+              IntegrableOn
+                (zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F)
+                (Set.Icc
+                  (-(F.rectangle (h.height_schedule.height u)).T)
+                  (F.rectangle (h.height_schedule.height u)).T) :=
+          zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteWindow_integrable_inputs_ownerResidueFreeContourIdentity
+            f F h hregular E hline_mem BG hBG_nonneg hinverseGamma_bound
+            (h.height_schedule.height u)
+        zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeLeft_add_finitePrimeErrors_eq_zero_selectedRegularRadius_ownerFiniteRectangle
+          f F h hTu hεposu hinterioru hboundaryu
+          (fun z hz =>
+            completedZetaContourIntegrand_not_mem_singularSet_of_scheduledBoundary
+              f F h u hz)
+          hclosedu hsepu hεregularu
+          hintegrable.1 hintegrable.2
+        )
 
 /-- Scheduled finite-rectangle boundary identity after both vertical sides
 have been decomposed.  This is the corrected two-sided residue-free assembly:
@@ -1619,7 +1727,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
@@ -1666,291 +1774,253 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
             ∀ b : ℂ,
               b ∈ explicitFormulaRectangleRawSingularCoordinates
                   (h.height_schedule.height u) →
-                a ≠ b → ε u + ε u < dist a b) :
+                a ≠ b → ε u + ε u < dist a b)
+    (hεregular :
+      ∀ᶠ u in atTop,
+        ε u ∉ finiteRectangleSquareSideForbiddenRadii
+          (explicitFormulaRectangleRawSingularCoordinates
+            (h.height_schedule.height u))) :
     ∀ᶠ u in atTop,
       zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket
           f F h u +
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
             f F h u +
-          zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-            f F h u) +
+          (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+            f F h u)) +
         zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
           f F h ε u = 0 := by
   exact
     (hT.and
       (hinterior.and
         (hboundary.and
-          (hright_integrable.and (hεpos.and (hclosed.and hsep)))))).mono
+          (hright_integrable.and (hεpos.and (hclosed.and (hsep.and hεregular))))))).mono
       (fun u hu =>
-        match hu with
-        | ⟨hTu, ⟨hinterioru, ⟨hboundaryu,
-            ⟨hright_integrableu, ⟨hεposu, ⟨hclosedu, hsepu⟩⟩⟩⟩⟩⟩ =>
-            have hleft_integrable :
-                IntegrableOn
-                    (zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F)
-                    (Set.Icc
-                      (-(F.rectangle (h.height_schedule.height u)).T)
-                      (F.rectangle (h.height_schedule.height u)).T) ∧
-                  IntegrableOn
-                    (zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F)
-                    (Set.Icc
-                      (-(F.rectangle (h.height_schedule.height u)).T)
-                      (F.rectangle (h.height_schedule.height u)).T) :=
-              zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteWindow_integrable_inputs_ownerResidueFreeContourIdentity
-                f F h hregular E hline_mem BG hBG_nonneg hinverseGamma_bound
-                (h.height_schedule.height u)
-            have hleft_decomp :
-                zetaCompletedExplicitFormulaLeftLineIntegral
+        have hTu := hu.1
+        have hinterioru := hu.2.1
+        have hboundaryu := hu.2.2.1
+        have hright_integrableu := hu.2.2.2.1
+        have hεposu := hu.2.2.2.2.1
+        have hclosedu := hu.2.2.2.2.2.1
+        have hsepu := hu.2.2.2.2.2.2.1
+        have hεregularu := hu.2.2.2.2.2.2.2
+        have hleft_integrable :
+            IntegrableOn
+                (zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F)
+                (Set.Icc
+                  (-(F.rectangle (h.height_schedule.height u)).T)
+                  (F.rectangle (h.height_schedule.height u)).T) ∧
+              IntegrableOn
+                (zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F)
+                (Set.Icc
+                  (-(F.rectangle (h.height_schedule.height u)).T)
+                  (F.rectangle (h.height_schedule.height u)).T) :=
+          zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteWindow_integrable_inputs_ownerResidueFreeContourIdentity
+            f F h hregular E hline_mem BG hBG_nonneg hinverseGamma_bound
+            (h.height_schedule.height u)
+        have hleft_decomp :
+            zetaCompletedExplicitFormulaLeftLineIntegral
+                f (F.rectangle (h.height_schedule.height u)) =
+              (∫ t in Set.Icc
+                  (-(F.rectangle (h.height_schedule.height u)).T)
+                  (F.rectangle (h.height_schedule.height u)).T,
+                zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t) +
+              (∫ t in Set.Icc
+                  (-(F.rectangle (h.height_schedule.height u)).T)
+                  (F.rectangle (h.height_schedule.height u)).T,
+                zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F t) :=
+          zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftIntegral_eq_prime_add_inverseGamma_of_integrableOn
+            f F (h.height_schedule.height u)
+            hleft_integrable.1 hleft_integrable.2
+        have hright_decomp :
+            zetaCompletedExplicitFormulaRightLineIntegral
+                f (F.rectangle (h.height_schedule.height u)) =
+              (∫ t in Set.Icc
+                  (-(F.rectangle (h.height_schedule.height u)).T)
+                  (F.rectangle (h.height_schedule.height u)).T,
+                zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel f F t) +
+              (∫ t in Set.Icc
+                  (-(F.rectangle (h.height_schedule.height u)).T)
+                  (F.rectangle (h.height_schedule.height u)).T,
+                zetaCompletedExplicitFormulaInverseGammaRightAffineKernel f F t) :=
+        zetaCompletedExplicitFormulaRightLineIntegral_eq_affinePrime_integral_add_inverseGamma_integral
+            f F h u hright_integrableu.1 hright_integrableu.2
+        have hfinite :
+            ((∫ t in Set.Icc
+                (-(F.rectangle (h.height_schedule.height u)).T)
+                (F.rectangle (h.height_schedule.height u)).T,
+                  zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t) -
+              ∫ t in Set.Icc
+                (-(F.rectangle (h.height_schedule.height u)).T)
+                (F.rectangle (h.height_schedule.height u)).T,
+                  zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel f F t) +
+              (((∫ t in Set.Icc
+                  (-(F.rectangle (h.height_schedule.height u)).T)
+                  (F.rectangle (h.height_schedule.height u)).T,
+                    zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F t) -
+                ∫ t in Set.Icc
+                  (-(F.rectangle (h.height_schedule.height u)).T)
+                  (F.rectangle (h.height_schedule.height u)).T,
+                    zetaCompletedExplicitFormulaInverseGammaRightAffineKernel f F t) +
+                Complex.I *
+                  (zetaCompletedExplicitFormulaBottomLineIntegral
+                      f (F.rectangle (h.height_schedule.height u)) -
+                    zetaCompletedExplicitFormulaTopLineIntegral
+                      f (F.rectangle (h.height_schedule.height u)))) +
+              Complex.I *
+                zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteExcisionError
+                  f (h.height_schedule.height u) (ε u) =
+            0 :=
+          zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeDifference_add_inverseGammaDifference_add_finiteErrors_eq_zero_of_vertical_decompositions_selectedRegularRadius
+            f F h hTu hεposu hinterioru hboundaryu
+            (fun z hz =>
+              completedZetaContourIntegrand_not_mem_singularSet_of_scheduledBoundary
+                f F h u hz)
+            hclosedu hsepu hεregularu
+            hleft_decomp hright_decomp
+        have hpacket_eq :
+            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket
+                f F h u +
+              (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
+                  f F h u +
+                (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+                  f F h u)) +
+              zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
+                f F h ε u =
+            ((∫ t in Set.Icc
+                (-(F.rectangle (h.height_schedule.height u)).T)
+                (F.rectangle (h.height_schedule.height u)).T,
+                  zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t) -
+              ∫ t in Set.Icc
+                (-(F.rectangle (h.height_schedule.height u)).T)
+                (F.rectangle (h.height_schedule.height u)).T,
+                  zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel f F t) +
+              (((∫ t in Set.Icc
+                  (-(F.rectangle (h.height_schedule.height u)).T)
+                  (F.rectangle (h.height_schedule.height u)).T,
+                    zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F t) -
+                ∫ t in Set.Icc
+                  (-(F.rectangle (h.height_schedule.height u)).T)
+                  (F.rectangle (h.height_schedule.height u)).T,
+                    zetaCompletedExplicitFormulaInverseGammaRightAffineKernel f F t) +
+                Complex.I *
+                  (zetaCompletedExplicitFormulaBottomLineIntegral
+                      f (F.rectangle (h.height_schedule.height u)) -
+                    zetaCompletedExplicitFormulaTopLineIntegral
+                      f (F.rectangle (h.height_schedule.height u)))) +
+              Complex.I *
+                zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteExcisionError
+                  f (h.height_schedule.height u) (ε u) := by
+          unfold zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket
+          unfold zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
+          unfold zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+          unfold zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
+          have hhorizontal :
+              -(Complex.I *
+                  (zetaCompletedExplicitFormulaTopLineIntegral
+                      f (F.rectangle (h.height_schedule.height u)) -
+                    zetaCompletedExplicitFormulaBottomLineIntegral
+                      f (F.rectangle (h.height_schedule.height u)))) =
+                Complex.I *
+                  (zetaCompletedExplicitFormulaBottomLineIntegral
+                      f (F.rectangle (h.height_schedule.height u)) -
+                    zetaCompletedExplicitFormulaTopLineIntegral
+                      f (F.rectangle (h.height_schedule.height u))) := by
+            have hneg_sub :
+                zetaCompletedExplicitFormulaBottomLineIntegral
+                    f (F.rectangle (h.height_schedule.height u)) -
+                  zetaCompletedExplicitFormulaTopLineIntegral
                     f (F.rectangle (h.height_schedule.height u)) =
-                  (∫ t in Set.Icc
+                -(zetaCompletedExplicitFormulaTopLineIntegral
+                    f (F.rectangle (h.height_schedule.height u)) -
+                  zetaCompletedExplicitFormulaBottomLineIntegral
+                    f (F.rectangle (h.height_schedule.height u))) :=
+              (neg_sub
+                (zetaCompletedExplicitFormulaTopLineIntegral
+                  f (F.rectangle (h.height_schedule.height u)))
+                (zetaCompletedExplicitFormulaBottomLineIntegral
+                  f (F.rectangle (h.height_schedule.height u)))).symm
+            calc
+              -(Complex.I *
+                  (zetaCompletedExplicitFormulaTopLineIntegral
+                      f (F.rectangle (h.height_schedule.height u)) -
+                    zetaCompletedExplicitFormulaBottomLineIntegral
+                      f (F.rectangle (h.height_schedule.height u)))) =
+                  Complex.I *
+                    (-(zetaCompletedExplicitFormulaTopLineIntegral
+                        f (F.rectangle (h.height_schedule.height u)) -
+                      zetaCompletedExplicitFormulaBottomLineIntegral
+                        f (F.rectangle (h.height_schedule.height u)))) := by
+                exact
+                  (mul_neg Complex.I
+                    (zetaCompletedExplicitFormulaTopLineIntegral
+                        f (F.rectangle (h.height_schedule.height u)) -
+                      zetaCompletedExplicitFormulaBottomLineIntegral
+                        f (F.rectangle (h.height_schedule.height u)))).symm
+              _ =
+                  Complex.I *
+                    (zetaCompletedExplicitFormulaBottomLineIntegral
+                        f (F.rectangle (h.height_schedule.height u)) -
+                      zetaCompletedExplicitFormulaTopLineIntegral
+                        f (F.rectangle (h.height_schedule.height u))) := by
+                exact congrArg (fun z : ℂ => Complex.I * z) hneg_sub.symm
+          exact
+            congrArg
+              (fun z : ℂ =>
+                ((∫ t in Set.Icc
+                    (-(F.rectangle (h.height_schedule.height u)).T)
+                    (F.rectangle (h.height_schedule.height u)).T,
+                      zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t) -
+                  ∫ t in Set.Icc
+                    (-(F.rectangle (h.height_schedule.height u)).T)
+                    (F.rectangle (h.height_schedule.height u)).T,
+                      zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel f F t) +
+                  (((∫ t in Set.Icc
                       (-(F.rectangle (h.height_schedule.height u)).T)
                       (F.rectangle (h.height_schedule.height u)).T,
-                    zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t) +
-                  (∫ t in Set.Icc
+                        zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F t) -
+                    ∫ t in Set.Icc
                       (-(F.rectangle (h.height_schedule.height u)).T)
                       (F.rectangle (h.height_schedule.height u)).T,
-                    zetaCompletedExplicitFormulaInverseGammaLeftAffineKernel f F t) :=
-              zetaCompletedExplicitFormulaPrimeLeftResidueFree_leftIntegral_eq_prime_add_inverseGamma_of_integrableOn
-                f F (h.height_schedule.height u)
-                hleft_integrable.1 hleft_integrable.2
-            have hright_decomp :
-                zetaCompletedExplicitFormulaRightLineIntegral
-                    f (F.rectangle (h.height_schedule.height u)) =
-                  (∫ t in Set.Icc
-                      (-(F.rectangle (h.height_schedule.height u)).T)
-                      (F.rectangle (h.height_schedule.height u)).T,
-                    zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel f F t) +
-                  (∫ t in Set.Icc
-                      (-(F.rectangle (h.height_schedule.height u)).T)
-                      (F.rectangle (h.height_schedule.height u)).T,
-                    zetaCompletedExplicitFormulaInverseGammaRightAffineKernel f F t) :=
-              zetaCompletedExplicitFormulaRightLineIntegral_eq_affinePrime_integral_add_inverseGamma_integral
-                f F h u hright_integrableu.1 hright_integrableu.2
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_primeDifference_add_inverseGammaDifference_add_finiteErrors_eq_zero_of_vertical_decompositions
-              f F h hTu hinterioru hboundaryu hleft_decomp hright_decomp
-              (ε u) hεposu hclosedu hsepu)
+                        zetaCompletedExplicitFormulaInverseGammaRightAffineKernel f F t) +
+                    z) +
+                  Complex.I *
+                    zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteExcisionError
+                      f (h.height_schedule.height u) (ε u))
+              hhorizontal
+        Eq.trans hpacket_eq hfinite)
 
-/-- Canonical finite-geometry puncture radius for a residue-free rectangle.
-
-When the height and zero-window/interior equivalence hypotheses hold, this
-selects a positive radius whose closed disks are contained in the rectangle
-interior and are strictly pairwise separated. -/
-noncomputable def zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteGeometryRadius
-    (F : ExplicitFormulaContourFamily) (T : ℝ) : ℝ :=
-  if hT : 0 < T then
-    if hinterior :
-      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
-          completedZeroResidueCoordinate ρ ∈
-              explicitFormulaContourFamilyInterior F T ∧
-            completedZeroResidueCoordinate ρ ∈
-              completedZetaContourIntegrandSingularSet then
-      Classical.choose
-        (explicitFormulaRectangleRawSingularCoordinates_exists_closedRadiusControls
-          F T
-          (fun a ha =>
-            explicitFormulaRectangleRawSingularCoordinates_localInterior_ball
-              F hT hinterior ha))
-    else
-      1
-  else
-    1
-
-/-- The canonical finite-geometry radius satisfies the closed-ball and
-separation controls whenever the finite rectangle hypotheses hold. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteGeometryRadius_controls
-    (F : ExplicitFormulaContourFamily) {T : ℝ}
-    (hT : 0 < T)
-    (hinterior :
-      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
-          completedZeroResidueCoordinate ρ ∈
-              explicitFormulaContourFamilyInterior F T ∧
-            completedZeroResidueCoordinate ρ ∈
-              completedZetaContourIntegrandSingularSet) :
-    0 <
-        zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteGeometryRadius
-          F T ∧
-      (∀ a : ℂ,
-        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-          Metric.closedBall a
-              (zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteGeometryRadius
-                F T) ⊆
-            explicitFormulaContourFamilyInterior F T) ∧
-      (∀ a : ℂ,
-        a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-          ∀ b : ℂ,
-            b ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              a ≠ b →
-                zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteGeometryRadius
-                    F T +
-                  zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteGeometryRadius
-                    F T <
-                    dist a b) := by
-  let P :
-      ∃ ε : ℝ,
-        0 < ε ∧
-          (∀ a : ℂ,
-            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              Metric.closedBall a ε ⊆
-                explicitFormulaContourFamilyInterior F T) ∧
-          (∀ a : ℂ,
-            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              ∀ b : ℂ,
-                b ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                  a ≠ b → ε + ε < dist a b) :=
-    explicitFormulaRectangleRawSingularCoordinates_exists_closedRadiusControls
-      F T
-      (fun a ha =>
-        explicitFormulaRectangleRawSingularCoordinates_localInterior_ball
-          F hT hinterior ha)
-  have hradius_eq :
-      zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteGeometryRadius
-          F T =
-        Classical.choose P := by
-    calc
-      zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteGeometryRadius F T =
-          (if hinterior' :
-            ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-              ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
-                completedZeroResidueCoordinate ρ ∈
-                    explicitFormulaContourFamilyInterior F T ∧
-                  completedZeroResidueCoordinate ρ ∈
-                    completedZetaContourIntegrandSingularSet then
-            Classical.choose
-              (explicitFormulaRectangleRawSingularCoordinates_exists_closedRadiusControls
-                F T
-                (fun a ha =>
-                  explicitFormulaRectangleRawSingularCoordinates_localInterior_ball
-                    F hT hinterior' ha))
-          else
-            1) := by
-        exact dif_pos hT
-      _ = Classical.choose P := by
-        exact dif_pos hinterior
-  exact
-    Eq.subst
-      (motive := fun ε : ℝ =>
-        0 < ε ∧
-          (∀ a : ℂ,
-            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              Metric.closedBall a ε ⊆
-                explicitFormulaContourFamilyInterior F T) ∧
-          (∀ a : ℂ,
-            a ∈ explicitFormulaRectangleRawSingularCoordinates T →
-              ∀ b : ℂ,
-                b ∈ explicitFormulaRectangleRawSingularCoordinates T →
-                  a ≠ b → ε + ε < dist a b))
-      hradius_eq.symm
-      (Classical.choose_spec P)
-
-/-- Scheduled canonical finite-geometry radius for the prime-left residue-free
-contour. -/
-noncomputable def zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (u : ℝ) : ℝ :=
-  zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteGeometryRadius
-    F (h.height_schedule.height u)
-
-/-- Eventual positivity, closed-ball containment, and strict separation for the
-scheduled canonical finite-geometry radius. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius_controls
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+/-- Eventual closed-radius control package for a supplied scheduled
+finite-geometry puncture radius.  The radius is supplied by the owner theorem
+that consumes it; no global choice of witnesses is made here. -/
+def zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (hinterior :
-      ∀ᶠ u in atTop,
-        ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
-              (h.height_schedule.height u) ↔
-            completedZeroResidueCoordinate ρ ∈
-                explicitFormulaContourFamilyInterior F
-                  (h.height_schedule.height u) ∧
-              completedZeroResidueCoordinate ρ ∈
-                completedZetaContourIntegrandSingularSet) :
+    (ε : ℝ → ℝ) : Prop :=
+  (∀ᶠ u in atTop, 0 < ε u) ∧
     (∀ᶠ u in atTop,
-        0 <
-          zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h u) ∧
-      (∀ᶠ u in atTop,
-        ∀ a : ℂ,
-          a ∈ explicitFormulaRectangleRawSingularCoordinates
-              (h.height_schedule.height u) →
-            Metric.closedBall a
-                (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-                  f F h u) ⊆
-              explicitFormulaContourFamilyInterior F
-                (h.height_schedule.height u)) ∧
-      (∀ᶠ u in atTop,
-        ∀ a : ℂ,
-          a ∈ explicitFormulaRectangleRawSingularCoordinates
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates
+            (h.height_schedule.height u) →
+          Metric.closedBall a (ε u) ⊆
+            explicitFormulaContourFamilyInterior F
+              (h.height_schedule.height u)) ∧
+    (∀ᶠ u in atTop,
+      ∀ a : ℂ,
+        a ∈ explicitFormulaRectangleRawSingularCoordinates
               (h.height_schedule.height u) →
             ∀ b : ℂ,
               b ∈ explicitFormulaRectangleRawSingularCoordinates
                   (h.height_schedule.height u) →
-                a ≠ b →
-                  zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-                      f F h u +
-                    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-                      f F h u <
-                      dist a b) := by
-  have hcombined :
-      ∀ᶠ u in atTop,
-        0 < h.height_schedule.height u ∧
-          (∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-            ρ ∈ explicitFormulaCompletedZeroHeightWindow
-                (h.height_schedule.height u) ↔
-              completedZeroResidueCoordinate ρ ∈
-                  explicitFormulaContourFamilyInterior F
-                    (h.height_schedule.height u) ∧
-                completedZeroResidueCoordinate ρ ∈
-                  completedZetaContourIntegrandSingularSet) :=
-    h.height_schedule.eventually_height_pos.and hinterior
-  have hpos :
-      ∀ᶠ u in atTop,
-        0 <
-          zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h u :=
-    hcombined.mono
-      (fun u hu =>
-        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteGeometryRadius_controls
-          F hu.1 hu.2).1)
-  have hclosed :
-      ∀ᶠ u in atTop,
-        ∀ a : ℂ,
-          a ∈ explicitFormulaRectangleRawSingularCoordinates
-              (h.height_schedule.height u) →
-            Metric.closedBall a
-                (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-                  f F h u) ⊆
-              explicitFormulaContourFamilyInterior F
-                (h.height_schedule.height u) :=
-    hcombined.mono
-      (fun u hu =>
-        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteGeometryRadius_controls
-          F hu.1 hu.2).2.1)
-  have hsep :
-      ∀ᶠ u in atTop,
-        ∀ a : ℂ,
-          a ∈ explicitFormulaRectangleRawSingularCoordinates
-              (h.height_schedule.height u) →
-            ∀ b : ℂ,
-              b ∈ explicitFormulaRectangleRawSingularCoordinates
-                  (h.height_schedule.height u) →
-                a ≠ b →
-                  zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-                      f F h u +
-                    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-                      f F h u <
-                      dist a b :=
-    hcombined.mono
-      (fun u hu =>
-        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_finiteGeometryRadius_controls
-          F hu.1 hu.2).2.2)
-  exact ⟨hpos, hclosed, hsep⟩
+              a ≠ b → ε u + ε u < dist a b) ∧
+    (∀ᶠ u in atTop,
+      ε u ∉ finiteRectangleSquareSideForbiddenRadii
+        (explicitFormulaRectangleRawSingularCoordinates
+          (h.height_schedule.height u)))
 
-/-- Scheduled finite-rectangle boundary identity using the canonical
-finite-geometry radius selected from the positive-height rectangle geometry. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq_zero_of_canonicalFiniteGeometryRadius
+/-- Scheduled finite-rectangle boundary identity using a supplied
+finite-geometry radius controlled by the positive-height rectangle geometry. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq_zero_of_suppliedFiniteGeometryRadius
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -1968,7 +2038,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
@@ -1983,7 +2053,11 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq
             ContinuousAt
                 (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
               DifferentiableAt ℂ
-                (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z) :
+                (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z)
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε) :
     ∀ᶠ u in atTop,
       (∫ t in Set.Icc
           (-(F.rectangle (h.height_schedule.height u)).T)
@@ -1992,53 +2066,22 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq
         zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledHorizontalInverseGammaError
           f F h u +
         zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
-          f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h) u = 0 := by
-  have hcontrols :
-      (∀ᶠ u in atTop,
-          0 <
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-              f F h u) ∧
-        (∀ᶠ u in atTop,
-          ∀ a : ℂ,
-            a ∈ explicitFormulaRectangleRawSingularCoordinates
-                (h.height_schedule.height u) →
-              Metric.closedBall a
-                  (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-                    f F h u) ⊆
-                explicitFormulaContourFamilyInterior F
-                  (h.height_schedule.height u)) ∧
-        (∀ᶠ u in atTop,
-          ∀ a : ℂ,
-            a ∈ explicitFormulaRectangleRawSingularCoordinates
-                (h.height_schedule.height u) →
-              ∀ b : ℂ,
-                b ∈ explicitFormulaRectangleRawSingularCoordinates
-                    (h.height_schedule.height u) →
-                  a ≠ b →
-                    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-                        f F h u +
-                      zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-                        f F h u <
-                        dist a b) :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius_controls
-      f F h hinterior
+          f F h ε u = 0 := by
   exact
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq_zero_of_finiteGeometry
       f F h hregular E hline_mem BG hBG_nonneg hinverseGamma_bound
-      (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-        f F h)
+      ε
       h.height_schedule.eventually_height_pos
       hinterior
       hboundary
-      hcontrols.1
-      hcontrols.2.1
-      hcontrols.2.2
+      hεcontrols.1
+      hεcontrols.2.1
+      hεcontrols.2.2.1
+      hεcontrols.2.2.2
 
-/-- Corrected two-sided scheduled finite-rectangle boundary identity using the
-canonical finite-geometry radius. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenceBoundarySum_eq_zero_of_canonicalFiniteGeometryRadius
+/-- Corrected two-sided scheduled finite-rectangle boundary identity using a
+supplied finite-geometry radius. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenceBoundarySum_eq_zero_of_suppliedFiniteGeometryRadius
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -2056,7 +2099,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
@@ -2083,59 +2126,32 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
           (zetaCompletedExplicitFormulaInverseGammaRightAffineKernel f F)
           (Set.Icc
             (-(F.rectangle (h.height_schedule.height u)).T)
-            (F.rectangle (h.height_schedule.height u)).T)) :
+            (F.rectangle (h.height_schedule.height u)).T))
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε) :
     ∀ᶠ u in atTop,
       zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket
           f F h u +
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
             f F h u +
-          zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-            f F h u) +
+          (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+            f F h u)) +
         zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
-          f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h) u = 0 := by
-  have hcontrols :
-      (∀ᶠ u in atTop,
-          0 <
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-              f F h u) ∧
-        (∀ᶠ u in atTop,
-          ∀ a : ℂ,
-            a ∈ explicitFormulaRectangleRawSingularCoordinates
-                (h.height_schedule.height u) →
-              Metric.closedBall a
-                  (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-                    f F h u) ⊆
-                explicitFormulaContourFamilyInterior F
-                  (h.height_schedule.height u)) ∧
-        (∀ᶠ u in atTop,
-          ∀ a : ℂ,
-            a ∈ explicitFormulaRectangleRawSingularCoordinates
-                (h.height_schedule.height u) →
-              ∀ b : ℂ,
-                b ∈ explicitFormulaRectangleRawSingularCoordinates
-                    (h.height_schedule.height u) →
-                  a ≠ b →
-                    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-                        f F h u +
-                      zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-                        f F h u <
-                        dist a b) :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius_controls
-      f F h hinterior
+          f F h ε u = 0 := by
   exact
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenceBoundarySum_eq_zero_of_finiteGeometry
       f F h hregular E hline_mem BG hBG_nonneg hinverseGamma_bound
-      (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-        f F h)
+      ε
       h.height_schedule.eventually_height_pos
       hinterior
       hboundary
       hright_integrable
-      hcontrols.1
-      hcontrols.2.1
-      hcontrols.2.2
+      hεcontrols.1
+      hεcontrols.2.1
+      hεcontrols.2.2.1
+      hεcontrols.2.2.2
 
 /-- Scheduled boundary regularity for the completed contour integrand follows
 from the boundary-avoidance certificate stored in the cofinal height schedule. -/
@@ -2156,10 +2172,10 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundaryRegula
         f F h (h.height_schedule.height u)
         (h.height_schedule.avoids_boundary u))
 
-/-- Scheduled finite-rectangle boundary identity using the canonical
+/-- Scheduled finite-rectangle boundary identity using a supplied
 finite-geometry radius, with boundary regularity discharged from the schedule's
 boundary-avoidance certificate. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq_zero_of_canonicalFiniteGeometryRadius_and_zeroWindow
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq_zero_of_suppliedFiniteGeometryRadius_and_zeroWindow
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -2177,13 +2193,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
                   (h.height_schedule.height u) ∧
               completedZeroResidueCoordinate ρ ∈
-                completedZetaContourIntegrandSingularSet) :
+                completedZetaContourIntegrandSingularSet)
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε) :
     ∀ᶠ u in atTop,
       (∫ t in Set.Icc
           (-(F.rectangle (h.height_schedule.height u)).T)
@@ -2193,17 +2213,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq
           f F h u +
         zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
           f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h) u = 0 :=
-  zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq_zero_of_canonicalFiniteGeometryRadius
+          ε u = 0 :=
+  zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq_zero_of_suppliedFiniteGeometryRadius
     f F h hregular E hline_mem BG hBG_nonneg hinverseGamma_bound
     hinterior
     (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundaryRegularity
       f F h)
+    ε hεcontrols
 
-/-- Scheduled-window convergence to zero from the canonical finite-boundary
+/-- Scheduled-window convergence to zero from the supplied finite-boundary
 identity and the two remaining analytic packet-decay inputs. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_canonicalFiniteBoundary_and_packetDecay
+theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_suppliedFiniteBoundary_and_packetDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -2221,13 +2241,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
                   (h.height_schedule.height u) ∧
               completedZeroResidueCoordinate ρ ∈
                 completedZetaContourIntegrandSingularSet)
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε)
     (Ehorizontal : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
     (hTopMem :
@@ -2248,8 +2272,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
           f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h))
+          ε)
         atTop
         (𝓝 0)) :
     Tendsto
@@ -2270,18 +2293,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
             f F h u +
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
             f F h
-            (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-              f F h) u = 0 :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq_zero_of_canonicalFiniteGeometryRadius_and_zeroWindow
+            ε u = 0 :=
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq_zero_of_suppliedFiniteGeometryRadius_and_zeroWindow
       f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
-      hinterior
+      hinterior ε hεcontrols
   have hrotated :
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
           f F h)
         atTop
         (𝓝 0) :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError_tendsto_zero_ownerGap
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError_tendsto_zero_owner
       f F h Ehorizontal hTopMem hBottomMem
   have hhorizontal :
       Tendsto
@@ -2294,20 +2316,19 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
   exact
     zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_finitePrimeBoundary
       f F h
-      (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-        f F h)
+      ε
       hboundary_sum
       hhorizontal
       hexcision
 
-/-- Scheduled-window convergence from the canonical finite-boundary identity
+/-- Scheduled-window convergence from the supplied finite-boundary identity
 before deleted-circle residue cancellation.
 
 This keeps the finite excision packet's actual limit `E` visible.  A later
 residue-normalization theorem may set the total limit to zero after combining
 this with the matching residue-window contribution; this theorem itself does
 not assert that the deleted-circle packet vanishes. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_neg_excision_of_canonicalFiniteBoundary_and_packetDecay
+theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_neg_excision_of_suppliedFiniteBoundary_and_packetDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -2325,13 +2346,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
                   (h.height_schedule.height u) ∧
               completedZeroResidueCoordinate ρ ∈
                 completedZetaContourIntegrandSingularSet)
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε)
     (Ehorizontal : CompletedZetaZeroExcisedStrip
       (min F.c (1 - F.c)) (max F.c (1 - F.c)))
     (hTopMem :
@@ -2353,8 +2378,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
           f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h))
+          ε)
         atTop
         (𝓝 Eexcision)) :
     Tendsto
@@ -2375,18 +2399,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
             f F h u +
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
             f F h
-            (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-              f F h) u = 0 :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq_zero_of_canonicalFiniteGeometryRadius_and_zeroWindow
+            ε u = 0 :=
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundarySum_eq_zero_of_suppliedFiniteGeometryRadius_and_zeroWindow
       f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
-      hinterior
+      hinterior ε hεcontrols
   have hrotated :
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
           f F h)
         atTop
         (𝓝 0) :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError_tendsto_zero_ownerGap
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError_tendsto_zero_owner
       f F h Ehorizontal hTopMem hBottomMem
   have hhorizontal :
       Tendsto
@@ -2399,17 +2422,16 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
   exact
     zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_neg_excision_of_finitePrimeBoundary
       f F h
-      (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-        f F h)
+      ε
       Eexcision
       hboundary_sum
       hhorizontal
       hexcision
 
-/-- Scheduled-window convergence to zero from the canonical finite-boundary
+/-- Scheduled-window convergence to zero from the supplied finite-boundary
 identity and the two analytic packet-decay inputs, using the horizontal
 zero-excised carrier already stored in the analytic package. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_canonicalFiniteBoundary_and_packagePacketDecay
+theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_suppliedFiniteBoundary_and_packagePacketDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -2427,13 +2449,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
                   (h.height_schedule.height u) ∧
               completedZeroResidueCoordinate ρ ∈
                 completedZetaContourIntegrandSingularSet)
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε)
     (hvertical :
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledVerticalPacketError
@@ -2444,29 +2470,28 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
           f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h))
+          ε)
         atTop
         (𝓝 0)) :
-    Tendsto
-      (fun u : ℝ =>
-        ∫ t in Set.Icc
-            (-(F.rectangle (h.height_schedule.height u)).T)
-            (F.rectangle (h.height_schedule.height u)).T,
-          zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t)
-      atTop
-      (𝓝 0) :=
-  match ExplicitFormulaFamilyAnalyticPackage.scheduled_horizontalFamilyZeroExcisedStrip h with
-  | ⟨Ehorizontal, hhorizontal⟩ =>
-      match hhorizontal with
-      | ⟨hTopMem, hBottomMem⟩ =>
-          zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_canonicalFiniteBoundary_and_packetDecay
-            f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
-            hinterior Ehorizontal hTopMem hBottomMem hvertical hexcision
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t)
+        atTop
+        (𝓝 0) :=
+    let horizontalData :=
+      ExplicitFormulaFamilyAnalyticPackage.scheduled_horizontalFamilyZeroExcisedStrip h
+    Exists.elim horizontalData
+      (fun Ehorizontal horizontalSpec =>
+        zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_suppliedFiniteBoundary_and_packetDecay
+          f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
+          hinterior ε hεcontrols Ehorizontal horizontalSpec.1 horizontalSpec.2 hvertical hexcision)
 
 /-- Package-horizontal wrapper for the nonzero excision form of the scheduled
 left-prime finite-window limit. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_neg_excision_of_canonicalFiniteBoundary_and_packagePacketDecay
+theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_neg_excision_of_suppliedFiniteBoundary_and_packagePacketDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -2484,13 +2509,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
                   (h.height_schedule.height u) ∧
               completedZeroResidueCoordinate ρ ∈
                 completedZetaContourIntegrandSingularSet)
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε)
     (hvertical :
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledVerticalPacketError
@@ -2502,26 +2531,25 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
           f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h))
+          ε)
         atTop
         (𝓝 Eexcision)) :
-    Tendsto
-      (fun u : ℝ =>
-        ∫ t in Set.Icc
-            (-(F.rectangle (h.height_schedule.height u)).T)
-            (F.rectangle (h.height_schedule.height u)).T,
-          zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t)
-      atTop
-      (𝓝 (-Eexcision)) :=
-  match ExplicitFormulaFamilyAnalyticPackage.scheduled_horizontalFamilyZeroExcisedStrip h with
-  | ⟨Ehorizontal, hhorizontal⟩ =>
-      match hhorizontal with
-      | ⟨hTopMem, hBottomMem⟩ =>
-          zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_neg_excision_of_canonicalFiniteBoundary_and_packetDecay
-            f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
-            hinterior Ehorizontal hTopMem hBottomMem hvertical
-            Eexcision hexcision
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.rectangle (h.height_schedule.height u)).T)
+              (F.rectangle (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t)
+        atTop
+        (𝓝 (-Eexcision)) :=
+    let horizontalData :=
+      ExplicitFormulaFamilyAnalyticPackage.scheduled_horizontalFamilyZeroExcisedStrip h
+    Exists.elim horizontalData
+      (fun Ehorizontal horizontalSpec =>
+        zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_neg_excision_of_suppliedFiniteBoundary_and_packetDecay
+          f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
+          hinterior ε hεcontrols Ehorizontal horizontalSpec.1 horizontalSpec.2 hvertical
+          Eexcision hexcision)
 
 /-- Scheduled left-prime finite-window limit with the honest oriented
 zero-side-plus-poles deleted-circle target inserted.
@@ -2547,13 +2575,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
                   (h.height_schedule.height u) ∧
               completedZeroResidueCoordinate ρ ∈
                 completedZetaContourIntegrandSingularSet)
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε)
     (hvertical :
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledVerticalPacketError
@@ -2567,26 +2599,23 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
     (hzero :
       ∀ᶠ u in atTop,
         explicitFormulaRectangleRawDeletedCircleBoundary f
-            (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-              f F h u) 0 =
+            (ε u) 0 =
           (2 * ↑Real.pi * Complex.I : ℂ) •
             explicitFormulaRectangle_zeroPoleResidue f)
     (hone :
       ∀ᶠ u in atTop,
         explicitFormulaRectangleRawDeletedCircleBoundary f
-            (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-              f F h u) 1 =
+            (ε u) 1 =
           (2 * ↑Real.pi * Complex.I : ℂ) •
             explicitFormulaRectangle_onePoleResidue f)
     (hcompleted :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
           ∀ hρ : ρ ∈
-              explicitFormulaCompletedZeroHeightWindow
+              explicitFormulaCompletedZeroContourHeightWindow
                 (h.height_schedule.height u),
             explicitFormulaRectangleRawDeletedCircleBoundary f
-                (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-                  f F h u)
+                (ε u)
                 (completedZeroResidueCoordinate ρ) =
               (2 * ↑Real.pi * Complex.I : ℂ) •
                 explicitFormulaZeroResidue f
@@ -2612,27 +2641,25 @@ theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduled
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
           f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h))
+          ε)
         atTop
         (𝓝 Eexcision) :=
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError_tendsto_oriented_zeroSide_add_poles
       f F h
-      (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-        f F h)
+      ε
       hsum hzero hone hcompleted
   exact
-    zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_neg_excision_of_canonicalFiniteBoundary_and_packagePacketDecay
+    zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_neg_excision_of_suppliedFiniteBoundary_and_packagePacketDecay
       f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
-      hinterior hvertical Eexcision hexcision
+      hinterior ε hεcontrols hvertical Eexcision hexcision
 
-/-- Corrected scheduled prime-difference convergence from the canonical
+/-- Corrected scheduled prime-difference convergence from the supplied
 finite-boundary identity.
 
 This is the honest replacement for the old completed-right vertical packet
 route: the right prime packet remains on the prime side, and the analytic
 decay input is only the inverse-Gamma difference. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_zero_of_canonicalFiniteBoundary_and_packetDecay
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_zero_of_suppliedFiniteBoundary_and_packetDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -2650,13 +2677,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
                   (h.height_schedule.height u) ∧
               completedZeroResidueCoordinate ρ ∈
                 completedZetaContourIntegrandSingularSet)
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε)
     (hright_integrable :
       ∀ᶠ u in atTop,
         IntegrableOn
@@ -2689,8 +2720,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
           f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h))
+          ε)
         atTop
         (𝓝 0)) :
     Tendsto
@@ -2704,49 +2734,47 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
             f F h u +
           (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
               f F h u +
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-              f F h u) +
+            (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u)) +
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
             f F h
-            (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-              f F h) u = 0 :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenceBoundarySum_eq_zero_of_canonicalFiniteGeometryRadius
+            ε u = 0 :=
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenceBoundarySum_eq_zero_of_suppliedFiniteGeometryRadius
       f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
       hinterior
       (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundaryRegularity
         f F h)
-      hright_integrable
+      hright_integrable ε hεcontrols
   have hrotated :
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
           f F h)
         atTop
         (𝓝 0) :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError_tendsto_zero_ownerGap
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError_tendsto_zero_owner
       f F h Ehorizontal hTopMem hBottomMem
   have hcombined :
       Tendsto
         (fun u : ℝ =>
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
               f F h u +
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-              f F h u)
+            (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u))
         atTop
         (𝓝 0) :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifference_add_horizontal_tendsto_zero
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifference_add_neg_horizontal_tendsto_zero
       f F h hinverseGammaDifference hrotated
   exact
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_zero_of_boundary_sum_errors
       f F h
-      (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-        f F h)
+      ε
       hboundary_sum
       hcombined
       hexcision
 
-/-- Corrected scheduled prime-difference convergence from the canonical
+/-- Corrected scheduled prime-difference convergence from the supplied
 finite-boundary identity with a nonzero inverse-Gamma-difference limit. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_neg_error_of_canonicalFiniteBoundary_and_packetDecay
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_neg_error_of_suppliedFiniteBoundary_and_packetDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -2764,13 +2792,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
                   (h.height_schedule.height u) ∧
               completedZeroResidueCoordinate ρ ∈
                 completedZetaContourIntegrandSingularSet)
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε)
     (hright_integrable :
       ∀ᶠ u in atTop,
         IntegrableOn
@@ -2804,8 +2836,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
           f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h))
+          ε)
         atTop
         (𝓝 0)) :
     Tendsto
@@ -2819,45 +2850,61 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
             f F h u +
           (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
               f F h u +
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-              f F h u) +
+            (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u)) +
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
             f F h
-            (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-              f F h) u = 0 :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenceBoundarySum_eq_zero_of_canonicalFiniteGeometryRadius
+            ε u = 0 :=
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenceBoundarySum_eq_zero_of_suppliedFiniteGeometryRadius
       f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
       hinterior
       (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundaryRegularity
         f F h)
-      hright_integrable
+      hright_integrable ε hεcontrols
   have hrotated :
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
           f F h)
         atTop
         (𝓝 0) :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError_tendsto_zero_ownerGap
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError_tendsto_zero_owner
       f F h Ehorizontal hTopMem hBottomMem
   have hcombined :
       Tendsto
         (fun u : ℝ =>
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
               f F h u +
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-              f F h u)
+            (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u))
         atTop
         (𝓝 Epacket) := by
+    have hnegative :
+        Tendsto
+          (fun u : ℝ =>
+            -zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u)
+          atTop
+          (𝓝 0) :=
+      Eq.subst
+        (motive := fun z : ℂ =>
+          Tendsto
+            (fun u : ℝ =>
+              -zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+                f F h u)
+            atTop
+            (𝓝 z))
+        (neg_zero : -(0 : ℂ) = 0)
+        hrotated.neg
     have hsum :
         Tendsto
           (fun u : ℝ =>
             zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
                 f F h u +
-              zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-                f F h u)
+              (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+                f F h u))
           atTop
           (𝓝 (Epacket + 0)) :=
-      hinverseGammaDifference.add hrotated
+      hinverseGammaDifference.add hnegative
     exact
       Eq.subst
         (motive := fun z : ℂ =>
@@ -2865,8 +2912,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
             (fun u : ℝ =>
               zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
                   f F h u +
-                zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-                  f F h u)
+                (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+                  f F h u))
             atTop
             (𝓝 z))
         (add_zero Epacket)
@@ -2874,16 +2921,15 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
   exact
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_neg_error_of_boundary_sum_errors
       f F h
-      (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-        f F h)
+      ε
       Epacket
       hboundary_sum
       hcombined
       hexcision
 
-/-- Corrected scheduled prime-difference convergence from the canonical
+/-- Corrected scheduled prime-difference convergence from the supplied
 finite-boundary identity when both error packets have nonzero limits. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_neg_error_add_excision_of_canonicalFiniteBoundary_and_packetDecay
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_neg_error_add_excision_of_suppliedFiniteBoundary_and_packetDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -2901,13 +2947,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
                   (h.height_schedule.height u) ∧
               completedZeroResidueCoordinate ρ ∈
                 completedZetaContourIntegrandSingularSet)
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε)
     (hright_integrable :
       ∀ᶠ u in atTop,
         IntegrableOn
@@ -2941,8 +2991,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
           f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h))
+          ε)
         atTop
         (𝓝 Eexcision)) :
     Tendsto
@@ -2956,45 +3005,61 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
             f F h u +
           (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
               f F h u +
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-              f F h u) +
+            (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u)) +
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
             f F h
-            (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-              f F h) u = 0 :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenceBoundarySum_eq_zero_of_canonicalFiniteGeometryRadius
+            ε u = 0 :=
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenceBoundarySum_eq_zero_of_suppliedFiniteGeometryRadius
       f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
       hinterior
       (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledBoundaryRegularity
         f F h)
-      hright_integrable
+      hright_integrable ε hεcontrols
   have hrotated :
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
           f F h)
         atTop
         (𝓝 0) :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError_tendsto_zero_ownerGap
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError_tendsto_zero_owner
       f F h Ehorizontal hTopMem hBottomMem
   have hcombined :
       Tendsto
         (fun u : ℝ =>
           zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
               f F h u +
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-              f F h u)
+            (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u))
         atTop
         (𝓝 Epacket) := by
+    have hnegative :
+        Tendsto
+          (fun u : ℝ =>
+            -zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+              f F h u)
+          atTop
+          (𝓝 0) :=
+      Eq.subst
+        (motive := fun z : ℂ =>
+          Tendsto
+            (fun u : ℝ =>
+              -zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+                f F h u)
+            atTop
+            (𝓝 z))
+        (neg_zero : -(0 : ℂ) = 0)
+        hrotated.neg
     have hsum :
         Tendsto
           (fun u : ℝ =>
             zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
                 f F h u +
-              zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-                f F h u)
+              (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+                f F h u))
           atTop
           (𝓝 (Epacket + 0)) :=
-      hinverseGammaDifference.add hrotated
+      hinverseGammaDifference.add hnegative
     exact
       Eq.subst
         (motive := fun z : ℂ =>
@@ -3002,8 +3067,8 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
             (fun u : ℝ =>
               zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
                   f F h u +
-                zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
-                  f F h u)
+                (-zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledRotatedHorizontalPacketError
+                  f F h u))
             atTop
             (𝓝 z))
         (add_zero Epacket)
@@ -3011,8 +3076,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
   exact
     zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_neg_error_add_excision_of_boundary_sum_errors
       f F h
-      (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-        f F h)
+      ε
       Epacket
       Eexcision
       hboundary_sum
@@ -3021,7 +3085,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
 
 /-- Package-horizontal wrapper for the corrected scheduled prime-difference
 convergence theorem. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_zero_of_canonicalFiniteBoundary_and_packagePacketDecay
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_zero_of_suppliedFiniteBoundary_and_packagePacketDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -3039,13 +3103,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
                   (h.height_schedule.height u) ∧
               completedZeroResidueCoordinate ρ ∈
                 completedZetaContourIntegrandSingularSet)
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε)
     (hright_integrable :
       ∀ᶠ u in atTop,
         IntegrableOn
@@ -3068,23 +3136,22 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
           f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h))
+          ε)
         atTop
         (𝓝 0)) :
-    Tendsto
-      (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket
-        f F h)
-      atTop
-      (𝓝 0) :=
-  match ExplicitFormulaFamilyAnalyticPackage.scheduled_horizontalFamilyZeroExcisedStrip h with
-  | ⟨Ehorizontal, hhorizontal⟩ =>
-      match hhorizontal with
-      | ⟨hTopMem, hBottomMem⟩ =>
-          zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_zero_of_canonicalFiniteBoundary_and_packetDecay
-            f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
-            hinterior hright_integrable Ehorizontal hTopMem hBottomMem
-            hinverseGammaDifference hexcision
+      Tendsto
+        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket
+          f F h)
+        atTop
+        (𝓝 0) :=
+    let horizontalData :=
+      ExplicitFormulaFamilyAnalyticPackage.scheduled_horizontalFamilyZeroExcisedStrip h
+    Exists.elim horizontalData
+      (fun Ehorizontal horizontalSpec =>
+        zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_zero_of_suppliedFiniteBoundary_and_packetDecay
+          f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
+          hinterior ε hεcontrols hright_integrable Ehorizontal horizontalSpec.1 horizontalSpec.2
+          hinverseGammaDifference hexcision)
 
 /-- Eventual finite-window integrability of the two right-side summands used
 by the corrected two-sided residue-free boundary identity. -/
@@ -3114,7 +3181,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_eventually_rightPrime_i
         (zetaCompletedExplicitFormulaInverseGammaRightAffineKernel f F)
         (volume : Measure ℝ) :=
     zetaCompletedExplicitFormulaInverseGammaRightAffineKernel_integrable
-      f F h hcoh
+      f F h
   exact
     Filter.Eventually.of_forall
       (fun u : ℝ =>
@@ -3123,7 +3190,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_eventually_rightPrime_i
 /-- Corrected scheduled prime-difference convergence with right finite-window
 integrability supplied by the standard right von Mangoldt and right
 inverse-Gamma majorant packages. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_zero_of_canonicalFiniteBoundary_and_coherentPacketDecay
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_zero_of_suppliedFiniteBoundary_and_coherentPacketDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
@@ -3142,13 +3209,17 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
     (hinterior :
       ∀ᶠ u in atTop,
         ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
               (h.height_schedule.height u) ↔
             completedZeroResidueCoordinate ρ ∈
                 explicitFormulaContourFamilyInterior F
                   (h.height_schedule.height u) ∧
               completedZeroResidueCoordinate ρ ∈
                 completedZetaContourIntegrandSingularSet)
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε)
     (hinverseGammaDifference :
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
@@ -3159,8 +3230,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
       Tendsto
         (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
           f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h))
+          ε)
         atTop
         (𝓝 0)) :
     Tendsto
@@ -3168,513 +3238,13 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferenc
         f F h)
       atTop
       (𝓝 0) :=
-  zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_zero_of_canonicalFiniteBoundary_and_packagePacketDecay
+  zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_zero_of_suppliedFiniteBoundary_and_packagePacketDecay
     f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
-    hinterior
+    hinterior ε hεcontrols
     (zetaCompletedExplicitFormulaPrimeLeftResidueFree_eventually_rightPrime_inverseGamma_integrableOn
       f F h hcoh)
     hinverseGammaDifference
     hexcision
-
-/-- Corrected scheduled prime-difference convergence with the inverse-Gamma
-normalization inserted.  The prime-difference packet tends to the
-archimedean-plus-correction contribution; this is the nonzero companion to
-the residue-free two-sided boundary identity. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_archimedean_add_correction_of_canonicalFiniteBoundary
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
-    (Eline : CompletedZetaZeroExcisedStrip (1 - F.c) (1 - F.c))
-    (hline_mem :
-      ∀ t : ℝ,
-        zetaCompletedExplicitFormulaLeftAffineLine F t ∈ Eline.carrier)
-    (BG : ℝ)
-    (hBG_nonneg : 0 ≤ BG)
-    (hinverseGamma_bound :
-      ∀ t : ℝ,
-        ‖inverseGammaCompletionLogDeriv
-            (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
-          BG * (1 + ‖t‖))
-    (hinterior :
-      ∀ᶠ u in atTop,
-        ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
-              (h.height_schedule.height u) ↔
-            completedZeroResidueCoordinate ρ ∈
-                explicitFormulaContourFamilyInterior F
-                  (h.height_schedule.height u) ∧
-              completedZeroResidueCoordinate ρ ∈
-                completedZetaContourIntegrandSingularSet)
-    (hvalue :
-      (∫ t : ℝ,
-        zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel f F t) =
-        zetaCompletedExplicitFormulaArchimedeanContribution f +
-          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)
-    (hexcision :
-      Tendsto
-        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
-          f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h))
-        atTop
-        (𝓝 0)) :
-    Tendsto
-      (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket
-        f F h)
-      atTop
-      (𝓝
-        (zetaCompletedExplicitFormulaArchimedeanContribution f +
-          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)) := by
-  let A : ℂ :=
-    zetaCompletedExplicitFormulaArchimedeanContribution f +
-      zetaCompletedExplicitFormulaCorrectionStandardContourContribution f
-  have hinverseGammaDifference :
-      Tendsto
-        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
-          f F h)
-        atTop
-        (𝓝 (-A)) :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket_tendsto_neg_archimedean_add_correction
-      f F h hregular hcoh hvalue
-  have hprime :
-      Tendsto
-        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket
-          f F h)
-        atTop
-        (𝓝 (-(-A))) :=
-    match ExplicitFormulaFamilyAnalyticPackage.scheduled_horizontalFamilyZeroExcisedStrip h with
-    | ⟨Ehorizontal, hhorizontal⟩ =>
-        match hhorizontal with
-        | ⟨hTopMem, hBottomMem⟩ =>
-            zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_neg_error_of_canonicalFiniteBoundary_and_packetDecay
-              f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
-              hinterior
-              (zetaCompletedExplicitFormulaPrimeLeftResidueFree_eventually_rightPrime_inverseGamma_integrableOn
-                f F h hcoh)
-              Ehorizontal hTopMem hBottomMem
-              (-A)
-              hinverseGammaDifference
-              hexcision
-  have hneg_neg :
-      -(-A) = A :=
-    neg_neg A
-  exact
-    Eq.subst
-      (motive := fun z : ℂ =>
-        Tendsto
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket
-            f F h)
-          atTop
-          (𝓝 z))
-      hneg_neg
-      hprime
-
-/-- Canonical finite-boundary residue-free scheduled-window vanishing after
-the nonzero prime-difference packet has been normalized against the proved
-right one-sided prime packet.
-
-This is the honest zero theorem for the corrected finite-boundary branch.  The
-finite contour argument supplies the `left - right` prime-difference packet as
-`archimedean + correction`; the explicit scalar normalization says that this
-is the negative of the right one-sided von Mangoldt value. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_canonicalFiniteBoundary_archimedean_cancellation
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F)
-    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
-    (Eline : CompletedZetaZeroExcisedStrip (1 - F.c) (1 - F.c))
-    (hline_mem :
-      ∀ t : ℝ,
-        zetaCompletedExplicitFormulaLeftAffineLine F t ∈ Eline.carrier)
-    (BG : ℝ)
-    (hBG_nonneg : 0 ≤ BG)
-    (hinverseGamma_bound :
-      ∀ t : ℝ,
-        ‖inverseGammaCompletionLogDeriv
-            (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
-          BG * (1 + ‖t‖))
-    (hinterior :
-      ∀ᶠ u in atTop,
-        ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
-              (h.height_schedule.height u) ↔
-            completedZeroResidueCoordinate ρ ∈
-                explicitFormulaContourFamilyInterior F
-                  (h.height_schedule.height u) ∧
-              completedZeroResidueCoordinate ρ ∈
-                completedZetaContourIntegrandSingularSet)
-    (hvalue :
-      (∫ t : ℝ,
-        zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel f F t) =
-        zetaCompletedExplicitFormulaArchimedeanContribution f +
-          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)
-    (hexcision :
-      Tendsto
-        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
-          f F h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F h))
-        atTop
-        (𝓝 0))
-    (hscalar :
-      zetaCompletedExplicitFormulaArchimedeanContribution f +
-          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f =
-        -(zetaCompletedExplicitFormulaPrimeNaturalOneSidedContribution f)) :
-    Tendsto
-      (fun u : ℝ =>
-        ∫ t in Set.Icc
-            (-(F.rectangle (h.height_schedule.height u)).T)
-            (F.rectangle (h.height_schedule.height u)).T,
-          zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t)
-      atTop
-      (𝓝 0) := by
-  have hdiff :
-      Tendsto
-        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket
-          f F h)
-        atTop
-        (𝓝
-          (zetaCompletedExplicitFormulaArchimedeanContribution f +
-            zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)) :=
-    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_archimedean_add_correction_of_canonicalFiniteBoundary
-      f F h hregular hcoh Eline hline_mem BG hBG_nonneg
-      hinverseGamma_bound hinterior hvalue hexcision
-  exact
-    zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_primeDifference_archimedean_add_correction
-      f F h hdiff hscalar
-
-/-- Vertically regular canonical finite-boundary residue-free scheduled-window
-vanishing.
-
-This wrapper discharges the inverse-Gamma difference value from the
-Gamma/Binet owner normalization.  The remaining scalar identity is the
-mathematical cancellation between the archimedean-plus-correction packet and
-the proved right one-sided prime packet, so it remains visible until its own
-owner theorem is proved. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_verticallyRegular_canonicalFiniteBoundary_archimedean_cancellation
-    (f : ZetaAdmissibleFunction)
-    (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
-    (Eline : CompletedZetaZeroExcisedStrip
-      (1 - F.toContourFamily.c) (1 - F.toContourFamily.c))
-    (hline_mem :
-      ∀ t : ℝ,
-        zetaCompletedExplicitFormulaLeftAffineLine F.toContourFamily t ∈
-          Eline.carrier)
-    (BG : ℝ)
-    (hBG_nonneg : 0 ≤ BG)
-    (hinverseGamma_bound :
-      ∀ t : ℝ,
-        ‖inverseGammaCompletionLogDeriv
-            (zetaCompletedExplicitFormulaLeftAffineLine
-              F.toContourFamily t)‖ ≤
-          BG * (1 + ‖t‖))
-    (hinterior :
-      ∀ᶠ u in atTop,
-        ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
-              (h.height_schedule.height u) ↔
-            completedZeroResidueCoordinate ρ ∈
-                explicitFormulaContourFamilyInterior F.toContourFamily
-                  (h.height_schedule.height u) ∧
-              completedZeroResidueCoordinate ρ ∈
-                completedZetaContourIntegrandSingularSet)
-    (hexcision :
-      Tendsto
-        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
-          f F.toContourFamily h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F.toContourFamily h))
-        atTop
-        (𝓝 0))
-    (hscalar :
-      zetaCompletedExplicitFormulaArchimedeanContribution f +
-          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f =
-        -(zetaCompletedExplicitFormulaPrimeNaturalOneSidedContribution f)) :
-    Tendsto
-      (fun u : ℝ =>
-        ∫ t in Set.Icc
-            (-(F.toContourFamily.rectangle (h.height_schedule.height u)).T)
-            (F.toContourFamily.rectangle (h.height_schedule.height u)).T,
-          zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel
-            f F.toContourFamily t)
-      atTop
-      (𝓝 0) := by
-  have hregular :
-      zetaCompletedExplicitFormulaLeftAffineLineGammaRegular
-        F.toContourFamily :=
-    zetaCompletedExplicitFormulaLeftAffineLineGammaRegular_of_verticallyRegular
-      F
-  have hvalue :
-      (∫ t : ℝ,
-        zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel
-          f F.toContourFamily t) =
-        zetaCompletedExplicitFormulaArchimedeanContribution f +
-          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f :=
-    zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel_integral_eq_archimedean_add_correction_of_verticallyRegular_gammaBinet_ownerNormalization
-      f F h hcoh
-  exact
-    zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_canonicalFiniteBoundary_archimedean_cancellation
-      f F.toContourFamily h hregular hcoh Eline hline_mem BG hBG_nonneg
-      hinverseGamma_bound hinterior hvalue hexcision hscalar
-
-/-- Vertically regular canonical finite-boundary residue-free whole-line value.
-
-This is only the exhaustion projection from the scheduled canonical
-finite-boundary theorem above.  The contour normalization and scalar
-cancellation remain visible in the scheduled theorem's hypotheses. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_integral_eq_zero_of_verticallyRegular_canonicalFiniteBoundary_archimedean_cancellation
-    (f : ZetaAdmissibleFunction)
-    (F : ExplicitFormulaVerticallyRegularContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
-    (Eline : CompletedZetaZeroExcisedStrip
-      (1 - F.toContourFamily.c) (1 - F.toContourFamily.c))
-    (hline_mem :
-      ∀ t : ℝ,
-        zetaCompletedExplicitFormulaLeftAffineLine F.toContourFamily t ∈
-          Eline.carrier)
-    (BG : ℝ)
-    (hBG_nonneg : 0 ≤ BG)
-    (hinverseGamma_bound :
-      ∀ t : ℝ,
-        ‖inverseGammaCompletionLogDeriv
-            (zetaCompletedExplicitFormulaLeftAffineLine
-              F.toContourFamily t)‖ ≤
-          BG * (1 + ‖t‖))
-    (hinterior :
-      ∀ᶠ u in atTop,
-        ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
-              (h.height_schedule.height u) ↔
-            completedZeroResidueCoordinate ρ ∈
-                explicitFormulaContourFamilyInterior F.toContourFamily
-                  (h.height_schedule.height u) ∧
-              completedZeroResidueCoordinate ρ ∈
-                completedZetaContourIntegrandSingularSet)
-    (hexcision :
-      Tendsto
-        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
-          f F.toContourFamily h
-          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledFiniteGeometryRadius
-            f F.toContourFamily h))
-        atTop
-        (𝓝 0))
-    (hscalar :
-      zetaCompletedExplicitFormulaArchimedeanContribution f +
-          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f =
-        -(zetaCompletedExplicitFormulaPrimeNaturalOneSidedContribution f)) :
-    (∫ t : ℝ,
-      zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel
-        f F.toContourFamily t) =
-      0 := by
-  have hregular :
-      zetaCompletedExplicitFormulaLeftAffineLineGammaRegular
-        F.toContourFamily :=
-    zetaCompletedExplicitFormulaLeftAffineLineGammaRegular_of_verticallyRegular
-      F
-  have hscheduled_zero :
-      Tendsto
-        (fun u : ℝ =>
-          ∫ t in Set.Icc
-              (-(F.toContourFamily.rectangle
-                (h.height_schedule.height u)).T)
-              (F.toContourFamily.rectangle
-                (h.height_schedule.height u)).T,
-            zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel
-              f F.toContourFamily t)
-        atTop
-        (𝓝 0) :=
-    zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_verticallyRegular_canonicalFiniteBoundary_archimedean_cancellation
-      f F h hcoh Eline hline_mem BG hBG_nonneg hinverseGamma_bound
-      hinterior hexcision hscalar
-  exact
-    zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_integral_eq_zero_of_scheduledWindow_tendsto_zero_ownerResidueFreeContourIdentity
-      f F.toContourFamily h hregular Eline hline_mem BG hBG_nonneg
-      hinverseGamma_bound hscheduled_zero
-
-/-- Forward scheduled zero-window/interior inclusion for the contour family
-heights.
-
-The reverse implication is not true for the current height window
-`1 + |Im ρ| ≤ T`: the rectangle interior also contains the outer unit band
-`T - 1 < |Im ρ| < T`.  That outer band must be accounted for by a residue-window
-error theorem rather than by a false equivalence. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledZeroWindowInterior_forward
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    ∀ᶠ u in atTop,
-      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ρ ∈ explicitFormulaCompletedZeroHeightWindow
-            (h.height_schedule.height u) →
-          completedZeroResidueCoordinate ρ ∈
-              explicitFormulaContourFamilyInterior F
-                (h.height_schedule.height u) ∧
-            completedZeroResidueCoordinate ρ ∈
-              completedZetaContourIntegrandSingularSet := by
-  exact Filter.Eventually.of_forall
-    (fun u ρ hρ =>
-      have hheight :
-          zetaCompletedZeroCenteredHeight ρ ≤ h.height_schedule.height u :=
-        explicitFormulaCompletedZeroHeightWindow_centeredHeight_le
-          (h.height_schedule.height u) hρ
-      have hheight_raw :
-          1 + ‖(zetaCenteredZero (ρ : ℂ)).im‖ ≤
-            h.height_schedule.height u := hheight
-      have him_norm_lt :
-          ‖(zetaCenteredZero (ρ : ℂ)).im‖ <
-            h.height_schedule.height u :=
-        lt_of_lt_of_le
-          (lt_add_of_pos_left
-            ‖(zetaCenteredZero (ρ : ℂ)).im‖ zero_lt_one)
-          hheight_raw
-      have him_eq :
-          (completedZeroResidueCoordinate ρ).im =
-            (zetaCenteredZero (ρ : ℂ)).im := by
-        calc
-          (completedZeroResidueCoordinate ρ).im =
-              ((1 / 2 : ℂ) + (ρ : ℂ)).im := by
-            rfl
-          _ = (ρ : ℂ).im := by
-            exact
-              Eq.trans
-                (Complex.add_im (1 / 2 : ℂ) (ρ : ℂ))
-                (zero_add (ρ : ℂ).im)
-          _ = ((ρ : ℂ) - (1 / 2 : ℂ)).im := by
-            exact
-              (Eq.trans
-                (Complex.sub_im (ρ : ℂ) (1 / 2 : ℂ))
-                (sub_zero (ρ : ℂ).im)).symm
-          _ = (zetaCenteredZero (ρ : ℂ)).im := by
-            rfl
-      have him_norm_coord_lt :
-          ‖(completedZeroResidueCoordinate ρ).im‖ <
-            h.height_schedule.height u :=
-        Eq.subst
-          (motive := fun x : ℝ => ‖x‖ < h.height_schedule.height u)
-          him_eq.symm
-          him_norm_lt
-      have him_abs_lt :
-          |(completedZeroResidueCoordinate ρ).im| <
-            h.height_schedule.height u :=
-        Eq.subst
-          (motive := fun x : ℝ => x < h.height_schedule.height u)
-          (Real.norm_eq_abs (completedZeroResidueCoordinate ρ).im)
-          him_norm_coord_lt
-      have him_interval :
-          (completedZeroResidueCoordinate ρ).im ∈
-            Set.Ioo (-(h.height_schedule.height u))
-              (h.height_schedule.height u) :=
-        abs_lt.mp him_abs_lt
-      have hzero :
-          completedRiemannZeta (completedZeroResidueCoordinate ρ) = 0 :=
-        completedRiemannZeta_zero_at_completedZeroResidueCoordinate ρ
-      have hstrip :
-          0 ≤ (completedZeroResidueCoordinate ρ).re ∧
-            (completedZeroResidueCoordinate ρ).re ≤ (1 : ℝ) :=
-        completedRiemannZeta_zero_re_mem_criticalStrip
-          (completedZeroResidueCoordinate ρ) hzero
-      have hleft :
-          1 - F.c < (completedZeroResidueCoordinate ρ).re :=
-        lt_of_lt_of_le F.one_sub_c_neg hstrip.1
-      have hright :
-          (completedZeroResidueCoordinate ρ).re < F.c :=
-        lt_of_le_of_lt hstrip.2 F.c_gt_one
-      have hre_interval :
-          (completedZeroResidueCoordinate ρ).re ∈
-            Set.uIoo F.c (1 - F.c) :=
-        Set.mem_uIoo_of_gt hleft hright
-      have hinterior :
-          completedZeroResidueCoordinate ρ ∈
-            explicitFormulaContourFamilyInterior F
-              (h.height_schedule.height u) :=
-        And.intro hre_interval him_interval
-      have hsingular :
-          completedZeroResidueCoordinate ρ ∈
-            completedZetaContourIntegrandSingularSet :=
-        explicitFormulaCompletedZero_mem_contourIntegrandSingularSet_ownerGap
-          ρ
-      And.intro hinterior hsingular)
-
-/-- Interior completed-zero coordinates at rectangle height `T` are captured by
-the completed-zero height window at height `T + 1`.
-
-This is the true replacement for the false reverse direction of the old
-zero-window/interior equivalence.  The current completed-zero height is
-`1 + |Im ρ|`; therefore the open strip condition `|Im ρ| < T` gives membership
-only in the enlarged window `T + 1`, not in the original window `T`. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_interiorZero_mem_enlargedHeightWindow
-    (F : ExplicitFormulaContourFamily) (T : ℝ)
-    (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
-    (hinterior :
-      completedZeroResidueCoordinate ρ ∈
-        explicitFormulaContourFamilyInterior F T) :
-    ρ ∈ explicitFormulaCompletedZeroHeightWindow (T + 1) := by
-  have him_interval :
-      (completedZeroResidueCoordinate ρ).im ∈ Set.Ioo (-T) T :=
-    hinterior.right
-  have him_abs_lt :
-      |(completedZeroResidueCoordinate ρ).im| < T :=
-    abs_lt.mpr him_interval
-  have him_eq :
-      (completedZeroResidueCoordinate ρ).im =
-        (zetaCenteredZero (ρ : ℂ)).im := by
-    calc
-      (completedZeroResidueCoordinate ρ).im =
-          ((1 / 2 : ℂ) + (ρ : ℂ)).im := by
-        rfl
-      _ = (ρ : ℂ).im := by
-        exact
-          Eq.trans
-            (Complex.add_im (1 / 2 : ℂ) (ρ : ℂ))
-            (zero_add (ρ : ℂ).im)
-      _ = ((ρ : ℂ) - (1 / 2 : ℂ)).im := by
-        exact
-          (Eq.trans
-            (Complex.sub_im (ρ : ℂ) (1 / 2 : ℂ))
-            (sub_zero (ρ : ℂ).im)).symm
-      _ = (zetaCenteredZero (ρ : ℂ)).im := by
-        rfl
-  have him_norm_coord_lt :
-      ‖(completedZeroResidueCoordinate ρ).im‖ < T :=
-    Eq.subst
-      (motive := fun x : ℝ => x < T)
-      (Real.norm_eq_abs (completedZeroResidueCoordinate ρ).im).symm
-      him_abs_lt
-  have him_norm_lt :
-      ‖(zetaCenteredZero (ρ : ℂ)).im‖ < T :=
-    Eq.subst
-      (motive := fun x : ℝ => ‖x‖ < T)
-      him_eq
-      him_norm_coord_lt
-  have hheight_lt :
-      zetaCompletedZeroCenteredHeight ρ < T + 1 :=
-    add_lt_add_left him_norm_lt 1
-  have hheight_le :
-      zetaCompletedZeroCenteredHeight ρ ≤ T + 1 :=
-    le_of_lt hheight_lt
-  exact
-    explicitFormulaCompletedZeroHeightWindow_mem_of_centeredHeight_le
-      (T + 1) hheight_le
-
-/-- Scheduled form of the enlarged-window capture for completed zeros in the
-rectangle interior. -/
-theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInteriorZero_mem_enlargedHeightWindow
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    ∀ᶠ u in atTop,
-      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        completedZeroResidueCoordinate ρ ∈
-            explicitFormulaContourFamilyInterior F
-              (h.height_schedule.height u) →
-          ρ ∈ explicitFormulaCompletedZeroHeightWindow
-            (h.height_schedule.height u + 1) := by
-  exact Filter.Eventually.of_forall
-    (fun u ρ hinterior =>
-      zetaCompletedExplicitFormulaPrimeLeftResidueFree_interiorZero_mem_enlargedHeightWindow
-        F (h.height_schedule.height u) ρ hinterior)
 
 /-- Scheduled inverse-Gamma difference normalization for the corrected
 residue-free prime-difference contour.
@@ -3714,7 +3284,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDi
   have hright_left :
       Tendsto D atTop (𝓝 A) :=
     zetaCompletedExplicitFormulaInverseGammaAffineKernelIntegrals_tendsto_archimedean_add_correction
-      f F h hregular hcoh hvalue
+      f F h hregular hvalue
   have hneg :
       Tendsto (fun u : ℝ => -(D u)) atTop (𝓝 (-A)) :=
     hright_left.neg
@@ -3747,6 +3317,407 @@ theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDi
         Tendsto φ atTop (𝓝 (-A)))
       hpacket.symm
       hneg
+
+/-- Corrected scheduled prime-difference convergence with the inverse-Gamma
+normalization inserted.  The prime-difference packet tends to the
+archimedean-plus-correction contribution; this is the nonzero companion to
+the residue-free two-sided boundary identity. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_archimedean_add_correction_of_suppliedFiniteBoundary
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (Eline : CompletedZetaZeroExcisedStrip (1 - F.c) (1 - F.c))
+    (hline_mem :
+      ∀ t : ℝ,
+        zetaCompletedExplicitFormulaLeftAffineLine F t ∈ Eline.carrier)
+    (BG : ℝ)
+    (hBG_nonneg : 0 ≤ BG)
+    (hinverseGamma_bound :
+      ∀ t : ℝ,
+        ‖inverseGammaCompletionLogDeriv
+            (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
+          BG * (1 + ‖t‖))
+    (hinterior :
+      ∀ᶠ u in atTop,
+        ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
+              (h.height_schedule.height u) ↔
+            completedZeroResidueCoordinate ρ ∈
+                explicitFormulaContourFamilyInterior F
+                  (h.height_schedule.height u) ∧
+              completedZeroResidueCoordinate ρ ∈
+                completedZetaContourIntegrandSingularSet)
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε)
+    (hvalue :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel f F t) =
+        zetaCompletedExplicitFormulaArchimedeanContribution f +
+          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)
+    (hexcision :
+      Tendsto
+        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
+          f F h
+          ε)
+        atTop
+        (𝓝 0)) :
+    Tendsto
+      (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket
+        f F h)
+      atTop
+      (𝓝
+        (zetaCompletedExplicitFormulaArchimedeanContribution f +
+          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)) := by
+  let A : ℂ :=
+    zetaCompletedExplicitFormulaArchimedeanContribution f +
+      zetaCompletedExplicitFormulaCorrectionStandardContourContribution f
+  have hinverseGammaDifference :
+      Tendsto
+        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket
+          f F h)
+        atTop
+        (𝓝 (-A)) :=
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInverseGammaDifferencePacket_tendsto_neg_archimedean_add_correction
+      f F h hregular hcoh hvalue
+  have hprime :
+      Tendsto
+        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket
+          f F h)
+          atTop
+          (𝓝 (-(-A))) :=
+      let horizontalData :=
+        ExplicitFormulaFamilyAnalyticPackage.scheduled_horizontalFamilyZeroExcisedStrip h
+      Exists.elim horizontalData
+        (fun Ehorizontal horizontalSpec =>
+          zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_neg_error_of_suppliedFiniteBoundary_and_packetDecay
+            f F h hregular Eline hline_mem BG hBG_nonneg hinverseGamma_bound
+            hinterior ε hεcontrols
+            (zetaCompletedExplicitFormulaPrimeLeftResidueFree_eventually_rightPrime_inverseGamma_integrableOn
+              f F h hcoh)
+            Ehorizontal horizontalSpec.1 horizontalSpec.2
+            (-A)
+            hinverseGammaDifference
+            hexcision)
+  have hneg_neg :
+      -(-A) = A :=
+    neg_neg A
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket
+            f F h)
+          atTop
+          (𝓝 z))
+      hneg_neg
+      hprime
+
+/-- Supplied finite-boundary residue-free scheduled-window vanishing after
+the nonzero prime-difference packet has been normalized against the proved
+right one-sided prime packet.
+
+This is the honest zero theorem for the corrected finite-boundary branch.  The
+finite contour argument supplies the `left - right` prime-difference packet as
+`archimedean + correction`; the explicit scalar normalization says that this
+is the negative of the right one-sided von Mangoldt value. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_suppliedFiniteBoundary_archimedean_cancellation
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hregular : zetaCompletedExplicitFormulaLeftAffineLineGammaRegular F)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (Eline : CompletedZetaZeroExcisedStrip (1 - F.c) (1 - F.c))
+    (hline_mem :
+      ∀ t : ℝ,
+        zetaCompletedExplicitFormulaLeftAffineLine F t ∈ Eline.carrier)
+    (BG : ℝ)
+    (hBG_nonneg : 0 ≤ BG)
+    (hinverseGamma_bound :
+      ∀ t : ℝ,
+        ‖inverseGammaCompletionLogDeriv
+            (zetaCompletedExplicitFormulaLeftAffineLine F t)‖ ≤
+          BG * (1 + ‖t‖))
+    (hinterior :
+      ∀ᶠ u in atTop,
+        ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
+              (h.height_schedule.height u) ↔
+            completedZeroResidueCoordinate ρ ∈
+                explicitFormulaContourFamilyInterior F
+                  (h.height_schedule.height u) ∧
+              completedZeroResidueCoordinate ρ ∈
+                completedZetaContourIntegrandSingularSet)
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F h ε)
+    (hvalue :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel f F t) =
+        zetaCompletedExplicitFormulaArchimedeanContribution f +
+          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)
+    (hexcision :
+      Tendsto
+        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
+          f F h
+          ε)
+        atTop
+        (𝓝 0))
+    (hscalar :
+      zetaCompletedExplicitFormulaArchimedeanContribution f +
+          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f =
+        -(zetaCompletedExplicitFormulaPrimeNaturalOneSidedContribution f)) :
+    Tendsto
+      (fun u : ℝ =>
+        ∫ t in Set.Icc
+            (-(F.rectangle (h.height_schedule.height u)).T)
+            (F.rectangle (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel f F t)
+      atTop
+      (𝓝 0) := by
+  have hdiff :
+      Tendsto
+        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket
+          f F h)
+        atTop
+        (𝓝
+          (zetaCompletedExplicitFormulaArchimedeanContribution f +
+            zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)) :=
+    zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledPrimeDifferencePacket_tendsto_archimedean_add_correction_of_suppliedFiniteBoundary
+      f F h hregular hcoh Eline hline_mem BG hBG_nonneg
+      hinverseGamma_bound hinterior ε hεcontrols hvalue hexcision
+  exact
+    zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_primeDifference_archimedean_add_correction
+      f F h hdiff hscalar
+
+/-- Vertically regular supplied finite-boundary residue-free scheduled-window
+vanishing from the explicit whole-line inverse-Gamma value identity.
+
+The vertically regular contour supplies the Gamma regularity.  The
+inverse-Gamma value identity remains an explicit owner input rather than being
+hidden behind the older removed normalization name. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_verticallyRegular_suppliedFiniteBoundary_archimedean_cancellation
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hvalue :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel
+          f F.toContourFamily t) =
+        zetaCompletedExplicitFormulaArchimedeanContribution f +
+          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)
+    (Eline : CompletedZetaZeroExcisedStrip
+      (1 - F.toContourFamily.c) (1 - F.toContourFamily.c))
+    (hline_mem :
+      ∀ t : ℝ,
+        zetaCompletedExplicitFormulaLeftAffineLine F.toContourFamily t ∈
+          Eline.carrier)
+    (BG : ℝ)
+    (hBG_nonneg : 0 ≤ BG)
+    (hinverseGamma_bound :
+      ∀ t : ℝ,
+        ‖inverseGammaCompletionLogDeriv
+            (zetaCompletedExplicitFormulaLeftAffineLine
+              F.toContourFamily t)‖ ≤
+          BG * (1 + ‖t‖))
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F.toContourFamily h ε)
+    (hinterior :
+      ∀ᶠ u in atTop,
+        ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
+              (h.height_schedule.height u) ↔
+            completedZeroResidueCoordinate ρ ∈
+                explicitFormulaContourFamilyInterior F.toContourFamily
+                  (h.height_schedule.height u) ∧
+              completedZeroResidueCoordinate ρ ∈
+                completedZetaContourIntegrandSingularSet)
+    (hexcision :
+      Tendsto
+        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
+          f F.toContourFamily h
+          ε)
+        atTop
+        (𝓝 0))
+    (hscalar :
+      zetaCompletedExplicitFormulaArchimedeanContribution f +
+          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f =
+        -(zetaCompletedExplicitFormulaPrimeNaturalOneSidedContribution f)) :
+    Tendsto
+      (fun u : ℝ =>
+        ∫ t in Set.Icc
+            (-(F.toContourFamily.rectangle (h.height_schedule.height u)).T)
+            (F.toContourFamily.rectangle (h.height_schedule.height u)).T,
+          zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel
+            f F.toContourFamily t)
+      atTop
+      (𝓝 0) := by
+  have hregular :
+      zetaCompletedExplicitFormulaLeftAffineLineGammaRegular
+        F.toContourFamily :=
+    zetaCompletedExplicitFormulaLeftAffineLineGammaRegular_of_verticallyRegular
+      F
+  exact
+    zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_suppliedFiniteBoundary_archimedean_cancellation
+      f F.toContourFamily h hregular hcoh Eline hline_mem BG hBG_nonneg
+      hinverseGamma_bound hinterior ε hεcontrols hvalue hexcision hscalar
+
+/-- Vertically regular supplied finite-boundary residue-free whole-line value.
+
+This is only the exhaustion projection from the scheduled supplied
+finite-boundary theorem above.  The contour normalization and scalar
+cancellation remain visible in the scheduled theorem's hypotheses. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_integral_eq_zero_of_verticallyRegular_suppliedFiniteBoundary_archimedean_cancellation
+    (f : ZetaAdmissibleFunction)
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hvalue :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaInverseGammaDifferenceAffineKernel
+          f F.toContourFamily t) =
+        zetaCompletedExplicitFormulaArchimedeanContribution f +
+          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f)
+    (Eline : CompletedZetaZeroExcisedStrip
+      (1 - F.toContourFamily.c) (1 - F.toContourFamily.c))
+    (hline_mem :
+      ∀ t : ℝ,
+        zetaCompletedExplicitFormulaLeftAffineLine F.toContourFamily t ∈
+          Eline.carrier)
+    (BG : ℝ)
+    (hBG_nonneg : 0 ≤ BG)
+    (hinverseGamma_bound :
+      ∀ t : ℝ,
+        ‖inverseGammaCompletionLogDeriv
+            (zetaCompletedExplicitFormulaLeftAffineLine
+              F.toContourFamily t)‖ ≤
+          BG * (1 + ‖t‖))
+    (ε : ℝ → ℝ)
+    (hεcontrols :
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_suppliedFiniteGeometryRadiusControls
+        f F.toContourFamily h ε)
+    (hinterior :
+      ∀ᶠ u in atTop,
+        ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
+              (h.height_schedule.height u) ↔
+            completedZeroResidueCoordinate ρ ∈
+                explicitFormulaContourFamilyInterior F.toContourFamily
+                  (h.height_schedule.height u) ∧
+              completedZeroResidueCoordinate ρ ∈
+                completedZetaContourIntegrandSingularSet)
+    (hexcision :
+      Tendsto
+        (zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledExcisionError
+          f F.toContourFamily h
+          ε)
+        atTop
+        (𝓝 0))
+    (hscalar :
+      zetaCompletedExplicitFormulaArchimedeanContribution f +
+          zetaCompletedExplicitFormulaCorrectionStandardContourContribution f =
+        -(zetaCompletedExplicitFormulaPrimeNaturalOneSidedContribution f)) :
+    (∫ t : ℝ,
+      zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel
+        f F.toContourFamily t) =
+      0 := by
+  have hregular :
+      zetaCompletedExplicitFormulaLeftAffineLineGammaRegular
+        F.toContourFamily :=
+    zetaCompletedExplicitFormulaLeftAffineLineGammaRegular_of_verticallyRegular
+      F
+  have hscheduled_zero :
+      Tendsto
+        (fun u : ℝ =>
+          ∫ t in Set.Icc
+              (-(F.toContourFamily.rectangle
+                (h.height_schedule.height u)).T)
+              (F.toContourFamily.rectangle
+                (h.height_schedule.height u)).T,
+            zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel
+              f F.toContourFamily t)
+        atTop
+        (𝓝 0) :=
+    zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_scheduledWindow_tendsto_zero_of_verticallyRegular_suppliedFiniteBoundary_archimedean_cancellation
+      f F h hcoh hvalue Eline hline_mem BG hBG_nonneg hinverseGamma_bound
+      ε hεcontrols hinterior hexcision hscalar
+  exact
+    zetaCompletedExplicitFormulaPrimeLeftLogDerivativeAffineKernel_integral_eq_zero_of_scheduledWindow_tendsto_zero_ownerResidueFreeContourIdentity
+      f F.toContourFamily h hregular Eline hline_mem BG hBG_nonneg
+      hinverseGamma_bound hscheduled_zero
+
+/-- Forward scheduled zero-window/interior inclusion for the contour family
+heights.
+
+The reverse implication is not true for the current height window
+`1 + |Im ρ| ≤ T`: the rectangle interior also contains the outer unit band
+`T - 1 < |Im ρ| < T`.  That outer band must be accounted for by a residue-window
+error theorem rather than by a false equivalence. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledZeroWindowInterior_forward
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    ∀ᶠ u in atTop,
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
+            (h.height_schedule.height u) →
+          completedZeroResidueCoordinate ρ ∈
+              explicitFormulaContourFamilyInterior F
+                (h.height_schedule.height u) ∧
+            completedZeroResidueCoordinate ρ ∈
+              completedZetaContourIntegrandSingularSet := by
+  exact Filter.Eventually.of_forall
+    (fun u ρ hρ =>
+      (explicitFormulaCompletedZeroContourHeightWindow_mem_iff_interiorSingular
+        F (h.height_schedule.height u) ρ).mp hρ)
+
+/-- Interior completed-zero coordinates at rectangle height `T` are captured by
+the completed-zero height window at height `T + 1`.
+
+This is the true replacement for the false reverse direction of the old
+zero-window/interior equivalence.  The current completed-zero height is
+`1 + |Im ρ|`; therefore the open strip condition `|Im ρ| < T` gives membership
+only in the enlarged window `T + 1`, not in the original window `T`. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_interiorZero_mem_enlargedHeightWindow
+    (F : ExplicitFormulaContourFamily) (T : ℝ)
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
+    (hinterior :
+      completedZeroResidueCoordinate ρ ∈
+        explicitFormulaContourFamilyInterior F T) :
+    ρ ∈ explicitFormulaCompletedZeroContourHeightWindow (T + 1) := by
+  have him_interval :
+      (completedZeroResidueCoordinate ρ).im ∈ Set.Ioo (-T) T :=
+    hinterior.right
+  have him_abs_lt :
+      |(completedZeroResidueCoordinate ρ).im| < T :=
+    abs_lt.mpr him_interval
+  have him_abs_lt_enlarged :
+      |(completedZeroResidueCoordinate ρ).im| < T + 1 :=
+    lt_trans him_abs_lt (lt_add_of_pos_right T zero_lt_one)
+  exact
+    explicitFormulaCompletedZeroContourHeightWindow_mem_of_abs_im_lt
+      (T + 1) him_abs_lt_enlarged
+
+/-- Scheduled form of the enlarged-window capture for completed zeros in the
+rectangle interior. -/
+theorem zetaCompletedExplicitFormulaPrimeLeftResidueFree_scheduledInteriorZero_mem_enlargedHeightWindow
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    ∀ᶠ u in atTop,
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        completedZeroResidueCoordinate ρ ∈
+            explicitFormulaContourFamilyInterior F
+              (h.height_schedule.height u) →
+          ρ ∈ explicitFormulaCompletedZeroContourHeightWindow
+            (h.height_schedule.height u + 1) := by
+  exact Filter.Eventually.of_forall
+    (fun u ρ hinterior =>
+      zetaCompletedExplicitFormulaPrimeLeftResidueFree_interiorZero_mem_enlargedHeightWindow
+        F (h.height_schedule.height u) ρ hinterior)
 
 end ZetaAdmissibleFunction
 

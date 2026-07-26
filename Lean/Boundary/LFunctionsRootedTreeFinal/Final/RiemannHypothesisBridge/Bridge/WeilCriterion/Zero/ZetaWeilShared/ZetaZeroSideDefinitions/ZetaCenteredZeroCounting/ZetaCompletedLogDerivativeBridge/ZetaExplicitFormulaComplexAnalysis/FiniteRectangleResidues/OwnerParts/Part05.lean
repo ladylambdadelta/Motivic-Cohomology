@@ -40,7 +40,7 @@ theorem explicitFormulaRectangle_half_add_sub_half (z : ℂ) :
 
 /-- Compatibility sink for consumers that still state the completed-zero residue with the
 named zero-side summand. -/
-theorem explicitFormulaRectangle_completedZero_localResidue_zeroSideCoordinateCompatibility_ownerGap
+theorem explicitFormulaRectangle_completedZero_localResidue_zeroSideCoordinateCompatibility
     (f : ZetaAdmissibleFunction) (hPhi : ZetaPhiAnalyticControl f)
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
     (hnormalize :
@@ -52,7 +52,7 @@ theorem explicitFormulaRectangle_completedZero_localResidue_zeroSideCoordinateCo
       (𝓝[≠] (completedZeroResidueCoordinate ρ))
       (𝓝 (explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ))) := by
   exact
-    explicitFormulaRectangle_completedZero_localResidue_zeroSideCoordinateCompatibility_from_uncentered_ownerGap
+    explicitFormulaRectangle_completedZero_localResidue_zeroSideCoordinateCompatibility_from_uncentered
       f ρ hnormalize
       (explicitFormulaRectangle_completedZero_localResidue_tendsto_contourSummand f hPhi ρ)
 
@@ -439,19 +439,19 @@ theorem explicitFormulaRectangle_completedPoleResidueSum_eq
         explicitFormulaRectangle_onePoleResidue f := by
   rfl
 
-/-- The `s = 0` pole residue is the negative centered value `-1 / 2` of the test
-transform, matching the residue of the negative logarithmic derivative. -/
+/-- The `s = 0` pole residue is the centered value `-1 / 2` of the test
+transform, matching the residue of the completed negative logarithmic derivative. -/
 theorem explicitFormulaRectangle_zeroPoleResidue_eq
     (f : ZetaAdmissibleFunction) :
     explicitFormulaRectangle_zeroPoleResidue f =
-      -zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)) := by
+      zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)) := by
   rfl
 
-/-- The `s = 1` pole residue is the negative centered value `1 / 2` of the test transform. -/
+/-- The `s = 1` pole residue is the centered value `1 / 2` of the test transform. -/
 theorem explicitFormulaRectangle_onePoleResidue_eq
     (f : ZetaAdmissibleFunction) :
     explicitFormulaRectangle_onePoleResidue f =
-      -zetaCompletedExplicitFormulaPhi f (1 / 2 : ℂ) := by
+      zetaCompletedExplicitFormulaPhi f (1 / 2 : ℂ) := by
   rfl
 
 /-- Removing the two pole-coordinate residues from the pole-corrected residue target
@@ -482,7 +482,7 @@ theorem explicitFormulaRectangle_zeroPole_localResidue_tendsto
           ((-1 / z) *
             zetaCompletedExplicitFormulaPhi f (z - 1 / 2)))
       (𝓝[≠] (0 : ℂ))
-        (𝓝 (explicitFormulaRectangle_zeroPoleResidue f)) := by
+        (𝓝 (-explicitFormulaRectangle_zeroPoleResidue f)) := by
   have hraw :
       Tendsto
         (fun z : ℂ =>
@@ -502,7 +502,7 @@ theorem explicitFormulaRectangle_zeroPole_localResidue_tendsto
                 zetaCompletedExplicitFormulaPhi f (z - 1 / 2)))
           (𝓝[≠] (0 : ℂ))
           (𝓝 w))
-      (explicitFormulaRectangle_zeroPoleResidue_eq f).symm
+      (congrArg (fun w : ℂ => -w) (explicitFormulaRectangle_zeroPoleResidue_eq f)).symm
       hraw
 
 /-- The isolated correction kernel at `s = 1` has the negative of the raw completed-contour
@@ -515,7 +515,7 @@ theorem explicitFormulaRectangle_onePole_localResidue_tendsto
           ((-1 / (z - 1)) *
             zetaCompletedExplicitFormulaPhi f (z - 1 / 2)))
       (𝓝[≠] (1 : ℂ))
-        (𝓝 (explicitFormulaRectangle_onePoleResidue f)) := by
+        (𝓝 (-explicitFormulaRectangle_onePoleResidue f)) := by
   have hraw :
       Tendsto
         (fun z : ℂ =>
@@ -535,7 +535,7 @@ theorem explicitFormulaRectangle_onePole_localResidue_tendsto
                 zetaCompletedExplicitFormulaPhi f (z - 1 / 2)))
           (𝓝[≠] (1 : ℂ))
           (𝓝 w))
-      (explicitFormulaRectangle_onePoleResidue_eq f).symm
+      (congrArg (fun w : ℂ => -w) (explicitFormulaRectangle_onePoleResidue_eq f)).symm
       hraw
 
 /-- The isolated `s = 0` pole local residue transports along any punctured

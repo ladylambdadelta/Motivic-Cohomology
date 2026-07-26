@@ -211,7 +211,7 @@ theorem Complex.norm_binetAbelPlanaUpperLogJumpSegmentIntegrand_le_endpoint_re_i
       exact le_trans (le_abs_self z.re) (Complex.abs_re_le_abs z)
     exact Eq.subst (motive := fun x : ℝ => z.re ≤ x) (Eq.symm hnorm_eq) hle
   have hinv_le : ‖z‖⁻¹ ≤ z.re⁻¹ :=
-    inv_le_inv_of_le hz_re_pos hz_re_le_norm
+    inv_anti₀ hz_re_pos hz_re_le_norm
   have hre_eq : z.re = w.re + (N + 1 : ℝ) := by
     exact Complex.binetAbelPlanaUpperLogJumpSegmentDenominator_re_eq w N s
   calc

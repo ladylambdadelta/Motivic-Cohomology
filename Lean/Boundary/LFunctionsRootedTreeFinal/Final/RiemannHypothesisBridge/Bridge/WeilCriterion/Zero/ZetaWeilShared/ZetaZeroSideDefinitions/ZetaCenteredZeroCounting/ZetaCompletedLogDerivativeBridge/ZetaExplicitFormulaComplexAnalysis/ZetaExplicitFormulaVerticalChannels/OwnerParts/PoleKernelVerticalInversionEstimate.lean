@@ -1,9 +1,12 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PoleKernelVerticalInversion
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.AffineKernelMajorantPackage
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleLaplaceProjection
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.RightZeroPoleCauchyAssembly
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleLeftOffPoleDecay
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ScheduledKernelLimitTransport
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.SymmetricIntegralExhaustion
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleAffineKernelBounds
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleSquarePuncturedProjectBridge
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.CorrectionPoleResidues
 
 /-!
 # Pole-kernel vertical inversion estimate
@@ -166,7 +169,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInve
 /-- Bundled majorant package for the isolated right `s = 0` pole affine inversion
 kernel.  Analytically this is the Cauchy kernel bound on the fixed right line
 combined with rapid decay of `Φ_f`. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_majorantPackage
+def zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_majorantPackage
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     ExplicitFormulaAffineKernelMajorantPackage
@@ -430,6 +433,85 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral
       hK_integral
       hK_value
 
+/-- Source tangent-boundary limit for the zero-pole rectangle. -/
+theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral_tendsto_localTangentResidueValue_poleKernelSource
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
+          f F (h.height_schedule.height u))
+      atTop
+      (𝓝
+        (zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue f)) := by
+  let S : ℝ → ℂ := fun u : ℝ =>
+    zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral
+      f F (h.height_schedule.height u)
+  let D : ℝ → ℂ := fun u : ℝ =>
+    zetaCompletedExplicitFormulaCorrectionZeroPoleTangentOrientationDefect
+      f F (h.height_schedule.height u)
+  let C : ℝ → ℂ := fun u : ℝ =>
+    zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
+      f F (h.height_schedule.height u)
+  have hstandard_event :
+      S =ᶠ[atTop]
+        fun _u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue f :=
+    h.height_schedule.eventually_height_pos.mono
+      (fun u hu =>
+        zetaCompletedExplicitFormulaCorrectionZeroPoleStandardRectangleBoundaryIntegral_eq_localTangentResidueValue_of_pos_height
+          f F h hu)
+  have hstandard :
+      Tendsto S atTop
+        (𝓝
+          (zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue f)) :=
+    Tendsto.congr' hstandard_event.symm tendsto_const_nhds
+  have hdefect : Tendsto D atTop (𝓝 0) :=
+    zetaCompletedExplicitFormulaCorrectionZeroPoleTangentOrientationDefect_tendsto_zero
+      f F h
+  have hsum :
+      Tendsto (fun u : ℝ => S u + D u) atTop
+        (𝓝
+          (zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue f + 0)) :=
+    hstandard.add hdefect
+  have hsum_value :
+      Tendsto (fun u : ℝ => S u + D u) atTop
+        (𝓝
+          (zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue f)) :=
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto (fun u : ℝ => S u + D u) atTop (𝓝 z))
+      (add_zero
+        (zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue f))
+      hsum
+  have hpoint :
+      C = fun u : ℝ => S u + D u := by
+    funext u
+    exact
+      zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledTangentBoundary_eq_standard_add_orientationDefect
+        f F h u
+  exact Eq.subst
+    (motive := fun φ : ℝ → ℂ =>
+      Tendsto φ atTop
+        (𝓝
+          (zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue f)))
+    hpoint.symm
+    hsum_value
+
+/-- Source left off-pole decay input for the right zero-pole inversion. -/
+theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_tendsto_zero_poleKernelSource
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral
+          f F (h.height_schedule.height u))
+      atTop
+      (𝓝 0) := by
+  exact
+    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_tendsto_zero_ownerLeftOffPoleDecay
+      f F h
+
 /-- Direct scheduled Cauchy/Laplace inversion for the isolated right `s = 0`
 pole kernel.
 
@@ -446,9 +528,98 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInve
           f F h u)
       atTop
       (𝓝 (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)) := by
-  exact
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_value_ownerLaplaceProjection
+  have hleft :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 0) :=
+    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_tendsto_zero_poleKernelSource
       f F h
+  have hhorizontal :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference
+            f F h u)
+        atTop
+        (𝓝 0) :=
+    zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_tendsto_zero_ownerZeroPoleHorizontal
+      f F h
+  have htangent :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝
+          (zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue f)) :=
+    zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral_tendsto_localTangentResidueValue_poleKernelSource
+      f F h
+  have hright :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝
+          (zetaCompletedExplicitFormulaCorrectionZeroPoleLocalVerticalResidueValue f)) :=
+    zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral_tendsto_localVerticalResidueValue_of_tangentBoundaryResidue_ownerAssembly
+      f F h hleft hhorizontal htangent
+  have hvalue :
+      zetaCompletedExplicitFormulaCorrectionZeroPoleLocalVerticalResidueValue f =
+        zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f := by
+    calc
+      zetaCompletedExplicitFormulaCorrectionZeroPoleLocalVerticalResidueValue f =
+          -(zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue f *
+            Complex.I) := by
+        exact zetaCompletedExplicitFormulaCorrectionZeroPoleLocalVerticalResidueValue_eq f
+      _ =
+          -(((2 * (Real.pi : ℂ) * Complex.I) *
+            (-zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ)))) *
+              Complex.I) := by
+        exact congrArg
+          (fun z : ℂ => -(z * Complex.I))
+          (zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue_eq f)
+      _ =
+          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f := by
+        exact
+          (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue_eq
+            f).symm
+  have hright_value :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)) :=
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun u : ℝ =>
+            zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+              f F (h.height_schedule.height u))
+          atTop
+          (𝓝 z))
+      hvalue
+      hright
+  have hscheduled :
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion
+          f F h u) =
+      fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+          f F (h.height_schedule.height u) := by
+    funext u
+    exact
+      zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_eq_verticalIntegral
+        f F h u
+  exact Eq.subst
+    (motive := fun φ : ℝ → ℂ =>
+      Tendsto φ atTop
+        (𝓝 (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)))
+    hscheduled.symm
+    hright_value
 
 /-- Whole-line Cauchy/Laplace inversion value for the isolated right `s = 0`
 pole affine kernel. -/
@@ -459,8 +630,10 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral
       zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel f F t) =
       zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f := by
   exact
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral_eq_value_ownerLaplaceProjection
+    zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral_eq_value_of_scheduledVerticalInversion_tendsto_value
       f F h
+      (zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_value_direct
+        f F h)
 
 /-- Analytic vertical-inversion estimate for the isolated right `s = 0` pole
 kernel, transported from the owner Cauchy/Laplace inversion leaf. -/
@@ -474,7 +647,7 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInve
       atTop
       (𝓝 (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)) := by
   exact
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_value_ownerLaplaceProjection
+    zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_value_direct
       f F h
 
 /-- Right-face zero-pole vertical-inversion limit for the `s = 0`

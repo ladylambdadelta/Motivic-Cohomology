@@ -491,7 +491,78 @@ theorem eulerMaclaurin_poleClearedRiemannZeta_one_two_strip_formula_remainder_po
       eulerMaclaurinPoleClearedZetaEndpointTerm_one_two_strip_polynomial_bound
       eulerMaclaurinPoleClearedZetaRemainderTerm_one_two_strip_polynomial_bound
 
-/-- Polynomial Euler-Maclaurin growth on the closed strip implies the
+/-! The Euler--Maclaurin owner estimate in the exact vertical-boundary form
+consumed by the strip normalizer. -/
+theorem poleClearedRiemannZeta_rightBoundary_polynomial_owner
+    : ∃ C : ℝ, ∃ m : ℕ,
+      0 < C ∧
+      ∀ z : ℂ,
+        z.re = 2 →
+        ‖poleClearedRiemannZeta z‖ ≤ C * (1 + ‖z‖) ^ m := by
+  match eulerMaclaurin_poleClearedRiemannZeta_one_two_strip_formula_remainder_polynomial_bound with
+  | ⟨C, m, hC, hbound⟩ =>
+      exact ⟨C, m, hC, fun z hz_re => by
+        have hleft : (1 : ℝ) ≤ z.re := by
+          calc
+            (1 : ℝ) ≤ 2 := one_le_two
+            _ = z.re := hz_re.symm
+        have hright : z.re ≤ 2 := le_of_eq hz_re
+        exact hbound z hleft hright⟩
+
+/-- Ordinary zeta inherits the Euler--Maclaurin polynomial bound after the
+pole-cleared factor is divided by its pole denominator.  The separation
+hypothesis is deliberately explicit: it is the quantitative datum that later
+carrier constructions must supply. -/
+theorem riemannZeta_one_two_strip_norm_le_of_poleCleared_polynomial_bound
+    (hpoly :
+      ∃ C : ℝ, ∃ m : ℕ,
+        0 < C ∧
+        ∀ z : ℂ,
+          1 ≤ z.re →
+          z.re ≤ 2 →
+          ‖poleClearedRiemannZeta z‖ ≤ C * (1 + ‖z‖) ^ m)
+    (z : ℂ) (hz1 : z ≠ 1)
+    (hzre1 : 1 ≤ z.re) (hzre2 : z.re ≤ 2)
+    (hsep : 0 < ‖z - 1‖) :
+    ∃ C : ℝ, ∃ m : ℕ,
+      0 < C ∧
+      ‖riemannZeta z‖ ≤ C * (1 + ‖z‖) ^ m / hsep := by
+  rcases hpoly with ⟨C, m, hC, hbound⟩
+  refine ⟨C, m, hC, ?_⟩
+  have hpole :
+      poleClearedRiemannZeta z = (z - 1) * riemannZeta z :=
+    poleClearedRiemannZeta_eq_of_ne_one hz1
+  have hzeta :
+      riemannZeta z = poleClearedRiemannZeta z / (z - 1) := by
+    apply (eq_div_iff (sub_ne_zero.mpr hz1)).2
+    calc
+      riemannZeta z * (z - 1) = (z - 1) * riemannZeta z := mul_comm _ _
+      _ = poleClearedRiemannZeta z := hpole.symm
+  have hnorm :
+      ‖riemannZeta z‖ =
+        ‖poleClearedRiemannZeta z‖ / ‖z - 1‖ := by
+    calc
+      ‖riemannZeta z‖ =
+          ‖poleClearedRiemannZeta z / (z - 1)‖ := congrArg norm hzeta
+      _ = ‖poleClearedRiemannZeta z‖ / ‖z - 1‖ := norm_div _ _
+  have hden : ‖z - 1‖⁻¹ ≤ hsep⁻¹ := by
+    exact inv_le_inv₀ hsep (le_of_lt hsep)
+  have hbound' :
+      ‖poleClearedRiemannZeta z‖ ≤ C * (1 + ‖z‖) ^ m :=
+    hbound z hzre1 hzre2
+  have hmul :
+      ‖poleClearedRiemannZeta z‖ * ‖z - 1‖⁻¹ ≤
+        (C * (1 + ‖z‖) ^ m) * hsep⁻¹ :=
+    mul_le_mul hbound' hden (norm_nonneg _) (mul_nonneg (le_of_lt hC)
+      (pow_nonneg (le_add_of_nonneg_left (norm_nonneg z)) m))
+  calc
+    ‖riemannZeta z‖ = ‖poleClearedRiemannZeta z‖ * ‖z - 1‖⁻¹ := by
+      exact hnorm.trans (div_eq_mul_inv _ _)
+    _ ≤ (C * (1 + ‖z‖) ^ m) * hsep⁻¹ := hmul
+    _ = C * (1 + ‖z‖) ^ m / hsep := by
+      exact (div_eq_mul_inv _ _).symm
+
+/- Polynomial Euler-Maclaurin growth on the closed strip implies the
 finite-order exponential envelope used by the strip admissibility API. -/
 theorem poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_of_polynomial_bound
     (hpoly :

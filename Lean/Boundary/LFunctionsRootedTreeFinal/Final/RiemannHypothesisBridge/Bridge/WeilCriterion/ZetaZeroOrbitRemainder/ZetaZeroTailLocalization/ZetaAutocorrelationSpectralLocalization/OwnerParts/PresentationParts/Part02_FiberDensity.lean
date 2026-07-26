@@ -19,18 +19,20 @@ theorem mem_autocorrelationSpectralEvalFiberZeroTailRealAbsValues_iff
     r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ↔
       ∃ f : ZetaAdmissibleFunction,
         f ∈ AutocorrelationSpectralEvalFiberOf P f₀ ∧
-          r = autocorrelationZeroTailRealAbs S f := by
-  exact Iff.intro (fun equality => equality) (fun equality => equality)
+          r = autocorrelationZeroTailRealAbs S f :=
+  Iff.intro
+    (fun equality => equality)
+    (fun equality => equality)
 
 /-- Values of the fixed-fiber zero-tail absolute-value set are nonnegative. -/
 theorem autocorrelationSpectralEvalFiberZeroTailRealAbsValues_nonnegative
     (S : Finset ℂ) (P : Finset ℂ) (f₀ : ZetaAdmissibleFunction)
     {r : ℝ}
     (hr : r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) :
-    0 ≤ r := by
-  exact match
-      (mem_autocorrelationSpectralEvalFiberZeroTailRealAbsValues_iff
-        S P f₀ r).mp hr with
+    0 ≤ r :=
+  match
+    (mem_autocorrelationSpectralEvalFiberZeroTailRealAbsValues_iff
+      S P f₀ r).mp hr with
   | ⟨f, hfFiberEvidence, hrf⟩ =>
       Eq.subst
         (motive := fun value : ℝ => 0 ≤ value)
@@ -48,11 +50,11 @@ theorem exists_mem_autocorrelationSpectralEvalFiberOf_of_paleyRange_ownerRunge
       ∀ T : Finset ℂ, ∀ aT : T → ℂ,
         aT ∈ Set.range (zetaLaplaceTransformFiniteSample T)) :
     ∃ f : ZetaAdmissibleFunction,
-      f ∈ AutocorrelationSpectralEvalFiberOf P f₀ := by
-  exact
-    ⟨f₀,
-      fun z hzEvidence =>
-        Eq.refl (zetaSpectralEval (convolutionAutocorrelation f₀) z)⟩
+      f ∈ AutocorrelationSpectralEvalFiberOf P f₀ :=
+  Exists.intro
+    f₀
+    (fun z hzEvidence =>
+      Eq.refl (zetaSpectralEval (convolutionAutocorrelation f₀) z))
 
 /-- A fixed finite autocorrelation spectral-evaluation presentation fiber has
 representatives with arbitrarily small zero-tail absolute value exactly when its named
@@ -131,12 +133,12 @@ theorem autocorrelationSpectralEvalFiber_zeroTailRealAbs_has_arbitrarily_small_v
       ∀ ε : ℝ, 0 < ε →
         ∃ r : ℝ,
           r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
-            r < ε := by
-  exact
-    ⟨autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_small_values_of_fiber
-        S P f₀,
-      autocorrelationSpectralEvalFiber_zeroTailRealAbs_has_arbitrarily_small_values
-        S P f₀⟩
+            r < ε :=
+  Iff.intro
+    (autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_small_values_of_fiber
+      S P f₀)
+    (autocorrelationSpectralEvalFiber_zeroTailRealAbs_has_arbitrarily_small_values
+      S P f₀)
 
 /-- Closure of the fixed-fiber zero-tail value set at `0`, together with the
 nonnegativity of those values, gives arbitrarily small positive upper bounds.
@@ -183,23 +185,22 @@ theorem autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_
         ∃ r : ℝ,
           r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
             r < ε) :
-    (0 : ℝ) ∈ closure (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) := by
-  exact
-    Metric.mem_closure_iff.mpr
-      (fun ε hε =>
-        match hSmall ε hε with
-        | ⟨r, hrValues, hrSmall⟩ =>
-            have hrNonnegative : 0 ≤ r :=
-              autocorrelationSpectralEvalFiberZeroTailRealAbsValues_nonnegative
-                S P f₀ hrValues
-            have hdistZero : dist 0 r = r :=
-              dist_zero_eq_self_of_nonnegative r hrNonnegative
-            Exists.intro r
-              (And.intro hrValues
-                (Eq.subst
-                  (motive := fun value : ℝ => value < ε)
-                  hdistZero.symm
-                  hrSmall)))
+    (0 : ℝ) ∈ closure (autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀) :=
+  Metric.mem_closure_iff.mpr
+    (fun ε hε =>
+      match hSmall ε hε with
+      | ⟨r, hrValues, hrSmall⟩ =>
+          let hrNonnegative : 0 ≤ r :=
+            autocorrelationSpectralEvalFiberZeroTailRealAbsValues_nonnegative
+              S P f₀ hrValues
+          let hdistZero : dist 0 r = r :=
+            dist_zero_eq_self_of_nonnegative r hrNonnegative
+          Exists.intro r
+            (And.intro hrValues
+              (Eq.subst
+                (motive := fun value : ℝ => value < ε)
+                hdistZero.symm
+                hrSmall)))
 
 /-- For the nonnegative fixed-fiber zero-tail value set, closure at `0` is equivalent to
 having values below every positive bound. -/
@@ -211,12 +212,12 @@ theorem autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_
       ∀ ε : ℝ, 0 < ε →
         ∃ r : ℝ,
           r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
-            r < ε := by
-  exact
-    ⟨autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_small_values_of_zero_mem_closure
-        S P f₀,
-      autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_of_has_arbitrarily_small_values
-        S P f₀⟩
+            r < ε :=
+  Iff.intro
+    (autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_small_values_of_zero_mem_closure
+      S P f₀)
+    (autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_zero_mem_closure_of_has_arbitrarily_small_values
+      S P f₀)
 
 /-- The quotient zero-tail values of the positive/autocorrelation cone image are
 nonnegative.
@@ -232,8 +233,8 @@ theorem autocorrelationConeSpectralEvalFiberZeroTailOrderedHeartImage_zeroTail_v
       r ∈
         (completedBoundaryOrderedHeartZeroTailRealAbs S) ''
           autocorrelationConeSpectralEvalFiberZeroTailOrderedHeartImage P f₀) :
-    0 ≤ r := by
-  exact match hr with
+    0 ≤ r :=
+  match hr with
   | ⟨C, hClassEvidence, hCr⟩ =>
       Eq.subst
         (motive := fun value : ℝ => 0 ≤ value)
@@ -261,8 +262,8 @@ theorem finiteAutocorrelationFiberZeroAnnihilationSeedTarget_eq_of_mem_daggerClo
     {z : ℂ}
     (hz : z ∈ daggerClosedSpectralSampleFinset P) :
     finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z =
-      zetaSpectralEval f₀ z := by
-  exact dif_pos hz
+      zetaSpectralEval f₀ z :=
+  dif_pos hz
 
 /-- Away from the dagger-closed fiber constraints, the finite annihilation target is zero. -/
 theorem finiteAutocorrelationFiberZeroAnnihilationSeedTarget_eq_zero_of_not_mem_daggerClosed
@@ -270,8 +271,8 @@ theorem finiteAutocorrelationFiberZeroAnnihilationSeedTarget_eq_zero_of_not_mem_
     (f₀ : ZetaAdmissibleFunction)
     {z : ℂ}
     (hz : z ∉ daggerClosedSpectralSampleFinset P) :
-    finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z = 0 := by
-  exact dif_neg hz
+    finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z = 0 :=
+  dif_neg hz
 
 /-- Realizing the seed target on a dagger-closed point preserves the source evaluation. -/
 theorem zetaSpectralEval_eq_source_of_seed_finiteAnnihilationTarget
@@ -290,24 +291,28 @@ theorem autocorrelationSpectralEval_eq_of_seed_pair_eq
     (hz : zetaSpectralEval f z = zetaSpectralEval g z)
     (hreflection : zetaSpectralEval f (-star z) = zetaSpectralEval g (-star z)) :
     zetaSpectralEval (convolutionAutocorrelation f) z =
-      zetaSpectralEval (convolutionAutocorrelation g) z := by
-  have hleft :
+      zetaSpectralEval (convolutionAutocorrelation g) z :=
+  let hleft :
       zetaSpectralEval (convolutionAutocorrelation f) z =
         zetaSpectralEval f z * star (zetaSpectralEval f (-star z)) :=
     zetaSpectralEval_convolutionAutocorrelation_eq_seed_daggerProduct f z
-  have hright :
+  let hright :
       zetaSpectralEval (convolutionAutocorrelation g) z =
         zetaSpectralEval g z * star (zetaSpectralEval g (-star z)) :=
     zetaSpectralEval_convolutionAutocorrelation_eq_seed_daggerProduct g z
-  have hfirst :
+  let hfirst :
       zetaSpectralEval f z * star (zetaSpectralEval f (-star z)) =
         zetaSpectralEval g z * star (zetaSpectralEval f (-star z)) :=
     congrArg (fun value : ℂ => value * star (zetaSpectralEval f (-star z))) hz
-  have hsecond :
+  let hsecond :
       zetaSpectralEval g z * star (zetaSpectralEval f (-star z)) =
         zetaSpectralEval g z * star (zetaSpectralEval g (-star z)) :=
     congrArg (fun value : ℂ => zetaSpectralEval g z * star value) hreflection
-  exact Eq.trans hleft (Eq.trans hfirst (Eq.trans hsecond hright.symm))
+  show
+    zetaSpectralEval (convolutionAutocorrelation f) z =
+      zetaSpectralEval (convolutionAutocorrelation g) z
+  from
+    Eq.trans hleft (Eq.trans hfirst (Eq.trans hsecond hright.symm))
 
 /-- A seed realizing the finite annihilation target preserves the autocorrelation spectral
 fiber on `P`. -/
@@ -339,19 +344,22 @@ theorem mem_autocorrelationSpectralEvalFiberOf_of_seed_finiteAnnihilationTarget
 theorem autocorrelationSpectralEval_eq_zero_of_seed_eval_eq_zero
     (f : ZetaAdmissibleFunction) (z : ℂ)
     (hz : zetaSpectralEval f z = 0) :
-    zetaSpectralEval (convolutionAutocorrelation f) z = 0 := by
-  have hproduct :
+    zetaSpectralEval (convolutionAutocorrelation f) z = 0 :=
+  let hproduct :
       zetaSpectralEval (convolutionAutocorrelation f) z =
         zetaSpectralEval f z * star (zetaSpectralEval f (-star z)) :=
     zetaSpectralEval_convolutionAutocorrelation_eq_seed_daggerProduct f z
-  have hzeroProduct :
+  let hzeroProduct :
       zetaSpectralEval f z * star (zetaSpectralEval f (-star z)) =
         0 * star (zetaSpectralEval f (-star z)) :=
     congrArg
       (fun value : ℂ => value * star (zetaSpectralEval f (-star z)))
       hz
-  exact Eq.trans hproduct
-    (Eq.trans hzeroProduct (zero_mul (star (zetaSpectralEval f (-star z)))))
+  show
+    zetaSpectralEval (convolutionAutocorrelation f) z = 0
+  from
+    Eq.trans hproduct
+      (Eq.trans hzeroProduct (zero_mul (star (zetaSpectralEval f (-star z)))))
 
 /-- Outside the dagger-closed constraints, realizing the target makes the seed value zero. -/
 theorem zetaSpectralEval_centeredZero_eq_zero_of_seed_finiteAnnihilationTarget
@@ -376,13 +384,16 @@ theorem autocorrelationSpectralEval_centeredZero_eq_zero_of_seed_finiteAnnihilat
       zetaSpectralEval f (zetaCenteredZero ρ) =
         finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀
           (zetaCenteredZero ρ)) :
-    zetaSpectralEval (convolutionAutocorrelation f) (zetaCenteredZero ρ) = 0 := by
-  have hf_zero :
+    zetaSpectralEval (convolutionAutocorrelation f) (zetaCenteredZero ρ) = 0 :=
+  let hf_zero :
       zetaSpectralEval f (zetaCenteredZero ρ) = 0 :=
     zetaSpectralEval_centeredZero_eq_zero_of_seed_finiteAnnihilationTarget
       P f₀ f ρ hρ hf
-  exact autocorrelationSpectralEval_eq_zero_of_seed_eval_eq_zero
-    f (zetaCenteredZero ρ) hf_zero
+  show
+    zetaSpectralEval (convolutionAutocorrelation f) (zetaCenteredZero ρ) = 0
+  from
+    autocorrelationSpectralEval_eq_zero_of_seed_eval_eq_zero
+      f (zetaCenteredZero ρ) hf_zero
 
 /-- A sample realized on the union restricts to the dagger-closed constraints. -/
 theorem seed_finiteAnnihilationTarget_restrict_daggerClosed
@@ -439,29 +450,29 @@ theorem exists_mem_autocorrelationSpectralEvalFiberOf_and_centeredZero_batch_zer
       f ∈ AutocorrelationSpectralEvalFiberOf P f₀ ∧
         ∀ ρ : ℂ, ρ ∈ T →
           zetaSpectralEval (convolutionAutocorrelation f)
-            (zetaCenteredZero ρ) = 0 := by
+            (zetaCenteredZero ρ) = 0 :=
   let U : Finset ℂ :=
     daggerClosedSpectralSampleFinset P ∪ T.image zetaCenteredZero
-  exact match exists_seed_spectralEval_sample_on_finset
+  match exists_seed_spectralEval_sample_on_finset
       U (finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀) with
   | ⟨f, hfU⟩ =>
-      have hfDagger :
+      let hfDagger :
           ∀ z : ℂ,
             z ∈ daggerClosedSpectralSampleFinset P →
               zetaSpectralEval f z =
                 finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z :=
         seed_finiteAnnihilationTarget_restrict_daggerClosed P T f₀ f hfU
-      have hfFiber :
+      let hfFiber :
           f ∈ AutocorrelationSpectralEvalFiberOf P f₀ :=
         mem_autocorrelationSpectralEvalFiberOf_of_seed_finiteAnnihilationTarget
           P f₀ f hfDagger
-      have hzero :
+      let hzero :
           ∀ ρ : ℂ, ρ ∈ T →
             zetaSpectralEval (convolutionAutocorrelation f)
               (zetaCenteredZero ρ) = 0 :=
         seed_finiteAnnihilationTarget_zero_on_centeredBatch
           P T f₀ f hT hfU
-      ⟨f, hfFiber, hzero⟩
+      Exists.intro f (And.intro hfFiber hzero)
 
 theorem seed_finiteAnnihilationTarget_zero_on_rawBatch
     (P T : Finset ℂ) (f₀ f : ZetaAdmissibleFunction)
@@ -473,19 +484,22 @@ theorem seed_finiteAnnihilationTarget_zero_on_rawBatch
           zetaSpectralEval f z =
             finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z) :
     ∀ ρ : ℂ, ρ ∈ T →
-      zetaSpectralEval (convolutionAutocorrelation f) ρ = 0 := by
-  intro ρ hρT
-  have hmem : ρ ∈ daggerClosedSpectralSampleFinset P ∪ T := by
-    exact Finset.mem_union.mpr (Or.inr hρT)
-  have hseed :
+      zetaSpectralEval (convolutionAutocorrelation f) ρ = 0 :=
+  fun ρ hρT =>
+    let hmem : ρ ∈ daggerClosedSpectralSampleFinset P ∪ T :=
+      Finset.mem_union.mpr (Or.inr hρT)
+    let hseed :
       zetaSpectralEval f ρ =
-        finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ ρ := by
-    exact hfUnion ρ hmem
-  have hseedZero : zetaSpectralEval f ρ = 0 := by
-    exact Eq.trans hseed
-      (finiteAutocorrelationFiberZeroAnnihilationSeedTarget_eq_zero_of_not_mem_daggerClosed
-        P f₀ (hT ρ hρT))
-  exact autocorrelationSpectralEval_eq_zero_of_seed_eval_eq_zero f ρ hseedZero
+        finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ ρ :=
+      hfUnion ρ hmem
+    let hseedZero : zetaSpectralEval f ρ = 0 :=
+      Eq.trans hseed
+        (finiteAutocorrelationFiberZeroAnnihilationSeedTarget_eq_zero_of_not_mem_daggerClosed
+          P f₀ (hT ρ hρT))
+    show
+      zetaSpectralEval (convolutionAutocorrelation f) ρ = 0
+    from
+      autocorrelationSpectralEval_eq_zero_of_seed_eval_eq_zero f ρ hseedZero
 
 theorem exists_mem_autocorrelationSpectralEvalFiberOf_and_raw_batch_zero_of_disjoint_daggerClosed
     (P : Finset ℂ)
@@ -497,27 +511,27 @@ theorem exists_mem_autocorrelationSpectralEvalFiberOf_and_raw_batch_zero_of_disj
     ∃ f : ZetaAdmissibleFunction,
       f ∈ AutocorrelationSpectralEvalFiberOf P f₀ ∧
         ∀ ρ : ℂ, ρ ∈ T →
-          zetaSpectralEval (convolutionAutocorrelation f) ρ = 0 := by
+          zetaSpectralEval (convolutionAutocorrelation f) ρ = 0 :=
   let U : Finset ℂ := daggerClosedSpectralSampleFinset P ∪ T
   match exists_seed_spectralEval_sample_on_finset
       U (finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀) with
   | ⟨f, hfU⟩ =>
-      have hfDagger :
+      let hfDagger :
           ∀ z : ℂ,
             z ∈ daggerClosedSpectralSampleFinset P →
               zetaSpectralEval f z =
-                finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z := by
-        intro z hz
-        exact hfU z (Finset.mem_union.mpr (Or.inl hz))
-      have hfFiber : f ∈ AutocorrelationSpectralEvalFiberOf P f₀ := by
-        exact mem_autocorrelationSpectralEvalFiberOf_of_seed_finiteAnnihilationTarget
+                finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z :=
+        fun z hz =>
+          hfU z (Finset.mem_union.mpr (Or.inl hz))
+      let hfFiber : f ∈ AutocorrelationSpectralEvalFiberOf P f₀ :=
+        mem_autocorrelationSpectralEvalFiberOf_of_seed_finiteAnnihilationTarget
           P f₀ f hfDagger
-      have hzero :
+      let hzero :
           ∀ ρ : ℂ, ρ ∈ T →
-            zetaSpectralEval (convolutionAutocorrelation f) ρ = 0 := by
-        exact seed_finiteAnnihilationTarget_zero_on_rawBatch
+            zetaSpectralEval (convolutionAutocorrelation f) ρ = 0 :=
+        seed_finiteAnnihilationTarget_zero_on_rawBatch
           P T f₀ f hT hfU
-      exact ⟨f, hfFiber, hzero⟩
+      Exists.intro f (And.intro hfFiber hzero)
 
 /-- A finite annihilation window plus a uniform tail-control estimate gives a probe with
 small named zero-tail absolute value.
@@ -543,12 +557,15 @@ theorem exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_lt_of_fini
             autocorrelationZeroTailRealAbs S f < ε) :
     ∃ f : ZetaAdmissibleFunction,
       f ∈ AutocorrelationSpectralEvalFiberOf P f₀ ∧
-        autocorrelationZeroTailRealAbs S f < ε := by
-  exact match
-      exists_mem_autocorrelationSpectralEvalFiberOf_and_raw_batch_zero_of_disjoint_daggerClosed
-        P f₀ T hT with
+        autocorrelationZeroTailRealAbs S f < ε :=
+  match
+    exists_mem_autocorrelationSpectralEvalFiberOf_and_raw_batch_zero_of_disjoint_daggerClosed
+      P f₀ T hT with
   | ⟨f, hfFiber, hfzero⟩ =>
-      ⟨f, hfFiber, htail f hfFiber hfzero⟩
+      Exists.intro f
+        (And.intro
+          hfFiber
+          (htail f hfFiber hfzero))
 
 /-- A finite annihilation window plus a uniform tail-control estimate gives a value in the
 named zero-tail value set below the requested bound. -/
@@ -570,16 +587,24 @@ theorem autocorrelationSpectralEvalFiberZeroTailRealAbsValues_exists_lt_of_finit
             autocorrelationZeroTailRealAbs S f < ε) :
     ∃ r : ℝ,
       r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
-        r < ε := by
-  exact match
-      exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_lt_of_finiteWindow_tailControl
-        S P f₀ ε T hT htail with
+        r < ε :=
+  match
+    exists_mem_autocorrelationSpectralEvalFiberOf_zeroTailRealAbs_lt_of_finiteWindow_tailControl
+      S P f₀ ε T hT htail with
   | ⟨f, hfFiber, hfTail⟩ =>
-      ⟨autocorrelationZeroTailRealAbs S f,
+      let r : ℝ := autocorrelationZeroTailRealAbs S f
+      let hrValues :
+          r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ :=
         (mem_autocorrelationSpectralEvalFiberZeroTailRealAbsValues_iff
-          S P f₀ (autocorrelationZeroTailRealAbs S f)).mpr
-          ⟨f, hfFiber, Eq.refl (autocorrelationZeroTailRealAbs S f)⟩,
-        hfTail⟩
+          S P f₀ r).mpr
+          (Exists.intro f
+            (And.intro
+              hfFiber
+              (Eq.refl r)))
+      let hrSmall : r < ε := hfTail
+      Exists.intro
+        r
+        (And.intro hrValues hrSmall)
 
 
 end ZetaAdmissibleFunction

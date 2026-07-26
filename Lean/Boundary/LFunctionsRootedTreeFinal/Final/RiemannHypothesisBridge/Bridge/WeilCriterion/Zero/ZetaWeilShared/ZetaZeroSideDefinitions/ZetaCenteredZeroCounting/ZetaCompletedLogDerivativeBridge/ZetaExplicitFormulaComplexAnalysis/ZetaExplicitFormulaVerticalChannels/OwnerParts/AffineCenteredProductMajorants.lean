@@ -67,7 +67,7 @@ def zetaCompletedExplicitFormulaRightCenteredAffineProduct_majorantPackage_of_li
         Integrable
           (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℝ)))
           (volume : Measure ℝ) :=
-      integrable_one_add_norm (E := ℝ) hdim
+      integrable_one_add_norm hdim
     have hscaled :
         Integrable
           (fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(3 : ℝ))))
@@ -181,9 +181,9 @@ def zetaCompletedExplicitFormulaRightCenteredAffineProduct_majorantPackage_of_li
 
 /-- A linearly bounded factor times the left centered test transform has an
 integrable majorant. -/
-def zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of_linear_factor_bound_common
+def zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of_phiControl_linear_factor_bound_common
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (hPhi : ZetaPhiAnalyticControl f)
     (A : ℝ → ℂ) (B : ℝ)
     (hB_nonneg : 0 ≤ B)
     (hA_meas : AEStronglyMeasurable A (volume : Measure ℝ))
@@ -194,7 +194,7 @@ def zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of_lin
           zetaCompletedExplicitFormulaPhi f
             (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t)) := by
   let C : ℝ :=
-    h.phi_control.verticalStripRapidDecayConstant
+    hPhi.verticalStripRapidDecayConstant
       ((1 : ℝ) - F.c - (1 / 2 : ℝ))
       ((1 : ℝ) - F.c - (1 / 2 : ℝ)) 4
   let majorant : ℝ → ℝ := fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(3 : ℤ)))
@@ -222,7 +222,7 @@ def zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of_lin
         Integrable
           (fun t : ℝ => (1 + ‖t‖) ^ (-(3 : ℝ)))
           (volume : Measure ℝ) :=
-      integrable_one_add_norm (E := ℝ) hdim
+      integrable_one_add_norm hdim
     have hscaled :
         Integrable
           (fun t : ℝ => B * (C * (1 + ‖t‖) ^ (-(3 : ℝ))))
@@ -253,8 +253,8 @@ def zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of_lin
           zetaCompletedExplicitFormulaPhi f
             (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t))
         (volume : Measure ℝ) :=
-    zetaCompletedExplicitFormulaPhi_leftCenteredAffineLine_aestronglyMeasurable
-      f F h
+    zetaCompletedExplicitFormulaPhi_leftCenteredAffineLine_aestronglyMeasurable_of_phiControl
+      f F hPhi
   have hbound :
       ∀ᵐ t ∂(volume : Measure ℝ),
         ‖A t‖ *
@@ -269,8 +269,8 @@ def zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of_lin
             ‖zetaCompletedExplicitFormulaPhi f
                 (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t)‖ ≤
               C * (1 + ‖t‖) ^ (-(4 : ℤ)) :=
-          zetaCompletedExplicitFormulaPhi_leftCenteredAffineLine_decay_bound
-            f F h 4 t
+          zetaCompletedExplicitFormulaPhi_leftCenteredAffineLine_decay_bound_of_phiControl
+            f F hPhi 4 t
         have hphi_nonneg :
             0 ≤ ‖zetaCompletedExplicitFormulaPhi f
               (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t)‖ :=
@@ -333,6 +333,23 @@ def zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of_lin
   exact
     ExplicitFormulaAffineKernelMajorantPackage.of_mul_le
       majorant hintegrable hA_meas hphi_meas hbound
+
+/-- A linearly bounded factor times the left centered test transform has an
+integrable majorant. -/
+def zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of_linear_factor_bound_common
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (A : ℝ → ℂ) (B : ℝ)
+    (hB_nonneg : 0 ≤ B)
+    (hA_meas : AEStronglyMeasurable A (volume : Measure ℝ))
+    (hA_bound : ∀ t : ℝ, ‖A t‖ ≤ B * (1 + ‖t‖)) :
+    ExplicitFormulaAffineKernelMajorantPackage
+      (fun t : ℝ =>
+        A t *
+          zetaCompletedExplicitFormulaPhi f
+            (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t)) :=
+  zetaCompletedExplicitFormulaLeftCenteredAffineProduct_majorantPackage_of_phiControl_linear_factor_bound_common
+    f F h.phi_control A B hB_nonneg hA_meas hA_bound
 
 end ZetaAdmissibleFunction
 

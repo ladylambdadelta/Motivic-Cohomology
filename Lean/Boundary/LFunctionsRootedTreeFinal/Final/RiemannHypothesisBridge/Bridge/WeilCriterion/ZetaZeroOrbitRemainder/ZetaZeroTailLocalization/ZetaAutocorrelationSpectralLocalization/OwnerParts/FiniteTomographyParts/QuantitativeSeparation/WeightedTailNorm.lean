@@ -42,37 +42,38 @@ theorem summable_completedZeroComplementL1Norm
     (f : ZetaAdmissibleFunction) :
     Summable
       (fun rho : {rho : ℂ // ZetaCompletedZero rho ∧ rho ∉ S} =>
-        ‖zetaZeroSideContribution (rho : ℂ) f‖) := by
-  have hglobal :
+        ‖zetaZeroSideContribution (rho : ℂ) f‖) :=
+  let hglobal :
       Summable
         (fun rho : {rho : ℂ // ZetaCompletedZero rho} =>
           ‖zetaZeroSideContribution (rho : ℂ) f‖) :=
     (summable_zetaZeroSideContribution
       hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
       f).norm
-  have hrestricted :
+  let hrestricted :
       Summable
         (fun rho :
             {rho : {rho : ℂ // ZetaCompletedZero rho} // (rho : ℂ) ∉ S} =>
           ‖zetaZeroSideContribution (rho : ℂ) f‖) :=
     hglobal.subtype
       {rho : {rho : ℂ // ZetaCompletedZero rho} | (rho : ℂ) ∉ S}
-  have hcomposition :
+  let hcomposition :
       (fun rho :
           {rho : {rho : ℂ // ZetaCompletedZero rho} // (rho : ℂ) ∉ S} =>
         ‖zetaZeroSideContribution (rho : ℂ) f‖) =
         (fun rho : {rho : ℂ // ZetaCompletedZero rho ∧ rho ∉ S} =>
           ‖zetaZeroSideContribution (rho : ℂ) f‖) ∘
-            completedZeroComplementIndexEquiv S := by
-    funext rho
-    exact Eq.refl ‖zetaZeroSideContribution (rho : ℂ) f‖
-  have hcomposed :
+            completedZeroComplementIndexEquiv S :=
+    funext
+      (fun rho =>
+        Eq.refl ‖zetaZeroSideContribution (rho : ℂ) f‖)
+  let hcomposed :
       Summable
         ((fun rho : {rho : ℂ // ZetaCompletedZero rho ∧ rho ∉ S} =>
           ‖zetaZeroSideContribution (rho : ℂ) f‖) ∘
             completedZeroComplementIndexEquiv S) :=
     Eq.mp (congrArg Summable hcomposition) hrestricted
-  exact (completedZeroComplementIndexEquiv S).summable_iff.mp hcomposed
+  (completedZeroComplementIndexEquiv S).summable_iff.mp hcomposed
 
 theorem zetaZeroTail_norm_le_completedZeroComplementL1Norm
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
@@ -83,10 +84,8 @@ theorem zetaZeroTail_norm_le_completedZeroComplementL1Norm
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (S : Finset ℂ)
     (f : ZetaAdmissibleFunction) :
-    ‖zetaZeroTail S f‖ ≤ completedZeroComplementL1Norm S f := by
-  unfold zetaZeroTail
-  unfold completedZeroComplementL1Norm
-  exact norm_tsum_le_tsum_norm
+    ‖zetaZeroTail S f‖ ≤ completedZeroComplementL1Norm S f :=
+  norm_tsum_le_tsum_norm
     (summable_completedZeroComplementL1Norm
       hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
       S f)
@@ -101,19 +100,19 @@ theorem autocorrelationZeroTailRealAbs_le_completedZeroComplementL1Norm
     (S : Finset ℂ)
     (f : ZetaAdmissibleFunction) :
     autocorrelationZeroTailRealAbs S f ≤
-      completedZeroComplementL1Norm S (convolutionAutocorrelation f) := by
-  have hrealNorm :
+      completedZeroComplementL1Norm S (convolutionAutocorrelation f) :=
+  let hrealNorm :
       autocorrelationZeroTailRealAbs S f ≤
         ‖zetaZeroTail S (convolutionAutocorrelation f)‖ :=
     RCLike.abs_re_le_norm
       (zetaZeroTail S (convolutionAutocorrelation f))
-  have hcomplexNorm :
+  let hcomplexNorm :
       ‖zetaZeroTail S (convolutionAutocorrelation f)‖ ≤
         completedZeroComplementL1Norm S (convolutionAutocorrelation f) :=
     zetaZeroTail_norm_le_completedZeroComplementL1Norm
       hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
       S (convolutionAutocorrelation f)
-  exact le_trans hrealNorm hcomplexNorm
+  le_trans hrealNorm hcomplexNorm
 
 theorem autocorrelationZeroTailRealAbs_lt_of_completedZeroComplementL1Norm_lt
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)

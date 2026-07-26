@@ -597,18 +597,25 @@ theorem completedRenormalizedDefectKernelBoundaryChannel_eq_positiveDefectKernel
       completedPositiveDefectKernelBoundaryScalar f := by
   exact completedRenormalizedDefectKernelBoundaryChannel_eq_GNSNormSq f
 
-/-- Archimedean raw-side transform bridge. -/
-theorem archimedeanBoundaryChannel_convolutionAutocorrelation_eq_archimedeanConvolutionContribution
+/-- Archimedean raw-side transform bridge through the signed continuum form. -/
+theorem archimedeanBoundaryChannel_convolutionAutocorrelation_re_eq_signedForm
     (f : ZetaAdmissibleFunction) :
-    archimedeanBoundaryChannel (convolutionAutocorrelation f) =
-      zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f := by
-  change
-    zetaCompletedExplicitFormulaArchimedeanContribution
-        (convolutionAutocorrelation f) =
-      zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f
-  exact
-    zetaCompletedExplicitFormulaArchimedeanContribution_convolutionAutocorrelation_eq_paired_owner
+    Complex.re (archimedeanBoundaryChannel (convolutionAutocorrelation f)) =
+      Complex.re (zetaCompletedArchimedeanSignedQuadraticForm f) := by
+  have hchannel :
+      archimedeanBoundaryChannel (convolutionAutocorrelation f) =
+        zetaCompletedExplicitFormulaArchimedeanContribution
+          (convolutionAutocorrelation f) :=
+    archimedeanBoundaryChannel_convolutionAutocorrelation_eq_hermitianContribution_owner
       f
+  have hsigned :
+      Complex.re
+          (zetaCompletedExplicitFormulaArchimedeanContribution
+            (convolutionAutocorrelation f)) =
+        Complex.re (zetaCompletedArchimedeanSignedQuadraticForm f) :=
+    zetaCompletedExplicitFormulaArchimedeanContribution_convolutionAutocorrelation_re_eq_signed_owner
+      f
+  exact (congrArg Complex.re hchannel).trans hsigned
 
 /-- Correction raw-side transform bridge. -/
 theorem poleBoundaryChannel_convolutionAutocorrelation_eq_correctionConvolutionContribution

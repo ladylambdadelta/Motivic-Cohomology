@@ -98,9 +98,27 @@ theorem zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCo
             (𝓝[≠] (completedZeroResidueCoordinate rho))
             (𝓝 (explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero rho))) :=
     fun rho hrho =>
-      explicitFormulaRectangle_completedZero_localResidue_tendsto_summand_ownerGap
-        f h.phi_control rho
-        (explicitFormulaContourZeroResidue_eq_completedZeroResidue f rho)
+      have hphi :
+          zetaCompletedExplicitFormulaPhi f (rho : ℂ) =
+            zetaCompletedExplicitFormulaPhi f (rho : ℂ) :=
+        explicitFormulaRectangle_completedZeroResidueWindow_phiConventionCorrection
+          f (h.height_schedule.height u) rho hrho
+      have hnormalize :
+          explicitFormulaZeroResidue f (explicitFormulaContourZeroDataOfCompletedZero rho) =
+            explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero rho) :=
+        explicitFormulaRectangle_completedZeroResidueWindow_contourToZeroSideResidueEquality
+          f (h.height_schedule.height u) rho hrho hphi
+      Eq.subst
+        (motive := fun residue : ℂ =>
+          Tendsto
+            (fun z : ℂ =>
+              (z - completedZeroResidueCoordinate rho) *
+                zetaCompletedExplicitFormulaContourIntegrand f z)
+            (𝓝[≠] (completedZeroResidueCoordinate rho))
+            (𝓝 residue))
+        hnormalize
+        (explicitFormulaRectangle_completedZero_localResidue_tendsto_contourSummand
+          f h.phi_control rho)
   exact
     zetaCompletedExplicitFormulaTangentContourIntegral_eq_twoPiI_smul_poleCorrectedResidueSum_of_selectedRegularRadius
       f F h hT hinterior hlocal

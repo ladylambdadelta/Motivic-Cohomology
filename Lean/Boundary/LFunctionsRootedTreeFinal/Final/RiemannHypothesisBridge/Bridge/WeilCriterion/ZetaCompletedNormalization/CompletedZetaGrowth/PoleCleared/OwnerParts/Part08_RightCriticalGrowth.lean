@@ -76,6 +76,14 @@ theorem poleClearedRightCriticalStripAdmissibleGrowth_owner
       (poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_owner
         hbranch hreflected)
 
+theorem poleClearedRightCriticalStripAdmissibleGrowth_ownerUnconditional
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
+    PoleClearedRightCriticalStripAdmissibleGrowth := by
+  exact
+    poleClearedRightCriticalStripAdmissibleGrowth_of_zeroOneOrdinaryFiniteOrder
+      (poleClearedRiemannZeta_zero_one_strip_ordinaryFiniteOrder_growth_ownerUnconditional
+        hbranch)
+
 /-- Standard finite-order theorem for the pole-cleared Riemann zeta factor in the right
 critical strip.
 

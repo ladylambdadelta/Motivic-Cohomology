@@ -16,6 +16,8 @@ noncomputable section
 namespace ZetaAdmissibleFunction
 namespace FiniteWindow
 
+open scoped ENNReal
+
 noncomputable def completedZeroFiniteExponentialCoefficient
     (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
     (S : Finset ℂ)

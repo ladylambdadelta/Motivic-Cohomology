@@ -329,7 +329,7 @@ theorem realLine_bareFourthPower_normalized_tail_le_inverseQuadratic_rpow
       (realLine_one_add_sq_le_three_mul_cube_of_three_le hT)
   have hinv_le :
       (3 * T ^ 3)⁻¹ ≤ ((1 + ‖T‖) ^ 2)⁻¹ :=
-    inv_le_inv_of_le hbracket_sq_pos hden_le
+    inv_anti₀ hbracket_sq_pos hden_le
   have hleft_eq :
       (1 / 3 : ℝ) * T ^ (-(3 : ℝ)) = (3 * T ^ 3)⁻¹ := by
     exact realLine_one_div_three_mul_rpow_neg_three_eq_inv_three_mul_cube

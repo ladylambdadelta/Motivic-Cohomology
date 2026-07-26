@@ -1,15 +1,13 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.Annihilator.FiniteWindow.CoordinateDensity
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.Annihilator.FiniteWindow.FiniteSupportTomography
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.Annihilator.FiniteWindow.SummableDomination
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.WeightedTail.Annihilator.DistributionalClassification.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.Owner
 
 /-!
 # Paired finite-coordinate completed-zero detection
 
-This file owns the analytic separation statement for a nonzero bounded
-completed-zero coefficient distribution.  Its finite test must preserve the
-completed-zero coordinate bookkeeping used by the explicit formula while its
-finite pairing dominates the complementary tail.
+This file turns dense-coordinate detection of a nonzero bounded completed-zero
+coefficient into a finite completed-zero window whose finite contribution
+strictly dominates the complementary tail.
 -/
 
 namespace Boundary
@@ -18,7 +16,9 @@ noncomputable section
 namespace ZetaAdmissibleFunction
 namespace FiniteWindow
 
-theorem exists_zetaCompletedZeroSideAnnihilator_finiteWindow_dominates_complementaryTail
+open scoped ENNReal
+
+theorem exists_zetaCompletedZeroSideAnnihilator_finiteWindow_dominates_complementaryTail_of_coordinateDensity
     (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
     (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
@@ -27,22 +27,28 @@ theorem exists_zetaCompletedZeroSideAnnihilator_finiteWindow_dominates_complemen
     (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (b : lp (fun rhoCoordinate : ZetaCompletedZeroCoordinate => ℂ) (∞ : ENNReal))
     (rho : ZetaCompletedZeroCoordinate)
-    (hrho : b rho ≠ 0) :
+    (hrho : b rho ≠ 0)
+    (hdense :
+      zetaCompletedZeroSideCoordinateL1Closure
+          hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary =
+        Set.univ) :
     ∃ (S : Finset ℂ)
       (hS : ∀ eta : ℂ, eta ∈ S → ZetaCompletedZero eta)
       (f : ZetaAdmissibleFunction),
       (rho : ℂ) ∈ S ∧
         norm (zetaCompletedZeroSideAnnihilatorComplementaryTail b S f) <
-          norm (zetaCompletedZeroSideAnnihilatorFiniteWindow b S hS f) := by
-  obtain ⟨f, hannihilator⟩ :=
-    exists_probe_detecting_nonzero_completedZeroCoefficient
+          norm (zetaCompletedZeroSideAnnihilatorFiniteWindow b S hS f) :=
+  match
+    exists_probe_detecting_nonzero_completedZeroCoefficient_of_coordinateDensity
       hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
-      b rho hrho
-  obtain ⟨S, hS, hrhoS, hdominates⟩ :=
-    exists_finiteWindow_dominates_complementaryTail_of_annihilator_ne_zero
-      b hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
-      f rho hannihilator
-  exact ⟨S, hS, f, hrhoS, hdominates⟩
+      b rho hrho hdense with
+  | ⟨f, hannihilator⟩ =>
+      match
+        exists_finiteWindow_dominates_complementaryTail_of_annihilator_ne_zero
+          b hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
+          f rho hannihilator with
+      | ⟨S, hS, hrhoS, hdominates⟩ =>
+          ⟨S, hS, f, hrhoS, hdominates⟩
 
 end FiniteWindow
 end ZetaAdmissibleFunction

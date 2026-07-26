@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ProbeInterface.ZetaAdmissibleFunction.ZetaAdmissibleFunctionCore.Owner
 import Mathlib.Analysis.Calculus.Deriv.Support
+import Mathlib.Topology.Order.Bornology
 
 /-!
 # Paley-Wiener support intervals
@@ -58,10 +59,21 @@ theorem exists_zetaPaleyWienerSupportInterval
               (fun t ht => le_trans (min_le_left A B) (hA t ht)),
               (fun t ht => le_trans (hB t ht) (le_max_right A B))⟩⟩
 
-/-- The canonical compact interval containing the support of an admissible probe. -/
+/-- The deterministic compact interval containing the support of an admissible probe. -/
 noncomputable def canonicalZetaPaleyWienerSupportInterval
     (f : ZetaAdmissibleFunction) : ZetaPaleyWienerSupportInterval f :=
-  Classical.choice (exists_zetaPaleyWienerSupportInterval f)
+  let supportSet : Set ℝ := tsupport f.toZetaTestFunction
+  let supportBounded : Bornology.IsBounded supportSet :=
+    f.toZetaTestFunction.hasCompactSupport.isCompact.isBounded
+  { lower := sInf supportSet
+    upper := sSup supportSet
+    lower_le_upper :=
+      Real.sInf_le_sSup supportSet
+        supportBounded.bddBelow supportBounded.bddAbove
+    lower_mem :=
+      fun t ht => (supportBounded.subset_Icc_sInf_sSup ht).1
+    upper_mem :=
+      fun t ht => (supportBounded.subset_Icc_sInf_sSup ht).2 }
 
 /-- A symmetric nonnegative radius containing the canonical support interval. -/
 noncomputable def canonicalZetaPaleyWienerSupportRadius

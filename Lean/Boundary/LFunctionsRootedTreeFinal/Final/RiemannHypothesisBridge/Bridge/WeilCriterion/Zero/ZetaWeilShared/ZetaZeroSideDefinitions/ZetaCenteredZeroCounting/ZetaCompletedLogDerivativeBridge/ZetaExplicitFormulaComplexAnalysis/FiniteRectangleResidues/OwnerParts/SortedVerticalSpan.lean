@@ -23,7 +23,8 @@ theorem explicitFormulaRectangleSortedYEndpointAt_mem_vertical_Icc_of_closedRadi
     explicitFormulaRectangleSortedYEndpointAt T radius k ∈ Set.Icc (-T) T := by
   let ys : List ℝ := explicitFormulaRectangleSortedYEndpoints T radius
   let index : Fin ys.length := ⟨k, hk⟩
-  have hgetMem : ys.get index ∈ ys := List.get_mem ys index
+  have hgetMem : ys.get index ∈ ys :=
+    List.get_mem ys index.val index.isLt
   have hcarrier :
       ys.get index ∈ explicitFormulaRectangleInscribedSquareSubdivisionYEndpoints T radius :=
     (explicitFormulaRectangleSortedYEndpoints_mem_iff T radius (ys.get index)).mp hgetMem

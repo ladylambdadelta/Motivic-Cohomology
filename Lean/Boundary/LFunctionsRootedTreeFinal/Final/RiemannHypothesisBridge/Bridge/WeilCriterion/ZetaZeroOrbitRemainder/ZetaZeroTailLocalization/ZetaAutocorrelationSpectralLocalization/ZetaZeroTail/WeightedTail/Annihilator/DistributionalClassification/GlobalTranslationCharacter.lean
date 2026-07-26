@@ -196,7 +196,8 @@ theorem exists_globallyInjective_completedZeroTranslationCharacter :
             (fun rho : ZetaCompletedZeroCoordinate =>
               zetaScaledTranslateCharacter delta (rho : ℂ)) :=
         fun rho eta hcharacter =>
-          Classical.byContradiction (fun hrhoEta =>
+          not_ne_iff.mp
+            (fun hrhoEta =>
             match
                 completedZeroTranslationPeriodScale_eq_of_character_eq
                   delta hdeltaNonzero rho eta hrhoEta hcharacter with

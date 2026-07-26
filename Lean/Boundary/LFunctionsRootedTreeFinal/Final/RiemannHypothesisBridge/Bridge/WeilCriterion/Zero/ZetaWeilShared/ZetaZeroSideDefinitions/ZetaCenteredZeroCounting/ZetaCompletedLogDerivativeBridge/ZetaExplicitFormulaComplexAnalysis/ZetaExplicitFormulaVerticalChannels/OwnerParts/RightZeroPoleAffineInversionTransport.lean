@@ -167,6 +167,51 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernelIntegral_
 
 /-- Scheduled right zero-pole inversion follows from the whole-line
 Cauchy/Laplace affine-kernel value. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_of_affineKernel_integral_eq_ownerTransport
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (value : ℂ)
+    (hvalue :
+      (∫ t : ℝ,
+        zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel f F t) =
+        value) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion
+          f F h u)
+      atTop
+      (𝓝 value) := by
+  let K : ℝ → ℂ := fun u : ℝ =>
+    ∫ t in Set.Icc
+        (-(F.rectangle (h.height_schedule.height u)).T)
+        (F.rectangle (h.height_schedule.height u)).T,
+      zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel f F t
+  have hintegral :
+      Tendsto K atTop
+        (𝓝 (∫ t : ℝ,
+          zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel f F t)) :=
+    zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernelIntegral_tendsto_integral_ownerTransport
+      f F h
+  have htarget :
+      Tendsto K atTop (𝓝 value) :=
+    Eq.subst
+      (motive := fun z : ℂ => Tendsto K atTop (𝓝 z))
+      hvalue
+      hintegral
+  exact
+    explicitFormulaScheduledScalar_tendsto_of_forall_eq
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion
+          f F h u)
+      K
+      value
+      htarget
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_eq_affineKernelIntegral_ownerTransport
+          f F h u)
+
+/-- Scheduled right zero-pole inversion follows from the whole-line
+Cauchy/Laplace affine-kernel value in the residue-valued normalization. -/
 theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_value_of_affineKernel_integral_eq_ownerTransport
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
@@ -180,35 +225,11 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInve
           f F h u)
       atTop
       (𝓝 (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)) := by
-  let K : ℝ → ℂ := fun u : ℝ =>
-    ∫ t in Set.Icc
-        (-(F.rectangle (h.height_schedule.height u)).T)
-        (F.rectangle (h.height_schedule.height u)).T,
-      zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel f F t
-  have hintegral :
-      Tendsto K atTop
-        (𝓝 (∫ t : ℝ,
-          zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel f F t)) :=
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernelIntegral_tendsto_integral_ownerTransport
-      f F h
-  have htarget :
-      Tendsto K atTop
-        (𝓝 (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)) :=
-    Eq.subst
-      (motive := fun z : ℂ => Tendsto K atTop (𝓝 z))
-      hvalue
-      hintegral
   exact
-    explicitFormulaScheduledScalar_tendsto_of_forall_eq
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion
-          f F h u)
-      K
+    zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_of_affineKernel_integral_eq_ownerTransport
+      f F h
       (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)
-      htarget
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_eq_affineKernelIntegral_ownerTransport
-          f F h u)
+      hvalue
 
 /-- The whole-line isolated right zero-pole affine-kernel value follows from an
 independent scheduled vertical-inversion value theorem.

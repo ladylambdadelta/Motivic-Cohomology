@@ -48,31 +48,45 @@ theorem autocorrelationSpectralEvalFiber_directCentered_forcedDaggerTailWindow
           f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
             (∀ ρ : ℂ, ρ ∈ T →
               zetaSpectralEval (convolutionAutocorrelation f) ρ = 0) →
-              autocorrelationZeroTailRealAbs S f < ε := by
+              autocorrelationZeroTailRealAbs S f < ε :=
   match
-      exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_supported
-        S P T₀ hT₀ ε hε A k hsum with
+    exists_commonPolynomialEnvelope_completedZeroTailCutoff_nonDagger_supported
+      S P T₀ hT₀ ε hε A k hsum with
   | ⟨T, hT₀T, hT, htail⟩ =>
-      exact
-        ⟨T, hT₀T, hT,
-          fun f hfFiber hfT =>
-            autocorrelationZeroTailRealAbs_lt_of_zetaZeroTail_norm_lt
-              S f ε
-              (lt_of_le_of_lt
-                (zetaZeroTail_norm_le_commonPolynomialEnvelope_nonDagger_complement_tsum
-                  S P T A k hA hsum f
-                  (zetaZeroSideContribution_eq_zero_of_window_spectralEval_zero
-                    S T f hfT)
-                  (fun ρ hρDagger =>
-                    hforced f hfFiber (ρ : ℂ) ρ.2.1 ρ.2.2.1 hρDagger)
-                  (fun ρ =>
-                    henv f hfFiber
-                      (autocorrelationSpectralEvalFiber_baseWindowVanishes_of_enlargedWindowVanishes
-                        P T₀ T hT₀T f hfT)
-                      (⟨(ρ : ℂ), ρ.2.1, ρ.2.2.1,
-                        fun hρT₀ => ρ.2.2.2.1 (hT₀T hρT₀)⟩ :
-                        {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T₀})))
-                htail)⟩
+      Exists.intro T
+        (And.intro hT₀T
+          (And.intro hT
+            (fun f hfFiber hfT =>
+              let hwindow :
+                  ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+                    (ρ : ℂ) ∈ T →
+                      zetaZeroSideContribution (ρ : ℂ)
+                        (convolutionAutocorrelation f) = 0 :=
+                zetaZeroSideContribution_eq_zero_of_window_spectralEval_zero
+                  S T f hfT
+              let hbase :
+                  ∀ ρ : ℂ, ρ ∈ T₀ →
+                    zetaSpectralEval (convolutionAutocorrelation f) ρ = 0 :=
+                autocorrelationSpectralEvalFiber_baseWindowVanishes_of_enlargedWindowVanishes
+                  P T₀ T hT₀T f hfT
+              let htailBound :
+                  ‖zetaZeroTail S (convolutionAutocorrelation f)‖ <
+                    ε :=
+                lt_of_le_of_lt
+                  (zetaZeroTail_norm_le_commonPolynomialEnvelope_nonDagger_complement_tsum
+                    S P T A k hA hsum f
+                    hwindow
+                    (fun ρ hρDagger =>
+                      hforced f hfFiber (ρ : ℂ) ρ.2.1 ρ.2.2.1 hρDagger)
+                    (fun ρ =>
+                      henv f hfFiber
+                        hbase
+                        (⟨(ρ : ℂ), ρ.2.1, ρ.2.2.1,
+                          fun hρT₀ => ρ.2.2.2.1 (hT₀T hρT₀)⟩ :
+                          {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S ∧ ρ ∉ T₀})))
+                  htail
+              autocorrelationZeroTailRealAbs_lt_of_zetaZeroTail_norm_lt
+                S f ε htailBound)))
 
 end ZetaAdmissibleFunction
 end

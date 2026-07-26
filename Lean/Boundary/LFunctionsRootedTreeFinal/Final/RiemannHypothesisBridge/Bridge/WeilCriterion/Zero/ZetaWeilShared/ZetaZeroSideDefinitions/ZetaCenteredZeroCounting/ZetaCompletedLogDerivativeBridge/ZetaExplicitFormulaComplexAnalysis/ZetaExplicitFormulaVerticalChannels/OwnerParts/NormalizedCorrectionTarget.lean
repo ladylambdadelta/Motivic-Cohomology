@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.OwnerParts.NormalizedContourProjection
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.CorrectionContribution
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PrimeNaturalTimeArithmetic
 
 /-!
 # Normalized correction-channel target
@@ -11,6 +12,23 @@ namespace LFunctions
 noncomputable section
 
 namespace ZetaAdmissibleFunction
+
+/-- The normalized completed boundary after the explicit completed-pole
+residue packet has been removed.  This is the boundary object in the same
+coordinates as the normalized residue theorem. -/
+noncomputable def zetaCompletedPoleCorrectedBoundaryChannel
+    (f : ZetaAdmissibleFunction) : ℂ :=
+  completedBoundaryChannel f -
+    explicitFormulaRectangle_completedPoleResidueSum f
+
+/-- The normalized completed boundary unfolds to the physical channel minus
+the completed-pole residue packet. -/
+theorem zetaCompletedPoleCorrectedBoundaryChannel_eq
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedPoleCorrectedBoundaryChannel f =
+      completedBoundaryChannel f -
+        explicitFormulaRectangle_completedPoleResidueSum f := by
+  exact Eq.refl _
 
 /-- A separated pole-face packet rotates to its real `2 pi` multiple. -/
 theorem explicitFormula_twoPiI_mul_neg_mul_I
@@ -46,13 +64,13 @@ theorem explicitFormula_twoPiI_mul_neg_mul_I
           _ = value := mul_one value
       exact congrArg (fun factor : ℂ => explicitFormulaTwoPi * factor) hneg
 
-/-- The two separated correction pole faces combine to `2 pi` times
-the completed-pole residue sum. -/
-theorem zetaCompletedExplicitFormulaCorrectionStandardContourContribution_eq_twoPi_mul_completedPoleResidueSum
+/-- The two separated correction pole faces combine to `2 pi` times the
+negative completed-pole residue sum. -/
+theorem zetaCompletedExplicitFormulaCorrectionStandardContourContribution_eq_twoPi_mul_neg_completedPoleResidueSum
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaCorrectionStandardContourContribution f =
       explicitFormulaTwoPi *
-        explicitFormulaRectangle_completedPoleResidueSum f := by
+        (-(explicitFormulaRectangle_completedPoleResidueSum f)) := by
   let leftValue : ℂ :=
     zetaCompletedExplicitFormulaPhi f (-(1 / 2 : ℂ))
   let rightValue : ℂ :=
@@ -67,7 +85,7 @@ theorem zetaCompletedExplicitFormulaCorrectionStandardContourContribution_eq_two
     exact explicitFormula_twoPiI_mul_neg_mul_I rightValue
   have hpoles :
       explicitFormulaRectangle_completedPoleResidueSum f =
-        (-leftValue) + (-rightValue) := by
+        leftValue + rightValue := by
     exact Eq.trans
       (explicitFormulaRectangle_completedPoleResidueSum_eq f)
       (congrArg₂ HAdd.hAdd
@@ -98,8 +116,17 @@ theorem zetaCompletedExplicitFormulaCorrectionStandardContourContribution_eq_two
         _ = explicitFormulaTwoPi * ((-leftValue) + (-rightValue)) := by
           exact (mul_add explicitFormulaTwoPi (-leftValue) (-rightValue)).symm
     _ = explicitFormulaTwoPi *
-          explicitFormulaRectangle_completedPoleResidueSum f := by
-      exact congrArg (fun value : ℂ => explicitFormulaTwoPi * value) hpoles.symm
+          (-(explicitFormulaRectangle_completedPoleResidueSum f)) := by
+      have hnegpoles :
+          (-leftValue) + (-rightValue) =
+            -(explicitFormulaRectangle_completedPoleResidueSum f) := by
+        calc
+          (-leftValue) + (-rightValue) =
+              -(leftValue + rightValue) := by
+            exact (neg_add leftValue rightValue).symm
+          _ = -(explicitFormulaRectangle_completedPoleResidueSum f) := by
+            exact congrArg Neg.neg hpoles.symm
+      exact congrArg (fun value : ℂ => explicitFormulaTwoPi * value) hnegpoles
 
 /-- The raw standard-contour boundary target assembled from the three raw
 vertical-channel limits. -/
@@ -111,11 +138,30 @@ noncomputable def zetaCompletedExplicitFormulaStandardContourBoundarySum
 
 /-- The boundary target in the same normalized pole-corrected coordinates as
 the residue theorem. -/
-noncomputable def zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum
+noncomputable def zetaCompletedExplicitFormulaResidueNormalizedStandardContourBoundarySum
     (f : ZetaAdmissibleFunction) : ℂ :=
   zetaCompletedExplicitFormulaStandardContourBoundarySum f /
       explicitFormulaTwoPi -
     explicitFormulaRectangle_completedPoleResidueSum f
+
+/-- The residue-normalized standard-contour target unfolds by division and
+positive pole-residue subtraction. -/
+theorem zetaCompletedExplicitFormulaResidueNormalizedStandardContourBoundarySum_eq
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaResidueNormalizedStandardContourBoundarySum f =
+      zetaCompletedExplicitFormulaStandardContourBoundarySum f /
+          explicitFormulaTwoPi -
+        explicitFormulaRectangle_completedPoleResidueSum f := by
+  exact Eq.refl _
+
+/-- The standard-contour boundary with the raw correction channel removed.
+The correction channel itself normalizes to the negative completed-pole packet,
+so this target subtracts that negative packet. -/
+noncomputable def zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum
+    (f : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaStandardContourBoundarySum f /
+      explicitFormulaTwoPi -
+    (-(explicitFormulaRectangle_completedPoleResidueSum f))
 
 /-- The raw standard-contour boundary target unfolds into its three channels. -/
 theorem zetaCompletedExplicitFormulaStandardContourBoundarySum_eq
@@ -126,14 +172,14 @@ theorem zetaCompletedExplicitFormulaStandardContourBoundarySum_eq
         zetaCompletedExplicitFormulaCorrectionStandardContourContribution f := by
   exact Eq.refl _
 
-/-- The normalized standard-contour target unfolds by division and pole
-subtraction. -/
+/-- The correction-removed normalized standard-contour target unfolds by
+division and subtraction of the raw correction packet. -/
 theorem zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum_eq
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum f =
       zetaCompletedExplicitFormulaStandardContourBoundarySum f /
           explicitFormulaTwoPi -
-        explicitFormulaRectangle_completedPoleResidueSum f := by
+        (-(explicitFormulaRectangle_completedPoleResidueSum f)) := by
   exact Eq.refl _
 
 /-- After the correction channel is normalized, its pole packet cancels the
@@ -152,36 +198,36 @@ theorem zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum_eq_prim
   let poles : ℂ := explicitFormulaRectangle_completedPoleResidueSum f
   have correction :
       zetaCompletedExplicitFormulaCorrectionStandardContourContribution f =
-        explicitFormulaTwoPi * poles :=
-    zetaCompletedExplicitFormulaCorrectionStandardContourContribution_eq_twoPi_mul_completedPoleResidueSum
+        explicitFormulaTwoPi * (-poles) :=
+    zetaCompletedExplicitFormulaCorrectionStandardContourContribution_eq_twoPi_mul_neg_completedPoleResidueSum
       f
   have cancelCorrection :
-      (explicitFormulaTwoPi * poles) / explicitFormulaTwoPi = poles := by
-    exact mul_div_cancel_left₀ poles explicitFormulaTwoPi_ne_zero
+      (explicitFormulaTwoPi * (-poles)) / explicitFormulaTwoPi = -poles := by
+    exact mul_div_cancel_left₀ (-poles) explicitFormulaTwoPi_ne_zero
   calc
     zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum f =
         (prime + archimedean +
             zetaCompletedExplicitFormulaCorrectionStandardContourContribution f) /
-          explicitFormulaTwoPi - poles := by
+          explicitFormulaTwoPi - (-poles) := by
       exact Eq.refl _
-    _ = (prime + archimedean + explicitFormulaTwoPi * poles) /
-          explicitFormulaTwoPi - poles := by
+    _ = (prime + archimedean + explicitFormulaTwoPi * (-poles)) /
+          explicitFormulaTwoPi - (-poles) := by
       exact congrArg
-        (fun value : ℂ => value / explicitFormulaTwoPi - poles)
+        (fun value : ℂ => value / explicitFormulaTwoPi - (-poles))
         (congrArg (fun value : ℂ => prime + archimedean + value) correction)
     _ = ((prime + archimedean) / explicitFormulaTwoPi +
-          (explicitFormulaTwoPi * poles) / explicitFormulaTwoPi) - poles := by
-      exact congrArg (fun value : ℂ => value - poles)
+          (explicitFormulaTwoPi * (-poles)) / explicitFormulaTwoPi) - (-poles) := by
+      exact congrArg (fun value : ℂ => value - (-poles))
         (add_div (prime + archimedean)
-          (explicitFormulaTwoPi * poles) explicitFormulaTwoPi)
-    _ = ((prime + archimedean) / explicitFormulaTwoPi + poles) - poles := by
+          (explicitFormulaTwoPi * (-poles)) explicitFormulaTwoPi)
+    _ = ((prime + archimedean) / explicitFormulaTwoPi + (-poles)) - (-poles) := by
       exact congrArg
         (fun value : ℂ =>
-          (prime + archimedean) / explicitFormulaTwoPi + value - poles)
+          (prime + archimedean) / explicitFormulaTwoPi + value - (-poles))
         cancelCorrection
     _ = (prime + archimedean) / explicitFormulaTwoPi := by
       exact add_sub_cancel_right
-        ((prime + archimedean) / explicitFormulaTwoPi) poles
+        ((prime + archimedean) / explicitFormulaTwoPi) (-poles)
     _ = prime / explicitFormulaTwoPi +
           archimedean / explicitFormulaTwoPi := by
       exact add_div prime archimedean explicitFormulaTwoPi

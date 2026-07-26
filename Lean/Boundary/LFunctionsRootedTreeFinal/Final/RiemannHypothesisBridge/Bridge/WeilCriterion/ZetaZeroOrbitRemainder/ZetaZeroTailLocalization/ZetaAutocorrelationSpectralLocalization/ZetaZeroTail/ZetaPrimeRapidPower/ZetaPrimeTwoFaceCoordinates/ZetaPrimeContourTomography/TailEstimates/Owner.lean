@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaPrimeRapidPower.ZetaPrimeTwoFaceCoordinates.ZetaPrimeContourTomography.TailEstimates.ScheduleGeometry
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaPrimeRapidPower.ZetaPrimeTwoFaceCoordinates.ZetaPrimeContourTomography.TailEstimates.CoordinateTail
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaPrimeRapidPower.ZetaPrimeTwoFaceCoordinates.ZetaPrimeContourTomography.TailEstimates.CoordinateTailAt
 
 namespace Boundary
 namespace LFunctions
@@ -13,155 +15,214 @@ namespace ZetaAdmissibleFunction
 /-- The finite coordinate-remainder window converges to the horizontal residue shadow.
 
 This is the upstream prime tomography convergence theorem: the analytic tail estimate is
-owned at the coordinate-remainder-window level, before box support bookkeeping or norm
-packaging. -/
-theorem finitePrimeHorizontalResidueCoordinateRemainderWindow_sub_residueShadow_tendsto_zero_ownerTailEstimate
+owned at the coordinate-remainder-window level, before choosing a concrete height schedule
+or applying box support bookkeeping. -/
+theorem finitePrimeHorizontalResidueCoordinateRemainderWindow_sub_residueShadowAt_tendsto_zero_ownerTailEstimate
     (S : CompletedPrimeContourTransportScheduledFamily)
     (f : ZetaAdmissibleFunction)
     (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
-    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
+    (hHorizontal :
+      ExplicitFormulaScheduledHorizontalLogDerivControl
+        (convolutionAutocorrelation f)
+        completedPrimeContourTransportFamily
+        S.height_schedule) :
     Tendsto
       (fun N : ℕ =>
         finitePrimeContourTransportCoordinateRemainderWindow N f -
-          finitePrimeHorizontalResidueShadow N f)
+          finitePrimeHorizontalResidueShadowAt S.height_schedule N f)
       atTop
-      (𝓝 0) := by
-  have hwindow :
+      (𝓝 0) :=
+  let hwindow :
       Tendsto
         (fun N : ℕ => finitePrimeContourTransportCoordinateRemainderWindow N f)
         atTop
         (𝓝 0) :=
-    finitePrimeContourTransportCoordinateRemainderWindow_tendsto_zero_ownerTailEstimate
+    finitePrimeContourTransportCoordinateRemainderWindow_tendsto_zero_of_summedTransport
       f
-      (completedFiniteWindowPrimeDistributionReconstruction_of_scheduledContourFamily
+      (completedSummedPrimeContourTimeTransport_of_scheduledContourFamily
         S f)
-  have hshadow :
+  let hshadow :
       Tendsto
-        (fun N : ℕ => finitePrimeHorizontalResidueShadow N f)
+        (fun N : ℕ => finitePrimeHorizontalResidueShadowAt S.height_schedule N f)
         atTop
-        (𝓝 0) := by
-    exact
-      finitePrimeHorizontalResidueShadow_tendsto_zero_ownerTailEstimate
-        S.toScheduleGeometry
-        f
-        hPhi
-        hLog
-  have hsub :
+        (𝓝 0) :=
+    finitePrimeHorizontalResidueShadowAt_tendsto_zero_of_scheduledPackage
+      S.toScheduleGeometry
+      f
+      hPhi
+      hHorizontal
+  let hsub :
       Tendsto
         (fun N : ℕ =>
           finitePrimeContourTransportCoordinateRemainderWindow N f -
-            finitePrimeHorizontalResidueShadow N f)
+            finitePrimeHorizontalResidueShadowAt S.height_schedule N f)
         atTop
         (𝓝 (0 - 0)) :=
     hwindow.sub hshadow
-  exact Eq.subst
+  Eq.subst
     (motive := fun x : ℝ =>
       Tendsto
         (fun N : ℕ =>
           finitePrimeContourTransportCoordinateRemainderWindow N f -
-            finitePrimeHorizontalResidueShadow N f)
+            finitePrimeHorizontalResidueShadowAt S.height_schedule N f)
         atTop
         (𝓝 x))
     (sub_zero 0)
     hsub
 
-/-- The finite tomographic residual is bounded by the supported boxed remainder.
-
-This is the pointwise remainder-bound layer after support reduction: the residual error is
-identified with the boxed coordinate-shadow remainder, then bounded by its unfolded norm. -/
-theorem finitePrimeContourTransportTomographicError_remainderBound
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    ‖finitePrimeContourTransportTomographicError N f‖ ≤
-      ‖(∑ ι in ZetaPrimePowerIndex.box N,
-          finitePrimeHorizontalResidueCoordinateShadow ι f) -
-        finitePrimeHorizontalResidueShadow N f‖ := by
-  calc
-    ‖finitePrimeContourTransportTomographicError N f‖ =
-        ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainder N f‖ := by
-      exact congrArg norm
-        (finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_eq_tomographicError
-          N f).symm
-    _ ≤
-        ‖(∑ ι in ZetaPrimePowerIndex.box N,
-            finitePrimeHorizontalResidueCoordinateShadow ι f) -
-          finitePrimeHorizontalResidueShadow N f‖ := by
-      exact finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_norm_bound
-        N f
-
 /-- The explicit finite-window tail majorant for the tomographic residual.
 
 This is the norm of the supported boxed coordinate-shadow remainder against the horizontal
 residue shadow. -/
-noncomputable def finitePrimeContourTransportTomographicErrorRemainderMajorant
+noncomputable def finitePrimeContourTransportTomographicErrorRemainderMajorantAt
+    (heightSchedule :
+      ExplicitFormulaCofinalHeightSchedule completedPrimeContourTransportFamily)
     (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
   ‖(∑ ι in ZetaPrimePowerIndex.box N,
       finitePrimeHorizontalResidueCoordinateShadow ι f) -
-    finitePrimeHorizontalResidueShadow N f‖
+    finitePrimeHorizontalResidueShadowAt heightSchedule N f‖
 
-/-- The finite tomographic residual norm is the explicit boxed-remainder majorant. -/
-theorem finitePrimeContourTransportTomographicError_norm_eq_remainderMajorant
+/-- The scheduled boxed coordinate-shadow remainder norm is the scheduled finite-window
+tail majorant. -/
+theorem finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt_norm_eq_remainderMajorantAt
+    (heightSchedule :
+      ExplicitFormulaCofinalHeightSchedule completedPrimeContourTransportFamily)
     (N : ℕ) (f : ZetaAdmissibleFunction) :
-    ‖finitePrimeContourTransportTomographicError N f‖ =
-      finitePrimeContourTransportTomographicErrorRemainderMajorant N f := by
-  calc
-    ‖finitePrimeContourTransportTomographicError N f‖ =
-        ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainder N f‖ := by
-      exact congrArg norm
-        (finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_eq_tomographicError
-          N f).symm
-    _ =
-        ‖(∑ ι in ZetaPrimePowerIndex.box N,
-            finitePrimeHorizontalResidueCoordinateShadow ι f) -
-          finitePrimeHorizontalResidueShadow N f‖ := by
-      exact congrArg norm
-        (finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_eq N f)
-    _ = finitePrimeContourTransportTomographicErrorRemainderMajorant N f := by
-      rfl
+    ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt
+        heightSchedule N f‖ =
+      finitePrimeContourTransportTomographicErrorRemainderMajorantAt
+        heightSchedule N f :=
+  Eq.refl
+    ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt
+      heightSchedule N f‖
+
+/-- The scheduled explicit finite-window tail majorant tends to zero. -/
+theorem finitePrimeContourTransportTomographicErrorRemainderMajorantAt_tendsto_zero
+    (S : CompletedPrimeContourTransportScheduledFamily)
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hHorizontal :
+      ExplicitFormulaScheduledHorizontalLogDerivControl
+        (convolutionAutocorrelation f)
+        completedPrimeContourTransportFamily
+        S.height_schedule) :
+    Tendsto
+      (fun N : ℕ =>
+        finitePrimeContourTransportTomographicErrorRemainderMajorantAt
+          S.height_schedule N f)
+      atTop
+      (𝓝 0) :=
+  let hbox :
+      Tendsto
+        (fun N : ℕ =>
+          ‖finitePrimeContourTransportCoordinateRemainderWindow N f -
+            finitePrimeHorizontalResidueShadowAt S.height_schedule N f‖)
+        atTop
+        (𝓝 ‖(0 : ℝ)‖) :=
+    (finitePrimeHorizontalResidueCoordinateRemainderWindow_sub_residueShadowAt_tendsto_zero_ownerTailEstimate
+      S
+      f
+      hPhi
+      hHorizontal).norm
+  let hzero : ‖(0 : ℝ)‖ = 0 :=
+    norm_zero
+  let hfun :
+      (fun N : ℕ =>
+        ‖finitePrimeContourTransportCoordinateRemainderWindow N f -
+          finitePrimeHorizontalResidueShadowAt S.height_schedule N f‖) =
+        (fun N : ℕ =>
+          finitePrimeContourTransportTomographicErrorRemainderMajorantAt
+            S.height_schedule N f) :=
+    funext
+      (fun N : ℕ =>
+        let hcoordinate :
+            finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt
+                S.height_schedule N f =
+              finitePrimeContourTransportCoordinateRemainderWindow N f -
+                finitePrimeHorizontalResidueShadowAt S.height_schedule N f :=
+          finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt_eq_coordinateRemainderWindow_sub_residueShadowAt
+            S.height_schedule N f
+        let hnormCoordinate :
+            ‖finitePrimeContourTransportCoordinateRemainderWindow N f -
+              finitePrimeHorizontalResidueShadowAt S.height_schedule N f‖ =
+              ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt
+                S.height_schedule N f‖ :=
+          congrArg norm hcoordinate.symm
+        let hmajorant :
+            ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt
+                S.height_schedule N f‖ =
+              finitePrimeContourTransportTomographicErrorRemainderMajorantAt
+                S.height_schedule N f :=
+          finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt_norm_eq_remainderMajorantAt
+            S.height_schedule N f
+        hnormCoordinate.trans hmajorant)
+  Eq.subst
+    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+    hfun
+    (Eq.subst
+      (motive := fun x : ℝ =>
+        Tendsto
+          (fun N : ℕ =>
+            ‖finitePrimeContourTransportCoordinateRemainderWindow N f -
+              finitePrimeHorizontalResidueShadowAt S.height_schedule N f‖)
+          atTop
+          (𝓝 x))
+      hzero
+      hbox)
 
 /-- The boxed coordinate-shadow remainder has norm tending to zero.
 
 This is the exact tail-localization estimate behind the finite tomographic majorant: after
 support reduction, the only omitted term is the boxed coordinate-shadow remainder against
-the horizontal residue shadow. -/
-theorem finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_norm_tendsto_zero_ownerTailEstimate
+the scheduled horizontal residue shadow. -/
+theorem finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt_norm_tendsto_zero_ownerTailEstimate
     (S : CompletedPrimeContourTransportScheduledFamily)
     (f : ZetaAdmissibleFunction)
     (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
-    (hLog : CompletedZetaNegLogDerivControl (convolutionAutocorrelation f)) :
+    (hHorizontal :
+      ExplicitFormulaScheduledHorizontalLogDerivControl
+        (convolutionAutocorrelation f)
+        completedPrimeContourTransportFamily
+        S.height_schedule) :
     Tendsto
-      (fun N : ℕ => ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainder N f‖)
+      (fun N : ℕ =>
+        ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt
+          S.height_schedule N f‖)
       atTop
-      (𝓝 0) := by
-  have hwindow :
+      (𝓝 0) :=
+  let hwindow :
       Tendsto
         (fun N : ℕ =>
           finitePrimeContourTransportCoordinateRemainderWindow N f -
-            finitePrimeHorizontalResidueShadow N f)
+            finitePrimeHorizontalResidueShadowAt S.height_schedule N f)
         atTop
         (𝓝 0) :=
-    finitePrimeHorizontalResidueCoordinateRemainderWindow_sub_residueShadow_tendsto_zero_ownerTailEstimate
+    finitePrimeHorizontalResidueCoordinateRemainderWindow_sub_residueShadowAt_tendsto_zero_ownerTailEstimate
       S
       f
       hPhi
-      hLog
-  have hnorm :
+      hHorizontal
+  let hnorm :
       Tendsto
         (fun N : ℕ =>
           ‖finitePrimeContourTransportCoordinateRemainderWindow N f -
-            finitePrimeHorizontalResidueShadow N f‖)
+            finitePrimeHorizontalResidueShadowAt S.height_schedule N f‖)
         atTop
         (𝓝 ‖(0 : ℝ)‖) :=
     hwindow.norm
-  have hfun :
-      (fun N : ℕ => ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainder N f‖) =
+  let hfun :
+      (fun N : ℕ =>
+        ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt
+          S.height_schedule N f‖) =
         (fun N : ℕ =>
           ‖finitePrimeContourTransportCoordinateRemainderWindow N f -
-            finitePrimeHorizontalResidueShadow N f‖) := by
-    funext N
-    exact congrArg norm
-      (finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_eq_coordinateRemainderWindow_sub_residueShadow
-        N f)
-  exact Eq.subst
+            finitePrimeHorizontalResidueShadowAt S.height_schedule N f‖) :=
+    funext
+      (fun N : ℕ =>
+        congrArg norm
+      (finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt_eq_coordinateRemainderWindow_sub_residueShadowAt
+        S.height_schedule N f))
+  Eq.subst
     (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
     hfun.symm
     (Eq.subst
@@ -169,12 +230,141 @@ theorem finitePrimeHorizontalResidueCoordinateShadowBoxRemainder_norm_tendsto_ze
         Tendsto
           (fun N : ℕ =>
             ‖finitePrimeContourTransportCoordinateRemainderWindow N f -
-              finitePrimeHorizontalResidueShadow N f‖)
+              finitePrimeHorizontalResidueShadowAt S.height_schedule N f‖)
           atTop
           (𝓝 x))
       (norm_zero : ‖(0 : ℝ)‖ = 0)
       hnorm)
 
+/-- The scheduled boxed coordinate-shadow remainder tends to zero. -/
+theorem finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt_tendsto_zero_ownerTailEstimate
+    (S : CompletedPrimeContourTransportScheduledFamily)
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hHorizontal :
+      ExplicitFormulaScheduledHorizontalLogDerivControl
+        (convolutionAutocorrelation f)
+        completedPrimeContourTransportFamily
+        S.height_schedule) :
+    Tendsto
+      (fun N : ℕ =>
+        finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt
+          S.height_schedule N f)
+      atTop
+      (𝓝 0) :=
+  let hnorm :
+      Tendsto
+        (fun N : ℕ =>
+          ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt
+            S.height_schedule N f‖)
+        atTop
+        (𝓝 0) :=
+    finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt_norm_tendsto_zero_ownerTailEstimate
+      S
+      f
+      hPhi
+      hHorizontal
+  let hbound :
+      ∀ᶠ N in atTop,
+        ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt
+          S.height_schedule N f‖ ≤
+          ‖finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt
+            S.height_schedule N f‖ :=
+    Eventually.of_forall (fun N : ℕ => le_rfl)
+  squeeze_zero_norm' hbound hnorm
+
+/-- The scheduled coordinate-remainder tail tends to zero. -/
+theorem completedPrimeContourTransportCoordinateRemainderTailAt_tendsto_zero_ownerTailEstimate
+    (S : CompletedPrimeContourTransportScheduledFamily)
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hHorizontal :
+      ExplicitFormulaScheduledHorizontalLogDerivControl
+        (convolutionAutocorrelation f)
+        completedPrimeContourTransportFamily
+        S.height_schedule) :
+    Tendsto
+      (fun N : ℕ =>
+        completedPrimeContourTransportCoordinateRemainderTailAt
+          S.height_schedule N f)
+      atTop
+      (𝓝 0) :=
+  let hbox :
+      Tendsto
+        (fun N : ℕ =>
+          finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt
+            S.height_schedule N f)
+        atTop
+        (𝓝 0) :=
+    finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt_tendsto_zero_ownerTailEstimate
+      S
+      f
+      hPhi
+      hHorizontal
+  let hfun :
+      (fun N : ℕ =>
+        completedPrimeContourTransportCoordinateRemainderTailAt
+          S.height_schedule N f) =
+        (fun N : ℕ =>
+          finitePrimeHorizontalResidueCoordinateShadowBoxRemainderAt
+            S.height_schedule N f) :=
+    funext
+      (fun N : ℕ =>
+        completedPrimeContourTransportCoordinateRemainderTailAt_eq_boxRemainderAt
+          S.height_schedule N f)
+  Eq.subst
+    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+    hfun.symm
+    hbox
+
+/-- The finite coordinate-shadow window and scheduled horizontal residue shadow differ by
+a term tending to zero. -/
+theorem finitePrimeHorizontalResidueCoordinateShadow_window_sub_residueShadowAt_tendsto_zero
+    (S : CompletedPrimeContourTransportScheduledFamily)
+    (f : ZetaAdmissibleFunction)
+    (hPhi : ZetaPhiAnalyticControl (convolutionAutocorrelation f))
+    (hHorizontal :
+      ExplicitFormulaScheduledHorizontalLogDerivControl
+        (convolutionAutocorrelation f)
+        completedPrimeContourTransportFamily
+        S.height_schedule) :
+    Tendsto
+      (fun N : ℕ =>
+        (∑ ι in ZetaPrimePowerIndex.window N,
+          finitePrimeHorizontalResidueCoordinateShadow ι f) -
+          finitePrimeHorizontalResidueShadowAt S.height_schedule N f)
+      atTop
+      (𝓝 0) :=
+  let htail :
+      Tendsto
+        (fun N : ℕ =>
+          completedPrimeContourTransportCoordinateRemainderTailAt
+            S.height_schedule N f)
+        atTop
+        (𝓝 0) :=
+    completedPrimeContourTransportCoordinateRemainderTailAt_tendsto_zero_ownerTailEstimate
+      S
+      f
+      hPhi
+      hHorizontal
+  let hfun :
+      (fun N : ℕ =>
+        (∑ ι in ZetaPrimePowerIndex.window N,
+          finitePrimeHorizontalResidueCoordinateShadow ι f) -
+          finitePrimeHorizontalResidueShadowAt S.height_schedule N f) =
+        (fun N : ℕ =>
+          completedPrimeContourTransportCoordinateRemainderTailAt
+            S.height_schedule N f) :=
+    funext
+      (fun N : ℕ =>
+        Eq.refl
+          ((∑ ι in ZetaPrimePowerIndex.window N,
+            finitePrimeHorizontalResidueCoordinateShadow ι f) -
+            finitePrimeHorizontalResidueShadowAt S.height_schedule N f))
+  Eq.subst
+    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+    hfun.symm
+    htail
 
 end ZetaAdmissibleFunction
 

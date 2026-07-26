@@ -207,6 +207,166 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleTangentBoundaryDefect_eq_l
         exact congrArg (fun x : ℂ => x + H * Complex.I) hleft.symm
   exact htarget
 
+/-- General tangent-boundary transport: if the right zero-pole face tends to
+`A`, the tangent rectangle boundary tends to `B`, and the isolated horizontal
+remainder vanishes, then the scheduled left zero-pole face tends to
+`A + B * I`. -/
+theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_right_add_tangent_mul_I_of_right_tangent_horizontal_ownerZeroPoleAlgebra
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (A B : ℂ)
+    (hright :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 A))
+    (htangent :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u))
+        atTop
+        (𝓝 B))
+    (hhorizontal :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference
+            f F h u)
+        atTop
+        (𝓝 0)) :
+    Tendsto
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral
+          f F h u)
+      atTop
+      (𝓝 (A + B * Complex.I)) := by
+  have htangentI :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u) * Complex.I)
+        atTop
+        (𝓝 (B * Complex.I)) :=
+    htangent.mul tendsto_const_nhds
+  have hdefect :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+              f F (h.height_schedule.height u) +
+            zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
+              f F (h.height_schedule.height u) * Complex.I)
+        atTop
+        (𝓝 (A + B * Complex.I)) :=
+    hright.add htangentI
+  have hhorizontalI :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference
+            f F h u * Complex.I)
+        atTop
+        (𝓝 (0 * Complex.I)) :=
+    hhorizontal.mul tendsto_const_nhds
+  have hhorizontalI_zero :
+      Tendsto
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference
+            f F h u * Complex.I)
+        atTop
+        (𝓝 0) :=
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun u : ℝ =>
+            zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference
+              f F h u * Complex.I)
+          atTop
+          (𝓝 z))
+      (zero_mul Complex.I)
+      hhorizontalI
+  have hsub :
+      Tendsto
+        (fun u : ℝ =>
+          (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+              f F (h.height_schedule.height u) +
+            zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
+              f F (h.height_schedule.height u) * Complex.I) -
+            zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference
+              f F h u * Complex.I)
+        atTop
+        (𝓝 ((A + B * Complex.I) - 0)) :=
+    hdefect.sub hhorizontalI_zero
+  have hsub_value :
+      Tendsto
+        (fun u : ℝ =>
+          (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+              f F (h.height_schedule.height u) +
+            zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
+              f F (h.height_schedule.height u) * Complex.I) -
+            zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference
+              f F h u * Complex.I)
+        atTop
+        (𝓝 (A + B * Complex.I)) :=
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun u : ℝ =>
+            (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+                f F (h.height_schedule.height u) +
+              zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
+                f F (h.height_schedule.height u) * Complex.I) -
+              zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference
+                f F h u * Complex.I)
+          atTop
+          (𝓝 z))
+      (sub_zero (A + B * Complex.I))
+      hsub
+  have hpointwise :
+      (fun u : ℝ =>
+        (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+            f F (h.height_schedule.height u) +
+          zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
+            f F (h.height_schedule.height u) * Complex.I) -
+          zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference
+            f F h u * Complex.I) =
+      (fun u : ℝ =>
+        zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral
+          f F h u) := by
+    funext u
+    let D : ℂ :=
+      zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalIntegral
+          f F (h.height_schedule.height u) +
+        zetaCompletedExplicitFormulaCorrectionZeroPoleTangentRectangleBoundaryIntegral
+          f F (h.height_schedule.height u) * Complex.I
+    let L : ℂ :=
+      zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral
+        f F h u
+    let H : ℂ :=
+      zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference
+        f F h u * Complex.I
+    have hD : D = L + H :=
+      zetaCompletedExplicitFormulaCorrectionZeroPoleTangentBoundaryDefect_eq_left_add_horizontal_mul_I_ownerZeroPoleAlgebra
+        f F h u
+    have htarget : D - H = L := by
+      calc
+        D - H = (L + H) - H := by
+          exact congrArg (fun z : ℂ => z - H) hD
+        _ = (L + H) + -H := by
+          exact sub_eq_add_neg (L + H) H
+        _ = L + (H + -H) := by
+          exact add_assoc L H (-H)
+        _ = L + 0 := by
+          exact congrArg (fun z : ℂ => L + z) (add_neg_cancel H)
+        _ = L := by
+          exact add_zero L
+    exact htarget
+  exact Eq.subst
+    (motive := fun φ : ℝ → ℂ =>
+      Tendsto φ atTop (𝓝 (A + B * Complex.I)))
+    hpointwise
+    hsub_value
+
 /-- Parameterized transport from tangent-boundary defect convergence and
 horizontal decay to the scheduled left zero-pole face.  The horizontal theorem
 is an input here so this file remains independent of the horizontal-estimate

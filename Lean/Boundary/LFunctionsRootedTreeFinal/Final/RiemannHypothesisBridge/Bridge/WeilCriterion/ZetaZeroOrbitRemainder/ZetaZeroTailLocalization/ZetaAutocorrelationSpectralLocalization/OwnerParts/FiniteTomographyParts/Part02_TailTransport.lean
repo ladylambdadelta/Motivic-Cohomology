@@ -34,9 +34,8 @@ theorem autocorrelationSpectralEvalFiber_nonDaggerHeightWindow_realAbsTailForcin
           ρ ∈ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R →
             zetaSpectralEval (convolutionAutocorrelation f)
               ρ = 0) →
-          autocorrelationZeroTailRealAbs S f < ε := by
-  intro f hfFiber hfWindow
-  exact
+          autocorrelationZeroTailRealAbs S f < ε :=
+  fun f hfFiber hfWindow =>
     autocorrelationZeroTailRealAbs_lt_of_zetaZeroTail_norm_lt
       S f ε
       (hnorm f hfFiber hfWindow)
@@ -64,13 +63,13 @@ theorem autocorrelationSpectralEvalFiber_nonDaggerHeightWindow_realAbsTailForcin
             ρ ∈ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R →
               zetaSpectralEval (convolutionAutocorrelation f)
                 ρ = 0) →
-            autocorrelationZeroTailRealAbs S f < ε := by
+            autocorrelationZeroTailRealAbs S f < ε :=
   match hR with
   | ⟨R, hnorm⟩ =>
-      exact
-        ⟨R,
-          autocorrelationSpectralEvalFiber_nonDaggerHeightWindow_realAbsTailForcing_of_normTailForcing
-            S P f₀ ε R hnorm⟩
+      Exists.intro
+        R
+        (autocorrelationSpectralEvalFiber_nonDaggerHeightWindow_realAbsTailForcing_of_normTailForcing
+          S P f₀ ε R hnorm)
 
 /-- The window-selection form of the Runge/tomographic tail theorem. -/
 theorem autocorrelationSpectralEvalFiber_exists_finiteWindowTailControl_of_ownerTailPackage
@@ -90,12 +89,13 @@ theorem autocorrelationSpectralEvalFiber_exists_finiteWindowTailControl_of_owner
             (∀ ρ : ℂ, ρ ∈ T →
               zetaSpectralEval (convolutionAutocorrelation f)
                 ρ = 0) →
-              autocorrelationZeroTailRealAbs S f < ε := by
+              autocorrelationZeroTailRealAbs S f < ε :=
   match hpackage with
   | ⟨T, hT⟩ =>
-      exact ⟨T,
-        autocorrelationSpectralEvalFiberFiniteWindowTailControl.elim
-          S P f₀ ε T hT⟩
+      Exists.intro
+        T
+        (autocorrelationSpectralEvalFiberFiniteWindowTailControl.elim
+          S P f₀ ε T hT)
 
 /-- A tail-localized finite tomographic interpolant gives an attained small value in the
 fixed autocorrelation fiber. -/
@@ -118,16 +118,20 @@ theorem autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_s
     ∀ ε : ℝ, 0 < ε →
       ∃ r : ℝ,
         r ∈ autocorrelationSpectralEvalFiberZeroTailRealAbsValues S P f₀ ∧
-          r < ε := by
-  intro ε hε
-  match hTailLocalization
+          r < ε :=
+  fun ε hε =>
+    match hTailLocalization
       hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
       S P f₀ hSeparated ε hε with
-  | ⟨f, hfFiber, htail⟩ =>
-      exact
-        ⟨autocorrelationZeroTailRealAbs S f,
-          ⟨f, hfFiber, Eq.refl (autocorrelationZeroTailRealAbs S f)⟩,
-          htail⟩
+    | ⟨f, hfFiber, htail⟩ =>
+        Exists.intro
+          (autocorrelationZeroTailRealAbs S f)
+          (And.intro
+            (Exists.intro f
+              (And.intro
+                hfFiber
+                (Eq.refl (autocorrelationZeroTailRealAbs S f))))
+            htail)
 
 /-- Finite-window tail-control form of the nonlinear Runge/tomography theorem.
 
@@ -168,31 +172,31 @@ def AutocorrelationSpectralEvalFiberFiniteWindowNormTailControlRunge : Prop :=
 tail-control package. -/
 theorem autocorrelationSpectralEvalFiberFiniteWindowTailControl_of_normTailControl
     (hRunge : AutocorrelationSpectralEvalFiberFiniteWindowNormTailControlRunge) :
-    AutocorrelationSpectralEvalFiberFiniteWindowTailControlRunge := by
-  intro S P f₀ ε hε
-  match hRunge S P f₀ ε hε with
-  | ⟨T, hT⟩ =>
-      have hWindow :
-          (∀ ρ : ℂ, ρ ∈ T → ZetaCompletedZero ρ) ∧
-            (∀ ρ : ℂ, ρ ∈ T → ρ ∉ S) ∧
-              (∀ ρ : ℂ, ρ ∈ T →
-                ρ ∉ daggerClosedSpectralSampleFinset P) ∧
-                ∀ f : ZetaAdmissibleFunction,
-                  f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
-                    (∀ ρ : ℂ, ρ ∈ T →
-                      zetaSpectralEval (convolutionAutocorrelation f)
-                        ρ = 0) →
-                      ‖zetaZeroTail S (convolutionAutocorrelation f)‖ < ε :=
-        autocorrelationSpectralEvalFiberFiniteWindowNormTailControl.elim
-          S P f₀ ε T hT
-      exact
-        ⟨T,
-          autocorrelationSpectralEvalFiberFiniteWindowTailControl_intro
+    AutocorrelationSpectralEvalFiberFiniteWindowTailControlRunge :=
+  fun S P f₀ ε hε =>
+    match hRunge S P f₀ ε hε with
+    | ⟨T, hT⟩ =>
+        let hWindow :
+            (∀ ρ : ℂ, ρ ∈ T → ZetaCompletedZero ρ) ∧
+              (∀ ρ : ℂ, ρ ∈ T → ρ ∉ S) ∧
+                (∀ ρ : ℂ, ρ ∈ T →
+                  ρ ∉ daggerClosedSpectralSampleFinset P) ∧
+                  ∀ f : ZetaAdmissibleFunction,
+                    f ∈ AutocorrelationSpectralEvalFiberOf P f₀ →
+                      (∀ ρ : ℂ, ρ ∈ T →
+                        zetaSpectralEval (convolutionAutocorrelation f)
+                          ρ = 0) →
+                        ‖zetaZeroTail S (convolutionAutocorrelation f)‖ < ε :=
+          autocorrelationSpectralEvalFiberFiniteWindowNormTailControl.elim
+            S P f₀ ε T hT
+        Exists.intro
+          T
+          (autocorrelationSpectralEvalFiberFiniteWindowTailControl_intro
             S P f₀ ε T hWindow.2.2.1
             (fun f hfFiber hfT =>
               autocorrelationZeroTailRealAbs_lt_of_zetaZeroTail_norm_lt
                 S f ε
-                (hWindow.2.2.2 f hfFiber hfT))⟩
+                (hWindow.2.2.2 f hfFiber hfT)))
 
 /-- Separated small-values form of nonlinear Runge/tomography for finite
 autocorrelation spectral-evaluation fibers. -/

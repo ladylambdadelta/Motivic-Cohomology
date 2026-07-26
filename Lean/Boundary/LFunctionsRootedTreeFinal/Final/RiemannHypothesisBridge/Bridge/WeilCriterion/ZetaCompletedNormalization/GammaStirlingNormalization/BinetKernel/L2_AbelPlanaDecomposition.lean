@@ -912,7 +912,7 @@ theorem Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_e
 
 /-- Residual finite Abel-Plana contour obligation: the finite approximation is
 exactly the main term, boundary correction, and corrected contour remainder. -/
-theorem Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_eq_main_boundary_contourRemainder_ownerGap :
+theorem Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_eq_main_boundary_contourRemainder_owner :
     ∀ z : ℂ,
       0 < z.re →
         ∀ N : ℕ,
@@ -997,7 +997,7 @@ theorem Complex.binetSecondFormula_finiteAbelPlana_remainderError_eq_contourRema
             Complex.binetAbelPlanaFiniteContourRemainder N z := by
   exact
     Complex.binetSecondFormula_finiteAbelPlana_remainderError_eq_contourRemainder
-      Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_eq_main_boundary_contourRemainder_ownerGap
+      Complex.binetSecondFormula_finiteAbelPlana_logGammaFiniteApproximation_eq_main_boundary_contourRemainder_owner
 
 /-- Pointwise finite Abel-Plana contour decomposition on the open right
 half-plane. -/

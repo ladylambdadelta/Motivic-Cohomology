@@ -60,8 +60,8 @@ theorem autocorrelationSpectralEvalFiberFiniteWindowNormTailControl.elim
               (∀ ρ : ℂ, ρ ∈ T →
                 zetaSpectralEval (convolutionAutocorrelation f)
                   ρ = 0) →
-                ‖zetaZeroTail S (convolutionAutocorrelation f)‖ < ε := by
-  exact hT
+                ‖zetaZeroTail S (convolutionAutocorrelation f)‖ < ε :=
+  hT
 
 /-- Constructor for the finite-window norm-tail package from its named fields. -/
 theorem autocorrelationSpectralEvalFiberFiniteWindowNormTailControl_intro
@@ -82,8 +82,8 @@ theorem autocorrelationSpectralEvalFiberFiniteWindowNormTailControl_intro
             zetaSpectralEval (convolutionAutocorrelation f)
               ρ = 0) →
             ‖zetaZeroTail S (convolutionAutocorrelation f)‖ < ε) :
-    AutocorrelationSpectralEvalFiberFiniteWindowNormTailControl S P f₀ ε T := by
-  exact ⟨hTzero, hTS, hTdagger, htail⟩
+    AutocorrelationSpectralEvalFiberFiniteWindowNormTailControl S P f₀ ε T :=
+  ⟨hTzero, hTS, hTdagger, htail⟩
 
 /-- The finite-window tail-control package is exactly the pair of hypotheses consumed by
 the finite descent theorem. -/
@@ -102,8 +102,8 @@ theorem autocorrelationSpectralEvalFiberFiniteWindowTailControl.elim
           (∀ ρ : ℂ, ρ ∈ T →
             zetaSpectralEval (convolutionAutocorrelation f)
               ρ = 0) →
-            autocorrelationZeroTailRealAbs S f < ε := by
-  exact hT
+            autocorrelationZeroTailRealAbs S f < ε :=
+  hT
 
 /-- Constructor for the finite-window tail-control package from its two named fields. -/
 theorem autocorrelationSpectralEvalFiberFiniteWindowTailControl_intro
@@ -122,8 +122,8 @@ theorem autocorrelationSpectralEvalFiberFiniteWindowTailControl_intro
             zetaSpectralEval (convolutionAutocorrelation f)
               ρ = 0) →
             autocorrelationZeroTailRealAbs S f < ε) :
-    AutocorrelationSpectralEvalFiberFiniteWindowTailControl S P f₀ ε T := by
-  exact ⟨hT, htail⟩
+    AutocorrelationSpectralEvalFiberFiniteWindowTailControl S P f₀ ε T :=
+  ⟨hT, htail⟩
 
 /-- The canonical finite non-dagger completed-zero height window.
 
@@ -148,9 +148,8 @@ theorem completedZerosInCenteredHeightBall_mono
     {R R' : ℝ}
     (hRR' : R ≤ R') :
     completedZerosInCenteredHeightBall R ⊆
-      completedZerosInCenteredHeightBall R' := by
-  intro ρ hρ
-  exact le_trans hρ hRR'
+      completedZerosInCenteredHeightBall R' :=
+  fun ρ hρ => le_trans hρ hRR'
 
 theorem autocorrelationSpectralEvalFiberNonDaggerHeightWindow_mono
     (S : Finset ℂ)
@@ -158,31 +157,31 @@ theorem autocorrelationSpectralEvalFiberNonDaggerHeightWindow_mono
     {R R' : ℝ}
     (hRR' : R ≤ R') :
     autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R ⊆
-      autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R' := by
-  intro ρ hρ
-  match Finset.mem_image.mp hρ with
+      autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R' :=
+  fun ρ hρ =>
+    match Finset.mem_image.mp hρ with
   | ⟨ρZero, hρZero, hρ_eq⟩ =>
-      have hfilter :
+      let hfilter :
           ρZero ∈ (finite_completedZerosInCenteredHeightBall R).toFinset ∧
             ((ρZero : ℂ) ∉ S ∧
               (ρZero : ℂ) ∉ daggerClosedSpectralSampleFinset P) :=
         Finset.mem_filter.mp hρZero
-      have hheight :
-          ρZero ∈ completedZerosInCenteredHeightBall R' := by
-        have hheightR :
+      let hheightR :
             ρZero ∈ completedZerosInCenteredHeightBall R :=
           (finite_completedZerosInCenteredHeightBall R).mem_toFinset.mp hfilter.1
-        exact completedZerosInCenteredHeightBall_mono hRR' hheightR
-      have hball :
+      let hheight :
+          ρZero ∈ completedZerosInCenteredHeightBall R' :=
+        completedZerosInCenteredHeightBall_mono hRR' hheightR
+      let hball :
           ρZero ∈ (finite_completedZerosInCenteredHeightBall R').toFinset :=
         (finite_completedZerosInCenteredHeightBall R').mem_toFinset.mpr hheight
-      have hfilter' :
+      let hfilter' :
           ρZero ∈ (finite_completedZerosInCenteredHeightBall R').toFinset.filter
             (fun zero : {ρ : ℂ // ZetaCompletedZero ρ} =>
               (zero : ℂ) ∉ S ∧
                 (zero : ℂ) ∉ daggerClosedSpectralSampleFinset P) :=
         Finset.mem_filter.mpr ⟨hball, hfilter.2⟩
-      exact Finset.mem_image.mpr ⟨ρZero, hfilter', hρ_eq⟩
+      Finset.mem_image.mpr ⟨ρZero, hfilter', hρ_eq⟩
 
 /-- Every zero in the canonical non-dagger height window is outside the dagger-closed
 finite spectral constraints. -/
@@ -191,20 +190,19 @@ theorem autocorrelationSpectralEvalFiberNonDaggerHeightWindow_daggerDisjoint
     (P : Finset ℂ)
     (R : ℝ) :
     ∀ ρ : ℂ, ρ ∈ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R →
-      ρ ∉ daggerClosedSpectralSampleFinset P := by
-  intro ρ hρ
-  match Finset.mem_image.mp hρ with
+      ρ ∉ daggerClosedSpectralSampleFinset P :=
+  fun ρ hρ =>
+    match Finset.mem_image.mp hρ with
   | ⟨ρZero, hρZero, hρ_eq⟩ =>
-      have hfilter :
+      let hfilter :
           (ρZero : ℂ) ∉ S ∧
             (ρZero : ℂ) ∉ daggerClosedSpectralSampleFinset P :=
         (Finset.mem_filter.mp hρZero).2
-      exact
-        Eq.subst
-          (motive := fun z : ℂ =>
-            z ∉ daggerClosedSpectralSampleFinset P)
-          hρ_eq
-          hfilter.2
+      Eq.subst
+        (motive := fun z : ℂ =>
+          z ∉ daggerClosedSpectralSampleFinset P)
+        hρ_eq
+        hfilter.2
 
 /-- Membership in the canonical non-dagger height window comes from a completed zero in
 the centered-height ball, outside the excluded finite zero set. -/
@@ -218,19 +216,18 @@ theorem autocorrelationSpectralEvalFiberNonDaggerHeightWindow_mem_data
       ρ = (ρZero : ℂ) ∧
         ρZero ∈ completedZerosInCenteredHeightBall R ∧
           (ρZero : ℂ) ∉ S ∧
-            (ρZero : ℂ) ∉ daggerClosedSpectralSampleFinset P := by
+            (ρZero : ℂ) ∉ daggerClosedSpectralSampleFinset P :=
   match Finset.mem_image.mp hρ with
   | ⟨ρZero, hρZero, hρ_eq⟩ =>
-      have hfilter :
+      let hfilter :
           ρZero ∈ (finite_completedZerosInCenteredHeightBall R).toFinset ∧
             ((ρZero : ℂ) ∉ S ∧
               (ρZero : ℂ) ∉ daggerClosedSpectralSampleFinset P) :=
         Finset.mem_filter.mp hρZero
-      have hheight :
+      let hheight :
           ρZero ∈ completedZerosInCenteredHeightBall R :=
         (finite_completedZerosInCenteredHeightBall R).mem_toFinset.mp hfilter.1
-      exact
-        ⟨ρZero, hρ_eq.symm, hheight, hfilter.2.1, hfilter.2.2⟩
+      ⟨ρZero, hρ_eq.symm, hheight, hfilter.2.1, hfilter.2.2⟩
 
 /-- A finite set of completed zeros has a centered-height radius containing all of its
 members. -/
@@ -241,19 +238,19 @@ theorem exists_centeredHeightBall_cover_finite_completedZeros
       ∀ ρ : ℂ, ∀ hρ : ρ ∈ T,
         zetaCompletedZeroCenteredHeight
           (⟨ρ, hTzero ρ hρ⟩ :
-            {ρ : ℂ // ZetaCompletedZero ρ}) ≤ R := by
+            {ρ : ℂ // ZetaCompletedZero ρ}) ≤ R :=
   let R : ℝ :=
     ∑ ρ in T.attach,
       zetaCompletedZeroCenteredHeight
         (⟨(ρ : ℂ), hTzero (ρ : ℂ) ρ.2⟩ :
           {ρ : ℂ // ZetaCompletedZero ρ})
-  have hcover :
+  let hcover :
       ∀ ρ : ℂ, ∀ hρ : ρ ∈ T,
         zetaCompletedZeroCenteredHeight
           (⟨ρ, hTzero ρ hρ⟩ :
             {ρ : ℂ // ZetaCompletedZero ρ}) ≤ R :=
-    fun ρ hρ => by
-    have hnonneg :
+    fun ρ hρ =>
+    let hnonneg :
         ∀ η : {η : ℂ // η ∈ T},
           η ∈ T.attach →
             0 ≤
@@ -270,22 +267,18 @@ theorem exists_centeredHeightBall_cover_finite_completedZeros
       ⟨(η : ℂ), hTzero (η : ℂ) η.2⟩
     let ρZero : {η : ℂ // ZetaCompletedZero η} :=
       ⟨ρ, hTzero ρ hρ⟩
-    have hterm_le :
-        zetaCompletedZeroCenteredHeight ηZero ≤ R := by
-      exact
-        Finset.single_le_sum hnonneg
-          (Finset.mem_attach T η)
-    have hzero_eq : ηZero = ρZero :=
+    let hterm_le :
+        zetaCompletedZeroCenteredHeight ηZero ≤ R :=
+      Finset.single_le_sum hnonneg
+        (Finset.mem_attach T η)
+    let hzero_eq : ηZero = ρZero :=
       Subtype.ext (Eq.refl ρ)
-    show zetaCompletedZeroCenteredHeight
-        (⟨ρ, hTzero ρ hρ⟩ :
-          {ρ : ℂ // ZetaCompletedZero ρ}) ≤ R
-    exact Eq.subst
+    Eq.subst
       (motive := fun zero : {η : ℂ // ZetaCompletedZero η} =>
         zetaCompletedZeroCenteredHeight zero ≤ R)
       hzero_eq
       hterm_le
-  exact Exists.intro R hcover
+  Exists.intro R hcover
 
 /-- A finite dagger-disjoint completed-zero window outside `S` is contained in some
 canonical non-dagger height window. -/
@@ -300,35 +293,33 @@ theorem exists_nonDaggerHeightWindow_cover_finite_completedZeros
         ρ ∉ daggerClosedSpectralSampleFinset P) :
     ∃ R : ℝ,
       ∀ ρ : ℂ, ρ ∈ T →
-        ρ ∈ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R := by
+        ρ ∈ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R :=
   match exists_centeredHeightBall_cover_finite_completedZeros T hTzero with
   | ⟨R, hR⟩ =>
-      have hcover :
+      let hcover :
           ∀ ρ : ℂ, ρ ∈ T →
-            ρ ∈ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R := by
-        intro ρ hρ
+            ρ ∈ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R :=
+        fun ρ hρ =>
         let ρZero : {ρ : ℂ // ZetaCompletedZero ρ} :=
           ⟨ρ, hTzero ρ hρ⟩
-        have hheight :
+        let hheight :
             ρZero ∈ completedZerosInCenteredHeightBall R :=
           hR ρ hρ
-        have htoFinset :
+        let htoFinset :
             ρZero ∈ (finite_completedZerosInCenteredHeightBall R).toFinset :=
           (finite_completedZerosInCenteredHeightBall R).mem_toFinset.mpr hheight
-        have hfilter :
+        let hfilter :
             ρZero ∈
               (finite_completedZerosInCenteredHeightBall R).toFinset.filter
                 (fun η : {ρ : ℂ // ZetaCompletedZero ρ} =>
                   (η : ℂ) ∉ S ∧
                     (η : ℂ) ∉
-                      daggerClosedSpectralSampleFinset P) := by
-          exact
-            Finset.mem_filter.mpr
-              ⟨htoFinset, hTS ρ hρ, hTdagger ρ hρ⟩
-        exact
-          Finset.mem_image.mpr
-            ⟨ρZero, hfilter, Eq.refl (ρZero : ℂ)⟩
-      exact ⟨R, hcover⟩
+                      daggerClosedSpectralSampleFinset P) :=
+          Finset.mem_filter.mpr
+            ⟨htoFinset, hTS ρ hρ, hTdagger ρ hρ⟩
+        Finset.mem_image.mpr
+          ⟨ρZero, hfilter, Eq.refl (ρZero : ℂ)⟩
+      ⟨R, hcover⟩
 
 /-- The finite spectral sample used by the selected tomographic interpolant at height
 `R`: the dagger-closed fixed-fiber constraints together with the centered samples of the
@@ -350,10 +341,9 @@ theorem exists_autocorrelationSpectralEvalFiberFiniteTomographyCardinalFamily
         ZetaAdmissibleFunction,
       ∀ z w : autocorrelationSpectralEvalFiberFiniteTomographySampleSet S P R,
         Boundary.zetaLaplaceTransform (F z).toZetaTestFunction' (w : ℂ) =
-          if w = z then 1 else 0 := by
-  exact
-    exists_zetaLaplaceTransformCardinalFamily_constructive_ownerPaleyWiener
-      (autocorrelationSpectralEvalFiberFiniteTomographySampleSet S P R)
+          if w = z then 1 else 0 :=
+  exists_zetaLaplaceTransformCardinalFamily_constructive_ownerPaleyWiener
+    (autocorrelationSpectralEvalFiberFiniteTomographySampleSet S P R)
 
 /-- The finite tomography target vector on the explicit finite sample set. -/
 def autocorrelationSpectralEvalFiberFiniteTomographyTarget
@@ -401,27 +391,26 @@ theorem autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_spe
         zetaSpectralEval
           (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
             S P f₀ R F) z =
-          finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z := by
-  intro z hz
+          finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z :=
+  fun z hz =>
   let U : Finset ℂ :=
     autocorrelationSpectralEvalFiberFiniteTomographySampleSet S P R
   let aU : U → ℂ :=
     autocorrelationSpectralEvalFiberFiniteTomographyTarget S P f₀ R
-  have hsample :
+  let hsample :
       zetaLaplaceTransformFiniteSample U
           (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
             S P f₀ R F) =
-        aU := by
-    exact
-      zetaLaplaceTransformFiniteSample_linearCombination_cardinalFamily
-        U aU F hF
-  have hcoord :
+        aU :=
+    zetaLaplaceTransformFiniteSample_linearCombination_cardinalFamily
+      U aU F hF
+  let hcoord :
       zetaLaplaceTransformFiniteSample U
           (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
             S P f₀ R F) ⟨z, hz⟩ =
         aU ⟨z, hz⟩ :=
     congrFun hsample ⟨z, hz⟩
-  have hspectralLaplace :
+  let hspectralLaplace :
       zetaSpectralEval
         (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
           S P f₀ R F) z =
@@ -431,7 +420,7 @@ theorem autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_spe
     zetaSpectralEval_eq_laplace
       (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
         S P f₀ R F) z
-  have hlaplaceSample :
+  let hlaplaceSample :
       Boundary.zetaLaplaceTransform
           (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
             S P f₀ R F).toZetaTestFunction' z =
@@ -442,13 +431,12 @@ theorem autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_spe
       (Boundary.zetaLaplaceTransform
         (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
           S P f₀ R F).toZetaTestFunction' z)
-  have htarget :
+  let htarget :
       aU ⟨z, hz⟩ =
         finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z :=
     Eq.refl (finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z)
-  exact
-    Eq.trans hspectralLaplace
-      (Eq.trans hlaplaceSample (Eq.trans hcoord htarget))
+  Eq.trans hspectralLaplace
+    (Eq.trans hlaplaceSample (Eq.trans hcoord htarget))
 
 /-- On dagger-closed finite fiber samples, the concrete finite tomographic cardinal
 interpolant realizes the finite annihilation target. -/
@@ -469,9 +457,8 @@ theorem autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_dag
         zetaSpectralEval
           (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
             S P f₀ R F) z =
-          finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z := by
-  intro z hz
-  exact
+          finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ z :=
+  fun z hz =>
     autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_spec
       S P f₀ R F hF z
       (Finset.mem_union.mpr (Or.inl hz))
@@ -491,14 +478,13 @@ theorem autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_mem
         Boundary.zetaLaplaceTransform (F z).toZetaTestFunction' (w : ℂ) =
           if w = z then 1 else 0) :
     autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant S P f₀ R F ∈
-      AutocorrelationSpectralEvalFiberOf P f₀ := by
-  exact
-    mem_autocorrelationSpectralEvalFiberOf_of_seed_finiteAnnihilationTarget
-      P f₀
-      (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
-        S P f₀ R F)
-      (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_dagger_spec
-        S P f₀ R F hF)
+      AutocorrelationSpectralEvalFiberOf P f₀ :=
+  mem_autocorrelationSpectralEvalFiberOf_of_seed_finiteAnnihilationTarget
+    P f₀
+    (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
+      S P f₀ R F)
+    (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_dagger_spec
+      S P f₀ R F hF)
 
 /-- The concrete finite tomographic cardinal interpolant kills the autocorrelation
 spectral values on the finite non-dagger completed-zero height window. -/
@@ -520,20 +506,18 @@ theorem autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_win
           (convolutionAutocorrelation
             (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
               S P f₀ R F))
-          ρ = 0 := by
-  intro ρ hρ
-  have hcenter :
+          ρ = 0 :=
+  fun ρ hρ =>
+  let hcenter :
       zetaSpectralEval
           (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
             S P f₀ R F)
           ρ =
-        finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀
-          ρ := by
-    exact
-      autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_spec
-        S P f₀ R F hF ρ
-        (Finset.mem_union.mpr (Or.inr hρ))
-  have hseedZero :
+        finiteAutocorrelationFiberZeroAnnihilationSeedTarget P f₀ ρ :=
+    autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_spec
+      S P f₀ R F hF ρ
+      (Finset.mem_union.mpr (Or.inr hρ))
+  let hseedZero :
       zetaSpectralEval
           (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
             S P f₀ R F)
@@ -543,11 +527,10 @@ theorem autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_win
         P f₀
         (autocorrelationSpectralEvalFiberNonDaggerHeightWindow_daggerDisjoint
           S P R ρ hρ))
-  exact
-    autocorrelationSpectralEval_eq_zero_of_seed_eval_eq_zero
-      (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
-        S P f₀ R F)
-      ρ hseedZero
+  autocorrelationSpectralEval_eq_zero_of_seed_eval_eq_zero
+    (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
+      S P f₀ R F)
+    ρ hseedZero
 
 /-- If a finite completed-zero window is covered by the non-dagger height window, the
 concrete finite tomographic cardinal interpolant kills that finite window. -/
@@ -572,9 +555,8 @@ theorem autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_zer
         (convolutionAutocorrelation
           (autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
             S P f₀ R F))
-        ρ = 0 := by
-  intro ρ hρT
-  exact
+        ρ = 0 :=
+  fun ρ hρT =>
     autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_window_zero
       S P f₀ R F hF ρ
       (hTsub ρ hρT)
@@ -594,18 +576,17 @@ theorem exists_autocorrelationSpectralEvalFiberFiniteTomographicInterpolant
         ∀ ρ : ℂ,
           ρ ∈ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R →
             zetaSpectralEval (convolutionAutocorrelation f)
-              ρ = 0 := by
+              ρ = 0 :=
   match
       exists_zetaLaplaceTransformCardinalFamily_constructive_ownerPaleyWiener
         (autocorrelationSpectralEvalFiberFiniteTomographySampleSet S P R) with
   | ⟨F, hF⟩ =>
-      exact
-        ⟨autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
-            S P f₀ R F,
-          autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_mem_fiber
-            S P f₀ R F hF,
-          autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_window_zero
-            S P f₀ R F hF⟩
+      ⟨autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant
+          S P f₀ R F,
+        autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_mem_fiber
+          S P f₀ R F hF,
+        autocorrelationSpectralEvalFiberFiniteTomographicCardinalInterpolant_window_zero
+          S P f₀ R F hF⟩
 
 /-- A fixed-fiber representative with small zero-tail norm and vanishing on the canonical
 height window gives the existential height-window reconstruction package. -/
@@ -630,8 +611,8 @@ theorem autocorrelationSpectralEvalFiber_nonDaggerHeightWindow_normSmallRepresen
           ρ ∈ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R →
             zetaSpectralEval (convolutionAutocorrelation f)
             ρ = 0) ∧
-          ‖zetaZeroTail S (convolutionAutocorrelation f)‖ < ε := by
-  exact ⟨R, f, hfFiber, hfWindow, hfNorm⟩
+          ‖zetaZeroTail S (convolutionAutocorrelation f)‖ < ε :=
+  ⟨R, f, hfFiber, hfWindow, hfNorm⟩
 
 /-- A constructively returned finite tomographic interpolant with small completed
 zero-tail norm supplies the existential height-window reconstruction package. -/
@@ -656,10 +637,9 @@ theorem autocorrelationSpectralEvalFiber_nonDaggerHeightWindow_normSmallRepresen
           ρ ∈ autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R →
             zetaSpectralEval (convolutionAutocorrelation f)
               ρ = 0) ∧
-          ‖zetaZeroTail S (convolutionAutocorrelation f)‖ < ε := by
-  exact
-    autocorrelationSpectralEvalFiber_nonDaggerHeightWindow_normSmallRepresentative_exists_of_witness
-      S P f₀ ε R f hfFiber hfWindow hNorm
+          ‖zetaZeroTail S (convolutionAutocorrelation f)‖ < ε :=
+  autocorrelationSpectralEvalFiber_nonDaggerHeightWindow_normSmallRepresentative_exists_of_witness
+    S P f₀ ε R f hfFiber hfWindow hNorm
 
 /-- Tail forcing for a concrete non-dagger height window packages as finite-window
 tail control. -/
@@ -678,14 +658,13 @@ theorem autocorrelationSpectralEvalFiberFiniteWindowTailControl_of_nonDaggerHeig
                 ρ = 0) →
             autocorrelationZeroTailRealAbs S f < ε) :
     AutocorrelationSpectralEvalFiberFiniteWindowTailControl S P f₀ ε
-      (autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R) := by
-  exact
-    autocorrelationSpectralEvalFiberFiniteWindowTailControl_intro
-      S P f₀ ε
-      (autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R)
-      (autocorrelationSpectralEvalFiberNonDaggerHeightWindow_daggerDisjoint
-        S P R)
-      htail
+      (autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R) :=
+  autocorrelationSpectralEvalFiberFiniteWindowTailControl_intro
+    S P f₀ ε
+    (autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R)
+    (autocorrelationSpectralEvalFiberNonDaggerHeightWindow_daggerDisjoint
+      S P R)
+    htail
 
 /-- Existence of a height radius with tail forcing gives the finite-window package
 needed by interpolation. -/
@@ -704,13 +683,12 @@ theorem autocorrelationSpectralEvalFiber_finiteWindowTailControl_exists_of_nonDa
                   ρ = 0) →
               autocorrelationZeroTailRealAbs S f < ε) :
     ∃ T : Finset ℂ,
-      AutocorrelationSpectralEvalFiberFiniteWindowTailControl S P f₀ ε T := by
+      AutocorrelationSpectralEvalFiberFiniteWindowTailControl S P f₀ ε T :=
   match hR with
   | ⟨R, htail⟩ =>
-      exact
-        ⟨autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R,
-          autocorrelationSpectralEvalFiberFiniteWindowTailControl_of_nonDaggerHeightWindowTailForcing
-            S P f₀ ε R htail⟩
+      ⟨autocorrelationSpectralEvalFiberNonDaggerHeightWindow S P R,
+        autocorrelationSpectralEvalFiberFiniteWindowTailControl_of_nonDaggerHeightWindowTailForcing
+          S P f₀ ε R htail⟩
 
 
 end ZetaAdmissibleFunction

@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.SectorialFromBinet
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.Binet.Derivatives.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.SlitPlaneDefinitions
 
 /-!
 # Sectorial logarithmic Gamma norm bounds
@@ -220,31 +221,6 @@ theorem Real.log_norm_le_of_norm_le_pos
     (hxB : x ≤ B) :
     Real.log x ≤ Real.log B := by
   exact Real.log_le_log hx_pos hxB
-
-/-- Exact branch-coherence hypotheses required by the Binet owner theorem for
-the principal logarithm of `Gamma`. -/
-def Complex.gammaBinetPrincipalLogCoherence : Prop :=
-  (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) ∧
-  (∀ x : ℝ,
-    0 < x →
-      ∀ N : ℕ,
-        Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
-          Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
-            Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
-              Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) ∧
-  (∀ z : ℂ,
-    0 < z.re →
-      (∀ N : ℕ,
-        Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
-          Complex.binetAbelPlanaFiniteMainTerm N z +
-            Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
-              Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
-      (∀ᶠ y : ℂ in 𝓝 z,
-        ∀ N : ℕ,
-          Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
-            Complex.binetAbelPlanaFiniteMainTerm N y +
-              Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
-                Complex.binetAbelPlanaFiniteContourRemainder N y))
 
 /-- A positive polynomial bound dominates its own logarithm after increasing
 the constant. -/
@@ -588,7 +564,11 @@ theorem Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_formula_an
     (ε : ℝ)
     (hε : 0 < ε)
     (hGamma_slit :
-      ∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane)
+      ∀ z : ℂ,
+        0 < z.re →
+          ε ≤ z.re / ‖z‖ →
+            Complex.Gamma z ∈ Complex.slitPlane)
+    (hGamma_slit_global : Complex.GammaRightHalfPlaneSlitPlaneControl)
     (hRealAxis :
       ∀ x : ℝ,
         0 < x →
@@ -619,7 +599,7 @@ theorem Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_formula_an
           R ≤ ‖z‖ →
             ‖Complex.log (Complex.Gamma z)‖ ≤
               C * (1 + ‖z‖) ^ m := by
-  rcases Complex.Gamma_binetSecondFormula_closedRightHalfPlane with
+  rcases Complex.Gamma_binetSecondFormula_large_openRightHalfPlane_of_local_slit with
     ⟨Rb, hRb_pos, hBinet⟩
   rcases Complex.binetLogGammaMainTerm_norm_bound_large_openRightHalfPlane with
     ⟨Rm, Cm, mm, hRm_pos, hCm_pos, hmain⟩
@@ -687,7 +667,8 @@ theorem Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_formula_an
         Complex.log (Complex.Gamma z) =
           Complex.binetLogGammaMainTerm z +
             Complex.binetSecondFormulaRemainder z :=
-      hBinet z hz_re hRbz hGamma_slit hRealAxis hLocal
+      hBinet z hz_re hRbz (hGamma_slit z hz_re hz_sep)
+        hGamma_slit_global hRealAxis hLocal
     calc
       ‖Complex.log (Complex.Gamma z)‖ =
           ‖Complex.binetLogGammaMainTerm z +
@@ -705,7 +686,10 @@ theorem Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_components
     (ε : ℝ)
     (hε : 0 < ε)
     (hGamma_slit :
-      ∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane)
+      ∀ z : ℂ,
+        0 < z.re →
+          ε ≤ z.re / ‖z‖ →
+            Complex.Gamma z ∈ Complex.slitPlane)
     (hRealAxis :
       ∀ x : ℝ,
         0 < x →
@@ -738,7 +722,81 @@ theorem Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_components
               C * (1 + ‖z‖) ^ m := by
   exact
     Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_formula_and_norm_bounds
-      ε hε hGamma_slit hRealAxis hLocal
+      ε hε hGamma_slit hGamma_slit_global hRealAxis hLocal
+
+/-! The sector-local owner does not require a global principal branch. -/
+theorem Complex.log_Gamma_norm_bound_large_sectorSeparated_of_sectorial_Binet
+    (ε : ℝ)
+    (hε : 0 < ε)
+    {R₀ : ℝ}
+    (hR₀ : 0 < R₀)
+    (hBinet :
+      ∀ z : ℂ,
+        0 < z.re →
+        ε ≤ z.re / ‖z‖ →
+        R₀ ≤ ‖z‖ →
+        Complex.log (Complex.Gamma z) =
+          Complex.binetLogGammaMainTerm z +
+            Complex.binetSecondFormulaRemainder z) :
+    ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
+      0 < R ∧ 0 < C ∧
+      ∀ z : ℂ,
+        0 < z.re →
+          ε ≤ z.re / ‖z‖ →
+          R ≤ ‖z‖ →
+          ‖Complex.log (Complex.Gamma z)‖ ≤
+            C * (1 + ‖z‖) ^ m := by
+  rcases Complex.binetLogGammaMainTerm_norm_bound_large_openRightHalfPlane with
+    ⟨Rm, Cm, mm, hRm_pos, hCm_pos, hmain⟩
+  rcases Complex.binetSecondFormulaRemainder_norm_bound_large_sectorSeparated
+      ε hε with
+    ⟨Rr, Cr, mr, hRr_pos, hCr_pos, hrem⟩
+  let R : ℝ := max R₀ (max Rm Rr)
+  let C : ℝ := Cm + Cr
+  let m : ℕ := mm + mr
+  refine ⟨R, C, m, ?_, add_pos hCm_pos hCr_pos, ?_⟩
+  · exact lt_of_lt_of_le hR₀ (le_max_left R₀ (max Rm Rr))
+  · intro z hz_re hz_sep hRz
+    have hR₀z : R₀ ≤ ‖z‖ :=
+      le_trans (le_max_left R₀ (max Rm Rr)) hRz
+    have hRmz : Rm ≤ ‖z‖ :=
+      le_trans (le_trans (le_max_left Rm Rr)
+        (le_max_right R₀ (max Rm Rr))) hRz
+    have hRrz : Rr ≤ ‖z‖ :=
+      le_trans (le_trans (le_max_right Rm Rr)
+        (le_max_right R₀ (max Rm Rr))) hRz
+    have hbase : 1 ≤ 1 + ‖z‖ :=
+      Real.sectorialLogNorm_one_le_one_add_norm z
+    have hmain_bound :
+        ‖Complex.binetLogGammaMainTerm z‖ ≤ Cm * (1 + ‖z‖) ^ m := by
+      have hpow : (1 + ‖z‖) ^ mm ≤ (1 + ‖z‖) ^ m :=
+        pow_le_pow_right₀ hbase (Nat.le_add_right mm mr)
+      exact le_trans (hmain z hz_re hRmz)
+        (mul_le_mul_of_nonneg_left hpow (le_of_lt hCm_pos))
+    have hrem_bound :
+        ‖Complex.binetSecondFormulaRemainder z‖ ≤ Cr * (1 + ‖z‖) ^ m := by
+      have hpow : (1 + ‖z‖) ^ mr ≤ (1 + ‖z‖) ^ m :=
+        pow_le_pow_right₀ hbase (Nat.le_add_left mr mm)
+      exact le_trans (hrem z hz_re hz_sep hRrz)
+        (mul_le_mul_of_nonneg_left hpow (le_of_lt hCr_pos))
+    have hsum :
+        ‖Complex.binetLogGammaMainTerm z‖ +
+            ‖Complex.binetSecondFormulaRemainder z‖ ≤
+          C * (1 + ‖z‖) ^ m := by
+      calc
+        _ ≤ Cm * (1 + ‖z‖) ^ m + Cr * (1 + ‖z‖) ^ m :=
+          add_le_add hmain_bound hrem_bound
+        _ = C * (1 + ‖z‖) ^ m := by
+          exact Real.sectorialLogNorm_add_same_power Cm Cr
+            (1 + ‖z‖) m
+    calc
+      ‖Complex.log (Complex.Gamma z)‖ =
+          ‖Complex.binetLogGammaMainTerm z +
+            Complex.binetSecondFormulaRemainder z‖ := by
+        exact congrArg norm (hBinet z hz_re hz_sep hR₀z)
+      _ ≤ ‖Complex.binetLogGammaMainTerm z‖ +
+          ‖Complex.binetSecondFormulaRemainder z‖ := norm_add_le _ _
+      _ ≤ C * (1 + ‖z‖) ^ m := hsum
 
 /-- Passing from a norm bound on the principal logarithm to a bound on
 `Real.log ‖Gamma z‖` in a fixed wedge. -/
@@ -746,7 +804,11 @@ theorem Complex.Gamma_log_norm_bound_large_sectorSeparated_from_log_Gamma_norm
     (ε : ℝ)
     (hε : 0 < ε)
     (hGamma_slit :
-      ∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane)
+      ∀ z : ℂ,
+        0 < z.re →
+          ε ≤ z.re / ‖z‖ →
+            Complex.Gamma z ∈ Complex.slitPlane)
+    (hGamma_slit_global : Complex.GammaRightHalfPlaneSlitPlaneControl)
     (hRealAxis :
       ∀ x : ℝ,
         0 < x →
@@ -796,6 +858,104 @@ theorem Complex.Gamma_log_norm_bound_large_sectorSeparated_from_log_Gamma_norm
   exact
     le_trans (le_of_eq hlog_eq)
       (le_trans hre_le_norm (hlog_norm z hz_re hz_sep hRz))
+
+/- The branch-correct replacement for the preceding principal-log route. -/
+theorem Complex.Gamma_log_norm_bound_large_sectorSeparated_from_Binet_branch
+    (ε : ℝ)
+    (hε : 0 < ε)
+    (hExp : Complex.BinetLogGammaBranchExponentialControl) :
+    ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
+      0 < R ∧ 0 < C ∧
+      ∀ z : ℂ,
+        0 < z.re →
+          ε ≤ z.re / ‖z‖ →
+          R ≤ ‖z‖ →
+          Real.log ‖Complex.Gamma z‖ ≤
+            C * (1 + ‖z‖) ^ m := by
+  rcases Complex.binetLogGammaMainTerm_norm_bound_large_openRightHalfPlane with
+    ⟨Rm, Cm, mm, hRm_pos, hCm_pos, hmain⟩
+  rcases Complex.binetSecondFormulaRemainder_norm_bound_large_sectorSeparated
+      ε hε with
+    ⟨Rr, Cr, mr, hRr_pos, hCr_pos, hrem⟩
+  let R : ℝ := max Rm Rr
+  let C : ℝ := Cm + Cr
+  let m : ℕ := mm + mr
+  refine ⟨R, C, m, ?_, add_pos hCm_pos hCr_pos, ?_⟩
+  · exact lt_of_lt_of_le hRm_pos (le_max_left Rm Rr)
+  · intro z hz_re hz_sep hRz
+    have hRmz : Rm ≤ ‖z‖ :=
+      le_trans (le_max_left Rm Rr) hRz
+    have hRrz : Rr ≤ ‖z‖ :=
+      le_trans (le_max_right Rm Rr) hRz
+    have hbase : 1 ≤ 1 + ‖z‖ :=
+      Real.sectorialLogNorm_one_le_one_add_norm z
+    have hmain_bound :
+        ‖Complex.binetLogGammaMainTerm z‖ ≤ Cm * (1 + ‖z‖) ^ m := by
+      have hpow : (1 + ‖z‖) ^ mm ≤ (1 + ‖z‖) ^ m :=
+        pow_le_pow_right₀ hbase (Nat.le_add_right mm mr)
+      exact le_trans (hmain z hz_re hRmz)
+        (mul_le_mul_of_nonneg_left hpow (le_of_lt hCm_pos))
+    have hrem_bound :
+        ‖Complex.binetSecondFormulaRemainder z‖ ≤ Cr * (1 + ‖z‖) ^ m := by
+      have hpow : (1 + ‖z‖) ^ mr ≤ (1 + ‖z‖) ^ m :=
+        pow_le_pow_right₀ hbase (Nat.le_add_left mr mm)
+      exact le_trans (hrem z hz_re hz_sep hRrz)
+        (mul_le_mul_of_nonneg_left hpow (le_of_lt hCr_pos))
+    have hsum :
+        (Complex.binetLogGammaBranch z).re ≤ C * (1 + ‖z‖) ^ m := by
+      have hnorm :
+          ‖Complex.binetLogGammaMainTerm z +
+              Complex.binetSecondFormulaRemainder z‖ ≤
+            C * (1 + ‖z‖) ^ m := by
+        calc
+          ‖Complex.binetLogGammaMainTerm z +
+              Complex.binetSecondFormulaRemainder z‖ ≤
+              ‖Complex.binetLogGammaMainTerm z‖ +
+                ‖Complex.binetSecondFormulaRemainder z‖ := norm_add_le _ _
+          _ ≤ Cm * (1 + ‖z‖) ^ m + Cr * (1 + ‖z‖) ^ m :=
+            add_le_add hmain_bound hrem_bound
+          _ = C * (1 + ‖z‖) ^ m := by
+            exact Real.sectorialLogNorm_add_same_power Cm Cr
+              (1 + ‖z‖) m
+      exact le_trans
+        (le_abs_self (Complex.binetLogGammaBranch z).re)
+        (le_trans
+          (Complex.abs_re_le_abs (Complex.binetLogGammaBranch z))
+          (Eq.subst
+            (motive := fun w : ℂ => ‖w‖ ≤ C * (1 + ‖z‖) ^ m)
+            (Complex.binetLogGammaBranch_unfold z)
+            hnorm))
+    exact Eq.trans
+      (Complex.log_norm_Gamma_eq_binetLogGammaBranch_re_of_exponentialControl
+        hExp hz_re)
+      hsum
+
+theorem Complex.Gamma_log_norm_bound_large_sectorSeparated_from_Binet_branch_owner
+    (ε : ℝ) (hε : 0 < ε) :
+    ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
+      0 < R ∧ 0 < C ∧
+      ∀ z : ℂ,
+        0 < z.re →
+          ε ≤ z.re / ‖z‖ →
+          R ≤ ‖z‖ →
+          Real.log ‖Complex.Gamma z‖ ≤
+            C * (1 + ‖z‖) ^ m :=
+  Complex.Gamma_log_norm_bound_large_sectorSeparated_from_Binet_branch
+    ε hε Complex.binetLogGammaBranchExponentialControl_owner
+
+/- Public sectorial name for the branch-correct route. -/
+theorem Complex.Gamma_sectorSeparated_log_norm_bound_from_Binet_branch
+    (ε : ℝ) (hε : 0 < ε) :
+    ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
+      0 < R ∧ 0 < C ∧
+      ∀ z : ℂ,
+        0 < z.re →
+          ε ≤ z.re / ‖z‖ →
+          R ≤ ‖z‖ →
+          Real.log ‖Complex.Gamma z‖ ≤
+            C * (1 + ‖z‖) ^ m :=
+  Complex.Gamma_log_norm_bound_large_sectorSeparated_from_Binet_branch_owner
+    ε hε
 
 /-- The Binet remainder has polynomial logarithmic growth after a large-radius
 cutoff in a fixed right-half-plane wedge. -/
@@ -861,7 +1021,7 @@ theorem Complex.Gamma_log_norm_bound_large_sectorSeparated_from_Binet_norm_compo
               C * (1 + ‖z‖) ^ m := by
   exact
     Complex.Gamma_log_norm_bound_large_sectorSeparated_from_log_Gamma_norm
-      ε hε hcoh.1 hcoh.2.1 hcoh.2.2
+      ε hε (fun z hz _hsep => hcoh.1 z hz) hcoh.2.1 hcoh.2.2
 
 /-- Addition preserves polynomial logarithmic growth for the Binet main term
 and remainder after a common large-radius cutoff in a fixed wedge. -/
@@ -918,6 +1078,20 @@ theorem Complex.Gamma_closedRightHalfPlane_log_norm_bound_classical
               C * (1 + ‖z‖) ^ m := by
   exact
     Complex.Gamma_sectorSeparated_log_norm_bound_from_Binet ε hε hcoh
+
+/- Unconditional branch-correct public route; the older theorem above remains
+   available for clients that explicitly need principal-log coherence. -/
+theorem Complex.Gamma_closedRightHalfPlane_log_norm_bound_from_Binet_branch
+    (ε : ℝ) (hε : 0 < ε) :
+    ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
+      0 < R ∧ 0 < C ∧
+      ∀ z : ℂ,
+        0 < z.re →
+          ε ≤ z.re / ‖z‖ →
+          R ≤ ‖z‖ →
+          Real.log ‖Complex.Gamma z‖ ≤
+            C * (1 + ‖z‖) ^ m :=
+  Complex.Gamma_sectorSeparated_log_norm_bound_from_Binet_branch ε hε
 
 end
 

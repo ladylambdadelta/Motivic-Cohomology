@@ -2,12 +2,12 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleLeftOffPoleCauchyValue
 
 /-!
-# Left zero-pole off-pole decay
+# Left zero-pole projection-residue value
 
-This file owns the analytic decay theorem for the left face of the isolated
-`s = 0` correction pole.  The left face is off the pole, so this theorem must
-come from off-pole Cauchy/Laplace estimates and Paley-Wiener decay, not from a
-centered right zero-pole residue normalization.
+This file owns compatibility wrappers for the corrected left face of the
+isolated `s = 0` correction pole.  The left face carries the right Cauchy
+projection plus the tangent residue term; downstream pole-face subtraction
+cancels the shared projection.
 -/
 
 namespace Boundary
@@ -24,14 +24,9 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- Compatibility wrapper: scheduled off-pole Cauchy/Laplace value of the left
-`s = 0` correction affine kernel.
-
-The finite/scheduled contour estimate is owned by the named Cauchy value leaf;
-`ZeroPoleLeftOffPoleAffineValue` only transports it to the affine-window
-formulation.  This file retains the historical decay-layer name for downstream
-left-face consumers. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_zero_ownerLeftOffPoleDecay
+/-- Compatibility wrapper: scheduled Cauchy/Laplace value of the left `s = 0`
+correction affine kernel in the corrected projection-residue normalization. -/
+theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_projectionResidue_ownerLeftOffPoleDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     Tendsto
@@ -41,21 +36,23 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduled
             (F.rectangle (h.height_schedule.height u)).T,
           zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F t)
       atTop
-      (𝓝 0) := by
+      (𝓝
+        (Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+            f.toZetaTestFunction' F.c +
+          zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+            f * Complex.I)) := by
   exact
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_zero_of_scheduledOscillatory_tendsto_zero_ownerLeftOffPoleAffineValue
+    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_value_of_scheduledOscillatory_tendsto_value_ownerLeftOffPoleAffineValue
       f F h
-      (zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_zero_ownerLeftOffPoleCauchy
+      (Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+          f.toZetaTestFunction' F.c +
+        zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+          f * Complex.I)
+      (zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIntegral_tendsto_projectionResidue_ownerLeftOffPoleCauchy
         f F h)
 
-/-- Transport form of the left `s = 0` off-pole value theorem.
-
-Once the finite/scheduled Cauchy argument proves that the scheduled windows of
-the left affine zero-pole kernel tend to `0`, integrability and rectangle
-exhaustion identify the whole-line affine integral with the same value.  This
-is the same non-circular assembly step used for the right `s = 1` off-pole
-kernel; it does not use downstream left-zero cancellation. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_of_scheduled_tendsto_zero_ownerLeftOffPoleDecay
+/-- Transport form of the left `s = 0` value theorem. -/
+theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_projectionResidue_of_scheduled_tendsto_projectionResidue_ownerLeftOffPoleDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (hscheduled :
@@ -66,46 +63,58 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_
               (F.rectangle (h.height_schedule.height u)).T,
             zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F t)
         atTop
-        (𝓝 0)) :
+        (𝓝
+          (Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+              f.toZetaTestFunction' F.c +
+            zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+              f * Complex.I))) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F t) =
-      0 := by
+      Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+          f.toZetaTestFunction' F.c +
+        zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+          f * Complex.I := by
   exact
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_of_scheduled_tendsto_zero_ownerLeftOffPoleAffineValue
+    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_value_of_scheduled_tendsto_value_ownerLeftOffPoleAffineValue
       f F h
+      (Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+          f.toZetaTestFunction' F.c +
+        zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+          f * Complex.I)
       hscheduled
 
 /-- Compatibility wrapper for the whole-line left `s = 0` correction affine
-kernel value.
-
-The affine-window transport is owned in `ZeroPoleLeftOffPoleAffineValue.lean`;
-this local name is kept for downstream consumers of the decay owner. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_ownerLeftOffPoleDecay
+kernel value. -/
+theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_projectionResidue_ownerLeftOffPoleDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F t) =
-      0 := by
+      Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+          f.toZetaTestFunction' F.c +
+        zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+          f * Complex.I := by
   exact
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_of_scheduled_tendsto_zero_ownerLeftOffPoleDecay
+    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_projectionResidue_of_scheduled_tendsto_projectionResidue_ownerLeftOffPoleDecay
       f F h
-      (zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_zero_ownerLeftOffPoleDecay
+      (zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_scheduledWindow_tendsto_projectionResidue_ownerLeftOffPoleDecay
         f F h)
 
-/-- Owner scheduled theorem: the left `s = 0` correction face has zero scheduled
-limit because the left face is off the isolated pole.
-
-This theorem is now only transport from the whole-line left affine-kernel value
-through the scheduled rectangle exhaustion. -/
-theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_tendsto_zero_ownerLeftOffPoleDecay
+/-- Owner scheduled theorem: the left `s = 0` correction face has the corrected
+projection-residue scheduled limit. -/
+theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_tendsto_projectionResidue_ownerLeftOffPoleDecay
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     Tendsto
       (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral
-          f F (h.height_schedule.height u))
+          zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral
+            f F (h.height_schedule.height u))
       atTop
-      (𝓝 0) := by
+      (𝓝
+        (Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+            f.toZetaTestFunction' F.c +
+          zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+            f * Complex.I)) := by
   let K : ℝ → ℂ := fun u : ℝ =>
     ∫ t in Set.Icc
         (-(F.rectangle (h.height_schedule.height u)).T)
@@ -120,10 +129,19 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_tends
   have hvalue :
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel f F t) =
-        0 :=
-    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_zero_ownerLeftOffPoleDecay
+        Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+            f.toZetaTestFunction' F.c +
+          zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+            f * Complex.I :=
+    zetaCompletedExplicitFormulaCorrectionLeftZeroPoleAffineKernel_integral_eq_projectionResidue_ownerLeftOffPoleDecay
       f F h
-  have hK_zero : Tendsto K atTop (𝓝 0) := by
+  have hK_value :
+      Tendsto K atTop
+        (𝓝
+          (Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+              f.toZetaTestFunction' F.c +
+            zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+              f * Complex.I)) := by
     exact Eq.subst
       (motive := fun z : ℂ => Tendsto K atTop (𝓝 z))
       hvalue
@@ -138,9 +156,15 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_tends
       zetaCompletedExplicitFormulaCorrectionLeftZeroPoleVerticalIntegral_eq_affineKernelIntegral_ownerLeftOffPoleTransport
         f F h u
   exact Eq.subst
-    (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
+    (motive := fun φ : ℝ → ℂ =>
+      Tendsto φ atTop
+        (𝓝
+          (Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+              f.toZetaTestFunction' F.c +
+            zetaCompletedExplicitFormulaCorrectionZeroPoleLocalTangentResidueValue
+              f * Complex.I)))
     hpoint.symm
-    hK_zero
+    hK_value
 
 end ZetaAdmissibleFunction
 

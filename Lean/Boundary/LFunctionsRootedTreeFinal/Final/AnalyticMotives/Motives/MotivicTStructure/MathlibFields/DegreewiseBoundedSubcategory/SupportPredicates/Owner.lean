@@ -30,7 +30,7 @@ def supportedLEAmbient
     Prop :=
   ∃ (bound : Nat),
     ∃ (complex : TraceAnalyticAdditiveCochainComplex),
-      TraceAnalyticMotiveComparison.sourceComplexDegreewiseIsoClosureBoundedBy
+      TraceAnalyticAdditiveCochainComplex.DegreewiseIsoClosureBoundedBy
           complex
           bound ∧
         Nonempty
@@ -48,7 +48,7 @@ def supportedGEAmbient
     Prop :=
   ∃ (bound : Nat),
     ∃ (complex : TraceAnalyticAdditiveCochainComplex),
-      TraceAnalyticMotiveComparison.sourceComplexDegreewiseIsoClosureBoundedBy
+      TraceAnalyticAdditiveCochainComplex.DegreewiseIsoClosureBoundedBy
           complex
           bound ∧
         Nonempty
@@ -83,7 +83,7 @@ theorem stableTruncLE_mem_supportedLEAmbient
     {bound : Nat}
     (complex : TraceAnalyticAdditiveCochainComplex)
     (bounded :
-      TraceAnalyticMotiveComparison.sourceComplexDegreewiseIsoClosureBoundedBy
+      TraceAnalyticAdditiveCochainComplex.DegreewiseIsoClosureBoundedBy
         complex
         bound)
     [∀ degree, complex.HasHomology degree] :
@@ -119,7 +119,7 @@ theorem stableTruncGE_mem_supportedGEAmbient
     {bound : Nat}
     (complex : TraceAnalyticAdditiveCochainComplex)
     (bounded :
-      TraceAnalyticMotiveComparison.sourceComplexDegreewiseIsoClosureBoundedBy
+      TraceAnalyticAdditiveCochainComplex.DegreewiseIsoClosureBoundedBy
         complex
         bound)
     [∀ degree, complex.HasHomology degree] :

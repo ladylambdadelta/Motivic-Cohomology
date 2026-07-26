@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaPrimeRapidPower.ZetaPrimeTwoFaceCoordinates.ZetaPrimeContourTomography.CoordinateLedger.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaPrimeRapidPower.ZetaPrimeTwoFaceCoordinates.ZetaPrimeContourTomography.CoordinateLedger.ConcreteResidueShadow
 
 /-!
 # Prime contour tomography
@@ -17,26 +17,88 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- The sampled top horizontal contour integral along the prime transport family. -/
-noncomputable def sampledHorizontalTopIntegral
+/-- The sampled top horizontal contour integral along a supplied height schedule. -/
+noncomputable def sampledHorizontalTopIntegralAt
+    (heightSchedule :
+      ExplicitFormulaCofinalHeightSchedule completedPrimeContourTransportFamily)
     (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
   zetaCompletedExplicitFormulaTopLineIntegral
       (convolutionAutocorrelation f)
-      (completedPrimeContourTransportFamily.rectangle (N : ℝ))
+      (completedPrimeContourTransportFamily.rectangle
+        (heightSchedule.height (N : ℝ)))
 
-/-- The sampled bottom horizontal contour integral along the prime transport family. -/
-noncomputable def sampledHorizontalBottomIntegral
+/-- The sampled bottom horizontal contour integral along a supplied height schedule. -/
+noncomputable def sampledHorizontalBottomIntegralAt
+    (heightSchedule :
+      ExplicitFormulaCofinalHeightSchedule completedPrimeContourTransportFamily)
     (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
   zetaCompletedExplicitFormulaBottomLineIntegral
       (convolutionAutocorrelation f)
-      (completedPrimeContourTransportFamily.rectangle (N : ℝ))
+      (completedPrimeContourTransportFamily.rectangle
+        (heightSchedule.height (N : ℝ)))
 
-/-- The sampled horizontal top-minus-bottom contour remainder along the prime transport
-family. -/
+/-- The sampled horizontal top-minus-bottom contour remainder along a supplied schedule. -/
+noncomputable def sampledHorizontalDifferenceComplexAt
+    (heightSchedule :
+      ExplicitFormulaCofinalHeightSchedule completedPrimeContourTransportFamily)
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
+  sampledHorizontalTopIntegralAt heightSchedule N f -
+    sampledHorizontalBottomIntegralAt heightSchedule N f
+
+/-- The scheduled top horizontal integral is the top edge integral of the prime
+transport rectangle. -/
+theorem sampledHorizontalTopIntegralAt_eq_topLineIntegral
+    (heightSchedule :
+      ExplicitFormulaCofinalHeightSchedule completedPrimeContourTransportFamily)
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    sampledHorizontalTopIntegralAt heightSchedule N f =
+      zetaCompletedExplicitFormulaTopLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle
+          (heightSchedule.height (N : ℝ))) :=
+  rfl
+
+/-- The scheduled bottom horizontal integral is the bottom edge integral of the prime
+transport rectangle. -/
+theorem sampledHorizontalBottomIntegralAt_eq_bottomLineIntegral
+    (heightSchedule :
+      ExplicitFormulaCofinalHeightSchedule completedPrimeContourTransportFamily)
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    sampledHorizontalBottomIntegralAt heightSchedule N f =
+      zetaCompletedExplicitFormulaBottomLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle
+          (heightSchedule.height (N : ℝ))) :=
+  rfl
+
+/-- The scheduled horizontal difference is the scheduled top edge minus the scheduled
+bottom edge. -/
+theorem sampledHorizontalDifferenceComplexAt_eq_top_sub_bottom
+    (heightSchedule :
+      ExplicitFormulaCofinalHeightSchedule completedPrimeContourTransportFamily)
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    sampledHorizontalDifferenceComplexAt heightSchedule N f =
+      sampledHorizontalTopIntegralAt heightSchedule N f -
+        sampledHorizontalBottomIntegralAt heightSchedule N f :=
+  rfl
+
+/-- The concrete sampled top horizontal contour integral. -/
+noncomputable def sampledHorizontalTopIntegral
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
+  sampledHorizontalTopIntegralAt
+    completedPrimeContourTransportHeightSchedule_owner N f
+
+/-- The concrete sampled bottom horizontal contour integral. -/
+noncomputable def sampledHorizontalBottomIntegral
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
+  sampledHorizontalBottomIntegralAt
+    completedPrimeContourTransportHeightSchedule_owner N f
+
+/-- The concrete sampled horizontal top-minus-bottom contour remainder. -/
 noncomputable def sampledHorizontalDifferenceComplex
     (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
-  sampledHorizontalTopIntegral N f -
-    sampledHorizontalBottomIntegral N f
+  sampledHorizontalDifferenceComplexAt
+    completedPrimeContourTransportHeightSchedule_owner N f
 
 /-- The sampled top horizontal integral is the top edge integral of the prime transport
 rectangle. -/
@@ -45,7 +107,8 @@ theorem sampledHorizontalTopIntegral_eq_topLineIntegral
     sampledHorizontalTopIntegral N f =
       zetaCompletedExplicitFormulaTopLineIntegral
         (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) := by
+        (completedPrimeContourTransportFamily.rectangle
+          (completedPrimeContourTransportHeightSchedule_owner.height (N : ℝ))) := by
   rfl
 
 /-- The sampled bottom horizontal integral is the bottom edge integral of the prime
@@ -55,7 +118,8 @@ theorem sampledHorizontalBottomIntegral_eq_bottomLineIntegral
     sampledHorizontalBottomIntegral N f =
       zetaCompletedExplicitFormulaBottomLineIntegral
         (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) := by
+        (completedPrimeContourTransportFamily.rectangle
+          (completedPrimeContourTransportHeightSchedule_owner.height (N : ℝ))) := by
   rfl
 
 /-- The sampled horizontal difference is the sampled top edge minus the sampled bottom
@@ -72,29 +136,34 @@ noncomputable def primeTransportTopContourIntegrand
     (N : ℕ) (f : ZetaAdmissibleFunction) (x : ℝ) : ℂ :=
   completedZetaNegLogDeriv
       (zetaCompletedExplicitFormulaTopPath
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x) *
+        (completedPrimeContourTransportFamily.rectangle
+          (completedPrimeContourTransportHeightSchedule_owner.height (N : ℝ))) x) *
     zetaCompletedExplicitFormulaPhi
       (convolutionAutocorrelation f)
       (zetaCompletedExplicitFormulaTopPath
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2)
+        (completedPrimeContourTransportFamily.rectangle
+          (completedPrimeContourTransportHeightSchedule_owner.height (N : ℝ))) x - 1 / 2)
 
 /-- The bottom horizontal contour integrand along the prime transport rectangle. -/
 noncomputable def primeTransportBottomContourIntegrand
     (N : ℕ) (f : ZetaAdmissibleFunction) (x : ℝ) : ℂ :=
   completedZetaNegLogDeriv
       (zetaCompletedExplicitFormulaBottomPath
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x) *
+        (completedPrimeContourTransportFamily.rectangle
+          (completedPrimeContourTransportHeightSchedule_owner.height (N : ℝ))) x) *
     zetaCompletedExplicitFormulaPhi
       (convolutionAutocorrelation f)
       (zetaCompletedExplicitFormulaBottomPath
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2)
+        (completedPrimeContourTransportFamily.rectangle
+          (completedPrimeContourTransportHeightSchedule_owner.height (N : ℝ))) x - 1 / 2)
 
 /-- The top line integral is the interval integral of the named top contour integrand. -/
 theorem primeTransportTopLineIntegral_eq_integral_topContourIntegrand
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaTopLineIntegral
         (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
+        (completedPrimeContourTransportFamily.rectangle
+          (completedPrimeContourTransportHeightSchedule_owner.height (N : ℝ))) =
       ∫ x in Set.uIcc completedPrimeContourTransportFamily.c
           (1 - completedPrimeContourTransportFamily.c),
         primeTransportTopContourIntegrand N f x := by
@@ -106,7 +175,8 @@ theorem primeTransportBottomLineIntegral_eq_integral_bottomContourIntegrand
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaBottomLineIntegral
         (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
+        (completedPrimeContourTransportFamily.rectangle
+          (completedPrimeContourTransportHeightSchedule_owner.height (N : ℝ))) =
       ∫ x in Set.uIcc completedPrimeContourTransportFamily.c
           (1 - completedPrimeContourTransportFamily.c),
         primeTransportBottomContourIntegrand N f x := by
@@ -149,7 +219,8 @@ theorem primeTransportTopLineIntegral_eq_topContourIntegral
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaTopLineIntegral
         (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
+        (completedPrimeContourTransportFamily.rectangle
+          (completedPrimeContourTransportHeightSchedule_owner.height (N : ℝ))) =
       primeTransportTopContourIntegral N f := by
   exact
     (primeTransportTopLineIntegral_eq_integral_topContourIntegrand N f).trans
@@ -160,7 +231,8 @@ theorem primeTransportBottomLineIntegral_eq_bottomContourIntegral
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaBottomLineIntegral
         (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
+        (completedPrimeContourTransportFamily.rectangle
+          (completedPrimeContourTransportHeightSchedule_owner.height (N : ℝ))) =
       primeTransportBottomContourIntegral N f := by
   exact
     (primeTransportBottomLineIntegral_eq_integral_bottomContourIntegrand N f).trans
@@ -437,7 +509,7 @@ theorem sampledHorizontalDifference_eq_finitePrimeHorizontalResidueShadow
           (explicitFormulaFamilyHorizontalResidueWindowError
             (convolutionAutocorrelation f)
             completedPrimeContourTransportFamily
-            (N : ℝ)) := by
+            (completedPrimeContourTransportHeightSchedule_owner.height (N : ℝ))) := by
       rfl
     _ = finitePrimeHorizontalResidueShadow N f := by
       exact (finitePrimeHorizontalResidueShadow_eq_horizontalResidueWindowError_re

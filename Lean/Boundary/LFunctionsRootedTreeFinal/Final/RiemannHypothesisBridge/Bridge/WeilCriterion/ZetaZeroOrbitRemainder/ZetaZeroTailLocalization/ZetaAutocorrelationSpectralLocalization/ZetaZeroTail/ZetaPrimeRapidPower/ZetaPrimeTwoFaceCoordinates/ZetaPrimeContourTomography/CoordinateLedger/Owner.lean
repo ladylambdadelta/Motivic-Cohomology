@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaPrimeRapidPower.ZetaPrimeTwoFaceCoordinates.ZetaPrimeContourTomography.Core.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaPrimeRapidPower.ZetaPrimeTwoFaceCoordinates.ZetaPrimeContourTomography.CoordinateLedger.VerticalAvoidance
 
 /-!
 # Prime contour tomography
@@ -16,30 +16,6 @@ open Filter
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
-
-/-- The canonical contour family used to compare the finite prime transport remainder with
-the horizontal top-minus-bottom contour remainder. -/
-def completedPrimeContourTransportFamily : ExplicitFormulaContourFamily where
-  c := (1 / 2 : ℝ) + 1
-  c_gt_one := by
-    have hhalf_pos : (0 : ℝ) < 1 / 2 :=
-      real_half_pos_for_contourGeometry
-    have hadd :
-        (0 : ℝ) + 1 < (1 / 2 : ℝ) + 1 :=
-      add_lt_add_right hhalf_pos 1
-    exact Eq.subst
-      (motive := fun x : ℝ => x < (1 / 2 : ℝ) + 1)
-      (zero_add (1 : ℝ))
-      hadd
-  c_gt_half := by
-    exact lt_add_of_pos_right (1 / 2 : ℝ) zero_lt_one
-  c_ne_one := by
-    intro h
-    have hhalf_zero : (1 / 2 : ℝ) = 0 := by
-      have hone : (1 / 2 : ℝ) + 1 = 0 + 1 := by
-        exact h.trans (zero_add (1 : ℝ)).symm
-      exact add_right_cancel hone
-    exact (ne_of_gt real_half_pos_for_contourGeometry) hhalf_zero
 
 /-- The coordinatewise contour-transport remainder between the contour-realized and
 time-side prime distributions. -/
@@ -117,29 +93,33 @@ theorem finitePrimeHorizontalResidueCoordinateShadow_eq_packetCoordinateLedger
       finitePrimeTransportPacketCoordinateLedger ι f := by
   rfl
 
-/-- The finite prime horizontal residue shadow.
+/-- The finite prime horizontal residue shadow along a supplied cofinal height schedule.
 
 This is the combined top-minus-bottom horizontal prime transport contribution after taking
 the real shadow. -/
-noncomputable def finitePrimeHorizontalResidueShadow
+noncomputable def finitePrimeHorizontalResidueShadowAt
+    (heightSchedule :
+      ExplicitFormulaCofinalHeightSchedule completedPrimeContourTransportFamily)
     (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
   Complex.re
     (explicitFormulaFamilyHorizontalResidueWindowError
       (convolutionAutocorrelation f)
       completedPrimeContourTransportFamily
-      (N : ℝ))
+      (heightSchedule.height (N : ℝ)))
 
 /-- The finite prime horizontal residue shadow unfolds to the real part of the combined
-horizontal residue-window error. -/
-theorem finitePrimeHorizontalResidueShadow_eq_horizontalResidueWindowError_re
+horizontal residue-window error for a supplied schedule. -/
+theorem finitePrimeHorizontalResidueShadowAt_eq_horizontalResidueWindowError_re
+    (heightSchedule :
+      ExplicitFormulaCofinalHeightSchedule completedPrimeContourTransportFamily)
     (N : ℕ) (f : ZetaAdmissibleFunction) :
-    finitePrimeHorizontalResidueShadow N f =
+    finitePrimeHorizontalResidueShadowAt heightSchedule N f =
       Complex.re
         (explicitFormulaFamilyHorizontalResidueWindowError
           (convolutionAutocorrelation f)
           completedPrimeContourTransportFamily
-          (N : ℝ)) := by
-  exact rfl
+          (heightSchedule.height (N : ℝ))) :=
+  rfl
 
 /-- The norm of a contour-transport coordinate remainder is bounded by the two coordinate
 norms before any height localization estimate is applied. -/

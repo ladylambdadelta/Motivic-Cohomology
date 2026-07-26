@@ -268,68 +268,68 @@ theorem add_prime_archimedean_correction (x : ZetaPacketEnsemble) :
 /-- Prime and archimedean packet parts have disjoint support. -/
 theorem support_primePart_disjoint_archimedeanPart (x : ZetaPacketEnsemble) :
     Disjoint x.primePart.support x.archimedeanPart.support := by
-  refine Finset.disjoint_left.2 ?_
-  intro ℓ h₁ h₂
-  cases ℓ with
-  | prime m n =>
-      have h₂nz : x.archimedeanPart (ZetaPacketLabel.prime m n) ≠ 0 := by
-        exact Finsupp.mem_support_iff.mp h₂
-      have h₂eq := archimedeanPart_prime x m n
-      exact h₂nz h₂eq
-  | archimedean =>
-      have h₁nz : x.primePart ZetaPacketLabel.archimedean ≠ 0 := by
-        exact Finsupp.mem_support_iff.mp h₁
-      have h₁eq := primePart_archimedean x
-      exact h₁nz h₁eq
-  | correction =>
-      have h₁nz : x.primePart ZetaPacketLabel.correction ≠ 0 := by
-        exact Finsupp.mem_support_iff.mp h₁
-      have h₁eq := primePart_correction x
-      exact h₁nz h₁eq
+  exact Finset.disjoint_left.2
+    (fun ℓ h₁ h₂ =>
+      match ℓ with
+      | ZetaPacketLabel.prime m n =>
+          have h₂nz : x.archimedeanPart (ZetaPacketLabel.prime m n) ≠ 0 :=
+            Finsupp.mem_support_iff.mp h₂
+          have h₂eq := archimedeanPart_prime x m n
+          h₂nz h₂eq
+      | ZetaPacketLabel.archimedean =>
+          have h₁nz : x.primePart ZetaPacketLabel.archimedean ≠ 0 :=
+            Finsupp.mem_support_iff.mp h₁
+          have h₁eq := primePart_archimedean x
+          h₁nz h₁eq
+      | ZetaPacketLabel.correction =>
+          have h₁nz : x.primePart ZetaPacketLabel.correction ≠ 0 :=
+            Finsupp.mem_support_iff.mp h₁
+          have h₁eq := primePart_correction x
+          h₁nz h₁eq)
 
 /-- Prime and correction packet parts have disjoint support. -/
 theorem support_primePart_disjoint_correctionPart (x : ZetaPacketEnsemble) :
     Disjoint x.primePart.support x.correctionPart.support := by
-  refine Finset.disjoint_left.2 ?_
-  intro ℓ h₁ h₂
-  cases ℓ with
-  | prime m n =>
-      have h₂nz : x.correctionPart (ZetaPacketLabel.prime m n) ≠ 0 := by
-        exact Finsupp.mem_support_iff.mp h₂
-      have h₂eq := correctionPart_prime x m n
-      exact h₂nz h₂eq
-  | archimedean =>
-      have h₁nz : x.primePart ZetaPacketLabel.archimedean ≠ 0 := by
-        exact Finsupp.mem_support_iff.mp h₁
-      have h₁eq := primePart_archimedean x
-      exact h₁nz h₁eq
-  | correction =>
-      have h₁nz : x.primePart ZetaPacketLabel.correction ≠ 0 := by
-        exact Finsupp.mem_support_iff.mp h₁
-      have h₁eq := primePart_correction x
-      exact h₁nz h₁eq
+  exact Finset.disjoint_left.2
+    (fun ℓ h₁ h₂ =>
+      match ℓ with
+      | ZetaPacketLabel.prime m n =>
+          have h₂nz : x.correctionPart (ZetaPacketLabel.prime m n) ≠ 0 :=
+            Finsupp.mem_support_iff.mp h₂
+          have h₂eq := correctionPart_prime x m n
+          h₂nz h₂eq
+      | ZetaPacketLabel.archimedean =>
+          have h₁nz : x.primePart ZetaPacketLabel.archimedean ≠ 0 :=
+            Finsupp.mem_support_iff.mp h₁
+          have h₁eq := primePart_archimedean x
+          h₁nz h₁eq
+      | ZetaPacketLabel.correction =>
+          have h₁nz : x.primePart ZetaPacketLabel.correction ≠ 0 :=
+            Finsupp.mem_support_iff.mp h₁
+          have h₁eq := primePart_correction x
+          h₁nz h₁eq)
 
 /-- Archimedean and correction packet parts have disjoint support. -/
 theorem support_archimedeanPart_disjoint_correctionPart (x : ZetaPacketEnsemble) :
     Disjoint x.archimedeanPart.support x.correctionPart.support := by
-  refine Finset.disjoint_left.2 ?_
-  intro ℓ h₁ h₂
-  cases ℓ with
-  | prime m n =>
-      have h₁nz : x.archimedeanPart (ZetaPacketLabel.prime m n) ≠ 0 := by
-        exact Finsupp.mem_support_iff.mp h₁
-      have h₁eq := archimedeanPart_prime x m n
-      exact h₁nz h₁eq
-  | archimedean =>
-      have h₂nz : x.correctionPart ZetaPacketLabel.archimedean ≠ 0 := by
-        exact Finsupp.mem_support_iff.mp h₂
-      have h₂eq := correctionPart_archimedean x
-      exact h₂nz h₂eq
-  | correction =>
-      have h₁nz : x.archimedeanPart ZetaPacketLabel.correction ≠ 0 := by
-        exact Finsupp.mem_support_iff.mp h₁
-      have h₁eq := archimedeanPart_correction x
-      exact h₁nz h₁eq
+  exact Finset.disjoint_left.2
+    (fun ℓ h₁ h₂ =>
+      match ℓ with
+      | ZetaPacketLabel.prime m n =>
+          have h₁nz : x.archimedeanPart (ZetaPacketLabel.prime m n) ≠ 0 :=
+            Finsupp.mem_support_iff.mp h₁
+          have h₁eq := archimedeanPart_prime x m n
+          h₁nz h₁eq
+      | ZetaPacketLabel.archimedean =>
+          have h₂nz : x.correctionPart ZetaPacketLabel.archimedean ≠ 0 :=
+            Finsupp.mem_support_iff.mp h₂
+          have h₂eq := correctionPart_archimedean x
+          h₂nz h₂eq
+      | ZetaPacketLabel.correction =>
+          have h₁nz : x.archimedeanPart ZetaPacketLabel.correction ≠ 0 :=
+            Finsupp.mem_support_iff.mp h₁
+          have h₁eq := archimedeanPart_correction x
+          h₁nz h₁eq)
 
 end ZetaPacketEnsemble
 

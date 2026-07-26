@@ -83,9 +83,9 @@ theorem dotProduct_eq_zero_of_disjoint_support_aux {x y : ZetaPacketEnsemble} (�
 theorem dotProduct_eq_zero_of_disjoint_support {x y : ZetaPacketEnsemble}
     (hxy : Disjoint x.support y.support) : dotProduct x y = 0 := by
   unfold dotProduct
-  refine Finset.sum_eq_zero ?_
-  intro ℓ hℓ
-  exact dotProduct_eq_zero_of_disjoint_support_aux (x := x) (y := y) ℓ hxy hℓ
+  exact Finset.sum_eq_zero
+    (fun ℓ hℓ =>
+      dotProduct_eq_zero_of_disjoint_support_aux (x := x) (y := y) ℓ hxy hℓ)
 
 theorem normSq_nonneg (x : ZetaPacketEnsemble) : 0 ≤ normSq x := by
   unfold normSq dotProduct
@@ -120,15 +120,16 @@ theorem dotProduct_left_eq_zero_of_normSq_eq_zero
     (hx : normSq x = 0) :
     dotProduct x y = 0 := by
   unfold dotProduct
-  refine Finset.sum_eq_zero ?_
-  intro ℓ _hℓ
-  have hxℓ : x ℓ = 0 :=
-    apply_eq_zero_of_normSq_eq_zero x hx ℓ
-  calc
-    x ℓ * y ℓ = 0 * y ℓ := by
-      exact congrArg (fun a : ℝ => a * y ℓ) hxℓ
-    _ = 0 := by
-      exact zero_mul (y ℓ)
+  exact Finset.sum_eq_zero
+    (fun ℓ hℓ =>
+      (fun hmem : ℓ ∈ x.support ∪ y.support =>
+        have hxℓ : x ℓ = 0 :=
+          apply_eq_zero_of_normSq_eq_zero x hx ℓ
+        calc
+          x ℓ * y ℓ = 0 * y ℓ := by
+            exact congrArg (fun a : ℝ => a * y ℓ) hxℓ
+          _ = 0 := by
+            exact zero_mul (y ℓ)) hℓ)
 
 /-- A zero-norm packet lies in the right radical of the packet dot product. -/
 theorem dotProduct_right_eq_zero_of_normSq_eq_zero
@@ -149,30 +150,32 @@ theorem packetDotProduct_eq_zero_of_disjoint_support {x y : ZetaPacketEnsemble}
   have hxy' : ∀ ℓ, ℓ ∈ x.support → ℓ ∈ y.support → False := by
     exact Finset.disjoint_left.mp hxy
   unfold ZetaPacketEnsemble.dotProduct
-  refine Finset.sum_eq_zero ?_
-  intro ℓ hℓ
-  have hmem : ℓ ∈ x.support ∨ ℓ ∈ y.support := Finset.mem_union.mp hℓ
-  rcases hmem with hx | hy
-  · have hy' : ℓ ∉ y.support := by
-      intro hy
-      exact hxy' ℓ hx hy
-    have hy0 : y ℓ = 0 :=
-      Finsupp.not_mem_support_iff.mp hy'
-    calc
-      x ℓ * y ℓ = x ℓ * 0 := by
-        exact congrArg (fun t => x ℓ * t) hy0
-      _ = 0 := by
-        exact mul_zero _
-  · have hx' : ℓ ∉ x.support := by
-      intro hx
-      exact hxy' ℓ hx hy
-    have hx0 : x ℓ = 0 :=
-      Finsupp.not_mem_support_iff.mp hx'
-    calc
-      x ℓ * y ℓ = 0 * y ℓ := by
-        exact congrArg (fun t => t * y ℓ) hx0
-      _ = 0 := by
-        exact zero_mul _
+  exact Finset.sum_eq_zero
+    (fun ℓ hℓ =>
+      have hmem : ℓ ∈ x.support ∨ ℓ ∈ y.support := Finset.mem_union.mp hℓ
+      match hmem with
+      | Or.inl hx =>
+          have hy' : ℓ ∉ y.support := by
+            intro hy
+            exact hxy' ℓ hx hy
+          have hy0 : y ℓ = 0 :=
+            Finsupp.not_mem_support_iff.mp hy'
+          calc
+            x ℓ * y ℓ = x ℓ * 0 := by
+              exact congrArg (fun t => x ℓ * t) hy0
+            _ = 0 := by
+              exact mul_zero (x ℓ)
+      | Or.inr hy =>
+          have hx' : ℓ ∉ x.support := by
+            intro hx
+            exact hxy' ℓ hx hy
+          have hx0 : x ℓ = 0 :=
+            Finsupp.not_mem_support_iff.mp hx'
+          calc
+            x ℓ * y ℓ = 0 * y ℓ := by
+              exact congrArg (fun t => t * y ℓ) hx0
+            _ = 0 := by
+              exact zero_mul (y ℓ))
 
 /-- The canonical bilinear packet kernel: the dot product on finite ensembles. -/
 def zetaPacketKernel (x y : ZetaPacketEnsemble) : ℝ :=

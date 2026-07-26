@@ -1,3 +1,5 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaAdmissibleTransformRegularity.ZetaPhiAnalyticControlCore
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaAdmissibleTransformRegularity.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ArchimedeanVerticalAnalyticEstimates
 
 /-!
@@ -65,7 +67,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_of_invers
         (𝓝 ((A + C) - C)) :=
     hinverse.sub hcorrection
   have htarget : (A + C) - C = A := by
-    exact add_sub_cancel A C
+    exact add_sub_cancel_right A C
   have harch_fun :
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaArchimedeanVerticalChannel
@@ -86,7 +88,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_of_invers
     change A_u = G_u - C_u
     calc
       A_u = A_u + C_u - C_u := by
-        exact (add_sub_cancel A_u C_u).symm
+        exact (add_sub_cancel_right A_u C_u).symm
       _ = G_u - C_u := by
         exact congrArg (fun z : ℂ => z - C_u) hdecomp.symm
   exact Eq.subst
@@ -146,7 +148,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_of_schedu
         (𝓝 ((A + C) - C)) :=
     hinverse.sub hcorrection
   have htarget : (A + C) - C = A := by
-    exact add_sub_cancel A C
+    exact add_sub_cancel_right A C
   have harch_fun :
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaArchimedeanVerticalChannel
@@ -233,9 +235,8 @@ theorem zetaCompletedExplicitFormulaArchimedeanDifferenceAffineKernel_scheduledW
 /-- Paired one-sided scheduled affine values imply the scheduled
 right-minus-left archimedean affine-window value.
 
-This is the normalization check for the paired owner target: the two one-sided
-limits `Φ_f(0)` and `-Φ_f(0)` recombine to the public archimedean contribution
-`2 * Φ_f(0)`. -/
+This is only the algebraic subtraction of the two one-sided scheduled limits;
+it does not identify that difference with the public archimedean contribution. -/
 theorem zetaCompletedExplicitFormulaArchimedeanAffineWindowDifference_tendsto_of_scheduledPair
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
@@ -267,7 +268,9 @@ theorem zetaCompletedExplicitFormulaArchimedeanAffineWindowDifference_tendsto_of
             (F.rectangle (h.height_schedule.height u)).T,
             zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
       atTop
-      (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f)) := by
+      (𝓝
+        (zetaCompletedExplicitFormulaPhi f 0 -
+          -(zetaCompletedExplicitFormulaPhi f 0))) := by
   let Phi0 : ℂ := zetaCompletedExplicitFormulaPhi f 0
   let Wright : ℝ → ℂ := fun u : ℝ =>
     ∫ t in Set.Icc
@@ -282,42 +285,13 @@ theorem zetaCompletedExplicitFormulaArchimedeanAffineWindowDifference_tendsto_of
   have hdiff :
       Tendsto (fun u : ℝ => Wright u - Wleft u) atTop (𝓝 (Phi0 - -Phi0)) :=
     hscheduled.1.sub hscheduled.2
-  have htarget :
-      Phi0 - -Phi0 = zetaCompletedExplicitFormulaArchimedeanContribution f := by
-    calc
-      Phi0 - -Phi0 = Phi0 + -(-Phi0) := by
-        exact sub_eq_add_neg Phi0 (-Phi0)
-      _ = Phi0 + Phi0 := by
-        exact congrArg (fun z : ℂ => Phi0 + z) (neg_neg Phi0)
-      _ = (2 : ℂ) * Phi0 := by
-        exact (two_mul Phi0).symm
-      _ = zetaCompletedExplicitFormulaArchimedeanContribution f := by
-        exact (zetaCompletedExplicitFormulaArchimedeanContribution_eq f).symm
-  exact
-    Eq.subst
-      (motive := fun z : ℂ =>
-        Tendsto
-          (fun u : ℝ =>
-            (∫ t in Set.Icc
-                (-(F.rectangle (h.height_schedule.height u)).T)
-                (F.rectangle (h.height_schedule.height u)).T,
-              zetaCompletedExplicitFormulaArchimedeanRightAffineKernel f F t) -
-              ∫ t in Set.Icc
-                (-(F.rectangle (h.height_schedule.height u)).T)
-                (F.rectangle (h.height_schedule.height u)).T,
-                zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
-          atTop
-          (𝓝 z))
-      htarget
-      hdiff
+  exact hdiff
 
 /-- Left scheduled affine value from the right scheduled affine value and the
 right-minus-left scheduled affine-window value.
 
-This is a non-symmetric algebraic reduction.  It does not use reflection or
-line-core values: once the right affine window has limit `Φ_f(0)` and the
-right-minus-left window has the public archimedean contribution `2 * Φ_f(0)`,
-the shifted-left affine window has limit `-Φ_f(0)`. -/
+This is a non-symmetric algebraic reduction. It does not identify the public
+archimedean contribution with a doubled one-sided value. -/
 theorem zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_scheduledWindow_tendsto_neg_phiZero_of_right_and_difference
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
@@ -350,7 +324,9 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_scheduledWindow_
             (F.rectangle (h.height_schedule.height u)).T,
           zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
       atTop
-      (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
+      (𝓝
+        (zetaCompletedExplicitFormulaPhi f 0 -
+          zetaCompletedExplicitFormulaArchimedeanContribution f)) := by
   let Phi0 : ℂ := zetaCompletedExplicitFormulaPhi f 0
   let Wright : ℝ → ℂ := fun u : ℝ =>
     ∫ t in Set.Icc
@@ -389,40 +365,15 @@ theorem zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_scheduledWindow_
         exact congrArg (fun z : ℂ => z + L) (add_neg_cancel R)
       _ = L := by
         exact zero_add L
-  have htarget :
-      Phi0 - zetaCompletedExplicitFormulaArchimedeanContribution f =
-        -Phi0 := by
-    calc
-      Phi0 - zetaCompletedExplicitFormulaArchimedeanContribution f =
-          Phi0 - ((2 : ℂ) * Phi0) := by
-        exact congrArg
-          (fun z : ℂ => Phi0 - z)
-          (zetaCompletedExplicitFormulaArchimedeanContribution_eq f)
-      _ = Phi0 + -((2 : ℂ) * Phi0) := by
-        exact sub_eq_add_neg Phi0 ((2 : ℂ) * Phi0)
-      _ = Phi0 + -(Phi0 + Phi0) := by
-        exact congrArg (fun z : ℂ => Phi0 + -z) (two_mul Phi0)
-      _ = Phi0 + (-Phi0 + -Phi0) := by
-        exact congrArg (fun z : ℂ => Phi0 + z) (neg_add Phi0 Phi0)
-      _ = (Phi0 + -Phi0) + -Phi0 := by
-        exact (add_assoc Phi0 (-Phi0) (-Phi0)).symm
-      _ = 0 + -Phi0 := by
-        exact congrArg (fun z : ℂ => z + -Phi0) (add_neg_cancel Phi0)
-      _ = -Phi0 := by
-        exact zero_add (-Phi0)
   exact
     Eq.subst
       (motive := fun φ : ℝ → ℂ =>
-        Tendsto φ atTop (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))))
+        Tendsto φ atTop
+          (𝓝
+            (zetaCompletedExplicitFormulaPhi f 0 -
+              zetaCompletedExplicitFormulaArchimedeanContribution f)))
       hfun
-      (Eq.subst
-        (motive := fun z : ℂ =>
-          Tendsto
-            (fun u : ℝ => Wright u - (Wright u - Wleft u))
-            atTop
-            (𝓝 z))
-        htarget
-        hraw)
+      hraw
 
 /-- Paired scheduled affine values from a right scheduled affine value and the
 right-minus-left scheduled affine-window value.
@@ -469,7 +420,9 @@ theorem zetaCompletedExplicitFormulaArchimedeanAffineKernel_scheduledPair_of_rig
               (F.rectangle (h.height_schedule.height u)).T,
             zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
         atTop
-        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
+        (𝓝
+          (zetaCompletedExplicitFormulaPhi f 0 -
+            zetaCompletedExplicitFormulaArchimedeanContribution f)) := by
   exact
     ⟨hright,
       zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel_scheduledWindow_tendsto_neg_phiZero_of_right_and_difference
@@ -511,7 +464,9 @@ theorem zetaCompletedExplicitFormulaArchimedeanAffineKernel_scheduledPair_of_rig
               (F.rectangle (h.height_schedule.height u)).T,
             zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel f F t)
         atTop
-        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
+        (𝓝
+          (zetaCompletedExplicitFormulaPhi f 0 -
+            zetaCompletedExplicitFormulaArchimedeanContribution f)) := by
   have hdifference :
       Tendsto
         (fun u : ℝ =>
@@ -630,7 +585,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_of_schedu
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F (h.height_schedule.height u))
         atTop
-        (𝓝 0)) :
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c))) :
     Tendsto
       (fun u : ℝ =>
         zetaCompletedExplicitFormulaArchimedeanVerticalChannel
@@ -823,7 +778,9 @@ theorem zetaCompletedExplicitFormulaArchimedeanAffineKernel_scheduledPair_of_rig
             zetaCompletedExplicitFormulaArchimedeanLeftAffineKernel
               f F.toContourFamily t)
         atTop
-        (𝓝 (-(zetaCompletedExplicitFormulaPhi f 0))) := by
+        (𝓝
+          (zetaCompletedExplicitFormulaPhi f 0 -
+            zetaCompletedExplicitFormulaArchimedeanContribution f)) := by
   have hdifference :
       Tendsto
         (fun u : ℝ =>

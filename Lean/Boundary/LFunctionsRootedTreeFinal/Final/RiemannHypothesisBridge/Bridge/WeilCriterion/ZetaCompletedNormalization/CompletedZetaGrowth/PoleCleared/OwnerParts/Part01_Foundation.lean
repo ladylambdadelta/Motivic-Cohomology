@@ -341,6 +341,32 @@ private lemma poleClearingQuotient_zeroOne_linear_le_exponential_envelope
     hscaled_transport
     hlinear_to_scaled
 
+/- The elementary quotient estimate is polynomial before it is converted to
+finite-order exponential growth. -/
+theorem poleClearedRiemannZeta_zero_one_strip_poleClearingQuotient_polynomial_owner
+    : ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 1 →
+        1 ≤ ‖z.im‖ →
+        ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ ≤ A * (1 + ‖z‖) ^ m := by
+  exact
+    ⟨2, 1, zero_lt_two,
+      fun z hz_re_nonneg hz_re_le_one hz_im_tail => by
+        have hlinear :
+            ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ ≤ ‖z‖ + 1 :=
+          poleClearingQuotient_zeroOne_norm_le_linear z hz_im_tail
+        have hheight :
+            ‖z‖ + 1 ≤ 2 * (1 + ‖z‖) := by
+          calc
+            ‖z‖ + 1 = 1 + ‖z‖ := add_comm _ _
+            _ ≤ 2 * (1 + ‖z‖) :=
+              le_mul_of_one_le_left
+                (le_add_of_nonneg_right (norm_nonneg z))
+                one_le_two
+        exact hlinear.trans hheight⟩
+
 /-- Elementary finite-order control of the pole-clearing quotient on the
 zero-one vertical band.
 

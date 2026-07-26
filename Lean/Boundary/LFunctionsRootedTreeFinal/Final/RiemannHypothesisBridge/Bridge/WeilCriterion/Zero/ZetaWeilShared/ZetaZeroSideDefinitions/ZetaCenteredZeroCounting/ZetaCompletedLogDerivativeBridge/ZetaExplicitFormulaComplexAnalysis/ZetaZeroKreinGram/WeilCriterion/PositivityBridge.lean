@@ -1,19 +1,19 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ContourAssembly.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.FiniteRectangleResidues.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.OnePoleAffineIntegralZero
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroKreinGram.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroKreinGram.WeilCriterion.OwnerParts.CanonicalAnalyticInputs
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroKreinGram.WeilCriterion.OwnerParts.SummedPrimeTransport
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroKreinGram.WeilCriterion.OwnerParts.NormalizedPositiveBoundary
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroKreinGram.WeilCriterion.OwnerParts.NormalizedSignedBoundary
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroKreinGram.WeilCriterion.OwnerParts.PhysicalContourBoundaryCore
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.EndpointTraceDomination
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.TailSummability.Owner
 
 /-!
 # Upstream positivity bridge for the final RH wrapper
 
 This file owns the analytic bridge from the completed explicit formula on
-autocorrelation probes to the nonnegative boundary/GNS realization.  The final
-RH wrapper consumes `zetaWeilQuadraticPositivity_ownerGap`; the proof here is a
-thin transport from contour assembly to the positive boundary realization, with
-the prime finite-window reconstruction datum left explicit.
+autocorrelation probes to the boundary channel.  Contour convergence and
+boundary positivity are kept as separate named inputs: a contour identity must
+not be presented as a proof of the positivity assertion it transports.
 -/
 
 namespace Boundary
@@ -23,457 +23,26 @@ noncomputable section
 
 open scoped Topology
 
-/-- Completed two-face ledger cancellation gives the matrix comparison consumed by
-the positive boundary realization. -/
-theorem completedPrimeTwoFace_matrixComparison_of_ledgerCancellation
-    (f : ZetaAdmissibleFunction)
-    (hledger :
-      ZetaAdmissibleFunction.ZetaCompletedPrimePowerAutocorrelationLedgerCancellation f)
-    (horiented :
-      Summable
-        (fun ι : ZetaPrimePowerIndex =>
-          ZetaAdmissibleFunction.zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate
-            ι f)) :
-    Complex.re
-        (ZetaAdmissibleFunction.zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) =
-      Complex.re
-        (ZetaAdmissibleFunction.zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
-  have hzero :
-      Complex.re
-          (ZetaAdmissibleFunction.zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) = 0 :=
-    ZetaAdmissibleFunction.completedPrimeTwoFaceGNSMatrixCoefficient_re_eq_zero_boundaryCancellation
-      f hledger horiented
-  exact
-    (ZetaAdmissibleFunction.matrixComparison_iff_completedPrimeTwoFaceGNSMatrixCoefficient_re_eq_zero
-      f).mpr hzero
-
-/-- Owner theorem: packaged contour-shift equality from the completed Weil form on an
-autocorrelation to the completed explicit-formula boundary channel. -/
-theorem zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_ownerGap
-    (f : ZetaAdmissibleFunction)
-    (schedule :
+/-- A supplied family of horizontal avoiding schedules for all autocorrelation
+contour families.  This is the constructive schedule input that avoids using
+the canonical selector. -/
+structure ZetaCompletedAutocorrelationHorizontalAvoidingScheduleFamily where
+  schedule :
+    ∀ f : ZetaAdmissibleFunction,
       ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
-        (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
-    (hPhi : ZetaPhiAnalyticControl
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-    (hLog : CompletedZetaNegLogDerivControl
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-    (hone :
-      Tendsto
-        (fun u : ℝ =>
-          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-            (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
-            ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-              f schedule hPhi hLog).height_schedule.height u))
-        atTop
-        (𝓝 (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c)))
-    (hcontourScheduled :
-      Tendsto
-        (fun u : ℝ =>
-          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourIntegral
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-            ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
-              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-                f schedule hPhi hLog).height_schedule.height u)))
-        atTop
-        (𝓝 (ZetaAdmissibleFunction.zetaCompletedZeroSideComplex
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f))))
-    (E : CompletedZetaZeroExcisedStrip
-      (min (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c
-        (1 - (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c))
-      (max (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c
-        (1 - (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c)))
-    (hTopMem :
-      ∀ (u x : ℝ),
-        x ∈ Set.uIcc
-          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c
-          (1 - (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c) →
-        ZetaAdmissibleFunction.zetaCompletedExplicitFormulaTopPath
-          ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
-            ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-              f schedule hPhi hLog).height_schedule.height u)) x ∈ E.carrier)
-    (hBottomMem :
-      ∀ (u x : ℝ),
-        x ∈ Set.uIcc
-          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c
-          (1 - (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c) →
-        ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBottomPath
-          ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
-            ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-              f schedule hPhi hLog).height_schedule.height u)) x ∈ E.carrier) :
-    zetaWeilFormCompleted
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-      Complex.re
-        (ZetaAdmissibleFunction.completedBoundaryChannel
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) := by
-  exact
-    ZetaAdmissibleFunction.zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_of_scheduledHorizontalCarrier_ownerContourAssembly
-      f schedule hPhi hLog hone hcontourScheduled E hTopMem hBottomMem
-
-/-- Upstream owner theorem: completed Weil quadratic positivity on autocorrelation probes,
-assembled from the contour-shift bridge, the prime finite-window reconstruction, and the
-positive boundary/GNS realization. -/
-theorem zetaWeilQuadraticPositivity_ownerGap
-    (hschedule :
-      ∀ f : ZetaAdmissibleFunction,
-        ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
-          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
-    (hPhi :
-      ∀ f : ZetaAdmissibleFunction,
-        ZetaPhiAnalyticControl
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-    (hLog :
-      ∀ f : ZetaAdmissibleFunction,
-        CompletedZetaNegLogDerivControl
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-    (hone :
-      ∀ f : ZetaAdmissibleFunction,
-        Tendsto
-          (fun u : ℝ =>
-            ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-              (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
-              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-                f (hschedule f) (hPhi f) (hLog f)).height_schedule.height u))
-          atTop
-          (𝓝 (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-            (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c)))
-    (hcontourScheduled :
-      ∀ f : ZetaAdmissibleFunction,
-        Tendsto
-          (fun u : ℝ =>
-            ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourIntegral
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
-                ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-                  f (hschedule f) (hPhi f) (hLog f)).height_schedule.height u)))
-          atTop
-          (𝓝 (ZetaAdmissibleFunction.zetaCompletedZeroSideComplex
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f))))
-    (E :
-      ∀ f : ZetaAdmissibleFunction,
-        CompletedZetaZeroExcisedStrip
-          (min (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c
-            (1 - (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c))
-          (max (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c
-            (1 - (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c)))
-    (hTopMem :
-      ∀ f : ZetaAdmissibleFunction,
-        ∀ (u x : ℝ),
-          x ∈ Set.uIcc
-            (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c
-            (1 - (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c) →
-          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaTopPath
-            ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
-              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-                f (hschedule f) (hPhi f) (hLog f)).height_schedule.height u)) x ∈ (E f).carrier)
-    (hBottomMem :
-      ∀ f : ZetaAdmissibleFunction,
-        ∀ (u x : ℝ),
-          x ∈ Set.uIcc
-            (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c
-            (1 - (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c) →
-          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBottomPath
-            ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
-              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-                f (hschedule f) (hPhi f) (hLog f)).height_schedule.height u)) x ∈ (E f).carrier)
-    (hTransport :
-      ∀ f : ZetaAdmissibleFunction,
-        ZetaAdmissibleFunction.CompletedSummedPrimeContourTimeTransport f)
-    (hledger :
-      ∀ f : ZetaAdmissibleFunction,
-        ZetaAdmissibleFunction.ZetaCompletedPrimePowerAutocorrelationLedgerCancellation f)
-    (horiented :
-      ∀ f : ZetaAdmissibleFunction,
-        Summable
-          (fun ι : ZetaPrimePowerIndex =>
-            ZetaAdmissibleFunction.zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate
-              ι f)) :
-    ZetaWeilQuadraticPositivity := by
-  exact
-    fun f =>
-      have hbridge :
-          zetaWeilFormCompleted
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-            Complex.re
-        (ZetaAdmissibleFunction.completedBoundaryChannel
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) :=
-        zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_ownerGap
-          f (hschedule f) (hPhi f) (hLog f) (hone f) (hcontourScheduled f) (E f) (hTopMem f) (hBottomMem f)
-      have hmatrix :
-          Complex.re
-              (ZetaAdmissibleFunction.zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) =
-            Complex.re
-              (ZetaAdmissibleFunction.zetaPrimeTwoFaceGNSMatrixCoefficient f) :=
-        completedPrimeTwoFace_matrixComparison_of_ledgerCancellation
-          f (hledger f) (horiented f)
-      Eq.subst
-        (motive := fun x : ℝ => 0 ≤ x)
-        hbridge.symm
-        (ZetaAdmissibleFunction.completedBoundaryChannel_convolutionAutocorrelation_re_nonnegative_of_summedTransport
-          f (hTransport f) hmatrix)
-
-/-- Owner theorem: packaged contour-shift equality from the completed Weil form on an
-autocorrelation to the completed explicit-formula boundary channel, using the scheduled
-horizontal carrier constructed by the analytic package. -/
-theorem zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_constructedScheduledCarrier
-    (f : ZetaAdmissibleFunction)
-    (schedule :
-      ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
-        (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
-    (hPhi : ZetaPhiAnalyticControl
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-    (hLog : CompletedZetaNegLogDerivControl
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-    (hone :
-      Tendsto
-        (fun u : ℝ =>
-          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-            (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
-            ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-              f schedule hPhi hLog).height_schedule.height u))
-        atTop
-        (𝓝 (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c)))
-    (hcontourScheduled :
-      Tendsto
-        (fun u : ℝ =>
-          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourIntegral
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-            ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
-              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-                f schedule hPhi hLog).height_schedule.height u)))
-        atTop
-        (𝓝 (ZetaAdmissibleFunction.zetaCompletedZeroSideComplex
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f)))) :
-    zetaWeilFormCompleted
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-      Complex.re
-        (ZetaAdmissibleFunction.completedBoundaryChannel
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) := by
-  exact
-    ZetaAdmissibleFunction.zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_of_constructedScheduledHorizontalCarrier_ownerContourAssembly
-      f schedule hPhi hLog hone hcontourScheduled
-
-/-- Owner theorem: packaged contour-shift equality using constructed scheduled
-horizontal carrier and the finite-rectangle residue-calculus contour limit. -/
-theorem zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_constructedScheduledContour
-    (f : ZetaAdmissibleFunction)
-    (schedule :
-      ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
-        (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
-    (hPhi : ZetaPhiAnalyticControl
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-    (hLog : CompletedZetaNegLogDerivControl
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-    (hone :
-      Tendsto
-        (fun u : ℝ =>
-          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-            (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
-            ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-              f schedule hPhi hLog).height_schedule.height u))
-        atTop
-        (𝓝 (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c)))
-    (N : ℕ)
-    (hfinite :
-      ∀ u : ℝ,
-        ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourIntegral
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-            ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
-              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-                f schedule hPhi hLog).height_schedule.height u)) =
-          ZetaAdmissibleFunction.explicitFormulaCompletedZeroHeightWindowResidueSum
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-            ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-              f schedule hPhi hLog).height_schedule.height u))
-    (hsum :
-      Summable
-        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-          zetaZeroSideContribution (ρ : ℂ)
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f))) :
-    zetaWeilFormCompleted
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-      Complex.re
-        (ZetaAdmissibleFunction.completedBoundaryChannel
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) := by
-  exact
-    ZetaAdmissibleFunction.zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_of_constructedScheduledContour_ownerContourAssembly
-      f schedule hPhi hLog hone N hfinite hsum
-
-/-- Upstream owner theorem: completed Weil quadratic positivity on autocorrelation probes,
-using the scheduled horizontal carrier constructed by the analytic package. -/
-theorem zetaWeilQuadraticPositivity_of_constructedScheduledCarrier
-    (hschedule :
-      ∀ f : ZetaAdmissibleFunction,
-        ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
-          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
-    (hPhi :
-      ∀ f : ZetaAdmissibleFunction,
-        ZetaPhiAnalyticControl
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-    (hLog :
-      ∀ f : ZetaAdmissibleFunction,
-        CompletedZetaNegLogDerivControl
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-    (hone :
-      ∀ f : ZetaAdmissibleFunction,
-        Tendsto
-          (fun u : ℝ =>
-            ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-              (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
-              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-                f (hschedule f) (hPhi f) (hLog f)).height_schedule.height u))
-          atTop
-          (𝓝 (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-            (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c)))
-    (hcontourScheduled :
-      ∀ f : ZetaAdmissibleFunction,
-        Tendsto
-          (fun u : ℝ =>
-            ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourIntegral
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
-                ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-                  f (hschedule f) (hPhi f) (hLog f)).height_schedule.height u)))
-          atTop
-          (𝓝 (ZetaAdmissibleFunction.zetaCompletedZeroSideComplex
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f))))
-    (hTransport :
-      ∀ f : ZetaAdmissibleFunction,
-        ZetaAdmissibleFunction.CompletedSummedPrimeContourTimeTransport f)
-    (hledger :
-      ∀ f : ZetaAdmissibleFunction,
-        ZetaAdmissibleFunction.ZetaCompletedPrimePowerAutocorrelationLedgerCancellation f)
-    (horiented :
-      ∀ f : ZetaAdmissibleFunction,
-        Summable
-          (fun ι : ZetaPrimePowerIndex =>
-            ZetaAdmissibleFunction.zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate
-              ι f)) :
-    ZetaWeilQuadraticPositivity := by
-  exact
-    fun f =>
-      have hbridge :
-          zetaWeilFormCompleted
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-            Complex.re
-              (ZetaAdmissibleFunction.completedBoundaryChannel
-                (ZetaAdmissibleFunction.convolutionAutocorrelation f)) :=
-        zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_constructedScheduledCarrier
-          f (hschedule f) (hPhi f) (hLog f) (hone f) (hcontourScheduled f)
-      have hmatrix :
-          Complex.re
-              (ZetaAdmissibleFunction.zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) =
-            Complex.re
-              (ZetaAdmissibleFunction.zetaPrimeTwoFaceGNSMatrixCoefficient f) :=
-        completedPrimeTwoFace_matrixComparison_of_ledgerCancellation
-          f (hledger f) (horiented f)
-      Eq.subst
-        (motive := fun x : ℝ => 0 ≤ x)
-        hbridge.symm
-        (ZetaAdmissibleFunction.completedBoundaryChannel_convolutionAutocorrelation_re_nonnegative_of_summedTransport
-          f (hTransport f) hmatrix)
-
-/-- Upstream owner theorem: completed Weil quadratic positivity on autocorrelation probes,
-using the constructed scheduled horizontal carrier and finite-rectangle residue-calculus
-contour limit. -/
-theorem zetaWeilQuadraticPositivity_of_constructedScheduledContour
-    (hschedule :
-      ∀ f : ZetaAdmissibleFunction,
-        ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
-          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
-    (hPhi :
-      ∀ f : ZetaAdmissibleFunction,
-        ZetaPhiAnalyticControl
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-    (hLog :
-      ∀ f : ZetaAdmissibleFunction,
-        CompletedZetaNegLogDerivControl
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-    (hone :
-      ∀ f : ZetaAdmissibleFunction,
-        Tendsto
-          (fun u : ℝ =>
-            ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-              (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
-              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-                f (hschedule f) (hPhi f) (hLog f)).height_schedule.height u))
-          atTop
-          (𝓝 (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-            (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c)))
-    (N : ℕ)
-    (hfinite :
-      ∀ f : ZetaAdmissibleFunction,
-        ∀ u : ℝ,
-          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourIntegral
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
-                ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-                  f (hschedule f) (hPhi f) (hLog f)).height_schedule.height u)) =
-            ZetaAdmissibleFunction.explicitFormulaCompletedZeroHeightWindowResidueSum
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-                f (hschedule f) (hPhi f) (hLog f)).height_schedule.height u))
-    (hsum :
-      ∀ f : ZetaAdmissibleFunction,
-        Summable
-          (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-            zetaZeroSideContribution (ρ : ℂ)
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)))
-    (hTransport :
-      ∀ f : ZetaAdmissibleFunction,
-        ZetaAdmissibleFunction.CompletedSummedPrimeContourTimeTransport f)
-    (hledger :
-      ∀ f : ZetaAdmissibleFunction,
-        ZetaAdmissibleFunction.ZetaCompletedPrimePowerAutocorrelationLedgerCancellation f)
-    (horiented :
-      ∀ f : ZetaAdmissibleFunction,
-        Summable
-          (fun ι : ZetaPrimePowerIndex =>
-            ZetaAdmissibleFunction.zetaCompletedPrimePowerAutocorrelationOrientedCrossCoordinate
-              ι f)) :
-    ZetaWeilQuadraticPositivity := by
-  exact
-    fun f =>
-      have hbridge :
-          zetaWeilFormCompleted
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-            Complex.re
-              (ZetaAdmissibleFunction.completedBoundaryChannel
-                (ZetaAdmissibleFunction.convolutionAutocorrelation f)) :=
-        zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_constructedScheduledContour
-          f (hschedule f) (hPhi f) (hLog f) (hone f) N (hfinite f) (hsum f)
-      have hmatrix :
-          Complex.re
-              (ZetaAdmissibleFunction.zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) =
-            Complex.re
-              (ZetaAdmissibleFunction.zetaPrimeTwoFaceGNSMatrixCoefficient f) :=
-        completedPrimeTwoFace_matrixComparison_of_ledgerCancellation
-          f (hledger f) (horiented f)
-      Eq.subst
-        (motive := fun x : ℝ => 0 ≤ x)
-        hbridge.symm
-        (ZetaAdmissibleFunction.completedBoundaryChannel_convolutionAutocorrelation_re_nonnegative_of_summedTransport
-          f (hTransport f) hmatrix)
+        (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
 
 /-- The right-one correction integral converges to its Cauchy projection along
-the canonical avoiding height schedule. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_projection_owner
-    (f : ZetaAdmissibleFunction) :
+a supplied avoiding height schedule. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_projection_of_schedule_owner
+    (f : ZetaAdmissibleFunction)
+    (schedule :
+      ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
+        (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
+    (hPhi : ZetaAdmissibleFunction.ZetaPhiAnalyticControl
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+    (hLog : ZetaAdmissibleFunction.CompletedZetaNegLogDerivControl
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f)) :
     Tendsto
       (fun u : ℝ =>
         ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
@@ -481,247 +50,310 @@ theorem zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tends
           (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
           ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
             f
-            (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule f)
-            (zetaPhiAnalyticControl_of_admissible
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-            (completedZetaNegLogDerivControl
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f))).height_schedule.height u))
+            schedule
+            hPhi
+            hLog).height_schedule.height u))
       atTop
       (𝓝
-        (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c)) := by
-  exact
-    ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_projection_direct_ownerOnePoleAffine
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-      (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
-      (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-        f
-        (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule f)
-        (zetaPhiAnalyticControl_of_admissible
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-        (completedZetaNegLogDerivControl
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f)))
-
-/-- The scheduled normalized pole-corrected contour integrals converge to the
-completed-zero side of the autocorrelation probe. -/
-theorem zetaCompletedExplicitFormulaAutocorrelationNormalizedPoleCorrectedContour_tendsto_zeroSide_owner
-    (f : ZetaAdmissibleFunction)
-    (zeroSideSummable :
-      Summable
-        (fun rho : {rho : ℂ // ZetaCompletedZero rho} =>
-          zetaZeroSideContribution (rho : ℂ)
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f))) :
-    Tendsto
-      (fun u : ℝ =>
-        ZetaAdmissibleFunction.explicitFormulaRectangleNormalizedPoleCorrectedContourIntegral
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
-          ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-            f
-            (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule f)
-            (zetaPhiAnalyticControl_of_admissible
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-            (completedZetaNegLogDerivControl
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f))).height_schedule.height u))
-      atTop
-      (𝓝 (ZetaAdmissibleFunction.zetaCompletedZeroSideComplex
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f))) := by
-  let probe : ZetaAdmissibleFunction :=
-    ZetaAdmissibleFunction.convolutionAutocorrelation f
-  let family : ZetaAdmissibleFunction.ExplicitFormulaContourFamily :=
-    ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f
-  let analyticPackage :
-      ZetaAdmissibleFunction.ExplicitFormulaFamilyAnalyticPackage probe family :=
-    ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+            (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).c)) :=
+  ZetaAdmissibleFunction.zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_projection_direct_ownerOnePoleAffine
+    (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+    (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
+    (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
       f
-      (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule f)
-      (zetaPhiAnalyticControl_of_admissible probe)
-      (completedZetaNegLogDerivControl probe)
-  exact
-    match analyticPackage.scheduled_horizontalFamilyZeroExcisedStrip with
-    | ⟨carrier, topMem, bottomMem⟩ =>
-        ZetaAdmissibleFunction.explicitFormulaRectangleNormalizedPoleCorrectedContourIntegral_tendsto_zeroSideComplex
-          probe family analyticPackage carrier topMem bottomMem zeroSideSummable
+      schedule
+      hPhi
+      hLog)
 
-/-- The normalized standard contour boundary is the completed zero side of an
-autocorrelation probe. -/
-theorem zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum_eq_zeroSide_owner
-    (f : ZetaAdmissibleFunction)
-    (gammaCoherence : Complex.gammaBinetPrincipalLogCoherence)
-    (zeroSideSummable :
-      Summable
-        (fun rho : {rho : ℂ // ZetaCompletedZero rho} =>
-          zetaZeroSideContribution (rho : ℂ)
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f))) :
-    ZetaAdmissibleFunction.zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-      ZetaAdmissibleFunction.zetaCompletedZeroSideComplex
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
-  let probe : ZetaAdmissibleFunction :=
-    ZetaAdmissibleFunction.convolutionAutocorrelation f
-  let family : ZetaAdmissibleFunction.ExplicitFormulaContourFamily :=
-    ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f
-  let analyticPackage :
-      ZetaAdmissibleFunction.ExplicitFormulaFamilyAnalyticPackage probe family :=
-    ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
-      f
-      (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule f)
-      (zetaPhiAnalyticControl_of_admissible probe)
-      (completedZetaNegLogDerivControl probe)
-  have verticalLimit :
+
+/-- Scheduled contour convergence along supplied autocorrelation avoiding
+height schedules. -/
+def ZetaCompletedAutocorrelationScheduledContourLimitOf
+    (schedule :
+      ∀ f : ZetaAdmissibleFunction,
+        ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)) :
+    Prop :=
+  ∀ f : ZetaAdmissibleFunction,
+    ∀ hPhi : ZetaAdmissibleFunction.ZetaPhiAnalyticControl
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f),
+    ∀ hLog : ZetaAdmissibleFunction.CompletedZetaNegLogDerivControl
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f),
       Tendsto
         (fun u : ℝ =>
-          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaRightLineIntegral probe
-              (family.rectangle (analyticPackage.height_schedule.height u)) -
-            ZetaAdmissibleFunction.zetaCompletedExplicitFormulaLeftLineIntegral probe
-              (family.rectangle (analyticPackage.height_schedule.height u)))
+          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourIntegral
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
+                ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+                  f
+                  (schedule f)
+                  hPhi
+                  hLog).height_schedule.height u)))
         atTop
         (𝓝
-          (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaStandardContourBoundarySum
-            probe)) := by
-    exact
-      ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_scheduledVertical_tendsto_boundarySum
+          (ZetaAdmissibleFunction.zetaCompletedZeroSideComplex
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f)))
+
+/-- Scheduled contour convergence along supplied autocorrelation avoiding
+height schedules, with fixed-degree scheduled horizontal log-derivative growth. -/
+def ZetaCompletedAutocorrelationPolynomialScheduledContourLimitOf
+    (schedule :
+      ∀ f : ZetaAdmissibleFunction,
+        ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)) :
+    Prop :=
+  ∀ f : ZetaAdmissibleFunction,
+    ∀ hPhi : ZetaAdmissibleFunction.ZetaPhiAnalyticControl
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f),
+    ∀ hLog : ZetaAdmissibleFunction.CompletedZetaNegLogDerivControl
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f),
+    ∀ hPoly :
+      ZetaAdmissibleFunction.ExplicitFormulaScheduledPolynomialFamilyAnalyticPackage
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+        (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f),
+      hPoly.height_schedule =
+        (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+          f
+          (schedule f)
+          hPhi
+          hLog).height_schedule →
+      Tendsto
+        (fun u : ℝ =>
+          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourIntegral
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+              ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
+                ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+                  f
+                  (schedule f)
+                  hPhi
+                  hLog).height_schedule.height u)))
+        atTop
+        (𝓝
+          (ZetaAdmissibleFunction.zetaCompletedZeroSideComplex
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f)))
+
+/-- Scheduled contour convergence along a supplied autocorrelation schedule
+family. -/
+def ZetaCompletedAutocorrelationScheduledContourLimitOfFamily
+    (scheduleFamily :
+      ZetaCompletedAutocorrelationHorizontalAvoidingScheduleFamily) :
+    Prop :=
+  ZetaCompletedAutocorrelationScheduledContourLimitOf scheduleFamily.schedule
+
+
+/-- Pointwise finite-rectangle residue equality along supplied autocorrelation
+avoiding height schedules. -/
+def ZetaCompletedAutocorrelationScheduledFiniteResidueEqualityOf
+    (schedule :
+      ∀ f : ZetaAdmissibleFunction,
+        ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)) :
+    Prop :=
+  ∀ f : ZetaAdmissibleFunction,
+    ∀ hPhi : ZetaAdmissibleFunction.ZetaPhiAnalyticControl
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f),
+    ∀ hLog : ZetaAdmissibleFunction.CompletedZetaNegLogDerivControl
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f),
+      ZetaAdmissibleFunction.zetaCompletedScheduledFiniteResidueEquality
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+        (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
+        (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+          f
+          (schedule f)
+          hPhi
+          hLog)
+
+/-- Pointwise finite-rectangle residue equality along a supplied
+autocorrelation schedule family. -/
+def ZetaCompletedAutocorrelationScheduledFiniteResidueEqualityOfFamily
+    (scheduleFamily :
+      ZetaCompletedAutocorrelationHorizontalAvoidingScheduleFamily) :
+    Prop :=
+  ZetaCompletedAutocorrelationScheduledFiniteResidueEqualityOf scheduleFamily.schedule
+
+
+/-- The finite-rectangle pointwise residue theorem implies the fixed-degree
+scheduled autocorrelation contour limit. -/
+theorem zetaCompletedAutocorrelationPolynomialScheduledContourLimitOf_of_finiteResidueEquality
+    (schedule :
+      ∀ f : ZetaAdmissibleFunction,
+        ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
+    (hfinite :
+      ZetaCompletedAutocorrelationScheduledFiniteResidueEqualityOf schedule) :
+    ZetaCompletedAutocorrelationPolynomialScheduledContourLimitOf schedule :=
+  fun f hPhi hLog hPoly hschedule =>
+    Exists.elim (hfinite f hPhi hLog)
+      (fun residueWindowDegree hresidue =>
+        Eq.subst
+          (motive := fun residueWindowDegreeTransport : ℕ =>
+            Tendsto
+              (fun u : ℝ =>
+                ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourIntegral
+                    (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+                    ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f).rectangle
+                      ((ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+                        f
+                        (schedule f)
+                        hPhi
+                        hLog).height_schedule.height u)))
+              atTop
+              (𝓝
+                (ZetaAdmissibleFunction.zetaCompletedZeroSideComplex
+                  (ZetaAdmissibleFunction.convolutionAutocorrelation f))))
+          (Eq.refl residueWindowDegree)
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_of_polynomialScheduledPackage_ownerResidueCalculus
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+            (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_verticallyRegularContourFamily f)
+            (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+              f
+              (schedule f)
+              hPhi
+              hLog)
+            hPoly
+            hschedule
+            hresidue
+            (summable_zetaZeroSideContribution_owner
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f))))
+
+/-- A fixed-degree scheduled contour limit supplies the legacy scheduled
+contour-limit surface by taking the polynomial scheduled package induced by the
+stored full analytic package. -/
+theorem zetaCompletedAutocorrelationScheduledContourLimitOf_of_polynomialScheduledContourLimit
+    (schedule :
+      ∀ f : ZetaAdmissibleFunction,
+        ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
+    (hpoly :
+      ZetaCompletedAutocorrelationPolynomialScheduledContourLimitOf schedule) :
+    ZetaCompletedAutocorrelationScheduledContourLimitOf schedule :=
+  fun f hPhi hLog =>
+    let analyticPackage :
+        ZetaAdmissibleFunction.ExplicitFormulaFamilyAnalyticPackage
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f) :=
+      ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
         f
-        (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule f)
-        (zetaPhiAnalyticControl_of_admissible probe)
-        (completedZetaNegLogDerivControl probe)
-        gammaCoherence
-        (zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_projection_owner f)
-  exact
-    match analyticPackage.scheduled_horizontalFamilyZeroExcisedStrip with
-    | ⟨carrier, topMem, bottomMem⟩ =>
-        ZetaAdmissibleFunction.zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum_eq_zeroSideComplex
-          probe family analyticPackage carrier topMem bottomMem zeroSideSummable verticalLimit
+        (schedule f)
+        hPhi
+        hLog
+    let scheduledPackage :
+        ZetaAdmissibleFunction.ExplicitFormulaScheduledFamilyAnalyticPackage
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f) :=
+      analyticPackage.toScheduledFamilyAnalyticPackage
+    let polynomialPackage :
+        ZetaAdmissibleFunction.ExplicitFormulaScheduledPolynomialFamilyAnalyticPackage
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f) :=
+      scheduledPackage.toPolynomialGrowthAtDegree 0
+    hpoly f hPhi hLog polynomialPackage rfl
 
-/-- The remaining normalization comparison identifies the contour-derived
-boundary with the public time-side boundary on autocorrelation probes. -/
-theorem zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum_eq_completedBoundaryChannel_autocorrelation_owner
-    (f : ZetaAdmissibleFunction) :
-    ZetaAdmissibleFunction.zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-      ZetaAdmissibleFunction.completedBoundaryChannel
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
-  let probe : ZetaAdmissibleFunction :=
-    ZetaAdmissibleFunction.convolutionAutocorrelation f
-  have hnormalized :
-      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum
-          probe =
-        ZetaAdmissibleFunction.zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundaryContribution
-              probe /
-            ZetaAdmissibleFunction.explicitFormulaTwoPi +
-          ZetaAdmissibleFunction.zetaCompletedExplicitFormulaArchimedeanContribution
-              probe /
-            ZetaAdmissibleFunction.explicitFormulaTwoPi :=
-    ZetaAdmissibleFunction.zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum_eq_prime_add_archimedean_div
-      probe
-  have hprime :
-      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundaryContribution
-            probe /
-          ZetaAdmissibleFunction.explicitFormulaTwoPi =
-        -(ZetaAdmissibleFunction.zetaCompletedExplicitFormulaPrimeContribution probe) :=
-    ZetaAdmissibleFunction.zetaCompletedExplicitFormulaPrimeNaturalTwoFaceBoundaryContribution_div_twoPi_eq_neg_primeContribution_autocorrelation
-      f
-  have htwoPi :
-      ZetaAdmissibleFunction.explicitFormulaTwoPi =
-        2 * (Real.pi : ℂ) :=
-    Eq.refl _
-  exact Eq.trans hnormalized
-    (Eq.trans
-      (congrArg₂ HAdd.hAdd hprime
-        (congrArg
-          (fun denominator : ℂ =>
-            ZetaAdmissibleFunction.zetaCompletedExplicitFormulaArchimedeanContribution
-              probe / denominator)
-          htwoPi))
-      (ZetaAdmissibleFunction.completedBoundaryChannel_eq_normalized_prime_archimedean
-        probe).symm)
-
-/-- The completed contour formula identifies the Weil form with the real
-completed boundary channel on every autocorrelation probe. -/
-theorem zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_owner
-    (f : ZetaAdmissibleFunction)
-    (gammaCoherence : Complex.gammaBinetPrincipalLogCoherence)
-    (zeroSideSummable :
-      Summable
-        (fun rho : {rho : ℂ // ZetaCompletedZero rho} =>
-          zetaZeroSideContribution (rho : ℂ)
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f))) :
-    zetaWeilFormCompleted
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-      Complex.re
-        (ZetaAdmissibleFunction.completedBoundaryChannel
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) := by
-  have contourToZero :=
-    zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum_eq_zeroSide_owner
-      f gammaCoherence zeroSideSummable
-  have contourToBoundary :=
-    zetaCompletedExplicitFormulaNormalizedStandardContourBoundarySum_eq_completedBoundaryChannel_autocorrelation_owner
-      f
-  have zeroToBoundary :
-      ZetaAdmissibleFunction.zetaCompletedZeroSideComplex
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-        ZetaAdmissibleFunction.completedBoundaryChannel
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f) :=
-    Eq.trans contourToZero.symm contourToBoundary
-  exact Eq.trans
-    (zetaWeilFormCompleted_convolutionAutocorrelation_eq_zeroSide f)
-    (congrArg Complex.re zeroToBoundary)
-
-/-- The completed boundary channel is nonnegative on every autocorrelation
-probe after the physical prime channel is reconstructed in the completed GNS
-presentation. -/
-theorem completedBoundaryChannel_convolutionAutocorrelation_re_nonnegative_owner
-    (f : ZetaAdmissibleFunction)
-    (summedTransport :
-      ZetaAdmissibleFunction.CompletedSummedPrimeContourTimeTransport f)
-    (matrixComparison :
-      Complex.re
-          (ZetaAdmissibleFunction.zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) =
-        Complex.re
-          (ZetaAdmissibleFunction.zetaPrimeTwoFaceGNSMatrixCoefficient f)) :
-    0 ≤ Complex.re
-      (ZetaAdmissibleFunction.completedBoundaryChannel
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f)) := by
-  have primePositive :
-      Complex.re
-          (ZetaAdmissibleFunction.primeBoundaryChannel
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f)) =
-        ZetaAdmissibleFunction.completedPrimeDefectKernelPositiveChannel f :=
-    ZetaAdmissibleFunction.primeBoundaryChannel_convolutionAutocorrelation_re_eq_positiveChannel_of_summedTransport
-      f
-      summedTransport
-      matrixComparison
-  exact
-    ZetaAdmissibleFunction.completedBoundaryChannel_convolutionAutocorrelation_re_nonnegative_of_normalizedPrime
-      f primePositive
-
-/-- Completed Weil positivity assembled at the analytic contour/GNS owner. -/
-theorem zetaWeilQuadraticPositivity_owner
-    (gammaCoherence : Complex.gammaBinetPrincipalLogCoherence)
-    (zeroSideSummable :
+/-- A fixed-degree scheduled contour limit supplies the legacy scheduled
+contour-limit surface from independent polynomial-growth control. -/
+theorem zetaCompletedAutocorrelationScheduledContourLimitOf_of_polynomialGrowthControl
+    (schedule :
       ∀ f : ZetaAdmissibleFunction,
-        Summable
-          (fun rho : {rho : ℂ // ZetaCompletedZero rho} =>
-            zetaZeroSideContribution (rho : ℂ)
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)))
-    (summedTransport :
+        ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
+    (hGrowth : ∀ f : ZetaAdmissibleFunction,
+      ZetaAdmissibleFunction.CompletedZetaNegLogDerivPolynomialGrowthControl
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+    (hpoly :
+      ZetaCompletedAutocorrelationPolynomialScheduledContourLimitOf schedule) :
+    ZetaCompletedAutocorrelationScheduledContourLimitOf schedule :=
+  fun f hPhi hLog =>
+    let analyticPackage :
+        ZetaAdmissibleFunction.ExplicitFormulaFamilyAnalyticPackage
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f) :=
+      ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_familyAnalyticPackage
+        f
+        (schedule f)
+        hPhi
+        hLog
+    Exists.elim
+      (analyticPackage.existsPolynomialScheduledPackage_of_polynomialGrowthControl
+        (hGrowth f))
+      (fun polynomialPackage hschedule =>
+        hpoly f hPhi hLog polynomialPackage hschedule)
+
+/-- The finite-rectangle pointwise residue theorem plus independent
+polynomial-growth control implies the legacy scheduled autocorrelation contour
+limit. -/
+theorem zetaCompletedAutocorrelationScheduledContourLimitOf_of_finiteResidueEquality_and_polynomialGrowthControl
+    (schedule :
       ∀ f : ZetaAdmissibleFunction,
-        ZetaAdmissibleFunction.CompletedSummedPrimeContourTimeTransport f)
-    (matrixComparison :
+        ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
+    (hfinite :
+      ZetaCompletedAutocorrelationScheduledFiniteResidueEqualityOf schedule)
+    (hGrowth : ∀ f : ZetaAdmissibleFunction,
+      ZetaAdmissibleFunction.CompletedZetaNegLogDerivPolynomialGrowthControl
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f)) :
+    ZetaCompletedAutocorrelationScheduledContourLimitOf schedule :=
+  zetaCompletedAutocorrelationScheduledContourLimitOf_of_polynomialGrowthControl
+    schedule
+    hGrowth
+    (zetaCompletedAutocorrelationPolynomialScheduledContourLimitOf_of_finiteResidueEquality
+      schedule
+      hfinite)
+
+/-- Completed log-derivative control, Binet coherence, and the scheduled
+contour limit give the completed-boundary identification used by
+the endpoint-absorption positivity owner. -/
+theorem zetaWeilAutocorrelationCompletedBoundaryIdentification_of_contourAssemblyOf
+    (schedule :
       ∀ f : ZetaAdmissibleFunction,
-        Complex.re
-            (ZetaAdmissibleFunction.zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) =
-          Complex.re
-            (ZetaAdmissibleFunction.zetaPrimeTwoFaceGNSMatrixCoefficient f)) :
-    ZetaWeilQuadraticPositivity := by
-  exact fun f =>
-    Eq.subst
-      (motive := fun value : ℝ => 0 ≤ value)
-      (zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_owner
-        f gammaCoherence (zeroSideSummable f)).symm
-      (completedBoundaryChannel_convolutionAutocorrelation_re_nonnegative_owner
-        f (summedTransport f) (matrixComparison f))
+        ZetaAdmissibleFunction.ExplicitFormulaHorizontalAvoidingHeightSchedule
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
+    (hPhi : ∀ f : ZetaAdmissibleFunction,
+      ZetaAdmissibleFunction.ZetaPhiAnalyticControl
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+    (hLog : ∀ f : ZetaAdmissibleFunction,
+      ZetaAdmissibleFunction.CompletedZetaNegLogDerivControl
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hcontour :
+      ZetaCompletedAutocorrelationScheduledContourLimitOf schedule) :
+    ZetaWeilAutocorrelationCompletedBoundaryIdentification :=
+  fun f =>
+    ZetaAdmissibleFunction.zetaWeilFormCompleted_convolutionAutocorrelation_eq_completedBoundaryChannel_re_of_constructedScheduledHorizontalCarrier_ownerContourAssembly
+      f
+      (schedule f)
+      (hPhi f)
+      (hLog f)
+      hcoh
+      (zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral_tendsto_projection_of_schedule_owner
+        f (schedule f) (hPhi f) (hLog f))
+      (hcontour f (hPhi f) (hLog f))
+
+/-- Completed-boundary identification from a supplied autocorrelation schedule
+family. -/
+theorem zetaWeilAutocorrelationCompletedBoundaryIdentification_of_contourAssemblyOfFamily
+    (scheduleFamily :
+      ZetaCompletedAutocorrelationHorizontalAvoidingScheduleFamily)
+    (hPhi : ∀ f : ZetaAdmissibleFunction,
+      ZetaAdmissibleFunction.ZetaPhiAnalyticControl
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+    (hLog : ∀ f : ZetaAdmissibleFunction,
+      ZetaAdmissibleFunction.CompletedZetaNegLogDerivControl
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
+    (hcontour :
+      ZetaCompletedAutocorrelationScheduledContourLimitOfFamily scheduleFamily) :
+    ZetaWeilAutocorrelationCompletedBoundaryIdentification :=
+  zetaWeilAutocorrelationCompletedBoundaryIdentification_of_contourAssemblyOf
+    scheduleFamily.schedule
+    hPhi
+    hLog
+    hcoh
+    hcontour
+
+
+
 
 end
 

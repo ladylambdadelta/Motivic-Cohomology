@@ -21,12 +21,13 @@ namespace ZetaAdmissibleFunction
 theorem exists_admissible_eval_sample_with_support (S : ZetaAdmissibleFunction.FiniteSample)
     (a : Fin S.n → ℂ) :
     ∃ f : ZetaAdmissibleFunction, (∀ i, f (S.x i) = a i) ∧ HasCompactSupport f := by
-  rcases exists_admissible_delta_sample_with_support S with ⟨F, hF1, hF0, _hFc⟩
-  let f : ZetaAdmissibleFunction := sampleInterpolant S a F
-  refine ⟨f, ?_, ?_⟩
-  · intro i
-    exact sampleInterpolant_apply S a F hF1 hF0 i
-  · exact sampleInterpolant_hasCompactSupport S a F
+  exact
+    match exists_admissible_delta_sample_with_support S with
+    | ⟨F, hF1, hF0, hFc⟩ =>
+        Exists.intro (sampleInterpolant S a F)
+          (And.intro
+            (fun i => sampleInterpolant_apply S a F hF1 hF0 i)
+            (sampleInterpolant_hasCompactSupport S a F))
 
 /-- A finite sample admits a compactly supported interpolant whose support is controlled by the
 support of the chosen delta basis. -/
@@ -40,13 +41,19 @@ theorem exists_admissible_eval_sample_with_basis_support (S : ZetaAdmissibleFunc
         (∀ i, f (S.x i) = a i) ∧
         HasCompactSupport f ∧
         Function.support f ⊆ Set.iUnion fun i => Function.support (F i) := by
-  rcases exists_admissible_delta_sample_with_support S with ⟨F, hF1, hF0, hFc⟩
-  let f : ZetaAdmissibleFunction := sampleInterpolant S a F
-  refine ⟨F, hF1, hF0, hFc, f, ?_, ?_, ?_⟩
-  · intro i
-    exact sampleInterpolant_apply S a F hF1 hF0 i
-  · exact sampleInterpolant_hasCompactSupport S a F
-  · exact sampleInterpolant_support_subset_iUnion S a F
+  exact
+    match exists_admissible_delta_sample_with_support S with
+    | ⟨F, hF1, hF0, hFc⟩ =>
+        Exists.intro F
+          (And.intro hF1
+            (And.intro hF0
+              (And.intro hFc
+                (Exists.intro (sampleInterpolant S a F)
+                  (And.intro
+                    (fun i => sampleInterpolant_apply S a F hF1 hF0 i)
+                    (And.intro
+                      (sampleInterpolant_hasCompactSupport S a F)
+                      (sampleInterpolant_support_subset_iUnion S a F)))))))
 
 /-- A finite sample admits a compactly supported interpolant together with a delta basis whose
 supports are individually contained in closed balls. -/
@@ -60,13 +67,19 @@ theorem exists_admissible_eval_sample_with_basis_closedBall_support
         (∀ i, f (S.x i) = a i) ∧
         HasCompactSupport f ∧
         Function.support f ⊆ Set.iUnion fun i => Function.support (F i) := by
-  rcases exists_admissible_delta_sample_with_closedBall_support S with ⟨F, hF1, hF0, hFr⟩
-  let f : ZetaAdmissibleFunction := sampleInterpolant S a F
-  refine ⟨F, hF1, hF0, hFr, f, ?_, ?_, ?_⟩
-  · intro i
-    exact sampleInterpolant_apply S a F hF1 hF0 i
-  · exact sampleInterpolant_hasCompactSupport S a F
-  · exact sampleInterpolant_support_subset_iUnion S a F
+  exact
+    match exists_admissible_delta_sample_with_closedBall_support S with
+    | ⟨F, hF1, hF0, hFr⟩ =>
+        Exists.intro F
+          (And.intro hF1
+            (And.intro hF0
+              (And.intro hFr
+                (Exists.intro (sampleInterpolant S a F)
+                  (And.intro
+                    (fun i => sampleInterpolant_apply S a F hF1 hF0 i)
+                    (And.intro
+                      (sampleInterpolant_hasCompactSupport S a F)
+                      (sampleInterpolant_support_subset_iUnion S a F)))))))
 
 end ZetaAdmissibleFunction
 

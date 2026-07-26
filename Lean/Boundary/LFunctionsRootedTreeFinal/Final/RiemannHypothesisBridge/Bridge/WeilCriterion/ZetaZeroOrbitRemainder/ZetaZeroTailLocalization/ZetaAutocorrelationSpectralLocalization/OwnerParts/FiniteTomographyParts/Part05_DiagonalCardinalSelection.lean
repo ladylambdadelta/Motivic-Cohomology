@@ -30,11 +30,10 @@ theorem exists_autocorrelationSpectralEvalFiber_diagonalCardinalTail_lt
     (hepsilon : 0 < epsilon) :
     ∃ f : ZetaAdmissibleFunction,
       f ∈ AutocorrelationSpectralEvalFiberOf P f₀ ∧
-        autocorrelationZeroTailRealAbs S f < epsilon := by
-  exact
-    QuantitativeSeparation.exists_fixedFiberProbe_with_autocorrelationZeroTailRealAbs_lt
-      hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
-      S P f₀ hSeparated epsilon hepsilon
+        autocorrelationZeroTailRealAbs S f < epsilon :=
+  QuantitativeSeparation.exists_fixedFiberProbe_with_autocorrelationZeroTailRealAbs_lt
+    hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
+    S P f₀ hSeparated epsilon hepsilon
 
 end ZetaAdmissibleFunction
 end

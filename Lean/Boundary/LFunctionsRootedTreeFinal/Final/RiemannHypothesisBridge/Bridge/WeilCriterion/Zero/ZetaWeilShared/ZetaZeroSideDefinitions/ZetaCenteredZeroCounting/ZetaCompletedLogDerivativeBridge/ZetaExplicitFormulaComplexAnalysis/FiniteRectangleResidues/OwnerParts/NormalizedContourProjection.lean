@@ -30,7 +30,15 @@ noncomputable def zetaCompletedExplicitFormulaNormalizedTangentContourIntegral
 /-- The normalized project contour with the two completed-zeta pole residues removed. -/
 noncomputable def explicitFormulaRectangleNormalizedPoleCorrectedContourIntegral
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  zetaCompletedExplicitFormulaNormalizedContourIntegral f (F.rectangle T) -
+    zetaCompletedExplicitFormulaNormalizedContourIntegral f (F.rectangle T) -
+    explicitFormulaRectangle_completedPoleResidueSum f
+
+/-- The correctly normalized tangent contour after removing the two completed-zeta
+pole residues.  This is the quantity whose finite Cauchy value is the zero-window
+residue sum; the raw tangent contour itself carries the `2πi` factor. -/
+noncomputable def explicitFormulaRectangleNormalizedFullTangentPoleCorrectedContourIntegral
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
+  zetaCompletedExplicitFormulaNormalizedTangentContourIntegral f (F.rectangle T) -
     explicitFormulaRectangle_completedPoleResidueSum f
 
 /-- The real contour normalization is nonzero. -/
@@ -99,8 +107,18 @@ theorem explicitFormula_projectContour_of_tangentPacket
         vertical + horizontal = vertical +
             (Complex.I * horizontal +
               (horizontal - Complex.I * horizontal)) := by
-          exact congrArg (fun value : ℂ => vertical + value)
-            (add_sub_cancel_left (Complex.I * horizontal) horizontal).symm
+          have hhorizontal :
+              horizontal =
+                Complex.I * horizontal + (horizontal - Complex.I * horizontal) := by
+            calc
+              horizontal =
+                  Complex.I * horizontal + horizontal - Complex.I * horizontal := by
+                exact (add_sub_cancel_left (Complex.I * horizontal) horizontal).symm
+              _ =
+                  Complex.I * horizontal + (horizontal - Complex.I * horizontal) := by
+                exact add_sub_assoc (Complex.I * horizontal) horizontal
+                  (Complex.I * horizontal)
+          exact congrArg (fun value : ℂ => vertical + value) hhorizontal
         _ = (vertical + Complex.I * horizontal) +
             (horizontal - Complex.I * horizontal) := by
           exact (add_assoc vertical (Complex.I * horizontal)
@@ -178,6 +196,54 @@ theorem zetaCompletedExplicitFormulaNormalizedTangentContourIntegral_eq_poleCorr
       f (F.rectangle (h.height_schedule.height u))
       (explicitFormulaRectangle_poleCorrectedResidueSum f (h.height_schedule.height u))
       hnormalizedRaw
+
+theorem zetaCompletedExplicitFormulaNormalizedTangentContourIntegral_eq_poleCorrectedResidueSum_canonicalInterior_owner
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (h : ExplicitFormulaScheduledFamilyAnalyticPackage f F) {u : ℝ}
+    (hT : 0 < h.height_schedule.height u) :
+    zetaCompletedExplicitFormulaNormalizedTangentContourIntegral f
+        (F.rectangle (h.height_schedule.height u)) =
+      explicitFormulaRectangle_poleCorrectedResidueSum f
+        (h.height_schedule.height u) :=
+  zetaCompletedExplicitFormulaNormalizedTangentContourIntegral_eq_poleCorrectedResidueSum_selected
+    f F h hT
+    (fun rho =>
+        explicitFormulaCompletedZeroContourHeightWindow_mem_iff_scheduledPackageInteriorSingular
+        F h u rho)
+
+theorem explicitFormulaRectangleNormalizedFullTangentPoleCorrectedContourIntegral_eq_zeroWindowResidueSum_of_tangentResidue
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ)
+    (hraw :
+      zetaCompletedExplicitFormulaTangentContourIntegral f (F.rectangle T) =
+        explicitFormulaTwoPiI • explicitFormulaRectangle_poleCorrectedResidueSum f T) :
+    explicitFormulaRectangleNormalizedFullTangentPoleCorrectedContourIntegral f F T =
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f T := by
+  have hnormalized :
+      zetaCompletedExplicitFormulaNormalizedTangentContourIntegral f (F.rectangle T) =
+        explicitFormulaRectangle_poleCorrectedResidueSum f T :=
+    zetaCompletedExplicitFormulaNormalizedTangentContourIntegral_eq_residueSum
+      f (F.rectangle T)
+      (explicitFormulaRectangle_poleCorrectedResidueSum f T)
+      hraw
+  have hsplit :
+      explicitFormulaRectangle_poleCorrectedResidueSum f T =
+        explicitFormulaCompletedZeroContourHeightWindowResidueSum f T +
+          explicitFormulaRectangle_completedPoleResidueSum f :=
+    explicitFormulaRectangle_poleCorrectedResidueSum_eq f T
+  change
+    zetaCompletedExplicitFormulaNormalizedTangentContourIntegral f (F.rectangle T) -
+        explicitFormulaRectangle_completedPoleResidueSum f =
+      explicitFormulaCompletedZeroContourHeightWindowResidueSum f T
+  calc
+    zetaCompletedExplicitFormulaNormalizedTangentContourIntegral f (F.rectangle T) -
+          explicitFormulaRectangle_completedPoleResidueSum f =
+        explicitFormulaRectangle_poleCorrectedResidueSum f T -
+          explicitFormulaRectangle_completedPoleResidueSum f := by
+      exact congrArg
+        (fun value : ℂ => value - explicitFormulaRectangle_completedPoleResidueSum f)
+        hnormalized
+    _ = explicitFormulaCompletedZeroContourHeightWindowResidueSum f T := by
+      exact sub_eq_iff_eq_add.mpr hsplit
 
 /-- The concrete ordinary rectangle contour is the rotated tangent contour plus the exact
 horizontal orientation correction. -/
@@ -272,6 +338,53 @@ theorem explicitFormula_negI_mul_twoPiI_mul (value : ℂ) :
         hnegI_mul_I
     _ = explicitFormulaTwoPi * value := by
       exact congrArg (fun scalar : ℂ => scalar * value) (mul_one explicitFormulaTwoPi)
+
+/- The ordinary contour reaches the normalized residue sum only after the
+   horizontal orientation correction is discharged.  Keeping that hypothesis
+   explicit prevents the tangent identity from being silently mistaken for
+   the project-contour identity. -/
+theorem zetaCompletedExplicitFormulaNormalizedContourIntegral_eq_residueSum_of_tangentResidue_and_horizontalCancellation
+    (f : ZetaAdmissibleFunction) (rectangle : ExplicitFormulaRectangle)
+    (residueSum : ℂ)
+    (htangent :
+      zetaCompletedExplicitFormulaTangentContourIntegral f rectangle =
+        explicitFormulaTwoPiI • residueSum)
+    (hhorizontal :
+      zetaCompletedExplicitFormulaTopLineIntegral f rectangle -
+        zetaCompletedExplicitFormulaBottomLineIntegral f rectangle = 0) :
+    zetaCompletedExplicitFormulaNormalizedContourIntegral f rectangle = residueSum := by
+  have hcontour :
+      zetaCompletedExplicitFormulaContourIntegral f rectangle =
+        explicitFormulaTwoPi * residueSum := by
+    exact
+      Eq.trans
+        (zetaCompletedExplicitFormulaContourIntegral_eq_negI_mul_tangent_add_horizontalCorrection
+          f
+          rectangle)
+        (by
+          calc
+            (-Complex.I) * zetaCompletedExplicitFormulaTangentContourIntegral f rectangle +
+                ((1 : ℂ) - Complex.I) *
+                  (zetaCompletedExplicitFormulaTopLineIntegral f rectangle -
+                    zetaCompletedExplicitFormulaBottomLineIntegral f rectangle) =
+              (-Complex.I) * (explicitFormulaTwoPiI * residueSum) +
+                ((1 : ℂ) - Complex.I) * 0 := by
+              exact congrArg₂ (fun tangent horizontal : ℂ =>
+                (-Complex.I) * tangent + ((1 : ℂ) - Complex.I) * horizontal)
+                (Eq.trans htangent (Algebra.id.smul_eq_mul explicitFormulaTwoPiI residueSum))
+                hhorizontal
+            _ = explicitFormulaTwoPi * residueSum := by
+              exact
+                Eq.trans
+                  (congrArg
+                    (fun horizontal : ℂ =>
+                      (-Complex.I) * (explicitFormulaTwoPiI * residueSum) + horizontal)
+                    (mul_zero ((1 : ℂ) - Complex.I)))
+                  (Eq.trans
+                    (add_zero
+                      ((-Complex.I) * (explicitFormulaTwoPiI * residueSum)))
+              (explicitFormula_negI_mul_twoPiI_mul residueSum))
+  exact (div_eq_iff explicitFormulaTwoPi_ne_zero).mpr hcontour
 
 end ZetaAdmissibleFunction
 

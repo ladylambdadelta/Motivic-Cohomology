@@ -339,7 +339,6 @@ theorem zetaCompletedExplicitFormulaPrimeScheduledEstimates_tendsto_of_verticall
     (f : ZetaAdmissibleFunction)
     (F : ExplicitFormulaVerticallyRegularContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily)
-    (hcoh : Complex.gammaBinetPrincipalLogCoherence)
     (hright_value :
       (∫ t : ℝ,
         zetaCompletedExplicitFormulaPrimeRightVonMangoldtAffineKernel
@@ -378,8 +377,8 @@ theorem zetaCompletedExplicitFormulaPrimeScheduledEstimates_tendsto_of_verticall
     zetaCompletedExplicitFormulaLeftAffineLine_mem_zeroExcisedStrip_of_verticallyRegular
       F
   match
-    zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_of_gammaBinetCoherence_owner
-      F.toContourFamily hregular hcoh with
+    zetaCompletedExplicitFormulaInverseGammaCompletionLogDeriv_leftAffineLine_bound_unconditional_owner
+      F.toContourFamily hregular with
   | ⟨BG, hBG_nonneg, hinverseGamma_bound⟩ =>
       exact
         zetaCompletedExplicitFormulaPrimeScheduledEstimates_tendsto_of_kernel_values

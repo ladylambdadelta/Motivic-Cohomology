@@ -175,7 +175,7 @@ theorem Complex.logarithmicPhaseDualShiftedDifferenceSecondDerivative_lower_on_I
         (le_of_lt hh))
   have hxDenom : 0 < x ^ 2 * (x + h) ^ 2 :=
     mul_pos (sq_pos_of_pos hxPos) (sq_pos_of_pos (add_pos hxPos hh))
-  exact div_le_div hnumerator hdenom hleftNumerator (le_of_lt hxDenom)
+  exact div_le_div₀ hnumerator hdenom hleftNumerator (le_of_lt hxDenom)
 
 theorem Complex.logarithmicPhaseDualShiftedDifferenceSecondDerivative_upper_on_Icc
     (t : ℝ) {h L U x : ℝ}
@@ -204,7 +204,7 @@ theorem Complex.logarithmicPhaseDualShiftedDifferenceSecondDerivative_upper_on_I
         (le_of_lt hh))
   have hLDenom : 0 < L ^ 2 * (L + h) ^ 2 :=
     mul_pos (sq_pos_of_pos hL) (sq_pos_of_pos (add_pos hL hh))
-  exact div_le_div hnumerator hdenom hleftNumerator (le_of_lt hLDenom)
+  exact div_le_div₀ hnumerator hdenom hleftNumerator (le_of_lt hLDenom)
 
 end
 

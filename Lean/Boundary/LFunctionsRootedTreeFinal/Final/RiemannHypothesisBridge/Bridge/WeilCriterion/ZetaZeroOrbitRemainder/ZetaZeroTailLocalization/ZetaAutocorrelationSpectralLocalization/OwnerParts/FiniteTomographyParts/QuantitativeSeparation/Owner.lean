@@ -25,16 +25,18 @@ theorem exists_fixedFiberProbe_with_autocorrelationZeroTailRealAbs_lt
     (hepsilon : 0 < epsilon) :
     ∃ f : ZetaAdmissibleFunction,
       f ∈ AutocorrelationSpectralEvalFiberOf P f₀ ∧
-        autocorrelationZeroTailRealAbs S f < epsilon := by
-  obtain ⟨f, hfFiber, hweightedTail⟩ :=
+        autocorrelationZeroTailRealAbs S f < epsilon :=
+  match
     exists_fixedFiberProbe_with_completedZeroComplementL1Norm_lt
       hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
-      S P f₀ hSeparated epsilon hepsilon
-  have hrealTail :=
-    autocorrelationZeroTailRealAbs_lt_of_completedZeroComplementL1Norm_lt
-      hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
-      S f epsilon hweightedTail
-  exact ⟨f, hfFiber, hrealTail⟩
+      S P f₀ hSeparated epsilon hepsilon with
+  | ⟨f, hfFiber, hweightedTail⟩ =>
+      let hrealTail :
+          autocorrelationZeroTailRealAbs S f < epsilon :=
+        autocorrelationZeroTailRealAbs_lt_of_completedZeroComplementL1Norm_lt
+          hbranch hpartialOneTwo hcompactOneTwo hfinite hpartialLeft hcompactBoundary
+          S f epsilon hweightedTail
+      ⟨f, hfFiber, hrealTail⟩
 
 end QuantitativeSeparation
 end ZetaAdmissibleFunction

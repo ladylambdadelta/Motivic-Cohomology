@@ -1,5 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.RightZeroPoleAffineInversionTransport
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.PoleCauchyInversion
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.RightZeroPoleLocalCauchyValue
 
 /-!
 # Right zero-pole vertical inversion leaf
@@ -25,8 +25,8 @@ open scoped Topology
 namespace ZetaAdmissibleFunction
 
 /-- Scheduled Cauchy/Laplace inversion for the isolated right `s = 0` pole
-kernel, delegated to the pole Cauchy inversion owner. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_value_direct_ownerInversion
+kernel in the one-sided projection normalization. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_projection_direct_ownerInversion
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     Tendsto
@@ -34,51 +34,24 @@ theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInve
         zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion
           f F h u)
       atTop
-      (𝓝 (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)) := by
+      (𝓝
+        (Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+          f.toZetaTestFunction' F.c)) := by
   exact
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_value_ownerCauchyInversion
+    zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_projection_directOffPoleCauchy
       f F h
 
-/-- Owner transport leaf: whole-line Cauchy/Laplace inversion value for the
-isolated right `s = 0` affine pole kernel. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral_eq_value_direct_ownerInversion
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
+/-- Whole-line Cauchy/Laplace inversion value for the isolated right `s = 0`
+affine pole kernel in the one-sided projection normalization. -/
+theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral_eq_projection_direct_ownerInversion
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel f F t) =
-      zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f := by
+      Boundary.zetaLaplaceTransform_rightZeroPoleCauchyProjectionValue
+        f.toZetaTestFunction' F.c := by
   exact
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral_eq_value_of_scheduledVerticalInversion_tendsto_value_ownerTransport
-      f F h
-      (zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_value_direct_ownerInversion
-        f F h)
-
-/-- Owner transport leaf: whole-line Cauchy/Laplace inversion value for the
-isolated right `s = 0` affine pole kernel. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral_eq_value_ownerInversion
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    (∫ t : ℝ,
-      zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel f F t) =
-      zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f := by
-  exact
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral_eq_value_direct_ownerInversion
-      f F h
-
-/-- Owner scheduled Cauchy/Laplace inversion for the isolated right `s = 0`
-pole kernel. -/
-theorem zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_value_ownerInversion
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    Tendsto
-      (fun u : ℝ =>
-        zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion
-          f F h u)
-      atTop
-      (𝓝 (zetaCompletedExplicitFormulaCorrectionRightZeroPoleVerticalInversionValue f)) := by
-  exact
-    zetaCompletedExplicitFormulaCorrectionRightZeroPoleScheduledVerticalInversion_tendsto_value_direct_ownerInversion
-      f F h
+    zetaCompletedExplicitFormulaCorrectionRightZeroPoleAffineKernel_integral_eq_projection_directOffPoleCauchy
+      f F
 
 end ZetaAdmissibleFunction
 

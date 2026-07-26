@@ -20,7 +20,9 @@ open Complex
 open Filter
 open LSeries ArithmeticFunction
 open MeasureTheory
+open Real
 open scoped ArithmeticFunction
+open scoped LSeries.notation
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
@@ -184,7 +186,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedPositiveMonomial_integral_
         zetaCompletedExplicitFormulaPhi f
           (zetaCompletedExplicitFormulaLeftCenteredAffineLine F t)) =
       -(((Λ n / Real.sqrt n : ℝ) : ℂ) *
-        ((2 * π : ℝ) •
+        ((2 * Real.pi : ℝ) •
           zetaCompletedTimeBoundaryValue f
             (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)))) := by
   exact
@@ -249,7 +251,7 @@ theorem zetaCompletedExplicitFormulaPrimeLeftReflectedTermKernel_integral_eq_neg
     (∫ t : ℝ,
       zetaCompletedExplicitFormulaPrimeLeftReflectedTermKernel f F n t) =
       -(((Λ n / Real.sqrt n : ℝ) : ℂ) *
-        ((2 * π : ℝ) •
+        ((2 * Real.pi : ℝ) •
           zetaCompletedTimeBoundaryValue f
             (-(zetaCompletedExplicitFormulaPrimeNaturalCenter n)))) := by
   exact

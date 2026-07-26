@@ -272,7 +272,7 @@ theorem eulerMaclaurinPoleClearedZetaFinitePart_norm_le_three_mul_height_sq_half
 
 /-- The endpoint correction is bounded by one height factor on the positive
 half-strip. -/
-private theorem eulerMaclaurinPoleClearedZetaEndpointFactor_norm_le_height_halfStrip
+theorem eulerMaclaurinPoleClearedZetaEndpointFactor_norm_le_height_halfStrip
     (z : ℂ) :
     ‖(z - 1) / 2‖ ≤ 1 + ‖z‖ := by
   have htwoNorm : ‖(2 : ℂ)‖ = (2 : ℝ) :=
@@ -283,7 +283,7 @@ private theorem eulerMaclaurinPoleClearedZetaEndpointFactor_norm_le_height_halfS
     calc
       ‖(z - 1) / (2 : ℂ)‖ = ‖z - 1‖ / ‖(2 : ℂ)‖ := norm_div (z - 1) (2 : ℂ)
       _ = ‖z - 1‖ / 2 := by
-        rw [htwoNorm]
+        exact congrArg (fun x : ℝ => ‖z - 1‖ / x) htwoNorm
   calc
     ‖(z - 1) / 2‖ = ‖z - 1‖ / 2 := hdiv
     _ ≤ (1 + ‖z‖) / 2 := by
@@ -294,7 +294,7 @@ private theorem eulerMaclaurinPoleClearedZetaEndpointFactor_norm_le_height_halfS
           (le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z)))
           one_le_two
 
-private theorem eulerMaclaurinPoleClearedZetaEndpointProduct_norm_le_height_halfStrip
+theorem eulerMaclaurinPoleClearedZetaEndpointProduct_norm_le_height_halfStrip
     (z : ℂ)
     (hzNonnegative : 0 ≤ z.re) :
     ‖(z - 1) / 2‖ *

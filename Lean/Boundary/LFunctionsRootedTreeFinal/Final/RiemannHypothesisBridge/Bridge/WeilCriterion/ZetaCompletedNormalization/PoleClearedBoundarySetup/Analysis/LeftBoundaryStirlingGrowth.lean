@@ -280,6 +280,89 @@ theorem Gammaℝ_leftBoundary_ratio_vertical_polynomial_stirling_growth_bound_st
   exact Gammaℝ_leftBoundary_ratio_vertical_polynomial_growth_bound_of_linear
     (classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_linear_growth_bound hbranch)
 
+/-! Coordinate-free form of the same owner estimate.  This is the form needed
+by the strip transport, while retaining the sharp degree-one boundary input. -/
+theorem Gammaℝ_leftBoundary_ratio_complexHeight_polynomial_growth_bound_standard
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ,
+        z.re = 0 →
+        1 ≤ ‖z.im‖ →
+        ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
+          A * (1 + ‖z‖) ^ m := by
+  exact match classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_linear_growth_bound
+      hbranch with
+    | ⟨A, hA_pos, hbound⟩ =>
+      ⟨A, 1, hA_pos, fun z hz_re hz_im => by
+        have hheight : 1 + ‖z.im‖ ≤ 1 + ‖z‖ := by
+          exact add_le_add_left (Complex.norm_im_le_norm z) 1
+        have hlinear : A * (1 + ‖z.im‖) ≤ A * (1 + ‖z‖) := by
+          exact mul_le_mul_of_nonneg_left hheight (le_of_lt hA_pos)
+        have hboundary := hbound z hz_re hz_im
+        have hpow : (1 + ‖z‖) ^ (1 : ℕ) = 1 + ‖z‖ := by
+          exact pow_one (1 + ‖z‖)
+        exact le_trans hboundary
+          (Eq.subst
+            (motive := fun u : ℝ => A * (1 + ‖z‖) ≤ A * u)
+            hpow.symm
+            hlinear)⟩
+
+theorem Gammaℝ_leftBoundary_completedFunctionalEquation_multiplier_polynomial_bound
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption) :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ,
+        z.re = 0 →
+        1 ≤ ‖z.im‖ →
+        ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
+          A * (1 + ‖z‖) ^ m := by
+  match Gammaℝ_leftBoundary_ratio_complexHeight_polynomial_growth_bound_standard hbranch with
+  | ⟨Ag, mg, hAg, hgamma⟩ =>
+      match leftBoundary_completedFunctionalEquation_poleClearing_ratio_polynomial_bound with
+      | ⟨Ar, mr, hAr, hratio⟩ =>
+          refine ⟨Ar * Ag, mr + mg, mul_pos hAr hAg,
+            fun z hz_re hz_im => ?_⟩
+          let H : ℝ := 1 + ‖z‖
+          have hH_nonneg : 0 ≤ H := by
+            exact le_trans zero_le_one
+              (le_add_of_nonneg_right (norm_nonneg z))
+          have hratio_bound :
+              ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ ≤ Ar * H ^ mr := by
+            exact hratio z hz_re hz_im
+          have hgamma_bound :
+              ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
+                Ag * H ^ mg := by
+            exact hgamma z hz_re hz_im
+          have hproduct :
+              ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ *
+                  ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
+                (Ar * H ^ mr) * (Ag * H ^ mg) := by
+            exact mul_le_mul hratio_bound hgamma_bound
+              (norm_nonneg _)
+              (mul_nonneg (le_of_lt hAr) (pow_nonneg hH_nonneg mr))
+          have halgebra :
+              (Ar * H ^ mr) * (Ag * H ^ mg) =
+                (Ar * Ag) * H ^ (mr + mg) := by
+            calc
+              (Ar * H ^ mr) * (Ag * H ^ mg) =
+                  (Ar * Ag) * (H ^ mr * H ^ mg) := by
+                exact mul_mul_mul_comm Ar (H ^ mr) Ag (H ^ mg)
+              _ = (Ar * Ag) * H ^ (mr + mg) := by
+                exact congrArg (fun u : ℝ => (Ar * Ag) * u)
+                  (pow_add H mr mg).symm
+          calc
+            ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+                (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ =
+                ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ *
+                  ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ :=
+              norm_mul _ _
+            _ ≤ (Ar * H ^ mr) * (Ag * H ^ mg) := hproduct
+            _ = (Ar * Ag) * H ^ (mr + mg) := halgebra
+            _ = (Ar * Ag) * (1 + ‖z‖) ^ (mr + mg) := by
+              exact congrArg (fun u : ℝ => (Ar * Ag) * u) rfl
+
 /-- Standard finite-order Stirling control for the completed real Gamma ratio on the left
 vertical tail, converted from the polynomial vertical-height Stirling statement.
 

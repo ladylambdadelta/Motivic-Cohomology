@@ -132,9 +132,7 @@ theorem completedZeroMultiplicityHeightBallSummand_nonnegative_pointwise
   letI : DecidablePred
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
         zetaCompletedZeroCenteredHeight ρ ≤ T) :=
-    Classical.decPred
-      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-        zetaCompletedZeroCenteredHeight ρ ≤ T)
+    fun ρ => inferInstance
   exact fun ρ => completedZeroMultiplicityHeightBallSummand_nonnegative T ρ
 
 theorem completedZeroMultiplicityHeightBallSummand_eq_multiplicity_of_le
@@ -186,8 +184,6 @@ theorem completedZeroMultiplicityHeightBallSummand_mono
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     completedZeroMultiplicityHeightBallSummand S ρ ≤
       completedZeroMultiplicityHeightBallSummand T ρ := by
-  letI : Decidable (zetaCompletedZeroCenteredHeight ρ ≤ S) :=
-    Classical.propDecidable (zetaCompletedZeroCenteredHeight ρ ≤ S)
   exact match (inferInstance : Decidable (zetaCompletedZeroCenteredHeight ρ ≤ S)) with
     | Decidable.isTrue hS =>
         have hT : zetaCompletedZeroCenteredHeight ρ ≤ T :=

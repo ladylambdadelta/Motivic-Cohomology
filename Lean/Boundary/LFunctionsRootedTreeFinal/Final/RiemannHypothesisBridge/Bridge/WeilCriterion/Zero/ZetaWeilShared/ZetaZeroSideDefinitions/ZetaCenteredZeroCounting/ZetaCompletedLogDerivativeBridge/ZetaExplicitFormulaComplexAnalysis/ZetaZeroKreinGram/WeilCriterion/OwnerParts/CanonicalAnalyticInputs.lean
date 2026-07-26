@@ -1,11 +1,10 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaAnalyticPackage.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroKreinGram.WeilCriterion.OwnerParts.CountableAvoidingScheduleCore
 
 /-!
 # Canonical analytic inputs for the Weil positivity owner
 
-This file constructs the countable-avoidance schedule consumed by the completed
-explicit-formula contour.  The selector is chosen inside `(u,u+1)` at every
-parameter `u`, so cofinality is an explicit consequence of its lower bound.
+This file constructs the autocorrelation-specific countable-avoidance schedule
+for the completed explicit-formula contour.
 -/
 
 namespace Boundary
@@ -13,63 +12,94 @@ namespace LFunctions
 
 noncomputable section
 
+open Filter
+
 namespace ZetaAdmissibleFunction
 
-/-- A selected height in `(u,u+1)` outside a countable bad-height set. -/
-noncomputable def countableAvoidingHeight
-    (s : Set ℝ) (hs : s.Countable) (u : ℝ) : ℝ :=
-  Classical.choose (exists_height_between_not_mem_countable s hs u)
+/-- A supplied cofinal height function avoiding the autocorrelation horizontal
+bad-height set gives the autocorrelation horizontal avoiding schedule. -/
+def zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule_of_height
+    (f : ZetaAdmissibleFunction)
+    (height : ℝ → ℝ)
+    (hcofinal : Tendsto height atTop atTop)
+    (havoid : ∀ u : ℝ,
+      height u ∉
+        explicitFormulaContourHorizontalBadHeightSet
+          (zetaCompletedExplicitFormula_autocorrelation_contourFamily f)) :
+    ExplicitFormulaHorizontalAvoidingHeightSchedule
+      (zetaCompletedExplicitFormula_autocorrelation_contourFamily f) :=
+  explicitFormulaHorizontalAvoidingHeightSchedule_of_height
+    (zetaCompletedExplicitFormula_autocorrelation_contourFamily f)
+    height
+    hcofinal
+    havoid
 
-/-- The selected countable-avoiding height lies above its parameter. -/
-theorem countableAvoidingHeight_parameter_lt
-    (s : Set ℝ) (hs : s.Countable) (u : ℝ) :
-    u < countableAvoidingHeight s hs u := by
-  exact (Classical.choose_spec
-    (exists_height_between_not_mem_countable s hs u)).1
+/-- A supplied cofinal schedule avoiding the autocorrelation horizontal
+bad-height set is already the autocorrelation horizontal avoiding schedule. -/
+def zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule_of_schedule
+    (f : ZetaAdmissibleFunction)
+    (schedule :
+      CountableAvoidingCofinalHeightSchedule
+        (explicitFormulaContourHorizontalBadHeightSet
+          (zetaCompletedExplicitFormula_autocorrelation_contourFamily f))) :
+    ExplicitFormulaHorizontalAvoidingHeightSchedule
+      (zetaCompletedExplicitFormula_autocorrelation_contourFamily f) :=
+  schedule
 
-/-- The selected countable-avoiding height lies below the next unit endpoint. -/
-theorem countableAvoidingHeight_lt_parameter_add_one
-    (s : Set ℝ) (hs : s.Countable) (u : ℝ) :
-    countableAvoidingHeight s hs u < u + 1 := by
-  exact (Classical.choose_spec
-    (exists_height_between_not_mem_countable s hs u)).2.1
-
-/-- The selected height avoids the prescribed countable set. -/
-theorem countableAvoidingHeight_not_mem
-    (s : Set ℝ) (hs : s.Countable) (u : ℝ) :
-    countableAvoidingHeight s hs u ∉ s := by
-  exact (Classical.choose_spec
-    (exists_height_between_not_mem_countable s hs u)).2.2
-
-/-- The intervalwise countable-avoiding selector tends to positive infinity. -/
-theorem countableAvoidingHeight_tendsto_atTop
-    (s : Set ℝ) (hs : s.Countable) :
-    Tendsto (countableAvoidingHeight s hs) atTop atTop := by
-  exact Filter.tendsto_atTop.2
-    (fun lower : ℝ =>
-      ⟨lower, fun parameter hparameter =>
-        le_trans hparameter
-          (le_of_lt (countableAvoidingHeight_parameter_lt s hs parameter))⟩)
-
-/-- Every countable real set has a canonical cofinal avoiding schedule. -/
-noncomputable def countableAvoidingCofinalHeightSchedule
-    (s : Set ℝ) (hs : s.Countable) :
-    CountableAvoidingCofinalHeightSchedule s :=
-  { bad_countable := hs
-    height := countableAvoidingHeight s hs
-    cofinal := countableAvoidingHeight_tendsto_atTop s hs
-    avoids := countableAvoidingHeight_not_mem s hs }
+/-- A supplied autocorrelation horizontal avoiding schedule has positive
+top-and-bottom height separation from every finite singular-point list. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule_singular_points_top_bottom_positive_separation_of_schedule
+    (f : ZetaAdmissibleFunction)
+    (schedule :
+      ExplicitFormulaHorizontalAvoidingHeightSchedule
+        (zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
+    (points : List ℂ)
+    (hpoints :
+      ∀ z : ℂ, z ∈ points → explicitFormulaContourSingularPoint z)
+    (u : ℝ) :
+    ∃ δ : ℝ, 0 < δ ∧
+      ∀ z : ℂ, z ∈ points →
+        δ ≤ ‖schedule.height u - z.im‖ ∧
+          δ ≤ ‖schedule.height u - (-z.im)‖ :=
+  ExplicitFormulaHorizontalAvoidingHeightSchedule.singular_points_top_bottom_positive_separation
+    schedule
+    points
+    hpoints
+    u
 
 /-- The autocorrelation contour family has a canonical horizontal avoiding schedule. -/
 noncomputable def zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule
     (f : ZetaAdmissibleFunction) :
     ExplicitFormulaHorizontalAvoidingHeightSchedule
       (zetaCompletedExplicitFormula_autocorrelation_contourFamily f) :=
-  countableAvoidingCofinalHeightSchedule
+  CountableAvoidingCofinalHeightSchedule.of_countable_bad_set
     (explicitFormulaContourHorizontalBadHeightSet
       (zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
     (explicitFormulaContourHorizontalBadHeightSet_countable
       (zetaCompletedExplicitFormula_autocorrelation_contourFamily f))
+
+/-- The canonical autocorrelation horizontal avoiding schedule has positive
+top-and-bottom height separation from every finite singular-point list. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule_singular_points_top_bottom_positive_separation
+    (f : ZetaAdmissibleFunction)
+    (points : List ℂ)
+    (hpoints :
+      ∀ z : ℂ, z ∈ points → explicitFormulaContourSingularPoint z)
+    (u : ℝ) :
+    ∃ δ : ℝ, 0 < δ ∧
+      ∀ z : ℂ, z ∈ points →
+        δ ≤
+            ‖(zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule f).height u -
+              z.im‖ ∧
+          δ ≤
+            ‖(zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule f).height u -
+              (-z.im)‖ :=
+  zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule_singular_points_top_bottom_positive_separation_of_schedule
+    f
+    (zetaCompletedExplicitFormulaAutocorrelationHorizontalAvoidingSchedule f)
+    points
+    hpoints
+    u
 
 end ZetaAdmissibleFunction
 

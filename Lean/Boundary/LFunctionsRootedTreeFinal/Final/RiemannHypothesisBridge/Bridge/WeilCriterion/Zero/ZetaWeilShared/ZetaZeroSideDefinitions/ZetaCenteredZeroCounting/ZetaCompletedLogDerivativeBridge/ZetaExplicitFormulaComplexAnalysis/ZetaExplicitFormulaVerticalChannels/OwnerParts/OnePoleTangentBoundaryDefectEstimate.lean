@@ -3,7 +3,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 /-!
 # One-pole tangent-boundary defect estimate
 
-This file transports the direct right `s = 1` off-pole correction-face decay
+This file transports the direct right `s = 1` correction-face projection limit
 to the tangent-boundary defect.  The analytic input itself is owned by
 `RightOnePoleOffPoleDecayEstimate`.
 -/
@@ -22,9 +22,9 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- The tangent-boundary defect decay needed for the right one-pole Cauchy
-cancellation. -/
-theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentBoundaryDefect_tendsto_zero
+/-- The tangent-boundary defect has the same residue-free Cauchy projection
+limit as the right one-pole face. -/
+theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentBoundaryDefect_tendsto_projection
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
     Tendsto
@@ -34,15 +34,15 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentBoundaryDefect_tends
           zetaCompletedExplicitFormulaCorrectionOnePoleTangentRectangleBoundaryIntegral
             f F (h.height_schedule.height u) * Complex.I)
       atTop
-      (𝓝 0) := by
+      (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) := by
   have hright :
       Tendsto
         (fun u : ℝ =>
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
             f F (h.height_schedule.height u))
         atTop
-        (𝓝 0) :=
-    zetaCompletedExplicitFormulaCorrectionRightOnePoleOffPoleVerticalIntegral_tendsto_zero
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) :=
+    zetaCompletedExplicitFormulaCorrectionRightOnePoleOffPoleVerticalIntegral_tendsto_projection
       f F h
   have hhorizontal :
       Tendsto
@@ -78,9 +78,9 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentBoundaryDefect_tends
             zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
               f F h u * Complex.I)
         atTop
-        (𝓝 (0 - 0)) :=
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c - 0)) :=
     hright.sub hhorizontal_zero
-  have hdiff_zero :
+  have hdiff_projection :
       Tendsto
         (fun u : ℝ =>
           zetaCompletedExplicitFormulaCorrectionRightOnePoleVerticalIntegral
@@ -88,7 +88,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentBoundaryDefect_tends
             zetaCompletedExplicitFormulaCorrectionOnePoleScheduledHorizontalDifference
               f F h u * Complex.I)
         atTop
-        (𝓝 0) :=
+        (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)) :=
     Eq.subst
       (motive := fun z : ℂ =>
         Tendsto
@@ -99,7 +99,7 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentBoundaryDefect_tends
                 f F h u * Complex.I)
           atTop
           (𝓝 z))
-      (sub_self (0 : ℂ))
+      (sub_zero (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c))
       hdiff
   have hpointwise :
       (fun u : ℝ =>
@@ -131,14 +131,16 @@ theorem zetaCompletedExplicitFormulaCorrectionOnePoleTangentBoundaryDefect_tends
     change L - C * Complex.I = R - H * Complex.I
     calc
       L - C * Complex.I = (L - C * Complex.I + H * Complex.I) - H * Complex.I := by
-        exact (add_sub_cancel (L - C * Complex.I) (H * Complex.I)).symm
+        exact (add_sub_cancel_right (L - C * Complex.I) (H * Complex.I)).symm
       _ = R - H * Complex.I := by
         exact congrArg (fun z : ℂ => z - H * Complex.I) hR.symm
   exact
     Eq.subst
-      (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
+      (motive := fun φ : ℝ → ℂ =>
+        Tendsto φ atTop
+          (𝓝 (zetaCompletedExplicitFormulaRightOnePoleCauchyProjectionValue f F.c)))
       hpointwise.symm
-      hdiff_zero
+      hdiff_projection
 
 end ZetaAdmissibleFunction
 

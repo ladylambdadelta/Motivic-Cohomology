@@ -37,7 +37,7 @@ theorem finiteRectangle_lower_quarter_level_ne
       x - y = x - (x - (ε / 2) / 2) := by
         exact congrArg (fun value : ℝ => x - value) hlevel.symm
       _ = (ε / 2) / 2 := by
-        exact sub_sub_cancel_left x ((ε / 2) / 2)
+        exact sub_sub_cancel x ((ε / 2) / 2)
   have hinner : 2 * ((ε / 2) / 2) = ε / 2 :=
     finiteRectangle_two_mul_half (ε / 2)
   have houter : 2 * (ε / 2) = ε :=

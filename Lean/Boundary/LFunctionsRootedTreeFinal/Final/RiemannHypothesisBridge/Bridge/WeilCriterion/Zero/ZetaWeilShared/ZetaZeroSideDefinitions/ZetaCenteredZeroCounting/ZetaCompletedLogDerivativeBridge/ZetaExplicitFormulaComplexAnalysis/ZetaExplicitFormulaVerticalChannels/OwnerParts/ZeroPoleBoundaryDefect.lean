@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleTangentResidueTransport
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaVerticalChannels.OwnerParts.ZeroPoleHorizontalEdgeBounds
 
 namespace Boundary
 namespace LFunctions
@@ -154,7 +155,7 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleBoundaryDefect_eq_left_sub
     _ = (R + (-R + L)) + -H := by
       exact (add_assoc R (-R + L) (-H)).symm
     _ = ((R + -R) + L) + -H := by
-      exact congrArg (fun x : ℂ => x + -H) (add_assoc R (-R) L)
+      exact congrArg (fun x : ℂ => x + -H) (add_assoc R (-R) L).symm
     _ = (0 + L) + -H := by
       exact congrArg (fun x : ℂ => (x + L) + -H) (add_right_neg R)
     _ = L + -H := by
@@ -287,7 +288,7 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleBoundaryDefect_tendsto_zer
             f F h u)
         atTop
         (𝓝 0) :=
-    zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_tendsto_zero
+    zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_tendsto_zero_ownerZeroPoleHorizontal
       f F h
   have hsub :
       Tendsto
@@ -369,7 +370,7 @@ theorem zetaCompletedExplicitFormulaCorrectionZeroPoleBoundaryDefect_tendsto_zer
               f F h u)
           atTop
           (𝓝 0) :=
-      zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_tendsto_zero
+      zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_tendsto_zero_ownerZeroPoleHorizontal
         f F h
     have hadd :
         Tendsto
@@ -518,7 +519,7 @@ theorem zetaCompletedExplicitFormulaCorrectionLeftZeroPoleScheduledOscillatoryIn
             f F h u)
         atTop
         (𝓝 0) :=
-    zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_tendsto_zero
+    zetaCompletedExplicitFormulaCorrectionZeroPoleScheduledHorizontalDifference_tendsto_zero_ownerZeroPoleHorizontal
       f F h
   have hboundary_norm :
       Tendsto

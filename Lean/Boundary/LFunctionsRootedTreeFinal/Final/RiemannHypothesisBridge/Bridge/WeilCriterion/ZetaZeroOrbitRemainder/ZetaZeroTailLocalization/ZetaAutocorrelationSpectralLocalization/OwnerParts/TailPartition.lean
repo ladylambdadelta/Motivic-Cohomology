@@ -18,7 +18,7 @@ theorem tsum_norm_le_of_selected_vanish_of_complement_majorant
       ∀ x : {x : α // p x ∧ ¬ q x},
         ‖contribution ⟨x.1, x.2.1⟩‖ ≤ majorant x) :
     ‖∑' x : {x : α // p x}, contribution x‖ ≤
-      ∑' x : {x : α // p x ∧ ¬ q x}, majorant x := by
+      ∑' x : {x : α // p x ∧ ¬ q x}, majorant x :=
   let total := {x : α // p x}
   let selected : Set total := fun x => q x.1
   let complement := {x : α // p x ∧ ¬ q x}
@@ -33,44 +33,42 @@ theorem tsum_norm_le_of_selected_vanish_of_complement_majorant
       left_inv := fun x => Subtype.ext (Eq.refl x.1)
       right_inv := fun x =>
         Subtype.ext (Subtype.ext (Eq.refl x.1.1)) }
-  have hsplit :
+  let hsplit :
       (∑' x : selected, contributionTotal x) +
           (∑' x : (selectedᶜ : Set total), contributionTotal x) =
         ∑' x : total, contributionTotal x :=
       tsum_subtype_add_tsum_subtype_compl htotalComplex selected
-  have hselected_fun :
+  let hselected_fun :
       (fun x : selected => contributionTotal x) =
-        (fun selectedElement : selected => 0) := by
-    funext x
-    exact hzero (x.1 : total) x.2
-  have hselected_tsum :
-      (∑' x : selected, contributionTotal x) = 0 := by
-    exact Eq.trans
+        (fun selectedElement : selected => 0) :=
+    funext (fun x => hzero (x.1 : total) x.2)
+  let hselected_tsum :
+      (∑' x : selected, contributionTotal x) = 0 :=
+    Eq.trans
       (congrArg
         (fun f : selected → ℂ => ∑' x : selected, f x)
         hselected_fun)
       tsum_zero
-  have hcomplement_tsum :
+  let hcomplement_tsum :
       (∑' x : (selectedᶜ : Set total), contributionTotal x) =
-        ∑' x : complement, contributionComplement x := by
-    have htransport :
+        ∑' x : complement, contributionComplement x :=
+    let htransport :
         (∑' x : (selectedᶜ : Set total), contributionTotal x) =
           ∑' x : complement, contributionTotal (complementEquiv x) :=
       (complementEquiv.tsum_eq
         (fun x : (selectedᶜ : Set total) => contributionTotal x)).symm
-    have hterms :
+    let hterms :
         (fun x : complement => contributionTotal (complementEquiv x)) =
-          contributionComplement := by
-      funext x
-      exact Eq.refl (contribution ⟨x.1, x.2.1⟩)
-    exact Eq.trans htransport
+          contributionComplement :=
+      funext (fun x => Eq.refl (contribution ⟨x.1, x.2.1⟩))
+    Eq.trans htransport
       (congrArg
         (fun f : complement → ℂ => ∑' x : complement, f x)
         hterms)
-  have htotal_eq_complement :
+  let htotal_eq_complement :
       (∑' x : total, contributionTotal x) =
-        ∑' x : complement, contributionComplement x := by
-    exact Eq.trans
+        ∑' x : complement, contributionComplement x :=
+    Eq.trans
       hsplit.symm
       (Eq.trans
         (congrArg
@@ -80,41 +78,42 @@ theorem tsum_norm_le_of_selected_vanish_of_complement_majorant
         (Eq.trans
           (zero_add (∑' x : (selectedᶜ : Set total), contributionTotal x))
           hcomplement_tsum))
-  have hnorm_summable :
-      Summable (fun x : complement => ‖contributionComplement x‖) := by
+  let hnorm_summable :
+      Summable (fun x : complement => ‖contributionComplement x‖) :=
     let embed : complement → total :=
       fun x => ⟨x.1, x.2.1⟩
-    have hinjective : Function.Injective embed := by
-      intro left right heq
-      exact Subtype.ext
+    let hinjective : Function.Injective embed :=
+      fun left right heq =>
+      Subtype.ext
         (congrArg (fun value : {x : α // p x} => value.1) heq)
-    have hcomposed :
+    let hcomposed :
         Summable ((fun x : total => ‖contributionTotal x‖) ∘ embed) :=
       htotal.comp_injective hinjective
-    have hcomposed_eq :
+    let hcomposed_eq :
         ((fun x : total => ‖contributionTotal x‖) ∘ embed) =
-          (fun x : complement => ‖contributionComplement x‖) := by
-      funext x
-      exact Eq.refl (‖contribution ⟨x.1, x.2.1⟩‖)
-    exact Eq.subst
+          (fun x : complement => ‖contributionComplement x‖) :=
+      funext (fun x => Eq.refl (‖contribution ⟨x.1, x.2.1⟩‖))
+    Eq.subst
       (motive := fun sequence : complement → ℝ => Summable sequence)
       hcomposed_eq
       hcomposed
-  have hnorm_tsum :
+  let hnorm_tsum :
       ‖∑' x : complement, contributionComplement x‖ ≤
         ∑' x : complement, ‖contributionComplement x‖ :=
     norm_tsum_le_tsum_norm hnorm_summable
-  have hmajorant_comparison :
+  let hmajorant_comparison :
       (∑' x : complement, ‖contributionComplement x‖) ≤
         ∑' x : complement, majorant x :=
     tsum_le_tsum hbound hnorm_summable hmajorant
-  have hcomplement_bound :
+  let hcomplement_bound :
       ‖∑' x : complement, contributionComplement x‖ ≤
         ∑' x : complement, majorant x :=
     le_trans hnorm_tsum hmajorant_comparison
-  change ‖∑' x : total, contributionTotal x‖ ≤
-    ∑' x : complement, majorant x
-  exact htotal_eq_complement.symm ▸ hcomplement_bound
+  Eq.subst
+    (motive := fun value : ℂ =>
+      ‖value‖ ≤ ∑' x : complement, majorant x)
+    htotal_eq_complement.symm
+    hcomplement_bound
 
 end
 end LFunctions
